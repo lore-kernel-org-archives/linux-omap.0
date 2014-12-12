@@ -1,49 +1,197 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: omap2plus_defconfig: use CONFIG_CPUFREQ_DT
-Date: Fri, 12 Dec 2014 11:18:58 -0600
-Message-ID: <1418404738-19124-1-git-send-email-nm@ti.com>
+Subject: Re: ARM: OMAP5/DRA7: Fix counter frequency drift for AM572x errata
+ i856
+Date: Fri, 12 Dec 2014 11:37:41 -0600
+Message-ID: <548B27E5.4090108@ti.com>
+References: <20141211204116.GT24110@csclub.uwaterloo.ca> <20141211204308.GU24110@csclub.uwaterloo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, viresh.kumar@linaro.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Simon Horman <horms@verge.net.au>, linux-sh@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58457 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030898AbaLLRiG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Dec 2014 12:38:06 -0500
+In-Reply-To: <20141211204308.GU24110@csclub.uwaterloo.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-CONFIG_GENERIC_CPUFREQ_CPU0 disappeared with commit bbcf071969b20f
-("cpufreq: cpu0: rename driver and internals to 'cpufreq_dt'")
+-sricharan, as the email ID is defunct.
 
-Use the renamed CONFIG_CPUFREQ_DT generic driver. It looks like with
-v3.18-rc1, commit bbcf071969b20f and fdc509b15eb3eb came in via
-different trees causing the resultant v3.18-rc1 to be non-functional for
-cpufreq as default supported with omap2plus_defconfig.
+On 12/11/2014 02:43 PM, Lennart Sorensen wrote:
+> On Thu, Dec 11, 2014 at 03:41:16PM -0500, Lennart Sorensen wrote:
+>> Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
+>> crystal is not enabled at power up.  Instead the CPU falls back to using
+>> an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
+>> 20MHz on boards so far (which gives an emulated frequency of 32.786KHz),
+>> but can also be 19.2 or 27MHz which result in much larger drift.
 
-Fixes: fdc509b15eb3eb ("ARM: omap2plus_defconfig: Add cpufreq to defconfig")
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+Why not just change the clock parent to something that is more
+accurate like the 32k clk?
 
-NOTE: as of v3.18 tag, The following still need to be fixed - I do not have all
-the platforms impacted to make a generic change, so CCying folks who might be interested
+>>
+>> Since this is used to drive the master counter at 32.768KHz * 375 /
+>> 2 = 6.144MHz, the emulated speed for 20MHz is of by 570ppm, or about 43
+>> seconds per day, and more than the 500ppm NTP is able to tolerate.
+>>
+>> Checking the CTRL_CORE_BOOTSTRAP register can determine if the CPU
+>> is using the real 32.768KHz crystal or the emulated SYSCLK1/610, and
+Without digging into docs, This is just the boot configuration, right?
+are we not able to reconfigure?
 
-arch/arm/configs/shmobile_defconfig:CONFIG_GENERIC_CPUFREQ_CPU0=y
-arch/arm/configs/multi_v7_defconfig:CONFIG_GENERIC_CPUFREQ_CPU0=y
+>> by known that the real counter frequency can be determined and used.
+>> The real speed is then SYSCLK1 / 610 * 375 / 2 or SYSCLK1 * 375 / 1220.
+>> This is unfortunately not integer math so the actual arch_timer_freq
+>> needs to be precalculated.
+>>
+>> Also the SYSCLK1 frequencies that have never been used by an omap
+>> evaluation board were all missing a 0.
+>>
 
- arch/arm/configs/omap2plus_defconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please sign-off on you patch. use git format-patch -M -s to generate
+patches. and when posting a series, use --cover-letter. Will also be
+good to provide tests that show that this is indeed an issue on OMAP5
+and DRA7 (considering the $subject here).
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 3e09286..5fc0dbe 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -68,7 +68,7 @@ CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
- CONFIG_CPU_FREQ_GOV_POWERSAVE=y
- CONFIG_CPU_FREQ_GOV_USERSPACE=y
- CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
--CONFIG_GENERIC_CPUFREQ_CPU0=y
-+CONFIG_CPUFREQ_DT=y
- # CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
- CONFIG_CPU_IDLE=y
- CONFIG_BINFMT_MISC=y
+>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>> index 4f61148..2e81511 100644
+>> --- a/arch/arm/mach-omap2/timer.c
+>> +++ b/arch/arm/mach-omap2/timer.c
+>> @@ -513,11 +513,11 @@ static void __init realtime_counter_init(void)
+>>  	rate = clk_get_rate(sys_clk);
+>>  	/* Numerator/denumerator values refer TRM Realtime Counter section */
+>>  	switch (rate) {
+>> -	case 1200000:
+>> +	case 12000000:
+>>  		num = 64;
+>>  		den = 125;
+>>  		break;
+>> -	case 1300000:
+>> +	case 13000000:
+>>  		num = 768;
+>>  		den = 1625;
+>>  		break;
+>> @@ -529,11 +529,11 @@ static void __init realtime_counter_init(void)
+>>  		num = 192;
+>>  		den = 625;
+>>  		break;
+>> -	case 2600000:
+>> +	case 26000000:
+>>  		num = 384;
+>>  		den = 1625;
+>>  		break;
+>> -	case 2700000:
+>> +	case 27000000:
+>>  		num = 256;
+>>  		den = 1125;
+>>  		break;
+
+These should probably fall in as a separate patch.
+
+>> @@ -557,6 +557,73 @@ static void __init realtime_counter_init(void)
+>>  	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+>>  
+>>  	arch_timer_freq = (rate / den) * num;
+>> +
+>> +	if (soc_is_dra7xx()) {
+>> +		#define CTRL_CORE_BOOTSTRAP 0x4A0026C4
+>> +		#define SPEEDSELECT_MASK 0x00000300
+
+we dont usually define it like this.
+
+>> +		void __iomem *corebase;
+>> +		corebase = ioremap(CTRL_CORE_BOOTSTRAP, SZ_4);
+>> +		if (!corebase)
+>> +			pr_err("%s: ioremap failed\n", __func__);
+>> +		else {
+
+also run ./scripts/checkpatch.pl --strict on your patch prior to
+posting. try to ensure there are 0 warnings or checks.
+
+>> +			reg = readl_relaxed(corebase) & SPEEDSELECT_MASK;
+>> +			iounmap(corebase);
+>> +			/*
+>> +			 * Errata i856 says the 32.768KHz crystal does
+>> +			 * not start at power on, so the CPU falls back in
+>> +			 * an emulated 32KHz clock instead.  This causes
+>> +			 * the master counter frequency to not be what it
+>> +			 * was expected to be.	This affects at least
+>> +			 * the AM572x 1.0 and 1.1 revisions.
+>> +			 * Of course any board built without a populated
+>> +			 * 32.768KHz crystal would also need this fix
+>> +			 * even if the CPU is fixed later.
+>> +			 *
+>> +			 * If the two speedselect bits are not 0, then the
+>> +			 * 32.768KHz clock driving the course counter that
+>> +			 * corrects the fine counter every time it ticks is
+>> +			 * actually rate/610 rather than 32.768KHz and we
+>> +			 * should compensate to avoid the 570ppm (At 20MHz,
+>> +			 * much worse at other rates) too fast system time.
+>> +			 *
+>> +			 * Precalculate the arch_timer_freq, since
+>> +			 * rate/610 isn't integer math and accuracy is
+>> +			 * desirable here.
+>> +			 */
+>> +			if (reg) {
+>> +				switch (rate) {
+>> +				case 19200000:
+>> +					num = 375;
+>> +					den = 1220;
+>> +					arch_timer_freq = 5901639;
+>> +					break;
+>> +				case 27000000:
+>> +					num = 375;
+>> +					den = 1220;
+>> +					arch_timer_freq = 8299180;
+>> +					break;
+>> +				case 20000000:
+
+>> +				default:
+>> +					num = 375;
+>> +					den = 1220;
+>> +					arch_timer_freq = 6147541;
+>> +					break;
+>> +				}
+>> +				reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
+>> +						NUMERATOR_DENUMERATOR_MASK;
+>> +				reg |= num;
+>> +				writel_relaxed(reg, base + INCREMENTER_NUMERATOR_OFFSET);
+>> +
+>> +				reg = readl_relaxed(base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET) &
+>> +						NUMERATOR_DENUMERATOR_MASK;
+>> +				reg |= den;
+>> +				writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+>> +
+>> +				printk(KERN_WARNING "DRA7xx CP15 compensated for sloppy internal 32KHz clock.\n");
+
+we would want to reuse the configuration code previously done, not
+repeat the logic.
+
+in general we want the flow to be common - so the point in logic where
+num, den is decided is also the place you want this logic to fit in..
+
+
+>> +			}
+>> +		}
+>> +	}
+>> +
+>>  	set_cntfreq();
+>>  
+>>  	iounmap(base);
+> 
+> I am perfectly willing to split this into two patches it prefered (one
+> for the counter frequency fix and one for the rate typos).
+> 
+> Other cleanups needed would be great too, since I am still not too
+> pleased with how this looks.
+> 
+> With this fix however many boards have run ntp with drift less than 3ppm,
+> so it works very well.
+> 
+
+
 -- 
-1.7.9.5
-
+Regards,
+Nishanth Menon
