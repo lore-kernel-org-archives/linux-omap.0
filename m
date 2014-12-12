@@ -1,64 +1,73 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH] gpio: pcf857x: restore the initial line state of all pcf lines
-Date: Fri, 12 Dec 2014 13:36:41 +0530
-Message-ID: <1418371601-22658-1-git-send-email-kishon@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: __hci_cmd_sync() not suitable for nokia h4p
+Date: Fri, 12 Dec 2014 10:51:54 +0100
+Message-ID: <20141212095153.GB2905@amd>
+References: <20141209190210.GA15641@amd>
+ <304050AD-DB11-4A2B-A1F7-8B1BBB5F04F0@holtmann.org>
+ <20141209201328.GA18003@amd>
+ <7EFD3C33-E503-4FB6-BCCF-52836080ABD6@holtmann.org>
+ <20141210131519.GA14748@amd>
+ <EE1A4B9D-30D5-4BD9-9A43-532619494A0C@holtmann.org>
+ <20141211221306.GA2905@amd>
+ <CAA1630D-1A2E-4D3D-9BBC-2EE86256D58B@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
-Cc: kishon@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAA1630D-1A2E-4D3D-9BBC-2EE86256D58B@holtmann.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <ivo.g.dimitrov.75@gmail.com>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The reset values for all the PCF lines are high and hence on shutdown
-we should drive all the lines high in order to bring it to the reset state.
+Hi!
 
-This is actually required since pcf doesn't have a reset line and even after
-warm reset (by invoking "reboot" in prompt) the pcf lines maintains it's
-previous programmed state. This becomes a problem if the boards are designed
-to work with the default initial state.
+> >>>> What needs to be done is the bring up of the device including the proper UART settings and speed and then just run the firmware downloads. All firmware files on the Nokia devices where just HCI commands with vendor specific details. Some from CSR, some from Broadcom and some from TI. You can actually decode them if you really want to. Shouldn't be that hard.
+> >>>> 
+> >>> 
+> >>> Speed changes at the end of firmware load, but I guess that's detail?
+> >>> Anyway, patch would look like this.
+> >> 
+> >> You should really look into providing hdev->setup() callback. That is normally the callback where you want to load the firmware.
+> >> 
+> > 
+> > I can provide setup() callback and load firmware from there.
+> > 
+> > I have created provisional device tree binding, and the driver still
+> > works.
+> > 
+> > Some time ago you mentioned that with the "big" issues fixed, you'd be
+> > willing to take it into the tree. What way forward do you see? Would
+> > it make sense to re-enable the driver in staging, so that "big"
+> > changes could be applied, followed by renames?
+> 
+> If the driver is clean, there is no point in taking it through staging. It can be cleaned up and then merged all together.
+>
 
-DRA7XX_evm uses PCF8575 and one of the PCF output lines feeds to MMC/SD and
-this line should be driven high in order for the MMC/SD to be detected.
-This line is modelled as regulator and the hsmmc driver takes care of enabling
-and disabling it. In the case of 'reboot', during shutdown path as part of it's
-cleanup process the hsmmc driver disables this regulator. This makes MMC boot
-not functional.
+Ok, so you can revert a4102f90e87cfaa3fdbed6fdf469b23f0eeb4bfd in your
+tree, and I can post patches against that?
 
-Fixed it by driving high all the pcf lines.
+> I think the important part is to focus on the N900 derivative with
+>the Broadcom chip inside. And just ignore all the rest. So start
+>small and do not try to carry the N770, N800, N810 hacks over.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/gpio/gpio-pcf857x.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Well, I did remove non-relevant firmware loaders, and I can remove the
+switches for different firmware loaders, too, but spending time
+removing support for different hardware does not sound quite right.
 
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 236708a..00b15b2 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -448,6 +448,14 @@ static int pcf857x_remove(struct i2c_client *client)
- 	return status;
- }
- 
-+static void pcf857x_shutdown(struct i2c_client *client)
-+{
-+	struct pcf857x *gpio = i2c_get_clientdata(client);
-+
-+	/* Drive all the I/O lines high */
-+	gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
-+}
-+
- static struct i2c_driver pcf857x_driver = {
- 	.driver = {
- 		.name	= "pcf857x",
-@@ -456,6 +464,7 @@ static struct i2c_driver pcf857x_driver = {
- 	},
- 	.probe	= pcf857x_probe,
- 	.remove	= pcf857x_remove,
-+	.shutdown = pcf857x_shutdown,
- 	.id_table = pcf857x_id,
- };
- 
+> However you might want to check Neil Brown's patches for TTY-slave
+>devices he just posted. Maybe the N900 devices should be exposed as
+>TTY and we just attach N_HCI line discipline to it. If all the GPIO
+>wiggling can be done automatically at TTY open, then that should be
+>the way to go. I also send an email about using the new unconfigured
+>stage to get this done cleanly.
+
+I seen them, but they don't help, I'm afraid. The GPIOs are used for
+power saving, and they are used in various places including the serial
+irq handler.
+
+Best regards,
+									Pavel
 -- 
-1.7.9.5
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
