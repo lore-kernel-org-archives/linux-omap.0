@@ -1,43 +1,82 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
-Subject: Re: ARM: OMAP5/DRA7: Fix counter frequency drift for AM572x errata
- i856
-Date: Fri, 12 Dec 2014 15:42:19 -0500
-Message-ID: <20141212204219.GZ24110@csclub.uwaterloo.ca>
-References: <20141211204116.GT24110@csclub.uwaterloo.ca>
- <20141211204308.GU24110@csclub.uwaterloo.ca>
- <548B27E5.4090108@ti.com>
- <20141212192303.GY24110@csclub.uwaterloo.ca>
- <20141212194001.GA30966@kahuna>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [RFC PATCH 2/3] soc: ti: Add wkup_m3_ipc driver
+Date: Fri, 12 Dec 2014 16:03:21 -0600
+Message-ID: <548B6629.6050203@ti.com>
+References: <cover.1417029919.git.d-gerlach@ti.com> <3334d8483dca2d061cf43da9c047ec27f31e8719.1417029919.git.d-gerlach@ti.com> <2763467.KfXHXHxPJd@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141212194001.GA30966@kahuna>
+In-Reply-To: <2763467.KfXHXHxPJd@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 12, 2014 at 01:40:01PM -0600, Nishanth Menon wrote:
-> we try and avoid soc_is or cpu_is as much as possible and depend usually
-> on compatible to mark the change..
+On 11/26/2014 03:51 PM, Arnd Bergmann wrote:
+> On Wednesday 26 November 2014 15:38:09 Dave Gerlach wrote:
+>> +
+>> +static const struct wkup_m3_wakeup_src wakeups[] = {
+>> +       {.irq_nr = 35,  .src = "USB0_PHY"},
+>> +       {.irq_nr = 36,  .src = "USB1_PHY"},
+>> +       {.irq_nr = 40,  .src = "I2C0"},
+>> +       {.irq_nr = 41,  .src = "RTC Timer"},
+>> +       {.irq_nr = 42,  .src = "RTC Alarm"},
+>> +       {.irq_nr = 43,  .src = "Timer0"},
+>> +       {.irq_nr = 44,  .src = "Timer1"},
+>> +       {.irq_nr = 45,  .src = "UART"},
+>> +       {.irq_nr = 46,  .src = "GPIO0"},
+>> +       {.irq_nr = 48,  .src = "MPU_WAKE"},
+>> +       {.irq_nr = 49,  .src = "WDT0"},
+>> +       {.irq_nr = 50,  .src = "WDT1"},
+>> +       {.irq_nr = 51,  .src = "ADC_TSC"},
+>> +       {.irq_nr = 0,   .src = "Unknown"},
+>> +};
+>>
+> 
+> This seems awfully specific to some SoC version, and not aware of
+> IRQ domains. It also seems to be only used in a dev_dbg statement,
+> so I guess you could just kill this off entirely.
 
-Well you can't use the dtb really, since it depends on the chip revision
-and how it started at power on.  After all if you purposely don't connect
-a 32KHz crystal to save board space and cost, then you will also need this
-"fix" to make time work properly, which is in fact what we will now be doing.
+This is determined by the firmware in use on the remote processor and works for
+both am335x and am437x. However it is not required information and I'd be fine
+with taking it out.
 
-> k, thanks. lets go through your next rev to see if we can improve on the
-> same. btw, nice catch :) - thanks for proposing a fix.
+> 
+>> +static struct rproc *wkup_m3_get_rproc(struct device *dev)
+>> +{
+>> +       struct device_node *node;
+>> +       struct rproc *rp;
+>> +
+>> +       node = of_parse_phandle(dev->of_node, "ti,rproc", 0);
+>> +       if (!node)
+>> +               return NULL;
+>> +
+>> +       dev = bus_find_device(&platform_bus_type, NULL, node, match);
+>> +       if (!dev)
+>> +               return NULL;
+>> +
+>> +       rp = dev_get_drvdata(dev);
+>> +       return rp;
+> 
+> This is wrong on a number of levels. I suspect what you really want
+> is an interface exported from drivers/remoteproc that looks up
+> a 'struct rproc' and performs the necessary reference counting.
+> 
+> That one can just use of_find_node_by_phandle() to get to
+> a device_node and use that to look up the rproc device in
+> a linked list it maintains.
 
-Well we have been trying to get the system time to run well and have ntp
-happy for a few months now and it took the die designers quite a while
-to track down the power on problem with the 32KHz crystal.  Unfortunately
-the emulation using 20000000/610 is close enough that you don't notice
-it unless you are looking at time keeping issues.  Of course if you try
-any of the other SYSCLK1 options for the CPU then time goes totally wrong.
-With a 19.2MHz crystal it was running almost 5% too slow which was
-very noticeable.
+Added Ohad as I should have cc'd him in the first place..
 
--- 
-Len Sorensen
+Yes I agree that it's not the best solution. There used to be an
+rproc_get/rproc_put api but that was removed, I'll look into adding
+rproc_get_by_phandle into drivers/remoteproc as that would be ideal for this
+situation and a cleaner way of doing it. Thanks for the comments.
+
+Regards,
+Dave
+
+> 
+> 	Arnd
+> 
