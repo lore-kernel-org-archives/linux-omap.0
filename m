@@ -1,40 +1,57 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP2+: quick clock fixes for linux-next
-Date: Mon, 15 Dec 2014 10:05:17 +0530
-Message-ID: <548E6505.3090804@ti.com>
-References: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP3: clock: fix boot breakage in legacy mode
+Date: Mon, 15 Dec 2014 09:56:07 +0200
+Message-ID: <548E9417.50502@ti.com>
+References: <1418390521-7541-1-git-send-email-t-kristo@ti.com>	<1418390521-7541-3-git-send-email-t-kristo@ti.com> <7hvblgk7q0.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41452 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:52113 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbaLOEfp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Dec 2014 23:35:45 -0500
-In-Reply-To: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1750879AbaLOHzG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2014 02:55:06 -0500
+In-Reply-To: <7hvblgk7q0.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
+On 12/12/2014 09:07 PM, Kevin Hilman wrote:
+> Hi Tero,
+>
+> Tero Kristo <t-kristo@ti.com> writes:
+>
+>> The new usage of determine_rate and set_rate_and_parent calls for
+>> OMAP DPLLs assumes the DPLLs must have two parents defined, even
+>> if it is the same clock. Legacy clock data did not fullfill this
+>> requirement and caused a boot crash. Fixed by adding the missing
+>> parent information to the DPLL clocks.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Fixes: 2e1a7b014f ("ARM: OMAP3+: DPLL: use determine_rate() and...")
+>> Cc: Kevin Hilman <khilman@kernel.org>
+>
+> I tested this on linux-next (next-20141210, same version where I found
+> the bug) and this doesn't fix the boot problem.
+>
+> BTW, in testing this, I noticed that the OMAP clock code is still
+> spitting out compile warnings[1].  These should cleaned up too.
 
+Did you apply both of my patches from this set?
 
-On Friday 12 December 2014 06:51 PM, Tero Kristo wrote:
-> Hi,
-> 
-> These patches fix a couple of bugs in linux-next. I didn't see official
-> patch for #1 anywhere so posted here, was discussed under a thread on
-> linux-omap list though.
-> 
-> -Tero
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I think the DPLL fix might be required also to get this working properly 
+on OMAP3 legacy.
 
-Thanks, these clk fixes helped me in testing pcie on dra7.
+-Tero
 
-Regards
-Vignesh
+>
+> Kevin
+>
+> [1]
+> ../arch/arm/mach-omap2/cclock3xxx_data.c:263:2: warning: initialization from incompatible pointer type [enabled by default]
+> ../arch/arm/mach-omap2/cclock3xxx_data.c:263:2: warning: (near initialization for 'dpll1_ck_ops.determine_rate') [enabled by default]
+> ../arch/arm/mach-omap2/cclock3xxx_data.c:376:2: warning: initialization from incompatible pointer type [enabled by default]
+> ../arch/arm/mach-omap2/cclock3xxx_data.c:376:2: warning: (near initialization for 'dpll4_ck_ops.determine_rate') [enabled by default]
+>
+
