@@ -1,36 +1,67 @@
-From: Catalin Crenguta <catalin.crenguta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
-Date: Mon, 15 Dec 2014 14:45:03 +0200
-Message-ID: <CABH3fy9f9oaV=PKTP+-tS9ADd8bD1oqO--SH0fh9LemqwdL3zA@mail.gmail.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
-	<20141124115116.GA14997@linutronix.de>
-	<547C3A95.30605@ti.com>
-	<547C3C19.5090501@linutronix.de>
-	<547C42FF.5010700@ti.com>
-	<CAH=tA9FO5MCzE274thc-NugCNte6WdyC-Rxc6yfnuR=+6_qMbA@mail.gmail.com>
-	<548A0125.6040708@linutronix.de>
-	<CABH3fy8zCjsxARsqBf9JXOHBkzySdiqifA1KtjnGpJdBY2EikA@mail.gmail.com>
-	<912A29987EAE174BA6CF187D7CDFA9CE26FA135A@DLEE08.ent.ti.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH 2/2] ARM: OMAP3: clock: fix boot breakage in legacy mode
+Date: Mon, 15 Dec 2014 10:23:38 -0800
+Message-ID: <7hfvcgixg5.fsf@deeprootsystems.com>
+References: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
+	<1418390521-7541-3-git-send-email-t-kristo@ti.com>
+	<7hvblgk7q0.fsf@deeprootsystems.com> <548E9417.50502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <912A29987EAE174BA6CF187D7CDFA9CE26FA135A-YmePFLaaepqIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>
-Cc: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Nicolae Rosia <nicolae.rosia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, "richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:35868 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750816AbaLOSXm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2014 13:23:42 -0500
+Received: by mail-pd0-f169.google.com with SMTP id z10so12243158pdj.0
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2014 10:23:41 -0800 (PST)
+In-Reply-To: <548E9417.50502@ti.com> (Tero Kristo's message of "Mon, 15 Dec
+	2014 09:56:07 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri, Dec 12, 2014 at 4:16 PM, Griffis, Brad <bgriffis-l0cyMroinI0@public.gmane.org> wrote:
-> How are you configuring ti,charge-delay in your dts?  I've seen this behavior on some custom boards where we were using a smaller charge delay (0x400) to begin with, and by upping it to 0xb000 we resolved the issue.  These patches however already specified ti,charge-delay = 0xb000 by default so this would surprise me that it's still seeing that issue.  Was the touchscreen working as expected before these new patches, or does it have issues both ways?
+Tero Kristo <t-kristo@ti.com> writes:
 
-I have created a DTS for Beaglebone Black with 4 wire touchscreen and
-display which works on 3.18 stable and tsc-devel, omap2plus_defconfig
-with tsc and tilcdc support.
-It seems that with lcdc disabled, I am not getting false reports but
-when I'm activating the lcdc, I get a lot of false pen-downs/pen-ups.
-Even with tilcdc enabled, after it prints "timeout waiting for
-framedone" and the screen get blanked (white), the noise is gone.
+> On 12/12/2014 09:07 PM, Kevin Hilman wrote:
+>> Hi Tero,
+>>
+>> Tero Kristo <t-kristo@ti.com> writes:
+>>
+>>> The new usage of determine_rate and set_rate_and_parent calls for
+>>> OMAP DPLLs assumes the DPLLs must have two parents defined, even
+>>> if it is the same clock. Legacy clock data did not fullfill this
+>>> requirement and caused a boot crash. Fixed by adding the missing
+>>> parent information to the DPLL clocks.
+>>>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> Fixes: 2e1a7b014f ("ARM: OMAP3+: DPLL: use determine_rate() and...")
+>>> Cc: Kevin Hilman <khilman@kernel.org>
+>>
+>> I tested this on linux-next (next-20141210, same version where I found
+>> the bug) and this doesn't fix the boot problem.
+>>
+>> BTW, in testing this, I noticed that the OMAP clock code is still
+>> spitting out compile warnings[1].  These should cleaned up too.
+>
+> Did you apply both of my patches from this set?
 
-Regards,
-Catalin.
+No, I didn't.  That wasn't clear (to me) from the changelogs.
+
+> I think the DPLL fix might be required also to get this working
+> properly on OMAP3 legacy.
+
+Yup, with both applied, it's now booting fine on omap3-beagle-xm legacy
+mode.
+
+Tested-by: Kevin Hilman <khilman@linaro.org>
+
+And, please add:
+
+Reported-by: Kevin Hilman <khilman@linaro.org>
+
+(c.f. Reported-by section in Documentation/SubmittingPatches).  
+
+Thanks,
+
+Kevin
