@@ -1,83 +1,59 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: bluetooth: Add hci_h4p driver
-Date: Sun, 14 Dec 2014 23:41:38 +0100
-Message-ID: <20141214224138.GA11447@amd>
-References: <20141213223727.GA13894@amd>
- <570BAC61-3137-42E5-B4F8-A61AEED380DE@holtmann.org>
- <20141214192124.GA22392@amd>
- <D1F25806-07C6-4876-8E62-A16CFB6827EA@holtmann.org>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH] ARM: omap2plus_defconfig: use CONFIG_CPUFREQ_DT
+Date: Mon, 15 Dec 2014 09:53:01 +0530
+Message-ID: <CAOh2x=mTg8O-cqjkPPL6hSS3Jspk8h8xrdHGCR04iPNMYEK-Gw@mail.gmail.com>
+References: <1418404738-19124-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <D1F25806-07C6-4876-8E62-A16CFB6827EA-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1418404738-19124-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Linux PM list <linux-pm@vger.kernel.org>, linux-sh@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Simon Horman <horms@verge.net.au>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> >>> Hacks surrounding bluetooth address were removed; this results in
-> >>> working driver with address that is probably not unique.
-> >> 
-> >> Just set HCI_QUIRK_INVALID_BDADDR and let someone deal with that in userspace. You can use the btmgmt public-addr command for testing.
-> >> 
-> > 
-> > Ok, it took me a while to figure out that --enable-experimental is
-> > needed.
-> > 
-> > Then help was playing tricks with me:
-> > 
-> > For more information on the usage of each command use:
-> >    btmgmt <command> --help
-> > root@n900:/my/bluez-5.26/tools# ./btmgmt public-addr --help
-> > Set Public Address for hci0 failed with status 0x0b (Rejected)
-> > root@n900:/my/bluez-5.26/tools# ./btmgmt public-addr
-> > Usage: btmgmt public-addr <address>
-> 
-> that is indeed confusing. Something went wrong with that tool. Just keep in mind that tool is just for internal testing by the developers. Someone would still need to write a proper integration with listening for the appropriate events and dig out the actual address from the memory location.
+On Fri, Dec 12, 2014 at 10:48 PM, Nishanth Menon <nm@ti.com> wrote:
+> CONFIG_GENERIC_CPUFREQ_CPU0 disappeared with commit bbcf071969b20f
+> ("cpufreq: cpu0: rename driver and internals to 'cpufreq_dt'")
 >
-
-You have patch that helps that issues in the email :-).
-
-> > root@n900:/my/bluez-5.26/tools# ./btmgmt public-addr 01:02:03:04:05:06
-> > Set Public Address for hci0 failed with status 0x0b (Rejected)
-> > 
-> > Hmm. Since setting public address only works when interface is down,
-> > and we lose all the settings during up, this does not work at all,
-> > right?
-> 
-> It does keep it. The address is stored in hdev->public_addr which is actually different from hdev->bdaddr which is the current address in use.
-> 
-> However I am not sure that hdev->set_bdaddr is executed again. Same
-> as hdev->setup is not executed twice. The controller loosing all
-> states is something we have not yet encountered. At least not
-> while the hci_dev stays around.
-
-It looks like that's the exact issue. It seems to me like set_bdaddr
-is actually called while the device is "down".
-
-> I wonder if the drastic power off might be better hooked into a
-> platform RFKILL switch. And with that you would just unregister
-> hci_dev and re-register it when the RFKILL switch is unblocked.
-
-Ok, so kernel currently wants bluetooth out of reset at 
-
-> The other option is to introduce a quirk that allows running hdev->setup and hdev->set_bdaddr all the time when you bring up your device.
-> 
-> Another alternate idea for getting something upstream for testing is to ignore the whole firmware loading in the kernel and bring up the controller with HCI_QUIRK_EXTERNAL_CONFIG. Doing that would allow you to do bette testing and evolve the driver in small tests.
+> Use the renamed CONFIG_CPUFREQ_DT generic driver. It looks like with
+> v3.18-rc1, commit bbcf071969b20f and fdc509b15eb3eb came in via
+> different trees causing the resultant v3.18-rc1 to be non-functional for
+> cpufreq as default supported with omap2plus_defconfig.
 >
+> Fixes: fdc509b15eb3eb ("ARM: omap2plus_defconfig: Add cpufreq to defconfig")
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Actually, firmware loading is _not_ the biggest problem. That is
-pretty self-contained now.
+Whomsoever applies it, please add:
 
-I guess I should just configure it at probe time, put it into reset
-during rmmod, keep it out of reset otherwise, and see how it works.
+Cc: <stable@vger.kernel.org>        # 3.18
 
-Thanks,
+> ---
+>
+> NOTE: as of v3.18 tag, The following still need to be fixed - I do not have all
+> the platforms impacted to make a generic change, so CCying folks who might be interested
+>
+> arch/arm/configs/shmobile_defconfig:CONFIG_GENERIC_CPUFREQ_CPU0=y
+> arch/arm/configs/multi_v7_defconfig:CONFIG_GENERIC_CPUFREQ_CPU0=y
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+I have fixed them now.
+
+>
+>  arch/arm/configs/omap2plus_defconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 3e09286..5fc0dbe 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -68,7 +68,7 @@ CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
+>  CONFIG_CPU_FREQ_GOV_POWERSAVE=y
+>  CONFIG_CPU_FREQ_GOV_USERSPACE=y
+>  CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+> -CONFIG_GENERIC_CPUFREQ_CPU0=y
+> +CONFIG_CPUFREQ_DT=y
+>  # CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
+>  CONFIG_CPU_IDLE=y
+>  CONFIG_BINFMT_MISC=y
+
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
