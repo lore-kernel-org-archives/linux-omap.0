@@ -1,67 +1,103 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH 2/2] ARM: OMAP3: clock: fix boot breakage in legacy mode
-Date: Mon, 15 Dec 2014 10:23:38 -0800
-Message-ID: <7hfvcgixg5.fsf@deeprootsystems.com>
-References: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
-	<1418390521-7541-3-git-send-email-t-kristo@ti.com>
-	<7hvblgk7q0.fsf@deeprootsystems.com> <548E9417.50502@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] gpio: pcf857x: restore the initial line state of all
+ pcf lines
+Date: Mon, 15 Dec 2014 14:50:23 -0600
+Message-ID: <548F498F.7050202@ti.com>
+References: <1418371601-22658-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:35868 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750816AbaLOSXm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2014 13:23:42 -0500
-Received: by mail-pd0-f169.google.com with SMTP id z10so12243158pdj.0
-        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2014 10:23:41 -0800 (PST)
-In-Reply-To: <548E9417.50502@ti.com> (Tero Kristo's message of "Mon, 15 Dec
-	2014 09:56:07 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1418371601-22658-1-git-send-email-kishon@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+On 12/12/2014 02:06 AM, Kishon Vijay Abraham I wrote:
+> The reset values for all the PCF lines are high and hence on shutdown
+> we should drive all the lines high in order to bring it to the reset state.
+> 
+> This is actually required since pcf doesn't have a reset line and even after
+> warm reset (by invoking "reboot" in prompt) the pcf lines maintains it's
+> previous programmed state. This becomes a problem if the boards are designed
+> to work with the default initial state.
+> 
+> DRA7XX_evm uses PCF8575 and one of the PCF output lines feeds to MMC/SD and
+> this line should be driven high in order for the MMC/SD to be detected.
+> This line is modelled as regulator and the hsmmc driver takes care of enabling
+> and disabling it. In the case of 'reboot', during shutdown path as part of it's
+> cleanup process the hsmmc driver disables this regulator. This makes MMC boot
+> not functional.
+> 
+> Fixed it by driving high all the pcf lines.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/gpio/gpio-pcf857x.c |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
+> index 236708a..00b15b2 100644
+> --- a/drivers/gpio/gpio-pcf857x.c
+> +++ b/drivers/gpio/gpio-pcf857x.c
+> @@ -448,6 +448,14 @@ static int pcf857x_remove(struct i2c_client *client)
+>  	return status;
+>  }
+>  
+> +static void pcf857x_shutdown(struct i2c_client *client)
+> +{
+> +	struct pcf857x *gpio = i2c_get_clientdata(client);
+> +
+> +	/* Drive all the I/O lines high */
+> +	gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
 
-> On 12/12/2014 09:07 PM, Kevin Hilman wrote:
->> Hi Tero,
->>
->> Tero Kristo <t-kristo@ti.com> writes:
->>
->>> The new usage of determine_rate and set_rate_and_parent calls for
->>> OMAP DPLLs assumes the DPLLs must have two parents defined, even
->>> if it is the same clock. Legacy clock data did not fullfill this
->>> requirement and caused a boot crash. Fixed by adding the missing
->>> parent information to the DPLL clocks.
->>>
->>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>> Fixes: 2e1a7b014f ("ARM: OMAP3+: DPLL: use determine_rate() and...")
->>> Cc: Kevin Hilman <khilman@kernel.org>
->>
->> I tested this on linux-next (next-20141210, same version where I found
->> the bug) and this doesn't fix the boot problem.
->>
->> BTW, in testing this, I noticed that the OMAP clock code is still
->> spitting out compile warnings[1].  These should cleaned up too.
->
-> Did you apply both of my patches from this set?
+you might force a contention here - depending on System configuration.
+example:
++-------+
+|       |
+|  U1   |         +------+      +-----------+
+|       +--------->      |      |           |
++-------+         |      |      |           |
+                  | Switch<-----+    SoC    |
++-------+         |      |      |           |
+|       |         |      |      |           |
+| U2    <---------+--^---+      +-----------+
+|       |            |
+|       |            |
++-------+            |
+                  +--+--+
+                  |     |
+                  | PCF |
+                  |     |
+                  +-----+
 
-No, I didn't.  That wasn't clear (to me) from the changelogs.
+At low, SoC pin is connected to U2 as drive. when reset to high, you
+now have U1 driving to the same pin that SoC has, potentially
+resulting in contention.
 
-> I think the DPLL fix might be required also to get this working
-> properly on OMAP3 legacy.
 
-Yup, with both applied, it's now booting fine on omap3-beagle-xm legacy
-mode.
+Unfortunately, at this level, you do not know what the state of the
+system is, blindly forcing a pin level will potentially cause
+contention risk depending on pin configuration.
 
-Tested-by: Kevin Hilman <khilman@linaro.org>
 
-And, please add:
+> +}
+> +
+>  static struct i2c_driver pcf857x_driver = {
+>  	.driver = {
+>  		.name	= "pcf857x",
+> @@ -456,6 +464,7 @@ static struct i2c_driver pcf857x_driver = {
+>  	},
+>  	.probe	= pcf857x_probe,
+>  	.remove	= pcf857x_remove,
+> +	.shutdown = pcf857x_shutdown,
+>  	.id_table = pcf857x_id,
+>  };
+>  
+> 
 
-Reported-by: Kevin Hilman <khilman@linaro.org>
 
-(c.f. Reported-by section in Documentation/SubmittingPatches).  
-
-Thanks,
-
-Kevin
+-- 
+Regards,
+Nishanth Menon
