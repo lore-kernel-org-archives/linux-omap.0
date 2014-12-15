@@ -1,30 +1,45 @@
-From: Catalin Crenguta <catalin.crenguta@gmail.com>
-Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
-Date: Mon, 15 Dec 2014 09:55:56 +0200
-Message-ID: <CABH3fy8PqbC3DZkFLcoaaXqFAex+oCh7=1a=-cymhXU_ayDNcg@mail.gmail.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
-	<20141124115116.GA14997@linutronix.de>
-	<547C3A95.30605@ti.com>
-	<547C3C19.5090501@linutronix.de>
-	<547C42FF.5010700@ti.com>
-	<CAH=tA9FO5MCzE274thc-NugCNte6WdyC-Rxc6yfnuR=+6_qMbA@mail.gmail.com>
-	<548A0125.6040708@linutronix.de>
-	<CABH3fy8zCjsxARsqBf9JXOHBkzySdiqifA1KtjnGpJdBY2EikA@mail.gmail.com>
-	<912A29987EAE174BA6CF187D7CDFA9CE26FA135A@DLEE08.ent.ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [GIT PULL] rpmsg for 3.19
+Date: Mon, 15 Dec 2014 10:16:25 +0200
+Message-ID: <CAK=Wgbbq5zCjuii2SQoB-erLTT_oOQAfmVe9CNuDuDB4=CkPmg@mail.gmail.com>
+References: <CAK=WgbZJX1GxB-nDwYtS3Qw-TY32QBkywsCaajnCqPXhZ=HQCg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <912A29987EAE174BA6CF187D7CDFA9CE26FA135A@DLEE08.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Griffis, Brad" <bgriffis@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Nicolae Rosia <nicolae.rosia@gmail.com>, "R, Vignesh" <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, "richardcochran@gmail.com" <richardcochran@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:47273 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317AbaLOIQq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2014 03:16:46 -0500
+Received: by mail-ie0-f177.google.com with SMTP id rd18so10263825iec.22
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2014 00:16:45 -0800 (PST)
+In-Reply-To: <CAK=WgbZJX1GxB-nDwYtS3Qw-TY32QBkywsCaajnCqPXhZ=HQCg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Anna, Suman" <s-anna@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, Dec 12, 2014 at 4:16 PM, Griffis, Brad <bgriffis@ti.com> wrote:
+[Resending in plain text mode - sorry]
 
-> How are you configuring ti,charge-delay in your dts?  I've seen this behavior on some custom boards where we were using a smaller charge delay (0x400) to begin with, and by upping it to 0xb000 we resolved the issue.  These patches however already specified ti,charge-delay = 0xb000 by default so this would surprise me that it's still seeing that issue.  Was the touchscreen working as expected before these new patches, or does it have issues both ways?
+The following changes since commit 5d01410fe4d92081f349b013a2e7a95429e4f2c9:
 
-Initially I had set the charge-delay to 0x400 and I was seeing many
-false pen-down/pen-up events With 0xb000, I was still getting many of
-them but less than with 0x400.
+  Linux 3.18-rc6 (2014-11-23 15:25:20 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
+tags/rpmsg-3.19-next
+
+for you to fetch changes up to b1b9891441fa33fd0d49b5cb3aa7f04bca1cc1db:
+
+  rpmsg: use less buffers when vrings are small (2014-11-26 18:24:36 +0200)
+
+----------------------------------------------------------------
+A single patch from Suman Anna which makes rpmsg
+use less buffers when small vrings are being used.
+
+----------------------------------------------------------------
+Suman Anna (1):
+      rpmsg: use less buffers when vrings are small
+
+ drivers/rpmsg/virtio_rpmsg_bus.c | 44 +++++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
