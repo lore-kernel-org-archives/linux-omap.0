@@ -1,65 +1,73 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [GIT PULL] few fixes for the v3.19 merge window
-Date: Mon, 15 Dec 2014 14:44:00 -0800
-Message-ID: <7hvblcfs9b.fsf@deeprootsystems.com>
-References: <20141210205752.GB12921@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP3: clock: fix boot breakage in legacy mode
+Date: Mon, 15 Dec 2014 14:58:56 -0800
+Message-ID: <20141215225855.GB23854@atomide.com>
+References: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
+ <1418390521-7541-3-git-send-email-t-kristo@ti.com>
+ <7hvblgk7q0.fsf@deeprootsystems.com>
+ <548E9417.50502@ti.com>
+ <7hfvcgixg5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:34148 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbaLOWoE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2014 17:44:04 -0500
-Received: by mail-pd0-f171.google.com with SMTP id y13so12602495pdi.30
-        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2014 14:44:02 -0800 (PST)
-In-Reply-To: <20141210205752.GB12921@atomide.com> (Tony Lindgren's message of
-	"Wed, 10 Dec 2014 12:57:52 -0800")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19629 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751202AbaLOXB5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2014 18:01:57 -0500
+Content-Disposition: inline
+In-Reply-To: <7hfvcgixg5.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+* Kevin Hilman <khilman@kernel.org> [141215 10:26]:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > On 12/12/2014 09:07 PM, Kevin Hilman wrote:
+> >> Hi Tero,
+> >>
+> >> Tero Kristo <t-kristo@ti.com> writes:
+> >>
+> >>> The new usage of determine_rate and set_rate_and_parent calls for
+> >>> OMAP DPLLs assumes the DPLLs must have two parents defined, even
+> >>> if it is the same clock. Legacy clock data did not fullfill this
+> >>> requirement and caused a boot crash. Fixed by adding the missing
+> >>> parent information to the DPLL clocks.
+> >>>
+> >>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> >>> Fixes: 2e1a7b014f ("ARM: OMAP3+: DPLL: use determine_rate() and...")
+> >>> Cc: Kevin Hilman <khilman@kernel.org>
+> >>
+> >> I tested this on linux-next (next-20141210, same version where I found
+> >> the bug) and this doesn't fix the boot problem.
+> >>
+> >> BTW, in testing this, I noticed that the OMAP clock code is still
+> >> spitting out compile warnings[1].  These should cleaned up too.
+> >
+> > Did you apply both of my patches from this set?
+> 
+> No, I didn't.  That wasn't clear (to me) from the changelogs.
 
-> The following changes since commit a0e4467726cd26bacb16f13d207ffcfa82ffc07d:
->
->   Merge tag 'asm-generic-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic (2014-12-09 17:25:00 -0800)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/fixes-for-merge-window
->
-> for you to fetch changes up to 661ea91b676bcca137c1c3fe838997925ce98060:
->
->   ARM: omap2plus_defconfig: Enable AHCI_PLATFORM driver (2014-12-10 09:33:50 -0800)
->
-> ----------------------------------------------------------------
-> Fixes for a few issues found that would be good to get
-> into -rc1:
->
-> - Update SoC revision detection for am43x es1.2
->
-> - Fix regression with GPMC timings on 2430sdp for some versions
->   of u-boot
->
-> - Fix dra7 watchdog compatible property
->
-> - Fix am437x-sk-evm LCD timings
->
-> - Fix dra7 DSS clock muxing
->
-> - Fix dra7-evm voltages
->
-> - Remove a unused function prototype for am33xx_clk_init
->
-> - Enable AHCI in the omap2plus_defconfig
->
-> ----------------------------------------------------------------
+The first one Mike is alredy fixing in his clock branch AFAIK.
+ 
+> > I think the DPLL fix might be required also to get this working
+> > properly on OMAP3 legacy.
+> 
+> Yup, with both applied, it's now booting fine on omap3-beagle-xm legacy
+> mode.
+> 
+> Tested-by: Kevin Hilman <khilman@linaro.org>
+> 
+> And, please add:
+> 
+> Reported-by: Kevin Hilman <khilman@linaro.org>
+> 
+> (c.f. Reported-by section in Documentation/SubmittingPatches).  
 
-Pulled into fixes.
+I'll queue the second one separately after Mike's clock changes
+hit mainline.
 
-Not sure yet if this will make it before -rc1 or not.  I think Arnd has
-a couple more pull requests outstanding, so he may be able to include
-this before -rc1.  Otherwise, it may wait until the after -rc1.
+Thanks,
 
-Kevin
+Tony
