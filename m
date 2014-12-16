@@ -1,36 +1,64 @@
-From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
-Date: Tue, 16 Dec 2014 16:30:48 +0100
-Message-ID: <20141216153048.GA16981@localhost.localdomain>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
- <20141124115116.GA14997@linutronix.de>
- <547C3A95.30605@ti.com>
- <547C3C19.5090501@linutronix.de>
- <547C42FF.5010700@ti.com>
- <CAH=tA9FO5MCzE274thc-NugCNte6WdyC-Rxc6yfnuR=+6_qMbA@mail.gmail.com>
- <548A0125.6040708@linutronix.de>
- <CABH3fy8zCjsxARsqBf9JXOHBkzySdiqifA1KtjnGpJdBY2EikA@mail.gmail.com>
- <912A29987EAE174BA6CF187D7CDFA9CE26FA135A@DLEE08.ent.ti.com>
- <CABH3fy8S1Hb9LK=ZceWgJsNvLbq8pwu00Tcj_0vE4j6QzcO+kg@mail.gmail.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Tue, 16 Dec 2014 11:16:14 -0500
+Message-ID: <20141216161614.GK24110@csclub.uwaterloo.ca>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <20141214044517.GD24110@csclub.uwaterloo.ca>
+ <549018EC.8020207@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CABH3fy8S1Hb9LK=ZceWgJsNvLbq8pwu00Tcj_0vE4j6QzcO+kg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Catalin Crenguta <catalin.crenguta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Nicolae Rosia <nicolae.rosia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell@telliq.c>
+In-Reply-To: <549018EC.8020207@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 16, 2014 at 10:31:47AM +0200, Catalin Crenguta wrote:
-> 
-> It seems that because the ribbon cable has both the analog and digital
-> signals, the analog signals are affected by the digital ones (hence
-> the touchscreen was working OK when the display was disabled). Putting
-> decoupling capacitors on X+, X-, Y+, Y- reduces the noise and the
-> false events disappear.
+On Tue, Dec 16, 2014 at 05:05:08PM +0530, Lokesh Vutla wrote:
+> Is this applicable for OMAP5 also?
+> If not can you drop omap5 from $subject?
 
-IOW, the root cause is a design flaw in the BB-View 4.3 Cape?
+DRA7xx = OMAP57xx, which to me is an omap5.  Isn't it?
 
-Thanks,
-Richard
+And I haven't been able to get a manual for the omap54xx to confirm it,
+although it seems it does not apply to the omap54xx from what I have
+been able to gather indirectly.
+
+arch_timer_freq = (rate / den) * num;
+
+If I do this with the workaround I get:
+
+20000000 / 75 * 244 = 6147525
+
+where as
+
+20000000 * 244 / 75 = 6147540
+
+best value would be 6147541 with proper rounding.
+
+In the normal case the worst case is:
+
+26000000 * 384 = 9984000000
+
+That is too big for 32 bits.
+
+Now what could be done is prescale by 4 to make the worst case still
+fit in 32 bits while doing the multiplication before the division,
+so like this:
+
+arch_timer_freq = ((rate / 4) * num / den ) * 4;
+
+That gives the same result in all cases including the errata case for
+the dra7xx at 20MHz and 27MHz.  It is off by 3 in the 19.2MHz case though
+which isn't so nice.
+
+Would that be more acceptable?  I think having the arch_timer_freq
+calculated for the errata case seperately from the normal case is
+cleaner looking compared to that mess and gives a better result for the
+19.2MHz case.
+
+-- 
+Len Sorensen
