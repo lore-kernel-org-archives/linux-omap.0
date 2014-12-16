@@ -1,34 +1,102 @@
-From: Catalin Crenguta <catalin.crenguta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
-Date: Tue, 16 Dec 2014 10:31:47 +0200
-Message-ID: <CABH3fy8S1Hb9LK=ZceWgJsNvLbq8pwu00Tcj_0vE4j6QzcO+kg@mail.gmail.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
-	<20141124115116.GA14997@linutronix.de>
-	<547C3A95.30605@ti.com>
-	<547C3C19.5090501@linutronix.de>
-	<547C42FF.5010700@ti.com>
-	<CAH=tA9FO5MCzE274thc-NugCNte6WdyC-Rxc6yfnuR=+6_qMbA@mail.gmail.com>
-	<548A0125.6040708@linutronix.de>
-	<CABH3fy8zCjsxARsqBf9JXOHBkzySdiqifA1KtjnGpJdBY2EikA@mail.gmail.com>
-	<912A29987EAE174BA6CF187D7CDFA9CE26FA135A@DLEE08.ent.ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/3] usb: host: f_usb20ho: add support for Fujitsu ehci/ohci USB 2.0 host controller
+Date: Tue, 16 Dec 2014 10:06:15 +0100
+Message-ID: <94603263.7VVvg5Qn7O@wuerfel>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com> <1418695828-605-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <912A29987EAE174BA6CF187D7CDFA9CE26FA135A-YmePFLaaepqIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>
-Cc: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Nicolae Rosia <nicolae.rosia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, "richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1418695828-605-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sneeker Yeh <sneeker.yeh@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.ker
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 12, 2014 at 4:16 PM, Griffis, Brad <bgriffis-l0cyMroinI0@public.gmane.org> wrote:
-> How are you configuring ti,charge-delay in your dts?  I've seen this behavior on some custom boards where we were using a smaller charge delay (0x400) to begin with, and by upping it to 0xb000 we resolved the issue.  These patches however already specified ti,charge-delay = 0xb000 by default so this would surprise me that it's still seeing that issue.  Was the touchscreen working as expected before these new patches, or does it have issues both ways?
+On Tuesday 16 December 2014 10:10:26 Sneeker Yeh wrote:
+> This patch adds support for EHCI compliant Host controller found
+> on Fujitsu Socs.
+> 
+> Signed-off-by: Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
+> ---
+>  .../devicetree/bindings/usb/fujitsu-ehci.txt       |   22 ++
+>  drivers/usb/host/Kconfig                           |   11 +
+>  drivers/usb/host/Makefile                          |    1 +
+>  drivers/usb/host/f_usb20ho_hcd.c                   |  306 ++++++++++++++++++++
+>  drivers/usb/host/f_usb20ho_hcd.h                   |   35 +++
+>  5 files changed, 375 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/usb/fujitsu-ehci.txt
+>  create mode 100644 drivers/usb/host/f_usb20ho_hcd.c
+>  create mode 100644 drivers/usb/host/f_usb20ho_hcd.h
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/fujitsu-ehci.txt b/Documentation/devicetree/bindings/usb/fujitsu-ehci.txt
+> new file mode 100644
+> index 0000000..e180860
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/usb/fujitsu-ehci.txt
+> @@ -0,0 +1,22 @@
+> +FUJITSU GLUE COMPONENTS
+> +
+> +MB86S7x EHCI GLUE
+> + - compatible : Should be "fujitsu,f_usb20ho_hcd"
 
-It seems that because the ribbon cable has both the analog and digital
-signals, the analog signals are affected by the digital ones (hence
-the touchscreen was working OK when the display was disabled). Putting
-decoupling capacitors on X+, X-, Y+, Y- reduces the noise and the
-false events disappear.
-I'm sorry for all the noise I have generated.
+Please try to use the binding from
 
-Best regards,
+Documentation/devicetree/bindings/usb/usb-ehci.txt and the respective
+ohci binding first, and use two separate devic enodes.
+
+> + - reg : Address and length of the register set for the device.
+> + - interrupts : The irq number of this device that is used to interrupt the
+> +   CPU
+> + - clocks: from common clock binding, handle to usb clock.
+> + - clock-names: from common clock binding.
+
+You should always document the specific strings for a named property.
+
+> + - #stream-id-cells : handle to use "arm,mmu-400" ARM IOMMU driver
+
+Don't use that binding, we are trying to kill that off. Instead, use
+an 'iommus' property.
+
+
+> +	hci_res[0].start = ohci ? resource->start + F_OHCI_OFFSET :
+> +		resource->start + F_EHCI_OFFSET;
+> +	hci_res[0].end = ohci ?
+> +			resource->start + F_OHCI_OFFSET + F_OHCI_SIZE - 1 :
+> +			resource->start + F_EHCI_OFFSET + F_EHCI_SIZE - 1;
+> +	hci_res[0].flags = IORESOURCE_MEM;
+> +
+> +	hci_res[1].start = irq;
+> +	hci_res[1].flags = IORESOURCE_IRQ;
+> +
+> +	hci_dev = platform_device_alloc(ohci ? "ohci-platform" :
+> +					"ehci-platform", 0);
+> +	if (!hci_dev) {
+> +		dev_err(&pdev->dev, "platform_device_alloc() failed\n");
+> +		ret = -ENODEV;
+> +		goto err_res;
+> +	}
+
+No need for playing games with child devices, just see how the other
+drivers do it.
+
+> +	ret = platform_device_add(hci_dev);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "platform_device_add() failed\n");
+> +		goto err_alloc;
+> +	}
+> +
+> +	return hci_dev;
+> +
+> +err_alloc:
+> +	platform_device_put(hci_dev);
+> +err_res:
+> +	return ERR_PTR(ret);
+> +}
+> +
+> +static u64 f_usb20ho_dma_mask =  DMA_BIT_MASK(32);
+
+The dma mask should come from the dma-ranges property of the parent bus,
+as of_platform_populate now does.
+
+	Arnd
