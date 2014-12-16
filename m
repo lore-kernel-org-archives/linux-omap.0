@@ -1,132 +1,36 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
- AM572x errata i856.
-Date: Tue, 16 Dec 2014 08:58:56 -0600
-Message-ID: <20141216145856.GA23358@kahuna>
-References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
- <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
- <20141214044517.GD24110@csclub.uwaterloo.ca>
- <549018EC.8020207@ti.com>
+From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
+Date: Tue, 16 Dec 2014 16:30:48 +0100
+Message-ID: <20141216153048.GA16981@localhost.localdomain>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+ <20141124115116.GA14997@linutronix.de>
+ <547C3A95.30605@ti.com>
+ <547C3C19.5090501@linutronix.de>
+ <547C42FF.5010700@ti.com>
+ <CAH=tA9FO5MCzE274thc-NugCNte6WdyC-Rxc6yfnuR=+6_qMbA@mail.gmail.com>
+ <548A0125.6040708@linutronix.de>
+ <CABH3fy8zCjsxARsqBf9JXOHBkzySdiqifA1KtjnGpJdBY2EikA@mail.gmail.com>
+ <912A29987EAE174BA6CF187D7CDFA9CE26FA135A@DLEE08.ent.ti.com>
+ <CABH3fy8S1Hb9LK=ZceWgJsNvLbq8pwu00Tcj_0vE4j6QzcO+kg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51965 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750950AbaLPO7V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Dec 2014 09:59:21 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <549018EC.8020207@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CABH3fy8S1Hb9LK=ZceWgJsNvLbq8pwu00Tcj_0vE4j6QzcO+kg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Catalin Crenguta <catalin.crenguta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Nicolae Rosia <nicolae.rosia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell@telliq.c>
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Sekhar Nori <nsekhar@ti.com>
 
-On 17:05-20141216, Lokesh Vutla wrote:
-[...]
->  
-> @@ -545,6 +546,16 @@ static void __init realtime_counter_init(void)
->  		break;
->  	}
->  
-> +	if (soc_is_dra7xx()) {
-> +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
-> +		reg = reg & DRA7_SPEEDSELECT_MASK;
-> +
-> +		if (reg) {
-> +			num = 75;
-> +			den = 244;
-> +		}
-> +	}
-> +
->  	/* Program numerator and denumerator registers */
->  	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
->  			NUMERATOR_DENUMERATOR_MASK;
+On Tue, Dec 16, 2014 at 10:31:47AM +0200, Catalin Crenguta wrote:
+> 
+> It seems that because the ribbon cable has both the analog and digital
+> signals, the analog signals are affected by the digital ones (hence
+> the touchscreen was working OK when the display was disabled). Putting
+> decoupling capacitors on X+, X-, Y+, Y- reduces the noise and the
+> false events disappear.
 
-A) So, it does look like the 32k node is actually wrong then -> Tero:
-any comments? should'nt this now be modeled based on
-CTRL_CORE_BOOTSTRAP::SPEEDSELECT considering that clock nodes do have
-clk mux options based on the 32k..
-sys_32k_ck: sys_32k_ck {
-	#clock-cells = <0>;
-	compatible = "fixed-clock";
-	clock-frequency = <32768>;
-};
+IOW, the root cause is a design flaw in the BB-View 4.3 Cape?
 
-B) Since rate switch is no longer needed, how about something like the
-following:
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index a3c0133..315d6d1 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -286,6 +286,11 @@
- #define OMAP5XXX_CONTROL_STATUS                0x134
- #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
- 
-+
-+/* DRA7XX CONTROL CORE BOOTSTRAP */
-+#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
-+#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
-+
- /*
-  * REVISIT: This list of registers is not comprehensive - there are more
-  * that should be added.
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 4f61148..783d3c3 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -54,6 +54,7 @@
- 
- #include "soc.h"
- #include "common.h"
-+#include "control.h"
- #include "powerdomain.h"
- #include "omap-secure.h"
- 
-@@ -511,6 +512,35 @@ static void __init realtime_counter_init(void)
- 	}
- 
- 	rate = clk_get_rate(sys_clk);
-+
-+	if (soc_is_dra7xx()) {
-+		/*
-+		 * Errata i856 says the 32.768KHz crystal does not start at
-+		 * power on, so the CPU falls back in an emulated 32KHz clock
-+		 * based on sysclk / 610 instead. This causes the master counter
-+		 * frequency to not be 6.144MHz but at sysclk / 610  * 375 / 2
-+		 * (OR sysclk * 75 / 244)
-+		 *
-+		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
-+		 * Of course any board built without a populated 32.768KHz
-+		 * crystal would also need this fix even if the CPU is fixed
-+		 * later.
-+		 *
-+		 * Either case can be detected by using the two speedselect bits
-+		 * If they are not 0, then the 32.768KHz clock driving the
-+		 * course counter that corrects the fine counter every time it
-+		 * ticks is actually rate/610 rather than 32.768KHz and we
-+		 * should compensate to avoid the 570ppm (At 20MHz, much worse
-+		 * at other rates) too fast system time.
-+		 */
-+		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
-+		if (reg & DRA7_SPEEDSELECT_MASK) {
-+			num = 75;
-+			den = 244;
-+			goto sysclk_based;
-+		}
-+	}
-+
- 	/* Numerator/denumerator values refer TRM Realtime Counter section */
- 	switch (rate) {
- 	case 1200000:
-@@ -545,6 +575,7 @@ static void __init realtime_counter_init(void)
- 		break;
- 	}
- 
-+sysclk_based:
- 	/* Program numerator and denumerator registers */
- 	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
- 			NUMERATOR_DENUMERATOR_MASK;
-
--- 
-Regards,
-Nishanth Menon
+Thanks,
+Richard
