@@ -1,324 +1,263 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 01/11] clk: ti: add core support for initializing legacy clocks
-Date: Tue, 16 Dec 2014 18:20:46 +0200
-Message-ID: <1418746856-17173-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 03/11] clk: ti: gate: add support for legacy gate init
+Date: Tue, 16 Dec 2014 18:20:48 +0200
+Message-ID: <1418746856-17173-4-git-send-email-t-kristo@ti.com>
 References: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47451 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbaLPQT7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2014 11:19:59 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:56069 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751882AbaLPQUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Dec 2014 11:20:07 -0500
 In-Reply-To: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, mturquette@linaro.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Legacy clock data for OMAP3 is being moved under clock driver, thus
-base support for this is needed. This patch adds basic definitions for
-clock init descriptors and core infrastructure for initialization,
-which will be called from the OMAP3 clock init.
+Legacy clock data is initialialized slightly differently compared to
+DT clocks, thus add support for this.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c   |  110 +++++++++++++++++++++++++++++++++
- drivers/clk/ti/clock.h |  160 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 270 insertions(+)
- create mode 100644 drivers/clk/ti/clock.h
+ drivers/clk/ti/clk.c   |    3 +
+ drivers/clk/ti/clock.h |    2 +
+ drivers/clk/ti/gate.c  |  158 +++++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 133 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 337abe5..a8958f1 100644
+index 215f681..676dbf1 100644
 --- a/drivers/clk/ti/clk.c
 +++ b/drivers/clk/ti/clk.c
+@@ -222,6 +222,9 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
+ 						0, fixed_factor->mult,
+ 						fixed_factor->div);
+ 		break;
++	case TI_CLK_GATE:
++		clk = ti_clk_register_gate(setup);
++		break;
+ 	default:
+ 		pr_err("bad type for %s!\n", setup->name);
+ 		clk = ERR_PTR(-EINVAL);
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index c06bbf4..d0715bc 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -153,8 +153,10 @@ struct ti_clk_dpll {
+ 	u8 recal_st_bit;
+ };
+ 
++struct clk *ti_clk_register_gate(struct ti_clk *setup);
+ struct clk *ti_clk_register_mux(struct ti_clk *setup);
+ 
++struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
+ struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup);
+ 
+ void ti_clk_patch_legacy_clks(struct ti_clk **patch);
+diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
+index b326d27..ff3380e 100644
+--- a/drivers/clk/ti/gate.c
++++ b/drivers/clk/ti/gate.c
 @@ -22,6 +22,8 @@
  #include <linux/of_address.h>
- #include <linux/list.h>
+ #include <linux/clk/ti.h>
  
 +#include "clock.h"
 +
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
+ #define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
  
-@@ -183,3 +185,111 @@ void ti_dt_clk_init_retry_clks(void)
- 		retries--;
- 	}
+ #undef pr_fmt
+@@ -90,63 +92,159 @@ static int omap36xx_gate_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
+ 	return ret;
  }
-+
-+void __init ti_clk_patch_legacy_clks(struct ti_clk **patch)
-+{
-+	while (*patch) {
-+		memcpy((*patch)->patch, *patch, sizeof(**patch));
-+		patch++;
-+	}
-+}
-+
-+struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
-+{
+ 
+-static void __init _of_ti_gate_clk_setup(struct device_node *node,
+-					 const struct clk_ops *ops,
+-					 const struct clk_hw_omap_ops *hw_ops)
++static struct clk *_register_gate(struct device *dev, const char *name,
++				  const char *parent_name, unsigned long flags,
++				  void __iomem *reg, u8 bit_idx,
++				  u8 clk_gate_flags, const struct clk_ops *ops,
++				  const struct clk_hw_omap_ops *hw_ops)
+ {
+-	struct clk *clk;
+ 	struct clk_init_data init = { NULL };
+ 	struct clk_hw_omap *clk_hw;
+-	const char *clk_name = node->name;
+-	const char *parent_name;
+-	u32 val;
 +	struct clk *clk;
-+	struct ti_clk_fixed *fixed;
-+	struct ti_clk_fixed_factor *fixed_factor;
-+	struct clk_hw *clk_hw;
+ 
+ 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
+ 	if (!clk_hw)
+-		return;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	clk_hw->hw.init = &init;
+ 
+-	init.name = clk_name;
++	init.name = name;
+ 	init.ops = ops;
+ 
+-	if (ops != &omap_gate_clkdm_clk_ops) {
+-		clk_hw->enable_reg = ti_clk_get_reg_addr(node, 0);
+-		if (!clk_hw->enable_reg)
+-			goto cleanup;
++	clk_hw->enable_reg = reg;
++	clk_hw->enable_bit = bit_idx;
++	clk_hw->ops = hw_ops;
+ 
+-		if (!of_property_read_u32(node, "ti,bit-shift", &val))
+-			clk_hw->enable_bit = val;
++	clk_hw->flags = MEMMAP_ADDRESSING | clk_gate_flags;
 +
-+	if (setup->clk)
-+		return setup->clk;
++	init.parent_names = &parent_name;
++	init.num_parents = 1;
 +
-+	switch (setup->type) {
-+	case TI_CLK_FIXED:
-+		fixed = setup->data;
++	init.flags = flags;
 +
-+		clk = clk_register_fixed_rate(NULL, setup->name, NULL,
-+					      CLK_IS_ROOT, fixed->frequency);
-+		break;
-+	case TI_CLK_FIXED_FACTOR:
-+		fixed_factor = setup->data;
++	clk = clk_register(NULL, &clk_hw->hw);
 +
-+		clk = clk_register_fixed_factor(NULL, setup->name,
-+						fixed_factor->parent,
-+						0, fixed_factor->mult,
-+						fixed_factor->div);
-+		break;
-+	default:
-+		pr_err("bad type for %s!\n", setup->name);
-+		clk = ERR_PTR(-EINVAL);
-+	}
-+
-+	if (!IS_ERR(clk)) {
-+		setup->clk = clk;
-+		if (setup->clkdm_name) {
-+			if (__clk_get_flags(clk) & CLK_IS_BASIC) {
-+				pr_warn("can't setup clkdm for basic clk %s\n",
-+					setup->name);
-+			} else {
-+				clk_hw = __clk_get_hw(clk);
-+				to_clk_hw_omap(clk_hw)->clkdm_name =
-+					setup->clkdm_name;
-+				omap2_init_clk_clkdm(clk_hw);
-+			}
-+		}
-+	}
++	if (IS_ERR(clk))
++		kfree(clk_hw);
 +
 +	return clk;
 +}
 +
-+int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
++struct clk *ti_clk_register_gate(struct ti_clk *setup)
++{
++	const struct clk_ops *ops = &omap_gate_clk_ops;
++	const struct clk_hw_omap_ops *hw_ops = NULL;
++	u32 reg;
++	struct clk_omap_reg *reg_setup;
++	u32 flags = 0;
++	u8 clk_gate_flags = 0;
++	struct ti_clk_gate *gate;
++
++	gate = setup->data;
++
++	reg_setup = (struct clk_omap_reg *)&reg;
++
++	if (gate->flags & CLKF_SET_RATE_PARENT)
++		flags |= CLK_SET_RATE_PARENT;
++
++	if (gate->flags & CLKF_SET_BIT_TO_DISABLE)
++		clk_gate_flags |= INVERT_ENABLE;
++
++	if (gate->flags & CLKF_HSDIV) {
++		ops = &omap_gate_clk_hsdiv_restore_ops;
++		hw_ops = &clkhwops_wait;
+ 	}
+ 
+-	clk_hw->ops = hw_ops;
++	if (gate->flags & CLKF_DSS)
++		hw_ops = &clkhwops_omap3430es2_dss_usbhost_wait;
++
++	if (gate->flags & CLKF_WAIT)
++		hw_ops = &clkhwops_wait;
++
++	if (gate->flags & CLKF_CLKDM)
++		ops = &omap_gate_clkdm_clk_ops;
++
++	if (gate->flags & CLKF_AM35XX)
++		hw_ops = &clkhwops_am35xx_ipss_module_wait;
+ 
+-	clk_hw->flags = MEMMAP_ADDRESSING;
++	reg_setup->index = gate->module;
++	reg_setup->offset = gate->reg;
++
++	return _register_gate(NULL, setup->name, gate->parent, flags,
++			      (void __iomem *)reg, gate->bit_shift,
++			      clk_gate_flags, ops, hw_ops);
++}
++
++struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup)
++{
++	struct clk_hw_omap *gate;
++	struct clk_omap_reg *reg;
++	const struct clk_hw_omap_ops *ops = &clkhwops_wait;
++
++	if (!setup)
++		return NULL;
++
++	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
++	if (!gate)
++		return ERR_PTR(-ENOMEM);
++
++	reg = (struct clk_omap_reg *)&gate->enable_reg;
++	reg->index = setup->module;
++	reg->offset = setup->reg;
++
++	gate->enable_bit = setup->bit_shift;
++
++	if (setup->flags & CLKF_NO_WAIT)
++		ops = NULL;
++
++	if (setup->flags & CLKF_INTERFACE)
++		ops = &clkhwops_iclk_wait;
++
++	gate->ops = ops;
++	gate->flags = MEMMAP_ADDRESSING;
++
++	return &gate->hw;
++}
++
++static void __init _of_ti_gate_clk_setup(struct device_node *node,
++					 const struct clk_ops *ops,
++					 const struct clk_hw_omap_ops *hw_ops)
 +{
 +	struct clk *clk;
-+	bool retry;
-+	struct ti_clk_alias *retry_clk;
-+	struct ti_clk_alias *tmp;
++	const char *parent_name;
++	void __iomem *reg = NULL;
++	u8 enable_bit = 0;
++	u32 val;
++	u32 flags = 0;
++	u8 clk_gate_flags = 0;
 +
-+	while (clks->clk) {
-+		clk = ti_clk_register_clk(clks->clk);
-+		if (IS_ERR(clk)) {
-+			if (PTR_ERR(clk) == -EAGAIN) {
-+				list_add(&clks->link, &retry_list);
-+			} else {
-+				pr_err("register for %s failed: %ld\n",
-+				       clks->clk->name, PTR_ERR(clk));
-+				return PTR_ERR(clk);
-+			}
-+		} else {
-+			clks->lk.clk = clk;
-+			clkdev_add(&clks->lk);
-+		}
-+		clks++;
++	if (ops != &omap_gate_clkdm_clk_ops) {
++		reg = ti_clk_get_reg_addr(node, 0);
++		if (!reg)
++			return;
++
++		if (!of_property_read_u32(node, "ti,bit-shift", &val))
++			enable_bit = val;
 +	}
-+
-+	retry = true;
-+
-+	while (!list_empty(&retry_list) && retry) {
-+		retry = false;
-+		list_for_each_entry_safe(retry_clk, tmp, &retry_list, link) {
-+			pr_debug("retry-init: %s\n", retry_clk->clk->name);
-+			clk = ti_clk_register_clk(retry_clk->clk);
-+			if (IS_ERR(clk)) {
-+				if (PTR_ERR(clk) == -EAGAIN) {
-+					continue;
-+				} else {
-+					pr_err("register for %s failed: %ld\n",
-+					       retry_clk->clk->name,
-+					       PTR_ERR(clk));
-+					return PTR_ERR(clk);
-+				}
-+			} else {
-+				retry = true;
-+				retry_clk->lk.clk = clk;
-+				clkdev_add(&retry_clk->lk);
-+				list_del(&retry_clk->link);
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-new file mode 100644
-index 0000000..6ee6c6e
---- /dev/null
-+++ b/drivers/clk/ti/clock.h
-@@ -0,0 +1,160 @@
-+/*
-+ * TI Clock driver internal definitions
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc
-+ *     Tero Kristo (t-kristo@ti.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ */
-+#ifndef __DRIVERS_CLK_TI_CLOCK__
-+#define __DRIVERS_CLK_TI_CLOCK__
-+
-+enum {
-+	TI_CLK_FIXED,
-+	TI_CLK_MUX,
-+	TI_CLK_DIVIDER,
-+	TI_CLK_COMPOSITE,
-+	TI_CLK_FIXED_FACTOR,
-+	TI_CLK_GATE,
-+	TI_CLK_DPLL,
-+};
-+
-+/* Global flags */
-+#define CLKF_INDEX_POWER_OF_TWO		(1 << 0)
-+#define CLKF_INDEX_STARTS_AT_ONE	(1 << 1)
-+#define CLKF_SET_RATE_PARENT		(1 << 2)
-+#define CLKF_OMAP3			(1 << 3)
-+#define CLKF_AM35XX			(1 << 4)
-+
-+/* Gate flags */
-+#define CLKF_SET_BIT_TO_DISABLE		(1 << 5)
-+#define CLKF_INTERFACE			(1 << 6)
-+#define CLKF_SSI			(1 << 7)
-+#define CLKF_DSS			(1 << 8)
-+#define CLKF_HSOTGUSB			(1 << 9)
-+#define CLKF_WAIT			(1 << 10)
-+#define CLKF_NO_WAIT			(1 << 11)
-+#define CLKF_HSDIV			(1 << 12)
-+#define CLKF_CLKDM			(1 << 13)
-+
-+/* DPLL flags */
-+#define CLKF_LOW_POWER_STOP		(1 << 5)
-+#define CLKF_LOCK			(1 << 6)
-+#define CLKF_LOW_POWER_BYPASS		(1 << 7)
-+#define CLKF_PER			(1 << 8)
-+#define CLKF_CORE			(1 << 9)
-+#define CLKF_J_TYPE			(1 << 10)
-+
-+#define CLK(dev, con, ck)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.clk = ck,		\
-+	}
-+
-+struct ti_clk {
-+	const char *name;
-+	const char *clkdm_name;
-+	int type;
-+	void *data;
-+	struct ti_clk *patch;
-+	struct clk *clk;
-+};
-+
-+struct ti_clk_alias {
-+	struct ti_clk *clk;
-+	struct clk_lookup lk;
-+	struct list_head link;
-+};
-+
-+struct ti_clk_fixed {
-+	u32 frequency;
-+	u16 flags;
-+};
-+
-+struct ti_clk_mux {
-+	u8 bit_shift;
-+	int num_parents;
-+	u16 reg;
-+	u8 module;
-+	const char **parents;
-+	u16 flags;
-+};
-+
-+struct ti_clk_divider {
-+	const char *parent;
-+	u8 bit_shift;
-+	u16 max_div;
-+	u16 reg;
-+	u8 module;
-+	int *dividers;
-+	int num_dividers;
-+	u16 flags;
-+};
-+
-+struct ti_clk_fixed_factor {
-+	const char *parent;
-+	u16 div;
-+	u16 mult;
-+	u16 flags;
-+};
-+
-+struct ti_clk_gate {
-+	const char *parent;
-+	u8 bit_shift;
-+	u16 reg;
-+	u8 module;
-+	u16 flags;
-+};
-+
-+struct ti_clk_composite {
-+	struct ti_clk_divider *divider;
-+	struct ti_clk_mux *mux;
-+	struct ti_clk_gate *gate;
-+	u16 flags;
-+};
-+
-+struct ti_clk_clkdm_gate {
-+	const char *parent;
-+	u16 flags;
-+};
-+
-+struct ti_clk_dpll {
-+	int num_parents;
-+	u16 control_reg;
-+	u16 idlest_reg;
-+	u16 autoidle_reg;
-+	u16 mult_div1_reg;
-+	u8 module;
-+	const char **parents;
-+	u16 flags;
-+	u8 modes;
-+	u32 mult_mask;
-+	u32 div1_mask;
-+	u32 enable_mask;
-+	u32 autoidle_mask;
-+	u32 freqsel_mask;
-+	u32 idlest_mask;
-+	u32 dco_mask;
-+	u32 sddiv_mask;
-+	u16 max_multiplier;
-+	u16 max_divider;
-+	u8 auto_recal_bit;
-+	u8 recal_en_bit;
-+	u8 recal_st_bit;
-+};
-+
-+void ti_clk_patch_legacy_clks(struct ti_clk **patch);
-+struct clk *ti_clk_register_clk(struct ti_clk *setup);
-+int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
-+
-+#endif
+ 
+ 	if (of_clk_get_parent_count(node) != 1) {
+-		pr_err("%s must have 1 parent\n", clk_name);
+-		goto cleanup;
++		pr_err("%s must have 1 parent\n", node->name);
++		return;
+ 	}
+ 
+ 	parent_name = of_clk_get_parent_name(node, 0);
+-	init.parent_names = &parent_name;
+-	init.num_parents = 1;
+ 
+ 	if (of_property_read_bool(node, "ti,set-rate-parent"))
+-		init.flags |= CLK_SET_RATE_PARENT;
++		flags |= CLK_SET_RATE_PARENT;
+ 
+ 	if (of_property_read_bool(node, "ti,set-bit-to-disable"))
+-		clk_hw->flags |= INVERT_ENABLE;
++		clk_gate_flags |= INVERT_ENABLE;
+ 
+-	clk = clk_register(NULL, &clk_hw->hw);
++	clk = _register_gate(NULL, node->name, parent_name, flags, reg,
++			     enable_bit, clk_gate_flags, ops, hw_ops);
+ 
+-	if (!IS_ERR(clk)) {
++	if (!IS_ERR(clk))
+ 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+-		return;
+-	}
+-
+-cleanup:
+-	kfree(clk_hw);
+ }
+ 
+ static void __init
 -- 
 1.7.9.5
 
