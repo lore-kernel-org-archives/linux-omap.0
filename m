@@ -1,34 +1,49 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: regression: Clock changes in next-20141205 break at least omap4
-Date: Tue, 16 Dec 2014 11:01:02 -0800
-Message-ID: <5490816E.7060706@codeaurora.org>
-References: <20141205165539.GA30437@atomide.com> <5481F79D.4010504@codeaurora.org> <20141205183849.GB30437@atomide.com> <20141212194238.20398.33333@quantum> <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com> <20141215220224.20398.98259@quantum> <548F7B02.1090009@nvidia.com> <20141216003834.GC23854@atomide.com> <548F8B70.2060803@nvidia.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Tue, 16 Dec 2014 14:27:40 -0500
+Message-ID: <20141216192740.GN24110@csclub.uwaterloo.ca>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <20141214044517.GD24110@csclub.uwaterloo.ca>
+ <549018EC.8020207@ti.com>
+ <20141216145856.GA23358@kahuna>
+ <20141216163657.GL24110@csclub.uwaterloo.ca>
+ <54908128.7040005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:57014 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbaLPTBF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2014 14:01:05 -0500
-In-Reply-To: <548F8B70.2060803@nvidia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54908128.7040005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <pwalmsley@nvidia.com>, Tony Lindgren <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, khilman@linaro.org
 
-On 12/15/2014 05:31 PM, Paul Walmsley wrote:
->
-> I just took a quick glance at Tero's second patch, and it looks like a
-> hack to me.  Better to fix the problem in the core CCF code if
-> possible.  I don't think there's any reason why a PLL couldn't have
-> just one parent clock.  But I'm fine with merging it as a short-term
-> fix if fixing the core code is difficult or risky.
+> I see why arch_timer_freq might skip the rounding error of 39, 15 and
+> 55 Vs existing logic which is possibly at a truncation error risk
+> (without errata for sysclk 13, 26 and 27MHz).
+> 
+> all you'd probably need to do is cast rate, num and den to unsigned
+> long and have a common computation logic.
 
-Can you describe what's wrong? Does the PLL have a mux with two inputs
-that map to the same clock?
+If that is acceptable, then sure I can do that.  I liked avoiding casts
+in general though.
+
+> if you'd really want to handle truncation error, it must be a separate
+> patch of it's own - I would not mix it with the errata fix.
+
+Well there is no error in the existing code because the rate / den
+is always a clean integer division.  The problem is introduced by the
+SYSCLK1 / 610 used by the emulated clock which is not a clean division.
+
+So for the existing logic, the calculation was perfect.  It is only for
+the errata case that it is a problem.
+
+So I think leaving the existing calculation but moved up works well,
+and then having the alternate order calculation only in the errata case
+seemed cleaner and avoids casts and 64bit math which I thought was
+overall desirable.
 
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
-
+Len Sorensen
