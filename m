@@ -1,64 +1,40 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
-Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
- AM572x errata i856.
-Date: Tue, 16 Dec 2014 11:16:14 -0500
-Message-ID: <20141216161614.GK24110@csclub.uwaterloo.ca>
-References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
- <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
- <20141214044517.GD24110@csclub.uwaterloo.ca>
- <549018EC.8020207@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/11] ARM: OMAP3: legacy clock data move under clk driver
+Date: Tue, 16 Dec 2014 18:20:45 +0200
+Message-ID: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <549018EC.8020207@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42226 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751650AbaLPQT6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Dec 2014 11:19:58 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, mturquette@linaro.org, tony@atomide.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Tue, Dec 16, 2014 at 05:05:08PM +0530, Lokesh Vutla wrote:
-> Is this applicable for OMAP5 also?
-> If not can you drop omap5 from $subject?
+Hi,
 
-DRA7xx = OMAP57xx, which to me is an omap5.  Isn't it?
+These patches move the legacy clock data for omap3 under drivers/clk/ti.
+After these patches are applied, it should be possible to get rid of
+clk-private.h (long pending project for Mike.)
 
-And I haven't been able to get a manual for the omap54xx to confirm it,
-although it seems it does not apply to the omap54xx from what I have
-been able to gather indirectly.
+Testing done (on top of 3.18-rc1):
 
-arch_timer_freq = (rate / den) * num;
+omap3-beagle: boot / suspend-resume (ret/off) / cpuidle (ret/off)
+omap3-beagle-xm: boot upto fs mount (see note below)
+sdp3430: boot
+n900: boot
 
-If I do this with the workaround I get:
+Note: beagle-xm failed with FS mount on the board I have access to, but
+      this happens with clean 3.18-rc1 and linux-next also at the moment.
+      The board has probably corrupted filesystem image but I am unable
+      to fix this atm (remote board.)
 
-20000000 / 75 * 244 = 6147525
+Test branch:
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 3.18-rc1-omap3-clk-rework
 
-where as
+-Tero
 
-20000000 * 244 / 75 = 6147540
-
-best value would be 6147541 with proper rounding.
-
-In the normal case the worst case is:
-
-26000000 * 384 = 9984000000
-
-That is too big for 32 bits.
-
-Now what could be done is prescale by 4 to make the worst case still
-fit in 32 bits while doing the multiplication before the division,
-so like this:
-
-arch_timer_freq = ((rate / 4) * num / den ) * 4;
-
-That gives the same result in all cases including the errata case for
-the dra7xx at 20MHz and 27MHz.  It is off by 3 in the 19.2MHz case though
-which isn't so nice.
-
-Would that be more acceptable?  I think having the arch_timer_freq
-calculated for the errata case seperately from the normal case is
-cleaner looking compared to that mess and gives a better result for the
-19.2MHz case.
-
--- 
-Len Sorensen
