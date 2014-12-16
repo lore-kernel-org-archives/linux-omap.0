@@ -1,136 +1,34 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
- AM572x errata i856.
-Date: Tue, 16 Dec 2014 12:59:52 -0600
-Message-ID: <54908128.7040005@ti.com>
-References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca> <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca> <20141214044517.GD24110@csclub.uwaterloo.ca> <549018EC.8020207@ti.com> <20141216145856.GA23358@kahuna> <20141216163657.GL24110@csclub.uwaterloo.ca>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: regression: Clock changes in next-20141205 break at least omap4
+Date: Tue, 16 Dec 2014 11:01:02 -0800
+Message-ID: <5490816E.7060706@codeaurora.org>
+References: <20141205165539.GA30437@atomide.com> <5481F79D.4010504@codeaurora.org> <20141205183849.GB30437@atomide.com> <20141212194238.20398.33333@quantum> <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com> <20141215220224.20398.98259@quantum> <548F7B02.1090009@nvidia.com> <20141216003834.GC23854@atomide.com> <548F8B70.2060803@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43616 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750862AbaLPTAR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Dec 2014 14:00:17 -0500
-In-Reply-To: <20141216163657.GL24110@csclub.uwaterloo.ca>
+Received: from smtp.codeaurora.org ([198.145.11.231]:57014 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899AbaLPTBF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2014 14:01:05 -0500
+In-Reply-To: <548F8B70.2060803@nvidia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
+To: Paul Walmsley <pwalmsley@nvidia.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, khilman@linaro.org
 
-On 12/16/2014 10:36 AM, Lennart Sorensen wrote:
-[...]
->> B) Since rate switch is no longer needed, how about something like the
->> following:
->> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
->> index a3c0133..315d6d1 100644
->> --- a/arch/arm/mach-omap2/control.h
->> +++ b/arch/arm/mach-omap2/control.h
->> @@ -286,6 +286,11 @@
->>  #define OMAP5XXX_CONTROL_STATUS                0x134
->>  #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
->>  
->> +
->> +/* DRA7XX CONTROL CORE BOOTSTRAP */
->> +#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
->> +#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
->> +
->>  /*
->>   * REVISIT: This list of registers is not comprehensive - there are more
->>   * that should be added.
-> 
-> I like that as a place for those.
-> 
->> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->> index 4f61148..783d3c3 100644
->> --- a/arch/arm/mach-omap2/timer.c
->> +++ b/arch/arm/mach-omap2/timer.c
->> @@ -54,6 +54,7 @@
->>  
->>  #include "soc.h"
->>  #include "common.h"
->> +#include "control.h"
->>  #include "powerdomain.h"
->>  #include "omap-secure.h"
->>  
-> 
-> How about this version for the rest of the file.  It handles that for
-> the errata case we would like to do rate * num / den, which given how
-> small the num is will fit in 32bit and gives the best accuracy for the
-> calculation, while the non errata case the existing calculation works
-> well and fits in 32 bit for all other cases.  It just has to be moved
-> up so that the goto can skip it.  I changed sysclk to sysclk1 since on
-> the dra7xx there is in fact a sysclk1 and a sysclk2 and it is probably
-> worth keeping it clear which one this is referring to.
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index fb0cb2b..be254bf 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -511,6 +511,36 @@ static void __init realtime_counter_init(void)
->  	}
->  
->  	rate = clk_get_rate(sys_clk);
-> +
-> +	if (soc_is_dra7xx()) {
-> +		/*
-> +		 * Errata i856 says the 32.768KHz crystal does not start at
-> +		 * power on, so the CPU falls back to an emulated 32KHz clock
-> +		 * based on sysclk1 / 610 instead. This causes the master counter
-> +		 * frequency to not be 6.144MHz but at sysclk1 / 610 * 375 / 2
-> +		 * (OR sysclk1 * 75 / 244)
-> +		 *
-> +		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
-> +		 * Of course any board built without a populated 32.768KHz
-> +	         * crystal would also need this fix even if the CPU is fixed
-> +		 * later.
-> +		 *
-> +		 * Either case can be detected by using the two speedselect bits
-> +		 * If they are not 0, then the 32.768KHz clock driving the
-> +		 * coarse counter that corrects the fine counter every time it
-> +		 * ticks is actually rate/610 rather than 32.768KHz and we
-> +		 * should compensate to avoid the 570ppm (at 20MHz, much worse
-> +		 * at other rates) too fast system time.
-> +		 */
-> +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
-> +		if (reg & DRA7_SPEEDSELECT_MASK) {
-> +			num = 75;
-> +			den = 244;
-> +			arch_timer_freq = (rate * num) / den;
-> +			goto sysclk1_based;
-> +		}
-> +	}
-> +
->  	/* Numerator/denumerator values refer TRM Realtime Counter section */
->  	switch (rate) {
->  	case 12000000:
-> @@ -544,7 +574,9 @@ static void __init realtime_counter_init(void)
->  		den = 25;
->  		break;
->  	}
-> +	arch_timer_freq = (rate / den) * num;
->  
-> +sysclk1_based:
->  	/* Program numerator and denumerator registers */
->  	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
->  			NUMERATOR_DENUMERATOR_MASK;
-> @@ -556,7 +588,6 @@ static void __init realtime_counter_init(void)
->  	reg |= den;
->  	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
->  
-> -	arch_timer_freq = (rate / den) * num;
+On 12/15/2014 05:31 PM, Paul Walmsley wrote:
+>
+> I just took a quick glance at Tero's second patch, and it looks like a
+> hack to me.  Better to fix the problem in the core CCF code if
+> possible.  I don't think there's any reason why a PLL couldn't have
+> just one parent clock.  But I'm fine with merging it as a short-term
+> fix if fixing the core code is difficult or risky.
 
-I see why arch_timer_freq might skip the rounding error of 39, 15 and
-55 Vs existing logic which is possibly at a truncation error risk
-(without errata for sysclk 13, 26 and 27MHz).
-
-all you'd probably need to do is cast rate, num and den to unsigned
-long and have a common computation logic.
-
-if you'd really want to handle truncation error, it must be a separate
-patch of it's own - I would not mix it with the errata fix.
-
+Can you describe what's wrong? Does the PLL have a mux with two inputs
+that map to the same clock?
 
 -- 
-Regards,
-Nishanth Menon
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
+
