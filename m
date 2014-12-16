@@ -1,102 +1,158 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/3] usb: host: f_usb20ho: add support for Fujitsu ehci/ohci USB 2.0 host controller
-Date: Tue, 16 Dec 2014 10:06:15 +0100
-Message-ID: <94603263.7VVvg5Qn7O@wuerfel>
-References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com> <1418695828-605-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 1/2] phy: phy-ti-pipe3: fix inconsistent enumeration of PCIe gen2 cards
+Date: Tue, 16 Dec 2014 14:52:50 +0530
+Message-ID: <1418721771-31184-2-git-send-email-vigneshr@ti.com>
+References: <1418721771-31184-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1418695828-605-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+In-Reply-To: <1418721771-31184-1-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sneeker Yeh <sneeker.yeh@gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.ker
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 16 December 2014 10:10:26 Sneeker Yeh wrote:
-> This patch adds support for EHCI compliant Host controller found
-> on Fujitsu Socs.
-> 
-> Signed-off-by: Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
-> ---
->  .../devicetree/bindings/usb/fujitsu-ehci.txt       |   22 ++
->  drivers/usb/host/Kconfig                           |   11 +
->  drivers/usb/host/Makefile                          |    1 +
->  drivers/usb/host/f_usb20ho_hcd.c                   |  306 ++++++++++++++++++++
->  drivers/usb/host/f_usb20ho_hcd.h                   |   35 +++
->  5 files changed, 375 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/usb/fujitsu-ehci.txt
->  create mode 100644 drivers/usb/host/f_usb20ho_hcd.c
->  create mode 100644 drivers/usb/host/f_usb20ho_hcd.h
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/fujitsu-ehci.txt b/Documentation/devicetree/bindings/usb/fujitsu-ehci.txt
-> new file mode 100644
-> index 0000000..e180860
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/usb/fujitsu-ehci.txt
-> @@ -0,0 +1,22 @@
-> +FUJITSU GLUE COMPONENTS
-> +
-> +MB86S7x EHCI GLUE
-> + - compatible : Should be "fujitsu,f_usb20ho_hcd"
+Prior to DRA74x silicon rev 1.1, pcie_pcs register bits 8-15 and bits 16-23
+were used to configure RC delay count for phy1 and phy2 respectively.
+phyid was used as index to distinguish the phys and to configure the delay
+values appropriately.
 
-Please try to use the binding from
+As of DRA74x silicon rev 1.1, pcie_pcs register definition has changed.
+Bits 16-23 are used to configure delay values for *both* phy1 and phy2.
 
-Documentation/devicetree/bindings/usb/usb-ehci.txt and the respective
-ohci binding first, and use two separate devic enodes.
+Hence phyid is no longer required.
 
-> + - reg : Address and length of the register set for the device.
-> + - interrupts : The irq number of this device that is used to interrupt the
-> +   CPU
-> + - clocks: from common clock binding, handle to usb clock.
-> + - clock-names: from common clock binding.
+So, drop id field from ti_pipe3 structure and its subsequent references
+for configuring pcie_pcs register.
 
-You should always document the specific strings for a named property.
+Also, pcie_pcs register now needs to be configured with delay value of 0x96
+at bit positions 16-23. See register description of CTRL_CORE_PCIE_PCS in
+ARM572x TRM, SPRUHZ6, October 2014, section 18.5.2.2, table 18-1804.
 
-> + - #stream-id-cells : handle to use "arm,mmu-400" ARM IOMMU driver
+This is needed to ensure Gen2 cards are enumerated consistently.
 
-Don't use that binding, we are trying to kill that off. Instead, use
-an 'iommus' property.
+DRA72x silicon behaves same way as DRA74x rev 1.1 as far as this functionality
+is considered.
 
+Test results on DRA74x and DRA72x EVMs:
 
-> +	hci_res[0].start = ohci ? resource->start + F_OHCI_OFFSET :
-> +		resource->start + F_EHCI_OFFSET;
-> +	hci_res[0].end = ohci ?
-> +			resource->start + F_OHCI_OFFSET + F_OHCI_SIZE - 1 :
-> +			resource->start + F_EHCI_OFFSET + F_EHCI_SIZE - 1;
-> +	hci_res[0].flags = IORESOURCE_MEM;
-> +
-> +	hci_res[1].start = irq;
-> +	hci_res[1].flags = IORESOURCE_IRQ;
-> +
-> +	hci_dev = platform_device_alloc(ohci ? "ohci-platform" :
-> +					"ehci-platform", 0);
-> +	if (!hci_dev) {
-> +		dev_err(&pdev->dev, "platform_device_alloc() failed\n");
-> +		ret = -ENODEV;
-> +		goto err_res;
-> +	}
+Before patch
+------------
+DRA74x ES 1.0: Gen1 cards work, Gen2 cards do not work (expected result due to
+silicon errata)
+DRA74x ES 1.1: Gen1 cards work, Gen2 cards do not work sometimes due to incorrect
+programming of register
 
-No need for playing games with child devices, just see how the other
-drivers do it.
+DRA72x: Gen1 cards work, Gen2 cards do not work sometimes due to incorrect
+programming of register
 
-> +	ret = platform_device_add(hci_dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "platform_device_add() failed\n");
-> +		goto err_alloc;
-> +	}
-> +
-> +	return hci_dev;
-> +
-> +err_alloc:
-> +	platform_device_put(hci_dev);
-> +err_res:
-> +	return ERR_PTR(ret);
-> +}
-> +
-> +static u64 f_usb20ho_dma_mask =  DMA_BIT_MASK(32);
+After patch
+-----------
+DRA74x ES 1.0: Gen1 cards work, Gen2 cards do not work (expected result due to
+silicon errata)
+DRA74x ES 1.1: Gen1 cards work, Gen2 cards work consistently.
 
-The dma mask should come from the dma-ranges property of the parent bus,
-as of_platform_populate now does.
+DRA72x: Gen1 and Gen2 cards enumerate consistently.
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/phy/phy-omap-control.c       |  7 +++----
+ drivers/phy/phy-ti-pipe3.c           | 10 ++++++----
+ include/linux/phy/omap_control_phy.h |  6 +++---
+ 3 files changed, 12 insertions(+), 11 deletions(-)
 
-	Arnd
+diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-control.c
+index c96e8183a8ff..efe724f97e02 100644
+--- a/drivers/phy/phy-omap-control.c
++++ b/drivers/phy/phy-omap-control.c
+@@ -29,10 +29,9 @@
+ /**
+  * omap_control_pcie_pcs - set the PCS delay count
+  * @dev: the control module device
+- * @id: index of the pcie PHY (should be 1 or 2)
+  * @delay: 8 bit delay value
+  */
+-void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
++void omap_control_pcie_pcs(struct device *dev, u8 delay)
+ {
+ 	u32 val;
+ 	struct omap_control_phy	*control_phy;
+@@ -55,8 +54,8 @@ void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
+ 
+ 	val = readl(control_phy->pcie_pcs);
+ 	val &= ~(OMAP_CTRL_PCIE_PCS_MASK <<
+-		(id * OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT));
+-	val |= delay << (id * OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT);
++		OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT);
++	val |= (delay << OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT);
+ 	writel(val, control_phy->pcie_pcs);
+ }
+ EXPORT_SYMBOL_GPL(omap_control_pcie_pcs);
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index c297b7a10d30..4f31f2be4b5e 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -82,7 +82,6 @@ struct ti_pipe3 {
+ 	struct clk		*refclk;
+ 	struct clk		*div_clk;
+ 	struct pipe3_dpll_map	*dpll_map;
+-	u8			id;
+ };
+ 
+ static struct pipe3_dpll_map dpll_map_usb[] = {
+@@ -217,8 +216,13 @@ static int ti_pipe3_init(struct phy *x)
+ 	u32 val;
+ 	int ret = 0;
+ 
++	/*
++	 * Set pcie_pcs register to 0x96 for proper functioning of phy
++	 * as recommended in AM572x TRM SPRUHZ6, section 18.5.2.2, table
++	 * 18-1804.
++	 */
+ 	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie")) {
+-		omap_control_pcie_pcs(phy->control_dev, phy->id, 0xF1);
++		omap_control_pcie_pcs(phy->control_dev, 0x96);
+ 		return 0;
+ 	}
+ 
+@@ -347,8 +351,6 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+-		if (of_property_read_u8(node, "id", &phy->id) < 0)
+-			phy->id = 1;
+ 
+ 		clk = devm_clk_get(phy->dev, "dpll_ref");
+ 		if (IS_ERR(clk)) {
+diff --git a/include/linux/phy/omap_control_phy.h b/include/linux/phy/omap_control_phy.h
+index e9e6cfbfbb58..eb7d4a135a9e 100644
+--- a/include/linux/phy/omap_control_phy.h
++++ b/include/linux/phy/omap_control_phy.h
+@@ -66,7 +66,7 @@ enum omap_control_usb_mode {
+ #define	OMAP_CTRL_PIPE3_PHY_TX_RX_POWEROFF	0x0
+ 
+ #define	OMAP_CTRL_PCIE_PCS_MASK			0xff
+-#define	OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT	0x8
++#define	OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT	16
+ 
+ #define OMAP_CTRL_USB2_PHY_PD		BIT(28)
+ 
+@@ -79,7 +79,7 @@ enum omap_control_usb_mode {
+ void omap_control_phy_power(struct device *dev, int on);
+ void omap_control_usb_set_mode(struct device *dev,
+ 			       enum omap_control_usb_mode mode);
+-void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay);
++void omap_control_pcie_pcs(struct device *dev, u8 delay);
+ #else
+ 
+ static inline void omap_control_phy_power(struct device *dev, int on)
+@@ -91,7 +91,7 @@ static inline void omap_control_usb_set_mode(struct device *dev,
+ {
+ }
+ 
+-static inline void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
++static inline void omap_control_pcie_pcs(struct device *dev, u8 delay)
+ {
+ }
+ #endif
+-- 
+1.9.1
