@@ -1,216 +1,161 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 05/11] clk: ti: divider: add support for legacy divider init
-Date: Tue, 16 Dec 2014 18:20:50 +0200
-Message-ID: <1418746856-17173-6-git-send-email-t-kristo@ti.com>
-References: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Tue, 16 Dec 2014 11:36:57 -0500
+Message-ID: <20141216163657.GL24110@csclub.uwaterloo.ca>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <20141214044517.GD24110@csclub.uwaterloo.ca>
+ <549018EC.8020207@ti.com>
+ <20141216145856.GA23358@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37486 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750983AbaLPQUL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Dec 2014 11:20:11 -0500
-In-Reply-To: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141216145856.GA23358@kahuna>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, mturquette@linaro.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
 
-Legacy clock data is initialized slightly differently compared to
-DT clocks, thus add support for this.
+On Tue, Dec 16, 2014 at 08:58:56AM -0600, Nishanth Menon wrote:
+> On 17:05-20141216, Lokesh Vutla wrote:
+> [...]
+> >  
+> > @@ -545,6 +546,16 @@ static void __init realtime_counter_init(void)
+> >  		break;
+> >  	}
+> >  
+> > +	if (soc_is_dra7xx()) {
+> > +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
+> > +		reg = reg & DRA7_SPEEDSELECT_MASK;
+> > +
+> > +		if (reg) {
+> > +			num = 75;
+> > +			den = 244;
+> > +		}
+> > +	}
+> > +
+> >  	/* Program numerator and denumerator registers */
+> >  	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
+> >  			NUMERATOR_DENUMERATOR_MASK;
+> 
+> A) So, it does look like the 32k node is actually wrong then -> Tero:
+> any comments? should'nt this now be modeled based on
+> CTRL_CORE_BOOTSTRAP::SPEEDSELECT considering that clock nodes do have
+> clk mux options based on the 32k..
+> sys_32k_ck: sys_32k_ck {
+> 	#clock-cells = <0>;
+> 	compatible = "fixed-clock";
+> 	clock-frequency = <32768>;
+> };
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/clk/ti/clk.c     |    3 ++
- drivers/clk/ti/clock.h   |    2 +
- drivers/clk/ti/divider.c |  132 +++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 136 insertions(+), 1 deletion(-)
+Hmm, I hadn't considered other things that might care.  Certainly if
+you were to use a SYSCLK1 other than 20MHz, it certainly won't be 32KHz
+anymore.
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 676dbf1..a0475e2 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -214,6 +214,9 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 	case TI_CLK_MUX:
- 		clk = ti_clk_register_mux(setup);
- 		break;
-+	case TI_CLK_DIVIDER:
-+		clk = ti_clk_register_divider(setup);
-+		break;
- 	case TI_CLK_FIXED_FACTOR:
- 		fixed_factor = setup->data;
+> B) Since rate switch is no longer needed, how about something like the
+> following:
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index a3c0133..315d6d1 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -286,6 +286,11 @@
+>  #define OMAP5XXX_CONTROL_STATUS                0x134
+>  #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
+>  
+> +
+> +/* DRA7XX CONTROL CORE BOOTSTRAP */
+> +#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
+> +#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
+> +
+>  /*
+>   * REVISIT: This list of registers is not comprehensive - there are more
+>   * that should be added.
+
+I like that as a place for those.
+
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 4f61148..783d3c3 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -54,6 +54,7 @@
+>  
+>  #include "soc.h"
+>  #include "common.h"
+> +#include "control.h"
+>  #include "powerdomain.h"
+>  #include "omap-secure.h"
+>  
+
+How about this version for the rest of the file.  It handles that for
+the errata case we would like to do rate * num / den, which given how
+small the num is will fit in 32bit and gives the best accuracy for the
+calculation, while the non errata case the existing calculation works
+well and fits in 32 bit for all other cases.  It just has to be moved
+up so that the goto can skip it.  I changed sysclk to sysclk1 since on
+the dra7xx there is in fact a sysclk1 and a sysclk2 and it is probably
+worth keeping it clear which one this is referring to.
+
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index fb0cb2b..be254bf 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -511,6 +511,36 @@ static void __init realtime_counter_init(void)
+ 	}
  
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 9430dc6..fe70941 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -156,7 +156,9 @@ struct ti_clk_dpll {
- struct clk *ti_clk_register_gate(struct ti_clk *setup);
- struct clk *ti_clk_register_interface(struct ti_clk *setup);
- struct clk *ti_clk_register_mux(struct ti_clk *setup);
-+struct clk *ti_clk_register_divider(struct ti_clk *setup);
- 
-+struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup);
- struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
- struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup);
- 
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index bff2b5b..6211893 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -21,6 +21,7 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- #include <linux/clk/ti.h>
-+#include "clock.h"
- 
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
-@@ -301,6 +302,134 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- }
- 
- static struct clk_div_table *
-+_get_div_table_from_setup(struct ti_clk_divider *setup, u8 *width)
-+{
-+	int valid_div = 0;
-+	struct clk_div_table *table;
-+	int i;
-+	int div;
-+	u32 val;
-+	u8 flags;
+ 	rate = clk_get_rate(sys_clk);
 +
-+	if (!setup->num_dividers) {
-+		/* Clk divider table not provided, determine min/max divs */
-+		flags = setup->flags;
-+
-+		if (flags & CLKF_INDEX_STARTS_AT_ONE)
-+			val = 1;
-+		else
-+			val = 0;
-+
-+		div = 1;
-+
-+		while (div < setup->max_div) {
-+			if (flags & CLKF_INDEX_POWER_OF_TWO)
-+				div <<= 1;
-+			else
-+				div++;
-+			val++;
++	if (soc_is_dra7xx()) {
++		/*
++		 * Errata i856 says the 32.768KHz crystal does not start at
++		 * power on, so the CPU falls back to an emulated 32KHz clock
++		 * based on sysclk1 / 610 instead. This causes the master counter
++		 * frequency to not be 6.144MHz but at sysclk1 / 610 * 375 / 2
++		 * (OR sysclk1 * 75 / 244)
++		 *
++		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
++		 * Of course any board built without a populated 32.768KHz
++	         * crystal would also need this fix even if the CPU is fixed
++		 * later.
++		 *
++		 * Either case can be detected by using the two speedselect bits
++		 * If they are not 0, then the 32.768KHz clock driving the
++		 * coarse counter that corrects the fine counter every time it
++		 * ticks is actually rate/610 rather than 32.768KHz and we
++		 * should compensate to avoid the 570ppm (at 20MHz, much worse
++		 * at other rates) too fast system time.
++		 */
++		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
++		if (reg & DRA7_SPEEDSELECT_MASK) {
++			num = 75;
++			den = 244;
++			arch_timer_freq = (rate * num) / den;
++			goto sysclk1_based;
 +		}
-+
-+		*width = fls(val);
-+
-+		return NULL;
 +	}
 +
-+	for (i = 0; i < setup->num_dividers; i++)
-+		if (setup->dividers[i])
-+			valid_div++;
-+
-+	table = kzalloc(sizeof(*table) * (valid_div + 1), GFP_KERNEL);
-+	if (!table)
-+		return ERR_PTR(-ENOMEM);
-+
-+	valid_div = 0;
-+	*width = 0;
-+
-+	for (i = 0; i < setup->num_dividers; i++)
-+		if (setup->dividers[i]) {
-+			table[valid_div].div = setup->dividers[i];
-+			table[valid_div].val = i;
-+			valid_div++;
-+			*width = i;
-+		}
-+
-+	*width = fls(*width);
-+
-+	return table;
-+}
-+
-+struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
-+{
-+	struct clk_divider *div;
-+	struct clk_omap_reg *reg;
-+
-+	if (!setup)
-+		return NULL;
-+
-+	div = kzalloc(sizeof(*div), GFP_KERNEL);
-+	if (!div)
-+		return ERR_PTR(-ENOMEM);
-+
-+	reg = (struct clk_omap_reg *)&div->reg;
-+	reg->index = setup->module;
-+	reg->offset = setup->reg;
-+
-+	if (setup->flags & CLKF_INDEX_STARTS_AT_ONE)
-+		div->flags |= CLK_DIVIDER_ONE_BASED;
-+
-+	if (setup->flags & CLKF_INDEX_POWER_OF_TWO)
-+		div->flags |= CLK_DIVIDER_POWER_OF_TWO;
-+
-+	div->table = _get_div_table_from_setup(setup, &div->width);
-+
-+	div->shift = setup->bit_shift;
-+
-+	return &div->hw;
-+}
-+
-+struct clk *ti_clk_register_divider(struct ti_clk *setup)
-+{
-+	struct ti_clk_divider *div;
-+	struct clk_omap_reg *reg_setup;
-+	u32 reg;
-+	u8 width;
-+	u32 flags = 0;
-+	u8 div_flags = 0;
-+	struct clk_div_table *table;
-+	struct clk *clk;
-+
-+	div = setup->data;
-+
-+	reg_setup = (struct clk_omap_reg *)&reg;
-+
-+	reg_setup->index = div->module;
-+	reg_setup->offset = div->reg;
-+
-+	if (div->flags & CLKF_INDEX_STARTS_AT_ONE)
-+		div_flags |= CLK_DIVIDER_ONE_BASED;
-+
-+	if (div->flags & CLKF_INDEX_POWER_OF_TWO)
-+		div_flags |= CLK_DIVIDER_POWER_OF_TWO;
-+
-+	if (div->flags & CLKF_SET_RATE_PARENT)
-+		flags |= CLK_SET_RATE_PARENT;
-+
-+	table = _get_div_table_from_setup(div, &width);
-+	if (IS_ERR(table))
-+		return (struct clk *)table;
-+
-+	clk = _register_divider(NULL, setup->name, div->parent,
-+				flags, (void __iomem *)reg, div->bit_shift,
-+				width, div_flags, table, NULL);
-+
-+	if (IS_ERR(clk))
-+		kfree(table);
-+
-+	return clk;
-+}
-+
-+static struct clk_div_table *
- __init ti_clk_get_div_table(struct device_node *node)
- {
- 	struct clk_div_table *table;
-@@ -455,7 +584,8 @@ static void __init of_ti_divider_clk_setup(struct device_node *node)
- 		goto cleanup;
+ 	/* Numerator/denumerator values refer TRM Realtime Counter section */
+ 	switch (rate) {
+ 	case 12000000:
+@@ -544,7 +574,9 @@ static void __init realtime_counter_init(void)
+ 		den = 25;
+ 		break;
+ 	}
++	arch_timer_freq = (rate / den) * num;
  
- 	clk = _register_divider(NULL, node->name, parent_name, flags, reg,
--				shift, width, clk_divider_flags, table, NULL);
-+				shift, width, clk_divider_flags, table,
-+				NULL);
++sysclk1_based:
+ 	/* Program numerator and denumerator registers */
+ 	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
+ 			NUMERATOR_DENUMERATOR_MASK;
+@@ -556,7 +588,6 @@ static void __init realtime_counter_init(void)
+ 	reg |= den;
+ 	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
  
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
--- 
-1.7.9.5
+-	arch_timer_freq = (rate / den) * num;
+ 	set_cntfreq();
+ 
+ 	iounmap(base);
 
+-- 
+Len Sorensen
