@@ -1,133 +1,80 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
-Subject: [PATCH V2 2/2] ARM: dra7xx: Fix counter frequency drift for AM572x
- errata i856.
-Date: Tue, 16 Dec 2014 16:08:21 -0500
-Message-ID: <89b793993eaa492af531bd7aa9dff1f871fb4a77.1418762900.git.lsorense@csclub.uwaterloo.ca>
-References: <cover.1418762900.git.lsorense@csclub.uwaterloo.ca>
+From: Paul Walmsley <pwalmsley@nvidia.com>
+Subject: Re: regression: Clock changes in next-20141205 break at least
+ omap4
+Date: Tue, 16 Dec 2014 22:25:18 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1412162159270.3102@utopia.booyaka.com>
+References: <20141212194238.20398.33333@quantum> <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com> <20141215220224.20398.98259@quantum> <548F7B02.1090009@nvidia.com> <20141216003834.GC23854@atomide.com> <548F8B70.2060803@nvidia.com>
+ <5490816E.7060706@codeaurora.org> <54908F8D.2020202@nvidia.com> <20141216202301.GF11502@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com> <20141216205754.GG11502@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.csclub.uwaterloo.ca ([129.97.134.52]:56333 "EHLO
-	mail.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750791AbaLPVIX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2014 16:08:23 -0500
-Content-Disposition: inline
-In-Reply-To: <cover.1418762900.git.lsorense@csclub.uwaterloo.ca>
+Received: from utopia.booyaka.com ([74.50.51.50]:34804 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaLPWZU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2014 17:25:20 -0500
+In-Reply-To: <20141216205754.GG11502@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Len Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: paul@pwsan.com, Stephen Boyd <sboyd@codeaurora.org>, Tony Lindgren <tony@atomide.com>, t-kristo@ti.com, Nishanth Menon <nm@ti.com>, khilman@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
-crystal is not enabled at power up.  Instead the CPU falls back to using
-an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
-20MHz on boards so far (which gives an emulated frequency of 32.786KHz),
-but can also be 19.2 or 27MHz which result in much larger drift.
++ paul@pwsan.com (I prefer not having to deal with MS Exchange when 
+possible :-) )
 
-Since this is used to drive the master counter at 32.768KHz * 375 /
-2 = 6.144MHz, the emulated speed for 20MHz is of by 570ppm, or about 43
-seconds per day, and more than the 500ppm NTP is able to tolerate.
+On Tue, 16 Dec 2014, Russell King - ARM Linux wrote:
 
-Checking the CTRL_CORE_BOOTSTRAP register can determine if the CPU
-is using the real 32.768KHz crystal or the emulated SYSCLK1/610, and
-by known that the real counter frequency can be determined and used.
-The real speed is then SYSCLK1 / 610 * 375 / 2 or SYSCLK1 * 75 / 244.
+> On Tue, Dec 16, 2014 at 08:45:25PM +0000, Paul Walmsley wrote:
+> > On Tue, 16 Dec 2014, Russell King - ARM Linux wrote:
+> > 
+> > > On Tue, Dec 16, 2014 at 01:01:17PM -0700, Paul Walmsley wrote:
+> > > > So the reference clock and functional clock are (usually) required by the
+> > > > PLL to operate, and should therefore be required by the PLL clock driver
+> > > > code in the kernel; but one could claim that they aren't technically parent
+> > > > clocks of the PLL in a clock tree sense, since the downstream output clock
+> > > > isn't directly derived from either of those clocks.
+> > > 
+> > > The reference clock is the parent clock for a PLL, and the output clock 
+> > > is a derivative of the reference clock. The PLL maths show that very 
+> > > clearly.
+> > 
+> > The PLL's internal oscillator is the electrical source of the PLL's output 
+> > clock.  The reference clock is just used to discipline that internal 
+> > oscillator.  Even that's not necessary - the reference clock can be 
+> > optional on some clock source implementations, which can run the internal 
+> > oscillator in open-loop mode.
+> 
+> I would argue that running a PLL in open-loop mode is an exceptional
+> circumstance: in such scenarios, many PLLs will head towards a certain
+> frequency (depending on their design) and some may be rather unstable
+> in open loop mode.  Only those which have been explicitly designed to
+> be stable in open loop mode should be run that way.
+> 
+> And arguably, a PLL without a reference clock is not a phase *locked*
+> loop at all - the clue is in the name.  A PLL without a reference clock
+> is merely an oscillator.  There is no "phase lock" what so ever.
 
-Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
----
- arch/arm/mach-omap2/control.h |    4 ++++
- arch/arm/mach-omap2/timer.c   |   36 ++++++++++++++++++++++++++++++++++--
- 2 files changed, 38 insertions(+), 2 deletions(-)
+...
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index a3c0133..a80ac2d 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -286,6 +286,10 @@
- #define OMAP5XXX_CONTROL_STATUS                0x134
- #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
- 
-+/* DRA7XX CONTROL CORE BOOTSTRAP */
-+#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
-+#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
-+
- /*
-  * REVISIT: This list of registers is not comprehensive - there are more
-  * that should be added.
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index fb0cb2b..7d45c84 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -54,6 +54,7 @@
- 
- #include "soc.h"
- #include "common.h"
-+#include "control.h"
- #include "powerdomain.h"
- #include "omap-secure.h"
- 
-@@ -496,7 +497,8 @@ static void __init realtime_counter_init(void)
- 	void __iomem *base;
- 	static struct clk *sys_clk;
- 	unsigned long rate;
--	unsigned int reg, num, den;
-+	unsigned int reg;
-+	unsigned long long num, den;
- 
- 	base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
- 	if (!base) {
-@@ -511,6 +513,35 @@ static void __init realtime_counter_init(void)
- 	}
- 
- 	rate = clk_get_rate(sys_clk);
-+
-+	if (soc_is_dra7xx()) {
-+		/*
-+		 * Errata i856 says the 32.768KHz crystal does not start at
-+		 * power on, so the CPU falls back to an emulated 32KHz clock
-+		 * based on sysclk / 610 instead. This causes the master counter
-+		 * frequency to not be 6.144MHz but at sysclk / 610 * 375 / 2
-+		 * (OR sysclk * 75 / 244)
-+		 *
-+		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
-+		 * Of course any board built without a populated 32.768KHz
-+		 * crystal would also need this fix even if the CPU is fixed
-+		 * later.
-+		 *
-+		 * Either case can be detected by using the two speedselect bits
-+		 * If they are not 0, then the 32.768KHz clock driving the
-+		 * coarse counter that corrects the fine counter every time it
-+		 * ticks is actually rate/610 rather than 32.768KHz and we
-+		 * should compensate to avoid the 570ppm (at 20MHz, much worse
-+		 * at other rates) too fast system time.
-+		 */
-+		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
-+		if (reg & DRA7_SPEEDSELECT_MASK) {
-+			num = 75;
-+			den = 244;
-+			goto sysclk1_based;
-+		}
-+	}
-+
- 	/* Numerator/denumerator values refer TRM Realtime Counter section */
- 	switch (rate) {
- 	case 12000000:
-@@ -545,6 +576,7 @@ static void __init realtime_counter_init(void)
- 		break;
- 	}
- 
-+sysclk1_based:
- 	/* Program numerator and denumerator registers */
- 	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
- 			NUMERATOR_DENUMERATOR_MASK;
-@@ -556,7 +588,7 @@ static void __init realtime_counter_init(void)
- 	reg |= den;
- 	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
- 
--	arch_timer_freq = (rate / den) * num;
-+	arch_timer_freq = DIV_ROUND_UP_ULL(rate * num, den);
- 	set_cntfreq();
- 
- 	iounmap(base);
--- 
-1.7.10.4
+> This really is a question about how you view a PLL, and it's one which
+> can be debated for a very long time, and everyone will have perfectly
+> valid but conflicting ideas on it.
+
+Yep, I agree with most of what you wrote.  I was mostly thinking about our 
+Linux data structures and software abstraction for clocks that have 
+multiple input clocks that all need to be simultaneously active for the IP 
+block to work.  PLLs and PLL-like clock sources which take multiple input 
+clocks just happened to be the examples of this phenomenon that came to 
+mind.
+
+Those multiple input clocks could all be considered "parents" from a 
+use-counting point of view, and we could expect the core clock code to 
+deal with them.  Or one could take the electrical point of view and 
+consider only one of the input clocks to be the "parent" -- whatever's 
+directly driving the output clock -- and fix up the gating and constraint 
+details in the driver code for that clock source.
+
+I don't think this pot is boiling over at the moment; but, just something 
+for us to reflect on.
+
+
+- Paul
