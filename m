@@ -1,85 +1,320 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: regression: Clock changes in next-20141205 break at least omap4
-Date: Tue, 16 Dec 2014 20:57:54 +0000
-Message-ID: <20141216205754.GG11502@n2100.arm.linux.org.uk>
-References: <20141212194238.20398.33333@quantum>
- <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com>
- <20141215220224.20398.98259@quantum>
- <548F7B02.1090009@nvidia.com>
- <20141216003834.GC23854@atomide.com>
- <548F8B70.2060803@nvidia.com>
- <5490816E.7060706@codeaurora.org>
- <54908F8D.2020202@nvidia.com>
- <20141216202301.GF11502@n2100.arm.linux.org.uk>
- <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Fwd: next boot: 101 boots: 89 pass, 12 fail (next-20141216)
+Date: Tue, 16 Dec 2014 15:03:44 -0600
+Message-ID: <54909E30.4040300@ti.com>
+References: <E1Y0lcK-00026B-7I@ip-10-35-177-41.ec2.internal> <CAMAWPa98kyaUJpt=GLw4cH7fkg+8BkrA0kds=H-2-4fWXy_tqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:34470 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750910AbaLPU6J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Dec 2014 15:58:09 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52406 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751786AbaLPVDt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Dec 2014 16:03:49 -0500
+In-Reply-To: <CAMAWPa98kyaUJpt=GLw4cH7fkg+8BkrA0kds=H-2-4fWXy_tqw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <pwalmsley@nvidia.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Tony Lindgren <tony@atomide.com>, t-kristo@ti.com, Nishanth Menon <nm@ti.com>, khilman@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-On Tue, Dec 16, 2014 at 08:45:25PM +0000, Paul Walmsley wrote:
-> On Tue, 16 Dec 2014, Russell King - ARM Linux wrote:
++Viresh and linux-pm
+On 12/16/2014 10:59 AM, Kevin Hilman wrote:
+> FYI... New boot failures in today's linux-next for omap4-panda-es and
+> omap5-uevm:
 > 
-> > On Tue, Dec 16, 2014 at 01:01:17PM -0700, Paul Walmsley wrote:
-> > > So the reference clock and functional clock are (usually) required by the
-> > > PLL to operate, and should therefore be required by the PLL clock driver
-> > > code in the kernel; but one could claim that they aren't technically parent
-> > > clocks of the PLL in a clock tree sense, since the downstream output clock
-> > > isn't directly derived from either of those clocks.
-> > 
-> > The reference clock is the parent clock for a PLL, and the output clock 
-> > is a derivative of the reference clock. The PLL maths show that very 
-> > clearly.
+>    http://status.armcloud.us/boot/?lab-khilman&fail&omap
+
+http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-omap5-uevm.html
+[    2.071996] ------------[ cut here ]------------
+[    2.076831] kernel BUG at ../drivers/cpufreq/cpufreq.c:1258!
+[    2.082753] Internal error: Oops - BUG: 0 [#1] SMP ARM
+
+
+http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-omap4-panda-es.html
+[    2.109588] ------------[ cut here ]------------
+[    2.114410] kernel BUG at ../drivers/cpufreq/cpufreq.c:1258!
+[    2.120330] Internal error: Oops - BUG: 0 [#1] SMP ARM
+
 > 
-> The PLL's internal oscillator is the electrical source of the PLL's output 
-> clock.  The reference clock is just used to discipline that internal 
-> oscillator.  Even that's not necessary - the reference clock can be 
-> optional on some clock source implementations, which can run the internal 
-> oscillator in open-loop mode.
+> The omap3-beagle-xm one has been fixed by Tero, but the fix hasn't hit
+> -next yet.  I haven't had a chance to bisect these yet.
+> 
+> Kevin
+> 
+> 
+> ---------- Forwarded message ----------
+> From: Kevin's boot bot <khilman@kernel.org>
+> Date: Mon, Dec 15, 2014 at 10:28 PM
+> Subject: next boot: 101 boots: 89 pass, 12 fail (next-20141216)
+> To: kernel-build-reports@lists.linaro.org
+> 
+> 
+> Full Build report: http://status.armcloud.us/build/next/kernel/next-20141216/
+> Full Boot report:
+> http://status.armcloud.us/boot/all/job/next/kernel/next-20141216/
+> 
+> Tree/Branch: next
+> Git describe: next-20141216
+> 
+> Failed boot tests
+> =================
+>                      emev2-kzm9d:     FAIL:    arm-shmobile_defconfig
+>                                        u-boot: ERROR: timeout getting
+> DHCP address.
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-shmobile_defconfig/lab-khilman/boot-emev2-kzm9d.html
+>          exynos5420-arndale-octa:     FAIL:
+> arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y
+>                                        kernel: ERROR: failed to boot:
+> <class 'pexpect.TIMEOUT'>
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y/lab-khilman/boot-exynos5420-arndale-octa.html
+>              exynos5800-peach-pi:     FAIL:
+> arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y
+>                                        kernel: ERROR: failed to boot:
+> <class 'pexpect.TIMEOUT'>
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y/lab-khilman/boot-exynos5800-peach-pi.html
+>                       omap5-uevm:     FAIL:
+> arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y
+>                                        kernel: Unable to handle kernel
+> paging request at virtual address ffffffec
+> 
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y/lab-khilman/boot-omap5-uevm.html
+>              exynos5800-peach-pi:     FAIL:    arm-multi_v7_defconfig
+>                                        kernel: ERROR: failed to boot:
+> <class 'pexpect.TIMEOUT'>
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-exynos5800-peach-pi.html
+>          exynos5420-arndale-octa:     FAIL:    arm-multi_v7_defconfig
+>                                        kernel: ERROR: failed to boot:
+> <class 'pexpect.TIMEOUT'>
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-exynos5420-arndale-octa.html
+>                       omap5-uevm:     FAIL:    arm-multi_v7_defconfig
+>                                        kernel: Unable to handle kernel
+> paging request at virtual address ffffffec
+> 
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-omap5-uevm.html
+>                   omap4-panda-es:     FAIL:    arm-multi_v7_defconfig
+>                                        kernel: ERROR: failed to boot:
+> Kernel panic
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-omap4-panda-es.html
+>          exynos5420-arndale-octa:     FAIL:    arm-exynos_defconfig
+>                                        kernel: ERROR: failed to boot:
+> <class 'pexpect.TIMEOUT'>
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-exynos_defconfig/lab-khilman/boot-exynos5420-arndale-octa.html
+>              exynos5800-peach-pi:     FAIL:    arm-exynos_defconfig
+>                                        kernel: ERROR: failed to boot:
+> <class 'pexpect.TIMEOUT'>
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-exynos_defconfig/lab-khilman/boot-exynos5800-peach-pi.html
+>             exynos5410-odroid-xu:     FAIL:    arm-exynos_defconfig
+>                                        ERROR: Timeout waiting for
+> command: if test -n ${preboot}; then run preboot; fi.
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-exynos_defconfig/lab-khilman/boot-exynos5410-odroid-xu.html
+>           omap3-beagle-xm,legacy:     FAIL:    arm-omap2plus_defconfig
+>                                        kernel: ERROR: did not start booting.
+> 
+> http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-omap2plus_defconfig/lab-khilman/boot-omap3-beagle-xm,legacy.html
+> 
+> Full Report
+> ===========
+> 
+> arm-shmobile_defconfig
+> ----------------------
+>                      emev2-kzm9d:     FAIL  -  u-boot: ERROR: timeout
+> getting DHCP address.
+> 
+> arm-davinci_all_defconfig
+> -------------------------
+>                  dm365evm,legacy:     PASS
+>                        da850-evm:     PASS
+> 
+> arm-tegra_defconfig
+> -------------------
+>              tegra124-jetson-tk1:     PASS
+>                   tegra30-beaver:     PASS
+> 
+> arm-bcm2835_defconfig
+> ---------------------
+>                      bcm2835-rpi:     PASS
+> 
+> arm-multi_v7_defconfig+CONFIG_CPU_BIG_ENDIAN=y
+> ----------------------------------------------
+>       armada-xp-openblocks-ax3-4:     PASS
+>               armada-370-mirabox:     PASS
+> 
+> arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y
+> ----------------------------------------
+>              tegra124-jetson-tk1:     PASS
+>             exynos5410-odroid-xu:     PASS
+>            sun7i-a20-cubieboard2:     PASS
+>          exynos5420-arndale-octa:     FAIL  -  kernel: ERROR: failed
+> to boot: <class 'pexpect.TIMEOUT'>
+>       armada-xp-openblocks-ax3-4:     PASS
+>              exynos5800-peach-pi:     FAIL  -  kernel: ERROR: failed
+> to boot: <class 'pexpect.TIMEOUT'>
+>               sun7i-a20-bananapi:     PASS
+>                       omap5-uevm:     FAIL  (Warnings:  1)  -  kernel:
+> Unable to handle kernel paging request at virtual address ffffffec
+> 
+>            exynos5422-odroid-xu3:     PASS  (Warnings:  1)
+>               exynos5250-arndale:     PASS
+>                 rk3288-evb-rk808:     PASS
+>                vexpress-v2p-ca15:     PASS
+> 
+> arm-imx_v6_v7_defconfig
+> -----------------------
+>       imx6dl-wandboard,wand-dual:     PASS
+>       imx6dl-wandboard,wand-solo:     PASS
+>                  imx6q-wandboard:     PASS
+> 
+> arm-versatile_defconfig
+> -----------------------
+>               versatilepb,legacy:     PASS
+> 
+> arm-multi_v7_defconfig
+> ----------------------
+>                 am335x-boneblack:     PASS
+>  qcom-msm8974-sony-xperia-honami:     PASS
+>               armada-370-mirabox:     PASS
+>             sun4i-a10-cubieboard:     PASS
+>                 omap3-overo-tobi:     PASS
+>                      am335x-bone:     PASS
+>               sun7i-a20-bananapi:     PASS
+>              tegra124-jetson-tk1:     PASS
+>                  omap3-beagle-xm:     PASS
+>            sun7i-a20-cubieboard2:     PASS
+>             exynos5410-odroid-xu:     PASS
+>                      omap4-panda:     PASS
+>                  imx6q-wandboard:     PASS
+>       imx6dl-wandboard,wand-dual:     PASS
+>                     omap3-beagle:     PASS
+>                     ste-snowball:     PASS
+>                   tegra30-beaver:     PASS
+>                       omap3-n900:     PASS
+>         qcom-apq8074-dragonboard:     PASS
+>            qcom-apq8064-cm-qs600:     PASS
+>                      bcm28155-ap:     PASS
+>              exynos5800-peach-pi:     FAIL  -  kernel: ERROR: failed
+> to boot: <class 'pexpect.TIMEOUT'>
+>       imx6dl-wandboard,wand-solo:     PASS
+>           omap3-overo-storm-tobi:     PASS
+>            exynos5422-odroid-xu3:     PASS  (Warnings:  1)
+>                 rk3288-evb-rk808:     PASS
+>             qcom-apq8064-ifc6410:     PASS
+>                    stih410-b2120:     PASS
+>          exynos5420-arndale-octa:     FAIL  -  kernel: ERROR: failed
+> to boot: <class 'pexpect.TIMEOUT'>
+>       armada-xp-openblocks-ax3-4:     PASS
+>                 vexpress-v2p-ca9:     PASS
+>                vexpress-v2p-ca15:     PASS
+>                       omap5-uevm:     FAIL  (Warnings:  1)  -  kernel:
+> Unable to handle kernel paging request at virtual address ffffffec
+> 
+>                   omap4-panda-es:     FAIL  (Warnings:  1)  -  kernel:
+> ERROR: failed to boot: Kernel panic
+>               exynos5250-arndale:     PASS
+>                       zynq-zc702:     PASS
+>                    am437x-gp-evm:     PASS  (Warnings:  1)
+> 
+> arm-vexpress_defconfig
+> ----------------------
+>                 vexpress-v2p-ca9:     PASS
+>                vexpress-v2p-ca15:     PASS
+> 
+> arm-sunxi_defconfig
+> -------------------
+>               sun7i-a20-bananapi:     PASS
+>            sun7i-a20-cubieboard2:     PASS
+>             sun4i-a10-cubieboard:     PASS
+> 
+> arm-qcom_defconfig
+> ------------------
+>            qcom-apq8064-cm-qs600:     PASS
+>             qcom-apq8064-ifc6410:     PASS
+>  qcom-msm8974-sony-xperia-honami:     PASS
+>         qcom-apq8074-dragonboard:     PASS
+> 
+> arm-u8500_defconfig
+> -------------------
+>                     ste-snowball:     PASS
+> 
+> arm-exynos_defconfig
+> --------------------
+>          exynos5420-arndale-octa:     FAIL  (Warnings:  1)  -  kernel:
+> ERROR: failed to boot: <class 'pexpect.TIMEOUT'>
+>            exynos5422-odroid-xu3:     PASS  (Warnings:  1)
+>               exynos5250-arndale:     PASS
+>              exynos5800-peach-pi:     FAIL  -  kernel: ERROR: failed
+> to boot: <class 'pexpect.TIMEOUT'>
+>             exynos5410-odroid-xu:     FAIL  -  ERROR: Timeout waiting
+> for command: if test -n ${preboot}; then run preboot; fi.
+> 
+> arm-mvebu_v7_defconfig+CONFIG_CPU_BIG_ENDIAN=y
+> ----------------------------------------------
+>       armada-xp-openblocks-ax3-4:     PASS
+>               armada-370-mirabox:     PASS
+> 
+> arm-bcm_defconfig
+> -----------------
+>                      bcm28155-ap:     PASS
+> 
+> arm-omap2plus_defconfig
+> -----------------------
+>                      omap4-panda:     PASS
+>           omap3-overo-storm-tobi:     PASS
+>                  omap3-beagle-xm:     PASS
+>                       omap3-n900:     PASS
+>           omap3-beagle-xm,legacy:     FAIL  -  kernel: ERROR: did not
+> start booting.
+>                      am335x-bone:     PASS
+>                 am335x-boneblack:     PASS
+>                omap3-n900,legacy:     PASS  (Warnings:  3)
+>                 omap3-overo-tobi:     PASS
+>              omap3-beagle,legacy:     PASS  (Warnings:  2)
+>          omap3-overo-tobi,legacy:     PASS  (Warnings:  2)
+>    omap3-overo-storm-tobi,legacy:     PASS  (Warnings:  1)
+>                       omap5-uevm:     PASS  (Warnings:  1)
+>                   omap4-panda-es:     PASS
+>                    am437x-gp-evm:     PASS
+>                     omap3-beagle:     PASS
+> 
+> arm-sama5_defconfig
+> -------------------
+>                       sama5d35ek:     PASS
+>            at91-sama5d3_xplained:     PASS
+> 
+> arm-mvebu_v7_defconfig
+> ----------------------
+>       armada-xp-openblocks-ax3-4:     PASS
+>               armada-370-mirabox:     PASS
+> 
+> arm64-defconfig+CONFIG_OF_UNITTEST=y
+> ------------------------------------
+>              qemu-aarch64,legacy:     PASS
+> 
+> arm64-defconfig
+> ---------------
+>              qemu-aarch64,legacy:     PASS
+> 
+> _______________________________________________
+> Kernel-build-reports mailing list
+> Kernel-build-reports@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/kernel-build-reports
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-I would argue that running a PLL in open-loop mode is an exceptional
-circumstance: in such scenarios, many PLLs will head towards a certain
-frequency (depending on their design) and some may be rather unstable
-in open loop mode.  Only those which have been explicitly designed to
-be stable in open loop mode should be run that way.
-
-And arguably, a PLL without a reference clock is not a phase *locked*
-loop at all - the clue is in the name.  A PLL without a reference clock
-is merely an oscillator.  There is no "phase lock" what so ever.
-
-> The question of what the appropriate "parent" clock(s) should be is really 
-> a question of how the software chooses to model it, and has more to do 
-> with use-counts, constraints, etc.  I don't believe we have documented a 
-> precise definition for what a "parent clock" is, in the Linux clock 
-> framework context.
-
-If a PLL is designed to be operated in open loop mode, then the parent
-clock should be optional, otherwise the parent clock is rather fundamental
-to the PLLs operation, in the same way that the parent clock is
-fundamental to a divider's operation.
-
-You can argue that taking away the "reference" clock to a divider gives
-a known output (which happens to be 0Hz) but a steady state can still be
-a perfectly valid clock signal too if it changes state at some point. :)
-
-In much the same way, some PLLs are designed to disable their output
-when they are not in lock.  Much like that divider above with no
-reference input.
-
-This really is a question about how you view a PLL, and it's one which
-can be debated for a very long time, and everyone will have perfectly
-valid but conflicting ideas on it.
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+Nishanth Menon
