@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 02/11] clk: ti: mux: add support for legacy mux init
-Date: Tue, 16 Dec 2014 18:20:47 +0200
-Message-ID: <1418746856-17173-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 04/11] clk: ti: interface: add support for legacy interface clock init
+Date: Tue, 16 Dec 2014 18:20:49 +0200
+Message-ID: <1418746856-17173-5-git-send-email-t-kristo@ti.com>
 References: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37472 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751450AbaLPQUA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Dec 2014 11:20:00 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:47460 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751650AbaLPQUH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2014 11:20:07 -0500
 In-Reply-To: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,49 +17,48 @@ To: linux-omap@vger.kernel.org, mturquette@linaro.org, tony@atomide.com, paul@pw
 Cc: linux-arm-kernel@lists.infradead.org
 
 Legacy clock data is initialized slightly differently compared to
-DT clocks, thus add support for this.
+DT clocks, thus add support for this. The interface clock descriptor
+itself is overloading the gate clock descriptor, thus it needs to
+be called from the gate setup.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c   |    3 +++
- drivers/clk/ti/clock.h |    4 +++
- drivers/clk/ti/mux.c   |   70 ++++++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 75 insertions(+), 2 deletions(-)
+ drivers/clk/ti/clock.h     |    1 +
+ drivers/clk/ti/gate.c      |    3 ++
+ drivers/clk/ti/interface.c |   96 +++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 76 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index a8958f1..215f681 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -211,6 +211,9 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 		clk = clk_register_fixed_rate(NULL, setup->name, NULL,
- 					      CLK_IS_ROOT, fixed->frequency);
- 		break;
-+	case TI_CLK_MUX:
-+		clk = ti_clk_register_mux(setup);
-+		break;
- 	case TI_CLK_FIXED_FACTOR:
- 		fixed_factor = setup->data;
- 
 diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 6ee6c6e..c06bbf4 100644
+index d0715bc..9430dc6 100644
 --- a/drivers/clk/ti/clock.h
 +++ b/drivers/clk/ti/clock.h
-@@ -153,6 +153,10 @@ struct ti_clk_dpll {
- 	u8 recal_st_bit;
+@@ -154,6 +154,7 @@ struct ti_clk_dpll {
  };
  
-+struct clk *ti_clk_register_mux(struct ti_clk *setup);
+ struct clk *ti_clk_register_gate(struct ti_clk *setup);
++struct clk *ti_clk_register_interface(struct ti_clk *setup);
+ struct clk *ti_clk_register_mux(struct ti_clk *setup);
+ 
+ struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
+diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
+index ff3380e..d4f6cb2 100644
+--- a/drivers/clk/ti/gate.c
++++ b/drivers/clk/ti/gate.c
+@@ -142,6 +142,9 @@ struct clk *ti_clk_register_gate(struct ti_clk *setup)
+ 
+ 	gate = setup->data;
+ 
++	if (gate->flags & CLKF_INTERFACE)
++		return ti_clk_register_interface(setup);
 +
-+struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup);
-+
- void ti_clk_patch_legacy_clks(struct ti_clk **patch);
- struct clk *ti_clk_register_clk(struct ti_clk *setup);
- int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index e9d650e..728e253 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -21,6 +21,7 @@
+ 	reg_setup = (struct clk_omap_reg *)&reg;
+ 
+ 	if (gate->flags & CLKF_SET_RATE_PARENT)
+diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
+index 9c3e8c4..d71cd9b 100644
+--- a/drivers/clk/ti/interface.c
++++ b/drivers/clk/ti/interface.c
+@@ -20,6 +20,7 @@
  #include <linux/of.h>
  #include <linux/of_address.h>
  #include <linux/clk/ti.h>
@@ -67,96 +66,131 @@ index e9d650e..728e253 100644
  
  #undef pr_fmt
  #define pr_fmt(fmt) "%s: " fmt, __func__
-@@ -144,6 +145,39 @@ static struct clk *_register_mux(struct device *dev, const char *name,
- 	return clk;
- }
+@@ -31,53 +32,100 @@ static const struct clk_ops ti_interface_clk_ops = {
+ 	.is_enabled	= &omap2_dflt_clk_is_enabled,
+ };
  
-+struct clk *ti_clk_register_mux(struct ti_clk *setup)
-+{
-+	struct ti_clk_mux *mux;
-+	u32 flags;
-+	u8 mux_flags = 0;
-+	struct clk_omap_reg *reg_setup;
-+	u32 reg;
-+	u32 mask;
-+
-+	reg_setup = (struct clk_omap_reg *)&reg;
-+
-+	mux = setup->data;
-+	flags = CLK_SET_RATE_NO_REPARENT;
-+
-+	mask = mux->num_parents;
-+	if (!(mux->flags & CLKF_INDEX_STARTS_AT_ONE))
-+		mask--;
-+
-+	mask = (1 << fls(mask)) - 1;
-+	reg_setup->index = mux->module;
-+	reg_setup->offset = mux->reg;
-+
-+	if (mux->flags & CLKF_INDEX_STARTS_AT_ONE)
-+		mux_flags |= CLK_MUX_INDEX_ONE;
-+
-+	if (mux->flags & CLKF_SET_RATE_PARENT)
-+		flags |= CLK_SET_RATE_PARENT;
-+
-+	return _register_mux(NULL, setup->name, mux->parents, mux->num_parents,
-+			     flags, (void __iomem *)reg, mux->bit_shift, mask,
-+			     mux_flags, NULL, NULL);
-+}
-+
- /**
-  * of_mux_clk_setup - Setup function for simple mux rate clock
-  * @node: DT node for the clock
-@@ -194,8 +228,9 @@ static void of_mux_clk_setup(struct device_node *node)
- 
- 	mask = (1 << fls(mask)) - 1;
- 
--	clk = _register_mux(NULL, node->name, parent_names, num_parents, flags,
--			    reg, shift, mask, clk_mux_flags, NULL, NULL);
-+	clk = _register_mux(NULL, node->name, parent_names, num_parents,
-+			    flags, reg, shift, mask, clk_mux_flags, NULL,
-+			    NULL);
- 
- 	if (!IS_ERR(clk))
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-@@ -205,6 +240,37 @@ cleanup:
- }
- CLK_OF_DECLARE(mux_clk, "ti,mux-clock", of_mux_clk_setup);
- 
-+struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup)
-+{
-+	struct clk_mux *mux;
-+	struct clk_omap_reg *reg;
-+	int num_parents;
-+
-+	if (!setup)
-+		return NULL;
-+
-+	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
-+	if (!mux)
-+		return ERR_PTR(-ENOMEM);
-+
-+	reg = (struct clk_omap_reg *)&mux->reg;
-+
-+	mux->shift = setup->bit_shift;
-+
-+	reg->index = setup->module;
-+	reg->offset = setup->reg;
-+
-+	if (setup->flags & CLKF_INDEX_STARTS_AT_ONE)
-+		mux->flags |= CLK_MUX_INDEX_ONE;
-+
-+	num_parents = setup->num_parents;
-+
-+	mux->mask = num_parents - 1;
-+	mux->mask = (1 << fls(mux->mask)) - 1;
-+
-+	return &mux->hw;
-+}
-+
- static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
+-static void __init _of_ti_interface_clk_setup(struct device_node *node,
+-					      const struct clk_hw_omap_ops *ops)
++static struct clk *_register_interface(struct device *dev, const char *name,
++				       const char *parent_name,
++				       void __iomem *reg, u8 bit_idx,
++				       const struct clk_hw_omap_ops *ops)
  {
- 	struct clk_mux *mux;
+-	struct clk *clk;
+ 	struct clk_init_data init = { NULL };
+ 	struct clk_hw_omap *clk_hw;
+-	const char *parent_name;
+-	u32 val;
++	struct clk *clk;
+ 
+ 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
+ 	if (!clk_hw)
+-		return;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	clk_hw->hw.init = &init;
+ 	clk_hw->ops = ops;
+ 	clk_hw->flags = MEMMAP_ADDRESSING;
++	clk_hw->enable_reg = reg;
++	clk_hw->enable_bit = bit_idx;
+ 
+-	clk_hw->enable_reg = ti_clk_get_reg_addr(node, 0);
+-	if (!clk_hw->enable_reg)
+-		goto cleanup;
+-
+-	if (!of_property_read_u32(node, "ti,bit-shift", &val))
+-		clk_hw->enable_bit = val;
+-
+-	init.name = node->name;
++	init.name = name;
+ 	init.ops = &ti_interface_clk_ops;
+ 	init.flags = 0;
+ 
+-	parent_name = of_clk_get_parent_name(node, 0);
+-	if (!parent_name) {
+-		pr_err("%s must have a parent\n", node->name);
+-		goto cleanup;
+-	}
+-
+ 	init.num_parents = 1;
+ 	init.parent_names = &parent_name;
+ 
+ 	clk = clk_register(NULL, &clk_hw->hw);
+ 
+-	if (!IS_ERR(clk)) {
+-		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++	if (IS_ERR(clk))
++		kfree(clk_hw);
++	else
+ 		omap2_init_clk_hw_omap_clocks(clk);
++
++	return clk;
++}
++
++struct clk *ti_clk_register_interface(struct ti_clk *setup)
++{
++	const struct clk_hw_omap_ops *ops = &clkhwops_iclk_wait;
++	u32 reg;
++	struct clk_omap_reg *reg_setup;
++	struct ti_clk_gate *gate;
++
++	gate = setup->data;
++	reg_setup = (struct clk_omap_reg *)&reg;
++	reg_setup->index = gate->module;
++	reg_setup->offset = gate->reg;
++
++	if (gate->flags & CLKF_NO_WAIT)
++		ops = &clkhwops_iclk;
++
++	if (gate->flags & CLKF_HSOTGUSB)
++		ops = &clkhwops_omap3430es2_iclk_hsotgusb_wait;
++
++	if (gate->flags & CLKF_DSS)
++		ops = &clkhwops_omap3430es2_iclk_dss_usbhost_wait;
++
++	if (gate->flags & CLKF_SSI)
++		ops = &clkhwops_omap3430es2_iclk_ssi_wait;
++
++	if (gate->flags & CLKF_AM35XX)
++		ops = &clkhwops_am35xx_ipss_wait;
++
++	return _register_interface(NULL, setup->name, gate->parent,
++				   (void __iomem *)reg, gate->bit_shift, ops);
++}
++
++static void __init _of_ti_interface_clk_setup(struct device_node *node,
++					      const struct clk_hw_omap_ops *ops)
++{
++	struct clk *clk;
++	const char *parent_name;
++	void __iomem *reg;
++	u8 enable_bit = 0;
++	u32 val;
++
++	reg = ti_clk_get_reg_addr(node, 0);
++	if (!reg)
++		return;
++
++	if (!of_property_read_u32(node, "ti,bit-shift", &val))
++		enable_bit = val;
++
++	parent_name = of_clk_get_parent_name(node, 0);
++	if (!parent_name) {
++		pr_err("%s must have a parent\n", node->name);
+ 		return;
+ 	}
+ 
+-cleanup:
+-	kfree(clk_hw);
++	clk = _register_interface(NULL, node->name, parent_name, reg,
++				  enable_bit, ops);
++
++	if (!IS_ERR(clk))
++		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+ }
+ 
+ static void __init of_ti_interface_clk_setup(struct device_node *node)
 -- 
 1.7.9.5
 
