@@ -1,7 +1,7 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH 1/2] ARM: omap5/dra7xx: Fix frequency typos.
-Date: Tue, 16 Dec 2014 17:08:21 +0530
-Message-ID: <549019AD.9050807@ti.com>
+Date: Tue, 16 Dec 2014 08:06:34 -0600
+Message-ID: <54903C6A.5070807@ti.com>
 References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca> <5f7d841d41f6485022e07a22c332d3c8ea985bfa.1418421100.git.lsorense@csclub.uwaterloo.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
@@ -10,18 +10,12 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <5f7d841d41f6485022e07a22c332d3c8ea985bfa.1418421100.git.lsorense@csclub.uwaterloo.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Len,
-On Saturday 13 December 2014 03:38 AM, Lennart Sorensen wrote:
+On 12/12/2014 04:08 PM, Lennart Sorensen wrote:
 > The switch statement of the possible list of SYSCLK1 frequencies is
 > missing a 0 in 4 out of the 7 frequencies.
-Indeed a good catch !!
-Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
-
-Thanks and regards,
-Lokesh
 > 
 > Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
 > ---
@@ -61,3 +55,16 @@ Lokesh
 >  		den = 1125;
 >  		break;
 > 
+
+
+Also please add:
+Fixes: fa6d79d27614 ("ARM: OMAP: Add initialisation for the real-time
+counter")
+
+With that,
+
+Acked-by: Nishanth Menon <nm@ti.com>
+
+-- 
+Regards,
+Nishanth Menon
