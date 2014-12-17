@@ -1,155 +1,66 @@
-From: Tero Kristo <t-kristo@ti.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
 Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
  AM572x errata i856.
-Date: Wed, 17 Dec 2014 15:21:27 +0200
-Message-ID: <54918357.8060801@ti.com>
-References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca> <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca> <20141214044517.GD24110@csclub.uwaterloo.ca> <549018EC.8020207@ti.com> <20141216145856.GA23358@kahuna>
+Date: Wed, 17 Dec 2014 09:55:33 -0500
+Message-ID: <20141217145533.GS24110@csclub.uwaterloo.ca>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <20141214044517.GD24110@csclub.uwaterloo.ca>
+ <549018EC.8020207@ti.com>
+ <20141216145856.GA23358@kahuna>
+ <54918357.8060801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49196 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750995AbaLQNUO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Dec 2014 08:20:14 -0500
-In-Reply-To: <20141216145856.GA23358@kahuna>
+Received: from mail.csclub.uwaterloo.ca ([129.97.134.52]:44468 "EHLO
+	mail.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008AbaLQOzf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Dec 2014 09:55:35 -0500
+Content-Disposition: inline
+In-Reply-To: <54918357.8060801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
 
-On 12/16/2014 04:58 PM, Nishanth Menon wrote:
-> On 17:05-20141216, Lokesh Vutla wrote:
-> [...]
->>
->> @@ -545,6 +546,16 @@ static void __init realtime_counter_init(void)
->>   		break;
->>   	}
->>
->> +	if (soc_is_dra7xx()) {
->> +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
->> +		reg = reg & DRA7_SPEEDSELECT_MASK;
->> +
->> +		if (reg) {
->> +			num = 75;
->> +			den = 244;
->> +		}
->> +	}
->> +
->>   	/* Program numerator and denumerator registers */
->>   	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
->>   			NUMERATOR_DENUMERATOR_MASK;
->
-> A) So, it does look like the 32k node is actually wrong then -> Tero:
-> any comments? should'nt this now be modeled based on
-> CTRL_CORE_BOOTSTRAP::SPEEDSELECT considering that clock nodes do have
-> clk mux options based on the 32k..
-> sys_32k_ck: sys_32k_ck {
-> 	#clock-cells = <0>;
-> 	compatible = "fixed-clock";
-> 	clock-frequency = <32768>;
-> };
+On Wed, Dec 17, 2014 at 03:21:27PM +0200, Tero Kristo wrote:
+> Yea I think the 32k clock node should be fixed based on this.
+> Something like this:
+> 
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -100,8 +100,10 @@
+> 
+>         sys_32k_ck: sys_32k_ck {
+>                 #clock-cells = <0>;
+> -               compatible = "fixed-clock";
+> -               clock-frequency = <32768>;
+> +               compatible = "fixed-factor-clock";
+> +               clocks = <&sys_clkin1>;
+> +               clock-mult = <1>;
+> +               clock-div = <610>;
+>         };
+> 
+>         virt_12000000_ck: virt_12000000_ck {
+> 
+> 
+> It might be better then just query the actual clock rate from the
+> timer code.
 
+But it is only SYSCLK1 / 610 if the DRA7_CTRL_CORE_BOOTSTRAP register
+says it is.  Otherwise is is in fact 32768Hz.  I certainly would expect
+that if another revision of the chip is made (and even for the single
+core AM571x chips when they are done) will have this fixed and will work
+with the external 32.768KHz crystal, if it is present.
 
-Yea I think the 32k clock node should be fixed based on this. Something 
-like this:
+So how does one make the dtb reflect what the state of the CPU actually
+is?
 
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -100,8 +100,10 @@
+The errata even says that if SYSCLK1 is 26MHz (not a supported option
+in the manual), then the 32.768KHz crystal does work and the counter
+frequency will in fact be 6.144MHz like it should be.
 
-         sys_32k_ck: sys_32k_ck {
-                 #clock-cells = <0>;
--               compatible = "fixed-clock";
--               clock-frequency = <32768>;
-+               compatible = "fixed-factor-clock";
-+               clocks = <&sys_clkin1>;
-+               clock-mult = <1>;
-+               clock-div = <610>;
-         };
+So just changing the dtb is not an option.
 
-         virt_12000000_ck: virt_12000000_ck {
-
-
-It might be better then just query the actual clock rate from the timer 
-code.
-
--Tero
-
->
-> B) Since rate switch is no longer needed, how about something like the
-> following:
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index a3c0133..315d6d1 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -286,6 +286,11 @@
->   #define OMAP5XXX_CONTROL_STATUS                0x134
->   #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
->
-> +
-> +/* DRA7XX CONTROL CORE BOOTSTRAP */
-> +#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
-> +#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
-> +
->   /*
->    * REVISIT: This list of registers is not comprehensive - there are more
->    * that should be added.
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 4f61148..783d3c3 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -54,6 +54,7 @@
->
->   #include "soc.h"
->   #include "common.h"
-> +#include "control.h"
->   #include "powerdomain.h"
->   #include "omap-secure.h"
->
-> @@ -511,6 +512,35 @@ static void __init realtime_counter_init(void)
->   	}
->
->   	rate = clk_get_rate(sys_clk);
-> +
-> +	if (soc_is_dra7xx()) {
-> +		/*
-> +		 * Errata i856 says the 32.768KHz crystal does not start at
-> +		 * power on, so the CPU falls back in an emulated 32KHz clock
-> +		 * based on sysclk / 610 instead. This causes the master counter
-> +		 * frequency to not be 6.144MHz but at sysclk / 610  * 375 / 2
-> +		 * (OR sysclk * 75 / 244)
-> +		 *
-> +		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
-> +		 * Of course any board built without a populated 32.768KHz
-> +		 * crystal would also need this fix even if the CPU is fixed
-> +		 * later.
-> +		 *
-> +		 * Either case can be detected by using the two speedselect bits
-> +		 * If they are not 0, then the 32.768KHz clock driving the
-> +		 * course counter that corrects the fine counter every time it
-> +		 * ticks is actually rate/610 rather than 32.768KHz and we
-> +		 * should compensate to avoid the 570ppm (At 20MHz, much worse
-> +		 * at other rates) too fast system time.
-> +		 */
-> +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
-> +		if (reg & DRA7_SPEEDSELECT_MASK) {
-> +			num = 75;
-> +			den = 244;
-> +			goto sysclk_based;
-> +		}
-> +	}
-> +
->   	/* Numerator/denumerator values refer TRM Realtime Counter section */
->   	switch (rate) {
->   	case 1200000:
-> @@ -545,6 +575,7 @@ static void __init realtime_counter_init(void)
->   		break;
->   	}
->
-> +sysclk_based:
->   	/* Program numerator and denumerator registers */
->   	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
->   			NUMERATOR_DENUMERATOR_MASK;
->
-
+-- 
+Len Sorensen
