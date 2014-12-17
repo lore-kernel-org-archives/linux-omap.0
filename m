@@ -1,45 +1,49 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 1/3] usb: host: f_usb20ho: add support for Fujitsu ehci/ohci USB 2.0 host controller
-Date: Wed, 17 Dec 2014 16:44:29 +0100
-Message-ID: <2084132.xT3x4RUEre@wuerfel>
-References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com> <94603263.7VVvg5Qn7O@wuerfel> <830AC58E49A426478AC39824BC0FA915D8BB402BB7@fmpitwmsex01.fmpi.sea.css.fujitsu.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Wed, 17 Dec 2014 10:49:11 -0500
+Message-ID: <20141217154911.GU24110@csclub.uwaterloo.ca>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
+ <20141214044517.GD24110@csclub.uwaterloo.ca>
+ <549018EC.8020207@ti.com>
+ <20141216145856.GA23358@kahuna>
+ <54918357.8060801@ti.com>
+ <20141217145533.GS24110@csclub.uwaterloo.ca>
+ <20141217152225.GA737@kahuna>
+ <20141217152710.GT24110@csclub.uwaterloo.ca>
+ <5491A501.100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <830AC58E49A426478AC39824BC0FA915D8BB402BB7-BxlyW7DJwtfE0yrG4eIIn8GT06e9YD5CS4/B3AGzWvkvtab9mdV7tw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sneeker. Yeh" <Sneeker.Yeh-l16TxrwUIHTQFUHtdCDX3A@public.gmane.org>
-Cc: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5491A501.100@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 17 December 2014 23:33:02 Sneeker. Yeh wrote:
-> >
-> >No need for playing games with child devices, just see how the other drivers do
-> >it.
+On Wed, Dec 17, 2014 at 05:45:05PM +0200, Tero Kristo wrote:
+> Yea clock mux can be used. However, we don't have support for DRA7
+> control module clocks in the DT yet. I have posted patches with
+> support towards this a couple of weeks back, but they need some
+> revising.
 > 
-> I am wondering if this is what you mentioned here? :
-> Hcd21: f_usb20ho {
->         compatible = "fujitsu,f_usb20ho";
->         ...
->         Ehci {
->                 compatible = "generic-ehci";
->                 reg = <>;
->         }
->         ohci {
->                 compatible = "generic-ohci";
->                 reg = <>;
->         }
-> }
-> By doing that, I can just use of_platform_populate() to create platform device more gracefully,
-> than using platform_device_xxx() those have been done in of_platform_populate().
-> And also, managing register offset is totally done via dts description, not in the code.
+> Thus, we maybe need to apply the timer patches as is for now, and
+> fix the clock tree a bit later.
 
-What I mean is leaving out the fujitsu,f_usb20ho node entirely, just put the
-two USB controllers on the bus directly and remove this driver.
+Certainly the patches so far fix the system time issue.  I don't think
+anything else in the clock tree using this clock is that picky about
+the clock being of by 0.05% (when using 20MHz SYSCLK1, which I believe
+all boards so far do, other than the one board on my desk with a 19.2MHz
+clock because we wanted to see what happened).  Certainly if someone
+does build a baord using either 19.2 or 27MHz as supported in the
+documentation, then it becomes more relevant potentially.
 
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But I certainly don't consider fixing the clock tree urgent.  I think
+we can start shipping products with the clock tree in the current state
+(but we couldn't with the system time being that bad, which the patches
+so far fix).
+
+-- 
+Len Sorensen
