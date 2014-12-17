@@ -1,74 +1,147 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: Fwd: next boot: 101 boots: 89 pass, 12 fail (next-20141216)
-Date: Wed, 17 Dec 2014 09:28:57 -0600
-Message-ID: <20141217152857.GA838@kahuna>
-References: <E1Y0lcK-00026B-7I@ip-10-35-177-41.ec2.internal>
- <CAMAWPa98kyaUJpt=GLw4cH7fkg+8BkrA0kds=H-2-4fWXy_tqw@mail.gmail.com>
- <54909E30.4040300@ti.com>
- <CAKohponYEqhPjZmk_WH+TbNPLHEM5HWxta7CLUoM5+2iHYw_zw@mail.gmail.com>
+Subject: Re: [PATCH V2 2/2] ARM: dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Wed, 17 Dec 2014 09:30:26 -0600
+Message-ID: <20141217153026.GB838@kahuna>
+References: <cover.1418762900.git.lsorense@csclub.uwaterloo.ca>
+ <89b793993eaa492af531bd7aa9dff1f871fb4a77.1418762900.git.lsorense@csclub.uwaterloo.ca>
+ <54914096.9060206@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKohponYEqhPjZmk_WH+TbNPLHEM5HWxta7CLUoM5+2iHYw_zw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+In-Reply-To: <54914096.9060206@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Kristo, Tero" <t-kristo@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09:37-20141217, Viresh Kumar wrote:
-> On 17 December 2014 at 02:33, Nishanth Menon <nm@ti.com> wrote:
-> > http://storage.armcloud.us/kernel-ci/next/next-20141216/arm-multi_v7_defconfig/lab-khilman/boot-omap5-uevm.html
-> > [    2.071996] ------------[ cut here ]------------
-> > [    2.076831] kernel BUG at ../drivers/cpufreq/cpufreq.c:1258!
-> > [    2.082753] Internal error: Oops - BUG: 0 [#1] SMP ARM
+On 14:06-20141217, Lokesh Vutla wrote:
+> Hi Len,
+> On Wednesday 17 December 2014 02:38 AM, Lennart Sorensen wrote:
+> > Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
+> > crystal is not enabled at power up.  Instead the CPU falls back to using
+> > an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
+> > 20MHz on boards so far (which gives an emulated frequency of 32.786KHz),
+> > but can also be 19.2 or 27MHz which result in much larger drift.
+> > 
+> > Since this is used to drive the master counter at 32.768KHz * 375 /
+> > 2 = 6.144MHz, the emulated speed for 20MHz is of by 570ppm, or about 43
+> > seconds per day, and more than the 500ppm NTP is able to tolerate.
+> > 
+> > Checking the CTRL_CORE_BOOTSTRAP register can determine if the CPU
+> > is using the real 32.768KHz crystal or the emulated SYSCLK1/610, and
+> > by known that the real counter frequency can be determined and used.
+> > The real speed is then SYSCLK1 / 610 * 375 / 2 or SYSCLK1 * 75 / 244.
+> Looks good to me.
+> Tested this on DRA7 evm.
 > 
-> This is what we have hit:
+> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
 > 
->         if ((cpufreq_driver->flags & CPUFREQ_NEED_INITIAL_FREQ_CHECK)
->             && has_target()) {
->                 /* Are we running at unknown frequency ? */
->                 ret = cpufreq_frequency_table_get_index(policy, policy->cur);
->                 if (ret == -EINVAL) {
->                         /* Warn user and fix it */
->                         pr_warn("%s: CPU%d: Running at unlisted freq: %u KHz\n",
->                                 __func__, policy->cpu, policy->cur);
->                         ret = __cpufreq_driver_target(policy, policy->cur - 1,
->                                 CPUFREQ_RELATION_L);
+> Thanks and regards,
+> Lokesh
 > 
->                         /*
->                          * Reaching here after boot in a few seconds may not
->                          * mean that system will remain stable at "unknown"
->                          * frequency for longer duration. Hence, a BUG_ON().
->                          */
->                         BUG_ON(ret);        /********* We have hit
-> this one *******/
->                         pr_warn("%s: CPU%d: Unlisted initial frequency
-> changed to: %u KHz\n",
->                                 __func__, policy->cpu, policy->cur);
->                 }
->         }
+> > 
+> > Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
+> > ---
+> >  arch/arm/mach-omap2/control.h |    4 ++++
+> >  arch/arm/mach-omap2/timer.c   |   36 ++++++++++++++++++++++++++++++++++--
+> >  2 files changed, 38 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> > index a3c0133..a80ac2d 100644
+> > --- a/arch/arm/mach-omap2/control.h
+> > +++ b/arch/arm/mach-omap2/control.h
+> > @@ -286,6 +286,10 @@
+> >  #define OMAP5XXX_CONTROL_STATUS                0x134
+> >  #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
+> >  
+> > +/* DRA7XX CONTROL CORE BOOTSTRAP */
+> > +#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
+> > +#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
+> > +
+> >  /*
+> >   * REVISIT: This list of registers is not comprehensive - there are more
+> >   * that should be added.
+> > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> > index fb0cb2b..7d45c84 100644
+> > --- a/arch/arm/mach-omap2/timer.c
+> > +++ b/arch/arm/mach-omap2/timer.c
+> > @@ -54,6 +54,7 @@
+> >  
+> >  #include "soc.h"
+> >  #include "common.h"
+> > +#include "control.h"
+> >  #include "powerdomain.h"
+> >  #include "omap-secure.h"
+> >  
+> > @@ -496,7 +497,8 @@ static void __init realtime_counter_init(void)
+> >  	void __iomem *base;
+> >  	static struct clk *sys_clk;
+> >  	unsigned long rate;
+> > -	unsigned int reg, num, den;
+> > +	unsigned int reg;
+> > +	unsigned long long num, den;
+> >  
+> >  	base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
+> >  	if (!base) {
+> > @@ -511,6 +513,35 @@ static void __init realtime_counter_init(void)
+> >  	}
+> >  
+> >  	rate = clk_get_rate(sys_clk);
+> > +
+> > +	if (soc_is_dra7xx()) {
+> > +		/*
+> > +		 * Errata i856 says the 32.768KHz crystal does not start at
+> > +		 * power on, so the CPU falls back to an emulated 32KHz clock
+> > +		 * based on sysclk / 610 instead. This causes the master counter
+> > +		 * frequency to not be 6.144MHz but at sysclk / 610 * 375 / 2
+> > +		 * (OR sysclk * 75 / 244)
+> > +		 *
+> > +		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
+> > +		 * Of course any board built without a populated 32.768KHz
+> > +		 * crystal would also need this fix even if the CPU is fixed
+> > +		 * later.
+> > +		 *
+> > +		 * Either case can be detected by using the two speedselect bits
+> > +		 * If they are not 0, then the 32.768KHz clock driving the
+> > +		 * coarse counter that corrects the fine counter every time it
+> > +		 * ticks is actually rate/610 rather than 32.768KHz and we
+> > +		 * should compensate to avoid the 570ppm (at 20MHz, much worse
+> > +		 * at other rates) too fast system time.
+> > +		 */
+> > +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
+> > +		if (reg & DRA7_SPEEDSELECT_MASK) {
+> > +			num = 75;
+> > +			den = 244;
+> > +			goto sysclk1_based;
+> > +		}
+> > +	}
+> > +
+> >  	/* Numerator/denumerator values refer TRM Realtime Counter section */
+> >  	switch (rate) {
+> >  	case 12000000:
+> > @@ -545,6 +576,7 @@ static void __init realtime_counter_init(void)
+> >  		break;
+> >  	}
+> >  
+> > +sysclk1_based:
+> >  	/* Program numerator and denumerator registers */
+> >  	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
+> >  			NUMERATOR_DENUMERATOR_MASK;
+> > @@ -556,7 +588,7 @@ static void __init realtime_counter_init(void)
+> >  	reg |= den;
+> >  	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+> >  
+> > -	arch_timer_freq = (rate / den) * num;
+> > +	arch_timer_freq = DIV_ROUND_UP_ULL(rate * num, den);
+> >  	set_cntfreq();
+> >  
+> >  	iounmap(base);
+> > 
 > 
-> 
-> So the SoC was running on unlisted frequency and when we tried to
-> change to some other valid (listed) frequency, we failed.
-> 
-> The comment over it describes why it is a BUG.. Its some SoC issue
-> and need to be resolved by somebody with a board.
-> 
-> So, in short __cpufreq_driver_target() failed to change freq..
-
-I still do not see the need to crash the entire system - OK, fine
-cpufreq is broke, but the remaining part of the system can easily
-function. That BUG does look like a ugly point and lack of proper
-cleanup logic - cpufreq should be expected to report and gracefully
-shut itself down, not screw up my platform boot.
-
-For that matter we have had cpufreq working on TI platforms for years
-now. I will eventually find time to track the issue down if no one else
-beats me to it, but it kinda indicates that things are probably starting
-to bitrot...
-
+If tony is ok with the arch_timer_freq change in this patch, I am ok
+with it as well.
 -- 
 Regards,
 Nishanth Menon
