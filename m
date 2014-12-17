@@ -1,125 +1,155 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: regression: Clock changes in next-20141205 break at least omap4
-Date: Wed, 17 Dec 2014 13:59:54 +0200
-Message-ID: <5491703A.2080506@ti.com>
-References: <20141212194238.20398.33333@quantum>	 <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com>	 <20141215220224.20398.98259@quantum> <548F7B02.1090009@nvidia.com>	 <20141216003834.GC23854@atomide.com> <548F8B70.2060803@nvidia.com>	 <5490816E.7060706@codeaurora.org> <54908F8D.2020202@nvidia.com>	 <20141216202301.GF11502@n2100.arm.linux.org.uk>	 <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com>	 <20141216205754.GG11502@n2100.arm.linux.org.uk>	 <alpine.DEB.2.02.1412162159270.3102@utopia.booyaka.com> <1418809957.3347.1.camel@pengutronix.de>
+Subject: Re: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Wed, 17 Dec 2014 15:21:27 +0200
+Message-ID: <54918357.8060801@ti.com>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca> <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca> <20141214044517.GD24110@csclub.uwaterloo.ca> <549018EC.8020207@ti.com> <20141216145856.GA23358@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46290 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49196 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751047AbaLQL7N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Dec 2014 06:59:13 -0500
-In-Reply-To: <1418809957.3347.1.camel@pengutronix.de>
+	id S1750995AbaLQNUO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Dec 2014 08:20:14 -0500
+In-Reply-To: <20141216145856.GA23358@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lucas Stach <l.stach@pengutronix.de>, Paul Walmsley <pwalmsley@nvidia.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, paul@pwsan.com, khilman@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
 
-On 12/17/2014 11:52 AM, Lucas Stach wrote:
-> Am Dienstag, den 16.12.2014, 22:25 +0000 schrieb Paul Walmsley:
->> + paul@pwsan.com (I prefer not having to deal with MS Exchange when
->> possible :-) )
+On 12/16/2014 04:58 PM, Nishanth Menon wrote:
+> On 17:05-20141216, Lokesh Vutla wrote:
+> [...]
 >>
->> On Tue, 16 Dec 2014, Russell King - ARM Linux wrote:
+>> @@ -545,6 +546,16 @@ static void __init realtime_counter_init(void)
+>>   		break;
+>>   	}
 >>
->>> On Tue, Dec 16, 2014 at 08:45:25PM +0000, Paul Walmsley wrote:
->>>> On Tue, 16 Dec 2014, Russell King - ARM Linux wrote:
->>>>
->>>>> On Tue, Dec 16, 2014 at 01:01:17PM -0700, Paul Walmsley wrote:
->>>>>> So the reference clock and functional clock are (usually) required by the
->>>>>> PLL to operate, and should therefore be required by the PLL clock driver
->>>>>> code in the kernel; but one could claim that they aren't technically parent
->>>>>> clocks of the PLL in a clock tree sense, since the downstream output clock
->>>>>> isn't directly derived from either of those clocks.
->>>>>
->>>>> The reference clock is the parent clock for a PLL, and the output clock
->>>>> is a derivative of the reference clock. The PLL maths show that very
->>>>> clearly.
->>>>
->>>> The PLL's internal oscillator is the electrical source of the PLL's output
->>>> clock.  The reference clock is just used to discipline that internal
->>>> oscillator.  Even that's not necessary - the reference clock can be
->>>> optional on some clock source implementations, which can run the internal
->>>> oscillator in open-loop mode.
->>>
->>> I would argue that running a PLL in open-loop mode is an exceptional
->>> circumstance: in such scenarios, many PLLs will head towards a certain
->>> frequency (depending on their design) and some may be rather unstable
->>> in open loop mode.  Only those which have been explicitly designed to
->>> be stable in open loop mode should be run that way.
->>>
->>> And arguably, a PLL without a reference clock is not a phase *locked*
->>> loop at all - the clue is in the name.  A PLL without a reference clock
->>> is merely an oscillator.  There is no "phase lock" what so ever.
->>
->> ...
->>
->>> This really is a question about how you view a PLL, and it's one which
->>> can be debated for a very long time, and everyone will have perfectly
->>> valid but conflicting ideas on it.
->>
->> Yep, I agree with most of what you wrote.  I was mostly thinking about our
->> Linux data structures and software abstraction for clocks that have
->> multiple input clocks that all need to be simultaneously active for the IP
->> block to work.  PLLs and PLL-like clock sources which take multiple input
->> clocks just happened to be the examples of this phenomenon that came to
->> mind.
->>
->> Those multiple input clocks could all be considered "parents" from a
->> use-counting point of view, and we could expect the core clock code to
->> deal with them.  Or one could take the electrical point of view and
->> consider only one of the input clocks to be the "parent" -- whatever's
->> directly driving the output clock -- and fix up the gating and constraint
->> details in the driver code for that clock source.
->>
->> I don't think this pot is boiling over at the moment; but, just something
->> for us to reflect on.
->>
-> Maybe I'm thinking about this too lightly, but I think we already have
-> the right abstractions in place.
+>> +	if (soc_is_dra7xx()) {
+>> +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
+>> +		reg = reg & DRA7_SPEEDSELECT_MASK;
+>> +
+>> +		if (reg) {
+>> +			num = 75;
+>> +			den = 244;
+>> +		}
+>> +	}
+>> +
+>>   	/* Program numerator and denumerator registers */
+>>   	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
+>>   			NUMERATOR_DENUMERATOR_MASK;
 >
-> The clock tree in Linux is always modeled along the flow of reference
-> clocks. So typically the root of the tree is something like an
-> oscillator and everything spreads out from this in a parent/child
-> relation. So clearly the reference clock of a PLL is the PLLs parent. If
-> the PLL is running in open-loop mode (isn't this rather direct frequency
-> synthesis?) is has no parent and is the root of a tree itself.
->
-> If a PLL needs a functional clock to drive some internal logic, that
-> doesn't directly influence the clock synthesis from reference to
-> resulting clock, that clock would be no parent to the PLL. The PLL is
-> merely a consumer of this clock just like every other device in the
-> system.
->
-> Regards,
-> Lucas
+> A) So, it does look like the 32k node is actually wrong then -> Tero:
+> any comments? should'nt this now be modeled based on
+> CTRL_CORE_BOOTSTRAP::SPEEDSELECT considering that clock nodes do have
+> clk mux options based on the 32k..
+> sys_32k_ck: sys_32k_ck {
+> 	#clock-cells = <0>;
+> 	compatible = "fixed-clock";
+> 	clock-frequency = <32768>;
+> };
 
-The dual parent issue required by the DPLL code is caused by the 
-introduction of determine-rate / set-parent / set-rate-and-parent logic 
-to OMAP DPPLs. I took a short-cut here, making the assumption that every 
-DPLL has both of these clocks defined (which basically they do have, as 
-every DPLL technically has both reference and bypass clocks, but which 
-can be the same clock => thus the declaration itself is missing in some 
-cases.) The clock data is modelled like this for every other TI SoC 
-(which use DT clock data), except for omap3 legacy clock data, thus the 
-patch to tweak the clock data itself. It would be much harder to modify 
-the clock code itself to take this into account, rather than just add 
-the missing parents to the clock data, thus the approach taken in the 
-patch. We can of course discuss whether it is okay to have DPLLs 
-modelled as they are right now. I think them as composite clocks 
-containing mux, gate and divider/multiplier logic within a single black 
-box, we could split them up, but I don't see much need for that. If it 
-works, don't break it.
 
-Regarding the omap3 clock data patch, I have also just posted new patch 
-set that will move the omap3 legacy clock data under clock driver, until 
-we figure out what to finally do with this (use the DT clocks, or 
-introduce loadable clock data modules or something.) Thus, the data 
-patch is kind of a temporary one, or thats the intention at least, but I 
-wouldn't call it a hack. It is there to fix the issues introduced by the 
-set-parent / set-rate-and-parent logic, which was required by the 
-changes to the core clock set-rate.
+Yea I think the 32k clock node should be fixed based on this. Something 
+like this:
+
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -100,8 +100,10 @@
+
+         sys_32k_ck: sys_32k_ck {
+                 #clock-cells = <0>;
+-               compatible = "fixed-clock";
+-               clock-frequency = <32768>;
++               compatible = "fixed-factor-clock";
++               clocks = <&sys_clkin1>;
++               clock-mult = <1>;
++               clock-div = <610>;
+         };
+
+         virt_12000000_ck: virt_12000000_ck {
+
+
+It might be better then just query the actual clock rate from the timer 
+code.
 
 -Tero
+
+>
+> B) Since rate switch is no longer needed, how about something like the
+> following:
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index a3c0133..315d6d1 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -286,6 +286,11 @@
+>   #define OMAP5XXX_CONTROL_STATUS                0x134
+>   #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
+>
+> +
+> +/* DRA7XX CONTROL CORE BOOTSTRAP */
+> +#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
+> +#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
+> +
+>   /*
+>    * REVISIT: This list of registers is not comprehensive - there are more
+>    * that should be added.
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 4f61148..783d3c3 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -54,6 +54,7 @@
+>
+>   #include "soc.h"
+>   #include "common.h"
+> +#include "control.h"
+>   #include "powerdomain.h"
+>   #include "omap-secure.h"
+>
+> @@ -511,6 +512,35 @@ static void __init realtime_counter_init(void)
+>   	}
+>
+>   	rate = clk_get_rate(sys_clk);
+> +
+> +	if (soc_is_dra7xx()) {
+> +		/*
+> +		 * Errata i856 says the 32.768KHz crystal does not start at
+> +		 * power on, so the CPU falls back in an emulated 32KHz clock
+> +		 * based on sysclk / 610 instead. This causes the master counter
+> +		 * frequency to not be 6.144MHz but at sysclk / 610  * 375 / 2
+> +		 * (OR sysclk * 75 / 244)
+> +		 *
+> +		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
+> +		 * Of course any board built without a populated 32.768KHz
+> +		 * crystal would also need this fix even if the CPU is fixed
+> +		 * later.
+> +		 *
+> +		 * Either case can be detected by using the two speedselect bits
+> +		 * If they are not 0, then the 32.768KHz clock driving the
+> +		 * course counter that corrects the fine counter every time it
+> +		 * ticks is actually rate/610 rather than 32.768KHz and we
+> +		 * should compensate to avoid the 570ppm (At 20MHz, much worse
+> +		 * at other rates) too fast system time.
+> +		 */
+> +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
+> +		if (reg & DRA7_SPEEDSELECT_MASK) {
+> +			num = 75;
+> +			den = 244;
+> +			goto sysclk_based;
+> +		}
+> +	}
+> +
+>   	/* Numerator/denumerator values refer TRM Realtime Counter section */
+>   	switch (rate) {
+>   	case 1200000:
+> @@ -545,6 +575,7 @@ static void __init realtime_counter_init(void)
+>   		break;
+>   	}
+>
+> +sysclk_based:
+>   	/* Program numerator and denumerator registers */
+>   	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
+>   			NUMERATOR_DENUMERATOR_MASK;
+>
+
