@@ -1,39 +1,51 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: bluetooth: Add hci_h4p driver
-Date: Thu, 18 Dec 2014 21:10:43 +0100
-Message-ID: <20141218201043.GA15240@amd>
-References: <20141213223727.GA13894@amd>
- <1418637710.4443.11.camel@linux-0dmf.site>
- <20141218193153.GA27832@amd>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: GPMC clock question
+Date: Thu, 18 Dec 2014 17:44:49 -0300
+Message-ID: <54933CC1.9010301@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141218193153.GA27832@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Oliver Neukum <oneukum@suse.de>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, marcel@holtmann.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35159 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751125AbaLRUqr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 15:46:47 -0500
+Received: by mail-wi0-f178.google.com with SMTP id em10so3129050wid.17
+        for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2014 12:46:46 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, =?UTF-8?B?R3VpZG8gTWFydMOtbmV6?= <guido@vanguardiasur.com.ar>
 
-Hi!
-On Thu 2014-12-18 20:31:53, Pavel Machek wrote:
-> Hi!
-> 
-> > > +	h4p_simple_send_frame(info, skb);
-> > > +
-> > > +	if (!wait_for_completion_interruptible_timeout(&info->init_completion,
-> > > +						       msecs_to_jiffies(1000))) {
-> > > +		printk("h4p: negotiation did not return\n");
-> > 
-> > Memory leak in the error case
-> 
-> And memory leak in the normal case, too, no? Fixed.
+Tony, Roger:
 
-Actually, no, h4p_simple_send_frame passes skb to network stack, and
-it should free it as neccessary.
+As far as I can see, the GPMC interface clock (GPMC_FCLK) is not
+properly modeled in the devicetree. Instead, hwmod magic seems to be used.
 
-								Pavel
-								
+arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c:
+struct omap_hwmod_ocp_if am33xx_l3_s__gpmc = {
+        .master         = &am33xx_l3_s_hwmod,
+        .slave          = &am33xx_gpmc_hwmod,
+        .clk            = "l3s_gclk",
+        .addr           = am33xx_gpmc_addr_space,
+        .user           = OCP_USER_MPU,
+};
+
+I'd like to know what would be the appropriate DT model for this clock.
+Perhaps, as child of CORE_M4_CLK, divided by 2:
+
+gpmc_fclk: gpmc_fclk {
+                #clock-cells = <0>;
+                compatible = "fixed-factor-clock";
+                clocks = <&dpll_core_m4_ck>;
+                clock-mult = <1>;
+                clock-div = <2>;
+        };
+
+How does it look? Also, I'm wondering if this works OK when used with
+the hwmod stuff.
+
+Thanks a lot in advance!
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
