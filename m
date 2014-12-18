@@ -1,54 +1,47 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: OMAP 4430 SDP: rather sick with recent kernels
-Date: Wed, 17 Dec 2014 23:08:06 +0200
-Message-ID: <5491F0B6.4090904@ti.com>
-References: <20141217095252.GH11502@n2100.arm.linux.org.uk> <20141217172333.GE23854@atomide.com> <20141217185155.GI11502@n2100.arm.linux.org.uk>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: Fwd: next boot: 101 boots: 89 pass, 12 fail (next-20141216)
+Date: Thu, 18 Dec 2014 07:24:38 +0530
+Message-ID: <CAKohpomnAjwUYGnRvmefXStQLqcWgJ7c+8rZ2iADo23Q=zZCsQ@mail.gmail.com>
+References: <E1Y0lcK-00026B-7I@ip-10-35-177-41.ec2.internal>
+	<CAMAWPa98kyaUJpt=GLw4cH7fkg+8BkrA0kds=H-2-4fWXy_tqw@mail.gmail.com>
+	<54909E30.4040300@ti.com>
+	<CAKohponYEqhPjZmk_WH+TbNPLHEM5HWxta7CLUoM5+2iHYw_zw@mail.gmail.com>
+	<20141217152857.GA838@kahuna>
+	<CAKohponn9Ubk7ze5XVsJ4Gdkosx4YY3e0fNHLwjUYurkOYFqsg@mail.gmail.com>
+	<CAGo_u6qeNBSHYtq84QZH76bR_8xztbi2+Q6mXwH-_orTSg1jtQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46812 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155AbaLQVIm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Dec 2014 16:08:42 -0500
-In-Reply-To: <20141217185155.GI11502@n2100.arm.linux.org.uk>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:35220 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbaLRByj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Dec 2014 20:54:39 -0500
+Received: by mail-ob0-f175.google.com with SMTP id wp4so482434obc.6
+        for <linux-omap@vger.kernel.org>; Wed, 17 Dec 2014 17:54:39 -0800 (PST)
+In-Reply-To: <CAGo_u6qeNBSHYtq84QZH76bR_8xztbi2+Q6mXwH-_orTSg1jtQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Nishanth Menon <nm@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-On 12/17/2014 08:51 PM, Russell King - ARM Linux wrote:
-> On Wed, Dec 17, 2014 at 09:23:33AM -0800, Tony Lindgren wrote:
->> Hi,
->>
->> * Russell King - ARM Linux <linux@arm.linux.org.uk> [141217 01:55]:
->>> Tony,
->>>
->>> As the IOMMU stuff was merged last night, which removed a really quite
->>> horrid conflict resolution, I updated my nightly build tree from its
->>> previous state last Thursday.
->>>
->>> Now, SDP4430 seems to be really quite broken.
->>
->> Sigh, things are just break left and right every merge window :(
->
-> Some of these things were present before the merge window, so they're
-> less of a concern.  The biggest problem though is the ABE ASoC stuff
-> exploding, which prevents my test system getting anywhere near mounting
-> its rootfs.
->
-> It's fine in the "combined" case, because we end up totally dead as
-> far as serial console goes, but the "omap4430" kernel boot test never
-> ends because the kernel doesn't stop spewing "rcu_sched stall" messages.
->
+On 17 December 2014 at 22:13, Nishanth Menon <nm@ti.com> wrote:
+> I do realize that i did have different opinion given bootloader screw
+> ups. Given that we have discovered a potentially bad configuration (in
+> this case for some reason almost ALL TI platforms "have bad
+> configuration" - could be due to recent clock code changes or what
+> ever), just killing boot does not make sense to me as purely
+> bootloader being the cause may not always be the case for that path to
+> go wrong.
 
-I tried booting my 4460 Panda - which is the closest thing to 4430SDP 
-that I've got - on next-20141217, but I could not get it to the point 
-where the omap-abe-twl6040 probed. It probably is the problem you are 
-talking about as the hang does not happen if I disable ASoC ABE all 
-together, right?
+Sorry, I still *disagree*.
 
-I'll take a deeper look at it tomorrow, as Peter is not working ATM.
+Its not about bootloaders getting screwed up.. Yes, bootloader was indeed
+running at a frequency not listed in kernel. But we *tried* our best to get
+that resolved and we failed to change frequency.
 
-Best regards,
-Jyri
+We *shouldn't* allow kernel to move a inch further. It might be dangerous
+for the platform to continue further as we are talking about the almighty
+CPU. So, the bug is still the right way forward, atleast for me.
+
+--
+viresh
