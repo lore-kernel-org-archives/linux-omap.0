@@ -1,146 +1,63 @@
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 5/5] ARM: dts: am437x-gp-evm: add VPFE device tree data
-Date: Thu, 18 Dec 2014 21:54:14 +0530
-Message-ID: <1418919854-16164-6-git-send-email-prabhakar.csengg@gmail.com>
-References: <1418919854-16164-1-git-send-email-prabhakar.csengg@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1418919854-16164-1-git-send-email-prabhakar.csengg@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>, OMAP <linux-omap@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP 4430 SDP: rather sick with recent kernels
+Date: Thu, 18 Dec 2014 08:41:23 -0800
+Message-ID: <20141218164122.GH23854@atomide.com>
+References: <20141217095252.GH11502@n2100.arm.linux.org.uk>
+ <20141217172333.GE23854@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13006 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178AbaLRQoR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 11:44:17 -0500
+Content-Disposition: inline
+In-Reply-To: <20141217172333.GE23854@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Joel Fernandes <joelf@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Nishanth Menon <nm@ti.com>
 
-From: Benoit Parrot <bparrot@ti.com>
+* Tony Lindgren <tony@atomide.com> [141217 09:28]:
+> 
+> And then there are these too in the current mainline that are
+> clock related:
+> 
+> omap4xxx_dt_clk_init: failed to configure ABE DPLL!
+> ...
+> clock: dpll_abe_ck failed transition to 'locked'
+> clock: dpll_abe_ck failed transition to 'locked'
+> clock: dpll_abe_ck failed transition to 'locked'
+> ------------[ cut here ]------------
+> WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:851 clk_disable+0x24/0x30()
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.18.0-09274-g53c5279 #699
+> Hardware name: Generic OMAP4 (Flattened Device Tree)
+> [<c00154b4>] (unwind_backtrace) from [<c0011b7c>] (show_stack+0x10/0x14)
+> [<c0011b7c>] (show_stack) from [<c05d5068>] (dump_stack+0x80/0x9c)
+> [<c05d5068>] (dump_stack) from [<c003e104>] (warn_slowpath_common+0x78/0xb4)
+> [<c003e104>] (warn_slowpath_common) from [<c003e15c>] (warn_slowpath_null+ 0x1c/0x24)
+> [<c003e15c>] (warn_slowpath_null) from [<c04dfc1c>] (clk_disable+0x24/0x30)
+> [<c04dfc1c>] (clk_disable) from [<c0024ea0>] (_disable_clocks+0x18/0x68)
+> [<c0024ea0>] (_disable_clocks) from [<c0026410>] (_idle+0x15c/0x240)
+> [<c0026410>] (_idle) from [<c086fc48>] (_setup+0x174/0x22c)
+> [<c086fc48>] (_setup) from [<c002684c>] (omap_hwmod_for_each+0x30/0x5c)
+> [<c002684c>] (omap_hwmod_for_each) from [<c0870054>] (__omap_hwmod_setup_all+0x30/0x40)
+> [<c0870054>] (__omap_hwmod_setup_all) from [<c00089e4>] (do_one_initcall+0x80/0x1d8)
+> [<c00089e4>] (do_one_initcall) from [<c0862ea4>] (kernel_init_freeable+0x1f4/0x2cc)
+> [<c0862ea4>] (kernel_init_freeable) from [<c05cf184>] (kernel_init+0x8/0xe4)
+> [<c05cf184>] (kernel_init) from [<c000e8e8>] (ret_from_fork+0x14/0x2c)
+> ---[ end trace f0d1b75165d8ef11 ]---
+> clock: dpll_abe_ck failed transition to 'locked'
+> clock: dpll_abe_ck failed transition to 'locked'
+> ...
+> 
+> Tero & Tomi, can you please look into these clock issues above?
 
-Add device tree nodes and pinmux entries for Video Processing
-Front End (VPFE) on am437x gp evm.
+FYI, looks like merging Mike's pending clk-next to current mainline
+somehow fixes the clock issues above. It seems the audio changes
+depended on changes in clk-next?
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 106 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 106 insertions(+)
+Regards,
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index e7ac47f..be2d285 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -254,6 +254,78 @@
- 			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
- 		>;
- 	};
-+
-+	vpfe0_pins_default: vpfe0_pins_default {
-+		pinctrl-single,pins = <
-+			0x1B0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_hd mode 0*/
-+			0x1B4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_vd mode 0*/
-+			0x1C0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_pclk mode 0*/
-+			0x1C4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data8 mode 0*/
-+			0x1C8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data9 mode 0*/
-+			0x208 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data0 mode 0*/
-+			0x20C (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data1 mode 0*/
-+			0x210 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data2 mode 0*/
-+			0x214 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data3 mode 0*/
-+			0x218 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data4 mode 0*/
-+			0x21C (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data5 mode 0*/
-+			0x220 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data6 mode 0*/
-+			0x224 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data7 mode 0*/
-+		>;
-+	};
-+
-+	vpfe0_pins_sleep: vpfe0_pins_sleep {
-+		pinctrl-single,pins = <
-+			0x1B0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_hd mode 0*/
-+			0x1B4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_vd mode 0*/
-+			0x1C0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_pclk mode 0*/
-+			0x1C4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data8 mode 0*/
-+			0x1C8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data9 mode 0*/
-+			0x208 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data0 mode 0*/
-+			0x20C (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data1 mode 0*/
-+			0x210 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data2 mode 0*/
-+			0x214 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data3 mode 0*/
-+			0x218 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data4 mode 0*/
-+			0x21C (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data5 mode 0*/
-+			0x220 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data6 mode 0*/
-+			0x224 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam0_data7 mode 0*/
-+		>;
-+	};
-+
-+	vpfe1_pins_default: vpfe1_pins_default {
-+		pinctrl-single,pins = <
-+			0x1CC (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data9 mode 0*/
-+			0x1D0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data8 mode 0*/
-+			0x1D4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_hd mode 0*/
-+			0x1D8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_vd mode 0*/
-+			0x1DC (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_pclk mode 0*/
-+			0x1E8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data0 mode 0*/
-+			0x1EC (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data1 mode 0*/
-+			0x1F0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data2 mode 0*/
-+			0x1F4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data3 mode 0*/
-+			0x1F8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data4 mode 0*/
-+			0x1FC (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data5 mode 0*/
-+			0x200 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data6 mode 0*/
-+			0x204 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam1_data7 mode 0*/
-+		>;
-+	};
-+
-+	vpfe1_pins_sleep: vpfe1_pins_sleep {
-+		pinctrl-single,pins = <
-+			0x1CC (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data9 mode 0*/
-+			0x1D0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data8 mode 0*/
-+			0x1D4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_hd mode 0*/
-+			0x1D8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_vd mode 0*/
-+			0x1DC (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_pclk mode 0*/
-+			0x1E8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data0 mode 0*/
-+			0x1EC (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data1 mode 0*/
-+			0x1F0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data2 mode 0*/
-+			0x1F4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data3 mode 0*/
-+			0x1F8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data4 mode 0*/
-+			0x1FC (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data5 mode 0*/
-+			0x200 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data6 mode 0*/
-+			0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data7 mode 0*/
-+		>;
-+	};
- };
- 
- &i2c0 {
-@@ -511,3 +583,37 @@
- 		};
- 	};
- };
-+
-+&vpfe0 {
-+	status = "okay";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&vpfe0_pins_default>;
-+	pinctrl-1 = <&vpfe0_pins_sleep>;
-+
-+	port {
-+		vpfe0_ep: endpoint {
-+			/* remote-endpoint = <&sensor>; add once we have it */
-+			ti,am437x-vpfe-interface = <0>;
-+			bus-width = <8>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+		};
-+	};
-+};
-+
-+&vpfe1 {
-+	status = "okay";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&vpfe1_pins_default>;
-+	pinctrl-1 = <&vpfe1_pins_sleep>;
-+
-+	port {
-+		vpfe1_ep: endpoint {
-+			/* remote-endpoint = <&sensor>; add once we have it */
-+			ti,am437x-vpfe-interface = <0>;
-+			bus-width = <8>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+		};
-+	};
-+};
--- 
-1.9.1
+Tony
