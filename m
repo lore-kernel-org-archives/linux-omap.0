@@ -1,125 +1,107 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH] tty: serial: 8250: omap: add ttySx console if the user didn't
-Date: Thu, 18 Dec 2014 18:47:12 +0100
-Message-ID: <20141218174712.GA26632@linutronix.de>
-References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
- <20141129094823.GA10840@linutronix.de>
- <20141129173418.GY2817@atomide.com>
- <20141201140914.728aaa46@lxorguk.ukuu.org.uk>
- <20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
- <20141202015118.GA1891@saruman>
- <20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: regression: Clock changes in next-20141205 break at least
+ omap4
+Date: Thu, 18 Dec 2014 19:23:07 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1412181717450.3102@utopia.booyaka.com>
+References: <20141212194238.20398.33333@quantum>  <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com>  <20141215220224.20398.98259@quantum> <548F7B02.1090009@nvidia.com>  <20141216003834.GC23854@atomide.com> <548F8B70.2060803@nvidia.com>
+ <5490816E.7060706@codeaurora.org> <54908F8D.2020202@nvidia.com>  <20141216202301.GF11502@n2100.arm.linux.org.uk>  <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com>  <20141216205754.GG11502@n2100.arm.linux.org.uk>  <alpine.DEB.2.02.1412162159270.3102@utopia.booyaka.com>
+ <1418809957.3347.1.camel@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:59711 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954AbaLRRrX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 12:47:23 -0500
-Content-Disposition: inline
-In-Reply-To: <20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
+Received: from utopia.booyaka.com ([74.50.51.50]:54758 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751198AbaLRTXI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 14:23:08 -0500
+In-Reply-To: <1418809957.3347.1.camel@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, uwe@kleine-koenig.org
+To: Lucas Stach <l.stach@pengutronix.de>
+Cc: Paul Walmsley <pwalmsley@nvidia.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, khilman@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch invokes add_preferred_console() with ttyS based on ttyO
-arguments if the user didn't specify it on its own. This ensures that
-the user will see the kernel booting on his serial console in case he
-forgot to update the command line.
+On Wed, 17 Dec 2014, Lucas Stach wrote:
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
+> Maybe I'm thinking about this too lightly, but I think we already have
+> the right abstractions in place.
+> 
+> The clock tree in Linux is always modeled along the flow of reference
+> clocks. So typically the root of the tree is something like an
+> oscillator and everything spreads out from this in a parent/child
+> relation. So clearly the reference clock of a PLL is the PLLs parent. If
+> the PLL is running in open-loop mode (isn't this rather direct frequency
+> synthesis?) is has no parent and is the root of a tree itself.
+> 
+> If a PLL needs a functional clock to drive some internal logic, that
+> doesn't directly influence the clock synthesis from reference to
+> resulting clock, that clock would be no parent to the PLL. The PLL is
+> merely a consumer of this clock just like every other device in the
+> system.
 
-While trying to to make a proxy driver like Alan suggested I wasn't sure
-how to obtain the ttyS console via "official" API. Then I stumbled upon
-update_console_cmdline() and then add_preferred_console(). 
+I suspect we're using different terminology.
 
- drivers/tty/serial/8250/8250_omap.c | 40 +++++++++++++++++++++++++++++++++++++
- drivers/tty/serial/8250/Kconfig     | 19 ++++++++++++++++++
- 2 files changed, 59 insertions(+)
+>From my point of view, a reference clock is an input clock signal that is 
+used by another clock generator IP block or clock measurement IP block.  
+The use is to measure and (optionally) discipline another oscillator.  
+Thus the clock generator/measurement IP block generally does not 
+electrically propagate the reference clock outside of the block.  
+(Although some of the reference clock's characteristics, like phase noise 
+or frequency stability, may be propagated indirectly.)  Only a small 
+number of clock tree entities makes use of reference clocks.  
 
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index 336602eb453e..78401fbc823b 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -1248,6 +1248,46 @@ static int omap8250_runtime_resume(struct device *dev)
- }
- #endif
- 
-+#ifdef CONFIG_SERIAL_8250_OMAP_TTYO_FIXUP
-+static int __init omap8250_console_fixup(void)
-+{
-+	char *omap_str;
-+	char *options;
-+	u8 idx;
-+
-+	if (strstr(boot_command_line, "console=ttyS"))
-+		/* user set a ttyS based name for the console */
-+		return 0;
-+
-+	omap_str = strstr(boot_command_line, "console=ttyO");
-+	if (!omap_str)
-+		/* user did not set ttyO based console, so we don't care */
-+		return 0;
-+
-+	omap_str += 12;
-+	if ('0' <= *omap_str && *omap_str <= '9')
-+		idx = *omap_str - '0';
-+	else
-+		return 0;
-+
-+	omap_str++;
-+	if (omap_str[0] == ',') {
-+		omap_str++;
-+		options = omap_str;
-+	} else {
-+		options = NULL;
-+	}
-+
-+	add_preferred_console("ttyS", idx, options);
-+	pr_err("WARNING: Your 'console=ttyO%d' has been replaced by 'ttyS%d'\n",
-+	       idx, idx);
-+	pr_err("This ensures that you still see kernel messages. Please\n");
-+	pr_err("update your kernel commandline.\n");
-+	return 0;
-+}
-+console_initcall(omap8250_console_fixup);
-+#endif
-+
- static const struct dev_pm_ops omap8250_dev_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(omap8250_suspend, omap8250_resume)
- 	SET_RUNTIME_PM_OPS(omap8250_runtime_suspend,
-diff --git a/drivers/tty/serial/8250/Kconfig b/drivers/tty/serial/8250/Kconfig
-index 0fcbcd29502f..87adf08b9b6b 100644
---- a/drivers/tty/serial/8250/Kconfig
-+++ b/drivers/tty/serial/8250/Kconfig
-@@ -308,6 +308,25 @@ config SERIAL_8250_OMAP
- 
- 	  This driver uses ttyS instead of ttyO.
- 
-+config SERIAL_8250_OMAP_TTYO_FIXUP
-+	bool "Replace ttyO with ttyS"
-+	depends on SERIAL_8250_OMAP=y && SERIAL_8250_CONSOLE
-+	default y
-+	help
-+	  This option replaces the "console=ttyO" argument with the matching
-+	  ttyS argument if the user did not specified it on the command line.
-+	  This ensures that the user can see the kernel output during boot
-+	  which he wouldn't see otherwise. The getty has still to be configured
-+	  for ttyS instead of ttyO regardless of this option.
-+	  This option is intended for people who "automatically" enable this
-+	  driver without knowing that this driver requires a different console=
-+	  argument. If you read this, please keep this option disabled and
-+	  instead update your kernel command line. If you prepare a kernel for a
-+	  distribution or other kind of larger user base then you probably want
-+	  to keep this option enabled. Otherwise people might complain about a
-+	  not booting kernel because the serial console remains silent in case
-+	  they forgot to update the command line.
-+
- config SERIAL_8250_FINTEK
- 	tristate "Support for Fintek F81216A LPC to 4 UART"
- 	depends on SERIAL_8250 && PNP
--- 
-2.1.3
+By contrast, we could use the term "source clock" in the SoC context to 
+mean a clock signal that directly drives a downstream IP block, in an 
+electrical sense.  These clocks are directly propagated through dividers 
+and muxes.
 
+If you're willing to play along with this terminology, then a PLL's 
+"source clock" would be its internal VCO/DCO, which thus would be the root 
+clock of the PLL.
+
+Flipping over from hardware to software, in the Linux clock tree, there's 
+usually not much point to modeling the VCO/DCO directly because it tends 
+not to be under the direct control of the OS, and it is usually tightly 
+integrated into the PLLs from a hardware point of view.  But unlike most 
+of the Linux clock tree nodes that are downstream from clock sources, 
+which use clocks that are electrically driven by the clock source, the 
+clock signal that PLLs and PLL-like clocks generate is not directly driven 
+by the reference clock.
+
+So why is a reference clock listed as a Linux parent clock of an OMAP PLL?  
+At least for OMAP, it was sort of shoehorned in to represent a gating 
+dependency.  It was a way of stating that the reference clock had to be 
+enabled for the PLL to generate an output clock.  (The off-chip crystal 
+oscillator that drives most of the PLL reference clocks could be disabled 
+when all of its users were idle, to save energy.)  But this type of gating 
+dependency is equally true for, say, a separate functional clock that the 
+clock source requires in order to operate.  (OMAP PLLs didn't have a 
+separate functional clock, at least not that I was aware of; but that's 
+not true for some similar clock sources used in other SoCs.)
+
+The clock framework wasn't re-entrant back then, and we wanted to avoid 
+implementing re-entrancy because we were worried that it could turn into a 
+mess.  So we just wound up listing the reference clock as the PLL's Linux 
+parent clock.
+
+My original comment was just intended to be a reflection on what it means 
+to be a "parent clock" in the Linux clock tree sense.  If it's intended to 
+represent "source clocks" as they are defined above, then PLLs and 
+PLL-like clocks should be root nodes, except for the few cases where it's 
+useful to add a node for the underlying source oscillator directly (for 
+example, if open-loop mode is supported).
+
+This might be the right way forward for the time being, and I like the 
+idea of stating that Linux parent clocks should represent electrical 
+"source clock" relationships.  
+
+That raises the question of what to do about the additional gating 
+relationships.  At the moment, the clock type code needs to be responsible 
+for calling clk_enable() etc. on all of the reference and functional 
+clocks that need to be ungated for the clock source to work.  But it has 
+always seemed preferable to me to represent fundamental hardware 
+structural constraints in data.  If the data structures are well-defined, 
+then the data should be relatively easy to analyze, reason about, 
+generate, validate, share across platforms, and operate upon iteratively; 
+unlike custom per-clocktype code, which often isn't.
+
+
+- Paul
