@@ -1,63 +1,125 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP 4430 SDP: rather sick with recent kernels
-Date: Thu, 18 Dec 2014 08:41:23 -0800
-Message-ID: <20141218164122.GH23854@atomide.com>
-References: <20141217095252.GH11502@n2100.arm.linux.org.uk>
- <20141217172333.GE23854@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH] tty: serial: 8250: omap: add ttySx console if the user didn't
+Date: Thu, 18 Dec 2014 18:47:12 +0100
+Message-ID: <20141218174712.GA26632@linutronix.de>
+References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+ <20141129094823.GA10840@linutronix.de>
+ <20141129173418.GY2817@atomide.com>
+ <20141201140914.728aaa46@lxorguk.ukuu.org.uk>
+ <20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
+ <20141202015118.GA1891@saruman>
+ <20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13006 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178AbaLRQoR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 11:44:17 -0500
+Received: from www.linutronix.de ([62.245.132.108]:59711 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbaLRRrX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 12:47:23 -0500
 Content-Disposition: inline
-In-Reply-To: <20141217172333.GE23854@atomide.com>
+In-Reply-To: <20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Joel Fernandes <joelf@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Nishanth Menon <nm@ti.com>
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, uwe@kleine-koenig.org
 
-* Tony Lindgren <tony@atomide.com> [141217 09:28]:
-> 
-> And then there are these too in the current mainline that are
-> clock related:
-> 
-> omap4xxx_dt_clk_init: failed to configure ABE DPLL!
-> ...
-> clock: dpll_abe_ck failed transition to 'locked'
-> clock: dpll_abe_ck failed transition to 'locked'
-> clock: dpll_abe_ck failed transition to 'locked'
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:851 clk_disable+0x24/0x30()
-> Modules linked in:
-> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.18.0-09274-g53c5279 #699
-> Hardware name: Generic OMAP4 (Flattened Device Tree)
-> [<c00154b4>] (unwind_backtrace) from [<c0011b7c>] (show_stack+0x10/0x14)
-> [<c0011b7c>] (show_stack) from [<c05d5068>] (dump_stack+0x80/0x9c)
-> [<c05d5068>] (dump_stack) from [<c003e104>] (warn_slowpath_common+0x78/0xb4)
-> [<c003e104>] (warn_slowpath_common) from [<c003e15c>] (warn_slowpath_null+ 0x1c/0x24)
-> [<c003e15c>] (warn_slowpath_null) from [<c04dfc1c>] (clk_disable+0x24/0x30)
-> [<c04dfc1c>] (clk_disable) from [<c0024ea0>] (_disable_clocks+0x18/0x68)
-> [<c0024ea0>] (_disable_clocks) from [<c0026410>] (_idle+0x15c/0x240)
-> [<c0026410>] (_idle) from [<c086fc48>] (_setup+0x174/0x22c)
-> [<c086fc48>] (_setup) from [<c002684c>] (omap_hwmod_for_each+0x30/0x5c)
-> [<c002684c>] (omap_hwmod_for_each) from [<c0870054>] (__omap_hwmod_setup_all+0x30/0x40)
-> [<c0870054>] (__omap_hwmod_setup_all) from [<c00089e4>] (do_one_initcall+0x80/0x1d8)
-> [<c00089e4>] (do_one_initcall) from [<c0862ea4>] (kernel_init_freeable+0x1f4/0x2cc)
-> [<c0862ea4>] (kernel_init_freeable) from [<c05cf184>] (kernel_init+0x8/0xe4)
-> [<c05cf184>] (kernel_init) from [<c000e8e8>] (ret_from_fork+0x14/0x2c)
-> ---[ end trace f0d1b75165d8ef11 ]---
-> clock: dpll_abe_ck failed transition to 'locked'
-> clock: dpll_abe_ck failed transition to 'locked'
-> ...
-> 
-> Tero & Tomi, can you please look into these clock issues above?
+This patch invokes add_preferred_console() with ttyS based on ttyO
+arguments if the user didn't specify it on its own. This ensures that
+the user will see the kernel booting on his serial console in case he
+forgot to update the command line.
 
-FYI, looks like merging Mike's pending clk-next to current mainline
-somehow fixes the clock issues above. It seems the audio changes
-depended on changes in clk-next?
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
 
-Regards,
+While trying to to make a proxy driver like Alan suggested I wasn't sure
+how to obtain the ttyS console via "official" API. Then I stumbled upon
+update_console_cmdline() and then add_preferred_console(). 
 
-Tony
+ drivers/tty/serial/8250/8250_omap.c | 40 +++++++++++++++++++++++++++++++++++++
+ drivers/tty/serial/8250/Kconfig     | 19 ++++++++++++++++++
+ 2 files changed, 59 insertions(+)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 336602eb453e..78401fbc823b 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1248,6 +1248,46 @@ static int omap8250_runtime_resume(struct device *dev)
+ }
+ #endif
+ 
++#ifdef CONFIG_SERIAL_8250_OMAP_TTYO_FIXUP
++static int __init omap8250_console_fixup(void)
++{
++	char *omap_str;
++	char *options;
++	u8 idx;
++
++	if (strstr(boot_command_line, "console=ttyS"))
++		/* user set a ttyS based name for the console */
++		return 0;
++
++	omap_str = strstr(boot_command_line, "console=ttyO");
++	if (!omap_str)
++		/* user did not set ttyO based console, so we don't care */
++		return 0;
++
++	omap_str += 12;
++	if ('0' <= *omap_str && *omap_str <= '9')
++		idx = *omap_str - '0';
++	else
++		return 0;
++
++	omap_str++;
++	if (omap_str[0] == ',') {
++		omap_str++;
++		options = omap_str;
++	} else {
++		options = NULL;
++	}
++
++	add_preferred_console("ttyS", idx, options);
++	pr_err("WARNING: Your 'console=ttyO%d' has been replaced by 'ttyS%d'\n",
++	       idx, idx);
++	pr_err("This ensures that you still see kernel messages. Please\n");
++	pr_err("update your kernel commandline.\n");
++	return 0;
++}
++console_initcall(omap8250_console_fixup);
++#endif
++
+ static const struct dev_pm_ops omap8250_dev_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(omap8250_suspend, omap8250_resume)
+ 	SET_RUNTIME_PM_OPS(omap8250_runtime_suspend,
+diff --git a/drivers/tty/serial/8250/Kconfig b/drivers/tty/serial/8250/Kconfig
+index 0fcbcd29502f..87adf08b9b6b 100644
+--- a/drivers/tty/serial/8250/Kconfig
++++ b/drivers/tty/serial/8250/Kconfig
+@@ -308,6 +308,25 @@ config SERIAL_8250_OMAP
+ 
+ 	  This driver uses ttyS instead of ttyO.
+ 
++config SERIAL_8250_OMAP_TTYO_FIXUP
++	bool "Replace ttyO with ttyS"
++	depends on SERIAL_8250_OMAP=y && SERIAL_8250_CONSOLE
++	default y
++	help
++	  This option replaces the "console=ttyO" argument with the matching
++	  ttyS argument if the user did not specified it on the command line.
++	  This ensures that the user can see the kernel output during boot
++	  which he wouldn't see otherwise. The getty has still to be configured
++	  for ttyS instead of ttyO regardless of this option.
++	  This option is intended for people who "automatically" enable this
++	  driver without knowing that this driver requires a different console=
++	  argument. If you read this, please keep this option disabled and
++	  instead update your kernel command line. If you prepare a kernel for a
++	  distribution or other kind of larger user base then you probably want
++	  to keep this option enabled. Otherwise people might complain about a
++	  not booting kernel because the serial console remains silent in case
++	  they forgot to update the command line.
++
+ config SERIAL_8250_FINTEK
+ 	tristate "Support for Fintek F81216A LPC to 4 UART"
+ 	depends on SERIAL_8250 && PNP
+-- 
+2.1.3
+
