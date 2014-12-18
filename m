@@ -1,43 +1,82 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: Fwd: next boot: 101 boots: 89 pass, 12 fail (next-20141216)
-Date: Thu, 18 Dec 2014 14:51:39 -0800
-Message-ID: <CAMAWPa92=-XPQAGr55xvfJniaMKQSUnr=bzcvAEPxM7wd=Abtg@mail.gmail.com>
-References: <E1Y0lcK-00026B-7I@ip-10-35-177-41.ec2.internal>
-	<CAMAWPa98kyaUJpt=GLw4cH7fkg+8BkrA0kds=H-2-4fWXy_tqw@mail.gmail.com>
-	<54909E30.4040300@ti.com>
-	<CAKohponYEqhPjZmk_WH+TbNPLHEM5HWxta7CLUoM5+2iHYw_zw@mail.gmail.com>
-	<CAMAWPa-_OZC3ynKYxbtXK4=z-z720JxXigT23umscMTm8VWAzA@mail.gmail.com>
-	<CAKohpokWe+MGNM7N8recCsV7O6pFDdJ89QKnqyj9TK_WRtW7yQ@mail.gmail.com>
-	<54935728.9010405@ti.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: GPMC clock question
+Date: Thu, 18 Dec 2014 20:26:08 -0300
+Message-ID: <54936290.3090500@vanguardiasur.com.ar>
+References: <54933CC1.9010301@vanguardiasur.com.ar> <20141218210653.GI23854@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:53078 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751556AbaLRWvn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Dec 2014 17:51:43 -0500
-Received: from mail.kernel.org (localhost [127.0.0.1])
-	by mail.kernel.org (Postfix) with ESMTP id A924920481
-	for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2014 22:51:42 +0000 (UTC)
-Received: from mail-wg0-f54.google.com (mail-wg0-f54.google.com [74.125.82.54])
-	(using TLSv1 with cipher AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 5064D20435
-	for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2014 22:51:41 +0000 (UTC)
-Received: by mail-wg0-f54.google.com with SMTP id l2so2919515wgh.27
-        for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2014 14:51:39 -0800 (PST)
-In-Reply-To: <54935728.9010405@ti.com>
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:57473 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbaLRX17 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2014 18:27:59 -0500
+Received: by mail-qc0-f180.google.com with SMTP id i8so1661596qcq.25
+        for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2014 15:27:58 -0800 (PST)
+In-Reply-To: <20141218210653.GI23854@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, =?windows-1252?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>
 
-On Thu, Dec 18, 2014 at 2:37 PM, Nishanth Menon <nm@ti.com> wrote:
 
-> script download fail does imply my farm has still issues to resolve..
-> but anyways.. more or less we are back operational again since it was
-> broken by next-20141216
 
-I'm not seeing any more failures in next-20141218 either.
+On 12/18/2014 06:06 PM, Tony Lindgren wrote:
+> * Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> [141218 12:49]:
+>> Tony, Roger:
+>>
+>> As far as I can see, the GPMC interface clock (GPMC_FCLK) is not
+>> properly modeled in the devicetree. Instead, hwmod magic seems to be used.
+> 
+> I guess you mean the functional clock not interface clock?
+>  
+>> arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c:
+>> struct omap_hwmod_ocp_if am33xx_l3_s__gpmc = {
+>>         .master         = &am33xx_l3_s_hwmod,
+>>         .slave          = &am33xx_gpmc_hwmod,
+>>         .clk            = "l3s_gclk",
+>>         .addr           = am33xx_gpmc_addr_space,
+>>         .user           = OCP_USER_MPU,
+>> };
+>>
+>> I'd like to know what would be the appropriate DT model for this clock.
+>> Perhaps, as child of CORE_M4_CLK, divided by 2:
+>>
+>> gpmc_fclk: gpmc_fclk {
+>>                 #clock-cells = <0>;
+>>                 compatible = "fixed-factor-clock";
+>>                 clocks = <&dpll_core_m4_ck>;
+>>                 clock-mult = <1>;
+>>                 clock-div = <2>;
+>>         };
+>>
+>> How does it look? Also, I'm wondering if this works OK when used with
+>> the hwmod stuff.
+> 
+> Hmm we do have clocks or aliases for l3s_gclk, so it's there as otherwise
+> the GPMC would not work at all :) Sure with device tree only systems we
+> should have the clock phandle directly available though.
+> 
 
-Kevin
+Right.
+
+> Note that the hwmod code takes care of runtime PM clock gating for the
+> drivers.
+
+Not entirely sure how that works, but I'll take a look.
+
+> But the clock entry for am33xx_l3_s__gpmc should be coming
+> from .dts.
+
+Right.
+
+> Please also check out the hwmod dts related changes Felipe
+> posted last week, that might allow populating .clk from .dts already.
+> 
+
+Ah, nice. I'll take a look.
+
+Thanks Tony!
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
