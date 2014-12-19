@@ -1,72 +1,52 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 1/1] ARM: dts: dra7-evm: fix qspi device tree partition size
-Date: Fri, 19 Dec 2014 13:53:05 +0530
-Message-ID: <1418977385-7886-1-git-send-email-mugunthanvnm@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Fri, 19 Dec 2014 11:06:16 +0200
+Message-ID: <5493EA88.1080609@ti.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <5493B5CE.7010000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37468 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802AbaLSIXN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Dec 2014 03:23:13 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5493B5CE.7010000@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, tony@atomide.com, Paul Walmsley <paul@pwsan.com>
+Cc: t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-64KiB is allocated for qspi dtb partition which is not
-sufficient, so updating the partition table size to 512KiB
-for device tree partition.
+Lokesh,
 
-This also aligns the QSPI partition definitions between
-kernel and U-Boot.
+On 19/12/14 07:21, Lokesh Vutla wrote:
+> Hi Roger,
+> On Thursday 18 December 2014 09:22 PM, Roger Quadros wrote:
+>> Fixing up Paul's email id.
+>>
+>> cheers,
+>> -roger
+>>
+>> On 18/12/14 17:49, Roger Quadros wrote:
+>>> There are quite a few hwmods that don't have sysconfig register and so
+>>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
+>>> on those modules after the module is enabled.
+>>>
+>>> This can potentially cause a bus access error if the module is accessed
+>>> before the module is ready.
+>>>
+>>> Get rid of the redundant _find_mpu_rt_port() check from the _wait_target_ready()
+>>> funcion for all the SoCs. The following PRCM register access that checks the
+>>> module ready state has nothing to do with module's SYSCONFIG or mpu_rt_port.
+> Yes, makes sense. This patch looks good to me.
+> Tested this on AM437x-gp-evm.
+> 
+> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-Fixes: dc2dd5b8 ("ARM: dts: dra7: Add qspi device")
+Thanks.
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
+> 
+> May be good idea to warn every time if enabling of module is failed?
+> Unrelated to this patch though.
 
-This patch is tested on Linux next and the boot logs at [1]
+Yes, failing to be ready is serious enough for a warning. Care to send a separate patch for that?
 
-[1] - http://pastebin.ubuntu.com/9567672/
-
----
- arch/arm/boot/dts/dra7-evm.dts | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 736092b..235d001 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -499,23 +499,23 @@
- 		};
- 		partition@5 {
- 			label = "QSPI.u-boot-spl-os";
--			reg = <0x00140000 0x00010000>;
-+			reg = <0x00140000 0x00080000>;
- 		};
- 		partition@6 {
- 			label = "QSPI.u-boot-env";
--			reg = <0x00150000 0x00010000>;
-+			reg = <0x001c0000 0x00010000>;
- 		};
- 		partition@7 {
- 			label = "QSPI.u-boot-env.backup1";
--			reg = <0x00160000 0x0010000>;
-+			reg = <0x001d0000 0x0010000>;
- 		};
- 		partition@8 {
- 			label = "QSPI.kernel";
--			reg = <0x00170000 0x0800000>;
-+			reg = <0x001e0000 0x0800000>;
- 		};
- 		partition@9 {
- 			label = "QSPI.file-system";
--			reg = <0x00970000 0x01690000>;
-+			reg = <0x009e0000 0x01620000>;
- 		};
- 	};
- };
--- 
-2.2.1.62.g3f15098
-
+cheers,
+-roger
