@@ -1,38 +1,72 @@
-From: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
-Subject: [PATCH 4/4] usb: dwc3: Remove current_trb as it is unused
-Date: Fri, 19 Dec 2014 12:40:18 +0530
-Message-ID: <c0058ce9513e339f223a7945e677e4e41b372a36.1418972323.git.amit.virdi@st.com>
-References: <cover.1418972323.git.amit.virdi@st.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] ARM: dts: dra7-evm: fix qspi device tree partition size
+Date: Fri, 19 Dec 2014 13:53:05 +0530
+Message-ID: <1418977385-7886-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1418972323.git.amit.virdi-qxv4g6HH51o@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ajay.khandelwal-qxv4g6HH51o@public.gmane.org, Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37468 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751802AbaLSIXN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Dec 2014 03:23:13 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-This field was introduced but never used. So, remove it.
+64KiB is allocated for qspi dtb partition which is not
+sufficient, so updating the partition table size to 512KiB
+for device tree partition.
 
-Signed-off-by: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
+This also aligns the QSPI partition definitions between
+kernel and U-Boot.
+
+Fixes: dc2dd5b8 ("ARM: dts: dra7: Add qspi device")
+
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- drivers/usb/dwc3/core.h | 3 ---
- 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 4bb9aa696ede..0842aa80976f 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -431,7 +431,6 @@ struct dwc3_event_buffer {
-  * @dwc: pointer to DWC controller
-  * @saved_state: ep state saved during hibernation
-  * @flags: endpoint flags (wedged, stalled, ...)
-- * @current_trb: index of current used trb
-  * @number: endpoint number (1 - 15)
-  * @type: set to bmAttributes & USB_ENDPOINT_XFERTYPE_MASK
-  * @resource_index: Resource transfer index
-@@ -464,8 +463,6 @@ struct dwc3_ep {
- 	/* This last one is specific to EP0 */
- #define DWC3_EP0_DIR_IN		(1 << 31)
- 
--	unsigned		current_trb;
+This patch is tested on Linux next and the boot logs at [1]
+
+[1] - http://pastebin.ubuntu.com/9567672/
+
+---
+ arch/arm/boot/dts/dra7-evm.dts | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 736092b..235d001 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -499,23 +499,23 @@
+ 		};
+ 		partition@5 {
+ 			label = "QSPI.u-boot-spl-os";
+-			reg = <0x00140000 0x00010000>;
++			reg = <0x00140000 0x00080000>;
+ 		};
+ 		partition@6 {
+ 			label = "QSPI.u-boot-env";
+-			reg = <0x00150000 0x00010000>;
++			reg = <0x001c0000 0x00010000>;
+ 		};
+ 		partition@7 {
+ 			label = "QSPI.u-boot-env.backup1";
+-			reg = <0x00160000 0x0010000>;
++			reg = <0x001d0000 0x0010000>;
+ 		};
+ 		partition@8 {
+ 			label = "QSPI.kernel";
+-			reg = <0x00170000 0x0800000>;
++			reg = <0x001e0000 0x0800000>;
+ 		};
+ 		partition@9 {
+ 			label = "QSPI.file-system";
+-			reg = <0x00970000 0x01690000>;
++			reg = <0x009e0000 0x01620000>;
+ 		};
+ 	};
+ };
+-- 
+2.2.1.62.g3f15098
+
