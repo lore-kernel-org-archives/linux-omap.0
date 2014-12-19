@@ -1,117 +1,97 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
-Subject: [PATCH] ARM: omap5/dra7xx: Enable booting secondary CPU in HYP mode
-Date: Fri, 19 Dec 2014 16:49:24 -0500
-Message-ID: <20141219214924.GA17160@csclub.uwaterloo.ca>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH 2a/3] mmc: core: Allow host driver to provide isr for
+ card-detect interrupts.
+Date: Sat, 20 Dec 2014 10:07:38 +1100
+Message-ID: <20141219230732.7511.28103.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Len Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Chris Ball <chris@printf.net>
+Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If the boot loader enables HYP mode on the boot CPU, the secondary CPU
-also needs to call into the ROM to switch to HYP mode before booting.
-The firmwares on the omap5 and dra7xx unfortunately do not take care
-of this, so it has to be handled by the kernel.
+One of the reasons omap_hsmmc doesn't use the slot-gpio library
+is that it has some non-standard functionality in the card-detect
+interrupt service routine.
 
-This patch is based on "[PATCH 2/2] ARM: OMAP5: Add HYP mode entry support
-for secondary CPUs" by Santosh Shilimkar <santosh.shilimkar@ti.com>,
-except this version does not require a compile time CONFIG to control
-if it should enable HYP mode or not, it simply does it based on the mode
-of the boot CPU, so it works whether the CPU boots in SVC or HYP mode,
-and should even work as a guest kernel inside kvm if qemu decides to
-support emulating the omap5 or dra7xx.
+To make it possible for omap_hsmmc (and maybe others) to be converted
+to use slot-gpio, add 'mmc_gpio_request_cd_isr' which provide an
+alternate isr to be register by the slot-gpio code.
 
-Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
+Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- arch/arm/mach-omap2/common.h       |    1 +
- arch/arm/mach-omap2/omap-headsmp.S |   21 +++++++++++++++++++++
- arch/arm/mach-omap2/omap-smp.c     |   13 +++++++++++--
- 3 files changed, 33 insertions(+), 2 deletions(-)
+ drivers/mmc/core/slot-gpio.c  |   24 +++++++++++++++++++++++-
+ include/linux/mmc/slot-gpio.h |    2 ++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 377eea8..db57741 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -249,6 +249,7 @@ extern void omap4_cpu_die(unsigned int cpu);
- extern struct smp_operations omap4_smp_ops;
+This and following are the result of splitting the previous
+'2/3' into to patches: core and omap_hsmmc as requested.
+
+NeilBrown
+
+
+diff --git a/drivers/mmc/core/slot-gpio.c b/drivers/mmc/core/slot-gpio.c
+index 69bbf2adb329..f56323f5a996 100644
+--- a/drivers/mmc/core/slot-gpio.c
++++ b/drivers/mmc/core/slot-gpio.c
+@@ -23,6 +23,7 @@ struct mmc_gpio {
+ 	struct gpio_desc *cd_gpio;
+ 	bool override_ro_active_level;
+ 	bool override_cd_active_level;
++	irqreturn_t (*cd_gpio_isr)(int irq, void *dev_id);
+ 	char *ro_label;
+ 	char cd_label[0];
+ };
+@@ -156,8 +157,10 @@ void mmc_gpiod_request_cd_irq(struct mmc_host *host)
+ 		irq = -EINVAL;
  
- extern void omap5_secondary_startup(void);
-+extern void omap5_secondary_hyp_startup(void);
- #endif
- 
- #if defined(CONFIG_SMP) && defined(CONFIG_PM)
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 4993d4b..6d1dffc 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -22,6 +22,7 @@
- 
- /* Physical address needed since MMU not enabled yet on secondary core */
- #define AUX_CORE_BOOT0_PA			0x48281800
-+#define API_HYP_ENTRY				0x102
- 
- /*
-  * OMAP5 specific entry point for secondary CPU to jump from ROM
-@@ -41,6 +42,26 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
- 	b	secondary_startup
- ENDPROC(omap5_secondary_startup)
- /*
-+ * Same as omap5_secondary_startup except we call into the ROM to
-+ * enable HYP mode first.  This is called instead of
-+ * omap5_secondary_startup if the primary CPU was put into HYP mode by
-+ * the boot loader.
-+ */
-+ENTRY(omap5_secondary_hyp_startup)
-+wait_2:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
-+	ldr	r0, [r2]
-+	mov	r0, r0, lsr #5
-+	mrc	p15, 0, r4, c0, c0, 5
-+	and	r4, r4, #0x0f
-+	cmp	r0, r4
-+	bne	wait_2
-+	ldr	r12, =API_HYP_ENTRY
-+	adr	r0, hyp_boot
-+	smc	#0
-+hyp_boot:
-+	b	secondary_startup
-+ENDPROC(omap5_secondary_hyp_startup)
-+/*
-  * OMAP4 specific entry point for secondary CPU to jump from ROM
-  * code.  This routine also provides a holding flag into which
-  * secondary core is held until we're ready for it to initialise.
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 256e84e..5305ec7 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -22,6 +22,7 @@
- #include <linux/irqchip/arm-gic.h>
- 
- #include <asm/smp_scu.h>
-+#include <asm/virt.h>
- 
- #include "omap-secure.h"
- #include "omap-wakeupgen.h"
-@@ -227,8 +228,16 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
- 	if (omap_secure_apis_support())
- 		omap_auxcoreboot_addr(virt_to_phys(startup_addr));
- 	else
--		writel_relaxed(virt_to_phys(omap5_secondary_startup),
--			       base + OMAP_AUX_CORE_BOOT_1);
-+		/*
-+		 * If the boot CPU is in HYP mode then start secondary
-+		 * CPU in HYP mode as well.
-+		 */
-+		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
-+			writel_relaxed(virt_to_phys(omap5_secondary_hyp_startup),
-+				       base + OMAP_AUX_CORE_BOOT_1);
-+		else
-+			writel_relaxed(virt_to_phys(omap5_secondary_startup),
-+				       base + OMAP_AUX_CORE_BOOT_1);
- 
+ 	if (irq >= 0) {
++		if (ctx->cd_gpio_isr == NULL)
++			ctx->cd_gpio_isr = mmc_gpio_cd_irqt;
+ 		ret = devm_request_threaded_irq(&host->class_dev, irq,
+-			NULL, mmc_gpio_cd_irqt,
++			NULL, ctx->cd_gpio_isr,
+ 			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+ 			ctx->cd_label, host);
+ 		if (ret < 0)
+@@ -171,6 +174,25 @@ void mmc_gpiod_request_cd_irq(struct mmc_host *host)
  }
+ EXPORT_SYMBOL(mmc_gpiod_request_cd_irq);
  
--- 
-1.7.10.4
++/* Register an alternate interrupt service routine for
++ * the card-detect GPIO.
++ */
++int mmc_gpio_request_cd_isr(struct mmc_host *host,
++			    irqreturn_t (*isr)(int irq, void *dev_id))
++{
++	struct mmc_gpio *ctx;
++	int ret;
++
++	ret = mmc_gpio_alloc(host);
++	if (ret < 0)
++		return ret;
++	ctx = host->slot.handler_priv;
++	if (ctx->cd_gpio_isr)
++		return -EBUSY;
++	ctx->cd_gpio_isr = isr;
++	return 0;
++}
++
+ /**
+  * mmc_gpio_request_cd - request a gpio for card-detection
+  * @host: mmc host
+diff --git a/include/linux/mmc/slot-gpio.h b/include/linux/mmc/slot-gpio.h
+index e56fa24c9322..9e55db60deb0 100644
+--- a/include/linux/mmc/slot-gpio.h
++++ b/include/linux/mmc/slot-gpio.h
+@@ -28,6 +28,8 @@ int mmc_gpiod_request_cd(struct mmc_host *host, const char *con_id,
+ int mmc_gpiod_request_ro(struct mmc_host *host, const char *con_id,
+ 			 unsigned int idx, bool override_active_level,
+ 			 unsigned int debounce, bool *gpio_invert);
++int mmc_gpio_request_cd_isr(struct mmc_host *host,
++			    irqreturn_t (*isr)(int irq, void *dev_id));
+ void mmc_gpiod_free_cd(struct mmc_host *host);
+ void mmc_gpiod_request_cd_irq(struct mmc_host *host);
+ 
