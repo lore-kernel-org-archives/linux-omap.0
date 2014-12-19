@@ -1,57 +1,116 @@
-From: Paul Walmsley <pwalmsley@nvidia.com>
-Subject: Re: regression: Clock changes in next-20141205 break at least
- omap4
-Date: Fri, 19 Dec 2014 16:45:35 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1412191641310.3102@utopia.booyaka.com>
-References: <20141212194238.20398.33333@quantum>  <alpine.DEB.2.02.1412122310570.29716@utopia.booyaka.com>  <20141215220224.20398.98259@quantum> <548F7B02.1090009@nvidia.com>  <20141216003834.GC23854@atomide.com> <548F8B70.2060803@nvidia.com>
- <5490816E.7060706@codeaurora.org> <54908F8D.2020202@nvidia.com>  <20141216202301.GF11502@n2100.arm.linux.org.uk>  <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com>  <20141216205754.GG11502@n2100.arm.linux.org.uk>  <alpine.DEB.2.02.1412162159270.3102@utopia.booyaka.com>
- <1418809957.3347.1.camel@pengutronix.de> <5491703A.2080506@ti.com>
+From: Doug Anderson <dianders@chromium.org>
+Subject: Re: [PATCH v5 0/4] Fixes for SDIO interrupts for dw_mmc
+Date: Fri, 19 Dec 2014 11:02:26 -0800
+Message-ID: <CAD=FV=UCyOXfMqu_MYbd5pKOpgXPB87LQ7hCegeeY9vzsy6QAg@mail.gmail.com>
+References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
+	<CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:34592 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbaLSQph (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2014 11:45:37 -0500
-In-Reply-To: <5491703A.2080506@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, Tony Lindgren <tony@atomide.com>, Sascha Hauer <s.hauer@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chris Ball <chris@printf.net>, =?UTF-8?B?R3LDqWdvcnkgU291dGFkw6k=?= <gsoutade@neotion.com>, Joe Perches <joe@perches.com>, Axel Lin <axel.lin@ingics.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Lucas Stach <l.stach@pengutronix.de>, Paul Walmsley <pwalmsley@nvidia.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, khilman@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 17 Dec 2014, Tero Kristo wrote:
+Ulf,
 
-> The dual parent issue required by the DPLL code is caused by the introduction
-> of determine-rate / set-parent / set-rate-and-parent logic to OMAP DPPLs. I
-> took a short-cut here, making the assumption that every DPLL has both of these
-> clocks defined (which basically they do have, as every DPLL technically has
-> both reference and bypass clocks, but which can be the same clock => thus the
-> declaration itself is missing in some cases.) The clock data is modelled like
-> this for every other TI SoC (which use DT clock data), except for omap3 legacy
-> clock data, thus the patch to tweak the clock data itself. It would be much
-> harder to modify the clock code itself to take this into account, rather than
-> just add the missing parents to the clock data, thus the approach taken in the
-> patch. We can of course discuss whether it is okay to have DPLLs modelled as
-> they are right now. I think them as composite clocks containing mux, gate and
-> divider/multiplier logic within a single black box, we could split them up,
-> but I don't see much need for that. If it works, don't break it.
-> 
-> Regarding the omap3 clock data patch, I have also just posted new patch set
-> that will move the omap3 legacy clock data under clock driver, until we figure
-> out what to finally do with this (use the DT clocks, or introduce loadable
-> clock data modules or something.) Thus, the data patch is kind of a temporary
-> one, or thats the intention at least, but I wouldn't call it a hack. It is
-> there to fix the issues introduced by the set-parent / set-rate-and-parent
-> logic, which was required by the changes to the core clock set-rate.
+On Fri, Dec 19, 2014 at 2:17 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> On 3 December 2014 at 00:42, Doug Anderson <dianders@chromium.org> wrote:
+>> Bing Zhao at Marvell found a problem with dw_mmc where interrupts
+>> weren't firing sometimes.  He tracked it down to a read-modify-write
+>> problem with the INTMASK.  These patches fix the problem.
+>>
+>> Note: I've picked up a > 1-year old series here to make another
+>> attempt at landing it upstream.  These patches have been in shipping
+>> Chromebooks for the last year.  Note that v3 to v4 has no changes
+>> other than a rebase and a small commit message update.
+>>
+>> The first two patches extend the "init_card()" mechanism of MMC core
+>> to actually be called for all card types, not just SDIO.  That could
+>> be applied any time and should fix at least one longstanding bug
+>> (untested).
+>>
+>> The third patch is a cleanup patch to use init_card() to move things
+>> around a bit so we don't need to handle SDIO cards in such a strange
+>> place.  On earlier versions of this patch Seungwon brought up a few
+>> points which I have _not_ addressed.  See
+>> <https://patchwork.kernel.org/patch/3049071/>.  Other than talk of
+>> cards with out of band interrupts maybe being able to gate their
+>> clocks, he wanted to use MMC_QUIRK_BROKEN_CLK_GATING.  I didn't do
+>> that because of the ordering of init_card() and when the quirks are
+>> set.  Some users of init_card() like pandora_wl1251_init_card() rely
+>> on it being called very early in the process.
+>> pandora_wl1251_init_card() hardcodes a vendor and device and thus need
+>> to be called super early.  On the other hand the code that adds quirks
+>> _reads_ the vendor and device.  It can't possibly move before
+>> init_card().  If folks are willing to take an additional host op of
+>> init_card_late() I can certainly go that way, though.
+>>
+>> The fourth patch is (I think) reviewed and ready to go assuming the
+>> other two land.
+>
+> I have queued this up for 3.20.
 
-OK, I understand now why the OMAP3 clock DT data takes two of the same 
-clock - one is for the reference and one is for bypass.  So I retract my 
-earlier statement about it being a hack, and am fine with Tero's original 
-patch.
-
-I suppose I should resuscitate the uImage booter for the OMAP3 boards here 
-at least.  I dropped those out of the testbed thinking that we'd switch 
-over to DT-only fairly quickly; that turned out not to be the case.
+Thanks!
 
 
-- Paul
+> It was a bit hard to follow the
+> updated the revisions, please don't send patches "in-reply-to" for
+> future sets.
+
+Very strange.  I didn't send out anything in-reply-to other than what
+git-send-email usually does.  I believe I had:
+
+[0] - no in reply to.
+ [1] - in reply to [0]
+ [2] - in reply to [0]
+ [3] - in reply to [0]
+ [4] - in reply to [0]
+
+Is there some other way you'd prefer?
+
+Looking full headers in <https://patchwork.kernel.org/patch/5425241/>,
+I confirm it is "in-reply-to"
+"1417563767-32181-1-git-send-email-dianders@chromium.org".  Patchwork
+doesn't keep cover letters, but you can see at
+<http://www.spinics.net/lists/linux-mmc/msg29699.html>) that there is
+no in-reply-to.
+
+I'm more than happy to adjust my workflow if you can give me some
+specifics.  Thanks!  :)
+
+
+> In v5, I don't find a patch 1/4. Anyway, I have taken patch 2->4.
+
+Ah, maybe because it wasn't sent to linux-mmc?  I messed that up and
+will try to do better in the future.  Sorry.  :(  You were in the To
+line, though.  You can see at
+<https://patchwork.kernel.org/patch/5425241/>.
+
+Do you want me to repost it and CC linux-mmc with Tony's Ack?
+
+---
+
+Note: patchwork seems to find all my patches:
+
+pwclient list -w dianders@chromium.org -p ""
+
+5425241 New          [v5,1/4] ARM: OMAP2+: Make sure
+pandora_wl1251_init_card() applies to SDIO only
+5425291 New          [v5,1/4] ARM: OMAP2+: Make sure
+pandora_wl1251_init_card() applies to SDIO only
+5425311 New          [v5,1/4] ARM: OMAP2+: Make sure
+pandora_wl1251_init_card() applies to SDIO only
+5425231 New          [v5,2/4] mmc: core: Support the optional
+init_card() callback for MMC and SD
+5425301 New          [v5,2/4] mmc: core: Support the optional
+init_card() callback for MMC and SD
+5425271 New          [v5,3/4] mmc: dw_mmc: Cleanup disable of low
+power mode w/ SDIO interrupts
+5425281 New          [v5,3/4] mmc: dw_mmc: Cleanup disable of low
+power mode w/ SDIO interrupts
+5425251 New          [v5,4/4] mmc: dw_mmc: Protect read-modify-write
+of INTMASK with a lock
+5425261 New          [v5,4/4] mmc: dw_mmc: Protect read-modify-write
+of INTMASK with a lock
