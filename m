@@ -1,105 +1,86 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: bluetooth: Add hci_h4p driver
-Date: Fri, 19 Dec 2014 10:58:35 +0100
-Message-ID: <7DC7F8DF-CBC7-47CE-8B6F-5BA19ADBB3B6@holtmann.org>
-References: <20141213223727.GA13894@amd> <97C706D6-765B-446A-8180-600F5FB6C68B@holtmann.org> <20141219095000.GA24703@amd>
-Mime-Version: 1.0 (Mac OS X Mail 8.1 \(1993\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141219095000.GA24703@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-bluetooth@vger.kernel.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v5 0/4] Fixes for SDIO interrupts for dw_mmc
+Date: Fri, 19 Dec 2014 11:17:32 +0100
+Message-ID: <CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
+References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1417563767-32181-1-git-send-email-dianders@chromium.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Doug Anderson <dianders@chromium.org>
+Cc: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, Tony Lindgren <tony@atomide.com>, Sascha Hauer <s.hauer@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chris Ball <chris@printf.net>, =?UTF-8?B?R3LDqWdvcnkgU291dGFkw6k=?= <gsoutade@neotion.com>, Joe Perches <joe@perches.com>, Axel Lin <axel.lin@ingics.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
+On 3 December 2014 at 00:42, Doug Anderson <dianders@chromium.org> wrote:
+> Bing Zhao at Marvell found a problem with dw_mmc where interrupts
+> weren't firing sometimes.  He tracked it down to a read-modify-write
+> problem with the INTMASK.  These patches fix the problem.
+>
+> Note: I've picked up a > 1-year old series here to make another
+> attempt at landing it upstream.  These patches have been in shipping
+> Chromebooks for the last year.  Note that v3 to v4 has no changes
+> other than a rebase and a small commit message update.
+>
+> The first two patches extend the "init_card()" mechanism of MMC core
+> to actually be called for all card types, not just SDIO.  That could
+> be applied any time and should fix at least one longstanding bug
+> (untested).
+>
+> The third patch is a cleanup patch to use init_card() to move things
+> around a bit so we don't need to handle SDIO cards in such a strange
+> place.  On earlier versions of this patch Seungwon brought up a few
+> points which I have _not_ addressed.  See
+> <https://patchwork.kernel.org/patch/3049071/>.  Other than talk of
+> cards with out of band interrupts maybe being able to gate their
+> clocks, he wanted to use MMC_QUIRK_BROKEN_CLK_GATING.  I didn't do
+> that because of the ordering of init_card() and when the quirks are
+> set.  Some users of init_card() like pandora_wl1251_init_card() rely
+> on it being called very early in the process.
+> pandora_wl1251_init_card() hardcodes a vendor and device and thus need
+> to be called super early.  On the other hand the code that adds quirks
+> _reads_ the vendor and device.  It can't possibly move before
+> init_card().  If folks are willing to take an additional host op of
+> init_card_late() I can certainly go that way, though.
+>
+> The fourth patch is (I think) reviewed and ready to go assuming the
+> other two land.
 
->> And you want to set the QUIRK_INVALID_BADDR. At least you want to do that in the final submission.
->> 
-> 
-> Ok, I found out that I can do it and result works, provided that I do
-> hciconfig hci0 up/down first.
+I have queued this up for 3.20. It was a bit hard to follow the
+updated the revisions, please don't send patches "in-reply-to" for
+future sets.
 
-that should not be the case. Actually hciconfig uses old ioctl. A full Bluetooth system running bluetoothd (from BlueZ 5) will never use any old ioctl. Only an old system (BlueZ 4) will use ioctl.
+In v5, I don't find a patch 1/4. Anyway, I have taken patch 2->4.
 
-> I have trouble understanding... h4p_hci_open() seems to be called as
-> soon as I insmod the driver. Who does that? Is it some kind of udev
-> magic?
+Kind regards
+Uffe
 
-As soon as you do hci_register_dev, it will bring up the device and run the basic initialization. That is needed to get the address, version information and features. Otherwise the mgmt interface can not work. We need basic information about the device.
-
-So what the kernel will do internally when you find a device is bring it up, get the basics and then bring it back down (in case nobody uses it). See hci_power_on work.
-
-> ...
->>> +#include "hci_h4p.h"
->>> +
->>> +#define BT_DBG(a...) do {} while(0)
->> 
->> Why is this needed? BT_DBG is hooked up with dynamic debug.
-> ...
-> 
-> I did all the changes as requested. Thanks. I did't see harm in
-> include guards, but I removed them; it is not important.
-
-There is no harm in including the guards. We just don't do it for internal files. And thus if anyone tries to be sneaky and build circular inclusion they will fall flat on their faces. That is the only reason.
-
-> 
->>> +	if (info->rx_count == 0) {
->>> +		/* H4+ devices should always send word aligned packets */
->>> +		if (!(info->rx_skb->len % 2))
->>> +			info->garbage_bytes++;
->>> +		h4p_recv_frame(info, info->rx_skb);
->> 
->> The h4p_recv_frame should maybe done inline here since it only handles 2 exception packets. Also to make it easy, just leave the function if (info->rx_count).
->> 
->> This packet processing feels like a bit of spaghetti code. I think that is better handled in a proper function that goes through it and not with many tiny sub functions.
->> 
-> 
-> Well, CodingStyle says something about functions that should be kept
-> short... And when manually inlined, the inner function would have to
-> be made less readable, as it uses return to shortcut processing. 
-
-It also should not make me have to follow 3 functions to figure out what it is actually doing.
-
-> 
-> 
-> To use __hci_cmd_sync()
-> 
->>> +
->>> +	SET_HCIDEV_DEV(hdev, info->dev);
->>> +
->>> +	if (hci_register_dev(hdev) >= 0)
->>> +		return 0;
->>> +
->>> +	dev_err(info->dev, "hci_register failed %s.\n", hdev->name);
->>> +	hci_free_dev(info->hdev);
->>> +	return -ENODEV;
->>> +}
->> 
->> And normally this is folded into the probe handling and not in a
->> separate function.
-> 
-> The probe function is too long, already...
-
-Have you compared it to other functions. Normally probe() functions in general are all pretty long since they have to do tons of stuff. Having all in one function means you can read through it at once.
-
-> 
->>> +#include <linux/delay.h>
->>> +#include <linux/clk.h>
->>> +
->>> +#include <linux/io.h>
->>> +
->>> +#include "hci_h4p.h"
->> 
->> Why is this a separate file? And if so, why not all UART specific details are in this file. Including bunch of the defines you have in the header.
->> 
-> 
-> Well, you wanted less global functions, so I moved some as inlines to
-> headers. I guess I can merge nokia_core and nokia_uart if really wanted.
-
-Would this become easier when some of the OMAP specific stuff is moved out of this driver? If that is possible.
-
-Regards
-
-Marcel
+>
+> Changes in v5:
+> - Split fixup to pandora_wl1251_init_card() into its own patch.
+>
+> Changes in v3:
+> - Add fixup to pandora_wl1251_init_card().
+>
+> Changes in v2:
+> - mmc core change new for this version.
+> - Fixed "|" to "&".
+> - intmask_lock renamed to irq_lock
+>
+> Doug Anderson (4):
+>   ARM: OMAP2+: Make sure pandora_wl1251_init_card() applies to SDIO only
+>   mmc: core: Support the optional init_card() callback for MMC and SD
+>   mmc: dw_mmc: Cleanup disable of low power mode w/ SDIO interrupts
+>   mmc: dw_mmc: Protect read-modify-write of INTMASK with a lock
+>
+>  arch/arm/mach-omap2/board-omap3pandora.c | 14 +++---
+>  drivers/mmc/core/mmc.c                   |  6 +++
+>  drivers/mmc/core/sd.c                    |  7 ++-
+>  drivers/mmc/host/dw_mmc.c                | 80 +++++++++++++++++++-------------
+>  drivers/mmc/host/dw_mmc.h                |  1 +
+>  include/linux/mmc/dw_mmc.h               |  6 +++
+>  6 files changed, 74 insertions(+), 40 deletions(-)
+>
+> --
+> 2.2.0.rc0.207.ga3a616c
+>
