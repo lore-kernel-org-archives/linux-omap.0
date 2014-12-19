@@ -1,47 +1,44 @@
-From: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
-Subject: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit is reached
-Date: Fri, 19 Dec 2014 12:40:16 +0530
-Message-ID: <995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
+From: Amit Virdi <amit.virdi@st.com>
+Subject: [PATCH 3/4] usb: dwc3: gadget: Remove redundant check
+Date: Fri, 19 Dec 2014 12:40:17 +0530
+Message-ID: <54c5f1a1ba9c471f6c23cda2bc32f4cfec2ed839.1418972323.git.amit.virdi@st.com>
 References: <cover.1418972323.git.amit.virdi@st.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1418972323.git.amit.virdi-qxv4g6HH51o@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ajay.khandelwal-qxv4g6HH51o@public.gmane.org, Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:33363 "EHLO
+	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751894AbaLSHKj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Dec 2014 02:10:39 -0500
+In-Reply-To: <cover.1418972323.git.amit.virdi@st.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, pratyush.anand@gmail.com, ajay.khandelwal@st.com, Amit Virdi <amit.virdi@st.com>
 
-When SG is used, there are two loops iterating to prepare TRBs:
- - Outer loop over the request_list
- - Inner loop over the SG list
+dwc3_gadget_init_hw_endpoints calls dwc3_alloc_trb_pool only if epnum is not
+equal to 0 or 1. Hence, rechecking it in the called function is redundant.
 
-The driver must stop preparing TRBs when the max TRBs have been prepared. The
-code was missing break to get out of the outer loop.
-
-Signed-off-by: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
+Signed-off-by: Amit Virdi <amit.virdi@st.com>
 ---
- drivers/usb/dwc3/gadget.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/usb/dwc3/gadget.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
 diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 0eec2e917994..8f65ab3a3b92 100644
+index 8f65ab3a3b92..8c2e2fbe6f39 100644
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
-@@ -900,6 +900,9 @@ static void dwc3_prepare_trbs(struct dwc3_ep *dep, bool starting)
- 				if (last_one)
- 					break;
- 			}
-+
-+			if (last_one)
-+				break;
- 		} else {
- 			dma = req->request.dma;
- 			length = req->request.length;
+@@ -352,9 +352,6 @@ static int dwc3_alloc_trb_pool(struct dwc3_ep *dep)
+ 	if (dep->trb_pool)
+ 		return 0;
+ 
+-	if (dep->number == 0 || dep->number == 1)
+-		return 0;
+-
+ 	dep->trb_pool = dma_alloc_coherent(dwc->dev,
+ 			sizeof(struct dwc3_trb) * DWC3_TRB_NUM,
+ 			&dep->trb_pool_dma, GFP_KERNEL);
 -- 
 1.8.0
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
