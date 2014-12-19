@@ -1,45 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/2] CLK: TI: OMAP4: remove 'dss_fck' alias
-Date: Fri, 19 Dec 2014 11:18:03 +0200
-Message-ID: <1418980683-26825-2-git-send-email-tomi.valkeinen@ti.com>
-References: <1418980683-26825-1-git-send-email-tomi.valkeinen@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: bluetooth: Add hci_h4p driver
+Date: Fri, 19 Dec 2014 10:50:00 +0100
+Message-ID: <20141219095000.GA24703@amd>
+References: <20141213223727.GA13894@amd>
+ <97C706D6-765B-446A-8180-600F5FB6C68B@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37641 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752226AbaLSJSh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Dec 2014 04:18:37 -0500
-In-Reply-To: <1418980683-26825-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <97C706D6-765B-446A-8180-600F5FB6C68B@holtmann.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-'dss_fck' clock was recently removed, but a clock alias for it was left.
-This causes a warning:
+Hi!
 
-ti_dt_clocks_register: failed to lookup clock node dss_fck
+> And you want to set the QUIRK_INVALID_BADDR. At least you want to do that in the final submission.
+> 
 
-Remove the unneeded clock alias.
+Ok, I found out that I can do it and result works, provided that I do
+hciconfig hci0 up/down first.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/clk/ti/clk-44xx.c | 1 -
- 1 file changed, 1 deletion(-)
+I have trouble understanding... h4p_hci_open() seems to be called as
+soon as I insmod the driver. Who does that? Is it some kind of udev
+magic?
 
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index 35a0f01bbaf4..b1169e87e2d4 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -126,7 +126,6 @@ static struct ti_dt_clk omap44xx_clks[] = {
- 	DT_CLK(NULL, "dss_tv_clk", "dss_tv_clk"),
- 	DT_CLK(NULL, "dss_dss_clk", "dss_dss_clk"),
- 	DT_CLK(NULL, "dss_48mhz_clk", "dss_48mhz_clk"),
--	DT_CLK(NULL, "dss_fck", "dss_fck"),
- 	DT_CLK(NULL, "fdif_fck", "fdif_fck"),
- 	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
- 	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
+...
+> > +#include "hci_h4p.h"
+> > +
+> > +#define BT_DBG(a...) do {} while(0)
+> 
+> Why is this needed? BT_DBG is hooked up with dynamic debug.
+...
+
+I did all the changes as requested. Thanks. I did't see harm in
+include guards, but I removed them; it is not important.
+
+> > +	if (info->rx_count == 0) {
+> > +		/* H4+ devices should always send word aligned packets */
+> > +		if (!(info->rx_skb->len % 2))
+> > +			info->garbage_bytes++;
+> > +		h4p_recv_frame(info, info->rx_skb);
+> 
+> The h4p_recv_frame should maybe done inline here since it only handles 2 exception packets. Also to make it easy, just leave the function if (info->rx_count).
+> 
+> This packet processing feels like a bit of spaghetti code. I think that is better handled in a proper function that goes through it and not with many tiny sub functions.
+>
+
+Well, CodingStyle says something about functions that should be kept
+short... And when manually inlined, the inner function would have to
+be made less readable, as it uses return to shortcut processing. 
+
+
+To use __hci_cmd_sync()
+
+> > +
+> > +	SET_HCIDEV_DEV(hdev, info->dev);
+> > +
+> > +	if (hci_register_dev(hdev) >= 0)
+> > +		return 0;
+> > +
+> > +	dev_err(info->dev, "hci_register failed %s.\n", hdev->name);
+> > +	hci_free_dev(info->hdev);
+> > +	return -ENODEV;
+> > +}
+> 
+> And normally this is folded into the probe handling and not in a
+> separate function.
+
+The probe function is too long, already...
+
+> > +#include <linux/delay.h>
+> > +#include <linux/clk.h>
+> > +
+> > +#include <linux/io.h>
+> > +
+> > +#include "hci_h4p.h"
+> 
+> Why is this a separate file? And if so, why not all UART specific details are in this file. Including bunch of the defines you have in the header.
+> 
+
+Well, you wanted less global functions, so I moved some as inlines to
+headers. I guess I can merge nokia_core and nokia_uart if really wanted.
+
+I did rest of requested changes.
+
+Thanks,
+									Pavel
+
 -- 
-2.2.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
