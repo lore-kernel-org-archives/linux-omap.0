@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/2] ARM: AM43xx: hwmod: set DSS submodule parent hwmods
-Date: Fri, 19 Dec 2014 12:45:13 +0200
-Message-ID: <1418985914-9027-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/2] ARM: DRA7xx: hwmod: set DSS submodule parent hwmods
+Date: Fri, 19 Dec 2014 12:45:14 +0200
+Message-ID: <1418985914-9027-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1418985914-9027-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58351 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134AbaLSKpy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2014 05:45:54 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40314 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752300AbaLSKp5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Dec 2014 05:45:57 -0500
 In-Reply-To: <1418985914-9027-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,33 +20,33 @@ Set DSS core hwmod as the parent for all the DSS submodules. This fixes
 the boot time DSS reset, removing the following warnings:
 
 omap_hwmod: dss_dispc: cannot be enabled for reset (3)
-omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
+omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 2 ++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index 5c6c8410160e..8eb85925e444 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -498,6 +498,7 @@ static struct omap_hwmod am43xx_dss_dispc_hwmod = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index ffd6604cd546..41238d509cb5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -500,6 +500,7 @@ static struct omap_hwmod dra7xx_dss_dispc_hwmod = {
  		},
  	},
- 	.dev_attr	= &am43xx_dss_dispc_dev_attr,
-+	.parent_hwmod	= &am43xx_dss_core_hwmod,
+ 	.dev_attr	= &dss_dispc_dev_attr,
++	.parent_hwmod	= &dra7xx_dss_hwmod,
  };
  
- /* rfbi */
-@@ -512,6 +513,7 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
- 			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
- 		},
+ /*
+@@ -541,6 +542,7 @@ static struct omap_hwmod dra7xx_dss_hdmi_hwmod = {
  	},
-+	.parent_hwmod	= &am43xx_dss_core_hwmod,
+ 	.opt_clks	= dss_hdmi_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(dss_hdmi_opt_clks),
++	.parent_hwmod	= &dra7xx_dss_hwmod,
  };
  
- /* Interfaces */
+ /*
 -- 
 2.2.0
 
