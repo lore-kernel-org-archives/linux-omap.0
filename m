@@ -1,44 +1,38 @@
-From: Amit Virdi <amit.virdi@st.com>
-Subject: [PATCH 3/4] usb: dwc3: gadget: Remove redundant check
-Date: Fri, 19 Dec 2014 12:40:17 +0530
-Message-ID: <54c5f1a1ba9c471f6c23cda2bc32f4cfec2ed839.1418972323.git.amit.virdi@st.com>
+From: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
+Subject: [PATCH 4/4] usb: dwc3: Remove current_trb as it is unused
+Date: Fri, 19 Dec 2014 12:40:18 +0530
+Message-ID: <c0058ce9513e339f223a7945e677e4e41b372a36.1418972323.git.amit.virdi@st.com>
 References: <cover.1418972323.git.amit.virdi@st.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:33363 "EHLO
-	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751894AbaLSHKj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Dec 2014 02:10:39 -0500
-In-Reply-To: <cover.1418972323.git.amit.virdi@st.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1418972323.git.amit.virdi-qxv4g6HH51o@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ajay.khandelwal-qxv4g6HH51o@public.gmane.org, Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, pratyush.anand@gmail.com, ajay.khandelwal@st.com, Amit Virdi <amit.virdi@st.com>
 
-dwc3_gadget_init_hw_endpoints calls dwc3_alloc_trb_pool only if epnum is not
-equal to 0 or 1. Hence, rechecking it in the called function is redundant.
+This field was introduced but never used. So, remove it.
 
-Signed-off-by: Amit Virdi <amit.virdi@st.com>
+Signed-off-by: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
 ---
- drivers/usb/dwc3/gadget.c | 3 ---
+ drivers/usb/dwc3/core.h | 3 ---
  1 file changed, 3 deletions(-)
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 8f65ab3a3b92..8c2e2fbe6f39 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -352,9 +352,6 @@ static int dwc3_alloc_trb_pool(struct dwc3_ep *dep)
- 	if (dep->trb_pool)
- 		return 0;
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 4bb9aa696ede..0842aa80976f 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -431,7 +431,6 @@ struct dwc3_event_buffer {
+  * @dwc: pointer to DWC controller
+  * @saved_state: ep state saved during hibernation
+  * @flags: endpoint flags (wedged, stalled, ...)
+- * @current_trb: index of current used trb
+  * @number: endpoint number (1 - 15)
+  * @type: set to bmAttributes & USB_ENDPOINT_XFERTYPE_MASK
+  * @resource_index: Resource transfer index
+@@ -464,8 +463,6 @@ struct dwc3_ep {
+ 	/* This last one is specific to EP0 */
+ #define DWC3_EP0_DIR_IN		(1 << 31)
  
--	if (dep->number == 0 || dep->number == 1)
--		return 0;
--
- 	dep->trb_pool = dma_alloc_coherent(dwc->dev,
- 			sizeof(struct dwc3_trb) * DWC3_TRB_NUM,
- 			&dep->trb_pool_dma, GFP_KERNEL);
--- 
-1.8.0
-
+-	unsigned		current_trb;
