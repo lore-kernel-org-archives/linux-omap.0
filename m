@@ -1,225 +1,632 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: regression: Clock changes in next-20141205 break at least omap4
-Date: Fri, 19 Dec 2014 16:23:49 -0800
-Message-ID: <20141220002349.29014.63354@quantum>
-References: <20141212194238.20398.33333@quantum> <54908F8D.2020202@nvidia.com>
- <20141216202301.GF11502@n2100.arm.linux.org.uk>
- <alpine.DEB.2.02.1412162034420.3102@utopia.booyaka.com>
- <20141216205754.GG11502@n2100.arm.linux.org.uk>
- <alpine.DEB.2.02.1412162159270.3102@utopia.booyaka.com>
- <1418809957.3347.1.camel@pengutronix.de>
- <alpine.DEB.2.02.1412181717450.3102@utopia.booyaka.com>
- <20141218233739.29014.73421@quantum>
- <alpine.DEB.2.02.1412190034040.3102@utopia.booyaka.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] treewide: Convert clockevents_notify to use int cpu
+Date: Sat, 20 Dec 2014 15:38:58 +0100
+Message-ID: <3128229.dCxxVbIcej@vostro.rjw.lan>
+References: <1418254133.18092.22.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1412190034040.3102@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, khilman@linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, t-kristo@ti.com, Paul Walmsley <pwalmsley@nvidia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lucas Stach <l.stach@pengutronix.de>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <1418254133.18092.22.camel@perches.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-UXVvdGluZyBQYXVsIFdhbG1zbGV5ICgyMDE0LTEyLTE4IDE4OjE1OjU5KQo+IE9uIFRodSwgMTgg
-RGVjIDIwMTQsIE1pa2UgVHVycXVldHRlIHdyb3RlOgo+IAo+ID4gUXVvdGluZyBQYXVsIFdhbG1z
-bGV5ICgyMDE0LTEyLTE4IDExOjIzOjA3KQo+ID4KPiA+ID4gRmxpcHBpbmcgb3ZlciBmcm9tIGhh
-cmR3YXJlIHRvIHNvZnR3YXJlLCBpbiB0aGUgTGludXggY2xvY2sgdHJlZSwgdGhlcmUncyAKPiA+
-ID4gdXN1YWxseSBub3QgbXVjaCBwb2ludCB0byBtb2RlbGluZyB0aGUgVkNPL0RDTyBkaXJlY3Rs
-eSBiZWNhdXNlIGl0IHRlbmRzIAo+ID4gPiBub3QgdG8gYmUgdW5kZXIgdGhlIGRpcmVjdCBjb250
-cm9sIG9mIHRoZSBPUywgYW5kIGl0IGlzIHVzdWFsbHkgdGlnaHRseSAKPiA+ID4gaW50ZWdyYXRl
-ZCBpbnRvIHRoZSBQTExzIGZyb20gYSBoYXJkd2FyZSBwb2ludCBvZiB2aWV3LiAgQnV0IHVubGlr
-ZSBtb3N0IAo+ID4gPiBvZiB0aGUgTGludXggY2xvY2sgdHJlZSBub2RlcyB0aGF0IGFyZSBkb3du
-c3RyZWFtIGZyb20gY2xvY2sgc291cmNlcywgCj4gPiA+IHdoaWNoIHVzZSBjbG9ja3MgdGhhdCBh
-cmUgZWxlY3RyaWNhbGx5IGRyaXZlbiBieSB0aGUgY2xvY2sgc291cmNlLCB0aGUgCj4gPiA+IGNs
-b2NrIHNpZ25hbCB0aGF0IFBMTHMgYW5kIFBMTC1saWtlIGNsb2NrcyBnZW5lcmF0ZSBpcyBub3Qg
-ZGlyZWN0bHkgZHJpdmVuIAo+ID4gPiBieSB0aGUgcmVmZXJlbmNlIGNsb2NrLgo+ID4gCj4gPiBI
-aSBQYXVsLAo+IAo+IEhpIE1pa2UsCj4gCj4gPiBUaGlzIGlzIGRlYmF0YWJsZSBnaXZlbiB0aGF0
-IHRoZSBmb3JtdWxhIHRvIGRldGVybWluZSB0aGUgT01BUCBEUExMIAo+ID4gb3V0cHV0IHJhdGUg
-ZGlyZWN0bHkgZGVwZW5kcyB1cG9uIHRoZSByYXRlIG9mIHRoZSBpbnB1dCBjbG9jayAob3NjLCAK
-PiA+IDMyS2h6LCBoc2QsIGJ5cGFzcywgZXRjKS4gSSdtIG5vdCBzcGVha2luZyBmb3IgYWxsIFBM
-THMsIGp1c3QgZm9yIHRoZSAKPiA+IE9NQVAgb25lcyB0aGF0IEkgYW0gZmFtaWxpYXIgd2l0aC4K
-PiAKPiBUaGUgZnJlcXVlbmN5IGFuZCBwaGFzZSBub2lzZSBjaGFyYWN0ZXJpc3RpY3Mgb2YgdGhl
-IFBMTCdzIG91dHB1dCBzaWduYWwgCj4gYXJlIHBhcnRpYWxseSBhIGZ1bmN0aW9uIG9mIHRoZSBy
-ZWZlcmVuY2UgY2xvY2suICBCdXQgdGhhdCdzIG9ubHkgYmVjYXVzZSAKPiB0aGUgcmVmZXJlbmNl
-IGNsb2NrIGlzIHVzZWQgdG8gc3RlZXIgdGhlIFZDTy4gIEl0J3Mgbm90IGJlY2F1c2UgdGhlIAo+
-IHJlZmVyZW5jZSBjbG9jayBpdHNlbGYgYXBwZWFycyBvbiB0aGUgUExMIG91dHB1dC4gIEV2ZW4g
-aWYgdGhlIHJlZmVyZW5jZSAKPiBjbG9jayBkaXZpZGVycyBhbmQgVkNPIGxvb3AgZGl2aWRlcnMg
-d2VyZSBib3RoIHNldCB0byBkaXZpZGUtYnktb25lLCB0aGUgCj4gcmVmZXJlbmNlIGNsb2NrIHN0
-aWxsIHdvdWxkIG5vdCBhcHBlYXIgb24gdGhlIFBMTCBvdXRwdXQgLSBtZXJlbHkgYSAKPiBzaW11
-bGFjcnVtIG9mIGl0LCBvcmlnaW5hdGluZyBieSB0aGUgVkNPLiAgVGhlIFBMTCdzIG91dHB1dCBj
-bG9jayBpcywgCj4gZWxlY3RyaWNhbGx5LCBkaXJlY3RseSBkcml2ZW4gYnkgdGhlIFZDTy4KPiAK
-PiBQYWdlIDUgb2YgdGhpcyBQREYgaGFzIGEgbmljZSBmcmVxdWVuY3kgc3ludGhlc2lzIFBMTCBi
-bG9jayBkaWFncmFtIHdpdGggCj4gaW50ZWdlciBkaXZpZGVyczoKPiAKPiAgICAgaHR0cDovL3d3
-dy50aS5jb20vbGl0L2FuL3N3cmEwMjkvc3dyYTAyOS5wZGYKPiAKPiBUbyByZXBocmFzZSwgaWYs
-IGluIHRoZSBibG9jayBkaWFncmFtIGFib3ZlLCBvbmUgd2VyZSB0byByZW1vdmUgZXZlcnl0aGlu
-ZyAKPiBmcm9tIHRoZSBUQ1hPIHJlZmVyZW5jZSBjbG9jayBvbiB0aGUgbGVmdCB0byB0aGUgdHJp
-YW5nbGUgdG8gdGhlIGxlZnQgb2YgCj4gdGhlIFZDTywgYW5kIHRvIHJlcGxhY2UgYWxsIHRoYXQg
-d2l0aCBhIGNvbnN0YW50IHZvbHRhZ2UgaW5wdXQgdG8gdGhlIFZDTywgCj4geW91J2Qgc3RpbGwg
-Z2V0IGEgY2xvY2sgc2lnbmFsIG91dCBvZiB0aGUgSVAgYmxvY2ssIGV2ZW4gdGhvdWdoIHRoZSAK
-PiByZWZlcmVuY2UgY2xvY2sgd291bGQgbm8gbG9uZ2VyIGV4aXN0LgoKWWVzLCB5b3VyIHBvaW50
-IGlzIGNvbXBsZXRlbHkgdmFsaWQuIEJ1dCBUSSdzIG93biBjbG9jayB0cmVlIGRpYWdyYW1zCih3
-aGljaCBzYWRseSBkbyBub3QgbWFrZSBpdCBpbnRvIGFueSBUUk0gdGhhdCBJIGtub3cgb2YpIHNo
-b3cgYSBjYXNjYWRlCnN0YXJ0aW5nIGF0IHN5c19jbGssIGNvbnRpbnVpbmcgdGhyb3VnaCBlYWNo
-IERQTEwsIHRoZSBNeCBvdXRwdXQgYW5kIHNvCm9uIGFuZCBzbyBmb3J0aC4gSSB3b3VsZCBsaW5r
-IGl0IGlmIGl0IHdhcyBwdWJsaWMgOi0vCgpTYW1zdW5nJ3MgRXh5bm9zIFRSTXMgZG8gYSBncmVh
-dCBqb2Igb2YgaWxsdXN0cmF0aW5nIHRoZSBjbG9jayB0cmVlCnBhdGhzIGFuZCBteSBmZWVkYmFj
-ayB0byB0aGUgVFJNIHRlYW0gYXQgVEkgbmV2ZXIgc2VlbWVkIHRvIHRha2Ugcm9vdC4KCkluIGFk
-ZGl0aW9uIHRoZSBjbG9jayB0cmVlIHRvb2wgZnJvbSBUSVswXSBmb2xsb3dzIHRoZSBzYW1lIHRy
-ZW5kLiBUaGlzCnRvb2wgaXMgZGV2ZWxvcGVkIGJ5IGFuIGluZGVwZW5kZW50IHRlYW0gdGhhdCBo
-YXMgbm8gcmVsYXRpb25zaGlwIHRvIHRoZQpmb2xrcyB3b3JraW5nIG9uIFNvQyBvcGVyYXRpbmcg
-c3lzdGVtIHNvZnR3YXJlLgoKSW4gc2hvcnQsIHRoZSBtYW51ZmFjdHVyZXIncyB2aXN1YWxpemF0
-aW9uIG9mIHRoZSBjbG9jayBzaWduYWwgY2hhaW4KdHJlYXRzIHRoZSBzeXN0ZW0gY2xvY2sgYXMg
-YSBwYXJlbnQgb2YgdGhlIERQTExzLgoKPiAKPiA+ID4gU28gd2h5IGlzIGEgcmVmZXJlbmNlIGNs
-b2NrIGxpc3RlZCBhcyBhIExpbnV4IHBhcmVudCBjbG9jayBvZiBhbiBPTUFQIFBMTD8gIAo+ID4g
-PiBBdCBsZWFzdCBmb3IgT01BUCwgaXQgd2FzIHNvcnQgb2Ygc2hvZWhvcm5lZCBpbiB0byByZXBy
-ZXNlbnQgYSBnYXRpbmcgCj4gPiA+IGRlcGVuZGVuY3kuICBJdCB3YXMgYSB3YXkgb2Ygc3RhdGlu
-ZyB0aGF0IHRoZSByZWZlcmVuY2UgY2xvY2sgaGFkIHRvIGJlIAo+ID4gPiBlbmFibGVkIGZvciB0
-aGUgUExMIHRvIGdlbmVyYXRlIGFuIG91dHB1dCBjbG9jay4gIChUaGUgb2ZmLWNoaXAgY3J5c3Rh
-bCAKPiA+ID4gb3NjaWxsYXRvciB0aGF0IGRyaXZlcyBtb3N0IG9mIHRoZSBQTEwgcmVmZXJlbmNl
-IGNsb2NrcyBjb3VsZCBiZSBkaXNhYmxlZCAKPiA+ID4gd2hlbiBhbGwgb2YgaXRzIHVzZXJzIHdl
-cmUgaWRsZSwgdG8gc2F2ZSBlbmVyZ3kuKSAgQnV0IHRoaXMgdHlwZSBvZiBnYXRpbmcgCj4gPiA+
-IGRlcGVuZGVuY3kgaXMgZXF1YWxseSB0cnVlIGZvciwgc2F5LCBhIHNlcGFyYXRlIGZ1bmN0aW9u
-YWwgY2xvY2sgdGhhdCB0aGUgCj4gPiA+IGNsb2NrIHNvdXJjZSByZXF1aXJlcyBpbiBvcmRlciB0
-byBvcGVyYXRlLiAgKE9NQVAgUExMcyBkaWRuJ3QgaGF2ZSBhIAo+ID4gPiBzZXBhcmF0ZSBmdW5j
-dGlvbmFsIGNsb2NrLCBhdCBsZWFzdCBub3QgdGhhdCBJIHdhcyBhd2FyZSBvZjsgYnV0IHRoYXQn
-cyAKPiA+ID4gbm90IHRydWUgZm9yIHNvbWUgc2ltaWxhciBjbG9jayBzb3VyY2VzIHVzZWQgaW4g
-b3RoZXIgU29Dcy4pCj4gPiAKPiA+IFVzaW5nIHlvdXIgdGVybWlub2xvZ3kgYWJvdmUsIGl0IGlz
-IHBvc3NpYmxlIHRvIGRvIHdoYXQgeW91IHdhbnQgdG8gZG8KPiA+IHRvZGF5IHdpdGhvdXQgYW55
-IGNoYW5nZSB0byB0aGUgY2xvY2sgZnJhbWV3b3JrLiBTaW1wbHkgbWFrZSBlYWNoIERQTEwgYQo+
-ID4gZGV2aWNlLiBUaGF0IGRldmljZSBjYWxscyBjbGtfZ2V0LCBjbGtfcHJlcGFyZV9lbmFibGUg
-b24gdGhlIGlucHV0Cj4gPiByZWZlcmVuY2UgY2xvY2suIAo+IAo+IEkgdGhpbmsgSSBkaWQgc29t
-ZXRoaW5nIGxpa2UgdGhhdCB3aXRoIHRoZSBUZWdyYSBERkxMIGRyaXZlciBsYXN0IHllYXIuICAK
-PiBFeGNlcHQgdGhlIGNsb2NrIHByb3ZpZGVyIGRldmljZSB3YXMgdGhlIERGTEwgSVAgYmxvY2sg
-aXRzZWxmLCB3aXRoIGl0cyAKPiBvd24gcmVnaXN0ZXJzLCBldGMuLCBhbmQgbm90IGFuIGFkZGl0
-aW9uYWwgYWJzdHJhY3Rpb24sIGlmIEkgcmVjYWxsIAo+IGNvcnJlY3RseS4KClRoaXMgc291bmRz
-IGxpa2Ugd2hhdCBJIGhhZCBpbiBtaW5kLCBpZiBJIHdhcyBub3QgY2xlYXIgYWJvdmUuCgo+IAo+
-IE15IGludGVyZXN0IGlzIG1vc3RseSB0byBkZXRlcm1pbmUgd2hldGhlciBzb21lIG9mIHRoYXQg
-c3BlY2lhbC1jYXNlIGNvZGUgCj4gY2FuIGJlIGNvbnZlcnRlZCBpbnRvIGRhdGEgdGhhdCB0aGUg
-Q0NGIGNvcmUgY2FuIG9wZXJhdGUgb24sIGluIGEgCj4gY29uc2lzdGVudCBtYW5uZXIgdGhhdCB3
-b3VsZCBiZSB1c2VmdWwgYWNyb3NzIHBsYXRmb3JtcywgYW5kIGluIGEgd2F5IHRoYXQgCj4gc2V2
-ZXJhbCBwZW9wbGUgY291bGQgcG90ZW50aWFsbHkgYWdyZWUgb24uCj4gCj4gPiBDb2luY2lkZW50
-YWxseSB0aGVzZSBuZXcgRFBMTCBkZXZpY2UgYXJlIGNsb2NrIHByb3ZpZGVycyB0aGVtc2VsdmVz
-IGFuZCAKPiA+IHRoZXkgcHJvdmlkZSByb290IGNsb2NrcyBvZiB0aGVpciBvd24gd2hpY2ggYXJl
-IHRoZSBEUExMcyBhbmQgCj4gPiBjb3JyZXNwb25kaW5nIE14IG91dHB1dHMuIFRoaXMgbW9kZWwg
-d291bGQgdHJlYXQgdGhlIHJlZmVyZW5jZSBjbG9jayBhcyAKPiA+IHNvbWV0aGluZyB0aGF0IGRy
-aXZlcyB0aGUgRFBMTCBkZXZpY2UncyBsb2dpYywgYnV0IG5vdCBhcyBhIHBhcnQgb2YgdGhlIAo+
-ID4gY2xvY2sgc2lnbmFsIGNoYWluLgo+ID4gCj4gPiBJIGRvbid0IHBlcnNvbmFsbHkgYWdyZWUg
-d2l0aCB0aGUgaWRlYSB0aGF0IHRoZSByZWZlcmVuY2UgY2xvY2sgaXMgbm90IGEKPiA+IHBhcmVu
-dCBvZiB0aGUgRFBMTCwKPiAKPiBJJ2QgYmUgaW50ZXJlc3RlZCB0byBrbm93IGhvdyB5b3Ugd291
-bGQgZGVmaW5lIGEgcGFyZW50IGNsb2NrLCBpZiBpdCAKPiBkaWZmZXJzIGZyb20gdGhlIGVsZWN0
-cmljYWwgInNvdXJjZSBjbG9jayIgZGVmaW5pdGlvbiB0aGF0IEkgbWVudGlvbmVkLgoKTXkgbGVz
-cy1yaWdvcm91cyBkZWZpbml0aW9uIGlzIGEgY2xvY2sgc2lnbmFsIHdoaWNoIGlzIGZlZCBpbnRv
-IHNvbWUKc2luayAoaW4gdGhpcyBjYXNlIGFub3RoZXIgY2xvY2sgZ2VuZXJhdG9yIElQKSBhbmQg
-aGFzIGEgdGFuZ2VudGlhbApyZWxhdGlvbnNoaXAgb3IgZWZmZWN0IG9uIGl0cyBvdXRwdXQgcmF0
-ZS4gSW4gdGhlIGV2ZW50IG9mIG1vcmUgdGhhbiBvbmUKYWN0aXZlIGNsb2NrIHNpZ25hbCBnb2lu
-ZyBpbnRvIHRoZSBJUCBibG9jaywgdGhlbiB0aGUgY3VycmVudCBwYXJlbnQgaXMKdGhlIG9uZSB0
-aGF0IGhhcyB0aGUgbW9zdCByZWFzb25hYmxlIGFmZmVjdCBvbiB0aGUgY2xvY2sgc2lnbmFsIHJh
-dGUgb2YKdGhlIGRvd25zdHJlYW0gY2xvY2sgZ2VuZXJhdG9yLgoKSW4gc2hvcnQsIHRoZSBwYXJl
-bnQgaXMgdGhlIG9uZSB0aGF0IHlvdSB0aGluaywgIm9oIGdlZSwgdGhhdCdzIHRoZQpwYXJlbnQg
-Y2xvY2siIHRoZSBmaXJzdCB0aW1lIHRoYXQgeW91IGxvb2sgYXQgdGhlIHNjaGVtYXRpYy4KCj4g
-Cj4gVGhlIExpbnV4IGNsb2NrIHRyZWUgaXMgYSBzb2Z0d2FyZSBhYnN0cmFjdGlvbi4gIFNvIG9u
-ZSBjb3VsZCBkZWZpbmUgCj4gInBhcmVudCBjbG9jayIgaG93ZXZlciBvbmUgd2lzaGVzLiAgKFRo
-YXQncyBub3QgdG8gc2F5IHRoYXQgYWxsIAo+IGRlZmluaXRpb25zIGFyZSBlcXVhbGx5IHVzZWZ1
-bC4uLikgCj4gCj4gT25lIGNvdWxkIHN0YXRlLCBmb3IgZXhhbXBsZSwgdGhhdCBhIHBhcmVudCBj
-bG9jayBpcyBhbnkgY2xvY2sgdGhhdCBoYXMgCj4gc29tZSBlZmZlY3Qgb24gdGhlIG91dHB1dCBv
-ZiB0aGUgY2hpbGQgY2xvY2suICBUaGF0IHdvdWxkIGJlIG9uZSAKPiBkZWZpbml0aW9uIHdoaWNo
-IG1pZ2h0IGJlIGNvbnNpc3RlbnQgd2l0aCB5b3VyIGNvbW1lbnRzLiAgVGhlIHByb2JsZW0gd2l0
-aCAKPiB0aGF0IGlzIHRoYXQgaXQgbWVhbnMgdGhhdCBhIGNsb2NrIGNhbiBoYXZlIG11bHRpcGxl
-IHNpbXVsdGFuZW91c2x5LWFjdGl2ZSAKPiBwYXJlbnRzLCB3aGljaCBJJ2QgbmHDr3ZlbHkgdGhp
-bmsgd2UnZCB3YW50IHRvIGF2b2lkLCBpZiB3ZSBjb3VsZC4KCllvdSdyZSByaWdodCB0byBzYXkg
-dGhhdCB3ZSdyZSB0YWxraW5nIGFib3V0IGEgc29mdHdhcmUgYWJzdHJhY3Rpb24uIEluCmdlbmVy
-YWwgd2Ugc2hvdWxkIG1vZGVsIHRoaXMgYWJzdHJhY3Rpb24gYWZ0ZXIgdGhlIGhhcmR3YXJlIGFz
-IG11Y2ggYXMKcG9zc2libGUgdG8ga2VlcCBkZWJ1Z2dpbmcgYW5kIG91ciB1bmRlcnN0YW5kaW5n
-IG9mIHRoZSBwbGF0Zm9ybSBzYW5lLgpUaG91Z2ggdGhlcmUgYXJlIGxpbWl0cyB0byBob3cgY2xv
-c2VseSB3ZSB3YW50IHRvIG1vZGVsIHRoZSBoYXJkd2FyZQoocGxlYXNlIGltYWdpbmUgYSBjbGV2
-ZXIgam9rZSBhYm91dCAic3RydWN0IHNwaW5uaW5nX2VsZWN0cm9uIiBoZXJlKS4KCkknbSBoYXBw
-eSB0byB1cGRhdGUgdGhlIGRvY3VtZW50YXRpb24gd2l0aCBndWlkZWxpbmVzIGZvciBob3cgZHJp
-dmVyCndyaXRlcnMgc2hvdWxkIHBhcnRpdGlvbiB0aGluZ3MgdG8gc3RheSBpbiBsaW5lIHdpdGgg
-dGhlaXIgaGFyZHdhcmUgb25jZQp3ZSBoYXZlIHRoYXQgZGlzY3Vzc2lvbiBhbmQgc2V0dGxlIG9u
-IHNvbWUgZ3VpZGVsaW5lcy4KClVuZGVyc3RhbmRpbmcgb2YgdGhlIGhhcmR3YXJlIHZhcmllcyB3
-aWxkbHkgdGhvdWdoLCBvZnRlbiBkdWUgdG8gcG9vciBvcgp6ZXJvIGRvY3VtZW50YXRpb24uIEFu
-ZCBhZGRpdGlvbmFsbHkgSSBkb24ndCB3YW50IHRvIGNyZWF0ZSBhbnkgbmV3Cmhvb3BzIGZvciBw
-ZW9wbGUgdG8ganVtcCB0aHJvdWdoIGlmIGl0IGJyaW5ncyBubyB0YW5naWJsZSBnYWluIHRvIHRo
-ZQpzb2Z0d2FyZSAoYmV0dGVyIGRlYnVnYWJpbGl0eSwgZGVjcmVhc2VkIGNvZGUgc2l6ZSwgYmV0
-dGVyIHBvd2VyCnNhdmluZ3MsIG1vcmUgYXdlc29tZXIgYXBpcyBleHBvc2VkIHRvIGRldmljZSBk
-cml2ZXJzLCBldGMpLgoKRmluYWxseSwgSSBrbm93IEkgY29udGludWUgdG8gYXJndWUgdGhlIHBv
-aW50LCBidXQgSSB3b3VsZCBub3QgaGF2ZSBhbnkKcHJvYmxlbSBtZXJnaW5nIGNoYW5nZXMgdG8g
-cmVtb3ZlIHN5c19jbGsgYXMgdGhlIHBhcmVudCBvZiB0aGUgRFBMTHMuIEkKZ3Vlc3MgSSdtIGp1
-c3QgZmVlbGluZyBhcmd1bWVudGF0aXZlLiBJZiB5b3UgYW5kIHRoZSBUSSBmb2xrcyBmZWVsIGxp
-a2UKdGhhdCBpcyB0aGUgcmlnaHQgd2F5IHRvIGdvIHRoZW4gYnkgYWxsIG1lYW5zLgoKWzBdIGh0
-dHA6Ly93d3cudGkuY29tL2dlbmVyYWwvZG9jcy93dGJ1L3d0YnVkb2N1bWVudGNlbnRlci50c3A/
-dGVtcGxhdGVJZD02MTIzJm5hdmlnYXRpb25JZD0xMjgwNAoKUmVnYXJkcywKTWlrZQoKPiAKPiBJ
-IGFsc28gaGF2ZSB0byBhZG1pdCB0aGF0IG15IGJpYXMgaXMgdG93YXJkcyBkZWZpbml0aW9ucyB3
-aXRoIHNvbWUga2luZCBvZiAKPiByZWxhdGlvbnNoaXAgdG8gdGhlIGhhcmR3YXJlLCB3aGljaCBo
-ZWxwcyBhdm9pZCB0aGUgInV0dGVyIHJlbGF0aXZpc20iIAo+IHByb2JsZW0gdGhhdCB5b3UgbWVu
-dGlvbiBiZWxvdy4KPiAKPiA+IGJ1dCBJIGRvbid0IG9wcG9zZSBhbnkgY2hhbmdlIHRvIHRoZSBP
-TUFQIGNsb2NrIGRyaXZlciBhbG9uZyB0aG9zZSBsaW5lcyAKPiA+IHNvIGxvbmcgYXMgaXQgaXMg
-ZG9uZSBpbiBhIHNhbmUgd2F5LiBJdCBzZWVtcyB0aGVyZSBpcyBuZXZlciBqdXN0IG9uZSAKPiA+
-IGNvcnJlY3Qgd2F5IHRvIGxvb2sgYXQgdGhlc2UgdGhpbmdzLgo+IAo+IEknZCBzYXkgdGhhdCB0
-byB0aGUgZXh0ZW50IHRoYXQgb25lIGNvdWxkIGNvbWUgdXAgd2l0aCBjb25jcmV0ZSAKPiBkZWZp
-bml0aW9ucyBmb3IgdGVybXMgbGlrZSAicGFyZW50IGNsb2NrcywiIGl0IGFsbG93cyBvdGhlcnMg
-dG8gcmVhc29uIAo+IGFib3V0IGhvdyB0aGUgQ0NGIHNob3VsZCB3b3JrLCBoZWxwcyBkaXN0aW5n
-dWlzaCBiZXR3ZWVuIGRhdGEgYW5kIGNvZGUgCj4gY2hhbmdlcyB0aGF0IGRvIGFuZCBkb24ndCBt
-YWtlIHNlbnNlLCBhbmQgaGVscHMgb3RoZXJzIHVuZGVyc3RhbmQgd2hpY2ggCj4gY2hhbmdlcyBt
-aWdodCBiZSBhY2NlcHRhYmxlIHRvIG1haW50YWluZXJzLgo+IAo+ID4gPiBUaGUgY2xvY2sgZnJh
-bWV3b3JrIHdhc24ndCByZS1lbnRyYW50IGJhY2sgdGhlbiwgYW5kIHdlIHdhbnRlZCB0byBhdm9p
-ZCAKPiA+ID4gaW1wbGVtZW50aW5nIHJlLWVudHJhbmN5IGJlY2F1c2Ugd2Ugd2VyZSB3b3JyaWVk
-IHRoYXQgaXQgY291bGQgdHVybiBpbnRvIGEgCj4gPiA+IG1lc3MuICBTbyB3ZSBqdXN0IHdvdW5k
-IHVwIGxpc3RpbmcgdGhlIHJlZmVyZW5jZSBjbG9jayBhcyB0aGUgUExMJ3MgTGludXggCj4gPiA+
-IHBhcmVudCBjbG9jay4KPiA+ID4gCj4gPiA+IE15IG9yaWdpbmFsIGNvbW1lbnQgd2FzIGp1c3Qg
-aW50ZW5kZWQgdG8gYmUgYSByZWZsZWN0aW9uIG9uIHdoYXQgaXQgbWVhbnMgCj4gPiA+IHRvIGJl
-IGEgInBhcmVudCBjbG9jayIgaW4gdGhlIExpbnV4IGNsb2NrIHRyZWUgc2Vuc2UuICBJZiBpdCdz
-IGludGVuZGVkIHRvIAo+ID4gPiByZXByZXNlbnQgInNvdXJjZSBjbG9ja3MiIGFzIHRoZXkgYXJl
-IGRlZmluZWQgYWJvdmUsIHRoZW4gUExMcyBhbmQgCj4gPiA+IFBMTC1saWtlIGNsb2NrcyBzaG91
-bGQgYmUgcm9vdCBub2RlcywgZXhjZXB0IGZvciB0aGUgZmV3IGNhc2VzIHdoZXJlIGl0J3MgCj4g
-PiA+IHVzZWZ1bCB0byBhZGQgYSBub2RlIGZvciB0aGUgdW5kZXJseWluZyBzb3VyY2Ugb3NjaWxs
-YXRvciBkaXJlY3RseSAoZm9yIAo+ID4gPiBleGFtcGxlLCBpZiBvcGVuLWxvb3AgbW9kZSBpcyBz
-dXBwb3J0ZWQpLgo+ID4gPiAKPiA+ID4gVGhpcyBtaWdodCBiZSB0aGUgcmlnaHQgd2F5IGZvcndh
-cmQgZm9yIHRoZSB0aW1lIGJlaW5nLCBhbmQgSSBsaWtlIHRoZSAKPiA+ID4gaWRlYSBvZiBzdGF0
-aW5nIHRoYXQgTGludXggcGFyZW50IGNsb2NrcyBzaG91bGQgcmVwcmVzZW50IGVsZWN0cmljYWwg
-Cj4gPiA+ICJzb3VyY2UgY2xvY2siIHJlbGF0aW9uc2hpcHMuICAKPiA+ID4gCj4gPiA+IFRoYXQg
-cmFpc2VzIHRoZSBxdWVzdGlvbiBvZiB3aGF0IHRvIGRvIGFib3V0IHRoZSBhZGRpdGlvbmFsIGdh
-dGluZyAKPiA+ID4gcmVsYXRpb25zaGlwcy4gIEF0IHRoZSBtb21lbnQsIHRoZSBjbG9jayB0eXBl
-IGNvZGUgbmVlZHMgdG8gYmUgcmVzcG9uc2libGUgCj4gPiA+IGZvciBjYWxsaW5nIGNsa19lbmFi
-bGUoKSBldGMuIG9uIGFsbCBvZiB0aGUgcmVmZXJlbmNlIGFuZCBmdW5jdGlvbmFsIAo+ID4gPiBj
-bG9ja3MgdGhhdCBuZWVkIHRvIGJlIHVuZ2F0ZWQgZm9yIHRoZSBjbG9jayBzb3VyY2UgdG8gd29y
-ay4gIEJ1dCBpdCBoYXMgCj4gPiA+IGFsd2F5cyBzZWVtZWQgcHJlZmVyYWJsZSB0byBtZSB0byBy
-ZXByZXNlbnQgZnVuZGFtZW50YWwgaGFyZHdhcmUgCj4gPiA+IHN0cnVjdHVyYWwgY29uc3RyYWlu
-dHMgaW4gZGF0YS4gIElmIHRoZSBkYXRhIHN0cnVjdHVyZXMgYXJlIHdlbGwtZGVmaW5lZCwgCj4g
-PiA+IHRoZW4gdGhlIGRhdGEgc2hvdWxkIGJlIHJlbGF0aXZlbHkgZWFzeSB0byBhbmFseXplLCBy
-ZWFzb24gYWJvdXQsIAo+ID4gPiBnZW5lcmF0ZSwgdmFsaWRhdGUsIHNoYXJlIGFjcm9zcyBwbGF0
-Zm9ybXMsIGFuZCBvcGVyYXRlIHVwb24gaXRlcmF0aXZlbHk7IAo+ID4gPiB1bmxpa2UgY3VzdG9t
-IHBlci1jbG9ja3R5cGUgY29kZSwgd2hpY2ggb2Z0ZW4gaXNuJ3QuCj4gPiAKPiA+IEkgY29tcGxl
-dGVseSBhZ3JlZSB0aGF0IHRoZSBpbnRlcmZhY2VzIGFuZCBhYnN0cmFjdGlvbnMgaW4gdGhlIGNs
-b2NrCj4gPiBmcmFtZXdvcmsgZG8gbm90IHNjYWxlIHdlbGwuIEFzIGFuIGV4YW1wbGUsIHRoZXJl
-IGNvdWxkIGJlIG11Y2ggbW9yZQo+ID4gcmV1c2UgaWYgY2FsbGJhY2tzIHN1Y2ggYXMgLmdldF9i
-ZXN0X2RpdigpIGV4aXN0ZWQgYW5kIHRoZSBsYXJnZSB2YXJpZXR5Cj4gPiBvZiAucm91bmRfcmF0
-ZSgpIGltcGxlbWVudGF0aW9ucyBjb3VsZCBiZSByZXBsYWNlZCBieSBhIHNpbmdsZSBnZW5lcmlj
-Cj4gPiBvbmUuCj4gPiAKPiA+IEVhc2llciBtaXhpbmcgYW5kIG1hdGNoaW5nIG9mIGNhbGxiYWNr
-cyB3b3VsZCBiZSBncmVhdCBhcyB3ZWxsLiBXZSBkb24ndAo+ID4gcXVpdGUgaGF2ZSBwb2x5bW9y
-cGhpc20gYnV0IHNvbWV0aGluZyBiZXR0ZXIgY291bGQgYmUgYWNoaWV2ZWQgdGhhbiB0aGUKPiA+
-IGNvbXBsZXggY2xvY2sgdHlwZS4gTmFtZWx5IHRoZSBhYmlsaXR5IHRvIGNvbWJpbmUgdmFyaW91
-cyBjbG9jayBoYXJkd2FyZQo+ID4gb3BzIGF0IHJ1bi10aW1lIHdpdGhvdXQgaGF2aW5nIHRvIGFs
-d2F5cyBnZW5lcmF0ZSB1bmlxdWUgc3RydWN0IGNsa19vcHMKPiA+IHBlciBwbGF0Zm9ybS4KPiA+
-IAo+ID4gSSB0aGluayB0aGVyZSBhcmUgbG90cyBvZiBpZGVhcyBvdXQgdGhlcmUgb24gaG93IHRv
-IGltcHJvdmUgdGhpcyBzdHVmZi4KPiAKPiBPaCwganVzdCBpbiBjYXNlIGl0IGlzbid0IGNsZWFy
-LCBteSBvYmplY3RpdmUgd2Fzbid0IHRvIGNyaXRpY2l6ZSB0aGUgCj4gZXhpc3RpbmcgQ0NGLiAg
-SnVzdCB0aGlua2luZyB0aGF0IGlmIGl0IHdhcyBwb3NzaWJsZSB0byBjb21lIHRvIGFuIAo+IGFn
-cmVlbWVudCBvbiBob3cgdG8gZGVmaW5lIHNvbWUgb2YgdGhlc2UgZW50aXRpZXMsIGl0IG1pZ2h0
-IG1ha2UgaXQgZWFzaWVyIAo+IHRvIHJlYXNvbiB0b2dldGhlciBhYm91dCB3YXlzIHRvIHdvcmsg
-b24gdGhlIGNvcmUgY29kZSBhbmQgZGF0YSAKPiBzdHJ1Y3R1cmVzLiAgSSdkIGhhdGUgdG8gc3Bl
-bmQgYSBidW5jaCBvZiB0aW1lIHdvcmtpbmcgb24gY2hhbmdlcyB0aGF0IHlvdSAKPiB3b3VsZCBl
-dmVudHVhbGx5IG5hY2sgYmVjYXVzZSB3ZSBtaWdodCBub3QgYWdyZWUgb24gd2hhdCBhIHBhcmVu
-dCBjbG9jayBpcyAKPiA6LSkKPiAKPiAKPiAtIFBhdWwKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0Cmxp
-bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Wednesday, December 10, 2014 03:28:53 PM Joe Perches wrote:
+> As far as I can tell, there's no value indirecting
+> the cpu passed to this function via a void *.
+> 
+> Update all the callers and called functions from within
+> clockevents_notify.
+> 
+> Miscellanea:
+> 
+> Add pr_fmt and convert one printk(KERN_ERR to pr_err
+
+That is fine by me, so
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+for the cpuidle and ACPI changes.
+
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  arch/arm/mach-omap2/cpuidle44xx.c      |  7 +++----
+>  arch/arm/mach-tegra/cpuidle-tegra114.c |  4 ++--
+>  arch/arm/mach-tegra/cpuidle-tegra20.c  |  8 ++++----
+>  arch/arm/mach-tegra/cpuidle-tegra30.c  |  8 ++++----
+>  arch/x86/kernel/process.c              |  6 +++---
+>  arch/x86/xen/suspend.c                 |  2 +-
+>  drivers/acpi/acpi_pad.c                |  9 +++++----
+>  drivers/acpi/processor_idle.c          |  4 ++--
+>  drivers/cpuidle/driver.c               |  3 +--
+>  drivers/idle/intel_idle.c              |  7 +++----
+>  include/linux/clockchips.h             |  6 +++---
+>  kernel/sched/idle.c                    |  4 ++--
+>  kernel/time/clockevents.c              | 15 +++++++--------
+>  kernel/time/hrtimer.c                  |  6 ++----
+>  kernel/time/tick-broadcast.c           | 16 ++++++++--------
+>  kernel/time/tick-common.c              | 16 ++++++++--------
+>  kernel/time/tick-internal.h            | 18 +++++++++---------
+>  kernel/time/timekeeping.c              |  4 ++--
+>  18 files changed, 69 insertions(+), 74 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+> index 01e398a..5d50aa1 100644
+> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+> @@ -112,7 +112,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+>  	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
+>  				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu_id);
+>  
+>  	/*
+>  	 * Call idle CPU PM enter notifier chain so that
+> @@ -169,7 +169,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+>  	if (dev->cpu == 0 && mpuss_can_lose_context)
+>  		cpu_cluster_pm_exit();
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu_id);
+>  
+>  fail:
+>  	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
+> @@ -184,8 +184,7 @@ fail:
+>   */
+>  static void omap_setup_broadcast_timer(void *arg)
+>  {
+> -	int cpu = smp_processor_id();
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, smp_processor_id());
+>  }
+>  
+>  static struct cpuidle_driver omap4_idle_driver = {
+> diff --git a/arch/arm/mach-tegra/cpuidle-tegra114.c b/arch/arm/mach-tegra/cpuidle-tegra114.c
+> index f2b586d..3b2fc3f 100644
+> --- a/arch/arm/mach-tegra/cpuidle-tegra114.c
+> +++ b/arch/arm/mach-tegra/cpuidle-tegra114.c
+> @@ -44,7 +44,7 @@ static int tegra114_idle_power_down(struct cpuidle_device *dev,
+>  	tegra_set_cpu_in_lp2();
+>  	cpu_pm_enter();
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+>  
+>  	call_firmware_op(prepare_idle);
+>  
+> @@ -52,7 +52,7 @@ static int tegra114_idle_power_down(struct cpuidle_device *dev,
+>  	if (call_firmware_op(do_idle, 0) == -ENOSYS)
+>  		cpu_suspend(0, tegra30_sleep_cpu_secondary_finish);
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+>  
+>  	cpu_pm_exit();
+>  	tegra_clear_cpu_in_lp2();
+> diff --git a/arch/arm/mach-tegra/cpuidle-tegra20.c b/arch/arm/mach-tegra/cpuidle-tegra20.c
+> index 4f25a7c..ab30758 100644
+> --- a/arch/arm/mach-tegra/cpuidle-tegra20.c
+> +++ b/arch/arm/mach-tegra/cpuidle-tegra20.c
+> @@ -136,11 +136,11 @@ static bool tegra20_cpu_cluster_power_down(struct cpuidle_device *dev,
+>  	if (tegra20_reset_cpu_1() || !tegra_cpu_rail_off_ready())
+>  		return false;
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+>  
+>  	tegra_idle_lp2_last();
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+>  
+>  	if (cpu_online(1))
+>  		tegra20_wake_cpu1_from_reset();
+> @@ -153,13 +153,13 @@ static bool tegra20_idle_enter_lp2_cpu_1(struct cpuidle_device *dev,
+>  					 struct cpuidle_driver *drv,
+>  					 int index)
+>  {
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+>  
+>  	cpu_suspend(0, tegra20_sleep_cpu_secondary_finish);
+>  
+>  	tegra20_cpu_clear_resettable();
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+>  
+>  	return true;
+>  }
+> diff --git a/arch/arm/mach-tegra/cpuidle-tegra30.c b/arch/arm/mach-tegra/cpuidle-tegra30.c
+> index f8815ed..67d0492 100644
+> --- a/arch/arm/mach-tegra/cpuidle-tegra30.c
+> +++ b/arch/arm/mach-tegra/cpuidle-tegra30.c
+> @@ -76,11 +76,11 @@ static bool tegra30_cpu_cluster_power_down(struct cpuidle_device *dev,
+>  		return false;
+>  	}
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+>  
+>  	tegra_idle_lp2_last();
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+>  
+>  	return true;
+>  }
+> @@ -90,13 +90,13 @@ static bool tegra30_cpu_core_power_down(struct cpuidle_device *dev,
+>  					struct cpuidle_driver *drv,
+>  					int index)
+>  {
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+>  
+>  	smp_wmb();
+>  
+>  	cpu_suspend(0, tegra30_sleep_cpu_secondary_finish);
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+>  
+>  	return true;
+>  }
+> diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+> index e127dda..09290b0 100644
+> --- a/arch/x86/kernel/process.c
+> +++ b/arch/x86/kernel/process.c
+> @@ -380,10 +380,10 @@ static void amd_e400_idle(void)
+>  			 * Force broadcast so ACPI can not interfere.
+>  			 */
+>  			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_FORCE,
+> -					   &cpu);
+> +					   cpu);
+>  			pr_info("Switch to broadcast mode on CPU%d\n", cpu);
+>  		}
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu);
+>  
+>  		default_idle();
+>  
+> @@ -392,7 +392,7 @@ static void amd_e400_idle(void)
+>  		 * called with interrupts disabled.
+>  		 */
+>  		local_irq_disable();
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu);
+>  		local_irq_enable();
+>  	} else
+>  		default_idle();
+> diff --git a/arch/x86/xen/suspend.c b/arch/x86/xen/suspend.c
+> index c4df9db..61bab6a 100644
+> --- a/arch/x86/xen/suspend.c
+> +++ b/arch/x86/xen/suspend.c
+> @@ -87,7 +87,7 @@ static void xen_vcpu_notify_restore(void *data)
+>  	if ( smp_processor_id() == 0)
+>  		return;
+>  
+> -	clockevents_notify(reason, NULL);
+> +	clockevents_notify(reason, -1);
+>  }
+>  
+>  void xen_arch_resume(void)
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index c7b105c..63138e4 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -180,17 +180,18 @@ static int power_saving_thread(void *data)
+>  			if (lapic_detected_unstable && !lapic_marked_unstable) {
+>  				int i;
+>  				/* LAPIC could halt in idle, so notify users */
+> -				for_each_online_cpu(i)
+> +				for_each_online_cpu(i) {
+>  					clockevents_notify(
+>  						CLOCK_EVT_NOTIFY_BROADCAST_ON,
+> -						&i);
+> +						i);
+> +				}
+>  				lapic_marked_unstable = 1;
+>  			}
+>  			local_irq_disable();
+>  			cpu = smp_processor_id();
+>  			if (lapic_marked_unstable)
+>  				clockevents_notify(
+> -					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
+> +					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu);
+>  			stop_critical_timings();
+>  
+>  			mwait_idle_with_hints(power_saving_mwait_eax, 1);
+> @@ -198,7 +199,7 @@ static int power_saving_thread(void *data)
+>  			start_critical_timings();
+>  			if (lapic_marked_unstable)
+>  				clockevents_notify(
+> -					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+> +					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu);
+>  			local_irq_enable();
+>  
+>  			if (time_before(expire_time, jiffies)) {
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 4995365..2eaa450 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -162,7 +162,7 @@ static void __lapic_timer_propagate_broadcast(void *arg)
+>  	reason = pr->power.timer_broadcast_on_state < INT_MAX ?
+>  		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
+>  
+> -	clockevents_notify(reason, &pr->id);
+> +	clockevents_notify(reason, pr->id);
+>  }
+>  
+>  static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
+> @@ -183,7 +183,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+>  
+>  		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
+>  			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
+> -		clockevents_notify(reason, &pr->id);
+> +		clockevents_notify(reason, pr->id);
+>  	}
+>  }
+>  
+> diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+> index 2697e87..2fcc20b 100644
+> --- a/drivers/cpuidle/driver.c
+> +++ b/drivers/cpuidle/driver.c
+> @@ -143,8 +143,7 @@ static inline void __cpuidle_unset_driver(struct cpuidle_driver *drv)
+>   */
+>  static void cpuidle_setup_broadcast_timer(void *arg)
+>  {
+> -	int cpu = smp_processor_id();
+> -	clockevents_notify((long)(arg), &cpu);
+> +	clockevents_notify((long)arg, smp_processor_id());
+>  }
+>  
+>  /**
+> diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+> index 9cceacb..945b1f3 100644
+> --- a/drivers/idle/intel_idle.c
+> +++ b/drivers/idle/intel_idle.c
+> @@ -582,12 +582,12 @@ static int intel_idle(struct cpuidle_device *dev,
+>  		leave_mm(cpu);
+>  
+>  	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu);
+>  
+>  	mwait_idle_with_hints(eax, ecx);
+>  
+>  	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu);
+>  
+>  	return index;
+>  }
+> @@ -595,12 +595,11 @@ static int intel_idle(struct cpuidle_device *dev,
+>  static void __setup_broadcast_timer(void *arg)
+>  {
+>  	unsigned long reason = (unsigned long)arg;
+> -	int cpu = smp_processor_id();
+>  
+>  	reason = reason ?
+>  		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
+>  
+> -	clockevents_notify(reason, &cpu);
+> +	clockevents_notify(reason, smp_processor_id());
+>  }
+>  
+>  static int cpu_hotplug_notify(struct notifier_block *n,
+> diff --git a/include/linux/clockchips.h b/include/linux/clockchips.h
+> index 2e4cb67..4e03069 100644
+> --- a/include/linux/clockchips.h
+> +++ b/include/linux/clockchips.h
+> @@ -195,9 +195,9 @@ static inline void tick_setup_hrtimer_broadcast(void) {};
+>  #endif
+>  
+>  #ifdef CONFIG_GENERIC_CLOCKEVENTS
+> -extern int clockevents_notify(unsigned long reason, void *arg);
+> +extern int clockevents_notify(unsigned long reason, int cpu);
+>  #else
+> -static inline int clockevents_notify(unsigned long reason, void *arg) { return 0; }
+> +static inline int clockevents_notify(unsigned long reason, int cpu) { return 0; }
+>  #endif
+>  
+>  #else /* CONFIG_GENERIC_CLOCKEVENTS_BUILD */
+> @@ -205,7 +205,7 @@ static inline int clockevents_notify(unsigned long reason, void *arg) { return 0
+>  static inline void clockevents_suspend(void) {}
+>  static inline void clockevents_resume(void) {}
+>  
+> -static inline int clockevents_notify(unsigned long reason, void *arg) { return 0; }
+> +static inline int clockevents_notify(unsigned long reason, int cpu) { return 0; }
+>  static inline int tick_check_broadcast_expired(void) { return 0; }
+>  static inline void tick_setup_hrtimer_broadcast(void) {};
+>  
+> diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
+> index c47fce7..e68faee 100644
+> --- a/kernel/sched/idle.c
+> +++ b/kernel/sched/idle.c
+> @@ -144,7 +144,7 @@ use_default:
+>  	 * fail if it is not available
+>  	 */
+>  	if (broadcast &&
+> -	    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu))
+> +	    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu))
+>  		goto use_default;
+>  
+>  	/* Take note of the planned idle state. */
+> @@ -161,7 +161,7 @@ use_default:
+>  	idle_set_state(this_rq(), NULL);
+>  
+>  	if (broadcast)
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+>  
+>  	/*
+>  	 * Give the governor an opportunity to reflect on the outcome
+> diff --git a/kernel/time/clockevents.c b/kernel/time/clockevents.c
+> index 5544990..69973be 100644
+> --- a/kernel/time/clockevents.c
+> +++ b/kernel/time/clockevents.c
+> @@ -546,11 +546,11 @@ void clockevents_resume(void)
+>   * clockevents_notify - notification about relevant events
+>   * Returns 0 on success, any other value on error
+>   */
+> -int clockevents_notify(unsigned long reason, void *arg)
+> +int clockevents_notify(unsigned long reason, int cpu)
+>  {
+>  	struct clock_event_device *dev, *tmp;
+>  	unsigned long flags;
+> -	int cpu, ret = 0;
+> +	int ret = 0;
+>  
+>  	raw_spin_lock_irqsave(&clockevents_lock, flags);
+>  
+> @@ -558,7 +558,7 @@ int clockevents_notify(unsigned long reason, void *arg)
+>  	case CLOCK_EVT_NOTIFY_BROADCAST_ON:
+>  	case CLOCK_EVT_NOTIFY_BROADCAST_OFF:
+>  	case CLOCK_EVT_NOTIFY_BROADCAST_FORCE:
+> -		tick_broadcast_on_off(reason, arg);
+> +		tick_broadcast_on_off(reason, cpu);
+>  		break;
+>  
+>  	case CLOCK_EVT_NOTIFY_BROADCAST_ENTER:
+> @@ -567,7 +567,7 @@ int clockevents_notify(unsigned long reason, void *arg)
+>  		break;
+>  
+>  	case CLOCK_EVT_NOTIFY_CPU_DYING:
+> -		tick_handover_do_timer(arg);
+> +		tick_handover_do_timer(cpu);
+>  		break;
+>  
+>  	case CLOCK_EVT_NOTIFY_SUSPEND:
+> @@ -580,9 +580,9 @@ int clockevents_notify(unsigned long reason, void *arg)
+>  		break;
+>  
+>  	case CLOCK_EVT_NOTIFY_CPU_DEAD:
+> -		tick_shutdown_broadcast_oneshot(arg);
+> -		tick_shutdown_broadcast(arg);
+> -		tick_shutdown(arg);
+> +		tick_shutdown_broadcast_oneshot(cpu);
+> +		tick_shutdown_broadcast(cpu);
+> +		tick_shutdown(cpu);
+>  		/*
+>  		 * Unregister the clock event devices which were
+>  		 * released from the users in the notify chain.
+> @@ -592,7 +592,6 @@ int clockevents_notify(unsigned long reason, void *arg)
+>  		/*
+>  		 * Now check whether the CPU has left unused per cpu devices
+>  		 */
+> -		cpu = *((int *)arg);
+>  		list_for_each_entry_safe(dev, tmp, &clockevent_devices, list) {
+>  			if (cpumask_test_cpu(cpu, dev->cpumask) &&
+>  			    cpumask_weight(dev->cpumask) == 1 &&
+> diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
+> index 37e50aa..e8c903f 100644
+> --- a/kernel/time/hrtimer.c
+> +++ b/kernel/time/hrtimer.c
+> @@ -1717,15 +1717,13 @@ static int hrtimer_cpu_notify(struct notifier_block *self,
+>  #ifdef CONFIG_HOTPLUG_CPU
+>  	case CPU_DYING:
+>  	case CPU_DYING_FROZEN:
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DYING, &scpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DYING, scpu);
+>  		break;
+>  	case CPU_DEAD:
+>  	case CPU_DEAD_FROZEN:
+> -	{
+> -		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, &scpu);
+> +		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, scpu);
+>  		migrate_hrtimers(scpu);
+>  		break;
+> -	}
+>  #endif
+>  
+>  	default:
+> diff --git a/kernel/time/tick-broadcast.c b/kernel/time/tick-broadcast.c
+> index 066f0ec..4ede817 100644
+> --- a/kernel/time/tick-broadcast.c
+> +++ b/kernel/time/tick-broadcast.c
+> @@ -11,6 +11,9 @@
+>   * This code is licenced under the GPL version 2. For details see
+>   * kernel-base/COPYING.
+>   */
+> +
+> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> +
+>  #include <linux/cpu.h>
+>  #include <linux/err.h>
+>  #include <linux/hrtimer.h>
+> @@ -396,11 +399,10 @@ out:
+>   * Powerstate information: The system enters/leaves a state, where
+>   * affected devices might stop.
+>   */
+> -void tick_broadcast_on_off(unsigned long reason, int *oncpu)
+> +void tick_broadcast_on_off(unsigned long reason, int oncpu)
+>  {
+> -	if (!cpumask_test_cpu(*oncpu, cpu_online_mask))
+> -		printk(KERN_ERR "tick-broadcast: ignoring broadcast for "
+> -		       "offline CPU #%d\n", *oncpu);
+> +	if (!cpumask_test_cpu(oncpu, cpu_online_mask))
+> +		pr_err("ignoring broadcast for offline CPU #%d\n", oncpu);
+>  	else
+>  		tick_do_broadcast_on_off(&reason);
+>  }
+> @@ -419,11 +421,10 @@ void tick_set_periodic_handler(struct clock_event_device *dev, int broadcast)
+>  /*
+>   * Remove a CPU from broadcasting
+>   */
+> -void tick_shutdown_broadcast(unsigned int *cpup)
+> +void tick_shutdown_broadcast(int cpu)
+>  {
+>  	struct clock_event_device *bc;
+>  	unsigned long flags;
+> -	unsigned int cpu = *cpup;
+>  
+>  	raw_spin_lock_irqsave(&tick_broadcast_lock, flags);
+>  
+> @@ -898,10 +899,9 @@ void tick_broadcast_switch_to_oneshot(void)
+>  /*
+>   * Remove a dead CPU from broadcasting
+>   */
+> -void tick_shutdown_broadcast_oneshot(unsigned int *cpup)
+> +void tick_shutdown_broadcast_oneshot(int cpu)
+>  {
+>  	unsigned long flags;
+> -	unsigned int cpu = *cpup;
+>  
+>  	raw_spin_lock_irqsave(&tick_broadcast_lock, flags);
+>  
+> diff --git a/kernel/time/tick-common.c b/kernel/time/tick-common.c
+> index 7efeedf..ae4b200 100644
+> --- a/kernel/time/tick-common.c
+> +++ b/kernel/time/tick-common.c
+> @@ -337,14 +337,14 @@ out_bc:
+>   *
+>   * Called with interrupts disabled.
+>   */
+> -void tick_handover_do_timer(int *cpup)
+> +void tick_handover_do_timer(int cpu)
+>  {
+> -	if (*cpup == tick_do_timer_cpu) {
+> -		int cpu = cpumask_first(cpu_online_mask);
+> +	if (cpu != tick_do_timer_cpu)
+> +		return;
+>  
+> -		tick_do_timer_cpu = (cpu < nr_cpu_ids) ? cpu :
+> -			TICK_DO_TIMER_NONE;
+> -	}
+> +	cpu = cpumask_first(cpu_online_mask);
+> +
+> +	tick_do_timer_cpu = (cpu < nr_cpu_ids) ? cpu : TICK_DO_TIMER_NONE;
+>  }
+>  
+>  /*
+> @@ -354,9 +354,9 @@ void tick_handover_do_timer(int *cpup)
+>   * access the hardware device itself.
+>   * We just set the mode and remove it from the lists.
+>   */
+> -void tick_shutdown(unsigned int *cpup)
+> +void tick_shutdown(int cpu)
+>  {
+> -	struct tick_device *td = &per_cpu(tick_cpu_device, *cpup);
+> +	struct tick_device *td = &per_cpu(tick_cpu_device, cpu);
+>  	struct clock_event_device *dev = td->evtdev;
+>  
+>  	td->mode = TICKDEV_MODE_PERIODIC;
+> diff --git a/kernel/time/tick-internal.h b/kernel/time/tick-internal.h
+> index 366aeb4..57ab722 100644
+> --- a/kernel/time/tick-internal.h
+> +++ b/kernel/time/tick-internal.h
+> @@ -23,8 +23,8 @@ extern int tick_do_timer_cpu __read_mostly;
+>  extern void tick_setup_periodic(struct clock_event_device *dev, int broadcast);
+>  extern void tick_handle_periodic(struct clock_event_device *dev);
+>  extern void tick_check_new_device(struct clock_event_device *dev);
+> -extern void tick_handover_do_timer(int *cpup);
+> -extern void tick_shutdown(unsigned int *cpup);
+> +extern void tick_handover_do_timer(int cpu);
+> +extern void tick_shutdown(int cpu);
+>  extern void tick_suspend(void);
+>  extern void tick_resume(void);
+>  extern bool tick_check_replacement(struct clock_event_device *curdev,
+> @@ -50,7 +50,7 @@ extern void tick_resume_oneshot(void);
+>  extern void tick_broadcast_setup_oneshot(struct clock_event_device *bc);
+>  extern int tick_broadcast_oneshot_control(unsigned long reason);
+>  extern void tick_broadcast_switch_to_oneshot(void);
+> -extern void tick_shutdown_broadcast_oneshot(unsigned int *cpup);
+> +extern void tick_shutdown_broadcast_oneshot(int cpu);
+>  extern int tick_resume_broadcast_oneshot(struct clock_event_device *bc);
+>  extern int tick_broadcast_oneshot_active(void);
+>  extern void tick_check_oneshot_broadcast_this_cpu(void);
+> @@ -62,7 +62,7 @@ static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+>  }
+>  static inline int tick_broadcast_oneshot_control(unsigned long reason) { return 0; }
+>  static inline void tick_broadcast_switch_to_oneshot(void) { }
+> -static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
+> +static inline void tick_shutdown_broadcast_oneshot(int cpu) { }
+>  static inline int tick_broadcast_oneshot_active(void) { return 0; }
+>  static inline void tick_check_oneshot_broadcast_this_cpu(void) { }
+>  static inline bool tick_broadcast_oneshot_available(void) { return true; }
+> @@ -90,7 +90,7 @@ static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+>  	BUG();
+>  }
+>  static inline int tick_broadcast_oneshot_control(unsigned long reason) { return 0; }
+> -static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
+> +static inline void tick_shutdown_broadcast_oneshot(int cpu) { }
+>  static inline int tick_resume_broadcast_oneshot(struct clock_event_device *bc)
+>  {
+>  	return 0;
+> @@ -113,8 +113,8 @@ static inline void tick_nohz_init(void) { }
+>  extern int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu);
+>  extern void tick_install_broadcast_device(struct clock_event_device *dev);
+>  extern int tick_is_broadcast_device(struct clock_event_device *dev);
+> -extern void tick_broadcast_on_off(unsigned long reason, int *oncpu);
+> -extern void tick_shutdown_broadcast(unsigned int *cpup);
+> +extern void tick_broadcast_on_off(unsigned long reason, int oncpu);
+> +extern void tick_shutdown_broadcast(int cpu);
+>  extern void tick_suspend_broadcast(void);
+>  extern int tick_resume_broadcast(void);
+>  extern void tick_broadcast_init(void);
+> @@ -138,8 +138,8 @@ static inline int tick_device_uses_broadcast(struct clock_event_device *dev,
+>  	return 0;
+>  }
+>  static inline void tick_do_periodic_broadcast(struct clock_event_device *d) { }
+> -static inline void tick_broadcast_on_off(unsigned long reason, int *oncpu) { }
+> -static inline void tick_shutdown_broadcast(unsigned int *cpup) { }
+> +static inline void tick_broadcast_on_off(unsigned long reason, int oncpu) { }
+> +static inline void tick_shutdown_broadcast(int cpu) { }
+>  static inline void tick_suspend_broadcast(void) { }
+>  static inline int tick_resume_broadcast(void) { return 0; }
+>  static inline void tick_broadcast_init(void) { }
+> diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+> index 6a93185..dc84f52 100644
+> --- a/kernel/time/timekeeping.c
+> +++ b/kernel/time/timekeeping.c
+> @@ -1245,7 +1245,7 @@ static void timekeeping_resume(void)
+>  
+>  	touch_softlockup_watchdog();
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, -1);
+>  
+>  	/* Resume hrtimers */
+>  	hrtimers_resume();
+> @@ -1299,7 +1299,7 @@ static int timekeeping_suspend(void)
+>  	write_seqcount_end(&tk_core.seq);
+>  	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+>  
+> -	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
+> +	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, -1);
+>  	clocksource_suspend();
+>  	clockevents_suspend();
+>  
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
