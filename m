@@ -1,362 +1,135 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] video: fbdev: omap2: dss: rfbi.c:  Remove some unused functions
-Date: Sun, 21 Dec 2014 18:02:12 +0100
-Message-ID: <1419181332-9322-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:45653 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751801AbaLUQ71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Dec 2014 11:59:27 -0500
-Received: by mail-wi0-f173.google.com with SMTP id r20so6122436wiv.12
-        for <linux-omap@vger.kernel.org>; Sun, 21 Dec 2014 08:59:25 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH 00/28] remove .owner for most platform_drivers: the missing bits
+Date: Sun, 21 Dec 2014 22:14:21 +0100
+Message-ID: <1419196495-9626-1-git-send-email-wsa@the-dreams.de>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>, alsa-devel@alsa-project.org, ath5k-devel@lists.ath5k.org, Dan Williams <dan.j.williams@intel.com>, devicetree@vger.kernel.org, dmaengine@vger.kernel.org, dri-devel@lists.freedesktop.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, openipmi-developer@lists.sourceforge.net, rtc-linux@googlegroups.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Jingoo Han <jg1.han@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Removes some functions that are not used anywhere:
-rfbi_init_display() rfbi_display_disable() rfbi_display_enable()
-rfbi_set_interface_timings() rfbi_set_data_lines() rfbi_set_pixel_size()
-rfbi_set_size() rfbi_update() rfbi_configure() rfbi_enable_te()
-rfbi_setup_te() rfbi_write_pixels() rfbi_write_data() rfbi_read_data()
-rfbi_write_command() rfbi_bus_unlock() rfbi_bus_lock()
+Generated with coccinelle. The big cleanup was pulled in this merge window.
+This series catches the bits fallen through. The patches shall go in via the
+subsystem trees. If possible for 3.19 to increase consistency I'd say, but you
+decide, of course.
 
-This was partially found by using a static code analysis program called cppcheck.
+cocci-file used:
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/video/fbdev/omap2/dss/rfbi.c |  297 ----------------------------------
- 1 file changed, 297 deletions(-)
+@match1@
+declarer name module_platform_driver;
+declarer name module_platform_driver_probe;
+declarer name for_each_node_by_type;
+identifier __driver;
+@@
+(
+	module_platform_driver(__driver);
+|
+	module_platform_driver_probe(__driver, ...);
+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/rfbi.c b/drivers/video/fbdev/omap2/dss/rfbi.c
-index 878273f..3e25028 100644
---- a/drivers/video/fbdev/omap2/dss/rfbi.c
-+++ b/drivers/video/fbdev/omap2/dss/rfbi.c
-@@ -151,156 +151,6 @@ static void rfbi_runtime_put(void)
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
--static void rfbi_bus_lock(void)
--{
--	down(&rfbi.bus_lock);
--}
--
--static void rfbi_bus_unlock(void)
--{
--	up(&rfbi.bus_lock);
--}
--
--static void rfbi_write_command(const void *buf, u32 len)
--{
--	switch (rfbi.parallelmode) {
--	case OMAP_DSS_RFBI_PARALLELMODE_8:
--	{
--		const u8 *b = buf;
--		for (; len; len--)
--			rfbi_write_reg(RFBI_CMD, *b++);
--		break;
--	}
--
--	case OMAP_DSS_RFBI_PARALLELMODE_16:
--	{
--		const u16 *w = buf;
--		BUG_ON(len & 1);
--		for (; len; len -= 2)
--			rfbi_write_reg(RFBI_CMD, *w++);
--		break;
--	}
--
--	case OMAP_DSS_RFBI_PARALLELMODE_9:
--	case OMAP_DSS_RFBI_PARALLELMODE_12:
--	default:
--		BUG();
--	}
--}
--
--static void rfbi_read_data(void *buf, u32 len)
--{
--	switch (rfbi.parallelmode) {
--	case OMAP_DSS_RFBI_PARALLELMODE_8:
--	{
--		u8 *b = buf;
--		for (; len; len--) {
--			rfbi_write_reg(RFBI_READ, 0);
--			*b++ = rfbi_read_reg(RFBI_READ);
--		}
--		break;
--	}
--
--	case OMAP_DSS_RFBI_PARALLELMODE_16:
--	{
--		u16 *w = buf;
--		BUG_ON(len & ~1);
--		for (; len; len -= 2) {
--			rfbi_write_reg(RFBI_READ, 0);
--			*w++ = rfbi_read_reg(RFBI_READ);
--		}
--		break;
--	}
--
--	case OMAP_DSS_RFBI_PARALLELMODE_9:
--	case OMAP_DSS_RFBI_PARALLELMODE_12:
--	default:
--		BUG();
--	}
--}
--
--static void rfbi_write_data(const void *buf, u32 len)
--{
--	switch (rfbi.parallelmode) {
--	case OMAP_DSS_RFBI_PARALLELMODE_8:
--	{
--		const u8 *b = buf;
--		for (; len; len--)
--			rfbi_write_reg(RFBI_PARAM, *b++);
--		break;
--	}
--
--	case OMAP_DSS_RFBI_PARALLELMODE_16:
--	{
--		const u16 *w = buf;
--		BUG_ON(len & 1);
--		for (; len; len -= 2)
--			rfbi_write_reg(RFBI_PARAM, *w++);
--		break;
--	}
--
--	case OMAP_DSS_RFBI_PARALLELMODE_9:
--	case OMAP_DSS_RFBI_PARALLELMODE_12:
--	default:
--		BUG();
--
--	}
--}
--
--static void rfbi_write_pixels(const void __iomem *buf, int scr_width,
--		u16 x, u16 y,
--		u16 w, u16 h)
--{
--	int start_offset = scr_width * y + x;
--	int horiz_offset = scr_width - w;
--	int i;
--
--	if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
--	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
--		const u16 __iomem *pd = buf;
--		pd += start_offset;
--
--		for (; h; --h) {
--			for (i = 0; i < w; ++i) {
--				const u8 __iomem *b = (const u8 __iomem *)pd;
--				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+1));
--				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+0));
--				++pd;
--			}
--			pd += horiz_offset;
--		}
--	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_24 &&
--	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
--		const u32 __iomem *pd = buf;
--		pd += start_offset;
--
--		for (; h; --h) {
--			for (i = 0; i < w; ++i) {
--				const u8 __iomem *b = (const u8 __iomem *)pd;
--				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+2));
--				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+1));
--				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+0));
--				++pd;
--			}
--			pd += horiz_offset;
--		}
--	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
--	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_16) {
--		const u16 __iomem *pd = buf;
--		pd += start_offset;
--
--		for (; h; --h) {
--			for (i = 0; i < w; ++i) {
--				rfbi_write_reg(RFBI_PARAM, __raw_readw(pd));
--				++pd;
--			}
--			pd += horiz_offset;
--		}
--	} else {
--		BUG();
--	}
--}
--
- static int rfbi_transfer_area(struct omap_dss_device *dssdev,
- 		void (*callback)(void *data), void *data)
- {
-@@ -567,69 +417,6 @@ static int rfbi_convert_timings(struct rfbi_timings *t)
- 	return 0;
- }
- 
--/* xxx FIX module selection missing */
--static int rfbi_setup_te(enum omap_rfbi_te_mode mode,
--			     unsigned hs_pulse_time, unsigned vs_pulse_time,
--			     int hs_pol_inv, int vs_pol_inv, int extif_div)
--{
--	int hs, vs;
--	int min;
--	u32 l;
--
--	hs = ps_to_rfbi_ticks(hs_pulse_time, 1);
--	vs = ps_to_rfbi_ticks(vs_pulse_time, 1);
--	if (hs < 2)
--		return -EDOM;
--	if (mode == OMAP_DSS_RFBI_TE_MODE_2)
--		min = 2;
--	else /* OMAP_DSS_RFBI_TE_MODE_1 */
--		min = 4;
--	if (vs < min)
--		return -EDOM;
--	if (vs == hs)
--		return -EINVAL;
--	rfbi.te_mode = mode;
--	DSSDBG("setup_te: mode %d hs %d vs %d hs_inv %d vs_inv %d\n",
--		mode, hs, vs, hs_pol_inv, vs_pol_inv);
--
--	rfbi_write_reg(RFBI_HSYNC_WIDTH, hs);
--	rfbi_write_reg(RFBI_VSYNC_WIDTH, vs);
--
--	l = rfbi_read_reg(RFBI_CONFIG(0));
--	if (hs_pol_inv)
--		l &= ~(1 << 21);
--	else
--		l |= 1 << 21;
--	if (vs_pol_inv)
--		l &= ~(1 << 20);
--	else
--		l |= 1 << 20;
--
--	return 0;
--}
--
--/* xxx FIX module selection missing */
--static int rfbi_enable_te(bool enable, unsigned line)
--{
--	u32 l;
--
--	DSSDBG("te %d line %d mode %d\n", enable, line, rfbi.te_mode);
--	if (line > (1 << 11) - 1)
--		return -EINVAL;
--
--	l = rfbi_read_reg(RFBI_CONFIG(0));
--	l &= ~(0x3 << 2);
--	if (enable) {
--		rfbi.te_enabled = 1;
--		l |= rfbi.te_mode << 2;
--	} else
--		rfbi.te_enabled = 0;
--	rfbi_write_reg(RFBI_CONFIG(0), l);
--	rfbi_write_reg(RFBI_LINE_NUMBER, line);
--
--	return 0;
--}
--
- static int rfbi_configure_bus(int rfbi_module, int bpp, int lines)
- {
- 	u32 l;
-@@ -762,40 +549,6 @@ static int rfbi_configure_bus(int rfbi_module, int bpp, int lines)
- 	return 0;
- }
- 
--static int rfbi_configure(struct omap_dss_device *dssdev)
--{
--	return rfbi_configure_bus(dssdev->phy.rfbi.channel, rfbi.pixel_size,
--			rfbi.data_lines);
--}
--
--static int rfbi_update(struct omap_dss_device *dssdev, void (*callback)(void *),
--		void *data)
--{
--	return rfbi_transfer_area(dssdev, callback, data);
--}
--
--static void rfbi_set_size(struct omap_dss_device *dssdev, u16 w, u16 h)
--{
--	rfbi.timings.x_res = w;
--	rfbi.timings.y_res = h;
--}
--
--static void rfbi_set_pixel_size(struct omap_dss_device *dssdev, int pixel_size)
--{
--	rfbi.pixel_size = pixel_size;
--}
--
--static void rfbi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
--{
--	rfbi.data_lines = data_lines;
--}
--
--static void rfbi_set_interface_timings(struct omap_dss_device *dssdev,
--		struct rfbi_timings *timings)
--{
--	rfbi.intf_timings = *timings;
--}
--
- static void rfbi_dump_regs(struct seq_file *s)
- {
- #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, rfbi_read_reg(r))
-@@ -874,56 +627,6 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
- 	dss_mgr_set_timings(mgr, &rfbi.timings);
- }
- 
--static int rfbi_display_enable(struct omap_dss_device *dssdev)
--{
--	struct omap_dss_device *out = &rfbi.output;
--	int r;
--
--	if (out == NULL || out->manager == NULL) {
--		DSSERR("failed to enable display: no output/manager\n");
--		return -ENODEV;
--	}
--
--	r = rfbi_runtime_get();
--	if (r)
--		return r;
--
--	r = dss_mgr_register_framedone_handler(out->manager,
--			framedone_callback, NULL);
--	if (r) {
--		DSSERR("can't get FRAMEDONE irq\n");
--		goto err1;
--	}
--
--	rfbi_config_lcd_manager(dssdev);
--
--	rfbi_configure_bus(dssdev->phy.rfbi.channel, rfbi.pixel_size,
--			rfbi.data_lines);
--
--	rfbi_set_timings(dssdev->phy.rfbi.channel, &rfbi.intf_timings);
--
--	return 0;
--err1:
--	rfbi_runtime_put();
--	return r;
--}
--
--static void rfbi_display_disable(struct omap_dss_device *dssdev)
--{
--	struct omap_dss_device *out = &rfbi.output;
--
--	dss_mgr_unregister_framedone_handler(out->manager,
--			framedone_callback, NULL);
--
--	rfbi_runtime_put();
--}
--
--static int rfbi_init_display(struct omap_dss_device *dssdev)
--{
--	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
--	return 0;
--}
--
- static void rfbi_init_output(struct platform_device *pdev)
- {
- 	struct omap_dss_device *out = &rfbi.output;
+@fix1 depends on match1@
+identifier match1.__driver;
+@@
+	static struct platform_driver __driver = {
+		.driver = {
+-			.owner = THIS_MODULE,
+		}
+	};
+
+@match2@
+identifier __driver;
+@@
+(
+	platform_driver_register(&__driver)
+|
+	platform_driver_probe(&__driver, ...)
+|
+	platform_create_bundle(&__driver, ...)
+)
+
+@fix2 depends on match2@
+identifier match2.__driver;
+@@
+	static struct platform_driver __driver = {
+		.driver = {
+-			.owner = THIS_MODULE,
+		}
+	};
+
+Thanks again to Julia Lawall for support. And hey, we fixed a coccinelle bug on
+the way :)
+
+
+Wolfram Sang (28):
+  ARM: mach-exynos: drop owner assignment from platform_drivers
+  mips: lantiq: xway: drop owner assignment from platform_drivers
+  mips: pci: drop owner assignment from platform_drivers
+  char: ipmi: drop owner assignment from platform_drivers
+  cpufreq: drop owner assignment from platform_drivers
+  dma: drop owner assignment from platform_drivers
+  gpio: drop owner assignment from platform_drivers
+  gpu: drm: rockchip: drop owner assignment from platform_drivers
+  iommu: drop owner assignment from platform_drivers
+  net: ethernet: stmicro: stmmac: drop owner assignment from
+    platform_drivers
+  net: wireless: ath: ath5k: drop owner assignment from platform_drivers
+  of: drop owner assignment from platform_drivers
+  pci: host: drop owner assignment from platform_drivers
+  phy: drop owner assignment from platform_drivers
+  pinctrl: intel: drop owner assignment from platform_drivers
+  rtc: drop owner assignment from platform_drivers
+  scsi: drop owner assignment from platform_drivers
+  thermal: drop owner assignment from platform_drivers
+  thermal: int340x_thermal: drop owner assignment from platform_drivers
+  tty: serial: 8250: drop owner assignment from platform_drivers
+  usb: gadget: udc: bdc: drop owner assignment from platform_drivers
+  watchdog: drop owner assignment from platform_drivers
+  ASoC: intel: drop owner assignment from platform_drivers
+  ASoC: intel: sst: drop owner assignment from platform_drivers
+  ASoC: omap: drop owner assignment from platform_drivers
+  ASoC: pxa: drop owner assignment from platform_drivers
+  ASoC: samsung: drop owner assignment from platform_drivers
+  macintosh: drop owner assignment from platform_drivers
+
+ arch/arm/mach-exynos/pmu.c                            | 1 -
+ arch/mips/lantiq/xway/vmmc.c                          | 1 -
+ arch/mips/pci/pci-ar2315.c                            | 1 -
+ arch/mips/pci/pci-rt2880.c                            | 1 -
+ drivers/char/ipmi/ipmi_powernv.c                      | 1 -
+ drivers/cpufreq/ls1x-cpufreq.c                        | 1 -
+ drivers/dma/at_xdmac.c                                | 1 -
+ drivers/gpio/gpio-vf610.c                             | 1 -
+ drivers/gpu/drm/rockchip/rockchip_drm_drv.c           | 1 -
+ drivers/iommu/rockchip-iommu.c                        | 1 -
+ drivers/macintosh/windfarm_pm112.c                    | 1 -
+ drivers/macintosh/windfarm_pm72.c                     | 1 -
+ drivers/macintosh/windfarm_rm31.c                     | 1 -
+ drivers/net/ethernet/stmicro/stmmac/stmmac_platform.c | 1 -
+ drivers/net/wireless/ath/ath5k/ahb.c                  | 1 -
+ drivers/of/unittest.c                                 | 1 -
+ drivers/pci/host/pci-layerscape.c                     | 1 -
+ drivers/phy/phy-armada375-usb2.c                      | 1 -
+ drivers/phy/phy-berlin-usb.c                          | 1 -
+ drivers/phy/phy-miphy28lp.c                           | 1 -
+ drivers/pinctrl/intel/pinctrl-cherryview.c            | 1 -
+ drivers/rtc/rtc-opal.c                                | 1 -
+ drivers/scsi/atari_scsi.c                             | 1 -
+ drivers/scsi/mac_scsi.c                               | 1 -
+ drivers/scsi/sun3_scsi.c                              | 1 -
+ drivers/thermal/int340x_thermal/int3400_thermal.c     | 1 -
+ drivers/thermal/int340x_thermal/int3402_thermal.c     | 1 -
+ drivers/thermal/rockchip_thermal.c                    | 1 -
+ drivers/tty/serial/8250/8250_omap.c                   | 1 -
+ drivers/usb/gadget/udc/bdc/bdc_core.c                 | 1 -
+ drivers/watchdog/cadence_wdt.c                        | 1 -
+ drivers/watchdog/meson_wdt.c                          | 1 -
+ sound/soc/intel/bytcr_dpcm_rt5640.c                   | 1 -
+ sound/soc/intel/cht_bsw_rt5672.c                      | 1 -
+ sound/soc/intel/sst/sst_acpi.c                        | 1 -
+ sound/soc/omap/omap-hdmi-audio.c                      | 1 -
+ sound/soc/pxa/spitz.c                                 | 1 -
+ sound/soc/samsung/arndale_rt5631.c                    | 1 -
+ 38 files changed, 38 deletions(-)
+
 -- 
-1.7.10.4
-
+2.1.3
