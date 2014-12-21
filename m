@@ -1,78 +1,362 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: bluetooth: Add hci_h4p driver
-Date: Sun, 21 Dec 2014 00:39:31 +0100
-Message-ID: <5AC947DA-87BA-48B7-ABB8-7663B3D3E844@holtmann.org>
-References: <20141213223727.GA13894@amd> <97C706D6-765B-446A-8180-600F5FB6C68B@holtmann.org> <20141219095000.GA24703@amd> <7DC7F8DF-CBC7-47CE-8B6F-5BA19ADBB3B6@holtmann.org> <20141220154850.GA28390@amd>
-Mime-Version: 1.0 (Mac OS X Mail 8.1 \(1993\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Subject: [PATCH] video: fbdev: omap2: dss: rfbi.c:  Remove some unused functions
+Date: Sun, 21 Dec 2014 18:02:12 +0100
+Message-ID: <1419181332-9322-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from senator.holtmann.net ([87.106.208.187]:41648 "EHLO
-	mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753003AbaLTXjf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Dec 2014 18:39:35 -0500
-In-Reply-To: <20141220154850.GA28390@amd>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:45653 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751801AbaLUQ71 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Dec 2014 11:59:27 -0500
+Received: by mail-wi0-f173.google.com with SMTP id r20so6122436wiv.12
+        for <linux-omap@vger.kernel.org>; Sun, 21 Dec 2014 08:59:25 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-bluetooth@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Jingoo Han <jg1.han@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Pavel,
+Removes some functions that are not used anywhere:
+rfbi_init_display() rfbi_display_disable() rfbi_display_enable()
+rfbi_set_interface_timings() rfbi_set_data_lines() rfbi_set_pixel_size()
+rfbi_set_size() rfbi_update() rfbi_configure() rfbi_enable_te()
+rfbi_setup_te() rfbi_write_pixels() rfbi_write_data() rfbi_read_data()
+rfbi_write_command() rfbi_bus_unlock() rfbi_bus_lock()
 
->>> I have trouble understanding... h4p_hci_open() seems to be called as
->>> soon as I insmod the driver. Who does that? Is it some kind of udev
->>> magic?
->> 
->> As soon as you do hci_register_dev, it will bring up the device and run the basic initialization. That is needed to get the address, version information and features. Otherwise the mgmt interface can not work. We need basic information about the device.
->> 
->> So what the kernel will do internally when you find a device is bring it up, get the basics and then bring it back down (in case nobody uses it). See hci_power_on work.
->> 
-> 
-> Aha, slightly unexpected, but it matches observations. Good.
+This was partially found by using a static code analysis program called cppcheck.
 
-we are at Bluetooth 4.2 specification now. Thinks got a lot more complicated these days.
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/video/fbdev/omap2/dss/rfbi.c |  297 ----------------------------------
+ 1 file changed, 297 deletions(-)
 
-> 
->>> To use __hci_cmd_sync()
->>> 
->>>>> +
->>>>> +	SET_HCIDEV_DEV(hdev, info->dev);
->>>>> +
->>>>> +	if (hci_register_dev(hdev) >= 0)
->>>>> +		return 0;
->>>>> +
->>>>> +	dev_err(info->dev, "hci_register failed %s.\n", hdev->name);
->>>>> +	hci_free_dev(info->hdev);
->>>>> +	return -ENODEV;
->>>>> +}
->>>> 
->>>> And normally this is folded into the probe handling and not in a
->>>> separate function.
->>> 
->>> The probe function is too long, already...
->> 
->> Have you compared it to other functions. Normally probe() functions in general are all pretty long since they have to do tons of stuff. Having all in one function means you can read through it at once.
->> 
-> 
-> Ok.
-> 
->>>>> +#include "hci_h4p.h"
->>>> 
->>>> Why is this a separate file? And if so, why not all UART specific details are in this file. Including bunch of the defines you have in the header.
->>>> 
->>> 
->>> Well, you wanted less global functions, so I moved some as inlines to
->>> headers. I guess I can merge nokia_core and nokia_uart if really wanted.
->> 
->> Would this become easier when some of the OMAP specific stuff is moved out of this driver? If that is possible.
->> 
-> 
-> Yes, I can investigate further cleanups. But original plan was to
-> merge it and then clean up the rest. Could we do that, please?
-
-You need to fix all these small details. There are tons of whitespace damages, indentation issues, trailing whitespaces and what not. Even if they were in the original driver to begin this, they can not be in a driver submitted these days.
-
-Regards
-
-Marcel
+diff --git a/drivers/video/fbdev/omap2/dss/rfbi.c b/drivers/video/fbdev/omap2/dss/rfbi.c
+index 878273f..3e25028 100644
+--- a/drivers/video/fbdev/omap2/dss/rfbi.c
++++ b/drivers/video/fbdev/omap2/dss/rfbi.c
+@@ -151,156 +151,6 @@ static void rfbi_runtime_put(void)
+ 	WARN_ON(r < 0 && r != -ENOSYS);
+ }
+ 
+-static void rfbi_bus_lock(void)
+-{
+-	down(&rfbi.bus_lock);
+-}
+-
+-static void rfbi_bus_unlock(void)
+-{
+-	up(&rfbi.bus_lock);
+-}
+-
+-static void rfbi_write_command(const void *buf, u32 len)
+-{
+-	switch (rfbi.parallelmode) {
+-	case OMAP_DSS_RFBI_PARALLELMODE_8:
+-	{
+-		const u8 *b = buf;
+-		for (; len; len--)
+-			rfbi_write_reg(RFBI_CMD, *b++);
+-		break;
+-	}
+-
+-	case OMAP_DSS_RFBI_PARALLELMODE_16:
+-	{
+-		const u16 *w = buf;
+-		BUG_ON(len & 1);
+-		for (; len; len -= 2)
+-			rfbi_write_reg(RFBI_CMD, *w++);
+-		break;
+-	}
+-
+-	case OMAP_DSS_RFBI_PARALLELMODE_9:
+-	case OMAP_DSS_RFBI_PARALLELMODE_12:
+-	default:
+-		BUG();
+-	}
+-}
+-
+-static void rfbi_read_data(void *buf, u32 len)
+-{
+-	switch (rfbi.parallelmode) {
+-	case OMAP_DSS_RFBI_PARALLELMODE_8:
+-	{
+-		u8 *b = buf;
+-		for (; len; len--) {
+-			rfbi_write_reg(RFBI_READ, 0);
+-			*b++ = rfbi_read_reg(RFBI_READ);
+-		}
+-		break;
+-	}
+-
+-	case OMAP_DSS_RFBI_PARALLELMODE_16:
+-	{
+-		u16 *w = buf;
+-		BUG_ON(len & ~1);
+-		for (; len; len -= 2) {
+-			rfbi_write_reg(RFBI_READ, 0);
+-			*w++ = rfbi_read_reg(RFBI_READ);
+-		}
+-		break;
+-	}
+-
+-	case OMAP_DSS_RFBI_PARALLELMODE_9:
+-	case OMAP_DSS_RFBI_PARALLELMODE_12:
+-	default:
+-		BUG();
+-	}
+-}
+-
+-static void rfbi_write_data(const void *buf, u32 len)
+-{
+-	switch (rfbi.parallelmode) {
+-	case OMAP_DSS_RFBI_PARALLELMODE_8:
+-	{
+-		const u8 *b = buf;
+-		for (; len; len--)
+-			rfbi_write_reg(RFBI_PARAM, *b++);
+-		break;
+-	}
+-
+-	case OMAP_DSS_RFBI_PARALLELMODE_16:
+-	{
+-		const u16 *w = buf;
+-		BUG_ON(len & 1);
+-		for (; len; len -= 2)
+-			rfbi_write_reg(RFBI_PARAM, *w++);
+-		break;
+-	}
+-
+-	case OMAP_DSS_RFBI_PARALLELMODE_9:
+-	case OMAP_DSS_RFBI_PARALLELMODE_12:
+-	default:
+-		BUG();
+-
+-	}
+-}
+-
+-static void rfbi_write_pixels(const void __iomem *buf, int scr_width,
+-		u16 x, u16 y,
+-		u16 w, u16 h)
+-{
+-	int start_offset = scr_width * y + x;
+-	int horiz_offset = scr_width - w;
+-	int i;
+-
+-	if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
+-	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
+-		const u16 __iomem *pd = buf;
+-		pd += start_offset;
+-
+-		for (; h; --h) {
+-			for (i = 0; i < w; ++i) {
+-				const u8 __iomem *b = (const u8 __iomem *)pd;
+-				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+1));
+-				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+0));
+-				++pd;
+-			}
+-			pd += horiz_offset;
+-		}
+-	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_24 &&
+-	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
+-		const u32 __iomem *pd = buf;
+-		pd += start_offset;
+-
+-		for (; h; --h) {
+-			for (i = 0; i < w; ++i) {
+-				const u8 __iomem *b = (const u8 __iomem *)pd;
+-				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+2));
+-				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+1));
+-				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+0));
+-				++pd;
+-			}
+-			pd += horiz_offset;
+-		}
+-	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
+-	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_16) {
+-		const u16 __iomem *pd = buf;
+-		pd += start_offset;
+-
+-		for (; h; --h) {
+-			for (i = 0; i < w; ++i) {
+-				rfbi_write_reg(RFBI_PARAM, __raw_readw(pd));
+-				++pd;
+-			}
+-			pd += horiz_offset;
+-		}
+-	} else {
+-		BUG();
+-	}
+-}
+-
+ static int rfbi_transfer_area(struct omap_dss_device *dssdev,
+ 		void (*callback)(void *data), void *data)
+ {
+@@ -567,69 +417,6 @@ static int rfbi_convert_timings(struct rfbi_timings *t)
+ 	return 0;
+ }
+ 
+-/* xxx FIX module selection missing */
+-static int rfbi_setup_te(enum omap_rfbi_te_mode mode,
+-			     unsigned hs_pulse_time, unsigned vs_pulse_time,
+-			     int hs_pol_inv, int vs_pol_inv, int extif_div)
+-{
+-	int hs, vs;
+-	int min;
+-	u32 l;
+-
+-	hs = ps_to_rfbi_ticks(hs_pulse_time, 1);
+-	vs = ps_to_rfbi_ticks(vs_pulse_time, 1);
+-	if (hs < 2)
+-		return -EDOM;
+-	if (mode == OMAP_DSS_RFBI_TE_MODE_2)
+-		min = 2;
+-	else /* OMAP_DSS_RFBI_TE_MODE_1 */
+-		min = 4;
+-	if (vs < min)
+-		return -EDOM;
+-	if (vs == hs)
+-		return -EINVAL;
+-	rfbi.te_mode = mode;
+-	DSSDBG("setup_te: mode %d hs %d vs %d hs_inv %d vs_inv %d\n",
+-		mode, hs, vs, hs_pol_inv, vs_pol_inv);
+-
+-	rfbi_write_reg(RFBI_HSYNC_WIDTH, hs);
+-	rfbi_write_reg(RFBI_VSYNC_WIDTH, vs);
+-
+-	l = rfbi_read_reg(RFBI_CONFIG(0));
+-	if (hs_pol_inv)
+-		l &= ~(1 << 21);
+-	else
+-		l |= 1 << 21;
+-	if (vs_pol_inv)
+-		l &= ~(1 << 20);
+-	else
+-		l |= 1 << 20;
+-
+-	return 0;
+-}
+-
+-/* xxx FIX module selection missing */
+-static int rfbi_enable_te(bool enable, unsigned line)
+-{
+-	u32 l;
+-
+-	DSSDBG("te %d line %d mode %d\n", enable, line, rfbi.te_mode);
+-	if (line > (1 << 11) - 1)
+-		return -EINVAL;
+-
+-	l = rfbi_read_reg(RFBI_CONFIG(0));
+-	l &= ~(0x3 << 2);
+-	if (enable) {
+-		rfbi.te_enabled = 1;
+-		l |= rfbi.te_mode << 2;
+-	} else
+-		rfbi.te_enabled = 0;
+-	rfbi_write_reg(RFBI_CONFIG(0), l);
+-	rfbi_write_reg(RFBI_LINE_NUMBER, line);
+-
+-	return 0;
+-}
+-
+ static int rfbi_configure_bus(int rfbi_module, int bpp, int lines)
+ {
+ 	u32 l;
+@@ -762,40 +549,6 @@ static int rfbi_configure_bus(int rfbi_module, int bpp, int lines)
+ 	return 0;
+ }
+ 
+-static int rfbi_configure(struct omap_dss_device *dssdev)
+-{
+-	return rfbi_configure_bus(dssdev->phy.rfbi.channel, rfbi.pixel_size,
+-			rfbi.data_lines);
+-}
+-
+-static int rfbi_update(struct omap_dss_device *dssdev, void (*callback)(void *),
+-		void *data)
+-{
+-	return rfbi_transfer_area(dssdev, callback, data);
+-}
+-
+-static void rfbi_set_size(struct omap_dss_device *dssdev, u16 w, u16 h)
+-{
+-	rfbi.timings.x_res = w;
+-	rfbi.timings.y_res = h;
+-}
+-
+-static void rfbi_set_pixel_size(struct omap_dss_device *dssdev, int pixel_size)
+-{
+-	rfbi.pixel_size = pixel_size;
+-}
+-
+-static void rfbi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
+-{
+-	rfbi.data_lines = data_lines;
+-}
+-
+-static void rfbi_set_interface_timings(struct omap_dss_device *dssdev,
+-		struct rfbi_timings *timings)
+-{
+-	rfbi.intf_timings = *timings;
+-}
+-
+ static void rfbi_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, rfbi_read_reg(r))
+@@ -874,56 +627,6 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 	dss_mgr_set_timings(mgr, &rfbi.timings);
+ }
+ 
+-static int rfbi_display_enable(struct omap_dss_device *dssdev)
+-{
+-	struct omap_dss_device *out = &rfbi.output;
+-	int r;
+-
+-	if (out == NULL || out->manager == NULL) {
+-		DSSERR("failed to enable display: no output/manager\n");
+-		return -ENODEV;
+-	}
+-
+-	r = rfbi_runtime_get();
+-	if (r)
+-		return r;
+-
+-	r = dss_mgr_register_framedone_handler(out->manager,
+-			framedone_callback, NULL);
+-	if (r) {
+-		DSSERR("can't get FRAMEDONE irq\n");
+-		goto err1;
+-	}
+-
+-	rfbi_config_lcd_manager(dssdev);
+-
+-	rfbi_configure_bus(dssdev->phy.rfbi.channel, rfbi.pixel_size,
+-			rfbi.data_lines);
+-
+-	rfbi_set_timings(dssdev->phy.rfbi.channel, &rfbi.intf_timings);
+-
+-	return 0;
+-err1:
+-	rfbi_runtime_put();
+-	return r;
+-}
+-
+-static void rfbi_display_disable(struct omap_dss_device *dssdev)
+-{
+-	struct omap_dss_device *out = &rfbi.output;
+-
+-	dss_mgr_unregister_framedone_handler(out->manager,
+-			framedone_callback, NULL);
+-
+-	rfbi_runtime_put();
+-}
+-
+-static int rfbi_init_display(struct omap_dss_device *dssdev)
+-{
+-	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
+-	return 0;
+-}
+-
+ static void rfbi_init_output(struct platform_device *pdev)
+ {
+ 	struct omap_dss_device *out = &rfbi.output;
+-- 
+1.7.10.4
 
