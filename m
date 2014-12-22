@@ -1,321 +1,85 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Mon, 22 Dec 2014 12:11:35 -0600
-Message-ID: <20141222181135.GA3083@saruman>
-References: <1419271535-4057-1-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH] ARM: dts: am437x-sk-evm: Hook dcdc2 as the cpu0-supply
+Date: Mon, 22 Dec 2014 14:38:54 -0600
+Message-ID: <20141222203854.GD3083@saruman>
+References: <1417706679-22294-1-git-send-email-balbi@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+	protocol="application/pgp-signature"; boundary="9UV9rz0O2dU/yYYn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37649 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754168AbaLVSMQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Dec 2014 13:12:16 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:58008 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754858AbaLVUjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2014 15:39:44 -0500
 Content-Disposition: inline
-In-Reply-To: <1419271535-4057-1-git-send-email-balbi@ti.com>
+In-Reply-To: <1417706679-22294-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Dave Gerlach <d-gerlach@ti.com>
 
---wRRV7LY7NUeQGEoC
+--9UV9rz0O2dU/yYYn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 22, 2014 at 12:05:35PM -0600, Felipe Balbi wrote:
-> By converting a few drivers to modules because they
-> won't be needed during boot anyways, we can shave off
-> about 700KiB of text.
+On Thu, Dec 04, 2014 at 09:24:39AM -0600, Felipe Balbi wrote:
+> From: Dave Gerlach <d-gerlach@ti.com>
 >=20
-> Note that while at that, and after discussions with Tony
-> Lindgren, a few extra drivers were either removed because
-> they weren't needed, or added because they're useful for
-> debugging/testing.
+> Hook dcdc2 as the cpu0-supply.
 >=20
-> Below is output of size for pre and post vmlinux binaries:
->=20
->    text    data     bss     dec     hex filename
-> 8342992  757876 8411840 17512708        10b3904 vmlinux-post-patch
-> 9069110  800316 8419072 18288498        1170f72 vmlinux-pre-patch
->=20
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 > Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-oh yeah, still boots fine with AM437x SK, Beagle Bone Black. Also boots
-with Beagle X15, but that still needs a pending CPSW patch [1] for NFS
-root.
+btw, before sending this, I tested on my AM437x Starter Kit, so
 
-[1] http://permalink.gmane.org/gmane.linux.ports.arm.omap/121183
+Tested-by: Felipe Balbi <balbi@ti.com>
 
 > ---
->  arch/arm/configs/omap2plus_defconfig | 121 ++++++++++++++++++++++-------=
-------
->  1 file changed, 75 insertions(+), 46 deletions(-)
+>  arch/arm/boot/dts/am437x-sk-evm.dts | 4 ++++
+>  1 file changed, 4 insertions(+)
 >=20
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
-2plus_defconfig
-> index c2c3a85..a1dc3ed 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -13,7 +13,6 @@ CONFIG_CGROUP_FREEZER=3Dy
->  CONFIG_CGROUP_DEVICE=3Dy
->  CONFIG_CPUSETS=3Dy
->  CONFIG_CGROUP_CPUACCT=3Dy
-> -CONFIG_RESOURCE_COUNTERS=3Dy
->  CONFIG_MEMCG=3Dy
->  CONFIG_MEMCG_SWAP=3Dy
->  CONFIG_MEMCG_KMEM=3Dy
-> @@ -68,7 +67,6 @@ CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=3Dy
->  CONFIG_CPU_FREQ_GOV_POWERSAVE=3Dy
->  CONFIG_CPU_FREQ_GOV_USERSPACE=3Dy
->  CONFIG_CPU_FREQ_GOV_CONSERVATIVE=3Dy
-> -CONFIG_GENERIC_CPUFREQ_CPU0=3Dy
->  # CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
->  CONFIG_CPU_IDLE=3Dy
->  CONFIG_BINFMT_MISC=3Dy
-> @@ -103,7 +101,7 @@ CONFIG_DEVTMPFS=3Dy
->  CONFIG_DEVTMPFS_MOUNT=3Dy
->  CONFIG_DMA_CMA=3Dy
->  CONFIG_OMAP_OCP2SCP=3Dy
-> -CONFIG_CONNECTOR=3Dy
-> +CONFIG_CONNECTOR=3Dm
->  CONFIG_MTD=3Dy
->  CONFIG_MTD_CMDLINE_PARTS=3Dy
->  CONFIG_MTD_BLOCK=3Dy
-> @@ -122,14 +120,13 @@ CONFIG_BLK_DEV_RAM=3Dy
->  CONFIG_BLK_DEV_RAM_SIZE=3D16384
->  CONFIG_SENSORS_TSL2550=3Dm
->  CONFIG_BMP085_I2C=3Dm
-> -CONFIG_SENSORS_LIS3_I2C=3Dm
->  CONFIG_SRAM=3Dy
-> +CONFIG_SENSORS_LIS3_I2C=3Dm
->  CONFIG_SCSI=3Dy
->  CONFIG_BLK_DEV_SD=3Dy
->  CONFIG_SCSI_SCAN_ASYNC=3Dy
-> -CONFIG_ATA=3Dy
-> -CONFIG_SATA_AHCI_PLATFORM=3Dy
-> -CONFIG_MD=3Dy
-> +CONFIG_ATA=3Dm
-> +CONFIG_SATA_AHCI_PLATFORM=3Dm
->  CONFIG_NETDEVICES=3Dy
->  # CONFIG_NET_VENDOR_ARC is not set
->  # CONFIG_NET_CADENCE is not set
-> @@ -154,8 +151,8 @@ CONFIG_TI_CPSW=3Dy
->  # CONFIG_NET_VENDOR_WIZNET is not set
->  CONFIG_AT803X_PHY=3Dy
->  CONFIG_SMSC_PHY=3Dy
-> -CONFIG_USB_USBNET=3Dy
-> -CONFIG_USB_NET_SMSC95XX=3Dy
-> +CONFIG_USB_USBNET=3Dm
-> +CONFIG_USB_NET_SMSC95XX=3Dm
->  CONFIG_USB_ALI_M5632=3Dy
->  CONFIG_USB_AN2720=3Dy
->  CONFIG_USB_EPSON2888=3Dy
-> @@ -172,18 +169,22 @@ CONFIG_WLCORE_SDIO=3Dm
->  CONFIG_MWIFIEX=3Dm
->  CONFIG_MWIFIEX_SDIO=3Dm
->  CONFIG_MWIFIEX_USB=3Dm
-> -CONFIG_INPUT_JOYDEV=3Dy
-> -CONFIG_INPUT_EVDEV=3Dy
-> -CONFIG_KEYBOARD_GPIO=3Dy
-> +CONFIG_INPUT_JOYDEV=3Dm
-> +CONFIG_INPUT_EVDEV=3Dm
-> +CONFIG_KEYBOARD_ATKBD=3Dm
-> +CONFIG_KEYBOARD_GPIO=3Dm
->  CONFIG_KEYBOARD_MATRIX=3Dm
-> -CONFIG_KEYBOARD_TWL4030=3Dy
-> +CONFIG_KEYBOARD_OMAP4=3Dm
-> +CONFIG_KEYBOARD_TWL4030=3Dm
-> +# CONFIG_INPUT_MOUSE is not set
->  CONFIG_INPUT_TOUCHSCREEN=3Dy
->  CONFIG_TOUCHSCREEN_ADS7846=3Dm
->  CONFIG_TOUCHSCREEN_EDT_FT5X06=3Dm
->  CONFIG_TOUCHSCREEN_TSC2005=3Dm
->  CONFIG_TOUCHSCREEN_TSC2007=3Dm
->  CONFIG_INPUT_MISC=3Dy
-> -CONFIG_INPUT_TWL4030_PWRBUTTON=3Dy
-> +CONFIG_INPUT_TWL4030_PWRBUTTON=3Dm
-> +CONFIG_SERIO=3Dm
->  # CONFIG_LEGACY_PTYS is not set
->  CONFIG_SERIAL_8250=3Dy
->  CONFIG_SERIAL_8250_CONSOLE=3Dy
-> @@ -196,15 +197,16 @@ CONFIG_SERIAL_8250_RSA=3Dy
->  CONFIG_SERIAL_OF_PLATFORM=3Dy
->  CONFIG_SERIAL_OMAP=3Dy
->  CONFIG_SERIAL_OMAP_CONSOLE=3Dy
-> -CONFIG_HW_RANDOM=3Dy
->  CONFIG_I2C_CHARDEV=3Dy
->  CONFIG_SPI=3Dy
->  CONFIG_SPI_OMAP24XX=3Dy
-> +CONFIG_SPI_TI_QSPI=3Dm
->  CONFIG_PINCTRL_SINGLE=3Dy
->  CONFIG_DEBUG_GPIO=3Dy
->  CONFIG_GPIO_SYSFS=3Dy
-> -CONFIG_GPIO_TWL4030=3Dy
-> -CONFIG_W1=3Dy
-> +CONFIG_GPIO_TWL4030=3Dm
-> +CONFIG_W1=3Dm
-> +CONFIG_HDQ_MASTER_OMAP=3Dm
->  CONFIG_BATTERY_BQ27x00=3Dm
->  CONFIG_CHARGER_ISP1704=3Dm
->  CONFIG_CHARGER_TWL4030=3Dm
-> @@ -213,20 +215,21 @@ CONFIG_CHARGER_BQ24190=3Dm
->  CONFIG_CHARGER_BQ24735=3Dm
->  CONFIG_POWER_RESET=3Dy
->  CONFIG_POWER_AVS=3Dy
-> +CONFIG_HWMON=3Dm
->  CONFIG_SENSORS_LM75=3Dm
-> -CONFIG_THERMAL=3Dy
-> +CONFIG_SENSORS_TMP102=3Dm
-> +CONFIG_THERMAL=3Dm
->  CONFIG_THERMAL_GOV_FAIR_SHARE=3Dy
->  CONFIG_THERMAL_GOV_USER_SPACE=3Dy
->  CONFIG_CPU_THERMAL=3Dy
-> -CONFIG_TI_SOC_THERMAL=3Dy
-> +CONFIG_TI_SOC_THERMAL=3Dm
->  CONFIG_TI_THERMAL=3Dy
->  CONFIG_OMAP4_THERMAL=3Dy
->  CONFIG_OMAP5_THERMAL=3Dy
->  CONFIG_DRA752_THERMAL=3Dy
->  CONFIG_WATCHDOG=3Dy
-> -CONFIG_OMAP_WATCHDOG=3Dy
-> -CONFIG_TWL4030_WATCHDOG=3Dy
-> -CONFIG_MFD_SYSCON=3Dy
-> +CONFIG_OMAP_WATCHDOG=3Dm
-> +CONFIG_TWL4030_WATCHDOG=3Dm
->  CONFIG_MFD_PALMAS=3Dy
->  CONFIG_MFD_TPS65217=3Dy
->  CONFIG_MFD_TPS65218=3Dy
-> @@ -289,51 +292,77 @@ CONFIG_SND_OMAP_SOC=3Dm
->  CONFIG_SND_OMAP_SOC_OMAP_TWL4030=3Dm
->  CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=3Dm
->  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=3Dm
-> -CONFIG_USB=3Dy
-> +CONFIG_HID_GENERIC=3Dm
-> +CONFIG_USB_HIDDEV=3Dy
-> +CONFIG_USB_KBD=3Dm
-> +CONFIG_USB_MOUSE=3Dm
-> +CONFIG_USB=3Dm
->  CONFIG_USB_ANNOUNCE_NEW_DEVICES=3Dy
-> -CONFIG_USB_MON=3Dy
-> +CONFIG_USB_MON=3Dm
->  CONFIG_USB_XHCI_HCD=3Dm
-> -CONFIG_USB_WDM=3Dy
-> -CONFIG_USB_STORAGE=3Dy
-> +CONFIG_USB_WDM=3Dm
-> +CONFIG_USB_STORAGE=3Dm
-> +CONFIG_USB_MUSB_HDRC=3Dm
-> +CONFIG_USB_MUSB_OMAP2PLUS=3Dm
-> +CONFIG_USB_MUSB_AM35X=3Dm
-> +CONFIG_USB_MUSB_DSPS=3Dm
->  CONFIG_USB_DWC3=3Dm
-> -CONFIG_USB_TEST=3Dy
-> +CONFIG_USB_TEST=3Dm
->  CONFIG_AM335X_PHY_USB=3Dy
-> -CONFIG_USB_GADGET=3Dy
-> +CONFIG_USB_GADGET=3Dm
->  CONFIG_USB_GADGET_DEBUG=3Dy
->  CONFIG_USB_GADGET_DEBUG_FILES=3Dy
->  CONFIG_USB_GADGET_DEBUG_FS=3Dy
-> +CONFIG_USB_CONFIGFS=3Dm
-> +CONFIG_USB_CONFIGFS_SERIAL=3Dy
-> +CONFIG_USB_CONFIGFS_ACM=3Dy
-> +CONFIG_USB_CONFIGFS_OBEX=3Dy
-> +CONFIG_USB_CONFIGFS_NCM=3Dy
-> +CONFIG_USB_CONFIGFS_ECM=3Dy
-> +CONFIG_USB_CONFIGFS_ECM_SUBSET=3Dy
-> +CONFIG_USB_CONFIGFS_RNDIS=3Dy
-> +CONFIG_USB_CONFIGFS_EEM=3Dy
-> +CONFIG_USB_CONFIGFS_MASS_STORAGE=3Dy
-> +CONFIG_USB_CONFIGFS_F_LB_SS=3Dy
-> +CONFIG_USB_CONFIGFS_F_FS=3Dy
-> +CONFIG_USB_CONFIGFS_F_UAC1=3Dy
-> +CONFIG_USB_CONFIGFS_F_UAC2=3Dy
-> +CONFIG_USB_CONFIGFS_F_MIDI=3Dy
-> +CONFIG_USB_CONFIGFS_F_HID=3Dy
->  CONFIG_USB_ZERO=3Dm
->  CONFIG_MMC=3Dy
->  CONFIG_SDIO_UART=3Dy
->  CONFIG_MMC_OMAP=3Dy
->  CONFIG_MMC_OMAP_HS=3Dy
->  CONFIG_NEW_LEDS=3Dy
-> -CONFIG_LEDS_CLASS=3Dy
-> -CONFIG_LEDS_GPIO=3Dy
-> +CONFIG_LEDS_CLASS=3Dm
-> +CONFIG_LEDS_GPIO=3Dm
->  CONFIG_LEDS_TRIGGERS=3Dy
-> -CONFIG_LEDS_TRIGGER_TIMER=3Dy
-> -CONFIG_LEDS_TRIGGER_ONESHOT=3Dy
-> -CONFIG_LEDS_TRIGGER_HEARTBEAT=3Dy
-> -CONFIG_LEDS_TRIGGER_BACKLIGHT=3Dy
-> +CONFIG_LEDS_TRIGGER_TIMER=3Dm
-> +CONFIG_LEDS_TRIGGER_ONESHOT=3Dm
-> +CONFIG_LEDS_TRIGGER_HEARTBEAT=3Dm
-> +CONFIG_LEDS_TRIGGER_BACKLIGHT=3Dm
->  CONFIG_LEDS_TRIGGER_CPU=3Dy
-> -CONFIG_LEDS_TRIGGER_GPIO=3Dy
-> -CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dy
-> +CONFIG_LEDS_TRIGGER_GPIO=3Dm
-> +CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dm
->  CONFIG_RTC_CLASS=3Dy
->  CONFIG_RTC_DRV_TWL92330=3Dy
-> -CONFIG_RTC_DRV_TWL4030=3Dy
-> -CONFIG_RTC_DRV_OMAP=3Dy
-> +CONFIG_RTC_DRV_TWL4030=3Dm
-> +CONFIG_RTC_DRV_OMAP=3Dm
->  CONFIG_DMADEVICES=3Dy
->  CONFIG_TI_EDMA=3Dy
->  CONFIG_DMA_OMAP=3Dy
-> -CONFIG_EXTCON=3Dy
-> -CONFIG_EXTCON_PALMAS=3Dy
-> +# CONFIG_IOMMU_SUPPORT is not set
-> +CONFIG_EXTCON=3Dm
-> +CONFIG_EXTCON_PALMAS=3Dm
-> +CONFIG_TI_EMIF=3Dm
->  CONFIG_PWM=3Dy
-> -CONFIG_PWM_TIECAP=3Dy
-> -CONFIG_PWM_TIEHRPWM=3Dy
-> -CONFIG_PWM_TWL=3Dy
-> -CONFIG_PWM_TWL_LED=3Dy
-> -CONFIG_OMAP_USB2=3Dy
-> -CONFIG_TI_PIPE3=3Dy
-> +CONFIG_PWM_TIECAP=3Dm
-> +CONFIG_PWM_TIEHRPWM=3Dm
-> +CONFIG_PWM_TWL=3Dm
-> +CONFIG_PWM_TWL_LED=3Dm
-> +CONFIG_OMAP_USB2=3Dm
-> +CONFIG_TI_PIPE3=3Dm
->  CONFIG_EXT2_FS=3Dy
->  CONFIG_EXT3_FS=3Dy
->  # CONFIG_EXT3_FS_XATTR is not set
+> diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am43=
+7x-sk-evm.dts
+> index 87aa4f3..f7f77a7 100644
+> --- a/arch/arm/boot/dts/am437x-sk-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+> @@ -611,3 +611,7 @@
+>  &wdt {
+>  	status =3D "okay";
+>  };
+> +
+> +&cpu {
+> +	cpu0-supply =3D <&dcdc2>;
+> +};
 > --=20
-> 2.2.0
+> 2.1.0.GIT
 >=20
 
 --=20
 balbi
 
---wRRV7LY7NUeQGEoC
+--9UV9rz0O2dU/yYYn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUmF7XAAoJEIaOsuA1yqRE50YP/2cKcc1qkyBWOLocma/BpNsq
-0PE7iMQqzge4UXNkkxi/E1pOAamGIQVOaY7kd9yzkz6q0AalaC75EZTeg6pkxec9
-5zYf1v6FeTfyumxiUGtMKveSriNx07+43kGoQbNuBHcy4UBsdd81ZtOQJviRF3PX
-JeFDaYNmav7HTIBvSzKBiUcgqjNNfBIWiZLuxgK8NY8lHSmw8LhypqN62HECvp2c
-FN3ZwRQ/oarm0i3dM6jPDO9LRA5AAcDWFU0M5GyDMw4UI9zTbE5AyclUJdXuG4kH
-PHC1kEGwByi3p3PWqY2CubRgrPJL34fuSkmvfNTqNUzk2tuYG/0JuORYhRtwQdeB
-bBbYmVlf9nnA6ufQstWx45o11/JgWFR/9vkecRbXc/qmgOaBZZ2Ai1sfVG2yqzZ+
-I4647EHh/vmdpbZFqytTLXdqk86C/Yrh44aE+Br30XR6b+4jpQ9WJBrhQdmYCZRO
-fRXk8WYkVLVwSxqhN2d/enF8mRHllfHEqd+xG8TxotlpXCLyxEuOyw28mizF1Ja6
-rmaFYokvLflBJp37yUJt84s0Dt0/N5c4UEn/BN9NTbW0hkwad6XzEnQM87GDslt6
-MQl6YnTPN6cSQP9tZkOj21UndBdeEM/Ums9tbkYC72i2P108ZPL4x9nnvfzGoRsw
-soH5saUyLW2PJLLXhjue
-=/mX9
+iQIcBAEBAgAGBQJUmIFeAAoJEIaOsuA1yqREAvIP/1voI7871GWPRDKtHioIy6VH
+3+qxN0oGElkqJhha4v8V+1qDqnGWRNe7bBulifUKC+HAP6kZSORrjo0Rwi5KSAus
+hLr3974mLrX3QyViCa3rKpHtrWtHeZJhhEfmo+IYKCqheu3702Z4ygUc3QQAjntN
+m20B9RMfRaauiXIYbKzKU9PSS25Bo0+Chr4aJFpm/s34CtNjJKmW/JM2q/gpmaFk
+gjelZ9gXnDyTjBiM1+OOiYPP71pGNskSy6wPtjFd//e3ZpEodrxPf7J8XdBSqZ7g
+FaDKZjx6BbJtWJk6DACcb+5Rkj0WxzNM3Oj1H5iVJme7vaJua5x3Z8HlILJ+84FJ
+IQqa6jwQtrIBJ3GM1QrkuZjbQrV4VEa+e3uMpya4GAFt5U/mvF+NKtBtFXiijGQu
+cmdkCxF0GIASFWyibz9IuKP2KaLpk5u+D7aFnJTcIPJRL5LTMF3N0trobbATc1eV
+aGbZhTYXHiqJgq2zT03w4zBSK4Krg6qnt38vvHx1ld1ngPPMoGliU1AnrXjAR+sR
+HWBtKsB7J4BWAd4kxFMwjVqXZ3MfyNF5a8BpTLzJ136Lv130kCYaLdZ7Y2iaE2Er
+E05Nn8QDJUEBxMVCOtUcneZ+XRfo6GgPpotj8fUV5krqCaEcpFZqW2CBg6i2IQLL
+Ce6Rc+VZ5tIpTfQvC7Dp
+=jXpy
 -----END PGP SIGNATURE-----
 
---wRRV7LY7NUeQGEoC--
+--9UV9rz0O2dU/yYYn--
