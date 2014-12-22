@@ -1,43 +1,274 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
- Refactor the driver to use commit-like)
-Date: Mon, 22 Dec 2014 17:28:38 +0000
-Message-ID: <20141222172838.GM11502@n2100.arm.linux.org.uk>
-References: <5481D913.9040109@ti.com>
- <5481D9BF.2090007@ti.com>
- <20141209165746.GA29935@kahuna>
- <54881589.20105@samsung.com>
- <20141211092945.GE11502@n2100.arm.linux.org.uk>
- <54897528.4030804@samsung.com>
- <20141222170411.GL11502@n2100.arm.linux.org.uk>
- <CAGo_u6pKUj9x8sCFY0wJCVDkBjT77xetu+XZ+DqWTjEWnvZePA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
+Date: Mon, 22 Dec 2014 12:05:35 -0600
+Message-ID: <1419271535-4057-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAGo_u6pKUj9x8sCFY0wJCVDkBjT77xetu+XZ+DqWTjEWnvZePA@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Kevin Hilman <khilman@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, Tomasz Figa <tomasz.figa@gmail.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37434 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755532AbaLVSGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Dec 2014 13:06:18 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-On Mon, Dec 22, 2014 at 11:12:42AM -0600, Nishanth Menon wrote:
-> On Mon, Dec 22, 2014 at 11:04 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > That only leaves the non-DT stuff to worry about this, and from what I
-> > understand, that's going to be removed soon.  If we're going to keep
-> > the non-DT stuff, we should implement a new machine_desc hook for it
-> > instead of hijacking one of the existing callbacks.
-> 
-> none of the PL310 support requires non-DT. PL310 is needed for OMAP4
-> and AM437x both of which are DT only.
+By converting a few drivers to modules because they
+won't be needed during boot anyways, we can shave off
+about 700KiB of text.
 
-Right, so the simple answer for the time being is to kill most of
-omap_l2_cache_init(), leaving just the ioremap() behind.  Everything
-else can go into the machine_desc structures, and OMAP4 and AM437x
-can both benefit from initialising the L2 cache at exactly the same
-point as most other platforms.
+Note that while at that, and after discussions with Tony
+Lindgren, a few extra drivers were either removed because
+they weren't needed, or added because they're useful for
+debugging/testing.
 
+Below is output of size for pre and post vmlinux binaries:
+
+   text    data     bss     dec     hex filename
+8342992  757876 8411840 17512708        10b3904 vmlinux-post-patch
+9069110  800316 8419072 18288498        1170f72 vmlinux-pre-patch
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 121 ++++++++++++++++++++++-------------
+ 1 file changed, 75 insertions(+), 46 deletions(-)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index c2c3a85..a1dc3ed 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -13,7 +13,6 @@ CONFIG_CGROUP_FREEZER=y
+ CONFIG_CGROUP_DEVICE=y
+ CONFIG_CPUSETS=y
+ CONFIG_CGROUP_CPUACCT=y
+-CONFIG_RESOURCE_COUNTERS=y
+ CONFIG_MEMCG=y
+ CONFIG_MEMCG_SWAP=y
+ CONFIG_MEMCG_KMEM=y
+@@ -68,7 +67,6 @@ CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
+ CONFIG_CPU_FREQ_GOV_POWERSAVE=y
+ CONFIG_CPU_FREQ_GOV_USERSPACE=y
+ CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+-CONFIG_GENERIC_CPUFREQ_CPU0=y
+ # CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
+ CONFIG_CPU_IDLE=y
+ CONFIG_BINFMT_MISC=y
+@@ -103,7 +101,7 @@ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
+ CONFIG_DMA_CMA=y
+ CONFIG_OMAP_OCP2SCP=y
+-CONFIG_CONNECTOR=y
++CONFIG_CONNECTOR=m
+ CONFIG_MTD=y
+ CONFIG_MTD_CMDLINE_PARTS=y
+ CONFIG_MTD_BLOCK=y
+@@ -122,14 +120,13 @@ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=16384
+ CONFIG_SENSORS_TSL2550=m
+ CONFIG_BMP085_I2C=m
+-CONFIG_SENSORS_LIS3_I2C=m
+ CONFIG_SRAM=y
++CONFIG_SENSORS_LIS3_I2C=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_SCSI_SCAN_ASYNC=y
+-CONFIG_ATA=y
+-CONFIG_SATA_AHCI_PLATFORM=y
+-CONFIG_MD=y
++CONFIG_ATA=m
++CONFIG_SATA_AHCI_PLATFORM=m
+ CONFIG_NETDEVICES=y
+ # CONFIG_NET_VENDOR_ARC is not set
+ # CONFIG_NET_CADENCE is not set
+@@ -154,8 +151,8 @@ CONFIG_TI_CPSW=y
+ # CONFIG_NET_VENDOR_WIZNET is not set
+ CONFIG_AT803X_PHY=y
+ CONFIG_SMSC_PHY=y
+-CONFIG_USB_USBNET=y
+-CONFIG_USB_NET_SMSC95XX=y
++CONFIG_USB_USBNET=m
++CONFIG_USB_NET_SMSC95XX=m
+ CONFIG_USB_ALI_M5632=y
+ CONFIG_USB_AN2720=y
+ CONFIG_USB_EPSON2888=y
+@@ -172,18 +169,22 @@ CONFIG_WLCORE_SDIO=m
+ CONFIG_MWIFIEX=m
+ CONFIG_MWIFIEX_SDIO=m
+ CONFIG_MWIFIEX_USB=m
+-CONFIG_INPUT_JOYDEV=y
+-CONFIG_INPUT_EVDEV=y
+-CONFIG_KEYBOARD_GPIO=y
++CONFIG_INPUT_JOYDEV=m
++CONFIG_INPUT_EVDEV=m
++CONFIG_KEYBOARD_ATKBD=m
++CONFIG_KEYBOARD_GPIO=m
+ CONFIG_KEYBOARD_MATRIX=m
+-CONFIG_KEYBOARD_TWL4030=y
++CONFIG_KEYBOARD_OMAP4=m
++CONFIG_KEYBOARD_TWL4030=m
++# CONFIG_INPUT_MOUSE is not set
+ CONFIG_INPUT_TOUCHSCREEN=y
+ CONFIG_TOUCHSCREEN_ADS7846=m
+ CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+ CONFIG_TOUCHSCREEN_TSC2005=m
+ CONFIG_TOUCHSCREEN_TSC2007=m
+ CONFIG_INPUT_MISC=y
+-CONFIG_INPUT_TWL4030_PWRBUTTON=y
++CONFIG_INPUT_TWL4030_PWRBUTTON=m
++CONFIG_SERIO=m
+ # CONFIG_LEGACY_PTYS is not set
+ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+@@ -196,15 +197,16 @@ CONFIG_SERIAL_8250_RSA=y
+ CONFIG_SERIAL_OF_PLATFORM=y
+ CONFIG_SERIAL_OMAP=y
+ CONFIG_SERIAL_OMAP_CONSOLE=y
+-CONFIG_HW_RANDOM=y
+ CONFIG_I2C_CHARDEV=y
+ CONFIG_SPI=y
+ CONFIG_SPI_OMAP24XX=y
++CONFIG_SPI_TI_QSPI=m
+ CONFIG_PINCTRL_SINGLE=y
+ CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+-CONFIG_GPIO_TWL4030=y
+-CONFIG_W1=y
++CONFIG_GPIO_TWL4030=m
++CONFIG_W1=m
++CONFIG_HDQ_MASTER_OMAP=m
+ CONFIG_BATTERY_BQ27x00=m
+ CONFIG_CHARGER_ISP1704=m
+ CONFIG_CHARGER_TWL4030=m
+@@ -213,20 +215,21 @@ CONFIG_CHARGER_BQ24190=m
+ CONFIG_CHARGER_BQ24735=m
+ CONFIG_POWER_RESET=y
+ CONFIG_POWER_AVS=y
++CONFIG_HWMON=m
+ CONFIG_SENSORS_LM75=m
+-CONFIG_THERMAL=y
++CONFIG_SENSORS_TMP102=m
++CONFIG_THERMAL=m
+ CONFIG_THERMAL_GOV_FAIR_SHARE=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
+ CONFIG_CPU_THERMAL=y
+-CONFIG_TI_SOC_THERMAL=y
++CONFIG_TI_SOC_THERMAL=m
+ CONFIG_TI_THERMAL=y
+ CONFIG_OMAP4_THERMAL=y
+ CONFIG_OMAP5_THERMAL=y
+ CONFIG_DRA752_THERMAL=y
+ CONFIG_WATCHDOG=y
+-CONFIG_OMAP_WATCHDOG=y
+-CONFIG_TWL4030_WATCHDOG=y
+-CONFIG_MFD_SYSCON=y
++CONFIG_OMAP_WATCHDOG=m
++CONFIG_TWL4030_WATCHDOG=m
+ CONFIG_MFD_PALMAS=y
+ CONFIG_MFD_TPS65217=y
+ CONFIG_MFD_TPS65218=y
+@@ -289,51 +292,77 @@ CONFIG_SND_OMAP_SOC=m
+ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+-CONFIG_USB=y
++CONFIG_HID_GENERIC=m
++CONFIG_USB_HIDDEV=y
++CONFIG_USB_KBD=m
++CONFIG_USB_MOUSE=m
++CONFIG_USB=m
+ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+-CONFIG_USB_MON=y
++CONFIG_USB_MON=m
+ CONFIG_USB_XHCI_HCD=m
+-CONFIG_USB_WDM=y
+-CONFIG_USB_STORAGE=y
++CONFIG_USB_WDM=m
++CONFIG_USB_STORAGE=m
++CONFIG_USB_MUSB_HDRC=m
++CONFIG_USB_MUSB_OMAP2PLUS=m
++CONFIG_USB_MUSB_AM35X=m
++CONFIG_USB_MUSB_DSPS=m
+ CONFIG_USB_DWC3=m
+-CONFIG_USB_TEST=y
++CONFIG_USB_TEST=m
+ CONFIG_AM335X_PHY_USB=y
+-CONFIG_USB_GADGET=y
++CONFIG_USB_GADGET=m
+ CONFIG_USB_GADGET_DEBUG=y
+ CONFIG_USB_GADGET_DEBUG_FILES=y
+ CONFIG_USB_GADGET_DEBUG_FS=y
++CONFIG_USB_CONFIGFS=m
++CONFIG_USB_CONFIGFS_SERIAL=y
++CONFIG_USB_CONFIGFS_ACM=y
++CONFIG_USB_CONFIGFS_OBEX=y
++CONFIG_USB_CONFIGFS_NCM=y
++CONFIG_USB_CONFIGFS_ECM=y
++CONFIG_USB_CONFIGFS_ECM_SUBSET=y
++CONFIG_USB_CONFIGFS_RNDIS=y
++CONFIG_USB_CONFIGFS_EEM=y
++CONFIG_USB_CONFIGFS_MASS_STORAGE=y
++CONFIG_USB_CONFIGFS_F_LB_SS=y
++CONFIG_USB_CONFIGFS_F_FS=y
++CONFIG_USB_CONFIGFS_F_UAC1=y
++CONFIG_USB_CONFIGFS_F_UAC2=y
++CONFIG_USB_CONFIGFS_F_MIDI=y
++CONFIG_USB_CONFIGFS_F_HID=y
+ CONFIG_USB_ZERO=m
+ CONFIG_MMC=y
+ CONFIG_SDIO_UART=y
+ CONFIG_MMC_OMAP=y
+ CONFIG_MMC_OMAP_HS=y
+ CONFIG_NEW_LEDS=y
+-CONFIG_LEDS_CLASS=y
+-CONFIG_LEDS_GPIO=y
++CONFIG_LEDS_CLASS=m
++CONFIG_LEDS_GPIO=m
+ CONFIG_LEDS_TRIGGERS=y
+-CONFIG_LEDS_TRIGGER_TIMER=y
+-CONFIG_LEDS_TRIGGER_ONESHOT=y
+-CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+-CONFIG_LEDS_TRIGGER_BACKLIGHT=y
++CONFIG_LEDS_TRIGGER_TIMER=m
++CONFIG_LEDS_TRIGGER_ONESHOT=m
++CONFIG_LEDS_TRIGGER_HEARTBEAT=m
++CONFIG_LEDS_TRIGGER_BACKLIGHT=m
+ CONFIG_LEDS_TRIGGER_CPU=y
+-CONFIG_LEDS_TRIGGER_GPIO=y
+-CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
++CONFIG_LEDS_TRIGGER_GPIO=m
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_TWL92330=y
+-CONFIG_RTC_DRV_TWL4030=y
+-CONFIG_RTC_DRV_OMAP=y
++CONFIG_RTC_DRV_TWL4030=m
++CONFIG_RTC_DRV_OMAP=m
+ CONFIG_DMADEVICES=y
+ CONFIG_TI_EDMA=y
+ CONFIG_DMA_OMAP=y
+-CONFIG_EXTCON=y
+-CONFIG_EXTCON_PALMAS=y
++# CONFIG_IOMMU_SUPPORT is not set
++CONFIG_EXTCON=m
++CONFIG_EXTCON_PALMAS=m
++CONFIG_TI_EMIF=m
+ CONFIG_PWM=y
+-CONFIG_PWM_TIECAP=y
+-CONFIG_PWM_TIEHRPWM=y
+-CONFIG_PWM_TWL=y
+-CONFIG_PWM_TWL_LED=y
+-CONFIG_OMAP_USB2=y
+-CONFIG_TI_PIPE3=y
++CONFIG_PWM_TIECAP=m
++CONFIG_PWM_TIEHRPWM=m
++CONFIG_PWM_TWL=m
++CONFIG_PWM_TWL_LED=m
++CONFIG_OMAP_USB2=m
++CONFIG_TI_PIPE3=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+2.2.0
+
