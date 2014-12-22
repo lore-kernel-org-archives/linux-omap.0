@@ -1,116 +1,69 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 2a/3] mmc: core: Allow host driver to provide isr for
- card-detect interrupts.
-Date: Mon, 22 Dec 2014 16:35:40 +0100
-Message-ID: <CAPDyKFot3ZyeoVf5wWSizw==7bitLAb7btg3ngH6aMWHFdAekw@mail.gmail.com>
-References: <20141219230732.7511.28103.stgit@notabene.brown>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/3] usb: dwc3: add a quirk for device disconnection
+ issue in Synopsis dwc3 core
+Date: Mon, 22 Dec 2014 09:37:30 -0600
+Message-ID: <20141222153730.GA12815@saruman>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141219230732.7511.28103.stgit@notabene.brown>
+Content-Disposition: inline
+In-Reply-To: <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Chris Ball <chris@printf.net>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Sneeker Yeh <sneeker.yeh@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@
 List-Id: linux-omap@vger.kernel.org
 
-On 20 December 2014 at 00:07, NeilBrown <neilb@suse.de> wrote:
-> One of the reasons omap_hsmmc doesn't use the slot-gpio library
-> is that it has some non-standard functionality in the card-detect
-> interrupt service routine.
->
-> To make it possible for omap_hsmmc (and maybe others) to be converted
-> to use slot-gpio, add 'mmc_gpio_request_cd_isr' which provide an
-> alternate isr to be register by the slot-gpio code.
->
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> ---
->  drivers/mmc/core/slot-gpio.c  |   24 +++++++++++++++++++++++-
->  include/linux/mmc/slot-gpio.h |    2 ++
->  2 files changed, 25 insertions(+), 1 deletion(-)
->
-> This and following are the result of splitting the previous
-> '2/3' into to patches: core and omap_hsmmc as requested.
->
-> NeilBrown
->
->
-> diff --git a/drivers/mmc/core/slot-gpio.c b/drivers/mmc/core/slot-gpio.c
-> index 69bbf2adb329..f56323f5a996 100644
-> --- a/drivers/mmc/core/slot-gpio.c
-> +++ b/drivers/mmc/core/slot-gpio.c
-> @@ -23,6 +23,7 @@ struct mmc_gpio {
->         struct gpio_desc *cd_gpio;
->         bool override_ro_active_level;
->         bool override_cd_active_level;
-> +       irqreturn_t (*cd_gpio_isr)(int irq, void *dev_id);
->         char *ro_label;
->         char cd_label[0];
->  };
-> @@ -156,8 +157,10 @@ void mmc_gpiod_request_cd_irq(struct mmc_host *host)
->                 irq = -EINVAL;
->
->         if (irq >= 0) {
-> +               if (ctx->cd_gpio_isr == NULL)
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please change to:
-if (!ctx->cd_gpio_isr)
+On Tue, Dec 16, 2014 at 10:10:28AM +0800, Sneeker Yeh wrote:
+> Synopsis DesignWare USB3 IP Core integrated with a config-free
+> phy needs special handling during device disconnection to avoid
+> the host controller dying.
+>=20
+> This quirk makes sure PORT_CSC is cleared after the disable slot
+> command when usb device is disconnected from internal root hub,
+> otherwise, Synopsis core would fall into a state that cannot use
+> any endpoint command. Consequently, device disconnection procedure
+> might not be finished because sometimes endpoint need to be stop
+> by endpoint stop command issuing.
+>=20
+> Symptom usually happens when disconnected device is keyboard,
+> mouse, and hub.
 
-> +                       ctx->cd_gpio_isr = mmc_gpio_cd_irqt;
->                 ret = devm_request_threaded_irq(&host->class_dev, irq,
-> -                       NULL, mmc_gpio_cd_irqt,
-> +                       NULL, ctx->cd_gpio_isr,
->                         IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
->                         ctx->cd_label, host);
->                 if (ret < 0)
-> @@ -171,6 +174,25 @@ void mmc_gpiod_request_cd_irq(struct mmc_host *host)
->  }
->  EXPORT_SYMBOL(mmc_gpiod_request_cd_irq);
->
-> +/* Register an alternate interrupt service routine for
-> + * the card-detect GPIO.
-> + */
-> +int mmc_gpio_request_cd_isr(struct mmc_host *host,
-> +                           irqreturn_t (*isr)(int irq, void *dev_id))
-> +{
-> +       struct mmc_gpio *ctx;
-> +       int ret;
-> +
-> +       ret = mmc_gpio_alloc(host);
-> +       if (ret < 0)
-> +               return ret;
-> +       ctx = host->slot.handler_priv;
-> +       if (ctx->cd_gpio_isr)
-> +               return -EBUSY;
-> +       ctx->cd_gpio_isr = isr;
-> +       return 0;
-> +}
+you need to point us to the synopsys STARS ticket number. That's the
+only way to reference this specific quirk. Add it to a comment
+somewhere.
 
-I decided to queue those patchsets I recently posted which simplifies
-the slot-gpio API. Please re-base this patch on top of my next branch.
+--=20
+balbi
 
-Moreover, I actually wonder whether we need to add this API at all.
-After my changes, all you need to do from your host driver ->probe(),
-is to assign your isr routine to ctx->cd_gpio_isr.
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +
->  /**
->   * mmc_gpio_request_cd - request a gpio for card-detection
->   * @host: mmc host
-> diff --git a/include/linux/mmc/slot-gpio.h b/include/linux/mmc/slot-gpio.h
-> index e56fa24c9322..9e55db60deb0 100644
-> --- a/include/linux/mmc/slot-gpio.h
-> +++ b/include/linux/mmc/slot-gpio.h
-> @@ -28,6 +28,8 @@ int mmc_gpiod_request_cd(struct mmc_host *host, const char *con_id,
->  int mmc_gpiod_request_ro(struct mmc_host *host, const char *con_id,
->                          unsigned int idx, bool override_active_level,
->                          unsigned int debounce, bool *gpio_invert);
-> +int mmc_gpio_request_cd_isr(struct mmc_host *host,
-> +                           irqreturn_t (*isr)(int irq, void *dev_id));
->  void mmc_gpiod_free_cd(struct mmc_host *host);
->  void mmc_gpiod_request_cd_irq(struct mmc_host *host);
->
->
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Kind regards
-Uffe
+iQIcBAEBAgAGBQJUmDq6AAoJEIaOsuA1yqREBvsQAJ5hAbSbFOq1rpAfsrVX6QIG
+V+//vvw4jxayZT/pJhEhzihGa4EPA+A7mIncZ9wZ4hqclYqUnQmZvlnYHM2o2JPu
+Yhwr/xs5YplmYK6prNU9ROUgfK7YrjoY2jj+DfHrwdg6i/bPaaH9YwvFFFklAYzL
+FqPme1iqPU0Pg8hosOpclA1ikavMXEot31RqEPipBQUwFzwjVu0Eun5rWiTHEvhI
+jqhMWv+jazCIJpBAlgVVrGc+r7nfQ4mkjhBaQcUwQ9HczYlv1Rg8tMMCzH1xB/+v
+MdTqLIRXh9xej4unzTYmE5twX9Qo7rjadVaOnB1gEN7YQh5mGOq7n4YqS5t71Gzr
+4D9E4uSlL8zqpYnYdZrXQiiAbOb3O8yDXa1LKc3ZAZ/QhhHfo8YfspO6I3QIjmtg
+8Jsk/X05dkmlgCSXEnXtQCqBc4KpddHjH+1gziHOKio8Tte3eX2MFOZGk9q12heC
+2dpUHeKokJWaEK66O6clzBIyDWWXyNQIDtEjaXZts+lUN/hzjz5GSWGv6c2Vpd71
+VMIzr/chN6AJWAFoXNc827SVdEqQBcu4ziRR6mNJ/R99fdv52j3wtYJaf7z8vsiu
+kZ8FuBW8coQZg7IapDFkbGWATLBRKxaeZl+NISFdUNl2UgPQqCe4IZlYvHqiVVZi
+sGWJjgABKtq5Bp13ct48
+=Au6Y
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
