@@ -1,99 +1,48 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/2] phy: ti-pipe3: Fix SATA across suspend/resume
-Date: Mon, 22 Dec 2014 19:22:28 +0530
-Message-ID: <5498221C.6010701@ti.com>
-References: <1418990720-3638-1-git-send-email-rogerq@ti.com> <1418990720-3638-3-git-send-email-rogerq@ti.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 00/11] Exynos7: Adding USB 3.0 support
+Date: Mon, 22 Dec 2014 15:47:41 +0100
+Message-ID: <54982F0D.6040702@samsung.com>
+References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
+ <20141121151130.GD7508@saruman> <54704BF0.1000903@ti.com>
+ <5470A7C5.1070302@kernel.org>
+ <CAFp+6iE5XJ+TGu+8TvRFd3Up-kzki3VPD4k6gPXaYbscfwnz4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1418990720-3638-3-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, devicetree <devicetree@vger.kernel.org>
-Cc: nm@ti.com, balbi@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-reply-to: <CAFp+6iE5XJ+TGu+8TvRFd3Up-kzki3VPD4k6gPXaYbscfwnz4w@mail.gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: Kukjin Kim <kgene@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Figa <tomasz.figa@gmail.com>, robh+dt <robh+dt@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kukjin Kim <kgene.kim@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+Hi Vivek,
 
-On Friday 19 December 2014 05:35 PM, Roger Quadros wrote:
-> Failed test case: Boot without SATA drive connected. Suspend/resume
-> the board and then connect SATA drive. It fails to enumerate.
+On 25/11/14 12:48, Vivek Gautam wrote:
+> On Sat, Nov 22, 2014 at 8:42 PM, Kukjin Kim <kgene@kernel.org> wrote:
+>> > On 11/22/14 17:40, Kishon Vijay Abraham I wrote:
+>>> >> On Friday 21 November 2014 08:41 PM, Felipe Balbi wrote:
+...
+>>>> >>> I took dwc3 driver patches.
+>>> >>
+>>> >> I took the phy patches.
+>>> >>
+>> > I'll take DT changes once exynos7 is landing into samsung tree :)
+>> >
+> You too may want to pick the sole clock driver patch in this series
+> for 3.19 ? :-)
+> "clk: exynos7: Add required clock tree for USB"
 > 
-> Due to Errata i783 "SATA Lockup After SATA DPLL Unlock/Relock"
-> we can't allow SATA DPLL to be in the unlocked state.
-> The SATA refclk (sata_ref_clk) is the source of the SATA_DPLL.
-> Till now this clock was controlled by the AHCI SATA driver and was being
-> shut off  during system suspend (if the SATA drive was not already attached)
-> causing the SATA DPLL to be unlocked and so causing errata i783.
-> 
-> To prevent sata_ref_clk from being disabled, we move the control of
-> this clock from the SATA AHCI driver to the SATA PHY driver and prevent
-> it from being disabled.
-> 
-> This also fixes the issue of SATA not working on OMAP5/DRA7 when
-> AHCI platform driver is built as a module.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/boot/dts/dra7.dtsi  |  4 ++--
->  arch/arm/boot/dts/omap5.dtsi |  4 ++--
->  drivers/phy/phy-ti-pipe3.c   | 53 +++++++++++++++++++++++++++++++-------------
->  3 files changed, 41 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 63bf99b..8c35b84 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1090,8 +1090,8 @@
->  				      <0x4A096800 0x40>; /* pll_ctrl */
->  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->  				ctrl-module = <&omap_control_sata>;
-> -				clocks = <&sys_clkin1>;
-> -				clock-names = "sysclk";
-> +				clocks = <&sys_clkin1>, <&sata_ref_clk>;
-> +				clock-names = "sysclk", "refclk";
->  				#phy-cells = <0>;
->  			};
->  
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index b321fdf..bb498e7 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -929,8 +929,8 @@
->  				      <0x4A096800 0x40>; /* pll_ctrl */
->  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->  				ctrl-module = <&omap_control_sata>;
-> -				clocks = <&sys_clkin>;
-> -				clock-names = "sysclk";
-> +				clocks = <&sys_clkin>, <&sata_ref_clk>;
-> +				clock-names = "sysclk", "refclk";
->  				#phy-cells = <0>;
->  			};
->  		};
-> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-> index e60ff14..e08edd9 100644
-> --- a/drivers/phy/phy-ti-pipe3.c
-> +++ b/drivers/phy/phy-ti-pipe3.c
-> @@ -85,6 +85,7 @@ struct ti_pipe3 {
->  	struct pipe3_dpll_map	*dpll_map;
->  	u8			id;
->  	bool enabled;
-> +	bool refclk_enabled;	/* this flag is needed specifically for SATA */
->  	spinlock_t lock;	/* serialize clock enable/disable */
->  };
->  
-> @@ -333,21 +334,20 @@ static int ti_pipe3_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> +	phy->refclk = devm_clk_get(phy->dev, "refclk");
-> +	if (IS_ERR(phy->refclk)) {
-> +		dev_err(&pdev->dev, "unable to get refclk\n");
-> +		return PTR_ERR(phy->refclk);
-> +	}
+> Please let me know if the merge window is still open on your side so
+> that you can pick this patch.
 
-This will break older dtbs. AFAIK, newer kernels should be compatible with
-older dtbs too. cc'ed devicetree@vger.kernel.org for clarification.
+My apologies, it seems I have missed this patch. :/
+Feel free to ping me off the list in future if there is no response
+for more than week.
+I queued this patch now for 3.20.  I'm putting all the exynos7 clk
+patches on a separate branch which could then be pulled into samsung
+arm tree for the dependant dts changes.
 
-Thanks
-Kishon
+-- 
+Thanks,
+Sylwester
