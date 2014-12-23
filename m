@@ -1,73 +1,124 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v10 8/8] ARM: dts: exynos4: Add nodes for L2 cache controller
-Date: Tue, 23 Dec 2014 11:48:36 +0100
-Message-ID: <1419331716-8972-9-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v10 5/8] ARM: l2c: Add support for overriding prefetch settings
+Date: Tue, 23 Dec 2014 11:48:33 +0100
+Message-ID: <1419331716-8972-6-git-send-email-m.szyprowski@samsung.com>
 References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Tomasz Figa <t.figa@samsung.com>
 
-This patch adds device tree nodes for L2 cache controller present on
-Exynos4 SoCs.
+Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+settings configured in registers leading to crashes if L2C is enabled
+without overriding them. This patch introduces bindings to enable
+prefetch settings to be specified from DT and necessary support in the
+driver.
 
 Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+[mszyprow: rebased onto v3.18-rc1, added error message when prefetch related
+ dt property has been provided without any value]
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 ---
- arch/arm/boot/dts/exynos4210.dtsi |  9 +++++++++
- arch/arm/boot/dts/exynos4x12.dtsi | 14 ++++++++++++++
- 2 files changed, 23 insertions(+)
+ Documentation/devicetree/bindings/arm/l2cc.txt | 10 +++++
+ arch/arm/mm/cache-l2x0.c                       | 54 ++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-diff --git a/arch/arm/boot/dts/exynos4210.dtsi b/arch/arm/boot/dts/exynos4210.dtsi
-index bcc9e63c8070..8e45ea44317e 100644
---- a/arch/arm/boot/dts/exynos4210.dtsi
-+++ b/arch/arm/boot/dts/exynos4210.dtsi
-@@ -81,6 +81,15 @@
- 		reg = <0x10023CA0 0x20>;
- 	};
+diff --git a/Documentation/devicetree/bindings/arm/l2cc.txt b/Documentation/devicetree/bindings/arm/l2cc.txt
+index 292ef7ca3058..0dbabe9a6b0a 100644
+--- a/Documentation/devicetree/bindings/arm/l2cc.txt
++++ b/Documentation/devicetree/bindings/arm/l2cc.txt
+@@ -57,6 +57,16 @@ Optional properties:
+ - cache-id-part: cache id part number to be used if it is not present
+   on hardware
+ - wt-override: If present then L2 is forced to Write through mode
++- arm,double-linefill : Override double linefill enable setting. Enable if
++  non-zero, disable if zero.
++- arm,double-linefill-incr : Override double linefill on INCR read. Enable
++  if non-zero, disable if zero.
++- arm,double-linefill-wrap : Override double linefill on WRAP read. Enable
++  if non-zero, disable if zero.
++- arm,prefetch-drop : Override prefetch drop enable setting. Enable if non-zero,
++  disable if zero.
++- arm,prefetch-offset : Override prefetch offset value. Valid values are
++  0-7, 15, 23, and 31.
  
-+	l2c: l2-cache-controller@10502000 {
-+		compatible = "arm,pl310-cache";
-+		reg = <0x10502000 0x1000>;
-+		cache-unified;
-+		cache-level = <2>;
-+		arm,tag-latency = <2 2 1>;
-+		arm,data-latency = <2 2 1>;
-+	};
-+
- 	gic: interrupt-controller@10490000 {
- 		cpu-offset = <0x8000>;
- 	};
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index 93b70402e943..8bc97c415c9a 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -54,6 +54,20 @@
- 		reg = <0x10023CA0 0x20>;
- 	};
+ Example:
  
-+	l2c: l2-cache-controller@10502000 {
-+		compatible = "arm,pl310-cache";
-+		reg = <0x10502000 0x1000>;
-+		cache-unified;
-+		cache-level = <2>;
-+		arm,tag-latency = <2 2 1>;
-+		arm,data-latency = <3 2 1>;
-+		arm,double-linefill = <1>;
-+		arm,double-linefill-incr = <0>;
-+		arm,double-linefill-wrap = <1>;
-+		arm,prefetch-drop = <1>;
-+		arm,prefetch-offset = <7>;
-+	};
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index d214be207517..6f9d5a02d053 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -1169,6 +1169,8 @@ static void __init l2c310_of_parse(const struct device_node *np,
+ 	u32 tag[3] = { 0, 0, 0 };
+ 	u32 filter[2] = { 0, 0 };
+ 	u32 assoc;
++	u32 prefetch;
++	u32 val;
+ 	int ret;
+ 
+ 	of_property_read_u32_array(np, "arm,tag-latency", tag, ARRAY_SIZE(tag));
+@@ -1214,6 +1216,58 @@ static void __init l2c310_of_parse(const struct device_node *np,
+ 		       assoc);
+ 		break;
+ 	}
 +
- 	clock: clock-controller@10030000 {
- 		compatible = "samsung,exynos4412-clock";
- 		reg = <0x10030000 0x20000>;
++	prefetch = l2x0_saved_regs.prefetch_ctrl;
++
++	ret = of_property_read_u32(np, "arm,double-linefill", &val);
++	if (ret == 0) {
++		if (val)
++			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL;
++	} else if (ret != -EINVAL) {
++		pr_err("L2C-310 OF arm,double-linefill property value is missing\n");
++	}
++
++	ret = of_property_read_u32(np, "arm,double-linefill-incr", &val);
++	if (ret == 0) {
++		if (val)
++			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
++	} else if (ret != -EINVAL) {
++		pr_err("L2C-310 OF arm,double-linefill-incr property value is missing\n");
++	}
++
++	ret = of_property_read_u32(np, "arm,double-linefill-wrap", &val);
++	if (ret == 0) {
++		if (!val)
++			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
++	} else if (ret != -EINVAL) {
++		pr_err("L2C-310 OF arm,double-linefill-wrap property value is missing\n");
++	}
++
++	ret = of_property_read_u32(np, "arm,prefetch-drop", &val);
++	if (ret == 0) {
++		if (val)
++			prefetch |= L310_PREFETCH_CTRL_PREFETCH_DROP;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_PREFETCH_DROP;
++	} else if (ret != -EINVAL) {
++		pr_err("L2C-310 OF arm,prefetch-drop property value is missing\n");
++	}
++
++	ret = of_property_read_u32(np, "arm,prefetch-offset", &val);
++	if (ret == 0) {
++		prefetch &= ~L310_PREFETCH_CTRL_OFFSET_MASK;
++		prefetch |= val & L310_PREFETCH_CTRL_OFFSET_MASK;
++	} else if (ret != -EINVAL) {
++		pr_err("L2C-310 OF arm,prefetch-offset property value is missing\n");
++	}
++
++	l2x0_saved_regs.prefetch_ctrl = prefetch;
+ }
+ 
+ static const struct l2c_init_data of_l2c310_data __initconst = {
 -- 
 1.9.2
