@@ -1,53 +1,80 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] ARM: dts: DRA7X: drop id property in pcie_phy
-Date: Tue, 23 Dec 2014 15:41:12 +0530
-Message-ID: <54993FC0.3090705@ti.com>
-References: <1418721771-31184-1-git-send-email-vigneshr@ti.com> <1418721771-31184-3-git-send-email-vigneshr@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418721771-31184-3-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH v10 3/8] ARM: l2c: Add interface to ask hypervisor to configure
+ L2C
+Date: Tue, 23 Dec 2014 11:48:31 +0100
+Message-ID: <1419331716-8972-4-git-send-email-m.szyprowski@samsung.com>
+References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61112 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755914AbaLWKss (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2014 05:48:48 -0500
+In-reply-to: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
 
+From: Tomasz Figa <t.figa@samsung.com>
 
+Because certain secure hypervisor do not allow writes to individual L2C
+registers, but rather expect set of parameters to be passed as argument
+to secure monitor calls, there is a need to provide an interface for the
+L2C driver to ask the firmware to configure the hardware according to
+specified parameters. This patch adds such.
 
-On Tuesday 16 December 2014 02:52 PM, Vignesh R wrote:
-> Since phyid is no longer used by pcie driver, this field can be dropped
-> from the DT.
-> 
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ arch/arm/include/asm/outercache.h | 3 +++
+ arch/arm/mm/cache-l2x0.c          | 6 ++++++
+ 2 files changed, 9 insertions(+)
 
-Acked-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/dra7.dtsi | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 63bf99be1762..889e3023e68f 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1111,7 +1111,6 @@
->  					      "wkupclk", "refclk",
->  					      "div-clk", "phy-div";
->  				#phy-cells = <0>;
-> -				id = <1>;
->  				ti,hwmods = "pcie1-phy";
->  			};
->  
-> @@ -1132,7 +1131,6 @@
->  					      "div-clk", "phy-div";
->  				#phy-cells = <0>;
->  				ti,hwmods = "pcie2-phy";
-> -				id = <2>;
->  				status = "disabled";
->  			};
->  		};
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
+index 891a56b35bcf..563b92fc2f41 100644
+--- a/arch/arm/include/asm/outercache.h
++++ b/arch/arm/include/asm/outercache.h
+@@ -23,6 +23,8 @@
+ 
+ #include <linux/types.h>
+ 
++struct l2x0_regs;
++
+ struct outer_cache_fns {
+ 	void (*inv_range)(unsigned long, unsigned long);
+ 	void (*clean_range)(unsigned long, unsigned long);
+@@ -36,6 +38,7 @@ struct outer_cache_fns {
+ 
+ 	/* This is an ARM L2C thing */
+ 	void (*write_sec)(unsigned long, unsigned);
++	void (*configure)(const struct l2x0_regs *);
+ };
+ 
+ extern struct outer_cache_fns outer_cache;
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index e5948c5adaa7..d214be207517 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -110,6 +110,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
+ 
+ static void l2c_configure(void __iomem *base)
+ {
++	if (outer_cache.configure) {
++		outer_cache.configure(&l2x0_saved_regs);
++		return;
++	}
++
+ 	if (l2x0_data->configure)
+ 		l2x0_data->configure(base);
+ 
+@@ -910,6 +915,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
+ 
+ 	fns = data->outer_cache;
+ 	fns.write_sec = outer_cache.write_sec;
++	fns.configure = outer_cache.configure;
+ 	if (data->fixup)
+ 		data->fixup(l2x0_base, cache_id, &fns);
+ 
+-- 
+1.9.2
+
