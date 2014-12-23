@@ -1,317 +1,78 @@
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
-Date: Tue, 23 Dec 2014 15:23:25 -0200
-Message-ID: <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
-References: <20141203214641.GA1390@amd>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
+Date: Tue, 23 Dec 2014 12:41:26 -0600
+Message-ID: <20141223184126.GJ9147@saruman>
+References: <CAJt7siu_JiSe3CfM2=0UZLQjRevdLuX+=UL566fiW6XefTTWGA@mail.gmail.com>
+ <CAPjucKaEodpFtv533az+axecjsOahDsWV=V-M6sX84Z27KovsQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141203214641.GA1390@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org, j.anaszewski@samsung.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LG0Ll82vYr46+VA1"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47542 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbaLWSly (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2014 13:41:54 -0500
+Content-Disposition: inline
+In-Reply-To: <CAPjucKaEodpFtv533az+axecjsOahDsWV=V-M6sX84Z27KovsQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Eduard Gavin <egavin@iseebcn.com>
+Cc: =?iso-8859-1?Q?Agust=ED?= Fontquerni <af@iseebcn.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, balbi@ti.com
 
-Em Wed, 3 Dec 2014 22:46:41 +0100
-Pavel Machek <pavel@ucw.cz> escreveu:
+--LG0Ll82vYr46+VA1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> We are moving to device tree support on OMAP3, but that currently
-> breaks ADP1653 driver. This adds device tree support, plus required
-> documentation.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Hi,
 
-Please be sure to check your patch with checkpatch. There are several
-issues on it:
+(no top-posting)
 
-WARNING: DT compatible string "adi,adp1653" appears un-documented -- check ./Documentation/devicetree/bindings/
-#78: FILE: arch/arm/boot/dts/omap3-n900.dts:572:
-+		compatible = "adi,adp1653";
+On Fri, Dec 19, 2014 at 12:16:04PM +0100, Eduard Gavin wrote:
+> Hi Everybody,
+>=20
+> After several test with IGEPv2 board (OMAP3) and linux kernel 3.17 and
+> 3.18, the OTG works but, (from my point of view) with an weird
+> behaviour.
+>=20
+> The OTG like a Host only is activated after load a gadget driver, I
+> mean that, If I plug a USB memory dongle in the OTG port before load a
+> Gadget driver like "g_ether" the dongle is not recognized. After load
+> g_ether driver, the usb dongle is recognized without problems.
+> I miss something in the configuration?
+> It this the normal behaviour?
 
-ERROR: trailing whitespace
-#136: FILE: drivers/media/i2c/adp1653.c:332:
-+^I^I^I$
+it's normal. If you configured your kernel for OTG/dual-role, you must
+have both roles ready to go.
 
-ERROR: trailing whitespace
-#159: FILE: drivers/media/i2c/adp1653.c:436:
-+static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, $
+that should be considered common sense.
 
-WARNING: line over 80 characters
-#159: FILE: drivers/media/i2c/adp1653.c:436:
-+static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, 
+cheers
 
-ERROR: trailing statements should be on next line
-#177: FILE: drivers/media/i2c/adp1653.c:454:
-+	if (!child) return -EINVAL;
+--=20
+balbi
 
-WARNING: line over 80 characters
-#178: FILE: drivers/media/i2c/adp1653.c:455:
-+	if (of_property_read_u32(child, "flash-timeout-microsec", &val)) return -EINVAL;
+--LG0Ll82vYr46+VA1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-ERROR: trailing statements should be on next line
-#178: FILE: drivers/media/i2c/adp1653.c:455:
-+	if (of_property_read_u32(child, "flash-timeout-microsec", &val)) return -EINVAL;
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-WARNING: line over 80 characters
-#180: FILE: drivers/media/i2c/adp1653.c:457:
-+	if (of_property_read_u32(child, "flash-max-microamp", &val)) return -EINVAL;
+iQIcBAEBAgAGBQJUmbdWAAoJEIaOsuA1yqRE1KcP+gOVn1Tt3KI5PGJFwC/bEKui
+ZpcEGXR5xnViohkwRcDIsXwSCrFCYnT9FMZ1H1S3LWSzU3NBINdzkpTrlHhDlBfg
+7Pkn6AJoMshPFWhX8tYI04wJqZa3BePwKRW5+wyBUghh5HOygfZ/8cvEJPTJcDNO
+0D72Vx6zRCcU4fTLYcm8Jp4B2sW0b9Qpw9o5ao2POHRv526WD6uzgJ09B4QekOJq
+yxej9NKSdnmKr7zSMO6Hno6Mf1oRilqTKEvqF8fI8K3pxQte58dkC/ONSRuxO1Qb
+lFDsKLRrhOwAEvoAUIPzkrCBzwWqZM2UKoEdh2Qa0B/hEo+JttDXspk9Uon3P1wL
+IcxTdcM0Wk3T8Yi09mHudA1E4p7FGRo6cK0ycdDzadBPDQ9S0HU2cbYW3OwbFFk6
+zBtuc3Va6VA9J9A4E4pEgkLrQgxPDaaDWG1UI51f0WlLAkic7xbu5a+a34UpI9Qd
+pirEZk2cp5hYaBxHsUOWDneAQMrhI13m3oMj+MGWrMhlhs3FtbpZmI5F7op0DxT+
+V7aDabfLyNsXaWsvKlG8ritsSz5oewwIIDRKsnfmorRTxmn5JZCDnWi1ibp5JFoA
+6ViLv1ASe9pPBVK7uB7dl2WsO0W/sjKRJRSVFkNlMlbK8A8SxjQluehbYdSbW0l6
+VCDw4wvgKOowdI6buZMd
+=vsbg
+-----END PGP SIGNATURE-----
 
-ERROR: trailing statements should be on next line
-#180: FILE: drivers/media/i2c/adp1653.c:457:
-+	if (of_property_read_u32(child, "flash-max-microamp", &val)) return -EINVAL;
-
-ERROR: trailing statements should be on next line
-#182: FILE: drivers/media/i2c/adp1653.c:459:
-+	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
-
-ERROR: trailing statements should be on next line
-#186: FILE: drivers/media/i2c/adp1653.c:463:
-+	if (!child) return -EINVAL;
-
-ERROR: trailing statements should be on next line
-#187: FILE: drivers/media/i2c/adp1653.c:464:
-+	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
-
-ERROR: trailing whitespace
-#197: FILE: drivers/media/i2c/adp1653.c:474:
-+^I^Idev_err(&client->dev, "Error getting GPIO\n"); $
-
-total: 9 errors, 4 warnings, 199 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-> 
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> @@ -0,0 +1,38 @@
-> +* Analog Devices ADP1653 flash LED driver
-> +
-> +Required Properties:
-> +
-> +  - compatible: Must contain one of the following
-> +    - "adi,adp1653"
-> +
-> +  - reg: I2C slave address
-> +
-> +  - gpios: References to the GPIO that controls the power for the chip.
-> +
-> +There are two led outputs available - flash and indicator. One led is
-> +represented by one child node, nodes need to be named "flash" and "indicator".
-> +
-> +Required properties of the LED child node:
-> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Required properties of the flash LED child node:
-> +
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Example:
-> +
-> +        adp1653: led-controller@30 {
-> +                compatible = "adi,adp1653";
-> +		reg = <0x30>;
-> +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> +
-> +		flash {
-> +                        flash-timeout-microsec = <500000>;
-> +                        flash-max-microamp = <320000>;
-> +                        max-microamp = <50000>;
-> +		};
-> +                indicator {
-> +                        max-microamp = <17500>;
-> +		};
-> +        };
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index cfddc3d..11d8afd 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -560,6 +567,22 @@
->  
->  		ti,usb-charger-detection = <&isp1704>;
->  	};
-> +
-> +	adp1653: led-controller@30 {
-> +		compatible = "adi,adp1653";
-> +		reg = <0x30>;
-> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> +
-> +		flash {
-> +			flash-timeout-microsec = <500000>;
-> +			flash-max-microamp = <320000>;
-> +			max-microamp = <50000>;
-> +		};
-> +
-> +		indicator {
-> +			max-microamp = <17500>;
-> +		};
-> +	};
->  };
->  
->  &i2c3 {
-> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-> index 873fe19..62601b2 100644
-> --- a/drivers/media/i2c/adp1653.c
-> +++ b/drivers/media/i2c/adp1653.c
-> @@ -8,6 +8,7 @@
->   * Contributors:
->   *	Sakari Ailus <sakari.ailus@iki.fi>
->   *	Tuukka Toivonen <tuukkat76@gmail.com>
-> + *      Pavel Machek <pavel@ucw.cz>
->   *
->   * This program is free software; you can redistribute it and/or
->   * modify it under the terms of the GNU General Public License
-> @@ -34,9 +35,11 @@
->  #include <linux/module.h>
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/gpio.h>
->  #include <media/adp1653.h>
->  #include <media/v4l2-device.h>
->  
->  #define TIMEOUT_MAX		820000
->  #define TIMEOUT_STEP		54600
->  #define TIMEOUT_MIN		(TIMEOUT_MAX - ADP1653_REG_CONFIG_TMR_SET_MAX \
-> @@ -306,9 +318,18 @@ adp1653_init_device(struct adp1653_flash *flash)
->  static int
->  __adp1653_set_power(struct adp1653_flash *flash, int on)
->  {
-> -	int ret;
-> +	int ret = 0;
->  
-> -	ret = flash->platform_data->power(&flash->subdev, on);
-> +	if (flash->platform_data->power)
-> +		ret = flash->platform_data->power(&flash->subdev, on);
-> +	else {
-> +		gpio_set_value(flash->platform_data->power_gpio, on);
-> +		if (on) {
-> +			/* Some delay is apparently required. */
-> +			udelay(20);
-> +		}
-> +	}
-> +			
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -316,8 +337,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
->  		return 0;
->  
->  	ret = adp1653_init_device(flash);
-> -	if (ret < 0)
-> +	if (ret >= 0)
-> +		return ret;
-> +
-> +	if (flash->platform_data->power)
->  		flash->platform_data->power(&flash->subdev, 0);
-> +	else
-> +		gpio_set_value(flash->platform_data->power_gpio, 0);
->  
->  	return ret;
->  }
-> @@ -407,21 +433,69 @@ static int adp1653_resume(struct device *dev)
->  
->  #endif /* CONFIG_PM */
->  
-> +static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, 
-> +			   struct device_node *node)
-> +{
-> +	u32 val;
-> +	struct adp1653_platform_data *pd;
-> +	enum of_gpio_flags flags;
-> +	int gpio;
-> +	struct device_node *child;
-> +
-> +	if (!node)
-> +		return -EINVAL;
-> +
-> +	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
-> +	if (!pd)
-> +		return -ENOMEM;
-> +	flash->platform_data = pd;
-> +
-> +	child = of_get_child_by_name(node, "flash");
-> +	if (!child) return -EINVAL;
-
-One statement per line, please. Same for other lines below.
-
-> +	if (of_property_read_u32(child, "flash-timeout-microsec", &val)) return -EINVAL;
-> +	pd->max_flash_timeout = val;
-> +	if (of_property_read_u32(child, "flash-max-microamp", &val)) return -EINVAL;
-> +	pd->max_flash_intensity = val/1000;
-> +	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
-> +	pd->max_torch_intensity = val/1000;
-> +
-> +	child = of_get_child_by_name(node, "indicator");
-> +	if (!child) return -EINVAL;
-> +	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
-> +	pd->max_indicator_intensity = val;
-> +
-> +	if (!of_find_property(node, "gpios", NULL)) {
-> +		dev_err(&client->dev, "No gpio node\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	gpio = of_get_gpio_flags(node, 0, &flags);
-> +	if (gpio < 0) {
-> +		dev_err(&client->dev, "Error getting GPIO\n"); 
-> +		return -EINVAL;
-> +	}
-> +
-> +	pd->power_gpio = gpio;
-> +	return 0;
-> +}
-> +
-> +
->  static int adp1653_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *devid)
->  {
->  	struct adp1653_flash *flash;
->  	int ret;
->  
-> -	/* we couldn't work without platform data */
-> -	if (client->dev.platform_data == NULL)
-> -		return -ENODEV;
-> -
->  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
->  	if (flash == NULL)
->  		return -ENOMEM;
->  
->  	flash->platform_data = client->dev.platform_data;
-> +	if (!flash->platform_data) {
-> +		ret = adp1653_of_init(client, flash, client->dev.of_node);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	mutex_init(&flash->power_lock);
->  
-> diff --git a/include/media/adp1653.h b/include/media/adp1653.h
-> index 1d9b48a..b556580 100644
-> --- a/include/media/adp1653.h
-> +++ b/include/media/adp1653.h
-> @@ -100,9 +100,11 @@ struct adp1653_platform_data {
->  	int (*power)(struct v4l2_subdev *sd, int on);
->  
->  	u32 max_flash_timeout;		/* flash light timeout in us */
-> -	u32 max_flash_intensity;	/* led intensity, flash mode */
-> -	u32 max_torch_intensity;	/* led intensity, torch mode */
-> -	u32 max_indicator_intensity;	/* indicator led intensity */
-> +	u32 max_flash_intensity;	/* led intensity, flash mode, mA */
-> +	u32 max_torch_intensity;	/* led intensity, torch mode, mA */
-> +	u32 max_indicator_intensity;	/* indicator led intensity, uA */
-> +
-> +	int power_gpio;			/* for device-tree based boot */
->  };
->  
->  #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subdev)
-> 
-
-
--- 
-
-Cheers,
-Mauro
+--LG0Ll82vYr46+VA1--
