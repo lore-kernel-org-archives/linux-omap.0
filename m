@@ -1,67 +1,112 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
- Refactor the driver to use commit-like)
-Date: Tue, 23 Dec 2014 10:05:24 -0600
-Message-ID: <549992C4.7000603@ti.com>
-References: <5481D913.9040109@ti.com> <5481D9BF.2090007@ti.com> <20141209165746.GA29935@kahuna> <54881589.20105@samsung.com> <20141211092945.GE11502@n2100.arm.linux.org.uk> <54897528.4030804@samsung.com> <20141222170411.GL11502@n2100.arm.linux.org.uk> <CAGo_u6pKUj9x8sCFY0wJCVDkBjT77xetu+XZ+DqWTjEWnvZePA@mail.gmail.com> <20141222172838.GM11502@n2100.arm.linux.org.uk> <54994B30.8040606@samsung.com> <20141223111045.GN11502@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
+Date: Tue, 23 Dec 2014 10:19:36 -0600
+Message-ID: <20141223161936.GA9147@saruman>
+References: <1419271535-4057-1-git-send-email-balbi@ti.com>
+ <54991A25.2030804@compulab.co.il>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55756 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33048 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756395AbaLWQGI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Dec 2014 11:06:08 -0500
-In-Reply-To: <20141223111045.GN11502@n2100.arm.linux.org.uk>
+	id S932215AbaLWQUY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Dec 2014 11:20:24 -0500
+Content-Disposition: inline
+In-Reply-To: <54991A25.2030804@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, Tomasz Figa <tomasz.figa@gmail.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 12/23/2014 05:10 AM, Russell King - ARM Linux wrote:
-> On Tue, Dec 23, 2014 at 12:00:00PM +0100, Marek Szyprowski wrote:
->> I hope I did it right: https://lkml.org/lkml/2014/12/23/158
->> Please test, because I have no access to Omap hardware.
-> 
-> Patch 1/8 looks like I'd expect it to.  Nishanth, please test with your
-> failing scenario, thanks.
-> 
-3.19-rc1
- 1:                      am437x-sk: BOOT: PASS:
-http://slexy.org/raw/s2ARFeCcDp
- 2:                    am43xx-epos: BOOT: PASS:
-http://slexy.org/raw/s2Kzli0GYS
- 3:                   am43xx-gpevm: BOOT: PASS:
-http://slexy.org/raw/s2DMkJGmdF
- 4:                  pandaboard-es: BOOT: PASS:
-http://slexy.org/raw/s204jfptrr
- 5:             pandaboard-vanilla: BOOT: PASS:
-http://slexy.org/raw/s2cbd82pMI
- 6:                        sdp4430: BOOT: PASS:
-http://slexy.org/raw/s21bzlzUNr
-TOTAL = 6 boards, Booted Boards = 6, No Boot boards = 0
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Dec 23, 2014 at 09:30:45AM +0200, Igor Grinberg wrote:
+> Hi Felipe,
+>=20
+> On 12/22/14 20:05, Felipe Balbi wrote:
+>=20
+> [...]
+>=20
+> >  CONFIG_SCSI_SCAN_ASYNC=3Dy
+> > -CONFIG_ATA=3Dy
+> > -CONFIG_SATA_AHCI_PLATFORM=3Dy
+> > -CONFIG_MD=3Dy
+> > +CONFIG_ATA=3Dm
+> > +CONFIG_SATA_AHCI_PLATFORM=3Dm
+>=20
+> Isn't this needed for the rootfs on SATA devices?
 
-against the patch series: (all am437x platforms fail)
+there's no known boards with rootfs on SATA. Until then, we can reduce
+the size.
 
-testing
- 1:                      am437x-sk: BOOT: FAIL:
-http://slexy.org/raw/s2yhDXyF7o
- 2:                    am43xx-epos: BOOT: FAIL:
-http://slexy.org/raw/s2m9cSdt55
- 3:                   am43xx-gpevm: BOOT: FAIL:
-http://slexy.org/raw/s2MqFFBuIl
- 4:                  pandaboard-es: BOOT: PASS:
-http://slexy.org/raw/s2XwggyB0a
- 5:             pandaboard-vanilla: BOOT: PASS:
-http://slexy.org/raw/s25WDvtbob
- 6:                        sdp4430: BOOT: PASS:
-http://slexy.org/raw/s2gjynR1Co
-TOTAL = 6 boards, Booted Boards = 3, No Boot boards = 3
+> >  CONFIG_NETDEVICES=3Dy
+> >  # CONFIG_NET_VENDOR_ARC is not set
+> >  # CONFIG_NET_CADENCE is not set
+> > @@ -154,8 +151,8 @@ CONFIG_TI_CPSW=3Dy
+> >  # CONFIG_NET_VENDOR_WIZNET is not set
+> >  CONFIG_AT803X_PHY=3Dy
+> >  CONFIG_SMSC_PHY=3Dy
+> > -CONFIG_USB_USBNET=3Dy
+> > -CONFIG_USB_NET_SMSC95XX=3Dy
+> > +CONFIG_USB_USBNET=3Dm
+> > +CONFIG_USB_NET_SMSC95XX=3Dm
+>=20
+> What about the NFS root for boards with only USB eth?
 
-I am trying to understand what is different in AM437x except that it
-is a single A9 instead of OMAP4 style dual A9s.
+USB is a module already and it breaks PM when enabled.
 
--- 
-Regards,
-Nishanth Menon
+> >  CONFIG_DEBUG_GPIO=3Dy
+> >  CONFIG_GPIO_SYSFS=3Dy
+> > -CONFIG_GPIO_TWL4030=3Dy
+> > -CONFIG_W1=3Dy
+> > +CONFIG_GPIO_TWL4030=3Dm
+>=20
+> w/o this devices wired to twl gpios will not come up and likely
+> will miss the enumeration...
+
+for example ?
+
+> > -CONFIG_USB=3Dy
+> > +CONFIG_HID_GENERIC=3Dm
+> > +CONFIG_USB_HIDDEV=3Dy
+> > +CONFIG_USB_KBD=3Dm
+> > +CONFIG_USB_MOUSE=3Dm
+> > +CONFIG_USB=3Dm
+>=20
+> So, you don't consider USB a valid rootfs storage option?
+
+read the original defconfig. This is *only* for usbcore.ko, EHCI is
+disabled, XHCI is a module, MUSB is disabled. What will you use for
+rootfs ?
+
+--=20
+balbi
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUmZYYAAoJEIaOsuA1yqREmMwP/AjhOWfTY5UrkYzyhtyl8s3O
+C/47L4/RhA1DPWOstdfaEfxRpUuSprQpZCl8STGDQm7puz/+TgSbCDz5V0ILpz01
+5tJklWQpRlvqENS6aWTHQuyxBShUXBTSKfW4u8HGedzWOxOqTJ/9+tdsBAXPo4nR
+Lqs6z9urXk1BWfqZ/fDpTJZLStfaQ/zx1olULMlZeQZp9h/UihEnKW+DZqj7Da+y
+4/HY0F0gwCEfTUUiDmwqdMVGml6RKLM3yuGnA8N9pdQMW4bowS7o+4OIXUb7sRZD
++77J0fMOSQzQ33gJglYYVzC3h+DW8Xqc9A5bPWvJKVoz7C58OxIvIwp4AUnVeaiR
+R2rPTkR4DWUhyx0NV9/TMft6FWZCt1gx0pL0mo/5gxxnKkJmdRcznam0wnmtVmLH
+7xTpeCxtr7XEUQeP7gslOvaRDDvuUeMWThAjF/uJPUtEGleSTUQBv8seLzjCBv6g
+ZtjjnQCVadG47hFNazeHtkfpX8SptxAZkOv3ZbpmkpAxT/IeTyxKR03KzvO5BeKt
+9zUie4qn8JWNKgdjmNYqI0j29nnM5nsfNRLFHORh7XBnqt/AyoTAuSwfJgfddilW
+lwAifZf399e1jfqaTu6/oz4JsFBlyzckdkr6syphpQ5G50Tu2xn+y4qxeM6awBOE
++Mn6yWOhqcAY2cJA42Ls
+=GSPg
+-----END PGP SIGNATURE-----
+
+--lrZ03NoBR/3+SXJZ--
