@@ -1,94 +1,317 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Tue, 23 Dec 2014 11:13:24 -0600
-Message-ID: <5499A2B4.2080909@ti.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com> <1419331716-8972-3-git-send-email-m.szyprowski@samsung.com> <20141223170613.GM23854@atomide.com>
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
+Date: Tue, 23 Dec 2014 15:23:25 -0200
+Message-ID: <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
+References: <20141203214641.GA1390@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45329 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438AbaLWROO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Dec 2014 12:14:14 -0500
-In-Reply-To: <20141223170613.GM23854@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141203214641.GA1390@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org, j.anaszewski@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
 
-On 12/23/2014 11:06 AM, Tony Lindgren wrote:
-> * Marek Szyprowski <m.szyprowski@samsung.com> [141223 02:51]:
->> From: Tomasz Figa <t.figa@samsung.com>
->>
->> Certain implementations of secure hypervisors (namely the one found on
->> Samsung Exynos-based boards) do not provide access to individual L2C
->> registers. This makes the .write_sec()-based interface insufficient and
->> provoking ugly hacks.
->>
->> This patch is first step to make the driver not rely on availability of
->> writes to individual registers. This is achieved by refactoring the
->> driver to use a commit-like operation scheme: all register values are
->> prepared first and stored in an instance of l2x0_regs struct and then a
->> single callback is responsible to flush those values to the hardware.
+Em Wed, 3 Dec 2014 22:46:41 +0100
+Pavel Machek <pavel@ucw.cz> escreveu:
+
 > 
-> The first patch of the series applied things boot with no problem.
-> But after applying this one I get the following on am437x:
+> We are moving to device tree support on OMAP3, but that currently
+> breaks ADP1653 driver. This adds device tree support, plus required
+> documentation.
 > 
-> Unhandled fault: imprecise external abort (0xc06) at 0xb6f33884
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+Please be sure to check your patch with checkpatch. There are several
+issues on it:
+
+WARNING: DT compatible string "adi,adp1653" appears un-documented -- check ./Documentation/devicetree/bindings/
+#78: FILE: arch/arm/boot/dts/omap3-n900.dts:572:
++		compatible = "adi,adp1653";
+
+ERROR: trailing whitespace
+#136: FILE: drivers/media/i2c/adp1653.c:332:
++^I^I^I$
+
+ERROR: trailing whitespace
+#159: FILE: drivers/media/i2c/adp1653.c:436:
++static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, $
+
+WARNING: line over 80 characters
+#159: FILE: drivers/media/i2c/adp1653.c:436:
++static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, 
+
+ERROR: trailing statements should be on next line
+#177: FILE: drivers/media/i2c/adp1653.c:454:
++	if (!child) return -EINVAL;
+
+WARNING: line over 80 characters
+#178: FILE: drivers/media/i2c/adp1653.c:455:
++	if (of_property_read_u32(child, "flash-timeout-microsec", &val)) return -EINVAL;
+
+ERROR: trailing statements should be on next line
+#178: FILE: drivers/media/i2c/adp1653.c:455:
++	if (of_property_read_u32(child, "flash-timeout-microsec", &val)) return -EINVAL;
+
+WARNING: line over 80 characters
+#180: FILE: drivers/media/i2c/adp1653.c:457:
++	if (of_property_read_u32(child, "flash-max-microamp", &val)) return -EINVAL;
+
+ERROR: trailing statements should be on next line
+#180: FILE: drivers/media/i2c/adp1653.c:457:
++	if (of_property_read_u32(child, "flash-max-microamp", &val)) return -EINVAL;
+
+ERROR: trailing statements should be on next line
+#182: FILE: drivers/media/i2c/adp1653.c:459:
++	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
+
+ERROR: trailing statements should be on next line
+#186: FILE: drivers/media/i2c/adp1653.c:463:
++	if (!child) return -EINVAL;
+
+ERROR: trailing statements should be on next line
+#187: FILE: drivers/media/i2c/adp1653.c:464:
++	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
+
+ERROR: trailing whitespace
+#197: FILE: drivers/media/i2c/adp1653.c:474:
++^I^Idev_err(&client->dev, "Error getting GPIO\n"); $
+
+total: 9 errors, 4 warnings, 199 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
 > 
-> Probably the same issue Nishanth mentioned.
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> @@ -0,0 +1,38 @@
+> +* Analog Devices ADP1653 flash LED driver
+> +
+> +Required Properties:
+> +
+> +  - compatible: Must contain one of the following
+> +    - "adi,adp1653"
+> +
+> +  - reg: I2C slave address
+> +
+> +  - gpios: References to the GPIO that controls the power for the chip.
+> +
+> +There are two led outputs available - flash and indicator. One led is
+> +represented by one child node, nodes need to be named "flash" and "indicator".
+> +
+> +Required properties of the LED child node:
+> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +
+> +Required properties of the flash LED child node:
+> +
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
+> +
+> +Example:
+> +
+> +        adp1653: led-controller@30 {
+> +                compatible = "adi,adp1653";
+> +		reg = <0x30>;
+> +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> +
+> +		flash {
+> +                        flash-timeout-microsec = <500000>;
+> +                        flash-max-microamp = <320000>;
+> +                        max-microamp = <50000>;
+> +		};
+> +                indicator {
+> +                        max-microamp = <17500>;
+> +		};
+> +        };
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index cfddc3d..11d8afd 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -560,6 +567,22 @@
+>  
+>  		ti,usb-charger-detection = <&isp1704>;
+>  	};
+> +
+> +	adp1653: led-controller@30 {
+> +		compatible = "adi,adp1653";
+> +		reg = <0x30>;
+> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> +
+> +		flash {
+> +			flash-timeout-microsec = <500000>;
+> +			flash-max-microamp = <320000>;
+> +			max-microamp = <50000>;
+> +		};
+> +
+> +		indicator {
+> +			max-microamp = <17500>;
+> +		};
+> +	};
+>  };
+>  
+>  &i2c3 {
+> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+> index 873fe19..62601b2 100644
+> --- a/drivers/media/i2c/adp1653.c
+> +++ b/drivers/media/i2c/adp1653.c
+> @@ -8,6 +8,7 @@
+>   * Contributors:
+>   *	Sakari Ailus <sakari.ailus@iki.fi>
+>   *	Tuukka Toivonen <tuukkat76@gmail.com>
+> + *      Pavel Machek <pavel@ucw.cz>
+>   *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License
+> @@ -34,9 +35,11 @@
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+>  #include <linux/slab.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/gpio.h>
+>  #include <media/adp1653.h>
+>  #include <media/v4l2-device.h>
+>  
+>  #define TIMEOUT_MAX		820000
+>  #define TIMEOUT_STEP		54600
+>  #define TIMEOUT_MIN		(TIMEOUT_MAX - ADP1653_REG_CONFIG_TMR_SET_MAX \
+> @@ -306,9 +318,18 @@ adp1653_init_device(struct adp1653_flash *flash)
+>  static int
+>  __adp1653_set_power(struct adp1653_flash *flash, int on)
+>  {
+> -	int ret;
+> +	int ret = 0;
+>  
+> -	ret = flash->platform_data->power(&flash->subdev, on);
+> +	if (flash->platform_data->power)
+> +		ret = flash->platform_data->power(&flash->subdev, on);
+> +	else {
+> +		gpio_set_value(flash->platform_data->power_gpio, on);
+> +		if (on) {
+> +			/* Some delay is apparently required. */
+> +			udelay(20);
+> +		}
+> +	}
+> +			
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -316,8 +337,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
+>  		return 0;
+>  
+>  	ret = adp1653_init_device(flash);
+> -	if (ret < 0)
+> +	if (ret >= 0)
+> +		return ret;
+> +
+> +	if (flash->platform_data->power)
+>  		flash->platform_data->power(&flash->subdev, 0);
+> +	else
+> +		gpio_set_value(flash->platform_data->power_gpio, 0);
+>  
+>  	return ret;
+>  }
+> @@ -407,21 +433,69 @@ static int adp1653_resume(struct device *dev)
+>  
+>  #endif /* CONFIG_PM */
+>  
+> +static int adp1653_of_init(struct i2c_client *client, struct adp1653_flash *flash, 
+> +			   struct device_node *node)
+> +{
+> +	u32 val;
+> +	struct adp1653_platform_data *pd;
+> +	enum of_gpio_flags flags;
+> +	int gpio;
+> +	struct device_node *child;
+> +
+> +	if (!node)
+> +		return -EINVAL;
+> +
+> +	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
+> +	if (!pd)
+> +		return -ENOMEM;
+> +	flash->platform_data = pd;
+> +
+> +	child = of_get_child_by_name(node, "flash");
+> +	if (!child) return -EINVAL;
+
+One statement per line, please. Same for other lines below.
+
+> +	if (of_property_read_u32(child, "flash-timeout-microsec", &val)) return -EINVAL;
+> +	pd->max_flash_timeout = val;
+> +	if (of_property_read_u32(child, "flash-max-microamp", &val)) return -EINVAL;
+> +	pd->max_flash_intensity = val/1000;
+> +	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
+> +	pd->max_torch_intensity = val/1000;
+> +
+> +	child = of_get_child_by_name(node, "indicator");
+> +	if (!child) return -EINVAL;
+> +	if (of_property_read_u32(child, "max-microamp", &val)) return -EINVAL;
+> +	pd->max_indicator_intensity = val;
+> +
+> +	if (!of_find_property(node, "gpios", NULL)) {
+> +		dev_err(&client->dev, "No gpio node\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	gpio = of_get_gpio_flags(node, 0, &flags);
+> +	if (gpio < 0) {
+> +		dev_err(&client->dev, "Error getting GPIO\n"); 
+> +		return -EINVAL;
+> +	}
+> +
+> +	pd->power_gpio = gpio;
+> +	return 0;
+> +}
+> +
+> +
+>  static int adp1653_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *devid)
+>  {
+>  	struct adp1653_flash *flash;
+>  	int ret;
+>  
+> -	/* we couldn't work without platform data */
+> -	if (client->dev.platform_data == NULL)
+> -		return -ENODEV;
+> -
+>  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+>  	if (flash == NULL)
+>  		return -ENOMEM;
+>  
+>  	flash->platform_data = client->dev.platform_data;
+> +	if (!flash->platform_data) {
+> +		ret = adp1653_of_init(client, flash, client->dev.of_node);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	mutex_init(&flash->power_lock);
+>  
+> diff --git a/include/media/adp1653.h b/include/media/adp1653.h
+> index 1d9b48a..b556580 100644
+> --- a/include/media/adp1653.h
+> +++ b/include/media/adp1653.h
+> @@ -100,9 +100,11 @@ struct adp1653_platform_data {
+>  	int (*power)(struct v4l2_subdev *sd, int on);
+>  
+>  	u32 max_flash_timeout;		/* flash light timeout in us */
+> -	u32 max_flash_intensity;	/* led intensity, flash mode */
+> -	u32 max_torch_intensity;	/* led intensity, torch mode */
+> -	u32 max_indicator_intensity;	/* indicator led intensity */
+> +	u32 max_flash_intensity;	/* led intensity, flash mode, mA */
+> +	u32 max_torch_intensity;	/* led intensity, torch mode, mA */
+> +	u32 max_indicator_intensity;	/* indicator led intensity, uA */
+> +
+> +	int power_gpio;			/* for device-tree based boot */
+>  };
+>  
+>  #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subdev)
 > 
-
-yep - just finished the bisect... came to the same conclusion..
-
-c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f is the first bad commit
-commit c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f
-Author: Tomasz Figa <t.figa@samsung.com>
-Date:   Tue Dec 23 11:48:30 2014 +0100
-
-    ARM: l2c: Refactor the driver to use commit-like interface
-
-    Certain implementations of secure hypervisors (namely the one found on
-    Samsung Exynos-based boards) do not provide access to individual L2C
-    registers. This makes the .write_sec()-based interface
-insufficient and
-    provoking ugly hacks.
-
-    This patch is first step to make the driver not rely on
-availability of
-    writes to individual registers. This is achieved by refactoring the
-    driver to use a commit-like operation scheme: all register values are
-    prepared first and stored in an instance of l2x0_regs struct and
-then a
-    single callback is responsible to flush those values to the hardware.
-
-    Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-    Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-:040000 040000 74c6c74a0dc0612d124cd759951adf2a1e4124ee
-8082aabb474f8659231de744d87cd8dbd6dd79bb M	arch
-
-
-$ git bisect log
-git bisect start
-# good: [97bf6af1f928216fd6c5a66e8a57bfa95a659672] Linux 3.19-rc1
-git bisect good 97bf6af1f928216fd6c5a66e8a57bfa95a659672
-# bad: [9afe195db6558621bd8bac379ed65ef121930684] ARM: dts: exynos4:
-Add nodes for L2 cache controller
-git bisect bad 9afe195db6558621bd8bac379ed65ef121930684
-# bad: [0a89ef4dd870bbf692e30fef6c8182d7b8b42e17] ARM: l2c: Get outer
-cache .write_sec callback from mach_desc only if not NULL
-git bisect bad 0a89ef4dd870bbf692e30fef6c8182d7b8b42e17
-# bad: [c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f] ARM: l2c: Refactor
-the driver to use commit-like interface
-git bisect bad c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f
-# good: [080ab387c653b8655dc1ee790658b618399db2aa] ARM: OMAP2+: use
-common l2cache initialization code
-git bisect good 080ab387c653b8655dc1ee790658b618399db2aa
 
 
 -- 
-Regards,
-Nishanth Menon
+
+Cheers,
+Mauro
