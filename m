@@ -1,44 +1,46 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v10 4/8] ARM: l2c: Get outer cache .write_sec callback from
- mach_desc only if not NULL
-Date: Tue, 23 Dec 2014 11:48:32 +0100
-Message-ID: <1419331716-8972-5-git-send-email-m.szyprowski@samsung.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
+Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
+ Refactor the driver to use commit-like)
+Date: Tue, 23 Dec 2014 12:00:00 +0100
+Message-ID: <54994B30.8040606@samsung.com>
+References: <5481D913.9040109@ti.com> <5481D9BF.2090007@ti.com>
+ <20141209165746.GA29935@kahuna> <54881589.20105@samsung.com>
+ <20141211092945.GE11502@n2100.arm.linux.org.uk> <54897528.4030804@samsung.com>
+ <20141222170411.GL11502@n2100.arm.linux.org.uk>
+ <CAGo_u6pKUj9x8sCFY0wJCVDkBjT77xetu+XZ+DqWTjEWnvZePA@mail.gmail.com>
+ <20141222172838.GM11502@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-reply-to: <20141222172838.GM11502@n2100.arm.linux.org.uk>
+Sender: linux-next-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, Tomasz Figa <tomasz.figa@gmail.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tomasz Figa <t.figa@samsung.com>
+Hello,
 
-Certain platforms (i.e. Exynos) might need to set .write_sec callback
-from firmware initialization which is happenning in .init_early callback
-of machine descriptor. However current code will overwrite the pointer
-with whatever is present in machine descriptor, even though it can be
-already set earlier. This patch fixes this by making the assignment
-conditional, depending on whether current .write_sec callback is NULL.
+On 2014-12-22 18:28, Russell King - ARM Linux wrote:
+> On Mon, Dec 22, 2014 at 11:12:42AM -0600, Nishanth Menon wrote:
+>> On Mon, Dec 22, 2014 at 11:04 AM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>>> That only leaves the non-DT stuff to worry about this, and from what I
+>>> understand, that's going to be removed soon.  If we're going to keep
+>>> the non-DT stuff, we should implement a new machine_desc hook for it
+>>> instead of hijacking one of the existing callbacks.
+>> none of the PL310 support requires non-DT. PL310 is needed for OMAP4
+>> and AM437x both of which are DT only.
+> Right, so the simple answer for the time being is to kill most of
+> omap_l2_cache_init(), leaving just the ioremap() behind.  Everything
+> else can go into the machine_desc structures, and OMAP4 and AM437x
+> can both benefit from initialising the L2 cache at exactly the same
+> point as most other platforms.
 
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/kernel/irq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I hope I did it right: https://lkml.org/lkml/2014/12/23/158
+Please test, because I have no access to Omap hardware.
 
-diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
-index ad857bada96c..350f188c92d2 100644
---- a/arch/arm/kernel/irq.c
-+++ b/arch/arm/kernel/irq.c
-@@ -109,7 +109,8 @@ void __init init_IRQ(void)
- 
- 	if (IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_CACHE_L2X0) &&
- 	    (machine_desc->l2c_aux_mask || machine_desc->l2c_aux_val)) {
--		outer_cache.write_sec = machine_desc->l2c_write_sec;
-+		if (!outer_cache.write_sec)
-+			outer_cache.write_sec = machine_desc->l2c_write_sec;
- 		ret = l2x0_of_init(machine_desc->l2c_aux_val,
- 				   machine_desc->l2c_aux_mask);
- 		if (ret)
+Best regards
 -- 
-1.9.2
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
