@@ -1,78 +1,101 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
-Date: Tue, 23 Dec 2014 12:41:26 -0600
-Message-ID: <20141223184126.GJ9147@saruman>
-References: <CAJt7siu_JiSe3CfM2=0UZLQjRevdLuX+=UL566fiW6XefTTWGA@mail.gmail.com>
- <CAPjucKaEodpFtv533az+axecjsOahDsWV=V-M6sX84Z27KovsQ@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
+Date: Tue, 23 Dec 2014 21:49:04 +0100
+Message-ID: <20141223204903.GA1780@amd>
+References: <20141203214641.GA1390@amd>
+ <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LG0Ll82vYr46+VA1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47542 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbaLWSly (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2014 13:41:54 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40894 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542AbaLWUtI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2014 15:49:08 -0500
 Content-Disposition: inline
-In-Reply-To: <CAPjucKaEodpFtv533az+axecjsOahDsWV=V-M6sX84Z27KovsQ@mail.gmail.com>
+In-Reply-To: <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduard Gavin <egavin@iseebcn.com>
-Cc: =?iso-8859-1?Q?Agust=ED?= Fontquerni <af@iseebcn.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, balbi@ti.com
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org, j.anaszewski@samsung.com, apw@canonical.com, joe@perches.com
 
---LG0Ll82vYr46+VA1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue 2014-12-23 15:23:25, Mauro Carvalho Chehab wrote:
+> Em Wed, 3 Dec 2014 22:46:41 +0100
+> Pavel Machek <pavel@ucw.cz> escreveu:
+> 
+> > 
+> > We are moving to device tree support on OMAP3, but that currently
+> > breaks ADP1653 driver. This adds device tree support, plus required
+> > documentation.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> Please be sure to check your patch with checkpatch. There are several
+> issues on it:
 
-Hi,
+> WARNING: DT compatible string "adi,adp1653" appears un-documented -- check ./Documentation/devicetree/bindings/
+> #78: FILE: arch/arm/boot/dts/omap3-n900.dts:572:
+> +		compatible = "adi,adp1653";
 
-(no top-posting)
+Hmm. Take a look at part quoted below. Someone needs to fix
+checkpatch. Ccing authors.
 
-On Fri, Dec 19, 2014 at 12:16:04PM +0100, Eduard Gavin wrote:
-> Hi Everybody,
->=20
-> After several test with IGEPv2 board (OMAP3) and linux kernel 3.17 and
-> 3.18, the OTG works but, (from my point of view) with an weird
-> behaviour.
->=20
-> The OTG like a Host only is activated after load a gadget driver, I
-> mean that, If I plug a USB memory dongle in the OTG port before load a
-> Gadget driver like "g_ether" the dongle is not recognized. After load
-> g_ether driver, the usb dongle is recognized without problems.
-> I miss something in the configuration?
-> It this the normal behaviour?
+> ERROR: trailing whitespace
+> WARNING: line over 80 characters
 
-it's normal. If you configured your kernel for OTG/dual-role, you must
-have both roles ready to go.
+Will fix.
 
-that should be considered common sense.
+> ERROR: trailing statements should be on next line
+> #177: FILE: drivers/media/i2c/adp1653.c:454:
+> +	if (!child) return -EINVAL;
 
-cheers
+I actually did these on purporse... the function is trivial, and by
+keeping returns on one line it fits into screen. I see you want it
+fixed below, so I'll do that for next version.
 
---=20
-balbi
+								Pavel
 
---LG0Ll82vYr46+VA1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> > @@ -0,0 +1,38 @@
+> > +* Analog Devices ADP1653 flash LED driver
+> > +
+> > +Required Properties:
+> > +
+> > +  - compatible: Must contain one of the following
+> > +    - "adi,adp1653"
+> > +
+> > +  - reg: I2C slave address
+> > +
+> > +  - gpios: References to the GPIO that controls the power for the chip.
+> > +
+> > +There are two led outputs available - flash and indicator. One led is
+> > +represented by one child node, nodes need to be named "flash" and "indicator".
+> > +
+> > +Required properties of the LED child node:
+> > +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +
+> > +Required properties of the flash LED child node:
+> > +
+> > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +- flash-timeout-microsec : see Documentation/devicetree/bindings/leds/common.txt
+> > +
+> > +Example:
+> > +
+> > +        adp1653: led-controller@30 {
+> > +                compatible = "adi,adp1653";
+> > +		reg = <0x30>;
+> > +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> > +
+> > +		flash {
+> > +                        flash-timeout-microsec = <500000>;
+> > +                        flash-max-microamp = <320000>;
+> > +                        max-microamp = <50000>;
+> > +		};
+> > +                indicator {
+> > +                        max-microamp = <17500>;
+> > +		};
+> > +        };
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUmbdWAAoJEIaOsuA1yqRE1KcP+gOVn1Tt3KI5PGJFwC/bEKui
-ZpcEGXR5xnViohkwRcDIsXwSCrFCYnT9FMZ1H1S3LWSzU3NBINdzkpTrlHhDlBfg
-7Pkn6AJoMshPFWhX8tYI04wJqZa3BePwKRW5+wyBUghh5HOygfZ/8cvEJPTJcDNO
-0D72Vx6zRCcU4fTLYcm8Jp4B2sW0b9Qpw9o5ao2POHRv526WD6uzgJ09B4QekOJq
-yxej9NKSdnmKr7zSMO6Hno6Mf1oRilqTKEvqF8fI8K3pxQte58dkC/ONSRuxO1Qb
-lFDsKLRrhOwAEvoAUIPzkrCBzwWqZM2UKoEdh2Qa0B/hEo+JttDXspk9Uon3P1wL
-IcxTdcM0Wk3T8Yi09mHudA1E4p7FGRo6cK0ycdDzadBPDQ9S0HU2cbYW3OwbFFk6
-zBtuc3Va6VA9J9A4E4pEgkLrQgxPDaaDWG1UI51f0WlLAkic7xbu5a+a34UpI9Qd
-pirEZk2cp5hYaBxHsUOWDneAQMrhI13m3oMj+MGWrMhlhs3FtbpZmI5F7op0DxT+
-V7aDabfLyNsXaWsvKlG8ritsSz5oewwIIDRKsnfmorRTxmn5JZCDnWi1ibp5JFoA
-6ViLv1ASe9pPBVK7uB7dl2WsO0W/sjKRJRSVFkNlMlbK8A8SxjQluehbYdSbW0l6
-VCDw4wvgKOowdI6buZMd
-=vsbg
------END PGP SIGNATURE-----
-
---LG0Ll82vYr46+VA1--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
