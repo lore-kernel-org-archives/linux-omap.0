@@ -1,39 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] media: i2c/adp1653: devicetree support for adp1653
-Date: Wed, 24 Dec 2014 23:35:16 +0100
-Message-ID: <20141224223516.GB20669@amd>
-References: <20141203214641.GA1390@amd>
- <20141223152325.75e8cb4a@concha.lan.sisa.samsung.com>
- <20141223204903.GA1780@amd>
+From: Nishanth Menon <nm@ti.com>
+Subject: v3.19-rc1 regression(?) on N900
+Date: Wed, 24 Dec 2014 16:57:38 -0600
+Message-ID: <549B44E2.6080202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141223204903.GA1780@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org, j.anaszewski@samsung.com, apw@canonical.com, joe@perches.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58797 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751384AbaLXW5j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Dec 2014 17:57:39 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
 
-On Tue 2014-12-23 21:49:04, Pavel Machek wrote:
-> On Tue 2014-12-23 15:23:25, Mauro Carvalho Chehab wrote:
-> > Em Wed, 3 Dec 2014 22:46:41 +0100
-> > Pavel Machek <pavel@ucw.cz> escreveu:
-> > 
-> > > 
-> > > We are moving to device tree support on OMAP3, but that currently
-> > > breaks ADP1653 driver. This adds device tree support, plus required
-> > > documentation.
-> > > 
-> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > Please be sure to check your patch with checkpatch. There are several
-> > issues on it:
+based on automated testing with u-boot as a chained bootloader..
 
-Ok, you should have fixed version in your inbox.
+v3.18: boots fine:
+https://github.com/nmenon/kernel-test-logs/blob/v3.18/omap2plus_defconfig/n900.txt
 
-Happy holidays!
-									Pavel
+v3.19-rc1: hung
+https://github.com/nmenon/kernel-test-logs/blob/v3.19-rc1/omap2plus_defconfig/n900.txt
+
+in the interim, my farm had a bit of breakdown around the time of n900
+breakdown..
+
+as per my last functional linux-next logs:
+https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/n900.txt
+-> hung.
+https://github.com/nmenon/kernel-test-logs/blob/next-20141112/omap2plus_defconfig/n900.txt
+-> working.
+
+DEBUG_LL, CONFIG_DEBUG_OMAP3UART3=y and early_printk did not yield
+information either
+
+Note: I am using the combined uImage+dtb image.[2]
+
+I think this might just be my setup..(i use chained loader ->
+NOLO->u-boot->serial download->kernel) but anyways.. Since Pali
+thought others might be interested in sharing experience...
+
+[1]   http://slexy.org/raw/s2osxhhwbR
+[2]
+https://github.com/nmenon/linux-2.6-playground/commit/177f5f71b3f21ea484ee4b09a2e0c015de522417
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+Nishanth Menon
