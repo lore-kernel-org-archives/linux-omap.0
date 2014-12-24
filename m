@@ -1,89 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Wed, 24 Dec 2014 11:04:01 -0800
-Message-ID: <20141224190401.GN23854@atomide.com>
-References: <1419271535-4057-1-git-send-email-balbi@ti.com>
- <54991A25.2030804@compulab.co.il>
- <20141223161936.GA9147@saruman>
- <549AA94A.8030209@compulab.co.il>
- <20141224154948.GA423@saruman>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH 0/3] Convert omap_hsmmc to use common devicetree parsing
+ code.
+Date: Thu, 25 Dec 2014 08:20:51 +1100
+Message-ID: <20141224211653.30499.46669.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46499 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751352AbaLXTGh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Dec 2014 14:06:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20141224154948.GA423@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Chris Ball <chris@printf.net>
+Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [141224 07:52]:
-> Hi,
-> 
-> On Wed, Dec 24, 2014 at 01:53:46PM +0200, Igor Grinberg wrote:
-> > -----BEGIN PGP SIGNED MESSAGE-----
-> > Hash: SHA1
-> > 
-> > On 12/23/14 18:19, Felipe Balbi wrote:
-> > > On Tue, Dec 23, 2014 at 09:30:45AM +0200, Igor Grinberg wrote:
-> > >> Hi Felipe,
-> > >>
-> > >> On 12/22/14 20:05, Felipe Balbi wrote:
-> > >>
-> > >> [...]
-> > >>
-> > >>>  CONFIG_SCSI_SCAN_ASYNC=y
-> > >>> -CONFIG_ATA=y
-> > >>> -CONFIG_SATA_AHCI_PLATFORM=y
-> > >>> -CONFIG_MD=y
-> > >>> +CONFIG_ATA=m
-> > >>> +CONFIG_SATA_AHCI_PLATFORM=m
-> > >>
-> > >> Isn't this needed for the rootfs on SATA devices?
-> > > 
-> > > there's no known boards with rootfs on SATA. Until then, we can reduce
-> > > the size.
-> > 
-> > What makes you say so?
-> > The decision for rootfs on SATA is taken dynamically.
-> > OMAP5 boards (specifically cm-t54) can have rootfs on SATA...
-> 
-> I'll leave the decision to Tony. Even though they _can_, they really
-> don't and IIRC, OMAP5's SATA has so many silicon errata that it'd be
-> annoying to find that special device which works (e.g it can't negotiate
-> lower speeds with SATA III devices and it won't support SATA I).
-> 
-> As of today, we don't know of anybody really shipping anything with
-> rootfs on SATA and distros would rather ship initiramfs than a giant
-> zImage anyway.
-> 
-> Tony, your call.
+This is a resend against latest
+  git://git.linaro.org/people/ulf.hansson/mmc next
 
-I think we should move omap2plus_defconfig to be mostly modular and
-usable for distros as a base. Most distros prefer to build almost
-everything as loadable modules. And my preference is that we should
-only keep the minimum rootfs for devices and serial support as
-built-in and rely on initramfs for most drivers. And slowly move
-also the remaining built-in drivers to be loadable modules.
+with requested changes.
 
-The reasons for having drivers as loadable modules are many. It
-allows distros to use the same kernel for all the devices without
-bloating the kernel. It makes developing drivers easier as just the
-module needs to be reloaded. And loadable modules protect us from
-cross-framework spaghetti calls in the kernel as the interfaces are 
-clearly defined.
+My goal is to get omap_hsmmc to use the common code for parsing of,
+particularly so that I can set "cap-power-off-card", which omap_hsmmc
+doesn't explicitly report.
 
-Are there people really using SATA as rootfs right now on omaps?
+Thanks,
+NeilBrown
 
-If it's only something that will be more widely used in the future,
-then I suggest we make it into a loadable module, and presume
-initramfs and loadable module also for any new devices. The same
-way x86 has been doing with distros for years.
 
-Regards,
 
-Tony
+---
+
+NeilBrown (3):
+      mmc: core: Allow host driver to provide isr for card-detect interrupts.
+      mmc: omap_hsmmc: use slot-gpio library for gpio support.
+      mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration.
+
+
+ drivers/mmc/core/slot-gpio.c  |   20 ++++++++
+ drivers/mmc/host/omap_hsmmc.c |  100 +++++++++--------------------------------
+ include/linux/mmc/slot-gpio.h |    2 +
+ 3 files changed, 43 insertions(+), 79 deletions(-)
+
+--
+Signature
+
