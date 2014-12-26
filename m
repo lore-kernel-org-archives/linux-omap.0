@@ -1,61 +1,119 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/3] hwmon: Driver for OMAP3 temperature sensor
-Date: Fri, 26 Dec 2014 18:26:27 +0100
-Message-ID: <20141226172627.GB24756@amd>
-References: <20141226102933.GA28778@amd>
- <1419597294-21487-1-git-send-email-sre@kernel.org>
- <1419597294-21487-3-git-send-email-sre@kernel.org>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCHv2] media: i2c/adp1653: devicetree support for adp1653
+Date: Fri, 26 Dec 2014 13:02:02 -0600
+Message-ID: <CAL_JsqJsDqYm-xfEM1CqNzJxfZY6vnYxaBYpT+3t4+gV2F3M1A@mail.gmail.com>
+References: <20141203214641.GA1390@amd> <20141224223434.GA20669@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1419597294-21487-3-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pali Rohar <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:61634 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127AbaLZTCZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Dec 2014 14:02:25 -0500
+In-Reply-To: <20141224223434.GA20669@amd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Bryan Wu <cooloney@gmail.com>
+Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, freemangordon@abv.bg, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, sakari.ailus@iki.fi, Mauro Carvalho Chehab <m.chehab@samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Jacek Anaszewski <j.anaszewski@samsung.com>
 
-On Fri 2014-12-26 13:34:53, Sebastian Reichel wrote:
-> OMAP34xx and OMAP36xx processors contain a register in the syscon area,
-> which can be used to determine the SoCs temperature. This patch provides
-> a DT based driver for the temperature sensor based on an older driver
-> written by Peter De Schrijver for the Nokia N900 and N9.
-> 
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+On Wed, Dec 24, 2014 at 4:34 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>
+> We are moving to device tree support on OMAP3, but that currently
+> breaks ADP1653 driver. This adds device tree support, plus required
+> documentation.
+>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>
+> ---
+>
+> Changed -microsec to -us, as requested by devicetree people.
+>
+> Fixed checkpatch issues.
+>
+> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> index 2d88816..2c6c7c5 100644
+> --- a/Documentation/devicetree/bindings/leds/common.txt
+> +++ b/Documentation/devicetree/bindings/leds/common.txt
+> @@ -14,6 +14,15 @@ Optional properties for child nodes:
+>       "ide-disk" - LED indicates disk activity
+>       "timer" - LED flashes at a fixed, configurable rate
+>
+> +- max-microamp : maximum intensity in microamperes of the LED
+> +                (torch LED for flash devices)
+> +- flash-max-microamp : maximum intensity in microamperes of the
+> +                       flash LED; it is mandatory if the LED should
+> +                      support the flash mode
+> +- flash-timeout-microsec : timeout in microseconds after which the flash
+> +                           LED is turned off
 
-> +	if (!data->valid || time_after(jiffies, data->last_updated + HZ)) {
-> +		clk_enable(data->clk_32k);
+Doesn't all this go in your flash led binding patch?
 
-This needs to be clk_prepare_enable()
-
-> +		regmap_update_bits(data->syscon, SYSCON_TEMP_REG,
-> +				   soc_mask, soc_mask);
 > +
-> +		if (!wait_for_eocz(EOCZ_MIN_RISING_DELAY,
-> +		    EOCZ_MAX_RISING_DELAY, 1, data)) {
-> +			e = -EIO;
-> +			goto err;
-> +		}
 > +
-> +		regmap_update_bits(data->syscon, SYSCON_TEMP_REG, soc_mask, 0);
+>  Examples:
+>
+>  system-status {
+> @@ -21,3 +30,10 @@ system-status {
+>         linux,default-trigger = "heartbeat";
+>         ...
+>  };
 > +
-> +		if (!wait_for_eocz(EOCZ_MIN_FALLING_DELAY,
-> +		    EOCZ_MAX_FALLING_DELAY, 0, data)) {
-> +			e = -EIO;
-> +			goto err;
-> +		}
+> +camera-flash {
+> +       label = "Flash";
+> +       max-microamp = <50000>;
+> +       flash-max-microamp = <320000>;
+> +       flash-timeout-microsec = <500000>;
+> +}
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adp1653.txt b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> new file mode 100644
+> index 0000000..3c7065f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+> @@ -0,0 +1,38 @@
+> +* Analog Devices ADP1653 flash LED driver
 > +
-> +		regmap_read(data->syscon, SYSCON_TEMP_REG, &temp_sensor_reg);
-> +		data->temperature = temp_sensor_reg & ((1<<7) - 1);
-> +		data->last_updated = jiffies;
-> +		data->valid = true;
+> +Required Properties:
 > +
-> +err:
-> +		clk_disable(data->clk_32k);
+> +  - compatible: Must contain one of the following
+> +    - "adi,adp1653"
+> +
+> +  - reg: I2C slave address
+> +
+> +  - gpios: References to the GPIO that controls the power for the chip.
+> +
+> +There are two led outputs available - flash and indicator. One led is
+> +represented by one child node, nodes need to be named "flash" and "indicator".
+> +
+> +Required properties of the LED child node:
+> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +
+> +Required properties of the flash LED child node:
+> +
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> +
+> +Example:
+> +
+> +        adp1653: led-controller@30 {
+> +                compatible = "adi,adp1653";
+> +               reg = <0x30>;
+> +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> +
+> +               flash {
+> +                        flash-timeout-us = <500000>;
+> +                        flash-max-microamp = <320000>;
+> +                        max-microamp = <50000>;
+> +               };
+> +                indicator {
 
-And this clk_disable_unprepare().
+These are different LEDs or different modes?
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> +                        max-microamp = <17500>;
+
+This is a bit inconsistent. The binding says this is for flash LEDs
+torch mode, but I see no reason why it can't be common. Can you update
+the binding doc to be clear here.
+
+Also, aren't you missing label properties?
+
+Rob
