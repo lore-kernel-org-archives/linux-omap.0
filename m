@@ -1,130 +1,89 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Thu, 25 Dec 2014 22:37:19 -0600
-Message-ID: <20141226043719.GA7661@saruman>
-References: <1419271535-4057-1-git-send-email-balbi@ti.com>
- <54991A25.2030804@compulab.co.il>
- <20141223161936.GA9147@saruman>
- <549AA94A.8030209@compulab.co.il>
- <20141224154948.GA423@saruman>
- <20141224190401.GN23854@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: add the omap-pending tree
+Date: Fri, 26 Dec 2014 15:38:22 +1100
+Message-ID: <20141226153822.20a6bcfe@canb.auug.org.au>
+References: <alpine.DEB.2.02.1412191715230.3102@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/29nt8rEGUk97a1L2RmECLp0"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33474 "EHLO bear.ext.ti.com"
+Received: from ozlabs.org ([103.22.144.67]:47944 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920AbaLZEiL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Dec 2014 23:38:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20141224190401.GN23854@atomide.com>
+	id S1751046AbaLZEik (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Dec 2014 23:38:40 -0500
+In-Reply-To: <alpine.DEB.2.02.1412191715230.3102@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/29nt8rEGUk97a1L2RmECLp0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Paul,
 
-On Wed, Dec 24, 2014 at 11:04:01AM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [141224 07:52]:
-> > Hi,
-> >=20
-> > On Wed, Dec 24, 2014 at 01:53:46PM +0200, Igor Grinberg wrote:
-> > > -----BEGIN PGP SIGNED MESSAGE-----
-> > > Hash: SHA1
-> > >=20
-> > > On 12/23/14 18:19, Felipe Balbi wrote:
-> > > > On Tue, Dec 23, 2014 at 09:30:45AM +0200, Igor Grinberg wrote:
-> > > >> Hi Felipe,
-> > > >>
-> > > >> On 12/22/14 20:05, Felipe Balbi wrote:
-> > > >>
-> > > >> [...]
-> > > >>
-> > > >>>  CONFIG_SCSI_SCAN_ASYNC=3Dy
-> > > >>> -CONFIG_ATA=3Dy
-> > > >>> -CONFIG_SATA_AHCI_PLATFORM=3Dy
-> > > >>> -CONFIG_MD=3Dy
-> > > >>> +CONFIG_ATA=3Dm
-> > > >>> +CONFIG_SATA_AHCI_PLATFORM=3Dm
-> > > >>
-> > > >> Isn't this needed for the rootfs on SATA devices?
-> > > >=20
-> > > > there's no known boards with rootfs on SATA. Until then, we can red=
-uce
-> > > > the size.
-> > >=20
-> > > What makes you say so?
-> > > The decision for rootfs on SATA is taken dynamically.
-> > > OMAP5 boards (specifically cm-t54) can have rootfs on SATA...
-> >=20
-> > I'll leave the decision to Tony. Even though they _can_, they really
-> > don't and IIRC, OMAP5's SATA has so many silicon errata that it'd be
-> > annoying to find that special device which works (e.g it can't negotiate
-> > lower speeds with SATA III devices and it won't support SATA I).
-> >=20
-> > As of today, we don't know of anybody really shipping anything with
-> > rootfs on SATA and distros would rather ship initiramfs than a giant
-> > zImage anyway.
-> >=20
-> > Tony, your call.
+On Fri, 19 Dec 2014 19:28:08 +0000 (UTC) Paul Walmsley <paul@pwsan.com> wro=
+te:
+>
+> Might you be willing to include this branch in your linux-next builds?
 >=20
-> I think we should move omap2plus_defconfig to be mostly modular and
-> usable for distros as a base. Most distros prefer to build almost
-> everything as loadable modules. And my preference is that we should
-> only keep the minimum rootfs for devices and serial support as
-> built-in and rely on initramfs for most drivers. And slowly move
-> also the remaining built-in drivers to be loadable modules.
+> git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git#for-ne=
+xt
 >=20
-> The reasons for having drivers as loadable modules are many. It
-> allows distros to use the same kernel for all the devices without
-> bloating the kernel. It makes developing drivers easier as just the
-> module needs to be reloaded. And loadable modules protect us from
-> cross-framework spaghetti calls in the kernel as the interfaces are=20
-> clearly defined.
->=20
-> Are there people really using SATA as rootfs right now on omaps?
+> It will include OMAP clock, bus architecture, and low-level power=20
+> management patches that are planned to be included in pull requests to th=
+e=20
+> OMAP upstream maintainer, Tony Lindgren.  He in turn will submit pull=20
+> requests to the arm-soc tree.  The objective in including this branch is=
+=20
+> to get these patches integration-tested earlier than they would be=20
+> otherwise.
 
-not that we know :-) The only platforms available today with SATA are
-OMAP5432 uEVM and DRA7x EVM, the latter being mostly used by TIers as of
-now (at least from mainline point of view).
+Added from today (called "omap" and with you as the contact).
 
-> If it's only something that will be more widely used in the future,
-> then I suggest we make it into a loadable module, and presume
-> initramfs and loadable module also for any new devices. The same
-> way x86 has been doing with distros for years.
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
 
-alright, as a module it shall remain.
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+        Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
 
 --=20
-balbi
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
 
---FCuugMFkClbJLl1L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--Sig_/29nt8rEGUk97a1L2RmECLp0
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJUnOX/AAoJEIaOsuA1yqREW40P/2P6U/VudVILgfcNSia0ECgD
-r+pHS6GkifvQaauBiWkEYZjd2mK6VmKKjV4lwg8cC1wsReq7OG6ZjC0wlnFwt8cB
-/GVMcU4D016DgV69vlrTfjEVf2v8h6qKyjw+ynfUcnxnvj4sbUWkfO+Z3HSsC1Cy
-Dj5+KfDleZNMJuXsdQNO1mOKdGfDXjt2GeOgdQQGD97P6PTJcdylPhj6vYWW0ick
-aMBcWJ52HTBtVP9+u0G7iWu79y3ks6Ci992PNLE/iyCvLDEeXaU8GJpvFAShCwPW
-5lgHFtURVlynGosnskkirwlhgFdIcoXVq9FJc9d79036axivB5SVZWubzoEzJIZD
-jSCB943hbXbdQ80ahLCOizU66MCCcCmiauXTyKW1n2nRhsv4ExyT/RE84W+OLDfs
-6obuvobUO0x4sCDW6RqVUT4O3b0i4/06lZmk0wBmInD55tpKyWi4OhD2AC1OFW+Q
-DI1DLViGsE4IQpPipqaQgUfKMvcR5TXWGYzlT5nFBH30ivfRs3h9Cry4LU/9oDMi
-LBoxAag4w7j9d3igq1cFZovKQggt+WVu1Amz+nP8YWQkx5uj7w3rHx9blPEdeHoC
-3PVhIb4sAE1AnPQfjEcQ6IWdRD0rLNwPkeZ7ONVAIMFB3TBfYKKgRMnRtio8RQNB
-oJqwojoRD4JPPCOOXBNE
-=6BgP
+iQIcBAEBCAAGBQJUnOZGAAoJEMDTa8Ir7ZwVTMIP/ReBdMiSlPzSi35dWsEYhBse
+OoJDE+9/AU8NHdhQrK/9nYhPV7NavhQ5M6/qmUBpA+nx0pgc9NJ/AWO8J1+YJ+Zh
+dqvnnpX5Iu6NHCLIeoMUp7+UmZrNBVzQ6cMl/CqVVICWUT9j7SpiM4pDAU5iBiBH
+K2khmzlJcKSBKcClKqppqmoSeZohrj0FcqtSD6RcwRD9M7gdyEepEdTsb9WlQ6Hc
++ng8nWmAN3GiFBkqJRWUNEZPSCDNqobwCuMBQo+Ugyef6LSCoquDeQ/UIbGqm6qP
+Dgkj6zRLqufKtFUNrmoroZAukJq3JHvJ1lDuptGNQoPRtzR8unS8xAGYBcBY9WjJ
+QPy9bkWUirzU5ZXheBZXTfEPl5FBApgUJjXkwF6lwtwrtvQGtpImYJBVMp5YR40U
+r3ntfip0LhGWsExlOhkaKfAJgdolSCB8804m/eSBHqBZNdd3a69dMokSVhTk91uM
+MuuE+Oq6JTLek6/cnF4zGhM2X/a92NyOZVL/0oRI8xtVd81TDGxdAJORrz1vx0AD
+sFwskKCxCZ/Ce1tlLItfBTbKaLji0C5TWYfNUUU0zaBzDgtPcrIRHY5qWVuugiCl
+vYO2sdp9vAtVH5KeHt9ocJQRjnJMWsZse6wlmJurHaUW68juYz9txSlLDyeijvV7
+IACRfpvGN6GfXefGmaR9
+=1VaS
 -----END PGP SIGNATURE-----
 
---FCuugMFkClbJLl1L--
+--Sig_/29nt8rEGUk97a1L2RmECLp0--
