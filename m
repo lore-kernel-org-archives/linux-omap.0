@@ -1,56 +1,56 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 0/3] OMAP3 temperature sensor
-Date: Fri, 26 Dec 2014 13:34:51 +0100
-Message-ID: <1419597294-21487-1-git-send-email-sre@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 1/3] DT Binding for omap3 temperature sensor
+Date: Fri, 26 Dec 2014 13:34:52 +0100
+Message-ID: <1419597294-21487-2-git-send-email-sre@kernel.org>
 References: <20141226102933.GA28778@amd>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141226102933.GA28778@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+ <1419597294-21487-1-git-send-email-sre@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1419597294-21487-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Guenter Roeck <linux@roeck-us.net>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+OMAP34xx and OMAP36xx processors contain a register in the syscon area,
+which can be used to determine the SoCs temperature. This provides a
+DT binding specification for the temperature monitor.
 
-I've prepared an updated variant of the omap34xx temperature monitor driver.
-It's based on the N9 driver instead of the N900 driver (and thus has omap36xx
-support).
-
-The differences compared to the original driver are:
-
- * DT based
- * No includes from arch, instead uses syscon DT node + regmap
- * Removed support for raw temperature reading
-  - I assume this was used for debugging and regmap can be used
-    instead with newer kernels.
- * Introduction of managed resources where possible
- * Usage of module_platform_driver() macro
- * Added some comments referencing the TRM
-
-So far the patchset is _compile-tested only_. I will test it on my N900 in
-the next days.
-
--- Sebastian
-
-Sebastian Reichel (3):
-  DT Binding for omap3 temperature sensor
-  hwmon: Driver for OMAP3 temperature sensor
-  ARM: dts: OMAP34xx/36xx: Add temperature sensor
-
- .../bindings/hwmon/omap3-temperature.txt           |  25 ++
- arch/arm/boot/dts/omap34xx.dtsi                    |   7 +
- arch/arm/boot/dts/omap36xx.dtsi                    |   7 +
- drivers/hwmon/Kconfig                              |   8 +
- drivers/hwmon/Makefile                             |   1 +
- drivers/hwmon/omap3-temp.c                         | 307 +++++++++++++++++++++
- 6 files changed, 355 insertions(+)
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ .../bindings/hwmon/omap3-temperature.txt           | 25 ++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
- create mode 100644 drivers/hwmon/omap3-temp.c
 
+diff --git a/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt b/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
+new file mode 100644
+index 0000000..99631ad
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
+@@ -0,0 +1,25 @@
++* OMAP3 temperature sensor
++
++The OMAP34xx and OMAP36xx processors contain a register in the syscon area,
++which can be used to determine the SoCs temperature.
++
++Requires node properties:
++- compatible :	should contain one of
++	- "ti,omap34xx-temperature-sensor" for OMAP34xx
++	- "ti,omap36xx-temperature-sensor" for OMAP36xx
++- syscon :	Should be a phandle to system configuration node which
++		encompases the temperature register
++- clocks :	Should contain 32KHz fclk clock specifier
++- clock-names :	Should contain clock names
++	- "fck" for the 32KHz fclk clock specifier
++
++Example for omap34xx:
++
++/ {
++	temperature-sensor {
++		compatible = "ti,omap34xx-temperature-sensor";
++		syscon = <&omap3_scm_general>;
++		clocks = <&ts_fck>;
++		clock-names = "fck";
++	};
++};
 -- 
 2.1.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
