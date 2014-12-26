@@ -1,186 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Thu, 25 Dec 2014 22:42:46 -0600
-Message-ID: <20141226044246.GB7661@saruman>
-References: <1419271535-4057-1-git-send-email-balbi@ti.com>
- <54991A25.2030804@compulab.co.il>
- <20141223161936.GA9147@saruman>
- <549AA94A.8030209@compulab.co.il>
- <20141224154948.GA423@saruman>
- <20141224190401.GN23854@atomide.com>
- <549BE333.9060709@compulab.co.il>
-Reply-To: <balbi@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: add the omap-pending tree
+Date: Fri, 26 Dec 2014 15:46:21 +1100
+Message-ID: <20141226154621.08a41399@canb.auug.org.au>
+References: <alpine.DEB.2.02.1412191715230.3102@utopia.booyaka.com>
+	<20141219200230.GJ23854@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7iMSBzlTiPOCCT2k"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/koNH7f91wP5fqPp0GR=rQuW"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49106 "EHLO comal.ext.ti.com"
+Received: from ozlabs.org ([103.22.144.67]:47786 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920AbaLZEng (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Dec 2014 23:43:36 -0500
-Content-Disposition: inline
-In-Reply-To: <549BE333.9060709@compulab.co.il>
+	id S1751046AbaLZEq3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Dec 2014 23:46:29 -0500
+In-Reply-To: <20141219200230.GJ23854@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
---7iMSBzlTiPOCCT2k
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/koNH7f91wP5fqPp0GR=rQuW
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Tony,
 
-On Thu, Dec 25, 2014 at 12:13:07PM +0200, Igor Grinberg wrote:
-> Hi Tony,
+On Fri, 19 Dec 2014 12:02:30 -0800 Tony Lindgren <tony@atomide.com> wrote:
+>
+> Makes sense to me. The delay in getting omap stuff into Linux next
+> via arm-soc for-next is just too long because of the large number
+> of pending pull requests for various ARM SoCs.
+
+Maybe that requires a conversation with the arm-soc tree mailtainers ...
+
+> While at it, can you please also (re-)add omap for-next too:
 >=20
-> On 12/24/14 21:04, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [141224 07:52]:
-> >> Hi,
-> >>
-> >> On Wed, Dec 24, 2014 at 01:53:46PM +0200, Igor Grinberg wrote:
-> >>> -----BEGIN PGP SIGNED MESSAGE-----
-> >>> Hash: SHA1
-> >>>
-> >>> On 12/23/14 18:19, Felipe Balbi wrote:
-> >>>> On Tue, Dec 23, 2014 at 09:30:45AM +0200, Igor Grinberg wrote:
-> >>>>> Hi Felipe,
-> >>>>>
-> >>>>> On 12/22/14 20:05, Felipe Balbi wrote:
-> >>>>>
-> >>>>> [...]
-> >>>>>
-> >>>>>>  CONFIG_SCSI_SCAN_ASYNC=3Dy
-> >>>>>> -CONFIG_ATA=3Dy
-> >>>>>> -CONFIG_SATA_AHCI_PLATFORM=3Dy
-> >>>>>> -CONFIG_MD=3Dy
-> >>>>>> +CONFIG_ATA=3Dm
-> >>>>>> +CONFIG_SATA_AHCI_PLATFORM=3Dm
-> >>>>>
-> >>>>> Isn't this needed for the rootfs on SATA devices?
-> >>>>
-> >>>> there's no known boards with rootfs on SATA. Until then, we can redu=
-ce
-> >>>> the size.
-> >>>
-> >>> What makes you say so?
-> >>> The decision for rootfs on SATA is taken dynamically.
-> >>> OMAP5 boards (specifically cm-t54) can have rootfs on SATA...
-> >>
-> >> I'll leave the decision to Tony. Even though they _can_, they really
-> >> don't and IIRC, OMAP5's SATA has so many silicon errata that it'd be
-> >> annoying to find that special device which works (e.g it can't negotia=
-te
-> >> lower speeds with SATA III devices and it won't support SATA I).
->=20
-> Yet, it is not that buggy and at least until now, I di not get any
-> reports about badly working SATA from customers...
->=20
-> >>
-> >> As of today, we don't know of anybody really shipping anything with
-> >> rootfs on SATA and distros would rather ship initiramfs than a giant
-> >> zImage anyway.
->=20
-> So, you just continue to ignore what I'm saying... even after I point
-> to a device...
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git#for-n=
+ext
 
-you pointed a device which *can* have rootfs on SATA, not one which
-*has* rootfs on SATA, there's a very big difference there.
+Added from today (called "omap" with you as the contact).
 
-> Is it SATA that makes it so giant?
-> Because I find it worth having in SATA than spare some more k's...
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
 
-that's your point of view. As Tony mentioned, we have a very standard
-way of dealing with this which is initramfs and x86 has been using that
-for the past 15+ years.
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+        Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
 
-> >> Tony, your call.
-> >=20
-> > I think we should move omap2plus_defconfig to be mostly modular and
-> > usable for distros as a base. Most distros prefer to build almost
-> > everything as loadable modules. And my preference is that we should
-> > only keep the minimum rootfs for devices and serial support as
-> > built-in and rely on initramfs for most drivers. And slowly move
-> > also the remaining built-in drivers to be loadable modules.
-> >=20
-> > The reasons for having drivers as loadable modules are many. It
-> > allows distros to use the same kernel for all the devices without
-> > bloating the kernel. It makes developing drivers easier as just the
-> > module needs to be reloaded. And loadable modules protect us from
-> > cross-framework spaghetti calls in the kernel as the interfaces are=20
-> > clearly defined.
-> >=20
-> > Are there people really using SATA as rootfs right now on omaps?
->=20
-> Yes. That is exactly my point.
-
-read your email, you said it *CAN* have rootfs on SATA.
-
-> > If it's only something that will be more widely used in the future,
-> > then I suggest we make it into a loadable module, and presume
-> > initramfs and loadable module also for any new devices. The same
-> > way x86 has been doing with distros for years.
->=20
-> The difference from x86 is that we're in embedded here and
-
-bullshit, you would never ship a product with omap2plus_defconfig. You'd
-build your own at which point you would switch SATA to built-in.
-
-> although initramfs is a kind of option, but it means, you need to
-> load even more data during the boot process... it is annoying and
-> I would not want to use it on embedded.
-
-make your own defconfig.
-
-> (BTW, x86_64_defconfig has it compiled in...)
->=20
-> We can also, split the defconfig as it was some time ago... but I
-> would not want to go that direction...
->=20
-> If we go the initramfs way, then why not also load MMC from it?
-> That will also reduce kernel size... (but add initramfs size)
-
-I'm fine with that. The difference is that people have been relying on
-MMC built-in for the past 10+ years, since the old OMAP1 MMC driver,
-changing that now is likely to cause some "my board won't boot anymore"
-bug reports.
-
-> I'm sure you will find making the MMC a loadable module inconvenient.
-> That how I find making the SATA a loadable module...
->=20
-> Right now, we tell our customers that they can use mainline with
-> omap2plus_defconfig.
-
-that's the worst thing you can do. You should at a minimum provide your
-customers with a more minimal rootfs. Why would you have your customers
-build MUSB on an OMAP5 board ? Why would they build 5 different
-network device drivers ? Why would they build almost every single PMIC
-we ever used ? The list goes on and on.
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
 
 --=20
-balbi
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
 
---7iMSBzlTiPOCCT2k
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--Sig_/koNH7f91wP5fqPp0GR=rQuW
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJUnOdGAAoJEIaOsuA1yqREI9YQAJ7BveXnogOiorgBWauKsEnh
-EWTME+sLZUfKT4fvx38MUFjqVTMnHJ+wZnrXt3xVbr8FgJx4C1g+G+FrjLHhRCG1
-6QnWKWEpEzEPIcTPd40mdeKMIAL/6Sg1gT9TNuj4qhFneClz+aG32ItKkkmp2ab+
-G4FegCXMUpwnwNqtRUue90MlusQ6moifpjEQOPpxfZQgRZSk3ekkNorWN1LSYHy3
-S/gWyg51eMRjUoKbziBchbBEuIko5gxIrMaK585bjcwcc0w/j3Rfv9AC0mwGX7kZ
-XNQz17LqzPdkL1Vn6iRAJmLWeVPQw9DaD4oKHPfyvjP4urt9eBOT6K/V3+wLgSRC
-CCh1rtjYtf4wrNqxII9o+PYpSdjHJmuqiLmmgkFDeLzEkGjAlMSVHr2kQ3l+jXj3
-Vn0flzgDKgGA0XekpuyFpKnK3znAOOD70bnBAzcjrRiwxGsjBwjSfvhu4V6BzOZw
-VirSK9uq4pm/qb0zEIazw7pbSDN1RC0fOlL2LiomKpzHBZ1AJomURssEWy2wq78C
-SD7lIZmxPDvE82LdiZIhchCSJJXayIlAM021YJObMqoFsa2pSiQGPZZ+DYbuLEgj
-cAMnDK+mBk9HtLY1pG7xVGgwLZnzjdIqaptSnJLAAdAsKbcjwgkF4iYcgNAXyiKy
-rYlwMTArNrXwxlXnq4Fe
-=RTvA
+iQIcBAEBCAAGBQJUnOgiAAoJEMDTa8Ir7ZwV7NcQAIC05rKnZSUCwta0Kel6NmOR
+5fjvZspywsSFnkr4llRBRGKX0mJmocpILHc1/gGcQASYfZtFJkIuDOWHeCrU1CNd
+8oNCGrfJDNv55HhEQkqMgOcYyLWIu/lnMX7oIXayVwHjQX0t+3SfN/0dLWBzbbVB
+ZpXKEFBdqAfgmGNDQfr30RvoCfa5X4Fo3DzNMVCCSgS7S+BxNJ0lYktuyipnPyH0
+y+LEmDQngVZII9UJbOab8Gk07gAu7XV3MoVA7TDER1kph52M4wvw6+9UJuqsuwXY
+NV4ePjbdwEFx6CoQ7wcWDgTb7VYOx3FGEenu/S9QiHUXUc78z51SFD/l1gI5mtIv
+rJDRA4/DWZWh+YWtxJp6Ylffuu6s8xqZ6lfhO6UvIwB+/RMzovIByyIfVUF+AlBo
+/Lp6iQo8WSm35Btwj1kRMAll3woAOQwMWrggdx9vFmXdcr/JwKw2vZsCOGgY3TwO
+NWCemDDfWU3gov6TYWoy/xtxUXVG3/3OTfLHJ7Jo5mXnMVLE2ECaIz+YoA+TVfl0
+Usgihroo9lJss/4S9crQR1PlI1t8wCf6oKMZoxgXhsChwVPnEClKbKpOQiKpUs0P
+p4bD25tqCLuzzgt2Pziw35pOdHmNQABkGo9Cy5AZD1+Jgd9Z6yiRoDdE4E/WwdPu
+xIxaptasfgocxfueR3aJ
+=/dAt
 -----END PGP SIGNATURE-----
 
---7iMSBzlTiPOCCT2k--
+--Sig_/koNH7f91wP5fqPp0GR=rQuW--
