@@ -1,127 +1,56 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Fri, 26 Dec 2014 14:08:10 +0200
-Message-ID: <549D4FAA.1040207@compulab.co.il>
-References: <1419271535-4057-1-git-send-email-balbi@ti.com> <54991A25.2030804@compulab.co.il> <20141223161936.GA9147@saruman> <549AA94A.8030209@compulab.co.il> <20141224154948.GA423@saruman> <20141224190401.GN23854@atomide.com> <20141226043719.GA7661@saruman>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:51829 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751721AbaLZMIR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Dec 2014 07:08:17 -0500
-In-Reply-To: <20141226043719.GA7661@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 0/3] OMAP3 temperature sensor
+Date: Fri, 26 Dec 2014 13:34:51 +0100
+Message-ID: <1419597294-21487-1-git-send-email-sre@kernel.org>
+References: <20141226102933.GA28778@amd>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141226102933.GA28778@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-On 12/26/14 06:37, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Dec 24, 2014 at 11:04:01AM -0800, Tony Lindgren wrote:
->> * Felipe Balbi <balbi@ti.com> [141224 07:52]:
->>> Hi,
->>>
->>> On Wed, Dec 24, 2014 at 01:53:46PM +0200, Igor Grinberg wrote:
->>>> -----BEGIN PGP SIGNED MESSAGE-----
->>>> Hash: SHA1
->>>>
->>>> On 12/23/14 18:19, Felipe Balbi wrote:
->>>>> On Tue, Dec 23, 2014 at 09:30:45AM +0200, Igor Grinberg wrote:
->>>>>> Hi Felipe,
->>>>>>
->>>>>> On 12/22/14 20:05, Felipe Balbi wrote:
->>>>>>
->>>>>> [...]
->>>>>>
->>>>>>>  CONFIG_SCSI_SCAN_ASYNC=y
->>>>>>> -CONFIG_ATA=y
->>>>>>> -CONFIG_SATA_AHCI_PLATFORM=y
->>>>>>> -CONFIG_MD=y
->>>>>>> +CONFIG_ATA=m
->>>>>>> +CONFIG_SATA_AHCI_PLATFORM=m
->>>>>>
->>>>>> Isn't this needed for the rootfs on SATA devices?
->>>>>
->>>>> there's no known boards with rootfs on SATA. Until then, we can reduce
->>>>> the size.
->>>>
->>>> What makes you say so?
->>>> The decision for rootfs on SATA is taken dynamically.
->>>> OMAP5 boards (specifically cm-t54) can have rootfs on SATA...
->>>
->>> I'll leave the decision to Tony. Even though they _can_, they really
->>> don't and IIRC, OMAP5's SATA has so many silicon errata that it'd be
->>> annoying to find that special device which works (e.g it can't negotiate
->>> lower speeds with SATA III devices and it won't support SATA I).
->>>
->>> As of today, we don't know of anybody really shipping anything with
->>> rootfs on SATA and distros would rather ship initiramfs than a giant
->>> zImage anyway.
->>>
->>> Tony, your call.
->>
->> I think we should move omap2plus_defconfig to be mostly modular and
->> usable for distros as a base. Most distros prefer to build almost
->> everything as loadable modules. And my preference is that we should
->> only keep the minimum rootfs for devices and serial support as
->> built-in and rely on initramfs for most drivers. And slowly move
->> also the remaining built-in drivers to be loadable modules.
->>
->> The reasons for having drivers as loadable modules are many. It
->> allows distros to use the same kernel for all the devices without
->> bloating the kernel. It makes developing drivers easier as just the
->> module needs to be reloaded. And loadable modules protect us from
->> cross-framework spaghetti calls in the kernel as the interfaces are 
->> clearly defined.
->>
->> Are there people really using SATA as rootfs right now on omaps?
-> 
-> not that we know :-) The only platforms available today with SATA are
-> OMAP5432 uEVM and DRA7x EVM,
+I've prepared an updated variant of the omap34xx temperature monitor driver.
+It's based on the N9 driver instead of the N900 driver (and thus has omap36xx
+support).
 
-I'm sorry... that is not true.
+The differences compared to the original driver are:
 
-> the latter being mostly used by TIers as of
-> now (at least from mainline point of view).
+ * DT based
+ * No includes from arch, instead uses syscon DT node + regmap
+ * Removed support for raw temperature reading
+  - I assume this was used for debugging and regmap can be used
+    instead with newer kernels.
+ * Introduction of managed resources where possible
+ * Usage of module_platform_driver() macro
+ * Added some comments referencing the TRM
 
-the keyword is mostly... And I'm also not sure this is true these days...
+So far the patchset is _compile-tested only_. I will test it on my N900 in
+the next days.
 
-But, really, don't mind me. We will find our solutions (we always did).
-I mean, Felipe wants it out so badly...
-Who am I to say anything...
+-- Sebastian
 
-> 
->> If it's only something that will be more widely used in the future,
->> then I suggest we make it into a loadable module, and presume
->> initramfs and loadable module also for any new devices. The same
->> way x86 has been doing with distros for years.
-> 
-> alright, as a module it shall remain.
-> 
+Sebastian Reichel (3):
+  DT Binding for omap3 temperature sensor
+  hwmon: Driver for OMAP3 temperature sensor
+  ARM: dts: OMAP34xx/36xx: Add temperature sensor
 
-- -- 
-Regards,
-Igor.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+ .../bindings/hwmon/omap3-temperature.txt           |  25 ++
+ arch/arm/boot/dts/omap34xx.dtsi                    |   7 +
+ arch/arm/boot/dts/omap36xx.dtsi                    |   7 +
+ drivers/hwmon/Kconfig                              |   8 +
+ drivers/hwmon/Makefile                             |   1 +
+ drivers/hwmon/omap3-temp.c                         | 307 +++++++++++++++++++++
+ 6 files changed, 355 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
+ create mode 100644 drivers/hwmon/omap3-temp.c
 
-iQIcBAEBAgAGBQJUnU+qAAoJEBDE8YO64Efa8IgP/jQlP5nHLK8aWXpNIrRH3dri
-IzIDvWqUC+zYqIgg1JcPmxgfZ+5vhYgjCVx+q0m/81qk164QK4zGs6gDr8sDjK8O
-Q8rqujAbVFO2nmJHmq8VhTpapqTDtG5sH/HvtaWPtBxmBoA5yLdA8KObV9Gf2871
-GvlP1WS/CUu6ClzEERsdWJkfpkqrJ1My1Ox7zCkL80uqM5z6jmje2sam4AiuGWSK
-Kb/Kdkmqae1lizjSnyW0ZckTyCuLUPdzvV+OCq3JrDDJV9W3hrA0KmYKUe4gO0JI
-Z2PNMKvbBuA9miY0IPsbILYkQ01OoKOwZXfDrhhK0k5FLPxSujc9NbfwqByTK2gi
-Ca5zZKoTaUN8A2YoxdNv+m9gILnlgDCtRjvc6elEYZBLZd+03TsxgWAB+aYfx03d
-1W5+qp8jSGBRzsDg5o8ir6mS8xYM3Hpy7xDPT46BqjKzczMCdeXH5MqibL34kqtC
-mMhMw1UzZ5qGOyHXqYE9bosgfpbf+WxmVta7/RRgaJJwo7N41pf1sDyoJjczAfPo
-cAQNeIwPd1DxiS2nO46i4w8FUq10Lf3I7mXxabXIsU3YD81QpjxL5arlFXlPfDVg
-Ki8GW1yE81RepD5xuhhz3/U9pKvozSewH5BlHBo6h9rSBkyyBPs2NbxSxjSNct1H
-MKEG/rYHptCRIntrZ8pm
-=w62Y
------END PGP SIGNATURE-----
+-- 
+2.1.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
