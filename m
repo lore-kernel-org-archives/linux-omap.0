@@ -1,41 +1,101 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP: DTS: N950/N9: add twl_power
-Date: Fri, 26 Dec 2014 22:09:49 +0200
-Message-ID: <1419624589-10432-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:55192 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaLZUKL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Dec 2014 15:10:11 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv2] media: i2c/adp1653: devicetree support for adp1653
+Date: Fri, 26 Dec 2014 21:33:40 +0100
+Message-ID: <20141226203340.GA1791@amd>
+References: <20141203214641.GA1390@amd>
+ <20141224223434.GA20669@amd>
+ <CAL_JsqJsDqYm-xfEM1CqNzJxfZY6vnYxaBYpT+3t4+gV2F3M1A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqJsDqYm-xfEM1CqNzJxfZY6vnYxaBYpT+3t4+gV2F3M1A@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Bryan Wu <cooloney@gmail.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, freemangordon@abv.bg, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, sakari.ailus@iki.fi, Mauro Carvalho Chehab <m.chehab@samsung.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Jacek Anaszewski <j.anaszewski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Add twl_power for N950/N9. Start with the simplest configuration to just
-enable power off.
+Hi!
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+> > We are moving to device tree support on OMAP3, but that currently
+> > breaks ADP1653 driver. This adds device tree support, plus required
+> > documentation.
+> >
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >
+> > ---
+> >
+> > Changed -microsec to -us, as requested by devicetree people.
+> >
+> > Fixed checkpatch issues.
+> >
+> > diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> > index 2d88816..2c6c7c5 100644
+> > --- a/Documentation/devicetree/bindings/leds/common.txt
+> > +++ b/Documentation/devicetree/bindings/leds/common.txt
+> > @@ -14,6 +14,15 @@ Optional properties for child nodes:
+> >       "ide-disk" - LED indicates disk activity
+> >       "timer" - LED flashes at a fixed, configurable rate
+> >
+> > +- max-microamp : maximum intensity in microamperes of the LED
+> > +                (torch LED for flash devices)
+> > +- flash-max-microamp : maximum intensity in microamperes of the
+> > +                       flash LED; it is mandatory if the LED should
+> > +                      support the flash mode
+> > +- flash-timeout-microsec : timeout in microseconds after which the flash
+> > +                           LED is turned off
+> 
+> Doesn't all this go in your flash led binding patch?
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 1e49dfe..c41db94 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -60,6 +60,11 @@
+No, I should not have included this part.
+
+> > +Example:
+> > +
+> > +        adp1653: led-controller@30 {
+> > +                compatible = "adi,adp1653";
+> > +               reg = <0x30>;
+> > +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> > +
+> > +               flash {
+> > +                        flash-timeout-us = <500000>;
+> > +                        flash-max-microamp = <320000>;
+> > +                        max-microamp = <50000>;
+> > +               };
+> > +                indicator {
+> 
+> These are different LEDs or different modes?
+
+flash & indicator are different LEDs. One is white, one is red. Flash
+can be used as a flash and as a torch.
+
+> > +                        max-microamp = <17500>;
+> 
+> This is a bit inconsistent. The binding says this is for flash LEDs
+> torch mode, but I see no reason why it can't be common. Can you update
+> the binding doc to be clear here.
+
+By inconsisnent, you mean you want patch below?
+
+> Also, aren't you missing label properties?
+
+label is optional, and as my driver does not yet use it, I forgot
+about it.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+index 2c6c7c5..92d4dac 100644
+--- a/Documentation/devicetree/bindings/leds/common.txt
++++ b/Documentation/devicetree/bindings/leds/common.txt
+@@ -15,7 +15,6 @@ Optional properties for child nodes:
+      "timer" - LED flashes at a fixed, configurable rate
  
- &twl {
- 	compatible = "ti,twl5031";
-+
-+	twl_power: power {
-+		compatible = "ti,twl4030-power";
-+		ti,use_poweroff;
-+	};
- };
- 
- &twl_gpio {
+ - max-microamp : maximum intensity in microamperes of the LED
+-	         (torch LED for flash devices)
+ - flash-max-microamp : maximum intensity in microamperes of the
+                        flash LED; it is mandatory if the LED should
+ 		       support the flash mode
+
+
 -- 
-2.2.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
