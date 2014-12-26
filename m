@@ -1,315 +1,199 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] add omap34xx temperature monitoring support
-Date: Fri, 26 Dec 2014 11:29:34 +0100
-Message-ID: <20141226102933.GA28778@amd>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
+Date: Fri, 26 Dec 2014 13:56:26 +0200
+Message-ID: <549D4CEA.6090009@compulab.co.il>
+References: <1419271535-4057-1-git-send-email-balbi@ti.com> <54991A25.2030804@compulab.co.il> <20141223161936.GA9147@saruman> <549AA94A.8030209@compulab.co.il> <20141224154948.GA423@saruman> <20141224190401.GN23854@atomide.com> <549BE333.9060709@compulab.co.il> <20141226044246.GB7661@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:50128 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751441AbaLZL4d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Dec 2014 06:56:33 -0500
+In-Reply-To: <20141226044246.GB7661@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+On 12/26/14 06:42, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Dec 25, 2014 at 12:13:07PM +0200, Igor Grinberg wrote:
+>> Hi Tony,
+>>
+>> On 12/24/14 21:04, Tony Lindgren wrote:
+>>> * Felipe Balbi <balbi@ti.com> [141224 07:52]:
+>>>> Hi,
+>>>>
+>>>> On Wed, Dec 24, 2014 at 01:53:46PM +0200, Igor Grinberg wrote:
+>>>>> -----BEGIN PGP SIGNED MESSAGE-----
+>>>>> Hash: SHA1
+>>>>>
+>>>>> On 12/23/14 18:19, Felipe Balbi wrote:
+>>>>>> On Tue, Dec 23, 2014 at 09:30:45AM +0200, Igor Grinberg wrote:
+>>>>>>> Hi Felipe,
+>>>>>>>
+>>>>>>> On 12/22/14 20:05, Felipe Balbi wrote:
+>>>>>>>
+>>>>>>> [...]
+>>>>>>>
+>>>>>>>>  CONFIG_SCSI_SCAN_ASYNC=y
+>>>>>>>> -CONFIG_ATA=y
+>>>>>>>> -CONFIG_SATA_AHCI_PLATFORM=y
+>>>>>>>> -CONFIG_MD=y
+>>>>>>>> +CONFIG_ATA=m
+>>>>>>>> +CONFIG_SATA_AHCI_PLATFORM=m
+>>>>>>>
+>>>>>>> Isn't this needed for the rootfs on SATA devices?
+>>>>>>
+>>>>>> there's no known boards with rootfs on SATA. Until then, we can reduce
+>>>>>> the size.
+>>>>>
+>>>>> What makes you say so?
+>>>>> The decision for rootfs on SATA is taken dynamically.
+>>>>> OMAP5 boards (specifically cm-t54) can have rootfs on SATA...
+>>>>
+>>>> I'll leave the decision to Tony. Even though they _can_, they really
+>>>> don't and IIRC, OMAP5's SATA has so many silicon errata that it'd be
+>>>> annoying to find that special device which works (e.g it can't negotiate
+>>>> lower speeds with SATA III devices and it won't support SATA I).
+>>
+>> Yet, it is not that buggy and at least until now, I di not get any
+>> reports about badly working SATA from customers...
+>>
+>>>>
+>>>> As of today, we don't know of anybody really shipping anything with
+>>>> rootfs on SATA and distros would rather ship initiramfs than a giant
+>>>> zImage anyway.
+>>
+>> So, you just continue to ignore what I'm saying... even after I point
+>> to a device...
+> 
+> you pointed a device which *can* have rootfs on SATA, not one which
+> *has* rootfs on SATA, there's a very big difference there.
+
+Yeah, I thought you will parse me in that way...
+
+> 
+>> Is it SATA that makes it so giant?
+>> Because I find it worth having in SATA than spare some more k's...
+> 
+> that's your point of view. As Tony mentioned, we have a very standard
+> way of dealing with this which is initramfs and x86 has been using that
+> for the past 15+ years.
+
+may be, but no... x86 has SATA built in...
+
+> 
+>>>> Tony, your call.
+>>>
+>>> I think we should move omap2plus_defconfig to be mostly modular and
+>>> usable for distros as a base. Most distros prefer to build almost
+>>> everything as loadable modules. And my preference is that we should
+>>> only keep the minimum rootfs for devices and serial support as
+>>> built-in and rely on initramfs for most drivers. And slowly move
+>>> also the remaining built-in drivers to be loadable modules.
+>>>
+>>> The reasons for having drivers as loadable modules are many. It
+>>> allows distros to use the same kernel for all the devices without
+>>> bloating the kernel. It makes developing drivers easier as just the
+>>> module needs to be reloaded. And loadable modules protect us from
+>>> cross-framework spaghetti calls in the kernel as the interfaces are 
+>>> clearly defined.
+>>>
+>>> Are there people really using SATA as rootfs right now on omaps?
+>>
+>> Yes. That is exactly my point.
+> 
+> read your email, you said it *CAN* have rootfs on SATA.
+
+yep, it also *CAN* have rootfs on MMC and NFS and ...
+
+> 
+>>> If it's only something that will be more widely used in the future,
+>>> then I suggest we make it into a loadable module, and presume
+>>> initramfs and loadable module also for any new devices. The same
+>>> way x86 has been doing with distros for years.
+>>
+>> The difference from x86 is that we're in embedded here and
+> 
+> bullshit, you would never ship a product with omap2plus_defconfig. You'd
+> build your own at which point you would switch SATA to built-in.
+
+Yep, that is one of the options indeed, but I'm not asking you to
+deal with my problems, right?
+I'm feeling like you are trying to insult me.
+Are you angry with me? Why?
+Is it because I have a different opinion?
+
+> 
+>> although initramfs is a kind of option, but it means, you need to
+>> load even more data during the boot process... it is annoying and
+>> I would not want to use it on embedded.
+> 
+> make your own defconfig.
+
+This sounds like: mind your own business...
+Is that what you want to say?
+
+> 
+>> (BTW, x86_64_defconfig has it compiled in...)
+>>
+>> We can also, split the defconfig as it was some time ago... but I
+>> would not want to go that direction...
+>>
+>> If we go the initramfs way, then why not also load MMC from it?
+>> That will also reduce kernel size... (but add initramfs size)
+> 
+> I'm fine with that. The difference is that people have been relying on
+> MMC built-in for the past 10+ years, since the old OMAP1 MMC driver,
+> changing that now is likely to cause some "my board won't boot anymore"
+> bug reports.
+
+Yep. So there are exceptions, right?
+
+> 
+>> I'm sure you will find making the MMC a loadable module inconvenient.
+>> That how I find making the SATA a loadable module...
+>>
+>> Right now, we tell our customers that they can use mainline with
+>> omap2plus_defconfig.
+> 
+> that's the worst thing you can do.
+
+Hmmm... Interesting, so people should not use mainline.
+
+> You should at a minimum provide your
+> customers with a more minimal rootfs. Why would you have your customers
+> build MUSB on an OMAP5 board ? Why would they build 5 different
+> network device drivers ? Why would they build almost every single PMIC
+> we ever used ? The list goes on and on.
+
+That is their decision to make. I'm just saying that they can use it.
 
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+- -- 
+Regards,
+Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 6529c09..9007ca9 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -28,6 +28,10 @@ config HWMON_VID
- 	tristate
- 	default n
- 
-+config SENSORS_OMAP34XX
-+	bool "TI OMAP34xx internal temperature sensor"
-+	depends on ARCH_OMAP3 && HIGH_RES_TIMERS
-+
- config HWMON_DEBUG_CHIP
- 	bool "Hardware Monitoring Chip debugging messages"
- 	default n
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 6728064..5c3b5d1 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -120,6 +120,7 @@ obj-$(CONFIG_SENSORS_NCT6683)	+= nct6683.o
- obj-$(CONFIG_SENSORS_NCT6775)	+= nct6775.o
- obj-$(CONFIG_SENSORS_NCT7802)	+= nct7802.o
- obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
-+obj-$(CONFIG_SENSORS_OMAP34XX)  += omap34xx_temp.o
- obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
- obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
- obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
-diff --git a/drivers/hwmon/omap34xx_temp.c b/drivers/hwmon/omap34xx_temp.c
-new file mode 100644
-index 0000000..bc7a72f
---- /dev/null
-+++ b/drivers/hwmon/omap34xx_temp.c
-@@ -0,0 +1,263 @@
-+/*
-+ * omap34xx_temp.c - Linux kernel module for OMAP34xx hardware monitoring
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
-+ *
-+ * Inspired by k8temp.c
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of this
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/hrtimer.h>
-+#include <linux/module.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+#include <linux/slab.h>
-+
-+#include "../../arch/arm/mach-omap2/control.h"
-+
-+#define TEMP_SENSOR_SOC BIT(8)
-+#define TEMP_SENSOR_EOCZ BIT(7)
-+
-+/* minimum delay for EOCZ rise after SOC rise is
-+ * 11 cycles of the 32.768Khz clock */
-+#define EOCZ_MIN_RISING_DELAY (11 * 30518)
-+
-+/* maximum delay for EOCZ rise after SOC rise is
-+ * 14 cycles of the 32.768Khz clock */
-+#define EOCZ_MAX_RISING_DELAY (14 * 30518)
-+
-+/* minimum delay for EOCZ falling is
-+ * 36 cycles of the 32.768Khz clock */
-+#define EOCZ_MIN_FALLING_DELAY (36 * 30518)
-+
-+/* maximum delay for EOCZ falling is
-+ * 40 cycles of the 32.768Khz clock */
-+#define EOCZ_MAX_FALLING_DELAY (40 * 30518)
-+
-+struct omap34xx_data {
-+	struct device *hwmon_dev;
-+	struct clk *clk_32k;
-+	struct mutex update_lock;
-+	const char *name;
-+	char valid;
-+	unsigned long last_updated;
-+	u32 temp;
-+};
-+
-+static struct platform_device omap34xx_temp_device = {
-+	.name	= "omap34xx_temp",
-+	.id	= -1,
-+};
-+
-+static int adc_to_temp[] = {
-+	-40, -40, -40, -40, -40, -39, -38, -36, -34, -32, -31, -29, -28, -26,
-+	-25, -24, -22, -21, -19, -18, -17, -15, -14, -12, -11, -9, -8, -7, -5,
-+	-4, -2, -1, 0, 1, 3, 4, 5, 7, 8, 10, 11, 13, 14, 15, 17, 18, 20, 21,
-+	22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 37, 38, 39, 41, 42, 44, 45,
-+	47, 48, 49, 51, 52, 53, 55, 56, 58, 59, 60, 62, 63, 65, 66, 67, 69,
-+	70, 72, 73, 74, 76, 77, 79, 80, 81, 83, 84, 85, 87, 88, 89, 91, 92,
-+	94, 95, 96, 98, 99, 100, 102, 103, 105, 106, 107, 109, 110, 111, 113,
-+	114, 116, 117, 118, 120, 121, 122, 124, 124, 125, 125, 125, 125, 125};
-+
-+static inline u32 wait_for_eocz(int min_delay, int max_delay, u32 level)
-+{
-+	struct timespec timeout;
-+	ktime_t expire;
-+	u32 temp_sensor_reg;
-+
-+	level &= 1;
-+	level *= TEMP_SENSOR_EOCZ;
-+
-+	expire = ktime_add_ns(ktime_get(), max_delay);
-+	timeout = ns_to_timespec(min_delay);
-+	hrtimer_nanosleep(&timeout, NULL, HRTIMER_MODE_REL, CLOCK_MONOTONIC);
-+	do {
-+		temp_sensor_reg = omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
-+		if ((temp_sensor_reg & TEMP_SENSOR_EOCZ) == level)
-+			break;
-+	} while (ktime_us_delta(expire, ktime_get()) > 0);
-+
-+	return (temp_sensor_reg & TEMP_SENSOR_EOCZ) == level;
-+}
-+
-+static void omap34xx_update(struct omap34xx_data *data)
-+{
-+	u32 temp_sensor_reg;
-+
-+	mutex_lock(&data->update_lock);
-+
-+	if (!data->valid
-+	    || time_after(jiffies, data->last_updated + HZ)) {
-+		clk_prepare_enable(data->clk_32k);
-+
-+		temp_sensor_reg = omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
-+		temp_sensor_reg |= TEMP_SENSOR_SOC;
-+		omap_ctrl_writel(temp_sensor_reg, OMAP343X_CONTROL_TEMP_SENSOR);
-+
-+		if (!wait_for_eocz(EOCZ_MIN_RISING_DELAY,
-+					EOCZ_MAX_RISING_DELAY, 1))
-+			goto err;
-+
-+		temp_sensor_reg = omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
-+		temp_sensor_reg &= ~TEMP_SENSOR_SOC;
-+		omap_ctrl_writel(temp_sensor_reg, OMAP343X_CONTROL_TEMP_SENSOR);
-+
-+		if (!wait_for_eocz(EOCZ_MIN_FALLING_DELAY,
-+					EOCZ_MAX_FALLING_DELAY, 0))
-+			goto err;
-+
-+		data->temp = omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR) &
-+						((1<<7) - 1);
-+		data->last_updated = jiffies;
-+		data->valid = 1;
-+
-+err:
-+		clk_disable_unprepare(data->clk_32k);
-+	}
-+
-+	mutex_unlock(&data->update_lock);
-+}
-+
-+static ssize_t show_name(struct device *dev,
-+			struct device_attribute *devattr, char *buf)
-+{
-+	struct omap34xx_data *data = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%s\n", data->name);
-+}
-+
-+static ssize_t show_temp_raw(struct device *dev,
-+			 struct device_attribute *devattr, char *buf)
-+{
-+	struct omap34xx_data *data = dev_get_drvdata(dev);
-+
-+	omap34xx_update(data);
-+
-+	return sprintf(buf, "%d\n", data->temp);
-+}
-+
-+static ssize_t show_temp(struct device *dev,
-+			 struct device_attribute *devattr, char *buf)
-+{
-+	struct omap34xx_data *data = dev_get_drvdata(dev);
-+
-+	omap34xx_update(data);
-+
-+	return sprintf(buf, "%d\n", adc_to_temp[data->temp]);
-+}
-+
-+static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(temp1_input_raw, S_IRUGO, show_temp_raw,
-+				NULL, 0, 0);
-+static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
-+
-+static int omap34xx_temp_probe(void)
-+{
-+	int err;
-+	struct omap34xx_data *data;
-+
-+	err = platform_device_register(&omap34xx_temp_device);
-+	if (err) {
-+		pr_err("Unable to register omap34xx temperature device\n");
-+		goto exit;
-+	}
-+
-+	data = kzalloc(sizeof(struct omap34xx_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit_platform;
-+	}
-+
-+	dev_set_drvdata(&omap34xx_temp_device.dev, data);
-+	mutex_init(&data->update_lock);
-+	data->name = "omap34xx_temp";
-+
-+	data->clk_32k = clk_get(&omap34xx_temp_device.dev, "ts_fck");
-+	if (IS_ERR(data->clk_32k)) {
-+		err = PTR_ERR(data->clk_32k);
-+		goto exit_free;
-+	}
-+
-+	err = device_create_file(&omap34xx_temp_device.dev,
-+				 &sensor_dev_attr_temp1_input.dev_attr);
-+	if (err)
-+		goto clock_free;
-+
-+	err = device_create_file(&omap34xx_temp_device.dev,
-+				 &sensor_dev_attr_temp1_input_raw.dev_attr);
-+	if (err)
-+		goto exit_remove;
-+
-+	err = device_create_file(&omap34xx_temp_device.dev, &dev_attr_name);
-+	if (err)
-+		goto exit_remove_raw;
-+
-+	data->hwmon_dev = hwmon_device_register(&omap34xx_temp_device.dev);
-+
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove_all;
-+	}
-+
-+	return 0;
-+
-+exit_remove_all:
-+	device_remove_file(&omap34xx_temp_device.dev,
-+			   &dev_attr_name);
-+exit_remove_raw:
-+	device_remove_file(&omap34xx_temp_device.dev,
-+			   &sensor_dev_attr_temp1_input_raw.dev_attr);
-+exit_remove:
-+	device_remove_file(&omap34xx_temp_device.dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+clock_free:
-+	clk_put(data->clk_32k);
-+
-+exit_free:
-+	kfree(data);
-+exit_platform:
-+	platform_device_unregister(&omap34xx_temp_device);
-+exit:
-+	return err;
-+}
-+
-+static int __init omap34xx_temp_init(void)
-+{
-+	return omap34xx_temp_probe();
-+}
-+
-+static void __exit omap34xx_temp_exit(void)
-+{
-+	struct omap34xx_data *data =
-+			dev_get_drvdata(&omap34xx_temp_device.dev);
-+
-+	clk_put(data->clk_32k);
-+	hwmon_device_unregister(data->hwmon_dev);
-+	device_remove_file(&omap34xx_temp_device.dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_remove_file(&omap34xx_temp_device.dev, &dev_attr_name);
-+	kfree(data);
-+	platform_device_unregister(&omap34xx_temp_device);
-+}
-+
-+MODULE_AUTHOR("Peter De Schrijver");
-+MODULE_DESCRIPTION("Omap34xx temperature sensor");
-+MODULE_LICENSE("GPL");
-+
-+module_init(omap34xx_temp_init)
-+module_exit(omap34xx_temp_exit)
-+
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+iQIcBAEBAgAGBQJUnUzqAAoJEBDE8YO64EfawVsP/RBnEcOMVLjocMKwB/wVDrAf
+PamLBOMHtFNZrqMntL13N25a799h2FS5lYn+jYBw7AkXcdfJUgJeHjivukJMwPdm
+RArMzY03HtwXqfH1pn8zpopxbuFgSGRcS6O0k8xAV21iLgSFvLuZTIJK5/9RH3Oi
+rznIgrxg1yDpGttm2Btq+55IIVhStf2IwPSqEidK/73Rjx08a2j+bkSXnlYVnhyx
+ZNfumCpcHoAFLX3SQIbAKSpWNO0jMvqJ2dqN+wNb0A/RtoWWf26ITdVEXEpt0HE7
+g1r7xvcEVZsXaeN2rMQsfNaZk9zGHOM50v3G6n/LMkyCa0oWO2CPPwTeCPoDdzgZ
+5HAjHOXSnYV3QcMj9cklI09vYIKRPvASNyGcEft/HsYv98TmbNU5YGdTHwW66aDK
+5VKKKLBwuGOJC5k+fQdEO38oqrEuxWfHRolSCoOmZXfaTPYAAGzU9s4NL9OisgPa
+pqyOIqU4/WexWzFyhKE28ebJmtsNtlAyNiXPV/4s0y4hf0E0Se1Z2DhhOSI9BZK+
+P6ce+pqrDZgJlGMN13PR4p6vxCEIW6+xZu8sUTHEMs8EhplQRrduSud6OY60ocjm
+5F/f2LicydOu7w1OyO3HoENhdZ1EuSTp1njlJ5DkGhHNtw10rFr+5sSUcooPFQwg
+9eozH1HMbeJS4CRgV5iT
+=VLzg
+-----END PGP SIGNATURE-----
