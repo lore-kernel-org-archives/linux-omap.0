@@ -1,76 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Fri, 26 Dec 2014 08:13:49 -0800
-Message-ID: <20141226161349.GC12409@atomide.com>
-References: <1419271535-4057-1-git-send-email-balbi@ti.com>
- <54991A25.2030804@compulab.co.il>
- <20141223161936.GA9147@saruman>
- <549AA94A.8030209@compulab.co.il>
- <20141224154948.GA423@saruman>
- <20141224190401.GN23854@atomide.com>
- <549BE333.9060709@compulab.co.il>
- <549D5CC0.2090408@linaro.org>
- <20141226152620.GF17430@saruman>
+Subject: Re: [PATCH] add omap34xx temperature monitoring support
+Date: Fri, 26 Dec 2014 08:17:57 -0800
+Message-ID: <20141226161757.GD12409@atomide.com>
+References: <20141226102933.GA28778@amd>
+ <20141226155456.GB12409@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16446 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751058AbaLZQNz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Dec 2014 11:13:55 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39654 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066AbaLZQSI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Dec 2014 11:18:08 -0500
 Content-Disposition: inline
-In-Reply-To: <20141226152620.GF17430@saruman>
+In-Reply-To: <20141226155456.GB12409@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Igor Grinberg <grinberg@compulab.co.il>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, jdelvare@suse.de, linux@roeck-us.net, lm-sensors@lm-sensors.org
 
-* Felipe Balbi <balbi@ti.com> [141226 07:29]:
-> On Fri, Dec 26, 2014 at 03:04:00PM +0200, Grygorii.Strashko@linaro.org wrote:
-> > >>>
-> > >>> Tony, your call
-> > 
-> > May be it will be good thing to split this patch. That way more
-> > information will be stored in commit log about which set of options
-> > gives us what benefits.  And also, It will allow to continue with
-> > agreed changes.  ?
+* Tony Lindgren <tony@atomide.com> [141226 07:57]:
+> * Pavel Machek <pavel@ucw.cz> [141226 02:32]:
+> > --- /dev/null
+> > +++ b/drivers/hwmon/omap34xx_temp.c
+> > @@ -0,0 +1,263 @@
+> > +/*
+> > + * omap34xx_temp.c - Linux kernel module for OMAP34xx hardware monitoring
+> > + *
+> > + * Copyright (C) 2008 Nokia Corporation
+> > + *
+> > + * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
+> > + *
+> > + * Inspired by k8temp.c
+> > + *
+> > + * This file is subject to the terms and conditions of the GNU General
+> > + * Public License. See the file "COPYING" in the main directory of this
+> > + * archive for more details.
+> > + *
+> > + * This program is distributed in the hope that it will be useful,
+> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +
+> > +#include <linux/clk.h>
+> > +#include <linux/hrtimer.h>
+> > +#include <linux/module.h>
+> > +#include <linux/hwmon.h>
+> > +#include <linux/hwmon-sysfs.h>
+> > +#include <linux/err.h>
+> > +#include <linux/platform_device.h>
+> > +#include <linux/io.h>
+> > +#include <linux/slab.h>
+> > +
+> > +#include "../../arch/arm/mach-omap2/control.h"
 > 
-> can be done, but then again, it's just a defconfig change. Tony, your
-> call.
-> 
-> > >> I think we should move omap2plus_defconfig to be mostly modular and
-> > >> usable for distros as a base. Most distros prefer to build almost
-> > >> everything as loadable modules. And my preference is that we should
-> > >> only keep the minimum rootfs for devices and serial support as
-> > >> built-in and rely on initramfs for most drivers. And slowly move
-> > >> also the remaining built-in drivers to be loadable modules.
-> > >>
-> > >> The reasons for having drivers as loadable modules are many. It
-> > >> allows distros to use the same kernel for all the devices without
-> > >> bloating the kernel. It makes developing drivers easier as just the
-> > >> module needs to be reloaded. And loadable modules protect us from
-> > >> cross-framework spaghetti calls in the kernel as the interfaces are
-> > >> clearly defined.
-> > >>
-> > >> Are there people really using SATA as rootfs right now on omaps?
-> > > 
-> > > Yes. That is exactly my point.
-> > > 
-> > 
-> > From my side I'd like to note that I know about few ongoing projects
-> > on DRA7x EVM where SATA is used as rootfs - now It is the fast
-> > possible way to start Android.
-> 
-> now this is something different. This is evidence that there are people
-> relying on SATA on rootfs. I'll leave to Tony again.
+> No need to do this, you can use syscon here like pbias-regulator.c
+> is doing.
 
-OK sounds like people are really using SATA as rootfs, so we might as
-well keep it built in then. And it does not affect the PM on the devices
-that do have PM working, that has been a problem with having some
-drivers built-in.
+Oh looks like you're already using syscon, nice. What defines do you
+need from control.h?
 
-We can still work towards making the current rootfs device drivers
-into loadable modules in the long term :)
+Those should be in the driver if private to the driver, or else we
+should have some minimal header in include/linux somewhere if some
+control.h defines really need to be exposed.
 
 Regards,
 
