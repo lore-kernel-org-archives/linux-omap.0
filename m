@@ -1,70 +1,139 @@
-From: Amit Virdi <amitvi128@gmail.com>
-Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
- is reached
-Date: Sat, 27 Dec 2014 13:24:03 +0530
-Message-ID: <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] usb: dwc3: gadget: Fix TRB preparation during SG
+Date: Sat, 27 Dec 2014 11:44:09 -0600
+Message-ID: <20141227174409.GA17608@saruman>
 References: <cover.1418972323.git.amit.virdi@st.com>
-	<995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
-	<20141222160626.GD12815@saruman>
+ <1908f9be4bfb2148b4d2efa2dbc6de88c204e7f4.1418972323.git.amit.virdi@st.com>
+ <20141222160431.GC12815@saruman>
+ <CAEOkp46psaZjeMc3qQmbnV8iqoXtbPJDrORABqhCt_f9tfOZeg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f182.google.com ([209.85.160.182]:41300 "EHLO
-	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbaL0HyF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Dec 2014 02:54:05 -0500
-In-Reply-To: <20141222160626.GD12815@saruman>
+Received: from bear.ext.ti.com ([192.94.94.41]:56419 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751243AbaL0Rok (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 27 Dec 2014 12:44:40 -0500
+Content-Disposition: inline
+In-Reply-To: <CAEOkp46psaZjeMc3qQmbnV8iqoXtbPJDrORABqhCt_f9tfOZeg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Amit Virdi <amit.virdi@st.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, pratyush.anand@gmail.com, ajay.khandelwal@st.com
+To: Amit Virdi <amitvi128@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Amit Virdi <amit.virdi@st.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, pratyush.anand@gmail.com, ajay.khandelwal@st.com
 
-On Mon, Dec 22, 2014 at 9:36 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Fri, Dec 19, 2014 at 12:40:16PM +0530, Amit Virdi wrote:
->> When SG is used, there are two loops iterating to prepare TRBs:
->>  - Outer loop over the request_list
->>  - Inner loop over the SG list
->>
->> The driver must stop preparing TRBs when the max TRBs have been prepared. The
->> code was missing break to get out of the outer loop.
->>
->> Signed-off-by: Amit Virdi <amit.virdi@st.com>
->
-> which bug is this fixing ? Which kernels are affected ? This need to be
-> backported to which kernel ? Which commit introduced this bug ? How can
-> I validate this to be a valid fix ?
->
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Problem description:
-DWC3 gadget sets up a pool of 32 TRBs for each EP during
-initialization. This means, the max TRBs that can be submitted for an
-EP is fixed to 32. Since the request queue for an EP is a linked list,
-any number of requests can be queued to it by the gadget layer.
-However, the dwc3 driver must not submit TRBs more than the pool it
-has created for. This limit wasn't respected when SG was used
-resulting in submitting more than the max TRBs, eventually leading to
-non-transfer of the TRBs submitted over the max limit.
+Hi,
 
-Commit that introduced this bug:
-This bug is present from the day support for sg list was added to dwc3
-gadget., i.e. since commit eeb720fb21d61dfc3aac780e721150998ef603af
-("usb: dwc3: gadget: add support for SG lists") - kernel version
-v3.2-rc7, hence v3.2
+On Sat, Dec 27, 2014 at 12:39:23PM +0530, Amit Virdi wrote:
+> On Mon, Dec 22, 2014 at 9:34 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Fri, Dec 19, 2014 at 12:40:15PM +0530, Amit Virdi wrote:
+> >> When scatter gather is used, multiple TRBs are prepared from one DWC3 =
+request.
+> >> Hence, we must set the 'last' flag when the SG is last as well as the =
+TRB is
+> >> last. The current implementation uses list_is_last to check if the dwc=
+3_request
+> >> is the last request in the request_list.
+> >>
+> >> This doesn't work when SG is used. This is because, when it is the las=
+t request,
+> >> the first TRB preparation (in dwc3_prepare_one_trb) modifies the dwc3_=
+request
+> >> list's next and prev pointers while moving the URB to req_queued.
+> >>
+> >> Hence, list_is_last always return false no matter what. The correct wa=
+y is not
+> >> to access the modified pointers of dwc3_request but to use list_empty =
+macro
+> >> instead.
+> >>
+> >> Fixes: e5ba5ec833aa4a76980b512d6a6779643516b850 ("usb: dwc3: gadget: f=
+ix scatter
+> >> gather implementation"
+> >>
+> >> Signed-off-by: Amit Virdi <amit.virdi@st.com>
+> >
+> > you need to Cc stable here and make sure you point out which kernel
+> > versions this should be backported to. Looks like this sould be:
+> >
+> > Cc: <stable@vger.kernel.org> # v3.9+
+>=20
+> Okay. I checked the git log. The commit ("usb: dwc3: gadget: fix
+> scatter gather implementation") was introduced in v3.8-rc5, hence
+> v3.8, so I need to
+>=20
+> Cc: <stable@vger.kernel.org> # v3.8+
 
-Kernels affected:
-It is best to backport this fix to kernel v3.8+ as there were many
-enhancements/bug fixes from v3.2..v3.8
+hehe, many folks get confused by this. New features will never get
+merged upstream during the -rc cycle. -rc5 is when I applied it to my
+tree so it could be merged on the following merge window, which was
+v3.9.
 
-Generic setup to reproduce/test this fix:
-This bug is reproduced whenever the number of TRBs that need to be
-submitted to the hardware from the software queue (request_list)
-becomes more than 32 on bulk endpoint. eg. if num_mapped_sgs is 2 and
-the request_list has 17 entries (hence, 34 potential TRBs), the
-scenario is reproduced.
+> > Also, how have you tested this ? I need a test case to make sure it
+> > fails here and this patch really fixes the problem.
+> >
+>=20
+> This bug can be easily reproduced/tested if the gadget driver submits
+> a urb having number of sg entries mapped to DMA more than 1 on bulk
 
-My setup details:
-For reproducing and testing the patches [1/4 and 2/4], I used an
-inhouse developed user space application that run on device side. This
-user space application interacts with the customized uvc webcam gadget
-to submit the video data to the DWC3 driver. The host side was running
-standard webcam application (cheese).
+which gadget driver does this ?
+
+> endpoint. Following is the log snippet once this bug is reproduced:
+> ----
+> dwc3 dwc3.0: ep2in-bulk: Transfer Not Ready
+> dwc3 dwc3.0: queing request 24cc5780 to ep2in-bulk length 960002
+> dwc3 dwc3.0: ep2in-bulk: req 24cc5780 dma 24eb6400 length 2 chain
+> dwc3 dwc3.0: ep2in-bulk: req 24cc5780 dma 25901800 length 960000
+> dwc3 dwc3.0: queing request 24cc5000 to ep2in-bulk length 960002
+> dwc3 dwc3.0: ep2in-bulk: Transfer Not Ready
+> dwc3 dwc3.0: queing request 24cc5900 to ep2in-bulk length 960002
+> -----
+>=20
+> Without this fix, the hardware never generates "Transfer Complete"
+> event for the corresponding EP and goes into an unknown state.
+
+whiuch kernel are you using to develop this ? Most of these messages
+don't exist anymore with v3.19-rc because I have converted them into
+tracepoints, considering you're showing me logs with these messages,
+this tells me that you're sending me a patch developed/tested against a
+kernel older than v3.18. I need to see full bootup logs, a register dump
+(/sys/kernel/debug/*dwc3*/regdump) and a much larger debugging log from
+dwc3 in order to accept patches from you. Sorry, but I cannot take
+patches which were not tested against, at a minimum, the latest major
+release.
+
+It would be much better if you developed/tested against v3.19-rc1,
+considering we have 40 different patches which were merged since v3.18
+was tagged.
+
+--=20
+balbi
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUnu/oAAoJEIaOsuA1yqREp+wP/2AmS+qahLGZPKLszIJJi/vB
+pgfowPF93oN5e8imBIzYGHxAzW2t8392X/fedifaXaDae0JOBWCYTKd+D0RJU4TD
+9T6I3/7eG6+LxD3yl7eSdsPmS97LGkQvGrTr4chcYo1+AP/ZILgapBCyxUf7C/gn
+3FRjGMPMGDDCofvHrgmjR0aag47eWc0fbS+SsGyAeCNdEpCQPvontUGWE+I2VJpz
+lZNdmonrnAoh2OTEEj8M0ZFS2iKHLLqgT5adQarXQbocYXIWThap/73VpHBHBACn
+xIAF9GCKbXveznJT6UqOO8Qd58UMWtxUOr94IaTQfajTyCDTQ61XvUDv4kusRWF+
+l24YmKjxptb784T2AyU29YgCfuU6BQlvhbpSLDyC6xuKWU5kxxXXXhnOkFj78f/L
+hjs7vfUctgNmspFamV4Mjl5AkHs0Rq8f3ACf3EY94UmqXCD/lkDlUHVcRuQzdYCT
+ppbC9c0QUynnO8iz+W0aF7qngvLZDlmT0atciB2xZI1Z2bXKqA5oIjVnOabx8B19
+OxWwmeFjZijtZiWE9KSfIKd6r6sIL1lB3+DlscNX5/npF0p0uNCDXpfl4bHLbhhX
+O9dEqtrKHso+LiAhpdi1GVAUQ0stI7rZ3rPogsETyVnFSKysLcUzlaKo1GgN6iOj
+vW+iYJJDRjWJIntWhDhR
+=vYZg
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
