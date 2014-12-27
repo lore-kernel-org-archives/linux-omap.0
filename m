@@ -1,118 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
- is reached
-Date: Sat, 27 Dec 2014 11:46:28 -0600
-Message-ID: <20141227174628.GB17608@saruman>
-References: <cover.1418972323.git.amit.virdi@st.com>
- <995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
- <20141222160626.GD12815@saruman>
- <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH 2/7] mfd: menelaus: drop support for SW controller VCORE
+Date: Sat, 27 Dec 2014 19:52:54 +0200
+Message-ID: <1419702779-16001-3-git-send-email-aaro.koskinen@iki.fi>
+References: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54858 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbaL0Rq7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Dec 2014 12:46:59 -0500
-Content-Disposition: inline
-In-Reply-To: <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:48109 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751219AbaL0RxR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Dec 2014 12:53:17 -0500
+In-Reply-To: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amit Virdi <amitvi128@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Amit Virdi <amit.virdi@st.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, pratyush.anand@gmail.com, ajay.khandelwal@st.com
+To: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Drop support for SW controlled VCORE, nobody uses it.
 
-Hi,
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/mfd/menelaus.c       | 23 -----------------------
+ include/linux/mfd/menelaus.h |  1 -
+ 2 files changed, 24 deletions(-)
 
-On Sat, Dec 27, 2014 at 01:24:03PM +0530, Amit Virdi wrote:
-> On Mon, Dec 22, 2014 at 9:36 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Fri, Dec 19, 2014 at 12:40:16PM +0530, Amit Virdi wrote:
-> >> When SG is used, there are two loops iterating to prepare TRBs:
-> >>  - Outer loop over the request_list
-> >>  - Inner loop over the SG list
-> >>
-> >> The driver must stop preparing TRBs when the max TRBs have been prepar=
-ed. The
-> >> code was missing break to get out of the outer loop.
-> >>
-> >> Signed-off-by: Amit Virdi <amit.virdi@st.com>
-> >
-> > which bug is this fixing ? Which kernels are affected ? This need to be
-> > backported to which kernel ? Which commit introduced this bug ? How can
-> > I validate this to be a valid fix ?
-> >
->=20
-> Problem description:
-> DWC3 gadget sets up a pool of 32 TRBs for each EP during
-> initialization. This means, the max TRBs that can be submitted for an
-> EP is fixed to 32. Since the request queue for an EP is a linked list,
-> any number of requests can be queued to it by the gadget layer.
-> However, the dwc3 driver must not submit TRBs more than the pool it
-> has created for. This limit wasn't respected when SG was used
-> resulting in submitting more than the max TRBs, eventually leading to
-> non-transfer of the TRBs submitted over the max limit.
+diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+index 9f01aef..917fa86 100644
+--- a/drivers/mfd/menelaus.c
++++ b/drivers/mfd/menelaus.c
+@@ -532,29 +532,6 @@ static const struct menelaus_vtg_value vcore_values[] = {
+ 	{ 1450, 18 },
+ };
+ 
+-int menelaus_set_vcore_sw(unsigned int mV)
+-{
+-	int val, ret;
+-	struct i2c_client *c = the_menelaus->client;
+-
+-	val = menelaus_get_vtg_value(mV, vcore_values,
+-				     ARRAY_SIZE(vcore_values));
+-	if (val < 0)
+-		return -EINVAL;
+-
+-	dev_dbg(&c->dev, "Setting VCORE to %d mV (val 0x%02x)\n", mV, val);
+-
+-	/* Set SW mode and the voltage in one go. */
+-	mutex_lock(&the_menelaus->lock);
+-	ret = menelaus_write_reg(MENELAUS_VCORE_CTRL1, val);
+-	if (ret == 0)
+-		the_menelaus->vcore_hw_mode = 0;
+-	mutex_unlock(&the_menelaus->lock);
+-	msleep(1);
+-
+-	return ret;
+-}
+-
+ int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int floor_mV)
+ {
+ 	int fval, rval, val, ret;
+diff --git a/include/linux/mfd/menelaus.h b/include/linux/mfd/menelaus.h
+index a1e12bf3..9e85ac0 100644
+--- a/include/linux/mfd/menelaus.h
++++ b/include/linux/mfd/menelaus.h
+@@ -24,7 +24,6 @@ extern int menelaus_set_vaux(unsigned int mV);
+ extern int menelaus_set_vdcdc(int dcdc, unsigned int mV);
+ extern int menelaus_set_slot_sel(int enable);
+ extern int menelaus_get_slot_pin_states(void);
+-extern int menelaus_set_vcore_sw(unsigned int mV);
+ extern int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int floor_mV);
+ 
+ #define EN_VPLL_SLEEP	(1 << 7)
+-- 
+2.2.0
 
-this would become a much, much better commit log than the one you
-provided. It's a much more verbose description of the issue.
-
-> Commit that introduced this bug:
-> This bug is present from the day support for sg list was added to dwc3
-> gadget., i.e. since commit eeb720fb21d61dfc3aac780e721150998ef603af
-> ("usb: dwc3: gadget: add support for SG lists") - kernel version
-> v3.2-rc7, hence v3.2
->=20
-> Kernels affected:
-> It is best to backport this fix to kernel v3.8+ as there were many
-> enhancements/bug fixes from v3.2..v3.8
->=20
-> Generic setup to reproduce/test this fix:
-> This bug is reproduced whenever the number of TRBs that need to be
-> submitted to the hardware from the software queue (request_list)
-> becomes more than 32 on bulk endpoint. eg. if num_mapped_sgs is 2 and
-> the request_list has 17 entries (hence, 34 potential TRBs), the
-> scenario is reproduced.
->=20
-> My setup details:
-> For reproducing and testing the patches [1/4 and 2/4], I used an
-> inhouse developed user space application that run on device side. This
-> user space application interacts with the customized uvc webcam gadget
-> to submit the video data to the DWC3 driver. The host side was running
-> standard webcam application (cheese).
-
-oh, so this is something I can't easily reproduce myself. Then I'll need
-full boot logs, register dump and full trace output of dwc3 running and
-exhibiting the problem. Also, make sure you use either v3.18 or v3.19rc1
-to validate your changes.
-
---=20
-balbi
-
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUnvB0AAoJEIaOsuA1yqREASIP/12p/Eny4zSj9+tDjNtSmTK5
-TPB2CKm1GS0f6N+YYhB6eikMDruURjOQZVaV6yP423aMQtJhReytL196FQrzg3Si
-QCeA6T1ow+gVjATNQiH+EPvtG5GMBdEpvHeNLm4kMyiEZW9jQVMcoChAz0x6EuWa
-Xg+W7CHbl2Nvg7/TFeumRBFh7lhlA+4Xmp38BDN0tFJuJ1B4+NFcYQDGRKmrhszg
-GpSD2MtBtkIVKDJi8jaOwoHetFScqL0pw4vgSL8W3e+JRwxWQdFbSO38UBghiEGs
-fcNHBDJTx84t40cckkcqZLkT2BEWmAGJLzQG+lTkxg8FCgEW1DWv1cTBxuU6YCse
-usdYtBEPJyRhrDG90v2vEItxJAmaIn/3PCcDvId1k+IgFoJf+rYwEIEEzdPFD039
-JvYdvTNfjNTqb9SPUul/7yClBxnLWk62obaAtjr4SQXGvfhYRdgla/EA5hJ4tNfE
-mOJuPBm8x3IKP0gTCTTKz1Dkg1M83YLDsE4AD5AucUdrlIk8scizS+JNHixZ1Hau
-uAX4++l+wAjmyK8K/gcv4eroj4CtXwroxbRiINaTlJW2tXgqYr4PyhzdvEvsapjY
-Vlzp9lywutnNgyjy2w9PPyb2/dNKAEWhQ+6RbyeFk/CbN5xDQe/FazFLS707Zqb1
-6nuIdt6Oa5Wt6eFMBAtM
-=0RTZ
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
