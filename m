@@ -1,128 +1,226 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/3] DT Binding for omap3 temperature sensor
-Date: Sat, 27 Dec 2014 00:50:33 +0100
-Message-ID: <20141226235032.GA29735@earth.universe>
-References: <20141226102933.GA28778@amd>
- <1419597294-21487-1-git-send-email-sre@kernel.org>
- <1419597294-21487-2-git-send-email-sre@kernel.org>
- <20141226171944.GA24756@amd>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH v2 3/5] input: misc: add tps65218 power button driver
+Date: Fri, 26 Dec 2014 21:36:48 -0600
+Message-ID: <1419651408-529-1-git-send-email-balbi@ti.com>
+References: <20141226234117.GA1071@dtor-ws>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141226171944.GA24756@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20141226234117.GA1071@dtor-ws>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+With this driver, we can report KEY_POWER on
+AM437x SK. This patch has been tested with said
+board.
 
---envbJBWh7q8WU6mo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-Hi Pavel,
+Changes since v1:
+	- Add device tree documentation
+	- s/ret/error
+	- removed 'pressed' as input core will filter events
+	- use a saner name when requesting IRQ. dev_name(dev) will return
+		$i2c_bus_address.i2c-omap:0-0024:tps65218-pwrbutton
+	- remove blank line before MODULE_DEVICE_TABLE()
 
-On Fri, Dec 26, 2014 at 06:19:44PM +0100, Pavel Machek wrote:
-> On Fri 2014-12-26 13:34:52, Sebastian Reichel wrote:
-> > OMAP34xx and OMAP36xx processors contain a register in the syscon area,
-> > which can be used to determine the SoCs temperature. This provides a
-> > DT binding specification for the temperature monitor.
-> >=20
-> > Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  .../bindings/hwmon/omap3-temperature.txt           | 25 ++++++++++++++=
-++++++++
-> >  1 file changed, 25 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/hwmon/omap3-tempe=
-rature.txt
-> >=20
-> > diff --git a/Documentation/devicetree/bindings/hwmon/omap3-temperature.=
-txt b/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
-> > new file mode 100644
-> > index 0000000..99631ad
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/hwmon/omap3-temperature.txt
-> > @@ -0,0 +1,25 @@
-> > +* OMAP3 temperature sensor
-> > +
-> > +The OMAP34xx and OMAP36xx processors contain a register in the syscon =
-area,
-> > +which can be used to determine the SoCs temperature.
-> > +
-> > +Requires node properties:
-> > +- compatible :	should contain one of
-> > +	- "ti,omap34xx-temperature-sensor" for OMAP34xx
-> > +	- "ti,omap36xx-temperature-sensor" for OMAP36xx
-> > +- syscon :	Should be a phandle to system configuration node which
-> > +		encompases the temperature register
-> > +- clocks :	Should contain 32KHz fclk clock specifier
-> > +- clock-names :	Should contain clock names
-> > +	- "fck" for the 32KHz fclk clock specifier
->=20
-> I don't quite get it. The temperature sensor is internal on the CPU,
-> right? Why do we need device tree to describe it? As soon as we have
-> CPU that is compatible to ti,omap3430, we know everything we need to
-> know, no?
+ .../bindings/input/tps65218-pwrbutton.txt          |  17 +++
+ drivers/input/misc/Kconfig                         |  10 ++
+ drivers/input/misc/Makefile                        |   1 +
+ drivers/input/misc/tps65218-pwrbutton.c            | 124 +++++++++++++++++++++
+ 4 files changed, 152 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+ create mode 100644 drivers/input/misc/tps65218-pwrbutton.c
 
-Lots of stuff is SoC internal and described in the DT (e.g. serial
-controllers). Just have a look in omap3.dtsi or omap34xx.dtsi.
+diff --git a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+new file mode 100644
+index 0000000..e30e0b9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+@@ -0,0 +1,17 @@
++Texas Instruments TPS65218 power button
++
++This driver provides a simple power button event via an Interrupt.
++
++Required properties:
++- compatible: should be "ti,tps65218-pwrbutton"
++- interrupts: should be one of the following
++   - <3 IRQ_TYPE_EDGE_BOTH>: For controllers compatible with tps65218
++
++Example:
++
++&tps {
++	power-button {
++		compatible = "ti,tps65218-pwrbutton";
++		interrupts = <3 IRQ_TYPE_EDGE_BOTH>;
++	};
++};
+diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+index 23297ab..364cfb8 100644
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -404,6 +404,16 @@ config INPUT_RETU_PWRBUTTON
+ 	  To compile this driver as a module, choose M here. The module will
+ 	  be called retu-pwrbutton.
+ 
++config INPUT_TPS65218_PWRBUTTON
++	tristate "TPS65218 Power button driver"
++	depends on MFD_TPS65218
++	help
++	  Say Y here if you want to enable power buttong reporting for
++	  the TPS65218 Power Management IC device.
++
++	  To compile this driver as a module, choose M here. The module will
++	  be called tps65218-pwrbutton.
++
+ config INPUT_TWL4030_PWRBUTTON
+ 	tristate "TWL4030 Power button Driver"
+ 	depends on TWL4030_CORE
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index 19c7603..a923753 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -59,6 +59,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
+ obj-$(CONFIG_INPUT_SIRFSOC_ONKEY)	+= sirfsoc-onkey.o
+ obj-$(CONFIG_INPUT_SOC_BUTTON_ARRAY)	+= soc_button_array.o
+ obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
++obj-$(CONFIG_INPUT_TPS65218_PWRBUTTON)	+= tps65218-pwrbutton.o
+ obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
+ obj-$(CONFIG_INPUT_TWL6040_VIBRA)	+= twl6040-vibra.o
+diff --git a/drivers/input/misc/tps65218-pwrbutton.c b/drivers/input/misc/tps65218-pwrbutton.c
+new file mode 100644
+index 0000000..2f85e2e
+--- /dev/null
++++ b/drivers/input/misc/tps65218-pwrbutton.c
+@@ -0,0 +1,124 @@
++/*
++ * Texas Instruments' TPS65218 Power Button Input Driver
++ *
++ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: Felipe Balbi <balbi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/init.h>
++#include <linux/input.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/mfd/tps65218.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++struct tps65218_pwrbutton {
++	struct device *dev;
++	struct tps65218 *tps;
++	struct input_dev *idev;
++};
++
++static irqreturn_t tps65218_pwr_irq(int irq, void *_pwr)
++{
++	struct tps65218_pwrbutton *pwr = _pwr;
++	unsigned int reg;
++	int error;
++
++	error = tps65218_reg_read(pwr->tps, TPS65218_REG_STATUS, &reg);
++	if (error) {
++		dev_err(pwr->dev, "can't read register --> %d\n", error);
++		goto out;
++	}
++
++	if (reg & TPS65218_STATUS_PB_STATE) {
++		input_report_key(pwr->idev, KEY_POWER, 1);
++		pm_wakeup_event(pwr->dev, 0);
++	} else {
++		input_report_key(pwr->idev, KEY_POWER, 0);
++	}
++
++	input_sync(pwr->idev);
++
++out:
++	return IRQ_HANDLED;
++}
++
++static int tps65218_pwron_probe(struct platform_device *pdev)
++{
++	struct tps65218 *tps = dev_get_drvdata(pdev->dev.parent);
++	struct device *dev = &pdev->dev;
++	struct tps65218_pwrbutton *pwr;
++	struct input_dev *idev;
++	int error;
++	int irq;
++
++	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
++	if (!pwr)
++		return -ENOMEM;
++
++	idev = devm_input_allocate_device(dev);
++	if (!idev)
++		return -ENOMEM;
++
++	idev->name = "tps65218_pwrbutton";
++	idev->phys = "tps65218_pwrbutton/input0";
++	idev->dev.parent = dev;
++	idev->id.bustype = BUS_I2C;
++
++	input_set_capability(idev, EV_KEY, KEY_POWER);
++
++	pwr->tps = tps;
++	pwr->dev = dev;
++	pwr->idev = idev;
++	platform_set_drvdata(pdev, pwr);
++	device_init_wakeup(dev, true);
++
++	irq = platform_get_irq(pdev, 0);
++	error = devm_request_threaded_irq(dev, irq, NULL, tps65218_pwr_irq,
++			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
++			"tps65218-pwrbutton", pwr);
++	if (error) {
++		dev_err(dev, "failed to request IRQ #%d --> %d\n",
++				irq, error);
++		return error;
++	}
++
++	error= input_register_device(idev);
++	if (error) {
++		dev_err(dev, "Can't register power button --> %d\n", error);
++		return error;
++	}
++
++	return 0;
++}
++
++static struct of_device_id of_tps65218_pwr_match[] = {
++	{ .compatible = "ti,tps65218-pwrbutton" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, of_tps65218_pwr_match);
++
++static struct platform_driver tps65218_pwron_driver = {
++	.probe	= tps65218_pwron_probe,
++	.driver	= {
++		.name	= "tps65218_pwrbutton",
++		.of_match_table = of_tps65218_pwr_match,
++	},
++};
++module_platform_driver(tps65218_pwron_driver);
++
++MODULE_DESCRIPTION("TPS65218 Power Button");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Felipe Balbi <balbi@ti.com>");
+-- 
+2.2.0
 
-I put the temperature sensor into its own node for the following
-reasons:
-
- * syscon reference
- * clock reference
-
-I first thought about loading the driver from the syscon driver,
-but omap uses a generic one, so that's not an option. Apart from
-that one would still need the clock reference.
-
-> > +Example for omap34xx:
-> > +
-> > +/ {
-> > +	temperature-sensor {
-> > +		compatible =3D "ti,omap34xx-temperature-sensor";
-> > +		syscon =3D <&omap3_scm_general>;
-> > +		clocks =3D <&ts_fck>;
-> > +		clock-names =3D "fck";
-> > +	};
-> > +};
->=20
-> Or is there something that depends on the board there? Or do we want
-> to do it like this to be consistent with existing bindings?
-
-This is SoC specific and should go into the omap34xx.dtsi and
-omap36xx.dtsi files. See also PATCH 3/3.
-
--- Sebastian
-
---envbJBWh7q8WU6mo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUnfRFAAoJENju1/PIO/qahdoP+wdNC4pbt8G2UmiQUb8Z9mde
-EpLP0cJ9cAcGvG/W828PFZmdcdHeEsm6IsuSZUj9HYoCAndtbaeqsQ0xN1WossMF
-wPZ+9A9KWdx+FswQVByJnpWDYd9y+yQN3Wo1C69g62+6eUe+kuSRZAab1mrnhU+M
-/+ygbknk7OJpiJa+fYdCyjzcnV7Sq8xKfO8K79qpvuHEZuF0X8SsY3zO802L6BWm
-YrFTA0jWPrwDwmpSOMGB1E3jQBgz7J4DjmZgt8O5R5uo7kB2KjaxHrd4hQFgF0Vn
-ythh9TYImJFXGi4sZ7IVHf3ONzuNPRhNu+0WBmZXdg4b/CrJ+1ID8Zw9dWIUesQx
-Zx80yABcUDmIZmlsLxosOONA2G4te8nCVFFZ49673D25pBRl5e0jE00pMHcUOTPI
-WsMOQdNhQgJnsZSgd2NLr7NWa4Bnuz23VDK73vZ3vRVS4Rofr/IsYESpkhh+tMl6
-bBJPzGX6kBlxjZK+2zjH+P/Ocrjkf1AGcJQKgQVOXbKi5j4qe1d10KOvVNXYnxRm
-kbw/OE5fj8SHh57ePv4+qJK95ao5oqLOsCC4RbjwNe7et9iayC5VZEisVkbUUv4D
-ct5kSmq625N90y3qf+JkYVjZtYVNBb1PGzWS+A5UV55gw1SHs1E1PBU4aqvzN8pK
-pr+8j8+9xkLQD0z4EliB
-=RrdN
------END PGP SIGNATURE-----
-
---envbJBWh7q8WU6mo--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
