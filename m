@@ -1,93 +1,87 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 5/7] mfd: menelaus: delete platform data support
-Date: Sat, 27 Dec 2014 19:52:57 +0200
-Message-ID: <1419702779-16001-6-git-send-email-aaro.koskinen@iki.fi>
+Subject: [PATCH 6/7] mfd: menelaus: make vcore and regulator controls internal
+Date: Sat, 27 Dec 2014 19:52:58 +0200
+Message-ID: <1419702779-16001-7-git-send-email-aaro.koskinen@iki.fi>
 References: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:45618 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbaL0RxT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Dec 2014 12:53:19 -0500
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:45563 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229AbaL0RxW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Dec 2014 12:53:22 -0500
 In-Reply-To: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Delete platform data support.
+Make vcore and regulator control functions internal to the driver.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/arm/mach-omap2/common-board-devices.h |  2 --
- drivers/mfd/menelaus.c                     | 10 +---------
- include/linux/mfd/menelaus.h               |  6 ------
- 3 files changed, 1 insertion(+), 17 deletions(-)
+ drivers/mfd/menelaus.c       | 13 +++++++++++--
+ include/linux/mfd/menelaus.h | 12 ------------
+ 2 files changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-index 07c88ae..7a30228 100644
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -2,7 +2,6 @@
- #define __OMAP_COMMON_BOARD_DEVICES__
- 
- #include <sound/tlv320aic3x.h>
--#include <linux/mfd/menelaus.h>
- #include "twl-common.h"
- 
- #define NAND_BLOCK_SIZE	SZ_128K
-@@ -14,7 +13,6 @@ void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 		       struct ads7846_platform_data *board_pdata);
- void *n8x0_legacy_init(void);
- 
--extern struct menelaus_platform_data n8x0_menelaus_platform_data;
- extern struct aic3x_pdata n810_aic33_data;
- 
- #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
 diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-index 3e04c64..4a900cc 100644
+index 4a900cc..8660adf 100644
 --- a/drivers/mfd/menelaus.c
 +++ b/drivers/mfd/menelaus.c
-@@ -1181,8 +1181,6 @@ static int menelaus_probe(struct i2c_client *client,
- 	int			rev = 0;
- 	int			err = 0;
- 	struct device_node	*np = client->dev.of_node;
--	struct menelaus_platform_data *menelaus_pdata =
--					dev_get_platdata(&client->dev);
+@@ -163,6 +163,15 @@
+ #define MCT_PIN_ST_S1_CD_ST		(1 << 0)
+ #define MCT_PIN_ST_S2_CD_ST		(1 << 1)
  
- 	if (the_menelaus) {
- 		dev_dbg(&client->dev, "only one %s for now\n",
-@@ -1240,13 +1238,7 @@ static int menelaus_probe(struct i2c_client *client,
- 	else
- 		menelaus->vcore_hw_mode = 0;
++#define EN_VPLL_SLEEP			(1 << 7)
++#define EN_VMMC_SLEEP			(1 << 6)
++#define EN_VAUX_SLEEP			(1 << 5)
++#define EN_VIO_SLEEP			(1 << 4)
++#define EN_VMEM_SLEEP			(1 << 3)
++#define EN_DC3_SLEEP			(1 << 2)
++#define EN_DC2_SLEEP			(1 << 1)
++#define EN_VC_SLEEP			(1 << 0)
++
+ static void menelaus_work(struct work_struct *_menelaus);
  
--	if (menelaus_pdata != NULL) {
--		if (menelaus_pdata->late_init != NULL) {
--			err = menelaus_pdata->late_init(&client->dev);
--			if (err < 0)
--				goto fail;
--		}
--	} else if (np) {
-+	if (np) {
- 		u32 vcore_min;
- 		u32 vcore_max;
+ struct menelaus_chip {
+@@ -534,7 +543,7 @@ static const struct menelaus_vtg_value vcore_values[] = {
+ 	{ 1450, 18 },
+ };
  
+-int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int floor_mV)
++static int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int floor_mV)
+ {
+ 	int fval, rval, val, ret;
+ 	struct i2c_client *c = the_menelaus->client;
+@@ -743,7 +752,7 @@ int menelaus_get_slot_pin_states(void)
+ }
+ EXPORT_SYMBOL(menelaus_get_slot_pin_states);
+ 
+-int menelaus_set_regulator_sleep(int enable, u32 val)
++static int menelaus_set_regulator_sleep(int enable, u32 val)
+ {
+ 	int t, ret;
+ 	struct i2c_client *c = the_menelaus->client;
 diff --git a/include/linux/mfd/menelaus.h b/include/linux/mfd/menelaus.h
-index 9e85ac0..21eeff5 100644
+index 21eeff5..bcabc03 100644
 --- a/include/linux/mfd/menelaus.h
 +++ b/include/linux/mfd/menelaus.h
-@@ -5,12 +5,6 @@
- #ifndef __ASM_ARCH_MENELAUS_H
- #define __ASM_ARCH_MENELAUS_H
+@@ -18,17 +18,5 @@ extern int menelaus_set_vaux(unsigned int mV);
+ extern int menelaus_set_vdcdc(int dcdc, unsigned int mV);
+ extern int menelaus_set_slot_sel(int enable);
+ extern int menelaus_get_slot_pin_states(void);
+-extern int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int floor_mV);
+-
+-#define EN_VPLL_SLEEP	(1 << 7)
+-#define EN_VMMC_SLEEP	(1 << 6)
+-#define EN_VAUX_SLEEP	(1 << 5)
+-#define EN_VIO_SLEEP	(1 << 4)
+-#define EN_VMEM_SLEEP	(1 << 3)
+-#define EN_DC3_SLEEP	(1 << 2)
+-#define EN_DC2_SLEEP	(1 << 1)
+-#define EN_VC_SLEEP	(1 << 0)
+-
+-extern int menelaus_set_regulator_sleep(int enable, u32 val);
  
--struct device;
--
--struct menelaus_platform_data {
--	int (* late_init)(struct device *dev);
--};
--
- extern int menelaus_register_mmc_callback(void (*callback)(void *data, u8 card_mask),
- 					  void *data);
- extern void menelaus_unregister_mmc_callback(void);
+ #endif
 -- 
 2.2.0
 
