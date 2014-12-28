@@ -1,108 +1,143 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Sun, 28 Dec 2014 20:34:18 +0900
-Message-ID: <549FEABA.10206@gmail.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com> <1419331716-8972-3-git-send-email-m.szyprowski@samsung.com> <20141223170613.GM23854@atomide.com> <5499A2B4.2080909@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Subject: [PATCH] ARM: dts: cm-t3x: add NAND support
+Date: Sun, 28 Dec 2014 15:15:03 +0200
+Message-ID: <1419772503-11671-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:40658 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbaL1LeZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Dec 2014 06:34:25 -0500
-In-Reply-To: <5499A2B4.2080909@ti.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:44860 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377AbaL1NP3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 28 Dec 2014 08:15:29 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Nishanth, Tony,
+Add NAND support
 
-On 24.12.2014 02:13, Nishanth Menon wrote:
-> On 12/23/2014 11:06 AM, Tony Lindgren wrote:
->> * Marek Szyprowski <m.szyprowski@samsung.com> [141223 02:51]:
->>> From: Tomasz Figa <t.figa@samsung.com>
->>>
->>> Certain implementations of secure hypervisors (namely the one found on
->>> Samsung Exynos-based boards) do not provide access to individual L2C
->>> registers. This makes the .write_sec()-based interface insufficient and
->>> provoking ugly hacks.
->>>
->>> This patch is first step to make the driver not rely on availability of
->>> writes to individual registers. This is achieved by refactoring the
->>> driver to use a commit-like operation scheme: all register values are
->>> prepared first and stored in an instance of l2x0_regs struct and then a
->>> single callback is responsible to flush those values to the hardware.
->>
->> The first patch of the series applied things boot with no problem.
->> But after applying this one I get the following on am437x:
->>
->> Unhandled fault: imprecise external abort (0xc06) at 0xb6f33884
->>
->> Probably the same issue Nishanth mentioned.
->>
->
-> yep - just finished the bisect... came to the same conclusion..
->
-> c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f is the first bad commit
-> commit c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f
-> Author: Tomasz Figa <t.figa@samsung.com>
-> Date:   Tue Dec 23 11:48:30 2014 +0100
->
->      ARM: l2c: Refactor the driver to use commit-like interface
->
->      Certain implementations of secure hypervisors (namely the one found on
->      Samsung Exynos-based boards) do not provide access to individual L2C
->      registers. This makes the .write_sec()-based interface
-> insufficient and
->      provoking ugly hacks.
->
->      This patch is first step to make the driver not rely on
-> availability of
->      writes to individual registers. This is achieved by refactoring the
->      driver to use a commit-like operation scheme: all register values are
->      prepared first and stored in an instance of l2x0_regs struct and
-> then a
->      single callback is responsible to flush those values to the hardware.
->
->      Signed-off-by: Tomasz Figa <t.figa@samsung.com>
->      Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->
-> :040000 040000 74c6c74a0dc0612d124cd759951adf2a1e4124ee
-> 8082aabb474f8659231de744d87cd8dbd6dd79bb M	arch
->
->
-> $ git bisect log
-> git bisect start
-> # good: [97bf6af1f928216fd6c5a66e8a57bfa95a659672] Linux 3.19-rc1
-> git bisect good 97bf6af1f928216fd6c5a66e8a57bfa95a659672
-> # bad: [9afe195db6558621bd8bac379ed65ef121930684] ARM: dts: exynos4:
-> Add nodes for L2 cache controller
-> git bisect bad 9afe195db6558621bd8bac379ed65ef121930684
-> # bad: [0a89ef4dd870bbf692e30fef6c8182d7b8b42e17] ARM: l2c: Get outer
-> cache .write_sec callback from mach_desc only if not NULL
-> git bisect bad 0a89ef4dd870bbf692e30fef6c8182d7b8b42e17
-> # bad: [c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f] ARM: l2c: Refactor
-> the driver to use commit-like interface
-> git bisect bad c8c3a07fa6a8e9b27a1658e0d305b6f7e0fa068f
-> # good: [080ab387c653b8655dc1ee790658b618399db2aa] ARM: OMAP2+: use
-> common l2cache initialization code
-> git bisect good 080ab387c653b8655dc1ee790658b618399db2aa
->
->
+Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
+---
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi   |   58 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-sbc-t3517.dts |    4 ++
+ arch/arm/boot/dts/omap3-sbc-t3530.dts |   10 ++----
+ arch/arm/boot/dts/omap3-sbc-t3730.dts |    5 ++-
+ 4 files changed, 68 insertions(+), 9 deletions(-)
 
-May I ask you (or anyone else working on OMAP) to try to figure out what 
-the issue is? It is stopping L2 cache support for Exynos4 being merged 
-and Exynos people don't have access to any of affected boards to do 
-anything about it. After all, this is generic code, so I believe 
-community should cooperate with pushing it forward. (Of course I 
-understand it is a holiday season at the moment, so I don't expect any 
-solution right at this moment :))
+diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+index 6ea6d46..4d091ca 100644
+--- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
++++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+@@ -259,3 +259,61 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mcbsp2_pins>;
+ };
++
++&gpmc {
++	ranges = <0 0 0x00000000 0x01000000>;
++
++	nand@0,0 {
++		reg = <0 0 4>;	/* CS0, offset 0, IO size 4 */
++		nand-bus-width = <8>;
++		gpmc,device-width = <1>;
++		ti,nand-ecc-opt = "sw";
++
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <120>;
++		gpmc,cs-wr-off-ns = <120>;
++
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <120>;
++		gpmc,adv-wr-off-ns = <120>;
++
++		gpmc,we-on-ns = <6>;
++		gpmc,we-off-ns = <90>;
++
++		gpmc,oe-on-ns = <6>;
++		gpmc,oe-off-ns = <90>;
++
++		gpmc,page-burst-access-ns = <6>;
++		gpmc,access-ns = <72>;
++		gpmc,cycle2cycle-delay-ns = <60>;
++
++		gpmc,rd-cycle-ns = <120>;
++		gpmc,wr-cycle-ns = <120>;
++		gpmc,wr-access-ns = <186>;
++		gpmc,wr-data-mux-bus-ns = <90>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		partition@0 {
++			label = "xloader";
++			reg = <0 0x80000>;
++		};
++		partition@0x80000 {
++			label = "uboot";
++			reg = <0x80000 0x1e0000>;
++		};
++		partition@0x260000 {
++			label = "uboot environment";
++			reg = <0x260000 0x40000>;
++		};
++		partition@0x2a0000 {
++			label = "linux";
++			reg = <0x2a0000 0x400000>;
++		};
++		partition@0x6a0000 {
++			label = "rootfs";
++			reg = <0x6a0000 0x1f880000>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/omap3-sbc-t3517.dts b/arch/arm/boot/dts/omap3-sbc-t3517.dts
+index 1798653..c2d5c28 100644
+--- a/arch/arm/boot/dts/omap3-sbc-t3517.dts
++++ b/arch/arm/boot/dts/omap3-sbc-t3517.dts
+@@ -69,3 +69,7 @@
+ 	};
+ };
+ 
++&gpmc {
++	ranges = <4 0 0x2d000000 0x01000000>,	/* SB-T35 SMSC9x Eth */
++		 <0 0 0x00000000 0x01000000>;	/* CM-T3x NAND */
++};
+diff --git a/arch/arm/boot/dts/omap3-sbc-t3530.dts b/arch/arm/boot/dts/omap3-sbc-t3530.dts
+index c994f0f..834bc78 100644
+--- a/arch/arm/boot/dts/omap3-sbc-t3530.dts
++++ b/arch/arm/boot/dts/omap3-sbc-t3530.dts
+@@ -26,14 +26,10 @@
+ 	};
+ };
+ 
+-/*
+- * The following ranges correspond to SMSC9x eth chips on CM-T3530 CoM and
+- * SB-T35 baseboard respectively.
+- * This setting includes both chips in SBC-T3530 board device tree.
+- */
+ &gpmc {
+-	ranges = <5 0 0x2c000000 0x01000000>,
+-		 <4 0 0x2d000000 0x01000000>;
++	ranges = <5 0 0x2c000000 0x01000000>,	/* CM-T3x30 SMSC9x Eth */
++		 <4 0 0x2d000000 0x01000000>,	/* SB-T35 SMSC9x Eth */
++		 <0 0 0x00000000 0x01000000>;	/* CM-T3x NAND */
+ };
+ 
+ &mmc1 {
+diff --git a/arch/arm/boot/dts/omap3-sbc-t3730.dts b/arch/arm/boot/dts/omap3-sbc-t3730.dts
+index 5bdddf2..73c7bf4 100644
+--- a/arch/arm/boot/dts/omap3-sbc-t3730.dts
++++ b/arch/arm/boot/dts/omap3-sbc-t3730.dts
+@@ -27,8 +27,9 @@
+ };
+ 
+ &gpmc {
+-	ranges = <5 0 0x2c000000 0x01000000>,
+-		 <4 0 0x2d000000 0x01000000>;
++	ranges = <5 0 0x2c000000 0x01000000>,	/* CM-T3x30 SMSC9x Eth */
++		 <4 0 0x2d000000 0x01000000>,	/* SB-T35 SMSC9x Eth */
++		 <0 0 0x00000000 0x01000000>;	/* CM-T3x NAND */
+ };
+ 
+ &dss {
+-- 
+1.7.5.4
 
-Apparently patch 1/8 solved problems with some of the boards. Could you 
-check how those boards differ and look for potential causes?
-
-Best regards,
-Tomasz
