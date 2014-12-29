@@ -1,125 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: v3.19-rc1 regression(?) on N900
-Date: Mon, 29 Dec 2014 10:04:46 +0200
-Message-ID: <54A10B1E.7030800@ti.com>
-References: <549B44E2.6080202@ti.com> <201412250932.40403@pali> <20141225091121.GA20355@amd> <20141225222122.GB582@fuloong-minipc.musicnaut.iki.fi>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: am335x: cpsw: interrupt failure
+Date: Mon, 29 Dec 2014 10:33:26 +0100
+Message-ID: <CAGm1_kudtF9O4QChrKX1q=c9KwHEFZet=z7j=-_iCRE914X83Q@mail.gmail.com>
+References: <CAGm1_ksPkFXV_S6541cK1TQb_eRTHbspZy4zWxY5GMrrjGD2tA@mail.gmail.com>
+ <20141204165609.GJ18045@saruman> <CAGm1_ksNuO75QfgaDUpOe525xDkPhby-z8T=MX3DHdB-LVcR8g@mail.gmail.com>
+ <20141210171724.GI4602@saruman> <CAGm1_ksziwSjQnV1rDYsAv2QQCvhnZPOimowmsW5Cib7C01aqA@mail.gmail.com>
+ <20141210210234.GN4602@saruman> <CAGm1_ktYg4iDgK7jyi5etSVup61LdookkV+SaQZOpLb6M=y7hA@mail.gmail.com>
+ <CAGm1_kuaqXrU4zhNUZeY85+OeXHApSUDjJdsXcyBdvHTNhLCmQ@mail.gmail.com>
+ <20141212173210.GI7549@saruman> <CAGm1_kuYrGsfjRO6TVr554yS8dcD4_Z9-j9KL0xpD=X+31OkXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46504 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751663AbaL2IFi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Dec 2014 03:05:38 -0500
-In-Reply-To: <20141225222122.GB582@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAGm1_kuYrGsfjRO6TVr554yS8dcD4_Z9-j9KL0xpD=X+31OkXQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: netdev <netdev@vger.kernel.org>, "N, Mugunthan V" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
-Cc: =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, sre@debian.org, Tony Lindgren <tony@atomide.com>, sre@ring0.de, ivo.g.dimitrov.75@gmail.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
---PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5
-Content-Type: multipart/mixed;
- boundary="------------070708010705000405090003"
+On Fri, Dec 12, 2014 at 8:19 PM, Yegor Yefremov
+<yegorslists@googlemail.com> wrote:
+> On Fri, Dec 12, 2014 at 6:32 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> Hi,
+>>
+>> On Fri, Dec 12, 2014 at 01:00:51PM +0100, Yegor Yefremov wrote:
+>>> U-Boot version: 2014.07
+>>> Kernel config is omap2plus with enabled USB
+>>>
+>>> # cat /proc/version
+>>> Linux version 3.18.0 (user@user-VirtualBox) (gcc version 4.8.3
+>>> 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29) ) #6 SMP
+>>> Mon Dec 8 22:47:43 CET 2014
+>>
+>> Wasn't GCC 4.8.x total crap for building ARM kernels ? IIRC it was even
+>> blacklisted. Can you try with 4.9.x just to make sure ?
+>
+> Will do.
 
-This is a multi-part message in MIME format.
---------------070708010705000405090003
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Adding linux-omap. Beginning of this discussion:
+http://comments.gmane.org/gmane.linux.network/341427
 
-Hi,
+Quick summary: starting with kernel 3.18 or commit
+55601c9f24670ba926ebdd4d712ac3b177232330 am335x (at least BBB and some
+custom boards) stalls at high network load. Reproducible via nuttcp
+within some minutes
 
-On 26/12/14 00:21, Aaro Koskinen wrote:
+nuttcp -S (on BBB)
+nuttcp -t -N 4 -T30m 192.168.1.235 (on host)
 
-> ...however, I can confirm that framebuffer is broken:
->=20
-> [    8.230743] omapfb omapfb: no displays
-> [    8.255584] omapfb omapfb: failed to setup omapfb
-> [    8.260620] platform omapfb: Driver omapfb requests probe deferral
-> [    8.284118] of_get_named_gpiod_flags: parsed 'reset-gpios' property =
-of node
-> '/ocp/spi@48098000/acx565akm@2[0]' - status (0)
-> [    8.284271] acx565akm spi1.2: failed to find video source
-> [    8.290069] spi spi1.2: Driver acx565akm requests probe deferral
->=20
-> I bisected it to ef691ff48bc8 (OMAPDSS: DT: Get source endpoint
-> by matching reg-id). When I revert that, also FB works with 3.19-rc1.
+As Felipe Balbi suggested, I tried both 4.8.3 and 4.9.2 toolchains,
+but both show the same behavior.
 
-I've attached a patch for this. Only hack-tested on OMAP3 beagle, so
-please report if it works.
+Linux version 3.18.0 (user@user-VirtualBox) (gcc version 4.8.3
+20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29) ) #6 SMP
+Mon Dec 8 22:47:43 CET 2014
+Linux version 3.18.1 (user@user-VirtualBox) (gcc version 4.9.2
+(Buildroot 2015.02-git-00582-g10b9761) ) #1 SMP Mon Dec 29 09:22:29
+CET 2014
 
- Tomi
+Let me know, if you can reproduce this issue.
 
+Thanks.
 
---------------070708010705000405090003
-Content-Type: text/x-patch;
- name="0001-OMAPDSS-SDI-fix-output-port_num.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="0001-OMAPDSS-SDI-fix-output-port_num.patch"
-
-=46rom fe3e8dde8eae80541a3f3b39c421428ebd02955f Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Mon, 29 Dec 2014 09:57:11 +0200
-Subject: [PATCH] OMAPDSS: SDI: fix output port_num
-
-After the commit ef691ff48bc8 (OMAPDSS: DT: Get source endpoint by
-matching reg-id) we look for the SDI output using the port number.
-However, the SDI driver doesn't set the port number, which causes the
-SDI display to not initialize.
-
-Fix this by setting the SDI port number to 1. We use a hardcoded value,
-as SDI was used only on OMAP3 and it's always port number 1 there.
-
-Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Reported-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/fbdev/omap2/dss/sdi.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/video/fbdev/omap2/dss/sdi.c b/drivers/video/fbdev/om=
-ap2/dss/sdi.c
-index d51a983075bc..5c2ccab5a958 100644
---- a/drivers/video/fbdev/omap2/dss/sdi.c
-+++ b/drivers/video/fbdev/omap2/dss/sdi.c
-@@ -342,6 +342,8 @@ static void sdi_init_output(struct platform_device *p=
-dev)
- 	out->output_type =3D OMAP_DISPLAY_TYPE_SDI;
- 	out->name =3D "sdi.0";
- 	out->dispc_channel =3D OMAP_DSS_CHANNEL_LCD;
-+	/* We have SDI only on OMAP3, where it's on port 1 */
-+	out->port_num =3D 1;
- 	out->ops.sdi =3D &sdi_ops;
- 	out->owner =3D THIS_MODULE;
-=20
---=20
-2.2.1
-
-
---------------070708010705000405090003--
-
---PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUoQseAAoJEPo9qoy8lh71LXwP+gI6VeCP40rzldPbxV9x7bez
-ImxlAT/NUuKLlPncW5Iz36VMo5rYKn9DRvQnfY1Ha0QtD5VQ50/3Lg8/DekS6T2i
-4VDljIXu/pPN2BWaB7NBoS7Fm/K/KJwnjx1LXWhDOdX1m6vir0tgYgr2Tiqp6Oll
-s/Jg8iAoYBTrecBYJpRWQ8FgU76evjP4R8qD3b2rFWVbhWW/Slp3jJGrs0HlfkPN
-TP+AJFYzwyBjDzY0joFG+fz7UhlTeZv6PSaTX3dVbOTC47REAvcBFeWY3OABi9Mk
-WCKrm0ngxsKRPk6CLSlfBkkZseqiFPGFMcb2rUi+xTVO1kd1Ji0HYoV3+Nz43J7A
-eWg5T9ZJGCbLqdJ7larC+xBr9dSE4arcP4rv3UV8N2n5IZTBqcbwCSTUta2AlE7S
-zGxttn0+6vW4PAnRnECcUpvoP1KXcjGIEc6q7I6d43irNHCFfQmCHSCb7Sgk12ww
-dRjSX1vM5mE3O/5QE5GXFoeixdhUXuA7waEgpPjYfNfBRbfDIUbDTfOIM2kyDQ+Q
-1MoEXF7ikmN5vRrZ5+juBedBhmPqNm7gVopXBqK/B4DAQU5Q+hYMoGunuiP3MU7p
-bxxQi9uBEIuGCkLYnyzw0J6F99hrQn+Zegpj2Am4sMO7Ep7rGQizu65GfIPB7vP6
-Ectyj3HHdA0Cz3av1Jy8
-=/NFK
------END PGP SIGNATURE-----
-
---PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5--
+Yegor
