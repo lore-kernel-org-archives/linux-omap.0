@@ -1,31 +1,106 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: print error if wait_target_ready()
- failed
-Date: Mon, 29 Dec 2014 11:38:58 +0200
-Message-ID: <54A12132.9010100@ti.com>
-References: <1418992490-2901-1-git-send-email-lokeshvutla@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] phy: ti-pipe3: Fix SATA across suspend/resume
+Date: Mon, 29 Dec 2014 11:53:49 +0200
+Message-ID: <54A124AD.2020201@ti.com>
+References: <1418990720-3638-1-git-send-email-rogerq@ti.com> <1418990720-3638-3-git-send-email-rogerq@ti.com> <5498221C.6010701@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49579 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751519AbaL2Jj0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Dec 2014 04:39:26 -0500
-In-Reply-To: <1418992490-2901-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5498221C.6010701-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: nm-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 19/12/14 14:34, Lokesh Vutla wrote:
-> Fixed pr_debug to pr_err when hwmod returns an error when enabling
-> a module.
+On 22/12/14 15:52, Kishon Vijay Abraham I wrote:
+> Hi Roger,
 > 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> On Friday 19 December 2014 05:35 PM, Roger Quadros wrote:
+>> Failed test case: Boot without SATA drive connected. Suspend/resume
+>> the board and then connect SATA drive. It fails to enumerate.
+>>
+>> Due to Errata i783 "SATA Lockup After SATA DPLL Unlock/Relock"
+>> we can't allow SATA DPLL to be in the unlocked state.
+>> The SATA refclk (sata_ref_clk) is the source of the SATA_DPLL.
+>> Till now this clock was controlled by the AHCI SATA driver and was being
+>> shut off  during system suspend (if the SATA drive was not already attached)
+>> causing the SATA DPLL to be unlocked and so causing errata i783.
+>>
+>> To prevent sata_ref_clk from being disabled, we move the control of
+>> this clock from the SATA AHCI driver to the SATA PHY driver and prevent
+>> it from being disabled.
+>>
+>> This also fixes the issue of SATA not working on OMAP5/DRA7 when
+>> AHCI platform driver is built as a module.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  arch/arm/boot/dts/dra7.dtsi  |  4 ++--
+>>  arch/arm/boot/dts/omap5.dtsi |  4 ++--
+>>  drivers/phy/phy-ti-pipe3.c   | 53 +++++++++++++++++++++++++++++++-------------
+>>  3 files changed, 41 insertions(+), 20 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 63bf99b..8c35b84 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -1090,8 +1090,8 @@
+>>  				      <0x4A096800 0x40>; /* pll_ctrl */
+>>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>>  				ctrl-module = <&omap_control_sata>;
+>> -				clocks = <&sys_clkin1>;
+>> -				clock-names = "sysclk";
+>> +				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+>> +				clock-names = "sysclk", "refclk";
+>>  				#phy-cells = <0>;
+>>  			};
+>>  
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>> index b321fdf..bb498e7 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -929,8 +929,8 @@
+>>  				      <0x4A096800 0x40>; /* pll_ctrl */
+>>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>>  				ctrl-module = <&omap_control_sata>;
+>> -				clocks = <&sys_clkin>;
+>> -				clock-names = "sysclk";
+>> +				clocks = <&sys_clkin>, <&sata_ref_clk>;
+>> +				clock-names = "sysclk", "refclk";
+>>  				#phy-cells = <0>;
+>>  			};
+>>  		};
+>> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+>> index e60ff14..e08edd9 100644
+>> --- a/drivers/phy/phy-ti-pipe3.c
+>> +++ b/drivers/phy/phy-ti-pipe3.c
+>> @@ -85,6 +85,7 @@ struct ti_pipe3 {
+>>  	struct pipe3_dpll_map	*dpll_map;
+>>  	u8			id;
+>>  	bool enabled;
+>> +	bool refclk_enabled;	/* this flag is needed specifically for SATA */
+>>  	spinlock_t lock;	/* serialize clock enable/disable */
+>>  };
+>>  
+>> @@ -333,21 +334,20 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>>  		}
+>>  	}
+>>  
+>> +	phy->refclk = devm_clk_get(phy->dev, "refclk");
+>> +	if (IS_ERR(phy->refclk)) {
+>> +		dev_err(&pdev->dev, "unable to get refclk\n");
+>> +		return PTR_ERR(phy->refclk);
+>> +	}
+> 
+> This will break older dtbs. AFAIK, newer kernels should be compatible with
+> older dtbs too. cc'ed devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org for clarification.
 
-Acked-by: Roger Quadros <rogerq@ti.com>
+If I make refclk optional that still leaves SATA broken on older dtbs. Wouldn't it be better to fix the DTBs via stable instead?
 
 cheers,
 -roger
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
