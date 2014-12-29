@@ -1,103 +1,117 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: am335x: cpsw: interrupt failure
-Date: Mon, 29 Dec 2014 09:50:29 -0600
-Message-ID: <20141229155029.GA29379@saruman>
-References: <20141204165609.GJ18045@saruman>
- <CAGm1_ksNuO75QfgaDUpOe525xDkPhby-z8T=MX3DHdB-LVcR8g@mail.gmail.com>
- <20141210171724.GI4602@saruman>
- <CAGm1_ksziwSjQnV1rDYsAv2QQCvhnZPOimowmsW5Cib7C01aqA@mail.gmail.com>
- <20141210210234.GN4602@saruman>
- <CAGm1_ktYg4iDgK7jyi5etSVup61LdookkV+SaQZOpLb6M=y7hA@mail.gmail.com>
- <CAGm1_kuaqXrU4zhNUZeY85+OeXHApSUDjJdsXcyBdvHTNhLCmQ@mail.gmail.com>
- <20141212173210.GI7549@saruman>
- <CAGm1_kuYrGsfjRO6TVr554yS8dcD4_Z9-j9KL0xpD=X+31OkXQ@mail.gmail.com>
- <CAGm1_kudtF9O4QChrKX1q=c9KwHEFZet=z7j=-_iCRE914X83Q@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/3] usb: dwc3: add a quirk for device disconnection
+ issue in Synopsis dwc3 core
+Date: Mon, 29 Dec 2014 10:06:41 -0600
+Message-ID: <20141229160641.GD29379@saruman>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <20141222153730.GA12815@saruman>
+ <CAJ1gpc3jVpz=5ME4+wCJDW5NKihvB4xYzwi0co=UuPtG9Ubmjg@mail.gmail.com>
+ <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg@mail.gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
-Return-path: <netdev-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="RYJh/3oyKhIjGcML"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAGm1_kudtF9O4QChrKX1q=c9KwHEFZet=z7j=-_iCRE914X83Q@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>
-Cc: Felipe Balbi <balbi@ti.com>, netdev <netdev@vger.kernel.org>, "N, Mugunthan V" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb
 List-Id: linux-omap@vger.kernel.org
 
---EVF5PPMfhYS0aIcm
+--RYJh/3oyKhIjGcML
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 29, 2014 at 10:33:26AM +0100, Yegor Yefremov wrote:
-> On Fri, Dec 12, 2014 at 8:19 PM, Yegor Yefremov
-> <yegorslists@googlemail.com> wrote:
-> > On Fri, Dec 12, 2014 at 6:32 PM, Felipe Balbi <balbi@ti.com> wrote:
-> >> Hi,
-> >>
-> >> On Fri, Dec 12, 2014 at 01:00:51PM +0100, Yegor Yefremov wrote:
-> >>> U-Boot version: 2014.07
-> >>> Kernel config is omap2plus with enabled USB
-> >>>
-> >>> # cat /proc/version
-> >>> Linux version 3.18.0 (user@user-VirtualBox) (gcc version 4.8.3
-> >>> 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29) ) #6 SMP
-> >>> Mon Dec 8 22:47:43 CET 2014
-> >>
-> >> Wasn't GCC 4.8.x total crap for building ARM kernels ? IIRC it was even
-> >> blacklisted. Can you try with 4.9.x just to make sure ?
-> >
-> > Will do.
->=20
-> Adding linux-omap. Beginning of this discussion:
-> http://comments.gmane.org/gmane.linux.network/341427
->=20
-> Quick summary: starting with kernel 3.18 or commit
-> 55601c9f24670ba926ebdd4d712ac3b177232330 am335x (at least BBB and some
-> custom boards) stalls at high network load. Reproducible via nuttcp
-> within some minutes
->=20
-> nuttcp -S (on BBB)
-> nuttcp -t -N 4 -T30m 192.168.1.235 (on host)
->=20
-> As Felipe Balbi suggested, I tried both 4.8.3 and 4.9.2 toolchains,
-> but both show the same behavior.
->=20
-> Linux version 3.18.0 (user@user-VirtualBox) (gcc version 4.8.3
-> 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29) ) #6 SMP
-> Mon Dec 8 22:47:43 CET 2014
-> Linux version 3.18.1 (user@user-VirtualBox) (gcc version 4.9.2
-> (Buildroot 2015.02-git-00582-g10b9761) ) #1 SMP Mon Dec 29 09:22:29
-> CET 2014
->=20
-> Let me know, if you can reproduce this issue.
+Hi,
 
-finally managed to reproduce this, it took quite a bit of effort though.
-I'll see if I can gether more information about the problem.
+On Mon, Dec 29, 2014 at 04:07:50PM +0800, Sneeker Yeh wrote:
+> Hi,
+>=20
+> 2014-12-29 14:41 GMT+08:00 Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>=20
+> > Hi,
+> >
+> > 2014-12-22 23:37 GMT+08:00 Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>:
+> >
+> >> On Tue, Dec 16, 2014 at 10:10:28AM +0800, Sneeker Yeh wrote:
+> >> > Synopsis DesignWare USB3 IP Core integrated with a config-free
+> >> > phy needs special handling during device disconnection to avoid
+> >> > the host controller dying.
+> >> >
+> >> > This quirk makes sure PORT_CSC is cleared after the disable slot
+> >> > command when usb device is disconnected from internal root hub,
+> >> > otherwise, Synopsis core would fall into a state that cannot use
+> >> > any endpoint command. Consequently, device disconnection procedure
+> >> > might not be finished because sometimes endpoint need to be stop
+> >> > by endpoint stop command issuing.
+> >> >
+> >> > Symptom usually happens when disconnected device is keyboard,
+> >> > mouse, and hub.
+> >>
+> >> you need to point us to the synopsys STARS ticket number. That's the
+> >> only way to reference this specific quirk. Add it to a comment
+> >> somewhere.
+> >>
+> >
+> > Thanks, we're still waiting for Synopsis STARS ticket number.
+> > I'll add it to comment later.
+> >
+> >
+> Sorry I didn't express myself clearly.
+>=20
+> So far Fujitsu Semiconductor got Synopsys internal case id , that is "
+> Case: 8000679552".
+> However the contents belongs this id cannot be referred except Fujitsu
+> Semiconductor and Synopsys.
+> Synopsis decide the official errata (STAR information) will be disclosed
+> next February.
+>=20
+> Would you suggest if this quirk can be accepted with this case ID, or can
+> only be accepted with STARS ticket number?
+
+The thing is that without the STARS number I can't really verify which
+versions of the IP would be affected. Clearly, it's not only your setup
+and I think it's pretty unfair to have "is_compatible("fujitsu")" to
+enable the quirk only for you. Isn't there a better way of enabling the
+quirk based off of revision detection couple with a look on GHWPARAMS*
+registers ?
+
+What's tricking me is this claim that only config-free PHYs would be
+affected, why ?
+
+I still have many questions about this patch which are not answered by
+commit log nor can I poke around on Synopsys solvnet for answers :-s
 
 --=20
 balbi
 
---EVF5PPMfhYS0aIcm
+--RYJh/3oyKhIjGcML
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUoXhFAAoJEIaOsuA1yqREMEMP/0V1S5OySRsUUujYOfll4LNB
-NEvayDpYheJHLtc7plSO6zEd9X6JwBnBanFkJhxfEiJsDHURD1V8omJzEHE0+SQc
-4+LbYfc2/TeSiKASMzcAzAmt+KQ4sDPFo6oxZvlyP1mtUTmj1L2t4BFZPcwAyO5m
-hAK0noy6TH2ywBNcDIqn2EBcloObiXy9RhlLB782exdgdSKB//XS6aYuVbtul9/p
-hoqt2uP732Zvp/iNkZ2unDG6AoXRFL6CKq6OIV3kyBvOxRqi59Dj08yviGLb2O82
-I2GgAWkI8vytUtaKljlC2WZ9qfOUGQzKkkXOjRH1Uvz3dqj0MbrRg/0PoDRzveki
-krpQzgZloem5khknQCgkrCxCafa2QWs2uNPy0QUJify5eGMiHYSTFN6+/+8v/3fM
-88C6aHcWdO5j77yjR5nXHTP5ZRUQzTrrLNKeO+nUc38pptDKWofJuYP6TwN+GfNv
-YvNXNQODVecbR4cyhaJ7soMk4LUqE9rqwj0xE7jffa0b1wKAb8yclx3/3wggqRfV
-S2g/kY6yDyNOTyT9s5kpQGmbJ3HqiiUEEM+2w74JqwzG9IcxhtgSK1E4bOTBVxbv
-LNzZWrRsejD1HhQ1gW79EdmrQ+wXKVhwGEh91KDa+FiDqsEfH0by5K+HNpDRAC1z
-Lhcd/DA+dUkqzUgJy3nw
-=Y5Mr
+iQIcBAEBAgAGBQJUoXwRAAoJEIaOsuA1yqREBpsQALJPdrZ8vpH1bBY08O7kg9vH
+6FGwvX+rSuy0ZjLJ9qJDSxJrMrrXVzt9zr5wv/T0HJxMDBCCR5a3isiLSXJU34RD
+Cl1+9KPxa8rCkQsUa3UMfF9e0azMLnfhPWW8DNdWE8NHoQRVzCCvIBwAHBbI5yKj
+xCfAErr62LbeWm6s3qG5mkcpsLQkrUZjuDU7pqlYd8B3m8CBNMRKGuA5GG7la7Uy
+kVKPPjyf0GmHFQx8VPnVzp+84dhXBA2eBpVSX/WW0VxNI4ElJqcpv7UifuyrNaX3
+RtwY/O78TIIu/Yo7+LpKFhBwwVWltq37NDmHVIYP3P5Z5YBR5TZbcjvBRbSC6EmY
+HNRoO8eDqY57VKZ6wJ2MnZ1Ouqe/zEQLNGil1Ft+/oJ7DSesJbSt8rslgwoUiCdc
++utAHMrjxKvgPtgSf9IS8j1hlcpU/9ZpR7O/A1SPtv4DT50lUl4s1ZWDgmHDqnD5
+CMKZ+cvYlt8FqmQUqi7ke+9XS9D7V0M0OeC55j504qEgsX/WneYokWXMClZNpuQy
+yVHTPFvbUPLxxj9H08b5JitMRWlFr7RQJiWfDMyv5sEclpbnHWKkpIywo1JkWAMT
+cOWho5mOTFx75FyH0GNdHOtkRMmlV9CrNyRL+0VZVu2+ePY5hVLZmcIPfxRRQuMl
+nbwvxY/IfDK7TBnZ9Ex8
+=4uzM
 -----END PGP SIGNATURE-----
 
---EVF5PPMfhYS0aIcm--
+--RYJh/3oyKhIjGcML--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
