@@ -1,142 +1,125 @@
-From: Amit Virdi <amitvi128-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
- is reached
-Date: Mon, 29 Dec 2014 12:05:57 +0530
-Message-ID: <CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com>
-References: <cover.1418972323.git.amit.virdi@st.com>
-	<995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
-	<20141222160626.GD12815@saruman>
-	<CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
-	<20141227174628.GB17608@saruman>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: v3.19-rc1 regression(?) on N900
+Date: Mon, 29 Dec 2014 10:04:46 +0200
+Message-ID: <54A10B1E.7030800@ti.com>
+References: <549B44E2.6080202@ti.com> <201412250932.40403@pali> <20141225091121.GA20355@amd> <20141225222122.GB582@fuloong-minipc.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141227174628.GB17608@saruman>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pratyush Anand Thakur <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ajay.khandelwal-qxv4g6HH51o@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46504 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751663AbaL2IFi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Dec 2014 03:05:38 -0500
+In-Reply-To: <20141225222122.GB582@fuloong-minipc.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
+Cc: =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, sre@debian.org, Tony Lindgren <tony@atomide.com>, sre@ring0.de, ivo.g.dimitrov.75@gmail.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Sat, Dec 27, 2014 at 11:16 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> On Sat, Dec 27, 2014 at 01:24:03PM +0530, Amit Virdi wrote:
->> On Mon, Dec 22, 2014 at 9:36 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
->> > On Fri, Dec 19, 2014 at 12:40:16PM +0530, Amit Virdi wrote:
->> >> When SG is used, there are two loops iterating to prepare TRBs:
->> >>  - Outer loop over the request_list
->> >>  - Inner loop over the SG list
->> >>
->> >> The driver must stop preparing TRBs when the max TRBs have been prepared. The
->> >> code was missing break to get out of the outer loop.
->> >>
->> >> Signed-off-by: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
->> >
->> > which bug is this fixing ? Which kernels are affected ? This need to be
->> > backported to which kernel ? Which commit introduced this bug ? How can
->> > I validate this to be a valid fix ?
->> >
->>
->> Problem description:
->> DWC3 gadget sets up a pool of 32 TRBs for each EP during
->> initialization. This means, the max TRBs that can be submitted for an
->> EP is fixed to 32. Since the request queue for an EP is a linked list,
->> any number of requests can be queued to it by the gadget layer.
->> However, the dwc3 driver must not submit TRBs more than the pool it
->> has created for. This limit wasn't respected when SG was used
->> resulting in submitting more than the max TRBs, eventually leading to
->> non-transfer of the TRBs submitted over the max limit.
->
-> this would become a much, much better commit log than the one you
-> provided. It's a much more verbose description of the issue.
->
+--PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5
+Content-Type: multipart/mixed;
+ boundary="------------070708010705000405090003"
 
-Okay, I'll edit the commit message.
+This is a multi-part message in MIME format.
+--------------070708010705000405090003
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
->> Commit that introduced this bug:
->> This bug is present from the day support for sg list was added to dwc3
->> gadget., i.e. since commit eeb720fb21d61dfc3aac780e721150998ef603af
->> ("usb: dwc3: gadget: add support for SG lists") - kernel version
->> v3.2-rc7, hence v3.2
->>
->> Kernels affected:
->> It is best to backport this fix to kernel v3.8+ as there were many
->> enhancements/bug fixes from v3.2..v3.8
->>
->> Generic setup to reproduce/test this fix:
->> This bug is reproduced whenever the number of TRBs that need to be
->> submitted to the hardware from the software queue (request_list)
->> becomes more than 32 on bulk endpoint. eg. if num_mapped_sgs is 2 and
->> the request_list has 17 entries (hence, 34 potential TRBs), the
->> scenario is reproduced.
->>
->> My setup details:
->> For reproducing and testing the patches [1/4 and 2/4], I used an
->> inhouse developed user space application that run on device side. This
->> user space application interacts with the customized uvc webcam gadget
->> to submit the video data to the DWC3 driver. The host side was running
->> standard webcam application (cheese).
->
-> oh, so this is something I can't easily reproduce myself. Then I'll need
-> full boot logs, register dump and full trace output of dwc3 running and
-> exhibiting the problem. Also, make sure you use either v3.18 or v3.19rc1
-> to validate your changes.
->
+Hi,
 
-[Quoting you from the thread of patch 1/4]
+On 26/12/14 00:21, Aaro Koskinen wrote:
 
->> endpoint. Following is the log snippet once this bug is reproduced:
->> ----
->> dwc3 dwc3.0: ep2in-bulk: Transfer Not Ready
->> dwc3 dwc3.0: queing request 24cc5780 to ep2in-bulk length 960002
->> dwc3 dwc3.0: ep2in-bulk: req 24cc5780 dma 24eb6400 length 2 chain
->> dwc3 dwc3.0: ep2in-bulk: req 24cc5780 dma 25901800 length 960000
->> dwc3 dwc3.0: queing request 24cc5000 to ep2in-bulk length 960002
->> dwc3 dwc3.0: ep2in-bulk: Transfer Not Ready
->> dwc3 dwc3.0: queing request 24cc5900 to ep2in-bulk length 960002
->> -----
->>
->> Without this fix, the hardware never generates "Transfer Complete"
->> event for the corresponding EP and goes into an unknown state.
->
-> whiuch kernel are you using to develop this ? Most of these messages
-> don't exist anymore with v3.19-rc because I have converted them into
-> tracepoints, considering you're showing me logs with these messages,
-> this tells me that you're sending me a patch developed/tested against a
-> kernel older than v3.18. I need to see full bootup logs, a register dump
-> (/sys/kernel/debug/*dwc3*/regdump) and a much larger debugging log from
-> dwc3 in order to accept patches from you. Sorry, but I cannot take
-> patches which were not tested against, at a minimum, the latest major
-> release.
->
+> ...however, I can confirm that framebuffer is broken:
+>=20
+> [    8.230743] omapfb omapfb: no displays
+> [    8.255584] omapfb omapfb: failed to setup omapfb
+> [    8.260620] platform omapfb: Driver omapfb requests probe deferral
+> [    8.284118] of_get_named_gpiod_flags: parsed 'reset-gpios' property =
+of node
+> '/ocp/spi@48098000/acx565akm@2[0]' - status (0)
+> [    8.284271] acx565akm spi1.2: failed to find video source
+> [    8.290069] spi spi1.2: Driver acx565akm requests probe deferral
+>=20
+> I bisected it to ef691ff48bc8 (OMAPDSS: DT: Get source endpoint
+> by matching reg-id). When I revert that, also FB works with 3.19-rc1.
 
-Yes you're right that both the fixes [1/4] and [2/4] have only been
-build tested with the latest kernel. I should have mentioned this
-information in the commit message or the cover-letter itself.
+I've attached a patch for this. Only hack-tested on OMAP3 beagle, so
+please report if it works.
 
-The only reason why I have not been able to test these fixes on the
-latest is because the customized webcam gadget is not ported on the
-latest kernel. There have been a lot of changes in the video framework
-lately and that is not my area of expertise. So porting the customized
-webcam gadget to latest kernel and testing these fixes is not feasible
-for me.
+ Tomi
 
-Having said all this, the fact remains that these are bugs in the dwc3
-driver from kernel v3.9 onwards. The log messages clearly depict this.
-These bugs are obviously present till date.
 
-I ask you to give a more deeper thought on the whole situation and not
-undermine the importance of code review.
- - [Patch 2/4] fixes a bug that could have been found in the code review.
- - [Patch 1/4] fixes a bug which was very very subtle but a deeper
-code review can certainly boost the confidence about the change made.
-list_is_last won't work when SG is used because, for the last request
-in the request_list, the TRB for the first sg entry modifies the
-list's next and prev pointers while moving the URB to req_queued.
+--------------070708010705000405090003
+Content-Type: text/x-patch;
+ name="0001-OMAPDSS-SDI-fix-output-port_num.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="0001-OMAPDSS-SDI-fix-output-port_num.patch"
 
-I can certainly provide the dwc3 specific kernel bootup logs, full
-regdump and any loglevel you want me to, if that helps
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=46rom fe3e8dde8eae80541a3f3b39c421428ebd02955f Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Mon, 29 Dec 2014 09:57:11 +0200
+Subject: [PATCH] OMAPDSS: SDI: fix output port_num
+
+After the commit ef691ff48bc8 (OMAPDSS: DT: Get source endpoint by
+matching reg-id) we look for the SDI output using the port number.
+However, the SDI driver doesn't set the port number, which causes the
+SDI display to not initialize.
+
+Fix this by setting the SDI port number to 1. We use a hardcoded value,
+as SDI was used only on OMAP3 and it's always port number 1 there.
+
+Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Reported-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/fbdev/omap2/dss/sdi.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/video/fbdev/omap2/dss/sdi.c b/drivers/video/fbdev/om=
+ap2/dss/sdi.c
+index d51a983075bc..5c2ccab5a958 100644
+--- a/drivers/video/fbdev/omap2/dss/sdi.c
++++ b/drivers/video/fbdev/omap2/dss/sdi.c
+@@ -342,6 +342,8 @@ static void sdi_init_output(struct platform_device *p=
+dev)
+ 	out->output_type =3D OMAP_DISPLAY_TYPE_SDI;
+ 	out->name =3D "sdi.0";
+ 	out->dispc_channel =3D OMAP_DSS_CHANNEL_LCD;
++	/* We have SDI only on OMAP3, where it's on port 1 */
++	out->port_num =3D 1;
+ 	out->ops.sdi =3D &sdi_ops;
+ 	out->owner =3D THIS_MODULE;
+=20
+--=20
+2.2.1
+
+
+--------------070708010705000405090003--
+
+--PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUoQseAAoJEPo9qoy8lh71LXwP+gI6VeCP40rzldPbxV9x7bez
+ImxlAT/NUuKLlPncW5Iz36VMo5rYKn9DRvQnfY1Ha0QtD5VQ50/3Lg8/DekS6T2i
+4VDljIXu/pPN2BWaB7NBoS7Fm/K/KJwnjx1LXWhDOdX1m6vir0tgYgr2Tiqp6Oll
+s/Jg8iAoYBTrecBYJpRWQ8FgU76evjP4R8qD3b2rFWVbhWW/Slp3jJGrs0HlfkPN
+TP+AJFYzwyBjDzY0joFG+fz7UhlTeZv6PSaTX3dVbOTC47REAvcBFeWY3OABi9Mk
+WCKrm0ngxsKRPk6CLSlfBkkZseqiFPGFMcb2rUi+xTVO1kd1Ji0HYoV3+Nz43J7A
+eWg5T9ZJGCbLqdJ7larC+xBr9dSE4arcP4rv3UV8N2n5IZTBqcbwCSTUta2AlE7S
+zGxttn0+6vW4PAnRnECcUpvoP1KXcjGIEc6q7I6d43irNHCFfQmCHSCb7Sgk12ww
+dRjSX1vM5mE3O/5QE5GXFoeixdhUXuA7waEgpPjYfNfBRbfDIUbDTfOIM2kyDQ+Q
+1MoEXF7ikmN5vRrZ5+juBedBhmPqNm7gVopXBqK/B4DAQU5Q+hYMoGunuiP3MU7p
+bxxQi9uBEIuGCkLYnyzw0J6F99hrQn+Zegpj2Am4sMO7Ep7rGQizu65GfIPB7vP6
+Ectyj3HHdA0Cz3av1Jy8
+=/NFK
+-----END PGP SIGNATURE-----
+
+--PlKCKNe25GcJQ9FIDt4TT7oE5U7qXfVW5--
