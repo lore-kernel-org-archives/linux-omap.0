@@ -1,106 +1,198 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] phy: ti-pipe3: Fix SATA across suspend/resume
-Date: Mon, 29 Dec 2014 11:53:49 +0200
-Message-ID: <54A124AD.2020201@ti.com>
-References: <1418990720-3638-1-git-send-email-rogerq@ti.com> <1418990720-3638-3-git-send-email-rogerq@ti.com> <5498221C.6010701@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: cm-t3x: add NAND support
+Date: Mon, 29 Dec 2014 15:06:58 +0200
+Message-ID: <54A151F2.9010904@ti.com>
+References: <54A00BD6.8010507@compulab.co.il> <1419777049-25271-1-git-send-email-lifshitz@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5498221C.6010701-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: nm-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:34848 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200AbaL2NH3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Dec 2014 08:07:29 -0500
+In-Reply-To: <1419777049-25271-1-git-send-email-lifshitz@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>, =?windows-1252?Q?Beno=EEt_?= =?windows-1252?Q?Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-On 22/12/14 15:52, Kishon Vijay Abraham I wrote:
-> Hi Roger,
-> 
-> On Friday 19 December 2014 05:35 PM, Roger Quadros wrote:
->> Failed test case: Boot without SATA drive connected. Suspend/resume
->> the board and then connect SATA drive. It fails to enumerate.
->>
->> Due to Errata i783 "SATA Lockup After SATA DPLL Unlock/Relock"
->> we can't allow SATA DPLL to be in the unlocked state.
->> The SATA refclk (sata_ref_clk) is the source of the SATA_DPLL.
->> Till now this clock was controlled by the AHCI SATA driver and was being
->> shut off  during system suspend (if the SATA drive was not already attached)
->> causing the SATA DPLL to be unlocked and so causing errata i783.
->>
->> To prevent sata_ref_clk from being disabled, we move the control of
->> this clock from the SATA AHCI driver to the SATA PHY driver and prevent
->> it from being disabled.
->>
->> This also fixes the issue of SATA not working on OMAP5/DRA7 when
->> AHCI platform driver is built as a module.
->>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/dra7.dtsi  |  4 ++--
->>  arch/arm/boot/dts/omap5.dtsi |  4 ++--
->>  drivers/phy/phy-ti-pipe3.c   | 53 +++++++++++++++++++++++++++++++-------------
->>  3 files changed, 41 insertions(+), 20 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index 63bf99b..8c35b84 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -1090,8 +1090,8 @@
->>  				      <0x4A096800 0x40>; /* pll_ctrl */
->>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->>  				ctrl-module = <&omap_control_sata>;
->> -				clocks = <&sys_clkin1>;
->> -				clock-names = "sysclk";
->> +				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->> +				clock-names = "sysclk", "refclk";
->>  				#phy-cells = <0>;
->>  			};
->>  
->> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->> index b321fdf..bb498e7 100644
->> --- a/arch/arm/boot/dts/omap5.dtsi
->> +++ b/arch/arm/boot/dts/omap5.dtsi
->> @@ -929,8 +929,8 @@
->>  				      <0x4A096800 0x40>; /* pll_ctrl */
->>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->>  				ctrl-module = <&omap_control_sata>;
->> -				clocks = <&sys_clkin>;
->> -				clock-names = "sysclk";
->> +				clocks = <&sys_clkin>, <&sata_ref_clk>;
->> +				clock-names = "sysclk", "refclk";
->>  				#phy-cells = <0>;
->>  			};
->>  		};
->> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
->> index e60ff14..e08edd9 100644
->> --- a/drivers/phy/phy-ti-pipe3.c
->> +++ b/drivers/phy/phy-ti-pipe3.c
->> @@ -85,6 +85,7 @@ struct ti_pipe3 {
->>  	struct pipe3_dpll_map	*dpll_map;
->>  	u8			id;
->>  	bool enabled;
->> +	bool refclk_enabled;	/* this flag is needed specifically for SATA */
->>  	spinlock_t lock;	/* serialize clock enable/disable */
->>  };
->>  
->> @@ -333,21 +334,20 @@ static int ti_pipe3_probe(struct platform_device *pdev)
->>  		}
->>  	}
->>  
->> +	phy->refclk = devm_clk_get(phy->dev, "refclk");
->> +	if (IS_ERR(phy->refclk)) {
->> +		dev_err(&pdev->dev, "unable to get refclk\n");
->> +		return PTR_ERR(phy->refclk);
->> +	}
-> 
-> This will break older dtbs. AFAIK, newer kernels should be compatible with
-> older dtbs too. cc'ed devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org for clarification.
+Hi Dmitry,
 
-If I make refclk optional that still leaves SATA broken on older dtbs. Wouldn't it be better to fix the DTBs via stable instead?
+On 28/12/14 16:30, Dmitry Lifshitz wrote:
+> CM-T3517, CM-T3530 and CM-T3730 features NAND storage chip connected to
+> GPMC bus.
+> 
+> Add GPMC DT entry into the root DT file omap3-cm-t3x.dtsi, common for
+> all three modules.
+> 
+> NAND timings are calculated to be safe for CM-T3x devices as it works
+> now in non DT boot (in this case the timings are updated by U-Boot).
+
+I didn't get this part. You provide the GPMC timings in the DT now so they will override
+u-boot configured timings.
+
+> 
+> Update GPMC ranges in boards DT files to include all connected devices.
+> 
+> Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
+> ---
+> 
+> v2 * Update GPMC ranges with NAND values in omap3-cm-t3x30.dtsi. 
+>    * Add commit message details
+> 
+>  arch/arm/boot/dts/omap3-cm-t3x.dtsi   |   58 +++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap3-cm-t3x30.dtsi |    3 +-
+>  arch/arm/boot/dts/omap3-sbc-t3517.dts |    4 ++
+>  arch/arm/boot/dts/omap3-sbc-t3530.dts |   10 ++----
+>  arch/arm/boot/dts/omap3-sbc-t3730.dts |    5 ++-
+>  5 files changed, 70 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+> index 6ea6d46..4d091ca 100644
+> --- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+> +++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+> @@ -259,3 +259,61 @@
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&mcbsp2_pins>;
+>  };
+> +
+> +&gpmc {
+> +	ranges = <0 0 0x00000000 0x01000000>;
+
+Isn't this ranges property redundant as it will be overridden by the board specific dts?
+
+> +
+> +	nand@0,0 {
+> +		reg = <0 0 4>;	/* CS0, offset 0, IO size 4 */
+> +		nand-bus-width = <8>;
+> +		gpmc,device-width = <1>;
+> +		ti,nand-ecc-opt = "sw";
+
+any particular reason for sticking with "sw"? Isn't it better to use at least "ham1"
+or migrate to stronger schemes like "bch4" or "bch8"?
+
+"ham1" scheme is compatible with ROM loader so the boot partition could be flashed from Linux.
+For bch4/8 you will have to keep boot partition/s locked from Linux access as we don't yet
+support mixed ECC schemes among partitions.
+
+> +
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <120>;
+> +		gpmc,cs-wr-off-ns = <120>;
+> +
+> +		gpmc,adv-on-ns = <0>;
+> +		gpmc,adv-rd-off-ns = <120>;
+> +		gpmc,adv-wr-off-ns = <120>;
+> +
+> +		gpmc,we-on-ns = <6>;
+> +		gpmc,we-off-ns = <90>;
+> +
+> +		gpmc,oe-on-ns = <6>;
+> +		gpmc,oe-off-ns = <90>;
+> +
+> +		gpmc,page-burst-access-ns = <6>;
+> +		gpmc,access-ns = <72>;
+> +		gpmc,cycle2cycle-delay-ns = <60>;
+> +
+> +		gpmc,rd-cycle-ns = <120>;
+> +		gpmc,wr-cycle-ns = <120>;
+> +		gpmc,wr-access-ns = <186>;
+> +		gpmc,wr-data-mux-bus-ns = <90>;
+> +
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +
+> +		partition@0 {
+> +			label = "xloader";
+> +			reg = <0 0x80000>;
+> +		};
+> +		partition@0x80000 {
+> +			label = "uboot";
+> +			reg = <0x80000 0x1e0000>;
+> +		};
+> +		partition@0x260000 {
+> +			label = "uboot environment";
+> +			reg = <0x260000 0x40000>;
+> +		};
+> +		partition@0x2a0000 {
+> +			label = "linux";
+> +			reg = <0x2a0000 0x400000>;
+> +		};
+> +		partition@0x6a0000 {
+> +			label = "rootfs";
+> +			reg = <0x6a0000 0x1f880000>;
+> +		};
+> +	};
+> +};
+> diff --git a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> index 9a4a3ab..d9e92b6 100644
+> --- a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> +++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> @@ -50,7 +50,8 @@
+>  #include "omap-gpmc-smsc911x.dtsi"
+>  
+>  &gpmc {
+> -	ranges = <5 0 0x2c000000 0x01000000>;
+> +	ranges = <5 0 0x2c000000 0x01000000>, /* CM-T3x30 SMSC9x Eth */
+> +		 <0 0 0x00000000 0x01000000>; /* CM-T3x NAND */
+
+Isn't this ranges property redundant as it will anyways be overridden by the board specific dts?
+
+>  
+>  	smsc1: ethernet@gpmc {
+>  		compatible = "smsc,lan9221", "smsc,lan9115";
+> diff --git a/arch/arm/boot/dts/omap3-sbc-t3517.dts b/arch/arm/boot/dts/omap3-sbc-t3517.dts
+> index 1798653..c2d5c28 100644
+> --- a/arch/arm/boot/dts/omap3-sbc-t3517.dts
+> +++ b/arch/arm/boot/dts/omap3-sbc-t3517.dts
+> @@ -69,3 +69,7 @@
+>  	};
+>  };
+>  
+> +&gpmc {
+> +	ranges = <4 0 0x2d000000 0x01000000>,	/* SB-T35 SMSC9x Eth */
+> +		 <0 0 0x00000000 0x01000000>;	/* CM-T3x NAND */
+> +};
+> diff --git a/arch/arm/boot/dts/omap3-sbc-t3530.dts b/arch/arm/boot/dts/omap3-sbc-t3530.dts
+> index c994f0f..834bc78 100644
+> --- a/arch/arm/boot/dts/omap3-sbc-t3530.dts
+> +++ b/arch/arm/boot/dts/omap3-sbc-t3530.dts
+> @@ -26,14 +26,10 @@
+>  	};
+>  };
+>  
+> -/*
+> - * The following ranges correspond to SMSC9x eth chips on CM-T3530 CoM and
+> - * SB-T35 baseboard respectively.
+> - * This setting includes both chips in SBC-T3530 board device tree.
+> - */
+>  &gpmc {
+> -	ranges = <5 0 0x2c000000 0x01000000>,
+> -		 <4 0 0x2d000000 0x01000000>;
+> +	ranges = <5 0 0x2c000000 0x01000000>,	/* CM-T3x30 SMSC9x Eth */
+> +		 <4 0 0x2d000000 0x01000000>,	/* SB-T35 SMSC9x Eth */
+> +		 <0 0 0x00000000 0x01000000>;	/* CM-T3x NAND */
+>  };
+>  
+>  &mmc1 {
+> diff --git a/arch/arm/boot/dts/omap3-sbc-t3730.dts b/arch/arm/boot/dts/omap3-sbc-t3730.dts
+> index 5bdddf2..73c7bf4 100644
+> --- a/arch/arm/boot/dts/omap3-sbc-t3730.dts
+> +++ b/arch/arm/boot/dts/omap3-sbc-t3730.dts
+> @@ -27,8 +27,9 @@
+>  };
+>  
+>  &gpmc {
+> -	ranges = <5 0 0x2c000000 0x01000000>,
+> -		 <4 0 0x2d000000 0x01000000>;
+> +	ranges = <5 0 0x2c000000 0x01000000>,	/* CM-T3x30 SMSC9x Eth */
+> +		 <4 0 0x2d000000 0x01000000>,	/* SB-T35 SMSC9x Eth */
+> +		 <0 0 0x00000000 0x01000000>;	/* CM-T3x NAND */
+>  };
+>  
+>  &dss {
+> 
 
 cheers,
 -roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
