@@ -1,140 +1,97 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v5 0/4] Fixes for SDIO interrupts for dw_mmc
-Date: Tue, 30 Dec 2014 11:29:10 +0100
-Message-ID: <CAPDyKFqGW2NaN+5mUrpBWrhM5ZfUSx70-Yyk9qmNaC1ft_ibpw@mail.gmail.com>
-References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
-	<CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
-	<CAD=FV=UCyOXfMqu_MYbd5pKOpgXPB87LQ7hCegeeY9vzsy6QAg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] mmc: core: Allow host driver to provide isr for
+ card-detect interrupts.
+Date: Tue, 30 Dec 2014 12:08:39 +0100
+Message-ID: <CAPDyKFq1DEeZJbRvdCHtZjQfDBEq6Sd5q+7HpEeb5Kv9doYkZQ@mail.gmail.com>
+References: <20141224211653.30499.46669.stgit@notabene.brown>
+	<20141224212051.30499.28078.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:33393 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbaL3K3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2014 05:29:11 -0500
-Received: by mail-qc0-f179.google.com with SMTP id c9so10536170qcz.10
-        for <linux-omap@vger.kernel.org>; Tue, 30 Dec 2014 02:29:10 -0800 (PST)
-In-Reply-To: <CAD=FV=UCyOXfMqu_MYbd5pKOpgXPB87LQ7hCegeeY9vzsy6QAg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141224212051.30499.28078.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Chris Ball <chris@printf.net>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Doug Anderson <dianders@chromium.org>
-Cc: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, Tony Lindgren <tony@atomide.com>, Sascha Hauer <s.hauer@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chris Ball <chris@printf.net>, =?UTF-8?B?R3LDqWdvcnkgU291dGFkw6k=?= <gsoutade@neotion.com>, Joe Perches <joe@perches.com>, Axel Lin <axel.lin@ingics.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 19 December 2014 at 20:02, Doug Anderson <dianders@chromium.org> wrote:
-> Ulf,
+On 24 December 2014 at 22:20, NeilBrown <neilb@suse.de> wrote:
+> One of the reasons omap_hsmmc doesn't use the slot-gpio library
+> is that it has some non-standard functionality in the card-detect
+> interrupt service routine.
 >
-> On Fri, Dec 19, 2014 at 2:17 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
->> On 3 December 2014 at 00:42, Doug Anderson <dianders@chromium.org> wrote:
->>> Bing Zhao at Marvell found a problem with dw_mmc where interrupts
->>> weren't firing sometimes.  He tracked it down to a read-modify-write
->>> problem with the INTMASK.  These patches fix the problem.
->>>
->>> Note: I've picked up a > 1-year old series here to make another
->>> attempt at landing it upstream.  These patches have been in shipping
->>> Chromebooks for the last year.  Note that v3 to v4 has no changes
->>> other than a rebase and a small commit message update.
->>>
->>> The first two patches extend the "init_card()" mechanism of MMC core
->>> to actually be called for all card types, not just SDIO.  That could
->>> be applied any time and should fix at least one longstanding bug
->>> (untested).
->>>
->>> The third patch is a cleanup patch to use init_card() to move things
->>> around a bit so we don't need to handle SDIO cards in such a strange
->>> place.  On earlier versions of this patch Seungwon brought up a few
->>> points which I have _not_ addressed.  See
->>> <https://patchwork.kernel.org/patch/3049071/>.  Other than talk of
->>> cards with out of band interrupts maybe being able to gate their
->>> clocks, he wanted to use MMC_QUIRK_BROKEN_CLK_GATING.  I didn't do
->>> that because of the ordering of init_card() and when the quirks are
->>> set.  Some users of init_card() like pandora_wl1251_init_card() rely
->>> on it being called very early in the process.
->>> pandora_wl1251_init_card() hardcodes a vendor and device and thus need
->>> to be called super early.  On the other hand the code that adds quirks
->>> _reads_ the vendor and device.  It can't possibly move before
->>> init_card().  If folks are willing to take an additional host op of
->>> init_card_late() I can certainly go that way, though.
->>>
->>> The fourth patch is (I think) reviewed and ready to go assuming the
->>> other two land.
->>
->> I have queued this up for 3.20.
+> To make it possible for omap_hsmmc (and maybe others) to be converted
+> to use slot-gpio, add 'mmc_gpio_set_cd_isr' which provides an
+> alternate isr to be registered by the slot-gpio code.
 >
-> Thanks!
->
->
->> It was a bit hard to follow the
->> updated the revisions, please don't send patches "in-reply-to" for
->> future sets.
->
-> Very strange.  I didn't send out anything in-reply-to other than what
-> git-send-email usually does.  I believe I had:
->
-> [0] - no in reply to.
->  [1] - in reply to [0]
->  [2] - in reply to [0]
->  [3] - in reply to [0]
->  [4] - in reply to [0]
-
-That's good. As long as there are no in-reply to previous versions of
-patches/patchsets.
-
-I am using gmails web-based client so it could very well be that it
-does some magic, which I am not yet aware of.
-
->
-> Is there some other way you'd prefer?
->
-> Looking full headers in <https://patchwork.kernel.org/patch/5425241/>,
-> I confirm it is "in-reply-to"
-> "1417563767-32181-1-git-send-email-dianders@chromium.org".  Patchwork
-> doesn't keep cover letters, but you can see at
-> <http://www.spinics.net/lists/linux-mmc/msg29699.html>) that there is
-> no in-reply-to.
->
-> I'm more than happy to adjust my workflow if you can give me some
-> specifics.  Thanks!  :)
->
->
->> In v5, I don't find a patch 1/4. Anyway, I have taken patch 2->4.
->
-> Ah, maybe because it wasn't sent to linux-mmc?  I messed that up and
-> will try to do better in the future.  Sorry.  :(  You were in the To
-> line, though.  You can see at
-> <https://patchwork.kernel.org/patch/5425241/>.
->
-> Do you want me to repost it and CC linux-mmc with Tony's Ack?
-
-I suggest you have a look at my next branch and to verify that I
-haven't screwed things up. If so, either I should drop the patches and
-you make a resend or if it's possible to just send an incremental path
-on top?
-
-Kind regards
-Uffe
-
->
+> Signed-off-by: NeilBrown <neilb@suse.de>
 > ---
+>  drivers/mmc/core/slot-gpio.c  |   20 +++++++++++++++++++-
+>  include/linux/mmc/slot-gpio.h |    2 ++
+>  2 files changed, 21 insertions(+), 1 deletion(-)
 >
-> Note: patchwork seems to find all my patches:
+> diff --git a/drivers/mmc/core/slot-gpio.c b/drivers/mmc/core/slot-gpio.c
+> index 1a3edbd47719..1826b25a2a40 100644
+> --- a/drivers/mmc/core/slot-gpio.c
+> +++ b/drivers/mmc/core/slot-gpio.c
+> @@ -25,6 +25,7 @@ struct mmc_gpio {
+>         struct gpio_desc *cd_gpio;
+>         bool override_ro_active_level;
+>         bool override_cd_active_level;
+> +       irqreturn_t (*cd_gpio_isr)(int irq, void *dev_id);
+>         char *ro_label;
+>         char cd_label[0];
+>  };
+> @@ -136,8 +137,10 @@ void mmc_gpiod_request_cd_irq(struct mmc_host *host)
+>                 irq = -EINVAL;
 >
-> pwclient list -w dianders@chromium.org -p ""
+>         if (irq >= 0) {
+> +               if (!ctx->cd_gpio_isr)
+> +                       ctx->cd_gpio_isr = mmc_gpio_cd_irqt;
+>                 ret = devm_request_threaded_irq(host->parent, irq,
+> -                       NULL, mmc_gpio_cd_irqt,
+> +                       NULL, ctx->cd_gpio_isr,
+>                         IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+>                         ctx->cd_label, host);
+>                 if (ret < 0)
+> @@ -151,6 +154,21 @@ void mmc_gpiod_request_cd_irq(struct mmc_host *host)
+>  }
+>  EXPORT_SYMBOL(mmc_gpiod_request_cd_irq);
 >
-> 5425241 New          [v5,1/4] ARM: OMAP2+: Make sure
-> pandora_wl1251_init_card() applies to SDIO only
-> 5425291 New          [v5,1/4] ARM: OMAP2+: Make sure
-> pandora_wl1251_init_card() applies to SDIO only
-> 5425311 New          [v5,1/4] ARM: OMAP2+: Make sure
-> pandora_wl1251_init_card() applies to SDIO only
-> 5425231 New          [v5,2/4] mmc: core: Support the optional
-> init_card() callback for MMC and SD
-> 5425301 New          [v5,2/4] mmc: core: Support the optional
-> init_card() callback for MMC and SD
-> 5425271 New          [v5,3/4] mmc: dw_mmc: Cleanup disable of low
-> power mode w/ SDIO interrupts
-> 5425281 New          [v5,3/4] mmc: dw_mmc: Cleanup disable of low
-> power mode w/ SDIO interrupts
-> 5425251 New          [v5,4/4] mmc: dw_mmc: Protect read-modify-write
-> of INTMASK with a lock
-> 5425261 New          [v5,4/4] mmc: dw_mmc: Protect read-modify-write
-> of INTMASK with a lock
+> +/* Register an alternate interrupt service routine for
+> + * the card-detect GPIO.
+> + */
+> +int mmc_gpio_set_cd_isr(struct mmc_host *host,
+> +                       irqreturn_t (*isr)(int irq, void *dev_id))
+> +{
+> +       struct mmc_gpio *ctx;
+> +
+> +       ctx = host->slot.handler_priv;
+> +       if (ctx->cd_gpio_isr)
+> +               return -EBUSY;
+> +       ctx->cd_gpio_isr = isr;
+> +       return 0;
+
+I feel this is a bit more complex than what's needed.
+How about just assigning ->cd_gpio_isr() callback, without checking
+it's value first and then make mmc_gpio_set_cd_isr() a void function?
+
+> +}
+> +
+>  /**
+>   * mmc_gpio_request_cd - request a gpio for card-detection
+>   * @host: mmc host
+> diff --git a/include/linux/mmc/slot-gpio.h b/include/linux/mmc/slot-gpio.h
+> index 4a36d6954631..4faf41c9a77a 100644
+> --- a/include/linux/mmc/slot-gpio.h
+> +++ b/include/linux/mmc/slot-gpio.h
+> @@ -26,6 +26,8 @@ int mmc_gpiod_request_cd(struct mmc_host *host, const char *con_id,
+>  int mmc_gpiod_request_ro(struct mmc_host *host, const char *con_id,
+>                          unsigned int idx, bool override_active_level,
+>                          unsigned int debounce, bool *gpio_invert);
+> +int mmc_gpio_set_cd_isr(struct mmc_host *host,
+> +                           irqreturn_t (*isr)(int irq, void *dev_id));
+>  void mmc_gpiod_request_cd_irq(struct mmc_host *host);
+>
+>  #endif
+>
+>
