@@ -1,107 +1,52 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like interface
-Date: Tue, 30 Dec 2014 18:05:51 +0900
-Message-ID: <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>
-	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>
-	<54A19C17.1020909@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 2/3] usb: dwc3: add Fujitsu Specific Glue layer
+Date: Tue, 30 Dec 2014 11:12:51 +0100
+Message-ID: <1456155.YPH2fYoGgF@wuerfel>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com> <20141222155936.GB12815@saruman> <CAJ1gpc0uniw3F3O9nxTLHp9M2boxrOACYDB=fgruhLOLdqg9yA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <54A19C17.1020909@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ1gpc0uniw3F3O9nxTLHp9M2boxrOACYDB=fgruhLOLdqg9yA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-fy+rA21nqHI@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Thanks a lot for investigating this, even before I could look into
-splitting this.
+On Monday 29 December 2014 01:52:04 Sneeker Yeh wrote:
+> > > +static int dwc3_mb86s70_remove_child(struct device *dev, void *unused)
+> > > +{
+> > > +     struct platform_device *pdev = to_platform_device(dev);
+> > > +
+> > > +     of_device_unregister(pdev);
+> > > +
+> > > +     return 0;
+> > > +}
+> > > +
+> > > +static u64 dwc3_mb86s70_dma_mask = DMA_BIT_MASK(32);
+> >
+> > why ? Use dma_coerce_mask_and_coherent().
+> >
+> 
+> okay.
 
-2014-12-30 3:23 GMT+09:00 Nishanth Menon <nm@ti.com>:
-> On 12/23/2014 04:48 AM, Marek Szyprowski wrote:
->
->> -static void l2c310_resume(void)
->> +static void l2c310_configure(void __iomem *base)
->>  {
->> -     void __iomem *base = l2x0_base;
->> +     unsigned revision;
->>
->> -     if (!(readl_relaxed(base + L2X0_CTRL) & L2X0_CTRL_EN)) {
->> -             unsigned revision;
->> -
->> -             /* restore pl310 setup */
->> -             writel_relaxed(l2x0_saved_regs.tag_latency,
->> -                            base + L310_TAG_LATENCY_CTRL);
->> -             writel_relaxed(l2x0_saved_regs.data_latency,
->> -                            base + L310_DATA_LATENCY_CTRL);
->> -             writel_relaxed(l2x0_saved_regs.filter_end,
->> -                            base + L310_ADDR_FILTER_END);
->> -             writel_relaxed(l2x0_saved_regs.filter_start,
->> -                            base + L310_ADDR_FILTER_START);
->> -
->> -             revision = readl_relaxed(base + L2X0_CACHE_ID) &
->> -                             L2X0_CACHE_ID_RTL_MASK;
->> -
->> -             if (revision >= L310_CACHE_ID_RTL_R2P0)
->> -                     l2c_write_sec(l2x0_saved_regs.prefetch_ctrl, base,
->> -                                   L310_PREFETCH_CTRL);
->> -             if (revision >= L310_CACHE_ID_RTL_R3P0)
->> -                     l2c_write_sec(l2x0_saved_regs.pwr_ctrl, base,
->> -                                   L310_POWER_CTRL);
->> -
->> -             l2c_enable(base, l2x0_saved_regs.aux_ctrl, 8);
->> -
->> -             /* Re-enable full-line-of-zeros for Cortex-A9 */
->> -             if (l2x0_saved_regs.aux_ctrl & L310_AUX_CTRL_FULL_LINE_ZERO)
->> -                     set_auxcr(get_auxcr() | BIT(3) | BIT(2) | BIT(1));
->> -     }
->> +     /* restore pl310 setup */
->> +     writel_relaxed(l2x0_saved_regs.tag_latency,
->> +                    base + L310_TAG_LATENCY_CTRL);
->> +     writel_relaxed(l2x0_saved_regs.data_latency,
->> +                    base + L310_DATA_LATENCY_CTRL);
->> +     writel_relaxed(l2x0_saved_regs.filter_end,
->> +                    base + L310_ADDR_FILTER_END);
->> +     writel_relaxed(l2x0_saved_regs.filter_start,
->> +                    base + L310_ADDR_FILTER_START);
->> +
->
-> ^^ The above change broke AM437xx. Looks like the change causes the
-> following behavior difference on AM437x. For some reason, touching any
-> of the above 4 registers(even with the values read from the same
-> registers) causes AM437x to go beserk. Comment the 4 writes and we
-> reach shell. looks like l2c310_resume is not invoked prior to this
-> series. :(.. now that we reuse that logic to actually do programming,
-> we start to see the problem.
+Actually that is still wrong: we use dma_coerce_mask_and_coherent() to
+annotate drivers that have traditionally been forcing their own dma mask
+by some other means and that need to be changed to something proper (after
+finding out why they did it in the first place).
 
-Hmm, but the thing is that .configure() should not be called if the
-controller is already configured, i.e. L2X0_CTRL_EN in L2X0_CTRL is
-set. Maybe I missed some check somewhere. Let me reread my code I
-wrote quite a long time ago and make sure.
+Since this is about a child device, the correct interface is to use
+platform_device_register_full().
 
->
-> one option might be to write only those registers that differ from
-> saved_registers (example: unmodified values dont need reprogramming).
->
-> Looks like the following also need addressing:
-> data->save is called twice (once more after l2cof_init)
-> l2c310_init_fns also needs l2c310_configure
-> will be nice to use l2x0_data only after we kmemdup data in __l2c_init
+Note that this will still only work on machines that have no dma offset,
+iommu, swiotlb, special coherency requirements, or ones that need a
+platform specific dma_map_ops. To make any of those work, the driver
+would need to be changed to pass the correct device pointer into any
+dma-mapping interfaces, so the settings can get set by the platform
+code. We will need to do that for arm64 I assume.
 
-I'll check this.
-
->
-> if you'd like to split this up in pieces, [1] might be nice - will go
-> good to change the pl310, aurora etc in each chunks to enable better
-> review.
-
-Thanks a lot, the split up version will be definitely useful. Just to
-make sure, the parts look quite bisectable, but have you verified that
-applying the changes one by one leave the L2 cache working on OMAP?
-
->
-> [1]
-> https://github.com/nmenon/linux-2.6-playground/commits/temp/l2c-patch2-splitup
-
-Best regards,
-Tomasz
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
