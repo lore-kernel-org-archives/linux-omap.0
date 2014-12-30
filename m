@@ -1,71 +1,128 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH 2/3] hwmon: Driver for OMAP3 temperature sensor
-Date: Tue, 30 Dec 2014 23:46:22 +0100
-Message-ID: <20141230224621.GA26163@amd>
-References: <20141226102933.GA28778@amd>
- <1419597294-21487-1-git-send-email-sre@kernel.org>
- <1419597294-21487-3-git-send-email-sre@kernel.org>
- <CANOLnON6rAQ2+jJEFDKseH2Htu6bqRkURDioGt7zp1Ze73f8Pw@mail.gmail.com>
- <CAGo_u6qO0ok+GBnm7SQtw6dJuwGN2OuP7CpKDEWawS3V2go4KA@mail.gmail.com>
- <20141229181556.GA26926@amd>
- <20141229190448.GA27124@roeck-us.net>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: am335x: cpsw: interrupt failure
+Date: Tue, 30 Dec 2014 17:22:23 -0600
+Message-ID: <20141230232223.GD415@saruman>
+References: <CAGm1_ksziwSjQnV1rDYsAv2QQCvhnZPOimowmsW5Cib7C01aqA@mail.gmail.com>
+ <20141210210234.GN4602@saruman>
+ <CAGm1_ktYg4iDgK7jyi5etSVup61LdookkV+SaQZOpLb6M=y7hA@mail.gmail.com>
+ <CAGm1_kuaqXrU4zhNUZeY85+OeXHApSUDjJdsXcyBdvHTNhLCmQ@mail.gmail.com>
+ <20141212173210.GI7549@saruman>
+ <CAGm1_kuYrGsfjRO6TVr554yS8dcD4_Z9-j9KL0xpD=X+31OkXQ@mail.gmail.com>
+ <CAGm1_kudtF9O4QChrKX1q=c9KwHEFZet=z7j=-_iCRE914X83Q@mail.gmail.com>
+ <20141229155029.GA29379@saruman>
+ <20141229165103.GB2411@atomide.com>
+ <20141229171355.GJ29379@saruman>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="d9ADC0YsG2v16Js0"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48657 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425AbaL3XWw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2014 18:22:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20141229190448.GA27124-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, eduardo.valentin-l0cyMroinI0@public.gmane.org
+In-Reply-To: <20141229171355.GJ29379@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Yegor Yefremov <yegorslists@googlemail.com>, netdev <netdev@vger.kernel.org>, "N, Mugunthan V" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon 2014-12-29 11:04:48, Guenter Roeck wrote:
-> On Mon, Dec 29, 2014 at 07:15:56PM +0100, Pavel Machek wrote:
-> > On Mon 2014-12-29 12:01:03, Nishanth Menon wrote:
-> > > On Mon, Dec 29, 2014 at 11:52 AM, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > > > On Fri, Dec 26, 2014 at 2:34 PM, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > > >> OMAP34xx and OMAP36xx processors contain a register in the syscon area,
-> > > >> which can be used to determine the SoCs temperature. This patch provides
-> > > >> a DT based driver for the temperature sensor based on an older driver
-> > > >> written by Peter De Schrijver for the Nokia N900 and N9.
-> > > >
-> > > > The sensor looks like an earlier iteration of sensors used in newer
-> > > > OMAPs, which are already supported by maybe
-> > > > drivers/thermal/ti-soc-thermal/ , maybe it would make sense to update
-> > > > that driver instead?
-> > > 
-> > > Just to be clear - OMAP4 is the first time that the sensors were
-> > > reliable enough to be used.
-> > 
-> > When testing initial version of the patch, they seem to work very well
-> > in the omap3 case.
-> > 
-> Pavel,
-> 
-> can you look into the omap4 thermal driver to see if it can be used ?
+--d9ADC0YsG2v16Js0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The hardware registers are named the same way...
+Hi,
 
-Unfortunately, TI moves registers around with each release, and OMAP4
-stuff is _way_ more complex and maze of ifdefs, too.
+On Mon, Dec 29, 2014 at 11:13:55AM -0600, Felipe Balbi wrote:
+> > > > >>> U-Boot version: 2014.07
+> > > > >>> Kernel config is omap2plus with enabled USB
+> > > > >>>
+> > > > >>> # cat /proc/version
+> > > > >>> Linux version 3.18.0 (user@user-VirtualBox) (gcc version 4.8.3
+> > > > >>> 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29) ) #6=
+ SMP
+> > > > >>> Mon Dec 8 22:47:43 CET 2014
+> > > > >>
+> > > > >> Wasn't GCC 4.8.x total crap for building ARM kernels ? IIRC it w=
+as even
+> > > > >> blacklisted. Can you try with 4.9.x just to make sure ?
+> > > > >
+> > > > > Will do.
+> > > >=20
+> > > > Adding linux-omap. Beginning of this discussion:
+> > > > http://comments.gmane.org/gmane.linux.network/341427
+> > > >=20
+> > > > Quick summary: starting with kernel 3.18 or commit
+> > > > 55601c9f24670ba926ebdd4d712ac3b177232330 am335x (at least BBB and s=
+ome
+> > > > custom boards) stalls at high network load. Reproducible via nuttcp
+> > > > within some minutes
+> > > >=20
+> > > > nuttcp -S (on BBB)
+> > > > nuttcp -t -N 4 -T30m 192.168.1.235 (on host)
+> > > >=20
+> > > > As Felipe Balbi suggested, I tried both 4.8.3 and 4.9.2 toolchains,
+> > > > but both show the same behavior.
+> > > >=20
+> > > > Linux version 3.18.0 (user@user-VirtualBox) (gcc version 4.8.3
+> > > > 20140320 (prerelease) (Sourcery CodeBench Lite 2014.05-29) ) #6 SMP
+> > > > Mon Dec 8 22:47:43 CET 2014
+> > > > Linux version 3.18.1 (user@user-VirtualBox) (gcc version 4.9.2
+> > > > (Buildroot 2015.02-git-00582-g10b9761) ) #1 SMP Mon Dec 29 09:22:29
+> > > > CET 2014
+> > > >=20
+> > > > Let me know, if you can reproduce this issue.
+> > >=20
+> > > finally managed to reproduce this, it took quite a bit of effort thou=
+gh.
+> > > I'll see if I can gether more information about the problem.
+> >=20
+> > Maybe check if the irqnr is 127 (or the last reserved interrupt)
+> > in irq-omap-intc.c. If so, also print out the previous interrupt.
+> > It seems the intc uses the last reserved interrupt to signal a
+> > spurious interrupt for the previous irqnr, so we should probably
+> > add some handling for that.
+> >=20
+> > If the previous interrupt is a cpsw interrupt, then there's probably
+> > something wrong with cpsw interrupt handling. Either a missing
+> > read-back to flush posted write in the cpsw interrupt handler,
+> > or the EOI registers are written at a wrong time.
+>=20
+> yeah, I'll go over it, but I first need to reproduce it again. Just
+> rebooted to try again and after half an hour, couldn't reproduce it
+> anymore. Interesting race to end the year :-)
 
-static struct temp_sensor_data omap4430_mpu_temp_sensor_data = {
-        .min_freq = OMAP4430_MIN_FREQ,
- 	.max_freq = OMAP4430_MAX_FREQ,
- 	.max_temp = OMAP4430_MAX_TEMP,
-	.min_temp = OMAP4430_MIN_TEMP,
- 	.hyst_val = OMAP4430_HYST_VAL,
-	};
+alright, managed to reproduce multiple and I'm pretty confident I've
+found the bug. Right now I'm testing with AM437x and AM335x to make sure
+it's really working. If it's still running until tomorrow I'll send a
+preliminary patch but I want to leave this running for quite a few days
+before calling it "fixed".
 
-and each define used just once. Would be easier to read and modify if
-the ifdefs were removed...
-	
-Best regards,
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+balbi
+
+--d9ADC0YsG2v16Js0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUozOvAAoJEIaOsuA1yqREh6cP/inK4r9ekju3+RyKLB65jmxf
+sf1qlh650SXSTlh+KqbDJPtJ3NbDfXF/SYaVFJNcKYA0H1wELYe0j6PjP/qfHZdl
+re8pM/eM56P588F/qLb8iwVFwh086s6KwsiFUoxkoI7+UvRF/LZ4dGdbO4B6znZ2
+yydh+lmZWCBNtA4SrSvjwUMOWGnBagK5adhvJmtCXrB4da4DySgf2IEFo+AZpyfX
+YmOjJTLG1zoX4hLlUfdeoeKDbMzZNj+LsJ87zzGCfN+ms/1hIhq4bN5TlqdNKBFN
+Ff6R8PMwYUrf9bnac4QGZ2v/AfdV7dMsWLYc9VjSEOVAqQIC8PFvS3dqaQa2imV3
+iDC++9BYp2qKD3gHL0JG5C71aOAfDDPRm1W0LCY6kMJ68XklFlRfWxDFZ+GfjnHy
+A/UvKXhcpnxQBppP31p1Zz3HwDq7/IXUSUyh6h8yTsH+vQx+3c4/0A5gdMXE5yFH
+4/j/SLuu1mJCPN+/9t8lrdHdB/gm+fm1sfjJAG55kr82xyBIHPynQ5eorVXIuIoK
+hbMUMewOc9vGQoStSxx00DITBmZZRI1s1sW6Ye4nD9FB8wMocRr/3p0h0XhwFIDa
++xiia9k7ksKInG8BjMVwenheKO9SkKcHgbQX4fxkgRilJ4RPweoJjv27a0JZcVbC
+gip8pyzwNXKMBRPfgC+c
+=lbwh
+-----END PGP SIGNATURE-----
+
+--d9ADC0YsG2v16Js0--
