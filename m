@@ -1,138 +1,120 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Tue, 30 Dec 2014 08:51:08 -0600
-Message-ID: <54A2BBDC.1020900@ti.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>	<54A19C17.1020909@ti.com> <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
+ is reached
+Date: Tue, 30 Dec 2014 10:02:15 -0600
+Message-ID: <20141230160215.GB415@saruman>
+References: <cover.1418972323.git.amit.virdi@st.com>
+ <995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
+ <20141222160626.GD12815@saruman>
+ <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
+ <20141227174628.GB17608@saruman>
+ <CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com>
+ <20141229171232.GI29379@saruman>
+ <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Fba/0zbH8Xs+Fj9o"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Amit Virdi <amitvi128-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pratyush Anand Thakur <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ajay.khandelwal-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/30/2014 03:05 AM, Tomasz Figa wrote:
-> Thanks a lot for investigating this, even before I could look into
-> splitting this.
-> 
-> 2014-12-30 3:23 GMT+09:00 Nishanth Menon <nm@ti.com>:
->> On 12/23/2014 04:48 AM, Marek Szyprowski wrote:
->>
->>> -static void l2c310_resume(void)
->>> +static void l2c310_configure(void __iomem *base)
->>>  {
->>> -     void __iomem *base = l2x0_base;
->>> +     unsigned revision;
->>>
->>> -     if (!(readl_relaxed(base + L2X0_CTRL) & L2X0_CTRL_EN)) {
->>> -             unsigned revision;
->>> -
->>> -             /* restore pl310 setup */
->>> -             writel_relaxed(l2x0_saved_regs.tag_latency,
->>> -                            base + L310_TAG_LATENCY_CTRL);
->>> -             writel_relaxed(l2x0_saved_regs.data_latency,
->>> -                            base + L310_DATA_LATENCY_CTRL);
->>> -             writel_relaxed(l2x0_saved_regs.filter_end,
->>> -                            base + L310_ADDR_FILTER_END);
->>> -             writel_relaxed(l2x0_saved_regs.filter_start,
->>> -                            base + L310_ADDR_FILTER_START);
->>> -
->>> -             revision = readl_relaxed(base + L2X0_CACHE_ID) &
->>> -                             L2X0_CACHE_ID_RTL_MASK;
->>> -
->>> -             if (revision >= L310_CACHE_ID_RTL_R2P0)
->>> -                     l2c_write_sec(l2x0_saved_regs.prefetch_ctrl, base,
->>> -                                   L310_PREFETCH_CTRL);
->>> -             if (revision >= L310_CACHE_ID_RTL_R3P0)
->>> -                     l2c_write_sec(l2x0_saved_regs.pwr_ctrl, base,
->>> -                                   L310_POWER_CTRL);
->>> -
->>> -             l2c_enable(base, l2x0_saved_regs.aux_ctrl, 8);
->>> -
->>> -             /* Re-enable full-line-of-zeros for Cortex-A9 */
->>> -             if (l2x0_saved_regs.aux_ctrl & L310_AUX_CTRL_FULL_LINE_ZERO)
->>> -                     set_auxcr(get_auxcr() | BIT(3) | BIT(2) | BIT(1));
->>> -     }
->>> +     /* restore pl310 setup */
->>> +     writel_relaxed(l2x0_saved_regs.tag_latency,
->>> +                    base + L310_TAG_LATENCY_CTRL);
->>> +     writel_relaxed(l2x0_saved_regs.data_latency,
->>> +                    base + L310_DATA_LATENCY_CTRL);
->>> +     writel_relaxed(l2x0_saved_regs.filter_end,
->>> +                    base + L310_ADDR_FILTER_END);
->>> +     writel_relaxed(l2x0_saved_regs.filter_start,
->>> +                    base + L310_ADDR_FILTER_START);
->>> +
->>
->> ^^ The above change broke AM437xx. Looks like the change causes the
->> following behavior difference on AM437x. For some reason, touching any
->> of the above 4 registers(even with the values read from the same
->> registers) causes AM437x to go beserk. Comment the 4 writes and we
->> reach shell. looks like l2c310_resume is not invoked prior to this
->> series. :(.. now that we reuse that logic to actually do programming,
->> we start to see the problem.
-> 
-> Hmm, but the thing is that .configure() should not be called if the
-> controller is already configured, i.e. L2X0_CTRL_EN in L2X0_CTRL is
-> set. Maybe I missed some check somewhere. Let me reread my code I
-> wrote quite a long time ago and make sure.
+--Fba/0zbH8Xs+Fj9o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-you have'nt missed a check here. it does indeed get called
-l2c310_enable->l2c_enable -> (if cache
-disabled)->l2c_configure->l2c310_configure
+On Tue, Dec 30, 2014 at 08:11:13PM +0530, Amit Virdi wrote:
+> >> The only reason why I have not been able to test these fixes on the
+> >> latest is because the customized webcam gadget is not ported on the
+> >> latest kernel. There have been a lot of changes in the video framework
+> >> lately and that is not my area of expertise. So porting the customized
+> >> webcam gadget to latest kernel and testing these fixes is not feasible
+> >> for me.
+> >
+> > right, so while I can see that both patches are very minimal and likely
+> > to be correct, I have no way of guaranteeing that. The only thing I can
+> > do, is run the tests which I already run (none of which exercise the
+> > cases you found though, other I'd have found them already) to make sure
+> > your patches don't break what's already working.
+> >
+>=20
+> Okay
+>=20
+> >> Having said all this, the fact remains that these are bugs in the dwc3
+> >> driver from kernel v3.9 onwards. The log messages clearly depict this.
+> >
+> > no, it doesn't :-) your log snippet is so small that I cannot see how
+> > the driver got to that point :-) The only thing I can see is that you
+> > started two requests, one for 960000 bytes and another one for 2 bytes,
+> > but I don't know how many TRBs we had available, nor do I see a Start
+> > Transfer command, so I can't validate Start Transfer command parameters
+> > were correct or not.
+> >
+> >> These bugs are obviously present till date.
+> >
+> > Right, the code is the same :-)
+> >
+> >> I ask you to give a more deeper thought on the whole situation and not
+> >> undermine the importance of code review.
+> >
+> > heh
+> >
+> >>  - [Patch 2/4] fixes a bug that could have been found in the code revi=
+ew.
+> >>  - [Patch 1/4] fixes a bug which was very very subtle but a deeper
+> >> code review can certainly boost the confidence about the change made.
+> >> list_is_last won't work when SG is used because, for the last request
+> >> in the request_list, the TRB for the first sg entry modifies the
+> >> list's next and prev pointers while moving the URB to req_queued.
+> >>
+> >> I can certainly provide the dwc3 specific kernel bootup logs, full
+> >> regdump and any loglevel you want me to, if that helps
+> >
+> > Yeah, if you can provide those, then that'll help me verifying. Full
+> > logs from boot to failure point with VERBOSE_DEBUG enabled (considering
+> > you're not running on anything recent).
+> >
+>=20
+> Okay. I'll provide full verbose logs, along with the register dump,
+> when I'm back to the office next week, for the working and non-working
+> case, but how - as attachment or as inline?
 
-It looks like a quirk of AM437x which remained hidden till this patch
-exposed it. The original pl310 resume would have been invoked if
-outer_resume was invoked (if my reading of code is correct), which in
-the case of AM437x was never invoked during boot. By reusing the
-restore code for resume (which in my opinion is a good change), we
-seemed to have exposed quirky behavior on am437x. I started a thread
-yesterday with hardware folks trying to understand the integration
-aspects and explanation for this quirky behavior - unfortunately, with
-holidays, I doubt I might get a quick answer fast. but the workaround
-seems obvious - do not write to the the mentioned 4 registers on
-am437x. This might make sense it arm,tag-latency , arm,data-latency,
-arm,filter-ranges properties are not defined in OF.
+Either way will do but I have a feeling mailing list attachment size
+will bite you, so maybe it's best to make a tarball of both logs and
+send that as attachment. Compressed text will be very small.
 
->> one option might be to write only those registers that differ from
->> saved_registers (example: unmodified values dont need reprogramming).
->>
->> Looks like the following also need addressing:
->> data->save is called twice (once more after l2cof_init)
->> l2c310_init_fns also needs l2c310_configure
->> will be nice to use l2x0_data only after we kmemdup data in __l2c_init
-> 
-> I'll check this.
-Thanks.
+--=20
+balbi
 
-> 
->>
->> if you'd like to split this up in pieces, [1] might be nice - will go
->> good to change the pl310, aurora etc in each chunks to enable better
->> review.
-> 
-> Thanks a lot, the split up version will be definitely useful. Just to
-> make sure, the parts look quite bisectable, but have you verified that
-> applying the changes one by one leave the L2 cache working on OMAP?
+--Fba/0zbH8Xs+Fj9o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The split is not complete or properly done as I ignored aurora and was
-trying to do it focussed on pl310 impacted code in a hurry, but yes,
-the split is indeed bisectable for OMAP platforms. The intent was to
-indicate the direction we should probably take and introduce the
-refactor in stages. At the very least, it tends to be easier to debug
-down to.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
->> [1]
->> https://github.com/nmenon/linux-2.6-playground/commits/temp/l2c-patch2-splitup
-> 
-> Best regards,
-> Tomasz
-> 
+iQIcBAEBAgAGBQJUosyHAAoJEIaOsuA1yqREAVcP/1RnYYcO1J3+nWfzFq3YfoGb
+M0tuY3Shj+gJz8Sf1DnIxRIkod0ntnCrUKxHPwPooYQqnuhUomjF2thaSiLOYQfc
+hJeTuyxP2OX7waTw9JY7I2Lvv91d1tY6c+IqnYQ2TKYvo/YL8UmaZYyr1nLg8Tdv
+aF9Gm5zyUTTcTESy8CD2z1GqDgOHx9VvoAKqsvmGoLJKoPD45PL/rvpMUyoE/9vY
+FjVo6r1EtBYIwHa4cv859CwHrH/o4xLwiTSl0yW06ZESXi7k+aOgW77rdrLVDcAx
+icxWkvhzBZNz5XNVVtkOcvpnXyBY1+9o4RLRdFEFEm3UCEAE1dLmZPZjbVBincG6
+akehBQ+Gawmh6U14SZwEXASLhFPF3tcmXF0ZcBxLgBLrt76LBK2wdxP9ZLwxznAi
+soKhK5SXZ58NkPTwfUUmCQLcTgdUaG43momIiocIUeKvcW+sy74GpO/izWQGhail
+9Fvqk1Q/Yrxi7qwnnz0ON5xOdlByYfRAGbzyHogvqDU1IbRSWuVR/9SiBmeYC4Cw
+EhQz6cGMb/wOtQOIO5OSdQjHg4VV/k1UkKGkLmUQDb34CTAhaFMn4beKJ1FZVsVp
+8Tbgfj1HIdn2gp971lef1ISLPBO73lLmm8Rz+x9q4Fz6mlSUxXmEWPOV4Hul7YLX
+xn+idXpQTOHYJVR2eCIu
+=BTNl
+-----END PGP SIGNATURE-----
 
-
--- 
-Regards,
-Nishanth Menon
+--Fba/0zbH8Xs+Fj9o--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
