@@ -1,365 +1,78 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCHv2] media: i2c/adp1653: devicetree support for adp1653
-Date: Tue, 30 Dec 2014 15:57:01 +0200
-Message-ID: <20141230135701.GN17565@valkosipuli.retiisi.org.uk>
-References: <20141203214641.GA1390@amd>
- <20141224223434.GA20669@amd>
+From: Amit Virdi <amitvi128@gmail.com>
+Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
+ is reached
+Date: Tue, 30 Dec 2014 20:11:13 +0530
+Message-ID: <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com>
+References: <cover.1418972323.git.amit.virdi@st.com>
+	<995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
+	<20141222160626.GD12815@saruman>
+	<CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
+	<20141227174628.GB17608@saruman>
+	<CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com>
+	<20141229171232.GI29379@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141224223434.GA20669@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, freemangordon-uiMcrn6V0Vs@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j.anaszewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f44.google.com ([209.85.213.44]:44953 "EHLO
+	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599AbaL3OlO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2014 09:41:14 -0500
+In-Reply-To: <20141229171232.GI29379@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Amit Virdi <amit.virdi@st.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Pratyush Anand Thakur <pratyush.anand@gmail.com>, ajay.khandelwal@st.com
 
-Hi Pavel,
+>> The only reason why I have not been able to test these fixes on the
+>> latest is because the customized webcam gadget is not ported on the
+>> latest kernel. There have been a lot of changes in the video framework
+>> lately and that is not my area of expertise. So porting the customized
+>> webcam gadget to latest kernel and testing these fixes is not feasible
+>> for me.
+>
+> right, so while I can see that both patches are very minimal and likely
+> to be correct, I have no way of guaranteeing that. The only thing I can
+> do, is run the tests which I already run (none of which exercise the
+> cases you found though, other I'd have found them already) to make sure
+> your patches don't break what's already working.
+>
 
-Thanks for the patch! A few comments below.
+Okay
 
-On Wed, Dec 24, 2014 at 11:34:34PM +0100, Pavel Machek wrote:
-> 
-> We are moving to device tree support on OMAP3, but that currently
-> breaks ADP1653 driver. This adds device tree support, plus required
-> documentation.
-> 
-> Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-> 
-> ---
-> 
-> Changed -microsec to -us, as requested by devicetree people.
-> 
-> Fixed checkpatch issues.
-> 
-> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
-> index 2d88816..2c6c7c5 100644
-> --- a/Documentation/devicetree/bindings/leds/common.txt
-> +++ b/Documentation/devicetree/bindings/leds/common.txt
-> @@ -14,6 +14,15 @@ Optional properties for child nodes:
->       "ide-disk" - LED indicates disk activity
->       "timer" - LED flashes at a fixed, configurable rate
->  
-> +- max-microamp : maximum intensity in microamperes of the LED
-> +	         (torch LED for flash devices)
+>> Having said all this, the fact remains that these are bugs in the dwc3
+>> driver from kernel v3.9 onwards. The log messages clearly depict this.
+>
+> no, it doesn't :-) your log snippet is so small that I cannot see how
+> the driver got to that point :-) The only thing I can see is that you
+> started two requests, one for 960000 bytes and another one for 2 bytes,
+> but I don't know how many TRBs we had available, nor do I see a Start
+> Transfer command, so I can't validate Start Transfer command parameters
+> were correct or not.
+>
+>> These bugs are obviously present till date.
+>
+> Right, the code is the same :-)
+>
+>> I ask you to give a more deeper thought on the whole situation and not
+>> undermine the importance of code review.
+>
+> heh
+>
+>>  - [Patch 2/4] fixes a bug that could have been found in the code review.
+>>  - [Patch 1/4] fixes a bug which was very very subtle but a deeper
+>> code review can certainly boost the confidence about the change made.
+>> list_is_last won't work when SG is used because, for the last request
+>> in the request_list, the TRB for the first sg entry modifies the
+>> list's next and prev pointers while moving the URB to req_queued.
+>>
+>> I can certainly provide the dwc3 specific kernel bootup logs, full
+>> regdump and any loglevel you want me to, if that helps
+>
+> Yeah, if you can provide those, then that'll help me verifying. Full
+> logs from boot to failure point with VERBOSE_DEBUG enabled (considering
+> you're not running on anything recent).
+>
 
-s/torch LED/torch mode/
-
-> +- flash-max-microamp : maximum intensity in microamperes of the
-> +                       flash LED; it is mandatory if the LED should
-> +		       support the flash mode
-> +- flash-timeout-microsec : timeout in microseconds after which the flash
-> +                           LED is turned off
-
-These should go to a different patch.
-
-> +
-> +
->  Examples:
->  
->  system-status {
-> @@ -21,3 +30,10 @@ system-status {
->  	linux,default-trigger = "heartbeat";
->  	...
->  };
-> +
-> +camera-flash {
-> +	label = "Flash";
-> +	max-microamp = <50000>;
-> +	flash-max-microamp = <320000>;
-> +	flash-timeout-microsec = <500000>;
-> +}
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adp1653.txt b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> new file mode 100644
-> index 0000000..3c7065f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> @@ -0,0 +1,38 @@
-> +* Analog Devices ADP1653 flash LED driver
-> +
-> +Required Properties:
-> +
-> +  - compatible: Must contain one of the following
-> +    - "adi,adp1653"
-
-I doubt whether there are going to be more chips supported with the driver.
-There hasn't been since the driver was written not I'm aware of one now.
-
-> +  - reg: I2C slave address
-> +
-> +  - gpios: References to the GPIO that controls the power for the chip.
-> +
-> +There are two led outputs available - flash and indicator. One led is
-> +represented by one child node, nodes need to be named "flash" and "indicator".
-
-80 characters per line.
-
-> +
-> +Required properties of the LED child node:
-> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Required properties of the flash LED child node:
-> +
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Example:
-> +
-> +        adp1653: led-controller@30 {
-> +                compatible = "adi,adp1653";
-> +		reg = <0x30>;
-> +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-
-Please use tabs for indentation above (and below).
-
-> +
-> +		flash {
-> +                        flash-timeout-us = <500000>;
-> +                        flash-max-microamp = <320000>;
-> +                        max-microamp = <50000>;
-> +		};
-> +                indicator {
-> +                        max-microamp = <17500>;
-> +		};
-> +        };
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index bc82a12..d04e7cc 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -553,6 +558,22 @@
->  
->  		ti,usb-charger-detection = <&isp1704>;
->  	};
-> +
-> +	adp1653: led-controller@30 {
-> +		compatible = "adi,adp1653";
-> +		reg = <0x30>;
-> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> +
-> +		flash {
-> +			flash-timeout-us = <500000>;
-> +			flash-max-microamp = <320000>;
-> +			max-microamp = <50000>;
-> +		};
-> +
-> +		indicator {
-> +			max-microamp = <17500>;
-> +		};
-> +	};
-
-This should go to a separate patch as well.
-
->  };
->  
->  &i2c3 {
-> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-> index 873fe19..78341d0 100644
-> --- a/drivers/media/i2c/adp1653.c
-> +++ b/drivers/media/i2c/adp1653.c
-> @@ -8,6 +8,7 @@
->   * Contributors:
->   *	Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
->   *	Tuukka Toivonen <tuukkat76-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> + *      Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
->   *
->   * This program is free software; you can redistribute it and/or
->   * modify it under the terms of the GNU General Public License
-> @@ -34,9 +35,12 @@
->  #include <linux/module.h>
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
-> +#include <linux/of_gpio.h>
->  #include <media/adp1653.h>
->  #include <media/v4l2-device.h>
->  
-> +#include <linux/gpio.h>
-
-Please arrange along with the rest of headers.
-
-> +
->  #define TIMEOUT_MAX		820000
->  #define TIMEOUT_STEP		54600
->  #define TIMEOUT_MIN		(TIMEOUT_MAX - ADP1653_REG_CONFIG_TMR_SET_MAX \
-> @@ -306,9 +318,18 @@ adp1653_init_device(struct adp1653_flash *flash)
->  static int
->  __adp1653_set_power(struct adp1653_flash *flash, int on)
->  {
-> -	int ret;
-> +	int ret = 0;
-> +
-> +	if (flash->platform_data->power)
-> +		ret = flash->platform_data->power(&flash->subdev, on);
-
-if () {
-} else {
-}
-
-> +	else {
-> +		gpio_set_value(flash->platform_data->power_gpio, on);
-
-Shouldn't you add this to the platform data struct?
-
-power_gpio is actually a poor name for this, as is the "power" callback.
-This is really "EN" gpio in the spec, I'd call it perhaps just "gpio", or
-"enable_gpio".
-
-> +		if (on) {
-> +			/* Some delay is apparently required. */
-> +			udelay(20);
-
-The driver should always handle the delay, platform data or not. This
-reminds me --- is there a need to retain the support for platform data? I
-don't think it's being used anywhere. I'm fine with both keeping and
-removing it.
-
-> +		}
-> +	}
->  
-> -	ret = flash->platform_data->power(&flash->subdev, on);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -316,8 +337,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
->  		return 0;
->  
->  	ret = adp1653_init_device(flash);
-> -	if (ret < 0)
-> +	if (ret >= 0)
-> +		return ret;
-> +
-> +	if (flash->platform_data->power)
->  		flash->platform_data->power(&flash->subdev, 0);
-> +	else
-> +		gpio_set_value(flash->platform_data->power_gpio, 0);
->  
->  	return ret;
->  }
-> @@ -407,21 +433,78 @@ static int adp1653_resume(struct device *dev)
->  
->  #endif /* CONFIG_PM */
->  
-> +static int adp1653_of_init(struct i2c_client *client,
-> +			   struct adp1653_flash *flash,
-> +			   struct device_node *node)
-> +{
-> +	u32 val;
-> +	struct adp1653_platform_data *pd;
-> +	enum of_gpio_flags flags;
-> +	int gpio;
-> +	struct device_node *child;
-> +
-> +	if (!node)
-> +		return -EINVAL;
-> +
-> +	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
-> +	if (!pd)
-> +		return -ENOMEM;
-> +	flash->platform_data = pd;
-> +
-> +	child = of_get_child_by_name(node, "flash");
-> +	if (!child)
-> +		return -EINVAL;
-> +	if (of_property_read_u32(child, "flash-timeout-microsec", &val))
-> +		return -EINVAL;
-> +
-> +	pd->max_flash_timeout = val;
-> +	if (of_property_read_u32(child, "flash-max-microamp", &val))
-> +		return -EINVAL;
-> +	pd->max_flash_intensity = val/1000;
-> +
-> +	if (of_property_read_u32(child, "max-microamp", &val))
-> +		return -EINVAL;
-> +	pd->max_torch_intensity = val/1000;
-> +
-> +	child = of_get_child_by_name(node, "indicator");
-> +	if (!child)
-> +		return -EINVAL;
-
-Do you require an indicator to be connected? I think it shouldn't be
-mandatory, at least the driver should work without it, even if it exposes
-the control (making that conditional would be a subject for another patch,
-but that doesn't need to be done now).
-
-> +	if (of_property_read_u32(child, "max-microamp", &val))
-> +		return -EINVAL;
-> +	pd->max_indicator_intensity = val;
-> +
-> +	if (!of_find_property(node, "gpios", NULL)) {
-> +		dev_err(&client->dev, "No gpio node\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	gpio = of_get_gpio_flags(node, 0, &flags);
-
-You could assign to pd->... here.
-
-> +	if (gpio < 0) {
-> +		dev_err(&client->dev, "Error getting GPIO\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	pd->power_gpio = gpio;
-> +	return 0;
-> +}
-> +
-> +
->  static int adp1653_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *devid)
->  {
->  	struct adp1653_flash *flash;
->  	int ret;
->  
-> -	/* we couldn't work without platform data */
-> -	if (client->dev.platform_data == NULL)
-> -		return -ENODEV;
-> -
->  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
->  	if (flash == NULL)
->  		return -ENOMEM;
->  
->  	flash->platform_data = client->dev.platform_data;
-> +	if (!flash->platform_data) {
-> +		ret = adp1653_of_init(client, flash, client->dev.of_node);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	mutex_init(&flash->power_lock);
->  
-> @@ -438,10 +521,11 @@ static int adp1653_probe(struct i2c_client *client,
->  		goto free_and_quit;
->  
->  	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-> -
-> +
-
-Huh? :-)
-
->  	return 0;
->  
->  free_and_quit:
-> +	dev_err(&client->dev, "adp1653: failed to register device\n");
->  	v4l2_ctrl_handler_free(&flash->ctrls);
->  	return ret;
->  }
-> @@ -464,7 +551,7 @@ static const struct i2c_device_id adp1653_id_table[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
->  
-> -static struct dev_pm_ops adp1653_pm_ops = {
-> +static const struct dev_pm_ops adp1653_pm_ops = {
->  	.suspend	= adp1653_suspend,
->  	.resume		= adp1653_resume,
->  };
-> 
-> 
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Okay. I'll provide full verbose logs, along with the register dump,
+when I'm back to the office next week, for the working and non-working
+case, but how - as attachment or as inline?
