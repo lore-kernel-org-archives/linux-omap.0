@@ -1,120 +1,90 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
- is reached
-Date: Tue, 30 Dec 2014 10:02:15 -0600
-Message-ID: <20141230160215.GB415@saruman>
-References: <cover.1418972323.git.amit.virdi@st.com>
- <995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com>
- <20141222160626.GD12815@saruman>
- <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com>
- <20141227174628.GB17608@saruman>
- <CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com>
- <20141229171232.GI29379@saruman>
- <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v3.19-rc1 regression(?) on N900
+Date: Tue, 30 Dec 2014 18:39:43 +0100
+Message-ID: <20141230173800.GA23142@amd>
+References: <549B44E2.6080202@ti.com>
+ <201412250932.40403@pali>
+ <20141225091121.GA20355@amd>
+ <20141225222122.GB582@fuloong-minipc.musicnaut.iki.fi>
+ <54A10B1E.7030800@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Fba/0zbH8Xs+Fj9o"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Amit Virdi <amitvi128-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pratyush Anand Thakur <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ajay.khandelwal-qxv4g6HH51o@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
---Fba/0zbH8Xs+Fj9o
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40319 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977AbaL3Rjr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2014 12:39:47 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <54A10B1E.7030800@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, sre@debian.org, Tony Lindgren <tony@atomide.com>, sre@ring0.de, ivo.g.dimitrov.75@gmail.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Tue, Dec 30, 2014 at 08:11:13PM +0530, Amit Virdi wrote:
-> >> The only reason why I have not been able to test these fixes on the
-> >> latest is because the customized webcam gadget is not ported on the
-> >> latest kernel. There have been a lot of changes in the video framework
-> >> lately and that is not my area of expertise. So porting the customized
-> >> webcam gadget to latest kernel and testing these fixes is not feasible
-> >> for me.
-> >
-> > right, so while I can see that both patches are very minimal and likely
-> > to be correct, I have no way of guaranteeing that. The only thing I can
-> > do, is run the tests which I already run (none of which exercise the
-> > cases you found though, other I'd have found them already) to make sure
-> > your patches don't break what's already working.
-> >
->=20
-> Okay
->=20
-> >> Having said all this, the fact remains that these are bugs in the dwc3
-> >> driver from kernel v3.9 onwards. The log messages clearly depict this.
-> >
-> > no, it doesn't :-) your log snippet is so small that I cannot see how
-> > the driver got to that point :-) The only thing I can see is that you
-> > started two requests, one for 960000 bytes and another one for 2 bytes,
-> > but I don't know how many TRBs we had available, nor do I see a Start
-> > Transfer command, so I can't validate Start Transfer command parameters
-> > were correct or not.
-> >
-> >> These bugs are obviously present till date.
-> >
-> > Right, the code is the same :-)
-> >
-> >> I ask you to give a more deeper thought on the whole situation and not
-> >> undermine the importance of code review.
-> >
-> > heh
-> >
-> >>  - [Patch 2/4] fixes a bug that could have been found in the code revi=
-ew.
-> >>  - [Patch 1/4] fixes a bug which was very very subtle but a deeper
-> >> code review can certainly boost the confidence about the change made.
-> >> list_is_last won't work when SG is used because, for the last request
-> >> in the request_list, the TRB for the first sg entry modifies the
-> >> list's next and prev pointers while moving the URB to req_queued.
-> >>
-> >> I can certainly provide the dwc3 specific kernel bootup logs, full
-> >> regdump and any loglevel you want me to, if that helps
-> >
-> > Yeah, if you can provide those, then that'll help me verifying. Full
-> > logs from boot to failure point with VERBOSE_DEBUG enabled (considering
-> > you're not running on anything recent).
-> >
->=20
-> Okay. I'll provide full verbose logs, along with the register dump,
-> when I'm back to the office next week, for the working and non-working
-> case, but how - as attachment or as inline?
 
-Either way will do but I have a feeling mailing list attachment size
-will bite you, so maybe it's best to make a tarball of both logs and
-send that as attachment. Compressed text will be very small.
+On Mon 2014-12-29 10:04:46, Tomi Valkeinen wrote:
+> Hi,
+> 
+> On 26/12/14 00:21, Aaro Koskinen wrote:
+> 
+> > ...however, I can confirm that framebuffer is broken:
+> > 
+> > [    8.230743] omapfb omapfb: no displays
+> > [    8.255584] omapfb omapfb: failed to setup omapfb
+> > [    8.260620] platform omapfb: Driver omapfb requests probe deferral
+> > [    8.284118] of_get_named_gpiod_flags: parsed 'reset-gpios' property of node
+> > '/ocp/spi@48098000/acx565akm@2[0]' - status (0)
+> > [    8.284271] acx565akm spi1.2: failed to find video source
+> > [    8.290069] spi spi1.2: Driver acx565akm requests probe deferral
+> > 
+> > I bisected it to ef691ff48bc8 (OMAPDSS: DT: Get source endpoint
+> > by matching reg-id). When I revert that, also FB works with 3.19-rc1.
+> 
+> I've attached a patch for this. Only hack-tested on OMAP3 beagle, so
+> please report if it works.
 
---=20
-balbi
+This fixes the issue for me.
 
---Fba/0zbH8Xs+Fj9o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Tested-by: Pavel Machek <pavel@ucw.cz>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUosyHAAoJEIaOsuA1yqREAVcP/1RnYYcO1J3+nWfzFq3YfoGb
-M0tuY3Shj+gJz8Sf1DnIxRIkod0ntnCrUKxHPwPooYQqnuhUomjF2thaSiLOYQfc
-hJeTuyxP2OX7waTw9JY7I2Lvv91d1tY6c+IqnYQ2TKYvo/YL8UmaZYyr1nLg8Tdv
-aF9Gm5zyUTTcTESy8CD2z1GqDgOHx9VvoAKqsvmGoLJKoPD45PL/rvpMUyoE/9vY
-FjVo6r1EtBYIwHa4cv859CwHrH/o4xLwiTSl0yW06ZESXi7k+aOgW77rdrLVDcAx
-icxWkvhzBZNz5XNVVtkOcvpnXyBY1+9o4RLRdFEFEm3UCEAE1dLmZPZjbVBincG6
-akehBQ+Gawmh6U14SZwEXASLhFPF3tcmXF0ZcBxLgBLrt76LBK2wdxP9ZLwxznAi
-soKhK5SXZ58NkPTwfUUmCQLcTgdUaG43momIiocIUeKvcW+sy74GpO/izWQGhail
-9Fvqk1Q/Yrxi7qwnnz0ON5xOdlByYfRAGbzyHogvqDU1IbRSWuVR/9SiBmeYC4Cw
-EhQz6cGMb/wOtQOIO5OSdQjHg4VV/k1UkKGkLmUQDb34CTAhaFMn4beKJ1FZVsVp
-8Tbgfj1HIdn2gp971lef1ISLPBO73lLmm8Rz+x9q4Fz6mlSUxXmEWPOV4Hul7YLX
-xn+idXpQTOHYJVR2eCIu
-=BTNl
------END PGP SIGNATURE-----
+> From fe3e8dde8eae80541a3f3b39c421428ebd02955f Mon Sep 17 00:00:00 2001
+> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date: Mon, 29 Dec 2014 09:57:11 +0200
+> Subject: [PATCH] OMAPDSS: SDI: fix output port_num
+> 
+> After the commit ef691ff48bc8 (OMAPDSS: DT: Get source endpoint by
+> matching reg-id) we look for the SDI output using the port number.
+> However, the SDI driver doesn't set the port number, which causes the
+> SDI display to not initialize.
+> 
+> Fix this by setting the SDI port number to 1. We use a hardcoded value,
+> as SDI was used only on OMAP3 and it's always port number 1 there.
+> 
+> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/sdi.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/video/fbdev/omap2/dss/sdi.c b/drivers/video/fbdev/omap2/dss/sdi.c
+> index d51a983075bc..5c2ccab5a958 100644
+> --- a/drivers/video/fbdev/omap2/dss/sdi.c
+> +++ b/drivers/video/fbdev/omap2/dss/sdi.c
+> @@ -342,6 +342,8 @@ static void sdi_init_output(struct platform_device *pdev)
+>  	out->output_type = OMAP_DISPLAY_TYPE_SDI;
+>  	out->name = "sdi.0";
+>  	out->dispc_channel = OMAP_DSS_CHANNEL_LCD;
+> +	/* We have SDI only on OMAP3, where it's on port 1 */
+> +	out->port_num = 1;
+>  	out->ops.sdi = &sdi_ops;
+>  	out->owner = THIS_MODULE;
+>  
 
---Fba/0zbH8Xs+Fj9o--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
