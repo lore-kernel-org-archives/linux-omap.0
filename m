@@ -1,145 +1,89 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: [PATCH] serial: omap_8250: Fix RTS handling
-Date: Tue, 30 Dec 2014 20:28:15 -0500
-Message-ID: <1419989295-7290-1-git-send-email-peter@hurleysoftware.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: OMAP 4430 SDP: rather sick with recent kernels
+Date: Wed, 31 Dec 2014 14:59:35 +0200
+Message-ID: <54A3F337.6030607@ti.com>
+References: <20141217095252.GH11502@n2100.arm.linux.org.uk> <20141217172333.GE23854@atomide.com> <20141218164122.GH23854@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48417 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568AbaLaNAL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Dec 2014 08:00:11 -0500
+In-Reply-To: <20141218164122.GH23854@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jyri Sarha <jsarha@ti.com>, Nishanth Menon <nm@ti.com>
 
-The OMAP3 UART ignores MCR[1] (ie., UART_MCR_RTS) when in autoRTS
-mode (UPF_HARD_FLOW + CRTSCTS). This makes it impossible for either
-the serial core or userspace to manually flow control the sender.
+On 12/18/2014 06:41 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [141217 09:28]:
+>>
+>> And then there are these too in the current mainline that are
+>> clock related:
+>>
+>> omap4xxx_dt_clk_init: failed to configure ABE DPLL!
+>> ...
+>> clock: dpll_abe_ck failed transition to 'locked'
+>> clock: dpll_abe_ck failed transition to 'locked'
+>> clock: dpll_abe_ck failed transition to 'locked'
+>> ------------[ cut here ]------------
+>> WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:851 clk_disable+0x24/0x3=
+0()
+>> Modules linked in:
+>> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.18.0-09274-g53c5279 #699
+>> Hardware name: Generic OMAP4 (Flattened Device Tree)
+>> [<c00154b4>] (unwind_backtrace) from [<c0011b7c>] (show_stack+0x10/0=
+x14)
+>> [<c0011b7c>] (show_stack) from [<c05d5068>] (dump_stack+0x80/0x9c)
+>> [<c05d5068>] (dump_stack) from [<c003e104>] (warn_slowpath_common+0x=
+78/0xb4)
+>> [<c003e104>] (warn_slowpath_common) from [<c003e15c>] (warn_slowpath=
+_null+ 0x1c/0x24)
+>> [<c003e15c>] (warn_slowpath_null) from [<c04dfc1c>] (clk_disable+0x2=
+4/0x30)
+>> [<c04dfc1c>] (clk_disable) from [<c0024ea0>] (_disable_clocks+0x18/0=
+x68)
+>> [<c0024ea0>] (_disable_clocks) from [<c0026410>] (_idle+0x15c/0x240)
+>> [<c0026410>] (_idle) from [<c086fc48>] (_setup+0x174/0x22c)
+>> [<c086fc48>] (_setup) from [<c002684c>] (omap_hwmod_for_each+0x30/0x=
+5c)
+>> [<c002684c>] (omap_hwmod_for_each) from [<c0870054>] (__omap_hwmod_s=
+etup_all+0x30/0x40)
+>> [<c0870054>] (__omap_hwmod_setup_all) from [<c00089e4>] (do_one_init=
+call+0x80/0x1d8)
+>> [<c00089e4>] (do_one_initcall) from [<c0862ea4>] (kernel_init_freeab=
+le+0x1f4/0x2cc)
+>> [<c0862ea4>] (kernel_init_freeable) from [<c05cf184>] (kernel_init+0=
+x8/0xe4)
+>> [<c05cf184>] (kernel_init) from [<c000e8e8>] (ret_from_fork+0x14/0x2=
+c)
+>> ---[ end trace f0d1b75165d8ef11 ]---
+>> clock: dpll_abe_ck failed transition to 'locked'
+>> clock: dpll_abe_ck failed transition to 'locked'
+>> ...
+>>
+>> Tero & Tomi, can you please look into these clock issues above?
+>=20
+> FYI, looks like merging Mike's pending clk-next to current mainline
+> somehow fixes the clock issues above. It seems the audio changes
+> depended on changes in clk-next?
 
-Disable autoRTS mode when RTS is lowered and restore the previous
-mode when RTS is raised.
+I'm not aware of any audio changes around here.
+BTW: today's linux-next boots fine on Blaze with audio working.
 
-Note that the OMAP3 UART provides no mechanism for switching from
-autoRTS mode without corrupting incoming data; to access the
-necessary register, the line control settings must be set to 8-e-2
-and thus any data received during that time will be interpreted with
-those settings. This corruption has been observed in practice.
+>=20
+> Regards,
+>=20
+> Tony
+>=20
 
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
----
- drivers/tty/serial/8250/8250_core.c | 12 +++++++++++-
- drivers/tty/serial/8250/8250_omap.c | 25 ++++++++++++++++++++++---
- include/linux/serial_8250.h         |  1 +
- include/linux/serial_core.h         |  1 +
- 4 files changed, 35 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 11c6685..3bfcfdb 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -1924,7 +1924,7 @@ static unsigned int serial8250_get_mctrl(struct uart_port *port)
- 	return ret;
- }
- 
--static void serial8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
-+void serial8250_do_set_mctrl(struct uart_port *port, unsigned int mctrl)
- {
- 	struct uart_8250_port *up = up_to_u8250p(port);
- 	unsigned char mcr = 0;
-@@ -1944,6 +1944,14 @@ static void serial8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 
- 	serial_port_out(port, UART_MCR, mcr);
- }
-+EXPORT_SYMBOL_GPL(serial8250_do_set_mctrl);
-+
-+static void serial8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
-+{
-+	if (port->set_mctrl)
-+		return port->set_mctrl(port, mctrl);
-+	return serial8250_do_set_mctrl(port, mctrl);
-+}
- 
- static void serial8250_break_ctl(struct uart_port *port, int break_state)
- {
-@@ -3605,6 +3613,8 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 		/*  Possibly override set_termios call */
- 		if (up->port.set_termios)
- 			uart->port.set_termios = up->port.set_termios;
-+		if (up->port.set_mctrl)
-+			uart->port.set_mctrl = up->port.set_mctrl;
- 		if (up->port.startup)
- 			uart->port.startup = up->port.startup;
- 		if (up->port.shutdown)
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index 96b69bf..428f384 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -106,6 +106,27 @@ static u32 uart_read(struct uart_8250_port *up, u32 reg)
- 	return readl(up->port.membase + (reg << up->port.regshift));
- }
- 
-+static void omap8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
-+{
-+	struct uart_8250_port *up = up_to_u8250p(port);
-+	struct omap8250_priv *priv = up->port.private_data;
-+	u8 lcr;
-+
-+	serial8250_do_set_mctrl(port, mctrl);
-+
-+	/*
-+	 * Turn off autoRTS if RTS is lowered and restore autoRTS setting
-+	 * if RTS is raised
-+	 */
-+	lcr = serial_in(up, UART_LCR);
-+	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+	if (mctrl & TIOCM_RTS)
-+		serial_out(up, UART_EFR, priv->efr);
-+	else
-+		serial_out(up, UART_EFR, priv->efr & ~UART_EFR_RTS);
-+	serial_out(up, UART_LCR, lcr);
-+}
-+
- /*
-  * Work Around for Errata i202 (2430, 3430, 3630, 4430 and 4460)
-  * The access to uart register after MDR1 Access
-@@ -400,9 +421,6 @@ static void omap_8250_set_termios(struct uart_port *port,
- 	if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW) {
- 		/* Enable AUTORTS and AUTOCTS */
- 		priv->efr |= UART_EFR_CTS | UART_EFR_RTS;
--
--		/* Ensure MCR RTS is asserted */
--		up->mcr |= UART_MCR_RTS;
- 	} else	if (up->port.flags & UPF_SOFT_FLOW) {
- 		/*
- 		 * IXON Flag:
-@@ -1007,6 +1025,7 @@ static int omap8250_probe(struct platform_device *pdev)
- 	up.capabilities |= UART_CAP_RPM;
- #endif
- 	up.port.set_termios = omap_8250_set_termios;
-+	up.port.set_mctrl = omap8250_set_mctrl;
- 	up.port.pm = omap_8250_pm;
- 	up.port.startup = omap_8250_startup;
- 	up.port.shutdown = omap_8250_shutdown;
-diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
-index e02acf0..245b959 100644
---- a/include/linux/serial_8250.h
-+++ b/include/linux/serial_8250.h
-@@ -126,6 +126,7 @@ extern int serial8250_do_startup(struct uart_port *port);
- extern void serial8250_do_shutdown(struct uart_port *port);
- extern void serial8250_do_pm(struct uart_port *port, unsigned int state,
- 			     unsigned int oldstate);
-+extern void serial8250_do_set_mctrl(struct uart_port *port, unsigned int mctrl);
- extern int fsl8250_handle_irq(struct uart_port *port);
- int serial8250_handle_irq(struct uart_port *port, unsigned int iir);
- unsigned char serial8250_rx_chars(struct uart_8250_port *up, unsigned char lsr);
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 057038c..a0c7033 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -123,6 +123,7 @@ struct uart_port {
- 	void			(*set_termios)(struct uart_port *,
- 				               struct ktermios *new,
- 				               struct ktermios *old);
-+	void			(*set_mctrl)(struct uart_port *, unsigned int);
- 	int			(*startup)(struct uart_port *port);
- 	void			(*shutdown)(struct uart_port *port);
- 	void			(*throttle)(struct uart_port *port);
--- 
-2.2.1
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
