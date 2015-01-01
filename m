@@ -1,59 +1,47 @@
 From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] video: fbdev: omap2: dss: dss.c:  Remove unused function
-Date: Thu,  1 Jan 2015 16:34:58 +0100
-Message-ID: <1420126498-27648-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jg1.han@samsung.com>, Sathya Prakash M R <sathyap@ti.com>, Fabian Frederick <fabf@skynet.be>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH] arch: arm: plat-omap: dma.c:  Remove unused function
+Date: Thu,  1 Jan 2015 17:45:05 +0100
+Message-ID: <1420130705-29316-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f175.google.com ([74.125.82.175]:60363 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750733AbbAAQmH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jan 2015 11:42:07 -0500
+Received: by mail-we0-f175.google.com with SMTP id k11so3584432wes.34
+        for <linux-omap@vger.kernel.org>; Thu, 01 Jan 2015 08:42:04 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Remove the function dss_get_hdmi_venc_clk_source() that is not used anywhere.
+Remove the function get_gdma_dev() that is not used anywhere.
 
 This was partially found by using a static code analysis program called cppcheck.
 
 Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 ---
- drivers/video/fbdev/omap2/dss/dss.c |   14 --------------
- drivers/video/fbdev/omap2/dss/dss.h |    1 -
- 2 files changed, 15 deletions(-)
+ arch/arm/plat-omap/dma.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index 14bcd6c..d9482c8 100644
---- a/drivers/video/fbdev/omap2/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -550,20 +550,6 @@ void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select src)
- 		REG_FLD_MOD(DSS_CONTROL, src, 15, 15);	/* VENC_HDMI_SWITCH */
- }
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 24770e5..6416e03 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -151,14 +151,6 @@ static int omap_dma_in_1510_mode(void)
+ #endif
  
--enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void)
+ #ifdef CONFIG_ARCH_OMAP1
+-static inline int get_gdma_dev(int req)
 -{
--	enum omap_display_type displays;
+-	u32 reg = OMAP_FUNC_MUX_ARM_BASE + ((req - 1) / 5) * 4;
+-	int shift = ((req - 1) % 5) * 6;
 -
--	displays = dss_feat_get_supported_displays(OMAP_DSS_CHANNEL_DIGIT);
--	if ((displays & OMAP_DISPLAY_TYPE_HDMI) == 0)
--		return DSS_VENC_TV_CLK;
--
--	if ((displays & OMAP_DISPLAY_TYPE_VENC) == 0)
--		return DSS_HDMI_M_PCLK;
--
--	return REG_GET(DSS_CONTROL, 15, 15);
+-	return ((omap_readl(reg) >> shift) & 0x3f) + 1;
 -}
 -
- static int dss_dpi_select_source_omap2_omap3(enum omap_channel channel)
+ static inline void set_gdma_dev(int req, int dev)
  {
- 	if (channel != OMAP_DSS_CHANNEL_LCD)
-diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/omap2/dss/dss.h
-index 8ff22c1..f4bb25b 100644
---- a/drivers/video/fbdev/omap2/dss/dss.h
-+++ b/drivers/video/fbdev/omap2/dss/dss.h
-@@ -211,7 +211,6 @@ void dss_uninit_platform_driver(void);
- unsigned long dss_get_dispc_clk_rate(void);
- int dss_dpi_select_source(enum omap_channel channel);
- void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
--enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
- const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
- void dss_dump_clocks(struct seq_file *s);
- 
+ 	u32 reg = OMAP_FUNC_MUX_ARM_BASE + ((req - 1) / 5) * 4;
 -- 
 1.7.10.4
+
