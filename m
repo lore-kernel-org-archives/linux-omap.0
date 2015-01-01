@@ -1,47 +1,143 @@
 From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] arch: arm: plat-omap: dma.c:  Remove unused function
-Date: Thu,  1 Jan 2015 17:45:05 +0100
-Message-ID: <1420130705-29316-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Subject: [PATCH] arch: arm: mach-omap2: voltage.c:  Remove some unused functions
+Date: Thu,  1 Jan 2015 18:06:34 +0100
+Message-ID: <1420131994-31636-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:60363 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733AbbAAQmH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jan 2015 11:42:07 -0500
-Received: by mail-we0-f175.google.com with SMTP id k11so3584432wes.34
-        for <linux-omap@vger.kernel.org>; Thu, 01 Jan 2015 08:42:04 -0800 (PST)
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:47297 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570AbbAARDe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jan 2015 12:03:34 -0500
+Received: by mail-wi0-f170.google.com with SMTP id bs8so28194189wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 01 Jan 2015 09:03:33 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Remove the function get_gdma_dev() that is not used anywhere.
+Removes some functions that are not used anywhere:
+voltdm_for_each_pwrdm() omap_change_voltscale_method()
 
 This was partially found by using a static code analysis program called cppcheck.
 
 Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 ---
- arch/arm/plat-omap/dma.c |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/arm/mach-omap2/voltage.c |   65 ++---------------------------------------
+ arch/arm/mach-omap2/voltage.h |    5 ----
+ 2 files changed, 3 insertions(+), 67 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 24770e5..6416e03 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -151,14 +151,6 @@ static int omap_dma_in_1510_mode(void)
- #endif
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 3783b86..43e42fd 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -224,37 +224,6 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ }
  
- #ifdef CONFIG_ARCH_OMAP1
--static inline int get_gdma_dev(int req)
+ /**
+- * omap_change_voltscale_method() - API to change the voltage scaling method.
+- * @voltdm:	pointer to the VDD whose voltage scaling method
+- *		has to be changed.
+- * @voltscale_method:	the method to be used for voltage scaling.
+- *
+- * This API can be used by the board files to change the method of voltage
+- * scaling between vpforceupdate and vcbypass. The parameter values are
+- * defined in voltage.h
+- */
+-void omap_change_voltscale_method(struct voltagedomain *voltdm,
+-				  int voltscale_method)
 -{
--	u32 reg = OMAP_FUNC_MUX_ARM_BASE + ((req - 1) / 5) * 4;
--	int shift = ((req - 1) % 5) * 6;
+-	if (!voltdm || IS_ERR(voltdm)) {
+-		pr_warn("%s: VDD specified does not exist!\n", __func__);
+-		return;
+-	}
 -
--	return ((omap_readl(reg) >> shift) & 0x3f) + 1;
+-	switch (voltscale_method) {
+-	case VOLTSCALE_VPFORCEUPDATE:
+-		voltdm->scale = omap_vp_forceupdate_scale;
+-		return;
+-	case VOLTSCALE_VCBYPASS:
+-		voltdm->scale = omap_vc_bypass_scale;
+-		return;
+-	default:
+-		pr_warn("%s: Trying to change the method of voltage scaling to an unsupported one!\n",
+-			__func__);
+-	}
 -}
 -
- static inline void set_gdma_dev(int req, int dev)
+-/**
+  * omap_voltage_late_init() - Init the various voltage parameters
+  *
+  * This API is to be called in the later stages of the
+@@ -321,10 +290,9 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
+  * @voltdm: struct voltagedomain * to add the powerdomain to
+  * @pwrdm: struct powerdomain * to associate with a voltagedomain
+  *
+- * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
+- * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
+- * presented with invalid pointers; -ENOMEM if memory could not be allocated;
+- * or 0 upon success.
++ * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.
++ * Returns -EINVAL if presented with invalid pointers;
++ * -ENOMEM if memory could not be allocated; or 0 upon success.
+  */
+ int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
  {
- 	u32 reg = OMAP_FUNC_MUX_ARM_BASE + ((req - 1) / 5) * 4;
+@@ -340,33 +308,6 @@ int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
+ }
+ 
+ /**
+- * voltdm_for_each_pwrdm - call function for each pwrdm in a voltdm
+- * @voltdm: struct voltagedomain * to iterate over
+- * @fn: callback function *
+- *
+- * Call the supplied function @fn for each powerdomain in the
+- * voltagedomain @voltdm.  Returns -EINVAL if presented with invalid
+- * pointers; or passes along the last return value of the callback
+- * function, which should be 0 for success or anything else to
+- * indicate failure.
+- */
+-int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+-			  int (*fn)(struct voltagedomain *voltdm,
+-				    struct powerdomain *pwrdm))
+-{
+-	struct powerdomain *pwrdm;
+-	int ret = 0;
+-
+-	if (!fn)
+-		return -EINVAL;
+-
+-	list_for_each_entry(pwrdm, &voltdm->pwrdm_list, voltdm_node)
+-		ret = (*fn)(voltdm, pwrdm);
+-
+-	return ret;
+-}
+-
+-/**
+  * voltdm_for_each - call function on each registered voltagedomain
+  * @fn: callback function *
+  *
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index f7f2879..d8208f3 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -163,8 +163,6 @@ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+ 		unsigned long volt);
+ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ 			       struct omap_voltdm_pmic *pmic);
+-void omap_change_voltscale_method(struct voltagedomain *voltdm,
+-		int voltscale_method);
+ int omap_voltage_late_init(void);
+ 
+ extern void omap2xxx_voltagedomains_init(void);
+@@ -177,9 +175,6 @@ void voltdm_init(struct voltagedomain **voltdm_list);
+ int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
+ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+ 		    void *user);
+-int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+-			  int (*fn)(struct voltagedomain *voltdm,
+-				    struct powerdomain *pwrdm));
+ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+ void voltdm_reset(struct voltagedomain *voltdm);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
 -- 
 1.7.10.4
 
