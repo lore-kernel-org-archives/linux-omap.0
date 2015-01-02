@@ -1,62 +1,36 @@
-From: =?UTF-8?B?UGV0ZXIgS8O8bW1lbA==?= <syntheticpp@gmx.net>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Fri, 02 Jan 2015 19:31:36 +0100
-Message-ID: <54A6E408.1090908@gmx.net>
-References: <54A58E23.5080103@gmx.net> <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi> <20150102161911.GA3298@atomide.com>
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH V2 0/2] ARM: l2c: OMAP4/AM437x: Additional register programming
+ support.
+Date: Fri, 02 Jan 2015 10:46:54 -0800
+Message-ID: <54A6E79E.7010203@oracle.com>
+References: <1420220628-23742-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:56169 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745AbbABSbn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Jan 2015 13:31:43 -0500
-In-Reply-To: <20150102161911.GA3298@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1420220628-23742-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Santosh <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-
-
-Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
->> Hi,
->>
->> On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wrote:
->>> When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
->>> I see a "In-band ERROR" warning which wasn't present in 3.18.1.
->>> Could it be that I missed some DT updates?
->>
->>> [    0.366882] In-band Error seen by MPU  at address 0
->>> [    0.366912] ------------[ cut here ]------------
->>> [    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_smx.c:=
-166 omap3_l3_app_irq+0x100/0x134()
->>
->> This appears also on N900/N950/N9...
+On 1/2/15 9:43 AM, Nishanth Menon wrote:
+> Hi,
+> OMAP4 and AM437x ROM code provides services to program PL310's latency
+> registers and AM437x provides service for programming Address filter
+> registers.
 >
-> Do you have CONFIG_PREEMPT enabled? It seems there's some
-> regression related to CONFIG_PREEMPT that started happening
-> with the merge window?
-
-Indeed, when I disable CONFIG_PREEMPT the warning is gone.
-
-Thanks,
-Peter
-
+> Provide support in the kernel for the same.
 >
-> Regards,
+> V2 of the series contains documentation update and a bug fix due to a
+> typo introduced during patch split :(
 >
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Nishanth Menon (2):
+>    ARM: l2c: OMAP4/AM437x: Introduce support for cache latency
+>      programming
+>    ARM: l2c: AM437x: Introduce support for cache filter programming
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looks fine to me ...
+Feel free to add my ack if you need one ...
+
+Minor: The subject looks like I2C though it is L2C ;-)
