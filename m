@@ -1,65 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
- without sysc
-Date: Fri, 2 Jan 2015 09:29:35 -0800
-Message-ID: <20150102172935.GD3298@atomide.com>
-References: <1418917790-1791-1-git-send-email-rogerq@ti.com>
- <5492F84E.7020706@ti.com>
- <5493B5CE.7010000@ti.com>
- <5493EA88.1080609@ti.com>
+Subject: Re: [PATCH 0/2] ARM: l2c: OMAP4/AM437x: Additional register
+ programming support.
+Date: Fri, 2 Jan 2015 09:38:59 -0800
+Message-ID: <20150102173859.GE3298@atomide.com>
+References: <1420219072-6521-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5493EA88.1080609@ti.com>
+In-Reply-To: <1420219072-6521-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Santosh <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [141219 01:08]:
-> Lokesh,
+* Nishanth Menon <nm@ti.com> [150102 09:20]:
+> Hi,
 > 
-> On 19/12/14 07:21, Lokesh Vutla wrote:
-> > Hi Roger,
-> > On Thursday 18 December 2014 09:22 PM, Roger Quadros wrote:
-> >> Fixing up Paul's email id.
-> >>
-> >> cheers,
-> >> -roger
-> >>
-> >> On 18/12/14 17:49, Roger Quadros wrote:
-> >>> There are quite a few hwmods that don't have sysconfig register and so
-> >>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
-> >>> on those modules after the module is enabled.
-> >>>
-> >>> This can potentially cause a bus access error if the module is accessed
-> >>> before the module is ready.
-> >>>
-> >>> Get rid of the redundant _find_mpu_rt_port() check from the _wait_target_ready()
-> >>> funcion for all the SoCs. The following PRCM register access that checks the
-> >>> module ready state has nothing to do with module's SYSCONFIG or mpu_rt_port.
-> > Yes, makes sense. This patch looks good to me.
-> > Tested this on AM437x-gp-evm.
-
-Roger, if the modules don't have sysconfig registers, care to check
-if we actually really need hwmod for those modules then?
-
-I know hwmod is managing runtime PM gate clocks for devices with
-clkctrl_offs. But if that's all we need hwmod for in the non-sysc
-cases, then it might make sense to manage the gate clocks in the
-clock framework directly instead for those devices.
-
-Of course that's more of a long term project, but at least we should
-be aware of the dependencies here :)
-
-> > May be good idea to warn every time if enabling of module is failed?
-> > Unrelated to this patch though.
+> OMAP4 and AM437x ROM code provides services to program PL310's latency
+> registers and AM437x provides service for programming Address filter
+> registers.
 > 
-> Yes, failing to be ready is serious enough for a warning. Care to send a separate patch for that?
+> Provide support in the kernel for the same.
+> 
+> This provides some support to the series: http://marc.info/?l=linux-arm-kernel&m=141933190912495&w=2
 
-Yeah that sounds like a separate patch.
+Are these to be applied before Thomasz's series as fixes? If we
+don't need these as fixes for the -rc, then probably makes sense
+for RMK to merge them all together for v3.20.
 
 Regards,
 
 Tony
+ 
+> Nishanth Menon (2):
+>   ARM: l2c: OMAP4/AM437x: Introduce support for cache latency
+>     programming
+>   ARM: l2c: AM437x: Introduce support for cache filter programming
+> 
+>  arch/arm/mach-omap2/common.h       |    1 +
+>  arch/arm/mach-omap2/omap-secure.h  |    2 ++
+>  arch/arm/mach-omap2/omap-smc.S     |   20 ++++++++++++++++++++
+>  arch/arm/mach-omap2/omap4-common.c |   36 ++++++++++++++++++++++++++++++++++++
+>  4 files changed, 59 insertions(+)
+> 
+> Regards,
+> Nishanth Menon
+> 
+> -- 
+> 1.7.9.5
+> 
