@@ -1,137 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 4/4] net: ethernet: cpsw: don't requests IRQs we don't use
-Date: Fri, 2 Jan 2015 12:10:28 -0600
-Message-ID: <1420222228-31949-5-git-send-email-balbi@ti.com>
-References: <1420222228-31949-1-git-send-email-balbi@ti.com>
+From: =?UTF-8?B?UGV0ZXIgS8O8bW1lbA==?= <syntheticpp@gmx.net>
+Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
+Date: Fri, 02 Jan 2015 19:31:36 +0100
+Message-ID: <54A6E408.1090908@gmx.net>
+References: <54A58E23.5080103@gmx.net> <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi> <20150102161911.GA3298@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1420222228-31949-1-git-send-email-balbi@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.15.19]:56169 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750745AbbABSbn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Jan 2015 13:31:43 -0500
+In-Reply-To: <20150102161911.GA3298@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-CPSW never uses RX_THRESHOLD or MISC interrupts. In
-fact, they are always kept masked in their appropriate
-IRQ Enable register.
 
-Instead of allocating an IRQ that never fires, it's best
-to remove that code altogether and let future patches
-implement it if anybody needs those.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 55 ++++++++++++------------------------------
- 1 file changed, 15 insertions(+), 40 deletions(-)
+Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
+> * Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
+>> Hi,
+>>
+>> On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wrote:
+>>> When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
+>>> I see a "In-band ERROR" warning which wasn't present in 3.18.1.
+>>> Could it be that I missed some DT updates?
+>>
+>>> [    0.366882] In-band Error seen by MPU  at address 0
+>>> [    0.366912] ------------[ cut here ]------------
+>>> [    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_smx.c:=
+166 omap3_l3_app_irq+0x100/0x134()
+>>
+>> This appears also on N900/N950/N9...
+>
+> Do you have CONFIG_PREEMPT enabled? It seems there's some
+> regression related to CONFIG_PREEMPT that started happening
+> with the merge window?
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index c9081bd..fd0acd9 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -754,16 +754,6 @@ requeue:
- 		dev_kfree_skb_any(new_skb);
- }
- 
--static irqreturn_t cpsw_dummy_interrupt(int irq, void *dev_id)
--{
--	struct cpsw_priv *priv = dev_id;
--	int value = irq - priv->irqs_table[0];
--
--	cpdma_ctlr_eoi(priv->dma, value);
--
--	return IRQ_HANDLED;
--}
--
- static irqreturn_t cpsw_tx_interrupt(int irq, void *dev_id)
- {
- 	struct cpsw_priv *priv = dev_id;
-@@ -1635,8 +1625,8 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
- 
- 	cpsw_intr_disable(priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, false);
--	cpsw_rx_interrupt(priv->irq[1], priv);
--	cpsw_tx_interrupt(priv->irq[2], priv);
-+	cpsw_rx_interrupt(priv->irq[0], priv);
-+	cpsw_tx_interrupt(priv->irq[1], priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
- }
-@@ -2358,30 +2348,27 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_dma_ret;
- 	}
- 
--	ndev->irq = platform_get_irq(pdev, 0);
-+	ndev->irq = platform_get_irq(pdev, 1);
- 	if (ndev->irq < 0) {
- 		dev_err(priv->dev, "error getting irq resource\n");
- 		ret = -ENOENT;
- 		goto clean_ale_ret;
- 	}
- 
--	irq = platform_get_irq(pdev, 0);
--	if (irq < 0)
--		goto clean_ale_ret;
--
--	priv->irqs_table[0] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_dummy_interrupt,
--			0, dev_name(&pdev->dev), priv);
--	if (ret < 0) {
--		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
--		goto clean_ale_ret;
--	}
-+	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
-+	 * MISC IRQs which are always kept disabled with this driver so
-+	 * we will not request them.
-+	 *
-+	 * If anyone wants to implement support for those, make sure to
-+	 * first request and append them to irqs_table array.
-+	 */
- 
-+	/* RX IRQ */
- 	irq = platform_get_irq(pdev, 1);
- 	if (irq < 0)
- 		goto clean_ale_ret;
- 
--	priv->irqs_table[1] = irq;
-+	priv->irqs_table[0] = irq;
- 	ret = devm_request_irq(&pdev->dev, irq, cpsw_rx_interrupt,
- 			0, dev_name(&pdev->dev), priv);
- 	if (ret < 0) {
-@@ -2389,31 +2376,19 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ale_ret;
- 	}
- 
-+	/* TX IRQ */
- 	irq = platform_get_irq(pdev, 2);
- 	if (irq < 0)
- 		goto clean_ale_ret;
- 
--	priv->irqs_table[2] = irq;
-+	priv->irqs_table[1] = irq;
- 	ret = devm_request_irq(&pdev->dev, irq, cpsw_tx_interrupt,
- 			0, dev_name(&pdev->dev), priv);
- 	if (ret < 0) {
- 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
- 		goto clean_ale_ret;
- 	}
--
--	irq = platform_get_irq(pdev, 3);
--	if (irq < 0)
--		goto clean_ale_ret;
--
--	priv->irqs_table[3] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_dummy_interrupt,
--			0, dev_name(&pdev->dev), priv);
--	if (ret < 0) {
--		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
--		goto clean_ale_ret;
--	}
--
--	priv->num_irqs = 4;
-+	priv->num_irqs = 2;
- 
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
- 
--- 
-2.2.0
+Indeed, when I disable CONFIG_PREEMPT the warning is gone.
+
+Thanks,
+Peter
+
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
