@@ -1,100 +1,50 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 4/6] ARM: dts: AM335x: Make charge delay a DT
- parameter for TSC
-Date: Fri, 2 Jan 2015 09:09:33 -0800
-Message-ID: <20150102170933.GB3298@atomide.com>
-References: <1419404619-10744-1-git-send-email-vigneshr@ti.com>
- <1419404619-10744-5-git-send-email-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 0/4] Fixes for SDIO interrupts for dw_mmc
+Date: Fri, 2 Jan 2015 09:11:23 -0800
+Message-ID: <20150102171123.GC3298@atomide.com>
+References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
+ <CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
+ <CAD=FV=UCyOXfMqu_MYbd5pKOpgXPB87LQ7hCegeeY9vzsy6QAg@mail.gmail.com>
+ <CAPDyKFqGW2NaN+5mUrpBWrhM5ZfUSx70-Yyk9qmNaC1ft_ibpw@mail.gmail.com>
+ <CAD=FV=UzJo=KE7Snb2v=dNodmf_ky97o3xyUHUAZqb1Kq10d1A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1419404619-10744-5-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap@vger.
+In-Reply-To: <CAD=FV=UzJo=KE7Snb2v=dNodmf_ky97o3xyUHUAZqb1Kq10d1A@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Doug Anderson <dianders@chromium.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, Sascha Hauer <s.hauer@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chris Ball <chris@printf.net>, =?utf-8?B?R3LDqWdvcnkgU291dGFkw6k=?= <gsoutade@neotion.com>, Joe Perches <joe@perches.com>, Axel Lin <axel.lin@ingics.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [141223 23:07]:
-> The charge delay value is by default 0x400. But it can be set to lower
-> values on some boards, as long as false pen-ups are avoided. Lowering the
-> value increases the sampling rate (though current sampling rate is
-> sufficient for TSC operation). In some boards, the value has to be
-> increased to avoid false pen-up events. Hence, charge delay has been
-> made a DT parameter.
+* Doug Anderson <dianders@chromium.org> [150102 09:09]:
+> Ulf,
 > 
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-
-Assuming this binding makes sense for the input people, there should
-be no conflicts merging this patch along with the rest of the series
-via the input tree.
-
-Sounds like this value probably depends on the size of the touchscreen
-for the capacitance, so a numeric value is really needed here. Of course
-I would personally prefer generic bindings in general, but in any case
-please feel free to merge along with the other input patches:
-
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
-
-> ---
-> v4:
->  - Set charge delay to 0x400 as default. Most devices function normally
->    at this value
+> On Tue, Dec 30, 2014 at 2:29 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> >>> In v5, I don't find a patch 1/4. Anyway, I have taken patch 2->4.
+> >>
+> >> Ah, maybe because it wasn't sent to linux-mmc?  I messed that up and
+> >> will try to do better in the future.  Sorry.  :(  You were in the To
+> >> line, though.  You can see at
+> >> <https://patchwork.kernel.org/patch/5425241/>.
+> >>
+> >> Do you want me to repost it and CC linux-mmc with Tony's Ack?
+> >
+> > I suggest you have a look at my next branch and to verify that I
+> > haven't screwed things up. If so, either I should drop the patches and
+> > you make a resend or if it's possible to just send an incremental path
+> > on top?
 > 
->  .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 15 +++++++++++++++
->  arch/arm/boot/dts/am335x-evm.dts                          |  1 +
->  2 files changed, 16 insertions(+)
+> The patches that landed look good to me, but I think you might break
+> omap3pandora's WiFi until you land patch #1 in the series.  It has
+> Tony's Ack so I think he intends for you to land it in your tree.
 > 
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> index 878549ba814d..6df5028a4ad3 100644
-> --- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> @@ -28,6 +28,20 @@ Required properties:
->  	ti,adc-channels: List of analog inputs available for ADC.
->  			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
->  
-> +Optional properties:
-> +- child "tsc"
-> +	ti,charge-delay: Length of touch screen charge delay step in terms of
-> +			 ADC clock cycles. Charge delay value should be large
-> +			 in order to avoid false pen-up events. This value
-> +			 affects the overall sampling speed, hence need to be
-> +			 kept as low as possible, while avoiding false pen-up
-> +			 event. Start from a lower value, say 0x400, and
-> +			 increase value until false pen-up events are avoided.
-> +			 The pen-up detection happens immediately after the
-> +			 charge step, so this does in fact function as a
-> +			 hardware knob for adjusting the amount of "settling
-> +			 time".
-> +
->  Example:
->  	tscadc: tscadc@44e0d000 {
->  		compatible = "ti,am3359-tscadc";
-> @@ -36,6 +50,7 @@ Example:
->  			ti,x-plate-resistance = <200>;
->  			ti,coordiante-readouts = <5>;
->  			ti,wire-config = <0x00 0x11 0x22 0x33>;
-> +			ti,charge-delay = <0x400>;
->  		};
->  
->  		adc {
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 54f118c08db8..66342515df20 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -648,6 +648,7 @@
->  		ti,x-plate-resistance = <200>;
->  		ti,coordinate-readouts = <5>;
->  		ti,wire-config = <0x00 0x11 0x22 0x33>;
-> +		ti,charge-delay = <0x400>;
->  	};
->  
->  	adc {
-> -- 
-> 1.9.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> [v5,1/4] ARM: OMAP2+: Make sure pandora_wl1251_init_card() applies to SDIO only
+
+Yes please pick that one up too to avoid breakage. The changes to the
+mach-omap2/board-*.c files are only minimal fixes, so it should not
+conflict with anything I'll be applying.
+
+Regards,
+
+Tony
