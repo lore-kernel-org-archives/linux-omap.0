@@ -1,72 +1,68 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/3] soc: ti: Add wkup_m3_ipc driver
-Date: Fri, 2 Jan 2015 14:33:20 -0600
-Message-ID: <20150102203320.GF4920@saruman>
-References: <1420228817-41310-1-git-send-email-d-gerlach@ti.com>
- <1420228817-41310-3-git-send-email-d-gerlach@ti.com>
- <20150102201643.GE4920@saruman>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
+Date: Fri, 2 Jan 2015 12:40:19 -0800
+Message-ID: <20150102204018.GF3298@atomide.com>
+References: <54A58E23.5080103@gmx.net>
+ <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
+ <20150102161911.GA3298@atomide.com>
+ <54A6E408.1090908@gmx.net>
+ <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ULyIDA2m8JTe+TiX"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45325 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751888AbbABUnx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 15:43:53 -0500
 Content-Disposition: inline
-In-Reply-To: <20150102201643.GE4920@saruman>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Peter =?utf-8?Q?K=C3=BCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org
 
---ULyIDA2m8JTe+TiX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Jan 02, 2015 at 02:16:43PM -0600, Felipe Balbi wrote:
-> On Fri, Jan 02, 2015 at 02:00:16PM -0600, Dave Gerlach wrote:
-> > Introduce a wkup_m3_ipc driver to handle communication between the MPU
-> > and Cortex M3 wkup_m3 present on am335x.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [150102 12:21]:
+> Hi,
+>=20
+> On Fri, Jan 02, 2015 at 07:31:36PM +0100, Peter K=C3=BCmmel wrote:
+> > Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
+> > >* Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
+> > >>On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wrote=
+:
+> > >>>When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
+> > >>>I see a "In-band ERROR" warning which wasn't present in 3.18.1.
+> > >>>Could it be that I missed some DT updates?
+> > >>
+> > >>>[    0.366882] In-band Error seen by MPU  at address 0
+> > >>>[    0.366912] ------------[ cut here ]------------
+> > >>>[    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_smx=
+=2Ec:166 omap3_l3_app_irq+0x100/0x134()
+> > >>
+> > >>This appears also on N900/N950/N9...
+> > >
+> > >Do you have CONFIG_PREEMPT enabled? It seems there's some
+> > >regression related to CONFIG_PREEMPT that started happening
+> > >with the merge window?
 > >=20
-> > This driver is responsible for actually booting the wkup_m3_rproc and
-> > also handling all IPC which is done using the IPC registers in the cont=
-rol
-> > module, a mailbox, and a separate interrupt back from the wkup_m3. A sm=
-all
-> > API is exposed for executing specific power commands, which include
-> > configuring for low power mode, request a transition to a low power mod=
-e,
-> > and status info on a previous transition.
+> > Indeed, when I disable CONFIG_PREEMPT the warning is gone.
+>=20
+> Yeah, disabling CONFIG_PREEMPT helps here too. Is there some e-mail
+> thread / patch set for this already; or should we try to bisect this?
 
-another comment is that no user of such API is provided, so it's very
-difficult to verify that there's no other way of implementing this.
+AFAIK I'm not aware of other threads, I noticied it with the
+"OMAP 4430 SDP: rather sick with recent kernels" thread, but
+never got anywhere with it.
 
---=20
-balbi
+Yeah it seems it's somewhere between v3.18 and v3.19-rc1, but
+that too should be verified. Sounds like running git bisect on
+this one is needed.
 
---ULyIDA2m8JTe+TiX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUpwCQAAoJEIaOsuA1yqREvggP/1asB6h3YrByu8+OGhCJyXEc
-xTx38v1xEuQ+OKdU2+NXW+/PBOfFe6riiJxYbK2Lk7ylq8Wu9lFFpzqQanGXNWJY
-Gec7hCkOMmy0MrNBHDVlMvwzL+O5V/Om4VdtEP/6z0cFRMq3IlmJHPBMkpqTlJ72
-8ICsljnEwH2d5xjYJ/JrXApG/8bNQdoGeVR6zt6Wm9lezd1MlVANQPTd/HRYyQFU
-Mk8P+ALBZb6oc4CKMKgxNBW85ufr2IQw3Z/I75mPoWl/KjgWa6tSaSH1iuiwlXcl
-SL1B/P6IS0FiJZ48HHgIAJWC2fgQSMGDQWEaqU3pn0DZ4ZJOqpYlGSQpSUH0e6oj
-cyFXrZL+qOgSmN4FfR3zpoWykgOV09+BHTj+o/7n/QFRjOpvY79juSKr8IpxKe5h
-wRsl39m964sCItaYAWzUGL8ITgbclZ14j59CX2OuHKW7xNYvWxYfUz400NWuRzew
-SjhwaBB3Ob31KWmhyrfl8w7Krelpve2D/mf5HXebiylUVDEV4f13xcP4pp3/X0iP
-i0dNLI5PX5JhUNVPwslGM/w+AXcGDUM4hdFudXWmnSAHwfSXwnDfxVI79ON9qASi
-DnuDIE+P14xbPIIpaXyXwejKEwOl6gt07Isla0UFqK1ctm+j5t8LNxbcRXE3EOfE
-AHFQoWO3U40MGkvrwMIy
-=3hJe
------END PGP SIGNATURE-----
-
---ULyIDA2m8JTe+TiX--
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
