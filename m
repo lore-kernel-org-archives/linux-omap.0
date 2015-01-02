@@ -1,48 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Fri, 2 Jan 2015 08:19:12 -0800
-Message-ID: <20150102161911.GA3298@atomide.com>
-References: <54A58E23.5080103@gmx.net>
- <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
+From: Doug Anderson <dianders@chromium.org>
+Subject: Re: [PATCH v5 0/4] Fixes for SDIO interrupts for dw_mmc
+Date: Fri, 2 Jan 2015 09:06:51 -0800
+Message-ID: <CAD=FV=UzJo=KE7Snb2v=dNodmf_ky97o3xyUHUAZqb1Kq10d1A@mail.gmail.com>
+References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
+	<CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
+	<CAD=FV=UCyOXfMqu_MYbd5pKOpgXPB87LQ7hCegeeY9vzsy6QAg@mail.gmail.com>
+	<CAPDyKFqGW2NaN+5mUrpBWrhM5ZfUSx70-Yyk9qmNaC1ft_ibpw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51991 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752160AbbABQWr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 11:22:47 -0500
-Content-Disposition: inline
-In-Reply-To: <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqGW2NaN+5mUrpBWrhM5ZfUSx70-Yyk9qmNaC1ft_ibpw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, Sascha Hauer <s.hauer@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chris Ball <chris@printf.net>, =?UTF-8?B?R3LDqWdvcnkgU291dGFkw6k=?= <gsoutade@neotion.com>, Joe Perches <joe@perches.com>, Axel Lin <axel.lin@ingics.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Peter =?utf-8?Q?K=C3=BCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
-> Hi,
->=20
-> On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wrote:
-> > When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
-> > I see a "In-band ERROR" warning which wasn't present in 3.18.1.
-> > Could it be that I missed some DT updates?
->=20
-> > [    0.366882] In-band Error seen by MPU  at address 0
-> > [    0.366912] ------------[ cut here ]------------
-> > [    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_smx.c:=
-166 omap3_l3_app_irq+0x100/0x134()
->=20
-> This appears also on N900/N950/N9...
+Ulf,
 
-Do you have CONFIG_PREEMPT enabled? It seems there's some
-regression related to CONFIG_PREEMPT that started happening
-with the merge window?
+On Tue, Dec 30, 2014 at 2:29 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>>> In v5, I don't find a patch 1/4. Anyway, I have taken patch 2->4.
+>>
+>> Ah, maybe because it wasn't sent to linux-mmc?  I messed that up and
+>> will try to do better in the future.  Sorry.  :(  You were in the To
+>> line, though.  You can see at
+>> <https://patchwork.kernel.org/patch/5425241/>.
+>>
+>> Do you want me to repost it and CC linux-mmc with Tony's Ack?
+>
+> I suggest you have a look at my next branch and to verify that I
+> haven't screwed things up. If so, either I should drop the patches and
+> you make a resend or if it's possible to just send an incremental path
+> on top?
 
-Regards,
+The patches that landed look good to me, but I think you might break
+omap3pandora's WiFi until you land patch #1 in the series.  It has
+Tony's Ack so I think he intends for you to land it in your tree.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[v5,1/4] ARM: OMAP2+: Make sure pandora_wl1251_init_card() applies to SDIO only
+
+-Doug
