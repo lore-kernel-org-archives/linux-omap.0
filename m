@@ -1,95 +1,38 @@
 From: Tomasz Figa <tomasz.figa@gmail.com>
 Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
  interface
-Date: Fri, 02 Jan 2015 17:55:06 +0900
-Message-ID: <54A65CEA.9060202@gmail.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com> <1419331716-8972-3-git-send-email-m.szyprowski@samsung.com> <54A19C17.1020909@ti.com>
+Date: Fri, 02 Jan 2015 18:13:39 +0900
+Message-ID: <54A66143.2080506@gmail.com>
+References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>	<54A19C17.1020909@ti.com> <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com> <54A2BBDC.1020900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:42237 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750714AbbABIzM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 03:55:12 -0500
-In-Reply-To: <54A19C17.1020909@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <54A2BBDC.1020900@ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
 
-On 30.12.2014 03:23, Nishanth Menon wrote:
-> On 12/23/2014 04:48 AM, Marek Szyprowski wrote:
->
->> -static void l2c310_resume(void)
->> +static void l2c310_configure(void __iomem *base)
->>   {
->> -	void __iomem *base = l2x0_base;
->> +	unsigned revision;
+On 30.12.2014 23:51, Nishanth Menon wrote:
+>>> Looks like the following also need addressing:
+>>> data->save is called twice (once more after l2cof_init)
+>>> l2c310_init_fns also needs l2c310_configure
+>>> will be nice to use l2x0_data only after we kmemdup data in __l2c_init
 >>
->> -	if (!(readl_relaxed(base + L2X0_CTRL) & L2X0_CTRL_EN)) {
->> -		unsigned revision;
->> -
->> -		/* restore pl310 setup */
->> -		writel_relaxed(l2x0_saved_regs.tag_latency,
->> -			       base + L310_TAG_LATENCY_CTRL);
->> -		writel_relaxed(l2x0_saved_regs.data_latency,
->> -			       base + L310_DATA_LATENCY_CTRL);
->> -		writel_relaxed(l2x0_saved_regs.filter_end,
->> -			       base + L310_ADDR_FILTER_END);
->> -		writel_relaxed(l2x0_saved_regs.filter_start,
->> -			       base + L310_ADDR_FILTER_START);
->> -
->> -		revision = readl_relaxed(base + L2X0_CACHE_ID) &
->> -				L2X0_CACHE_ID_RTL_MASK;
->> -
->> -		if (revision >= L310_CACHE_ID_RTL_R2P0)
->> -			l2c_write_sec(l2x0_saved_regs.prefetch_ctrl, base,
->> -				      L310_PREFETCH_CTRL);
->> -		if (revision >= L310_CACHE_ID_RTL_R3P0)
->> -			l2c_write_sec(l2x0_saved_regs.pwr_ctrl, base,
->> -				      L310_POWER_CTRL);
->> -
->> -		l2c_enable(base, l2x0_saved_regs.aux_ctrl, 8);
->> -
->> -		/* Re-enable full-line-of-zeros for Cortex-A9 */
->> -		if (l2x0_saved_regs.aux_ctrl & L310_AUX_CTRL_FULL_LINE_ZERO)
->> -			set_auxcr(get_auxcr() | BIT(3) | BIT(2) | BIT(1));
->> -	}
->> +	/* restore pl310 setup */
->> +	writel_relaxed(l2x0_saved_regs.tag_latency,
->> +		       base + L310_TAG_LATENCY_CTRL);
->> +	writel_relaxed(l2x0_saved_regs.data_latency,
->> +		       base + L310_DATA_LATENCY_CTRL);
->> +	writel_relaxed(l2x0_saved_regs.filter_end,
->> +		       base + L310_ADDR_FILTER_END);
->> +	writel_relaxed(l2x0_saved_regs.filter_start,
->> +		       base + L310_ADDR_FILTER_START);
->> +
+>> I'll check this.
+> Thanks.
 >
-> ^^ The above change broke AM437xx. Looks like the change causes the
-> following behavior difference on AM437x. For some reason, touching any
-> of the above 4 registers(even with the values read from the same
-> registers) causes AM437x to go beserk. Comment the 4 writes and we
-> reach shell. looks like l2c310_resume is not invoked prior to this
-> series. :(.. now that we reuse that logic to actually do programming,
-> we start to see the problem.
 
-OK, I probably have answer for this. Apparently all four register above 
-cannot be written in non-secure mode and they should go through 
-l2c_write_sec(). More on this can be found in CoreLink Level 2 Cache 
-Controller L2C-310 Technical Reference Manual, 3.2. Register summary, 
-table 3.1. I have checked the TRM for r3p3, but I guess this should be 
-uniform for all revisions.
+Apparently the second save in __l2c_init() is not needed and it should 
+have been removed. However it might be a good idea to actually do second 
+save in l2c_enable() after l2c_configure() so that the values actually 
+permitted by hardware and/or secure firmware are stored.
 
-Why this worked before? The registers were not written unless respective 
-properties in DT were present and OMAP do not have them in DT. Current 
-code always writes them, which should not really matter if the code is 
-correct. (But it isn't - writel_relaxed() can't be used directly for 
-those registers.)
+l2c310_init_fns needs to be updated indeed.
 
-Could you check if replacing those four writel_relaxed() with 
-l2c_write_sec() does the thing?
+However I'm not sure about your concern about using l2x0_data before 
+kmemdup(). I don't see any code potentially doing this.
 
 Best regards,
 Tomasz
