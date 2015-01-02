@@ -1,41 +1,131 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/2] ARM: l2c: OMAP4/AM437x: Additional register programming
- support.
-Date: Fri, 2 Jan 2015 11:52:40 -0600
-Message-ID: <54A6DAE8.90609@ti.com>
-References: <1420219072-6521-1-git-send-email-nm@ti.com> <20150102173859.GE3298@atomide.com>
+Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
+ interface
+Date: Fri, 2 Jan 2015 11:57:17 -0600
+Message-ID: <54A6DBFD.1040900@ti.com>
+References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com> <1419331716-8972-3-git-send-email-m.szyprowski@samsung.com> <54A19C17.1020909@ti.com> <54A65CEA.9060202@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150102173859.GE3298@atomide.com>
+In-Reply-To: <54A65CEA.9060202@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Santosh <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
+To: Tomasz Figa <tomasz.figa@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/02/2015 11:38 AM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [150102 09:20]:
->> Hi,
+On 01/02/2015 02:55 AM, Tomasz Figa wrote:
+> On 30.12.2014 03:23, Nishanth Menon wrote:
+>> On 12/23/2014 04:48 AM, Marek Szyprowski wrote:
 >>
->> OMAP4 and AM437x ROM code provides services to program PL310's latency
->> registers and AM437x provides service for programming Address filter
->> registers.
+>>> -static void l2c310_resume(void)
+>>> +static void l2c310_configure(void __iomem *base)
+>>>   {
+>>> -	void __iomem *base = l2x0_base;
+>>> +	unsigned revision;
+>>>
+>>> -	if (!(readl_relaxed(base + L2X0_CTRL) & L2X0_CTRL_EN)) {
+>>> -		unsigned revision;
+>>> -
+>>> -		/* restore pl310 setup */
+>>> -		writel_relaxed(l2x0_saved_regs.tag_latency,
+>>> -			       base + L310_TAG_LATENCY_CTRL);
+>>> -		writel_relaxed(l2x0_saved_regs.data_latency,
+>>> -			       base + L310_DATA_LATENCY_CTRL);
+>>> -		writel_relaxed(l2x0_saved_regs.filter_end,
+>>> -			       base + L310_ADDR_FILTER_END);
+>>> -		writel_relaxed(l2x0_saved_regs.filter_start,
+>>> -			       base + L310_ADDR_FILTER_START);
+>>> -
+>>> -		revision = readl_relaxed(base + L2X0_CACHE_ID) &
+>>> -				L2X0_CACHE_ID_RTL_MASK;
+>>> -
+>>> -		if (revision >= L310_CACHE_ID_RTL_R2P0)
+>>> -			l2c_write_sec(l2x0_saved_regs.prefetch_ctrl, base,
+>>> -				      L310_PREFETCH_CTRL);
+>>> -		if (revision >= L310_CACHE_ID_RTL_R3P0)
+>>> -			l2c_write_sec(l2x0_saved_regs.pwr_ctrl, base,
+>>> -				      L310_POWER_CTRL);
+>>> -
+>>> -		l2c_enable(base, l2x0_saved_regs.aux_ctrl, 8);
+>>> -
+>>> -		/* Re-enable full-line-of-zeros for Cortex-A9 */
+>>> -		if (l2x0_saved_regs.aux_ctrl & L310_AUX_CTRL_FULL_LINE_ZERO)
+>>> -			set_auxcr(get_auxcr() | BIT(3) | BIT(2) | BIT(1));
+>>> -	}
+>>> +	/* restore pl310 setup */
+>>> +	writel_relaxed(l2x0_saved_regs.tag_latency,
+>>> +		       base + L310_TAG_LATENCY_CTRL);
+>>> +	writel_relaxed(l2x0_saved_regs.data_latency,
+>>> +		       base + L310_DATA_LATENCY_CTRL);
+>>> +	writel_relaxed(l2x0_saved_regs.filter_end,
+>>> +		       base + L310_ADDR_FILTER_END);
+>>> +	writel_relaxed(l2x0_saved_regs.filter_start,
+>>> +		       base + L310_ADDR_FILTER_START);
+>>> +
 >>
->> Provide support in the kernel for the same.
->>
->> This provides some support to the series: http://marc.info/?l=linux-arm-kernel&m=141933190912495&w=2
+>> ^^ The above change broke AM437xx. Looks like the change causes the
+>> following behavior difference on AM437x. For some reason, touching any
+>> of the above 4 registers(even with the values read from the same
+>> registers) causes AM437x to go beserk. Comment the 4 writes and we
+>> reach shell. looks like l2c310_resume is not invoked prior to this
+>> series. :(.. now that we reuse that logic to actually do programming,
+>> we start to see the problem.
 > 
-> Are these to be applied before Thomasz's series as fixes? If we
-> don't need these as fixes for the -rc, then probably makes sense
-> for RMK to merge them all together for v3.20.
-> 
-These dont need to go in fixes. Can easily wait till 3.20. Thomaz
-series wont exercise these path by default until someone modifies the
-DT properties. Yes, will be nice to have them along with other changes
-in v3.20. just for the record, i made a couple of typos in v1 of this
-series and have updated a retested v2 of the series.
+> OK, I probably have answer for this. Apparently all four register above 
+> cannot be written in non-secure mode and they should go through 
+> l2c_write_sec(). More on this can be found in CoreLink Level 2 Cache 
+> Controller L2C-310 Technical Reference Manual, 3.2. Register summary, 
+> table 3.1. I have checked the TRM for r3p3, but I guess this should be 
+> uniform for all revisions.
 
+Yep, you seemed to have caught the issue correctly.
+
+> 
+> Why this worked before? The registers were not written unless respective 
+> properties in DT were present and OMAP do not have them in DT. Current 
+> code always writes them, which should not really matter if the code is 
+> correct. (But it isn't - writel_relaxed() can't be used directly for 
+> those registers.)
+> 
+> Could you check if replacing those four writel_relaxed() with 
+> l2c_write_sec() does the thing?
+
+Considering that
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/mach-omap2/omap4-common.c#n169
+has no implementation of DATA,TAG_LATENCY, FILTER_*
+I did a few patches for those - separate from this series and posted
+(v2 of the series):
+https://patchwork.kernel.org/patch/5560231/
+https://patchwork.kernel.org/patch/5560211/
+
+Anyways, l2c_write_sec will refuse to write if the read value is same
+as requested value - that is exactly what we want here. So, for
+testing, I hacked it and remove the check to force the writes
+(http://slexy.org/view/s2p8c3gl32)
+
+The replaced raw_writels with secure writes(fix needed for this
+patch): http://slexy.org/view/s21PbM73tt
+
+(with secure writes, my patches and force write hack applied):
+ 1: am437x-sk: BOOT: PASS: http://slexy.org/raw/s2BxqX5NOz
+ 2: am43xx-epos: BOOT: PASS: http://slexy.org/raw/s2VkKYuYed
+ 3: am43xx-gpevm: BOOT: PASS: http://slexy.org/raw/s2kO95WSuY
+ 4: pandaboard-es: BOOT: PASS: http://slexy.org/raw/s21sx5gmUl
+ 5: pandaboard-vanilla: BOOT: PASS: http://slexy.org/raw/s21lpUJK6r
+ 6: sdp4430: BOOT: PASS: http://slexy.org/raw/s21UVKHle5
+
+
+(with just secure writes and none of my patches or hacks applied):
+ 1: am437x-sk: BOOT: PASS: http://slexy.org/raw/s21UxoDdo5
+ 2: am43xx-epos: BOOT: PASS: http://slexy.org/raw/s2ECrLZ1FH
+ 3: am43xx-gpevm: BOOT: PASS: http://slexy.org/raw/s2CowTVA9P
+ 4: pandaboard-es: BOOT: PASS: http://slexy.org/raw/s205MVIWf0
+ 5: pandaboard-vanilla: BOOT: PASS: http://slexy.org/raw/s29oJ66Rqs
+ 6: sdp4430: BOOT: PASS: http://slexy.org/raw/s20jLzW2cX
+
+
+Awesome :). Thanks for catching this.
 
 -- 
 Regards,
