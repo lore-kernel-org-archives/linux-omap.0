@@ -1,41 +1,67 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Fri, 02 Jan 2015 18:28:11 +0900
-Message-ID: <54A664AB.1060100@gmail.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>	<54A19C17.1020909@ti.com> <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com> <54A2BBDC.1020900@ti.com> <54A66143.2080506@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] arch: arm: mach-omap2: voltage.c: Remove some unused functions
+Date: Fri, 02 Jan 2015 10:46:35 +0100
+Message-ID: <3966855.LUXW4xbVYM@wuerfel>
+References: <1420131994-31636-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <54A66143.2080506@gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.10]:53938 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbbABJqq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 04:46:46 -0500
+In-Reply-To: <1420131994-31636-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Thursday 01 January 2015 18:06:34 Rickard Strandqvist wrote:
 
+> -void omap_change_voltscale_method(struct voltagedomain *voltdm,
+> -				  int voltscale_method)
+> -{
+> -	if (!voltdm || IS_ERR(voltdm)) {
+> -		pr_warn("%s: VDD specified does not exist!\n", __func__);
+> -		return;
+> -	}
+> -
+> -	switch (voltscale_method) {
+> -	case VOLTSCALE_VPFORCEUPDATE:
+> -		voltdm->scale = omap_vp_forceupdate_scale;
+> -		return;
+> -	case VOLTSCALE_VCBYPASS:
+> -		voltdm->scale = omap_vc_bypass_scale;
+> -		return;
+> -	default:
+> -		pr_warn("%s: Trying to change the method of voltage scaling to an unsupported one!\n",
+> -			__func__);
+> -	}
+> -}
 
-On 02.01.2015 18:13, Tomasz Figa wrote:
-> On 30.12.2014 23:51, Nishanth Menon wrote:
->>>> Looks like the following also need addressing:
->>>> data->save is called twice (once more after l2cof_init)
->>>> l2c310_init_fns also needs l2c310_configure
->>>> will be nice to use l2x0_data only after we kmemdup data in __l2c_init
->>>
->>> I'll check this.
->> Thanks.
->>
->
-> Apparently the second save in __l2c_init() is not needed and it should
-> have been removed. However it might be a good idea to actually do second
-> save in l2c_enable() after l2c_configure() so that the values actually
-> permitted by hardware and/or secure firmware are stored.
->
-> l2c310_init_fns needs to be updated indeed.
+The VOLTSCALE_VPFORCEUPDATE/VOLTSCALE_VCBYPASS macros are now unused and should
+be removed as well.
 
-Hmm, apparently current patch already adds this (and I missed it reading 
-it at first), so I'm not sure what's your concern about it.
+> @@ -321,10 +290,9 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
+>   * @voltdm: struct voltagedomain * to add the powerdomain to
+>   * @pwrdm: struct powerdomain * to associate with a voltagedomain
+>   *
+> - * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
+> - * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
+> - * presented with invalid pointers; -ENOMEM if memory could not be allocated;
+> - * or 0 upon success.
+> + * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.
+> + * Returns -EINVAL if presented with invalid pointers;
+> + * -ENOMEM if memory could not be allocated; or 0 upon success.
+>   */
+>  int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
+>  {
 
-Best regards,
-Tomasz
+You have correctly spotted the only place that references voltdm_for_each_pwrdm
+and changed the comment, but you failed to notice that it no longer makes
+sense to call voltdm_add_pwrdm or keep the voltdm->pwrdm_list pointer
+at all, so this function, and the associated list heads can all be removed
+as well.
+
+	Arnd
