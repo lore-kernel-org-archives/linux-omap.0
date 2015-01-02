@@ -1,60 +1,98 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2 0/2] ARM: l2c: OMAP4/AM437x: Additional register programming
- support.
-Date: Fri, 2 Jan 2015 13:47:20 -0600
-Message-ID: <54A6F5C8.2050008@ti.com>
-References: <1420220628-23742-1-git-send-email-nm@ti.com> <54A6E79E.7010203@oracle.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3] ARM: OMAP2+: Use pdata-quirks for wkup_m3 deassert_hardreset
+Date: Fri, 2 Jan 2015 13:51:57 -0600
+Message-ID: <1420228319-41085-2-git-send-email-d-gerlach@ti.com>
+References: <1420228319-41085-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54A6E79E.7010203@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Santosh <ssantosh@kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1420228319-41085-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/02/2015 12:46 PM, santosh.shilimkar@oracle.com wrote:
-> On 1/2/15 9:43 AM, Nishanth Menon wrote:
->> Hi,
->> OMAP4 and AM437x ROM code provides services to program PL310's latency
->> registers and AM437x provides service for programming Address filter
->> registers.
->>
->> Provide support in the kernel for the same.
->>
->> V2 of the series contains documentation update and a bug fix due to a
->> typo introduced during patch split :(
->>
->> Nishanth Menon (2):
->>    ARM: l2c: OMAP4/AM437x: Introduce support for cache latency
->>      programming
->>    ARM: l2c: AM437x: Introduce support for cache filter programming
->>
-> Looks fine to me ...
-> Feel free to add my ack if you need one ...
-> 
-> Minor: The subject looks like I2C though it is L2C ;-)
-> 
-Yeah, the thought did occur to me, but decided instead to go with the
-existing $subject conventions of arch/arm/mach-omap2/omap4-common.c
-ARM: l2c: omap2+: get rid of init call
-ARM: l2c: omap2+: get rid of redundant cache replacement policy setting
-ARM: l2c: omap2: remove explicit non-secure access bits
-ARM: l2c: omap2: remove cache size override
-ARM: l2c: omap2: remove explicit SMI calls to enable L2 cache
-ARM: l2c: omap2: implement new write_sec method
-ARM: l2c: remove platforms/SoCs setting early BRESP
-ARM: l2c: fix register naming
-ARM: l2c: omap2: remove ES1.0 support
+Use pdata-quirks to provide platform data required for reset
+of the wkup_m3 during boot.
 
-..
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/pdata-quirks.c    | 13 +++++++++++++
+ include/linux/platform_data/wkup_m3.h | 23 +++++++++++++++++++++++
+ 2 files changed, 36 insertions(+)
+ create mode 100644 include/linux/platform_data/wkup_m3.h
 
-If folks feel strongly about this, I can capitalize the same and post
-a v3 to help confusing fonts on certain mail clients and terminals.
-let me know if folks want me to.
-
-
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 3d7eee1..b0c5916 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/platform_data/pinctrl-single.h>
+ #include <linux/platform_data/iommu-omap.h>
++#include <linux/platform_data/wkup_m3.h>
+ 
+ #include "am35xx.h"
+ #include "common.h"
+@@ -288,6 +289,14 @@ static void __init omap3_tao3530_legacy_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
++#ifdef CONFIG_SOC_AM33XX
++static struct wkup_m3_platform_data wkup_m3_data = {
++	.reset_name = "wkup_m3",
++	.assert_reset = omap_device_assert_hardreset,
++	.deassert_reset = omap_device_deassert_hardreset,
++};
++#endif
++
+ #ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_sdp_legacy_init(void)
+ {
+@@ -383,6 +392,10 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
+ 		       &am35xx_emac_pdata),
+ #endif
++#ifdef CONFIG_SOC_AM33XX
++	OF_DEV_AUXDATA("ti,am3353-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
++		       &wkup_m3_data),
++#endif
+ #ifdef CONFIG_ARCH_OMAP4
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
+diff --git a/include/linux/platform_data/wkup_m3.h b/include/linux/platform_data/wkup_m3.h
+new file mode 100644
+index 0000000..6ee33d7
+--- /dev/null
++++ b/include/linux/platform_data/wkup_m3.h
+@@ -0,0 +1,23 @@
++/*
++ * omap wkup_m3: platform data
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _LINUX_PLATFORM_DATA_WKUP_M3_H
++#define _LINUX_PLATFORM_DATA_WKUP_M3_H
++
++struct wkup_m3_platform_data {
++	const char *reset_name;
++
++	int (*assert_reset)(struct platform_device *pdev, const char *name);
++	int (*deassert_reset)(struct platform_device *pdev, const char *name);
++};
++
++#endif /* _LINUX_PLATFORM_DATA_WKUP_M3_H */
 -- 
-Regards,
-Nishanth Menon
+2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
