@@ -1,46 +1,108 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] arch: arm: mach-omap2: voltage.c: Remove some unused functions
-Date: Fri, 02 Jan 2015 22:22:49 +0100
-Message-ID: <1495149.Vn5ZbzJ5yF@wuerfel>
-References: <1420131994-31636-1-git-send-email-rickard_strandqvist@spectrumdigital.se> <3966855.LUXW4xbVYM@wuerfel> <CAKXHbyPnTzOxWBBL0eiCNOPfF=htKpFRSt+R5h8o45ERp7zi1A@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] irqchip: omap-intc: improve IRQ handler
+Date: Fri, 2 Jan 2015 13:32:51 -0800
+Message-ID: <20150102213250.GG3298@atomide.com>
+References: <1420224433-27001-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKXHbyPnTzOxWBBL0eiCNOPfF=htKpFRSt+R5h8o45ERp7zi1A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64672 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752535AbbABVg1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 16:36:27 -0500
+Content-Disposition: inline
+In-Reply-To: <1420224433-27001-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Friday 02 January 2015 17:02:21 Rickard Strandqvist wrote:
-> 2015-01-02 10:46 GMT+01:00 Arnd Bergmann <arnd@arndb.de>:
-> > On Thursday 01 January 2015 18:06:34 Rickard Strandqvist wrote:
-> >
-> > You have correctly spotted the only place that references
-> > voltdm_for_each_pwrdm
-> > and changed the comment, but you failed to notice that it no longer makes
-> > sense to call voltdm_add_pwrdm or keep the voltdm->pwrdm_list pointer
-> > at all, so this function, and the associated list heads can all be removed
-> > as well.
-> >
-> >         Arnd
-> >
+* Felipe Balbi <balbi@ti.com> [150102 10:50]:
+> as it turns out the current IRQ number will
+> *always* be available from SIR register which
+> renders the reads of PENDING registers as plain
+> unnecessary overhead.
 > 
+> In order to catch any situation where SIR reads
+> as zero, we're adding a WARN() to turn it into
+> a very verbose error and users actually report
+> it.
 > 
-> Hi Arnd
+> With this patch average running time of
+> omap_intc_handle_irq() reduced from about 28.5us
+> to 19.8us as measured by the kernel function
+> profiler.
+
+That's a nice improvment for an interrupt controller :)
+ 
+> Tested with BeagleBoneBlack Rev A5C.
 > 
-> Thanks for your reply.
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
 > 
-> I see what you mean, but you are aware that voltdm_add_pwrdm() also be
-> called from:
-> arch/arm/mach-omap2/powerdomain.c in _pwrdm_register()
+> Before applying, it would be very nice to get reports
+> from other folks on different platforms, specially OMAP2/3
+> ones which I don't have (easy) access.
 
-Yes, that call needs to be removed as well of course.
+Seems to behave just fine on omap2 and 3 here, gave it
+a quick try on n800, n900, omap3-ldp and 37xx-evm:
 
-> I have also removde the voltdm_for_each()
+Tested-by: Tony Lindgren <tony@atomide.com>
 
-Ok, sounds good. That list of course has to stay though, so removing
-_voltdm_register would be bad ;-)
+Regards,
 
-	Arnd
+Tony
+ 
+>  drivers/irqchip/irq-omap-intc.c | 35 +++++------------------------------
+>  1 file changed, 5 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+> index 28718d3..a2da6d5 100644
+> --- a/drivers/irqchip/irq-omap-intc.c
+> +++ b/drivers/irqchip/irq-omap-intc.c
+> @@ -315,37 +315,12 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+>  static asmlinkage void __exception_irq_entry
+>  omap_intc_handle_irq(struct pt_regs *regs)
+>  {
+> -	u32 irqnr = 0;
+> -	int handled_irq = 0;
+> -	int i;
+> -
+> -	do {
+> -		for (i = 0; i < omap_nr_pending; i++) {
+> -			irqnr = intc_readl(INTC_PENDING_IRQ0 + (0x20 * i));
+> -			if (irqnr)
+> -				goto out;
+> -		}
+> -
+> -out:
+> -		if (!irqnr)
+> -			break;
+> -
+> -		irqnr = intc_readl(INTC_SIR);
+> -		irqnr &= ACTIVEIRQ_MASK;
+> +	u32 irqnr;
+>  
+> -		if (irqnr) {
+> -			handle_domain_irq(domain, irqnr, regs);
+> -			handled_irq = 1;
+> -		}
+> -	} while (irqnr);
+> -
+> -	/*
+> -	 * If an irq is masked or deasserted while active, we will
+> -	 * keep ending up here with no irq handled. So remove it from
+> -	 * the INTC with an ack.
+> -	 */
+> -	if (!handled_irq)
+> -		omap_ack_irq(NULL);
+> +	irqnr = intc_readl(INTC_SIR);
+> +	irqnr &= ACTIVEIRQ_MASK;
+> +	WARN(!irqnr, "Spuriour IRQ ?\n");
+> +	handle_domain_irq(domain, irqnr, regs);
+>  }
+>  
+>  void __init omap2_init_irq(void)
+> -- 
+> 2.2.0
+> 
