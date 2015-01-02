@@ -1,126 +1,95 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] net: ethernet: cpsw: fix hangs with interrupts
-Date: Fri, 2 Jan 2015 16:15:59 -0600
-Message-ID: <1420236959-32444-1-git-send-email-balbi@ti.com>
+Subject: [PATCH v2] irqchip: omap-intc: improve IRQ handler
+Date: Fri, 2 Jan 2015 16:18:54 -0600
+Message-ID: <1420237134-505-1-git-send-email-balbi@ti.com>
+References: <1420224433-27001-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46557 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752258AbbABWUK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Jan 2015 17:20:10 -0500
+In-Reply-To: <1420224433-27001-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-The CPSW IP implements pulse-signaled interrupts. Due to
-that we must write a correct, pre-defined value to the
-CPDMA_MACEOIVECTOR register so the controller generates
-a pulse on the correct IRQ line to signal the End Of
-Interrupt.
+as it turns out the current IRQ number will
+*always* be available from SIR register which
+renders the reads of PENDING registers as plain
+unnecessary overhead.
 
-The way the driver is written today, all four IRQ lines
-are requested using the same IRQ handler and, because of
-that, we could fall into situations where a TX IRQ fires
-but we tell the controller that we ended an RX IRQ (or
-vice-versa). This situation triggers an IRQ storm on the
-reserved IRQ 127 of INTC which will in turn call ack_bad_irq()
-which will, then, print a ton of:
+In order to catch any situation where SIR reads
+as zero, we're adding a WARN() to turn it into
+a very verbose error and users actually report
+it.
 
-	unexpected IRQ trap at vector 00
+With this patch average running time of
+omap_intc_handle_irq() reduced from about 28.5us
+to 19.8us as measured by the kernel function
+profiler.
 
-In order to fix the problem, we are moving all calls to
-cpdma_ctlr_eoi() inside the IRQ handler and making sure
-we *always* write the correct value to the CPDMA_MACEOIVECTOR
-register. Note that the algorithm assumes that IRQ numbers and
-value-to-be-written-to-EOI are proportional, meaning that a
-write of value 0 would trigger an EOI pulse for the RX_THRESHOLD
-Interrupt and that's the IRQ number sitting in the 0-th index
-of our irqs_table array.
+Tested with BeagleBoneBlack Rev A5C.
 
-This, however, is safe at least for current implementations of
-CPSW so we will refrain from making the check smarter (and, as
-a side-effect, slower) until we actually have a platform where
-IRQ lines are swapped.
-
-This patch has been tested for several days with AM335x- and
-AM437x-based platforms. AM57x was left out because there are
-still pending patches to enable ethernet in mainline for that
-platform. A read of the TRM confirms the statement on previous
-paragraph.
-
-Reported-by: Yegor Yefremov <yegorslists@googlemail.com>
-Fixes: 510a1e7 (drivers: net: davinci_cpdma: acknowledge interrupt properly)
-Cc: <stable@vger.kernel.org> # v3.9+
+Tested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
 
-should be applied on 'net' for current -rc
+Changes since v1:
+	- s/Spuriour/Spurious
 
- drivers/net/ethernet/ti/cpsw.c | 19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ drivers/irqchip/irq-omap-intc.c | 35 +++++------------------------------
+ 1 file changed, 5 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index c560f9a..e61ee83 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -757,6 +757,14 @@ requeue:
- static irqreturn_t cpsw_interrupt(int irq, void *dev_id)
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index 28718d3..3c97025 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -315,37 +315,12 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+ static asmlinkage void __exception_irq_entry
+ omap_intc_handle_irq(struct pt_regs *regs)
  {
- 	struct cpsw_priv *priv = dev_id;
-+	int value = irq - priv->irqs_table[0];
-+
-+	/* NOTICE: Ending IRQ here. The trick with the 'value' variable above
-+	 * is to make sure we will always write the correct value to the EOI
-+	 * register. Namely 0 for RX_THRESH Interrupt, 1 for RX Interrupt, 2
-+	 * for TX Interrupt and 3 for MISC Interrupt.
-+	 */
-+	cpdma_ctlr_eoi(priv->dma, value);
- 
- 	cpsw_intr_disable(priv);
- 	if (priv->irq_enabled == true) {
-@@ -786,8 +794,6 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
- 	int			num_tx, num_rx;
- 
- 	num_tx = cpdma_chan_process(priv->txch, 128);
--	if (num_tx)
--		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
- 
- 	num_rx = cpdma_chan_process(priv->rxch, budget);
- 	if (num_rx < budget) {
-@@ -795,7 +801,6 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
- 
- 		napi_complete(napi);
- 		cpsw_intr_enable(priv);
--		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
- 		prim_cpsw = cpsw_get_slave_priv(priv, 0);
- 		if (prim_cpsw->irq_enabled == false) {
- 			prim_cpsw->irq_enabled = true;
-@@ -1310,8 +1315,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 	napi_enable(&priv->napi);
- 	cpdma_ctlr_start(priv->dma);
- 	cpsw_intr_enable(priv);
--	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
--	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
- 
- 	prim_cpsw = cpsw_get_slave_priv(priv, 0);
- 	if (prim_cpsw->irq_enabled == false) {
-@@ -1578,9 +1581,6 @@ static void cpsw_ndo_tx_timeout(struct net_device *ndev)
- 	cpdma_chan_start(priv->txch);
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
--	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
--	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
+-	u32 irqnr = 0;
+-	int handled_irq = 0;
+-	int i;
 -
+-	do {
+-		for (i = 0; i < omap_nr_pending; i++) {
+-			irqnr = intc_readl(INTC_PENDING_IRQ0 + (0x20 * i));
+-			if (irqnr)
+-				goto out;
+-		}
+-
+-out:
+-		if (!irqnr)
+-			break;
+-
+-		irqnr = intc_readl(INTC_SIR);
+-		irqnr &= ACTIVEIRQ_MASK;
++	u32 irqnr;
+ 
+-		if (irqnr) {
+-			handle_domain_irq(domain, irqnr, regs);
+-			handled_irq = 1;
+-		}
+-	} while (irqnr);
+-
+-	/*
+-	 * If an irq is masked or deasserted while active, we will
+-	 * keep ending up here with no irq handled. So remove it from
+-	 * the INTC with an ack.
+-	 */
+-	if (!handled_irq)
+-		omap_ack_irq(NULL);
++	irqnr = intc_readl(INTC_SIR);
++	irqnr &= ACTIVEIRQ_MASK;
++	WARN(!irqnr, "Spurious IRQ ?\n");
++	handle_domain_irq(domain, irqnr, regs);
  }
  
- static int cpsw_ndo_set_mac_address(struct net_device *ndev, void *p)
-@@ -1620,9 +1620,6 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
- 	cpsw_interrupt(ndev->irq, priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
--	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
--	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
--
- }
- #endif
- 
+ void __init omap2_init_irq(void)
 -- 
 2.2.0
+
