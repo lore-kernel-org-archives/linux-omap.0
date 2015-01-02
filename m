@@ -1,50 +1,30 @@
 From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
  interface
-Date: Fri, 2 Jan 2015 09:36:03 -0600
-Message-ID: <54A6BAE3.70204@ti.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>	<54A19C17.1020909@ti.com> <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com> <54A2BBDC.1020900@ti.com> <54A66143.2080506@gmail.com> <54A664AB.1060100@gmail.com>
+Date: Fri, 2 Jan 2015 09:38:45 -0600
+Message-ID: <54A6BB85.70805@ti.com>
+References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>	<54A19C17.1020909@ti.com> <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com> <54A2BBDC.1020900@ti.com> <54A66143.2080506@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36437 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745AbbABPgx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 10:36:53 -0500
-In-Reply-To: <54A664AB.1060100@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54A66143.2080506@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tomasz Figa <tomasz.figa@gmail.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 01/02/2015 03:28 AM, Tomasz Figa wrote:
-> 
-> 
-> On 02.01.2015 18:13, Tomasz Figa wrote:
->> On 30.12.2014 23:51, Nishanth Menon wrote:
->>>>> Looks like the following also need addressing:
->>>>> data->save is called twice (once more after l2cof_init)
->>>>> l2c310_init_fns also needs l2c310_configure
->>>>> will be nice to use l2x0_data only after we kmemdup data in __l2c_init
->>>>
->>>> I'll check this.
->>> Thanks.
->>>
->>
->> Apparently the second save in __l2c_init() is not needed and it should
->> have been removed. However it might be a good idea to actually do second
->> save in l2c_enable() after l2c_configure() so that the values actually
->> permitted by hardware and/or secure firmware are stored.
->>
->> l2c310_init_fns needs to be updated indeed.
-> 
-> Hmm, apparently current patch already adds this (and I missed it reading 
-> it at first), so I'm not sure what's your concern about it.
+On 01/02/2015 03:13 AM, Tomasz Figa wrote:
 
-Uggh.. looks like I missed the same as well :( Sorry about that..
+> However I'm not sure about your concern about using l2x0_data before 
+> kmemdup(). I don't see any code potentially doing this.
+
+It is not terribly important, but anyways [1] is what I had in mind..
 
 
+
+[1]
+https://github.com/nmenon/linux-2.6-playground/commit/40f65e4707856f7b35872cf2225bf8beaf43552c#diff-56925866b8b499d75763bf5a1d7f1666L883
 
 -- 
 Regards,
