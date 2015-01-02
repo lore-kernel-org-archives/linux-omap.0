@@ -1,67 +1,58 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] arch: arm: mach-omap2: voltage.c: Remove some unused functions
-Date: Fri, 02 Jan 2015 10:46:35 +0100
-Message-ID: <3966855.LUXW4xbVYM@wuerfel>
-References: <1420131994-31636-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v5 0/4] Fixes for SDIO interrupts for dw_mmc
+Date: Fri, 2 Jan 2015 11:28:48 +0100
+Message-ID: <CABxcv==1w1GAHNCaNnh+e-xaYo8xtuD8dywTseioosxT4GZOvg@mail.gmail.com>
+References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
+	<CAPDyKFpxvE4x_-PV=KN0HKY5cNug-ss9m5KCjNdebR1LDOJi5w@mail.gmail.com>
+	<CAD=FV=UCyOXfMqu_MYbd5pKOpgXPB87LQ7hCegeeY9vzsy6QAg@mail.gmail.com>
+	<CAPDyKFqGW2NaN+5mUrpBWrhM5ZfUSx70-Yyk9qmNaC1ft_ibpw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:53938 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbbABJqq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 04:46:46 -0500
-In-Reply-To: <1420131994-31636-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqGW2NaN+5mUrpBWrhM5ZfUSx70-Yyk9qmNaC1ft_ibpw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Doug Anderson <dianders@chromium.org>, Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, H Hartley Sweeten <hsweeten@visionengravers.com>, Tony Lindgren <tony@atomide.com>, Sascha Hauer <s.hauer@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chris Ball <chris@printf.net>, =?UTF-8?B?R3LDqWdvcnkgU291dGFkw6k=?= <gsoutade@neotion.com>, Joe Perches <joe@perches.com>, Axel Lin <axel.lin@ingics.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday 01 January 2015 18:06:34 Rickard Strandqvist wrote:
+Hello Ulf,
 
-> -void omap_change_voltscale_method(struct voltagedomain *voltdm,
-> -				  int voltscale_method)
-> -{
-> -	if (!voltdm || IS_ERR(voltdm)) {
-> -		pr_warn("%s: VDD specified does not exist!\n", __func__);
-> -		return;
-> -	}
-> -
-> -	switch (voltscale_method) {
-> -	case VOLTSCALE_VPFORCEUPDATE:
-> -		voltdm->scale = omap_vp_forceupdate_scale;
-> -		return;
-> -	case VOLTSCALE_VCBYPASS:
-> -		voltdm->scale = omap_vc_bypass_scale;
-> -		return;
-> -	default:
-> -		pr_warn("%s: Trying to change the method of voltage scaling to an unsupported one!\n",
-> -			__func__);
-> -	}
-> -}
+On Tue, Dec 30, 2014 at 11:29 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> On 19 December 2014 at 20:02, Doug Anderson <dianders@chromium.org> wrote:
+>>
+>>> It was a bit hard to follow the
+>>> updated the revisions, please don't send patches "in-reply-to" for
+>>> future sets.
+>>
+>> Very strange.  I didn't send out anything in-reply-to other than what
+>> git-send-email usually does.  I believe I had:
+>>
+>> [0] - no in reply to.
+>>  [1] - in reply to [0]
+>>  [2] - in reply to [0]
+>>  [3] - in reply to [0]
+>>  [4] - in reply to [0]
+>
+> That's good. As long as there are no in-reply to previous versions of
+> patches/patchsets.
+>
+> I am using gmails web-based client so it could very well be that it
+> does some magic, which I am not yet aware of.
+>
 
-The VOLTSCALE_VPFORCEUPDATE/VOLTSCALE_VCBYPASS macros are now unused and should
-be removed as well.
+I think that you were confused because Gmail's "conversation view"
+groups emails in a thread not by the email subject but by the email
+body.
 
-> @@ -321,10 +290,9 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
->   * @voltdm: struct voltagedomain * to add the powerdomain to
->   * @pwrdm: struct powerdomain * to associate with a voltagedomain
->   *
-> - * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
-> - * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
-> - * presented with invalid pointers; -ENOMEM if memory could not be allocated;
-> - * or 0 upon success.
-> + * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.
-> + * Returns -EINVAL if presented with invalid pointers;
-> + * -ENOMEM if memory could not be allocated; or 0 upon success.
->   */
->  int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
->  {
+So if a new revision of a series is sent and a patch did not change
+from the previous version, Gmail will add it to the old patch thread
+since the body is basically the same even when a version is present in
+the subject (e.g: PATCH v2 foo).
 
-You have correctly spotted the only place that references voltdm_for_each_pwrdm
-and changed the comment, but you failed to notice that it no longer makes
-sense to call voltdm_add_pwrdm or keep the voltdm->pwrdm_list pointer
-at all, so this function, and the associated list heads can all be removed
-as well.
+I found that annoying as well so I disabled conversation view going to
+Gmail's settings -> General -> Conversation view off
 
-	Arnd
+Hope it helps.
+
+Best regards,
+Javier
