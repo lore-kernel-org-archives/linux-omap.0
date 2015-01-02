@@ -1,68 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Fri, 2 Jan 2015 12:40:19 -0800
-Message-ID: <20150102204018.GF3298@atomide.com>
-References: <54A58E23.5080103@gmx.net>
- <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
- <20150102161911.GA3298@atomide.com>
- <54A6E408.1090908@gmx.net>
- <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Fri, 2 Jan 2015 21:10:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45325 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751888AbbABUnx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 15:43:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5492F84E.7020706@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Peter =?utf-8?Q?K=C3=BCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [150102 12:21]:
-> Hi,
->=20
-> On Fri, Jan 02, 2015 at 07:31:36PM +0100, Peter K=C3=BCmmel wrote:
-> > Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
-> > >* Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
-> > >>On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wrote=
-:
-> > >>>When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
-> > >>>I see a "In-band ERROR" warning which wasn't present in 3.18.1.
-> > >>>Could it be that I missed some DT updates?
-> > >>
-> > >>>[    0.366882] In-band Error seen by MPU  at address 0
-> > >>>[    0.366912] ------------[ cut here ]------------
-> > >>>[    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_smx=
-=2Ec:166 omap3_l3_app_irq+0x100/0x134()
-> > >>
-> > >>This appears also on N900/N950/N9...
-> > >
-> > >Do you have CONFIG_PREEMPT enabled? It seems there's some
-> > >regression related to CONFIG_PREEMPT that started happening
-> > >with the merge window?
-> >=20
-> > Indeed, when I disable CONFIG_PREEMPT the warning is gone.
->=20
-> Yeah, disabling CONFIG_PREEMPT helps here too. Is there some e-mail
-> thread / patch set for this already; or should we try to bisect this?
++ Suman, lakml
 
-AFAIK I'm not aware of other threads, I noticied it with the
-"OMAP 4430 SDP: rather sick with recent kernels" thread, but
-never got anywhere with it.
+Hi Roger
 
-Yeah it seems it's somewhere between v3.18 and v3.19-rc1, but
-that too should be verified. Sounds like running git bisect on
-this one is needed.
+On Thu, 18 Dec 2014, Roger Quadros wrote:
 
-Regards,
+> Fixing up Paul's email id.
+> 
+> cheers,
+> -roger
+> 
+> On 18/12/14 17:49, Roger Quadros wrote:
+> > There are quite a few hwmods that don't have sysconfig register and so
+> > _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
+> > on those modules after the module is enabled.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm.  Any IP block that exposes registers that are accessible by the MPU 
+should have an MPU register target port, even if there's no SYSCONFIG 
+register.  And if an IP block doesn't have registers that are accessible 
+from the MPU, then there shouldn't be much point to waiting for the module 
+to become ready.
+
+Looks like the real problem is the test for oh->class->sysc before the 
+call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440 
+("ARM: OMAP2+: hwmod: check for module address space during init"). It's 
+not clear to me why that test was added, since _init_mpu_rt_base() doesn't 
+do anything with oh->class->sysc or SYSCONFIG registers.
+
+Could you please test the following patch?
+I don't have an AM437x-gp-evm.  
+
+
+- Paul
+
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cbb908dc5cf0..ce6d11f3eda7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2451,14 +2451,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ 				oh->name, np->name);
+ 	}
+ 
+-	if (oh->class->sysc) {
+-		r = _init_mpu_rt_base(oh, NULL, index, np);
+-		if (r < 0) {
+-			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+-			     oh->name);
+-			return 0;
+-		}
+-	}
++	r = _init_mpu_rt_base(oh, NULL, index, np);
++	if (r < 0)
++		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
++			 oh->name);
+ 
+ 	r = _init_clocks(oh, NULL);
+ 	if (r < 0) {
+-- 
+2.1.4
