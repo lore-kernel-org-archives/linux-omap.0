@@ -1,31 +1,48 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v10 2/8] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Fri, 2 Jan 2015 09:38:45 -0600
-Message-ID: <54A6BB85.70805@ti.com>
-References: <1419331716-8972-1-git-send-email-m.szyprowski@samsung.com>	<1419331716-8972-3-git-send-email-m.szyprowski@samsung.com>	<54A19C17.1020909@ti.com> <CA+Ln22G3kVA_-tsjAxbe2rqSHeLtdU2X_EhNL0uW3cUCgaWLgg@mail.gmail.com> <54A2BBDC.1020900@ti.com> <54A66143.2080506@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
+Date: Fri, 2 Jan 2015 08:19:12 -0800
+Message-ID: <20150102161911.GA3298@atomide.com>
+References: <54A58E23.5080103@gmx.net>
+ <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54A66143.2080506@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51991 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752160AbbABQWr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 11:22:47 -0500
+Content-Disposition: inline
+In-Reply-To: <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Peter =?utf-8?Q?K=C3=BCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org
 
-On 01/02/2015 03:13 AM, Tomasz Figa wrote:
+* Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
+> Hi,
+>=20
+> On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wrote:
+> > When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
+> > I see a "In-band ERROR" warning which wasn't present in 3.18.1.
+> > Could it be that I missed some DT updates?
+>=20
+> > [    0.366882] In-band Error seen by MPU  at address 0
+> > [    0.366912] ------------[ cut here ]------------
+> > [    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_smx.c:=
+166 omap3_l3_app_irq+0x100/0x134()
+>=20
+> This appears also on N900/N950/N9...
 
-> However I'm not sure about your concern about using l2x0_data before 
-> kmemdup(). I don't see any code potentially doing this.
+Do you have CONFIG_PREEMPT enabled? It seems there's some
+regression related to CONFIG_PREEMPT that started happening
+with the merge window?
 
-It is not terribly important, but anyways [1] is what I had in mind..
-
-
-
-[1]
-https://github.com/nmenon/linux-2.6-playground/commit/40f65e4707856f7b35872cf2225bf8beaf43552c#diff-56925866b8b499d75763bf5a1d7f1666L883
-
--- 
 Regards,
-Nishanth Menon
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
