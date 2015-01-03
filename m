@@ -1,143 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] net: ethernet: cpsw: fix hangs with interrupts
-Date: Fri, 2 Jan 2015 16:08:21 -0800
-Message-ID: <20150103000821.GF3279@atomide.com>
-References: <1420236959-32444-1-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH V2 0/2] ARM: l2c: OMAP4/AM437x: Additional register
+ programming support.
+Date: Fri, 2 Jan 2015 16:23:17 -0800
+Message-ID: <20150103002317.GH3298@atomide.com>
+References: <1420220628-23742-1-git-send-email-nm@ti.com>
+ <54A6E79E.7010203@oracle.com>
+ <54A6F5C8.2050008@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1420236959-32444-1-git-send-email-balbi@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <54A6F5C8.2050008@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, Russell King <linux@arm.linux.org.uk>, Santosh <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [150102 14:19]:
-> The CPSW IP implements pulse-signaled interrupts. Due to
-> that we must write a correct, pre-defined value to the
-> CPDMA_MACEOIVECTOR register so the controller generates
-> a pulse on the correct IRQ line to signal the End Of
-> Interrupt.
+* Nishanth Menon <nm@ti.com> [150102 11:50]:
+> On 01/02/2015 12:46 PM, santosh.shilimkar@oracle.com wrote:
+> > On 1/2/15 9:43 AM, Nishanth Menon wrote:
+> >> Hi,
+> >> OMAP4 and AM437x ROM code provides services to program PL310's latency
+> >> registers and AM437x provides service for programming Address filter
+> >> registers.
+> >>
+> >> Provide support in the kernel for the same.
+> >>
+> >> V2 of the series contains documentation update and a bug fix due to a
+> >> typo introduced during patch split :(
+> >>
+> >> Nishanth Menon (2):
+> >>    ARM: l2c: OMAP4/AM437x: Introduce support for cache latency
+> >>      programming
+> >>    ARM: l2c: AM437x: Introduce support for cache filter programming
+> >>
+> > Looks fine to me ...
+> > Feel free to add my ack if you need one ...
+> > 
+> > Minor: The subject looks like I2C though it is L2C ;-)
+> > 
+> Yeah, the thought did occur to me, but decided instead to go with the
+> existing $subject conventions of arch/arm/mach-omap2/omap4-common.c
+> ARM: l2c: omap2+: get rid of init call
+> ARM: l2c: omap2+: get rid of redundant cache replacement policy setting
+> ARM: l2c: omap2: remove explicit non-secure access bits
+> ARM: l2c: omap2: remove cache size override
+> ARM: l2c: omap2: remove explicit SMI calls to enable L2 cache
+> ARM: l2c: omap2: implement new write_sec method
+> ARM: l2c: remove platforms/SoCs setting early BRESP
+> ARM: l2c: fix register naming
+> ARM: l2c: omap2: remove ES1.0 support
 > 
-> The way the driver is written today, all four IRQ lines
-> are requested using the same IRQ handler and, because of
-> that, we could fall into situations where a TX IRQ fires
-> but we tell the controller that we ended an RX IRQ (or
-> vice-versa). This situation triggers an IRQ storm on the
-> reserved IRQ 127 of INTC which will in turn call ack_bad_irq()
-> which will, then, print a ton of:
+> ..
 > 
-> 	unexpected IRQ trap at vector 00
-> 
-> In order to fix the problem, we are moving all calls to
-> cpdma_ctlr_eoi() inside the IRQ handler and making sure
-> we *always* write the correct value to the CPDMA_MACEOIVECTOR
-> register. Note that the algorithm assumes that IRQ numbers and
-> value-to-be-written-to-EOI are proportional, meaning that a
-> write of value 0 would trigger an EOI pulse for the RX_THRESHOLD
-> Interrupt and that's the IRQ number sitting in the 0-th index
-> of our irqs_table array.
-> 
-> This, however, is safe at least for current implementations of
-> CPSW so we will refrain from making the check smarter (and, as
-> a side-effect, slower) until we actually have a platform where
-> IRQ lines are swapped.
-> 
-> This patch has been tested for several days with AM335x- and
-> AM437x-based platforms. AM57x was left out because there are
-> still pending patches to enable ethernet in mainline for that
-> platform. A read of the TRM confirms the statement on previous
-> paragraph.
-> 
-> Reported-by: Yegor Yefremov <yegorslists@googlemail.com>
-> Fixes: 510a1e7 (drivers: net: davinci_cpdma: acknowledge interrupt properly)
-> Cc: <stable@vger.kernel.org> # v3.9+
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> If folks feel strongly about this, I can capitalize the same and post
+> a v3 to help confusing fonts on certain mail clients and terminals.
+> let me know if folks want me to.
 
-Makes sense to me. I've seen similar EOI handling issue with
-davinci-emac recently that I'll post some fixes for soonish.
-It seems the EOI registers just gate the interrupt lines at the
-device end without affecting the interrupt status, so:
+I guess no need to :)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Looks like these still won't fix the issue we found in the
+series posted by Tomasz though. At least I'm still getting errors
+on am437x with these and the patches from Tomasz applied.
 
-> ---
-> 
-> should be applied on 'net' for current -rc
-> 
->  drivers/net/ethernet/ti/cpsw.c | 19 ++++++++-----------
->  1 file changed, 8 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index c560f9a..e61ee83 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -757,6 +757,14 @@ requeue:
->  static irqreturn_t cpsw_interrupt(int irq, void *dev_id)
->  {
->  	struct cpsw_priv *priv = dev_id;
-> +	int value = irq - priv->irqs_table[0];
-> +
-> +	/* NOTICE: Ending IRQ here. The trick with the 'value' variable above
-> +	 * is to make sure we will always write the correct value to the EOI
-> +	 * register. Namely 0 for RX_THRESH Interrupt, 1 for RX Interrupt, 2
-> +	 * for TX Interrupt and 3 for MISC Interrupt.
-> +	 */
-> +	cpdma_ctlr_eoi(priv->dma, value);
->  
->  	cpsw_intr_disable(priv);
->  	if (priv->irq_enabled == true) {
-> @@ -786,8 +794,6 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
->  	int			num_tx, num_rx;
->  
->  	num_tx = cpdma_chan_process(priv->txch, 128);
-> -	if (num_tx)
-> -		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
->  
->  	num_rx = cpdma_chan_process(priv->rxch, budget);
->  	if (num_rx < budget) {
-> @@ -795,7 +801,6 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
->  
->  		napi_complete(napi);
->  		cpsw_intr_enable(priv);
-> -		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
->  		prim_cpsw = cpsw_get_slave_priv(priv, 0);
->  		if (prim_cpsw->irq_enabled == false) {
->  			prim_cpsw->irq_enabled = true;
-> @@ -1310,8 +1315,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
->  	napi_enable(&priv->napi);
->  	cpdma_ctlr_start(priv->dma);
->  	cpsw_intr_enable(priv);
-> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
-> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
->  
->  	prim_cpsw = cpsw_get_slave_priv(priv, 0);
->  	if (prim_cpsw->irq_enabled == false) {
-> @@ -1578,9 +1581,6 @@ static void cpsw_ndo_tx_timeout(struct net_device *ndev)
->  	cpdma_chan_start(priv->txch);
->  	cpdma_ctlr_int_ctrl(priv->dma, true);
->  	cpsw_intr_enable(priv);
-> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
-> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
-> -
->  }
->  
->  static int cpsw_ndo_set_mac_address(struct net_device *ndev, void *p)
-> @@ -1620,9 +1620,6 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
->  	cpsw_interrupt(ndev->irq, priv);
->  	cpdma_ctlr_int_ctrl(priv->dma, true);
->  	cpsw_intr_enable(priv);
-> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
-> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
-> -
->  }
->  #endif
->  
-> -- 
-> 2.2.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
