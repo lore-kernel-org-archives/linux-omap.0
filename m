@@ -1,99 +1,143 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Fri, 2 Jan 2015 16:02:21 -0800
-Message-ID: <20150103000220.GE3279@atomide.com>
-References: <54A58E23.5080103@gmx.net>
- <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
- <20150102161911.GA3298@atomide.com>
- <54A6E408.1090908@gmx.net>
- <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
- <20150102204018.GF3298@atomide.com>
- <20150102223451.GL582@fuloong-minipc.musicnaut.iki.fi>
+Subject: Re: [PATCH] net: ethernet: cpsw: fix hangs with interrupts
+Date: Fri, 2 Jan 2015 16:08:21 -0800
+Message-ID: <20150103000821.GF3279@atomide.com>
+References: <1420236959-32444-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31306 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752207AbbACAF5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2015 19:05:57 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150102223451.GL582@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1420236959-32444-1-git-send-email-balbi@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Peter =?utf-8?Q?K=C3=BCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [150102 14:37]:
-> Hi,
->=20
-> On Fri, Jan 02, 2015 at 12:40:19PM -0800, Tony Lindgren wrote:
-> > * Aaro Koskinen <aaro.koskinen@iki.fi> [150102 12:21]:
-> > > On Fri, Jan 02, 2015 at 07:31:36PM +0100, Peter K=C3=BCmmel wrote=
-:
-> > > > Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
-> > > > >* Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
-> > > > >>On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel w=
-rote:
-> > > > >>>When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
-> > > > >>>I see a "In-band ERROR" warning which wasn't present in 3.18=
-=2E1.
-> > > > >>>Could it be that I missed some DT updates?
-> > > > >>
-> > > > >>>[    0.366882] In-band Error seen by MPU  at address 0
-> > > > >>>[    0.366912] ------------[ cut here ]------------
-> > > > >>>[    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3=
-_smx.c:166 omap3_l3_app_irq+0x100/0x134()
-> > > > >>
-> > > > >>This appears also on N900/N950/N9...
-> > > > >
-> > > > >Do you have CONFIG_PREEMPT enabled? It seems there's some
-> > > > >regression related to CONFIG_PREEMPT that started happening
-> > > > >with the merge window?
-> > > >=20
-> > > > Indeed, when I disable CONFIG_PREEMPT the warning is gone.
-> > >=20
-> > > Yeah, disabling CONFIG_PREEMPT helps here too. Is there some e-ma=
-il
-> > > thread / patch set for this already; or should we try to bisect t=
-his?
-> >=20
-> > AFAIK I'm not aware of other threads, I noticied it with the
-> > "OMAP 4430 SDP: rather sick with recent kernels" thread, but
-> > never got anywhere with it.
-> >=20
-> > Yeah it seems it's somewhere between v3.18 and v3.19-rc1, but
-> > that too should be verified. Sounds like running git bisect on
-> > this one is needed.
->=20
-> I tried to bisect this on N950, and it resulted in:
->=20
-> aa25729cfd9709156661bea0f9293deb7729f57a is the first bad commit
-> commit aa25729cfd9709156661bea0f9293deb7729f57a
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Wed Nov 5 09:21:23 2014 -0800
->=20
->     ARM: OMAP3: Fix errors for omap_l3_smx when booted with device tr=
-ee
->=20
-> But when I tried to revert this from 3.19-rc2, my board won't boot at
-> all...
+* Felipe Balbi <balbi@ti.com> [150102 14:19]:
+> The CPSW IP implements pulse-signaled interrupts. Due to
+> that we must write a correct, pre-defined value to the
+> CPDMA_MACEOIVECTOR register so the controller generates
+> a pulse on the correct IRQ line to signal the End Of
+> Interrupt.
+> 
+> The way the driver is written today, all four IRQ lines
+> are requested using the same IRQ handler and, because of
+> that, we could fall into situations where a TX IRQ fires
+> but we tell the controller that we ended an RX IRQ (or
+> vice-versa). This situation triggers an IRQ storm on the
+> reserved IRQ 127 of INTC which will in turn call ack_bad_irq()
+> which will, then, print a ton of:
+> 
+> 	unexpected IRQ trap at vector 00
+> 
+> In order to fix the problem, we are moving all calls to
+> cpdma_ctlr_eoi() inside the IRQ handler and making sure
+> we *always* write the correct value to the CPDMA_MACEOIVECTOR
+> register. Note that the algorithm assumes that IRQ numbers and
+> value-to-be-written-to-EOI are proportional, meaning that a
+> write of value 0 would trigger an EOI pulse for the RX_THRESHOLD
+> Interrupt and that's the IRQ number sitting in the 0-th index
+> of our irqs_table array.
+> 
+> This, however, is safe at least for current implementations of
+> CPSW so we will refrain from making the check smarter (and, as
+> a side-effect, slower) until we actually have a platform where
+> IRQ lines are swapped.
+> 
+> This patch has been tested for several days with AM335x- and
+> AM437x-based platforms. AM57x was left out because there are
+> still pending patches to enable ethernet in mainline for that
+> platform. A read of the TRM confirms the statement on previous
+> paragraph.
+> 
+> Reported-by: Yegor Yefremov <yegorslists@googlemail.com>
+> Fixes: 510a1e7 (drivers: net: davinci_cpdma: acknowledge interrupt properly)
+> Cc: <stable@vger.kernel.org> # v3.9+
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Hmm OK that commit just fixed the omap_l3_smx so we now see
-warnings about the unclocked register access.
+Makes sense to me. I've seen similar EOI handling issue with
+davinci-emac recently that I'll post some fixes for soonish.
+It seems the EOI registers just gate the interrupt lines at the
+device end without affecting the interrupt status, so:
 
-It seems that probably the CONFIG_PREEMPT issue has been lurking
-around for longer but we have not seen any errors because
-omap_l3_smx just recently started exposing them.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Does v3.18 + commit aa25729cfd9 manually applied also produce
-the CONFIG_PREEMPT errors?
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+> 
+> should be applied on 'net' for current -rc
+> 
+>  drivers/net/ethernet/ti/cpsw.c | 19 ++++++++-----------
+>  1 file changed, 8 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index c560f9a..e61ee83 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -757,6 +757,14 @@ requeue:
+>  static irqreturn_t cpsw_interrupt(int irq, void *dev_id)
+>  {
+>  	struct cpsw_priv *priv = dev_id;
+> +	int value = irq - priv->irqs_table[0];
+> +
+> +	/* NOTICE: Ending IRQ here. The trick with the 'value' variable above
+> +	 * is to make sure we will always write the correct value to the EOI
+> +	 * register. Namely 0 for RX_THRESH Interrupt, 1 for RX Interrupt, 2
+> +	 * for TX Interrupt and 3 for MISC Interrupt.
+> +	 */
+> +	cpdma_ctlr_eoi(priv->dma, value);
+>  
+>  	cpsw_intr_disable(priv);
+>  	if (priv->irq_enabled == true) {
+> @@ -786,8 +794,6 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
+>  	int			num_tx, num_rx;
+>  
+>  	num_tx = cpdma_chan_process(priv->txch, 128);
+> -	if (num_tx)
+> -		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
+>  
+>  	num_rx = cpdma_chan_process(priv->rxch, budget);
+>  	if (num_rx < budget) {
+> @@ -795,7 +801,6 @@ static int cpsw_poll(struct napi_struct *napi, int budget)
+>  
+>  		napi_complete(napi);
+>  		cpsw_intr_enable(priv);
+> -		cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
+>  		prim_cpsw = cpsw_get_slave_priv(priv, 0);
+>  		if (prim_cpsw->irq_enabled == false) {
+>  			prim_cpsw->irq_enabled = true;
+> @@ -1310,8 +1315,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
+>  	napi_enable(&priv->napi);
+>  	cpdma_ctlr_start(priv->dma);
+>  	cpsw_intr_enable(priv);
+> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
+> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
+>  
+>  	prim_cpsw = cpsw_get_slave_priv(priv, 0);
+>  	if (prim_cpsw->irq_enabled == false) {
+> @@ -1578,9 +1581,6 @@ static void cpsw_ndo_tx_timeout(struct net_device *ndev)
+>  	cpdma_chan_start(priv->txch);
+>  	cpdma_ctlr_int_ctrl(priv->dma, true);
+>  	cpsw_intr_enable(priv);
+> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
+> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
+> -
+>  }
+>  
+>  static int cpsw_ndo_set_mac_address(struct net_device *ndev, void *p)
+> @@ -1620,9 +1620,6 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
+>  	cpsw_interrupt(ndev->irq, priv);
+>  	cpdma_ctlr_int_ctrl(priv->dma, true);
+>  	cpsw_intr_enable(priv);
+> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
+> -	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
+> -
+>  }
+>  #endif
+>  
+> -- 
+> 2.2.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
