@@ -1,127 +1,66 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] thermal: add omap3 support
-Date: Sat, 3 Jan 2015 23:02:19 +0100
-Message-ID: <20150103220219.GA26747@amd>
-References: <20150103111146.GB7065@amd>
- <20150103123426.GA26069@developer>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH V3] ARM: dts: am57xx-beagle-x15: Add GPIO controlled fan
+ node
+Date: Sun, 4 Jan 2015 00:39:50 +0100
+Message-ID: <20150103233949.GA4108@earth.universe>
+References: <1420309826-7904-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="fUYQa+Pmc3FrFX/N"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:57632 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926AbbACXkD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 3 Jan 2015 18:40:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20150103123426.GA26069@developer>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, nm@ti.com
-Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+In-Reply-To: <1420309826-7904-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi!
-
-> Thanks for sending your code.
-
-You are welcome.
-
-> > Add support for omap3430 sensor. Tested on Nokia N900.
-> 
-> To my understanding, and as already mentioned by Nishanth Menon
-> (currently TIer), TI has intentionally avoided adding this support.
-
-Well, Nokia had similar code in their kernel.
-
-> There is a hardware accuracy limitation in this sensor, and therefore it
-> is not advisable to use it, specially in Dynamic Thermal Management,
-> such as the thermal framework.
-
-We are talking cellphone here. Yes, sensor may be inacurate (but it
-seems to work pretty well; perhaps TI can point us to some docs that
-explains the details?), but it provides useful information (mostly
-room temperature). I don't think we'll ever run anywhere close to
-thermal limits where inacuracy would matter. (Battery can't really
-take > 60C. AFAICT CPU limit is 120C. Battery is close to the CPU.)
-
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-> > index bd4c7be..a49495f 100644
-> > --- a/drivers/thermal/ti-soc-thermal/Kconfig
-> > +++ b/drivers/thermal/ti-soc-thermal/Kconfig
-> > @@ -21,6 +21,15 @@ config TI_THERMAL
-> >  	  This includes trip points definitions, extrapolation rules and
-> >  	  CPU cooling device bindings.
-> >  
-> > +config OMAP3_THERMAL
-> > +	bool "Texas Instruments OMAP3 thermal support"
-> > +	depends on TI_SOC_THERMAL
-> > +	depends on ARCH_OMAP3
-> > +	help
-> > +	  If you say yes here you get thermal support for the Texas Instruments
-> > +	  OMAP3 SoC family. The current chip supported are:
-> > +	   - OMAP3430
-> 
-> But if you insist :-), I believe the user deserves at least a fair
-> message saying this is on his / her own risk.
-
-Something like this?
-
-          If you say yes here you get thermal support for the Texas Instruments
-	  OMAP3 SoC family. The current chip supported are:
-	              - OMAP3430
-
-          OMAP3 chips normally don't need thermal management, and sensors in
-	  this generation are not very accurate, nor they are very close to
-          the important hotspots.
-
-          Say 'N' here.
-	  
-
-> > +static struct temp_sensor_registers
-> > +omap34xx_mpu_temp_sensor_registers = {
-> > +	.temp_sensor_ctrl = 0,
-> > +	.bgap_tempsoff_mask = 0, /* Unused, we don't have POWER_SWITCH */
-> > +	.bgap_soc_mask = BIT(8),
-> > +	.bgap_eocz_mask = BIT(7),
-> > +	.bgap_dtemp_mask = 0x7f,
-> > +
-> > +	.bgap_mode_ctrl = 0,
-> > +	.mode_ctrl_mask = BIT(9),
-> > +
-> > +	.bgap_efuse = 0,
-> 
-> The 0'ed filed may be removed here.
-
-Ok; I'll keep temp_sensors_ctrl / bgap_mode_ctrl, because it is actually used.
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
 
-> > diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> > index 634b6ce..3b4e72f 100644
-> > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> > @@ -1509,6 +1531,12 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
-> >  #endif
-> >  
-> >  static const struct of_device_id of_ti_bandgap_match[] = {
-> > +#ifdef CONFIG_OMAP3_THERMAL
-> > +	{
-> > +		.compatible = "ti,omap34xx-bandgap",
-> 
-> This needs to be updated in the binding documentation.
-> Documentation/devicetree/bindings/thermal/ti_soc_thermal.txt
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Ok.
+Hi Nishanth,
 
-> > +		.data = (void *)&omap34xx_data,
-> 
-> 
-> Having a run time message intentionally advising users of the risk of
-> using this sensor is also required.
+On Sat, Jan 03, 2015 at 12:30:26PM -0600, Nishanth Menon wrote:
+> [...]
+> +		gpio-fan,speed-map = <0    0
+> +				      13000 1>;
+> [...]
 
-Ok, what about?
+iirc DT maintainers prefer this format:
 
-    if (TI_BANDGAP_HAS(bgp, UNRELIABLE))
-              dev_warn(&pdev->dev,
-                         "OMAP3 thermal sensor is unreliable and normally unneccessary\n");
+gpio-fan,speed-map = <0     0>,
+                     <13000 1>;
 
-Will not fit in 80 columns, but keeping message on one line is more important.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+This should result in the same .dtb, but is a bit easier to read.
+
+-- Sebastian
+
+--fUYQa+Pmc3FrFX/N
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUqH3CAAoJENju1/PIO/qaXV8P/0GKBTc3KrsIhA0jX0IzRV4v
+ujGllhzLjN6dMdOrsAPO1WLLqmJ+/Db2PyHfiVQJO0Dke3nx7PR9QHieX30NKMOW
+Ac49CHAr+e2qiXn0nMvxEOWhMF3p7XNeF8JornndY5bBFGTPaLNtu0y3CK5mpr1q
+m/dXT4x7EMfHRFVxabhLQ2ypMp50PwCyA1PekahccTbiO+fc+uDFzfq1ylOEN1sG
+vMy+kXIMdeN2PcglTK3htm5sWbVQhOscdS863CnsjX8O08afgOHvKNwff2fS4ymC
+JiRydfLG/0eIhKYPyLbtxLroNIP6sW2y5rM53WdwWfVWMEJGfhcKCxjuEBieWCMH
+YP86R644qA66zDLylvzYykgwXK+840GGsXHvmVJ0MW0MHgLrLBf27Ucj0sIreSm9
+Khl76dpsNivhl5og60GfYxFDuDvyqBmo19rmMINVRZJNkLuusm8pfQ4arjtRx8TS
+HFJCH7Yo398GEst7pMrTCkE7TcYkn3cNabd1DoQkpv4AfpXxH9s9UyAZwN1LPicg
+CxmCeanXCTp5s7p6rxsLcXnSHeFz20gl6KUg40WN0AjvWXZOU4PjJnAWUd9oF228
+HA8/mB78XD2LTYqZZCMxKjT5nfA2Q0e4Jl0Zrw/8QEIfDOXxb748QTx6dOxw23G3
+TXUqAGbpg48Jg0tQe4/c
+=5uFp
+-----END PGP SIGNATURE-----
+
+--fUYQa+Pmc3FrFX/N--
