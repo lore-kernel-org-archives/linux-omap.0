@@ -1,187 +1,97 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] thermal: add omap3 support
-Date: Sat, 3 Jan 2015 12:11:46 +0100
-Message-ID: <20150103111146.GB7065@amd>
+From: =?UTF-8?B?UGV0ZXIgS8O8bW1lbA==?= <syntheticpp@gmx.net>
+Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
+Date: Sat, 03 Jan 2015 12:24:25 +0100
+Message-ID: <54A7D169.3040003@gmx.net>
+References: <54A58E23.5080103@gmx.net> <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi> <20150102161911.GA3298@atomide.com> <54A6E408.1090908@gmx.net> <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi> <20150102204018.GF3298@atomide.com> <20150102223451.GL582@fuloong-minipc.musicnaut.iki.fi> <20150103000220.GE3279@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52663 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbbACLLu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2015 06:11:50 -0500
-Content-Disposition: inline
+Received: from mout.gmx.net ([212.227.17.21]:51598 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750736AbbACLYi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 3 Jan 2015 06:24:38 -0500
+In-Reply-To: <20150103000220.GE3279@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: edubezval@gmail.com, rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
-Add support for omap3430 sensor. Tested on Nokia N900.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-index bd4c7be..a49495f 100644
---- a/drivers/thermal/ti-soc-thermal/Kconfig
-+++ b/drivers/thermal/ti-soc-thermal/Kconfig
-@@ -21,6 +21,15 @@ config TI_THERMAL
- 	  This includes trip points definitions, extrapolation rules and
- 	  CPU cooling device bindings.
- 
-+config OMAP3_THERMAL
-+	bool "Texas Instruments OMAP3 thermal support"
-+	depends on TI_SOC_THERMAL
-+	depends on ARCH_OMAP3
-+	help
-+	  If you say yes here you get thermal support for the Texas Instruments
-+	  OMAP3 SoC family. The current chip supported are:
-+	   - OMAP3430
-+
- config OMAP4_THERMAL
- 	bool "Texas Instruments OMAP4 thermal support"
- 	depends on TI_SOC_THERMAL
-diff --git a/drivers/thermal/ti-soc-thermal/Makefile b/drivers/thermal/ti-soc-thermal/Makefile
-index 1226b24..2b5b220 100644
---- a/drivers/thermal/ti-soc-thermal/Makefile
-+++ b/drivers/thermal/ti-soc-thermal/Makefile
-@@ -2,5 +2,6 @@ obj-$(CONFIG_TI_SOC_THERMAL)		+= ti-soc-thermal.o
- ti-soc-thermal-y			:= ti-bandgap.o
- ti-soc-thermal-$(CONFIG_TI_THERMAL)	+= ti-thermal-common.o
- ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+= dra752-thermal-data.o
-+ti-soc-thermal-$(CONFIG_OMAP3_THERMAL)	+= omap3-thermal-data.o
- ti-soc-thermal-$(CONFIG_OMAP4_THERMAL)	+= omap4-thermal-data.o
- ti-soc-thermal-$(CONFIG_OMAP5_THERMAL)	+= omap5-thermal-data.o
-diff --git a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-new file mode 100644
-index 0000000..7c18766
---- /dev/null
-+++ b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-@@ -0,0 +1,95 @@
-+/*
-+ * OMAP3 thermal driver.
-+ *
-+ * Copyright (C) 2011-2012 Texas Instruments Inc.
-+ * Copyright (C) 2014 Pavel Machek <pavel@ucw.cz>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include "ti-thermal.h"
-+#include "ti-bandgap.h"
-+
-+/*
-+ * OMAP34XX has one instance of thermal sensor for MPU
-+ * need to describe the individual bit fields
-+ */
-+static struct temp_sensor_registers
-+omap34xx_mpu_temp_sensor_registers = {
-+	.temp_sensor_ctrl = 0,
-+	.bgap_tempsoff_mask = 0, /* Unused, we don't have POWER_SWITCH */
-+	.bgap_soc_mask = BIT(8),
-+	.bgap_eocz_mask = BIT(7),
-+	.bgap_dtemp_mask = 0x7f,
-+
-+	.bgap_mode_ctrl = 0,
-+	.mode_ctrl_mask = BIT(9),
-+
-+	.bgap_efuse = 0,
-+};
-+
-+/* Thresholds and limits for OMAP34XX MPU temperature sensor */
-+static struct temp_sensor_data omap34xx_mpu_temp_sensor_data = {
-+	.min_freq = 32768,
-+	.max_freq = 32768,
-+	.max_temp = -99000,
-+	.min_temp = 99000,
-+	.hyst_val = 5000,
-+};
-+
-+/*
-+ * Temperature values in milli degree celsius
-+ */
-+static const int
-+omap34xx_adc_to_temp[128] = {
-+	-40000, -40000, -40000, -40000, -40000, -39000, -38000, -36000,
-+	-34000, -32000, -31000,	-29000, -28000, -26000, -25000, -24000,
-+	-22000, -21000, -19000, -18000, -17000, -15000,	-14000, -12000,
-+	-11000, -9000, -8000, -7000, -5000, -4000, -2000, -1000, 0000,
-+	1000, 3000, 4000, 5000, 7000, 8000, 10000, 11000, 13000, 14000,
-+	15000, 17000, 18000, 20000, 21000, 22000, 24000, 25000, 27000,
-+	28000, 30000, 31000, 32000, 34000, 35000, 37000, 38000, 39000,
-+	41000, 42000, 44000, 45000, 47000, 48000, 49000, 51000, 52000,
-+	53000, 55000, 56000, 58000, 59000, 60000, 62000, 63000, 65000,
-+	66000, 67000, 69000, 70000, 72000, 73000, 74000, 76000, 77000,
-+	79000, 80000, 81000, 83000, 84000, 85000, 87000, 88000, 89000,
-+	91000, 92000, 94000, 95000, 96000, 98000, 99000, 100000,
-+	102000, 103000, 105000, 106000, 107000, 109000, 110000, 111000,
-+	113000, 114000, 116000, 117000, 118000, 120000, 121000, 122000,
-+	124000, 124000, 125000, 125000, 125000, 125000,	125000
-+};
-+
-+/* OMAP34XX data */
-+const struct ti_bandgap_data omap34xx_data = {
-+	.features = TI_BANDGAP_FEATURE_CLK_CTRL /* | TI_BANDGAP_FEATURE_MODE_CONFIG */,
-+	.fclock_name = "ts_fck",
-+	.div_ck_name = "ts_fck",
-+	.conv_table = omap34xx_adc_to_temp,
-+	.adc_start_val = 0,
-+	.adc_end_val = 127,
-+	.expose_sensor = ti_thermal_expose_sensor,
-+	.remove_sensor = ti_thermal_remove_sensor,
-+
-+	.sensors = {
-+		{
-+		.registers = &omap34xx_mpu_temp_sensor_registers,
-+		.ts_data = &omap34xx_mpu_temp_sensor_data,
-+		.domain = "cpu",
-+		.slope = 0,
-+		.constant = 20000,
-+		.slope_pcb = 0,
-+		.constant_pcb = 20000,
-+		.register_cooling = NULL,
-+		.unregister_cooling = NULL,
-+		},
-+	},
-+	.sensor_count = 1,
-+};
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index 634b6ce..3b4e72f 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -1509,6 +1531,12 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
- #endif
- 
- static const struct of_device_id of_ti_bandgap_match[] = {
-+#ifdef CONFIG_OMAP3_THERMAL
-+	{
-+		.compatible = "ti,omap34xx-bandgap",
-+		.data = (void *)&omap34xx_data,
-+	},
-+#endif
- #ifdef CONFIG_OMAP4_THERMAL
- 	{
- 		.compatible = "ti,omap4430-bandgap",
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-index b3adf72..3f05386 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-@@ -384,6 +384,8 @@ int ti_bandgap_set_sensor_data(struct ti_bandgap *bgp, int id, void *data);
- void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
- int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
- 
-+extern const struct ti_bandgap_data omap34xx_data;
-+
- #ifdef CONFIG_OMAP4_THERMAL
- extern const struct ti_bandgap_data omap4430_data;
- extern const struct ti_bandgap_data omap4460_data;
+Am 03.01.2015 um 01:02 schrieb Tony Lindgren:
+> * Aaro Koskinen <aaro.koskinen@iki.fi> [150102 14:37]:
+>> Hi,
+>>
+>> On Fri, Jan 02, 2015 at 12:40:19PM -0800, Tony Lindgren wrote:
+>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [150102 12:21]:
+>>>> On Fri, Jan 02, 2015 at 07:31:36PM +0100, Peter K=C3=BCmmel wrote:
+>>>>> Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
+>>>>>> * Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
+>>>>>>> On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=C3=BCmmel wro=
+te:
+>>>>>>>> When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
+>>>>>>>> I see a "In-band ERROR" warning which wasn't present in 3.18.1=
+=2E
+>>>>>>>> Could it be that I missed some DT updates?
+>>>>>>>
+>>>>>>>> [    0.366882] In-band Error seen by MPU  at address 0
+>>>>>>>> [    0.366912] ------------[ cut here ]------------
+>>>>>>>> [    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_s=
+mx.c:166 omap3_l3_app_irq+0x100/0x134()
+>>>>>>>
+>>>>>>> This appears also on N900/N950/N9...
+>>>>>>
+>>>>>> Do you have CONFIG_PREEMPT enabled? It seems there's some
+>>>>>> regression related to CONFIG_PREEMPT that started happening
+>>>>>> with the merge window?
+>>>>>
+>>>>> Indeed, when I disable CONFIG_PREEMPT the warning is gone.
+>>>>
+>>>> Yeah, disabling CONFIG_PREEMPT helps here too. Is there some e-mai=
+l
+>>>> thread / patch set for this already; or should we try to bisect th=
+is?
+>>>
+>>> AFAIK I'm not aware of other threads, I noticied it with the
+>>> "OMAP 4430 SDP: rather sick with recent kernels" thread, but
+>>> never got anywhere with it.
+>>>
+>>> Yeah it seems it's somewhere between v3.18 and v3.19-rc1, but
+>>> that too should be verified. Sounds like running git bisect on
+>>> this one is needed.
+>>
+>> I tried to bisect this on N950, and it resulted in:
+>>
+>> aa25729cfd9709156661bea0f9293deb7729f57a is the first bad commit
+>> commit aa25729cfd9709156661bea0f9293deb7729f57a
+>> Author: Tony Lindgren <tony@atomide.com>
+>> Date:   Wed Nov 5 09:21:23 2014 -0800
+>>
+>>      ARM: OMAP3: Fix errors for omap_l3_smx when booted with device =
+tree
+>>
+>> But when I tried to revert this from 3.19-rc2, my board won't boot a=
+t
+>> all...
+>
+> Hmm OK that commit just fixed the omap_l3_smx so we now see
+> warnings about the unclocked register access.
+>
+> It seems that probably the CONFIG_PREEMPT issue has been lurking
+> around for longer but we have not seen any errors because
+> omap_l3_smx just recently started exposing them.
+>
+> Does v3.18 + commit aa25729cfd9 manually applied also produce
+> the CONFIG_PREEMPT errors?
+>
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Yes, same error. I applied it on top of v3.18.1.
+
+Peter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
