@@ -1,224 +1,88 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH v2] arch: arm: mach-omap2: voltage:  Remove some unused functions
-Date: Sat,  3 Jan 2015 01:37:43 +0100
-Message-ID: <1420245463-5511-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/3] usb: dwc3: add Fujitsu Specific Glue layer
+Date: Fri, 2 Jan 2015 19:21:28 -0600
+Message-ID: <20150103012128.GA11373@saruman>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <20141222155936.GB12815@saruman>
+ <CAJ1gpc0uniw3F3O9nxTLHp9M2boxrOACYDB=fgruhLOLdqg9yA@mail.gmail.com>
+ <1456155.YPH2fYoGgF@wuerfel>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1456155.YPH2fYoGgF@wuerfel>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgli
 List-Id: linux-omap@vger.kernel.org
 
-Removes some functions that are not used anywhere:
-omap_change_voltscale_method() voltdm_add_pwrdm()
-voltdm_for_each() voltdm_for_each_pwrdm()
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-And remove define VOLTSCALE_VPFORCEUPDATE and VOLTSCALE_VCBYPASS
+Hi,
 
-This was partially found by using a static code analysis program called cppcheck.
+On Tue, Dec 30, 2014 at 11:12:51AM +0100, Arnd Bergmann wrote:
+> On Monday 29 December 2014 01:52:04 Sneeker Yeh wrote:
+> > > > +static int dwc3_mb86s70_remove_child(struct device *dev, void *unu=
+sed)
+> > > > +{
+> > > > +     struct platform_device *pdev =3D to_platform_device(dev);
+> > > > +
+> > > > +     of_device_unregister(pdev);
+> > > > +
+> > > > +     return 0;
+> > > > +}
+> > > > +
+> > > > +static u64 dwc3_mb86s70_dma_mask =3D DMA_BIT_MASK(32);
+> > >
+> > > why ? Use dma_coerce_mask_and_coherent().
+> > >
+> >=20
+> > okay.
+>=20
+> Actually that is still wrong: we use dma_coerce_mask_and_coherent() to
+> annotate drivers that have traditionally been forcing their own dma mask
+> by some other means and that need to be changed to something proper (after
+> finding out why they did it in the first place).
+>=20
+> Since this is about a child device, the correct interface is to use
+> platform_device_register_full().
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- arch/arm/mach-omap2/powerdomain.c |    1 -
- arch/arm/mach-omap2/voltage.c     |  110 -------------------------------------
- arch/arm/mach-omap2/voltage.h     |   13 -----
- 3 files changed, 124 deletions(-)
+no, that's wrong. He's essentially fixing the default set by OF core,
+which is always 32-bits anyway, so this can actually be removed. Your
+suggestion would just make it worse.
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 7fb033e..20fae59 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -115,7 +115,6 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	}
- 	pwrdm->voltdm.ptr = voltdm;
- 	INIT_LIST_HEAD(&pwrdm->voltdm_node);
--	voltdm_add_pwrdm(voltdm, pwrdm);
- skip_voltdm:
- 	spin_lock_init(&pwrdm->_lock);
- 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 3783b86..cba8cad 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -224,37 +224,6 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
- }
- 
- /**
-- * omap_change_voltscale_method() - API to change the voltage scaling method.
-- * @voltdm:	pointer to the VDD whose voltage scaling method
-- *		has to be changed.
-- * @voltscale_method:	the method to be used for voltage scaling.
-- *
-- * This API can be used by the board files to change the method of voltage
-- * scaling between vpforceupdate and vcbypass. The parameter values are
-- * defined in voltage.h
-- */
--void omap_change_voltscale_method(struct voltagedomain *voltdm,
--				  int voltscale_method)
--{
--	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warn("%s: VDD specified does not exist!\n", __func__);
--		return;
--	}
--
--	switch (voltscale_method) {
--	case VOLTSCALE_VPFORCEUPDATE:
--		voltdm->scale = omap_vp_forceupdate_scale;
--		return;
--	case VOLTSCALE_VCBYPASS:
--		voltdm->scale = omap_vc_bypass_scale;
--		return;
--	default:
--		pr_warn("%s: Trying to change the method of voltage scaling to an unsupported one!\n",
--			__func__);
--	}
--}
--
--/**
-  * omap_voltage_late_init() - Init the various voltage parameters
-  *
-  * This API is to be called in the later stages of the
-@@ -316,90 +285,11 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
- 	return voltdm;
- }
- 
--/**
-- * voltdm_add_pwrdm - add a powerdomain to a voltagedomain
-- * @voltdm: struct voltagedomain * to add the powerdomain to
-- * @pwrdm: struct powerdomain * to associate with a voltagedomain
-- *
-- * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
-- * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
-- * presented with invalid pointers; -ENOMEM if memory could not be allocated;
-- * or 0 upon success.
-- */
--int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
--{
--	if (!voltdm || !pwrdm)
--		return -EINVAL;
--
--	pr_debug("voltagedomain: %s: associating powerdomain %s\n",
--		 voltdm->name, pwrdm->name);
--
--	list_add(&pwrdm->voltdm_node, &voltdm->pwrdm_list);
--
--	return 0;
--}
--
--/**
-- * voltdm_for_each_pwrdm - call function for each pwrdm in a voltdm
-- * @voltdm: struct voltagedomain * to iterate over
-- * @fn: callback function *
-- *
-- * Call the supplied function @fn for each powerdomain in the
-- * voltagedomain @voltdm.  Returns -EINVAL if presented with invalid
-- * pointers; or passes along the last return value of the callback
-- * function, which should be 0 for success or anything else to
-- * indicate failure.
-- */
--int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
--			  int (*fn)(struct voltagedomain *voltdm,
--				    struct powerdomain *pwrdm))
--{
--	struct powerdomain *pwrdm;
--	int ret = 0;
--
--	if (!fn)
--		return -EINVAL;
--
--	list_for_each_entry(pwrdm, &voltdm->pwrdm_list, voltdm_node)
--		ret = (*fn)(voltdm, pwrdm);
--
--	return ret;
--}
--
--/**
-- * voltdm_for_each - call function on each registered voltagedomain
-- * @fn: callback function *
-- *
-- * Call the supplied function @fn for each registered voltagedomain.
-- * The callback function @fn can return anything but 0 to bail out
-- * early from the iterator.  Returns the last return value of the
-- * callback function, which should be 0 for success or anything else
-- * to indicate failure; or -EINVAL if the function pointer is null.
-- */
--int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
--		    void *user)
--{
--	struct voltagedomain *temp_voltdm;
--	int ret = 0;
--
--	if (!fn)
--		return -EINVAL;
--
--	list_for_each_entry(temp_voltdm, &voltdm_list, node) {
--		ret = (*fn)(temp_voltdm, user);
--		if (ret)
--			break;
--	}
--
--	return ret;
--}
--
- static int _voltdm_register(struct voltagedomain *voltdm)
- {
- 	if (!voltdm || !voltdm->name)
- 		return -EINVAL;
- 
--	INIT_LIST_HEAD(&voltdm->pwrdm_list);
- 	list_add(&voltdm->node, &voltdm_list);
- 
- 	pr_debug("voltagedomain: registered %s\n", voltdm->name);
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index f7f2879..e645503 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -23,10 +23,6 @@
- 
- struct powerdomain;
- 
--/* XXX document */
--#define VOLTSCALE_VPFORCEUPDATE		1
--#define VOLTSCALE_VCBYPASS		2
--
- /*
-  * OMAP3 GENERIC setup times. Revisit to see if these needs to be
-  * passed from board or PMIC file
-@@ -55,7 +51,6 @@ struct omap_vfsm_instance {
-  * @name: Name of the voltage domain which can be used as a unique identifier.
-  * @scalable: Whether or not this voltage domain is scalable
-  * @node: list_head linking all voltage domains
-- * @pwrdm_list: list_head linking all powerdomains in this voltagedomain
-  * @vc: pointer to VC channel associated with this voltagedomain
-  * @vp: pointer to VP associated with this voltagedomain
-  * @read: read a VC/VP register
-@@ -71,7 +66,6 @@ struct voltagedomain {
- 	char *name;
- 	bool scalable;
- 	struct list_head node;
--	struct list_head pwrdm_list;
- 	struct omap_vc_channel *vc;
- 	const struct omap_vfsm_instance *vfsm;
- 	struct omap_vp_instance *vp;
-@@ -163,8 +157,6 @@ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
- 		unsigned long volt);
- int omap_voltage_register_pmic(struct voltagedomain *voltdm,
- 			       struct omap_voltdm_pmic *pmic);
--void omap_change_voltscale_method(struct voltagedomain *voltdm,
--		int voltscale_method);
- int omap_voltage_late_init(void);
- 
- extern void omap2xxx_voltagedomains_init(void);
-@@ -175,11 +167,6 @@ extern void omap54xx_voltagedomains_init(void);
- struct voltagedomain *voltdm_lookup(const char *name);
- void voltdm_init(struct voltagedomain **voltdm_list);
- int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
--int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
--		    void *user);
--int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
--			  int (*fn)(struct voltagedomain *voltdm,
--				    struct powerdomain *pwrdm));
- int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
- void voltdm_reset(struct voltagedomain *voltdm);
- unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
--- 
-1.7.10.4
+--=20
+balbi
+
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUp0QYAAoJEIaOsuA1yqREcjIP/363ej7TuB2etVjKFfJQ3U+l
+aK2jFXPVcHoabf1QZ/ikFRByl0VJa7sHfugLjeQjRWf2gl+YgWKCfDkz96fo2M6N
+pP5mgtiZR1iVoZ031ZU3yo6DRq1dg7ZL3Wh76q/UysryeDAYO/bcSoDF3WAKWp+A
+3VtmAkKgJqZeayUB7bfNo57GQhZEbHKeUGjA4oZ/XSkB+nWUXgshqiN8bJ0XD4Ux
+nv5qK2h1FuqTJKzv1qTQnpgORSQWt+3326Snlxle9jhq4/KlSPjvogSROP9Yi+O9
+i8teFmTN3YbYMs6Lvzdsi4FUnH3LPHbCNnJVsxYN+TFhS+MoQ5Y2fmecIqziY07m
+8+hnh0i9V6MuTQ9ZTKhlHlN5qfEm88ajoq7JltuRA9SEL5Zzd6ISQl4SeaKCb05q
+HCKeI+QfTP6dNOhaGbhm7PjBbtIByJNnaQIb9OR1qWh0dbCx86YLtvtVIgsm4u8b
+shnwt5yZQPzXTeHh2Shrb1qoW3bZppX9Hta0+UXEqztQW3cne7nlQsjOgvQ41kmP
+5XsSPnnetCNk+5xLmxe1/TnQW+ksWe7rtXDIcHnoJo4Jt4yFC+/WqaxxQvyHx852
+wcoWW5G00kaGe98QWD4fKhA7oHZAGHLzhcrenQT5rEd+xx8NmPIh0IVgQEu405Kd
+jLVtWfc4sckaPBYNCxN7
+=lLKe
+-----END PGP SIGNATURE-----
+
+--VS++wcV0S1rZb1Fb--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
