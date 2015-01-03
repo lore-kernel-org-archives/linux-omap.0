@@ -1,45 +1,66 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: OMAP baseline test results for v3.19-rc1
-Date: Sat, 3 Jan 2015 15:44:38 +0200
-Message-ID: <20150103134437.GO582@fuloong-minipc.musicnaut.iki.fi>
-References: <alpine.DEB.2.02.1501030712210.27058@utopia.booyaka.com>
- <8629693.mvYldWiixb@wuerfel>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2 2/2] ARM: l2c: AM437x: Introduce support for cache
+ filter programming
+Date: Sat, 3 Jan 2015 09:34:46 -0600
+Message-ID: <20150103153446.GA23591@kahuna>
+References: <1420220628-23742-1-git-send-email-nm@ti.com>
+ <1420220628-23742-3-git-send-email-nm@ti.com>
+ <CA+Ln22Epd8VpA9DQPFYBdjewUY3ejODhaRHgBSNZAQCYjx5saw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:57227 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbbACNor (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2015 08:44:47 -0500
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8629693.mvYldWiixb@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CA+Ln22Epd8VpA9DQPFYBdjewUY3ejODhaRHgBSNZAQCYjx5saw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>, Santosh <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: kernel-build-reports@lists.linaro.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On Sat, Jan 03, 2015 at 01:51:53PM +0100, Arnd Bergmann wrote:
-> On Saturday 03 January 2015 07:21:49 Paul Walmsley wrote:
-> > Another ~300KB kernel object size increase for omap2plus_defconfig 
-> > kernels.
+On 15:40-20150103, Tomasz Figa wrote:
+> Hi Nishanth,
 > 
-> 300kb seems like a lot for a single release. Have you looked into
-> where this is coming from?
+> 2015-01-03 2:43 GMT+09:00 Nishanth Menon <nm@ti.com>:
+> > AM437x generation of processors support programming the PL310 L2Cache
+> > controller's address filter start and end registers using a secure
+> > montior service.
+> 
+> typo: s/montior/monitor/
+> 
+> [snip]
 
-In 3.19-rc1, all initrd decompressors are by default enabled...
+Uggh.. yes indeed. I will post a v3 updating the comments. If the
+following is ok.
+> 
+> > +               base = omap4_get_l2cache_base();
+> > +               filter_start = (reg == L310_ADDR_FILTER_START) ? val :
+> > +                              readl_relaxed(base + L310_ADDR_FILTER_START);
+> > +               filter_end = (reg == L310_ADDR_FILTER_END) ? val :
+> > +                              readl_relaxed(base + L310_ADDR_FILTER_END);
+> > +               omap_smc1_2(AM43X_MON_L2X0_SETFILTER_INDEX, filter_start,
+> > +                           filter_end);
+> > +               return;
+> 
+> I don't have any significant comments about this patch in particular,
+> but just noticed that you need to do read-backs here (and the typo
+> thanks to the spell checker of my mailing app). Maybe you should
+> consider switching to the .configure() API I introduced in my series?
+> This would let you get rid of the hardcoded static mapping.
 
- CONFIG_RD_GZIP=y
--# CONFIG_RD_BZIP2 is not set
--# CONFIG_RD_LZMA is not set
--# CONFIG_RD_XZ is not set
--# CONFIG_RD_LZO is not set
--# CONFIG_RD_LZ4 is not set
-+CONFIG_RD_BZIP2=y
-+CONFIG_RD_LZMA=y
-+CONFIG_RD_XZ=y
-+CONFIG_RD_LZO=y
-+CONFIG_RD_LZ4=y
+Yeah, I have two choices there.. Either I provide the fundamental
+write function for the generic l2c code to use OR I provide a
+duplicate of resultant l2c_configure(aux write) + l2c310_configure.
 
-A.
+To allow for reuse of improvements or anything like errata
+implementations in the future, OMAP L2C implementation has chosen to provide the
+low level code and allow the higherlevel configure/write/whatever of the
+future to stay in arch/arm/mm/cache-l2x0.c. The write_sec operation is
+not too complicated enough to warrant a replication of l2c310_configure.
+
+So, I prefer the current implementation than providing a .configure
+handler for outer_cache.configure from SoC level.
+
+Let me know if anyone has a strong objection to this.
+
+-- 
+Regards,
+Nishanth Menon
