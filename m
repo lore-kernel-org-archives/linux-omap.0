@@ -1,110 +1,143 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Sat, 3 Jan 2015 14:16:22 +0200
-Message-ID: <20150103121622.GN582@fuloong-minipc.musicnaut.iki.fi>
-References: <54A58E23.5080103@gmx.net>
- <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
- <20150102161911.GA3298@atomide.com>
- <54A6E408.1090908@gmx.net>
- <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
- <20150102204018.GF3298@atomide.com>
- <20150102223451.GL582@fuloong-minipc.musicnaut.iki.fi>
- <20150103000220.GE3279@atomide.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH] ti-soc-thermal: implement eocz bit to make driver useful
+ on omap3
+Date: Sat, 3 Jan 2015 08:26:36 -0400
+Message-ID: <20150103122634.GB22356@developer>
+References: <20150103114632.GA21883@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:56854 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935AbbACMQb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2015 07:16:31 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150103000220.GE3279@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150103114632.GA21883@amd>
+Sender: linux-pm-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
-Cc: Peter =?iso-8859-1?Q?K=FCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
-Hi,
 
-On Fri, Jan 02, 2015 at 04:02:21PM -0800, Tony Lindgren wrote:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [150102 14:37]:
-> > On Fri, Jan 02, 2015 at 12:40:19PM -0800, Tony Lindgren wrote:
-> > > * Aaro Koskinen <aaro.koskinen@iki.fi> [150102 12:21]:
-> > > > On Fri, Jan 02, 2015 at 07:31:36PM +0100, Peter K=FCmmel wrote:
-> > > > > Am 02.01.2015 um 17:19 schrieb Tony Lindgren:
-> > > > > >* Aaro Koskinen <aaro.koskinen@iki.fi> [150101 10:23]:
-> > > > > >>On Thu, Jan 01, 2015 at 07:12:51PM +0100, Peter K=FCmmel wr=
-ote:
-> > > > > >>>When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc=
-2
-> > > > > >>>I see a "In-band ERROR" warning which wasn't present in 3.=
-18.1.
-> > > > > >>>Could it be that I missed some DT updates?
-> > > > > >>
-> > > > > >>>[    0.366882] In-band Error seen by MPU  at address 0
-> > > > > >>>[    0.366912] ------------[ cut here ]------------
-> > > > > >>>[    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_=
-l3_smx.c:166 omap3_l3_app_irq+0x100/0x134()
-> > > > > >>
-> > > > > >>This appears also on N900/N950/N9...
-> > > > > >
-> > > > > >Do you have CONFIG_PREEMPT enabled? It seems there's some
-> > > > > >regression related to CONFIG_PREEMPT that started happening
-> > > > > >with the merge window?
-> > > > >=20
-> > > > > Indeed, when I disable CONFIG_PREEMPT the warning is gone.
-> > > >=20
-> > > > Yeah, disabling CONFIG_PREEMPT helps here too. Is there some e-=
-mail
-> > > > thread / patch set for this already; or should we try to bisect=
- this?
-> > >=20
-> > > AFAIK I'm not aware of other threads, I noticied it with the
-> > > "OMAP 4430 SDP: rather sick with recent kernels" thread, but
-> > > never got anywhere with it.
-> > >=20
-> > > Yeah it seems it's somewhere between v3.18 and v3.19-rc1, but
-> > > that too should be verified. Sounds like running git bisect on
-> > > this one is needed.
-> >=20
-> > I tried to bisect this on N950, and it resulted in:
-> >=20
-> > aa25729cfd9709156661bea0f9293deb7729f57a is the first bad commit
-> > commit aa25729cfd9709156661bea0f9293deb7729f57a
-> > Author: Tony Lindgren <tony@atomide.com>
-> > Date:   Wed Nov 5 09:21:23 2014 -0800
-> >=20
-> >     ARM: OMAP3: Fix errors for omap_l3_smx when booted with device =
-tree
-> >=20
-> > But when I tried to revert this from 3.19-rc2, my board won't boot =
-at
-> > all...
+--dTy3Mrz/UPE2dbVg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Jan 03, 2015 at 12:46:32PM +0100, Pavel Machek wrote:
+> For omap3, proper implementation of eocz bit is needed. It was
+> actually a TODO in the driver.
 >=20
-> Hmm OK that commit just fixed the omap_l3_smx so we now see
-> warnings about the unclocked register access.
+> When periodic mode is not enabled, it is neccessary to force reads.
 >=20
-> It seems that probably the CONFIG_PREEMPT issue has been lurking
-> around for longer but we have not seen any errors because
-> omap_l3_smx just recently started exposing them.
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 >=20
-> Does v3.18 + commit aa25729cfd9 manually applied also produce
-> the CONFIG_PREEMPT errors?
+> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/therma=
+l/ti-soc-thermal/ti-bandgap.c
+> index 634b6ce..ee63d08 100644
+> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> @@ -43,6 +43,8 @@
+> =20
+>  #include "ti-bandgap.h"
+> =20
+> +static int ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id);
+> +
+>  /***   Helper functions to access registers and their bitfields   ***/
+> =20
+>  /**
+> @@ -852,14 +831,20 @@ int ti_bandgap_read_temperature(struct ti_bandgap *=
+bgp, int id,
+>  	if (ret)
+>  		return ret;
+> =20
+> +	if (!TI_BANDGAP_HAS(bgp, MODE_CONFIG)) {
+> +		ret =3D ti_bandgap_force_single_read(bgp, id);
 
-Yes it does, so I made another bisection between 3.17 and 3.18
-using the above patch to trigger the issue, and I got:
+not sure MODE_CONFIG is sufficient condition for single read on all OMAP
+versions.
 
-55601c9f24670ba926ebdd4d712ac3b177232330 is the first bad commit
-commit 55601c9f24670ba926ebdd4d712ac3b177232330
-Author: Felipe Balbi <balbi@ti.com>
-Date:   Mon Sep 8 17:54:58 2014 -0700
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	spin_lock(&bgp->lock);
+>  	temp =3D ti_bandgap_read_temp(bgp, id);
+>  	spin_unlock(&bgp->lock);
+> =20
+> -	ret |=3D ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
+> +	ret =3D ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
 
-    arm: omap: intc: switch over to linear irq domain
+this one should be part of your clean up patch
 
-A.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	if (ret)
+>  		return -EIO;
+> =20
+>  	*temperature =3D temp;
+> =20
+>  	return 0;
+> @@ -917,7 +903,8 @@ void *ti_bandgap_get_sensor_data(struct ti_bandgap *b=
+gp, int id)
+>  static int
+>  ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id)
+>  {
+> -	u32 temp =3D 0, counter =3D 1000;
+> +	u32 counter =3D 1000;
+> +	struct temp_sensor_registers *tsr;
+> =20
+>  	/* Select single conversion mode */
+>  	if (TI_BANDGAP_HAS(bgp, MODE_CONFIG))
+> @@ -925,16 +912,27 @@ ti_bandgap_force_single_read(struct ti_bandgap *bgp=
+, int id)
+> =20
+>  	/* Start of Conversion =3D 1 */
+>  	RMW_BITS(bgp, id, temp_sensor_ctrl, bgap_soc_mask, 1);
+> -	/* Wait until DTEMP is updated */
+> -	temp =3D ti_bandgap_read_temp(bgp, id);
+> =20
+> -	while ((temp =3D=3D 0) && --counter)
+> -		temp =3D ti_bandgap_read_temp(bgp, id);
+> -	/* REVISIT: Check correct condition for end of conversion */
+> +	/* Wait for EOCZ going up */
+> +	tsr =3D bgp->conf->sensors[id].registers;
+> +
+> +	while (--counter) {
+> +		if (ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) &
+> +		    tsr->bgap_eocz_mask)
+> +			break;
+> +	}
+> =20
+>  	/* Start of Conversion =3D 0 */
+>  	RMW_BITS(bgp, id, temp_sensor_ctrl, bgap_soc_mask, 0);
+> =20
+> +	/* Wait for EOCZ going down */
+> +	counter =3D 1000;
+> +	while (--counter) {
+> +		if (!(ti_bandgap_readl(bgp, tsr->temp_sensor_ctrl) &
+> +		      tsr->bgap_eocz_mask))
+> +			break;
+> +	}
+> +
+>  	return 0;
+>  }
+> =20
+>=20
+> --=20
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
+
+--dTy3Mrz/UPE2dbVg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUp9/xAAoJEMLUO4d9pOJWPmkH/2SlJIWwjwW2CW5JzAk7XK8U
+f4FupZ2JqvldNWNaYB/5Dz61Kj/QBD/Y7FJXHKxzxoIWSL37vcRua+0gUBD35ziY
+KGzDBtpfhuLHS4xhQ6eQl0JURcIh+O/xllQ42YuRRjOQCRKWMPczINtGc3iZQASk
+VWkI/UdnQmG/Ut6XGfxpSpvs7WhemHdWxMhvjE6CIyKsLTE5DgE23WAdY8KxRLq6
+5zmk1celWPekwLpiMlSS/0KBa3CuG5fwvxriUkZGl1M7pTT7B6lY/LdzOLGokvE/
+8jc41E0uL1cnefNUXk/zOgyAAkRIuYDuv2GPS/f++qp5+7tQ6nYmKeULB89heXc=
+=CmDk
+-----END PGP SIGNATURE-----
+
+--dTy3Mrz/UPE2dbVg--
