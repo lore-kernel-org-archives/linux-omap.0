@@ -1,24 +1,24 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.19-rc1
-Date: Sat, 3 Jan 2015 07:21:49 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501030712210.27058@utopia.booyaka.com>
+Subject: OMAP baseline test results for v3.19-rc2
+Date: Sat, 3 Jan 2015 07:24:26 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501030721540.27058@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38617 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38632 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789AbbACHVu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2015 02:21:50 -0500
+	with ESMTP id S1750789AbbACHY1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2015 02:24:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
-Here are some basic OMAP test results for Linux v3.19-rc1.
+Here are some basic OMAP test results for Linux v3.19-rc2.
 Logs and other details at:
 
-    http://www.pwsan.com/omap/testlogs/test_v3.19-rc1/20150102151849/
+    http://www.pwsan.com/omap/testlogs/test_v3.19-rc2/20150102204752/
 
 
 Test summary
@@ -60,12 +60,12 @@ Build: zImage:
 		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
 Boot to userspace:
-    FAIL ( 2/17): 2430sdp, 2420n800
+    FAIL ( 1/17): 2430sdp
     skip ( 2/17): 5912osk, 3517evm
-    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
 		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
 		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54
+		  5430es2sbct54, 2420n800
 
 PM: chip retention via suspend:
     FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
@@ -110,59 +110,34 @@ Kernel warnings during PM test:
 
 
 vmlinux object size
-(delta in bytes from test_v3.18 (b2776bf7149bddd1f4161f14f79520f17fc1d71d)):
+(delta in bytes from test_v3.19-rc1 (97bf6af1f928216fd6c5a66e8a57bfa95a659672)):
    text     data      bss    total  kernel
-+100107    +3648    -6248   +97507  omap1_defconfig
-+101103    +2800    -6248   +97655  omap1_defconfig_1510innovator_only
-+101099    +2816    -6184   +97731  omap1_defconfig_5912osk_only
-+883783   +15784    -2432  +897135  multi_v7_defconfig
-+297698    +9648    -4528  +302818  omap2plus_defconfig
-+280493   +10720    -1824  +289389  omap2plus_defconfig_2430sdp_only
-+297806   +10696    -4592  +303910  omap2plus_defconfig_am33xx_only
-+327814   +11784    -4400  +335198  omap2plus_defconfig_am43xx_only
-+293602    +9664    -4528  +298738  omap2plus_defconfig_cpupm
-+324078   +12384    -4400  +332062  omap2plus_defconfig_dra7xx_only
-+216837    +8480    -4600  +220717  omap2plus_defconfig_n800_multi_omap2xxx
-+213429    +8432    -4632  +217229  omap2plus_defconfig_n800_only_a
-+291026    +9864    -4656  +296234  omap2plus_defconfig_no_pm
-+330978   +11696    -4464  +338210  omap2plus_defconfig_omap2_4_only
-+315374    +7280    -4528  +318126  omap2plus_defconfig_omap3_4_only
-+327978   +11464    -4400  +335042  omap2plus_defconfig_omap5_only
- +31708    -1336    -6644   +23728  rmk_omap3430_ldp_allnoconfig
- +59907    -2672    -6520   +50715  rmk_omap3430_ldp_oldconfig
- +35652    +1548    -7308   +29892  rmk_omap4430_sdp_allnoconfig
- +83106    +1824    -6272   +78658  rmk_omap4430_sdp_oldconfig
+      0        0        0        0  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+      0       -8        0       -8  omap1_defconfig_5912osk_only
+  +1264      -24        0    +1240  multi_v7_defconfig
+   -116        0        0     -116  omap2plus_defconfig
+    -84        0        0      -84  omap2plus_defconfig_2430sdp_only
+    -52        0        0      -52  omap2plus_defconfig_am33xx_only
+   -116        0        0     -116  omap2plus_defconfig_am43xx_only
+   -116        0        0     -116  omap2plus_defconfig_cpupm
+    -52        0        0      -52  omap2plus_defconfig_dra7xx_only
+      0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
+-299426   -22760   -12120  -334306  omap2plus_defconfig_n800_only_a
+    -52        0        0      -52  omap2plus_defconfig_no_pm
+    -52        0        0      -52  omap2plus_defconfig_omap2_4_only
+    -52        0        0      -52  omap2plus_defconfig_omap3_4_only
+    -52        0        0      -52  omap2plus_defconfig_omap5_only
+      0        0        0        0  rmk_omap3430_ldp_allnoconfig
+      0        0        0        0  rmk_omap3430_ldp_oldconfig
+      0        0        0        0  rmk_omap4430_sdp_allnoconfig
+      0        0        0        0  rmk_omap4430_sdp_oldconfig
 
 Boot-time memory difference
-(delta in bytes from test_v3.18 (b2776bf7149bddd1f4161f14f79520f17fc1d71d))
+(delta in bytes from test_v3.19-rc1 (97bf6af1f928216fd6c5a66e8a57bfa95a659672))
   avail  rsrvd   high  freed  board          kconfig
- -117380k -13692k      .  -164k  2420n800       omap2plus_defconfig_n800_only_a
-  -160k   160k      .      .  2430sdp        omap2plus_defconfig
-   -32k    32k      .    12k  3530es31beagle omap2plus_defconfig
-   -32k    32k      .    12k  3530es3beagle  omap2plus_defconfig
-   224k  -224k      .    12k  3730beaglexm   omap2plus_defconfig
-   224k  -224k      .    12k  3730es12beaglexmomap2plus_defconfig
-   -32k    32k      .    12k  37xxevm        omap2plus_defconfig
-   224k  -224k      .    12k  4430es2panda   omap2plus_defconfig
-   740k  -740k      .    12k  4460pandaes    omap2plus_defconfig
-   740k  -740k      .    12k  4460varsomom   omap2plus_defconfig
-  1760k -1760k      .    12k  5430es2sbct54  omap2plus_defconfig
-  1748k -1748k      .    12k  5430es2uevm    omap2plus_defconfig
-  -172k   172k      .    20k  am335xbone     omap2plus_defconfig_am33xx_only
-   144k  -144k      .    12k  am335xbonelt   omap2plus_defconfig
+  -176k   176k      .      .  am335xbonelt   omap2plus_defconfig
 
 
-The N800 didn't boot because the kernel has once again gotten too big for 
-NOLO's size limits.  Looking into it.
-
-Another ~300KB kernel object size increase for omap2plus_defconfig 
-kernels.
-
-The test report system is now searching through the boot & PM transcripts 
-for formal kernel warnings ("WARNING: CPU: \d+ PID: \d+") in the "Kernel 
-warnings" sections, and indicating failure when warnings are found.
-
-The memory reporting line logged during kernel boot has changed again, to 
-split out CMA reserved memory from other reserved memory.  It's all lumped 
-back together in these test reports.
-
+The N800 is booting again after disabling several more kernel features for 
+that specific Kconfig.
