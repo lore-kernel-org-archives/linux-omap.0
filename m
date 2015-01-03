@@ -1,55 +1,127 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.19-rc1
-Date: Sat, 3 Jan 2015 20:28:28 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501031955170.27058@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1501030712210.27058@utopia.booyaka.com> <8629693.mvYldWiixb@wuerfel>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] thermal: add omap3 support
+Date: Sat, 3 Jan 2015 23:02:19 +0100
+Message-ID: <20150103220219.GA26747@amd>
+References: <20150103111146.GB7065@amd>
+ <20150103123426.GA26069@developer>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40565 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbbACU23 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2015 15:28:29 -0500
-In-Reply-To: <8629693.mvYldWiixb@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150103123426.GA26069@developer>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, nm@ti.com
+Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: kernel-build-reports@lists.linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, 3 Jan 2015, Arnd Bergmann wrote:
+Hi!
 
-> On Saturday 03 January 2015 07:21:49 Paul Walmsley wrote:
-> > Another ~300KB kernel object size increase for omap2plus_defconfig 
-> > kernels.
+> Thanks for sending your code.
+
+You are welcome.
+
+> > Add support for omap3430 sensor. Tested on Nokia N900.
 > 
-> 300kb seems like a lot for a single release. 
+> To my understanding, and as already mentioned by Nishanth Menon
+> (currently TIer), TI has intentionally avoided adding this support.
 
-+300KB is high, but not exceptionally so.
+Well, Nokia had similar code in their kernel.
 
-The data, since I started keeping track of it, is below.  The last numeric 
-column represents the total kernel object size delta in bytes.
+> There is a hardware accuracy limitation in this sensor, and therefore it
+> is not advisable to use it, specially in Dynamic Thermal Management,
+> such as the thermal framework.
 
-> Have you looked into where this is coming from?
+We are talking cellphone here. Yes, sensor may be inacurate (but it
+seems to work pretty well; perhaps TI can point us to some docs that
+explains the details?), but it provides useful information (mostly
+room temperature). I don't think we'll ever run anywhere close to
+thermal limits where inacuracy would matter. (Battery can't really
+take > 60C. AFAICT CPU limit is 120C. Battery is close to the CPU.)
 
-I have not.
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
+> > index bd4c7be..a49495f 100644
+> > --- a/drivers/thermal/ti-soc-thermal/Kconfig
+> > +++ b/drivers/thermal/ti-soc-thermal/Kconfig
+> > @@ -21,6 +21,15 @@ config TI_THERMAL
+> >  	  This includes trip points definitions, extrapolation rules and
+> >  	  CPU cooling device bindings.
+> >  
+> > +config OMAP3_THERMAL
+> > +	bool "Texas Instruments OMAP3 thermal support"
+> > +	depends on TI_SOC_THERMAL
+> > +	depends on ARCH_OMAP3
+> > +	help
+> > +	  If you say yes here you get thermal support for the Texas Instruments
+> > +	  OMAP3 SoC family. The current chip supported are:
+> > +	   - OMAP3430
+> 
+> But if you insist :-), I believe the user deserves at least a fair
+> message saying this is on his / her own risk.
+
+Something like this?
+
+          If you say yes here you get thermal support for the Texas Instruments
+	  OMAP3 SoC family. The current chip supported are:
+	              - OMAP3430
+
+          OMAP3 chips normally don't need thermal management, and sensors in
+	  this generation are not very accurate, nor they are very close to
+          the important hotspots.
+
+          Say 'N' here.
+	  
+
+> > +static struct temp_sensor_registers
+> > +omap34xx_mpu_temp_sensor_registers = {
+> > +	.temp_sensor_ctrl = 0,
+> > +	.bgap_tempsoff_mask = 0, /* Unused, we don't have POWER_SWITCH */
+> > +	.bgap_soc_mask = BIT(8),
+> > +	.bgap_eocz_mask = BIT(7),
+> > +	.bgap_dtemp_mask = 0x7f,
+> > +
+> > +	.bgap_mode_ctrl = 0,
+> > +	.mode_ctrl_mask = BIT(9),
+> > +
+> > +	.bgap_efuse = 0,
+> 
+> The 0'ed filed may be removed here.
+
+Ok; I'll keep temp_sensors_ctrl / bgap_mode_ctrl, because it is actually used.
 
 
-- Paul
+> > diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > index 634b6ce..3b4e72f 100644
+> > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > @@ -1509,6 +1531,12 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti_bandgap_suspend,
+> >  #endif
+> >  
+> >  static const struct of_device_id of_ti_bandgap_match[] = {
+> > +#ifdef CONFIG_OMAP3_THERMAL
+> > +	{
+> > +		.compatible = "ti,omap34xx-bandgap",
+> 
+> This needs to be updated in the binding documentation.
+> Documentation/devicetree/bindings/thermal/ti_soc_thermal.txt
 
+Ok.
 
-http://www.pwsan.com/omap/testlogs/
+> > +		.data = (void *)&omap34xx_data,
+> 
+> 
+> Having a run time message intentionally advising users of the risk of
+> using this sensor is also required.
 
-test_v3.7-rc1/20121017205513/build/size.txt:+128332   -67728    +2144   +62748  omap2plus_defconfig
-test_v3.8-rc1/20121228031713/build/size.txt:+168843   +25288     +900  +195031  omap2plus_defconfig
-test_v3.9-rc1/20130312100243/build/size.txt:+195310   +37968    +1364  +234642  omap2plus_defconfig
-test_v3.10-rc1/20130518212204/build/size.txt: -59854   -98552   +37136  -121270  omap2plus_defconfig
-test_v3.11-rc1/20130721020309/build/size.txt:+159173    -2456    +1680  +158397  omap2plus_defconfig
-test_v3.12-rc1/20130922202452/build_z/size.txt:+237402   +47344     +760  +285506  omap2plus_defconfig
-test_v3.13-rc1/20131208173326/build_z/size.txt:-276029    -5584    +5008  -276605  omap2plus_defconfig
-test_v3.14-rc1/20140210035354/build_z/size.txt: +94801   -17448    -9016   +68337  omap2plus_defconfig
-test_v3.15-rc1/20140421113253/build_z/size.txt: +30722   +11392    +4312   +46426  omap2plus_defconfig
-test_v3.16-rc1/20140629224344/build_z/size.txt:+133191   +20776  +2750728  +2904695  omap2plus_defconfig
-test_v3.17-rc1/20140821122707/build_z/size.txt: +54469   -34424    +1728   +21773  omap2plus_defconfig
-test_v3.18-rc1/20141020095901/build_z/size.txt:+677950   +32008   +54408  +764366  omap2plus_defconfig
-test_v3.19-rc1/20150102151849/build_z/size.txt:+297698    +9648    -4528  +302818  omap2plus_defconfig
+Ok, what about?
 
+    if (TI_BANDGAP_HAS(bgp, UNRELIABLE))
+              dev_warn(&pdev->dev,
+                         "OMAP3 thermal sensor is unreliable and normally unneccessary\n");
+
+Will not fit in 80 columns, but keeping message on one line is more important.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
