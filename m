@@ -1,88 +1,118 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/3] usb: dwc3: add Fujitsu Specific Glue layer
-Date: Fri, 2 Jan 2015 19:21:28 -0600
-Message-ID: <20150103012128.GA11373@saruman>
-References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <20141222155936.GB12815@saruman>
- <CAJ1gpc0uniw3F3O9nxTLHp9M2boxrOACYDB=fgruhLOLdqg9yA@mail.gmail.com>
- <1456155.YPH2fYoGgF@wuerfel>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/4] net: ethernet: cpsw: split out IRQ handler
+Date: Fri, 2 Jan 2015 21:02:38 -0600
+Message-ID: <20150103030238.GA19959@saruman>
+References: <1420222228-31949-1-git-send-email-balbi@ti.com>
+ <1420222228-31949-4-git-send-email-balbi@ti.com>
+ <CAA93jw7qyZjdHGKXjiBhiYp4BWBFrUFM6FF-Lzc0i7eOnM6cNg@mail.gmail.com>
+ <20150102185535.GB4920@saruman>
+ <CAA93jw7=aFM3yQLO+vtN4uHW2gMnfNaY=BdbA+b0WYq-0+gSYQ@mail.gmail.com>
+ <20150102190350.GC4920@saruman>
+ <CAA93jw4BckMYOz_fUMVkW8m1YVO8uGjsb1srrhiF-meDoiD1WA@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1456155.YPH2fYoGgF@wuerfel>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgli
+In-Reply-To: <CAA93jw4BckMYOz_fUMVkW8m1YVO8uGjsb1srrhiF-meDoiD1WA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Dave Taht <dave.taht@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---VS++wcV0S1rZb1Fb
+--OgqxwSJOaUobr8KG
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Dec 30, 2014 at 11:12:51AM +0100, Arnd Bergmann wrote:
-> On Monday 29 December 2014 01:52:04 Sneeker Yeh wrote:
-> > > > +static int dwc3_mb86s70_remove_child(struct device *dev, void *unu=
-sed)
-> > > > +{
-> > > > +     struct platform_device *pdev =3D to_platform_device(dev);
-> > > > +
-> > > > +     of_device_unregister(pdev);
-> > > > +
-> > > > +     return 0;
-> > > > +}
-> > > > +
-> > > > +static u64 dwc3_mb86s70_dma_mask =3D DMA_BIT_MASK(32);
-> > >
-> > > why ? Use dma_coerce_mask_and_coherent().
-> > >
-> >=20
-> > okay.
+On Fri, Jan 02, 2015 at 02:56:36PM -0800, Dave Taht wrote:
+> On Fri, Jan 2, 2015 at 11:03 AM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > (please use reply-all to keep mailing lists in Cc, also avoid
+> > top-posting)
 >=20
-> Actually that is still wrong: we use dma_coerce_mask_and_coherent() to
-> annotate drivers that have traditionally been forcing their own dma mask
-> by some other means and that need to be changed to something proper (after
-> finding out why they did it in the first place).
->=20
-> Since this is about a child device, the correct interface is to use
-> platform_device_register_full().
+> I am trying not to read netdev right now... and failing, obviously.
 
-no, that's wrong. He's essentially fixing the default set by OF core,
-which is always 32-bits anyway, so this can actually be removed. Your
-suggestion would just make it worse.
+oops :-)
+
+> > On Fri, Jan 02, 2015 at 10:58:29AM -0800, Dave Taht wrote:
+> >> The beaglebone only has a 100mbit phy, so you aren't going to get more
+> >> than that.
+> >
+> > very true :-) Still, with AM437x SK which is definitely GigE, I'm
+> > getting 201Mbits/sec.
+> >
+> >> (so do a lot of IoT devices).
+> >>
+> >> So you have the two patches that went by on BQL and on NAPI for the be=
+agle?
+> >
+> > no, got any pointers ?
+>=20
+> the relevant thread was "am335x: cpsw: phy ignores max-speed setting"
+>=20
+> and the initial very small BQL enablement patch was here:
+>=20
+> https://patchwork.ozlabs.org/patch/407640/
+
+I'll test it out, sure.
+
+> (it needed a saner treatment of a failure to dma something in
+> cpsw_tx_packet_submit  - the patch as is has also been part of nelsons
+> trees for the beaglebone for a while)
+>=20
+> But it was rightly pointed out later in the thread that this change
+>=20
+> +#define CPSW_POLL_WEIGHT 16
+>=20
+> made for the biggest part of the improvement, and someone else on the
+> thread proposed handling that more dynamically for 100mbit phys with
+> another patch (that I can't find at the moment)
+>=20
+> ... but the root cause of the excessive latency in this driver was the
+> single tx/rx dma queue, which you are addressing  in your patch set.
+
+I still think there's a lot of work pending for CPSW, the think slows to
+a crawl and takes a lot of CPU for something that should be mostly
+handled by DMA. I can very easily get 85% CPU usage with iperf.
+
+> So if you glop on more of the above, mo better, perhaps you will win
+> bigger.
+>=20
+> I will try to slice out some time to boot up a beagle on net-next next we=
+ek.
+
+my patches aren't applied yet, however.
+
+cheers
 
 --=20
 balbi
 
---VS++wcV0S1rZb1Fb
+--OgqxwSJOaUobr8KG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUp0QYAAoJEIaOsuA1yqREcjIP/363ej7TuB2etVjKFfJQ3U+l
-aK2jFXPVcHoabf1QZ/ikFRByl0VJa7sHfugLjeQjRWf2gl+YgWKCfDkz96fo2M6N
-pP5mgtiZR1iVoZ031ZU3yo6DRq1dg7ZL3Wh76q/UysryeDAYO/bcSoDF3WAKWp+A
-3VtmAkKgJqZeayUB7bfNo57GQhZEbHKeUGjA4oZ/XSkB+nWUXgshqiN8bJ0XD4Ux
-nv5qK2h1FuqTJKzv1qTQnpgORSQWt+3326Snlxle9jhq4/KlSPjvogSROP9Yi+O9
-i8teFmTN3YbYMs6Lvzdsi4FUnH3LPHbCNnJVsxYN+TFhS+MoQ5Y2fmecIqziY07m
-8+hnh0i9V6MuTQ9ZTKhlHlN5qfEm88ajoq7JltuRA9SEL5Zzd6ISQl4SeaKCb05q
-HCKeI+QfTP6dNOhaGbhm7PjBbtIByJNnaQIb9OR1qWh0dbCx86YLtvtVIgsm4u8b
-shnwt5yZQPzXTeHh2Shrb1qoW3bZppX9Hta0+UXEqztQW3cne7nlQsjOgvQ41kmP
-5XsSPnnetCNk+5xLmxe1/TnQW+ksWe7rtXDIcHnoJo4Jt4yFC+/WqaxxQvyHx852
-wcoWW5G00kaGe98QWD4fKhA7oHZAGHLzhcrenQT5rEd+xx8NmPIh0IVgQEu405Kd
-jLVtWfc4sckaPBYNCxN7
-=lLKe
+iQIcBAEBAgAGBQJUp1vOAAoJEIaOsuA1yqREm1gP/0z4KoxkQp9/N3Y4IVLT44j3
+c5voy1pNgWiJn/DCGG0TdCq4PM9J3uKaTnM8wInBH38vOKW0nFSzHlSYUf8SoEd0
+k5EUhp53r259RDu1gTGNmxAV8R3aBBQga0luQX/U2wKRYeh1H0exlKxCWuaHSe3v
+7p6WdwLsgx204pind2IEnWTG/DqOfP5UKnFCOIE2p5ZB4Vo2O8562us36p0SXFXX
+esATQT51TQIp3JMPm7DcCBxQE6KfAF3vRNMdApSuMgctyC/gNjsbwuzfLT0z4FUd
+sBT5YpB6kr2SyXdMxKnHmFPAdiBb7CxRNdo5DmdIO577o6AX/5Ym49tbWV5tdCzd
+4ryMIoI7FZAxvt6lzc3QVHqlrZuD/zPsjJ8484P6O3k9Uhhv+8lOrnnUcFV1TEvr
+CWwUV3b/ReCxX8EHKB5nw5Iej/Kfhi2L2h7EFmEgB+Q6TMBbCIVTSZQxmr8H21ZO
+J+F7xOk6SgvR2Z1r8eNWJZP/06XxXP95LF17tPQb5uR8IxLpUdxpWuIXwAgE6qOn
+ZQ7RgbevJE3/qVMqMpSIWtMmJUEcWQ1wnE7YW27WJr2/N8GEb7uPA8T9+83RPsZ/
+IVD2HqNFdw0FjeTysi9hnpFc44Iq0eYuP4HHTd2AajCNNwnpZa/RQgidoeFbuiEk
+5R0mCdgsvA3wgl5t3Qu4
+=zIb8
 -----END PGP SIGNATURE-----
 
---VS++wcV0S1rZb1Fb--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--OgqxwSJOaUobr8KG--
