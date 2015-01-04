@@ -1,126 +1,181 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH V2 2/2] ARM: l2c: AM437x: Introduce support for cache
- filter programming
-Date: Sun, 4 Jan 2015 16:47:42 +0900
-Message-ID: <CA+Ln22Eqe-tPrd66R_BVH734yvgbHsBS+TwzkWAjuafjaAgBuA@mail.gmail.com>
-References: <1420220628-23742-1-git-send-email-nm@ti.com>
-	<1420220628-23742-3-git-send-email-nm@ti.com>
-	<CA+Ln22Epd8VpA9DQPFYBdjewUY3ejODhaRHgBSNZAQCYjx5saw@mail.gmail.com>
-	<20150103153446.GA23591@kahuna>
-	<CA+Ln22Ejvwd9J=jnWAUeb=nn-cvWiptqOydax+z4BeMrww_xqg@mail.gmail.com>
-	<54A81CC6.2010007@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv2] media: i2c/adp1653: devicetree support for adp1653
+Date: Sun, 4 Jan 2015 10:00:36 +0100
+Message-ID: <20150104090036.GA30683@amd>
+References: <20141203214641.GA1390@amd>
+ <20141224223434.GA20669@amd>
+ <20141230135701.GN17565@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54A81CC6.2010007@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20141230135701.GN17565@valkosipuli.retiisi.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Santosh <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, m.chehab@samsung.com, devicetree@vger.kernel.org, linux-media@vger.kernel.org, j.anaszewski@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-2015-01-04 1:45 GMT+09:00 Nishanth Menon <nm@ti.com>:
-> On 01/03/2015 10:16 AM, Tomasz Figa wrote:
->>
->> 2015-01-04 0:34 GMT+09:00 Nishanth Menon <nm@ti.com>:
->>>
->>> On 15:40-20150103, Tomasz Figa wrote:
->>>>
->>>> Hi Nishanth,
->>>>
->>>> 2015-01-03 2:43 GMT+09:00 Nishanth Menon <nm@ti.com>:
->>>>>
->>>>> AM437x generation of processors support programming the PL310 L2Cache
->>>>> controller's address filter start and end registers using a secure
->>>>> montior service.
->>>>
->>>>
->>>> typo: s/montior/monitor/
->>>>
->>>> [snip]
->>>
->>>
->>> Uggh.. yes indeed. I will post a v3 updating the comments. If the
->>> following is ok.
->>>>
->>>>
->>>>> +               base = omap4_get_l2cache_base();
->>>>> +               filter_start = (reg == L310_ADDR_FILTER_START) ? val :
->>>>> +                              readl_relaxed(base +
->>>>> L310_ADDR_FILTER_START);
->>>>> +               filter_end = (reg == L310_ADDR_FILTER_END) ? val :
->>>>> +                              readl_relaxed(base +
->>>>> L310_ADDR_FILTER_END);
->>>>> +               omap_smc1_2(AM43X_MON_L2X0_SETFILTER_INDEX,
->>>>> filter_start,
->>>>> +                           filter_end);
->>>>> +               return;
->>>>
->>>>
->>>> I don't have any significant comments about this patch in particular,
->>>> but just noticed that you need to do read-backs here (and the typo
->>>> thanks to the spell checker of my mailing app). Maybe you should
->>>> consider switching to the .configure() API I introduced in my series?
->>>> This would let you get rid of the hardcoded static mapping.
->>>
->>>
->>> Yeah, I have two choices there.. Either I provide the fundamental
->>> write function for the generic l2c code to use OR I provide a
->>> duplicate of resultant l2c_configure(aux write) + l2c310_configure.
->>>
->>> To allow for reuse of improvements or anything like errata
->>> implementations in the future, OMAP L2C implementation has chosen to
->>> provide the
->>> low level code and allow the higherlevel configure/write/whatever of the
->>> future to stay in arch/arm/mm/cache-l2x0.c. The write_sec operation is
->>> not too complicated enough to warrant a replication of l2c310_configure.
->>>
->>> So, I prefer the current implementation than providing a .configure
->>> handler for outer_cache.configure from SoC level.
->>>
->>> Let me know if anyone has a strong objection to this.
->>
->>
->> Well, what l2c310_configure() does after my series is just writing the
->> registers. If they cannot be written normally (without some tricks
->> such as reading back other registers) then IMHO a separate function
->> should be provided.
->>
->> This is becomes possible after patch 3/8 (ARM: l2c: Add interface to
->> ask hypervisor to configure L2C) and what is used on Exynos which also
->> updates multiple registers in single SMC calls. You can find an
->> example of use in patch 6/8 (ARM: EXYNOS: Add .write_sec outer cache
->> callback for L2C-310). What's even more interesting is that approaches
->> similar to the one currently used on OMAP had been NAKed, when
->> proposed for Exynos and this is why we have the solution proposed by
->> my patches.
->>
->> Note that .write_sec() callback is still used for L2X0_CTRL and
->> L2X0_DEBUG_CTRL registers, because there might be a need to write them
->> separately (e.g. to disable the controller and to perform debug
->> operations/workarounds when the controller is already enabled).
->
->
->
-> we dont have a machine descriptor for configure instead we overide the
-> logic(in you case after firmware load, in OMAP case, I need to figure out).
-> my point being unlike the exynos configure code, OMAP code will look exactly
-> like current pl310_configure-2 lines of code which really does not benefit
-> anything.
->
->
-> Thinking again, in fact, i'd rather drop this series than have to do a
-> duplicated configure code(and force a resultant maintenance for the future)
-> in OMAP code since none of OMAP4 or AM437x series need these patches.
-> Interest for this series was non-mandatory, but just to be complete from SoC
-> definition point of view.
->
-> Let me know which way you guys want me to go.
+Hi!
 
-Right, dropping this series would definitely solve the the read-back issue. :)
+> Thanks for the patch! A few comments below.
+> 
+> On Wed, Dec 24, 2014 at 11:34:34PM +0100, Pavel Machek wrote:
+> > 
+> > We are moving to device tree support on OMAP3, but that currently
+> > breaks ADP1653 driver. This adds device tree support, plus required
+> > documentation.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > ---
+> > 
+> > Changed -microsec to -us, as requested by devicetree people.
+> > 
+> > Fixed checkpatch issues.
+> > 
+> > diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> > index 2d88816..2c6c7c5 100644
+> > --- a/Documentation/devicetree/bindings/leds/common.txt
+> > +++ b/Documentation/devicetree/bindings/leds/common.txt
+> > @@ -14,6 +14,15 @@ Optional properties for child nodes:
+> >       "ide-disk" - LED indicates disk activity
+> >       "timer" - LED flashes at a fixed, configurable rate
+> >  
+> > +- max-microamp : maximum intensity in microamperes of the LED
+> > +	         (torch LED for flash devices)
+> 
+> s/torch LED/torch mode/
+> 
+> > +- flash-max-microamp : maximum intensity in microamperes of the
+> > +                       flash LED; it is mandatory if the LED should
+> > +		       support the flash mode
+> > +- flash-timeout-microsec : timeout in microseconds after which the flash
+> > +                           LED is turned off
+> 
+> These should go to a different patch.
 
-After all, if you don't need to override the latencies in the kernel
-(i.e. have sane firmware, unlike certain Exynos boards ;)), then I
-don't see a point of having this feature.
+Actually these both should not be in this patch in the first place.
 
-Best regards,
-Tomasz
+> > +  - reg: I2C slave address
+> > +
+> > +  - gpios: References to the GPIO that controls the power for the chip.
+> > +
+> > +There are two led outputs available - flash and indicator. One led is
+> > +represented by one child node, nodes need to be named "flash" and "indicator".
+> 
+> 80 characters per line.
+
+Count them. It is.
+
+> > +
+> > +Required properties of the LED child node:
+> > +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +
+> > +Required properties of the flash LED child node:
+> > +
+> > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> > +
+> > +Example:
+> > +
+> > +        adp1653: led-controller@30 {
+> > +                compatible = "adi,adp1653";
+> > +		reg = <0x30>;
+> > +                gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> 
+> Please use tabs for indentation above (and below).
+
+Ok.
+
+> > --- a/arch/arm/boot/dts/omap3-n900.dts
+> > +++ b/arch/arm/boot/dts/omap3-n900.dts
+> > @@ -553,6 +558,22 @@
+> >  
+> >  		ti,usb-charger-detection = <&isp1704>;
+> >  	};
+> > +
+> > +	adp1653: led-controller@30 {
+> > +		compatible = "adi,adp1653";
+> > +		reg = <0x30>;
+> > +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
+> > +
+> > +		flash {
+> > +			flash-timeout-us = <500000>;
+> > +			flash-max-microamp = <320000>;
+> > +			max-microamp = <50000>;
+> > +		};
+> > +
+> > +		indicator {
+> > +			max-microamp = <17500>;
+> > +		};
+> > +	};
+> 
+> This should go to a separate patch as well.
+
+How many patches do I need to do for one trivial change? :-(.
+
+
+> > +	if (flash->platform_data->power)
+> > +		ret = flash->platform_data->power(&flash->subdev, on);
+> 
+> if () {
+> } else {
+> }
+
+Ok.
+
+> > +	else {
+> > +		gpio_set_value(flash->platform_data->power_gpio, on);
+> 
+> Shouldn't you add this to the platform data struct?
+
+I don't see what you mean.
+
+> power_gpio is actually a poor name for this, as is the "power" callback.
+> This is really "EN" gpio in the spec, I'd call it perhaps just "gpio", or
+> "enable_gpio".
+
+Feel free to clean that that up in followup patch.
+
+> > +		if (on) {
+> > +			/* Some delay is apparently required. */
+> > +			udelay(20);
+> 
+> The driver should always handle the delay, platform data or not. This
+> reminds me --- is there a need to retain the support for platform data? I
+> don't think it's being used anywhere. I'm fine with both keeping and
+> removing it.
+
+Lets do that in followup patch, if needed.
+
+> > +	child = of_get_child_by_name(node, "indicator");
+> > +	if (!child)
+> > +		return -EINVAL;
+> 
+> Do you require an indicator to be connected? I think it shouldn't be
+> mandatory, at least the driver should work without it, even if it
+> exposes
+> the control (making that conditional would be a subject for another patch,
+> but that doesn't need to be done now).
+
+Another patch, if someone needs it, yes.	
+
+> > +	if (of_property_read_u32(child, "max-microamp", &val))
+> > +		return -EINVAL;
+> > +	pd->max_indicator_intensity = val;
+> > +
+> > +	if (!of_find_property(node, "gpios", NULL)) {
+> > +		dev_err(&client->dev, "No gpio node\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	gpio = of_get_gpio_flags(node, 0, &flags);
+> 
+> You could assign to pd->... here.
+
+Ok.
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
