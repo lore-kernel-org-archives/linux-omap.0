@@ -1,66 +1,126 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH V3] ARM: dts: am57xx-beagle-x15: Add GPIO controlled fan
- node
-Date: Sun, 4 Jan 2015 00:39:50 +0100
-Message-ID: <20150103233949.GA4108@earth.universe>
-References: <1420309826-7904-1-git-send-email-nm@ti.com>
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH V2 2/2] ARM: l2c: AM437x: Introduce support for cache
+ filter programming
+Date: Sun, 4 Jan 2015 16:47:42 +0900
+Message-ID: <CA+Ln22Eqe-tPrd66R_BVH734yvgbHsBS+TwzkWAjuafjaAgBuA@mail.gmail.com>
+References: <1420220628-23742-1-git-send-email-nm@ti.com>
+	<1420220628-23742-3-git-send-email-nm@ti.com>
+	<CA+Ln22Epd8VpA9DQPFYBdjewUY3ejODhaRHgBSNZAQCYjx5saw@mail.gmail.com>
+	<20150103153446.GA23591@kahuna>
+	<CA+Ln22Ejvwd9J=jnWAUeb=nn-cvWiptqOydax+z4BeMrww_xqg@mail.gmail.com>
+	<54A81CC6.2010007@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="fUYQa+Pmc3FrFX/N"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:57632 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750926AbbACXkD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 3 Jan 2015 18:40:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1420309826-7904-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54A81CC6.2010007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Santosh <ssantosh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>
+List-Id: linux-omap@vger.kernel.org
 
+2015-01-04 1:45 GMT+09:00 Nishanth Menon <nm@ti.com>:
+> On 01/03/2015 10:16 AM, Tomasz Figa wrote:
+>>
+>> 2015-01-04 0:34 GMT+09:00 Nishanth Menon <nm@ti.com>:
+>>>
+>>> On 15:40-20150103, Tomasz Figa wrote:
+>>>>
+>>>> Hi Nishanth,
+>>>>
+>>>> 2015-01-03 2:43 GMT+09:00 Nishanth Menon <nm@ti.com>:
+>>>>>
+>>>>> AM437x generation of processors support programming the PL310 L2Cache
+>>>>> controller's address filter start and end registers using a secure
+>>>>> montior service.
+>>>>
+>>>>
+>>>> typo: s/montior/monitor/
+>>>>
+>>>> [snip]
+>>>
+>>>
+>>> Uggh.. yes indeed. I will post a v3 updating the comments. If the
+>>> following is ok.
+>>>>
+>>>>
+>>>>> +               base = omap4_get_l2cache_base();
+>>>>> +               filter_start = (reg == L310_ADDR_FILTER_START) ? val :
+>>>>> +                              readl_relaxed(base +
+>>>>> L310_ADDR_FILTER_START);
+>>>>> +               filter_end = (reg == L310_ADDR_FILTER_END) ? val :
+>>>>> +                              readl_relaxed(base +
+>>>>> L310_ADDR_FILTER_END);
+>>>>> +               omap_smc1_2(AM43X_MON_L2X0_SETFILTER_INDEX,
+>>>>> filter_start,
+>>>>> +                           filter_end);
+>>>>> +               return;
+>>>>
+>>>>
+>>>> I don't have any significant comments about this patch in particular,
+>>>> but just noticed that you need to do read-backs here (and the typo
+>>>> thanks to the spell checker of my mailing app). Maybe you should
+>>>> consider switching to the .configure() API I introduced in my series?
+>>>> This would let you get rid of the hardcoded static mapping.
+>>>
+>>>
+>>> Yeah, I have two choices there.. Either I provide the fundamental
+>>> write function for the generic l2c code to use OR I provide a
+>>> duplicate of resultant l2c_configure(aux write) + l2c310_configure.
+>>>
+>>> To allow for reuse of improvements or anything like errata
+>>> implementations in the future, OMAP L2C implementation has chosen to
+>>> provide the
+>>> low level code and allow the higherlevel configure/write/whatever of the
+>>> future to stay in arch/arm/mm/cache-l2x0.c. The write_sec operation is
+>>> not too complicated enough to warrant a replication of l2c310_configure.
+>>>
+>>> So, I prefer the current implementation than providing a .configure
+>>> handler for outer_cache.configure from SoC level.
+>>>
+>>> Let me know if anyone has a strong objection to this.
+>>
+>>
+>> Well, what l2c310_configure() does after my series is just writing the
+>> registers. If they cannot be written normally (without some tricks
+>> such as reading back other registers) then IMHO a separate function
+>> should be provided.
+>>
+>> This is becomes possible after patch 3/8 (ARM: l2c: Add interface to
+>> ask hypervisor to configure L2C) and what is used on Exynos which also
+>> updates multiple registers in single SMC calls. You can find an
+>> example of use in patch 6/8 (ARM: EXYNOS: Add .write_sec outer cache
+>> callback for L2C-310). What's even more interesting is that approaches
+>> similar to the one currently used on OMAP had been NAKed, when
+>> proposed for Exynos and this is why we have the solution proposed by
+>> my patches.
+>>
+>> Note that .write_sec() callback is still used for L2X0_CTRL and
+>> L2X0_DEBUG_CTRL registers, because there might be a need to write them
+>> separately (e.g. to disable the controller and to perform debug
+>> operations/workarounds when the controller is already enabled).
+>
+>
+>
+> we dont have a machine descriptor for configure instead we overide the
+> logic(in you case after firmware load, in OMAP case, I need to figure out).
+> my point being unlike the exynos configure code, OMAP code will look exactly
+> like current pl310_configure-2 lines of code which really does not benefit
+> anything.
+>
+>
+> Thinking again, in fact, i'd rather drop this series than have to do a
+> duplicated configure code(and force a resultant maintenance for the future)
+> in OMAP code since none of OMAP4 or AM437x series need these patches.
+> Interest for this series was non-mandatory, but just to be complete from SoC
+> definition point of view.
+>
+> Let me know which way you guys want me to go.
 
---fUYQa+Pmc3FrFX/N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Right, dropping this series would definitely solve the the read-back issue. :)
 
-Hi Nishanth,
+After all, if you don't need to override the latencies in the kernel
+(i.e. have sane firmware, unlike certain Exynos boards ;)), then I
+don't see a point of having this feature.
 
-On Sat, Jan 03, 2015 at 12:30:26PM -0600, Nishanth Menon wrote:
-> [...]
-> +		gpio-fan,speed-map = <0    0
-> +				      13000 1>;
-> [...]
-
-iirc DT maintainers prefer this format:
-
-gpio-fan,speed-map = <0     0>,
-                     <13000 1>;
-
-This should result in the same .dtb, but is a bit easier to read.
-
--- Sebastian
-
---fUYQa+Pmc3FrFX/N
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUqH3CAAoJENju1/PIO/qaXV8P/0GKBTc3KrsIhA0jX0IzRV4v
-ujGllhzLjN6dMdOrsAPO1WLLqmJ+/Db2PyHfiVQJO0Dke3nx7PR9QHieX30NKMOW
-Ac49CHAr+e2qiXn0nMvxEOWhMF3p7XNeF8JornndY5bBFGTPaLNtu0y3CK5mpr1q
-m/dXT4x7EMfHRFVxabhLQ2ypMp50PwCyA1PekahccTbiO+fc+uDFzfq1ylOEN1sG
-vMy+kXIMdeN2PcglTK3htm5sWbVQhOscdS863CnsjX8O08afgOHvKNwff2fS4ymC
-JiRydfLG/0eIhKYPyLbtxLroNIP6sW2y5rM53WdwWfVWMEJGfhcKCxjuEBieWCMH
-YP86R644qA66zDLylvzYykgwXK+840GGsXHvmVJ0MW0MHgLrLBf27Ucj0sIreSm9
-Khl76dpsNivhl5og60GfYxFDuDvyqBmo19rmMINVRZJNkLuusm8pfQ4arjtRx8TS
-HFJCH7Yo398GEst7pMrTCkE7TcYkn3cNabd1DoQkpv4AfpXxH9s9UyAZwN1LPicg
-CxmCeanXCTp5s7p6rxsLcXnSHeFz20gl6KUg40WN0AjvWXZOU4PjJnAWUd9oF228
-HA8/mB78XD2LTYqZZCMxKjT5nfA2Q0e4Jl0Zrw/8QEIfDOXxb748QTx6dOxw23G3
-TXUqAGbpg48Jg0tQe4/c
-=5uFp
------END PGP SIGNATURE-----
-
---fUYQa+Pmc3FrFX/N--
+Best regards,
+Tomasz
