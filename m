@@ -1,76 +1,71 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: OMAP baseline test results for v3.19-rc1
-Date: Sun, 4 Jan 2015 21:55:51 +0200
-Message-ID: <20150104195550.GP582@fuloong-minipc.musicnaut.iki.fi>
-References: <alpine.DEB.2.02.1501030712210.27058@utopia.booyaka.com>
- <8629693.mvYldWiixb@wuerfel>
- <20150103134437.GO582@fuloong-minipc.musicnaut.iki.fi>
- <3902724.ayWKVuEiEg@wuerfel>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP: hwmod fixes for v3.19-rc
+Date: Sun, 4 Jan 2015 23:35:38 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501042334250.28771@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:59200 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752749AbbADT4A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2015 14:56:00 -0500
-Content-Disposition: inline
-In-Reply-To: <3902724.ayWKVuEiEg@wuerfel>
+Received: from utopia.booyaka.com ([74.50.51.50]:44393 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813AbbADXfi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2015 18:35:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, kernel-build-reports@lists.linaro.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Sun, Jan 04, 2015 at 05:46:31PM +0100, Arnd Bergmann wrote:
-> On Saturday 03 January 2015 15:44:38 Aaro Koskinen wrote:
-> > On Sat, Jan 03, 2015 at 01:51:53PM +0100, Arnd Bergmann wrote:
-> > > On Saturday 03 January 2015 07:21:49 Paul Walmsley wrote:
-> > > > Another ~300KB kernel object size increase for omap2plus_defconfig 
-> > > > kernels.
-> > > 
-> > > 300kb seems like a lot for a single release. Have you looked into
-> > > where this is coming from?
-> > 
-> > In 3.19-rc1, all initrd decompressors are by default enabled...
-> 
-> Interesting, this seems to be the opposite of the intention of the
-> change that caused it, which tried to let you disable the algorithms
-> without selecting CONFIG_EXPERT. For some reason that is impossible
-> to know now, they already defaulted to 'n' when EXPERT was set, but
-> now they default to 'y'.
-> 
-> Does this indeed cause the entire change in size?
+Hi Tony
 
-Actually, no. It seems a bigger contributor is enabling SATA
-in omap2plus_defconfig. But there still something else... Below is some
-data based on quick checks.
+The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
 
-v3.18 / omap2plus_defconfig:
+  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
 
-	text     data   bss     dec             hex     filename
-	8811980  790500 8423536 18026016        1130e20 vmlinux
+are available in the git repository at:
 
-v3.19-rc1 / omap2plus_defconfig:
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.19-rc/omap-fixes-a
 
-	text     data   bss     dec             hex     filename
-	9093858  800316 8419072 18313246        117701e vmlinux
+for you to fetch changes up to 99d076b747455449b2eec9e37f3fb0bfdf51af32:
 
-v3.19-rc1 / omap2plus_defconfig + revert ec72c666fb34 ("usr/Kconfig: make
-initrd compression algorithm selection not expert"):
+  MAINTAINERS: add maintainer for OMAP hwmod data (2015-01-02 16:24:27 -0700)
 
-	text     data   bss     dec             hex     filename
-	9070939  800260 8419072 18290271        117165f vmlinux
+- ----------------------------------------------------------------
+For v3.19-rc, fix some hwmod structure details for the OMAP DSS modules
+for DRA7xx and AM43xx.  Also update the MAINTAINERS file to encourage
+folks to cc me on hwmod data patches.
 
-v3.19-rc1 / omap2plus_defconfig + revert 661ea91b676b ("ARM:
-omap2plus_defconfig: Enable AHCI_PLATFORM driver"):
+Basic build, boot, and PM testlogs are available here:
 
-	text     data   bss     dec             hex     filename
-	8928148  792700 8414784 18135632        114ba50 vmlinux
+http://www.pwsan.com/omap/testlogs/omap-fixes-a-for-v3.19-rc/20150103144242/
 
-v3.19-rc1 / omap2plus_defconfig + revert ec72c666fb34 & 661ea91b676b:
+- ----------------------------------------------------------------
+Paul Walmsley (1):
+      MAINTAINERS: add maintainer for OMAP hwmod data
 
-	text     data   bss     dec             hex     filename
-	8901129  792644 8414784 18108557        114508d vmlinux
+Tomi Valkeinen (2):
+      ARM: AM43xx: hwmod: set DSS submodule parent hwmods
+      ARM: DRA7xx: hwmod: set DSS submodule parent hwmods
 
-A.
+ MAINTAINERS                                | 6 ++++++
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 2 ++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 2 ++
+ 3 files changed, 10 insertions(+)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUqc29AAoJEMePsQ0LvSpLwHMP/iwMppVchp7aBom6wAJXf5Cf
+3d6M8j+5UNex01TDnBAj9fSWC0ea/HkEKpOSVp+TOsLX1cnMPQfC6wBmJ4nZ4HLG
+l+7e1x6S0eKCvoMh6yvTzf5hJfmHCs0ULcJJ2E87fNhuSJ+t7ESCaVFSFqCvT2Fi
+Rq+9Ba/9Mwe2UHotmwRpt1wNFSzIWuHfi2La5SOwUdPZ/6snpy5blmGpipG4vUJL
+Oe3zvY0NVo0Ee/i8Q89UqmE56jStsq6/Lo4rH1yfVTLAnFdR43X8lC8u5uKvaQB9
+EELRUvY+chISVVahHFAt2DmuenPBnYIQqZ6I4rgf+RirT7Ee2qEL4Chty5bwrz61
+OfGiWEvZ/JmnVvn6SYicZ9wbKL58AL1eVMG6ylHBtjiAkJc2eg5QeS+uNnEBFjIG
+6UeVLBQQ1ldvYt/n8L3vyxqeKnf4f9/THg/4hvgYLvhs2Vpj8dL2syknwhfRb1pG
+7yLH7pD3wxibAK5gMVLNR8NdDZmfUeI/EyF++CqY5qj5YzN4qTUk2mvpdQI96bg0
+mgPs/t1mNg54M2W6TnWLAF7CnowK3UTAu3QxmxQuaxXf5uu0mWmxyAijzl7LTeoj
+6Gm/qyLALvE7cTAH/10PjkrvvP0MpZ6Fs9PWLEc3t1/6RoDXZA6BdzQARSjvhgMM
+Y2mY3tU2B7IUbycZQIkS
+=4el2
+-----END PGP SIGNATURE-----
