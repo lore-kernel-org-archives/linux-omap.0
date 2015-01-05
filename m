@@ -1,156 +1,107 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v11 0/9] Enable L2 cache support on Exynos4210/4x12 SoCs
-Date: Mon, 5 Jan 2015 11:00:40 -0600
-Message-ID: <54AAC338.9030506@ti.com>
-References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/3] usb: dwc3: add a quirk for device disconnection
+ issue in Synopsis dwc3 core
+Date: Mon, 5 Jan 2015 11:09:21 -0600
+Message-ID: <20150105170921.GH19336@saruman>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <20141222153730.GA12815@saruman>
+ <CAJ1gpc3jVpz=5ME4+wCJDW5NKihvB4xYzwi0co=UuPtG9Ubmjg@mail.gmail.com>
+ <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg@mail.gmail.com>
+ <20141229160641.GD29379@saruman>
+ <CAJ1gpc0Uu4vS2iA_o_W5NaE_QBWDYFZJio7yKvhpaR5f=qWcGA@mail.gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KscVNZbUup0vZz0f"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ1gpc0Uu4vS2iA_o_W5NaE_QBWDYFZJio7yKvhpaR5f=qWcGA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb
 List-Id: linux-omap@vger.kernel.org
 
-On 01/05/2015 06:18 AM, Marek Szyprowski wrote:
-> This is an updated patchset, which intends to add support for L2 cache
-> on Exynos4 SoCs on boards running under secure firmware, which requires
-> certain initialization steps to be done with help of firmware, as
-> selected registers are writable only from secure mode.
-> 
-> First patch updates Omap2+ platforms by moving l2cache initialization to
-> common code. This will resolve too early call to l2cache init, what might
-> cause kmalloc failure in code added in next patches.
-> 
-> Next patch fixes access method to latency and filter settings in l2cache
-> driver.
-> 
-> Next four patches extend existing support for secure write in L2C driver
-> to account for design of secure firmware running on Exynos. Namely:
->  1) direct read access to certain registers is needed on Exynos, because
->     secure firmware calls set several registers at once,
->  2) not all boards are running secure firmware, so .write_sec callback
->     needs to be installed in Exynos firmware ops initialization code,
->  3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
->     is not allowed and so must use l2c_write_sec as well,
->  4) on certain boards, default value of prefetch register is incorrect
->     and must be overridden at L2C initialization.
-> For boards running with firmware that provides access to individual
-> L2C registers this series should introduce no functional changes. However
-> since the driver is widely used on other platforms I'd like to kindly ask
-> any interested people for testing.
-> 
-> Further three patches add implementation of .write_sec and .configure
-> callbacks for Exynos secure firmware and necessary DT nodes to enable
-> L2 cache.
-> 
-> Changes in this version tested on Exynos4412-based TRATS2 and OdroidU3+
-> boards (both with secure firmware). There should be no functional change
-> for Exynos boards running without secure firmware. I do not have access
-> to affected non-Exynos boards, so I could not test on them.
-> 
-> Depends on:
-> - v3.19-rc2
-> 
-> Changelog:
-> 
-> Changes since v10:
-> (https://lkml.org/lkml/2014/12/23/151)
-> - Added patch, which fixes access method to latency and filter settings
->   in l2cache
-> 
-> Changes since v9:
-> (https://lkml.org/lkml/2014/11/17/217)
-> - Rebased onto vanilla v3.19-rc1
-> - Added patch for Omap2+ (move l2cache initialization to common code), what
->   fixes too early initialization (kmalloc failure)
-> 
-> Changes since v8:
-> (http://lkml.org/lkml/2014/11/13/263)
-> - Rebased onto vanilla v3.18-rc3 and added required includes, which were
->   previously added by other patches
-> - Added Acked-by tags for Exynos part
-> 
-> Changes since v7:
-> (https://lkml.org/lkml/2014/10/29/158)
-> - rebased onto arm-soc/for-next kernel tree (depends on patches merged to
->   v3.18-rc3 and arm-soc/samsung/pm2 branch)
-> - removed 'ARM: l2c: unify L2C-310 OF initialization error messages' patch
->   (no longer needed)
-> 
-> Changes since v6:
-> (https://lkml.org/lkml/2014/10/27/233)
-> - changed PL310 to L2C-310 prefix in error messages
-> - added patch shortening the error message about incorrect associativity
-> 
-> Changes since v5:
-> (https://lkml.org/lkml/2014/9/24/364)
-> - rebased onto v3.18-rc2
-> - added error message about missing properties values
-> 
-> Changes since v4:
-> (https://lkml.org/lkml/2014/8/26/461)
->  - rewrote the code accessing l2x0_saved_regs from assembly code
->  - added comment and reworked unconditional call to SMC_CMD_L2X0INVALL
-> 
-> 
-> Patch summary:
-> 
-> Marek Szyprowski (2):
->   ARM: OMAP2+: use common l2cache initialization code
->   ARM: l2c: use l2c_write_sec() for restoring latency and filter regs
-> 
-> Tomasz Figa (7):
->   ARM: l2c: Refactor the driver to use commit-like interface
->   ARM: l2c: Add interface to ask hypervisor to configure L2C
->   ARM: l2c: Get outer cache .write_sec callback from mach_desc only if
->     not NULL
->   ARM: l2c: Add support for overriding prefetch settings
->   ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
->   ARM: EXYNOS: Add support for non-secure L2X0 resume
->   ARM: dts: exynos4: Add nodes for L2 cache controller
-> 
->  Documentation/devicetree/bindings/arm/l2cc.txt |  10 +
->  arch/arm/boot/dts/exynos4210.dtsi              |   9 +
->  arch/arm/boot/dts/exynos4x12.dtsi              |  14 ++
->  arch/arm/include/asm/outercache.h              |   3 +
->  arch/arm/kernel/irq.c                          |   3 +-
->  arch/arm/mach-exynos/firmware.c                |  50 +++++
->  arch/arm/mach-exynos/sleep.S                   |  46 +++++
->  arch/arm/mach-omap2/board-generic.c            |   6 +
->  arch/arm/mach-omap2/common.h                   |   7 +
->  arch/arm/mach-omap2/omap4-common.c             |  16 +-
->  arch/arm/mm/cache-l2x0.c                       | 270 ++++++++++++++++---------
->  11 files changed, 323 insertions(+), 111 deletions(-)
-> 
-Applied all 9 patches and tested on as many boards as I could get my
-hands on.. all boot fine, Thanks
+--KscVNZbUup0vZz0f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- 1: am335x-evm: BOOT: PASS: http://slexy.org/raw/s21Q8Zw33s
- 2: am335x-sk: BOOT: PASS: http://slexy.org/raw/s28O0bBEyM
- 3: am437x-sk: BOOT: PASS: http://slexy.org/raw/s203dOrLId
- 4: am43xx-epos: BOOT: PASS: http://slexy.org/raw/s2uWmV1XkM
- 5: am43xx-gpevm: BOOT: PASS: http://slexy.org/raw/s20jVsjU00
- 6: BeagleBoard-X15(am57xx-evm): BOOT: PASS:
-http://slexy.org/raw/s21ezwoOop
- 7: BeagleBoard-XM: BOOT: PASS: http://slexy.org/raw/s21M0IYcdI
- 8: beagleboard-vanilla: BOOT: PASS: http://slexy.org/raw/s2gCJ5VRr9
- 9: beaglebone-black: BOOT: PASS: http://slexy.org/raw/s2vvB4u86O
-10: beaglebone: BOOT: PASS: http://slexy.org/raw/s208k0tU3V
-11: dra72x-evm: BOOT: PASS: http://slexy.org/raw/s212oTeZ2w
-12: dra7xx-evm: BOOT: PASS: http://slexy.org/raw/s24deU2xtY
-13: omap5-evm: BOOT: PASS: http://slexy.org/raw/s2DkUAGU0i
-14: pandaboard-es: BOOT: PASS: http://slexy.org/raw/s2UKuDaAFf
-15: pandaboard-vanilla: BOOT: PASS: http://slexy.org/raw/s21VAyb14r
-16: sdp4430: BOOT: PASS: http://slexy.org/raw/s2J6nAHynd
+Hi,
 
-for TI SoCs impacted OMAP4 and AM437x (other than the exynos patches):
+On Sun, Jan 04, 2015 at 08:55:01PM +0800, Sneeker Yeh wrote:
+> > > So far Fujitsu Semiconductor got Synopsys internal case id , that is "
+> > > Case: 8000679552".
+> > > However the contents belongs this id cannot be referred except Fujitsu
+> > > Semiconductor and Synopsys.
+> > > Synopsis decide the official errata (STAR information) will be disclo=
+sed
+> > > next February.
+> > >
+> > > Would you suggest if this quirk can be accepted with this case ID, or=
+ can
+> > > only be accepted with STARS ticket number?
+> >
+> > The thing is that without the STARS number I can't really verify which
+> > versions of the IP would be affected. Clearly, it's not only your setup
+> > and I think it's pretty unfair to have "is_compatible("fujitsu")" to
+> >
+>=20
+> just found some way of quirk injection i miss,
+> does it looks more reasonable if i have to decide to use it via Kconfig? :
+> 20f6fdd01c2c0de9cc1109083222edded24c5350
+> b2f463e1300016785d63475c56f5807e2be00934
 
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
+We will only use Kconfig for those which can't be detected in runtime.
+LPM is one such case as there's no way for SW to detect that core was
+configured with LPM Errata, IIRC.
 
+> > enable the quirk only for you. Isn't there a better way of enabling the
+> > quirk based off of revision detection couple with a look on GHWPARAMS*
+> > registers ?
+> >
+> > What's tricking me is this claim that only config-free PHYs would be
+> > affected, why ?
+> >
+>=20
+> i'm still struggling now to try to get more information about this.
+> some security policy inside Fujitsu make me unable to access full
+> information of this errata today.
+>=20
+> Someday after i get enough information,
+> i shall take your suggestion here that seems better to incur quirk
+> dynamically via GHWPARAMS,
+> and then send it here again.
 
--- 
-Regards,
-Nishanth Menon
+ok, hopefully you'll find a way ;-)
+
+--=20
+balbi
+
+--KscVNZbUup0vZz0f
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUqsVBAAoJEIaOsuA1yqREKv0P/Ru1Q/EYlXFalvHJeVmouThA
+tBV5RQXIQVBgUYnSKgFmr8dDfSEmY4hw/M3QTEA/v9aHzUBCSzcIWPda4dXrSrI2
+i0edd3jGppso9Of5W/v8ruXP5eXIiGOuBCgZ/n2Ew1o16cOArwUu2taSrnBhEvkD
+77rBEclp6S4TmtME5TXl+xRpc9zfRd+NMCRKrJU4zh2N3Ny667x7fwHdax3GBoQ2
+wctUul5EiWFG3/axEzLiKGs4DPXpbeuOMOCuQdnwnCW03GVoiCM/Z5iJHSO0vyUv
+jpD4pAX68KIeHE6hAqblgxNpkJwMmT6239pRyeHDNyXkx7U5jQGwdBmoYK5k6Wyt
+ILbax5mWhxi4sLAPOaot2WJjvEcaNYZxMkSDfDTm18arh9qWnwpOVvJ7sClfC5vE
+NNJuSAJ65nbtvZB8utVfbB4/PsJ/mOSG9iYNalAVjS6eFQkU9qr3mIpgCX5FaGh+
+AJ2k/7MezmiRI1F4IcBrzsfCn32f7mPb4dN3lLQiXqfsSNYBnF27gB1JwzvEa1v4
+Yy4MJtsGr+Aj2XJYJKF42JWofK9nbP2IjRc0PqCT6kc2heA2i4se1cFtX/Qi5fWh
+XL23pM1mg12nnKdZ/ZmeACY1KrcfFTGyRycWo1kOY9KEXlC1uXWKrwkpA3M67TQe
+bG9cNDvCrlUKE8l/pCcS
+=S/CV
+-----END PGP SIGNATURE-----
+
+--KscVNZbUup0vZz0f--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
