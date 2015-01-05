@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v11 3/9] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Mon, 5 Jan 2015 08:23:34 -0800
-Message-ID: <20150105162332.GC4081@atomide.com>
+Subject: Re: [PATCH v11 4/9] ARM: l2c: Add interface to ask hypervisor to
+ configure L2C
+Date: Mon, 5 Jan 2015 08:24:38 -0800
+Message-ID: <20150105162438.GD4081@atomide.com>
 References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
- <1420460348-20302-4-git-send-email-m.szyprowski@samsung.com>
+ <1420460348-20302-5-git-send-email-m.szyprowski@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1420460348-20302-4-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1420460348-20302-5-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
@@ -18,22 +18,67 @@ List-Id: linux-omap@vger.kernel.org
 * Marek Szyprowski <m.szyprowski@samsung.com> [150105 04:22]:
 > From: Tomasz Figa <t.figa@samsung.com>
 > 
-> Certain implementations of secure hypervisors (namely the one found on
-> Samsung Exynos-based boards) do not provide access to individual L2C
-> registers. This makes the .write_sec()-based interface insufficient and
-> provoking ugly hacks.
-> 
-> This patch is first step to make the driver not rely on availability of
-> writes to individual registers. This is achieved by refactoring the
-> driver to use a commit-like operation scheme: all register values are
-> prepared first and stored in an instance of l2x0_regs struct and then a
-> single callback is responsible to flush those values to the hardware.
+> Because certain secure hypervisor do not allow writes to individual L2C
+> registers, but rather expect set of parameters to be passed as argument
+> to secure monitor calls, there is a need to provide an interface for the
+> L2C driver to ask the firmware to configure the hardware according to
+> specified parameters. This patch adds such.
 > 
 > Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> [mszyprow: rebased onto 'ARM: l2c: use l2c_write_sec() for restoring
->  latency and filter regs' patch]
 > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-This version seems to boot just fine on am437x here:
-
 Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  arch/arm/include/asm/outercache.h | 3 +++
+>  arch/arm/mm/cache-l2x0.c          | 6 ++++++
+>  2 files changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
+> index 891a56b35bcf..563b92fc2f41 100644
+> --- a/arch/arm/include/asm/outercache.h
+> +++ b/arch/arm/include/asm/outercache.h
+> @@ -23,6 +23,8 @@
+>  
+>  #include <linux/types.h>
+>  
+> +struct l2x0_regs;
+> +
+>  struct outer_cache_fns {
+>  	void (*inv_range)(unsigned long, unsigned long);
+>  	void (*clean_range)(unsigned long, unsigned long);
+> @@ -36,6 +38,7 @@ struct outer_cache_fns {
+>  
+>  	/* This is an ARM L2C thing */
+>  	void (*write_sec)(unsigned long, unsigned);
+> +	void (*configure)(const struct l2x0_regs *);
+>  };
+>  
+>  extern struct outer_cache_fns outer_cache;
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index f9013320c8ce..dcde6086a228 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -110,6 +110,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
+>  
+>  static void l2c_configure(void __iomem *base)
+>  {
+> +	if (outer_cache.configure) {
+> +		outer_cache.configure(&l2x0_saved_regs);
+> +		return;
+> +	}
+> +
+>  	if (l2x0_data->configure)
+>  		l2x0_data->configure(base);
+>  
+> @@ -910,6 +915,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
+>  
+>  	fns = data->outer_cache;
+>  	fns.write_sec = outer_cache.write_sec;
+> +	fns.configure = outer_cache.configure;
+>  	if (data->fixup)
+>  		data->fixup(l2x0_base, cache_id, &fns);
+>  
+> -- 
+> 1.9.2
+> 
