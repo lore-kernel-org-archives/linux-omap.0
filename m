@@ -1,84 +1,76 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH] MAINTAINERS: Add linux-omap to list of reviewers for TI
- Thermal
-Date: Mon, 5 Jan 2015 17:51:28 -0400
-Message-ID: <20150105215126.GA3769@developer>
-References: <1420312410-4469-1-git-send-email-nm@ti.com>
- <20150105214436.GF31536@developer>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Mon, 5 Jan 2015 22:19:20 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501052206580.28771@utopia.booyaka.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f176.google.com ([209.85.220.176]:35520 "EHLO
-	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879AbbAEVvh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 16:51:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20150105214436.GF31536@developer>
+Received: from utopia.booyaka.com ([74.50.51.50]:54210 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753885AbbAEWTV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 17:19:21 -0500
+In-Reply-To: <54AA4CD4.40105@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com, ssantosh@kernel.org
+
++ Santosh
+
+Hi Lokesh
+
+On Mon, 5 Jan 2015, Lokesh Vutla wrote:
+> On Saturday 03 January 2015 02:40 AM, Paul Walmsley wrote:
+> > On Thu, 18 Dec 2014, Roger Quadros wrote:
+> > 
+> >> On 18/12/14 17:49, Roger Quadros wrote:
+> >>> There are quite a few hwmods that don't have sysconfig register and so
+> >>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
+> >>> on those modules after the module is enabled.
+> > 
+> > Hmm.  Any IP block that exposes registers that are accessible by the MPU 
+> > should have an MPU register target port, even if there's no SYSCONFIG 
+> > register.  And if an IP block doesn't have registers that are accessible 
+> > from the MPU, then there shouldn't be much point to waiting for the module 
+> > to become ready.
+> > 
+> > Looks like the real problem is the test for oh->class->sysc before the 
+> > call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440 
+> > ("ARM: OMAP2+: hwmod: check for module address space during init"). It's 
+> > not clear to me why that test was added, since _init_mpu_rt_base() doesn't 
+> > do anything with oh->class->sysc or SYSCONFIG registers.
+> This was introduced by commit 
+> 97597b962529 (ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc)
+
+Yes, you're right.  I misread commit 6423d6df1440.
+
+> Patch description states that "there are few hwmod which doesn't have sysconfig registers and hence
+> no need to ioremap() them in early init code".
+
+The MPU register target port code doesn't only determine whether the 
+hwmod code should map the IP block's address space.  It also determines 
+whether or not the hwmod code needs to wait for the IP block to become 
+ready after being enabled, so register accesses by non-hwmod code can 
+succeed.
+
+> Isn't this correct? 
+
+That commit 97597b962529 is bogus.  If the goal was to skip the ioremap(), 
+then the right fix would have been to just skip the ioremap().  The 
+existing commit also skips the call to _save_mpu_port_index(), which 
+caused the problem that Roger's patch is trying to fix.
+
+> May be a dumb question: If IP doesn't have sysconfig, is there any case 
+> that hwmod does access the register address space of that IP? Why do we 
+> need to enable MPU register target port?
+
+hwmod shouldn't touch the IP block registers if there are no SYSCONFIG, 
+SYSSTATUS, etc. registers, and there's no IP block-specific reset code.  
+But other code on the system (like the IP block's device driver) will, and 
+the system needs to indicate that the IP block is ready before those 
+accesses occur.
 
 
---jI8keyz6grp/JLjh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jan 05, 2015 at 05:44:38PM -0400, Eduardo Valentin wrote:
-> On Sat, Jan 03, 2015 at 01:13:30PM -0600, Nishanth Menon wrote:
-> > Add linux-omap mailing list to the TI THERMAL list for wider review.
-> >=20
-> > Reported-by: Pavel Machek <pavel@ucw.cz>
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > ---
-> >  MAINTAINERS |    1 +
-> >  1 file changed, 1 insertion(+)
-> >=20
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index ddb9ac8..dc9efd5 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -9533,6 +9533,7 @@ F:	drivers/platform/x86/thinkpad_acpi.c
-> >  TI BANDGAP AND THERMAL DRIVER
-> >  M:	Eduardo Valentin <edubezval@gmail.com>
-> >  L:	linux-pm@vger.kernel.org
-> > +L:	linux-omap@vger.kernel.org
->=20
-> OK. I will queue this one.
->=20
-> >  S:	Supported
->=20
-> I will also change this to random fixes too..
-
-changed to 'Maintained'.
-
-Cheers,
-
->=20
-> >  F:	drivers/thermal/ti-soc-thermal/
-> > =20
-> > --=20
-> > 1.7.9.5
-> >=20
-
-
-
---jI8keyz6grp/JLjh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUqwdWAAoJEMLUO4d9pOJWOr4H/iBAMDu09kQbhuyYNbRbn3pj
-zBuhgfv82qTrBH6VJtTMKKYIMNio2IzdtLVgnmU8eEQC2R4I6tjy+YXDjoiZiv8u
-C9XcYjFQfimLxRjoX9p7mVeovQpbpopch1/f6bKIbJhv8TEMFEIsd1i60Cq+tR+r
-cdHmpPEEMPvoJNCubORlhgFma88S592Z5GmgG2xOUdClDFYkrMyOt9Lf4VPJlW/l
-0rJ8JcI3HDb0N/a1mp1iWP0MB+OhJNbQ/agY/6nAxGRT7B18LSturwhNnj8G3Hsg
-AZzZWCfln/pMQP+51/5WdolfoBuilRX5wTkU6POTgf+EjD0I/O878bNN+s+hdRw=
-=2Sb2
------END PGP SIGNATURE-----
-
---jI8keyz6grp/JLjh--
+- Paul
