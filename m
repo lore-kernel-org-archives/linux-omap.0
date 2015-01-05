@@ -1,79 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: dts: dra7-evm: fix qspi device tree partition
- size
-Date: Mon, 5 Jan 2015 14:26:35 -0800
-Message-ID: <20150105222634.GK4081@atomide.com>
-References: <1418977385-7886-1-git-send-email-mugunthanvnm@ti.com>
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Mon, 05 Jan 2015 14:31:09 -0800
+Message-ID: <54AB10AD.1080308@oracle.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com> <alpine.DEB.2.02.1501052206580.28771@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1418977385-7886-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:28209 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511AbbAEWbt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 17:31:49 -0500
+In-Reply-To: <alpine.DEB.2.02.1501052206580.28771@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com, ssantosh@kernel.org
 
-* Mugunthan V N <mugunthanvnm@ti.com> [141219 00:25]:
-> 64KiB is allocated for qspi dtb partition which is not
-> sufficient, so updating the partition table size to 512KiB
-> for device tree partition.
-> 
-> This also aligns the QSPI partition definitions between
-> kernel and U-Boot.
-> 
-> Fixes: dc2dd5b8 ("ARM: dts: dra7: Add qspi device")
-> 
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> ---
-> 
-> This patch is tested on Linux next and the boot logs at [1]
-> 
-> [1] - http://pastebin.ubuntu.com/9567672/
-
-Applying into omap-for-v3.19/fixes thanks.
+On 1/5/15 2:19 PM, Paul Walmsley wrote:
+> + Santosh
+>
+> Hi Lokesh
+>
+> On Mon, 5 Jan 2015, Lokesh Vutla wrote:
+>> On Saturday 03 January 2015 02:40 AM, Paul Walmsley wrote:
+>>> On Thu, 18 Dec 2014, Roger Quadros wrote:
+>>>
+>>>> On 18/12/14 17:49, Roger Quadros wrote:
+>>>>> There are quite a few hwmods that don't have sysconfig register and so
+>>>>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
+>>>>> on those modules after the module is enabled.
+>>>
+>>> Hmm.  Any IP block that exposes registers that are accessible by the MPU
+>>> should have an MPU register target port, even if there's no SYSCONFIG
+>>> register.  And if an IP block doesn't have registers that are accessible
+>>> from the MPU, then there shouldn't be much point to waiting for the module
+>>> to become ready.
+>>>
+>>> Looks like the real problem is the test for oh->class->sysc before the
+>>> call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440
+>>> ("ARM: OMAP2+: hwmod: check for module address space during init"). It's
+>>> not clear to me why that test was added, since _init_mpu_rt_base() doesn't
+>>> do anything with oh->class->sysc or SYSCONFIG registers.
+>> This was introduced by commit
+>> 97597b962529 (ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc)
+>
+> Yes, you're right.  I misread commit 6423d6df1440.
+>
+>> Patch description states that "there are few hwmod which doesn't have sysconfig registers and hence
+>> no need to ioremap() them in early init code".
+>
+> The MPU register target port code doesn't only determine whether the
+> hwmod code should map the IP block's address space.  It also determines
+> whether or not the hwmod code needs to wait for the IP block to become
+> ready after being enabled, so register accesses by non-hwmod code can
+> succeed.
+>
+IIRC, Yes the intention was to skip the ioremap o.w there were some 
+crashes seen. I am fine if that check is actually moved closer
+to iormap as it should have been first place.
 
 Regards,
-
-Tony
-
-> ---
->  arch/arm/boot/dts/dra7-evm.dts | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 736092b..235d001 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -499,23 +499,23 @@
->  		};
->  		partition@5 {
->  			label = "QSPI.u-boot-spl-os";
-> -			reg = <0x00140000 0x00010000>;
-> +			reg = <0x00140000 0x00080000>;
->  		};
->  		partition@6 {
->  			label = "QSPI.u-boot-env";
-> -			reg = <0x00150000 0x00010000>;
-> +			reg = <0x001c0000 0x00010000>;
->  		};
->  		partition@7 {
->  			label = "QSPI.u-boot-env.backup1";
-> -			reg = <0x00160000 0x0010000>;
-> +			reg = <0x001d0000 0x0010000>;
->  		};
->  		partition@8 {
->  			label = "QSPI.kernel";
-> -			reg = <0x00170000 0x0800000>;
-> +			reg = <0x001e0000 0x0800000>;
->  		};
->  		partition@9 {
->  			label = "QSPI.file-system";
-> -			reg = <0x00970000 0x01690000>;
-> +			reg = <0x009e0000 0x01620000>;
->  		};
->  	};
->  };
-> -- 
-> 2.2.1.62.g3f15098
-> 
+Santosh
+seen
