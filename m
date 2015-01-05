@@ -1,112 +1,122 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7xx: hwmod: set DSS submodule parent hwmods
-Date: Mon, 5 Jan 2015 12:34:55 +0200
-Message-ID: <54AA68CF.9050904@ti.com>
-References: <1418985914-9027-1-git-send-email-tomi.valkeinen@ti.com> <1418985914-9027-3-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1501022250010.27058@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="JBOCJNGtKE1Axi61sSr8dU1l8DXnBn5L5"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48463 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753312AbbAEKfX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Jan 2015 05:35:23 -0500
-In-Reply-To: <alpine.DEB.2.02.1501022250010.27058@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH v11 0/9] Enable L2 cache support on Exynos4210/4x12 SoCs
+Date: Mon, 05 Jan 2015 13:18:59 +0100
+Message-ID: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
-Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---JBOCJNGtKE1Axi61sSr8dU1l8DXnBn5L5
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+This is an updated patchset, which intends to add support for L2 cache
+on Exynos4 SoCs on boards running under secure firmware, which requires
+certain initialization steps to be done with help of firmware, as
+selected registers are writable only from secure mode.
 
-Hi Paul,
+First patch updates Omap2+ platforms by moving l2cache initialization to
+common code. This will resolve too early call to l2cache init, what might
+cause kmalloc failure in code added in next patches.
 
-On 03/01/15 00:50, Paul Walmsley wrote:
-> On Fri, 19 Dec 2014, Tomi Valkeinen wrote:
->=20
->> Set DSS core hwmod as the parent for all the DSS submodules. This fixe=
-s
->> the boot time DSS reset, removing the following warnings:
->>
->> omap_hwmod: dss_dispc: cannot be enabled for reset (3)
->> omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->=20
-> Thanks, queued for v3.19-rc.                        =20
->=20
-> Note that I cannot test this patch due to lack of a DRA7xx board here.
+Next patch fixes access method to latency and filter settings in l2cache
+driver.
 
-Thanks. Unfortunately, I made a mistake with the DRA7xx patch. Well, the
-patch itself is correct, but we have some insanity in the HW that I misse=
-d:
+Next four patches extend existing support for secure write in L2C driver
+to account for design of secure firmware running on Exynos. Namely:
+ 1) direct read access to certain registers is needed on Exynos, because
+    secure firmware calls set several registers at once,
+ 2) not all boards are running secure firmware, so .write_sec callback
+    needs to be installed in Exynos firmware ops initialization code,
+ 3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
+    is not allowed and so must use l2c_write_sec as well,
+ 4) on certain boards, default value of prefetch register is incorrect
+    and must be overridden at L2C initialization.
+For boards running with firmware that provides access to individual
+L2C registers this series should introduce no functional changes. However
+since the driver is widely used on other platforms I'd like to kindly ask
+any interested people for testing.
 
-DRA7xx has a CTRL_CORE_CONTROL_IO_2 register in the control module,
-which contains bits for various subsystems, including DCAN, PCIe, QSPI
-and DSS. At the moment only DCAN driver uses the register via syscon +
-regmap.
+Further three patches add implementation of .write_sec and .configure
+callbacks for Exynos secure firmware and necessary DT nodes to enable
+L2 cache.
 
-For DSS, the bit 0, DSS_DESHDCP_CLKEN is critical. While the bit is
-rather undocumented, it presumably enables a clock for DSS's HDCP. Now,
-we don't support HDPC in the display driver, but unfortunately the clock
-is required for the DSS hardware to initialize.
+Changes in this version tested on Exynos4412-based TRATS2 and OdroidU3+
+boards (both with secure firmware). There should be no functional change
+for Exynos boards running without secure firmware. I do not have access
+to affected non-Exynos boards, so I could not test on them.
 
-Without this patch, we see only the few warnings about dss hwmods
-"cannot be enabled", but with the patch, we see those and some WARN()s
-from hwmod as the DSS HW module does not start. So it's a bit worse.
+Depends on:
+- v3.19-rc2
 
-Why I didn't notice this is that I had an u-boot version that enables
-the DSS_DESHDCP_CLKEN bit and leaves it enabled.
+Changelog:
 
-So what to do about the issue? You could drop/revert this patch if we
-don't see a quick solution for the DSS_DESHDCP_CLKEN. It won't fix
-anything as such, but lessens the boot-up spam.
+Changes since v10:
+(https://lkml.org/lkml/2014/12/23/151)
+- Added patch, which fixes access method to latency and filter settings
+  in l2cache
 
-I don't have a good idea how to manage the bit properly. As far as I
-see, the bit has to be managed via syscon, using remap_update_bits, so
-that we get proper locking. With a quick glance, I didn't see anything
-for that in the current clock code. And can we presume that syscon is
-probed before hwmods? I guess not.
+Changes since v9:
+(https://lkml.org/lkml/2014/11/17/217)
+- Rebased onto vanilla v3.19-rc1
+- Added patch for Omap2+ (move l2cache initialization to common code), what
+  fixes too early initialization (kmalloc failure)
 
-For the time being, I think the easiest solution would be to just set
-the bit and leave it enabled. My understanding (based on commits in TI's
-product kernel) is that leaving the DSS_DESHDCP_CLKEN enabled doesn't
-really affect much, and any increased power consumption would be too
-small to measure.
+Changes since v8:
+(http://lkml.org/lkml/2014/11/13/263)
+- Rebased onto vanilla v3.18-rc3 and added required includes, which were
+  previously added by other patches
+- Added Acked-by tags for Exynos part
 
-If that's the route, the question is still where to enable it. As I
-said, I have an u-boot which enables it, but I'd rather do the enabling
-in the kernel. If in the kernel, where there? It has to happen before
-the hwmod init is ran.
+Changes since v7:
+(https://lkml.org/lkml/2014/10/29/158)
+- rebased onto arm-soc/for-next kernel tree (depends on patches merged to
+  v3.18-rc3 and arm-soc/samsung/pm2 branch)
+- removed 'ARM: l2c: unify L2C-310 OF initialization error messages' patch
+  (no longer needed)
 
- Tomi
+Changes since v6:
+(https://lkml.org/lkml/2014/10/27/233)
+- changed PL310 to L2C-310 prefix in error messages
+- added patch shortening the error message about incorrect associativity
+
+Changes since v5:
+(https://lkml.org/lkml/2014/9/24/364)
+- rebased onto v3.18-rc2
+- added error message about missing properties values
+
+Changes since v4:
+(https://lkml.org/lkml/2014/8/26/461)
+ - rewrote the code accessing l2x0_saved_regs from assembly code
+ - added comment and reworked unconditional call to SMC_CMD_L2X0INVALL
 
 
+Patch summary:
 
---JBOCJNGtKE1Axi61sSr8dU1l8DXnBn5L5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Marek Szyprowski (2):
+  ARM: OMAP2+: use common l2cache initialization code
+  ARM: l2c: use l2c_write_sec() for restoring latency and filter regs
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Tomasz Figa (7):
+  ARM: l2c: Refactor the driver to use commit-like interface
+  ARM: l2c: Add interface to ask hypervisor to configure L2C
+  ARM: l2c: Get outer cache .write_sec callback from mach_desc only if
+    not NULL
+  ARM: l2c: Add support for overriding prefetch settings
+  ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
+  ARM: EXYNOS: Add support for non-secure L2X0 resume
+  ARM: dts: exynos4: Add nodes for L2 cache controller
 
-iQIcBAEBAgAGBQJUqmjPAAoJEPo9qoy8lh71CHEQAKrDz7XklbJ/N4y6Bj0JPzFO
-gpHnUBKaWjslP9zUB9FolVRCOfDxu60H9axtW6bNk0+X0156wn1zLpEgyaR4WRvV
-TeuERwPR/k/vzruOCqBKd/6SGsYvfHZlvW3+Du3jXRws5n/GwowcbHlmIHIwtEOn
-lvJdLkFd9DdbpLYYHQYCIYZMGG38OGS49u6LNlA466g6Y4U97S13Lz3AVrH6vM1f
-WTVMA1sCCsvOK7gwW+oaDaNZSsqca/2BYtZIqW7H3Qfhp/Fqa494eLq5vpilIhAj
-LVdMFxzgJ60704G3/Vf3qUTU/wkCqCS9uuvSsV3GxlnUKtCM2YG4Rc1QpCXXts/+
-YtWmshSfctv5cMxCplRK+DE9da/E7702jyYtll74HISk0Xu3aCX7BAbhrdp3Scdh
-0QkGvblgspBsSfA0xpHr6JmHB9Oisna9JdefXzldYPjbzL1RHNraFVigwKUKX84T
-jSLyE56xG0WFnmk7oDJtWmiwAhci1/6YKQ0n2e+8xAAAjMKmTxiTZgxzVLXB4f4d
-qkegQ1QrJkwTRqGHNnp591dM1tVNNUdnWzgKiKaAd/gXJyJ2asvloi4+y8oRtH2d
-2Ej7FNEdBTeIwW3ufYN4GW+Pl8j5v/0qSzE68HDoP+1+Ic1+BLbVKnwZwXTwRcVY
-zifZhIrjyoWYsYn4vYsC
-=h6BQ
------END PGP SIGNATURE-----
+ Documentation/devicetree/bindings/arm/l2cc.txt |  10 +
+ arch/arm/boot/dts/exynos4210.dtsi              |   9 +
+ arch/arm/boot/dts/exynos4x12.dtsi              |  14 ++
+ arch/arm/include/asm/outercache.h              |   3 +
+ arch/arm/kernel/irq.c                          |   3 +-
+ arch/arm/mach-exynos/firmware.c                |  50 +++++
+ arch/arm/mach-exynos/sleep.S                   |  46 +++++
+ arch/arm/mach-omap2/board-generic.c            |   6 +
+ arch/arm/mach-omap2/common.h                   |   7 +
+ arch/arm/mach-omap2/omap4-common.c             |  16 +-
+ arch/arm/mm/cache-l2x0.c                       | 270 ++++++++++++++++---------
+ 11 files changed, 323 insertions(+), 111 deletions(-)
 
---JBOCJNGtKE1Axi61sSr8dU1l8DXnBn5L5--
+-- 
+1.9.2
