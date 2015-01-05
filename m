@@ -1,109 +1,108 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH] thermal: ti-soc-thermal: ti-bandgap.c:  Remove unused
- function
-Date: Mon, 5 Jan 2015 17:33:06 -0400
-Message-ID: <20150105213304.GC31536@developer>
-References: <1419183823-10787-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
- <549AD44A.8010603@ti.com>
+Subject: Re: [PATCH] ti-soc-thermal: implement eocz bit to make driver useful
+ on omap3
+Date: Mon, 5 Jan 2015 17:35:59 -0400
+Message-ID: <20150105213557.GD31536@developer>
+References: <20150103114632.GA21883@amd>
+ <20150103122634.GB22356@developer>
+ <20150103162241.GA26680@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="da4uJneut+ArUgXk"
+	protocol="application/pgp-signature"; boundary="9dgjiU4MmWPVapMU"
 Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <549AD44A.8010603@ti.com>
+In-Reply-To: <20150103162241.GA26680@amd>
 Sender: linux-pm-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Zhang Rui <rui.zhang@intel.com>, Tero Kristo <t-kristo@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---da4uJneut+ArUgXk
+--9dgjiU4MmWPVapMU
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 24, 2014 at 08:57:14AM -0600, Nishanth Menon wrote:
-> On 12/21/2014 11:43 AM, Rickard Strandqvist wrote:
-> > Remove the function ti_bandgap_write_thot() that is not used anywhere.
-> >=20
-> > This was partially found by using a static code analysis program called=
- cppcheck.
-> >=20
-> > Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital=
-=2Ese>
-> > ---
-> >  drivers/thermal/ti-soc-thermal/ti-bandgap.c |   13 -------------
-> >  drivers/thermal/ti-soc-thermal/ti-bandgap.h |    1 -
-> >  2 files changed, 14 deletions(-)
-> >=20
-> > diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/ther=
-mal/ti-soc-thermal/ti-bandgap.c
-> > index 634b6ce..cbb6a5f 100644
-> > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> > @@ -611,19 +611,6 @@ int ti_bandgap_read_thot(struct ti_bandgap *bgp, i=
-nt id, int *thot)
-> >  }
-> > =20
-> >  /**
-> > - * ti_bandgap_write_thot() - sets sensor current thot
-> > - * @bgp: pointer to bandgap instance
-> > - * @id: sensor id
-> > - * @val: desired thot value
-> > - *
-> > - * Return: 0 on success or the proper error code
-> > - */
-> > -int ti_bandgap_write_thot(struct ti_bandgap *bgp, int id, int val)
-> > -{
-> > -	return _ti_bandgap_write_threshold(bgp, id, val, true);
-> > -}
-> > -
-> > -/**
-> >   * ti_bandgap_read_tcold() - reads sensor current tcold
-> >   * @bgp: pointer to bandgap instance
-> >   * @id: sensor id
-> > diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/ther=
-mal/ti-soc-thermal/ti-bandgap.h
-> > index b3adf72..976afc0 100644
-> > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> > @@ -371,7 +371,6 @@ struct ti_bandgap_data {
-> >  };
-> > =20
-> >  int ti_bandgap_read_thot(struct ti_bandgap *bgp, int id, int *thot);
-> > -int ti_bandgap_write_thot(struct ti_bandgap *bgp, int id, int val);
-> >  int ti_bandgap_read_tcold(struct ti_bandgap *bgp, int id, int *tcold);
-> >  int ti_bandgap_write_tcold(struct ti_bandgap *bgp, int id, int val);
-> >  int ti_bandgap_read_update_interval(struct ti_bandgap *bgp, int id,
-> >=20
+On Sat, Jan 03, 2015 at 05:22:42PM +0100, Pavel Machek wrote:
+> Hi!
 >=20
-> Not sure if removing support for programming of hot threshold is a
-> good idea. how about ti_bandgap_write_tcold then?
+> > > When periodic mode is not enabled, it is neccessary to force reads.
+> > >=20
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > >=20
+>=20
+> > > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > > @@ -43,6 +43,8 @@
+> > > =20
+> > >  #include "ti-bandgap.h"
+> > > =20
+> > > +static int ti_bandgap_force_single_read(struct ti_bandgap *bgp, int =
+id);
+> > > +
+> > >  /***   Helper functions to access registers and their bitfields   **=
+*/
+> > > =20
+> > >  /**
+> > > @@ -852,14 +831,20 @@ int ti_bandgap_read_temperature(struct ti_bandg=
+ap *bgp, int id,
+> > >  	if (ret)
+> > >  		return ret;
+> > > =20
+> > > +	if (!TI_BANDGAP_HAS(bgp, MODE_CONFIG)) {
+> > > +		ret =3D ti_bandgap_force_single_read(bgp, id);
+> >=20
+> > not sure MODE_CONFIG is sufficient condition for single read on all OMAP
+> > versions.
+>=20
+> Ok, what do you suggest? AFAICT, without MODE_CONFIG, continuous ADC
+> mode is not available, so we have to force it periodically, so this
+> should be correct.
 
-
-Agreed here. I believe the right thing to do is to use those functions
-to update the thresholds when necessary.
+I will have a better look and let you know. for now, adding a single
+read should not hurt ( but I will double check)
 
 >=20
+> > > +		if (ret)
+> > > +			return ret;
+> > > +	}
+> > > +
+> > >  	spin_lock(&bgp->lock);
+> > >  	temp =3D ti_bandgap_read_temp(bgp, id);
+> > >  	spin_unlock(&bgp->lock);
+> > > =20
+> > > -	ret |=3D ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
+> > > +	ret =3D ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
+> >=20
+> > this one should be part of your clean up patch
 >=20
+> Ok, can you apply the cleanup patch and I'll prepare one on the top of
+> it?
+
+I mean, you should resend the cleanup patch including the above '|=3D' remo=
+val, as you are already doing in the cleanup patch.
+
+>=20
+> 									Pavel
 > --=20
-> Regards,
-> Nishanth Menon
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
 
---da4uJneut+ArUgXk
+--9dgjiU4MmWPVapMU
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBAgAGBQJUqwMIAAoJEMLUO4d9pOJWQGkH/2tQKSp5Uk0u8BGQJ7T9Xyfn
-XFH/kh9aY+FeGqBOirdDVVkvEXSzYfw6w6Ooo8Yqk+DzIGAFI9cg0EYfr4+TdwDi
-c4ucrapUBRnFBnGrLNgkdE7MXHHwvEqZKNVkJhTyKYmxbbYDd/PcQHAzhHXubaR3
-Xpugs8WSKfO7LBsVP6ctJ0X1oiCvwEc59vyynPA0ygJAX/j0OJ1Bxm4S6/3rEd+o
-E9ltQZL9W3Ou6dUZm6GTCn3VIUWwz0f3n5p3c9/5eeErhsVwbCe0llF+TGTdkuk1
-hERFgD/nHclkHaZy2Q39iZV0R29jKGR9zcxw7APW4zaM9dOZjOlPRMi+xP9MdbI=
-=Hfew
+iQEcBAEBAgAGBQJUqwO0AAoJEMLUO4d9pOJWaJgH/ArebtCW23ANA7+na+NEBnGo
+H0OmnHM6ZmICCLCeDi/yIbk/B+Hl5tgnlWyvsY3htXAw2bbNDanS8OzfxsfkbHJO
+qkN/APJM6vC+PNCiNgQQPJZYycAXMBtsiNqZgMGXzqZiqIZPhbcJG5iA698Dfiui
+BbVVI7i0xmCk0myDlCGy8xSvid+gfVTyliViQMzICwPgPfY/82I+lzcpfy5WaSkc
+tgVmBHAPCkskQwDmJ8FPlRyOIqLS8wGtsvndySzynaVJL5Ob0AhZkVIRbACN9VYH
+NIGwBFsDT6ijTpChow1xZLve0wMKQA5i/hJ+DA8G8SapR9pn0pgR5DbdgHV0u3Q=
+=Y667
 -----END PGP SIGNATURE-----
 
---da4uJneut+ArUgXk--
+--9dgjiU4MmWPVapMU--
