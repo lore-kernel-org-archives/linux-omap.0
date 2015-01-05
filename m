@@ -1,107 +1,91 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] gpio: pcf857x: restore the initial line state of all
- pcf lines
-Date: Mon, 5 Jan 2015 11:56:57 +0530
-Message-ID: <54AA2EB1.8090501@ti.com>
-References: <1418371601-22658-1-git-send-email-kishon@ti.com> <548F498F.7050202@ti.com> <549271A9.5040701@ti.com> <5492E09F.1000003@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Mon, 5 Jan 2015 14:05:32 +0530
+Message-ID: <54AA4CD4.40105@ti.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <5492E09F.1000003@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Thursday 18 December 2014 07:41 PM, Nishanth Menon wrote:
-> On 12/18/2014 12:18 AM, Kishon Vijay Abraham I wrote:
->>
->>
->> On Tuesday 16 December 2014 02:20 AM, Nishanth Menon wrote:
->>> On 12/12/2014 02:06 AM, Kishon Vijay Abraham I wrote:
->>>> The reset values for all the PCF lines are high and hence on shutdown
->>>> we should drive all the lines high in order to bring it to the reset state.
->>>>
->>>> This is actually required since pcf doesn't have a reset line and even after
->>>> warm reset (by invoking "reboot" in prompt) the pcf lines maintains it's
->>>> previous programmed state. This becomes a problem if the boards are designed
->>>> to work with the default initial state.
->>>>
->>>> DRA7XX_evm uses PCF8575 and one of the PCF output lines feeds to MMC/SD and
->>>> this line should be driven high in order for the MMC/SD to be detected.
->>>> This line is modelled as regulator and the hsmmc driver takes care of enabling
->>>> and disabling it. In the case of 'reboot', during shutdown path as part of it's
->>>> cleanup process the hsmmc driver disables this regulator. This makes MMC boot
->>>> not functional.
->>>>
->>>> Fixed it by driving high all the pcf lines.
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>>  drivers/gpio/gpio-pcf857x.c |    9 +++++++++
->>>>  1 file changed, 9 insertions(+)
->>>>
->>>> diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
->>>> index 236708a..00b15b2 100644
->>>> --- a/drivers/gpio/gpio-pcf857x.c
->>>> +++ b/drivers/gpio/gpio-pcf857x.c
->>>> @@ -448,6 +448,14 @@ static int pcf857x_remove(struct i2c_client *client)
->>>>  	return status;
->>>>  }
->>>>  
->>>> +static void pcf857x_shutdown(struct i2c_client *client)
->>>> +{
->>>> +	struct pcf857x *gpio = i2c_get_clientdata(client);
->>>> +
->>>> +	/* Drive all the I/O lines high */
->>>> +	gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
->>>
->>> you might force a contention here - depending on System configuration.
->>> example:
->>> +-------+
->>> |       |
->>> |  U1   |         +------+      +-----------+
->>> |       +--------->      |      |           |
->>> +-------+         |      |      |           |
->>>                   | Switch<-----+    SoC    |
->>> +-------+         |      |      |           |
->>> |       |         |      |      |           |
->>> | U2    <---------+--^---+      +-----------+
->>> |       |            |
->>> |       |            |
->>> +-------+            |
->>>                   +--+--+
->>>                   |     |
->>>                   | PCF |
->>>                   |     |
->>>                   +-----+
->>>
->>> At low, SoC pin is connected to U2 as drive. when reset to high, you
->>> now have U1 driving to the same pin that SoC has, potentially
->>> resulting in contention.
->>>
->>>
->>> Unfortunately, at this level, you do not know what the state of the
->>> system is, blindly forcing a pin level will potentially cause
->>> contention risk depending on pin configuration.
->>
->> Assume we are doing a reset when the system is powered on, irrespective of the
->> state of the system, we'll be forcing the pin level to the default state.
+Hi Paul,
+On Saturday 03 January 2015 02:40 AM, Paul Walmsley wrote:
+> + Suman, lakml
 > 
-> Yes, I dont deny that system will be fine *after* reset sequence is
-> started or completed. However there is a duration between the pcf
-> shutdown handler is called and the final reset handler is invoked -
-> that is the duration when  the contention might cause device behavior.
-> Essentially ignoring the state various drivers have asked PCF to setup
-> the pins and doing a hands down configuration may have side effects we
-> cant properly expect.
+> Hi Roger
+> 
+> On Thu, 18 Dec 2014, Roger Quadros wrote:
+> 
+>> Fixing up Paul's email id.
+>>
+>> cheers,
+>> -roger
+>>
+>> On 18/12/14 17:49, Roger Quadros wrote:
+>>> There are quite a few hwmods that don't have sysconfig register and so
+>>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
+>>> on those modules after the module is enabled.
+> 
+> Hmm.  Any IP block that exposes registers that are accessible by the MPU 
+> should have an MPU register target port, even if there's no SYSCONFIG 
+> register.  And if an IP block doesn't have registers that are accessible 
+> from the MPU, then there shouldn't be much point to waiting for the module 
+> to become ready.
+> 
+> Looks like the real problem is the test for oh->class->sysc before the 
+> call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440 
+> ("ARM: OMAP2+: hwmod: check for module address space during init"). It's 
+> not clear to me why that test was added, since _init_mpu_rt_base() doesn't 
+> do anything with oh->class->sysc or SYSCONFIG registers.
+This was introduced by commit 
+97597b962529 (ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc)
+Patch description states that "there are few hwmod which doesn't have sysconfig registers and hence
+no need to ioremap() them in early init code".
+Isn't this correct? 
+May be a dumb question: If IP doesn't have sysconfig, is there any case that hwmod does
+access the register address space of that IP? Why do we need to enable MPU register target port?
 
-The solution might be to invoke the shutdown handler of the various drivers
-using the PCF before the shutdown handler of the PCF driver itself gets
-invoked? But I'm not sure how can that be achieved in linux kernel :-(
+Thanks and regards,
+Lokesh
 
-Thanks
-Kishon
+> 
+> Could you please test the following patch?
+> I don't have an AM437x-gp-evm.  
+> 
+> 
+> - Paul
+> 
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c | 12 ++++--------
+>  1 file changed, 4 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index cbb908dc5cf0..ce6d11f3eda7 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2451,14 +2451,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+>  				oh->name, np->name);
+>  	}
+>  
+> -	if (oh->class->sysc) {
+> -		r = _init_mpu_rt_base(oh, NULL, index, np);
+> -		if (r < 0) {
+> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+> -			     oh->name);
+> -			return 0;
+> -		}
+> -	}
+> +	r = _init_mpu_rt_base(oh, NULL, index, np);
+> +	if (r < 0)
+> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
+> +			 oh->name);
+>  
+>  	r = _init_clocks(oh, NULL);
+>  	if (r < 0) {
+> 
