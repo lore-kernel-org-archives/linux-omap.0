@@ -1,75 +1,54 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH] MAINTAINERS: Add linux-omap to list of reviewers for TI
- Thermal
-Date: Mon, 5 Jan 2015 17:44:38 -0400
-Message-ID: <20150105214436.GF31536@developer>
-References: <1420312410-4469-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: dts: am335x-bone-common: add collision and carrier sense pinmux
+Date: Mon, 5 Jan 2015 15:44:14 -0600
+Message-ID: <1420494254-24314-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vA66WO2vHvL/CRSR"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:48776 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098AbbAEVoq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 16:44:46 -0500
-Content-Disposition: inline
-In-Reply-To: <1420312410-4469-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, Schuyler Patton <spatton@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Tom Rini <trini@ti.com>, Kevin Hilman <khilman@linaro.org>, stable@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
+From: Schuyler Patton <spatton@ti.com>
 
---vA66WO2vHvL/CRSR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Added pin mux definitions for collision and carrier sense errors coming
+from the ethernet phy. Without these two signals the MAC ends up ignoring
+the errors detected by the PHY which end up causing a lower throughput
+problem when the phy is in half duplex mode such as connected through a hub.
 
-On Sat, Jan 03, 2015 at 01:13:30PM -0600, Nishanth Menon wrote:
-> Add linux-omap mailing list to the TI THERMAL list for wider review.
->=20
-> Reported-by: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  MAINTAINERS |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index ddb9ac8..dc9efd5 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9533,6 +9533,7 @@ F:	drivers/platform/x86/thinkpad_acpi.c
->  TI BANDGAP AND THERMAL DRIVER
->  M:	Eduardo Valentin <edubezval@gmail.com>
->  L:	linux-pm@vger.kernel.org
-> +L:	linux-omap@vger.kernel.org
+Fixes: 2ba3549 (ARM: dts: am335x-bone*: add DT for BeagleBone Black)
+Cc: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Tom Rini <trini@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: <stable@vger.kernel.org> # v3.13+
+Signed-off-by: Schuyler Patton <spatton@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-OK. I will queue this one.
-
->  S:	Supported
-
-I will also change this to random fixes too..
-
->  F:	drivers/thermal/ti-soc-thermal/
-> =20
-> --=20
-> 1.7.9.5
->=20
-
---vA66WO2vHvL/CRSR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUqwW8AAoJEMLUO4d9pOJWHP8H+wXIW37g71icS28bcsQrguaC
-jeJhyJd1knZ2eiJh7GrMBKtswiI4qnr1j8/y8OjUdliBnr+B38gs6T8oqazuJvql
-DCCGUJ6IKNDqoAqrOS+/Eeh74QS1faOk3LUUPi957UCMuU6ictYUpBuYh8WDK99c
-ev3lHt528RmwGQ0n2pSfEkD5OQbP1fSztXo4x0/XI1PkRaIUg4hk0VG8mEEPqGo5
-cDVdxe82/4yADRBiowMmb6VawdNOqGAg2kwUecU8PJIw5D3TbNgtOOPHi8uGzK9p
-5qVrrfIS51QzVCzd3x0aM8LeQJk1iQnSK35nua+EZyGiAwZcjmCsj7aG/9HLQAc=
-=s2wk
------END PGP SIGNATURE-----
-
---vA66WO2vHvL/CRSR--
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 6cc25ed..4b29fad 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -97,6 +97,8 @@
+ 	cpsw_default: cpsw_default {
+ 		pinctrl-single,pins = <
+ 			/* Slave 1 */
++			0x108 (PIN_INPUT | MUX_MODE0)		/* mii1_col.mii1_col */
++			0x10c (PIN_INPUT | MUX_MODE0)		/* mii1_crs.mii1_crs */
+ 			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr.mii1_rxerr */
+ 			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen.mii1_txen */
+ 			0x118 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv.mii1_rxdv */
+@@ -116,6 +118,8 @@
+ 	cpsw_sleep: cpsw_sleep {
+ 		pinctrl-single,pins = <
+ 			/* Slave 1 reset value */
++			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+-- 
+2.2.0
