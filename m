@@ -1,30 +1,39 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v11 1/9] ARM: OMAP2+: use common l2cache initialization code
-Date: Mon, 05 Jan 2015 21:25:17 +0100
-Message-ID: <2975078.sXsfBJkaoi@wuerfel>
-References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com> <1420460348-20302-2-git-send-email-m.szyprowski@samsung.com>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] tty: serial: 8250: omap: add ttySx console if the user
+ didn't
+Date: Mon, 5 Jan 2015 21:26:50 +0000
+Message-ID: <20150105212650.701af128@lxorguk.ukuu.org.uk>
+References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+	<20141129094823.GA10840@linutronix.de>
+	<20141129173418.GY2817@atomide.com>
+	<20141201140914.728aaa46@lxorguk.ukuu.org.uk>
+	<20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
+	<20141202015118.GA1891@saruman>
+	<20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
+	<20141218174712.GA26632@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1420460348-20302-2-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, linux-samsung-soc@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com, linus.walleij@linaro.org, Tomasz Figa <tomasz.figa@gmail.com>, drake@endlessm.com, loeliger@gmail.com, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Olof Johansson <olof@lixom.net>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, khilman@linaro.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 251.110.2.81.in-addr.arpa ([81.2.110.251]:32780 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751098AbbAEV2W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 16:28:22 -0500
+In-Reply-To: <20141218174712.GA26632@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, uwe@kleine-koenig.org
 
-On Monday 05 January 2015 13:19:00 Marek Szyprowski wrote:
->  DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
-> +       .l2c_aux_val    = OMAP_L2C_AUX_CTRL,
-> +       .l2c_aux_mask   = 0xcf9fffff,
-> +       .l2c_write_sec  = omap4_l2c310_write_sec,
->         .reserve        = omap_reserve,
->         .smp            = smp_ops(omap4_smp_ops),
->         .map_io         = omap4_map_io,
+On Thu, 18 Dec 2014 18:47:12 +0100
+Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+
+> This patch invokes add_preferred_console() with ttyS based on ttyO
+> arguments if the user didn't specify it on its own. This ensures that
+> the user will see the kernel booting on his serial console in case he
+> forgot to update the command line.
 > 
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Could we also get those values into the dts files? Clearly we
-can't remove them here without breaking compatibility with old
-dtbs, but it would be nice to have all new dtbs do the right thing.
+Acked-by: Alan Cox <alan@linux.intel.com>
 
-	Arnd
