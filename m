@@ -1,32 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v11 6/9] ARM: l2c: Add support for overriding prefetch
- settings
-Date: Mon, 5 Jan 2015 08:25:54 -0800
-Message-ID: <20150105162553.GF4081@atomide.com>
-References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
- <1420460348-20302-7-git-send-email-m.szyprowski@samsung.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V4] ARM: dts: am57xx-beagle-x15: Add GPIO controlled fan node
+Date: Mon, 5 Jan 2015 10:32:29 -0600
+Message-ID: <1420475549-28492-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1420460348-20302-7-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36239 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752327AbbAEQdA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 11:33:00 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, sre@kernel.org, Nishanth Menon <nm@ti.com>
 
-* Marek Szyprowski <m.szyprowski@samsung.com> [150105 04:22]:
-> From: Tomasz Figa <t.figa@samsung.com>
-> 
-> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
-> settings configured in registers leading to crashes if L2C is enabled
-> without overriding them. This patch introduces bindings to enable
-> prefetch settings to be specified from DT and necessary support in the
-> driver.
-> 
-> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> [mszyprow: rebased onto v3.18-rc1, added error message when prefetch related
->  dt property has been provided without any value]
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+TPS gpio now controls a 5v 500mA TL5209 regulator which may be supply
+a fan (such as AFB02505HHB) over J1 connector for various purposes.
+Provide device tree node to enable the same.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+V4: Change format of the speed-map used.
+V3: https://patchwork.kernel.org/patch/5562121/
+V2: https://patchwork.kernel.org/patch/5445111/
+V1: https://patchwork.kernel.org/patch/5444911/
+
+Enable and disable can be controlled by (post the RPM, it finds
+closest match - even a 1 will do)
+
+echo '13000' > /sys/class/hwmon/hwmon0/fan1_target
+and
+echo '0' > /sys/class/hwmon/hwmon0/fan1_target
+
+Test log: http://slexy.org/view/s2T0ajh46z
+
+requires CONFIG_GPIO_PALMAS and CONFIG_SENSORS_GPIO_FAN to be operational
+Applies on v3.19-rc1
+
+ arch/arm/boot/dts/am57xx-beagle-x15.dts |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 6c2e8e4..c5d4cea 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -80,6 +80,14 @@
+ 			default-state = "off";
+ 		};
+ 	};
++
++	gpio_fan: gpio_fan {
++		/* Based on 5v 500mA AFB02505HHB */
++		compatible = "gpio-fan";
++		gpios =  <&tps659038_gpio 1 GPIO_ACTIVE_HIGH>;
++		gpio-fan,speed-map = <0     0>,
++				     <13000 1>;
++	};
+ };
+ 
+ &dra7_pmx_core {
+@@ -394,6 +402,12 @@
+ 			wakeup-source;
+ 			ti,palmas-long-press-seconds = <12>;
+ 		};
++
++		tps659038_gpio: tps659038_gpio {
++			compatible = "ti,palmas-gpio";
++			gpio-controller;
++			#gpio-cells = <2>;
++		};
+ 	};
+ 
+ 	tmp102: tmp102@48 {
+-- 
+1.7.9.5
+
