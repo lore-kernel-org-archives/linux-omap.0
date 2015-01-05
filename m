@@ -1,124 +1,86 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v11 6/9] ARM: l2c: Add support for overriding prefetch settings
-Date: Mon, 05 Jan 2015 13:19:05 +0100
-Message-ID: <1420460348-20302-7-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v11 4/9] ARM: l2c: Add interface to ask hypervisor to configure
+ L2C
+Date: Mon, 05 Jan 2015 13:19:03 +0100
+Message-ID: <1420460348-20302-5-git-send-email-m.szyprowski@samsung.com>
 References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-reply-to: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
+Cc: Mark Rutland <mark.rutland@arm.com>, nm@ti.com, linux-samsung-soc@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, tony@atomide.com, linus.walleij@linaro.org, Tomasz Figa <tomasz.figa@gmail.com>, drake@endlessm.com, loeliger@gmail.com, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Olof Johansson <olof@lixom.net>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, khilman@linaro.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Tomasz Figa <t.figa@samsung.com>
 
-Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
-settings configured in registers leading to crashes if L2C is enabled
-without overriding them. This patch introduces bindings to enable
-prefetch settings to be specified from DT and necessary support in the
-driver.
+Because certain secure hypervisor do not allow writes to individual L2C
+registers, but rather expect set of parameters to be passed as argument
+to secure monitor calls, there is a need to provide an interface for the
+L2C driver to ask the firmware to configure the hardware according to
+specified parameters. This patch adds such.
 
 Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-[mszyprow: rebased onto v3.18-rc1, added error message when prefetch related
- dt property has been provided without any value]
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- Documentation/devicetree/bindings/arm/l2cc.txt | 10 +++++
- arch/arm/mm/cache-l2x0.c                       | 54 ++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ arch/arm/include/asm/outercache.h | 3 +++
+ arch/arm/mm/cache-l2x0.c          | 6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/l2cc.txt b/Documentation/devicetree/bindings/arm/l2cc.txt
-index 292ef7ca3058..0dbabe9a6b0a 100644
---- a/Documentation/devicetree/bindings/arm/l2cc.txt
-+++ b/Documentation/devicetree/bindings/arm/l2cc.txt
-@@ -57,6 +57,16 @@ Optional properties:
- - cache-id-part: cache id part number to be used if it is not present
-   on hardware
- - wt-override: If present then L2 is forced to Write through mode
-+- arm,double-linefill : Override double linefill enable setting. Enable if
-+  non-zero, disable if zero.
-+- arm,double-linefill-incr : Override double linefill on INCR read. Enable
-+  if non-zero, disable if zero.
-+- arm,double-linefill-wrap : Override double linefill on WRAP read. Enable
-+  if non-zero, disable if zero.
-+- arm,prefetch-drop : Override prefetch drop enable setting. Enable if non-zero,
-+  disable if zero.
-+- arm,prefetch-offset : Override prefetch offset value. Valid values are
-+  0-7, 15, 23, and 31.
+diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
+index 891a56b35bcf..563b92fc2f41 100644
+--- a/arch/arm/include/asm/outercache.h
++++ b/arch/arm/include/asm/outercache.h
+@@ -23,6 +23,8 @@
  
- Example:
+ #include <linux/types.h>
  
++struct l2x0_regs;
++
+ struct outer_cache_fns {
+ 	void (*inv_range)(unsigned long, unsigned long);
+ 	void (*clean_range)(unsigned long, unsigned long);
+@@ -36,6 +38,7 @@ struct outer_cache_fns {
+ 
+ 	/* This is an ARM L2C thing */
+ 	void (*write_sec)(unsigned long, unsigned);
++	void (*configure)(const struct l2x0_regs *);
+ };
+ 
+ extern struct outer_cache_fns outer_cache;
 diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index dcde6086a228..e7f1bd90dde6 100644
+index f9013320c8ce..dcde6086a228 100644
 --- a/arch/arm/mm/cache-l2x0.c
 +++ b/arch/arm/mm/cache-l2x0.c
-@@ -1169,6 +1169,8 @@ static void __init l2c310_of_parse(const struct device_node *np,
- 	u32 tag[3] = { 0, 0, 0 };
- 	u32 filter[2] = { 0, 0 };
- 	u32 assoc;
-+	u32 prefetch;
-+	u32 val;
- 	int ret;
+@@ -110,6 +110,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
  
- 	of_property_read_u32_array(np, "arm,tag-latency", tag, ARRAY_SIZE(tag));
-@@ -1214,6 +1216,58 @@ static void __init l2c310_of_parse(const struct device_node *np,
- 		       assoc);
- 		break;
- 	}
-+
-+	prefetch = l2x0_saved_regs.prefetch_ctrl;
-+
-+	ret = of_property_read_u32(np, "arm,double-linefill", &val);
-+	if (ret == 0) {
-+		if (val)
-+			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL;
-+		else
-+			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL;
-+	} else if (ret != -EINVAL) {
-+		pr_err("L2C-310 OF arm,double-linefill property value is missing\n");
+ static void l2c_configure(void __iomem *base)
+ {
++	if (outer_cache.configure) {
++		outer_cache.configure(&l2x0_saved_regs);
++		return;
 +	}
 +
-+	ret = of_property_read_u32(np, "arm,double-linefill-incr", &val);
-+	if (ret == 0) {
-+		if (val)
-+			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
-+		else
-+			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
-+	} else if (ret != -EINVAL) {
-+		pr_err("L2C-310 OF arm,double-linefill-incr property value is missing\n");
-+	}
-+
-+	ret = of_property_read_u32(np, "arm,double-linefill-wrap", &val);
-+	if (ret == 0) {
-+		if (!val)
-+			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
-+		else
-+			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
-+	} else if (ret != -EINVAL) {
-+		pr_err("L2C-310 OF arm,double-linefill-wrap property value is missing\n");
-+	}
-+
-+	ret = of_property_read_u32(np, "arm,prefetch-drop", &val);
-+	if (ret == 0) {
-+		if (val)
-+			prefetch |= L310_PREFETCH_CTRL_PREFETCH_DROP;
-+		else
-+			prefetch &= ~L310_PREFETCH_CTRL_PREFETCH_DROP;
-+	} else if (ret != -EINVAL) {
-+		pr_err("L2C-310 OF arm,prefetch-drop property value is missing\n");
-+	}
-+
-+	ret = of_property_read_u32(np, "arm,prefetch-offset", &val);
-+	if (ret == 0) {
-+		prefetch &= ~L310_PREFETCH_CTRL_OFFSET_MASK;
-+		prefetch |= val & L310_PREFETCH_CTRL_OFFSET_MASK;
-+	} else if (ret != -EINVAL) {
-+		pr_err("L2C-310 OF arm,prefetch-offset property value is missing\n");
-+	}
-+
-+	l2x0_saved_regs.prefetch_ctrl = prefetch;
- }
+ 	if (l2x0_data->configure)
+ 		l2x0_data->configure(base);
  
- static const struct l2c_init_data of_l2c310_data __initconst = {
+@@ -910,6 +915,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
+ 
+ 	fns = data->outer_cache;
+ 	fns.write_sec = outer_cache.write_sec;
++	fns.configure = outer_cache.configure;
+ 	if (data->fixup)
+ 		data->fixup(l2x0_base, cache_id, &fns);
+ 
 -- 
 1.9.2
