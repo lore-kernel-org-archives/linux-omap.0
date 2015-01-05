@@ -1,106 +1,101 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 2/3] usb: dwc3: add Fujitsu Specific Glue layer
-Date: Mon, 5 Jan 2015 09:50:49 -0600
-Message-ID: <20150105155049.GF19336@saruman>
+Date: Mon, 5 Jan 2015 09:52:45 -0600
+Message-ID: <20150105155245.GG19336@saruman>
 References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <1456155.YPH2fYoGgF@wuerfel>
- <20150103012128.GA11373@saruman>
- <3428284.QtTr113xXr@wuerfel>
+ <1418695828-605-3-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <20141222155936.GB12815@saruman>
+ <CAJ1gpc0uniw3F3O9nxTLHp9M2boxrOACYDB=fgruhLOLdqg9yA@mail.gmail.com>
+ <20141229161433.GE29379@saruman>
+ <CAJ1gpc1yRmuxQVttC5NnKF8PKLeH5PPDkuXU-fwGNcQKRj50Ww@mail.gmail.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Il7n/DHsA0sMLmDu"
+	protocol="application/pgp-signature"; boundary="IuhbYIxU28t+Kd57"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3428284.QtTr113xXr@wuerfel>
+In-Reply-To: <CAJ1gpc1yRmuxQVttC5NnKF8PKLeH5PPDkuXU-fwGNcQKRj50Ww@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: balbi@ti.com, Sneeker Yeh <sneeker.yeh@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.
+To: Sneeker Yeh <sneeker.yeh@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb
 List-Id: linux-omap@vger.kernel.org
 
---Il7n/DHsA0sMLmDu
+--IuhbYIxU28t+Kd57
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jan 05, 2015 at 04:28:34PM +0100, Arnd Bergmann wrote:
-> On Friday 02 January 2015 19:21:28 Felipe Balbi wrote:
-> >=20
-> > On Tue, Dec 30, 2014 at 11:12:51AM +0100, Arnd Bergmann wrote:
-> > > On Monday 29 December 2014 01:52:04 Sneeker Yeh wrote:
-> > > > > > +static int dwc3_mb86s70_remove_child(struct device *dev, void =
-*unused)
-> > > > > > +{
-> > > > > > +     struct platform_device *pdev =3D to_platform_device(dev);
-> > > > > > +
-> > > > > > +     of_device_unregister(pdev);
-> > > > > > +
-> > > > > > +     return 0;
-> > > > > > +}
-> > > > > > +
-> > > > > > +static u64 dwc3_mb86s70_dma_mask =3D DMA_BIT_MASK(32);
-> > > > >
-> > > > > why ? Use dma_coerce_mask_and_coherent().
-> > > > >
-> > > >=20
-> > > > okay.
-> > >=20
-> > > Actually that is still wrong: we use dma_coerce_mask_and_coherent() to
-> > > annotate drivers that have traditionally been forcing their own dma m=
-ask
-> > > by some other means and that need to be changed to something proper (=
-after
-> > > finding out why they did it in the first place).
-> > >=20
-> > > Since this is about a child device, the correct interface is to use
-> > > platform_device_register_full().
-> >=20
-> > no, that's wrong. He's essentially fixing the default set by OF core,
-> > which is always 32-bits anyway, so this can actually be removed. Your
-> > suggestion would just make it worse.
+On Sun, Jan 04, 2015 at 09:16:01PM +0800, Sneeker Yeh wrote:
+> > > Then dwc3 core won't be always created via sub node in platform glue
+> > node,
+> > > and vendors like us can just drop platform glue which don't have any
+> > > specific platform code to wrap dwc3 core, and just directly use dwc3 =
+core
+> > > via device tree.
+> >
+> > If your core is really just xhci, why don't just use xhci-plat.c
+> >
 >=20
-> Ah, so this was for a device that gets probed from DT? Yes, then no
-> change is needed here at all.
+> I've tried using xhci-plat.c, but our controller won't work today in
+> 3.19-rc1.
+> Seems I still need the dwc3 initialization code.
 
-right.
+probably missing PHY initialization, that should be easy to patch on
+xhci-plat.c
 
-> Note that I'm working on a patch set to change the DT initialization to
-> be a little smarter about the mask. Specifically any device whose parent
-> has a smaller dma-ranges window than 4GB needs to start out with the
-> smaller mask, and the dma_set_mask function that is called to allow 64-bit
-> DMA on a device will check if the bus can actually support it.
+> > directly ? You don't need dwc3 at all. In any case, I refrain from
+> > allowing people to use dwc3.ko directly because that has bitten me in
+> > the past with MUSB, so sorry but I'll always force people to use the
+> > glue layer as that helps me keep dwc3 clean of platform-specific
+> > details.
+> >
+> > > Of course here dwc3 core won't process clock if he got null one, so t=
+his
+> > > won't affect other vendor's platform which only pass clock phandle to
+> > their
+> > > dwc3 platform glue driver.
+> >
+> > right
+> >
+> > > Just wondering if it's better to write a platform glue only did clock
+> > > on/off, or to do the same improvement people ever did for
+> > > ehci-platform driver and just drop this platform glue driver?
+> >
+> > I'll always the sour taste in my mouth due to MUSB. The thing is a
+> > complete mess of platform-specific hacks all over the place.
+> >
+> >
+> Super thanks for sharing this, for me it's quite an honor to know that
+> story behond.
+> and I'll take these suggestion here to revise our platform glue layer.
 
-please make sure have that patch soaking in linux-next for weeks before
-attempting to merge it upstream. I would target v3.21 with such a patch.
-At least keystone might be a little weird about what you describe
-considering the thing boots from HIGHMEM. Also needs to consider LPAE,
-etc.
+hey, no problem. Cheers
 
 --=20
 balbi
 
---Il7n/DHsA0sMLmDu
+--IuhbYIxU28t+Kd57
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUqrLZAAoJEIaOsuA1yqREOPMP/1ykV6BAiPtaj1Y1NndABWps
-tXtISvRUhzRD0JLG0++Q/xnFUAi4jvUWScU/wDTSNzBNuaP5j580XMz38JKrvbOb
-7wlV2Yk9uhSorpdIBtCH+HSyEoLU8naZECgR1weXhaYdwhzqXiUModdkmifXqW31
-F5HvaRoV4tumBcrm0mJZhu6Fmwb0ttmQ6AkW4JA6Chv2VPnwQZmj5l+mOfAfpBx0
-qbpsibNq75Gh3JbsYd90wl2yxPYjyK15QiETQqRu+LeOgUOBPexrMs5jEgVynivO
-dfpah7w9IWi5GD4IsVaKRZP6DUEhogVJPuqBWkfs3UGrbrdT79sv0KVTfKvI2JGi
-BfthGP1BSfDl0ymi4Ms99Ndh9Yw+O19jd7ZBvJgESW1ObvWvEYNtNE4t+S6iUab/
-lS6Q01AGgAS+VceANr8H4DDZ4IWkCXh2tgXwm69VoezpCrxSIX0WQ7Qnu/4EpnG1
-R1z2PAU9cahxl+lUhcaJmvWSNsKjH5/YeRoIzsP8TD3L30t8qvd5DbCI7fv9NJKY
-MLUHSogInw5Cdbb17SFId9bPpUnsZq14DWD83C7/9MR3EpWzgn5t5uFi0/mfhVJF
-5Ryp4RgCcOPowgTWdalupiKb0jW5UkBdW3FB3wDasGumoNidnzDurjEImnwQe2wQ
-mpENGBvIUzLFMdl8VuL6
-=+FtZ
+iQIcBAEBAgAGBQJUqrNNAAoJEIaOsuA1yqREYwsP/Rj0fcW/ZQvprAcbaMh1UFuX
+qjwcarUHOfvX5JGONF4LVmVEObLu2n4gr3NI0Fot3xj4iTh/12K9B+VyyAFuiTiu
+DyS6PtkYqqAIevCZt5gOjHARdbGeQjLTxwj1pEOfPcmgLXmIaHx8A953b4hAOhiI
+IcoZMaqjd0u2+DE25BgA9PkjELb3XMXTSinD62YdMbhA+nIKi9ZiTvelbY76AKko
+xrK7yTpmQQuO77DIPV6I/nlwsnH6uXwRpbjqxhE5eK6qpi5168WYdaodAzshe6aZ
+X6lbfmpynwvHOYXV5zA6yDxxZd6pJhyMIyeRRmfXS20NhnwOjPd4Fm2MBMipPuyF
+Ba5A09v/pBEnZNgGVWeTXaGO1HSm3j8+1gXFUc00tc75tmwVCCmgf9WnGXJliVNS
+nb2XW1yhSBNVotidQ4qycSSFXHlSeZXf6WVSgYf1d6ADDSN4tk7+5TK+9JrUJ+6h
+wBTb51H2P3eL5iJSUwkI84dkYRiDxXY+CU5VHgL9juGNWBYE7+znEogC5Jol7VrO
+J5bGeXGPjppLRLG8V6noVGxadvds9DPddQDxrUrILK5IWH2JZtDx6pm+dmg8S11i
+g93Axu+1E3oKaB06ZNyM8EZ3hUkze0TUw6UFwzIRw0BQLCOORZqGYoUvYhI3YISe
+303WPgElwHvYqBx7UvW2
+=LJMQ
 -----END PGP SIGNATURE-----
 
---Il7n/DHsA0sMLmDu--
+--IuhbYIxU28t+Kd57--
