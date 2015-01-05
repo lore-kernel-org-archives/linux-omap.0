@@ -1,97 +1,326 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
- without sysc
-Date: Mon, 5 Jan 2015 13:53:48 -0600
-Message-ID: <54AAEBCC.2030900@ti.com>
-References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 3/3] remoteproc: wkup_m3: Add wkup_m3 remote proc driver
+Date: Mon, 5 Jan 2015 14:10:14 -0600
+Message-ID: <54AAEFA6.3080603@ti.com>
+References: <1420228319-41085-1-git-send-email-d-gerlach@ti.com>
+ <1420228319-41085-4-git-send-email-d-gerlach@ti.com>
+ <20150102200424.GD4920@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54AA4CD4.40105@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150102200424.GD4920@saruman>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/05/2015 02:35 AM, Lokesh Vutla wrote:
-> Hi Paul,
-> On Saturday 03 January 2015 02:40 AM, Paul Walmsley wrote:
->> + Suman, lakml
+Felipe,
+On 01/02/2015 02:04 PM, Felipe Balbi wrote:
+> On Fri, Jan 02, 2015 at 01:51:59PM -0600, Dave Gerlach wrote:
+>> Add a remoteproc driver to load the firmware for and boot the wkup_m3
+>> present on am33xx. The wkup_m3 is an integrated Cortex M3 that allows
+>> the SoC to enter the lowest possible power state by taking control from
+>> the MPU after it has gone into its own low power state and shutting off
+>> any additional peripherals.
 >>
->> Hi Roger
+>> The driver expects a resource table to be present in the wkup_m3
+>> firmware to define the required memory resources needed by the wkup_m3,
+>> at least the data memory so that the firmware can be copied to the proper
+>> place for execution.
 >>
->> On Thu, 18 Dec 2014, Roger Quadros wrote:
->>
->>> Fixing up Paul's email id.
->>>
->>> cheers,
->>> -roger
->>>
->>> On 18/12/14 17:49, Roger Quadros wrote:
->>>> There are quite a few hwmods that don't have sysconfig register and so
->>>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
->>>> on those modules after the module is enabled.
->>
->> Hmm.  Any IP block that exposes registers that are accessible by the MPU 
->> should have an MPU register target port, even if there's no SYSCONFIG 
->> register.  And if an IP block doesn't have registers that are accessible 
->> from the MPU, then there shouldn't be much point to waiting for the module 
->> to become ready.
->>
->> Looks like the real problem is the test for oh->class->sysc before the 
->> call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440 
->> ("ARM: OMAP2+: hwmod: check for module address space during init"). It's 
->> not clear to me why that test was added, since _init_mpu_rt_base() doesn't 
->> do anything with oh->class->sysc or SYSCONFIG registers.
-> This was introduced by commit 
-> 97597b962529 (ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc)
-
-That's right, the test was present even before 6423d6df1440, I merely
-made this a block.
-
-> Patch description states that "there are few hwmod which doesn't have sysconfig registers and hence
-> no need to ioremap() them in early init code".
-> Isn't this correct? 
-> May be a dumb question: If IP doesn't have sysconfig, is there any case that hwmod does
-> access the register address space of that IP? Why do we need to enable MPU register target port?
-> 
-> Thanks and regards,
-> Lokesh
-> 
->>
->> Could you please test the following patch?
->> I don't have an AM437x-gp-evm.  
->>
->>
->> - Paul
->>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 >> ---
->>  arch/arm/mach-omap2/omap_hwmod.c | 12 ++++--------
->>  1 file changed, 4 insertions(+), 8 deletions(-)
+>>  drivers/remoteproc/Kconfig         |  12 +++
+>>  drivers/remoteproc/Makefile        |   1 +
+>>  drivers/remoteproc/wkup_m3_rproc.c | 175 +++++++++++++++++++++++++++++++++++++
+>>  3 files changed, 188 insertions(+)
+>>  create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
 >>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index cbb908dc5cf0..ce6d11f3eda7 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -2451,14 +2451,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
->>  				oh->name, np->name);
->>  	}
+>> diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+>> index 5e343ba..7fbdb53 100644
+>> --- a/drivers/remoteproc/Kconfig
+>> +++ b/drivers/remoteproc/Kconfig
+>> @@ -41,6 +41,18 @@ config STE_MODEM_RPROC
+>>  	  This can be either built-in or a loadable module.
+>>  	  If unsure say N.
 >>  
->> -	if (oh->class->sysc) {
->> -		r = _init_mpu_rt_base(oh, NULL, index, np);
->> -		if (r < 0) {
->> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
->> -			     oh->name);
->> -			return 0;
->> -		}
->> -	}
->> +	r = _init_mpu_rt_base(oh, NULL, index, np);
->> +	if (r < 0)
->> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
->> +			 oh->name);
->>  
->>  	r = _init_clocks(oh, NULL);
->>  	if (r < 0) {
->>
+>> +config WKUP_M3_RPROC
+>> +	bool "AM33xx wkup-m3 remoteproc support"
 > 
+> it would be nicer if this could be a loadable module.
+
+Do we really want that though? This is required for core PM functionality like
+CPUIdle and Suspend/resume, I feel that it should always be built in for am335x.
+I had been taking this approach with all of the PM dependencies.
+
+> 
+>> +	depends on SOC_AM33XX
+>> +	select REMOTEPROC
+>> +	help
+>> +	  Say y here to support AM33xx wkup-m3.
+>> +
+>> +	  Required for Suspend-to-ram and CPUIdle on AM33xx. Allows for
+>> +	  loading of firmware of CM3 PM coprocessor that is present
+>> +	  on AM33xx family of SoCs
+>> +	  If unsure say N.
+>> +
+>>  config DA8XX_REMOTEPROC
+>>  	tristate "DA8xx/OMAP-L13x remoteproc support"
+>>  	depends on ARCH_DAVINCI_DA8XX
+>> diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+>> index ac2ff75..81b04d1 100644
+>> --- a/drivers/remoteproc/Makefile
+>> +++ b/drivers/remoteproc/Makefile
+>> @@ -9,4 +9,5 @@ remoteproc-y				+= remoteproc_virtio.o
+>>  remoteproc-y				+= remoteproc_elf_loader.o
+>>  obj-$(CONFIG_OMAP_REMOTEPROC)		+= omap_remoteproc.o
+>>  obj-$(CONFIG_STE_MODEM_RPROC)	 	+= ste_modem_rproc.o
+>> +obj-$(CONFIG_WKUP_M3_RPROC)		+= wkup_m3_rproc.o
+>>  obj-$(CONFIG_DA8XX_REMOTEPROC)		+= da8xx_remoteproc.o
+>> diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
+>> new file mode 100644
+>> index 0000000..8686ca2
+>> --- /dev/null
+>> +++ b/drivers/remoteproc/wkup_m3_rproc.c
+>> @@ -0,0 +1,175 @@
+>> +/*
+>> + * AMx3 Wkup M3 Remote Processor driver
+>> + *
+>> + * Copyright (C) 2014 Texas Instruments, Inc.
+>> + *
+>> + * Dave Gerlach <d-gerlach@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include <linux/err.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/interrupt.h>
+>> +#include <linux/module.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/pm_runtime.h>
+>> +#include <linux/remoteproc.h>
+>> +
+>> +#include <linux/platform_data/wkup_m3.h>
+>> +
+>> +#include "remoteproc_internal.h"
+>> +
+>> +struct wkup_m3_rproc {
+>> +	struct rproc *rproc;
+>> +	struct platform_device *pdev;
+>> +};
+>> +
+>> +static int wkup_m3_rproc_start(struct rproc *rproc)
+>> +{
+>> +	struct wkup_m3_rproc *m3_rproc = rproc->priv;
+>> +	struct platform_device *pdev = m3_rproc->pdev;
+>> +	struct device *dev = &pdev->dev;
+>> +	struct wkup_m3_platform_data *pdata = dev->platform_data;
+>> +	int ret;
+>> +
+>> +	ret = pdata->deassert_reset(pdev, pdata->reset_name);
+> 
+> looks like here you should assert, wait, deassert. What if soemthing
+> else used wkup_m3 before this loads ?
+> 
+
+Hmm, that's unlikely but not impossible, and if the wkup_m3 is not properly
+reset after firmware loading it won't boot, which kills all PM on am335x. I'll
+look into doing that.
+
+>> +	if (ret) {
+>> +		dev_err(dev, "Unable to reset wkup_m3!\n");
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int wkup_m3_rproc_stop(struct rproc *rproc)
+>> +{
+>> +	struct wkup_m3_rproc *m3_rproc = rproc->priv;
+>> +	struct platform_device *pdev = m3_rproc->pdev;
+>> +	struct device *dev = &pdev->dev;
+>> +	struct wkup_m3_platform_data *pdata = dev->platform_data;
+>> +	int ret;
+>> +
+>> +	ret = pdata->assert_reset(pdev, pdata->reset_name);
+>> +	if (ret) {
+>> +		dev_err(dev, "Unable to assert reset of wkup_m3!\n");
+>> +		return -ENODEV;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static struct rproc_ops wkup_m3_rproc_ops = {
+>> +	.start		= wkup_m3_rproc_start,
+>> +	.stop		= wkup_m3_rproc_stop,
+>> +};
+>> +
+>> +static const struct of_device_id wkup_m3_rproc_of_match[] = {
+>> +	{
+>> +		.compatible = "ti,am3353-wkup-m3",
+>> +		.data = (void *)"am335x-pm-firmware.elf",
+> 
+> do you know of anybody else who might want to different firmware image
+> name ? Otherwise why pass it as driver_data ?
+
+I suppose we could pass the name in the devicetree. I do not know of any other
+users of other firmware but it's probably better to keep things flexible.
+
+> 
+>> +	},
+>> +	{},
+>> +};
+>> +
+>> +static int wkup_m3_rproc_probe(struct platform_device *pdev)
+>> +{
+>> +	struct device *dev = &pdev->dev;
+>> +	const char *fw_name;
+>> +	struct wkup_m3_platform_data *pdata = dev->platform_data;
+>> +	struct wkup_m3_rproc *m3_rproc;
+>> +	const struct of_device_id *match;
+>> +	struct rproc *rproc;
+>> +	int ret;
+>> +
+>> +	if (!(pdata && pdata->deassert_reset && pdata->assert_reset &&
+>> +	      pdata->reset_name)) {
+>> +		dev_err(dev, "Platform data missing!\n");
+>> +		return -ENODEV;
+>> +	}
+> 
+> if pdata is missing, couldn't you assume the thing has been reset and
+> try to load anyway ?
+
+Probably not, we MUST reset after loading the firmware as that is what boots the
+wkup_m3.
+
+> 
+>> +	match = of_match_device(wkup_m3_rproc_of_match, &pdev->dev);
+>> +	if (!match)
+>> +		return -ENODEV;
+>> +	fw_name = (char *)match->data;
+>> +
+>> +	pm_runtime_enable(&pdev->dev);
+>> +
+>> +	ret = pm_runtime_get_sync(&pdev->dev);
+>> +	if (IS_ERR_VALUE(ret)) {
+>> +		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
+>> +		return ret;
+> 
+> this is wrong for two reasons:
+> 
+> a) you need to pm_runtime_disable();
+> b) even if pm_runtime_get*() fails, you _must_ call
+> 	pm_runtime_put_sync();
+
+Ok I will fix this and the following pm_runtime issues. Didn't realize you still
+had to call put_sync after a failed get_sync.
+
+> 
+>> +	}
+>> +
+>> +	rproc = rproc_alloc(dev, "wkup_m3", &wkup_m3_rproc_ops,
+>> +			    fw_name, sizeof(*m3_rproc));
+>> +	if (!rproc)
+>> +		return -ENOMEM;
+>> +
+>> +	m3_rproc = rproc->priv;
+>> +	m3_rproc->rproc = rproc;
+>> +	m3_rproc->pdev = pdev;
+>> +
+>> +	dev_set_drvdata(dev, rproc);
+>> +
+>> +	/* Register as a remoteproc device */
+>> +	ret = rproc_add(rproc);
+>> +	if (ret) {
+>> +		dev_err(dev, "rproc_add failed\n");
+>> +		goto err;
+>> +	}
+>> +
+>> +	return 0;
+>> +
+>> +err:
+>> +	rproc_put(rproc);
+>> +	pm_runtime_put_sync(&pdev->dev);
+> 
+> missing pm_runtime_disable();
+> 
+>> +	return ret;
+>> +}
+>> +
+>> +static int wkup_m3_rproc_remove(struct platform_device *pdev)
+>> +{
+>> +	struct rproc *rproc = platform_get_drvdata(pdev);
+>> +
+>> +	rproc_del(rproc);
+>> +	rproc_put(rproc);
+>> +	pm_runtime_put_sync(&pdev->dev);
+> 
+> missing pm_runtime_disable();
+> 
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int wkup_m3_rpm_suspend(struct device *dev)
+>> +{
+>> +	return -EBUSY;
+>> +}
+> 
+> looks like this is just coping with omap_device bogosity, no ?
+>
+
+Yes, without this omap_device shuts down ther wkup_m3 during suspend, which of
+course prevents the wkup_m3 from finishing suspend process or waking SoC back
+up. Haven't found a better solution for the problem than this.
+
+>> +
+>> +static int wkup_m3_rpm_resume(struct device *dev)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct dev_pm_ops wkup_m3_rproc_pm_ops = {
+>> +	SET_RUNTIME_PM_OPS(wkup_m3_rpm_suspend, wkup_m3_rpm_resume, NULL)
+>> +};
+>> +
+>> +static struct platform_driver wkup_m3_rproc_driver = {
+>> +	.probe = wkup_m3_rproc_probe,
+>> +	.remove = wkup_m3_rproc_remove,
+>> +	.driver = {
+>> +		.name = "wkup_m3",
+>> +		.of_match_table = wkup_m3_rproc_of_match,
+>> +		.pm = &wkup_m3_rproc_pm_ops,
+>> +	},
+>> +};
+>> +
+>> +module_platform_driver(wkup_m3_rproc_driver);
+>> +
+>> +MODULE_LICENSE("GPL v2");
+>> +MODULE_DESCRIPTION("wkup m3 remote processor control driver");
+> 
+> do you want to add MODULE_AUTHOR() ?
+> 
+
+Yes. Thanks for the comments.
+
+Regards,
+Dave
