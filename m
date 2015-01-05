@@ -1,36 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
- without sysc
-Date: Mon, 5 Jan 2015 22:19:56 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501052219240.28771@utopia.booyaka.com>
-References: <1418917790-1791-1-git-send-email-rogerq@ti.com>
- <5492F84E.7020706@ti.com>
- <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com>
- <54AA4CD4.40105@ti.com> <54AAEBCC.2030900@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] ARM: dts: dra7-evm: fix qspi device tree partition
+ size
+Date: Mon, 5 Jan 2015 14:26:35 -0800
+Message-ID: <20150105222634.GK4081@atomide.com>
+References: <1418977385-7886-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <54AAEBCC.2030900@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: nm@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, tony@atomide.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1418977385-7886-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 5 Jan 2015, Suman Anna wrote:
+* Mugunthan V N <mugunthanvnm@ti.com> [141219 00:25]:
+> 64KiB is allocated for qspi dtb partition which is not
+> sufficient, so updating the partition table size to 512KiB
+> for device tree partition.
+> 
+> This also aligns the QSPI partition definitions between
+> kernel and U-Boot.
+> 
+> Fixes: dc2dd5b8 ("ARM: dts: dra7: Add qspi device")
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+> 
+> This patch is tested on Linux next and the boot logs at [1]
+> 
+> [1] - http://pastebin.ubuntu.com/9567672/
 
-> That's right, the test was present even before 6423d6df1440, I merely
-> made this a block.
+Applying into omap-for-v3.19/fixes thanks.
 
-Indeed, I misread the commit.  Sorry about ihat.
+Regards,
 
+Tony
 
-- Paul
+> ---
+>  arch/arm/boot/dts/dra7-evm.dts | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index 736092b..235d001 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -499,23 +499,23 @@
+>  		};
+>  		partition@5 {
+>  			label = "QSPI.u-boot-spl-os";
+> -			reg = <0x00140000 0x00010000>;
+> +			reg = <0x00140000 0x00080000>;
+>  		};
+>  		partition@6 {
+>  			label = "QSPI.u-boot-env";
+> -			reg = <0x00150000 0x00010000>;
+> +			reg = <0x001c0000 0x00010000>;
+>  		};
+>  		partition@7 {
+>  			label = "QSPI.u-boot-env.backup1";
+> -			reg = <0x00160000 0x0010000>;
+> +			reg = <0x001d0000 0x0010000>;
+>  		};
+>  		partition@8 {
+>  			label = "QSPI.kernel";
+> -			reg = <0x00170000 0x0800000>;
+> +			reg = <0x001e0000 0x0800000>;
+>  		};
+>  		partition@9 {
+>  			label = "QSPI.file-system";
+> -			reg = <0x00970000 0x01690000>;
+> +			reg = <0x009e0000 0x01620000>;
+>  		};
+>  	};
+>  };
+> -- 
+> 2.2.1.62.g3f15098
+> 
