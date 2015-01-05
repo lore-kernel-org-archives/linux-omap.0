@@ -1,91 +1,37 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
- without sysc
-Date: Mon, 5 Jan 2015 14:05:32 +0530
-Message-ID: <54AA4CD4.40105@ti.com>
-References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 11/14] mfd: tps65217: Constify struct regmap_config
+Date: Mon, 05 Jan 2015 10:01:30 +0100
+Message-ID: <1420448493-9355-11-git-send-email-k.kozlowski@samsung.com>
+References: <1420448493-9355-1-git-send-email-k.kozlowski@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com>
+In-reply-to: <1420448493-9355-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com
+To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
-On Saturday 03 January 2015 02:40 AM, Paul Walmsley wrote:
-> + Suman, lakml
-> 
-> Hi Roger
-> 
-> On Thu, 18 Dec 2014, Roger Quadros wrote:
-> 
->> Fixing up Paul's email id.
->>
->> cheers,
->> -roger
->>
->> On 18/12/14 17:49, Roger Quadros wrote:
->>> There are quite a few hwmods that don't have sysconfig register and so
->>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
->>> on those modules after the module is enabled.
-> 
-> Hmm.  Any IP block that exposes registers that are accessible by the MPU 
-> should have an MPU register target port, even if there's no SYSCONFIG 
-> register.  And if an IP block doesn't have registers that are accessible 
-> from the MPU, then there shouldn't be much point to waiting for the module 
-> to become ready.
-> 
-> Looks like the real problem is the test for oh->class->sysc before the 
-> call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440 
-> ("ARM: OMAP2+: hwmod: check for module address space during init"). It's 
-> not clear to me why that test was added, since _init_mpu_rt_base() doesn't 
-> do anything with oh->class->sysc or SYSCONFIG registers.
-This was introduced by commit 
-97597b962529 (ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc)
-Patch description states that "there are few hwmod which doesn't have sysconfig registers and hence
-no need to ioremap() them in early init code".
-Isn't this correct? 
-May be a dumb question: If IP doesn't have sysconfig, is there any case that hwmod does
-access the register address space of that IP? Why do we need to enable MPU register target port?
+The regmap_config struct may be const because it is not modified by the
+driver and regmap_init() accepts pointer to const.
 
-Thanks and regards,
-Lokesh
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/mfd/tps65217.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> 
-> Could you please test the following patch?
-> I don't have an AM437x-gp-evm.  
-> 
-> 
-> - Paul
-> 
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c | 12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index cbb908dc5cf0..ce6d11f3eda7 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2451,14 +2451,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
->  				oh->name, np->name);
->  	}
->  
-> -	if (oh->class->sysc) {
-> -		r = _init_mpu_rt_base(oh, NULL, index, np);
-> -		if (r < 0) {
-> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
-> -			     oh->name);
-> -			return 0;
-> -		}
-> -	}
-> +	r = _init_mpu_rt_base(oh, NULL, index, np);
-> +	if (r < 0)
-> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
-> +			 oh->name);
->  
->  	r = _init_clocks(oh, NULL);
->  	if (r < 0) {
-> 
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index 80a919a8ca97..7d1cfc1d3ce0 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -145,7 +145,7 @@ int tps65217_clear_bits(struct tps65217 *tps, unsigned int reg,
+ }
+ EXPORT_SYMBOL_GPL(tps65217_clear_bits);
+ 
+-static struct regmap_config tps65217_regmap_config = {
++static const struct regmap_config tps65217_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 
+-- 
+1.9.1
