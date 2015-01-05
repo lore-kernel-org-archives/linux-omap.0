@@ -1,38 +1,107 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: cpsw: fix hangs with interrupts
-Date: Sun, 04 Jan 2015 22:19:23 -0500 (EST)
-Message-ID: <20150104.221923.550321820468649239.davem@davemloft.net>
-References: <1420236959-32444-1-git-send-email-balbi@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] gpio: pcf857x: restore the initial line state of all
+ pcf lines
+Date: Mon, 5 Jan 2015 11:56:57 +0530
+Message-ID: <54AA2EB1.8090501@ti.com>
+References: <1418371601-22658-1-git-send-email-kishon@ti.com> <548F498F.7050202@ti.com> <549271A9.5040701@ti.com> <5492E09F.1000003@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1420236959-32444-1-git-send-email-balbi@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: mugunthanvnm@ti.com, yegorslists@googlemail.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, stable@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <5492E09F.1000003@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi@ti.com>
-Date: Fri, 2 Jan 2015 16:15:59 -0600
+Hi,
 
-> The CPSW IP implements pulse-signaled interrupts. Due to
-> that we must write a correct, pre-defined value to the
-> CPDMA_MACEOIVECTOR register so the controller generates
-> a pulse on the correct IRQ line to signal the End Of
-> Interrupt.
+On Thursday 18 December 2014 07:41 PM, Nishanth Menon wrote:
+> On 12/18/2014 12:18 AM, Kishon Vijay Abraham I wrote:
+>>
+>>
+>> On Tuesday 16 December 2014 02:20 AM, Nishanth Menon wrote:
+>>> On 12/12/2014 02:06 AM, Kishon Vijay Abraham I wrote:
+>>>> The reset values for all the PCF lines are high and hence on shutdown
+>>>> we should drive all the lines high in order to bring it to the reset state.
+>>>>
+>>>> This is actually required since pcf doesn't have a reset line and even after
+>>>> warm reset (by invoking "reboot" in prompt) the pcf lines maintains it's
+>>>> previous programmed state. This becomes a problem if the boards are designed
+>>>> to work with the default initial state.
+>>>>
+>>>> DRA7XX_evm uses PCF8575 and one of the PCF output lines feeds to MMC/SD and
+>>>> this line should be driven high in order for the MMC/SD to be detected.
+>>>> This line is modelled as regulator and the hsmmc driver takes care of enabling
+>>>> and disabling it. In the case of 'reboot', during shutdown path as part of it's
+>>>> cleanup process the hsmmc driver disables this regulator. This makes MMC boot
+>>>> not functional.
+>>>>
+>>>> Fixed it by driving high all the pcf lines.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>  drivers/gpio/gpio-pcf857x.c |    9 +++++++++
+>>>>  1 file changed, 9 insertions(+)
+>>>>
+>>>> diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
+>>>> index 236708a..00b15b2 100644
+>>>> --- a/drivers/gpio/gpio-pcf857x.c
+>>>> +++ b/drivers/gpio/gpio-pcf857x.c
+>>>> @@ -448,6 +448,14 @@ static int pcf857x_remove(struct i2c_client *client)
+>>>>  	return status;
+>>>>  }
+>>>>  
+>>>> +static void pcf857x_shutdown(struct i2c_client *client)
+>>>> +{
+>>>> +	struct pcf857x *gpio = i2c_get_clientdata(client);
+>>>> +
+>>>> +	/* Drive all the I/O lines high */
+>>>> +	gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
+>>>
+>>> you might force a contention here - depending on System configuration.
+>>> example:
+>>> +-------+
+>>> |       |
+>>> |  U1   |         +------+      +-----------+
+>>> |       +--------->      |      |           |
+>>> +-------+         |      |      |           |
+>>>                   | Switch<-----+    SoC    |
+>>> +-------+         |      |      |           |
+>>> |       |         |      |      |           |
+>>> | U2    <---------+--^---+      +-----------+
+>>> |       |            |
+>>> |       |            |
+>>> +-------+            |
+>>>                   +--+--+
+>>>                   |     |
+>>>                   | PCF |
+>>>                   |     |
+>>>                   +-----+
+>>>
+>>> At low, SoC pin is connected to U2 as drive. when reset to high, you
+>>> now have U1 driving to the same pin that SoC has, potentially
+>>> resulting in contention.
+>>>
+>>>
+>>> Unfortunately, at this level, you do not know what the state of the
+>>> system is, blindly forcing a pin level will potentially cause
+>>> contention risk depending on pin configuration.
+>>
+>> Assume we are doing a reset when the system is powered on, irrespective of the
+>> state of the system, we'll be forcing the pin level to the default state.
 > 
-> The way the driver is written today, all four IRQ lines
-> are requested using the same IRQ handler and, because of
-> that, we could fall into situations where a TX IRQ fires
-> but we tell the controller that we ended an RX IRQ (or
-> vice-versa). This situation triggers an IRQ storm on the
-> reserved IRQ 127 of INTC which will in turn call ack_bad_irq()
-> which will, then, print a ton of:
- ...
-> Reported-by: Yegor Yefremov <yegorslists@googlemail.com>
-> Fixes: 510a1e7 (drivers: net: davinci_cpdma: acknowledge interrupt properly)
-> Cc: <stable@vger.kernel.org> # v3.9+
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Yes, I dont deny that system will be fine *after* reset sequence is
+> started or completed. However there is a duration between the pcf
+> shutdown handler is called and the final reset handler is invoked -
+> that is the duration when  the contention might cause device behavior.
+> Essentially ignoring the state various drivers have asked PCF to setup
+> the pins and doing a hands down configuration may have side effects we
+> cant properly expect.
 
-Applied, thanks.
+The solution might be to invoke the shutdown handler of the various drivers
+using the PCF before the shutdown handler of the PCF driver itself gets
+invoked? But I'm not sure how can that be achieved in linux kernel :-(
+
+Thanks
+Kishon
