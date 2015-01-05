@@ -1,39 +1,109 @@
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] tty: serial: 8250: omap: add ttySx console if the user
- didn't
-Date: Mon, 5 Jan 2015 21:26:50 +0000
-Message-ID: <20150105212650.701af128@lxorguk.ukuu.org.uk>
-References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
-	<20141129094823.GA10840@linutronix.de>
-	<20141129173418.GY2817@atomide.com>
-	<20141201140914.728aaa46@lxorguk.ukuu.org.uk>
-	<20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
-	<20141202015118.GA1891@saruman>
-	<20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
-	<20141218174712.GA26632@linutronix.de>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: ti-bandgap.c:  Remove unused
+ function
+Date: Mon, 5 Jan 2015 17:33:06 -0400
+Message-ID: <20150105213304.GC31536@developer>
+References: <1419183823-10787-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+ <549AD44A.8010603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 251.110.2.81.in-addr.arpa ([81.2.110.251]:32780 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098AbbAEV2W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2015 16:28:22 -0500
-In-Reply-To: <20141218174712.GA26632@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="da4uJneut+ArUgXk"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <549AD44A.8010603@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Zhang Rui <rui.zhang@intel.com>, Tero Kristo <t-kristo@ti.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, uwe@kleine-koenig.org
 
-On Thu, 18 Dec 2014 18:47:12 +0100
-Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
 
-> This patch invokes add_preferred_console() with ttyS based on ttyO
-> arguments if the user didn't specify it on its own. This ensures that
-> the user will see the kernel booting on his serial console in case he
-> forgot to update the command line.
-> 
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+--da4uJneut+ArUgXk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Alan Cox <alan@linux.intel.com>
+On Wed, Dec 24, 2014 at 08:57:14AM -0600, Nishanth Menon wrote:
+> On 12/21/2014 11:43 AM, Rickard Strandqvist wrote:
+> > Remove the function ti_bandgap_write_thot() that is not used anywhere.
+> >=20
+> > This was partially found by using a static code analysis program called=
+ cppcheck.
+> >=20
+> > Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital=
+=2Ese>
+> > ---
+> >  drivers/thermal/ti-soc-thermal/ti-bandgap.c |   13 -------------
+> >  drivers/thermal/ti-soc-thermal/ti-bandgap.h |    1 -
+> >  2 files changed, 14 deletions(-)
+> >=20
+> > diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/ther=
+mal/ti-soc-thermal/ti-bandgap.c
+> > index 634b6ce..cbb6a5f 100644
+> > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > @@ -611,19 +611,6 @@ int ti_bandgap_read_thot(struct ti_bandgap *bgp, i=
+nt id, int *thot)
+> >  }
+> > =20
+> >  /**
+> > - * ti_bandgap_write_thot() - sets sensor current thot
+> > - * @bgp: pointer to bandgap instance
+> > - * @id: sensor id
+> > - * @val: desired thot value
+> > - *
+> > - * Return: 0 on success or the proper error code
+> > - */
+> > -int ti_bandgap_write_thot(struct ti_bandgap *bgp, int id, int val)
+> > -{
+> > -	return _ti_bandgap_write_threshold(bgp, id, val, true);
+> > -}
+> > -
+> > -/**
+> >   * ti_bandgap_read_tcold() - reads sensor current tcold
+> >   * @bgp: pointer to bandgap instance
+> >   * @id: sensor id
+> > diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/ther=
+mal/ti-soc-thermal/ti-bandgap.h
+> > index b3adf72..976afc0 100644
+> > --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+> > +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+> > @@ -371,7 +371,6 @@ struct ti_bandgap_data {
+> >  };
+> > =20
+> >  int ti_bandgap_read_thot(struct ti_bandgap *bgp, int id, int *thot);
+> > -int ti_bandgap_write_thot(struct ti_bandgap *bgp, int id, int val);
+> >  int ti_bandgap_read_tcold(struct ti_bandgap *bgp, int id, int *tcold);
+> >  int ti_bandgap_write_tcold(struct ti_bandgap *bgp, int id, int val);
+> >  int ti_bandgap_read_update_interval(struct ti_bandgap *bgp, int id,
+> >=20
+>=20
+> Not sure if removing support for programming of hot threshold is a
+> good idea. how about ti_bandgap_write_tcold then?
 
+
+Agreed here. I believe the right thing to do is to use those functions
+to update the thresholds when necessary.
+
+>=20
+>=20
+> --=20
+> Regards,
+> Nishanth Menon
+
+--da4uJneut+ArUgXk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUqwMIAAoJEMLUO4d9pOJWQGkH/2tQKSp5Uk0u8BGQJ7T9Xyfn
+XFH/kh9aY+FeGqBOirdDVVkvEXSzYfw6w6Ooo8Yqk+DzIGAFI9cg0EYfr4+TdwDi
+c4ucrapUBRnFBnGrLNgkdE7MXHHwvEqZKNVkJhTyKYmxbbYDd/PcQHAzhHXubaR3
+Xpugs8WSKfO7LBsVP6ctJ0X1oiCvwEc59vyynPA0ygJAX/j0OJ1Bxm4S6/3rEd+o
+E9ltQZL9W3Ou6dUZm6GTCn3VIUWwz0f3n5p3c9/5eeErhsVwbCe0llF+TGTdkuk1
+hERFgD/nHclkHaZy2Q39iZV0R29jKGR9zcxw7APW4zaM9dOZjOlPRMi+xP9MdbI=
+=Hfew
+-----END PGP SIGNATURE-----
+
+--da4uJneut+ArUgXk--
