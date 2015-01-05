@@ -1,54 +1,33 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: dts: am335x-bone-common: add collision and carrier sense pinmux
-Date: Mon, 5 Jan 2015 15:44:14 -0600
-Message-ID: <1420494254-24314-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, Schuyler Patton <spatton@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Tom Rini <trini@ti.com>, Kevin Hilman <khilman@linaro.org>, stable@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 1/1] MAINTAINERS: update ti-soc-thermal status
+Date: Mon,  5 Jan 2015 17:50:00 -0400
+Message-ID: <1420494600-3709-1-git-send-email-edubezval@gmail.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org
+Cc: Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Schuyler Patton <spatton@ti.com>
+Changing to Maintained.
 
-Added pin mux definitions for collision and carrier sense errors coming
-from the ethernet phy. Without these two signals the MAC ends up ignoring
-the errors detected by the PHY which end up causing a lower throughput
-problem when the phy is in half duplex mode such as connected through a hub.
-
-Fixes: 2ba3549 (ARM: dts: am335x-bone*: add DT for BeagleBone Black)
-Cc: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Tom Rini <trini@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: <stable@vger.kernel.org> # v3.13+
-Signed-off-by: Schuyler Patton <spatton@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 6cc25ed..4b29fad 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -97,6 +97,8 @@
- 	cpsw_default: cpsw_default {
- 		pinctrl-single,pins = <
- 			/* Slave 1 */
-+			0x108 (PIN_INPUT | MUX_MODE0)		/* mii1_col.mii1_col */
-+			0x10c (PIN_INPUT | MUX_MODE0)		/* mii1_crs.mii1_crs */
- 			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr.mii1_rxerr */
- 			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen.mii1_txen */
- 			0x118 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv.mii1_rxdv */
-@@ -116,6 +118,8 @@
- 	cpsw_sleep: cpsw_sleep {
- 		pinctrl-single,pins = <
- 			/* Slave 1 reset value */
-+			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index dc9efd5..bc91817 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9534,7 +9534,7 @@ TI BANDGAP AND THERMAL DRIVER
+ M:	Eduardo Valentin <edubezval@gmail.com>
+ L:	linux-pm@vger.kernel.org
+ L:	linux-omap@vger.kernel.org
+-S:	Supported
++S:	Maintained
+ F:	drivers/thermal/ti-soc-thermal/
+ 
+ TI CLOCK DRIVER
 -- 
-2.2.0
+2.1.3
+
