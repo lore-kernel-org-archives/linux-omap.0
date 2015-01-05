@@ -1,161 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 2/2] ARM: dra7xx: Fix counter frequency drift for
- AM572x errata i856.
-Date: Mon, 5 Jan 2015 11:37:45 -0800
-Message-ID: <20150105193745.GJ4081@atomide.com>
-References: <cover.1418762900.git.lsorense@csclub.uwaterloo.ca>
- <89b793993eaa492af531bd7aa9dff1f871fb4a77.1418762900.git.lsorense@csclub.uwaterloo.ca>
- <54914096.9060206@ti.com> <20141217153026.GB838@kahuna>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Mon, 5 Jan 2015 13:53:48 -0600
+Message-ID: <54AAEBCC.2030900@ti.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20141217153026.GB838@kahuna>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, "Kristo, Tero" <t-kristo@ti.com>, Lennart Sorensen <lsorense@csclub.uwaterloo.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54AA4CD4.40105@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [141217 07:33]:
-> On 14:06-20141217, Lokesh Vutla wrote:
-> > Hi Len,
-> > On Wednesday 17 December 2014 02:38 AM, Lennart Sorensen wrote:
-> > > Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
-> > > crystal is not enabled at power up.  Instead the CPU falls back to using
-> > > an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
-> > > 20MHz on boards so far (which gives an emulated frequency of 32.786KHz),
-> > > but can also be 19.2 or 27MHz which result in much larger drift.
-> > > 
-> > > Since this is used to drive the master counter at 32.768KHz * 375 /
-> > > 2 = 6.144MHz, the emulated speed for 20MHz is of by 570ppm, or about 43
-> > > seconds per day, and more than the 500ppm NTP is able to tolerate.
-> > > 
-> > > Checking the CTRL_CORE_BOOTSTRAP register can determine if the CPU
-> > > is using the real 32.768KHz crystal or the emulated SYSCLK1/610, and
-> > > by known that the real counter frequency can be determined and used.
-> > > The real speed is then SYSCLK1 / 610 * 375 / 2 or SYSCLK1 * 75 / 244.
-> > Looks good to me.
-> > Tested this on DRA7 evm.
-> > 
-> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > 
-> > Thanks and regards,
-> > Lokesh
-> > 
-> > > 
-> > > Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
-> > > ---
-> > >  arch/arm/mach-omap2/control.h |    4 ++++
-> > >  arch/arm/mach-omap2/timer.c   |   36 ++++++++++++++++++++++++++++++++++--
-> > >  2 files changed, 38 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> > > index a3c0133..a80ac2d 100644
-> > > --- a/arch/arm/mach-omap2/control.h
-> > > +++ b/arch/arm/mach-omap2/control.h
-> > > @@ -286,6 +286,10 @@
-> > >  #define OMAP5XXX_CONTROL_STATUS                0x134
-> > >  #define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
-> > >  
-> > > +/* DRA7XX CONTROL CORE BOOTSTRAP */
-> > > +#define DRA7_CTRL_CORE_BOOTSTRAP	0x6c4
-> > > +#define DRA7_SPEEDSELECT_MASK		(0x3 << 8)
-> > > +
-> > >  /*
-> > >   * REVISIT: This list of registers is not comprehensive - there are more
-> > >   * that should be added.
-> > > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> > > index fb0cb2b..7d45c84 100644
-> > > --- a/arch/arm/mach-omap2/timer.c
-> > > +++ b/arch/arm/mach-omap2/timer.c
-> > > @@ -54,6 +54,7 @@
-> > >  
-> > >  #include "soc.h"
-> > >  #include "common.h"
-> > > +#include "control.h"
-> > >  #include "powerdomain.h"
-> > >  #include "omap-secure.h"
-> > >  
-> > > @@ -496,7 +497,8 @@ static void __init realtime_counter_init(void)
-> > >  	void __iomem *base;
-> > >  	static struct clk *sys_clk;
-> > >  	unsigned long rate;
-> > > -	unsigned int reg, num, den;
-> > > +	unsigned int reg;
-> > > +	unsigned long long num, den;
-> > >  
-> > >  	base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
-> > >  	if (!base) {
-> > > @@ -511,6 +513,35 @@ static void __init realtime_counter_init(void)
-> > >  	}
-> > >  
-> > >  	rate = clk_get_rate(sys_clk);
-> > > +
-> > > +	if (soc_is_dra7xx()) {
-> > > +		/*
-> > > +		 * Errata i856 says the 32.768KHz crystal does not start at
-> > > +		 * power on, so the CPU falls back to an emulated 32KHz clock
-> > > +		 * based on sysclk / 610 instead. This causes the master counter
-> > > +		 * frequency to not be 6.144MHz but at sysclk / 610 * 375 / 2
-> > > +		 * (OR sysclk * 75 / 244)
-> > > +		 *
-> > > +		 * This affects at least the DRA7/AM572x 1.0, 1.1 revisions.
-> > > +		 * Of course any board built without a populated 32.768KHz
-> > > +		 * crystal would also need this fix even if the CPU is fixed
-> > > +		 * later.
-> > > +		 *
-> > > +		 * Either case can be detected by using the two speedselect bits
-> > > +		 * If they are not 0, then the 32.768KHz clock driving the
-> > > +		 * coarse counter that corrects the fine counter every time it
-> > > +		 * ticks is actually rate/610 rather than 32.768KHz and we
-> > > +		 * should compensate to avoid the 570ppm (at 20MHz, much worse
-> > > +		 * at other rates) too fast system time.
-> > > +		 */
-> > > +		reg = omap_ctrl_readl(DRA7_CTRL_CORE_BOOTSTRAP);
-> > > +		if (reg & DRA7_SPEEDSELECT_MASK) {
-> > > +			num = 75;
-> > > +			den = 244;
-> > > +			goto sysclk1_based;
-> > > +		}
-> > > +	}
-> > > +
-> > >  	/* Numerator/denumerator values refer TRM Realtime Counter section */
-> > >  	switch (rate) {
-> > >  	case 12000000:
-> > > @@ -545,6 +576,7 @@ static void __init realtime_counter_init(void)
-> > >  		break;
-> > >  	}
-> > >  
-> > > +sysclk1_based:
-> > >  	/* Program numerator and denumerator registers */
-> > >  	reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
-> > >  			NUMERATOR_DENUMERATOR_MASK;
-> > > @@ -556,7 +588,7 @@ static void __init realtime_counter_init(void)
-> > >  	reg |= den;
-> > >  	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
-> > >  
-> > > -	arch_timer_freq = (rate / den) * num;
-> > > +	arch_timer_freq = DIV_ROUND_UP_ULL(rate * num, den);
-> > >  	set_cntfreq();
-> > >  
-> > >  	iounmap(base);
-> > > 
-> > 
-> If tony is ok with the arch_timer_freq change in this patch, I am ok
-> with it as well.
+On 01/05/2015 02:35 AM, Lokesh Vutla wrote:
+> Hi Paul,
+> On Saturday 03 January 2015 02:40 AM, Paul Walmsley wrote:
+>> + Suman, lakml
+>>
+>> Hi Roger
+>>
+>> On Thu, 18 Dec 2014, Roger Quadros wrote:
+>>
+>>> Fixing up Paul's email id.
+>>>
+>>> cheers,
+>>> -roger
+>>>
+>>> On 18/12/14 17:49, Roger Quadros wrote:
+>>>> There are quite a few hwmods that don't have sysconfig register and so
+>>>> _find_mpu_rt_port(oh) will return NULL thus preventing ready state check
+>>>> on those modules after the module is enabled.
+>>
+>> Hmm.  Any IP block that exposes registers that are accessible by the MPU 
+>> should have an MPU register target port, even if there's no SYSCONFIG 
+>> register.  And if an IP block doesn't have registers that are accessible 
+>> from the MPU, then there shouldn't be much point to waiting for the module 
+>> to become ready.
+>>
+>> Looks like the real problem is the test for oh->class->sysc before the 
+>> call to _init_mpu_rt_base().  That was introduced by commit 6423d6df1440 
+>> ("ARM: OMAP2+: hwmod: check for module address space during init"). It's 
+>> not clear to me why that test was added, since _init_mpu_rt_base() doesn't 
+>> do anything with oh->class->sysc or SYSCONFIG registers.
+> This was introduced by commit 
+> 97597b962529 (ARM: OMAP2+: hwmod: Don't call _init_mpu_rt_base if no sysc)
 
-Looks good to me thanks. Applying both into omap-for-v3.19/fixes with
-the first cc stable v3.7+ and the second cc stable v3.14+.
+That's right, the test was present even before 6423d6df1440, I merely
+made this a block.
 
-Regards,
-
-Tony
+> Patch description states that "there are few hwmod which doesn't have sysconfig registers and hence
+> no need to ioremap() them in early init code".
+> Isn't this correct? 
+> May be a dumb question: If IP doesn't have sysconfig, is there any case that hwmod does
+> access the register address space of that IP? Why do we need to enable MPU register target port?
+> 
+> Thanks and regards,
+> Lokesh
+> 
+>>
+>> Could you please test the following patch?
+>> I don't have an AM437x-gp-evm.  
+>>
+>>
+>> - Paul
+>>
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod.c | 12 ++++--------
+>>  1 file changed, 4 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>> index cbb908dc5cf0..ce6d11f3eda7 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -2451,14 +2451,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+>>  				oh->name, np->name);
+>>  	}
+>>  
+>> -	if (oh->class->sysc) {
+>> -		r = _init_mpu_rt_base(oh, NULL, index, np);
+>> -		if (r < 0) {
+>> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+>> -			     oh->name);
+>> -			return 0;
+>> -		}
+>> -	}
+>> +	r = _init_mpu_rt_base(oh, NULL, index, np);
+>> +	if (r < 0)
+>> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
+>> +			 oh->name);
+>>  
+>>  	r = _init_clocks(oh, NULL);
+>>  	if (r < 0) {
+>>
+> 
