@@ -1,133 +1,106 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Mon, 5 Jan 2015 09:43:13 -0600
-Message-ID: <20150105154313.GA19336@saruman>
-References: <54A58E23.5080103@gmx.net>
- <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
- <20150102161911.GA3298@atomide.com>
- <54A6E408.1090908@gmx.net>
- <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
- <20150102204018.GF3298@atomide.com>
- <20150102223451.GL582@fuloong-minipc.musicnaut.iki.fi>
- <20150103000220.GE3279@atomide.com>
- <20150103121622.GN582@fuloong-minipc.musicnaut.iki.fi>
+Subject: Re: [PATCH 2/3] usb: dwc3: add Fujitsu Specific Glue layer
+Date: Mon, 5 Jan 2015 09:50:49 -0600
+Message-ID: <20150105155049.GF19336@saruman>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1456155.YPH2fYoGgF@wuerfel>
+ <20150103012128.GA11373@saruman>
+ <3428284.QtTr113xXr@wuerfel>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58379 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752838AbbAEPoO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Jan 2015 10:44:14 -0500
+	protocol="application/pgp-signature"; boundary="Il7n/DHsA0sMLmDu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150103121622.GN582@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <3428284.QtTr113xXr@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: balbi@ti.com, Sneeker Yeh <sneeker.yeh@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Peter =?iso-8859-1?Q?K=FCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
---pf9I7BMVVzbSWLtt
+--Il7n/DHsA0sMLmDu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sat, Jan 03, 2015 at 02:16:22PM +0200, Aaro Koskinen wrote:
-> > > > > > >>>When updating (custom DM3730 board) from 3.18.1 ro 3.19-rc2
-> > > > > > >>>I see a "In-band ERROR" warning which wasn't present in 3.18=
-=2E1.
-> > > > > > >>>Could it be that I missed some DT updates?
-> > > > > > >>
-> > > > > > >>>[    0.366882] In-band Error seen by MPU  at address 0
-> > > > > > >>>[    0.366912] ------------[ cut here ]------------
-> > > > > > >>>[    0.366943] WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3=
-_smx.c:166 omap3_l3_app_irq+0x100/0x134()
-> > > > > > >>
-> > > > > > >>This appears also on N900/N950/N9...
-> > > > > > >
-> > > > > > >Do you have CONFIG_PREEMPT enabled? It seems there's some
-> > > > > > >regression related to CONFIG_PREEMPT that started happening
-> > > > > > >with the merge window?
-> > > > > >=20
-> > > > > > Indeed, when I disable CONFIG_PREEMPT the warning is gone.
-> > > > >=20
-> > > > > Yeah, disabling CONFIG_PREEMPT helps here too. Is there some e-ma=
-il
-> > > > > thread / patch set for this already; or should we try to bisect t=
-his?
+On Mon, Jan 05, 2015 at 04:28:34PM +0100, Arnd Bergmann wrote:
+> On Friday 02 January 2015 19:21:28 Felipe Balbi wrote:
+> >=20
+> > On Tue, Dec 30, 2014 at 11:12:51AM +0100, Arnd Bergmann wrote:
+> > > On Monday 29 December 2014 01:52:04 Sneeker Yeh wrote:
+> > > > > > +static int dwc3_mb86s70_remove_child(struct device *dev, void =
+*unused)
+> > > > > > +{
+> > > > > > +     struct platform_device *pdev =3D to_platform_device(dev);
+> > > > > > +
+> > > > > > +     of_device_unregister(pdev);
+> > > > > > +
+> > > > > > +     return 0;
+> > > > > > +}
+> > > > > > +
+> > > > > > +static u64 dwc3_mb86s70_dma_mask =3D DMA_BIT_MASK(32);
+> > > > >
+> > > > > why ? Use dma_coerce_mask_and_coherent().
+> > > > >
 > > > >=20
-> > > > AFAIK I'm not aware of other threads, I noticied it with the
-> > > > "OMAP 4430 SDP: rather sick with recent kernels" thread, but
-> > > > never got anywhere with it.
-> > > >=20
-> > > > Yeah it seems it's somewhere between v3.18 and v3.19-rc1, but
-> > > > that too should be verified. Sounds like running git bisect on
-> > > > this one is needed.
+> > > > okay.
 > > >=20
-> > > I tried to bisect this on N950, and it resulted in:
+> > > Actually that is still wrong: we use dma_coerce_mask_and_coherent() to
+> > > annotate drivers that have traditionally been forcing their own dma m=
+ask
+> > > by some other means and that need to be changed to something proper (=
+after
+> > > finding out why they did it in the first place).
 > > >=20
-> > > aa25729cfd9709156661bea0f9293deb7729f57a is the first bad commit
-> > > commit aa25729cfd9709156661bea0f9293deb7729f57a
-> > > Author: Tony Lindgren <tony@atomide.com>
-> > > Date:   Wed Nov 5 09:21:23 2014 -0800
-> > >=20
-> > >     ARM: OMAP3: Fix errors for omap_l3_smx when booted with device tr=
-ee
-> > >=20
-> > > But when I tried to revert this from 3.19-rc2, my board won't boot at
-> > > all...
+> > > Since this is about a child device, the correct interface is to use
+> > > platform_device_register_full().
 > >=20
-> > Hmm OK that commit just fixed the omap_l3_smx so we now see
-> > warnings about the unclocked register access.
-> >=20
-> > It seems that probably the CONFIG_PREEMPT issue has been lurking
-> > around for longer but we have not seen any errors because
-> > omap_l3_smx just recently started exposing them.
-> >=20
-> > Does v3.18 + commit aa25729cfd9 manually applied also produce
-> > the CONFIG_PREEMPT errors?
+> > no, that's wrong. He's essentially fixing the default set by OF core,
+> > which is always 32-bits anyway, so this can actually be removed. Your
+> > suggestion would just make it worse.
 >=20
-> Yes it does, so I made another bisection between 3.17 and 3.18
-> using the above patch to trigger the issue, and I got:
->=20
-> 55601c9f24670ba926ebdd4d712ac3b177232330 is the first bad commit
-> commit 55601c9f24670ba926ebdd4d712ac3b177232330
-> Author: Felipe Balbi <balbi@ti.com>
-> Date:   Mon Sep 8 17:54:58 2014 -0700
->=20
->     arm: omap: intc: switch over to linear irq domain
+> Ah, so this was for a device that gets probed from DT? Yes, then no
+> change is needed here at all.
 
-Just booted AM335x with CONFIG_PREEMPT and haven't seen any problem.
-Perhaps this is something related to another OMAP3-only driver ? Perhaps
-HSI/SSI ?
+right.
 
-cheers
+> Note that I'm working on a patch set to change the DT initialization to
+> be a little smarter about the mask. Specifically any device whose parent
+> has a smaller dma-ranges window than 4GB needs to start out with the
+> smaller mask, and the dma_set_mask function that is called to allow 64-bit
+> DMA on a device will check if the bus can actually support it.
+
+please make sure have that patch soaking in linux-next for weeks before
+attempting to merge it upstream. I would target v3.21 with such a patch.
+At least keystone might be a little weird about what you describe
+considering the thing boots from HIGHMEM. Also needs to consider LPAE,
+etc.
 
 --=20
 balbi
 
---pf9I7BMVVzbSWLtt
+--Il7n/DHsA0sMLmDu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUqrERAAoJEIaOsuA1yqREh5kQAIvh+ATIytB+QWbTjyimsluF
-gC2zNtdcNtELVqlEdAaqS64a/d7XmbCob+qHrwJNnRZT047SPxIPCqLuUjc0SRHG
-J0GIht3wRtr40D4ghSyfw41jdoa6Ad3X5J12inMprX2DXO40OrB6/5ZH6tPi5thw
-zuvADtnOlgnVoIqpp+obrO6JKfEHTfNyf2L9bKYO4dSFYrCuwBFmXA5yzPG9jdLw
-q1wSIW15iFfjT5YDdCNAPRntZn0Q2i8vD0GEY/fZQCJ2428C1xZXHW9KVm/OTlCK
-C70wOJEDhCi+3r5XIrG4A+U9Rsfe7heSLgWR7+LyO0tmqP/w65vSAK/y2Y0ZFHdN
-+WYKtxIkAG02uftiqRQOCLOPWb4K2L5L0ymLgYdngo6RBzF9RFVTznnbouzu1IMF
-Ggc0I0vmzR6SfXwV0C5mqsEvmkwUHlzPVe0vXa6r/RP8vEBs/MCQtyT0SJhoNfbQ
-Tx1uJWQTtQcsV9yESQGDQZyMiEtAZfjntjYC2a3C0UUV38uUV4UfZDaqOl/N/GeX
-ynKw2znkxj2UkhPeN52JVMc0egkRiZPkPGdxRFZ9vR4ysMJYiQNt9lF5HPLK+KOf
-FSVhM2seZW7vEKPa2IhdXD+bvmK6zFEhTCtgJ/tFvjkkBO0sLeL6wv+DpRuN2BbX
-5c3H5Kbly5wmkMWX3i5U
-=vWkC
+iQIcBAEBAgAGBQJUqrLZAAoJEIaOsuA1yqREOPMP/1ykV6BAiPtaj1Y1NndABWps
+tXtISvRUhzRD0JLG0++Q/xnFUAi4jvUWScU/wDTSNzBNuaP5j580XMz38JKrvbOb
+7wlV2Yk9uhSorpdIBtCH+HSyEoLU8naZECgR1weXhaYdwhzqXiUModdkmifXqW31
+F5HvaRoV4tumBcrm0mJZhu6Fmwb0ttmQ6AkW4JA6Chv2VPnwQZmj5l+mOfAfpBx0
+qbpsibNq75Gh3JbsYd90wl2yxPYjyK15QiETQqRu+LeOgUOBPexrMs5jEgVynivO
+dfpah7w9IWi5GD4IsVaKRZP6DUEhogVJPuqBWkfs3UGrbrdT79sv0KVTfKvI2JGi
+BfthGP1BSfDl0ymi4Ms99Ndh9Yw+O19jd7ZBvJgESW1ObvWvEYNtNE4t+S6iUab/
+lS6Q01AGgAS+VceANr8H4DDZ4IWkCXh2tgXwm69VoezpCrxSIX0WQ7Qnu/4EpnG1
+R1z2PAU9cahxl+lUhcaJmvWSNsKjH5/YeRoIzsP8TD3L30t8qvd5DbCI7fv9NJKY
+MLUHSogInw5Cdbb17SFId9bPpUnsZq14DWD83C7/9MR3EpWzgn5t5uFi0/mfhVJF
+5Ryp4RgCcOPowgTWdalupiKb0jW5UkBdW3FB3wDasGumoNidnzDurjEImnwQe2wQ
+mpENGBvIUzLFMdl8VuL6
+=+FtZ
 -----END PGP SIGNATURE-----
 
---pf9I7BMVVzbSWLtt--
+--Il7n/DHsA0sMLmDu--
