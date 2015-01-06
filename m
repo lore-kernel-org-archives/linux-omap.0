@@ -1,39 +1,65 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Tue, 06 Jan 2015 09:38:23 -0800
-Message-ID: <7hk30zzu5s.fsf@deeprootsystems.com>
-References: <20150105230228.GO4081@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] net: ethernet: cpsw: ignore VLAN ID 1
+Date: Tue, 6 Jan 2015 11:43:32 -0600
+Message-ID: <1420566212-30081-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:34764 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932277AbbAFRi0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 12:38:26 -0500
-Received: by mail-pa0-f52.google.com with SMTP id eu11so31492307pac.39
-        for <linux-omap@vger.kernel.org>; Tue, 06 Jan 2015 09:38:26 -0800 (PST)
-In-Reply-To: <20150105230228.GO4081@atomide.com> (Tony Lindgren's message of
-	"Mon, 5 Jan 2015 15:02:29 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
 
-Tony Lindgren <tony@atomide.com> writes:
+CPSW completely hangs if we add, and later remove,
+VLAN ID #1. What happens is that after removing
+VLAN ID #1, no packets will be received by CPSW
+rendering network unusable.
 
-> Revert "ARM: dts: Disable smc91x on n900 until bootloader
-> dependency is removed". We've now fixed the issues that
-> caused problems with uninitialized hardware depending on
-> the bootloader version. Mostly things got fixed with
-> the following commits:
->
-> 9a894953a97b ("ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x pins")
-> 7d2911c43815 ("net: smc91x: Fix gpios for device tree based booting")
->
-> Note that this only affects the early development boards
-> with Ethernet that we still have in a few automated boot
-> test systems.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+In order to "fix" the issue, we're returning -EINVAL
+if anybody tries to add VLAN ID #1. While at that,
+also filter out any ID > 4095 because we only have
+12 bits for VLAN IDs.
 
-Tested-by: Kevin Hilman <khilman@linaro.org>
+Fixes: 3b72c2f (drivers: net:ethernet: cpsw: add support for VLAN)
+Cc: <stable@vger.kernel.org> # v3.9+
+Cc: Mugunthan V N <mugunthanvnm@ti.com>
+Tested-by: Schuyler Patton <spatton@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index e61ee8351272..028bb7f3de65 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1669,6 +1669,13 @@ static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
+ 	if (vid == priv->data.default_vlan)
+ 		return 0;
+ 
++	/* NOTICE: CPSW does not support VID 1. We should
++	 * also filter out VID > 4095 as we only have 12
++	 * bits for VID entries
++	 */
++	if (vid == 1 || vid >= VLAN_N_VID)
++		return -EINVAL;
++
+ 	dev_info(priv->dev, "Adding vlanid %d to vlan filter\n", vid);
+ 	return cpsw_add_vlan_ale_entry(priv, vid);
+ }
+@@ -1682,6 +1689,13 @@ static int cpsw_ndo_vlan_rx_kill_vid(struct net_device *ndev,
+ 	if (vid == priv->data.default_vlan)
+ 		return 0;
+ 
++	/* NOTICE: CPSW does not support VID 1. We should
++	 * also filter out VID > 4095 as we only have 12
++	 * bits for VID entries
++	 */
++	if (vid == 1 || vid >= VLAN_N_VID)
++		return -EINVAL;
++
+ 	dev_info(priv->dev, "removing vlanid %d from vlan filter\n", vid);
+ 	ret = cpsw_ale_del_vlan(priv->ale, vid, 0);
+ 	if (ret != 0)
+-- 
+2.2.0
