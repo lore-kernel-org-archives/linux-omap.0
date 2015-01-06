@@ -1,86 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Tue, 6 Jan 2015 12:17:59 -0800
-Message-ID: <20150106201758.GX4081@atomide.com>
-References: <20150105230228.GO4081@atomide.com>
- <20150106080025.GA6752@amd>
- <20150106165903.GF4025@atomide.com>
- <20150106194443.GH30544@fuloong-minipc.musicnaut.iki.fi>
- <20150106195454.GW4081@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Tue, 6 Jan 2015 14:28:57 -0600
+Message-ID: <20150106202857.GB32308@saruman>
+References: <20150106170433.GA5408@amd>
+ <20150106172545.GK6502@saruman>
+ <20150106175115.GA19487@amd>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31481 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754218AbbAFUVt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 15:21:49 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9zSXsLTf0vkW971A"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150106195454.GW4081@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150106175115.GA19487@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Sebastian Reichel <sre@kernel.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 
-* Tony Lindgren <tony@atomide.com> [150106 12:01]:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [150106 11:47]:
-> > Hi,
-> > 
-> > On Tue, Jan 06, 2015 at 08:59:03AM -0800, Tony Lindgren wrote:
-> > > * Pavel Machek <pavel@ucw.cz> [150106 00:03]:
-> > > > On Mon 2015-01-05 15:02:29, Tony Lindgren wrote:
-> > > > > Revert "ARM: dts: Disable smc91x on n900 until bootloader
-> > > > > dependency is removed". We've now fixed the issues that
-> > > > > caused problems with uninitialized hardware depending on
-> > > > > the bootloader version. Mostly things got fixed with
-> > > > > the following commits:
-> > > > > 
-> > > > > 9a894953a97b ("ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x pins")
-> > > > > 7d2911c43815 ("net: smc91x: Fix gpios for device tree based booting")
-> > > > > 
-> > > > > Note that this only affects the early development boards
-> > > > > with Ethernet that we still have in a few automated boot
-> > > > > test systems.
-> > > > > 
-> > > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > > 
-> > > > Normally, the early development boards should have separate dts file
-> > > > (then include common parts), no?
-> > > 
-> > > In this case it won't matter. The GPMC hardware is there, the probe
-> > > just fails if no smsc91x is found.
-> > >  
-> > > > Could you at least add a note to the dts file what is it? Because I
-> > > > always thought it is a bug.
-> > > 
-> > > Sure, updated patch below. Can somebody please test boot it on
-> > > a production n900 too to make sure it no longer causes issues?
-> > 
-> > Seems to work fine with normal n900.
-> > 
-> > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> 
-> OK good to hear, thanks for testing.
->  
-> > I also tested with a development board, eth0 seemed to appear,
-> > but couldn't configure the MAC address with busybox ifconfig.
-> > How should it be done, I guess the interface does not have any
-> > MAC by default?
-> 
-> You need to write the eeprom with ethtool from Linux, something
-> like this:
-> 
-> Run u-boot/tools/gen_eth_addr to generate a random local mac,
-> then swap the bytes for it for big endian. Enter them into a
-> file with hexedit in big endian order. Then just do:
-> 
-> # cat mac | ethtool -E eth0 offset 0x40 length 6
-> 
-> Then ethtool -e eth0 should show you the configuration.
+--9zSXsLTf0vkW971A
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Oh and I have some u-boot patches that I'll post that allow
-booting n900 with bootz and to use smsc91x tftp booting. I'll
-try to post those shortly..
+On Tue, Jan 06, 2015 at 06:51:15PM +0100, Pavel Machek wrote:
+>=20
+> On Tue 2015-01-06 11:25:45, Felipe Balbi wrote:
+> > On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
+> > > Hi!
+> > >=20
+> > > In 3.18, sound is nice and clear.
+> > >=20
+> > > In 3.19, sound is unusable. It produces nasty tone when it should be
+> > > quiet, and there's at least as much noise as is sound.
+> > >=20
+> > > Unfortunately, list of mixers also changed (and there's cca 120
+> > > settings), but a) it does not work with the old list and b) nothing I
+> > > could figure out did make the sound usable. Some setting resulted in
+> > > even more noise.
+> > >=20
+> > > Any idea what could have caused it?
+> >=20
+> > $ git bisect start
+> > $ git bisect good v3.18
+> > $ git bisect bad
+> >=20
+> > that'll help find what caused it.
+>=20
+> Telling someone to do hard and time consuming job that probably will
+> not succeed, instead of actually providing help. Very very funny.
 
-Regards,
+you're getting code for free, you're getting help for free. Not many
+people have N900s lying around. Running a bisection is just politeness.
 
-Tony
+--=20
+balbi
+
+--9zSXsLTf0vkW971A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUrEWJAAoJEIaOsuA1yqRE33EP/2i+SwBCnH92zuaXrHTSEMJS
+TwHOUN7CntSm7nrrYNLRr4wwp7zCtk5SRyXvEQpMEArzvdOJMNhLD7QriL032hIt
+hl1mU4YI4Df/WnJHx3535cKV5r+UeCfGvZgNs8qeGp3QdzeH4ASFN6ttI+MKxAN0
+ezgPdnqY2al50MyN+XH6haAsy6BA+BvWvM/I9vnvKgn7FiZ/1i2S49TDh3+jYk/s
+459wbEG1/gb61HlldaXyy3Pbc31635S2UBs2jILv5iIvRxP1GsDHzyckV6X/raAz
+stPty7OvD04CciXaQ7yOx6/EiRsKtD+L3Way+EEytsIJCB2msK1Lf02MX6E7w2K3
+QLSfHfXR2aKDrLs30rI4bctzug4Wd8+3eVJ/jUsAf3MN63yDu6k+/QH0tn+O5PSO
+bcVkckBfMMF+FCh15hFLw9TnOHymXh1ySJbGu2yCtQO/u/qb9pLmuwJ2kF6cghoZ
+vQ7xiE2grs7Z2hafNBi4iy9ZKgykyHpaTVlTjWC+BuwLwLlZuq5KUg15z9vOl6Au
+lrB0umD8iaIKpFeqot7o+3/8bp4z2RGhtkskhVNL7zk08Gin6nGTISsj25eSkbLA
+QMQ/MFRyE2Sc2nP+QqNXPEYEk8BA8Hg73TZFwSUZyg9vqEz4x6xElFGumshwBqzU
+5wnlFwU4xg0lXDXs2njU
+=oPkR
+-----END PGP SIGNATURE-----
+
+--9zSXsLTf0vkW971A--
