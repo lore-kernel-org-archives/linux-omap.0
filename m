@@ -1,160 +1,107 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
- without sysc
-Date: Tue, 6 Jan 2015 11:27:23 -0600
-Message-ID: <54AC1AFB.4070504@ti.com>
-References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com> <alpine.DEB.2.02.1501060202540.28771@utopia.booyaka.com> <54AB9983.1040703@ti.com> <54AC1800.1020406@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/5] mfd: tps65218: make INT[12] and STATUS registers
+ volatile
+Date: Tue, 6 Jan 2015 11:37:34 -0600
+Message-ID: <20150106173734.GL6502@saruman>
+References: <1419622104-25812-1-git-send-email-balbi@ti.com>
+ <1419622104-25812-2-git-send-email-balbi@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54AC1800.1020406@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, santosh.shilimkar@oracle.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2OzUYMsT4j3Kc+NU"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1419622104-25812-2-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
+--2OzUYMsT4j3Kc+NU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 01/06/2015 11:14 AM, Suman Anna wrote:
-> Hi Paul,
-> 
-> On 01/06/2015 02:14 AM, Lokesh Vutla wrote:
->> Hi Paul,
->> On Tuesday 06 January 2015 07:34 AM, Paul Walmsley wrote:
->>>
->>> Roger, Lokesh, could you try this one instead?
->> Yep, the below patch works on AM437x.
->> Boot logs here: http://paste.ubuntu.com/9680938/
->>
->> Thanks and regards,
->> Lokesh
->>>
->>> It passes all the basic tests here except it does not boot on the 4460 
->>> VAR-SOM-OM - unclear why at this point - but it would be good to see if it 
->>> works on your AM4372 boards, since I don't have that one.
+On Fri, Dec 26, 2014 at 01:28:20PM -0600, Felipe Balbi wrote:
+> STATUS register can be modified by the HW, so we
+> should bypass cache because of that.
+>=20
+> In the case of INT[12] registers, they are the ones
+> that actually clear the IRQ source at the time they
+> are read. If we rely on the cache for them, we will
+> never be able to clear the interrupt, which will cause
+> our IRQ line to be disabled due to IRQ throttling.
+>=20
+> Fixes: 44b4dc6 mfd: tps65218: Add driver for the TPS65218 PMIC
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.15+
+> Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Looking at your rc3 log @
-http://www.pwsan.com/omap/testlogs/test_v3.19-rc3/20150105224749/boot/4460varsomom/,
-I do see a missing reg entry for mailbox, and that's the reason for your
-hang because of the missing bail out in your new patch.
+ping
 
-[    0.261932] ------------[ cut here ]------------
-[    0.261962] WARNING: CPU: 0 PID: 1 at
-arch/arm/mach-omap2/omap_hwmod.c:2458 _init+0x3a0/0x3f0()
-[    0.261962] omap_hwmod: mailbox: doesn't have mpu register target base
-...
-...
-[    0.262329] ---[ end trace a1be72591db4662e ]---
+> ---
+>  drivers/mfd/tps65218.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+>=20
+> diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+> index 0d256cb..2243f75 100644
+> --- a/drivers/mfd/tps65218.c
+> +++ b/drivers/mfd/tps65218.c
+> @@ -125,10 +125,21 @@ int tps65218_clear_bits(struct tps65218 *tps, unsig=
+ned int reg,
+>  }
+>  EXPORT_SYMBOL_GPL(tps65218_clear_bits);
+> =20
+> +static const struct regmap_range tps65218_yes_ranges[] =3D {
+> +	regmap_reg_range(TPS65218_REG_INT1, TPS65218_REG_INT2),
+> +	regmap_reg_range(TPS65218_REG_STATUS, TPS65218_REG_STATUS),
+> +};
+> +
+> +static const struct regmap_access_table tps65218_volatile_table =3D {
+> +	.yes_ranges =3D tps65218_yes_ranges,
+> +	.n_yes_ranges =3D ARRAY_SIZE(tps65218_yes_ranges),
+> +};
+> +
+>  static struct regmap_config tps65218_regmap_config =3D {
+>  	.reg_bits =3D 8,
+>  	.val_bits =3D 8,
+>  	.cache_type =3D REGCACHE_RBTREE,
+> +	.volatile_table =3D &tps65218_volatile_table,
+>  };
+> =20
+>  static const struct regmap_irq tps65218_irqs[] =3D {
+> --=20
+> 2.2.0
+>=20
 
-Now that said, this is weird, since the reg property for mailbox is
-defined in the base omap4.dtsi and should be inherited by the 4460
-VAR-SOM-OM, unless you are booting with an old dtb.
+--=20
+balbi
 
-regards
-Suman
+--2OzUYMsT4j3Kc+NU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->>>
->>> Test logs are here:
->>>
->>> http://www.pwsan.com/omap/testlogs/hwmod_skip_only_remap_v3.19-rc/20150105171744/
->>>
->>>
->>> - Paul
->>>
->>>
->>> From 4f2e13bd2181e0ebede3aabc484aa2339830748a Mon Sep 17 00:00:00 2001
->>> From: Paul Walmsley <paul@pwsan.com>
->>> Date: Mon, 5 Jan 2015 15:49:57 -0700
->>> Subject: [PATCH] Only skip ioremap() if IP block does not have OCP header
->>>  registers. Experimental.
->>>
->>> ---
->>>  arch/arm/mach-omap2/omap_hwmod.c | 33 +++++++++++++++++++++------------
->>>  1 file changed, 21 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>> index cbb908dc5cf0..03df8833d399 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -1938,6 +1938,8 @@ static int _reset(struct omap_hwmod *oh)
->>>  	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
->>>  
->>>  	if (oh->class->reset) {
->>> +		WARN(!oh->_mpu_rt_va, "Attempt to call custom reset with no MPU register target ioremapped: %s",
->>> +		     oh->name);
->>>  		r = oh->class->reset(oh);
->>>  	} else {
->>>  		if (oh->rst_lines_cnt > 0) {
->>> @@ -2358,15 +2360,19 @@ static int of_dev_hwmod_lookup(struct device_node *np,
->>>  }
->>>  
->>>  /**
->>> - * _init_mpu_rt_base - populate the virtual address for a hwmod
->>> + * _init_mpu_rt_base - populate the MPU port and virtual address
->>>   * @oh: struct omap_hwmod * to locate the virtual address
->>>   * @data: (unused, caller should pass NULL)
->>>   * @index: index of the reg entry iospace in device tree
->>>   * @np: struct device_node * of the IP block's device node in the DT data
->>>   *
->>> - * Cache the virtual address used by the MPU to access this IP block's
->>> - * registers.  This address is needed early so the OCP registers that
->>> - * are part of the device's address space can be ioremapped properly.
->>> + * Cache the interconnect target port and the virtual address used by
->>> + * the MPU to access this IP block's registers.  The address is needed
->>> + * early so the OCP registers that are part of the device's address
->>> + * space can be ioremapped properly.  The presence or absence of the
->>> + * interconnect target port also indicates whether the hwmod code
->>> + * should wait for the IP block to indicate readiness after it is
->>> + * enabled.
->>>   *
->>>   * Returns 0 on success, -EINVAL if an invalid hwmod is passed, and
->>>   * -ENXIO on absent or invalid register target address space.
->>> @@ -2385,6 +2391,13 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
->>>  	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
->>>  		return -ENXIO;
->>>  
->>> +	/*
->>> +	 * If there's no need for the hwmod code to read or write to
->>> +	 * the IP block registers, bail out early before the ioremap()
->>> +	 */
->>> +	if (!oh->class->sysc)
->>> +		return 0;
->>> +
->>>  	mem = _find_mpu_rt_addr_space(oh);
->>>  	if (!mem) {
->>>  		pr_debug("omap_hwmod: %s: no MPU register target found\n",
->>> @@ -2451,14 +2464,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
->>>  				oh->name, np->name);
->>>  	}
->>>  
->>> -	if (oh->class->sysc) {
->>> -		r = _init_mpu_rt_base(oh, NULL, index, np);
->>> -		if (r < 0) {
->>> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
->>> -			     oh->name);
->>> -			return 0;
->>> -		}
->>> -	}
->>> +	r = _init_mpu_rt_base(oh, NULL, index, np);
->>> +	if (r < 0)
->>> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
->>> +			 oh->name);
-> 
-> You have removed the return from the above block on failure. If any DT
-> entry doesn't have the reg property, this will hang the kernel boot.
-> Just remove the "reg" entry from any of the existing DT, and you will
-> run into the issue, this is what 6423d6df1440 ("ARM: OMAP2+: hwmod:
-> check for module address space during init") fixed. Also, are you sure
-> you want to turn the WARN into a pr_debug, it won't even show during the
-> kernel boot log if the reg base is missing.
-> 
-> regards
-> Suman
-> 
->>>  
->>>  	r = _init_clocks(oh, NULL);
->>>  	if (r < 0) {
->>>
->>
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUrB1eAAoJEIaOsuA1yqRE/coP/1OU0pdJRftXk9YsTY9fe6j9
+dzmu7aHymCSEhiSz9uU3sl3jobRecmHkwwtUIW7OvW5eEf0vgwcyzOGXQKMsv/w5
+BquzTK1GkNptjZounbcy4dPs1hGyOWxesVh5ZIy/76LlFtEUuZs97VMtqYscyBSh
+s19HhJbkxWEbw/WePiB6nvLW+dCOKyvscDk5h4oobo5vlSNFKjt8Vk98//9YvYBO
+LyzRP1NhJ0jPIh5FCkr1WVUljXN1HsFx9QmFYx5otpAaF89fQzNWBpDdVULgaKsP
+3nViawDfO3TWgC9Kiz9wZVD34y48rXw+t6VB8lFFWpaINa2XYcnorU3fFWuAsG7v
+UxfgxAP23CGJJChm1K3QDtWe48xUiNwchRWZ7A6tR3SOTE6RRcnVAjtbBDifjvHT
+xX22a2HILlicD+e+pJNB9XK5UIhVe9BV5qBMOzYiVB+emyd9h3XzrtHjNxLQIwD/
+SsiFDNaBYINXAET8HFfOeiybxR9fpd0zgtqrlUqKujUvegzIcjtT5QLrsgKRksUk
+8dwHah8bWZlR5CtAJzIutN3q47gxrNHw1vkCnNOfR9HV6zKjSaPdLq1CVRYardc1
+tPSnE9OHGGCXvth7T2FchheSV3rMqmsVPdkduN+63GfSZWhg7zg3ofO4D4LYYoQ3
+bI76g/xC/Gb4+Dsx4g5Q
+=A3xo
+-----END PGP SIGNATURE-----
+
+--2OzUYMsT4j3Kc+NU--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
