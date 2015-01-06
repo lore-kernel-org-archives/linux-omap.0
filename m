@@ -1,52 +1,91 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Tue, 6 Jan 2015 22:39:18 +0200
-Message-ID: <20150106203918.GI30544@fuloong-minipc.musicnaut.iki.fi>
-References: <20150106170433.GA5408@amd>
- <20150106172545.GK6502@saruman>
- <20150106175115.GA19487@amd>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH v2] irqchip: omap-intc: fix legacy DMA regression
+Date: Tue, 6 Jan 2015 14:38:08 -0600
+Message-ID: <1420576688-10604-1-git-send-email-balbi@ti.com>
+References: <1420563093-26026-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150106175115.GA19487@amd>
+In-Reply-To: <1420563093-26026-1-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
+To: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?UTF-8?q?Peter=20K=C3=BCmmel?= <syntheticpp@gmx.net>, Pavel Machek <pavel@ucw.cz>, Santosh Shilimkar <ssantosh@kernel.org>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+commit 55601c9f2467 (arm: omap: intc: switch over
+to linear irq domain) introduced a regression with
+SDMA legacy driver because that driver strictly depends
+on INTC's IRQs starting at NR_IRQs. Aparently
+irq_domain_add_linear() won't guarantee that, since we see
+a 7 IRQs difference when booting with and without the
+commit cited above.
 
-On Tue, Jan 06, 2015 at 06:51:15PM +0100, Pavel Machek wrote:
-> On Tue 2015-01-06 11:25:45, Felipe Balbi wrote:
-> > On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
-> > > In 3.18, sound is nice and clear.
-> > > 
-> > > In 3.19, sound is unusable. It produces nasty tone when it should be
-> > > quiet, and there's at least as much noise as is sound.
-> > > 
-> > > Unfortunately, list of mixers also changed (and there's cca 120
-> > > settings), but a) it does not work with the old list and b) nothing I
-> > > could figure out did make the sound usable. Some setting resulted in
-> > > even more noise.
-> > > 
-> > > Any idea what could have caused it?
-> > 
-> > $ git bisect start
-> > $ git bisect good v3.18
-> > $ git bisect bad
-> > 
-> > that'll help find what caused it.
-> 
-> Telling someone to do hard and time consuming job that probably will
-> not succeed, instead of actually providing help. Very very funny.
+Until arch/arm/plat-omap/dma.c is properly fixed, we
+must maintain OMAP2/3 using irq_domain_add_legacy().
 
-No, that was actually really a good advice. You should try to bisect it.
-It doesn't take that long (I assume you are cross-compiling instead
-of doing native builds), also Linux maintainers are generally doing
-a very good job ensuring the tree is bisectable.
+A FIXME note was added so people know to delete that
+code once that legacy DMA driver is fixed up.
 
-I would do it myself, but so far I never have set up my N900 to play
-any audio and I don't have any reference points between "good" or "bad".
+Fixes: 55601c9f2467 (arm: omap: intc: switch over to linear irq domain)
+Cc: <stable@vger.kernel.org> # v3.18
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Tested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/irqchip/irq-omap-intc.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-A.
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index 3c970259c0eb..6ef88f56cf8d 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -263,7 +263,7 @@ static int __init omap_init_irq_of(struct device_node *node)
+ 	return ret;
+ }
+ 
+-static int __init omap_init_irq_legacy(u32 base)
++static int __init omap_init_irq_legacy(u32 base, struct device_node *node)
+ {
+ 	int j, irq_base;
+ 
+@@ -277,7 +277,7 @@ static int __init omap_init_irq_legacy(u32 base)
+ 		irq_base = 0;
+ 	}
+ 
+-	domain = irq_domain_add_legacy(NULL, omap_nr_irqs, irq_base, 0,
++	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
+ 			&irq_domain_simple_ops, NULL);
+ 
+ 	omap_irq_soft_reset();
+@@ -301,10 +301,26 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+ {
+ 	int ret;
+ 
+-	if (node)
++	/*
++	 * FIXME legacy OMAP DMA driver sitting under arch/arm/plat-omap/dma.c
++	 * depends is still not ready for linear IRQ domains; because of that
++	 * we need to temporarily "blacklist" OMAP2 and OMAP3 devices from using
++	 * linear IRQ Domain until that driver is finally fixed.
++	 */
++	if (of_device_is_compatible(node, "ti,omap2-intc") ||
++			of_device_is_compatible(node, "ti,omap3-intc")) {
++		struct resource res;
++
++		if (of_address_to_resource(node, 0, &res))
++			return -ENOMEM;
++
++		base = res.start;
++		ret = omap_init_irq_legacy(base, node);
++	} else if (node) {
+ 		ret = omap_init_irq_of(node);
+-	else
+-		ret = omap_init_irq_legacy(base);
++	} else {
++		ret = omap_init_irq_legacy(base, NULL);
++	}
+ 
+ 	if (ret == 0)
+ 		omap_irq_enable_protection();
+-- 
+2.2.0
