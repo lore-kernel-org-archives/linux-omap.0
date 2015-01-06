@@ -1,80 +1,91 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Tue, 6 Jan 2015 14:28:57 -0600
-Message-ID: <20150106202857.GB32308@saruman>
-References: <20150106170433.GA5408@amd>
- <20150106172545.GK6502@saruman>
- <20150106175115.GA19487@amd>
+Subject: Re: [PATCH] net: ethernet: cpsw: ignore VLAN ID 1
+Date: Tue, 6 Jan 2015 14:31:19 -0600
+Message-ID: <20150106203119.GC32308@saruman>
+References: <1420566212-30081-1-git-send-email-balbi@ti.com>
+ <20150106.141323.2091288413667564444.davem@davemloft.net>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9zSXsLTf0vkW971A"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="1SQmhf2mF2YjsYvc"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44030 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751338AbbAFUby (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jan 2015 15:31:54 -0500
 Content-Disposition: inline
-In-Reply-To: <20150106175115.GA19487@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+In-Reply-To: <20150106.141323.2091288413667564444.davem@davemloft.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: balbi@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org, mugunthanvnm@ti.com
 
---9zSXsLTf0vkW971A
+--1SQmhf2mF2YjsYvc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 06, 2015 at 06:51:15PM +0100, Pavel Machek wrote:
->=20
-> On Tue 2015-01-06 11:25:45, Felipe Balbi wrote:
-> > On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
-> > > Hi!
-> > >=20
-> > > In 3.18, sound is nice and clear.
-> > >=20
-> > > In 3.19, sound is unusable. It produces nasty tone when it should be
-> > > quiet, and there's at least as much noise as is sound.
-> > >=20
-> > > Unfortunately, list of mixers also changed (and there's cca 120
-> > > settings), but a) it does not work with the old list and b) nothing I
-> > > could figure out did make the sound usable. Some setting resulted in
-> > > even more noise.
-> > >=20
-> > > Any idea what could have caused it?
-> >=20
-> > $ git bisect start
-> > $ git bisect good v3.18
-> > $ git bisect bad
-> >=20
-> > that'll help find what caused it.
->=20
-> Telling someone to do hard and time consuming job that probably will
-> not succeed, instead of actually providing help. Very very funny.
+Hi,
 
-you're getting code for free, you're getting help for free. Not many
-people have N900s lying around. Running a bisection is just politeness.
+On Tue, Jan 06, 2015 at 02:13:23PM -0500, David Miller wrote:
+> From: Felipe Balbi <balbi@ti.com>
+> Date: Tue, 6 Jan 2015 11:43:32 -0600
+>=20
+> > CPSW completely hangs if we add, and later remove,
+> > VLAN ID #1. What happens is that after removing
+> > VLAN ID #1, no packets will be received by CPSW
+> > rendering network unusable.
+> >=20
+> > In order to "fix" the issue, we're returning -EINVAL
+> > if anybody tries to add VLAN ID #1. While at that,
+> > also filter out any ID > 4095 because we only have
+> > 12 bits for VLAN IDs.
+> >=20
+> > Fixes: 3b72c2f (drivers: net:ethernet: cpsw: add support for VLAN)
+> > Cc: <stable@vger.kernel.org> # v3.9+
+> > Cc: Mugunthan V N <mugunthanvnm@ti.com>
+> > Tested-by: Schuyler Patton <spatton@ti.com>
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>=20
+> You can't just unilaterally make one VLAN ID unusable.
+>=20
+> A better way to handle this situation must be found,
+> and if that means turning off hw VLAN support completely,
+> that's a much better alternative to this.
+>=20
+> I'm not applying this patch, sorry.
+
+All other IDs work alright, it's just ID 1 which seems to be quirky. In
+fact when trying to add VLAN ID 1, vconfig itself dumps out a warning
+that VLAN ID 1 doesn't work on most switches.
+
+What you're saying here is that you prefer to drop a feature that works
+for all other 1023 IDs because 1 ID is quirky. Sounds like overkill
+to me.
 
 --=20
 balbi
 
---9zSXsLTf0vkW971A
+--1SQmhf2mF2YjsYvc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUrEWJAAoJEIaOsuA1yqRE33EP/2i+SwBCnH92zuaXrHTSEMJS
-TwHOUN7CntSm7nrrYNLRr4wwp7zCtk5SRyXvEQpMEArzvdOJMNhLD7QriL032hIt
-hl1mU4YI4Df/WnJHx3535cKV5r+UeCfGvZgNs8qeGp3QdzeH4ASFN6ttI+MKxAN0
-ezgPdnqY2al50MyN+XH6haAsy6BA+BvWvM/I9vnvKgn7FiZ/1i2S49TDh3+jYk/s
-459wbEG1/gb61HlldaXyy3Pbc31635S2UBs2jILv5iIvRxP1GsDHzyckV6X/raAz
-stPty7OvD04CciXaQ7yOx6/EiRsKtD+L3Way+EEytsIJCB2msK1Lf02MX6E7w2K3
-QLSfHfXR2aKDrLs30rI4bctzug4Wd8+3eVJ/jUsAf3MN63yDu6k+/QH0tn+O5PSO
-bcVkckBfMMF+FCh15hFLw9TnOHymXh1ySJbGu2yCtQO/u/qb9pLmuwJ2kF6cghoZ
-vQ7xiE2grs7Z2hafNBi4iy9ZKgykyHpaTVlTjWC+BuwLwLlZuq5KUg15z9vOl6Au
-lrB0umD8iaIKpFeqot7o+3/8bp4z2RGhtkskhVNL7zk08Gin6nGTISsj25eSkbLA
-QMQ/MFRyE2Sc2nP+QqNXPEYEk8BA8Hg73TZFwSUZyg9vqEz4x6xElFGumshwBqzU
-5wnlFwU4xg0lXDXs2njU
-=oPkR
+iQIcBAEBAgAGBQJUrEYXAAoJEIaOsuA1yqRERJwQALM/ArzpuY1h0bnqDUnRdlFj
+ejsi2LkbLet8fC6oFERshF89pwuRGP8Vti0Tv5ppHrti5gDKr63A5u6p2I1MQpB9
+aKsuwNCRedwKo/poG9KCxM/YA8w6v7DuMjfIwFPUP/dzVyG9OSTaGZJ+1junbOTq
+4NOZkIWVUv+5B1n+d2lhM3RWA6HXGTWNpTX325l/ejXCXmE08wVYuocpk8GUtS50
+3iM6gmLh/B8KVi15qywJnuvescShtyZ8DVlSsWEG+ElGrJzV8BcPpAooFgqtumQp
+EYBM8Fieo9e/naS5JXx0bHAf4jBUciQOQUVI1ooIrnaUW7CjMikvTcVVIv7hyiN1
+QY8dk6sOq9Q5r9mRCkDX2Dc3KXUJq7/j6GAL5EBdZbWHSnX8MmMJVVCgHdNMugjZ
+N+HyDmHND2TEr8QOpH6f2OzI2JIptmHvkoxjvZjfAsP4Pq5U1T7j6yzcd5uJP9k+
+KxdDcJSnq7DTP0aoEu0ac+Ej+pHlfU8L3xN+5qF/OOGqoQgMLOIsa1M0hcoTdTZh
+rIUNqlMqhVhZ6iAjFDSBVIBh7MzuN6WDScKeu+n657E8A8b1jikYgnEvkZIzmRj8
++4i4uitdPiPxw+wBqimRFXX1NqKwOGDxL+13KUfjLOvQzMjNxfTy3PKxPeocg//w
+sOHVhecbttunvt8PCMau
+=3Adf
 -----END PGP SIGNATURE-----
 
---9zSXsLTf0vkW971A--
+--1SQmhf2mF2YjsYvc--
