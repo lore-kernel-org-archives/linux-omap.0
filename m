@@ -1,60 +1,49 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Tue, 6 Jan 2015 23:08:05 +0100
-Message-ID: <20150106220805.GD13902@amd>
-References: <20150106170433.GA5408@amd>
- <20150106172545.GK6502@saruman>
- <20150106175115.GA19487@amd>
- <20150106202857.GB32308@saruman>
- <20150106205000.GB13902@amd>
- <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
+Date: Tue, 6 Jan 2015 14:04:30 -0800
+Message-ID: <20150106220429.GA4081@atomide.com>
+References: <20150105230228.GO4081@atomide.com>
+ <20150106080025.GA6752@amd>
+ <20150106165903.GF4025@atomide.com>
+ <20150106194443.GH30544@fuloong-minipc.musicnaut.iki.fi>
+ <20150106195454.GW4081@atomide.com>
+ <20150106215634.GB6071@fuloong-minipc.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47548 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754542AbbAFWIU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 17:08:20 -0500
 Content-Disposition: inline
-In-Reply-To: <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
+In-Reply-To: <20150106215634.GB6071@fuloong-minipc.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Sebastian Reichel <sre@kernel.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 
-On Tue 2015-01-06 22:57:30, Aaro Koskinen wrote:
+* Aaro Koskinen <aaro.koskinen@iki.fi> [150106 13:59]:
 > Hi,
 > 
-> On Tue, Jan 06, 2015 at 09:50:00PM +0100, Pavel Machek wrote:
-> > PS: Unfortunately, N900 will not boot using nfsroot in 3.16+ at least,
-> > and boot from MMC card is broken and has been for quite some time.
+> On Tue, Jan 06, 2015 at 11:54:55AM -0800, Tony Lindgren wrote:
+> > Run u-boot/tools/gen_eth_addr to generate a random local mac,
+> > then swap the bytes for it for big endian. Enter them into a
+> > file with hexedit in big endian order. Then just do:
+> > 
+> > # cat mac | ethtool -E eth0 offset 0x40 length 6
+> > 
+> > Then ethtool -e eth0 should show you the configuration.
 > 
-> USB networking works fine with 3.19-rc3 and also MMC card rootfs.
+> Does any other eeprom data need to be set? It seems to be all 0xff.
+> I generated a mac from /dev/random and it shows up fine in those offsets
+> and with ifconfig, but I still can't get a link up:
+> 
+> ifconfig: SIOCSIFFLAGS: Cannot assign requested address
 
-Does nfsroot work for you? USB networking works as a module but not
-build-in. [Patch is available for this one.]
+Chances are you did not swap the mac address bits around
+and it's trying to use a reserved mac address now? The
+mac needs to be the other way around..
 
-u-SD card seems to have similar problem. If I try it after boot, I can
-access it ok, but using u-SD card for rootfs fails. If it works for
-you, it would be interesting to know.
+Regards,
 
-I'm loading zImage using 0xffff directly from the PC.
-
-For the audio: this should do the trick:
-
-
-root@n900:~# uname -a
-Linux n900 3.18.0-omap3-69644-g0ed746d #837 PREEMPT Sun Jan 4 22:30:24
-CET 2015 armv7l GNU/Linux
-root@n900:~# alsactl init
-Found hardware: "RX-51" "" "" "" ""
-Hardware is initialized using a generic method
-root@n900:~# cat /etc/debian_version
-7.7
-root@n900:~# mplayer /my2/*
-
-(audio actually works).
-
-I do have Pali's n900 changes applied. I guess I should try without
-them. Let me know if .config would help you.
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Tony
