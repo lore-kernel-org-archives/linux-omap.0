@@ -1,50 +1,53 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: DT support for OMAP3 ISP
-Date: Wed, 7 Jan 2015 00:11:07 +0200
-Message-ID: <20150106221107.GV17565@valkosipuli.retiisi.org.uk>
-References: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
- <20150106214218.GZ4081@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Wed, 7 Jan 2015 00:27:17 +0200
+Message-ID: <20150106222717.GC6071@fuloong-minipc.musicnaut.iki.fi>
+References: <20150106170433.GA5408@amd>
+ <20150106172545.GK6502@saruman>
+ <20150106175115.GA19487@amd>
+ <20150106202857.GB32308@saruman>
+ <20150106205000.GB13902@amd>
+ <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
+ <20150106220805.GD13902@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57034 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753132AbbAFWLk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 17:11:40 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150106214218.GZ4081@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150106220805.GD13902@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ash Charles <ashcharles@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, laurent.pinchart@ideasonboard.com
 
-(Fixed Laurent's e-mail.)
-
-Moikka,
-
-On Tue, Jan 06, 2015 at 01:42:18PM -0800, Tony Lindgren wrote:
-> * Ash Charles <ashcharles@gmail.com> [150106 12:45]:
+On Tue, Jan 06, 2015 at 11:08:05PM +0100, Pavel Machek wrote:
+> On Tue 2015-01-06 22:57:30, Aaro Koskinen wrote:
 > > Hi,
 > > 
-> > I'm playing with the Caspa camera (mt9v032) and Overo on the 3.17
-> > kernel.  It looks like there has been some work on dt-bindings for the
-> > omap3isp (notably [1] and [2]) but I didn't see anything heading for
-> > mainline.
+> > On Tue, Jan 06, 2015 at 09:50:00PM +0100, Pavel Machek wrote:
+> > > PS: Unfortunately, N900 will not boot using nfsroot in 3.16+ at least,
+> > > and boot from MMC card is broken and has been for quite some time.
 > > 
-> > What would be needed to support cameras using the omap3isp in a mainline kernel?
+> > USB networking works fine with 3.19-rc3 and also MMC card rootfs.
 > 
-> No idea about the camera, but at least the legacy omap DMA calls need
-> to be replaced or removed as the legacy DMA API will go away soon.
+> Does nfsroot work for you? USB networking works as a module but not
+> build-in. [Patch is available for this one.]
+> 
+> u-SD card seems to have similar problem. If I try it after boot, I can
+> access it ok, but using u-SD card for rootfs fails. If it works for
+> you, it would be interesting to know.
 
-OMAP DMA is only used by the histogram block which can cope with PIO as well
---- I think there at least was a #define for it. That's not a reason not to
-convert it however, it's just not as urgent it otherwise might be. I wonder
-if someone has patches for that already.
+I haven't tried nfsroot, but I've been using USB networking for ssh
+for a couple of years without issues. I have g_ether as module.
 
-Cc Laurent.
+Also I recently switched rootfs to u-SD card, and it (MMC) works fine
+as builtin.
 
--- 
-Terveisin,
+But I'm mounting it from userspace (using builtin initramfs inside
+zImage), with a poll loop that waits for a device to appear. Maybe if you
+do it from kernel you need to use root wait/delay etc. options?
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> I'm loading zImage using 0xffff directly from the PC.
+
+Same here.
+
+A.
