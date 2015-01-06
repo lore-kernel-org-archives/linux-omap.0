@@ -1,9 +1,8 @@
-From: Sebastian Reichel <sre@kernel.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Tue, 6 Jan 2015 12:52:50 +0100
-Message-ID: <20150106115250.GA27539@earth.universe>
-References: <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
- <20150102161911.GA3298@atomide.com>
+Date: Tue, 6 Jan 2015 14:38:31 +0200
+Message-ID: <20150106123830.GD30544@fuloong-minipc.musicnaut.iki.fi>
+References: <20150102161911.GA3298@atomide.com>
  <54A6E408.1090908@gmx.net>
  <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi>
  <20150102204018.GF3298@atomide.com>
@@ -11,88 +10,61 @@ References: <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi>
  <20150103000220.GE3279@atomide.com>
  <20150103121622.GN582@fuloong-minipc.musicnaut.iki.fi>
  <20150105154313.GA19336@saruman>
- <54ABC618.8070906@gmx.net>
+ <20150105231620.GC30544@fuloong-minipc.musicnaut.iki.fi>
+ <20150106020122.GA24980@saruman>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:44829 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755232AbbAFLw6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Jan 2015 06:52:58 -0500
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:47279 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713AbbAFMik (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 07:38:40 -0500
 Content-Disposition: inline
-In-Reply-To: <54ABC618.8070906@gmx.net>
+In-Reply-To: <20150106020122.GA24980@saruman>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter =?iso-8859-1?Q?K=FCmmel?= <syntheticpp@gmx.net>
-Cc: balbi@ti.com, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
-
-
---ew6BAiZeqk4r7MaW
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter =?iso-8859-1?Q?K=FCmmel?= <syntheticpp@gmx.net>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
 Hi,
+On Mon, Jan 05, 2015 at 08:01:22PM -0600, Felipe Balbi wrote:
+> On Tue, Jan 06, 2015 at 01:16:21AM +0200, Aaro Koskinen wrote:
+> > I did some debugging and it seems the "In-band Error"
+> > occurs when omap_system_dma_probe() is being run, specifically when
+> > the interrupt is enabled. I believe the "DMA" interrupt it's trying
+> > set up is completely wrong:
+> > 
+> >  28:          0      GPIO   2  DMA
+> > 
+> > GPIO 2?! Where is that coming from?
+> 
+> heh, it's probably the linux number used ended up mapping to another irq
+> domain. Can you add this debugging patch and report dmesg ?
 
-On Tue, Jan 06, 2015 at 12:25:12PM +0100, Peter K=FCmmel wrote:
-> Am 05.01.2015 um 16:43 schrieb Felipe Balbi:
-> >Just booted AM335x with CONFIG_PREEMPT and haven't seen any problem.
-> >Perhaps this is something related to another OMAP3-only driver?
-> >Perhaps HSI/SSI ?
->=20
-> I see a ssi error directly before the IN-Band error:
->=20
-> [    0.339935] platform 48058000.ssi-controller: Cannot lookup hwmod 'ssi'
-> [    0.346893] In-band Error seen by MPU  at address 0
-> [    0.346923] ------------[ cut here ]------------
+Post-commit:
 
-mh I guess your board's dts included omap36xx.dtsi or omap34xx.dtsi.
-Since ssi controller is not available on DM3xxx/AM3xxx (AFAIK) it
-should be disabled for those SoCs:
+[    0.208251] omap_dma_system omap_dma_system.0: legacy DMA IRQ 28
+[    0.216125] omap-dma-engine 48056000.dma-controller: dmaengine IRQ 22
 
-&ssi {
-    status =3D "disabled";
-};
+ 22:          5      INTC  13  omap-dma-engine
+ 28:          0      GPIO   2  DMA
 
-=46rom what I can see the following in-tree .dts files should be
-fixed, too:
+Pre-commit:
 
-* am3517_mt_ventoux.dts
-  Currently includes "omap34xx.dtsi" instead of "am3517.dtsi".
+[    0.208557] omap_dma_system omap_dma_system.0: legacy DMA IRQ 28
+[    0.216461] omap-dma-engine 48056000.dma-controller: dmaengine IRQ 29
 
-Apart from that the following boards seem to use omap36xx.dtsi
-include, but are actually DM37xx, so they should disable the
-ssi block:
+ 28:          0      INTC  12  DMA
+ 29:          5      INTC  13  omap-dma-engine
 
-* omap3-igep.dtsi
-* omap3-lilly-a83x.dtsi
-* omap3-overo-storm.dtsi
+> Note that I need one log post commit and another log pre commit. If any
+> of the IRQ numbers change, if means that irq_domain_add_linear() ended
+> up changing IRQ start and we would need some trick to grab the correct
+> IRQ number again.
 
-I will prepare a patch for that later.
+So looks like static OMAP_INTC_START cannot be used anymore, but hwmod
+data is full of these?
 
--- Sebastian
+mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c: { .name = "0", .irq = 12 + OMAP_INTC_START, }, /* INT_24XX_SDMA_IRQ0 */
 
---ew6BAiZeqk4r7MaW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUq8yOAAoJENju1/PIO/qaatcP/0aXxLJ4/y/eyTTAGK72Vq+w
-hT59E1F5Tc0WJxILcy8KMG8XgJpLxwmKP+sEcsh3yD88nNJIvyTr21t38K8eaOmw
-6zyneTz0NXIgbvugILrKjjGdtAYOzzQCL8X9t1wVdIJRrNqPztKxm/cgYqlxoC7I
-wp4R+aXLcqrcNsI3FVtuMqVDUFd/8QF3IFoGj8MQda+IJ9xH2H56VIhaFzTTpgk0
-8yrmZoi8ApnCwcg4/QUQK04l9aW4xyE00oFyZgWUq412RVBaOGTtQP/wfYkzvgN1
-sZIdiBRXGRgtJErnWuwB/3LVrzaciLlRJ6RUFRPc4G620S1V5zeRf13a0cr3G9vH
-ROI1HIBoE00G/pwUEEuL4ludZcVhpoKLLvIhY2iN7TyqO4ncP2zN/L+CsQHDW2hM
-dgIjB61U16asmljafM3q+bWWG7UZmsMV5YjH/0G9MrRVwbOWC5FogFizjuPd/QWI
-TilEDfex73EtW7J/VMFK5tnnghWmCj6rBHljrkFvhqKo7IsrZ3bv4umIbwokMmFb
-BH6sQ38EJCH35pDwa9pk2P0XBqBRDe2wEzFOZVagZiCp9eR/MnCD+CXtbEmcgqWA
-M4Wl836kJFj6e9I81hwvPxOrNAGUzZ05LoUsy0spV1QtOw5l+PAMTF+I01At/dYV
-iMKMcBX9fo9jhtm88tIr
-=zDmY
------END PGP SIGNATURE-----
-
---ew6BAiZeqk4r7MaW--
+A.
