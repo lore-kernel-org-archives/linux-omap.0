@@ -1,65 +1,103 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] net: ethernet: cpsw: ignore VLAN ID 1
-Date: Tue, 6 Jan 2015 11:43:32 -0600
-Message-ID: <1420566212-30081-1-git-send-email-balbi@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] irqchip: omap-intc: fix legacy DMA regression
+Date: Tue, 6 Jan 2015 19:48:05 +0200
+Message-ID: <20150106174805.GF30544@fuloong-minipc.musicnaut.iki.fi>
+References: <20150106123830.GD30544@fuloong-minipc.musicnaut.iki.fi>
+ <1420563093-26026-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1420563093-26026-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter =?iso-8859-1?Q?K=FCmmel?= <syntheticpp@gmx.net>, Pavel Machek <pavel@ucw.cz>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-CPSW completely hangs if we add, and later remove,
-VLAN ID #1. What happens is that after removing
-VLAN ID #1, no packets will be received by CPSW
-rendering network unusable.
+On Tue, Jan 06, 2015 at 10:51:33AM -0600, Felipe Balbi wrote:
+> commit 55601c9f2467 (arm: omap: intc: switch over
+> to linear irq domain) introduced a regression with
+> SDMA legacy driver because that driver strictly depends
+> on INTC's IRQs starting at NR_IRQs. Aparently
+> irq_domain_add_linear() won't guarantee that, since we see
+> a 7 IRQs difference when booting with and without the
+> commit cited above.
+> 
+> Until arch/arm/plat-omap/dma.c is properly fixed, we
+> must maintain OMAP2/3 using irq_domain_add_legacy().
+> 
+> A FIXME note was added so people know to delete that
+> code once that legacy DMA driver is fixed up.
+> 
+> Fixes: 55601c9f2467 (arm: omap: intc: switch over to linear irq domain)
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-In order to "fix" the issue, we're returning -EINVAL
-if anybody tries to add VLAN ID #1. While at that,
-also filter out any ID > 4095 because we only have
-12 bits for VLAN IDs.
+I tested this on N950 with 3.19-rc3, and /proc/interrupts looks sane
+and also the "In-band Error" is gone.
 
-Fixes: 3b72c2f (drivers: net:ethernet: cpsw: add support for VLAN)
-Cc: <stable@vger.kernel.org> # v3.9+
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Tested-by: Schuyler Patton <spatton@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index e61ee8351272..028bb7f3de65 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1669,6 +1669,13 @@ static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
- 	if (vid == priv->data.default_vlan)
- 		return 0;
- 
-+	/* NOTICE: CPSW does not support VID 1. We should
-+	 * also filter out VID > 4095 as we only have 12
-+	 * bits for VID entries
-+	 */
-+	if (vid == 1 || vid >= VLAN_N_VID)
-+		return -EINVAL;
-+
- 	dev_info(priv->dev, "Adding vlanid %d to vlan filter\n", vid);
- 	return cpsw_add_vlan_ale_entry(priv, vid);
- }
-@@ -1682,6 +1689,13 @@ static int cpsw_ndo_vlan_rx_kill_vid(struct net_device *ndev,
- 	if (vid == priv->data.default_vlan)
- 		return 0;
- 
-+	/* NOTICE: CPSW does not support VID 1. We should
-+	 * also filter out VID > 4095 as we only have 12
-+	 * bits for VID entries
-+	 */
-+	if (vid == 1 || vid >= VLAN_N_VID)
-+		return -EINVAL;
-+
- 	dev_info(priv->dev, "removing vlanid %d from vlan filter\n", vid);
- 	ret = cpsw_ale_del_vlan(priv->ale, vid, 0);
- 	if (ret != 0)
--- 
-2.2.0
+BTW, I guess people still using 3.18.x will get the wrong IRQ for DMA,
+so maybe you should consider adding also Cc: stable...
+
+A.
+
+> ---
+>  drivers/irqchip/irq-omap-intc.c | 26 +++++++++++++++++++++-----
+>  1 file changed, 21 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+> index 3c970259c0eb..6ef88f56cf8d 100644
+> --- a/drivers/irqchip/irq-omap-intc.c
+> +++ b/drivers/irqchip/irq-omap-intc.c
+> @@ -263,7 +263,7 @@ static int __init omap_init_irq_of(struct device_node *node)
+>  	return ret;
+>  }
+>  
+> -static int __init omap_init_irq_legacy(u32 base)
+> +static int __init omap_init_irq_legacy(u32 base, struct device_node *node)
+>  {
+>  	int j, irq_base;
+>  
+> @@ -277,7 +277,7 @@ static int __init omap_init_irq_legacy(u32 base)
+>  		irq_base = 0;
+>  	}
+>  
+> -	domain = irq_domain_add_legacy(NULL, omap_nr_irqs, irq_base, 0,
+> +	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
+>  			&irq_domain_simple_ops, NULL);
+>  
+>  	omap_irq_soft_reset();
+> @@ -301,10 +301,26 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+>  {
+>  	int ret;
+>  
+> -	if (node)
+> +	/*
+> +	 * FIXME legacy OMAP DMA driver sitting under arch/arm/plat-omap/dma.c
+> +	 * depends is still not ready for linear IRQ domains; because of that
+> +	 * we need to temporarily "blacklist" OMAP2 and OMAP3 devices from using
+> +	 * linear IRQ Domain until that driver is finally fixed.
+> +	 */
+> +	if (of_device_is_compatible(node, "ti,omap2-intc") ||
+> +			of_device_is_compatible(node, "ti,omap3-intc")) {
+> +		struct resource res;
+> +
+> +		if (of_address_to_resource(node, 0, &res))
+> +			return -ENOMEM;
+> +
+> +		base = res.start;
+> +		ret = omap_init_irq_legacy(base, node);
+> +	} else if (node) {
+>  		ret = omap_init_irq_of(node);
+> -	else
+> -		ret = omap_init_irq_legacy(base);
+> +	} else {
+> +		ret = omap_init_irq_legacy(base, NULL);
+> +	}
+>  
+>  	if (ret == 0)
+>  		omap_irq_enable_protection();
+> -- 
+> 2.2.0
+> 
