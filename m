@@ -1,54 +1,183 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: DT support for OMAP3 ISP
-Date: Wed, 7 Jan 2015 00:10:35 +0200
-Message-ID: <20150106221034.GU17565@valkosipuli.retiisi.org.uk>
-References: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Tue, 6 Jan 2015 16:10:23 -0600
+Message-ID: <54AC5D4F.1020102@ti.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com> <alpine.DEB.2.02.1501060202540.28771@utopia.booyaka.com> <54AB9983.1040703@ti.com> <54AC1800.1020406@ti.com> <54AC1AFB.4070504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57003 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754299AbbAFWKn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 17:10:43 -0500
-Content-Disposition: inline
-In-Reply-To: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35997 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755933AbbAFWKv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jan 2015 17:10:51 -0500
+In-Reply-To: <54AC1AFB.4070504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ash Charles <ashcharles@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, santosh.shilimkar@oracle.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Charles,
-
-On Tue, Jan 06, 2015 at 12:42:12PM -0800, Ash Charles wrote:
-> I'm playing with the Caspa camera (mt9v032) and Overo on the 3.17
-> kernel.  It looks like there has been some work on dt-bindings for the
-> omap3isp (notably [1] and [2]) but I didn't see anything heading for
-> mainline.
+On 01/06/2015 11:27 AM, Suman Anna wrote:
+> Hi Paul,
 > 
-> What would be needed to support cameras using the omap3isp in a mainline kernel?
+> On 01/06/2015 11:14 AM, Suman Anna wrote:
+>> Hi Paul,
+>>
+>> On 01/06/2015 02:14 AM, Lokesh Vutla wrote:
+>>> Hi Paul,
+>>> On Tuesday 06 January 2015 07:34 AM, Paul Walmsley wrote:
+>>>>
+>>>> Roger, Lokesh, could you try this one instead?
+>>> Yep, the below patch works on AM437x.
+>>> Boot logs here: http://paste.ubuntu.com/9680938/
+>>>
+>>> Thanks and regards,
+>>> Lokesh
+>>>>
+>>>> It passes all the basic tests here except it does not boot on the 4460 
+>>>> VAR-SOM-OM - unclear why at this point - but it would be good to see if it 
+>>>> works on your AM4372 boards, since I don't have that one.
 > 
-> Thanks for any insight,
-> --Ash
+> Looking at your rc3 log @
+> http://www.pwsan.com/omap/testlogs/test_v3.19-rc3/20150105224749/boot/4460varsomom/,
+> I do see a missing reg entry for mailbox, and that's the reason for your
+> hang because of the missing bail out in your new patch.
 > 
-> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt-v2
-> [2] http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt
+> [    0.261932] ------------[ cut here ]------------
+> [    0.261962] WARNING: CPU: 0 PID: 1 at
+> arch/arm/mach-omap2/omap_hwmod.c:2458 _init+0x3a0/0x3f0()
+> [    0.261962] omap_hwmod: mailbox: doesn't have mpu register target base
+> ...
+> ...
+> [    0.262329] ---[ end trace a1be72591db4662e ]---
+> 
+> Now that said, this is weird, since the reg property for mailbox is
+> defined in the base omap4.dtsi and should be inherited by the 4460
+> VAR-SOM-OM, unless you are booting with an old dtb.
+> 
+> regards
+> Suman
+> 
+>>>>
+>>>> Test logs are here:
+>>>>
+>>>> http://www.pwsan.com/omap/testlogs/hwmod_skip_only_remap_v3.19-rc/20150105171744/
+>>>>
+>>>>
+>>>> - Paul
+>>>>
+>>>>
+>>>> From 4f2e13bd2181e0ebede3aabc484aa2339830748a Mon Sep 17 00:00:00 2001
+>>>> From: Paul Walmsley <paul@pwsan.com>
+>>>> Date: Mon, 5 Jan 2015 15:49:57 -0700
+>>>> Subject: [PATCH] Only skip ioremap() if IP block does not have OCP header
+>>>>  registers. Experimental.
+>>>>
+>>>> ---
+>>>>  arch/arm/mach-omap2/omap_hwmod.c | 33 +++++++++++++++++++++------------
+>>>>  1 file changed, 21 insertions(+), 12 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>>> index cbb908dc5cf0..03df8833d399 100644
+>>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>>> @@ -1938,6 +1938,8 @@ static int _reset(struct omap_hwmod *oh)
+>>>>  	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+>>>>  
+>>>>  	if (oh->class->reset) {
+>>>> +		WARN(!oh->_mpu_rt_va, "Attempt to call custom reset with no MPU register target ioremapped: %s",
+>>>> +		     oh->name);
+>>>>  		r = oh->class->reset(oh);
+>>>>  	} else {
+>>>>  		if (oh->rst_lines_cnt > 0) {
+>>>> @@ -2358,15 +2360,19 @@ static int of_dev_hwmod_lookup(struct device_node *np,
+>>>>  }
+>>>>  
+>>>>  /**
+>>>> - * _init_mpu_rt_base - populate the virtual address for a hwmod
+>>>> + * _init_mpu_rt_base - populate the MPU port and virtual address
+>>>>   * @oh: struct omap_hwmod * to locate the virtual address
+>>>>   * @data: (unused, caller should pass NULL)
+>>>>   * @index: index of the reg entry iospace in device tree
+>>>>   * @np: struct device_node * of the IP block's device node in the DT data
+>>>>   *
+>>>> - * Cache the virtual address used by the MPU to access this IP block's
+>>>> - * registers.  This address is needed early so the OCP registers that
+>>>> - * are part of the device's address space can be ioremapped properly.
+>>>> + * Cache the interconnect target port and the virtual address used by
+>>>> + * the MPU to access this IP block's registers.  The address is needed
+>>>> + * early so the OCP registers that are part of the device's address
+>>>> + * space can be ioremapped properly.  The presence or absence of the
+>>>> + * interconnect target port also indicates whether the hwmod code
+>>>> + * should wait for the IP block to indicate readiness after it is
+>>>> + * enabled.
+>>>>   *
+>>>>   * Returns 0 on success, -EINVAL if an invalid hwmod is passed, and
+>>>>   * -ENXIO on absent or invalid register target address space.
+>>>> @@ -2385,6 +2391,13 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
+>>>>  	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+>>>>  		return -ENXIO;
+>>>>  
+>>>> +	/*
+>>>> +	 * If there's no need for the hwmod code to read or write to
+>>>> +	 * the IP block registers, bail out early before the ioremap()
+>>>> +	 */
+>>>> +	if (!oh->class->sysc)
+>>>> +		return 0;
+>>>> +
 
-Please use this one instead:
+Also, I am getting some additional warnings [1] w.r.t MPU hwmod when I
+changed the pr_debug on the check on _init_mpu_rt_base returned value to
+a WARN and return like before. These warnings seem to be because -ENXIO
+is returned as MPU hwmod will be setup with _HWMOD_NO_MPU_PORT. By
+moving the !oh->class->sysc check prior to the _int_flags check and
+after the _save_mpu_port_index(oh) call, I get the log similar to 3.19-rc3.
 
-It's much improved compared to what was there in the other branch:
+Below test log is on BeagleBone black, and I have removed mailbox reg
+from am33xx.dtsi as well for testing the patch.
 
-<URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux.git;a=shortlog;h=refs/heads/rm696-046-dt>
+regards
+Suman
 
-That rebased on current media-tree.git doesn't work; for some reason the
-IOMMU doesn't get bound correctly to the ISP DT node. Something to figure
-out.
+[1] http://slexy.org/view/s2bWsGSV1Y
 
-Indeed it's not in mainline yet, although the delta is a lot smaller than it
-was back then, especially for the smiapp driver (which may not be relevant
-for you though).
+>>>>  	mem = _find_mpu_rt_addr_space(oh);
+>>>>  	if (!mem) {
+>>>>  		pr_debug("omap_hwmod: %s: no MPU register target found\n",
+>>>> @@ -2451,14 +2464,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+>>>>  				oh->name, np->name);
+>>>>  	}
+>>>>  
+>>>> -	if (oh->class->sysc) {
+>>>> -		r = _init_mpu_rt_base(oh, NULL, index, np);
+>>>> -		if (r < 0) {
+>>>> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+>>>> -			     oh->name);
+>>>> -			return 0;
+>>>> -		}
+>>>> -	}
+>>>> +	r = _init_mpu_rt_base(oh, NULL, index, np);
+>>>> +	if (r < 0)
+>>>> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
+>>>> +			 oh->name);
+>>
+>> You have removed the return from the above block on failure. If any DT
+>> entry doesn't have the reg property, this will hang the kernel boot.
+>> Just remove the "reg" entry from any of the existing DT, and you will
+>> run into the issue, this is what 6423d6df1440 ("ARM: OMAP2+: hwmod:
+>> check for module address space during init") fixed. Also, are you sure
+>> you want to turn the WARN into a pr_debug, it won't even show during the
+>> kernel boot log if the reg base is missing.
+>>
+>> regards
+>> Suman
+>>
+>>>>  
+>>>>  	r = _init_clocks(oh, NULL);
+>>>>  	if (r < 0) {
+>>>>
+>>>
+>>
+> 
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
