@@ -1,61 +1,63 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
-Date: Tue, 06 Jan 2015 09:32:02 -0500
-Message-ID: <54ABF1E2.1010905@hurleysoftware.com>
-References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <9492211.AECobr3jIN@wuerfel>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
+Date: Tue, 6 Jan 2015 16:03:54 +0100
+Message-ID: <20150106150353.GA2321@earth.universe>
+References: <20150105230228.GO4081@atomide.com>
+ <201501060009.15806@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9492211.AECobr3jIN@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:55017 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755433AbbAFPEC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jan 2015 10:04:02 -0500
+Content-Disposition: inline
+In-Reply-To: <201501060009.15806@pali>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
 
-On 01/06/2015 08:13 AM, Arnd Bergmann wrote:
-> On Monday 05 January 2015 22:09:45 Peter Hurley wrote:
->> Some arches have no need to create unprobed 8250 ports; these phantom
->> ports are primarily required for ISA ports which have no probe
->> mechanism or to provide non-operational ports for userspace to
->> configure (via TIOCSSERIAL and TIOCSERCONFIG ioctls).
->>
->> Provide CONFIG_SERIAL_8250_PHANTOM_UARTS knob to disable phantom port
->> registration; ie., CONFIG_SERIAL_8250_PHANTOM_UARTS=N only registers
->> probed ports (ACPI/PNP, "serial8250" platform devices, PCI, etc).
->>
->> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Grant Likely <grant.likely@linaro.org>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
-> 
-> The intent is definitely right, but I think a better approach is
-> possible.
-> 
-> I haven't tried it here, but how about moving the serial8250_init
-> function into a separate module, along with all the other parts
-> that are only used for ISA devices, but leaving the actual core
-> (all exported symbols) in this file?
 
-Unfortunately, I don't see a way to remove the stacked initialization
-without risking tons of breakage.
+--wRRV7LY7NUeQGEoC
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Since later probes can "find" an already-existing port and
-re-initialize it, the probe order is crucial. For example, a PCI
-probe can "find" an existing "serial8250" platform device port,
-resulting in only one device node.
+Hi Pali,
 
-And the configuration knob will be required on all arches anyway because
-that's how user-configurable device nodes are created.
+On Tue, Jan 06, 2015 at 12:09:15AM +0100, Pali Roh=E1r wrote:
+> Just to note that smc91x ethernet support is also in qemu n900
+> emulation. Later I will try if it work with upstream kernel...
 
-> At the same time, the serial8250_pnp_init/serial8250_pnp_exit calls
-> can be removed from the serial8250_init function and become
-> standalone initcalls.
+$ qemu-system-arm --machine '?' | grep n900 || echo "No N900 support"
+No N900 support
 
-PNP probe must occur before the phantom ports are registered.
-See commit 835d844d1a28efba81d5aca7385e24c29d3a6db2
-("8250_pnp: do pnp probe before legacy probe").
+Is there work going on to mainline the n900 patches for qemu?
 
-Regards,
-Peter Hurley
+-- Sebastian
+
+--wRRV7LY7NUeQGEoC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUq/lWAAoJENju1/PIO/qa1eIP/izxQpjsrKRlu99jNYYUbT5Z
+KU4h3Z89Ltdr0uJEluSsimrTTFqT9mI700yw3KNgZmCdtvHkQbdARxsS5B5vcH06
+EZ7t0y2sMJ/U/tbWhcDv8BAxt0pFQdadmnPlHLAr2ef+5yEdbYqK2NmwVcwvwlJG
+oL4wkjSmfOZhHb31A3ud54sxRNaQ4lHrDr0J4c/vSiX6Gb6DzmUOucPa7tJtGkQA
+8G/RS8ygxtJWChner2z/XOwzVUsPpdgNQFKXqC3dHPsY2y9EG6KakzabBKeeKu+0
+wYvSZ/KV87at6GDrb7KYe/cfqGyMwKRguYuZ9dA29Ehy5WrvQCMc3RNZxa3P92gl
+xPXbo4U8YmUv67Og/HyNjZqSP6PEzqH7lGm3vAiHO4uzMxOc/urMDZX3/O7tQf+R
+Irb/c7rV5uhT0QcWDuPRXvY5XHHNwyxA8d1JKPwoEvM8IkJmh7TmgL+z3vwc3/xS
+qX1UBIN8pqnQ322P9OY4LFnpCQqWz/oMToU3jN+Ptgad+UCyEr7upxi3qUlC0sto
+wAyfAdpZAvVC+hV55lo16auDYCdhqYL9BGEIs6ADnHsu6W+5Ugb/K/IJLLcy6s82
+4QKemFDCX5X6sTzZ+BkHKabAbfwBjdFQBPftLbfRu0JT1qQkzq+p4zclvnqlXe2/
+3IvHG8oHrYCJ1ReuwlEG
+=tTB3
+-----END PGP SIGNATURE-----
+
+--wRRV7LY7NUeQGEoC--
