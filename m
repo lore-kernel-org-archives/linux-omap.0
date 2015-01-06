@@ -1,79 +1,25 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Tue, 6 Jan 2015 22:57:44 +0100
-Message-ID: <20150106215744.GC13902@amd>
-References: <20150106170433.GA5408@amd>
- <20150106172545.GK6502@saruman>
- <20150106175115.GA19487@amd>
- <20150106202857.GB32308@saruman>
- <20150106205000.GB13902@amd>
- <20150106205413.GF32308@saruman>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: cpsw: ignore VLAN ID 1
+Date: Tue, 06 Jan 2015 16:59:11 -0500 (EST)
+Message-ID: <20150106.165911.604916635790072318.davem@davemloft.net>
+References: <1420566212-30081-1-git-send-email-balbi@ti.com>
+	<20150106.141323.2091288413667564444.davem@davemloft.net>
+	<20150106203119.GC32308@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150106205413.GF32308@saruman>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150106203119.GC32308@saruman>
+Sender: netdev-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org, mugunthanvnm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 2015-01-06 14:54:13, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, Jan 06, 2015 at 09:50:00PM +0100, Pavel Machek wrote:
-> > On Tue 2015-01-06 14:28:57, Felipe Balbi wrote:
-> > > On Tue, Jan 06, 2015 at 06:51:15PM +0100, Pavel Machek wrote:
-> > > > 
-> > > > On Tue 2015-01-06 11:25:45, Felipe Balbi wrote:
-> > > > > On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
-> > > > > > Hi!
-> > > > > > 
-> > > > > > In 3.18, sound is nice and clear.
-> > > > > > 
-> > > > > > In 3.19, sound is unusable. It produces nasty tone when it should be
-> > > > > > quiet, and there's at least as much noise as is sound.
-> > > > > > 
-> > > > > > Unfortunately, list of mixers also changed (and there's cca 120
-> > > > > > settings), but a) it does not work with the old list and b) nothing I
-> > > > > > could figure out did make the sound usable. Some setting resulted in
-> > > > > > even more noise.
-> > > > > > 
-> > > > > > Any idea what could have caused it?
-> > > > > 
-> > > > > $ git bisect start
-> > > > > $ git bisect good v3.18
-> > > > > $ git bisect bad
-> > > > > 
-> > > > > that'll help find what caused it.
-> > > > 
-> > > > Telling someone to do hard and time consuming job that probably will
-> > > > not succeed, instead of actually providing help. Very very funny.
-> > > 
-> > > you're getting code for free, you're getting help for free. Not many
-> > > people have N900s lying around. Running a bisection is just
-> > > politeness.
-> > 
-> > Now you are speaking for yourself or for TI?
-> 
-> why bring my employer into the discussion ?
+From: Felipe Balbi <balbi@ti.com>
+Date: Tue, 6 Jan 2015 14:31:19 -0600
 
-Because you are speaking of getting help for free, and I don't
-remember getting any useful help from you; so I'd like to know who do
-you speak for.
+> What you're saying here is that you prefer to drop a feature that works
+> for all other 1023 IDs because 1 ID is quirky. Sounds like overkill
+> to me.
 
-> > Thanks for your very valuable help. I know how to do a bisection,
-> > thank you.
-> 
-> then please do it.
-
-No, sorry, I don't think that would be reasonable use of my time at
-this point. First steps are "confirm it happens on other N900 boards,
-too", ruling out config issues at my part, and "try to get
-verification from other development boards if they have same
-problems", because most other boards are easier to work with.
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+The other option is to software fallback only for VLAN 1.
