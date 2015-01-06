@@ -1,90 +1,52 @@
-From: =?windows-1252?Q?Peter_K=FCmmel?= <syntheticpp@gmx.net>
-Subject: Re: 3.18.1->3.19-rc2: In-band Error seen by MPU
-Date: Tue, 06 Jan 2015 14:04:04 +0100
-Message-ID: <54ABDD44.9030100@gmx.net>
-References: <20150101182053.GG582@fuloong-minipc.musicnaut.iki.fi> <20150102161911.GA3298@atomide.com> <54A6E408.1090908@gmx.net> <20150102201908.GK582@fuloong-minipc.musicnaut.iki.fi> <20150102204018.GF3298@atomide.com> <20150102223451.GL582@fuloong-minipc.musicnaut.iki.fi> <20150103000220.GE3279@atomide.com> <20150103121622.GN582@fuloong-minipc.musicnaut.iki.fi> <20150105154313.GA19336@saruman> <54ABC618.8070906@gmx.net> <20150106115250.GA27539@earth.universe>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
+Date: Tue, 06 Jan 2015 14:13:59 +0100
+Message-ID: <9492211.AECobr3jIN@wuerfel>
+References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:64990 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754465AbbAFNEZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Jan 2015 08:04:25 -0500
-In-Reply-To: <20150106115250.GA27539@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: balbi@ti.com, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
+On Monday 05 January 2015 22:09:45 Peter Hurley wrote:
+> Some arches have no need to create unprobed 8250 ports; these phantom
+> ports are primarily required for ISA ports which have no probe
+> mechanism or to provide non-operational ports for userspace to
+> configure (via TIOCSSERIAL and TIOCSERCONFIG ioctls).
+> 
+> Provide CONFIG_SERIAL_8250_PHANTOM_UARTS knob to disable phantom port
+> registration; ie., CONFIG_SERIAL_8250_PHANTOM_UARTS=N only registers
+> probed ports (ACPI/PNP, "serial8250" platform devices, PCI, etc).
+> 
+> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Grant Likely <grant.likely@linaro.org>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
 
+The intent is definitely right, but I think a better approach is
+possible.
 
-Am 06.01.2015 um 12:52 schrieb Sebastian Reichel:
-> Hi,
->
-> On Tue, Jan 06, 2015 at 12:25:12PM +0100, Peter K=FCmmel wrote:
->> Am 05.01.2015 um 16:43 schrieb Felipe Balbi:
->>> Just booted AM335x with CONFIG_PREEMPT and haven't seen any problem=
-=2E
->>> Perhaps this is something related to another OMAP3-only driver?
->>> Perhaps HSI/SSI ?
->>
->> I see a ssi error directly before the IN-Band error:
->>
->> [    0.339935] platform 48058000.ssi-controller: Cannot lookup hwmod=
- 'ssi'
->> [    0.346893] In-band Error seen by MPU  at address 0
->> [    0.346923] ------------[ cut here ]------------
->
-> mh I guess your board's dts included omap36xx.dtsi or omap34xx.dtsi.
-> Since ssi controller is not available on DM3xxx/AM3xxx (AFAIK) it
-> should be disabled for those SoCs:
->
-> &ssi {
->      status =3D "disabled";
-> };
+I haven't tried it here, but how about moving the serial8250_init
+function into a separate module, along with all the other parts
+that are only used for ISA devices, but leaving the actual core
+(all exported symbols) in this file?
 
-Indeed, I include omap36xx.dtsi.
-Disabling ssi removes ssi the error.
-But the In-Band error is still there, so not related to ssi.
+At the same time, the serial8250_pnp_init/serial8250_pnp_exit calls
+can be removed from the serial8250_init function and become
+standalone initcalls.
 
-
-I also see these errors:
-
-omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
-omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
-omap_hwmod: mcbsp2: cannot be enabled for reset (3)
-
-and
-
-irq: no irq domain found for /ocp/pinmux@48002030 !
-
-Could these errors also be fixed by the dts.
-
-Peter
-
->
->  From what I can see the following in-tree .dts files should be
-> fixed, too:
->
-> * am3517_mt_ventoux.dts
->    Currently includes "omap34xx.dtsi" instead of "am3517.dtsi".
->
-> Apart from that the following boards seem to use omap36xx.dtsi
-> include, but are actually DM37xx, so they should disable the
-> ssi block:
->
-> * omap3-igep.dtsi
-> * omap3-lilly-a83x.dtsi
-> * omap3-overo-storm.dtsi
->
-> I will prepare a patch for that later.
->
-> -- Sebastian
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
