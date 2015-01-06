@@ -1,245 +1,156 @@
-From: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
-Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
- is reached
-Date: Tue, 6 Jan 2015 11:44:23 +0530
-Message-ID: <54AB7D3F.3030809@st.com>
-References: <cover.1418972323.git.amit.virdi@st.com> <995bc6a5f9abd9a41f7229aafd1c2978b526783b.1418972323.git.amit.virdi@st.com> <20141222160626.GD12815@saruman> <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com> <20141227174628.GB17608@saruman> <CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com> <20141229171232.GI29379@saruman> <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com> <20141230160215.GB415@saruman>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.19-rc3
+Date: Tue, 6 Jan 2015 07:00:29 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501060650390.28771@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------080003040006090209020408"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141230160215.GB415@saruman>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, Amit Virdi <amitvi128-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pratyush Anand Thakur <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ajay KHANDELWAL <ajay.khandelwal-qxv4g6HH51o@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:56918 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751426AbbAFHAa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 02:00:30 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
---------------080003040006090209020408
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
 
->>>> I can certainly provide the dwc3 specific kernel bootup logs, full
->>>> regdump and any loglevel you want me to, if that helps
->>>
->>> Yeah, if you can provide those, then that'll help me verifying. Full
->>> logs from boot to failure point with VERBOSE_DEBUG enabled (considering
->>> you're not running on anything recent).
->>>
->>
->> Okay. I'll provide full verbose logs, along with the register dump,
->> when I'm back to the office next week, for the working and non-working
->> case, but how - as attachment or as inline?
->
-> Either way will do but I have a feeling mailing list attachment size
-> will bite you, so maybe it's best to make a tarball of both logs and
-> send that as attachment. Compressed text will be very small.
->
+Here are some basic OMAP test results for Linux v3.19-rc3.
+Logs and other details at:
 
-Attached are the dwc3 verbose logs and register dump without and with 
-the fixes in this patchset.
+    http://www.pwsan.com/omap/testlogs/test_v3.19-rc3/20150105224749/
 
---------------080003040006090209020408
-Content-Type: application/x-gzip; name="dwc3_fixes_logs.tar.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="dwc3_fixes_logs.tar.gz"
 
-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
---------------080003040006090209020408--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Test summary
+------------
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
+
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    FAIL ( 1/ 3): omap1_defconfig_1510innovator_only
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL ( 2/17): omap2plus_defconfig_no_pm, multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 2/17): 5912osk, 3517evm
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  5430es2sbct54, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
+    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 7/17): 4430es2panda, 4460varsomom, 37xxevm, 3530es3beagle,
+		  3530es31beagle, 3730beaglexm, 3730es12beaglexm
+
+
+vmlinux object size
+(delta in bytes from test_v3.19-rc2 (b7392d2247cfe6771f95d256374f1a8e6a6f48d6)):
+   text     data      bss    total  kernel
+  +1820      -16        0    +1804  omap1_defconfig
+   +796       -8        0     +788  omap1_defconfig_1510innovator_only
+   +796      +24        0     +820  omap1_defconfig_5912osk_only
+ +10827     +472        0   +11299  multi_v7_defconfig
+   +532      +56        0     +588  omap2plus_defconfig
+   +352      +72        0     +424  omap2plus_defconfig_2430sdp_only
+   +468      +48        0     +516  omap2plus_defconfig_am33xx_only
+   +468      +88      -64     +492  omap2plus_defconfig_am43xx_only
+   +532      +48        0     +580  omap2plus_defconfig_cpupm
+   +404      +48      -64     +388  omap2plus_defconfig_dra7xx_only
+     -8        0        0       -8  omap2plus_defconfig_n800_multi_omap2xxx
+    +24        0        0      +24  omap2plus_defconfig_n800_only_a
+  +4556      +80        0    +4636  omap2plus_defconfig_no_pm
+   +468      +80        0     +548  omap2plus_defconfig_omap2_4_only
+   +532      +48        0     +580  omap2plus_defconfig_omap3_4_only
+   +468      +80      -64     +484  omap2plus_defconfig_omap5_only
+   -112      +32      -56     -136  rmk_omap3430_ldp_allnoconfig
+   +668       +8        0     +676  rmk_omap3430_ldp_oldconfig
+   -104      +64      -64     -104  rmk_omap4430_sdp_allnoconfig
+   +808       -8        0     +800  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.19-rc2 (b7392d2247cfe6771f95d256374f1a8e6a6f48d6))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
+
+The "pass" and "skip" lines have been removed for the warning test 
+summaries; I thought they cluttered up the report too much.  If someone 
+out there has strong opinions on whether they should be added back in, 
+please let me know by private E-mail.
+
+The validation scripts now scan the build transcripts for warnings 
+generated from the toolchain (as opposed to warnings generated when the 
+preprocessor encounters a #warning pragma in the source code, e.g., for 
+missing syscalls).  If toolchain warnings are detected, the board will be 
+marked as failing one of the "Build warnings" tests (above).  The warning 
+text can be observed by looking at the build transcript - for example, 
+http://www.pwsan.com/omap/testlogs/test_v3.19-rc3/20150105224749/build_z/omap2plus_defconfig_no_pm/build_z_20150105224749_log.txt
+
+
