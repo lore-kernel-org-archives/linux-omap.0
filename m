@@ -1,63 +1,67 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Tue, 6 Jan 2015 16:03:54 +0100
-Message-ID: <20150106150353.GA2321@earth.universe>
-References: <20150105230228.GO4081@atomide.com>
- <201501060009.15806@pali>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: beagle-x15: hwmod: Fix boot crash with
+ DEBUG_LL
+Date: Tue, 6 Jan 2015 09:08:51 -0600
+Message-ID: <20150106150851.GB6502@saruman>
+References: <1420532690-29340-1-git-send-email-lokeshvutla@ti.com>
+ <20150106140517.GA3897@kahuna>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:55017 "EHLO mail.kernel.org"
+Received: from comal.ext.ti.com ([198.47.26.152]:59731 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755433AbbAFPEC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Jan 2015 10:04:02 -0500
+	id S1751744AbbAFPJs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jan 2015 10:09:48 -0500
 Content-Disposition: inline
-In-Reply-To: <201501060009.15806@pali>
+In-Reply-To: <20150106140517.GA3897@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>
+To: Nishanth Menon <nm@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, balbi@ti.com, stable@vger.kernel.org
 
-
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=iso-8859-1
+--p4qYPpj5QlsIQJ0K
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Pali,
+On Tue, Jan 06, 2015 at 08:05:17AM -0600, Nishanth Menon wrote:
+> > For using DEBUG_LL, enable CONFIG_DEBUG_OMAP4UART3 in menuconfig.
+> >=20
+> > Fixes: 90020c7 (ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data)
+>=20
+> Fixes: 90020c7b2c5e ("ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC d=
+ata")
 
-On Tue, Jan 06, 2015 at 12:09:15AM +0100, Pali Roh=E1r wrote:
-> Just to note that smc91x ethernet support is also in qemu n900
-> emulation. Later I will try if it work with upstream kernel...
+what's the difference ? why do you want that many more characters if
+those 7 are enough for git to find a uniq commit ? Try this:
 
-$ qemu-system-arm --machine '?' | grep n900 || echo "No N900 support"
-No N900 support
+$ git show --abbrev-commit 90020c7b2c5e02200bc752c8cfeba91c4435588c
 
-Is there work going on to mainline the n900 patches for qemu?
+--=20
+balbi
 
--- Sebastian
-
---wRRV7LY7NUeQGEoC
+--p4qYPpj5QlsIQJ0K
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJUq/lWAAoJENju1/PIO/qa1eIP/izxQpjsrKRlu99jNYYUbT5Z
-KU4h3Z89Ltdr0uJEluSsimrTTFqT9mI700yw3KNgZmCdtvHkQbdARxsS5B5vcH06
-EZ7t0y2sMJ/U/tbWhcDv8BAxt0pFQdadmnPlHLAr2ef+5yEdbYqK2NmwVcwvwlJG
-oL4wkjSmfOZhHb31A3ud54sxRNaQ4lHrDr0J4c/vSiX6Gb6DzmUOucPa7tJtGkQA
-8G/RS8ygxtJWChner2z/XOwzVUsPpdgNQFKXqC3dHPsY2y9EG6KakzabBKeeKu+0
-wYvSZ/KV87at6GDrb7KYe/cfqGyMwKRguYuZ9dA29Ehy5WrvQCMc3RNZxa3P92gl
-xPXbo4U8YmUv67Og/HyNjZqSP6PEzqH7lGm3vAiHO4uzMxOc/urMDZX3/O7tQf+R
-Irb/c7rV5uhT0QcWDuPRXvY5XHHNwyxA8d1JKPwoEvM8IkJmh7TmgL+z3vwc3/xS
-qX1UBIN8pqnQ322P9OY4LFnpCQqWz/oMToU3jN+Ptgad+UCyEr7upxi3qUlC0sto
-wAyfAdpZAvVC+hV55lo16auDYCdhqYL9BGEIs6ADnHsu6W+5Ugb/K/IJLLcy6s82
-4QKemFDCX5X6sTzZ+BkHKabAbfwBjdFQBPftLbfRu0JT1qQkzq+p4zclvnqlXe2/
-3IvHG8oHrYCJ1ReuwlEG
-=tTB3
+iQIcBAEBAgAGBQJUq/qDAAoJEIaOsuA1yqRElZ0P/ArRTb4P06wYdUkoK0NB4ejW
+hqIILIkuPjFN/OK/bcAl6k/OQuyShJjqEWH4AyL66r0j9wEBm/UwarDFS3YgAhMM
+eWdQApgH15u+zBnbAvvg7lYJxzPdbZ+6qgEE5498HhTFuKtm09Q7SbER31UOxwfj
+TYJ/cmcHL1iuVSZpXWc55vojZDNsw1oJmIBG66UrLBF7xO4sNUtBJetz74wmv0I3
+x0Yp7MB5TfiyG1qbLwjCwbs/lAfo8AAYmoeoCJOsvwQqk51jlAXSxwqQJ0QaZoxd
+HJm3YmbZNb56Xj9X3xWkey8NscHfFf2tGAWHtUfyswgSCkthIvVzQgVSq42s2INV
+5WcEVZA0qD66moFZJ6T1rMexe0M7n7Ml6zOFGdtYMPBZwFChGVWae+++6zlnOUa/
+I00UoE9RE3/yPLI8m1sPibne/X/APjYYuKp409TiZe3qyZrEGsB+x3rEJTrGz7iQ
+Rb5gBP6KS2L2cdoDdpd2+7HKGxS6P8Yv5r5hF638Oh2yf0UR94I/Aj5sRFMJ8TnY
+i1K8xWtQWaENP+myLI/7eVhnMTIqZnCVa3YwobEpWmNAS+sNun9FRT4JVmuxVbvQ
+KPWTnZet3g2KCMtJQLshqs44SRts225P9FxqG3ayIT8GFwHIpriQiOc21dtEKKpG
+3a12Rvhhdpi5ngU6XX6E
+=N6kx
 -----END PGP SIGNATURE-----
 
---wRRV7LY7NUeQGEoC--
+--p4qYPpj5QlsIQJ0K--
