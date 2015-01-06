@@ -1,76 +1,55 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5] mfd: tps65218: make INT[12] and STATUS registers
- volatile
-Date: Tue, 6 Jan 2015 11:37:34 -0600
-Message-ID: <20150106173734.GL6502@saruman>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/5] mfd: tps65218: make INT1 our status_base register
+Date: Tue, 6 Jan 2015 11:37:40 -0600
+Message-ID: <20150106173740.GM6502@saruman>
 References: <1419622104-25812-1-git-send-email-balbi@ti.com>
- <1419622104-25812-2-git-send-email-balbi@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1419622104-25812-3-git-send-email-balbi@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2OzUYMsT4j3Kc+NU"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="lbQeYSs6J2ITmUo7"
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1419622104-25812-2-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1419622104-25812-3-git-send-email-balbi@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, stable@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---2OzUYMsT4j3Kc+NU
+--lbQeYSs6J2ITmUo7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Dec 26, 2014 at 01:28:20PM -0600, Felipe Balbi wrote:
-> STATUS register can be modified by the HW, so we
-> should bypass cache because of that.
->=20
-> In the case of INT[12] registers, they are the ones
-> that actually clear the IRQ source at the time they
-> are read. If we rely on the cache for them, we will
-> never be able to clear the interrupt, which will cause
-> our IRQ line to be disabled due to IRQ throttling.
+On Fri, Dec 26, 2014 at 01:28:21PM -0600, Felipe Balbi wrote:
+> If we don't tell regmap-irq that our first status
+> register is at offset 1, it will try to read offset
+> zero, which is the chipid register.
 >=20
 > Fixes: 44b4dc6 mfd: tps65218: Add driver for the TPS65218 PMIC
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.15+
-> Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Cc: <stable@vger.kernel.org> # v3.15+
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
 ping
 
 > ---
->  drivers/mfd/tps65218.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+>  drivers/mfd/tps65218.c | 1 +
+>  1 file changed, 1 insertion(+)
 >=20
 > diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> index 0d256cb..2243f75 100644
+> index 2243f75..d6b7643 100644
 > --- a/drivers/mfd/tps65218.c
 > +++ b/drivers/mfd/tps65218.c
-> @@ -125,10 +125,21 @@ int tps65218_clear_bits(struct tps65218 *tps, unsig=
-ned int reg,
->  }
->  EXPORT_SYMBOL_GPL(tps65218_clear_bits);
+> @@ -204,6 +204,7 @@ static struct regmap_irq_chip tps65218_irq_chip =3D {
 > =20
-> +static const struct regmap_range tps65218_yes_ranges[] =3D {
-> +	regmap_reg_range(TPS65218_REG_INT1, TPS65218_REG_INT2),
-> +	regmap_reg_range(TPS65218_REG_STATUS, TPS65218_REG_STATUS),
-> +};
-> +
-> +static const struct regmap_access_table tps65218_volatile_table =3D {
-> +	.yes_ranges =3D tps65218_yes_ranges,
-> +	.n_yes_ranges =3D ARRAY_SIZE(tps65218_yes_ranges),
-> +};
-> +
->  static struct regmap_config tps65218_regmap_config =3D {
->  	.reg_bits =3D 8,
->  	.val_bits =3D 8,
->  	.cache_type =3D REGCACHE_RBTREE,
-> +	.volatile_table =3D &tps65218_volatile_table,
+>  	.num_regs =3D 2,
+>  	.mask_base =3D TPS65218_REG_INT_MASK1,
+> +	.status_base =3D TPS65218_REG_INT1,
 >  };
 > =20
->  static const struct regmap_irq tps65218_irqs[] =3D {
+>  static const struct of_device_id of_tps65218_match_table[] =3D {
 > --=20
 > 2.2.0
 >=20
@@ -78,30 +57,26 @@ ned int reg,
 --=20
 balbi
 
---2OzUYMsT4j3Kc+NU
+--lbQeYSs6J2ITmUo7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUrB1eAAoJEIaOsuA1yqRE/coP/1OU0pdJRftXk9YsTY9fe6j9
-dzmu7aHymCSEhiSz9uU3sl3jobRecmHkwwtUIW7OvW5eEf0vgwcyzOGXQKMsv/w5
-BquzTK1GkNptjZounbcy4dPs1hGyOWxesVh5ZIy/76LlFtEUuZs97VMtqYscyBSh
-s19HhJbkxWEbw/WePiB6nvLW+dCOKyvscDk5h4oobo5vlSNFKjt8Vk98//9YvYBO
-LyzRP1NhJ0jPIh5FCkr1WVUljXN1HsFx9QmFYx5otpAaF89fQzNWBpDdVULgaKsP
-3nViawDfO3TWgC9Kiz9wZVD34y48rXw+t6VB8lFFWpaINa2XYcnorU3fFWuAsG7v
-UxfgxAP23CGJJChm1K3QDtWe48xUiNwchRWZ7A6tR3SOTE6RRcnVAjtbBDifjvHT
-xX22a2HILlicD+e+pJNB9XK5UIhVe9BV5qBMOzYiVB+emyd9h3XzrtHjNxLQIwD/
-SsiFDNaBYINXAET8HFfOeiybxR9fpd0zgtqrlUqKujUvegzIcjtT5QLrsgKRksUk
-8dwHah8bWZlR5CtAJzIutN3q47gxrNHw1vkCnNOfR9HV6zKjSaPdLq1CVRYardc1
-tPSnE9OHGGCXvth7T2FchheSV3rMqmsVPdkduN+63GfSZWhg7zg3ofO4D4LYYoQ3
-bI76g/xC/Gb4+Dsx4g5Q
-=A3xo
+iQIcBAEBAgAGBQJUrB1kAAoJEIaOsuA1yqREbIwQAKFbW/mGnM8mjE33chmFyqpy
+OIQy9ABEXu023jPX8umnkQ2DKspPQS1AGftaQ/sKWtTVApXg3BErqm40htRDueBa
+GOQ/qNyO3FtZuSokksj6iYfphRJ4myds7gTBZxjEk4EIRZKMGNfK2HFS4/gsiHPi
+TXIvqJUBuYBULF7faLkuXHw/xVLnJf37xx1JEIr0WpxTP9xshdiJ1m8lfF8T96Lf
+Rq0UzRbszy2Sl73wXELgxrBVMXWWN9Dwwg83A7zGOPmGNAIQj1HdrFYuEK6fXGs9
+HcQ9wCaKveMJIvRN9Zk6Lx2v/XkJolUmHNjdizYWb66RV1las58mFE+Qyt/alrDi
+sCQxFilF7nTEwVjfHSJnJ0ZTZ8CVjywupygmiwCiJi/KZRC3O3Lvi1+HMQqQr4JN
+5lWvrZeS7IYuKoqps81nPsBj4HrUy1YsoqKnpxnClIQMZnHSXYHBxtNeABGLgcHO
+P3hS096uRtjDND6hsQsyBqwsQGdow+QpqQR8n4g14TqJDQSv1jrtIxMH61Kqon4B
+ci+y4LS8stuObl2gmWwaOmkbmOOJ8dK9PEaHGg39+OCtc982xyJzDR9JL8XlE61f
+EgmCXKfXKVGaY2dacDAJYab21ZjQ1G4vOiI6P4UTBfbwmUsBr8Q3Jj/V9eUkgd28
+iSim5SPsMWHnng+BfRfF
+=OJyK
 -----END PGP SIGNATURE-----
 
---2OzUYMsT4j3Kc+NU--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--lbQeYSs6J2ITmUo7--
