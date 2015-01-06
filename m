@@ -1,19 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 14/14] mfd: twl6040: Constify struct regmap_config and
+Subject: Re: [PATCH 13/14] mfd: twl-core: Constify struct regmap_config and
  reg_default array
-Date: Tue, 6 Jan 2015 09:12:15 -0800
-Message-ID: <20150106171215.GT4081@atomide.com>
+Date: Tue, 6 Jan 2015 09:12:01 -0800
+Message-ID: <20150106171201.GS4081@atomide.com>
 References: <1420448493-9355-1-git-send-email-k.kozlowski@samsung.com>
- <1420448493-9355-14-git-send-email-k.kozlowski@samsung.com>
+ <1420448493-9355-13-git-send-email-k.kozlowski@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20723 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755860AbbAFRPv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 12:15:51 -0500
 Content-Disposition: inline
-In-Reply-To: <1420448493-9355-14-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1420448493-9355-13-git-send-email-k.kozlowski@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
 * Krzysztof Kozlowski <k.kozlowski@samsung.com> [150105 01:04]:
 > The regmap_config struct may be const because it is not modified by the
@@ -26,31 +30,49 @@ Acked-by: Tony Lindgren <tony@atomide.com>
 
 > Cc: linux-omap@vger.kernel.org
 > ---
->  drivers/mfd/twl6040.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/mfd/twl-core.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-> index 9687645162ae..f71ee3dbc2a2 100644
-> --- a/drivers/mfd/twl6040.c
-> +++ b/drivers/mfd/twl6040.c
-> @@ -44,7 +44,7 @@
->  #define VIBRACTRL_MEMBER(reg) ((reg == TWL6040_REG_VIBCTLL) ? 0 : 1)
->  #define TWL6040_NUM_SUPPLIES	(2)
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index db11b4f40611..489674a2497e 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -207,7 +207,7 @@ static struct twl_mapping twl4030_map[] = {
+>  	{ 2, TWL5031_BASEADD_INTERRUPTS },
+>  };
 >  
-> -static struct reg_default twl6040_defaults[] = {
-> +static const struct reg_default twl6040_defaults[] = {
->  	{ 0x01, 0x4B }, /* REG_ASICID	(ro) */
->  	{ 0x02, 0x00 }, /* REG_ASICREV	(ro) */
->  	{ 0x03, 0x00 }, /* REG_INTID	*/
-> @@ -580,7 +580,7 @@ static bool twl6040_writeable_reg(struct device *dev, unsigned int reg)
->  	}
->  }
+> -static struct reg_default twl4030_49_defaults[] = {
+> +static const struct reg_default twl4030_49_defaults[] = {
+>  	/* Audio Registers */
+>  	{ 0x01, 0x00}, /* CODEC_MODE	*/
+>  	{ 0x02, 0x00}, /* OPTION	*/
+> @@ -306,7 +306,7 @@ static const struct regmap_access_table twl4030_49_volatile_table = {
+>  	.n_yes_ranges = ARRAY_SIZE(twl4030_49_volatile_ranges),
+>  };
 >  
-> -static struct regmap_config twl6040_regmap_config = {
-> +static const struct regmap_config twl6040_regmap_config = {
->  	.reg_bits = 8,
->  	.val_bits = 8,
+> -static struct regmap_config twl4030_regmap_config[4] = {
+> +static const struct regmap_config twl4030_regmap_config[4] = {
+>  	{
+>  		/* Address 0x48 */
+>  		.reg_bits = 8,
+> @@ -369,7 +369,7 @@ static struct twl_mapping twl6030_map[] = {
+>  	{ 1, TWL6030_BASEADD_GASGAUGE },
+>  };
 >  
+> -static struct regmap_config twl6030_regmap_config[3] = {
+> +static const struct regmap_config twl6030_regmap_config[3] = {
+>  	{
+>  		/* Address 0x48 */
+>  		.reg_bits = 8,
+> @@ -1087,7 +1087,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  	struct twl4030_platform_data	*pdata = dev_get_platdata(&client->dev);
+>  	struct device_node		*node = client->dev.of_node;
+>  	struct platform_device		*pdev;
+> -	struct regmap_config		*twl_regmap_config;
+> +	const struct regmap_config	*twl_regmap_config;
+>  	int				irq_base = 0;
+>  	int				status;
+>  	unsigned			i, num_slaves;
 > -- 
 > 1.9.1
 > 
