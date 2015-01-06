@@ -1,88 +1,94 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] irqchip: omap-intc: fix legacy DMA regression
-Date: Tue, 6 Jan 2015 10:51:33 -0600
-Message-ID: <1420563093-26026-1-git-send-email-balbi@ti.com>
-References: <20150106123830.GD30544@fuloong-minipc.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
+Date: Tue, 6 Jan 2015 08:59:03 -0800
+Message-ID: <20150106165903.GF4025@atomide.com>
+References: <20150105230228.GO4081@atomide.com>
+ <20150106080025.GA6752@amd>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150106123830.GD30544@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?UTF-8?q?Peter=20K=C3=BCmmel?= <syntheticpp@gmx.net>, Pavel Machek <pavel@ucw.cz>, Santosh Shilimkar <ssantosh@kernel.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50674 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754342AbbAFRCw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 12:02:52 -0500
+Content-Disposition: inline
+In-Reply-To: <20150106080025.GA6752@amd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 
-commit 55601c9f2467 (arm: omap: intc: switch over
-to linear irq domain) introduced a regression with
-SDMA legacy driver because that driver strictly depends
-on INTC's IRQs starting at NR_IRQs. Aparently
-irq_domain_add_linear() won't guarantee that, since we see
-a 7 IRQs difference when booting with and without the
-commit cited above.
+* Pavel Machek <pavel@ucw.cz> [150106 00:03]:
+> On Mon 2015-01-05 15:02:29, Tony Lindgren wrote:
+> > Revert "ARM: dts: Disable smc91x on n900 until bootloader
+> > dependency is removed". We've now fixed the issues that
+> > caused problems with uninitialized hardware depending on
+> > the bootloader version. Mostly things got fixed with
+> > the following commits:
+> > 
+> > 9a894953a97b ("ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x pins")
+> > 7d2911c43815 ("net: smc91x: Fix gpios for device tree based booting")
+> > 
+> > Note that this only affects the early development boards
+> > with Ethernet that we still have in a few automated boot
+> > test systems.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Normally, the early development boards should have separate dts file
+> (then include common parts), no?
 
-Until arch/arm/plat-omap/dma.c is properly fixed, we
-must maintain OMAP2/3 using irq_domain_add_legacy().
+In this case it won't matter. The GPMC hardware is there, the probe
+just fails if no smsc91x is found.
+ 
+> Could you at least add a note to the dts file what is it? Because I
+> always thought it is a bug.
 
-A FIXME note was added so people know to delete that
-code once that legacy DMA driver is fixed up.
+Sure, updated patch below. Can somebody please test boot it on
+a production n900 too to make sure it no longer causes issues?
+ 
+> [Plus of course, obviouse question is: where can I get one of those
+> boards? :-)]
 
-Fixes: 55601c9f2467 (arm: omap: intc: switch over to linear irq domain)
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/irqchip/irq-omap-intc.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+Another planet a long time ago :)
 
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-index 3c970259c0eb..6ef88f56cf8d 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -263,7 +263,7 @@ static int __init omap_init_irq_of(struct device_node *node)
- 	return ret;
- }
+Regards,
+
+Tony
+
+8< ----------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 6 Jan 2015 08:49:57 -0800
+Subject: [PATCH] ARM: dts: Revert disabling of smc91x for n900
+
+Revert "ARM: dts: Disable smc91x on n900 until bootloader
+dependency is removed". We've now fixed the issues that
+caused problems with uninitialized hardware depending on
+the bootloader version. Mostly things got fixed with
+the following commits:
+
+9a894953a97b ("ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x pins")
+7d2911c43815 ("net: smc91x: Fix gpios for device tree based booting")
+
+Note that this only affects the early development boards
+with Ethernet that we still have in a few automated boot
+test systems. And it's also available supposedly in some
+versions of qemu.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -700,11 +700,9 @@
+ 		};
+ 	};
  
--static int __init omap_init_irq_legacy(u32 base)
-+static int __init omap_init_irq_legacy(u32 base, struct device_node *node)
- {
- 	int j, irq_base;
- 
-@@ -277,7 +277,7 @@ static int __init omap_init_irq_legacy(u32 base)
- 		irq_base = 0;
- 	}
- 
--	domain = irq_domain_add_legacy(NULL, omap_nr_irqs, irq_base, 0,
-+	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
- 			&irq_domain_simple_ops, NULL);
- 
- 	omap_irq_soft_reset();
-@@ -301,10 +301,26 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
- {
- 	int ret;
- 
--	if (node)
-+	/*
-+	 * FIXME legacy OMAP DMA driver sitting under arch/arm/plat-omap/dma.c
-+	 * depends is still not ready for linear IRQ domains; because of that
-+	 * we need to temporarily "blacklist" OMAP2 and OMAP3 devices from using
-+	 * linear IRQ Domain until that driver is finally fixed.
-+	 */
-+	if (of_device_is_compatible(node, "ti,omap2-intc") ||
-+			of_device_is_compatible(node, "ti,omap3-intc")) {
-+		struct resource res;
-+
-+		if (of_address_to_resource(node, 0, &res))
-+			return -ENOMEM;
-+
-+		base = res.start;
-+		ret = omap_init_irq_legacy(base, node);
-+	} else if (node) {
- 		ret = omap_init_irq_of(node);
--	else
--		ret = omap_init_irq_legacy(base);
-+	} else {
-+		ret = omap_init_irq_legacy(base, NULL);
-+	}
- 
- 	if (ret == 0)
- 		omap_irq_enable_protection();
--- 
-2.2.0
++	/* Ethernet is on some early development boards and qemu */
+ 	ethernet@gpmc {
+ 		compatible = "smsc,lan91c94";
+-
+-		status = "disabled";
+-
+ 		interrupt-parent = <&gpio2>;
+ 		interrupts = <22 IRQ_TYPE_LEVEL_HIGH>;	/* gpio54 */
+ 		reg = <1 0x300 0xf>;		/* 16 byte IO range at offset 0x300 */
