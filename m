@@ -1,69 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: DRA7: beagle-x15: hwmod: Fix boot crash with
- DEBUG_LL
-Date: Tue, 6 Jan 2015 08:05:17 -0600
-Message-ID: <20150106140517.GA3897@kahuna>
-References: <1420532690-29340-1-git-send-email-lokeshvutla@ti.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
+Date: Tue, 06 Jan 2015 09:32:02 -0500
+Message-ID: <54ABF1E2.1010905@hurleysoftware.com>
+References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <9492211.AECobr3jIN@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1420532690-29340-1-git-send-email-lokeshvutla@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, balbi@ti.com, stable@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9492211.AECobr3jIN@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-$subject should probably need a cleanup: this is hwmod support for
-DEBUG_LL on UART3 - x15 happens to be one of the platforms that uses
-that, but not the only one.. I suggest removing x15 from $subject and
-rephrasing accordingly.
-
-On 13:54-20150106, Lokesh Vutla wrote:
-> With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with
-> DEBUG_LL' we moved from parsing cmdline to identify uart used for earlycon
-> to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
+On 01/06/2015 08:13 AM, Arnd Bergmann wrote:
+> On Monday 05 January 2015 22:09:45 Peter Hurley wrote:
+>> Some arches have no need to create unprobed 8250 ports; these phantom
+>> ports are primarily required for ISA ports which have no probe
+>> mechanism or to provide non-operational ports for userspace to
+>> configure (via TIOCSSERIAL and TIOCSERCONFIG ioctls).
+>>
+>> Provide CONFIG_SERIAL_8250_PHANTOM_UARTS knob to disable phantom port
+>> registration; ie., CONFIG_SERIAL_8250_PHANTOM_UARTS=N only registers
+>> probed ports (ACPI/PNP, "serial8250" platform devices, PCI, etc).
+>>
+>> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Grant Likely <grant.likely@linaro.org>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
 > 
-> On beagle-x15, we use uart3 for console and missed enabling this flag
-
-Official name of the platform is BeagleBoard-X15
-
-> for uart3 hwmod, so boot fails with DEBUG_LL. Enable DEBUG_OMAP4UART3_FLAGS for
-> uart3 hwmod.
-
-Could you align your commit message to 70 chars if possible?
+> The intent is definitely right, but I think a better approach is
+> possible.
 > 
-> For using DEBUG_LL, enable CONFIG_DEBUG_OMAP4UART3 in menuconfig.
-> 
-> Fixes: 90020c7 (ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data)
+> I haven't tried it here, but how about moving the serial8250_init
+> function into a separate module, along with all the other parts
+> that are only used for ISA devices, but leaving the actual core
+> (all exported symbols) in this file?
 
-Fixes: 90020c7b2c5e ("ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data")
+Unfortunately, I don't see a way to remove the stacked initialization
+without risking tons of breakage.
 
-> Cc: <stable@vger.kernel.org> # v3.12+
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index ffd6604..b6ea88f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -2017,7 +2017,7 @@ static struct omap_hwmod dra7xx_uart3_hwmod = {
->  	.class		= &dra7xx_uart_hwmod_class,
->  	.clkdm_name	= "l4per_clkdm",
->  	.main_clk	= "uart3_gfclk_mux",
-> -	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-> +	.flags		= HWMOD_SWSUP_SIDLE_ACT | DEBUG_OMAP4UART3_FLAGS,
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = DRA7XX_CM_L4PER_UART3_CLKCTRL_OFFSET,
-> -- 
-> 1.9.1
-> 
+Since later probes can "find" an already-existing port and
+re-initialize it, the probe order is crucial. For example, a PCI
+probe can "find" an existing "serial8250" platform device port,
+resulting in only one device node.
 
--- 
+And the configuration knob will be required on all arches anyway because
+that's how user-configurable device nodes are created.
+
+> At the same time, the serial8250_pnp_init/serial8250_pnp_exit calls
+> can be removed from the serial8250_init function and become
+> standalone initcalls.
+
+PNP probe must occur before the phantom ports are registered.
+See commit 835d844d1a28efba81d5aca7385e24c29d3a6db2
+("8250_pnp: do pnp probe before legacy probe").
+
 Regards,
-Nishanth Menon
+Peter Hurley
