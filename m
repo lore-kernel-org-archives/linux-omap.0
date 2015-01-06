@@ -1,42 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: DT support for OMAP3 ISP
-Date: Tue, 6 Jan 2015 13:42:18 -0800
-Message-ID: <20150106214218.GZ4081@atomide.com>
-References: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
+Date: Tue, 06 Jan 2015 16:47:55 -0500
+Message-ID: <54AC580B.2050809@hurleysoftware.com>
+References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <9492211.AECobr3jIN@wuerfel> <54ABF1E2.1010905@hurleysoftware.com> <6786513.g26uGMFKLE@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12991 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932729AbbAFVqH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 16:46:07 -0500
-Content-Disposition: inline
-In-Reply-To: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6786513.g26uGMFKLE@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ash Charles <ashcharles@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi
 
-* Ash Charles <ashcharles@gmail.com> [150106 12:45]:
-> Hi,
+On 01/06/2015 02:43 PM, Arnd Bergmann wrote:
+> On Tuesday 06 January 2015 09:32:02 Peter Hurley wrote:
+>> On 01/06/2015 08:13 AM, Arnd Bergmann wrote:
+>>> On Monday 05 January 2015 22:09:45 Peter Hurley wrote:
+>>>> Some arches have no need to create unprobed 8250 ports; these phantom
+>>>> ports are primarily required for ISA ports which have no probe
+>>>> mechanism or to provide non-operational ports for userspace to
+>>>> configure (via TIOCSSERIAL and TIOCSERCONFIG ioctls).
+>>>>
+>>>> Provide CONFIG_SERIAL_8250_PHANTOM_UARTS knob to disable phantom port
+>>>> registration; ie., CONFIG_SERIAL_8250_PHANTOM_UARTS=N only registers
+>>>> probed ports (ACPI/PNP, "serial8250" platform devices, PCI, etc).
+>>>>
+>>>> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>> Cc: Grant Likely <grant.likely@linaro.org>
+>>>> Cc: Arnd Bergmann <arnd@arndb.de>
+>>>> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+>>>
+>>> The intent is definitely right, but I think a better approach is
+>>> possible.
+>>>
+>>> I haven't tried it here, but how about moving the serial8250_init
+>>> function into a separate module, along with all the other parts
+>>> that are only used for ISA devices, but leaving the actual core
+>>> (all exported symbols) in this file?
+>>
+>> Unfortunately, I don't see a way to remove the stacked initialization
+>> without risking tons of breakage.
+>>
+>> Since later probes can "find" an already-existing port and
+>> re-initialize it, the probe order is crucial. For example, a PCI
+>> probe can "find" an existing "serial8250" platform device port,
+>> resulting in only one device node.
 > 
-> I'm playing with the Caspa camera (mt9v032) and Overo on the 3.17
-> kernel.  It looks like there has been some work on dt-bindings for the
-> omap3isp (notably [1] and [2]) but I didn't see anything heading for
-> mainline.
+> I'm probably missing something important, by why would that
+> be any different if the PCI driver gets loaded first and the
+> ISA driver second?
+
+Well, the PCI driver would have the proper irq, for one. So, if the
+the platform driver re-initialized the port to the wrong irq...
+
+>> And the configuration knob will be required on all arches anyway because
+>> that's how user-configurable device nodes are created.
 > 
-> What would be needed to support cameras using the omap3isp in a mainline kernel?
+> I think that's fine: The user-configurable ports are the same as
+> the "ISA" or "phantom" ports we were talking about above, right?
 
-No idea about the camera, but at least the legacy omap DMA calls need
-to be replaced or removed as the legacy DMA API will go away soon.
+Yes.
 
-For the media code, these can be viewed with:
+> If those are part of a separate (possibly loadable) module, having
+> a configuration knob is the obvious way to do it. A lot of architectures
+> can just turn it off because they know exactly which ports are present
+> and there is no need for user-configurability. The ones that don't know
+> can load the module.
 
-$ git grep omap_request_dma drivers/media/
+Let me give this some more thought.
 
 Regards,
-
-Tony
- 
-> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt-v2
-> [2] http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt
+Peter Hurley
