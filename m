@@ -1,71 +1,60 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] net: ethernet: cpsw: ignore VLAN ID 1
-Date: Tue, 6 Jan 2015 16:04:10 -0600
-Message-ID: <20150106220410.GH32308@saruman>
-References: <1420566212-30081-1-git-send-email-balbi@ti.com>
- <20150106.141323.2091288413667564444.davem@davemloft.net>
- <20150106203119.GC32308@saruman>
- <20150106.165911.604916635790072318.davem@davemloft.net>
-Reply-To: <balbi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Tue, 6 Jan 2015 23:08:05 +0100
+Message-ID: <20150106220805.GD13902@amd>
+References: <20150106170433.GA5408@amd>
+ <20150106172545.GK6502@saruman>
+ <20150106175115.GA19487@amd>
+ <20150106202857.GB32308@saruman>
+ <20150106205000.GB13902@amd>
+ <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J/zg8ciPNcraoWb6"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150106.165911.604916635790072318.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: balbi@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org, mugunthanvnm@ti.com
+In-Reply-To: <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
---J/zg8ciPNcraoWb6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue 2015-01-06 22:57:30, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Tue, Jan 06, 2015 at 09:50:00PM +0100, Pavel Machek wrote:
+> > PS: Unfortunately, N900 will not boot using nfsroot in 3.16+ at least,
+> > and boot from MMC card is broken and has been for quite some time.
+> 
+> USB networking works fine with 3.19-rc3 and also MMC card rootfs.
 
-Hi,
+Does nfsroot work for you? USB networking works as a module but not
+build-in. [Patch is available for this one.]
 
-On Tue, Jan 06, 2015 at 04:59:11PM -0500, David Miller wrote:
-> From: Felipe Balbi <balbi@ti.com>
-> Date: Tue, 6 Jan 2015 14:31:19 -0600
->=20
-> > What you're saying here is that you prefer to drop a feature that works
-> > for all other 1023 IDs because 1 ID is quirky. Sounds like overkill
-> > to me.
->=20
-> The other option is to software fallback only for VLAN 1.
+u-SD card seems to have similar problem. If I try it after boot, I can
+access it ok, but using u-SD card for rootfs fails. If it works for
+you, it would be interesting to know.
 
-now we're talking. Keep in mind, however, that this IP runs on mere
-single-core cortex A8 and single-core cortex A9 devices which already
-have somewhat of a hard-time keeping up with the non-accelerated
-checksum calculations. But fair enough, if that's the way to go, it is
-the way to go.
+I'm loading zImage using 0xffff directly from the PC.
 
-cheers
+For the audio: this should do the trick:
 
---=20
-balbi
 
---J/zg8ciPNcraoWb6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+root@n900:~# uname -a
+Linux n900 3.18.0-omap3-69644-g0ed746d #837 PREEMPT Sun Jan 4 22:30:24
+CET 2015 armv7l GNU/Linux
+root@n900:~# alsactl init
+Found hardware: "RX-51" "" "" "" ""
+Hardware is initialized using a generic method
+root@n900:~# cat /etc/debian_version
+7.7
+root@n900:~# mplayer /my2/*
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+(audio actually works).
 
-iQIcBAEBAgAGBQJUrFvaAAoJEIaOsuA1yqRE89YQAKFYp2ZkppYy+kgHS+afzIai
-6+wjk/QcmYe5DMvOmjx7QX0amSxAD7JiejL9LrOlfvh/gGUNyl+2095PiVtSWPcT
-otnU6xy1bdxbZ1pJajRYLq+qZ116hJyaaweN/ynNx41hN4LiA7atbaLa4WvV/wGc
-P07rIvkzBUXfxMuW63R6CZ8YMPlU0fdvOLjsmP9WT1gmZCH1isyZGYJ91SrHSaU3
-7Bpcc9NfAjEItPM54YttAH5aY1GjvgHpl4aUJA/XblZf+X1jiZ1VXOKzmBkPMSky
-vAygkT3YyVwasx41WNR/OaSqLi4vc8yuohqjC9EJWEXMAM1L0qid6Ony2XQFt2s/
-CqjxYpI4l9tG7Ol7Y5177sdjm3DLKbqR2+oLQjbAo4oaCPfiXEgK4uoymRvFc6qY
-g1ljcFxn6xRzRPU0PGdJ0N3hdClbc2FmKLJqoDqrdgT49nr1WwFMqmEL6KCW/6/U
-8Zwk8+AaIAZ7n52k2nC9vUSJGqnKkmoT9+nKJ52oWE1MpvTTpFpea3B5a2fLX7S3
-xbyXXlHj9fI+yleeUGUhVSZhWJQZeC5hG7kQYgYK7AB0zRx97//D0ogrPWxdOuS/
-NZvmOlu67S8tim0d+/+/VQ7dggyB6MFHPGW0SMf4Y7jYVpOR5ShMcsM4alq86TVV
-O3wb8dZ15IoYZ2w4b8mU
-=+r1f
------END PGP SIGNATURE-----
+I do have Pali's n900 changes applied. I guess I should try without
+them. Let me know if .config would help you.
 
---J/zg8ciPNcraoWb6--
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
