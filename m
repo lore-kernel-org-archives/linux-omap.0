@@ -1,59 +1,76 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Wed, 7 Jan 2015 00:13:41 +0100
-Message-ID: <20150106231341.GA18468@amd>
-References: <20150106172545.GK6502@saruman>
- <20150106175115.GA19487@amd>
- <20150106202857.GB32308@saruman>
- <20150106205000.GB13902@amd>
- <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
- <20150106220805.GD13902@amd>
- <20150106222717.GC6071@fuloong-minipc.musicnaut.iki.fi>
- <20150106224622.GA13752@saruman>
- <20150106225614.GA31990@amd>
- <20150106230415.GC13752@saruman>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v3.19-rc1
+Date: Tue, 6 Jan 2015 15:18:14 -0800
+Message-ID: <20150106231814.GC4081@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54566 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751070AbbAFXNm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 18:13:42 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50505 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752212AbbAFXWD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 18:22:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20150106230415.GC13752@saruman>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue 2015-01-06 17:04:15, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, Jan 06, 2015 at 11:56:14PM +0100, Pavel Machek wrote:
-> > > > But I'm mounting it from userspace (using builtin initramfs inside
-> > > > zImage), with a poll loop that waits for a device to appear. Maybe if you
-> > > > do it from kernel you need to use root wait/delay etc. options?
-> > > 
-> > > yeah, rootwait should do it.
-> > 
-> > No, rootwait does not solve it. Try it. Tested many times. (And yes,
-> > you need to actually fool the rear cover sensor or close the phone.)
-> 
-> yeah, just put a magnet or, if you have spare back covers, cut one so
-> that you "close" it, but still allow you to put the thing on a
-> development jig.
+The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
 
-Actually, it should be enough to kill a line from dts somewhere, no
-need to hack hardware for this.
+  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
 
-> Also, if why doesn't rootwait work ? You never have a new mmc node or is
-> the mmc node changing names ?
+are available in the git repository at:
 
-IIRC node and name are ok, but the mount just fails. As I don't have
-"development jig", I lack serial console and this kind of debugging is
-not easy.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/fixes-rc1
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+for you to fetch changes up to 7ac72746aa9bb305fa74b44ec73eae99bbbe9b66:
+
+  ARM: dts: Revert disabling of smc91x for n900 (2015-01-06 08:49:57 -0800)
+
+----------------------------------------------------------------
+Fixes for omaps mostly to deal with dra7 timer issues
+and hypervisor mode. The other fixes are minor fixes for
+various boards. The summary of the fixes is:
+
+- Fix real-time counter rate typos for some frequencies
+
+- Fix counter frequency drift for am572x
+
+- Fix booting of secondary CPU in HYP mode
+
+- Fix n900 board name for legacy user space
+
+- Fix cpufreq in omap2plus_defconfig after Kconfig change
+
+- Fix dra7 qspi partitions
+
+And also, let's re-enable smc91x on some n900 boards that
+we have sitting in a few test boot systems after the boot
+loader dependencies got fixed.
+
+----------------------------------------------------------------
+Lennart Sorensen (3):
+      ARM: omap5/dra7xx: Fix frequency typos
+      ARM: dra7xx: Fix counter frequency drift for AM572x errata i856
+      ARM: omap5/dra7xx: Enable booting secondary CPU in HYP mode
+
+Mugunthan V N (1):
+      ARM: dts: dra7-evm: fix qspi device tree partition size
+
+Nishanth Menon (1):
+      ARM: omap2plus_defconfig: use CONFIG_CPUFREQ_DT
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Fix n900 board name for legacy user space
+      ARM: dts: Revert disabling of smc91x for n900
+
+ arch/arm/boot/dts/dra7-evm.dts       | 10 ++++----
+ arch/arm/boot/dts/omap3-n900.dts     |  4 +---
+ arch/arm/configs/omap2plus_defconfig |  2 +-
+ arch/arm/mach-omap2/board-generic.c  | 18 +++++++++++++++
+ arch/arm/mach-omap2/common.h         |  1 +
+ arch/arm/mach-omap2/control.h        |  4 ++++
+ arch/arm/mach-omap2/omap-headsmp.S   | 21 +++++++++++++++++
+ arch/arm/mach-omap2/omap-smp.c       | 13 +++++++++--
+ arch/arm/mach-omap2/timer.c          | 44 +++++++++++++++++++++++++++++++-----
+ 9 files changed, 100 insertions(+), 17 deletions(-)
