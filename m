@@ -1,76 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v3.19-rc1
-Date: Tue, 6 Jan 2015 15:18:14 -0800
-Message-ID: <20150106231814.GC4081@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Tue, 6 Jan 2015 17:29:27 -0600
+Message-ID: <20150106232927.GA18073@saruman>
+References: <20150106175115.GA19487@amd>
+ <20150106202857.GB32308@saruman>
+ <20150106205000.GB13902@amd>
+ <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
+ <20150106220805.GD13902@amd>
+ <20150106222717.GC6071@fuloong-minipc.musicnaut.iki.fi>
+ <20150106224622.GA13752@saruman>
+ <20150106225614.GA31990@amd>
+ <20150106230415.GC13752@saruman>
+ <20150106231341.GA18468@amd>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50505 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212AbbAFXWD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 18:22:03 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150106231341.GA18468@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
+--TB36FDmn/VVEgNH/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
+On Wed, Jan 07, 2015 at 12:13:41AM +0100, Pavel Machek wrote:
+> On Tue 2015-01-06 17:04:15, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Tue, Jan 06, 2015 at 11:56:14PM +0100, Pavel Machek wrote:
+> > > > > But I'm mounting it from userspace (using builtin initramfs inside
+> > > > > zImage), with a poll loop that waits for a device to appear. Mayb=
+e if you
+> > > > > do it from kernel you need to use root wait/delay etc. options?
+> > > >=20
+> > > > yeah, rootwait should do it.
+> > >=20
+> > > No, rootwait does not solve it. Try it. Tested many times. (And yes,
+> > > you need to actually fool the rear cover sensor or close the phone.)
+> >=20
+> > yeah, just put a magnet or, if you have spare back covers, cut one so
+> > that you "close" it, but still allow you to put the thing on a
+> > development jig.
+>=20
+> Actually, it should be enough to kill a line from dts somewhere, no
+> need to hack hardware for this.
 
-are available in the git repository at:
+right
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/fixes-rc1
+> > Also, if why doesn't rootwait work ? You never have a new mmc node or is
+> > the mmc node changing names ?
+>=20
+> IIRC node and name are ok, but the mount just fails. As I don't have
 
-for you to fetch changes up to 7ac72746aa9bb305fa74b44ec73eae99bbbe9b66:
+really weird. Specially since it works when you mount afterwards.
 
-  ARM: dts: Revert disabling of smc91x for n900 (2015-01-06 08:49:57 -0800)
+> "development jig", I lack serial console and this kind of debugging is
+> not easy.
 
-----------------------------------------------------------------
-Fixes for omaps mostly to deal with dra7 timer issues
-and hypervisor mode. The other fixes are minor fixes for
-various boards. The summary of the fixes is:
+see if this helps:
+https://wiki.maemo.org/N900_Hardware_Hacking#Debug_ports
 
-- Fix real-time counter rate typos for some frequencies
+--=20
+balbi
 
-- Fix counter frequency drift for am572x
+--TB36FDmn/VVEgNH/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-- Fix booting of secondary CPU in HYP mode
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-- Fix n900 board name for legacy user space
+iQIcBAEBAgAGBQJUrG/XAAoJEIaOsuA1yqREAv8P/26a43/+JgVM49/AgZ7vfYJy
+FmmBIIAB6LgyyJQcaGlJ1Xysw5bIDGBWvvcPtnEiYUv34DkfXhROXlY55mL4WFTO
+/8FgMjBQY44MtusnK1Tr1K0nygK/kV7DC5bQsMRigEwHoQO1iarv9rvV0lGo7tBQ
+Z1R44vFQuCsWAx0GqXINXBoaWTKzsdMlqKD+BkIW2x6e6rThTPWL9llxhKmI2Sh7
+sZ7m2qf2Qk3FZwwb4ovi8x/qPw4PupAGoGD4P8FdRT0W7TNKzzu75wT9vkBgl460
+XLqkD8COD2t4Sm18AVTLVsGf5XeD5UWDY8T2KvTsa5l4Cwe+X3Hg1yOxpCU/616D
+OV0yJj0vn0alyaBUHdys6YTCMS+DR8rSro+Mu1UvxLRe+Z3nr+y5Ii/0PnuCiLwh
+cbyXYigSxU2ipbhkWufKRnoF1z4TXH18gNsydx2MEqgEYOWdbJdXIRwnJdW/It6F
+ML3R/Zzcz0TLFjWL7GaAuXWvJHkKnq+EEl+SxhxVtde9/Wj0S21rsc5g0v2FDDGi
+kNp6k/W0enqek2UrxSmpxBCf4mP0COlh5oAazHEarxW+fS5ftyvsZT1nQrL9eELr
+bcKV9AsCZGcUVvefgSqjJ1H8x8Y5aOrqudtFpvfSAXjRI1GzvRjq6R+IySrFL0ho
+ky0wOIiWlyJANccnc0FO
+=eVoA
+-----END PGP SIGNATURE-----
 
-- Fix cpufreq in omap2plus_defconfig after Kconfig change
-
-- Fix dra7 qspi partitions
-
-And also, let's re-enable smc91x on some n900 boards that
-we have sitting in a few test boot systems after the boot
-loader dependencies got fixed.
-
-----------------------------------------------------------------
-Lennart Sorensen (3):
-      ARM: omap5/dra7xx: Fix frequency typos
-      ARM: dra7xx: Fix counter frequency drift for AM572x errata i856
-      ARM: omap5/dra7xx: Enable booting secondary CPU in HYP mode
-
-Mugunthan V N (1):
-      ARM: dts: dra7-evm: fix qspi device tree partition size
-
-Nishanth Menon (1):
-      ARM: omap2plus_defconfig: use CONFIG_CPUFREQ_DT
-
-Tony Lindgren (2):
-      ARM: OMAP2+: Fix n900 board name for legacy user space
-      ARM: dts: Revert disabling of smc91x for n900
-
- arch/arm/boot/dts/dra7-evm.dts       | 10 ++++----
- arch/arm/boot/dts/omap3-n900.dts     |  4 +---
- arch/arm/configs/omap2plus_defconfig |  2 +-
- arch/arm/mach-omap2/board-generic.c  | 18 +++++++++++++++
- arch/arm/mach-omap2/common.h         |  1 +
- arch/arm/mach-omap2/control.h        |  4 ++++
- arch/arm/mach-omap2/omap-headsmp.S   | 21 +++++++++++++++++
- arch/arm/mach-omap2/omap-smp.c       | 13 +++++++++--
- arch/arm/mach-omap2/timer.c          | 44 +++++++++++++++++++++++++++++++-----
- 9 files changed, 100 insertions(+), 17 deletions(-)
+--TB36FDmn/VVEgNH/--
