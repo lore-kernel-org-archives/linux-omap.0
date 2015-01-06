@@ -1,78 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/14] mfd: twl-core: Constify struct regmap_config and
- reg_default array
-Date: Tue, 6 Jan 2015 09:12:01 -0800
-Message-ID: <20150106171201.GS4081@atomide.com>
-References: <1420448493-9355-1-git-send-email-k.kozlowski@samsung.com>
- <1420448493-9355-13-git-send-email-k.kozlowski@samsung.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Tue, 6 Jan 2015 11:25:45 -0600
+Message-ID: <20150106172545.GK6502@saruman>
+References: <20150106170433.GA5408@amd>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Jtds+vpI57xq70EV"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20723 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755860AbbAFRPv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 12:15:51 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:37364 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751828AbbAFR1H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jan 2015 12:27:07 -0500
 Content-Disposition: inline
-In-Reply-To: <1420448493-9355-13-git-send-email-k.kozlowski@samsung.com>
+In-Reply-To: <20150106170433.GA5408@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 
-* Krzysztof Kozlowski <k.kozlowski@samsung.com> [150105 01:04]:
-> The regmap_config struct may be const because it is not modified by the
-> driver and regmap_init() accepts pointer to const. Make array of
-> struct reg_default const as well.
-> 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+--Jtds+vpI57xq70EV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
+> Hi!
+>=20
+> In 3.18, sound is nice and clear.
+>=20
+> In 3.19, sound is unusable. It produces nasty tone when it should be
+> quiet, and there's at least as much noise as is sound.
+>=20
+> Unfortunately, list of mixers also changed (and there's cca 120
+> settings), but a) it does not work with the old list and b) nothing I
+> could figure out did make the sound usable. Some setting resulted in
+> even more noise.
+>=20
+> Any idea what could have caused it?
 
-> Cc: linux-omap@vger.kernel.org
-> ---
->  drivers/mfd/twl-core.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index db11b4f40611..489674a2497e 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -207,7 +207,7 @@ static struct twl_mapping twl4030_map[] = {
->  	{ 2, TWL5031_BASEADD_INTERRUPTS },
->  };
->  
-> -static struct reg_default twl4030_49_defaults[] = {
-> +static const struct reg_default twl4030_49_defaults[] = {
->  	/* Audio Registers */
->  	{ 0x01, 0x00}, /* CODEC_MODE	*/
->  	{ 0x02, 0x00}, /* OPTION	*/
-> @@ -306,7 +306,7 @@ static const struct regmap_access_table twl4030_49_volatile_table = {
->  	.n_yes_ranges = ARRAY_SIZE(twl4030_49_volatile_ranges),
->  };
->  
-> -static struct regmap_config twl4030_regmap_config[4] = {
-> +static const struct regmap_config twl4030_regmap_config[4] = {
->  	{
->  		/* Address 0x48 */
->  		.reg_bits = 8,
-> @@ -369,7 +369,7 @@ static struct twl_mapping twl6030_map[] = {
->  	{ 1, TWL6030_BASEADD_GASGAUGE },
->  };
->  
-> -static struct regmap_config twl6030_regmap_config[3] = {
-> +static const struct regmap_config twl6030_regmap_config[3] = {
->  	{
->  		/* Address 0x48 */
->  		.reg_bits = 8,
-> @@ -1087,7 +1087,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	struct twl4030_platform_data	*pdata = dev_get_platdata(&client->dev);
->  	struct device_node		*node = client->dev.of_node;
->  	struct platform_device		*pdev;
-> -	struct regmap_config		*twl_regmap_config;
-> +	const struct regmap_config	*twl_regmap_config;
->  	int				irq_base = 0;
->  	int				status;
->  	unsigned			i, num_slaves;
-> -- 
-> 1.9.1
-> 
+$ git bisect start
+$ git bisect good v3.18
+$ git bisect bad
+
+that'll help find what caused it.
+
+--=20
+balbi
+
+--Jtds+vpI57xq70EV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUrBqZAAoJEIaOsuA1yqREbhEP/i0RGZglistS1EQLPyfxCwmu
+6rLM8oq47XN63M10NfXu5xlHHbbnpgOCoinmcrntNL3IVeMlgrdOyuaR1Pf64NPA
+F2KnAaoIHsa9D9uPGTdaTQTpQSPR8m+lER0GJCT6IhdSC0eZE8D0Gc+feubnqlWX
+I2NmZCP1/NCY2b4swC74eBAHOWHFR+hIy9lf8TCR7B0RRxPzqsgu31/RohAGB3qV
+K2VCiuWfHJOVWWEYPe/SzbjHN/Nk4SCOkTSpA2hZrbFGgBb8oV48zN4tlin1ux5H
+Je3DZjs+9tdDabhXgIwTZetJY9P3i8bSeU24Ox6DOz4FgL8nM3jMyHUcmddcttKk
+EplBOZAaevuVAAIT0J7i20bqULrykNomeLyJoCIndcPedvQbL+7UtChe2yhYPgmG
+nWiW+EjT9Lg/SrkEPlkBgGuZtSq6LAgiVltflV2/XnLUu8cPtBuEpDV5YT3KV36t
+inAJJy60t+whggRPtrcqcDotDwDQKPz9ydtMRAbimSAC6E52Fs46tXdEbfdp9zbH
+pj5bW1PeOecWQ509CKG4IWAxKjNJZScIu1TdiMTzCHcmbwoNOomZXX4jCFhTmFpb
+/5h4OaJ3hvON5BOzYosjWSVvC7WXQy/HGTlE/OzMd3CH2miKM+NArCzokvgWLSQ4
++3yBufIXUL08iA7iwepN
+=3G77
+-----END PGP SIGNATURE-----
+
+--Jtds+vpI57xq70EV--
