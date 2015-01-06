@@ -1,32 +1,62 @@
-From: Ash Charles <ashcharles@gmail.com>
-Subject: DT support for OMAP3 ISP
-Date: Tue, 6 Jan 2015 12:42:12 -0800
-Message-ID: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Tue, 6 Jan 2015 21:50:00 +0100
+Message-ID: <20150106205000.GB13902@amd>
+References: <20150106170433.GA5408@amd>
+ <20150106172545.GK6502@saruman>
+ <20150106175115.GA19487@amd>
+ <20150106202857.GB32308@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:51285 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754448AbbAFUmn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 15:42:43 -0500
-Received: by mail-ig0-f178.google.com with SMTP id b16so216286igk.17
-        for <linux-omap@vger.kernel.org>; Tue, 06 Jan 2015 12:42:42 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150106202857.GB32308@saruman>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, sakari.ailus@iki.fi
 
-Hi,
+On Tue 2015-01-06 14:28:57, Felipe Balbi wrote:
+> On Tue, Jan 06, 2015 at 06:51:15PM +0100, Pavel Machek wrote:
+> > 
+> > On Tue 2015-01-06 11:25:45, Felipe Balbi wrote:
+> > > On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
+> > > > Hi!
+> > > > 
+> > > > In 3.18, sound is nice and clear.
+> > > > 
+> > > > In 3.19, sound is unusable. It produces nasty tone when it should be
+> > > > quiet, and there's at least as much noise as is sound.
+> > > > 
+> > > > Unfortunately, list of mixers also changed (and there's cca 120
+> > > > settings), but a) it does not work with the old list and b) nothing I
+> > > > could figure out did make the sound usable. Some setting resulted in
+> > > > even more noise.
+> > > > 
+> > > > Any idea what could have caused it?
+> > > 
+> > > $ git bisect start
+> > > $ git bisect good v3.18
+> > > $ git bisect bad
+> > > 
+> > > that'll help find what caused it.
+> > 
+> > Telling someone to do hard and time consuming job that probably will
+> > not succeed, instead of actually providing help. Very very funny.
+> 
+> you're getting code for free, you're getting help for free. Not many
+> people have N900s lying around. Running a bisection is just
+> politeness.
 
-I'm playing with the Caspa camera (mt9v032) and Overo on the 3.17
-kernel.  It looks like there has been some work on dt-bindings for the
-omap3isp (notably [1] and [2]) but I didn't see anything heading for
-mainline.
+Now you are speaking for yourself or for TI?
 
-What would be needed to support cameras using the omap3isp in a mainline kernel?
+Thanks for your very valuable help. I know how to do a bisection,
+thank you.
+									Pavel
+									
+PS: Unfortunately, N900 will not boot using nfsroot in 3.16+ at least,
+and boot from MMC card is broken and has been for quite some time.
 
-Thanks for any insight,
---Ash
-
-[1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt-v2
-[2] http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
