@@ -1,7 +1,7 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Tue, 6 Jan 2015 23:58:56 +0100
-Message-ID: <20150106225856.GB31990@amd>
+Date: Tue, 6 Jan 2015 17:04:15 -0600
+Message-ID: <20150106230415.GC13752@saruman>
 References: <20150106170433.GA5408@amd>
  <20150106172545.GK6502@saruman>
  <20150106175115.GA19487@amd>
@@ -10,50 +10,72 @@ References: <20150106170433.GA5408@amd>
  <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
  <20150106220805.GD13902@amd>
  <20150106222717.GC6071@fuloong-minipc.musicnaut.iki.fi>
+ <20150106224622.GA13752@saruman>
+ <20150106225614.GA31990@amd>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FsscpQKzF/jJk6ya"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45442 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750753AbbAFXFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jan 2015 18:05:44 -0500
 Content-Disposition: inline
-In-Reply-To: <20150106222717.GC6071@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
+In-Reply-To: <20150106225614.GA31990@amd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
 
-On Wed 2015-01-07 00:27:17, Aaro Koskinen wrote:
-> On Tue, Jan 06, 2015 at 11:08:05PM +0100, Pavel Machek wrote:
-> > On Tue 2015-01-06 22:57:30, Aaro Koskinen wrote:
-> > > Hi,
-> > > 
-> > > On Tue, Jan 06, 2015 at 09:50:00PM +0100, Pavel Machek wrote:
-> > > > PS: Unfortunately, N900 will not boot using nfsroot in 3.16+ at least,
-> > > > and boot from MMC card is broken and has been for quite some time.
-> > > 
-> > > USB networking works fine with 3.19-rc3 and also MMC card rootfs.
-> > 
-> > Does nfsroot work for you? USB networking works as a module but not
-> > build-in. [Patch is available for this one.]
-> > 
-> > u-SD card seems to have similar problem. If I try it after boot, I can
-> > access it ok, but using u-SD card for rootfs fails. If it works for
-> > you, it would be interesting to know.
-> 
-> I haven't tried nfsroot, but I've been using USB networking for ssh
-> for a couple of years without issues. I have g_ether as module.
-> 
-> Also I recently switched rootfs to u-SD card, and it (MMC) works fine
-> as builtin.
-> 
-> But I'm mounting it from userspace (using builtin initramfs inside
-> zImage), with a poll loop that waits for a device to appear. Maybe if you
-> do it from kernel you need to use root wait/delay etc. options?
+--FsscpQKzF/jJk6ya
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, it works if I mount it later. It fails when done directly using
-root=, even with rootwait etc. Hard to believe, yes, but try it. You
-can watch the results on console.
+Hi,
 
-									Pavel
+On Tue, Jan 06, 2015 at 11:56:14PM +0100, Pavel Machek wrote:
+> > > But I'm mounting it from userspace (using builtin initramfs inside
+> > > zImage), with a poll loop that waits for a device to appear. Maybe if=
+ you
+> > > do it from kernel you need to use root wait/delay etc. options?
+> >=20
+> > yeah, rootwait should do it.
+>=20
+> No, rootwait does not solve it. Try it. Tested many times. (And yes,
+> you need to actually fool the rear cover sensor or close the phone.)
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+yeah, just put a magnet or, if you have spare back covers, cut one so
+that you "close" it, but still allow you to put the thing on a
+development jig.
+
+Also, if why doesn't rootwait work ? You never have a new mmc node or is
+the mmc node changing names ?
+
+--=20
+balbi
+
+--FsscpQKzF/jJk6ya
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUrGnvAAoJEIaOsuA1yqREA0cQAKUohXUU8k7HWFmYW2Tw+rCP
+YarhoiBNwyXGiL6mQKUEkz7dNz/8/Qxfx2ElQx/nsxikBybCT1czUIDM7ZTmHZci
+FjekuqR8WJOWpZfUkuvhRGE/WUJZsLa6jM+Q3TbTchS3tpQkKnarHoMFCMMUMAWi
+QbU9vZE8a3fOMkqUADPKoBLp3af+Pr01z3FJgEvkXw25BFn8Rhwx0aSkFZqfxCQo
+U0NG/VSORCG0soW3PoyRw0xbxNNOvodNf6NZZEabagp4/+KkSpZNBj+2EAqmyPqK
+KKFazOwIrigk4lC9Cb3YwKzzrth4ASj7cYEk6ZJwNLcTPqp27scJT8i2Leqk2qh5
+bVMhL+8tHDjaDDL5zRHOfL/oQHywcyWqd300k0EyiVO9Sa5p0TVLVJs4dXNGULul
+ahBg+r7MttztkMGTJxTlyMFU2uEwO7CS+vSbyuG2srsD3vF4ytg2VIymPPjryXJg
+ciuUs5z5n55VHyj1fs0ME0QWo0oMgFP5LNzR6R3uPrc2KIXjaMpXN943m7GaVypS
+j5XCCNaOoHGMDGc8GKOPBeSt61LT4h2CpmT0NGsvfaLxegeSTMFQXKvPbl6vHKu2
+LdvkNhGDgRiH0w60ENrc8mwuhUniZ2cNicpYJLTt9wU+NOlJg7Vkbc+lYTtY9WaC
+/+1vLFaEBVf9SuFjjibE
+=hwt3
+-----END PGP SIGNATURE-----
+
+--FsscpQKzF/jJk6ya--
