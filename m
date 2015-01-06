@@ -1,41 +1,79 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Tue, 6 Jan 2015 23:56:34 +0200
-Message-ID: <20150106215634.GB6071@fuloong-minipc.musicnaut.iki.fi>
-References: <20150105230228.GO4081@atomide.com>
- <20150106080025.GA6752@amd>
- <20150106165903.GF4025@atomide.com>
- <20150106194443.GH30544@fuloong-minipc.musicnaut.iki.fi>
- <20150106195454.GW4081@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Tue, 6 Jan 2015 22:57:44 +0100
+Message-ID: <20150106215744.GC13902@amd>
+References: <20150106170433.GA5408@amd>
+ <20150106172545.GK6502@saruman>
+ <20150106175115.GA19487@amd>
+ <20150106202857.GB32308@saruman>
+ <20150106205000.GB13902@amd>
+ <20150106205413.GF32308@saruman>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:53259 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752231AbbAFV4m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 16:56:42 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150106195454.GW4081@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150106205413.GF32308@saruman>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Sebastian Reichel <sre@kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 
-Hi,
-
-On Tue, Jan 06, 2015 at 11:54:55AM -0800, Tony Lindgren wrote:
-> Run u-boot/tools/gen_eth_addr to generate a random local mac,
-> then swap the bytes for it for big endian. Enter them into a
-> file with hexedit in big endian order. Then just do:
+On Tue 2015-01-06 14:54:13, Felipe Balbi wrote:
+> Hi,
 > 
-> # cat mac | ethtool -E eth0 offset 0x40 length 6
+> On Tue, Jan 06, 2015 at 09:50:00PM +0100, Pavel Machek wrote:
+> > On Tue 2015-01-06 14:28:57, Felipe Balbi wrote:
+> > > On Tue, Jan 06, 2015 at 06:51:15PM +0100, Pavel Machek wrote:
+> > > > 
+> > > > On Tue 2015-01-06 11:25:45, Felipe Balbi wrote:
+> > > > > On Tue, Jan 06, 2015 at 06:04:33PM +0100, Pavel Machek wrote:
+> > > > > > Hi!
+> > > > > > 
+> > > > > > In 3.18, sound is nice and clear.
+> > > > > > 
+> > > > > > In 3.19, sound is unusable. It produces nasty tone when it should be
+> > > > > > quiet, and there's at least as much noise as is sound.
+> > > > > > 
+> > > > > > Unfortunately, list of mixers also changed (and there's cca 120
+> > > > > > settings), but a) it does not work with the old list and b) nothing I
+> > > > > > could figure out did make the sound usable. Some setting resulted in
+> > > > > > even more noise.
+> > > > > > 
+> > > > > > Any idea what could have caused it?
+> > > > > 
+> > > > > $ git bisect start
+> > > > > $ git bisect good v3.18
+> > > > > $ git bisect bad
+> > > > > 
+> > > > > that'll help find what caused it.
+> > > > 
+> > > > Telling someone to do hard and time consuming job that probably will
+> > > > not succeed, instead of actually providing help. Very very funny.
+> > > 
+> > > you're getting code for free, you're getting help for free. Not many
+> > > people have N900s lying around. Running a bisection is just
+> > > politeness.
+> > 
+> > Now you are speaking for yourself or for TI?
 > 
-> Then ethtool -e eth0 should show you the configuration.
+> why bring my employer into the discussion ?
 
-Does any other eeprom data need to be set? It seems to be all 0xff.
-I generated a mac from /dev/random and it shows up fine in those offsets
-and with ifconfig, but I still can't get a link up:
+Because you are speaking of getting help for free, and I don't
+remember getting any useful help from you; so I'd like to know who do
+you speak for.
 
-ifconfig: SIOCSIFFLAGS: Cannot assign requested address
+> > Thanks for your very valuable help. I know how to do a bisection,
+> > thank you.
+> 
+> then please do it.
 
-A.
+No, sorry, I don't think that would be reasonable use of my time at
+this point. First steps are "confirm it happens on other N900 boards,
+too", ruling out config issues at my part, and "try to get
+verification from other development boards if they have same
+problems", because most other boards are easier to work with.
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
