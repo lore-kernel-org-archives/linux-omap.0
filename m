@@ -1,63 +1,207 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 13/21] DT: omap4/5: add binding for the wake-up generator
-Date: Wed,  7 Jan 2015 17:42:48 +0000
-Message-ID: <1420652576-22309-14-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 04/21] ARM: tegra: update DTs to expose legacy interrupt controller
+Date: Wed,  7 Jan 2015 17:42:39 +0000
+Message-ID: <1420652576-22309-5-git-send-email-marc.zyngier@arm.com>
 References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:57106 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839AbbAGRnm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2015 12:43:42 -0500
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
 Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+
+Describe the legacy interrupt controller in every tegra DTSI files,
+and make it the parent of most interrupts.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- .../interrupt-controller/ti,omap4-wugen-mpu        | 32 ++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+ arch/arm/boot/dts/tegra114.dtsi | 16 +++++++++++++++-
+ arch/arm/boot/dts/tegra124.dtsi | 16 +++++++++++++++-
+ arch/arm/boot/dts/tegra20.dtsi  | 15 ++++++++++++++-
+ arch/arm/boot/dts/tegra30.dtsi  | 16 +++++++++++++++-
+ 4 files changed, 59 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu b/Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
-new file mode 100644
-index 0000000..16149d9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
-@@ -0,0 +1,32 @@
-+TI OMAP4 Wake-up Generator
+diff --git a/arch/arm/boot/dts/tegra114.dtsi b/arch/arm/boot/dts/tegra114.dtsi
+index 4296b53..f70bed0 100644
+--- a/arch/arm/boot/dts/tegra114.dtsi
++++ b/arch/arm/boot/dts/tegra114.dtsi
+@@ -8,7 +8,7 @@
+ 
+ / {
+ 	compatible = "nvidia,tegra114";
+-	interrupt-parent = <&gic>;
++	interrupt-parent = <&ictlr>;
+ 
+ 	host1x@50000000 {
+ 		compatible = "nvidia,tegra114-host1x", "simple-bus";
+@@ -134,6 +134,19 @@
+ 		      <0x50046000 0x2000>;
+ 		interrupts = <GIC_PPI 9
+ 			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
++		interrupt-parent = <&gic>;
++	};
 +
-+All TI OMAP4/5 (and their derivatives) an interrupt controllerthat
-+routes interrupts to the GIC, and also serves as a wakeup source. It
-+is also refered to as "WUGEN-MPU", hence the name of the binding.
++	ictlr: interrupt-controller@60004000 {
++		compatible = "nvidia,tegra114-ictlr", "nvidia,tegra-ictlr";
++		reg = <0x60004000 64>,
++		      <0x60004100 64>,
++		      <0x60004200 64>,
++		      <0x60004300 64>,
++		      <0x60004400 64>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&gic>;
+ 	};
+ 
+ 	timer@60005000 {
+@@ -766,5 +779,6 @@
+ 				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+ 			<GIC_PPI 10
+ 				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
++		interrupt-parent = <&gic>;
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/tegra124.dtsi b/arch/arm/boot/dts/tegra124.dtsi
+index 4be06c6..6ed6ca0 100644
+--- a/arch/arm/boot/dts/tegra124.dtsi
++++ b/arch/arm/boot/dts/tegra124.dtsi
+@@ -10,7 +10,7 @@
+ 
+ / {
+ 	compatible = "nvidia,tegra124";
+-	interrupt-parent = <&gic>;
++	interrupt-parent = <&ictlr>;
+ 	#address-cells = <2>;
+ 	#size-cells = <2>;
+ 
+@@ -173,6 +173,7 @@
+ 		      <0x0 0x50046000 0x0 0x2000>;
+ 		interrupts = <GIC_PPI 9
+ 			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
++		interrupt-parent = <&gic>;
+ 	};
+ 
+ 	gpu@0,57000000 {
+@@ -190,6 +191,18 @@
+ 		status = "disabled";
+ 	};
+ 
++	ictlr: interrupt-controller@60004000 {
++		compatible = "nvidia,tegra124-ictlr", "nvidia,tegra-ictlr";
++		reg = <0x0 0x60004000 0x0 0x40>,
++		      <0x0 0x60004100 0x0 0x40>,
++		      <0x0 0x60004200 0x0 0x40>,
++		      <0x0 0x60004300 0x0 0x40>,
++		      <0x0 0x60004400 0x0 0x40>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&gic>;
++	};
 +
-+Reguired properties:
+ 	timer@0,60005000 {
+ 		compatible = "nvidia,tegra124-timer", "nvidia,tegra20-timer";
+ 		reg = <0x0 0x60005000 0x0 0x400>;
+@@ -955,5 +968,6 @@
+ 				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+ 			     <GIC_PPI 10
+ 				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
++		interrupt-parent = <&gic>;
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
+index 8acf5d8..ab2f004 100644
+--- a/arch/arm/boot/dts/tegra20.dtsi
++++ b/arch/arm/boot/dts/tegra20.dtsi
+@@ -7,7 +7,7 @@
+ 
+ / {
+ 	compatible = "nvidia,tegra20";
+-	interrupt-parent = <&intc>;
++	interrupt-parent = <&ictlr>;
+ 
+ 	host1x@50000000 {
+ 		compatible = "nvidia,tegra20-host1x", "simple-bus";
+@@ -142,6 +142,7 @@
+ 
+ 	timer@50004600 {
+ 		compatible = "arm,cortex-a9-twd-timer";
++		interrupt-parent = <&intc>;
+ 		reg = <0x50040600 0x20>;
+ 		interrupts = <GIC_PPI 13
+ 			(GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
+@@ -154,6 +155,7 @@
+ 		       0x50040100 0x0100>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <3>;
++		interrupt-parent = <&intc>;
+ 	};
+ 
+ 	cache-controller@50043000 {
+@@ -165,6 +167,17 @@
+ 		cache-level = <2>;
+ 	};
+ 
++	ictlr: interrupt-controller@60004000 {
++		compatible = "nvidia,tegra20-ictlr", "nvidia,tegra-ictlr";
++		reg = <0x60004000 64>,
++		      <0x60004100 64>,
++		      <0x60004200 64>,
++		      <0x60004300 64>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&intc>;
++	};
 +
-+- compatible : should contain at least "ti,omap4-wugen-mpu"
-+- reg : Specifies base physical address and size of the registers.
-+- interrupt-controller : Identifies the node as an interrupt controller.
-+- #interrupt-cells : Specifies the number of cells needed to encode an
-+  interrupt source. The value must be 3.
-+- interrupt-parent : a phandle to the GIC these interrupts are routed
-+  to.
+ 	timer@60005000 {
+ 		compatible = "nvidia,tegra20-timer";
+ 		reg = <0x60005000 0x60>;
+diff --git a/arch/arm/boot/dts/tegra30.dtsi b/arch/arm/boot/dts/tegra30.dtsi
+index 99475f6..c621e30 100644
+--- a/arch/arm/boot/dts/tegra30.dtsi
++++ b/arch/arm/boot/dts/tegra30.dtsi
+@@ -8,7 +8,7 @@
+ 
+ / {
+ 	compatible = "nvidia,tegra30";
+-	interrupt-parent = <&intc>;
++	interrupt-parent = <&ictlr>;
+ 
+ 	pcie-controller@00003000 {
+ 		compatible = "nvidia,tegra30-pcie";
+@@ -228,6 +228,7 @@
+ 	timer@50004600 {
+ 		compatible = "arm,cortex-a9-twd-timer";
+ 		reg = <0x50040600 0x20>;
++		interrupt-parent = <&intc>;
+ 		interrupts = <GIC_PPI 13
+ 			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
+ 		clocks = <&tegra_car TEGRA30_CLK_TWD>;
+@@ -239,6 +240,7 @@
+ 		       0x50040100 0x0100>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <3>;
++		interrupt-parent = <&intc>;
+ 	};
+ 
+ 	cache-controller@50043000 {
+@@ -250,6 +252,18 @@
+ 		cache-level = <2>;
+ 	};
+ 
++	ictlr: interrupt-controller@60004000 {
++		compatible = "nvidia,tegra30-ictlr", "nvidia,tegra-ictlr";
++		reg = <0x60004000 64>,
++		      <0x60004100 64>,
++		      <0x60004200 64>,
++		      <0x60004300 64>,
++		      <0x60004400 64>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&intc>;
++	};
 +
-+Notes:
-+
-+- Because this HW ultimately routes interrupts to the GIC, the
-+  interrupt specifier must be that of the GIC.
-+- Only SPIs can use the ictlr as an interrupt parent. SGIs and PPIs
-+  are explicitely forbiden.
-+
-+Example:
-+
-+       wakeupgen: interrupt-controller@48281000 {
-+               compatible = "ti,omap5-wugen-mpu", "ti,omap4-wugen-mpu";
-+               interrupt-controller;
-+               #interrupt-cells = <3>;
-+               reg = <0x48281000 0x1000>;
-+               interrupt-parent = <&gic>;
-+       };
+ 	timer@60005000 {
+ 		compatible = "nvidia,tegra30-timer", "nvidia,tegra20-timer";
+ 		reg = <0x60005000 0x400>;
 -- 
 2.1.4
-
