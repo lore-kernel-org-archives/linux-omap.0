@@ -1,99 +1,73 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [RFC PATCH 1/3] of/device: manage resources similar to
- platform_device_add
-Date: Wed, 7 Jan 2015 11:30:52 -0600
-Message-ID: <1420651854-17768-2-git-send-email-s-anna@ti.com>
-References: <1420651854-17768-1-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1420651854-17768-1-git-send-email-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v2 09/21] DT: update ti,irq-crossbar binding
+Date: Wed,  7 Jan 2015 17:42:44 +0000
+Message-ID: <1420652576-22309-10-git-send-email-marc.zyngier@arm.com>
+References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Drivers can use of_platform_populate() to create platform devices
-for children of the device main node, and a complementary API
-of_platform_depopulate() is provided to delete these child platform
-devices. The of_platform_depopulate() leverages the platform API
-for performing the cleanup of these devices.
+Make it look like a real interrupt controller.
 
-The platform device resources are managed differently between
-of_device_add and platform_device_add, and this asymmetry causes
-a kernel oops in platform_device_del during removal of the resources.
-Manage the platform device resources similar to platform_device_add
-to fix this kernel oops.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/of/device.c | 38 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ .../devicetree/bindings/arm/omap/crossbar.txt          | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/of/device.c b/drivers/of/device.c
-index 46d6c75c1404..fa27c1c71f29 100644
---- a/drivers/of/device.c
-+++ b/drivers/of/device.c
-@@ -50,6 +50,8 @@ EXPORT_SYMBOL(of_dev_put);
+diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+index 4139db3..a9b28d7 100644
+--- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
++++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+@@ -9,7 +9,9 @@ inputs.
+ Required properties:
+ - compatible : Should be "ti,irq-crossbar"
+ - reg: Base address and the size of the crossbar registers.
+-- ti,max-irqs: Total number of irqs available at the interrupt controller.
++- interrupt-controller: indicates that this block is an interrupt controller.
++- interrupt-parent: the interrupt controller this block is connected to.
++- ti,max-irqs: Total number of irqs available at the parent interrupt controller.
+ - ti,max-crossbar-sources: Maximum number of crossbar sources that can be routed.
+ - ti,reg-size: Size of a individual register in bytes. Every individual
+ 	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
+@@ -27,13 +29,13 @@ Optional properties:
+   when the interrupt controller irq is unused (when not provided, default is 0)
  
- int of_device_add(struct platform_device *ofdev)
- {
-+	int i, ret;
-+
- 	BUG_ON(ofdev->dev.of_node == NULL);
+ Examples:
+-		crossbar_mpu: @4a020000 {
++		crossbar_mpu: crossbar@4a002a48 {
+ 			compatible = "ti,irq-crossbar";
+ 			reg = <0x4a002a48 0x130>;
+ 			ti,max-irqs = <160>;
+ 			ti,max-crossbar-sources = <400>;
+ 			ti,reg-size = <2>;
+-			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
++			ti,irqs-reserved = <0 1 2 3 5 6 131 132>;
+ 			ti,irqs-skip = <10 133 139 140>;
+ 		};
  
- 	/* name and id have to be set so that the platform bus doesn't get
-@@ -63,7 +65,41 @@ int of_device_add(struct platform_device *ofdev)
- 	if (!ofdev->dev.parent)
- 		set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
+@@ -44,10 +46,6 @@ Documentation/devicetree/bindings/arm/gic.txt for further details.
  
--	return device_add(&ofdev->dev);
-+	for (i = 0; i < ofdev->num_resources; i++) {
-+		struct resource *p, *r = &ofdev->resource[i];
-+
-+		if (!r->name)
-+			r->name = dev_name(&ofdev->dev);
-+
-+		p = r->parent;
-+		if (!p) {
-+			if (resource_type(r) == IORESOURCE_MEM)
-+				p = &iomem_resource;
-+			else if (resource_type(r) == IORESOURCE_IO)
-+				p = &ioport_resource;
-+		}
-+
-+		if (p && insert_resource(p, r)) {
-+			dev_err(&ofdev->dev, "failed to claim resource %d\n",
-+				i);
-+			ret = -EBUSY;
-+			goto failed;
-+		}
-+	}
-+
-+	ret = device_add(&ofdev->dev);
-+	if (ret == 0)
-+		return ret;
-+
-+failed:
-+	while (--i >= 0) {
-+		struct resource *r = &ofdev->resource[i];
-+		unsigned long type = resource_type(r);
-+
-+		if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
-+			release_resource(r);
-+	}
-+	return ret;
- }
+ An interrupt consumer on an SoC using crossbar will use:
+ 	interrupts = <GIC_SPI request_number interrupt_level>
+-When the request number is between 0 to that described by
+-"ti,max-crossbar-sources", it is assumed to be a crossbar mapping. If the
+-request_number is greater than "ti,max-crossbar-sources", then it is mapped as a
+-quirky hardware mapping direct to GIC.
  
- int of_device_register(struct platform_device *pdev)
+ Example:
+ 	device_x@0x4a023000 {
+@@ -55,9 +53,3 @@ Example:
+ 		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
+ 		...
+ 	};
+-
+-	device_y@0x4a033000 {
+-		/* Direct mapped GIC SPI 1 used */
+-		interrupts = <GIC_SPI DIRECT_IRQ(1) IRQ_TYPE_LEVEL_HIGH>;
+-		...
+-	};
 -- 
-2.2.1
+2.1.4
