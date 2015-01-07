@@ -1,57 +1,35 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] can: c_can: use regmap_update_bits() to modify RAMINIT register
-Date: Wed, 7 Jan 2015 16:32:42 +0200
-Message-ID: <1420641162-8634-1-git-send-email-rogerq@ti.com>
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH v11 1/9] ARM: OMAP2+: use common l2cache initialization code
+Date: Wed, 7 Jan 2015 23:37:09 +0900
+Message-ID: <CA+Ln22ECR_rCLz8VW0WYDNqa3xb0b-b4Em-8156wNR60GvB1cQ@mail.gmail.com>
+References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
+	<1420460348-20302-2-git-send-email-m.szyprowski@samsung.com>
+	<2975078.sXsfBJkaoi@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-can-owner@vger.kernel.org>
-Sender: linux-can-owner@vger.kernel.org
-To: mkl@pengutronix.de
-Cc: tomi.valkeinen@ti.com, linux-can@vger.kernel.org, wsa@the-dreams.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2975078.sXsfBJkaoi@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Nishanth Menon <nm@ti.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Drake <drake@endlessm.com>, Jon Loeliger <loeliger@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Olof Johansson <olof@lixom.net>, Laura Abbott <lauraa@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-use of regmap_read() and regmap_write() in c_can_hw_raminit_syscon()
-is not safe as the RAMINIT register can be shared between different drivers
-at least for TI SoCs.
+2015-01-06 5:25 GMT+09:00 Arnd Bergmann <arnd@arndb.de>:
+> On Monday 05 January 2015 13:19:00 Marek Szyprowski wrote:
+>>  DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+>> +       .l2c_aux_val    = OMAP_L2C_AUX_CTRL,
+>> +       .l2c_aux_mask   = 0xcf9fffff,
+>> +       .l2c_write_sec  = omap4_l2c310_write_sec,
+>>         .reserve        = omap_reserve,
+>>         .smp            = smp_ops(omap4_smp_ops),
+>>         .map_io         = omap4_map_io,
+>>
+>
+> Could we also get those values into the dts files? Clearly we
+> can't remove them here without breaking compatibility with old
+> dtbs, but it would be nice to have all new dtbs do the right thing.
 
-To make the modification atomic we switch to using regmap_update_bits().
+Sounds like a good next step after merging this series. :)
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/net/can/c_can/c_can_platform.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-index f363972..364209a 100644
---- a/drivers/net/can/c_can/c_can_platform.c
-+++ b/drivers/net/can/c_can/c_can_platform.c
-@@ -110,6 +110,10 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
- 	 */
- 	ctrl &= ~(1 << raminit->bits.start);
- 	ctrl |= 1 << raminit->bits.done;
-+
-+	/* we can't use regmap_update_bits here as it will bypass the write
-+	 * if START is already 0 and DONE is already 1.
-+	 */
- 	regmap_write(raminit->syscon, raminit->reg, ctrl);
- 
- 	ctrl &= ~(1 << raminit->bits.done);
-@@ -118,12 +122,13 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
- 	if (enable) {
- 		/* Set start bit and wait for the done bit. */
- 		ctrl |= 1 << raminit->bits.start;
--		regmap_write(raminit->syscon, raminit->reg, ctrl);
-+		regmap_update_bits(raminit->syscon, raminit->reg, mask, ctrl);
- 
- 		/* clear START bit if start pulse is needed */
- 		if (raminit->needs_pulse) {
- 			ctrl &= ~(1 << raminit->bits.start);
--			regmap_write(raminit->syscon, raminit->reg, ctrl);
-+			regmap_update_bits(raminit->syscon, raminit->reg,
-+					   mask, ctrl);
- 		}
- 
- 		ctrl |= 1 << raminit->bits.done;
--- 
-2.1.0
-
+Best regards,
+Tomasz
