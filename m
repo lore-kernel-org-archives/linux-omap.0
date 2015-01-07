@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 17/21] irqchip: gic: add an entry point to set up irqchip flags
-Date: Wed,  7 Jan 2015 17:42:52 +0000
-Message-ID: <1420652576-22309-18-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 03/21] ARM: tegra: skip gic_arch_extn setup if DT has a LIC node
+Date: Wed,  7 Jan 2015 17:42:38 +0000
+Message-ID: <1420652576-22309-4-git-send-email-marc.zyngier@arm.com>
 References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
@@ -10,47 +10,61 @@ To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail
 Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-A common use of gic_arch_extn is to set up additional flags
-to the GIC irqchip. It looks like a benign enough hack that
-doesn't really require the users of that feature to be converted
-to stacked domains.
+If we detect that our DT has a LIC node, don't setup gic_arch_extn,
+and skip tegra_legacy_irq_syscore_init as well.
 
-Add a gic_set_irqchip_flags() function that platform code can
-call instead of using the dreaded gic_arch_extn.
+This is only a temporary measure until that code is removed for good.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c       | 5 +++++
- include/linux/irqchip/arm-gic.h | 1 +
- 2 files changed, 6 insertions(+)
+ arch/arm/mach-tegra/irq.c   | 11 +++++++++++
+ arch/arm/mach-tegra/tegra.c |  1 -
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 9c30a76..23fe3be 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -877,6 +877,11 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
- 	.xlate = gic_irq_domain_xlate,
- };
+diff --git a/arch/arm/mach-tegra/irq.c b/arch/arm/mach-tegra/irq.c
+index 7f87a50..b37141d 100644
+--- a/arch/arm/mach-tegra/irq.c
++++ b/arch/arm/mach-tegra/irq.c
+@@ -255,11 +255,21 @@ static void tegra114_gic_cpu_pm_registration(void)
+ static void tegra114_gic_cpu_pm_registration(void) { }
+ #endif
  
-+void gic_set_irqchip_flags(unsigned long flags)
-+{
-+	gic_chip.flags |= flags;
-+}
++static const struct of_device_id tegra_ictlr_match[] __initconst = {
++	{ .compatible = "nvidia,tegra-ictlr" },
++	{ }
++};
 +
- void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
- 			   u32 percpu_offset, struct device_node *node)
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index 3978c5b..36ec4ae 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -97,6 +97,7 @@ struct device_node;
+ void __init tegra_init_irq(void)
+ {
+ 	int i;
+ 	void __iomem *distbase;
  
- extern struct irq_chip gic_arch_extn;
++	if (of_find_matching_node(NULL, tegra_ictlr_match))
++		goto skip_extn_setup;
++
++	tegra_legacy_irq_syscore_init();
++
+ 	distbase = IO_ADDRESS(TEGRA_ARM_INT_DIST_BASE);
+ 	num_ictlrs = readl_relaxed(distbase + GIC_DIST_CTR) & 0x1f;
  
-+void gic_set_irqchip_flags(unsigned long flags);
- void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
- 		    u32 offset, struct device_node *);
- void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
+@@ -283,5 +293,6 @@ void __init tegra_init_irq(void)
+ 	gic_arch_extn.irq_set_wake = tegra_set_wake;
+ 	gic_arch_extn.flags = IRQCHIP_MASK_ON_SUSPEND;
+ 
++skip_extn_setup:
+ 	tegra114_gic_cpu_pm_registration();
+ }
+diff --git a/arch/arm/mach-tegra/tegra.c b/arch/arm/mach-tegra/tegra.c
+index ef016af..c33fba7 100644
+--- a/arch/arm/mach-tegra/tegra.c
++++ b/arch/arm/mach-tegra/tegra.c
+@@ -82,7 +82,6 @@ static void __init tegra_dt_init_irq(void)
+ {
+ 	tegra_init_irq();
+ 	irqchip_init();
+-	tegra_legacy_irq_syscore_init();
+ }
+ 
+ static void __init tegra_dt_init(void)
 -- 
 2.1.4
