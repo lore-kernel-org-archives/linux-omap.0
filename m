@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 05/21] DT: tegra: add binding for the legacy interrupt controller
-Date: Wed,  7 Jan 2015 17:42:40 +0000
-Message-ID: <1420652576-22309-6-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 17/21] irqchip: gic: add an entry point to set up irqchip flags
+Date: Wed,  7 Jan 2015 17:42:52 +0000
+Message-ID: <1420652576-22309-18-git-send-email-marc.zyngier@arm.com>
 References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
@@ -10,56 +10,47 @@ To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail
 Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+A common use of gic_arch_extn is to set up additional flags
+to the GIC irqchip. It looks like a benign enough hack that
+doesn't really require the users of that feature to be converted
+to stacked domains.
+
+Add a gic_set_irqchip_flags() function that platform code can
+call instead of using the dreaded gic_arch_extn.
+
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- .../interrupt-controller/nvidia,tegra-ictlr.txt    | 39 ++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/interrupt-controller/nvidia,tegra-ictlr.txt
+ drivers/irqchip/irq-gic.c       | 5 +++++
+ include/linux/irqchip/arm-gic.h | 1 +
+ 2 files changed, 6 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/nvidia,tegra-ictlr.txt b/Documentation/devicetree/bindings/interrupt-controller/nvidia,tegra-ictlr.txt
-new file mode 100644
-index 0000000..44fd873
---- /dev/null
-+++ b/Documentation/devicetree/bindings/interrupt-controller/nvidia,tegra-ictlr.txt
-@@ -0,0 +1,39 @@
-+NVIDIA Legacy Interrupt Controller
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 9c30a76..23fe3be 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -877,6 +877,11 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.xlate = gic_irq_domain_xlate,
+ };
+ 
++void gic_set_irqchip_flags(unsigned long flags)
++{
++	gic_chip.flags |= flags;
++}
 +
-+All Tegra SoCs contain a legacy interrupt controller that routes
-+interrupts to the GIC, and also serves as a wakeup source. It is also
-+refered to as "ictlr", hence the name of the binding.
-+
-+The HW block exposes a number of frames, each implementing a set of 32
-+interrupts.
-+
-+Reguired properties:
-+
-+- compatible : should contain at least "nvidia,tegra-ictlr".
-+- reg : Specifies base physical address and size of the registers.
-+  Each frame must be described separately.
-+- interrupt-controller : Identifies the node as an interrupt controller.
-+- #interrupt-cells : Specifies the number of cells needed to encode an
-+  interrupt source. The value must be 3.
-+- interrupt-parent : a phandle to the GIC these interrupts are routed
-+  to.
-+
-+Notes:
-+
-+- Because this HW ultimately routes interrupts to the GIC, the
-+  interrupt specifier must be that of the GIC.
-+- Only SPIs can use the ictlr as an interrupt parent. SGIs and PPIs
-+  are explicitely forbiden.
-+
-+Example:
-+
-+	ictlr: interrupt-controller@60004000 {
-+		compatible = "nvidia,tegra20-ictlr", "nvidia,tegra-ictlr";
-+		reg = <0x60004000 64>,
-+		      <0x60004100 64>,
-+		      <0x60004200 64>,
-+		      <0x60004300 64>;
-+		interrupt-controller;
-+		#interrupt-cells = <3>;
-+		interrupt-parent = <&intc>;
-+	};
+ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			   void __iomem *dist_base, void __iomem *cpu_base,
+ 			   u32 percpu_offset, struct device_node *node)
+diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+index 3978c5b..36ec4ae 100644
+--- a/include/linux/irqchip/arm-gic.h
++++ b/include/linux/irqchip/arm-gic.h
+@@ -97,6 +97,7 @@ struct device_node;
+ 
+ extern struct irq_chip gic_arch_extn;
+ 
++void gic_set_irqchip_flags(unsigned long flags);
+ void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
+ 		    u32 offset, struct device_node *);
+ void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
 -- 
 2.1.4
