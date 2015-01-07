@@ -1,78 +1,73 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v12 4/9] ARM: l2c: Add interface to ask hypervisor to configure
- L2C
-Date: Wed, 07 Jan 2015 12:30:19 +0100
-Message-ID: <1420630224-8887-5-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v12 9/9] ARM: dts: exynos4: Add nodes for L2 cache controller
+Date: Wed, 07 Jan 2015 12:30:24 +0100
+Message-ID: <1420630224-8887-10-git-send-email-m.szyprowski@samsung.com>
 References: <1420630224-8887-1-git-send-email-m.szyprowski@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-reply-to: <1420630224-8887-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Tomasz Figa <t.figa@samsung.com>
 
-Because certain secure hypervisor do not allow writes to individual L2C
-registers, but rather expect set of parameters to be passed as argument
-to secure monitor calls, there is a need to provide an interface for the
-L2C driver to ask the firmware to configure the hardware according to
-specified parameters. This patch adds such.
+This patch adds device tree nodes for L2 cache controller present on
+Exynos4 SoCs.
 
 Signed-off-by: Tomasz Figa <t.figa@samsung.com>
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 ---
- arch/arm/include/asm/outercache.h | 3 +++
- arch/arm/mm/cache-l2x0.c          | 6 ++++++
- 2 files changed, 9 insertions(+)
+ arch/arm/boot/dts/exynos4210.dtsi |  9 +++++++++
+ arch/arm/boot/dts/exynos4x12.dtsi | 14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
-index 891a56b35bcf..563b92fc2f41 100644
---- a/arch/arm/include/asm/outercache.h
-+++ b/arch/arm/include/asm/outercache.h
-@@ -23,6 +23,8 @@
+diff --git a/arch/arm/boot/dts/exynos4210.dtsi b/arch/arm/boot/dts/exynos4210.dtsi
+index bcc9e63c8070..8e45ea44317e 100644
+--- a/arch/arm/boot/dts/exynos4210.dtsi
++++ b/arch/arm/boot/dts/exynos4210.dtsi
+@@ -81,6 +81,15 @@
+ 		reg = <0x10023CA0 0x20>;
+ 	};
  
- #include <linux/types.h>
- 
-+struct l2x0_regs;
++	l2c: l2-cache-controller@10502000 {
++		compatible = "arm,pl310-cache";
++		reg = <0x10502000 0x1000>;
++		cache-unified;
++		cache-level = <2>;
++		arm,tag-latency = <2 2 1>;
++		arm,data-latency = <2 2 1>;
++	};
 +
- struct outer_cache_fns {
- 	void (*inv_range)(unsigned long, unsigned long);
- 	void (*clean_range)(unsigned long, unsigned long);
-@@ -36,6 +38,7 @@ struct outer_cache_fns {
+ 	gic: interrupt-controller@10490000 {
+ 		cpu-offset = <0x8000>;
+ 	};
+diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
+index 93b70402e943..8bc97c415c9a 100644
+--- a/arch/arm/boot/dts/exynos4x12.dtsi
++++ b/arch/arm/boot/dts/exynos4x12.dtsi
+@@ -54,6 +54,20 @@
+ 		reg = <0x10023CA0 0x20>;
+ 	};
  
- 	/* This is an ARM L2C thing */
- 	void (*write_sec)(unsigned long, unsigned);
-+	void (*configure)(const struct l2x0_regs *);
- };
- 
- extern struct outer_cache_fns outer_cache;
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index dde0d54ac41e..5288153f28b8 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -110,6 +110,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
- 
- static void l2c_configure(void __iomem *base)
- {
-+	if (outer_cache.configure) {
-+		outer_cache.configure(&l2x0_saved_regs);
-+		return;
-+	}
++	l2c: l2-cache-controller@10502000 {
++		compatible = "arm,pl310-cache";
++		reg = <0x10502000 0x1000>;
++		cache-unified;
++		cache-level = <2>;
++		arm,tag-latency = <2 2 1>;
++		arm,data-latency = <3 2 1>;
++		arm,double-linefill = <1>;
++		arm,double-linefill-incr = <0>;
++		arm,double-linefill-wrap = <1>;
++		arm,prefetch-drop = <1>;
++		arm,prefetch-offset = <7>;
++	};
 +
- 	if (l2x0_data->configure)
- 		l2x0_data->configure(base);
- 
-@@ -910,6 +915,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
- 
- 	fns = data->outer_cache;
- 	fns.write_sec = outer_cache.write_sec;
-+	fns.configure = outer_cache.configure;
- 	if (data->fixup)
- 		data->fixup(l2x0_base, cache_id, &fns);
- 
+ 	clock: clock-controller@10030000 {
+ 		compatible = "samsung,exynos4412-clock";
+ 		reg = <0x10030000 0x20000>;
 -- 
 1.9.2
