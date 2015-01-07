@@ -1,7 +1,7 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v12 1/9] ARM: OMAP2+: use common l2cache initialization code
-Date: Wed, 07 Jan 2015 12:30:16 +0100
-Message-ID: <1420630224-8887-2-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v12 8/9] ARM: EXYNOS: Add support for non-secure L2X0 resume
+Date: Wed, 07 Jan 2015 12:30:23 +0100
+Message-ID: <1420630224-8887-9-git-send-email-m.szyprowski@samsung.com>
 References: <1420630224-8887-1-git-send-email-m.szyprowski@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1420630224-8887-1-git-send-email-m.szyprowski@samsung.com>
@@ -10,112 +10,88 @@ To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, nm@ti.com, khilman@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch implements generic DT L2C initialisation (the one from
-init_IRQ in arch/arm/kernel/irq.c) for Omap4 and AM43 platforms and
-kills the SoC specific stuff in arch/arm/mach-omap2/omap4-common.c.
+From: Tomasz Figa <t.figa@samsung.com>
 
+On Exynos SoCs it is necessary to resume operation of L2C early in
+assembly code, because otherwise certain systems will crash. This patch
+adds necessary code to non-secure resume handler.
+
+Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+[rewrote the code accessing l2x0_saved_regs]
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 ---
- arch/arm/mach-omap2/board-generic.c |  6 ++++++
- arch/arm/mach-omap2/common.h        |  8 ++++++++
- arch/arm/mach-omap2/omap4-common.c  | 16 +---------------
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ arch/arm/mach-exynos/sleep.S | 46 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 608079a1aba6..c5c480b76da5 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -171,6 +171,9 @@ static const char *const omap4_boards_compat[] __initconst = {
- };
+diff --git a/arch/arm/mach-exynos/sleep.S b/arch/arm/mach-exynos/sleep.S
+index e3c373082bbe..31d25834b9c4 100644
+--- a/arch/arm/mach-exynos/sleep.S
++++ b/arch/arm/mach-exynos/sleep.S
+@@ -16,6 +16,8 @@
+  */
  
- DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
-+	.l2c_aux_val	= OMAP_L2C_AUX_CTRL,
-+	.l2c_aux_mask	= 0xcf9fffff,
-+	.l2c_write_sec	= omap4_l2c310_write_sec,
- 	.reserve	= omap_reserve,
- 	.smp		= smp_ops(omap4_smp_ops),
- 	.map_io		= omap4_map_io,
-@@ -214,6 +217,9 @@ static const char *const am43_boards_compat[] __initconst = {
- };
- 
- DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
-+	.l2c_aux_val	= OMAP_L2C_AUX_CTRL,
-+	.l2c_aux_mask	= 0xcf9fffff,
-+	.l2c_write_sec	= omap4_l2c310_write_sec,
- 	.map_io		= am33xx_map_io,
- 	.init_early	= am43xx_init_early,
- 	.init_late	= am43xx_init_late,
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 377eea849e7b..2610c9f8d29f 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -35,6 +35,7 @@
- #include <linux/irqchip/irq-omap-intc.h>
- 
- #include <asm/proc-fns.h>
+ #include <linux/linkage.h>
++#include <asm/asm-offsets.h>
 +#include <asm/hardware/cache-l2x0.h>
+ #include "smc.h"
  
- #include "i2c.h"
- #include "serial.h"
-@@ -94,11 +95,18 @@ extern void omap3_gptimer_timer_init(void);
- extern void omap4_local_timer_init(void);
- #ifdef CONFIG_CACHE_L2X0
- int omap_l2_cache_init(void);
-+#define OMAP_L2C_AUX_CTRL	(L2C_AUX_CTRL_SHARED_OVERRIDE | \
-+				 L310_AUX_CTRL_DATA_PREFETCH | \
-+				 L310_AUX_CTRL_INSTR_PREFETCH)
-+void omap4_l2c310_write_sec(unsigned long val, unsigned reg);
- #else
- static inline int omap_l2_cache_init(void)
- {
- 	return 0;
- }
+ #define CPU_MASK	0xff0ffff0
+@@ -74,6 +76,45 @@ ENTRY(exynos_cpu_resume_ns)
+ 	mov	r0, #SMC_CMD_C15RESUME
+ 	dsb
+ 	smc	#0
++#ifdef CONFIG_CACHE_L2X0
++	adr	r0, 1f
++	ldr	r2, [r0]
++	add	r0, r2, r0
 +
-+#define OMAP_L2C_AUX_CTRL	0
-+#define omap4_l2c310_write_sec	NULL
- #endif
- extern void omap5_realtime_timer_init(void);
- 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index b7cb44abe49b..fe99ceff2e2d 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -166,7 +166,7 @@ void __iomem *omap4_get_l2cache_base(void)
- 	return l2cache_base;
- }
- 
--static void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
-+void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
- {
- 	unsigned smc_op;
- 
-@@ -201,24 +201,10 @@ static void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
- 
- int __init omap_l2_cache_init(void)
- {
--	u32 aux_ctrl;
--
- 	/* Static mapping, never released */
- 	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
- 	if (WARN_ON(!l2cache_base))
- 		return -ENOMEM;
--
--	/* 16-way associativity, parity disabled, way size - 64KB (es2.0 +) */
--	aux_ctrl = L2C_AUX_CTRL_SHARED_OVERRIDE |
--		   L310_AUX_CTRL_DATA_PREFETCH |
--		   L310_AUX_CTRL_INSTR_PREFETCH;
--
--	outer_cache.write_sec = omap4_l2c310_write_sec;
--	if (of_have_populated_dt())
--		l2x0_of_init(aux_ctrl, 0xcf9fffff);
--	else
--		l2x0_init(l2cache_base, aux_ctrl, 0xcf9fffff);
--
- 	return 0;
- }
- #endif
++	/* Check that the address has been initialised. */
++	ldr	r1, [r0, #L2X0_R_PHY_BASE]
++	teq	r1, #0
++	beq	skip_l2x0
++
++	/* Check if controller has been enabled. */
++	ldr	r2, [r1, #L2X0_CTRL]
++	tst	r2, #0x1
++	bne	skip_l2x0
++
++	ldr	r1, [r0, #L2X0_R_TAG_LATENCY]
++	ldr	r2, [r0, #L2X0_R_DATA_LATENCY]
++	ldr	r3, [r0, #L2X0_R_PREFETCH_CTRL]
++	mov	r0, #SMC_CMD_L2X0SETUP1
++	smc	#0
++
++	/* Reload saved regs pointer because smc corrupts registers. */
++	adr	r0, 1f
++	ldr	r2, [r0]
++	add	r0, r2, r0
++
++	ldr	r1, [r0, #L2X0_R_PWR_CTRL]
++	ldr	r2, [r0, #L2X0_R_AUX_CTRL]
++	mov	r0, #SMC_CMD_L2X0SETUP2
++	smc	#0
++
++	mov	r0, #SMC_CMD_L2X0INVALL
++	smc	#0
++
++	mov	r1, #1
++	mov	r0, #SMC_CMD_L2X0CTRL
++	smc	#0
++skip_l2x0:
++#endif /* CONFIG_CACHE_L2X0 */
+ skip_cp15:
+ 	b	cpu_resume
+ ENDPROC(exynos_cpu_resume_ns)
+@@ -83,3 +124,8 @@ cp15_save_diag:
+ 	.globl cp15_save_power
+ cp15_save_power:
+ 	.long	0	@ cp15 power control
++
++#ifdef CONFIG_CACHE_L2X0
++	.align
++1:	.long	l2x0_saved_regs - .
++#endif /* CONFIG_CACHE_L2X0 */
 -- 
 1.9.2
