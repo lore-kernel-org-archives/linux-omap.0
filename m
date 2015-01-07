@@ -1,34 +1,57 @@
-From: WEB ADMIN <info@tozsdeiskola.hu>
-Subject: AVERTISMENT !!
-Date: Wed, 07 Jan 2015 12:58:59 +0100
-Message-ID: <42d695fd3daebaf1eaa8e066e76610cf@tozsdeiskola.hu>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] can: c_can: use regmap_update_bits() to modify RAMINIT register
+Date: Wed, 7 Jan 2015 16:32:42 +0200
+Message-ID: <1420641162-8634-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.tozsdeiskola.hu ([87.229.103.13]:45469 "EHLO
-	web.tozsdeiskola.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbbAGMGW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2015 07:06:22 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: mkl@pengutronix.de
+Cc: tomi.valkeinen@ti.com, linux-can@vger.kernel.org, wsa@the-dreams.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+use of regmap_read() and regmap_write() in c_can_hw_raminit_syscon()
+is not safe as the RAMINIT register can be shared between different drivers
+at least for TI SoCs.
 
+To make the modification atomic we switch to using regmap_update_bits().
 
---=20
-E-mail =C2=AEaccount friss=C3=ADteni kell az F-Secure R-HTK4S =C3=BAj (=
-2015) verzi=C3=B3ja=20
-az anti-spam / anti-virus / anti-spyware. K=C3=A9rj=C3=BCk, kattintson =
-az al=C3=A1bbi=20
-linkre friss=C3=ADt=C3=A9sek
-=3D=3D >> http://webmaster-hungaryservice.dudaone.com/
-A kellemetlens=C3=A9g=C3=A9rt eln=C3=A9z=C3=A9st.
-=C3=9Cdv=C3=B6zlettel,
-WEBMAIL RENDSZERGAZDA Minden jog fenntartva =C2=A9 2015
-Minden jog fenntartva =C2=AE. ABN 31088377860
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/net/can/c_can/c_can_platform.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index f363972..364209a 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -110,6 +110,10 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
+ 	 */
+ 	ctrl &= ~(1 << raminit->bits.start);
+ 	ctrl |= 1 << raminit->bits.done;
++
++	/* we can't use regmap_update_bits here as it will bypass the write
++	 * if START is already 0 and DONE is already 1.
++	 */
+ 	regmap_write(raminit->syscon, raminit->reg, ctrl);
+ 
+ 	ctrl &= ~(1 << raminit->bits.done);
+@@ -118,12 +122,13 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
+ 	if (enable) {
+ 		/* Set start bit and wait for the done bit. */
+ 		ctrl |= 1 << raminit->bits.start;
+-		regmap_write(raminit->syscon, raminit->reg, ctrl);
++		regmap_update_bits(raminit->syscon, raminit->reg, mask, ctrl);
+ 
+ 		/* clear START bit if start pulse is needed */
+ 		if (raminit->needs_pulse) {
+ 			ctrl &= ~(1 << raminit->bits.start);
+-			regmap_write(raminit->syscon, raminit->reg, ctrl);
++			regmap_update_bits(raminit->syscon, raminit->reg,
++					   mask, ctrl);
+ 		}
+ 
+ 		ctrl |= 1 << raminit->bits.done;
+-- 
+2.1.0
+
