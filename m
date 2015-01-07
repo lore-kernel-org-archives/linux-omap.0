@@ -1,94 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Tue, 6 Jan 2015 17:29:27 -0600
-Message-ID: <20150106232927.GA18073@saruman>
-References: <20150106175115.GA19487@amd>
- <20150106202857.GB32308@saruman>
- <20150106205000.GB13902@amd>
- <20150106205730.GA6071@fuloong-minipc.musicnaut.iki.fi>
- <20150106220805.GD13902@amd>
- <20150106222717.GC6071@fuloong-minipc.musicnaut.iki.fi>
- <20150106224622.GA13752@saruman>
- <20150106225614.GA31990@amd>
- <20150106230415.GC13752@saruman>
- <20150106231341.GA18468@amd>
-Reply-To: <balbi@ti.com>
+From: Ash Charles <ashcharles@gmail.com>
+Subject: Re: DT support for OMAP3 ISP
+Date: Tue, 6 Jan 2015 18:41:06 -0800
+Message-ID: <CAK8F28=farAB0AMqN8iR9ZW5yyYVCD_5bdWfX=Xmpkca2_EfbA@mail.gmail.com>
+References: <CAK8F28mM1qwxaSJ4pdy2DC6+7sY-c_-yQGxDfYqi50B7SOBpdQ@mail.gmail.com>
+ <20150106214218.GZ4081@atomide.com> <20150106221107.GV17565@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150106231341.GA18468@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:40727 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753107AbbAGClj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2015 21:41:39 -0500
+Received: by mail-ig0-f177.google.com with SMTP id z20so622183igj.16
+        for <linux-omap@vger.kernel.org>; Tue, 06 Jan 2015 18:41:38 -0800 (PST)
+In-Reply-To: <20150106221107.GV17565@valkosipuli.retiisi.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for the hints.
 
-On Wed, Jan 07, 2015 at 12:13:41AM +0100, Pavel Machek wrote:
-> On Tue 2015-01-06 17:04:15, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Tue, Jan 06, 2015 at 11:56:14PM +0100, Pavel Machek wrote:
-> > > > > But I'm mounting it from userspace (using builtin initramfs inside
-> > > > > zImage), with a poll loop that waits for a device to appear. Mayb=
-e if you
-> > > > > do it from kernel you need to use root wait/delay etc. options?
-> > > >=20
-> > > > yeah, rootwait should do it.
-> > >=20
-> > > No, rootwait does not solve it. Try it. Tested many times. (And yes,
-> > > you need to actually fool the rear cover sensor or close the phone.)
-> >=20
-> > yeah, just put a magnet or, if you have spare back covers, cut one so
-> > that you "close" it, but still allow you to put the thing on a
-> > development jig.
->=20
-> Actually, it should be enough to kill a line from dts somewhere, no
-> need to hack hardware for this.
+I tried the suggested branch adding omap3isp data to the Overo device
+tree and device tree bindings for the mt9v032 device.  I needed to
+manually modprobe omap3-isp but the camera was registered and I was
+able to use media-ctl to manipulate the v4l2 pipeline.  I wasn't able
+to stream as v4l2 was reporting "inappropriate ioctl"----old driver
+perhaps?
 
-right
+I also tried changing the #define HIST_CONFIG_DMA 0 such that the
+histogram block uses PIO instead of using the deprecated
+omap_request_dma.  I saw basically the same behaviour.  What would be
+the correct/modern way to use DMA here?
 
-> > Also, if why doesn't rootwait work ? You never have a new mmc node or is
-> > the mmc node changing names ?
->=20
-> IIRC node and name are ok, but the mount just fails. As I don't have
+--Ash
 
-really weird. Specially since it works when you mount afterwards.
-
-> "development jig", I lack serial console and this kind of debugging is
-> not easy.
-
-see if this helps:
-https://wiki.maemo.org/N900_Hardware_Hacking#Debug_ports
-
---=20
-balbi
-
---TB36FDmn/VVEgNH/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUrG/XAAoJEIaOsuA1yqREAv8P/26a43/+JgVM49/AgZ7vfYJy
-FmmBIIAB6LgyyJQcaGlJ1Xysw5bIDGBWvvcPtnEiYUv34DkfXhROXlY55mL4WFTO
-/8FgMjBQY44MtusnK1Tr1K0nygK/kV7DC5bQsMRigEwHoQO1iarv9rvV0lGo7tBQ
-Z1R44vFQuCsWAx0GqXINXBoaWTKzsdMlqKD+BkIW2x6e6rThTPWL9llxhKmI2Sh7
-sZ7m2qf2Qk3FZwwb4ovi8x/qPw4PupAGoGD4P8FdRT0W7TNKzzu75wT9vkBgl460
-XLqkD8COD2t4Sm18AVTLVsGf5XeD5UWDY8T2KvTsa5l4Cwe+X3Hg1yOxpCU/616D
-OV0yJj0vn0alyaBUHdys6YTCMS+DR8rSro+Mu1UvxLRe+Z3nr+y5Ii/0PnuCiLwh
-cbyXYigSxU2ipbhkWufKRnoF1z4TXH18gNsydx2MEqgEYOWdbJdXIRwnJdW/It6F
-ML3R/Zzcz0TLFjWL7GaAuXWvJHkKnq+EEl+SxhxVtde9/Wj0S21rsc5g0v2FDDGi
-kNp6k/W0enqek2UrxSmpxBCf4mP0COlh5oAazHEarxW+fS5ftyvsZT1nQrL9eELr
-bcKV9AsCZGcUVvefgSqjJ1H8x8Y5aOrqudtFpvfSAXjRI1GzvRjq6R+IySrFL0ho
-ky0wOIiWlyJANccnc0FO
-=eVoA
------END PGP SIGNATURE-----
-
---TB36FDmn/VVEgNH/--
+On Tue, Jan 6, 2015 at 2:11 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> (Fixed Laurent's e-mail.)
+>
+> Moikka,
+>
+> On Tue, Jan 06, 2015 at 01:42:18PM -0800, Tony Lindgren wrote:
+>> * Ash Charles <ashcharles@gmail.com> [150106 12:45]:
+>> > Hi,
+>> >
+>> > I'm playing with the Caspa camera (mt9v032) and Overo on the 3.17
+>> > kernel.  It looks like there has been some work on dt-bindings for the
+>> > omap3isp (notably [1] and [2]) but I didn't see anything heading for
+>> > mainline.
+>> >
+>> > What would be needed to support cameras using the omap3isp in a mainline kernel?
+>>
+>> No idea about the camera, but at least the legacy omap DMA calls need
+>> to be replaced or removed as the legacy DMA API will go away soon.
+>
+> OMAP DMA is only used by the histogram block which can cope with PIO as well
+> --- I think there at least was a #define for it. That's not a reason not to
+> convert it however, it's just not as urgent it otherwise might be. I wonder
+> if someone has patches for that already.
+>
+> Cc Laurent.
+>
+> --
+> Terveisin,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
