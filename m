@@ -1,99 +1,127 @@
-From: =?ISO-8859-15?Q?Peter_K=FCmmel?= <syntheticpp@gmx.net>
-Subject: Re: [PATCH] irqchip: omap-intc: fix legacy DMA regression
-Date: Wed, 07 Jan 2015 12:12:34 +0100
-Message-ID: <54AD14A2.1060006@gmx.net>
-References: <20150106123830.GD30544@fuloong-minipc.musicnaut.iki.fi> <1420563093-26026-1-git-send-email-balbi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Wed, 7 Jan 2015 13:20:12 +0200
+Message-ID: <54AD166C.9060507@ti.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com> <alpine.DEB.2.02.1501060202540.28771@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:63452 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751191AbbAGLN2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Jan 2015 06:13:28 -0500
-In-Reply-To: <1420563093-26026-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1501060202540.28771@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: tony@atomide.com, santosh.shilimkar@oracle.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Santosh Shilimkar <ssantosh@kernel.org>
 
-
-
-Am 06.01.2015 um 17:51 schrieb Felipe Balbi:
-> commit 55601c9f2467 (arm: omap: intc: switch over
-> to linear irq domain) introduced a regression with
-> SDMA legacy driver because that driver strictly depends
-> on INTC's IRQs starting at NR_IRQs. Aparently
-> irq_domain_add_linear() won't guarantee that, since we see
-> a 7 IRQs difference when booting with and without the
-> commit cited above.
->
-> Until arch/arm/plat-omap/dma.c is properly fixed, we
-> must maintain OMAP2/3 using irq_domain_add_legacy().
->
-> A FIXME note was added so people know to delete that
-> code once that legacy DMA driver is fixed up.
->
-> Fixes: 55601c9f2467 (arm: omap: intc: switch over to linear irq domain)
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+On 06/01/15 04:04, Paul Walmsley wrote:
+> 
+> Roger, Lokesh, could you try this one instead?
+> 
+> It passes all the basic tests here except it does not boot on the 4460 
+> VAR-SOM-OM - unclear why at this point - but it would be good to see if it 
+> works on your AM4372 boards, since I don't have that one.
+> 
+> Test logs are here:
+> 
+> http://www.pwsan.com/omap/testlogs/hwmod_skip_only_remap_v3.19-rc/20150105171744/
+> 
+> 
+> - Paul
+> 
+> 
+> From 4f2e13bd2181e0ebede3aabc484aa2339830748a Mon Sep 17 00:00:00 2001
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Mon, 5 Jan 2015 15:49:57 -0700
+> Subject: [PATCH] Only skip ioremap() if IP block does not have OCP header
+>  registers. Experimental.
+> 
 > ---
->   drivers/irqchip/irq-omap-intc.c | 26 +++++++++++++++++++++-----
->   1 file changed, 21 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-> index 3c970259c0eb..6ef88f56cf8d 100644
-> --- a/drivers/irqchip/irq-omap-intc.c
-> +++ b/drivers/irqchip/irq-omap-intc.c
-> @@ -263,7 +263,7 @@ static int __init omap_init_irq_of(struct device_node *node)
->   	return ret;
->   }
->
-> -static int __init omap_init_irq_legacy(u32 base)
-> +static int __init omap_init_irq_legacy(u32 base, struct device_node *node)
->   {
->   	int j, irq_base;
->
-> @@ -277,7 +277,7 @@ static int __init omap_init_irq_legacy(u32 base)
->   		irq_base = 0;
->   	}
->
-> -	domain = irq_domain_add_legacy(NULL, omap_nr_irqs, irq_base, 0,
-> +	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
->   			&irq_domain_simple_ops, NULL);
->
->   	omap_irq_soft_reset();
-> @@ -301,10 +301,26 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
->   {
->   	int ret;
->
-> -	if (node)
+>  arch/arm/mach-omap2/omap_hwmod.c | 33 +++++++++++++++++++++------------
+>  1 file changed, 21 insertions(+), 12 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index cbb908dc5cf0..03df8833d399 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -1938,6 +1938,8 @@ static int _reset(struct omap_hwmod *oh)
+>  	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+>  
+>  	if (oh->class->reset) {
+> +		WARN(!oh->_mpu_rt_va, "Attempt to call custom reset with no MPU register target ioremapped: %s",
+> +		     oh->name);
+
+Not part of $subject.
+
+>  		r = oh->class->reset(oh);
+>  	} else {
+>  		if (oh->rst_lines_cnt > 0) {
+> @@ -2358,15 +2360,19 @@ static int of_dev_hwmod_lookup(struct device_node *np,
+>  }
+>  
+>  /**
+> - * _init_mpu_rt_base - populate the virtual address for a hwmod
+> + * _init_mpu_rt_base - populate the MPU port and virtual address
+>   * @oh: struct omap_hwmod * to locate the virtual address
+>   * @data: (unused, caller should pass NULL)
+>   * @index: index of the reg entry iospace in device tree
+>   * @np: struct device_node * of the IP block's device node in the DT data
+>   *
+> - * Cache the virtual address used by the MPU to access this IP block's
+> - * registers.  This address is needed early so the OCP registers that
+> - * are part of the device's address space can be ioremapped properly.
+> + * Cache the interconnect target port and the virtual address used by
+> + * the MPU to access this IP block's registers.  The address is needed
+> + * early so the OCP registers that are part of the device's address
+> + * space can be ioremapped properly.  The presence or absence of the
+> + * interconnect target port also indicates whether the hwmod code
+> + * should wait for the IP block to indicate readiness after it is
+> + * enabled.
+>   *
+>   * Returns 0 on success, -EINVAL if an invalid hwmod is passed, and
+>   * -ENXIO on absent or invalid register target address space.
+> @@ -2385,6 +2391,13 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
+>  	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+>  		return -ENXIO;
+>  
 > +	/*
-> +	 * FIXME legacy OMAP DMA driver sitting under arch/arm/plat-omap/dma.c
-> +	 * depends is still not ready for linear IRQ domains; because of that
-> +	 * we need to temporarily "blacklist" OMAP2 and OMAP3 devices from using
-> +	 * linear IRQ Domain until that driver is finally fixed.
+> +	 * If there's no need for the hwmod code to read or write to
+> +	 * the IP block registers, bail out early before the ioremap()
 > +	 */
-> +	if (of_device_is_compatible(node, "ti,omap2-intc") ||
-> +			of_device_is_compatible(node, "ti,omap3-intc")) {
-> +		struct resource res;
+> +	if (!oh->class->sysc)
+> +		return 0;
 > +
-> +		if (of_address_to_resource(node, 0, &res))
-> +			return -ENOMEM;
-> +
-> +		base = res.start;
-> +		ret = omap_init_irq_legacy(base, node);
-> +	} else if (node) {
->   		ret = omap_init_irq_of(node);
-> -	else
-> -		ret = omap_init_irq_legacy(base);
-> +	} else {
-> +		ret = omap_init_irq_legacy(base, NULL);
-> +	}
->
->   	if (ret == 0)
->   		omap_irq_enable_protection();
->
+>  	mem = _find_mpu_rt_addr_space(oh);
+>  	if (!mem) {
+>  		pr_debug("omap_hwmod: %s: no MPU register target found\n",
+> @@ -2451,14 +2464,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+>  				oh->name, np->name);
+>  	}
+>  
+> -	if (oh->class->sysc) {
+> -		r = _init_mpu_rt_base(oh, NULL, index, np);
+> -		if (r < 0) {
+> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+> -			     oh->name);
+> -			return 0;
+> -		}
+> -	}
+> +	r = _init_mpu_rt_base(oh, NULL, index, np);
+> +	if (r < 0)
+> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
+> +			 oh->name);
 
-Thanks, works on DM3730.
+This is the real piece that fixes the issue.
 
-Peter
+>  
+>  	r = _init_clocks(oh, NULL);
+>  	if (r < 0) {
+> 
+
+I've tested this patch on am43x-gp-evm, and it seems to fix the issue although with some unpleasant warning messages.
+So if we can get rid of the WARN() you can put my
+
+Acked-by: Roger Quadros <rogerq@ti.com>
+
+cheers,
+-roger
