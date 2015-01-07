@@ -1,72 +1,115 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
-Date: Wed, 07 Jan 2015 11:05:14 +0100
-Message-ID: <2241604.rliP7ovaYi@wuerfel>
-References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <6786513.g26uGMFKLE@wuerfel> <54AC580B.2050809@hurleysoftware.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH v11 2/9] ARM: l2c: use l2c_write_sec() for restoring
+ latency and filter regs
+Date: Wed, 07 Jan 2015 11:47:59 +0100
+Message-ID: <54AD0EDF.6080709@samsung.com>
+References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
+ <1420460348-20302-3-git-send-email-m.szyprowski@samsung.com>
+ <20150105172028.GA19579@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:63387 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859AbbAGKGA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2015 05:06:00 -0500
-In-Reply-To: <54AC580B.2050809@hurleysoftware.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-reply-to: <20150105172028.GA19579@kahuna>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Peter Hurley <peter@hurleysoftware.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>
 
-On Tuesday 06 January 2015 16:47:55 Peter Hurley wrote:
-> On 01/06/2015 02:43 PM, Arnd Bergmann wrote:
-> > On Tuesday 06 January 2015 09:32:02 Peter Hurley wrote:
-> >> On 01/06/2015 08:13 AM, Arnd Bergmann wrote:
-> >>> On Monday 05 January 2015 22:09:45 Peter Hurley wrote:
-> >>>> Some arches have no need to create unprobed 8250 ports; these phantom
-> >>>> ports are primarily required for ISA ports which have no probe
-> >>>> mechanism or to provide non-operational ports for userspace to
-> >>>> configure (via TIOCSSERIAL and TIOCSERCONFIG ioctls).
-> >>>>
-> >>>> Provide CONFIG_SERIAL_8250_PHANTOM_UARTS knob to disable phantom port
-> >>>> registration; ie., CONFIG_SERIAL_8250_PHANTOM_UARTS=N only registers
-> >>>> probed ports (ACPI/PNP, "serial8250" platform devices, PCI, etc).
-> >>>>
-> >>>> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> >>>> Cc: Tony Lindgren <tony@atomide.com>
-> >>>> Cc: Grant Likely <grant.likely@linaro.org>
-> >>>> Cc: Arnd Bergmann <arnd@arndb.de>
-> >>>> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
-> >>>
-> >>> The intent is definitely right, but I think a better approach is
-> >>> possible.
-> >>>
-> >>> I haven't tried it here, but how about moving the serial8250_init
-> >>> function into a separate module, along with all the other parts
-> >>> that are only used for ISA devices, but leaving the actual core
-> >>> (all exported symbols) in this file?
-> >>
-> >> Unfortunately, I don't see a way to remove the stacked initialization
-> >> without risking tons of breakage.
-> >>
-> >> Since later probes can "find" an already-existing port and
-> >> re-initialize it, the probe order is crucial. For example, a PCI
-> >> probe can "find" an existing "serial8250" platform device port,
-> >> resulting in only one device node.
-> > 
-> > I'm probably missing something important, by why would that
-> > be any different if the PCI driver gets loaded first and the
-> > ISA driver second?
-> 
-> Well, the PCI driver would have the proper irq, for one. So, if the
-> the platform driver re-initialized the port to the wrong irq...
+Hello,
 
-I see. So we must still ensure that the ISA driver either gets loaded
-before the PCI driver, or never. It is already closely coupled with
-the PNP driver, but I think we can still get to the point where you
-don't load the ISA driver at all if you only have platform 8250
-ports that are not supposed to be reconfigurable.
+On 2015-01-05 18:20, Nishanth Menon wrote:
+> On 13:19-20150105, Marek Szyprowski wrote:
+>> All four register for latency and filter settings cannot be written in
+>> non-secure mode and they should go through l2c_write_sec(). More on this
+>> can be found in CoreLink Level 2 Cache Controller L2C-310 Technical
+>> Reference Manual, 3.2. Register summary, table 3.1. This have been checked
+>> the TRM for r3p3, but it should be uniform for all revisions.
+>>
+>> Reported-by: Nishanth Menon <nm@ti.com>
+>> Suggested-by: Tomasz Figa <tomasz.figa@gmail.com>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>   arch/arm/mm/cache-l2x0.c | 16 ++++++++--------
+>>   1 file changed, 8 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+>> index 5e65ca8dea62..0aeeaa95c42d 100644
+>> --- a/arch/arm/mm/cache-l2x0.c
+>> +++ b/arch/arm/mm/cache-l2x0.c
+>> @@ -623,14 +623,14 @@ static void l2c310_resume(void)
+>>   		unsigned revision;
+>>   
+>>   		/* restore pl310 setup */
+>> -		writel_relaxed(l2x0_saved_regs.tag_latency,
+>> -			       base + L310_TAG_LATENCY_CTRL);
+>> -		writel_relaxed(l2x0_saved_regs.data_latency,
+>> -			       base + L310_DATA_LATENCY_CTRL);
+>> -		writel_relaxed(l2x0_saved_regs.filter_end,
+>> -			       base + L310_ADDR_FILTER_END);
+>> -		writel_relaxed(l2x0_saved_regs.filter_start,
+>> -			       base + L310_ADDR_FILTER_START);
+>> +		l2c_write_sec(l2x0_saved_regs.tag_latency, base,
+>> +			      L310_TAG_LATENCY_CTRL);
+>> +		l2c_write_sec(l2x0_saved_regs.data_latency, base,
+>> +			      L310_DATA_LATENCY_CTRL);
+>> +		l2c_write_sec(l2x0_saved_regs.filter_end, base,
+>> +			      L310_ADDR_FILTER_END);
+>> +		l2c_write_sec(l2x0_saved_regs.filter_start, base,
+>> +			      L310_ADDR_FILTER_START);
+>>   
+>>   		revision = readl_relaxed(base + L2X0_CACHE_ID) &
+>>   				L2X0_CACHE_ID_RTL_MASK;
+> Do you need the following as well at this point in the patch series?
+> Agreed that the writes will disappear later in the series.
 
-On most non-x86 machines, I would think we also want a way to build
-the PCI driver without that dependency.
+Right. Thanks for pointing this. I will send an updated version, which
+will also fix the checkpatch --strict issues.
 
-	Arnd
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index 0aeeaa9..7afab37 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -1135,28 +1135,28 @@ static void __init l2c310_of_parse(const struct device_node *np,
+>   
+>   	of_property_read_u32_array(np, "arm,tag-latency", tag, ARRAY_SIZE(tag));
+>   	if (tag[0] && tag[1] && tag[2])
+> -		writel_relaxed(
+> +		l2c_write_sec(
+>   			L310_LATENCY_CTRL_RD(tag[0] - 1) |
+>   			L310_LATENCY_CTRL_WR(tag[1] - 1) |
+>   			L310_LATENCY_CTRL_SETUP(tag[2] - 1),
+> -			l2x0_base + L310_TAG_LATENCY_CTRL);
+> +			l2x0_base, L310_TAG_LATENCY_CTRL);
+>   
+>   	of_property_read_u32_array(np, "arm,data-latency",
+>   				   data, ARRAY_SIZE(data));
+>   	if (data[0] && data[1] && data[2])
+> -		writel_relaxed(
+> +		l2c_write_sec(
+>   			L310_LATENCY_CTRL_RD(data[0] - 1) |
+>   			L310_LATENCY_CTRL_WR(data[1] - 1) |
+>   			L310_LATENCY_CTRL_SETUP(data[2] - 1),
+> -			l2x0_base + L310_DATA_LATENCY_CTRL);
+> +			l2x0_base,  L310_DATA_LATENCY_CTRL);
+>   
+>   	of_property_read_u32_array(np, "arm,filter-ranges",
+>   				   filter, ARRAY_SIZE(filter));
+>   	if (filter[1]) {
+> -		writel_relaxed(ALIGN(filter[0] + filter[1], SZ_1M),
+> -			       l2x0_base + L310_ADDR_FILTER_END);
+> -		writel_relaxed((filter[0] & ~(SZ_1M - 1)) | L310_ADDR_FILTER_EN,
+> -			       l2x0_base + L310_ADDR_FILTER_START);
+> +		l2c_write_sec(ALIGN(filter[0] + filter[1], SZ_1M),
+> +			       l2x0_base, L310_ADDR_FILTER_END);
+> +		l2c_write_sec((filter[0] & ~(SZ_1M - 1)) | L310_ADDR_FILTER_EN,
+> +			       l2x0_base, L310_ADDR_FILTER_START);
+>   	}
+>   
+>   	ret = l2x0_cache_size_of_parse(np, aux_val, aux_mask, &assoc, SZ_512K);
+>   
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
