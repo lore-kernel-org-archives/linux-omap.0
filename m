@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 03/21] ARM: tegra: skip gic_arch_extn setup if DT has a LIC node
-Date: Wed,  7 Jan 2015 17:42:38 +0000
-Message-ID: <1420652576-22309-4-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 19/21] ARM: ux500: switch from gic_arch_extn to gic_set_irqchip_flags
+Date: Wed,  7 Jan 2015 17:42:54 +0000
+Message-ID: <1420652576-22309-20-git-send-email-marc.zyngier@arm.com>
 References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
@@ -10,61 +10,27 @@ To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail
 Cc: linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-If we detect that our DT has a LIC node, don't setup gic_arch_extn,
-and skip tegra_legacy_irq_syscore_init as well.
+Instead of directly touching gic_arch_extn, which is about to
+be removed, use gic_set_irqchip_flags instead.
 
-This is only a temporary measure until that code is removed for good.
-
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- arch/arm/mach-tegra/irq.c   | 11 +++++++++++
- arch/arm/mach-tegra/tegra.c |  1 -
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ arch/arm/mach-ux500/cpu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-tegra/irq.c b/arch/arm/mach-tegra/irq.c
-index 7f87a50..b37141d 100644
---- a/arch/arm/mach-tegra/irq.c
-+++ b/arch/arm/mach-tegra/irq.c
-@@ -255,11 +255,21 @@ static void tegra114_gic_cpu_pm_registration(void)
- static void tegra114_gic_cpu_pm_registration(void) { }
- #endif
- 
-+static const struct of_device_id tegra_ictlr_match[] __initconst = {
-+	{ .compatible = "nvidia,tegra-ictlr" },
-+	{ }
-+};
-+
- void __init tegra_init_irq(void)
+diff --git a/arch/arm/mach-ux500/cpu.c b/arch/arm/mach-ux500/cpu.c
+index dbb2970..6ced0f6 100644
+--- a/arch/arm/mach-ux500/cpu.c
++++ b/arch/arm/mach-ux500/cpu.c
+@@ -52,7 +52,7 @@ void ux500_restart(enum reboot_mode mode, const char *cmd)
+ */
+ void __init ux500_init_irq(void)
  {
- 	int i;
- 	void __iomem *distbase;
- 
-+	if (of_find_matching_node(NULL, tegra_ictlr_match))
-+		goto skip_extn_setup;
-+
-+	tegra_legacy_irq_syscore_init();
-+
- 	distbase = IO_ADDRESS(TEGRA_ARM_INT_DIST_BASE);
- 	num_ictlrs = readl_relaxed(distbase + GIC_DIST_CTR) & 0x1f;
- 
-@@ -283,5 +293,6 @@ void __init tegra_init_irq(void)
- 	gic_arch_extn.irq_set_wake = tegra_set_wake;
- 	gic_arch_extn.flags = IRQCHIP_MASK_ON_SUSPEND;
- 
-+skip_extn_setup:
- 	tegra114_gic_cpu_pm_registration();
- }
-diff --git a/arch/arm/mach-tegra/tegra.c b/arch/arm/mach-tegra/tegra.c
-index ef016af..c33fba7 100644
---- a/arch/arm/mach-tegra/tegra.c
-+++ b/arch/arm/mach-tegra/tegra.c
-@@ -82,7 +82,6 @@ static void __init tegra_dt_init_irq(void)
- {
- 	tegra_init_irq();
+-	gic_arch_extn.flags = IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND;
++	gic_set_irqchip_flags(IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND);
  	irqchip_init();
--	tegra_legacy_irq_syscore_init();
- }
  
- static void __init tegra_dt_init(void)
+ 	/*
 -- 
 2.1.4
