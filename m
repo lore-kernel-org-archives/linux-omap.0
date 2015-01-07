@@ -1,92 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] ARM: dts: am57xx-beagle-x15: Add GPIO controlled fan
- node
-Date: Wed, 7 Jan 2015 15:44:42 -0800
-Message-ID: <20150107234442.GI13010@atomide.com>
-References: <1417800739-13146-1-git-send-email-nm@ti.com>
- <1417801732-24620-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH] dts: omap3-n900: cleanup english
+Date: Wed, 7 Jan 2015 15:46:10 -0800
+Message-ID: <20150107234610.GJ13010@atomide.com>
+References: <20141207161147.GA18588@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1417801732-24620-1-git-send-email-nm@ti.com>
+In-Reply-To: <20141207161147.GA18588@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, trivial@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [141205 09:51]:
-> TPS gpio now controls a 5v 500mA TL5209 regulator which may be supply
-> a fan (such as AFB02505HHB) over J1 connector for various purposes.
-> Provide device tree node to enable the same.
+* Pavel Machek <pavel@ucw.cz> [141207 08:14]:
+> This fixes english in comments and removes extra empty newline.
 > 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
 Applying into omap-for-v3.20/dt thanks.
 
 Tony
-
-> ---
-> 
-> V2: review comment updates
-> 	review comments update
-> 		- Sanitized outlook-ified name back to normal ;) 
-> 		- removed unnecessary pinctrl-names property.
-> V1: https://patchwork.kernel.org/patch/5444911/
-> 
-> 
-> Depends on the following:
-> https://patchwork.kernel.org/patch/5439201/
-> https://patchwork.kernel.org/patch/5439191/
-> 
-> enable and disable can be controlled by (post the RPM, it finds
-> closest match - even a 1 will do)
-> 
-> echo '13000' > /sys/class/hwmon/hwmon0/fan1_target
-> and
-> echo '0' > /sys/class/hwmon/hwmon0/fan1_target
-> 
-> Test log: http://slexy.org/view/s2T0ajh46z
-> 
-> requires CONFIG_GPIO_PALMAS and CONFIG_SENSORS_GPIO_FAN to be operational
-> Applies on 
-> https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.19/dt-v2
-> 
->  arch/arm/boot/dts/am57xx-beagle-x15.dts |   14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-> index 49edbda..4e55e94 100644
-> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-> @@ -80,6 +80,14 @@
->  			default-state = "off";
->  		};
->  	};
-> +
-> +	gpio_fan {
-> +		/* Based on 5v 500mA AFB02505HHB */
-> +		compatible = "gpio-fan";
-> +		gpios =  <&tps659038_gpio 1 GPIO_ACTIVE_HIGH>;
-> +		gpio-fan,speed-map = <0    0
-> +				      13000 1>;
-> +	};
+ 
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 11d8afd..9e0e5a2 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -287,7 +287,7 @@
+>  	regulator-name = "V28";
+>  	regulator-min-microvolt = <2800000>;
+>  	regulator-max-microvolt = <2800000>;
+> -	regulator-always-on; /* due battery cover sensor */
+> +	regulator-always-on; /* due to battery cover sensor */
 >  };
 >  
->  &dra7_pmx_core {
-> @@ -314,6 +322,12 @@
->  			wakeup-source;
->  			ti,palmas-long-press-seconds = <12>;
->  		};
-> +
-> +		tps659038_gpio: tps659038_gpio {
-> +			compatible = "ti,palmas-gpio";
-> +			gpio-controller;
-> +			#gpio-cells = <2>;
-> +		};
->  	};
+>  &vaux2 {
+> @@ -345,7 +345,6 @@
+>  	regulator-name = "VIO";
+>  	regulator-min-microvolt = <1800000>;
+>  	regulator-max-microvolt = <1800000>;
+> -
+>  };
 >  
->  	tmp102: tmp102@48 {
+>  &vintana1 {
+> 
 > -- 
-> 1.7.9.5
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 > 
