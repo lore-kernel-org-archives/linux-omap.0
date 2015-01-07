@@ -1,115 +1,99 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH v11 2/9] ARM: l2c: use l2c_write_sec() for restoring
- latency and filter regs
-Date: Wed, 07 Jan 2015 11:47:59 +0100
-Message-ID: <54AD0EDF.6080709@samsung.com>
-References: <1420460348-20302-1-git-send-email-m.szyprowski@samsung.com>
- <1420460348-20302-3-git-send-email-m.szyprowski@samsung.com>
- <20150105172028.GA19579@kahuna>
+From: =?ISO-8859-15?Q?Peter_K=FCmmel?= <syntheticpp@gmx.net>
+Subject: Re: [PATCH] irqchip: omap-intc: fix legacy DMA regression
+Date: Wed, 07 Jan 2015 12:12:34 +0100
+Message-ID: <54AD14A2.1060006@gmx.net>
+References: <20150106123830.GD30544@fuloong-minipc.musicnaut.iki.fi> <1420563093-26026-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <20150105172028.GA19579@kahuna>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>, khilman@linaro.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.15.18]:63452 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751191AbbAGLN2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Jan 2015 06:13:28 -0500
+In-Reply-To: <1420563093-26026-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Santosh Shilimkar <ssantosh@kernel.org>
 
-Hello,
 
-On 2015-01-05 18:20, Nishanth Menon wrote:
-> On 13:19-20150105, Marek Szyprowski wrote:
->> All four register for latency and filter settings cannot be written in
->> non-secure mode and they should go through l2c_write_sec(). More on this
->> can be found in CoreLink Level 2 Cache Controller L2C-310 Technical
->> Reference Manual, 3.2. Register summary, table 3.1. This have been checked
->> the TRM for r3p3, but it should be uniform for all revisions.
->>
->> Reported-by: Nishanth Menon <nm@ti.com>
->> Suggested-by: Tomasz Figa <tomasz.figa@gmail.com>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->>   arch/arm/mm/cache-l2x0.c | 16 ++++++++--------
->>   1 file changed, 8 insertions(+), 8 deletions(-)
->>
->> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
->> index 5e65ca8dea62..0aeeaa95c42d 100644
->> --- a/arch/arm/mm/cache-l2x0.c
->> +++ b/arch/arm/mm/cache-l2x0.c
->> @@ -623,14 +623,14 @@ static void l2c310_resume(void)
->>   		unsigned revision;
->>   
->>   		/* restore pl310 setup */
->> -		writel_relaxed(l2x0_saved_regs.tag_latency,
->> -			       base + L310_TAG_LATENCY_CTRL);
->> -		writel_relaxed(l2x0_saved_regs.data_latency,
->> -			       base + L310_DATA_LATENCY_CTRL);
->> -		writel_relaxed(l2x0_saved_regs.filter_end,
->> -			       base + L310_ADDR_FILTER_END);
->> -		writel_relaxed(l2x0_saved_regs.filter_start,
->> -			       base + L310_ADDR_FILTER_START);
->> +		l2c_write_sec(l2x0_saved_regs.tag_latency, base,
->> +			      L310_TAG_LATENCY_CTRL);
->> +		l2c_write_sec(l2x0_saved_regs.data_latency, base,
->> +			      L310_DATA_LATENCY_CTRL);
->> +		l2c_write_sec(l2x0_saved_regs.filter_end, base,
->> +			      L310_ADDR_FILTER_END);
->> +		l2c_write_sec(l2x0_saved_regs.filter_start, base,
->> +			      L310_ADDR_FILTER_START);
->>   
->>   		revision = readl_relaxed(base + L2X0_CACHE_ID) &
->>   				L2X0_CACHE_ID_RTL_MASK;
-> Do you need the following as well at this point in the patch series?
-> Agreed that the writes will disappear later in the series.
 
-Right. Thanks for pointing this. I will send an updated version, which
-will also fix the checkpatch --strict issues.
-
-> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-> index 0aeeaa9..7afab37 100644
-> --- a/arch/arm/mm/cache-l2x0.c
-> +++ b/arch/arm/mm/cache-l2x0.c
-> @@ -1135,28 +1135,28 @@ static void __init l2c310_of_parse(const struct device_node *np,
->   
->   	of_property_read_u32_array(np, "arm,tag-latency", tag, ARRAY_SIZE(tag));
->   	if (tag[0] && tag[1] && tag[2])
-> -		writel_relaxed(
-> +		l2c_write_sec(
->   			L310_LATENCY_CTRL_RD(tag[0] - 1) |
->   			L310_LATENCY_CTRL_WR(tag[1] - 1) |
->   			L310_LATENCY_CTRL_SETUP(tag[2] - 1),
-> -			l2x0_base + L310_TAG_LATENCY_CTRL);
-> +			l2x0_base, L310_TAG_LATENCY_CTRL);
->   
->   	of_property_read_u32_array(np, "arm,data-latency",
->   				   data, ARRAY_SIZE(data));
->   	if (data[0] && data[1] && data[2])
-> -		writel_relaxed(
-> +		l2c_write_sec(
->   			L310_LATENCY_CTRL_RD(data[0] - 1) |
->   			L310_LATENCY_CTRL_WR(data[1] - 1) |
->   			L310_LATENCY_CTRL_SETUP(data[2] - 1),
-> -			l2x0_base + L310_DATA_LATENCY_CTRL);
-> +			l2x0_base,  L310_DATA_LATENCY_CTRL);
->   
->   	of_property_read_u32_array(np, "arm,filter-ranges",
->   				   filter, ARRAY_SIZE(filter));
->   	if (filter[1]) {
-> -		writel_relaxed(ALIGN(filter[0] + filter[1], SZ_1M),
-> -			       l2x0_base + L310_ADDR_FILTER_END);
-> -		writel_relaxed((filter[0] & ~(SZ_1M - 1)) | L310_ADDR_FILTER_EN,
-> -			       l2x0_base + L310_ADDR_FILTER_START);
-> +		l2c_write_sec(ALIGN(filter[0] + filter[1], SZ_1M),
-> +			       l2x0_base, L310_ADDR_FILTER_END);
-> +		l2c_write_sec((filter[0] & ~(SZ_1M - 1)) | L310_ADDR_FILTER_EN,
-> +			       l2x0_base, L310_ADDR_FILTER_START);
+Am 06.01.2015 um 17:51 schrieb Felipe Balbi:
+> commit 55601c9f2467 (arm: omap: intc: switch over
+> to linear irq domain) introduced a regression with
+> SDMA legacy driver because that driver strictly depends
+> on INTC's IRQs starting at NR_IRQs. Aparently
+> irq_domain_add_linear() won't guarantee that, since we see
+> a 7 IRQs difference when booting with and without the
+> commit cited above.
+>
+> Until arch/arm/plat-omap/dma.c is properly fixed, we
+> must maintain OMAP2/3 using irq_domain_add_legacy().
+>
+> A FIXME note was added so people know to delete that
+> code once that legacy DMA driver is fixed up.
+>
+> Fixes: 55601c9f2467 (arm: omap: intc: switch over to linear irq domain)
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>   drivers/irqchip/irq-omap-intc.c | 26 +++++++++++++++++++++-----
+>   1 file changed, 21 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+> index 3c970259c0eb..6ef88f56cf8d 100644
+> --- a/drivers/irqchip/irq-omap-intc.c
+> +++ b/drivers/irqchip/irq-omap-intc.c
+> @@ -263,7 +263,7 @@ static int __init omap_init_irq_of(struct device_node *node)
+>   	return ret;
+>   }
+>
+> -static int __init omap_init_irq_legacy(u32 base)
+> +static int __init omap_init_irq_legacy(u32 base, struct device_node *node)
+>   {
+>   	int j, irq_base;
+>
+> @@ -277,7 +277,7 @@ static int __init omap_init_irq_legacy(u32 base)
+>   		irq_base = 0;
 >   	}
->   
->   	ret = l2x0_cache_size_of_parse(np, aux_val, aux_mask, &assoc, SZ_512K);
->   
+>
+> -	domain = irq_domain_add_legacy(NULL, omap_nr_irqs, irq_base, 0,
+> +	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
+>   			&irq_domain_simple_ops, NULL);
+>
+>   	omap_irq_soft_reset();
+> @@ -301,10 +301,26 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+>   {
+>   	int ret;
+>
+> -	if (node)
+> +	/*
+> +	 * FIXME legacy OMAP DMA driver sitting under arch/arm/plat-omap/dma.c
+> +	 * depends is still not ready for linear IRQ domains; because of that
+> +	 * we need to temporarily "blacklist" OMAP2 and OMAP3 devices from using
+> +	 * linear IRQ Domain until that driver is finally fixed.
+> +	 */
+> +	if (of_device_is_compatible(node, "ti,omap2-intc") ||
+> +			of_device_is_compatible(node, "ti,omap3-intc")) {
+> +		struct resource res;
+> +
+> +		if (of_address_to_resource(node, 0, &res))
+> +			return -ENOMEM;
+> +
+> +		base = res.start;
+> +		ret = omap_init_irq_legacy(base, node);
+> +	} else if (node) {
+>   		ret = omap_init_irq_of(node);
+> -	else
+> -		ret = omap_init_irq_legacy(base);
+> +	} else {
+> +		ret = omap_init_irq_legacy(base, NULL);
+> +	}
+>
+>   	if (ret == 0)
+>   		omap_irq_enable_protection();
+>
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Thanks, works on DM3730.
+
+Peter
