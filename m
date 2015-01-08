@@ -1,104 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7xx: hwmod: set DSS submodule parent
- hwmods
-Date: Thu, 8 Jan 2015 10:15:12 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501081000180.28771@utopia.booyaka.com>
-References: <1418985914-9027-1-git-send-email-tomi.valkeinen@ti.com> <1418985914-9027-3-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1501022250010.27058@utopia.booyaka.com> <54AA68CF.9050904@ti.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v2 03/21] ARM: tegra: skip gic_arch_extn setup if DT has
+ a LIC node
+Date: Thu, 8 Jan 2015 11:16:29 +0100
+Message-ID: <20150108101628.GE1987@ulmo.nvidia.com>
+References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
+ <1420652576-22309-4-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55642 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753785AbbAHKPN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2015 05:15:13 -0500
-In-Reply-To: <54AA68CF.9050904@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SWTRyWv/ijrBap1m"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1420652576-22309-4-git-send-email-marc.zyngier@arm.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-Hi Tomi,
-
-your detailed description of the problem is really great; thanks for the 
-summary.
-
-On Mon, 5 Jan 2015, Tomi Valkeinen wrote:
-
-> On 03/01/15 00:50, Paul Walmsley wrote:
-> > On Fri, 19 Dec 2014, Tomi Valkeinen wrote:
-> > 
-> >> Set DSS core hwmod as the parent for all the DSS submodules. This fixes
-> >> the boot time DSS reset, removing the following warnings:
-> >>
-> >> omap_hwmod: dss_dispc: cannot be enabled for reset (3)
-> >> omap_hwmod: dss_hdmi: cannot be enabled for reset (3)
-> >>
-> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > 
-> > Thanks, queued for v3.19-rc.                         
-> > 
-> > Note that I cannot test this patch due to lack of a DRA7xx board here.
-> 
-> Thanks. Unfortunately, I made a mistake with the DRA7xx patch. Well, the
-> patch itself is correct, but we have some insanity in the HW that I missed:
-> 
-> DRA7xx has a CTRL_CORE_CONTROL_IO_2 register in the control module,
-> which contains bits for various subsystems, including DCAN, PCIe, QSPI
-> and DSS. At the moment only DCAN driver uses the register via syscon +
-> regmap.
-> 
-> For DSS, the bit 0, DSS_DESHDCP_CLKEN is critical. While the bit is
-> rather undocumented, it presumably enables a clock for DSS's HDCP. Now,
-> we don't support HDPC in the display driver, but unfortunately the clock
-> is required for the DSS hardware to initialize.
-
-Do you know where this DSS_DESHDCP clock appears in the clock tree?  Is it 
-downstream of the main DSS functional clock, or does it come from 
-somewhere else?
- 
-> Without this patch, we see only the few warnings about dss hwmods
-> "cannot be enabled", but with the patch, we see those and some WARN()s
-> from hwmod as the DSS HW module does not start. So it's a bit worse.
-> 
-> Why I didn't notice this is that I had an u-boot version that enables
-> the DSS_DESHDCP_CLKEN bit and leaves it enabled.
-> 
-> So what to do about the issue? You could drop/revert this patch if we
-> don't see a quick solution for the DSS_DESHDCP_CLKEN. It won't fix
-> anything as such, but lessens the boot-up spam.
-
-Sounds like the thing to do in the short term is to drop that patch from 
-the fixes series.  Then we can add it back when DSS_DESHDCP_CLKEN is 
-sorted.  Are you OK with that for the time being?
-
-> I don't have a good idea how to manage the bit properly. As far as I
-> see, the bit has to be managed via syscon, using remap_update_bits, so
-> that we get proper locking. With a quick glance, I didn't see anything
-> for that in the current clock code. And can we presume that syscon is
-> probed before hwmods? I guess not.
-
-Based on the description so far, it sounds like there should be a system 
-control module driver that registers this clock, along with all of the 
-other clocks in the CTRL_CORE_CONTROL_IO_2 register.  Just shooting from 
-the hip here, I guess we'd probably list that DSS_DESHDCP_CLKEN clock as 
-an optional clock for DSS in the hwmod data, and add some code to indicate 
-that it should be enabled and disabled with the main_clk.
-
-> For the time being, I think the easiest solution would be to just set
-> the bit and leave it enabled. My understanding (based on commits in TI's
-> product kernel) is that leaving the DSS_DESHDCP_CLKEN enabled doesn't
-> really affect much, and any increased power consumption would be too
-> small to measure.
-> 
-> If that's the route, the question is still where to enable it. As I
-> said, I have an u-boot which enables it, but I'd rather do the enabling
-> in the kernel. If in the kernel, where there? It has to happen before
-> the hwmod init is ran.
-
-Yeah, that's a tricky question to answer.  If DSS_DESHDCP_CLKEN is modeled 
-as a clock, then it could be marked as ENABLE_ON_INIT, but that seems like 
-kind of a hack.
 
 
+--SWTRyWv/ijrBap1m
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-- Paul
+On Wed, Jan 07, 2015 at 05:42:38PM +0000, Marc Zyngier wrote:
+> If we detect that our DT has a LIC node, don't setup gic_arch_extn,
+> and skip tegra_legacy_irq_syscore_init as well.
+>=20
+> This is only a temporary measure until that code is removed for good.
+>=20
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  arch/arm/mach-tegra/irq.c   | 11 +++++++++++
+>  arch/arm/mach-tegra/tegra.c |  1 -
+>  2 files changed, 11 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/arch/arm/mach-tegra/irq.c b/arch/arm/mach-tegra/irq.c
+> index 7f87a50..b37141d 100644
+> --- a/arch/arm/mach-tegra/irq.c
+> +++ b/arch/arm/mach-tegra/irq.c
+> @@ -255,11 +255,21 @@ static void tegra114_gic_cpu_pm_registration(void)
+>  static void tegra114_gic_cpu_pm_registration(void) { }
+>  #endif
+> =20
+> +static const struct of_device_id tegra_ictlr_match[] __initconst =3D {
+> +	{ .compatible =3D "nvidia,tegra-ictlr" },
+
+Like I said elsewhere, I think this should be "nvidia,tegra20-ictlr" and
+there should be another entry for "nvidia,tegra30-ictlr".
+
+Otherwise looks good, so with that fixed:
+
+Acked-by: Thierry Reding <treding@nvidia.com>
+
+--SWTRyWv/ijrBap1m
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUrlj8AAoJEN0jrNd/PrOhb8MQAMHDTTj20AM/NDN5LUzrw4xB
+ZRAUXiNgtcTlLKbX0z43Hw230GdjBael5TJv5U5cOYOCwJKmS97AP/4Sae6UM5fV
+JM9du3jIYRFpVoIjtKvyleM4PnQWjS2HF0XYTns5SYt6zt2tXzgdxuAKr1o5g4Xo
+3GaoxJQYdrEJ0ReWufD3w9D3tpGBXuAO1JfI8kBxAvvLAfe9rlcFJ9a1OvNPWvfS
+uFttNfSsGDAFnoDhaCph6hnlOs3vMtgy6oresQ4k/NpmI+Juj4cH7js/3zozQK22
+tlwpRjmM2I08sfFFqGTQqgUNGyjVY133mcLTfLXrPPLpjG2Wo0IhzJ0MMbJ3d+jb
+tOBlGJ5zckTJGUL56Ef7hDqKoKFmhtwbpx5SAtNGD1MXGqBLQyWVlGEg6OuGon2l
+6cEe7EaBDaqPEWFr50pmfM5Gh7CqM/I9uou3uwuzn5p+6Mc2t3qJj2ZT0JLqkPPi
++4Z8uiS2GOP+ky9+wm4evfPOlAyNX7V6BXOjf1lgFg6D/K6rCR2fNSaryDKaltDZ
+e3f2E6omGFYzmoVg7zWSON8MVBGWDc6vfFe0x4t12MnuaGiaxsUDl+BvdFV8MluY
+Tbc6HKAlYVVeLV30tPOUaoeEaEt84EQpMiSVarGjuZEVsztPSCERn6SNbrztgef/
+BhYqxhA2pB4rFdLEazaG
+=dmmp
+-----END PGP SIGNATURE-----
+
+--SWTRyWv/ijrBap1m--
