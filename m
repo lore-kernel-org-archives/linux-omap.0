@@ -1,55 +1,72 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 15/21] ARM: exynos4/5: convert pmu wakeup to stacked
- domains
-Date: Thu, 8 Jan 2015 10:58:31 -0600
-Message-ID: <20150108165831.GB19124@kahuna>
-References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
- <1420652576-22309-16-git-send-email-marc.zyngier@arm.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC] usb: dwc3: add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY
+ quirks
+Date: Thu, 8 Jan 2015 11:08:15 -0600
+Message-ID: <20150108170815.GJ31926@saruman>
+References: <20141208213551.38860f81@xhacker>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yr/DzoowOgTDcSCF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38192 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38647 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757094AbbAHQ70 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Jan 2015 11:59:26 -0500
+	id S1752870AbbAHRJP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jan 2015 12:09:15 -0500
 Content-Disposition: inline
-In-Reply-To: <1420652576-22309-16-git-send-email-marc.zyngier@arm.com>
+In-Reply-To: <20141208213551.38860f81@xhacker>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Jisheng Zhang <jszhang@marvell.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 17:42-20150107, Marc Zyngier wrote:
-> Exynos has been (ab)using the gic_arch_extn to provide
-> wakeup from suspend, and it makes a lot of sense to convert
-> this code to use stacked domains instead.
-> 
-> This patch does just this, updating the DT files to actually
-> reflect what the HW provides.
-> 
-> BIG FAT WARNING: because the DTs were so far lying by not
-> exposing the fact that the PMU block is actually the first
-> interrupt controller in the chain for RTC, kernels with this patch
-> applied wont have any suspend-resume facility when booted
-> with old DTs, and old kernels with updated DTs may not even boot.
-> 
-> Also, I stronly suspect that there is more than two wake-up
-> interrupts on these platforms, but I leave it to the maintainers
-> to fix their mess.
-> 
+--yr/DzoowOgTDcSCF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-minor checkpatch warnings:
+Hi,
 
-+WARNING: line over 80 characters
-+#230: FILE: arch/arm/mach-exynos/suspend.c:208:
-++	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, &parent_args);
-+WARNING: line over 80 characters
-+#274: FILE: arch/arm/mach-exynos/suspend.c:252:
-++#define EXYNOS_PMU_IRQ(symbol,name)	OF_DECLARE_2(irqchip, symbol, name, exynos_pmu_irq_init)
-+ERROR: space required after that ',' (ctx:VxV)
-+#274: FILE: arch/arm/mach-exynos/suspend.c:252:
-++#define EXYNOS_PMU_IRQ(symbol,name)	OF_DECLARE_2(irqchip, symbol, name, exynos_pmu_irq_init)
-+                              ^
--- 
-Regards,
-Nishanth Menon
+On Mon, Dec 08, 2014 at 09:35:51PM +0800, Jisheng Zhang wrote:
+> On platforms which has native usb hosts/phys and pci-dwc3 controller,
+> the dwc3 core may get the wrong usb2_phy and usb3_phy by
+> devm_usb_get_phy(). It depends on which usb phy driver is initialized
+> firstly, the usb_phy_generic or the native/real usb phy driver.
+
+why are you initializing generic PHY if you have a real PHY ?
+
+> Before all old USB phy library usage removed, the solution I can have
+> is to add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY quirks and set them
+> in dwc3-pci.
+> Could such modification can be accepted? If not, could you please give
+> alternative suggestions?
+
+we will not accept a quirk to skip PHYs, sorry. A better way of handling
+this needs to be found.
+
+--=20
+balbi
+
+--yr/DzoowOgTDcSCF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUrrl/AAoJEIaOsuA1yqRExiwP/iNpNzccMViKA1rTSQvqmvqe
+8ziEq544W5IGjUXx6JuyWuTSmWE/w/C+Hi50mcctXbaAu7qY6HWL9NS0XgfxxPFZ
+UBGZbf9ppM5MWQBINwcpPlNUHdRkUCJDqgzVWvF83P+k740Pw2Y/eNM2mRuVo3dG
+Ubi2hMJcUHZu1s+Hvz7VpvNHEo6JvjD0jr9TgAGcGhkOdsisMbe1vWRXoziHTEmi
+gs1ywtbc4B6md5a6m2twuD8gXxV8Hn6h1n8mh6kCjR+qJUlXejWdSKcjXK+2p4l8
+bZgGhdjuyvqqpti73RXPmhFYXqVhG9+10JtrME/BmKcCovwLqD73Ee72ho0JvYJS
+P2TVmxtOid1aVJdQBtYdVacdEsWDYe6sFq5xhOxvWEiguCmRe9WCKpdsyBMpDXXP
+67DT3dLGlhDP7CC9o916iYrf7c+gtLGlHwNpyR8ZwwII32om1vTDLOvToSqKH4ZV
+AEEA/g4d8lH6u7Lop2KCHpd+/VNjsh5DCCaJ4HwbTgYrf8l56PGp44nBj0EKLYoJ
+Z7Y6Ro0wSLXAYWNSh1UvHtPC4ZqMxxhQpiw4GL9txeXQDHu5Ln6+Q9JRI8DONCu8
+HqPacGIY3G75WoKhKeCfHVXginPsqz/qbL2TmJ/Um7pZ0D3ox2WIZlY1UAU5ViAM
+WTNQIQUTCht9nA14s1F/
+=tuPs
+-----END PGP SIGNATURE-----
+
+--yr/DzoowOgTDcSCF--
