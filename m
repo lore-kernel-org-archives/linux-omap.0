@@ -1,76 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Thu, 8 Jan 2015 10:54:48 -0800
-Message-ID: <20150108185448.GV13010@atomide.com>
-References: <20150105230228.GO4081@atomide.com>
- <54AD5447.2070601@ti.com>
- <20150107164005.GD4081@atomide.com>
- <201501081001.34938@pali>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable misc options for BeagleBoard-X15 platform
+Date: Thu, 8 Jan 2015 15:14:40 -0600
+Message-ID: <1420751680-21230-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59995 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754785AbbAHS6g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2015 13:58:36 -0500
-Content-Disposition: inline
-In-Reply-To: <201501081001.34938@pali>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46939 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754637AbbAHVPG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jan 2015 16:15:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150108 01:04]:
-> On Wednesday 07 January 2015 17:40:06 Tony Lindgren wrote:
-> > [   1.943] getting value of option 'R&D flags set'
-> > [   1.948] SETUP: WR VND DEVICE    req 42 value 0000 index
-> > 0000 length 001b
-> > [   1.956] Image 'kernel' won't fit to the
-> > partition, still loading it (4814592 bytes, while maximum is
-> > 2097152 bytes)
-> > [   1.967] Receiving kernel (length 4814592)
-> > [   2.298] Image successfully received
-> > [   2.302] SETUP: WR VND DEVICE    req 82 value 0000 index
-> > 0000 length 0000
-> > [   2.309] SETUP: WR STD INTERFACE
-> > SET_INTERFACE      value 0000 index 0002 length 0000
-> > [   2.363] Boot requested (normal mode)
-> > [   2.367] Serial console enabled
->=20
-> Tony, how did you get above verbose log from NOLO bootloader? Is=20
-> there any switch of R&D flag for it?
+BeagleBoard-X15 has options such as rtc, fan that need to be functional
 
-Probably it was built with some debug flags enabled, at least
-I don't think those can be enabled otherwise.
-=20
-> NOLO in qemu (on serial console) show few messages...
->=20
-> [   0.179] Loading kernel image info
-> Loading kernel (202 kB)... done in 27 ms (7457 kB/s)
-> [   0.202] Loading initfs image info
-> [   0.203] Total bootup time 286 ms
-> [   0.206] Serial console enabled
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-Looks like I have:
+Applies on
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+branch:
+omap-for-v3.20/defconfig  4af41284e83c ARM: omap2plus_defconfig: enable TPS65218 power button
 
-$ flasher --query-rd-mode
-flasher v2.5.2 (Oct 21 2009)
+ erch/arm/configs/omap2plus_defconfig |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Suitable USB device not found, waiting.
-USB device found found at bus 003, device address 060.
-=46ound device RX-51, hardware revision 0010
-NOLO version 1.4.14
-Version of 'sw-release': <no version>
-The device is in R&D mode
-R&D flags (0x0196): no-omap-wd, no-ext-wd, serial-console, no-charging,=
- force-power-key
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index b5ccb36c599b..3435e6043710 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -184,6 +184,7 @@ CONFIG_TOUCHSCREEN_TSC2007=m
+ CONFIG_INPUT_MISC=y
+ CONFIG_INPUT_TPS65218_PWRBUTTON=m
+ CONFIG_INPUT_TWL4030_PWRBUTTON=m
++CONFIG_INPUT_PALMAS_PWRBUTTON=m
+ CONFIG_SERIO=m
+ # CONFIG_LEGACY_PTYS is not set
+ CONFIG_SERIAL_8250=y
+@@ -205,6 +206,7 @@ CONFIG_PINCTRL_SINGLE=y
+ CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_TWL4030=y
++CONFIG_GPIO_PALMAS=y
+ CONFIG_W1=m
+ CONFIG_HDQ_MASTER_OMAP=m
+ CONFIG_BATTERY_BQ27x00=m
+@@ -216,6 +218,7 @@ CONFIG_CHARGER_BQ24735=m
+ CONFIG_POWER_RESET=y
+ CONFIG_POWER_AVS=y
+ CONFIG_HWMON=m
++CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_LM75=m
+ CONFIG_SENSORS_TMP102=m
+ CONFIG_THERMAL=m
+@@ -346,6 +349,8 @@ CONFIG_LEDS_TRIGGER_CPU=y
+ CONFIG_LEDS_TRIGGER_GPIO=m
+ CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
+ CONFIG_RTC_CLASS=y
++CONFIG_RTC_DRV_DS1307=m
++CONFIG_RTC_DRV_PALMAS=m
+ CONFIG_RTC_DRV_TWL92330=y
+ CONFIG_RTC_DRV_TWL4030=m
+ CONFIG_RTC_DRV_OMAP=m
+-- 
+1.7.9.5
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
