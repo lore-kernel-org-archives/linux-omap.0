@@ -1,48 +1,37 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH v2] ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL enabled on UART3
-Date: Thu, 8 Jan 2015 17:22:04 +0530
-Message-ID: <1420717924-3721-1-git-send-email-lokeshvutla@ti.com>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
+Date: Thu, 8 Jan 2015 13:10:08 +0000
+Message-ID: <20150108131008.16c9a31c@lxorguk.ukuu.org.uk>
+References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, balbi@ti.com, lokeshvutla@ti.com, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset()
-with DEBUG_LL' we moved from parsing cmdline to identify uart used
-for earlycon to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
+On Mon,  5 Jan 2015 22:09:45 -0500
+Peter Hurley <peter@hurleysoftware.com> wrote:
 
-On DRA7 UART3 hwmod doesn't have this flag enabled, and atleast on
-BeagleBoard-X15, where we use UART3 for console, boot fails with
-DEBUG_LL enabled. Enable DEBUG_OMAP4UART3_FLAGS for UART3 hwmod.
+> Some arches have no need to create unprobed 8250 ports; these phantom
+> ports are primarily required for ISA ports which have no probe
+> mechanism or to provide non-operational ports for userspace to
+> configure (via TIOCSSERIAL and TIOCSERCONFIG ioctls).
+> 
+> Provide CONFIG_SERIAL_8250_PHANTOM_UARTS knob to disable phantom port
+> registration; ie., CONFIG_SERIAL_8250_PHANTOM_UARTS=N only registers
+> probed ports (ACPI/PNP, "serial8250" platform devices, PCI, etc).
 
-For using DEBUG_LL, enable CONFIG_DEBUG_OMAP4UART3 in menuconfig.
-
-Fixes: 90020c7b2c5e ("ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data")
-Cc: <stable@vger.kernel.org> # v3.12+
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
-Changes since v1:
-	- Updated $subject and patch description.	
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index ffd6604..b6ea88f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2017,7 +2017,7 @@ static struct omap_hwmod dra7xx_uart3_hwmod = {
- 	.class		= &dra7xx_uart_hwmod_class,
- 	.clkdm_name	= "l4per_clkdm",
- 	.main_clk	= "uart3_gfclk_mux",
--	.flags		= HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= HWMOD_SWSUP_SIDLE_ACT | DEBUG_OMAP4UART3_FLAGS,
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = DRA7XX_CM_L4PER_UART3_CLKCTRL_OFFSET,
--- 
-1.9.1
+Just #define serial8250_isa_devs to 0 on such platforms. gcc should then
+be bright enough to do the rest for you.
