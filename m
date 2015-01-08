@@ -1,99 +1,56 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] arm: boot: dts: am437x-idk: add gpio-based power key
-Date: Wed, 7 Jan 2015 16:12:31 -0800
-Message-ID: <20150108001231.GP13010@atomide.com>
-References: <1419626116-12833-1-git-send-email-balbi@ti.com>
- <1419627193-20838-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: dts: cm-t3x: add NAND support
+Date: Wed, 7 Jan 2015 16:16:48 -0800
+Message-ID: <20150108001648.GQ13010@atomide.com>
+References: <54A00BD6.8010507@compulab.co.il>
+ <1419777049-25271-1-git-send-email-lifshitz@compulab.co.il>
+ <54A151F2.9010904@ti.com>
+ <54A25696.80608@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48305 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909AbbAHAUe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2015 19:20:34 -0500
 Content-Disposition: inline
-In-Reply-To: <1419627193-20838-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <54A25696.80608@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: Roger Quadros <rogerq@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [141226 12:56]:
-> AM437x IDK board has a User Switch which we can
-> program to whatever we want. Because this board
-> doesn't have a PMIC which can give us power button
-> presses, let's use this user switch as a gpio-keys
-> power button.
+* Dmitry Lifshitz <lifshitz@compulab.co.il> [141229 23:42]:
+> On 12/29/2014 03:06 PM, Roger Quadros wrote:
+> >On 28/12/14 16:30, Dmitry Lifshitz wrote:
+> >>--- a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> >>+++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> >>@@ -50,7 +50,8 @@
+> >>  #include "omap-gpmc-smsc911x.dtsi"
+> >>
+> >>  &gpmc {
+> >>-	ranges = <5 0 0x2c000000 0x01000000>;
+> >>+	ranges = <5 0 0x2c000000 0x01000000>, /* CM-T3x30 SMSC9x Eth */
+> >>+		 <0 0 0x00000000 0x01000000>; /* CM-T3x NAND */
+> >
+> >Isn't this ranges property redundant as it will anyways be overridden by the board specific dts?
+> >
 > 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> The ranges are specified here (and other files below) by design.
+> 
+> We built a tree like structure to organize DT files -
+> d234e4239 "ARM: dts: sbc-t3x: refactor DT support"
+> 
+> It allows to inherit/override properties common for different boards.
+> 
+> Our customers do not have to deal with a correct GPMC ranges settings, once
+> they base on omap3-cm-t3x.dts core module DT file (in case they do not
+> connect additional device to the bus).
+> 
+> This is the point of Igor's comment to the previous patch version.
 
-Applying into omap-for-v3.20/dt thanks.
+Roger, do you still have pending issues with this patch?
+
+Regards,
 
 Tony
-
-> ---
-> 
-> Changes since v1:
-> 	- Add explicit pinctrl data.
-> 	  (note that ball reset state is already MUX_MODE7, and even
-> 	   though it was already working before, as can be seen from
-> 	   v1's boot logs, it's best that we cope with possibly broken
-> 	   bootloaders)
-> 
-> depends on [1]. Boot logs at [2]. Note that this can rather easily
-> be folded into the original patch if so desired.
-> 
-> [1] http://marc.info/?l=linux-omap&m=141928747902983&w=2
-> [2] http://hastebin.com/qezicehunu
-> 
->  arch/arm/boot/dts/am437x-idk-evm.dts | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-> index b52dd0a..f9a17e2 100644
-> --- a/arch/arm/boot/dts/am437x-idk-evm.dts
-> +++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-> @@ -96,9 +96,29 @@
->  		regulator-boot-on;
->  		vin-supply = <&v1_5dreg>;
->  	};
-> +
-> +	gpio_keys: gpio_keys {
-> +		compatible = "gpio-keys";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&gpio_keys_pins_default>;
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		switch@0 {
-> +			label = "power-button";
-> +			linux,code = <KEY_POWER>;
-> +			gpios = <&gpio4 2 GPIO_ACTIVE_LOW>;
-> +		};
-> +	};
->  };
->  
->  &am43xx_pinmux {
-> +	gpio_keys_pins_default: gpio_keys_pins_default {
-> +		pinctrl-single,pins = <
-> +			0x1b8 (PIN_INPUT | MUX_MODE7)	/* cam0_field.gpio4_2 */
-> +		>;
-> +	};
-> +
->  	i2c0_pins_default: i2c0_pins_default {
->  		pinctrl-single,pins = <
->  			0x188 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE0) /* i2c0_sda.i2c0_sda */
-> @@ -282,6 +302,10 @@
->  	status = "okay";
->  };
->  
-> +&gpio4 {
-> +	status = "okay";
-> +};
-> +
->  &gpio5 {
->  	status = "okay";
->  };
-> -- 
-> 2.2.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
