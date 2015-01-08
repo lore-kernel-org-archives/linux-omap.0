@@ -1,190 +1,99 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 2/2] phy: ti-pipe3: Fix SATA across suspend/resume
-Date: Thu, 8 Jan 2015 13:17:44 +0200
-Message-ID: <54AE6758.7030501@ti.com>
-References: <1418990720-3638-1-git-send-email-rogerq@ti.com> <1418990720-3638-3-git-send-email-rogerq@ti.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v2 06/21] ARM: tegra: remove old LIC support
+Date: Thu, 8 Jan 2015 12:29:55 +0100
+Message-ID: <20150108112954.GK1987@ulmo.nvidia.com>
+References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
+ <1420652576-22309-7-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38025 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754141AbbAHLRu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Jan 2015 06:17:50 -0500
-In-Reply-To: <1418990720-3638-3-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="M9kwpIYUMbI/2cCx"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1420652576-22309-7-git-send-email-marc.zyngier@arm.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com
-Cc: nm@ti.com, balbi@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
-
-Failed test case: Boot without SATA drive connected. Suspend/resume
-the board and then connect SATA drive. It fails to enumerate.
-
-Due to Errata i783 "SATA Lockup After SATA DPLL Unlock/Relock"
-we can't allow SATA DPLL to be in the unlocked state.
-The SATA refclk (sata_ref_clk) is the source of the SATA_DPLL.
-Till now this clock was controlled by the AHCI SATA driver and was being
-shut off  during system suspend (if the SATA drive was not already attached)
-causing the SATA DPLL to be unlocked and so causing errata i783.
-
-To prevent sata_ref_clk from being disabled, we move the control of
-this clock from the SATA AHCI driver to the SATA PHY driver and prevent
-it from being disabled.
-
-This also fixes the issue of SATA not working on OMAP5/DRA7 when
-AHCI platform driver is built as a module.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
-v2: don't bail out for missing refclk on SATA phy to work with older broken DTBs.
-
- arch/arm/boot/dts/dra7.dtsi  |  4 ++--
- arch/arm/boot/dts/omap5.dtsi |  4 ++--
- drivers/phy/phy-ti-pipe3.c   | 57 +++++++++++++++++++++++++++++++-------------
- 3 files changed, 45 insertions(+), 20 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 22771bc..8d2a635 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1090,8 +1090,8 @@
- 				      <0x4A096800 0x40>; /* pll_ctrl */
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 				ctrl-module = <&omap_control_sata>;
--				clocks = <&sys_clkin1>;
--				clock-names = "sysclk";
-+				clocks = <&sys_clkin1>, <&sata_ref_clk>;
-+				clock-names = "sysclk", "refclk";
- 				#phy-cells = <0>;
- 			};
- 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index b321fdf..bb498e7 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -929,8 +929,8 @@
- 				      <0x4A096800 0x40>; /* pll_ctrl */
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 				ctrl-module = <&omap_control_sata>;
--				clocks = <&sys_clkin>;
--				clock-names = "sysclk";
-+				clocks = <&sys_clkin>, <&sata_ref_clk>;
-+				clock-names = "sysclk", "refclk";
- 				#phy-cells = <0>;
- 			};
- 		};
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index e60ff14..456dec2 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -85,6 +85,7 @@ struct ti_pipe3 {
- 	struct pipe3_dpll_map	*dpll_map;
- 	u8			id;
- 	bool enabled;
-+	bool refclk_enabled;	/* this flag is needed specifically for SATA */
- 	spinlock_t lock;	/* serialize clock enable/disable */
- };
- 
-@@ -333,21 +334,24 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	phy->refclk = devm_clk_get(phy->dev, "refclk");
-+	if (IS_ERR(phy->refclk)) {
-+		dev_err(&pdev->dev, "unable to get refclk\n");
-+		/* older DTBs have missing refclk in SATA PHY
-+		 * so don't bail out in case of SATA PHY.
-+		 */
-+		if (!of_device_is_compatible(node, "ti,phy-pipe3-sata"))
-+			return PTR_ERR(phy->refclk);
-+	}
-+
- 	if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
- 		phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
- 		if (IS_ERR(phy->wkupclk)) {
- 			dev_err(&pdev->dev, "unable to get wkupclk\n");
- 			return PTR_ERR(phy->wkupclk);
- 		}
--
--		phy->refclk = devm_clk_get(phy->dev, "refclk");
--		if (IS_ERR(phy->refclk)) {
--			dev_err(&pdev->dev, "unable to get refclk\n");
--			return PTR_ERR(phy->refclk);
--		}
- 	} else {
- 		phy->wkupclk = ERR_PTR(-ENODEV);
--		phy->refclk = ERR_PTR(-ENODEV);
- 	}
- 
- 	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
-@@ -428,6 +432,29 @@ static int ti_pipe3_remove(struct platform_device *pdev)
- }
- 
- #ifdef CONFIG_PM
-+static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
-+{
-+	if (!IS_ERR(phy->refclk) && !phy->refclk_enabled) {
-+		int ret;
-+
-+		ret = clk_prepare_enable(phy->refclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
-+			return ret;
-+		}
-+		phy->refclk_enabled = true;
-+	}
-+
-+	return 0;
-+}
-+
-+static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
-+{
-+	if (!IS_ERR(phy->refclk))
-+		clk_disable_unprepare(phy->refclk);
-+
-+	phy->refclk_enabled = false;
-+}
- 
- static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
- {
-@@ -438,13 +465,9 @@ static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
- 	if (phy->enabled)
- 		goto err1;
- 
--	if (!IS_ERR(phy->refclk)) {
--		ret = clk_prepare_enable(phy->refclk);
--		if (ret) {
--			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
--			goto err1;
--		}
--	}
-+	ret = ti_pipe3_enable_refclk(phy);
-+	if (ret)
-+		goto err1;
- 
- 	if (!IS_ERR(phy->wkupclk)) {
- 		ret = clk_prepare_enable(phy->wkupclk);
-@@ -474,6 +497,7 @@ err2:
- 	if (!IS_ERR(phy->refclk))
- 		clk_disable_unprepare(phy->refclk);
- 
-+	ti_pipe3_disable_refclk(phy);
- err1:
- 	spin_unlock_irqrestore(&phy->lock, flags);
- 	return ret;
-@@ -491,8 +515,9 @@ static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy)
- 
- 	if (!IS_ERR(phy->wkupclk))
- 		clk_disable_unprepare(phy->wkupclk);
--	if (!IS_ERR(phy->refclk))
--		clk_disable_unprepare(phy->refclk);
-+	/* Don't disable refclk for SATA PHY due to Errata i783 */
-+	if (!of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata"))
-+		ti_pipe3_disable_refclk(phy);
- 	if (!IS_ERR(phy->div_clk))
- 		clk_disable_unprepare(phy->div_clk);
- 	phy->enabled = false;
--- 
-2.1.0
 
 
+--M9kwpIYUMbI/2cCx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Jan 07, 2015 at 05:42:41PM +0000, Marc Zyngier wrote:
+[...]
+> diff --git a/arch/arm/mach-tegra/irq.c b/arch/arm/mach-tegra/irq.c
+[...]
+>  void __init tegra_init_irq(void)
+>  {
+> -	int i;
+> -	void __iomem *distbase;
+> -
+> -	if (of_find_matching_node(NULL, tegra_ictlr_match))
+> -		goto skip_extn_setup;
+> -
+> -	tegra_legacy_irq_syscore_init();
+> -
+> -	distbase = IO_ADDRESS(TEGRA_ARM_INT_DIST_BASE);
+> -	num_ictlrs = readl_relaxed(distbase + GIC_DIST_CTR) & 0x1f;
+> -
+> -	if (num_ictlrs > ARRAY_SIZE(ictlr_reg_base)) {
+> -		WARN(1, "Too many (%d) interrupt controllers found. Maximum is %d.",
+> -			num_ictlrs, ARRAY_SIZE(ictlr_reg_base));
+> -		num_ictlrs = ARRAY_SIZE(ictlr_reg_base);
+> -	}
+> -
+> -	for (i = 0; i < num_ictlrs; i++) {
+> -		void __iomem *ictlr = ictlr_reg_base[i];
+> -		writel(~0, ictlr + ICTLR_CPU_IER_CLR);
+> -		writel(0, ictlr + ICTLR_CPU_IEP_CLASS);
+> -	}
+> -
+> -	gic_arch_extn.irq_ack = tegra_ack;
+> -	gic_arch_extn.irq_eoi = tegra_eoi;
+> -	gic_arch_extn.irq_mask = tegra_mask;
+> -	gic_arch_extn.irq_unmask = tegra_unmask;
+> -	gic_arch_extn.irq_retrigger = tegra_retrigger;
+> -	gic_arch_extn.irq_set_wake = tegra_set_wake;
+> -	gic_arch_extn.flags = IRQCHIP_MASK_ON_SUSPEND;
+> +	if (!of_find_matching_node(NULL, tegra_ictlr_match))
+> +		pr_warn("Outdated DT detected, suspend/resume will NOT work\n");
+
+I'm not very happy about the ABI breakage here, but I also realize that
+we need this change to properly describe the hardware. To make it more
+obvious that people really should update their DTBs, maybe turn this
+into a WARN()?
+
+> -skip_extn_setup:
+>  	tegra114_gic_cpu_pm_registration();
+
+I'm not intimately familiar with the GIC, but is this really SoC
+specific? Doesn't anybody else need this? Comparing to the GIC spec the
+write of 0x1e0 to the GIC_CPU_CTRL register (which I assume corresponds
+to GICC_CTLR in the spec), this simply disables the IRQ and FIQ bypass
+signals for both group 0 and group 1.
+
+Thierry
+
+--M9kwpIYUMbI/2cCx
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUrmoyAAoJEN0jrNd/PrOhu1wP/RtpeWYFylfZC7uKVM7d2+Um
+ywP7hZ2o6vDLe5SkghstWJfcoE1VFW1VQSpMopHaC31Ig5yTUDUDmEel+FndETj0
+3P+4O5wBaxAT9unY7xivINlUuPIHxaobbSzSE8EEEEezOcT1SIf6P/rZSPEEM0my
+2FMdp6JPv3CQgobNe0U+5mUspcblMMG7liOz1Xnf+qH1crX45bGFjp91Ay5MVgEW
+W/zDMRr19pHcrW/Xh/lrX/+M1VllXzsZHHiK+2tXKdnjmdBfCWKKJKIOknpRIp6W
+Ww5mSaetS+g0MNwVHiijc5zUEM6StjG7M+gpTzyMJ0MXwQF5anLqYvvaXHWITnY1
+x5lyqZEW7lfSAdKCjyvgQDmu4RNjdHNVbH7/WO+Wuu5USuyp8Zk8p8x7cFkSKvja
+ela3OAlhCnLvqVEiEM3H2RJJ/wLolu73CqK1avYUOOwjPysRkJvo4yBAMHlCkUIG
+IeaMHbB0jgZMo3oG/fvcIpY7vBqXL+GyvF3m8uryrjV3q8YGtSCnJLH3HOJ2nVp4
+CZGcg3OMNKHTc+wmXBu+JEBF2vY5ESeVd9Q651/ptFSOtiCjSBmlWgNONyj/Z7+6
+r+lhXz56sFhpW0v21XXjrp49RXzY67Oz1CeL4cg73MLE2Y1gHRAag86FPLU1giOe
+0TBbPEXl7UR+yUba5OSE
+=K1QU
+-----END PGP SIGNATURE-----
+
+--M9kwpIYUMbI/2cCx--
