@@ -1,84 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: reduce zImage size on omap2plus_defconfig
-Date: Wed, 7 Jan 2015 16:43:50 -0800
-Message-ID: <20150108004349.GT13010@atomide.com>
-References: <54991A25.2030804@compulab.co.il>
- <20141223161936.GA9147@saruman>
- <549AA94A.8030209@compulab.co.il>
- <20141224154948.GA423@saruman>
- <20141224190401.GN23854@atomide.com>
- <549BE333.9060709@compulab.co.il>
- <549D5CC0.2090408@linaro.org>
- <20141226152620.GF17430@saruman>
- <20141226161349.GC12409@atomide.com>
- <20141226162618.GJ17430@saruman>
+Subject: Re: [PATCH 5/5] arm: omap2plus_defconfig: enable TPS65218 power
+ button
+Date: Wed, 7 Jan 2015 16:55:09 -0800
+Message-ID: <20150108005508.GU13010@atomide.com>
+References: <1419622104-25812-1-git-send-email-balbi@ti.com>
+ <1419622104-25812-6-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26537 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40252 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328AbbAHArg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2015 19:47:36 -0500
+	with ESMTP id S1751977AbbAHA6z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2015 19:58:55 -0500
 Content-Disposition: inline
-In-Reply-To: <20141226162618.GJ17430@saruman>
+In-Reply-To: <1419622104-25812-6-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Igor Grinberg <grinberg@compulab.co.il>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [141226 08:29]:
-> On Fri, Dec 26, 2014 at 08:13:49AM -0800, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [141226 07:29]:
-> > > On Fri, Dec 26, 2014 at 03:04:00PM +0200, Grygorii.Strashko@linaro.org wrote:
-> > > > >>>
-> > > > >>> Tony, your call
-> > > > 
-> > > > May be it will be good thing to split this patch. That way more
-> > > > information will be stored in commit log about which set of options
-> > > > gives us what benefits.  And also, It will allow to continue with
-> > > > agreed changes.  ?
-> > > 
-> > > can be done, but then again, it's just a defconfig change. Tony, your
-> > > call.
-> > > 
-> > > > >> I think we should move omap2plus_defconfig to be mostly modular and
-> > > > >> usable for distros as a base. Most distros prefer to build almost
-> > > > >> everything as loadable modules. And my preference is that we should
-> > > > >> only keep the minimum rootfs for devices and serial support as
-> > > > >> built-in and rely on initramfs for most drivers. And slowly move
-> > > > >> also the remaining built-in drivers to be loadable modules.
-> > > > >>
-> > > > >> The reasons for having drivers as loadable modules are many. It
-> > > > >> allows distros to use the same kernel for all the devices without
-> > > > >> bloating the kernel. It makes developing drivers easier as just the
-> > > > >> module needs to be reloaded. And loadable modules protect us from
-> > > > >> cross-framework spaghetti calls in the kernel as the interfaces are
-> > > > >> clearly defined.
-> > > > >>
-> > > > >> Are there people really using SATA as rootfs right now on omaps?
-> > > > > 
-> > > > > Yes. That is exactly my point.
-> > > > > 
-> > > > 
-> > > > From my side I'd like to note that I know about few ongoing projects
-> > > > on DRA7x EVM where SATA is used as rootfs - now It is the fast
-> > > > possible way to start Android.
-> > > 
-> > > now this is something different. This is evidence that there are people
-> > > relying on SATA on rootfs. I'll leave to Tony again.
-> > 
-> > OK sounds like people are really using SATA as rootfs, so we might as
-> > well keep it built in then. And it does not affect the PM on the devices
-> > that do have PM working, that has been a problem with having some
-> > drivers built-in.
-> > 
-> > We can still work towards making the current rootfs device drivers
-> > into loadable modules in the long term :)
+* Felipe Balbi <balbi@ti.com> [141226 11:31]:
+> Enable tps65218 power button driver by default as
+> a dynamically linked module so AM437x SK can report
+> power button presses.
 > 
-> Here's v3:
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Thanks, applying this into omap-for-v3.20/defconfig.
-
-Regards,
+Applying this into omap-for-v3.20/defconfig thanks.
 
 Tony
+
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index c2c3a85..f4a4b2f 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -183,6 +183,7 @@ CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+>  CONFIG_TOUCHSCREEN_TSC2005=m
+>  CONFIG_TOUCHSCREEN_TSC2007=m
+>  CONFIG_INPUT_MISC=y
+> +CONFIG_INPUT_TPS65218_PWRBUTTON=m
+>  CONFIG_INPUT_TWL4030_PWRBUTTON=y
+>  # CONFIG_LEGACY_PTYS is not set
+>  CONFIG_SERIAL_8250=y
+> -- 
+> 2.2.0
+> 
