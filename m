@@ -1,117 +1,37 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: omap2plus_defconfig: Enable misc options for
- BeagleBoard-X15 platform
-Date: Thu, 8 Jan 2015 15:59:43 -0600
-Message-ID: <20150108215943.GW31926@saruman>
-References: <1420751680-21230-1-git-send-email-nm@ti.com>
-Reply-To: <balbi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
+Date: Thu, 08 Jan 2015 23:05:12 +0100
+Message-ID: <1896224.oMI8M6J5T7@wuerfel>
+References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <20150108131008.16c9a31c@lxorguk.ukuu.org.uk> <54AEAC47.1040403@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CpBQqYjq/d0HQTAP"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33242 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756129AbbAHWAn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Jan 2015 17:00:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1420751680-21230-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54AEAC47.1040403@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
---CpBQqYjq/d0HQTAP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thursday 08 January 2015 11:11:51 Peter Hurley wrote:
+> 
+> This interface is just storage and minor allocation, since the
+> port-reuse behavior will be limited to the "universal" driver.
+> From a sub-driver perspective, the shared storage is actually
+> a hindrance, so that reduces the requirement to minor allocation.
+> 
+> And that's where I'm stuck at the moment -- how to share ttyS
+> minor allocation. ttyS console is a related problem.
 
-On Thu, Jan 08, 2015 at 03:14:40PM -0600, Nishanth Menon wrote:
-> BeagleBoard-X15 has options such as rtc, fan that need to be functional
->=20
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+One idea that has come up in the past but never saw an implementation
+is to make the ttyS namespace and minor numbers completely generic and
+let any serial port driver use it. This would be a major rework, but
+have the added advantage of cleaning up a number of other namespace
+issues as well. There also lots of open question, in particular how
+to maintain compatibility with existing drivers. One could imagine
+that each uart always gets a ttyS device and optionally also gets
+a device node for the same port with a driver specific chardev as
+most of them do today. Or it could be an either/or decision that is
+made at compile time or as a module parameter.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-> ---
->=20
-> Applies on
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-> branch:
-> omap-for-v3.20/defconfig  4af41284e83c ARM: omap2plus_defconfig: enable T=
-PS65218 power button
->=20
->  erch/arm/configs/omap2plus_defconfig |    5 +++++
->  1 file changed, 5 insertions(+)
->=20
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
-2plus_defconfig
-> index b5ccb36c599b..3435e6043710 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -184,6 +184,7 @@ CONFIG_TOUCHSCREEN_TSC2007=3Dm
->  CONFIG_INPUT_MISC=3Dy
->  CONFIG_INPUT_TPS65218_PWRBUTTON=3Dm
->  CONFIG_INPUT_TWL4030_PWRBUTTON=3Dm
-> +CONFIG_INPUT_PALMAS_PWRBUTTON=3Dm
->  CONFIG_SERIO=3Dm
->  # CONFIG_LEGACY_PTYS is not set
->  CONFIG_SERIAL_8250=3Dy
-> @@ -205,6 +206,7 @@ CONFIG_PINCTRL_SINGLE=3Dy
->  CONFIG_DEBUG_GPIO=3Dy
->  CONFIG_GPIO_SYSFS=3Dy
->  CONFIG_GPIO_TWL4030=3Dy
-> +CONFIG_GPIO_PALMAS=3Dy
->  CONFIG_W1=3Dm
->  CONFIG_HDQ_MASTER_OMAP=3Dm
->  CONFIG_BATTERY_BQ27x00=3Dm
-> @@ -216,6 +218,7 @@ CONFIG_CHARGER_BQ24735=3Dm
->  CONFIG_POWER_RESET=3Dy
->  CONFIG_POWER_AVS=3Dy
->  CONFIG_HWMON=3Dm
-> +CONFIG_SENSORS_GPIO_FAN=3Dm
->  CONFIG_SENSORS_LM75=3Dm
->  CONFIG_SENSORS_TMP102=3Dm
->  CONFIG_THERMAL=3Dm
-> @@ -346,6 +349,8 @@ CONFIG_LEDS_TRIGGER_CPU=3Dy
->  CONFIG_LEDS_TRIGGER_GPIO=3Dm
->  CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dm
->  CONFIG_RTC_CLASS=3Dy
-> +CONFIG_RTC_DRV_DS1307=3Dm
-> +CONFIG_RTC_DRV_PALMAS=3Dm
->  CONFIG_RTC_DRV_TWL92330=3Dy
->  CONFIG_RTC_DRV_TWL4030=3Dm
->  CONFIG_RTC_DRV_OMAP=3Dm
-> --=20
-> 1.7.9.5
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-balbi
-
---CpBQqYjq/d0HQTAP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUrv3PAAoJEIaOsuA1yqREUNwP/3OjMExvnF2gg7fxOefYLebl
-AJvNThT20D4F0mAI6iVm/c3H2dhqCX/CB+h1pjDLlud9uqKVNtODdUT4unOGASQy
-ie7D9eGMzgdFDt0kKqXc3ScoopCjfhViXNgkbMnOvN/AY9CUzHnzRUGhmmLmRYIl
-pnxk3OhJfy03PmRgihbD5ZyLJgqjf4+kLvyDAvyY8XNXKvQfCStElBAh0EENW8n0
-sEF81SCots2n1g04KKQLpn7A0krouV+xkv/58C56f0ep9yWhoux5NVotb+k9Lwwp
-WwCHVFK57cSlyMaSiR0mRRKsG3VzQRlG4RgCpC8Qst01YtwBZaJbbthq190Q5AaQ
-qcQRX/t1lr6C1HfI7cmdXGOxp0YZvjNK2lpQDTA3siDaX7xIkkKPy62Xi5pEPvLb
-IBMhVCji6rurGghfbeutp0Km/tjD4LDojPHuGgWejAFjbwgKoKra7ECKJ9Ss4seg
-CKZXUpFZC3JuUB7c5F0EhU/oMJAOCUU82BkhweUHcVcDE885igniyh/GJ+2s6GWd
-anUjqEanRfu00j/T05/rQi2lJKQs8QczsEBUwyxrEyBB3yFR7huAeR4ZYvfjp67I
-2sL5SRX6O9a78wYADNRZBNh9wgEwsbiGo2EN4BTVHHh/4eHjtGCEOa5WklSvyJ27
-pVaq6iRk2wIhPGmOhWUr
-=ixWY
------END PGP SIGNATURE-----
-
---CpBQqYjq/d0HQTAP--
+	Arnd
