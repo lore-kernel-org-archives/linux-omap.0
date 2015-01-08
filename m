@@ -1,72 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC] usb: dwc3: add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY
- quirks
-Date: Thu, 8 Jan 2015 11:08:15 -0600
-Message-ID: <20150108170815.GJ31926@saruman>
-References: <20141208213551.38860f81@xhacker>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
+Date: Thu, 8 Jan 2015 10:54:48 -0800
+Message-ID: <20150108185448.GV13010@atomide.com>
+References: <20150105230228.GO4081@atomide.com>
+ <54AD5447.2070601@ti.com>
+ <20150107164005.GD4081@atomide.com>
+ <201501081001.34938@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yr/DzoowOgTDcSCF"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38647 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752870AbbAHRJP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Jan 2015 12:09:15 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59995 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754785AbbAHS6g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2015 13:58:36 -0500
 Content-Disposition: inline
-In-Reply-To: <20141208213551.38860f81@xhacker>
+In-Reply-To: <201501081001.34938@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jisheng Zhang <jszhang@marvell.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
 
---yr/DzoowOgTDcSCF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150108 01:04]:
+> On Wednesday 07 January 2015 17:40:06 Tony Lindgren wrote:
+> > [   1.943] getting value of option 'R&D flags set'
+> > [   1.948] SETUP: WR VND DEVICE    req 42 value 0000 index
+> > 0000 length 001b
+> > [   1.956] Image 'kernel' won't fit to the
+> > partition, still loading it (4814592 bytes, while maximum is
+> > 2097152 bytes)
+> > [   1.967] Receiving kernel (length 4814592)
+> > [   2.298] Image successfully received
+> > [   2.302] SETUP: WR VND DEVICE    req 82 value 0000 index
+> > 0000 length 0000
+> > [   2.309] SETUP: WR STD INTERFACE
+> > SET_INTERFACE      value 0000 index 0002 length 0000
+> > [   2.363] Boot requested (normal mode)
+> > [   2.367] Serial console enabled
+>=20
+> Tony, how did you get above verbose log from NOLO bootloader? Is=20
+> there any switch of R&D flag for it?
 
-Hi,
+Probably it was built with some debug flags enabled, at least
+I don't think those can be enabled otherwise.
+=20
+> NOLO in qemu (on serial console) show few messages...
+>=20
+> [   0.179] Loading kernel image info
+> Loading kernel (202 kB)... done in 27 ms (7457 kB/s)
+> [   0.202] Loading initfs image info
+> [   0.203] Total bootup time 286 ms
+> [   0.206] Serial console enabled
 
-On Mon, Dec 08, 2014 at 09:35:51PM +0800, Jisheng Zhang wrote:
-> On platforms which has native usb hosts/phys and pci-dwc3 controller,
-> the dwc3 core may get the wrong usb2_phy and usb3_phy by
-> devm_usb_get_phy(). It depends on which usb phy driver is initialized
-> firstly, the usb_phy_generic or the native/real usb phy driver.
+Looks like I have:
 
-why are you initializing generic PHY if you have a real PHY ?
+$ flasher --query-rd-mode
+flasher v2.5.2 (Oct 21 2009)
 
-> Before all old USB phy library usage removed, the solution I can have
-> is to add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY quirks and set them
-> in dwc3-pci.
-> Could such modification can be accepted? If not, could you please give
-> alternative suggestions?
+Suitable USB device not found, waiting.
+USB device found found at bus 003, device address 060.
+=46ound device RX-51, hardware revision 0010
+NOLO version 1.4.14
+Version of 'sw-release': <no version>
+The device is in R&D mode
+R&D flags (0x0196): no-omap-wd, no-ext-wd, serial-console, no-charging,=
+ force-power-key
 
-we will not accept a quirk to skip PHYs, sorry. A better way of handling
-this needs to be found.
+Regards,
 
---=20
-balbi
-
---yr/DzoowOgTDcSCF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUrrl/AAoJEIaOsuA1yqRExiwP/iNpNzccMViKA1rTSQvqmvqe
-8ziEq544W5IGjUXx6JuyWuTSmWE/w/C+Hi50mcctXbaAu7qY6HWL9NS0XgfxxPFZ
-UBGZbf9ppM5MWQBINwcpPlNUHdRkUCJDqgzVWvF83P+k740Pw2Y/eNM2mRuVo3dG
-Ubi2hMJcUHZu1s+Hvz7VpvNHEo6JvjD0jr9TgAGcGhkOdsisMbe1vWRXoziHTEmi
-gs1ywtbc4B6md5a6m2twuD8gXxV8Hn6h1n8mh6kCjR+qJUlXejWdSKcjXK+2p4l8
-bZgGhdjuyvqqpti73RXPmhFYXqVhG9+10JtrME/BmKcCovwLqD73Ee72ho0JvYJS
-P2TVmxtOid1aVJdQBtYdVacdEsWDYe6sFq5xhOxvWEiguCmRe9WCKpdsyBMpDXXP
-67DT3dLGlhDP7CC9o916iYrf7c+gtLGlHwNpyR8ZwwII32om1vTDLOvToSqKH4ZV
-AEEA/g4d8lH6u7Lop2KCHpd+/VNjsh5DCCaJ4HwbTgYrf8l56PGp44nBj0EKLYoJ
-Z7Y6Ro0wSLXAYWNSh1UvHtPC4ZqMxxhQpiw4GL9txeXQDHu5Ln6+Q9JRI8DONCu8
-HqPacGIY3G75WoKhKeCfHVXginPsqz/qbL2TmJ/Um7pZ0D3ox2WIZlY1UAU5ViAM
-WTNQIQUTCht9nA14s1F/
-=tuPs
------END PGP SIGNATURE-----
-
---yr/DzoowOgTDcSCF--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
