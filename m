@@ -1,76 +1,57 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH v2 03/21] ARM: tegra: skip gic_arch_extn setup if DT has
- a LIC node
-Date: Thu, 8 Jan 2015 11:16:29 +0100
-Message-ID: <20150108101628.GE1987@ulmo.nvidia.com>
-References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
- <1420652576-22309-4-git-send-email-marc.zyngier@arm.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: cm-t3x: add NAND support
+Date: Thu, 8 Jan 2015 12:30:23 +0200
+Message-ID: <54AE5C3F.7010306@ti.com>
+References: <54A00BD6.8010507@compulab.co.il> <1419777049-25271-1-git-send-email-lifshitz@compulab.co.il> <54A151F2.9010904@ti.com> <54A25696.80608@compulab.co.il> <20150108001648.GQ13010@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SWTRyWv/ijrBap1m"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1420652576-22309-4-git-send-email-marc.zyngier@arm.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41898 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751612AbbAHKaz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jan 2015 05:30:55 -0500
+In-Reply-To: <20150108001648.GQ13010@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
+On 08/01/15 02:16, Tony Lindgren wrote:
+> * Dmitry Lifshitz <lifshitz@compulab.co.il> [141229 23:42]:
+>> On 12/29/2014 03:06 PM, Roger Quadros wrote:
+>>> On 28/12/14 16:30, Dmitry Lifshitz wrote:
+>>>> --- a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+>>>> @@ -50,7 +50,8 @@
+>>>>  #include "omap-gpmc-smsc911x.dtsi"
+>>>>
+>>>>  &gpmc {
+>>>> -	ranges = <5 0 0x2c000000 0x01000000>;
+>>>> +	ranges = <5 0 0x2c000000 0x01000000>, /* CM-T3x30 SMSC9x Eth */
+>>>> +		 <0 0 0x00000000 0x01000000>; /* CM-T3x NAND */
+>>>
+>>> Isn't this ranges property redundant as it will anyways be overridden by the board specific dts?
+>>>
+>>
+>> The ranges are specified here (and other files below) by design.
+>>
+>> We built a tree like structure to organize DT files -
+>> d234e4239 "ARM: dts: sbc-t3x: refactor DT support"
+>>
+>> It allows to inherit/override properties common for different boards.
+>>
+>> Our customers do not have to deal with a correct GPMC ranges settings, once
+>> they base on omap3-cm-t3x.dts core module DT file (in case they do not
+>> connect additional device to the bus).
+>>
+>> This is the point of Igor's comment to the previous patch version.
+> 
+> Roger, do you still have pending issues with this patch?
 
---SWTRyWv/ijrBap1m
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry missed this one. Thanks for the explanations Dmitry.
 
-On Wed, Jan 07, 2015 at 05:42:38PM +0000, Marc Zyngier wrote:
-> If we detect that our DT has a LIC node, don't setup gic_arch_extn,
-> and skip tegra_legacy_irq_syscore_init as well.
->=20
-> This is only a temporary measure until that code is removed for good.
->=20
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  arch/arm/mach-tegra/irq.c   | 11 +++++++++++
->  arch/arm/mach-tegra/tegra.c |  1 -
->  2 files changed, 11 insertions(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-tegra/irq.c b/arch/arm/mach-tegra/irq.c
-> index 7f87a50..b37141d 100644
-> --- a/arch/arm/mach-tegra/irq.c
-> +++ b/arch/arm/mach-tegra/irq.c
-> @@ -255,11 +255,21 @@ static void tegra114_gic_cpu_pm_registration(void)
->  static void tegra114_gic_cpu_pm_registration(void) { }
->  #endif
-> =20
-> +static const struct of_device_id tegra_ictlr_match[] __initconst =3D {
-> +	{ .compatible =3D "nvidia,tegra-ictlr" },
+Acked-by: Roger Quadros <rogerq@ti.com>
 
-Like I said elsewhere, I think this should be "nvidia,tegra20-ictlr" and
-there should be another entry for "nvidia,tegra30-ictlr".
-
-Otherwise looks good, so with that fixed:
-
-Acked-by: Thierry Reding <treding@nvidia.com>
-
---SWTRyWv/ijrBap1m
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUrlj8AAoJEN0jrNd/PrOhb8MQAMHDTTj20AM/NDN5LUzrw4xB
-ZRAUXiNgtcTlLKbX0z43Hw230GdjBael5TJv5U5cOYOCwJKmS97AP/4Sae6UM5fV
-JM9du3jIYRFpVoIjtKvyleM4PnQWjS2HF0XYTns5SYt6zt2tXzgdxuAKr1o5g4Xo
-3GaoxJQYdrEJ0ReWufD3w9D3tpGBXuAO1JfI8kBxAvvLAfe9rlcFJ9a1OvNPWvfS
-uFttNfSsGDAFnoDhaCph6hnlOs3vMtgy6oresQ4k/NpmI+Juj4cH7js/3zozQK22
-tlwpRjmM2I08sfFFqGTQqgUNGyjVY133mcLTfLXrPPLpjG2Wo0IhzJ0MMbJ3d+jb
-tOBlGJ5zckTJGUL56Ef7hDqKoKFmhtwbpx5SAtNGD1MXGqBLQyWVlGEg6OuGon2l
-6cEe7EaBDaqPEWFr50pmfM5Gh7CqM/I9uou3uwuzn5p+6Mc2t3qJj2ZT0JLqkPPi
-+4Z8uiS2GOP+ky9+wm4evfPOlAyNX7V6BXOjf1lgFg6D/K6rCR2fNSaryDKaltDZ
-e3f2E6omGFYzmoVg7zWSON8MVBGWDc6vfFe0x4t12MnuaGiaxsUDl+BvdFV8MluY
-Tbc6HKAlYVVeLV30tPOUaoeEaEt84EQpMiSVarGjuZEVsztPSCERn6SNbrztgef/
-BhYqxhA2pB4rFdLEazaG
-=dmmp
------END PGP SIGNATURE-----
-
---SWTRyWv/ijrBap1m--
+cheers,
+-roger
