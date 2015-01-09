@@ -1,79 +1,52 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
-Date: Fri, 09 Jan 2015 09:48:17 +0100
-Message-ID: <3250953.b8pGJSWkfs@wuerfel>
-References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <1896224.oMI8M6J5T7@wuerfel> <54AF6378.6030202@hurleysoftware.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH] treewide: Convert clockevents_notify to use int cpu
+Date: Fri, 9 Jan 2015 12:34:56 +0100
+Message-ID: <20150109113452.GF16465@ulmo>
+References: <1418254133.18092.22.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54AF6378.6030202@hurleysoftware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Peter Hurley <peter@hurleysoftware.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DEueqSqTbz/jWVG1"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1418254133.18092.22.camel@perches.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 09 January 2015 00:13:28 Peter Hurley wrote:
-> On 01/08/2015 05:05 PM, Arnd Bergmann wrote:
-> > On Thursday 08 January 2015 11:11:51 Peter Hurley wrote:
-> >>
-> >> This interface is just storage and minor allocation, since the
-> >> port-reuse behavior will be limited to the "universal" driver.
-> >> From a sub-driver perspective, the shared storage is actually
-> >> a hindrance, so that reduces the requirement to minor allocation.
-> >>
-> >> And that's where I'm stuck at the moment -- how to share ttyS
-> >> minor allocation. ttyS console is a related problem.
-> > 
-> > One idea that has come up in the past but never saw an implementation
-> > is to make the ttyS namespace and minor numbers completely generic and
-> > let any serial port driver use it. This would be a major rework, but
-> > have the added advantage of cleaning up a number of other namespace
-> > issues as well. There also lots of open question, in particular how
-> > to maintain compatibility with existing drivers. One could imagine
-> > that each uart always gets a ttyS device and optionally also gets
-> > a device node for the same port with a driver specific chardev as
-> > most of them do today. Or it could be an either/or decision that is
-> > made at compile time or as a module parameter.
-> 
-> I'm not totally convinced that sharing minor allocation is the right
-> solution. ISTM that the main goal is for at least one serial driver
-> to represent ttyS (assuming that it is a suitable work-alike to the
-> 8250 driver) while other ttyS serial drivers must still be able to
-> load and operate.
 
-Unfortunately, we have already seen a case where we need to have
-two drivers enabled at the same time that both use the ttyS
-namespace and minor numbers at the moment.
+--DEueqSqTbz/jWVG1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> So for example, a UART that is ttyS in a typical configuration, might
-> be ttyX when another driver has been configured as ttyS instead.
-> Assuming that every uart driver has a unique, alternate base name,
-> then the problem is reduced to selecting the appropriate driver for
-> ttyS.
-> 
-> Some use cases would require selecting the ttyS driver at build time.
-> Others would probably require the notion of a preferred driver.
+On Wed, Dec 10, 2014 at 03:28:53PM -0800, Joe Perches wrote:
+[...]
+>  arch/arm/mach-tegra/cpuidle-tegra114.c |  4 ++--
+>  arch/arm/mach-tegra/cpuidle-tegra20.c  |  8 ++++----
+>  arch/arm/mach-tegra/cpuidle-tegra30.c  |  8 ++++----
+[...]
 
-Build-time selection looks problematic to me in the case of an
-ARM distro kernel that wants to support dozens of different
-uart drivers. At the moment this works for the most part because
-the conflicts are rare, but it's getting worse.
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-> What got me thinking about this approach instead of sharing minor
-> allocation was based on the 'first-come, first-served' question
-> I asked back in Dec. What happens when probe order varies and
-> console=ttyS0/login prompt doesn't show up where it's supposed to?
-> I've had this experience with multiple ethernet adapters and it's
-> not fun.
+--DEueqSqTbz/jWVG1
+Content-Type: application/pgp-signature
 
-In a lot of cases, we can solve the problem for a particular board
-by hardcoding the 'aliases' in the board specific dts file, at least
-when devicetree is used (as it is for the majority of the cases that
-are causing problems now).
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Using the aliases correctly at the moment is really awkward when you
-have multiple drivers for uarts on the same system and your serial0
-and serial1 uart turn into ttyS0 and ttyX1.
+iQIcBAEBAgAGBQJUr7zcAAoJEN0jrNd/PrOhrsAP/iWqYSubPYR6Plip5QDe/QoP
+9bcbtfr5b+PsC/H1evIRrWKNo5E68ZZNJpA4FfPSGs1NAqqfl0/7fG1s6j2E38dG
+UWwLGFQ/tzRJht0SzbehEIef8ZZ0w2Y9dmVoriQoQq0FjHJqbG3zf2tsPFkztIvI
++zaOSc/FHTH6lN2fjqbySFT6+NF32Hx4IoO4pKrp2upqMh7LiWaAt6h6RE8Xb84o
+3eu0Ooyqc8g1vHmZu4vGB7eQsHHF3l3DBEdKLrnXaJXd92RlzQFy/rhoN2A+rClr
+kadKPbfH8HV4ENG1l5j2fPhzx/rsZMI1KLgKssm1xbGF8tPUromdroL3VuayI+y8
+WEO2LoXUb3RH5zh6QarQvZyCPzDba5s33sk8Z03NoazTtp1ldAE29UAORrzfdEFq
+YCDExJsxFZwYT1bkTvlMKjeL22SAh3LKiJuTCerqGvRZkAwVZnmdsTmnxjcotWRC
+SZvIJjoAbkanqyUZN7Jrz6Txl37ZPET6dZxFcqLXDoiPfAJ3H3rYVp8d6fSejcH5
+N2x8wGwwkWLQScxRVRv0aQsERpT6UHfYyADVBMPIKz2OhRXoy0nCSdFtB7KsY43r
+FxeOEM9JQvuuIiH/NsoNR19613E7pboA00siPF8QPyIE93JB9rSIQgqkK4SbbnL0
+Iumq7l9GgNhbA6mm931L
+=XFHi
+-----END PGP SIGNATURE-----
 
-	Arnd
+--DEueqSqTbz/jWVG1--
