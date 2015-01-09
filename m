@@ -1,426 +1,329 @@
-From: Stefan Agner <stefan@agner.ch>
-Subject: Re: [PATCH v2 14/21] ARM: imx6: convert GPC to stacked domains
-Date: Fri, 09 Jan 2015 18:40:38 +0100
-Message-ID: <e8cdeef8763e808940d08f4c1b12b71c@agner.ch>
-References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
- <1420652576-22309-15-git-send-email-marc.zyngier@arm.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v3 2/2] remoteproc: add support to handle internal memories
+Date: Fri, 9 Jan 2015 15:21:59 -0600
+Message-ID: <1420838519-15669-3-git-send-email-s-anna@ti.com>
+References: <1420838519-15669-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kmu-office.ch ([178.209.48.109]:36021 "EHLO
-	mail.kmu-office.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756381AbbAIRlV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2015 12:41:21 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by mail.kmu-office.ch (Postfix) with SMTP id 282155C0DB3
-	for <linux-omap@vger.kernel.org>; Fri,  9 Jan 2015 18:39:48 +0100 (CET)
-In-Reply-To: <1420652576-22309-15-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1420838519-15669-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Marc,
+A remote processor may need to load certain firmware sections into
+internal memories (eg: RAM at L1 or L2 levels) for performance or
+other reasons. Introduce a new resource type (RSC_INTMEM) and add
+an associated handler function to handle such memories. The handler
+creates a kernel mapping for the resource's 'pa' (physical address).
 
-On 2015-01-07 18:42, Marc Zyngier wrote:
-> IMX6 has been (ab)using the gic_arch_extn to provide
-> wakeup from suspend, and it makes a lot of sense to convert
-> this code to use stacked domains instead.
-> 
-> This patch does just this, updating the DT files to actually
-> reflect what the HW provides.
-> 
-> BIG FAT WARNING: because the DTs were so far lying by not
-> exposing the fact that the GPC block is actually the first
-> interrupt controller in the chain, kernels with this patch
-> applied wont have any suspend-resume facility when booted
-> with old DTs, and old kernels with updated DTs won't even boot.
-> 
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  arch/arm/boot/dts/imx6qdl.dtsi  |   6 +-
->  arch/arm/boot/dts/imx6sl.dtsi   |   5 +-
->  arch/arm/boot/dts/imx6sx.dtsi   |   5 +-
->  arch/arm/mach-imx/common.h      |   1 -
->  arch/arm/mach-imx/gpc.c         | 127 ++++++++++++++++++++++++++++++++--------
->  arch/arm/mach-imx/mach-imx6q.c  |   1 -
->  arch/arm/mach-imx/mach-imx6sl.c |   1 -
->  arch/arm/mach-imx/mach-imx6sx.c |   1 -
->  8 files changed, 116 insertions(+), 31 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-> index 4fc03b7..c16d428 100644
-> --- a/arch/arm/boot/dts/imx6qdl.dtsi
-> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
-> @@ -53,6 +53,7 @@
->  		interrupt-controller;
->  		reg = <0x00a01000 0x1000>,
->  		      <0x00a00100 0x100>;
-> +		interrupt-parent = <&intc>;
->  	};
->  
->  	clocks {
-> @@ -82,7 +83,7 @@
->  		#address-cells = <1>;
->  		#size-cells = <1>;
->  		compatible = "simple-bus";
-> -		interrupt-parent = <&intc>;
-> +		interrupt-parent = <&gpc>;
->  		ranges;
->  
->  		dma_apbh: dma-apbh@00110000 {
-> @@ -122,6 +123,7 @@
->  			compatible = "arm,cortex-a9-twd-timer";
->  			reg = <0x00a00600 0x20>;
->  			interrupts = <1 13 0xf01>;
-> +			interrupt-parent = <&intc>;
->  			clocks = <&clks IMX6QDL_CLK_TWD>;
->  		};
->  
-> @@ -694,8 +696,10 @@
->  			gpc: gpc@020dc000 {
->  				compatible = "fsl,imx6q-gpc";
->  				reg = <0x020dc000 0x4000>;
-> +				interrupt-controller;
+Note that no iommu mapping is performed for this resource, as the
+resource is primarily used to represent physical internal memories.
+If the internal memory region can only be accessed through an iommu,
+a devmem resource entry should be used instead.
 
-#interrupt-cells = <3>; is missing here.
+Signed-off-by: Robert Tivy <rtivy@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+v3:
+- leverage memcpy_toio and memset_io for loading into internal memory
+- rproc_da_to_va takes an additional argument to allow this distinction
 
-I tested the patchset on a Colibri iMX6, but the module stopped booting
-at some point. No error, no warn, but it looked like IRQ's are not
-working:
+ drivers/remoteproc/remoteproc_core.c       | 89 +++++++++++++++++++++++++++++-
+ drivers/remoteproc/remoteproc_elf_loader.c | 23 ++++++--
+ drivers/remoteproc/remoteproc_internal.h   |  6 +-
+ include/linux/remoteproc.h                 | 43 ++++++++++++++-
+ 4 files changed, 150 insertions(+), 11 deletions(-)
 
-[    1.623939] platform sound: Driver imx-sgtl5000 requests probe
-deferral
-[    1.630677] backlight supply power not found, using dummy regulator
-[    1.637067] pwm-backlight backlight: unable to request PWM, trying
-legacy API
-[    1.644271] pwm-backlight backlight: unable to request legacy PWM
-[    1.650534] platform backlight: Driver pwm-backlight requests probe
-deferral
-[    1.658080] platform 2028000.ssi: Driver fsl-ssi-dai requests probe
-deferral
-[    1.665441] fec 2188000.ethernet eth0: Freescale FEC PHY driver
-[Micrel KSZ8041] (mii_bus:phy_addr=2188000.ethernet:00, irq=-1)
-[    1.677157] IPv6: ADDRCONF(NETDEV_UP): eth0: link is not ready
-[freeze]
-
-I figured out that the GPC code did not get called. After digging
-through the parsing code, I found the reason: irq_find_host always opted
-to intc because this was missing... So, interrupt-cells mandatory for
-all interrupt-controller? Maybe we could add a warn somewhere..?
-
-With that in place, it worked fine:
-
-Tested-by: Stefan Agner <stefan@agner.ch>
-
->  				interrupts = <0 89 IRQ_TYPE_LEVEL_HIGH>,
->  					     <0 90 IRQ_TYPE_LEVEL_HIGH>;
-> +				interrupt-parent = <&intc>;
->  			};
->  
->  			gpr: iomuxc-gpr@020e0000 {
-> diff --git a/arch/arm/boot/dts/imx6sl.dtsi b/arch/arm/boot/dts/imx6sl.dtsi
-> index 36ab8e0..35099b7 100644
-> --- a/arch/arm/boot/dts/imx6sl.dtsi
-> +++ b/arch/arm/boot/dts/imx6sl.dtsi
-> @@ -72,6 +72,7 @@
->  		interrupt-controller;
->  		reg = <0x00a01000 0x1000>,
->  		      <0x00a00100 0x100>;
-> +		interrupt-parent = <&intc>;
->  	};
->  
->  	clocks {
-> @@ -95,7 +96,7 @@
->  		#address-cells = <1>;
->  		#size-cells = <1>;
->  		compatible = "simple-bus";
-> -		interrupt-parent = <&intc>;
-> +		interrupt-parent = <&gpc>;
->  		ranges;
->  
->  		ocram: sram@00900000 {
-> @@ -603,7 +604,9 @@
->  			gpc: gpc@020dc000 {
->  				compatible = "fsl,imx6sl-gpc", "fsl,imx6q-gpc";
->  				reg = <0x020dc000 0x4000>;
-> +				interrupt-controller;
->  				interrupts = <0 89 IRQ_TYPE_LEVEL_HIGH>;
-> +				interrupt-parent = <&intc>;
->  			};
->  
->  			gpr: iomuxc-gpr@020e0000 {
-> diff --git a/arch/arm/boot/dts/imx6sx.dtsi b/arch/arm/boot/dts/imx6sx.dtsi
-> index 7a24fee..c476e67 100644
-> --- a/arch/arm/boot/dts/imx6sx.dtsi
-> +++ b/arch/arm/boot/dts/imx6sx.dtsi
-> @@ -88,6 +88,7 @@
->  		interrupt-controller;
->  		reg = <0x00a01000 0x1000>,
->  		      <0x00a00100 0x100>;
-> +		interrupt-parent = <&intc>;
->  	};
->  
->  	clocks {
-> @@ -131,7 +132,7 @@
->  		#address-cells = <1>;
->  		#size-cells = <1>;
->  		compatible = "simple-bus";
-> -		interrupt-parent = <&intc>;
-> +		interrupt-parent = <&gpc>;
->  		ranges;
->  
->  		pmu {
-> @@ -700,7 +701,9 @@
->  			gpc: gpc@020dc000 {
->  				compatible = "fsl,imx6sx-gpc", "fsl,imx6q-gpc";
->  				reg = <0x020dc000 0x4000>;
-> +				interrupt-controller;
->  				interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
-> +				interrupt-parent = <&intc>;
->  			};
->  
->  			iomuxc: iomuxc@020e0000 {
-> diff --git a/arch/arm/mach-imx/common.h b/arch/arm/mach-imx/common.h
-> index cfcdb62..7052302 100644
-> --- a/arch/arm/mach-imx/common.h
-> +++ b/arch/arm/mach-imx/common.h
-> @@ -102,7 +102,6 @@ static inline void imx_scu_map_io(void) {}
->  static inline void imx_smp_prepare(void) {}
->  #endif
->  void imx_src_init(void);
-> -void imx_gpc_init(void);
->  void imx_gpc_pre_suspend(bool arm_power_off);
->  void imx_gpc_post_resume(void);
->  void imx_gpc_mask_all(void);
-> diff --git a/arch/arm/mach-imx/gpc.c b/arch/arm/mach-imx/gpc.c
-> index 5f3602e..240109b 100644
-> --- a/arch/arm/mach-imx/gpc.c
-> +++ b/arch/arm/mach-imx/gpc.c
-> @@ -22,6 +22,7 @@
->  #define GPC_PGC_CPU_PDN		0x2a0
->  
->  #define IMR_NUM			4
-> +#define GPC_MAX_IRQS		(IMR_NUM * 32)
->  
->  static void __iomem *gpc_base;
->  static u32 gpc_wake_irqs[IMR_NUM];
-> @@ -56,17 +57,17 @@ void imx_gpc_post_resume(void)
->  
->  static int imx_gpc_irq_set_wake(struct irq_data *d, unsigned int on)
->  {
-> -	unsigned int idx = d->hwirq / 32 - 1;
-> +	unsigned int idx = d->hwirq / 32;
->  	u32 mask;
->  
-> -	/* Sanity check for SPI irq */
-> -	if (d->hwirq < 32)
-> -		return -EINVAL;
-> -
->  	mask = 1 << d->hwirq % 32;
->  	gpc_wake_irqs[idx] = on ? gpc_wake_irqs[idx] | mask :
->  				  gpc_wake_irqs[idx] & ~mask;
->  
-> +	/*
-> +	 * Do *not* call into the parent, as the GIC doesn't have any
-> +	 * wake-up facility...
-> +	 */
->  	return 0;
->  }
->  
-> @@ -96,7 +97,7 @@ void imx_gpc_hwirq_unmask(unsigned int hwirq)
->  	void __iomem *reg;
->  	u32 val;
->  
-> -	reg = gpc_base + GPC_IMR1 + (hwirq / 32 - 1) * 4;
-> +	reg = gpc_base + GPC_IMR1 + hwirq / 32 * 4;
->  	val = readl_relaxed(reg);
->  	val &= ~(1 << hwirq % 32);
->  	writel_relaxed(val, reg);
-> @@ -107,7 +108,7 @@ void imx_gpc_hwirq_mask(unsigned int hwirq)
->  	void __iomem *reg;
->  	u32 val;
->  
-> -	reg = gpc_base + GPC_IMR1 + (hwirq / 32 - 1) * 4;
-> +	reg = gpc_base + GPC_IMR1 + hwirq / 32 * 4;
->  	val = readl_relaxed(reg);
->  	val |= 1 << (hwirq % 32);
->  	writel_relaxed(val, reg);
-> @@ -115,37 +116,115 @@ void imx_gpc_hwirq_mask(unsigned int hwirq)
->  
->  static void imx_gpc_irq_unmask(struct irq_data *d)
->  {
-> -	/* Sanity check for SPI irq */
-> -	if (d->hwirq < 32)
-> -		return;
-> -
->  	imx_gpc_hwirq_unmask(d->hwirq);
-> +	irq_chip_unmask_parent(d);
->  }
->  
->  static void imx_gpc_irq_mask(struct irq_data *d)
->  {
-> -	/* Sanity check for SPI irq */
-> -	if (d->hwirq < 32)
-> -		return;
-> -
->  	imx_gpc_hwirq_mask(d->hwirq);
-> +	irq_chip_mask_parent(d);
-> +}
-
-This two function end up very small, can't we just alter
-imx_gpc_hwirq_unmask to use struct irq_data directly?
-
-Code looks fine to me:
-
-Acked-by: Stefan Agner <stefan@agner.ch>
-
-> +
-> +static struct irq_chip imx_gpc_chip = {
-> +	.name		= "GPC",
-> +	.irq_eoi	= irq_chip_eoi_parent,
-> +	.irq_mask	= imx_gpc_irq_mask,
-> +	.irq_unmask	= imx_gpc_irq_unmask,
-> +	.irq_retrigger	= irq_chip_retrigger_hierarchy,
-> +	.irq_set_wake	= imx_gpc_irq_set_wake,
-> +};
-> +
-> +static int imx_gpc_domain_xlate(struct irq_domain *domain,
-> +				struct device_node *controller,
-> +				const u32 *intspec,
-> +				unsigned int intsize,
-> +				unsigned long *out_hwirq,
-> +				unsigned int *out_type)
-> +{
-> +	if (domain->of_node != controller)
-> +		return -EINVAL;	/* Shouldn't happen, really... */
-> +	if (intsize != 3)
-> +		return -EINVAL;	/* Not GIC compliant */
-> +	if (intspec[0] != 0)
-> +		return -EINVAL;	/* No PPI should point to this domain */
-> +
-> +	*out_hwirq = intspec[1];
-> +	*out_type = intspec[2];
-> +	return 0;
-> +}
-> +
-> +static int imx_gpc_domain_alloc(struct irq_domain *domain,
-> +				  unsigned int virq,
-> +				  unsigned int nr_irqs, void *data)
-> +{
-> +	struct of_phandle_args *args = data;
-> +	struct of_phandle_args parent_args;
-> +	irq_hw_number_t hwirq;
-> +	int i;
-> +
-> +	if (args->args_count != 3)
-> +		return -EINVAL;	/* Not GIC compliant */
-> +	if (args->args[0] != 0)
-> +		return -EINVAL;	/* No PPI should point to this domain */
-> +
-> +	hwirq = args->args[1];
-> +	if (hwirq >= GPC_MAX_IRQS)
-> +		return -EINVAL;	/* Can't deal with this */
-> +
-> +	for (i = 0; i < nr_irqs; i++)
-> +		irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
-> +					      &imx_gpc_chip, NULL);
-> +
-> +	parent_args = *args;
-> +	parent_args.np = domain->parent->of_node;
-> +	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, &parent_args);
->  }
->  
-> -void __init imx_gpc_init(void)
-> +static struct irq_domain_ops imx_gpc_domain_ops = {
-> +	.xlate	= imx_gpc_domain_xlate,
-> +	.alloc	= imx_gpc_domain_alloc,
-> +	.free	= irq_domain_free_irqs_common,
-> +};
-> +
-> +static int __init imx_gpc_init(struct device_node *node,
-> +			       struct device_node *parent)
->  {
-> -	struct device_node *np;
-> +	struct irq_domain *parent_domain, *domain;
->  	int i;
->  
-> -	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-gpc");
-> -	gpc_base = of_iomap(np, 0);
-> -	WARN_ON(!gpc_base);
-> +	if (!parent) {
-> +		pr_err("%s: no parent, giving up\n", node->full_name);
-> +		return -ENODEV;
-> +	}
-> +
-> +	parent_domain = irq_find_host(parent);
-> +	if (!parent_domain) {
-> +		pr_err("%s: unable to obtain parent domain\n", node->full_name);
-> +		return -ENXIO;
-> +	}
-> +
-> +	gpc_base = of_iomap(node, 0);
-> +	if (WARN_ON(!gpc_base))
-> +	        return -ENOMEM;
-> +
-> +	domain = irq_domain_add_hierarchy(parent_domain, 0, GPC_MAX_IRQS,
-> +					  node, &imx_gpc_domain_ops,
-> +					  NULL);
-> +	if (!domain) {
-> +		iounmap(gpc_base);
-> +		return -ENOMEM;
-> +	}
->  
->  	/* Initially mask all interrupts */
->  	for (i = 0; i < IMR_NUM; i++)
->  		writel_relaxed(~0, gpc_base + GPC_IMR1 + i * 4);
->  
-> -	/* Register GPC as the secondary interrupt controller behind GIC */
-> -	gic_arch_extn.irq_mask = imx_gpc_irq_mask;
-> -	gic_arch_extn.irq_unmask = imx_gpc_irq_unmask;
-> -	gic_arch_extn.irq_set_wake = imx_gpc_irq_set_wake;
-> +	return 0;
->  }
-> +
-> +/*
-> + * We cannot use the IRQCHIP_DECLARE macro that lives in
-> + * drivers/irqchip, so we're forced to roll our own. Not very nice.
-> + */
-> +OF_DECLARE_2(irqchip, imx_gpc, "fsl,imx6q-gpc", imx_gpc_init);
-> diff --git a/arch/arm/mach-imx/mach-imx6q.c b/arch/arm/mach-imx/mach-imx6q.c
-> index 5057d61..bbe6ff8 100644
-> --- a/arch/arm/mach-imx/mach-imx6q.c
-> +++ b/arch/arm/mach-imx/mach-imx6q.c
-> @@ -390,7 +390,6 @@ static void __init imx6q_init_irq(void)
->  	imx_init_revision_from_anatop();
->  	imx_init_l2cache();
->  	imx_src_init();
-> -	imx_gpc_init();
->  	irqchip_init();
->  }
->  
-> diff --git a/arch/arm/mach-imx/mach-imx6sl.c b/arch/arm/mach-imx/mach-imx6sl.c
-> index 24bfaaf..d39c274 100644
-> --- a/arch/arm/mach-imx/mach-imx6sl.c
-> +++ b/arch/arm/mach-imx/mach-imx6sl.c
-> @@ -64,7 +64,6 @@ static void __init imx6sl_init_irq(void)
->  	imx_init_revision_from_anatop();
->  	imx_init_l2cache();
->  	imx_src_init();
-> -	imx_gpc_init();
->  	irqchip_init();
->  }
->  
-> diff --git a/arch/arm/mach-imx/mach-imx6sx.c b/arch/arm/mach-imx/mach-imx6sx.c
-> index 7a96c65..72fa22d 100644
-> --- a/arch/arm/mach-imx/mach-imx6sx.c
-> +++ b/arch/arm/mach-imx/mach-imx6sx.c
-> @@ -84,7 +84,6 @@ static void __init imx6sx_init_irq(void)
->  	imx_init_revision_from_anatop();
->  	imx_init_l2cache();
->  	imx_src_init();
-> -	imx_gpc_init();
->  	irqchip_init();
->  }
-
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 11cdb119e4f3..e0ecc0f802c1 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -153,7 +153,7 @@ static void rproc_disable_iommu(struct rproc *rproc)
+  * but only on kernel direct mapped RAM memory. Instead, we're just using
+  * here the output of the DMA API, which should be more correct.
+  */
+-void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 *flags)
+ {
+ 	struct rproc_mem_entry *carveout;
+ 	void *ptr = NULL;
+@@ -170,6 +170,8 @@ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
+ 			continue;
+ 
+ 		ptr = carveout->va + offset;
++		if (flags && carveout->priv)
++			*flags = RPROC_INTMEM;
+ 
+ 		break;
+ 	}
+@@ -404,7 +406,7 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
+ 	}
+ 
+ 	/* what's the kernel address of this resource ? */
+-	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len);
++	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len, NULL);
+ 	if (!ptr) {
+ 		dev_err(dev, "erroneous trace resource entry\n");
+ 		return -EINVAL;
+@@ -664,6 +666,82 @@ free_carv:
+ 	return ret;
+ }
+ 
++/**
++ * rproc_handle_intmem() - handle internal memory resource entry
++ * @rproc: rproc handle
++ * @rsc: the intmem resource entry
++ * @offset: offset of the resource data in resource table
++ * @avail: size of available data (for image validation)
++ *
++ * This function will handle firmware requests for mapping a memory region
++ * internal to a remote processor into kernel. It neither allocates any
++ * physical pages, nor performs any iommu mapping, as this resource entry
++ * is primarily used for representing physical internal memories. If the
++ * internal memory region can only be accessed through an iommu, please
++ * use a devmem resource entry.
++ *
++ * These resource entries should be grouped near the carveout entries in
++ * the firmware's resource table, as other firmware entries might request
++ * placing other data objects inside these memory regions (e.g. data/code
++ * segments, trace resource entries, ...).
++ */
++static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
++			       int offset, int avail)
++{
++	struct rproc_mem_entry *intmem;
++	struct device *dev = &rproc->dev;
++	void *va;
++	int ret;
++
++	if (sizeof(*rsc) > avail) {
++		dev_err(dev, "intmem rsc is truncated\n");
++		return -EINVAL;
++	}
++
++	if (rsc->version != 1) {
++		dev_err(dev, "intmem rsc version %d is not supported\n",
++			rsc->version);
++		return -EINVAL;
++	}
++
++	if (rsc->reserved) {
++		dev_err(dev, "intmem rsc has non zero reserved bytes\n");
++		return -EINVAL;
++	}
++
++	dev_dbg(dev, "intmem rsc: da 0x%x, pa 0x%x, len 0x%x\n",
++		rsc->da, rsc->pa, rsc->len);
++
++	intmem = kzalloc(sizeof(*intmem), GFP_KERNEL);
++	if (!intmem)
++		return -ENOMEM;
++
++	va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
++	if (!va) {
++		dev_err(dev, "ioremap_nocache err: %d\n", rsc->len);
++		ret = -ENOMEM;
++		goto free_intmem;
++	}
++
++	dev_dbg(dev, "intmem mapped pa 0x%x of len 0x%x into kernel va %p\n",
++		rsc->pa, rsc->len, va);
++
++	intmem->va = va;
++	intmem->len = rsc->len;
++	intmem->dma = rsc->pa;
++	intmem->da = rsc->da;
++	intmem->priv = (void *)RPROC_INTMEM;    /* prevents freeing */
++
++	/* reuse the rproc->carveouts list, so that loading is automatic */
++	list_add_tail(&intmem->node, &rproc->carveouts);
++
++	return 0;
++
++free_intmem:
++	kfree(intmem);
++	return ret;
++}
++
+ static int rproc_count_vrings(struct rproc *rproc, struct fw_rsc_vdev *rsc,
+ 			      int offset, int avail)
+ {
+@@ -681,6 +759,7 @@ static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
+ 	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
+ 	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
+ 	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
++	[RSC_INTMEM] = (rproc_handle_resource_t)rproc_handle_intmem,
+ 	[RSC_VDEV] = NULL, /* VDEVs were handled upon registrarion */
+ };
+ 
+@@ -768,7 +847,11 @@ static void rproc_resource_cleanup(struct rproc *rproc)
+ 
+ 	/* clean up carveout allocations */
+ 	list_for_each_entry_safe(entry, tmp, &rproc->carveouts, node) {
+-		dma_free_coherent(dev->parent, entry->len, entry->va, entry->dma);
++		if (!entry->priv)
++			dma_free_coherent(dev->parent, entry->len, entry->va,
++					  entry->dma);
++		else
++			iounmap((__force void __iomem *)entry->va);
+ 		list_del(&entry->node);
+ 		kfree(entry);
+ 	}
+diff --git a/drivers/remoteproc/remoteproc_elf_loader.c b/drivers/remoteproc/remoteproc_elf_loader.c
+index ce283a5b42a1..cdd7b622cee3 100644
+--- a/drivers/remoteproc/remoteproc_elf_loader.c
++++ b/drivers/remoteproc/remoteproc_elf_loader.c
+@@ -150,6 +150,7 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 	struct elf32_phdr *phdr;
+ 	int i, ret = 0;
+ 	const u8 *elf_data = fw->data;
++	u32 flags = 0;
+ 
+ 	ehdr = (struct elf32_hdr *)elf_data;
+ 	phdr = (struct elf32_phdr *)(elf_data + ehdr->e_phoff);
+@@ -183,7 +184,7 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 		}
+ 
+ 		/* grab the kernel address for this device address */
+-		ptr = rproc_da_to_va(rproc, da, memsz);
++		ptr = rproc_da_to_va(rproc, da, memsz, &flags);
+ 		if (!ptr) {
+ 			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
+ 			ret = -EINVAL;
+@@ -191,8 +192,13 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 		}
+ 
+ 		/* put the segment where the remote processor expects it */
+-		if (phdr->p_filesz)
+-			memcpy(ptr, elf_data + phdr->p_offset, filesz);
++		if (phdr->p_filesz) {
++			if (flags & RPROC_INTMEM)
++				memcpy_toio((void __iomem *)ptr,
++					    elf_data + phdr->p_offset, filesz);
++			else
++				memcpy(ptr, elf_data + phdr->p_offset, filesz);
++		}
+ 
+ 		/*
+ 		 * Zero out remaining memory for this segment.
+@@ -201,8 +207,13 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
+ 		 * did this for us. albeit harmless, we may consider removing
+ 		 * this.
+ 		 */
+-		if (memsz > filesz)
+-			memset(ptr + filesz, 0, memsz - filesz);
++		if (memsz > filesz) {
++			if (flags & RPROC_INTMEM)
++				memset_io((void __iomem *)ptr + filesz,
++					  0, memsz - filesz);
++			else
++				memset(ptr + filesz, 0, memsz - filesz);
++		}
+ 	}
+ 
+ 	return ret;
+@@ -325,7 +336,7 @@ rproc_elf_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
+ 	if (!shdr)
+ 		return NULL;
+ 
+-	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size);
++	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size, NULL);
+ }
+ 
+ const struct rproc_fw_ops rproc_elf_fw_ops = {
+diff --git a/drivers/remoteproc/remoteproc_internal.h b/drivers/remoteproc/remoteproc_internal.h
+index 70701a50ddfa..8af4a8188488 100644
+--- a/drivers/remoteproc/remoteproc_internal.h
++++ b/drivers/remoteproc/remoteproc_internal.h
+@@ -23,6 +23,10 @@
+ #include <linux/irqreturn.h>
+ #include <linux/firmware.h>
+ 
++enum rproc_mem_type {
++	RPROC_INTMEM = 1,
++};
++
+ struct rproc;
+ 
+ /**
+@@ -65,7 +69,7 @@ void rproc_exit_debugfs(void);
+ void rproc_free_vring(struct rproc_vring *rvring);
+ int rproc_alloc_vring(struct rproc_vdev *rvdev, int i);
+ 
+-void *rproc_da_to_va(struct rproc *rproc, u64 da, int len);
++void *rproc_da_to_va(struct rproc *rproc, u64 da, int len, u32 *flags);
+ int rproc_trigger_recovery(struct rproc *rproc);
+ 
+ static inline
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index 78b8a9b9d40a..2a25ee8a34dd 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -100,6 +100,7 @@ struct fw_rsc_hdr {
+  *		    the remote processor will be writing logs.
+  * @RSC_VDEV:       declare support for a virtio device, and serve as its
+  *		    virtio header.
++ * @RSC_INTMEM:     request to map into kernel an internal memory region.
+  * @RSC_LAST:       just keep this one at the end
+  *
+  * For more details regarding a specific resource type, please see its
+@@ -115,7 +116,8 @@ enum fw_resource_type {
+ 	RSC_DEVMEM	= 1,
+ 	RSC_TRACE	= 2,
+ 	RSC_VDEV	= 3,
+-	RSC_LAST	= 4,
++	RSC_INTMEM	= 4,
++	RSC_LAST	= 5,
+ };
+ 
+ #define FW_RSC_ADDR_ANY (0xFFFFFFFFFFFFFFFF)
+@@ -306,6 +308,45 @@ struct fw_rsc_vdev {
+ } __packed;
+ 
+ /**
++ * struct fw_rsc_intmem - internal memory publishing request
++ * @version: version for this resource type (must be one)
++ * @da: device address
++ * @pa: physical address
++ * @len: length (in bytes)
++ * @reserved: reserved (must be zero)
++ * @name: human-readable name of the region being published
++ *
++ * This resource entry allows a remote processor to publish an internal
++ * memory region to the host. This resource type allows a remote processor
++ * to publish the whole or just a portion of certain internal memories,
++ * while it owns and manages any unpublished portion (eg: a shared L1
++ * memory that can be split configured as RAM and/or cache). This is
++ * primarily provided to allow a host to load code/data into internal
++ * memories, the memory for which is neither allocated nor required to
++ * be mapped into an iommu.
++ *
++ * @da should specify the required address as accessible by the device
++ * without going through an iommu, @pa should specify the physical address
++ * for the region as seen on the bus, @len should specify the size of the
++ * memory region. As always, @name may (optionally) contain a human readable
++ * name of this mapping (mainly for debugging purposes). The @version field
++ * is added for future scalability, and should be 1 for now.
++ *
++ * Note: at this point we just "trust" these intmem entries to contain valid
++ * physical bus addresses. these are not currently intended to be managed
++ * as host-controlled heaps, as it is much better to do that from the remote
++ * processor side.
++ */
++struct fw_rsc_intmem {
++	u32 version;
++	u32 da;
++	u32 pa;
++	u32 len;
++	u32 reserved;
++	u8 name[32];
++} __packed;
++
++/**
+  * struct rproc_mem_entry - memory entry descriptor
+  * @va:	virtual address
+  * @dma: dma address
+-- 
+2.2.1
