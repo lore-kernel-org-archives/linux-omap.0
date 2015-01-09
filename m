@@ -1,67 +1,55 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
-Date: Fri, 09 Jan 2015 00:13:28 -0500
-Message-ID: <54AF6378.6030202@hurleysoftware.com>
-References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <20150108131008.16c9a31c@lxorguk.ukuu.org.uk> <54AEAC47.1040403@hurleysoftware.com> <1896224.oMI8M6J5T7@wuerfel>
+From: Jisheng Zhang <jszhang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC] usb: dwc3: add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY
+ quirks
+Date: Fri, 9 Jan 2015 14:24:44 +0800
+Message-ID: <20150109142444.49e0ff2f@xhacker>
+References: <20141208213551.38860f81@xhacker>
+	<20150108170815.GJ31926@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:56875 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110AbbAIFNf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2015 00:13:35 -0500
-Received: by mail-qc0-f172.google.com with SMTP id m20so6721539qcx.3
-        for <linux-omap@vger.kernel.org>; Thu, 08 Jan 2015 21:13:34 -0800 (PST)
-In-Reply-To: <1896224.oMI8M6J5T7@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150108170815.GJ31926@saruman>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>
 
-On 01/08/2015 05:05 PM, Arnd Bergmann wrote:
-> On Thursday 08 January 2015 11:11:51 Peter Hurley wrote:
->>
->> This interface is just storage and minor allocation, since the
->> port-reuse behavior will be limited to the "universal" driver.
->> From a sub-driver perspective, the shared storage is actually
->> a hindrance, so that reduces the requirement to minor allocation.
->>
->> And that's where I'm stuck at the moment -- how to share ttyS
->> minor allocation. ttyS console is a related problem.
+Hi Felipe,
+
+On Thu, 8 Jan 2015 09:08:15 -0800
+Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+
+> Hi,
 > 
-> One idea that has come up in the past but never saw an implementation
-> is to make the ttyS namespace and minor numbers completely generic and
-> let any serial port driver use it. This would be a major rework, but
-> have the added advantage of cleaning up a number of other namespace
-> issues as well. There also lots of open question, in particular how
-> to maintain compatibility with existing drivers. One could imagine
-> that each uart always gets a ttyS device and optionally also gets
-> a device node for the same port with a driver specific chardev as
-> most of them do today. Or it could be an either/or decision that is
-> made at compile time or as a module parameter.
+> On Mon, Dec 08, 2014 at 09:35:51PM +0800, Jisheng Zhang wrote:
+> > On platforms which has native usb hosts/phys and pci-dwc3 controller,
+> > the dwc3 core may get the wrong usb2_phy and usb3_phy by
+> > devm_usb_get_phy(). It depends on which usb phy driver is initialized
+> > firstly, the usb_phy_generic or the native/real usb phy driver.
+> 
+> why are you initializing generic PHY if you have a real PHY ?
 
-I'm not totally convinced that sharing minor allocation is the right
-solution. ISTM that the main goal is for at least one serial driver
-to represent ttyS (assuming that it is a suitable work-alike to the
-8250 driver) while other ttyS serial drivers must still be able to
-load and operate.
+we have two kind of usb hosts: the native usb hosts which can be probed via. DT
+and the usb hosts from pci-dwc3. The former has real phy and the latter doesn't.
 
-So for example, a UART that is ttyS in a typical configuration, might
-be ttyX when another driver has been configured as ttyS instead.
-Assuming that every uart driver has a unique, alternate base name,
-then the problem is reduced to selecting the appropriate driver for
-ttyS.
+> 
+> > Before all old USB phy library usage removed, the solution I can have
+> > is to add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY quirks and set them
+> > in dwc3-pci.
+> > Could such modification can be accepted? If not, could you please give
+> > alternative suggestions?
+> 
+> we will not accept a quirk to skip PHYs, sorry. A better way of handling
+> this needs to be found.
+> 
 
-Some use cases would require selecting the ttyS driver at build time.
-Others would probably require the notion of a preferred driver.
+OK, Got your points. It seems we need to deprecate old usb phy library usage
+early.
 
-What got me thinking about this approach instead of sharing minor
-allocation was based on the 'first-come, first-served' question
-I asked back in Dec. What happens when probe order varies and
-console=ttyS0/login prompt doesn't show up where it's supposed to?
-I've had this experience with multiple ethernet adapters and it's
-not fun.
-
-Regards,
-Peter Hurley
+Thanks,
+Jisheng
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
