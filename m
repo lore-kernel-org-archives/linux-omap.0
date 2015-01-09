@@ -1,55 +1,79 @@
-From: Jisheng Zhang <jszhang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC] usb: dwc3: add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY
- quirks
-Date: Fri, 9 Jan 2015 14:24:44 +0800
-Message-ID: <20150109142444.49e0ff2f@xhacker>
-References: <20141208213551.38860f81@xhacker>
-	<20150108170815.GJ31926@saruman>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] serial: 8250: Make ISA ports optional
+Date: Fri, 09 Jan 2015 09:48:17 +0100
+Message-ID: <3250953.b8pGJSWkfs@wuerfel>
+References: <1420513785-23660-1-git-send-email-peter@hurleysoftware.com> <1896224.oMI8M6J5T7@wuerfel> <54AF6378.6030202@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150108170815.GJ31926@saruman>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54AF6378.6030202@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Peter Hurley <peter@hurleysoftware.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
-
-On Thu, 8 Jan 2015 09:08:15 -0800
-Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-
-> Hi,
+On Friday 09 January 2015 00:13:28 Peter Hurley wrote:
+> On 01/08/2015 05:05 PM, Arnd Bergmann wrote:
+> > On Thursday 08 January 2015 11:11:51 Peter Hurley wrote:
+> >>
+> >> This interface is just storage and minor allocation, since the
+> >> port-reuse behavior will be limited to the "universal" driver.
+> >> From a sub-driver perspective, the shared storage is actually
+> >> a hindrance, so that reduces the requirement to minor allocation.
+> >>
+> >> And that's where I'm stuck at the moment -- how to share ttyS
+> >> minor allocation. ttyS console is a related problem.
+> > 
+> > One idea that has come up in the past but never saw an implementation
+> > is to make the ttyS namespace and minor numbers completely generic and
+> > let any serial port driver use it. This would be a major rework, but
+> > have the added advantage of cleaning up a number of other namespace
+> > issues as well. There also lots of open question, in particular how
+> > to maintain compatibility with existing drivers. One could imagine
+> > that each uart always gets a ttyS device and optionally also gets
+> > a device node for the same port with a driver specific chardev as
+> > most of them do today. Or it could be an either/or decision that is
+> > made at compile time or as a module parameter.
 > 
-> On Mon, Dec 08, 2014 at 09:35:51PM +0800, Jisheng Zhang wrote:
-> > On platforms which has native usb hosts/phys and pci-dwc3 controller,
-> > the dwc3 core may get the wrong usb2_phy and usb3_phy by
-> > devm_usb_get_phy(). It depends on which usb phy driver is initialized
-> > firstly, the usb_phy_generic or the native/real usb phy driver.
-> 
-> why are you initializing generic PHY if you have a real PHY ?
+> I'm not totally convinced that sharing minor allocation is the right
+> solution. ISTM that the main goal is for at least one serial driver
+> to represent ttyS (assuming that it is a suitable work-alike to the
+> 8250 driver) while other ttyS serial drivers must still be able to
+> load and operate.
 
-we have two kind of usb hosts: the native usb hosts which can be probed via. DT
-and the usb hosts from pci-dwc3. The former has real phy and the latter doesn't.
+Unfortunately, we have already seen a case where we need to have
+two drivers enabled at the same time that both use the ttyS
+namespace and minor numbers at the moment.
 
+> So for example, a UART that is ttyS in a typical configuration, might
+> be ttyX when another driver has been configured as ttyS instead.
+> Assuming that every uart driver has a unique, alternate base name,
+> then the problem is reduced to selecting the appropriate driver for
+> ttyS.
 > 
-> > Before all old USB phy library usage removed, the solution I can have
-> > is to add DWC3_SKIP_USB3PHY and DWC3_SKIP_USB2_PHY quirks and set them
-> > in dwc3-pci.
-> > Could such modification can be accepted? If not, could you please give
-> > alternative suggestions?
-> 
-> we will not accept a quirk to skip PHYs, sorry. A better way of handling
-> this needs to be found.
-> 
+> Some use cases would require selecting the ttyS driver at build time.
+> Others would probably require the notion of a preferred driver.
 
-OK, Got your points. It seems we need to deprecate old usb phy library usage
-early.
+Build-time selection looks problematic to me in the case of an
+ARM distro kernel that wants to support dozens of different
+uart drivers. At the moment this works for the most part because
+the conflicts are rare, but it's getting worse.
 
-Thanks,
-Jisheng
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> What got me thinking about this approach instead of sharing minor
+> allocation was based on the 'first-come, first-served' question
+> I asked back in Dec. What happens when probe order varies and
+> console=ttyS0/login prompt doesn't show up where it's supposed to?
+> I've had this experience with multiple ethernet adapters and it's
+> not fun.
+
+In a lot of cases, we can solve the problem for a particular board
+by hardcoding the 'aliases' in the board specific dts file, at least
+when devicetree is used (as it is for the majority of the cases that
+are causing problems now).
+
+Using the aliases correctly at the moment is really awkward when you
+have multiple drivers for uarts on the same system and your serial0
+and serial1 uart turn into ttyS0 and ttyX1.
+
+	Arnd
