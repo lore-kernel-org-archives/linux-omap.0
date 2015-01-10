@@ -1,58 +1,87 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v3 0/2] couple of generic remoteproc enhancements
-Date: Fri, 9 Jan 2015 15:21:57 -0600
-Message-ID: <1420838519-15669-1-git-send-email-s-anna@ti.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 02/21] irqchip: tegra: add DT-based support for legacy
+ interrupt controller
+Date: Sat, 10 Jan 2015 12:28:32 +0000
+Message-ID: <180a27ca37ef60b557aa1c18d7e251b1@www.loen.fr>
+References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
+ <1420652576-22309-3-git-send-email-marc.zyngier@arm.com>
+ <20150108150608.GA24654@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150108150608.GA24654@kahuna>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Alexandre Courbot <gnurou@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Benoit Cousson <bcousson@baylibre.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, linux-samsung-soc@vger.kernel.org, Simon Horman <horms@verge.net.au>, Thierry Reding <thierry.reding@gmail.com>, Sascha Hauer <kernel@pengutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jason Cooper <jason@lakedaemon.net>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+On 2015-01-08 15:06, Nishanth Menon wrote:
+> On 17:42-20150107, Marc Zyngier wrote:
+>> Tegra's LIC (Legacy Interrupt Controller) has been so far only
+>> supported as a weird extension of the GIC, which is not exactly
+>> pretty.
+>>
+>> The stacked irq domain framework fits this pretty well, and allows
+>> the LIC code to be turned into a standalone irqchip. In the process,
+>> make the driver DT aware, something that was sorely missing from
+>> the mach-tegra implementation.
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>
+> Saw a few checkpatch warnings as below: all of them seem minors.
+>
+> @@ -0,0 +1,35 @@
+> +WARNING: added, moved or deleted file(s), does MAINTAINERS need 
+> updating?
 
-The following is an updated patchset addressing the previous pending comments
-from v1 & v2, and are rebased onto the latest 3.19-rc3 (are rc independent
-actually). 
+I'll leave to the Tegra maintainers to update this file it they want 
+to.
 
-The patches are mainly developed to support the WkupM3 remote processor driver
-on TI AM335x/AM437x SoCs, and I have verified the loading using the latest
-version of Dave's WkupM3 remoteproc work [1]
+> +#36:
+> +new file mode 100644
+> +WARNING: line over 80 characters
+> +#169: FILE: drivers/irqchip/irq-tegra.c:129:
+> ++		tegra_ictlr_info->cpu_ier[i] = readl_relaxed(ictlr + 
+> ICTLR_CPU_IER);
 
-The only change in v3 is on the second patch, it mainly leverages the
-memcpy_toio and memset_io functions for copying/loading code into the
-internal memory sections. An additional argument has to be added to the
-rproc_da_to_va function to make this distinction.
+As a matter of principle, I ignore what checkpatch says about the 
+length of lines of code. I trust my eyes more than the tool.
 
-regards
-Suman
+[...]
 
-[1] http://marc.info/?l=linux-omap&m=142022842323885&w=2
+> +WARNING: Missing a blank line after declarations
+> +#196: FILE: drivers/irqchip/irq-tegra.c:156:
+> ++		void __iomem *ictlr = tegra_ictlr_info->ictlr_reg_base[i];
+> ++		writel_relaxed(tegra_ictlr_info->cpu_iep[i],
 
-v2:
-http://marc.info/?l=linux-omap&m=141089879412807&w=2
-- Add explicit setting of the .has_iommu field in each of the existing
-  remoteproc platform drivers
-- Update patch description to add the usecase details for the change
-  summary
-- Fixed a minor checkpatch warning.
+Done.
 
-v1:
-http://marc.info/?l=linux-omap&m=140483657604924&w=2
+> +WARNING: line over 80 characters
+> +#284: FILE: drivers/irqchip/irq-tegra.c:244:
+> ++	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, 
+> &parent_args);
+> +CHECK: Please don't use multiple blank lines
+> +#287: FILE: drivers/irqchip/irq-tegra.c:247:
+> ++
+> ++
+> +WARNING: Missing a blank line after declarations
+> +#296: FILE: drivers/irqchip/irq-tegra.c:256:
+> ++		struct irq_data *d = irq_domain_get_irq_data(domain, virq + i);
+> ++		irq_domain_reset_irq_data(d);
+> `
 
-Suman Anna (2):
-  remoteproc: use a flag to detect the presence of IOMMU
-  remoteproc: add support to handle internal memories
+Thanks,
 
- drivers/remoteproc/da8xx_remoteproc.c      |   1 +
- drivers/remoteproc/omap_remoteproc.c       |   5 ++
- drivers/remoteproc/remoteproc_core.c       | 104 ++++++++++++++++++++++++-----
- drivers/remoteproc/remoteproc_elf_loader.c |  23 +++++--
- drivers/remoteproc/remoteproc_internal.h   |   6 +-
- drivers/remoteproc/ste_modem_rproc.c       |   1 +
- include/linux/remoteproc.h                 |  45 ++++++++++++-
- 7 files changed, 161 insertions(+), 24 deletions(-)
-
+         M.
 -- 
-2.2.1
+Fast, cheap, reliable. Pick two.
