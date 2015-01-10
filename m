@@ -1,96 +1,93 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 04/21] ARM: tegra: update DTs to expose legacy  interrupt controller
-Date: Sat, 10 Jan 2015 12:37:58 +0000
-Message-ID: <d6fe000bdc6f2fbfc18f0695ce88c321@www.loen.fr>
+Subject: Re: [PATCH v2 06/21] ARM: tegra: remove old LIC support
+Date: Sat, 10 Jan 2015 12:43:57 +0000
+Message-ID: <843e60a77fd4b40c60c6c9d1b395a2af@www.loen.fr>
 References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com>
- <1420652576-22309-5-git-send-email-marc.zyngier@arm.com>
- <20150108104141.GF1987@ulmo.nvidia.com>
+ <1420652576-22309-7-git-send-email-marc.zyngier@arm.com>
+ <20150108112954.GK1987@ulmo.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
  format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20150108104141.GF1987@ulmo.nvidia.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from inca-roads.misterjones.org ([213.251.177.50]:37736 "EHLO
+	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751612AbbAJMoH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Jan 2015 07:44:07 -0500
+In-Reply-To: <20150108112954.GK1987@ulmo.nvidia.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Thierry Reding <thierry.reding@gmail.com>
 Cc: Nishanth Menon <nm@ti.com>, Alexandre Courbot <gnurou@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Sascha Hauer <kernel@pengutronix.de>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Simon Horman <horms@verge.net.au>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Shawn Guo <shawn.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Jason Cooper <jason@lakedaemon.net>
-List-Id: linux-omap@vger.kernel.org
 
-On 2015-01-08 10:41, Thierry Reding wrote:
-> On Wed, Jan 07, 2015 at 05:42:39PM +0000, Marc Zyngier wrote:
->> Describe the legacy interrupt controller in every tegra DTSI files,
->> and make it the parent of most interrupts.
->>
->> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->> ---
->>  arch/arm/boot/dts/tegra114.dtsi | 16 +++++++++++++++-
->>  arch/arm/boot/dts/tegra124.dtsi | 16 +++++++++++++++-
->>  arch/arm/boot/dts/tegra20.dtsi  | 15 ++++++++++++++-
->>  arch/arm/boot/dts/tegra30.dtsi  | 16 +++++++++++++++-
->>  4 files changed, 59 insertions(+), 4 deletions(-)
->>
-
-I've updated the patch to reflect the requested changes. See below for 
-the few contentious points:
-
-[...]
-
->> @@ -134,6 +134,19 @@
->>  		      <0x50046000 0x2000>;
->>  		interrupts = <GIC_PPI 9
->>  			(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
->> +		interrupt-parent = <&gic>;
+On 2015-01-08 11:29, Thierry Reding wrote:
+> On Wed, Jan 07, 2015 at 05:42:41PM +0000, Marc Zyngier wrote:
+> [...]
+>> diff --git a/arch/arm/mach-tegra/irq.c b/arch/arm/mach-tegra/irq.c
+> [...]
+>>  void __init tegra_init_irq(void)
+>>  {
+>> -	int i;
+>> -	void __iomem *distbase;
+>> -
+>> -	if (of_find_matching_node(NULL, tegra_ictlr_match))
+>> -		goto skip_extn_setup;
+>> -
+>> -	tegra_legacy_irq_syscore_init();
+>> -
+>> -	distbase = IO_ADDRESS(TEGRA_ARM_INT_DIST_BASE);
+>> -	num_ictlrs = readl_relaxed(distbase + GIC_DIST_CTR) & 0x1f;
+>> -
+>> -	if (num_ictlrs > ARRAY_SIZE(ictlr_reg_base)) {
+>> -		WARN(1, "Too many (%d) interrupt controllers found. Maximum is 
+>> %d.",
+>> -			num_ictlrs, ARRAY_SIZE(ictlr_reg_base));
+>> -		num_ictlrs = ARRAY_SIZE(ictlr_reg_base);
+>> -	}
+>> -
+>> -	for (i = 0; i < num_ictlrs; i++) {
+>> -		void __iomem *ictlr = ictlr_reg_base[i];
+>> -		writel(~0, ictlr + ICTLR_CPU_IER_CLR);
+>> -		writel(0, ictlr + ICTLR_CPU_IEP_CLASS);
+>> -	}
+>> -
+>> -	gic_arch_extn.irq_ack = tegra_ack;
+>> -	gic_arch_extn.irq_eoi = tegra_eoi;
+>> -	gic_arch_extn.irq_mask = tegra_mask;
+>> -	gic_arch_extn.irq_unmask = tegra_unmask;
+>> -	gic_arch_extn.irq_retrigger = tegra_retrigger;
+>> -	gic_arch_extn.irq_set_wake = tegra_set_wake;
+>> -	gic_arch_extn.flags = IRQCHIP_MASK_ON_SUSPEND;
+>> +	if (!of_find_matching_node(NULL, tegra_ictlr_match))
+>> +		pr_warn("Outdated DT detected, suspend/resume will NOT work\n");
 >
-> Is this allowed? It makes the GIC its own parent. I guess we need it 
-> to
-> stop a loop from GIC -> LIC -> GIC, but it doesn't look quite right.
+> I'm not very happy about the ABI breakage here, but I also realize 
+> that
+> we need this change to properly describe the hardware. To make it 
+> more
+> obvious that people really should update their DTBs, maybe turn this
+> into a WARN()?
 
-This seems to be the expected construct to override a parent interrupt 
-controller. Actually, this is already what happens when you have a 
-single interrupt-controller and a global interrupt-parent property.
+Sure, done.
 
-[...]
-
->>  	timer@60005000 {
->> @@ -766,5 +779,6 @@
->>  				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
->>  			<GIC_PPI 10
->>  				(GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
->> +		interrupt-parent = <&gic>;
+>> -skip_extn_setup:
+>>  	tegra114_gic_cpu_pm_registration();
 >
-> Why does this get to have a non-default parent?
+> I'm not intimately familiar with the GIC, but is this really SoC
+> specific? Doesn't anybody else need this? Comparing to the GIC spec 
+> the
+> write of 0x1e0 to the GIC_CPU_CTRL register (which I assume 
+> corresponds
+> to GICC_CTLR in the spec), this simply disables the IRQ and FIQ 
+> bypass
+> signals for both group 0 and group 1.
 
-The per-cpu timers are using PPIs.  As such,. they are not routed 
-through the LIC, but are wired to the GIC instead.
+This seems to be a Tegra special, at least in mainline. But yes, I'd 
+very much like to be able to remove this from platform code and make it 
+part of the GIC driver if we can.
 
-[...]
-
->>  	timer@60005000 {
->>  		compatible = "nvidia,tegra20-timer";
->>  		reg = <0x60005000 0x60>;
->
-> Why doesn't the Tegra timer get to keep the GIC as parent like for
-> Tegra114 and Tegra124? Instead I see that the Cortex-A9 TWD timer 
-> gets
-> to keep the parent instead.
-
-The Tegra timer is using SPI (and can probably be used as a wake-up 
-source). As such, it is connected to the LIC, not to the GIC.
-
-Per-CPU timers (arch timer for A15 and TWD for A9) are all using PPIs, 
-and are directly wired to the GIC.
-
-[...]
-
->>  	timer@60005000 {
->>  		compatible = "nvidia,tegra30-timer", "nvidia,tegra20-timer";
->>  		reg = <0x60005000 0x400>;
->
-> Like for Tegra20, the Tegra timer is now switched to the LIC as 
-> parent.
-
-Which, in my understanding, is the right thing to do. Unless I missed 
-something obvious about this?
+Something for a subsequent patch series, I guess.
 
 Thanks,
 
