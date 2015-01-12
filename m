@@ -1,50 +1,66 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: ARM64: hibernation: How to use hibernation/suspend-to-disk on
- ARMv8?
-Date: Mon, 12 Jan 2015 11:54:15 +0000
-Message-ID: <20150112115415.GB14519@red-moon>
-References: <CADcZZT+nQ_0LfurU+z5wLC_OxNhEs6n0kCoLSkfoFCDqyOu04g@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] can: c_can: use regmap_update_bits() to modify RAMINIT
+ register
+Date: Mon, 12 Jan 2015 12:05:41 +0000
+Message-ID: <20150112120541.GD4160@sirena.org.uk>
+References: <1420641162-8634-1-git-send-email-rogerq@ti.com>
+ <54AFDCB0.5060908@ti.com>
+ <54B39A8E.4090006@ti.com>
+ <54B39BAD.4070604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="T6xhMxlHU34Bk0ad"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52680 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbbALMFz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2015 07:05:55 -0500
 Content-Disposition: inline
-In-Reply-To: <CADcZZT+nQ_0LfurU+z5wLC_OxNhEs6n0kCoLSkfoFCDqyOu04g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Bush <georgebush815@gmail.com>
-Cc: "sebastian.capella@linaro.org" <sebastian.capella@linaro.org>, "Russ.Dill@ti.com" <Russ.Dill@ti.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "len.brown@intel.com" <len.brown@intel.com>, "nico@linaro.org" <nico@linaro.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Will Deacon <Will.Deacon@arm.com>, Jonathan Austin <Jonathan.Austin@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "u.kleine-koenig@pengutronix.de" <u.kleine-koenig@pengutronix.de>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "victor.kamensky@linaro.org" <victor.kamensky@linaro.org>, "r.sricharan@ti.com" <r.sricharan@ti.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "lauraa@codeaurora.org" <lauraa@codeaurora.org>, "zhou0283@gmail.com" <zhou0283@gmail.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-arm-kernel@lists.
+In-Reply-To: <54B39BAD.4070604@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, mkl@pengutronix.de, linux-can@vger.kernel.org, wsa@the-dreams.de, kernel@pengutronix.de, linux-omap@vger.kernel.org
 
-On Sat, Jan 10, 2015 at 03:14:33PM +0000, George Bush wrote:
-> Hi all
-> 
-> I notice we have hibernation.c in arm/kernel, however, I don't find it in arm64.
-> Does it mean arm64 do not support hibernation/suspend-to-disk function?
 
-Yes, not at the moment, but we have planned to implement it.
+--T6xhMxlHU34Bk0ad
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I tried some path to search the reason, but found nothing, they all say arm64
-> has the backward compatibility. So I send this email to the community and
-> hope to get the reason.
-> Thanks!
-> 
-> I ported the arm hibernation.c to arm64/kernel(with LP64), but failed in a
-> strange way. When I do resume, the arch_restore_image() get a page_fault
-> when it calls the copy_page(), like:
-> "Unable to handle kernel paging request at virtual address 0xffffffbc055c3fa8"
-> I'm sure the copy_page()'s parameters is in the memory area, why and how
-> I get the strange address 0xffffffbc055c3fa8?
-> 
-> vmalloc:         0xffffff8000000000 - 0xffffffbb00000000
-> vmemmap:     0xffffffbc01400000 - 0xffffffbc04f88000
-> modules:       0xffffffbffc000000   -  0xffffffc000000000
-> memory:        0xffffffc000000000 - 0xffffffc0be800000
-> 
-> 
-> Look forward to your reply, thanks!
+On Mon, Jan 12, 2015 at 12:02:21PM +0200, Roger Quadros wrote:
+> +Mark with correct id.
 
-We need your patch, kernel version, config file, your board/SoC HW details
-before even assuming what is happening. Please provide them and I
-am happy to help you implement suspend-to-disk on arm64 properly.
+Please fix your mail client to word wrap within paragraphs, it amkes
+your mail more legible.
 
-Thanks,
-Lorenzo
+> > The problem here is we can't use regmap_update_bits() because we need t=
+o write a 1 to the DONE bit to clear it and _regmap_update_bits() doesn't a=
+llow us to do that because of commit
+> > d91e8db2c3bb regmap: Suppress noop writes in regmap_update_bits()
+> >=20
+> > Is reverting it going to cause other issues? If yes then can we have a =
+flag to specify forced update?
+
+The usual thing to do here is an explicit write clearing the latch,
+either immediately after setting it or immediately before setting it.
+If the register is marked as volatile and the hardware doesn't read back
+the latched state that also does the trick.
+
+--T6xhMxlHU34Bk0ad
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUs7iUAAoJECTWi3JdVIfQ1rcH/Rv/lZZU21G/vMYLWHT8Ug9s
+sfrX37ho0UCgyhxNF9OoeZzD7b828cv9DWqT9domzLY8GZfsFthaoKdp/wrqC8Zs
++4K6yjIhJ3tQYcfEFV9gUkpqb5+ojgpxgU+ea4FNCaO3WWKkvdpDsd+E2jY4hCX/
+cSMx8U8H+8AcTqr373qia5YNTs+vKM64cSP8COh0nDSTXht6Br3gfmPPT1RlLM27
+v6fmFlbWdnzpLaWbcgOeeDkxjIizPeecev+mS+dPgm3yCaWeZrJ69qwSeAKo2NYo
+oXsKtAeweXSQjgN77OprT+2AL80NOc5PnFtxqhYlb6lop83E7xGrsQdAEn95n60=
+=XizS
+-----END PGP SIGNATURE-----
+
+--T6xhMxlHU34Bk0ad--
