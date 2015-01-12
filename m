@@ -1,67 +1,127 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 00/21] irqchip: gic: killing gic_arch_extn and co,
- slowly
-Date: Mon, 12 Jan 2015 15:39:11 +0000
-Message-ID: <54B3EA9F.3030501@arm.com>
-References: <1420652576-22309-1-git-send-email-marc.zyngier@arm.com> <CAL_JsqLLGn1mZr7eNuLA1=M7BcwFRdOQ6xQGo+bbc2aScAVrnQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/5] mfd: tps65218: make INT[12] and STATUS registers
+ volatile
+Date: Mon, 12 Jan 2015 10:46:54 -0600
+Message-ID: <20150112164654.GB6525@saruman>
+References: <1419622104-25812-1-git-send-email-balbi@ti.com>
+ <1419622104-25812-2-git-send-email-balbi@ti.com>
+ <20150106173734.GL6502@saruman>
+ <20150108162512.GC31926@saruman>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CAL_JsqLLGn1mZr7eNuLA1=M7BcwFRdOQ6xQGo+bbc2aScAVrnQ@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gj572EiMnwbLXET9"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150108162512.GC31926@saruman>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, stable@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/01/15 14:14, Rob Herring wrote:
-> On Wed, Jan 7, 2015 at 11:42 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
->> The gic_arch_extn hack that a number of platform use has been nagging
->> me for too long. It is only there for the benefit of a few platform,
->> and yet it impacts all GIC users. Moreover, it gives people the wrong
->> idea ("let's use it to put some new custom hack in there"...).
->>
->> But now that stacked irq domains have landed in -next, the time has
->> come for gic_arch_extn to meet the Big Bit Bucket.
-> 
-> [...]
-> 
->> - This actively *breaks* existing setups. Once you boot a new kernel
->>   with an old DT, suspend/resume *will* be broken. Old kernels on a
->>   new DT won't even boot! You've been warned. This really outline the
->>   necessity of actually describing the HW in device trees...
-> 
-> Just to be clear, you need some agreement from the maintainers of
-> those platforms before doing this. It doesn't appear there is
-> disagreement, but I don't see any explicit agreement either.
+--gj572EiMnwbLXET9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm not trying to go behind anyone's back, if that's your concern. I
-fully intend to obtain every maintainer's explicit acknowledgement
-before removing any feature from the kernel. The warning above is there
-to get the maintainers attention on the disrupting effect of this series.
+Hi,
 
-> This seems to model the interrupts as chained, but at least for some
-> cases aren't these auxiliary controllers in parallel to the GIC? In
+On Thu, Jan 08, 2015 at 10:25:12AM -0600, Felipe Balbi wrote:
+> On Tue, Jan 06, 2015 at 11:37:34AM -0600, Felipe Balbi wrote:
+> > On Fri, Dec 26, 2014 at 01:28:20PM -0600, Felipe Balbi wrote:
+> > > STATUS register can be modified by the HW, so we
+> > > should bypass cache because of that.
+> > >=20
+> > > In the case of INT[12] registers, they are the ones
+> > > that actually clear the IRQ source at the time they
+> > > are read. If we rely on the cache for them, we will
+> > > never be able to clear the interrupt, which will cause
+> > > our IRQ line to be disabled due to IRQ throttling.
+> > >=20
+> > > Fixes: 44b4dc6 mfd: tps65218: Add driver for the TPS65218 PMIC
+> > > Cc: <stable@vger.kernel.org> # v3.15+
+> > > Cc: Keerthy <j-keerthy@ti.com>
+> > > Cc: Lee Jones <lee.jones@linaro.org>
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > ping
+>=20
+> another ping. Without this and the following patch TPS65218 power button
+> driver which was already applied by Dmitry, won't work.
 
->From looking at the various TRMs, they all look to be chained interrupt
-controllers (at least Tegra, OMAP and IMX6 show this). I have not been
-able to find a publicly available TRM for any of the Samsung platforms,
-so this one could be different (but I really doubt it somehow).
+Anybody ? -rc4 is out and tps65218 is still broken because nobody has
+acted on these two patches. All other patches which are meant for 3.20
+merge window are applied and because of these pending, those patches
+won't work.
 
-> other words, do the they require configuration for interrupts to work
-> for the normal non-wakeup use? I'm not sure that the h/w is being
-> modeled any more accurately if that is the case. However, we don't
-> really have a way to describe an interrupt line is connected to 2
-> interrupt parents in DT, so I'm not sure what else you could do here.
+> > > ---
+> > >  drivers/mfd/tps65218.c | 11 +++++++++++
+> > >  1 file changed, 11 insertions(+)
+> > >=20
+> > > diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+> > > index 0d256cb..2243f75 100644
+> > > --- a/drivers/mfd/tps65218.c
+> > > +++ b/drivers/mfd/tps65218.c
+> > > @@ -125,10 +125,21 @@ int tps65218_clear_bits(struct tps65218 *tps, u=
+nsigned int reg,
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(tps65218_clear_bits);
+> > > =20
+> > > +static const struct regmap_range tps65218_yes_ranges[] =3D {
+> > > +	regmap_reg_range(TPS65218_REG_INT1, TPS65218_REG_INT2),
+> > > +	regmap_reg_range(TPS65218_REG_STATUS, TPS65218_REG_STATUS),
+> > > +};
+> > > +
+> > > +static const struct regmap_access_table tps65218_volatile_table =3D {
+> > > +	.yes_ranges =3D tps65218_yes_ranges,
+> > > +	.n_yes_ranges =3D ARRAY_SIZE(tps65218_yes_ranges),
+> > > +};
+> > > +
+> > >  static struct regmap_config tps65218_regmap_config =3D {
+> > >  	.reg_bits =3D 8,
+> > >  	.val_bits =3D 8,
+> > >  	.cache_type =3D REGCACHE_RBTREE,
+> > > +	.volatile_table =3D &tps65218_volatile_table,
+> > >  };
+> > > =20
+> > >  static const struct regmap_irq tps65218_irqs[] =3D {
+> > > --=20
+> > > 2.2.0
+> > >=20
+> >=20
+> > --=20
+> > balbi
+>=20
+>=20
+>=20
+> --=20
+> balbi
 
-The main problem is that they are not general-purpose interrupt
-controllers. They all come first on the interrupt path, and somehow feed
-two signals into the GIC: the actual interrupt, and the bypass signal.
 
-None of that is representable in DT. I'm willing to take any idea though.
 
-Thanks,
+--=20
+balbi
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+--gj572EiMnwbLXET9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUs/p+AAoJEIaOsuA1yqREgwcP/2mtgstsUjTlygR4ldbWCDfo
++4qZK1VfgW4IUCz73WIgt0q5h9Py3A7sUtc0sFmWu3aDHlStrp/i0PPTeNBbFOqi
+tKdKdAsm0cFXGZ8HpSiv0bWMrvp22x/AGg8a5kn8IkLvJ/J0vAHZtGKvwTbvIwVd
+EbR+UiZ9m8fRnE/uZcD6XlKD3YAMie6TWfrFfRWQT4srzFfBxnGF92AGWLij0kS9
+2bZcVPb4Ps1P7ZAIrDhY9qO7BwyeZKPt2NIBQ3eAzqF+J4hq4fRcdwETuV6we/m/
+2SDDaaBRGuVsAqzzX0BGNUgPfZsHxpgkY2VpTSZXLFxnPn9DNURs0QB8IxW92BG1
+lgeksR3lgmmc0X1rF+xj33Y8hIHG9ZgDn7RwXN9jHRNzHg2BXM/7pnK0YPMQWFMQ
+b/8Yx7HDLSCDeiEf6qY3pTvl7NZWuFS8xkDZ6H+715g+7IpBPKkdl3MZPRKHfXzd
+5kuXpW0zrcU44rHZkF1zu0fyIWtjDHiaVyfYAu9Oc7SMSKWValAXRiRsTUUwLo/4
+eZJgLBPimjr13FS1zBkS5vfKkbwhfI8jG60ijC8L9L/6z6owjRpGCc/FkmlAdXOL
+9zW5z+BkLcjccKorsXNsaBZEV0aJLUix+vv1wd4o5TisI810slTRFM+TmH6mkitA
+fWMlYrwKtkLrlChsyKSu
+=r7NH
+-----END PGP SIGNATURE-----
+
+--gj572EiMnwbLXET9--
