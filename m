@@ -1,127 +1,144 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] mfd: tps65218: make INT[12] and STATUS registers
- volatile
-Date: Mon, 12 Jan 2015 10:46:54 -0600
-Message-ID: <20150112164654.GB6525@saruman>
-References: <1419622104-25812-1-git-send-email-balbi@ti.com>
- <1419622104-25812-2-git-send-email-balbi@ti.com>
- <20150106173734.GL6502@saruman>
- <20150108162512.GC31926@saruman>
+Subject: Re: [PATCH 3/3] usb: dwc3: add a quirk for device disconnection
+ issue in Synopsis dwc3 core
+Date: Mon, 12 Jan 2015 11:20:32 -0600
+Message-ID: <20150112172032.GD6525@saruman>
+References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <20141222153730.GA12815@saruman>
+ <CAJ1gpc3jVpz=5ME4+wCJDW5NKihvB4xYzwi0co=UuPtG9Ubmjg@mail.gmail.com>
+ <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg@mail.gmail.com>
+ <20141229160641.GD29379@saruman>
+ <CAJ1gpc0Uu4vS2iA_o_W5NaE_QBWDYFZJio7yKvhpaR5f=qWcGA@mail.gmail.com>
+ <20150105170921.GH19336@saruman>
+ <CAJ1gpc3RZnqizhiasrwS8uy1H_wQAi_T0mPcS8LAK4FhmBRJ6A@mail.gmail.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gj572EiMnwbLXET9"
-Return-path: <linux-input-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="3Gf/FFewwPeBMqCJ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150108162512.GC31926@saruman>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, stable@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <CAJ1gpc3RZnqizhiasrwS8uy1H_wQAi_T0mPcS8LAK4FhmBRJ6A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sneeker Yeh <sneeker.yeh@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb
 List-Id: linux-omap@vger.kernel.org
 
---gj572EiMnwbLXET9
+--3Gf/FFewwPeBMqCJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Jan 08, 2015 at 10:25:12AM -0600, Felipe Balbi wrote:
-> On Tue, Jan 06, 2015 at 11:37:34AM -0600, Felipe Balbi wrote:
-> > On Fri, Dec 26, 2014 at 01:28:20PM -0600, Felipe Balbi wrote:
-> > > STATUS register can be modified by the HW, so we
-> > > should bypass cache because of that.
-> > >=20
-> > > In the case of INT[12] registers, they are the ones
-> > > that actually clear the IRQ source at the time they
-> > > are read. If we rely on the cache for them, we will
-> > > never be able to clear the interrupt, which will cause
-> > > our IRQ line to be disabled due to IRQ throttling.
-> > >=20
-> > > Fixes: 44b4dc6 mfd: tps65218: Add driver for the TPS65218 PMIC
-> > > Cc: <stable@vger.kernel.org> # v3.15+
-> > > Cc: Keerthy <j-keerthy@ti.com>
-> > > Cc: Lee Jones <lee.jones@linaro.org>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >=20
-> > ping
+On Sun, Jan 11, 2015 at 11:19:55PM +0800, Sneeker Yeh wrote:
+> > > > enable the quirk only for you. Isn't there a better way of enabling=
+ the
+> > > > quirk based off of revision detection couple with a look on GHWPARA=
+MS*
+> > > > registers ?
+> > > >
+> > > > What's tricking me is this claim that only config-free PHYs would be
+> > > > affected, why ?
+> > > >
+> > >
+> > > i'm still struggling now to try to get more information about this.
+> > > some security policy inside Fujitsu make me unable to access full
+> > > information of this errata today.
+> > >
+> > > Someday after i get enough information,
+> > > i shall take your suggestion here that seems better to incur quirk
+> > > dynamically via GHWPARAMS,
+> > > and then send it here again.
+> >
+> > ok, hopefully you'll find a way ;-)
+> >
+> > I got some update information here finally~
+> in case i express unclearly i also put a pdf:
+> https://drive.google.com/file/d/0B18MmcvvKjNNbDF6eEdHSzZCazA/view
 >=20
-> another ping. Without this and the following patch TPS65218 power button
-> driver which was already applied by Dmitry, won't work.
+> This issue is defined by a two-way race at disconnect, between
+> 1) class driver interrupt endpoint resheduling attempts if the ISR gave an
+> ep error event due to device detach (it would try 3 times)
+> 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
+> asynchronously
+> 3) The hardware IP was configured in silicon with
+>        - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=3D1 (this is an IP configurati=
+on
 
-Anybody ? -rc4 is out and tps65218 is still broken because nobody has
-acted on these two patches. All other patches which are meant for 3.20
-merge window are applied and because of these pending, those patches
-won't work.
+yeah, aparently this is another configuration which is not exposed on
+HWPARAMS registers. Paul, can you confirm for us ? I couldn't find it on
+Databook on any of the HWPARAMS registers.
 
-> > > ---
-> > >  drivers/mfd/tps65218.c | 11 +++++++++++
-> > >  1 file changed, 11 insertions(+)
-> > >=20
-> > > diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-> > > index 0d256cb..2243f75 100644
-> > > --- a/drivers/mfd/tps65218.c
-> > > +++ b/drivers/mfd/tps65218.c
-> > > @@ -125,10 +125,21 @@ int tps65218_clear_bits(struct tps65218 *tps, u=
-nsigned int reg,
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(tps65218_clear_bits);
-> > > =20
-> > > +static const struct regmap_range tps65218_yes_ranges[] =3D {
-> > > +	regmap_reg_range(TPS65218_REG_INT1, TPS65218_REG_INT2),
-> > > +	regmap_reg_range(TPS65218_REG_STATUS, TPS65218_REG_STATUS),
-> > > +};
-> > > +
-> > > +static const struct regmap_access_table tps65218_volatile_table =3D {
-> > > +	.yes_ranges =3D tps65218_yes_ranges,
-> > > +	.n_yes_ranges =3D ARRAY_SIZE(tps65218_yes_ranges),
-> > > +};
-> > > +
-> > >  static struct regmap_config tps65218_regmap_config =3D {
-> > >  	.reg_bits =3D 8,
-> > >  	.val_bits =3D 8,
-> > >  	.cache_type =3D REGCACHE_RBTREE,
-> > > +	.volatile_table =3D &tps65218_volatile_table,
-> > >  };
-> > > =20
-> > >  static const struct regmap_irq tps65218_irqs[] =3D {
-> > > --=20
-> > > 2.2.0
-> > >=20
-> >=20
-> > --=20
-> > balbi
+> port whose state cannot be checked from software)
+>        - Synopsys IP version is < 3.00a
+
+heh, so pretty much everybody :-)
+
+>        The IP will auto-suspend itself on device detach with some
+> phy-specific interval after CSC is cleared by 2)
 >=20
+> If 2) and 3) complete before 1), the interrupts it expects will not be
+> generated by the autosuspended IP, leading to a deadlock. Even later
+> disconnection procedure would detect that corresponding urb is still
+> in-progress and issue a ep stop command, auto-suspended IP still won't
+> respond to that command.
 >=20
->=20
-> --=20
-> balbi
+> this defect would result in this when device detached:
+> -------------------
+> [   99.603544] usb 4-1: USB disconnect, device number 2
+> [  104.615254] xhci-hcd xhci-hcd.0.auto: xHCI host not responding to stop
+> endpoint command.
+> [  104.623362] xhci-hcd xhci-hcd.0.auto: Assuming host is dying, halting
+> host.
+> [  104.653261] xhci-hcd xhci-hcd.0.auto: Host not halted after 16000
+> microseconds.
+> [  104.660584] xhci-hcd xhci-hcd.0.auto: Non-responsive xHCI host is not
+> halting.
+> [  104.667817] xhci-hcd xhci-hcd.0.auto: Completing active URBs anyway.
+> [  104.674198] xhci-hcd xhci-hcd.0.auto: HC died; cleaning up
+> --------------------
+> As a result, when device detached, we desired to postpone "PORTCSC clear"
+> behind "disable slot". it's found that all executed ep command related to
+> disconnetion, are executed before "disable slot".
 
+Now this is all great information and they should all be part of your
+commit log and probably a big comment should be added to code as well.
 
+Thanks for going after all these details, now let's figure out a way to
+pass dwc3 revision to xhci, or maybe we pass just a flag for the quirk,
+something like:
+
+	if (dwc->revision < 3.00a && dwc->has_suspend_on_disconnect)
+		xhci_pdata.delay_portcsc_clear =3D true;
+
+or something similar to that.
+
+cheers
 
 --=20
 balbi
 
---gj572EiMnwbLXET9
+--3Gf/FFewwPeBMqCJ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUs/p+AAoJEIaOsuA1yqREgwcP/2mtgstsUjTlygR4ldbWCDfo
-+4qZK1VfgW4IUCz73WIgt0q5h9Py3A7sUtc0sFmWu3aDHlStrp/i0PPTeNBbFOqi
-tKdKdAsm0cFXGZ8HpSiv0bWMrvp22x/AGg8a5kn8IkLvJ/J0vAHZtGKvwTbvIwVd
-EbR+UiZ9m8fRnE/uZcD6XlKD3YAMie6TWfrFfRWQT4srzFfBxnGF92AGWLij0kS9
-2bZcVPb4Ps1P7ZAIrDhY9qO7BwyeZKPt2NIBQ3eAzqF+J4hq4fRcdwETuV6we/m/
-2SDDaaBRGuVsAqzzX0BGNUgPfZsHxpgkY2VpTSZXLFxnPn9DNURs0QB8IxW92BG1
-lgeksR3lgmmc0X1rF+xj33Y8hIHG9ZgDn7RwXN9jHRNzHg2BXM/7pnK0YPMQWFMQ
-b/8Yx7HDLSCDeiEf6qY3pTvl7NZWuFS8xkDZ6H+715g+7IpBPKkdl3MZPRKHfXzd
-5kuXpW0zrcU44rHZkF1zu0fyIWtjDHiaVyfYAu9Oc7SMSKWValAXRiRsTUUwLo/4
-eZJgLBPimjr13FS1zBkS5vfKkbwhfI8jG60ijC8L9L/6z6owjRpGCc/FkmlAdXOL
-9zW5z+BkLcjccKorsXNsaBZEV0aJLUix+vv1wd4o5TisI810slTRFM+TmH6mkitA
-fWMlYrwKtkLrlChsyKSu
-=r7NH
+iQIcBAEBAgAGBQJUtAJgAAoJEIaOsuA1yqREGw8P/jpIGLNqcZXQ98zMo0UbgeYx
+5Qsk4DCs3DzruXojtOo09RY9uGmFQybUyarlc9jEmuiBm/IZVLYKDGMggGb9qUY9
+o9o+T9G7oMCFN7IisMrFuc6KNQJARkXfKBjuHZOzRiEdaZE73ie7D6yUJa15ggzR
+h2Pnei2Dzmcu6rNCWjrZhLt05W/GAGUpFQX9DgW59DKU7GR+2YUviSlvNXyUy2wL
+WiFDhHRV25aGIFY9rH4sKTDvSRDJgqWV/gZLMwU0lZmCMfpgJA5hFECr5m0TWrbe
+SIgPE1nb8KIsbWM5qboFQg9Iue3OziuXsgTtoYg6SJd5WRw+EYl7LI/ayxJErTqJ
+GaamsnM+SG3QDlM1lS9+WsqP46unsFoXwu5lTFhkmjg9SwYMt57xX2Bm4VaKs0v0
+2ln/fxWjpFTpgQzeqWTejbnlQGqnQ/9PWxW4Eyd0REjIo1QrTeH+57O0PgvDx+X/
+K8hQMuZfL+LZPfcCOOy/ijHM0WUaWlAxS47J+QMWgvGr5TIX6ubLC4K4c/eAOD2w
+0jZntuhDY/k6C8MutWcSMSq9iqt4sCTCdCM3ts718EUMwk5eTsz4hrINL0dUR47l
+MZOHO/+ii4U1U9unVhLio1voSnail6VnkCrOGR3SZpRK2ClBHDupvJfdhs2gs5yg
+ND71GCunNsNVzmQWhQvu
+=HyRL
 -----END PGP SIGNATURE-----
 
---gj572EiMnwbLXET9--
+--3Gf/FFewwPeBMqCJ--
