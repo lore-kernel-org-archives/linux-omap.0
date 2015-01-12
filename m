@@ -1,87 +1,193 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/3] usb: dwc3: add a quirk for device disconnection
- issue in Synopsis dwc3 core
-Date: Mon, 12 Jan 2015 11:50:47 -0600
-Message-ID: <20150112175047.GE6525@saruman>
-References: <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <20141222153730.GA12815@saruman>
- <CAJ1gpc3jVpz=5ME4+wCJDW5NKihvB4xYzwi0co=UuPtG9Ubmjg@mail.gmail.com>
- <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg@mail.gmail.com>
- <20141229160641.GD29379@saruman>
- <CAJ1gpc0Uu4vS2iA_o_W5NaE_QBWDYFZJio7yKvhpaR5f=qWcGA@mail.gmail.com>
- <20150105170921.GH19336@saruman>
- <CAJ1gpc3RZnqizhiasrwS8uy1H_wQAi_T0mPcS8LAK4FhmBRJ6A@mail.gmail.com>
- <20150112172032.GD6525@saruman>
- <1421083783.22660.69.camel@x220>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GxcwvYAGnODwn7V8"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1421083783.22660.69.camel@x220>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-fy+rA21nqHI@public.gmane.org
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v3 00/21] irqchip: gic: killing gic_arch_extn and co, slowly
+Date: Mon, 12 Jan 2015 18:26:06 +0000
+Message-ID: <1421087187-26988-1-git-send-email-marc.zyngier@arm.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---GxcwvYAGnODwn7V8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The gic_arch_extn hack that a number of platform use has been nagging
+me for too long. It is only there for the benefit of a few platform,
+and yet it impacts all GIC users. Moreover, it gives people the wrong
+idea ("let's use it to put some new custom hack in there"...).
 
-On Mon, Jan 12, 2015 at 06:29:43PM +0100, Paul Bolle wrote:
-> On Mon, 2015-01-12 at 11:20 -0600, Felipe Balbi wrote:
-> > On Sun, Jan 11, 2015 at 11:19:55PM +0800, Sneeker Yeh wrote:
-> > > in case i express unclearly i also put a pdf:
-> > > https://drive.google.com/file/d/0B18MmcvvKjNNbDF6eEdHSzZCazA/view
-> > >=20
-> > > This issue is defined by a two-way race at disconnect, between
-> > > 1) class driver interrupt endpoint resheduling attempts if the ISR ga=
-ve an
-> > > ep error event due to device detach (it would try 3 times)
-> > > 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
-> > > asynchronously
-> > > 3) The hardware IP was configured in silicon with
-> > >        - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=3D1 (this is an IP configu=
-ration
-> >=20
-> > yeah, aparently this is another configuration which is not exposed on
-> > HWPARAMS registers. Paul, can you confirm for us ? I couldn't find it on
-> > Databook on any of the HWPARAMS registers.
->=20
-> I guess you meant to ask Pawel, because I know nothing at all about all
-> that!=20
+But now that stacked irq domains have been merged into 3.19, the time
+has come for gic_arch_extn to meet the Big Bit Bucket.
 
-No, it was Paul Zimmerman :-)
+This patch series takes several steps towards the elimination of
+gic_arch_extn:
 
---=20
-balbi
+- moves Tegra's legacy interrupt controller support to
+  drivers/irqchip, implementing a stacked domain on top of the
+  standard GIC.
 
---GxcwvYAGnODwn7V8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+- OMAP, imx6 and exynos are also converted to stacked domains, but
+  their implementation is left in place (the code is far too
+  intricately mixed with other details of the platform for me to even
+  try to move it). Some OMAP variants get a special treatment as we
+  also kill the crossbar horror (more on that below).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+- shmobile, ux500 and zynq are only slightly modified.
 
-iQIcBAEBAgAGBQJUtAl3AAoJEIaOsuA1yqREig0P/RG9Il8bjoVJQuWb51562MH1
-XgXqZWDT7b7p/WGUtDbC423JXUoQilktOvofCdO5tq3UBqO6I+RGpxb1E5BfJKCP
-vWEvH3q+kIrpNsUw7R9mIoD52ouzqJAfhuH3XldnsrBGX7nl7wEB7LhDdHEnpKCz
-Fr53LJ/AFLWiQYl+LMJ59e11kYeJSRQMuyaw6lzFoo+bvrNDm2P6PUrd4j/CpV5H
-EfpUb1x+7H8WhWVx3i7DKhSIrb/i6QiZkA1bK8Rt3OpiDVYQDC5wHYUYqSn1P82Z
-ugLsFm4ajvBUEbuqWubyl2Et1I4u9doVeXEzehHJmtdWcUPZLax7LitG0D8MkPY9
-Q8O/Puq7PLjnYETMGidLP8qNrTBWmUVwuBpU4bxJYktoeoR96xL8DB9nOhHVFoNt
-CH7dFl9XzjaSTxBXgQmcvOaez7J0tkeOih4EmKiZaN/XDKWArIu3i7M7FuDYocHr
-Z+VTW+GoP7oa9/1RoX2auHnlhhWvanqkCuHxWHUzEZb+2RxHCUJWcGGMMy4erWcw
-3BucbtvfYCojcXFnaZI+N06idAzK3BeMEUsoo4OcuyeT7nuJXMmyKSSVJ1DSulHu
-gSe4e5n3zCM2109TAGQzlhcXioIgKg004xYoWLarEJDmQ+TeVAstV8/mm86+aLsR
-CUXQ8MUchR7WtQ4b9ke1
-=aa/l
------END PGP SIGNATURE-----
+- The GIC itself is cleaned up, and some other bits and bobs are
+  adjusted for a good measure.
 
---GxcwvYAGnODwn7V8--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+About the TI crossbar:
+
+- The allocation of interrupts in this domain is fairly similar to
+  what we do for MSI (see the GICv2m driver), and stacked domains have
+  proved to be a fitting solution.
+
+- The current description in DT is currently entierely inaccurate, and
+  as we're already breaking it for the WUGEN block, we might as well
+  do it again for the crossbar.
+
+- The way crossbar, WUGEN and GIC interract is quite complex (this is
+  effectively a stack of three interrupt controllers with interesting
+  exceptions and braindead routing), and stacked domains are the right
+  abstraction for that.
+
+- Other platforms (Freescale Vybrid) are starting to come up with the
+  same type of things, and it'd be good to avoid them following the
+  same broken model.
+
+- It removes a few lines from the code base so it can't completely be
+  a bad idea!
+
+So this patch series does exactly that: make the crossbar a stacked
+interrupt controller that only takes care of setting up the routing,
+fix the DTs to represent the actual HW, and remove a bit of the
+craziness from the GIC code.
+
+It is worth realizing that:
+
+- I haven't been able to test this as much as I would have wanted to
+  (it's only been tested on tegra2 and omap5).
+
+- I've created DT bindings when needed, updated existing ones, but I
+  haven't created a binding for platforms that already used an
+  undocumented one (imx6, I'm looking at you).
+
+- I've relaxed quite a bit of the locking in the GIC code. I believe
+  this is safe, but someone else should give it a long hard look.
+
+- This actively *breaks* existing setups. Once you boot a new kernel
+  with an old DT, suspend/resume *will* be broken. Old kernels on a
+  new DT won't even boot! You've been warned. This really outline the
+  necessity of actually describing the HW in device trees...
+
+As for the patches, they are on top of 3.19-rc3.
+
+I've pushed the code to:
+git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/die-gic-arch-extn-die-die-die
+
+I'm still targetting 3.20 for this, but obviously things are getting
+quite tight. I'd very much like to hear from the maintainers about
+their views concerning this series.
+
+Thanks,
+
+	 M.
+
+>From v2 [2]:
+- Addressed numerous comments from Thierry
+- Merged bug fixes from Nishanth
+- Merged bug fix from Stefan
+
+>From v1 [1]:
+- Rebased on 3.19-rc3
+- Added crossbar conversion to stacked domains
+- Merged bug fixes from Nishanth
+
+Marc Zyngier (21):
+  ARM: tegra: irq: nuke leftovers from non-DT support
+  irqchip: tegra: add DT-based support for legacy interrupt controller
+  ARM: tegra: skip gic_arch_extn setup if DT has a LIC node
+  ARM: tegra: update DTs to expose legacy interrupt controller
+  DT: tegra: add binding for the legacy interrupt controller
+  ARM: tegra: remove old LIC support
+  genirq: Add irqchip_set_wake_parent
+  irqchip: crossbar: convert dra7 crossbar to stacked domains
+  DT: update ti,irq-crossbar binding
+  irqchip: GIC: get rid of routable domain
+  DT: arm,gic: kill arm,routable-irqs
+  DT: omap4/5: add binding for the wake-up generator
+  ARM: omap: convert wakeupgen to stacked domains
+  ARM: imx6: convert GPC to stacked domains
+  ARM: exynos4/5: convert pmu wakeup to stacked domains
+  DT: exynos: update PMU binding
+  irqchip: gic: add an entry point to set up irqchip flags
+  ARM: shmobile: remove use of gic_arch_extn.irq_set_wake
+  ARM: ux500: switch from gic_arch_extn to gic_set_irqchip_flags
+  ARM: zynq: switch from gic_arch_extn to gic_set_irqchip_flags
+  irqchip: gic: Drop support for gic_arch_extn
+
+ Documentation/devicetree/bindings/arm/gic.txt      |   6 -
+ .../devicetree/bindings/arm/omap/crossbar.txt      |  18 +-
+ .../devicetree/bindings/arm/samsung/pmu.txt        |  13 +
+ .../interrupt-controller/nvidia,tegra-ictlr.txt    |  43 +++
+ .../interrupt-controller/ti,omap4-wugen-mpu        |  33 ++
+ arch/arm/boot/dts/am4372.dtsi                      |  11 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   1 -
+ arch/arm/boot/dts/am437x-sk-evm.dts                |   1 -
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   1 -
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            |   3 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |   2 +-
+ arch/arm/boot/dts/dra7.dtsi                        |  43 ++-
+ arch/arm/boot/dts/dra72-evm.dts                    |   1 -
+ arch/arm/boot/dts/dra72x.dtsi                      |   3 +-
+ arch/arm/boot/dts/dra74x.dtsi                      |   5 +-
+ arch/arm/boot/dts/exynos4.dtsi                     |   3 +
+ arch/arm/boot/dts/exynos5250.dtsi                  |   3 +
+ arch/arm/boot/dts/exynos5420.dtsi                  |   3 +
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   7 +-
+ arch/arm/boot/dts/imx6sl.dtsi                      |   5 +-
+ arch/arm/boot/dts/imx6sx.dtsi                      |   5 +-
+ arch/arm/boot/dts/omap4-duovero.dtsi               |   2 -
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
+ arch/arm/boot/dts/omap4-sdp.dts                    |   8 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi          |   2 -
+ arch/arm/boot/dts/omap4.dtsi                       |  18 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |   1 -
+ arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
+ arch/arm/boot/dts/omap5.dtsi                       |  26 +-
+ arch/arm/boot/dts/tegra114.dtsi                    |  16 +-
+ arch/arm/boot/dts/tegra124.dtsi                    |  16 +-
+ arch/arm/boot/dts/tegra20.dtsi                     |  15 +-
+ arch/arm/boot/dts/tegra30.dtsi                     |  16 +-
+ arch/arm/mach-exynos/exynos.c                      |  14 +-
+ arch/arm/mach-exynos/suspend.c                     | 122 ++++++-
+ arch/arm/mach-imx/common.h                         |   1 -
+ arch/arm/mach-imx/gpc.c                            | 127 +++++--
+ arch/arm/mach-imx/mach-imx6q.c                     |   1 -
+ arch/arm/mach-imx/mach-imx6sl.c                    |   1 -
+ arch/arm/mach-imx/mach-imx6sx.c                    |   1 -
+ arch/arm/mach-omap2/omap-wakeupgen.c               | 125 +++++--
+ arch/arm/mach-omap2/omap-wakeupgen.h               |   1 -
+ arch/arm/mach-omap2/omap4-common.c                 |   5 -
+ arch/arm/mach-shmobile/intc-sh73a0.c               |   7 +-
+ arch/arm/mach-shmobile/setup-r8a7779.c             |   7 +-
+ arch/arm/mach-tegra/iomap.h                        |  15 -
+ arch/arm/mach-tegra/irq.c                          | 209 +-----------
+ arch/arm/mach-tegra/irq.h                          |   6 -
+ arch/arm/mach-tegra/tegra.c                        |   1 -
+ arch/arm/mach-ux500/cpu.c                          |   2 +-
+ arch/arm/mach-zynq/common.c                        |   2 +-
+ drivers/irqchip/Makefile                           |   1 +
+ drivers/irqchip/irq-crossbar.c                     | 207 +++++++-----
+ drivers/irqchip/irq-gic.c                          | 112 +------
+ drivers/irqchip/irq-tegra.c                        | 368 +++++++++++++++++++++
+ include/linux/irq.h                                |   1 +
+ include/linux/irqchip/arm-gic.h                    |   9 +-
+ include/linux/irqchip/irq-crossbar.h               |  11 -
+ kernel/irq/chip.c                                  |  16 +
+ 59 files changed, 1098 insertions(+), 614 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/nvidia,tegra-ictlr.txt
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+ create mode 100644 drivers/irqchip/irq-tegra.c
+ delete mode 100644 include/linux/irqchip/irq-crossbar.h
+
+-- 
+2.1.4
