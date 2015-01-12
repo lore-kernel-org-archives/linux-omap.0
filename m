@@ -1,144 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
 Subject: Re: [PATCH 3/3] usb: dwc3: add a quirk for device disconnection
  issue in Synopsis dwc3 core
-Date: Mon, 12 Jan 2015 11:20:32 -0600
-Message-ID: <20150112172032.GD6525@saruman>
+Date: Mon, 12 Jan 2015 18:29:43 +0100
+Message-ID: <1421083783.22660.69.camel@x220>
 References: <1418695828-605-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <20141222153730.GA12815@saruman>
- <CAJ1gpc3jVpz=5ME4+wCJDW5NKihvB4xYzwi0co=UuPtG9Ubmjg@mail.gmail.com>
- <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg@mail.gmail.com>
- <20141229160641.GD29379@saruman>
- <CAJ1gpc0Uu4vS2iA_o_W5NaE_QBWDYFZJio7yKvhpaR5f=qWcGA@mail.gmail.com>
- <20150105170921.GH19336@saruman>
- <CAJ1gpc3RZnqizhiasrwS8uy1H_wQAi_T0mPcS8LAK4FhmBRJ6A@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+	 <1418695828-605-4-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+	 <20141222153730.GA12815@saruman>
+	 <CAJ1gpc3jVpz=5ME4+wCJDW5NKihvB4xYzwi0co=UuPtG9Ubmjg@mail.gmail.com>
+	 <CAJ1gpc3-Wjtm54WOhO6RXjZft9BMngzyYC0-S-XnTacV-qKgMg@mail.gmail.com>
+	 <20141229160641.GD29379@saruman>
+	 <CAJ1gpc0Uu4vS2iA_o_W5NaE_QBWDYFZJio7yKvhpaR5f=qWcGA@mail.gmail.com>
+	 <20150105170921.GH19336@saruman>
+	 <CAJ1gpc3RZnqizhiasrwS8uy1H_wQAi_T0mPcS8LAK4FhmBRJ6A@mail.gmail.com>
+	 <20150112172032.GD6525@saruman>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3Gf/FFewwPeBMqCJ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ1gpc3RZnqizhiasrwS8uy1H_wQAi_T0mPcS8LAK4FhmBRJ6A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sneeker Yeh <sneeker.yeh@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, Hans de Goede <hdegoede@redhat.com>, Thomas Pugliese <thomas.pugliese@gmail.com>, David Mosberger <davidm@egauge.net>, Peter Griffin <peter.griffin@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Andrew Bresticker <abrestic@chromium.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150112172032.GD6525@saruman>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
+Cc: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Pugliese <thomas.pugliese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Mosberger <davidm-haPfTeumbwasTnJN9+BGXg@public.gmane.org>, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy>
 List-Id: linux-omap@vger.kernel.org
 
---3Gf/FFewwPeBMqCJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, 2015-01-12 at 11:20 -0600, Felipe Balbi wrote:
+> On Sun, Jan 11, 2015 at 11:19:55PM +0800, Sneeker Yeh wrote:
+> > in case i express unclearly i also put a pdf:
+> > https://drive.google.com/file/d/0B18MmcvvKjNNbDF6eEdHSzZCazA/view
+> > 
+> > This issue is defined by a two-way race at disconnect, between
+> > 1) class driver interrupt endpoint resheduling attempts if the ISR gave an
+> > ep error event due to device detach (it would try 3 times)
+> > 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
+> > asynchronously
+> > 3) The hardware IP was configured in silicon with
+> >        - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1 (this is an IP configuration
+> 
+> yeah, aparently this is another configuration which is not exposed on
+> HWPARAMS registers. Paul, can you confirm for us ? I couldn't find it on
+> Databook on any of the HWPARAMS registers.
 
-Hi,
+I guess you meant to ask Pawel, because I know nothing at all about all
+that! 
 
-On Sun, Jan 11, 2015 at 11:19:55PM +0800, Sneeker Yeh wrote:
-> > > > enable the quirk only for you. Isn't there a better way of enabling=
- the
-> > > > quirk based off of revision detection couple with a look on GHWPARA=
-MS*
-> > > > registers ?
-> > > >
-> > > > What's tricking me is this claim that only config-free PHYs would be
-> > > > affected, why ?
-> > > >
-> > >
-> > > i'm still struggling now to try to get more information about this.
-> > > some security policy inside Fujitsu make me unable to access full
-> > > information of this errata today.
-> > >
-> > > Someday after i get enough information,
-> > > i shall take your suggestion here that seems better to incur quirk
-> > > dynamically via GHWPARAMS,
-> > > and then send it here again.
-> >
-> > ok, hopefully you'll find a way ;-)
-> >
-> > I got some update information here finally~
-> in case i express unclearly i also put a pdf:
-> https://drive.google.com/file/d/0B18MmcvvKjNNbDF6eEdHSzZCazA/view
->=20
-> This issue is defined by a two-way race at disconnect, between
-> 1) class driver interrupt endpoint resheduling attempts if the ISR gave an
-> ep error event due to device detach (it would try 3 times)
-> 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
-> asynchronously
-> 3) The hardware IP was configured in silicon with
->        - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=3D1 (this is an IP configurati=
-on
+Thanks,
 
-yeah, aparently this is another configuration which is not exposed on
-HWPARAMS registers. Paul, can you confirm for us ? I couldn't find it on
-Databook on any of the HWPARAMS registers.
 
-> port whose state cannot be checked from software)
->        - Synopsys IP version is < 3.00a
+Paul Bolle
 
-heh, so pretty much everybody :-)
-
->        The IP will auto-suspend itself on device detach with some
-> phy-specific interval after CSC is cleared by 2)
->=20
-> If 2) and 3) complete before 1), the interrupts it expects will not be
-> generated by the autosuspended IP, leading to a deadlock. Even later
-> disconnection procedure would detect that corresponding urb is still
-> in-progress and issue a ep stop command, auto-suspended IP still won't
-> respond to that command.
->=20
-> this defect would result in this when device detached:
-> -------------------
-> [   99.603544] usb 4-1: USB disconnect, device number 2
-> [  104.615254] xhci-hcd xhci-hcd.0.auto: xHCI host not responding to stop
-> endpoint command.
-> [  104.623362] xhci-hcd xhci-hcd.0.auto: Assuming host is dying, halting
-> host.
-> [  104.653261] xhci-hcd xhci-hcd.0.auto: Host not halted after 16000
-> microseconds.
-> [  104.660584] xhci-hcd xhci-hcd.0.auto: Non-responsive xHCI host is not
-> halting.
-> [  104.667817] xhci-hcd xhci-hcd.0.auto: Completing active URBs anyway.
-> [  104.674198] xhci-hcd xhci-hcd.0.auto: HC died; cleaning up
-> --------------------
-> As a result, when device detached, we desired to postpone "PORTCSC clear"
-> behind "disable slot". it's found that all executed ep command related to
-> disconnetion, are executed before "disable slot".
-
-Now this is all great information and they should all be part of your
-commit log and probably a big comment should be added to code as well.
-
-Thanks for going after all these details, now let's figure out a way to
-pass dwc3 revision to xhci, or maybe we pass just a flag for the quirk,
-something like:
-
-	if (dwc->revision < 3.00a && dwc->has_suspend_on_disconnect)
-		xhci_pdata.delay_portcsc_clear =3D true;
-
-or something similar to that.
-
-cheers
-
---=20
-balbi
-
---3Gf/FFewwPeBMqCJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUtAJgAAoJEIaOsuA1yqREGw8P/jpIGLNqcZXQ98zMo0UbgeYx
-5Qsk4DCs3DzruXojtOo09RY9uGmFQybUyarlc9jEmuiBm/IZVLYKDGMggGb9qUY9
-o9o+T9G7oMCFN7IisMrFuc6KNQJARkXfKBjuHZOzRiEdaZE73ie7D6yUJa15ggzR
-h2Pnei2Dzmcu6rNCWjrZhLt05W/GAGUpFQX9DgW59DKU7GR+2YUviSlvNXyUy2wL
-WiFDhHRV25aGIFY9rH4sKTDvSRDJgqWV/gZLMwU0lZmCMfpgJA5hFECr5m0TWrbe
-SIgPE1nb8KIsbWM5qboFQg9Iue3OziuXsgTtoYg6SJd5WRw+EYl7LI/ayxJErTqJ
-GaamsnM+SG3QDlM1lS9+WsqP46unsFoXwu5lTFhkmjg9SwYMt57xX2Bm4VaKs0v0
-2ln/fxWjpFTpgQzeqWTejbnlQGqnQ/9PWxW4Eyd0REjIo1QrTeH+57O0PgvDx+X/
-K8hQMuZfL+LZPfcCOOy/ijHM0WUaWlAxS47J+QMWgvGr5TIX6ubLC4K4c/eAOD2w
-0jZntuhDY/k6C8MutWcSMSq9iqt4sCTCdCM3ts718EUMwk5eTsz4hrINL0dUR47l
-MZOHO/+ii4U1U9unVhLio1voSnail6VnkCrOGR3SZpRK2ClBHDupvJfdhs2gs5yg
-ND71GCunNsNVzmQWhQvu
-=HyRL
------END PGP SIGNATURE-----
-
---3Gf/FFewwPeBMqCJ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
