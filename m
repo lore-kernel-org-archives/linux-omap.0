@@ -1,71 +1,50 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] can: c_can: use regmap_update_bits() to modify RAMINIT
- register
-Date: Mon, 12 Jan 2015 12:02:21 +0200
-Message-ID: <54B39BAD.4070604@ti.com>
-References: <1420641162-8634-1-git-send-email-rogerq@ti.com> <54AFDCB0.5060908@ti.com> <54B39A8E.4090006@ti.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: ARM64: hibernation: How to use hibernation/suspend-to-disk on
+ ARMv8?
+Date: Mon, 12 Jan 2015 11:54:15 +0000
+Message-ID: <20150112115415.GB14519@red-moon>
+References: <CADcZZT+nQ_0LfurU+z5wLC_OxNhEs6n0kCoLSkfoFCDqyOu04g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <54B39A8E.4090006@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mkl@pengutronix.de, linux-can@vger.kernel.org, wsa@the-dreams.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, broonie@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CADcZZT+nQ_0LfurU+z5wLC_OxNhEs6n0kCoLSkfoFCDqyOu04g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Bush <georgebush815@gmail.com>
+Cc: "sebastian.capella@linaro.org" <sebastian.capella@linaro.org>, "Russ.Dill@ti.com" <Russ.Dill@ti.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "len.brown@intel.com" <len.brown@intel.com>, "nico@linaro.org" <nico@linaro.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Will Deacon <Will.Deacon@arm.com>, Jonathan Austin <Jonathan.Austin@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "u.kleine-koenig@pengutronix.de" <u.kleine-koenig@pengutronix.de>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "victor.kamensky@linaro.org" <victor.kamensky@linaro.org>, "r.sricharan@ti.com" <r.sricharan@ti.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "lauraa@codeaurora.org" <lauraa@codeaurora.org>, "zhou0283@gmail.com" <zhou0283@gmail.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-arm-kernel@lists.
 List-Id: linux-omap@vger.kernel.org
 
-+Mark with correct id.
+On Sat, Jan 10, 2015 at 03:14:33PM +0000, George Bush wrote:
+> Hi all
+> 
+> I notice we have hibernation.c in arm/kernel, however, I don't find it in arm64.
+> Does it mean arm64 do not support hibernation/suspend-to-disk function?
 
-On 12/01/15 11:57, Roger Quadros wrote:
-> +Mark,
-> 
-> On 09/01/15 15:50, Tomi Valkeinen wrote:
->> On 07/01/15 16:32, Roger Quadros wrote:
->>> use of regmap_read() and regmap_write() in c_can_hw_raminit_syscon()
->>> is not safe as the RAMINIT register can be shared between different drivers
->>> at least for TI SoCs.
->>>
->>> To make the modification atomic we switch to using regmap_update_bits().
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  drivers/net/can/c_can/c_can_platform.c | 9 +++++++--
->>>  1 file changed, 7 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
->>> index f363972..364209a 100644
->>> --- a/drivers/net/can/c_can/c_can_platform.c
->>> +++ b/drivers/net/can/c_can/c_can_platform.c
->>> @@ -110,6 +110,10 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
->>>  	 */
->>>  	ctrl &= ~(1 << raminit->bits.start);
->>>  	ctrl |= 1 << raminit->bits.done;
->>> +
->>> +	/* we can't use regmap_update_bits here as it will bypass the write
->>> +	 * if START is already 0 and DONE is already 1.
->>> +	 */
->>>  	regmap_write(raminit->syscon, raminit->reg, ctrl);
->>
->> Can you first use update_bits to change either bit, so that this update
->> will be done?
->>
-> 
-> Initial condition is START=0, DONE=1.
-> 
-> Now setting and clearing START bit initiates the start process and will cause the
-> DONE bit to be set after a while.
-> So unfortunately this doesn't work for us.
-> 
-> Mark,
-> 
-> The problem here is we can't use regmap_update_bits() because we need to write a 1 to the DONE bit to clear it and _regmap_update_bits() doesn't allow us to do that because of commit
-> d91e8db2c3bb regmap: Suppress noop writes in regmap_update_bits()
-> 
-> Is reverting it going to cause other issues? If yes then can we have a flag to specify forced update?
-> 
-> cheers,
-> -roger
-> [1] - http://lxr.free-electrons.com/source/drivers/base/regmap/regmap.c#L2332
-> 
-> 
+Yes, not at the moment, but we have planned to implement it.
 
+> I tried some path to search the reason, but found nothing, they all say arm64
+> has the backward compatibility. So I send this email to the community and
+> hope to get the reason.
+> Thanks!
+> 
+> I ported the arm hibernation.c to arm64/kernel(with LP64), but failed in a
+> strange way. When I do resume, the arch_restore_image() get a page_fault
+> when it calls the copy_page(), like:
+> "Unable to handle kernel paging request at virtual address 0xffffffbc055c3fa8"
+> I'm sure the copy_page()'s parameters is in the memory area, why and how
+> I get the strange address 0xffffffbc055c3fa8?
+> 
+> vmalloc:         0xffffff8000000000 - 0xffffffbb00000000
+> vmemmap:     0xffffffbc01400000 - 0xffffffbc04f88000
+> modules:       0xffffffbffc000000   -  0xffffffc000000000
+> memory:        0xffffffc000000000 - 0xffffffc0be800000
+> 
+> 
+> Look forward to your reply, thanks!
+
+We need your patch, kernel version, config file, your board/SoC HW details
+before even assuming what is happening. Please provide them and I
+am happy to help you implement suspend-to-disk on arm64 properly.
+
+Thanks,
+Lorenzo
