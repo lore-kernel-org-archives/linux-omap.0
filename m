@@ -1,66 +1,50 @@
-From: Mark Brown <broonie@kernel.org>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH] can: c_can: use regmap_update_bits() to modify RAMINIT
  register
-Date: Mon, 12 Jan 2015 12:05:41 +0000
-Message-ID: <20150112120541.GD4160@sirena.org.uk>
-References: <1420641162-8634-1-git-send-email-rogerq@ti.com>
- <54AFDCB0.5060908@ti.com>
- <54B39A8E.4090006@ti.com>
- <54B39BAD.4070604@ti.com>
+Date: Mon, 12 Jan 2015 14:37:21 +0200
+Message-ID: <54B3C001.501@ti.com>
+References: <1420641162-8634-1-git-send-email-rogerq@ti.com> <54AFDCB0.5060908@ti.com> <54B39A8E.4090006@ti.com> <54B39BAD.4070604@ti.com> <20150112120541.GD4160@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T6xhMxlHU34Bk0ad"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52680 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927AbbALMFz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2015 07:05:55 -0500
-Content-Disposition: inline
-In-Reply-To: <54B39BAD.4070604@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58299 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753044AbbALMhi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Jan 2015 07:37:38 -0500
+In-Reply-To: <20150112120541.GD4160@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
+To: Mark Brown <broonie@kernel.org>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, mkl@pengutronix.de, linux-can@vger.kernel.org, wsa@the-dreams.de, kernel@pengutronix.de, linux-omap@vger.kernel.org
 
+On 12/01/15 14:05, Mark Brown wrote:
+> On Mon, Jan 12, 2015 at 12:02:21PM +0200, Roger Quadros wrote:
+>> +Mark with correct id.
+> 
+> Please fix your mail client to word wrap within paragraphs, it amkes
+> your mail more legible.
 
---T6xhMxlHU34Bk0ad
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixed now. Thanks for pointing out.
 
-On Mon, Jan 12, 2015 at 12:02:21PM +0200, Roger Quadros wrote:
-> +Mark with correct id.
+> 
+>>> The problem here is we can't use regmap_update_bits() because we need to write a 1 to the DONE bit to clear it and _regmap_update_bits() doesn't allow us to do that because of commit
+>>> d91e8db2c3bb regmap: Suppress noop writes in regmap_update_bits()
+>>>
+>>> Is reverting it going to cause other issues? If yes then can we have a flag to specify forced update?
+> 
+> The usual thing to do here is an explicit write clearing the latch,
+> either immediately after setting it or immediately before setting it.
+> If the register is marked as volatile and the hardware doesn't read back
+> the latched state that also does the trick.
+> 
 
-Please fix your mail client to word wrap within paragraphs, it amkes
-your mail more legible.
+How does this work if driver has access to only 1 bit that can only be
+written with 1 to clear a condition? Writing a 0 is no-op.
+It can read back 0 or 1 depending on the condition.
 
-> > The problem here is we can't use regmap_update_bits() because we need t=
-o write a 1 to the DONE bit to clear it and _regmap_update_bits() doesn't a=
-llow us to do that because of commit
-> > d91e8db2c3bb regmap: Suppress noop writes in regmap_update_bits()
-> >=20
-> > Is reverting it going to cause other issues? If yes then can we have a =
-flag to specify forced update?
+I didn't understand the volatile trick :P.
 
-The usual thing to do here is an explicit write clearing the latch,
-either immediately after setting it or immediately before setting it.
-If the register is marked as volatile and the hardware doesn't read back
-the latched state that also does the trick.
+cheers,
+-roger
 
---T6xhMxlHU34Bk0ad
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUs7iUAAoJECTWi3JdVIfQ1rcH/Rv/lZZU21G/vMYLWHT8Ug9s
-sfrX37ho0UCgyhxNF9OoeZzD7b828cv9DWqT9domzLY8GZfsFthaoKdp/wrqC8Zs
-+4K6yjIhJ3tQYcfEFV9gUkpqb5+ojgpxgU+ea4FNCaO3WWKkvdpDsd+E2jY4hCX/
-cSMx8U8H+8AcTqr373qia5YNTs+vKM64cSP8COh0nDSTXht6Br3gfmPPT1RlLM27
-v6fmFlbWdnzpLaWbcgOeeDkxjIizPeecev+mS+dPgm3yCaWeZrJ69qwSeAKo2NYo
-oXsKtAeweXSQjgN77OprT+2AL80NOc5PnFtxqhYlb6lop83E7xGrsQdAEn95n60=
-=XizS
------END PGP SIGNATURE-----
-
---T6xhMxlHU34Bk0ad--
