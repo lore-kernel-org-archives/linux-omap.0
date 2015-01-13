@@ -1,36 +1,29 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] video: fbdev: omap2: dss: rfbi.c:  Remove some unused
+Subject: Re: [PATCH] video: fbdev: omap2: dss: dispc.c:  Remove some unused
  functions
-Date: Tue, 13 Jan 2015 13:00:39 +0200
-Message-ID: <54B4FAD7.305@ti.com>
-References: <1419181332-9322-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Date: Tue, 13 Jan 2015 13:22:55 +0200
+Message-ID: <54B5000F.8030408@ti.com>
+References: <1420126149-27019-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="cRad0NA9F68M9i05cAJSvgnjeS0j0FxFf"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60292 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750981AbbAMLAw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2015 06:00:52 -0500
-In-Reply-To: <1419181332-9322-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Sender: linux-omap-owner@vger.kernel.org
+	boundary="kj63F3rPpMtD0LpUpJHXREUhaUAa5NA2C"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1420126149-27019-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Jingoo Han <jg1.han@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
---cRad0NA9F68M9i05cAJSvgnjeS0j0FxFf
+--kj63F3rPpMtD0LpUpJHXREUhaUAa5NA2C
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 21/12/14 19:02, Rickard Strandqvist wrote:
+On 01/01/15 17:29, Rickard Strandqvist wrote:
 > Removes some functions that are not used anywhere:
-> rfbi_init_display() rfbi_display_disable() rfbi_display_enable()
-> rfbi_set_interface_timings() rfbi_set_data_lines() rfbi_set_pixel_size(=
-)
-> rfbi_set_size() rfbi_update() rfbi_configure() rfbi_enable_te()
-> rfbi_setup_te() rfbi_write_pixels() rfbi_write_data() rfbi_read_data()
-> rfbi_write_command() rfbi_bus_unlock() rfbi_bus_lock()
+> dispc_wb_go() dispc_wb_go_busy() dispc_wb_get_framedone_irq()
+> dispc_mgr_get_clock_div() dispc_wb_is_enabled() dispc_wb_enable()
+> dispc_wb_setup() dispc_enable_fifomerge() dispc_wb_set_channel_in()
 >=20
 > This was partially found by using a static code analysis program called=
  cppcheck.
@@ -38,20 +31,20 @@ On 21/12/14 19:02, Rickard Strandqvist wrote:
 > Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital=
 =2Ese>
 > ---
->  drivers/video/fbdev/omap2/dss/rfbi.c |  297 --------------------------=
+>  drivers/video/fbdev/omap2/dss/dispc.c |  124 -------------------------=
 --------
->  1 file changed, 297 deletions(-)
+>  drivers/video/fbdev/omap2/dss/dss.h   |   12 ----
+>  2 files changed, 136 deletions(-)
 
-It's true those functions are not used anywhere, but RFBI is currently
-marked as BROKEN so it cannot be compiled and the functions do not do
-any harm. I'd rather keep them, as they give an insight how the rfbi
-should work if and when someone will fix the driver.
+The functions are for DSS's write-back functionality. We're going to
+implement that hopefully sometime soon, so I don't want to remove those
+functions.
 
  Tomi
 
 
 
---cRad0NA9F68M9i05cAJSvgnjeS0j0FxFf
+--kj63F3rPpMtD0LpUpJHXREUhaUAa5NA2C
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -59,19 +52,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUtPrXAAoJEPo9qoy8lh71k/kP/0Q2zE/mX6PNjrgc69EMybQX
-bBHal1CCTk6o5wyJVdStqJhTE6BjlER3Yj1pqFDeXuW8j3bq9wbY8pm4v1Heuk/6
-lK/wbNsnFTCZMDx4kvnbdMn74/HqwLEcR6oK1SRXNN+zjPua1r0T/iJWPRIs7pKf
-fdqMnd13DyFUOTejTneqSx9JAIpggAWVE7SXgkC0+vNa7XWln5F1HU0e10zp3M7g
-hgQPOhw4QGxS+icgjgV3gRCVfH3hQw1ajQ4Tmp8cariU8kz+s7oKftUB4L+JgzU4
-I3HjNYHv51Aj1YdX2yh19/SxDHkGax3Izgjc4WiDnilpz4HMcFHNHKEEpPw7c2Jh
-X5v9YF5FWMaQz76QUW+hcsZMuREQVlysBtzYA0RnJCR5XBCKNIjvrOAhtv+sjcEk
-p+cuYKokyL9l5Z0ljhXXyxm71/pK5JqYdMbtUXZ+/Hon4qy8qM37x5Eu+9FhmVvH
-CGpxark838ldu5DQTij+7pHCbvorw5ijuOGpX0BfB7uLe/hPpEdgd92MK65ksaiI
-KyvTeMyJu4aPlhge4XGpcxrZBzV6oJyHzWkRfkfKYWstxuf9/vo+ZV9Rk0cmHgy3
-2ViwmMJMq6fZ5iL8AJeT72YKs6lY9zqNqqfwTPG4ijv4PV8WIlBatbadYLXn9k3P
-XJ0wwBTKbfce8c06vWts
-=KO+6
+iQIcBAEBAgAGBQJUtQAPAAoJEPo9qoy8lh71xXAP/R6mRGjCizsEHhHRUPcbSYF0
+4DfVaQnO1+95wOAnA5gXkQR4yBVIgaIIPqMoxq9jyu9RKqaJYP4M1rdvTjIJiYEL
+2Bb8yHlApfQQ4B5LOXIW6c4+srGwOrAk2lX4yGkfVRS4QhOLjkyHs+TLyNmKHsM3
+v1xliHCvkKx3qcxJNSU+DVWhRyrCS3MY0gCyK2/k5gfPwlrCdDmL9WDJYzN/gNMU
+svN7s0JhW7SQzicrCmpfK9NkHNcwiQnsRlOiUvrKi1MckpV1K3bvZp6cXXhpTstn
+QOn+Nr1vdYBzLevQas917OtAC+Xp5wFYluIJnczJjxjO+3QXeQ2/xdvTmWrm1bu3
+UUOwPwpUibwPRAyI+IHBE2cg28RAw592L2qsv74xvY2HXcr5o/gMtxDZr0oqaLXq
+SJu+t9JK6EkrYHkwGSxb5MUwtK+uuAs5eFOmLZGEHwmZgoVuZrwQpyVTNF7AwCG/
+ay82NgzjLfZgh74N0GD2Acs37fwf4a/miHg4QGpH5LmpZLUOj2ocQOsoN47OoOAR
+MnAd37C/7aRjMPPnhYZTq99pe2zZTDZUcKn5aAUk1qD7cST20rZe1NTRnpPHqQ1l
+TTjaqzuUNbuIq2ziU+zBLiplKPrfUlWvZk1yrnSlBJoa4fo6cjiZ0n+40vHbFrHk
+mM7PfyW4QXTCMLx0k2Ew
+=R4vl
 -----END PGP SIGNATURE-----
 
---cRad0NA9F68M9i05cAJSvgnjeS0j0FxFf--
+--kj63F3rPpMtD0LpUpJHXREUhaUAa5NA2C--
