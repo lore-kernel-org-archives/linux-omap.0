@@ -1,57 +1,120 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 3/6] net: davinci_emac: Free clock after checking the
- frequency
-Date: Tue, 13 Jan 2015 16:05:22 -0500 (EST)
-Message-ID: <20150113.160522.558845761776458001.davem@davemloft.net>
-References: <1421177368-19756-4-git-send-email-tony@atomide.com>
-	<54B57688.6000908@amd.com>
-	<20150113195415.GG2419@atomide.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [RFC PATCH 1/3] of/device: manage resources similar to platform_device_add
+Date: Tue, 13 Jan 2015 15:25:49 -0600
+Message-ID: <54B58D5D.5070508@ti.com>
+References: <1420651854-17768-1-git-send-email-s-anna@ti.com> <1420651854-17768-2-git-send-email-s-anna@ti.com> <CAL_Jsq+79cnCiww6g8ejki0yT59-N8eucHC3QGMbsXG4DksWuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:36123 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167AbbAMVF1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 16:05:27 -0500
-In-Reply-To: <20150113195415.GG2419@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAL_Jsq+79cnCiww6g8ejki0yT59-N8eucHC3QGMbsXG4DksWuQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pawel Moll <pawel.moll@arm.com>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, Felipe Balbi <balbi@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: thomas.lendacky@amd.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, b.hutchman@gmail.com, balbi@ti.com
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 13 Jan 2015 11:54:16 -0800
+Hi Rob,
 
-> * Tom Lendacky <thomas.lendacky@amd.com> [150113 11:51]:
->> On 01/13/2015 01:29 PM, Tony Lindgren wrote:
->> >We only use clk_get() to get the frequency, the rest is done by
->> >the runtime PM calls. Let's free the clock too.
->> >
->> >Cc: Brian Hutchinson <b.hutchman@gmail.com>
->> >Cc: Felipe Balbi <balbi@ti.com>
->> >Signed-off-by: Tony Lindgren <tony@atomide.com>
->> >---
->> >  drivers/net/ethernet/ti/davinci_emac.c | 1 +
->> >  1 file changed, 1 insertion(+)
->> >
->> >diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
->> >index deb43b3..e9efc74 100644
->> >--- a/drivers/net/ethernet/ti/davinci_emac.c
->> >+++ b/drivers/net/ethernet/ti/davinci_emac.c
->> >@@ -1881,6 +1881,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
->> >  		return -EBUSY;
->> >  	}
->> >  	emac_bus_frequency = clk_get_rate(emac_clk);
->> >+	clk_put(emac_clk);
->> 
->> The devm_clk_get call is used to get the clock so either a devm_clk_put
->> needs to be used here or just let the devm_ call do its thing and
->> automatically do the put when the module is unloaded.
+On 01/13/2015 02:38 PM, Rob Herring wrote:
+> On Wed, Jan 7, 2015 at 11:30 AM, Suman Anna <s-anna@ti.com> wrote:
+>> Drivers can use of_platform_populate() to create platform devices
+>> for children of the device main node, and a complementary API
+>> of_platform_depopulate() is provided to delete these child platform
+>> devices. The of_platform_depopulate() leverages the platform API
+>> for performing the cleanup of these devices.
+>>
+>> The platform device resources are managed differently between
+>> of_device_add and platform_device_add, and this asymmetry causes
+>> a kernel oops in platform_device_del during removal of the resources.
+>> Manage the platform device resources similar to platform_device_add
+>> to fix this kernel oops.
 > 
-> Thanks good catch, updated patch below.
+> This is a known issue and has been attempted to be fixed before (I
+> believe there is a revert in mainline). The problem is there are known
+> devicetrees which have overlapping resources and they will break with
+> your change.
 
-Please, once all the feedback has been addressed, repost the entire
-series.
+Are you referring to 02bbde7849e6 (Revert "of: use
+platform_device_add")? That one seems to be in registration path, and
+this crash is in the unregistration path. If so, to fix the crash,
+should we be skipping the release_resource() for now in
+platform_device_del for DT nodes, or replace platform_device_unregister
+with of_device_unregister in of_platform_device_destroy()?
 
-THanks.
+This is a common crash and we cannot use of_platform_depopulate() today
+in drivers to complement of_platform_populate().
+
+Also, the platform_data crash is independent of this, I could reproduce
+that one even with using of_device_unregister in a loop in driver remove.
+
+regards
+Suman
+
+> 
+> Rob
+> 
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> ---
+>>  drivers/of/device.c | 38 +++++++++++++++++++++++++++++++++++++-
+>>  1 file changed, 37 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>> index 46d6c75c1404..fa27c1c71f29 100644
+>> --- a/drivers/of/device.c
+>> +++ b/drivers/of/device.c
+>> @@ -50,6 +50,8 @@ EXPORT_SYMBOL(of_dev_put);
+>>
+>>  int of_device_add(struct platform_device *ofdev)
+>>  {
+>> +       int i, ret;
+>> +
+>>         BUG_ON(ofdev->dev.of_node == NULL);
+>>
+>>         /* name and id have to be set so that the platform bus doesn't get
+>> @@ -63,7 +65,41 @@ int of_device_add(struct platform_device *ofdev)
+>>         if (!ofdev->dev.parent)
+>>                 set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
+>>
+>> -       return device_add(&ofdev->dev);
+>> +       for (i = 0; i < ofdev->num_resources; i++) {
+>> +               struct resource *p, *r = &ofdev->resource[i];
+>> +
+>> +               if (!r->name)
+>> +                       r->name = dev_name(&ofdev->dev);
+>> +
+>> +               p = r->parent;
+>> +               if (!p) {
+>> +                       if (resource_type(r) == IORESOURCE_MEM)
+>> +                               p = &iomem_resource;
+>> +                       else if (resource_type(r) == IORESOURCE_IO)
+>> +                               p = &ioport_resource;
+>> +               }
+>> +
+>> +               if (p && insert_resource(p, r)) {
+>> +                       dev_err(&ofdev->dev, "failed to claim resource %d\n",
+>> +                               i);
+>> +                       ret = -EBUSY;
+>> +                       goto failed;
+>> +               }
+>> +       }
+>> +
+>> +       ret = device_add(&ofdev->dev);
+>> +       if (ret == 0)
+>> +               return ret;
+>> +
+>> +failed:
+>> +       while (--i >= 0) {
+>> +               struct resource *r = &ofdev->resource[i];
+>> +               unsigned long type = resource_type(r);
+>> +
+>> +               if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
+>> +                       release_resource(r);
+>> +       }
+>> +       return ret;
+>>  }
+>>
+>>  int of_device_register(struct platform_device *pdev)
+>> --
+>> 2.2.1
+>>
