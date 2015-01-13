@@ -1,59 +1,110 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] net: davinci_emac: Free clock after checking the
- frequency
-Date: Tue, 13 Jan 2015 12:15:30 -0800
-Message-ID: <20150113201529.GI2419@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 5/6] net: davinci_emac: Fix ioremap for devices with MDIO
+ within the EMAC address space
+Date: Tue, 13 Jan 2015 14:21:49 -0600
+Message-ID: <20150113202149.GZ16533@saruman>
 References: <1421177368-19756-1-git-send-email-tony@atomide.com>
- <1421177368-19756-4-git-send-email-tony@atomide.com>
- <54B57688.6000908@amd.com>
- <20150113195035.GS16533@saruman>
+ <1421177368-19756-6-git-send-email-tony@atomide.com>
+ <20150113195405.GU16533@saruman>
+ <20150113195957.GH2419@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LG5jgFgJbJFFiAfj"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19048 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751098AbbAMUTS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 15:19:18 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:44156 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113AbbAMUWd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2015 15:22:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20150113195035.GS16533@saruman>
+In-Reply-To: <20150113195957.GH2419@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-* Felipe Balbi <balbi@ti.com> [150113 11:54]:
-> On Tue, Jan 13, 2015 at 01:48:24PM -0600, Tom Lendacky wrote:
-> > On 01/13/2015 01:29 PM, Tony Lindgren wrote:
-> > >We only use clk_get() to get the frequency, the rest is done by
-> > >the runtime PM calls. Let's free the clock too.
-> > >
-> > >Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> > >Cc: Felipe Balbi <balbi@ti.com>
-> > >Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > >---
-> > >  drivers/net/ethernet/ti/davinci_emac.c | 1 +
-> > >  1 file changed, 1 insertion(+)
-> > >
-> > >diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-> > >index deb43b3..e9efc74 100644
-> > >--- a/drivers/net/ethernet/ti/davinci_emac.c
-> > >+++ b/drivers/net/ethernet/ti/davinci_emac.c
-> > >@@ -1881,6 +1881,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
-> > >  		return -EBUSY;
+--LG5jgFgJbJFFiAfj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jan 13, 2015 at 11:59:58AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [150113 11:57]:
+> > On Tue, Jan 13, 2015 at 11:29:27AM -0800, Tony Lindgren wrote:
+> > > Some devices like dm816x have the MDIO registers within the first EMAC
+> > > instance address space. Let's fix the issue by allowing to pass an
+> > > optional second IO range for the EMAC control register area.
+> > >=20
+> > > Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> > > Cc: Felipe Balbi <balbi@ti.com>
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > ---
+> > >  drivers/net/ethernet/ti/davinci_emac.c | 15 ++++++++++++---
+> > >  1 file changed, 12 insertions(+), 3 deletions(-)
+> > >=20
+> > > diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/eth=
+ernet/ti/davinci_emac.c
+> > > index 4c8d82c..0342273 100644
+> > > --- a/drivers/net/ethernet/ti/davinci_emac.c
+> > > +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> > > @@ -1877,7 +1877,7 @@ davinci_emac_of_get_pdata(struct platform_devic=
+e *pdev, struct emac_priv *priv)
+> > >  static int davinci_emac_probe(struct platform_device *pdev)
+> > >  {
+> > >  	int rc =3D 0;
+> > > -	struct resource *res;
+> > > +	struct resource *res, *res_ctrl;
+> > >  	struct net_device *ndev;
+> > >  	struct emac_priv *priv;
+> > >  	unsigned long hw_ram_addr;
+> > > @@ -1936,11 +1936,20 @@ static int davinci_emac_probe(struct platform=
+_device *pdev)
+> > >  		rc =3D PTR_ERR(priv->remap_addr);
+> > >  		goto no_pdata;
 > > >  	}
-> > >  	emac_bus_frequency = clk_get_rate(emac_clk);
-> > >+	clk_put(emac_clk);
-> > 
-> > The devm_clk_get call is used to get the clock so either a devm_clk_put
-> > needs to be used here or just let the devm_ call do its thing and
-> > automatically do the put when the module is unloaded.
-> 
-> instead, if you really don't need the clock for anything other than
-> getting its rate, why don't you just remove devm_ prefix from clk_get()?
+> > > +
+> > > +	res_ctrl =3D platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> > > +	if (res_ctrl) {
+> >=20
+> > devm_ioremap_resource() will check for res_ctrl being a valid pointer,
+> > perhaps below would be slightly better ?
+> >=20
+> >=20
+> > 	res_ctrl =3D platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> > 	priv->ctrl_base =3D devm_ioremap_resource(&pdev->dev, res_ctrl);
+> > 	if (IS_ERR(priv->ctrl_base))
+> > 		priv->ctrl_base =3D priv->remap_addr + pdata->ctrl_mod_reg_offset;
+> >=20
+>=20
+> We have a pile of devices using just one ioremap area so the second
+> ioremap area needs to be optional. That's why we only do it based on
+> if (res_ctrl).
 
-That would make the fix two lines instead of one :) I guess up to David
-to figure out which he prefers, I don't really have a preference here.
+fair enough
 
-Regards,
+--=20
+balbi
 
-Tony
+--LG5jgFgJbJFFiAfj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUtX5dAAoJEIaOsuA1yqRE+HAP/RMr5mCQHNBG/iQ8o68xuEWn
+H/tjsHVn1Uh8LXrrUSEoJOol8jEQbbIOMyb8vo5A3iRn84RR8q3QnOTEF+EvxqC6
+PKj3Z+icThq7fzSV857uWrUPcbuDEbuqWFIPVtcoALbOt9olAJOlF5aN1WnySuBV
+tMIgoJF1fZBGA61IvDv1ZW8T61RJh6NQYHX+VVXzGxlLz1kg+uS9erO2SdiqQKyn
+e4PQVKRFtFsq9azXXnp7wZlPe08IW+JpgoLFgmxt7NLsveC1thH+o+ErFcQMKFY6
+0ZiXP07NQOOsOvpmjW/EImcdI7XQx6oaL34QK3kNOevnD3wC4eW/p8LRAvXSR/lX
+LqSNkIzOnv1M3rOmQw2qeNHjCXxWw8wixfjJFzweuYG7OJvLDtoiKaqiMCnaNAIj
+KKl6kWEgQjFH567tRhMm+aULptP3unKoVRv0wR4YlHF0/tYfXR6I8dKCwOS2LvnL
+oj5FVy8MZtMwpGVsa8zFaoD/3hTkSoamaWNc3Yk3DRD5fhwiZATQY0TRzHP2zgMw
+K8k6hpRRCr/OLgn0TpjciYoA+UXB0tOBcT4dS63BrqjWD/SJ33Vomxg0gQoofeC6
+IYQDfQm5AW4ZHVpHmf25m1ozSCTxluxf5h1VcpWYZORpgfZcnxiJRpeedCJpJ4Bw
+JsPuHLjktyCjmx1XHmbv
+=S7Us
+-----END PGP SIGNATURE-----
+
+--LG5jgFgJbJFFiAfj--
