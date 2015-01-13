@@ -1,40 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 3/3] arm: dts: omap3-gta04: Add handling for tv output
-Date: Tue, 13 Jan 2015 07:56:35 -0800
-Message-ID: <20150113155634.GD2419@atomide.com>
-References: <1417642402-20538-1-git-send-email-marek@goldelico.com>
- <1417642402-20538-4-git-send-email-marek@goldelico.com>
- <54B4EF43.50300@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: cm-t3x: add NAND support
+Date: Tue, 13 Jan 2015 08:01:14 -0800
+Message-ID: <20150113160113.GE2419@atomide.com>
+References: <54A00BD6.8010507@compulab.co.il>
+ <1419777049-25271-1-git-send-email-lifshitz@compulab.co.il>
+ <54A151F2.9010904@ti.com>
+ <54A25696.80608@compulab.co.il>
+ <20150108001648.GQ13010@atomide.com>
+ <54AE5C3F.7010306@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51897 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751375AbbAMQFD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 11:05:03 -0500
 Content-Disposition: inline
-In-Reply-To: <54B4EF43.50300@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Marek Belisko <marek@goldelico.com>, plagnioj@jcrosoft.com, bcousson@baylibre.com, hns@goldelico.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+In-Reply-To: <54AE5C3F.7010306@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [150113 02:14]:
-> On 03/12/14 23:33, Marek Belisko wrote:
-> > Add handling for gta04 tv out chain:
-> > venc -> opa362 -> svideo
+* Roger Quadros <rogerq@ti.com> [150108 02:33]:
+> On 08/01/15 02:16, Tony Lindgren wrote:
+> > * Dmitry Lifshitz <lifshitz@compulab.co.il> [141229 23:42]:
+> >> On 12/29/2014 03:06 PM, Roger Quadros wrote:
+> >>> On 28/12/14 16:30, Dmitry Lifshitz wrote:
+> >>>> --- a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> >>>> +++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
+> >>>> @@ -50,7 +50,8 @@
+> >>>>  #include "omap-gpmc-smsc911x.dtsi"
+> >>>>
+> >>>>  &gpmc {
+> >>>> -	ranges = <5 0 0x2c000000 0x01000000>;
+> >>>> +	ranges = <5 0 0x2c000000 0x01000000>, /* CM-T3x30 SMSC9x Eth */
+> >>>> +		 <0 0 0x00000000 0x01000000>; /* CM-T3x NAND */
+> >>>
+> >>> Isn't this ranges property redundant as it will anyways be overridden by the board specific dts?
+> >>>
+> >>
+> >> The ranges are specified here (and other files below) by design.
+> >>
+> >> We built a tree like structure to organize DT files -
+> >> d234e4239 "ARM: dts: sbc-t3x: refactor DT support"
+> >>
+> >> It allows to inherit/override properties common for different boards.
+> >>
+> >> Our customers do not have to deal with a correct GPMC ranges settings, once
+> >> they base on omap3-cm-t3x.dts core module DT file (in case they do not
+> >> connect additional device to the bus).
+> >>
+> >> This is the point of Igor's comment to the previous patch version.
 > > 
-> > Use invert-polarity in venc node because opa362
-> > is doing polarity inversion also.
-> > 
-> > Signed-off-by: Marek Belisko <marek@goldelico.com>
-> > ---
-> >  arch/arm/boot/dts/omap3-gta04.dtsi | 49 ++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 49 insertions(+)
+> > Roger, do you still have pending issues with this patch?
 > 
-> Looks fine to me.
+> Sorry missed this one. Thanks for the explanations Dmitry.
 > 
-> Tony, do you want to pick this up? I can take the first two patches via
-> fbdev.
+> Acked-by: Roger Quadros <rogerq@ti.com>
 
-OK will pick the dtsi change.
-
-Thanks,
+Applying into omap-for-v3.20/dt thanks.
 
 Tony
