@@ -1,77 +1,70 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [RFC 0/5] i2c: omap: new fixes 2
-Date: Tue, 13 Jan 2015 11:04:42 +0100
-Message-ID: <20150113100442.GE1059@katana>
-References: <1417617242-16869-1-git-send-email-al.kochet@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 3/3] arm: dts: omap3-gta04: Add handling for tv output
+Date: Tue, 13 Jan 2015 12:11:15 +0200
+Message-ID: <54B4EF43.50300@ti.com>
+References: <1417642402-20538-1-git-send-email-marek@goldelico.com> <1417642402-20538-4-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pql/uPZNXIm1JCle"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1417617242-16869-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+	protocol="application/pgp-signature";
+	boundary="FsKh27OBDuG4WVkpv3ap5Q76vqlvrDUU5"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1417642402-20538-4-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
---Pql/uPZNXIm1JCle
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--FsKh27OBDuG4WVkpv3ap5Q76vqlvrDUU5
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 03, 2014 at 06:33:57PM +0400, Alexander Kochetkov wrote:
-> This pacth series intended for fixing problem reported
-> by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> here[1]
+On 03/12/14 23:33, Marek Belisko wrote:
+> Add handling for gta04 tv out chain:
+> venc -> opa362 -> svideo
 >=20
-> One of first four patched could fix the problem.
-> Last patch provide event trace so I could resolve problem.
-> It could be applied using 'git am' or 'patch -p1 ...'
+> Use invert-polarity in venc node because opa362
+> is doing polarity inversion also.
 >=20
-> Patches are rebased on branch 'i2c/for-next' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux
-> (6e79807443cba7397cd855ed29d6faba51d4c893)
->=20
-> Tony, could you check, does the series fix the problem reported[1]?
-> If yes, could you bisect and point commit that solve.
-> If no, could you provide trace output (with or without the patches
-> from series).
-> If no, could you check does i2c-omap.c from commit ca1f8da9ac5ce6e63d8f69=
-33f83fabc1f3f961f4.
-> (the commit before my changes to kernel) work for you?
->=20
-> Thank you.
->=20
-> Regards,
-> Alexander.
+> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 49 ++++++++++++++++++++++++++++++=
+++++++++
+>  1 file changed, 49 insertions(+)
 
-Thanks for working hard on this driver. I'll mark these patches as RFC,
-since they did not get any additional tags from other people. If they
-are intended for upstream, please resend a rebased version.
+Looks fine to me.
 
-   Wolfram
+Tony, do you want to pick this up? I can take the first two patches via
+fbdev.
+
+ Tomi
 
 
---Pql/uPZNXIm1JCle
+
+--FsKh27OBDuG4WVkpv3ap5Q76vqlvrDUU5
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUtO25AAoJEBQN5MwUoCm2WTIP/3yeDfwW+YPU5jX22S2voNSr
-zUvokzfqpB0PpphFc5MB8Xw3T/+Q9pkKLKPPT9UtaMUDWVVev8mZQGU1aZxzzcPY
-Gg8518XkM3beD3msc62VAB/wveDctN5UnI0/mXm8i+M5M/wqlJGKvWL9RLow6N5E
-Oovnm72jEImSg6vJPog2wDFh0NETjgym6U1pl6kyoBmS6jWqzmw72CM8Djjs7nJL
-8J9XpFqdlSAdX8KdslBAzoAojPfrNK1mPEJkdHocywb6U7eNJEroOZpgK5yhAQ8l
-SjKA3QchtdCUhqaWHXVvs1Bv9QJxCBC5UmHWEOFIfKz4/WNE0QudlhSKEZnFSLQa
-2v+z5o/io+enDGGo4NfPJca3bVKWo0ClyK9M2wBEO9IF2xwXsW1cTQjdpCbC0Fq8
-LDkZ7G9OSZMfdtw9CZ56/nOxKf83wUYUYX3/pKN3kk6+pFdQaW53HEa+jmseWDsA
-KijQeCbIgwCvygaSTMa0DR+ltqCe5qU73vNsHnvk8wxplXptvnFoJtGJTp1nI0Q6
-7wYL7iImfYnu1klUR1DRYYtrQbOtL9CEGSUKHmop2uwRNkUQ67iuVcrF20W4o7tW
-8A5KPV7a6V148QvUaO98CvV7QFAyRIENJIW7lnNY3NQtEpbdYpOEh9IMAIfGUu5P
-nz2hPgT2sFJYDvBzCvw0
-=ar5K
+iQIcBAEBAgAGBQJUtO9DAAoJEPo9qoy8lh71qwgP/0WaNBxbpL5Z0jyxf2NkpKHJ
+C5bKasUpileQUe4LxHe0VZzwiOrKDC4RcpdYRoo2c5+MrEmVRCuPEYWx64h2Yvvq
+kLc+aJH+vmSBfej/CNgieRvElDaPy7ESzBxSIZT1znAkWYvzeyWclp1SX98cgJgg
+GnB/bVSN3xHWuKfYDIp/+yyiwxSHLuKTsjPCQ/fEmovdXL35vZSePmeQEO6vzvol
+AltR1EC/Nvgd2Yz/fiZtStwT8rKrsDV15QufnLQf+b5maIFzO4Erd564pbLIOu2c
+xOoG3Gwc5lWlRqBiZxL7Q6wJEOGO+IBOnmw+btiJbemeWOuLmUl0Owp/npz6c4pr
+wq5jJ0SHxe5XksFq9FKmqoBK03WFmv8syRtrBZgFlI8vidJGUw/4fpPMx70c5lmB
+tLoe6prLlCTxebqamCTjwwtROWBkQg9CRljzR5yRjUPWQUoleMZkvdSjMJWedfGH
+/Nm51fnpzWE59uRMd5hnrmlVG3t7dN6YDKvlrUFDIP8Gvv9Ep6s16I0VIbf4huo/
+Yj7jyl47LMpewUCzhragJ2anvpTjJJFNcWdgLYxTT7mokgA5+YTsPge94HQ8Sfzk
+urxnggTsg+3tEQ9qOn9HPPcfs0YsPIXJyjl3so091pgLHwyneOLAwCgQ5JOeskoc
+97Z7hmnsaRcjHVnc0Pl8
+=sNxd
 -----END PGP SIGNATURE-----
 
---Pql/uPZNXIm1JCle--
+--FsKh27OBDuG4WVkpv3ap5Q76vqlvrDUU5--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
