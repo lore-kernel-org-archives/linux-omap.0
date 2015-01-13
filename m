@@ -1,60 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/4] phy: ti-pipe3: fixes for 3.19-rc
-Date: Tue, 13 Jan 2015 07:54:09 -0800
-Message-ID: <20150113155409.GA2419@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 3/4] ARM: dts: DRA7: Fix SATA PHY node
+Date: Tue, 13 Jan 2015 07:54:38 -0800
+Message-ID: <20150113155437.GB2419@atomide.com>
 References: <1421151802-7396-1-git-send-email-rogerq@ti.com>
+ <1421151802-7396-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37464 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751960AbbAMP54 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 10:57:56 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1421151802-7396-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1421151802-7396-4-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: kishon-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, nm@ti.com, balbi@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [150113 04:26]:
-> Hi,
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150113 04:26]:
+> The sata_ref_clk is a reference clock to the SATA phy.
+> This fixes SATA malfunction across suspend/resume or when
+> SATA driver is used as a module.
 > 
-> During system suspend L3INIT_960M_GFCLK and L3INIT_480M_GFCLK clocks remain
-> active on the DRA7 platform. This is because the pipe3 driver doesn't shut
-> them off as part of .suspend(). Patch 1 addresses this issue.
-> 
-> SATA on both OMAP5 and DRA7 breaks when SATA drive is plugged in after a
-> system suspend/resume or if AHCI_PLATFORM driver is used as module.
-> Patches 2,3,4 fix it.
-> 
-> Hope to get these patches in through the 3.19-rc cycle.
-> 
-> Tony,
-> 
-> Do you wish to take the DTS patches or let them go in through PHY tree?
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-Those look ok to me to merge along with the fixes, will ack those two.
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Regards,
-
-Tony
-
-> Changelog
-> - v3 : Commit message updated. dts changes moved to separate patch.
-> - v2 : Don't break SATA with old DTB.
+> ---
+>  arch/arm/boot/dts/dra7.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> Roger Quadros (4):
->   phy: ti-pipe3: Disable clocks on system suspend
->   phy: ti-pipe3: Fix SATA across suspend/resume
->   ARM: dts: DRA7: Fix SATA PHY node
->   ARM: dts: OMAP5: Fix SATA PHY node
-> 
->  arch/arm/boot/dts/dra7.dtsi  |   4 +-
->  arch/arm/boot/dts/omap5.dtsi |   4 +-
->  drivers/phy/phy-ti-pipe3.c   | 142 +++++++++++++++++++++++++++++++++----------
->  3 files changed, 115 insertions(+), 35 deletions(-)
-> 
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 22771bc..8d2a635 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -1090,8 +1090,8 @@
+>  				      <0x4A096800 0x40>; /* pll_ctrl */
+>  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>  				ctrl-module = <&omap_control_sata>;
+> -				clocks = <&sys_clkin1>;
+> -				clock-names = "sysclk";
+> +				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+> +				clock-names = "sysclk", "refclk";
+>  				#phy-cells = <0>;
+>  			};
+>  
 > -- 
 > 2.1.0
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
