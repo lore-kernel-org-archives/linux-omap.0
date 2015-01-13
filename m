@@ -1,162 +1,300 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Tue, 13 Jan 2015 15:37:52 -0800
-Message-ID: <1421192272-20754-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/4] ARM: dts: Add basic clocks for dm816x
+Date: Tue, 13 Jan 2015 15:37:51 -0800
+Message-ID: <1421192272-20754-4-git-send-email-tony@atomide.com>
 References: <1421192272-20754-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17418 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17367 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752384AbbAMXlr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 18:41:47 -0500
+	with ESMTP id S1752384AbbAMXlp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 18:41:45 -0500
 In-Reply-To: <1421192272-20754-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-This allows booting the device with basic functionality.
-
-Note that at least on my revision c board the DDR3 does
-not seem to work properly and only some of the memory
-can be reliably used.
-
-Also, the mainline u-boot does not seem to properly
-initialize the ethernet, so I've been using the old TI
-u-boot at:
-
-http://arago-project.org/git/projects/?p=u-boot-omap3.git;a=summary
+The clocks on dm816x are a bit different from the other omap
+variants. The clocks are sourced from a FAPLL (Flying Adder PLL)
+unlike on other omaps. Other than that, it's a similar setup
+to am33xx with extra muxes and dividers that can be defined
+as existing component clocks.
 
 Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/Makefile       |   1 +
- arch/arm/boot/dts/dm8168-evm.dts | 105 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 106 insertions(+)
- create mode 100644 arch/arm/boot/dts/dm8168-evm.dts
+ arch/arm/boot/dts/dm816x-clocks.dtsi | 250 +++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dm816x.dtsi        |   1 +
+ 2 files changed, 251 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dm816x-clocks.dtsi
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 91bd5bd..fe15c7a 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -348,6 +348,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
- 	omap3-sbc-t3730.dtb \
- 	omap3-thunder.dtb \
- 	omap3-zoom3.dtb
-+dtb-$(CONFIG_SOC_TI81XX) += dm8168-evm.dtb
- dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
- 	am335x-bone.dtb \
- 	am335x-boneblack.dtb \
-diff --git a/arch/arm/boot/dts/dm8168-evm.dts b/arch/arm/boot/dts/dm8168-evm.dts
+diff --git a/arch/arm/boot/dts/dm816x-clocks.dtsi b/arch/arm/boot/dts/dm816x-clocks.dtsi
 new file mode 100644
-index 0000000..9acd4ff
+index 0000000..50d9d33
 --- /dev/null
-+++ b/arch/arm/boot/dts/dm8168-evm.dts
-@@ -0,0 +1,105 @@
++++ b/arch/arm/boot/dts/dm816x-clocks.dtsi
+@@ -0,0 +1,250 @@
 +/*
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
-+/dts-v1/;
 +
-+#include "dm816x.dtsi"
-+
-+/ {
-+	model = "DM8168 EVM";
-+	compatible = "ti,dm8168-evm", "ti,dm8168";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x40000000	/* 1 GB */
-+		       0xc0000000 0x40000000>;	/* 1 GB */
++&scrm {
++	main_fapll: main_fapll {
++		#clock-cells = <1>;
++		compatible = "ti,dm816-fapll-clock";
++		reg = <0x400 0x40>;
++		clocks = <&sys_clkin_ck &sys_clkin_ck>;
++		clock-indices = <1>, <2>, <3>, <4>, <5>,
++				<6>, <7>;
++		clock-output-names = "main_pll_clk1",
++				     "main_pll_clk2",
++				     "main_pll_clk3",
++				     "main_pll_clk4",
++				     "main_pll_clk5",
++				     "main_pll_clk6",
++				     "main_pll_clk7";
 +	};
 +
-+	/* FDC6331L controlled by SD_POW pin */
-+	vmmcsd_fixed: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vmmcsd_fixed";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
++	ddr_fapll: ddr_fapll {
++		#clock-cells = <1>;
++		compatible = "ti,dm816-fapll-clock";
++		reg = <0x440 0x30>;
++		clocks = <&sys_clkin_ck &sys_clkin_ck>;
++		clock-indices = <1>, <2>, <3>, <4>;
++		clock-output-names = "ddr_pll_clk1",
++				     "ddr_pll_clk2",
++				     "ddr_pll_clk3",
++				     "ddr_pll_clk4";
 +	};
-+};
 +
-+&i2c1 {
-+	extgpio0: pcf8575@20 {
-+		compatible = "nxp,pcf8575";
-+		reg = <0x20>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
++	video_fapll: video_fapll {
++		#clock-cells = <1>;
++		compatible = "ti,dm816-fapll-clock";
++		reg = <0x470 0x30>;
++		clocks = <&sys_clkin_ck &sys_clkin_ck>;
++		clock-indices = <1>, <2>, <3>;
++		clock-output-names = "video_pll_clk1",
++				     "video_pll_clk2",
++				     "video_pll_clk3";
 +	};
-+};
 +
-+&i2c2 {
-+	extgpio1: pcf8575@20 {
-+		compatible = "nxp,pcf8575";
-+		reg = <0x20>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+	};
-+};
-+
-+&gpmc {
-+	ranges = <0 0 0x04000000 0x01000000>;	/* CS0: 16MB for NAND */
-+
-+	nand@0,0 {
-+		linux,mtd-name= "micron,mt29f2g16aadwp";
-+		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ti,nand-ecc-opt = "bch8";
-+		nand-bus-width = <16>;
-+		gpmc,device-width = <2>;
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <44>;
-+		gpmc,cs-wr-off-ns = <44>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <34>;
-+		gpmc,adv-wr-off-ns = <44>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <40>;
-+		gpmc,oe-on-ns = <0>;
-+		gpmc,oe-off-ns = <54>;
-+		gpmc,access-ns = <64>;
-+		gpmc,rd-cycle-ns = <82>;
-+		gpmc,wr-cycle-ns = <82>;
-+		gpmc,wait-on-read = "true";
-+		gpmc,wait-on-write = "true";
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		partition@0 {
-+			label = "X-Loader";
-+			reg = <0 0x80000>;
-+		};
-+		partition@0x80000 {
-+			label = "U-Boot";
-+			reg = <0x80000 0x1c0000>;
-+		};
-+		partition@0x1c0000 {
-+			label = "Environment";
-+			reg = <0x240000 0x40000>;
-+		};
-+		partition@0x280000 {
-+			label = "Kernel";
-+			reg = <0x280000 0x500000>;
-+		};
-+		partition@0x780000 {
-+			label = "Filesystem";
-+			reg = <0x780000 0xf880000>;
-+		};
++	audio_fapll: audio_fapll {
++		#clock-cells = <1>;
++		compatible = "ti,dm816-fapll-clock";
++		reg = <0x4a0 0x30>;
++		clocks = <&main_fapll 7>, < &sys_clkin_ck>;
++		clock-indices = <1>, <2>, <3>, <4>, <5>;
++		clock-output-names = "audio_pll_clk1",
++				     "audio_pll_clk2",
++				     "audio_pll_clk3",
++				     "audio_pll_clk4",
++				     "audio_pll_clk5";
 +	};
 +};
 +
-+&mmc1 {
-+	vmmc-supply = <&vmmcsd_fixed>;
++&scrm_clocks {
++	secure_32k_ck: secure_32k_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++
++	sys_32k_ck: sys_32k_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++
++	tclkin_ck: tclkin_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++
++	sys_clkin_ck: sys_clkin_ck {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <27000000>;
++	};
 +};
++
++/* 0x48180000 */
++&prcm_clocks {
++	clkout_pre_ck: clkout_pre_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&main_fapll 5 &ddr_fapll 1 &video_fapll 1
++			  &audio_fapll 1>;
++		reg = <0x100>;
++	};
++
++	clkout_div_ck: clkout_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&clkout_pre_ck>;
++		ti,bit-shift = <3>;
++		ti,max-div = <8>;
++		reg = <0x100>;
++	};
++
++	clkout_ck: clkout_ck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&clkout_div_ck>;
++		ti,bit-shift = <7>;
++		reg = <0x100>;
++	};
++
++	/* CM_DPLL clocks p1795 */
++	sysclk1_ck: sysclk1_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&main_fapll 1>;
++		ti,max-div = <7>;
++		reg = <0x0300>;
++	};
++
++	sysclk2_ck: sysclk2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&main_fapll 2>;
++		ti,max-div = <7>;
++		reg = <0x0304>;
++	};
++
++	sysclk3_ck: sysclk3_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&main_fapll 3>;
++		ti,max-div = <7>;
++		reg = <0x0308>;
++	};
++
++	sysclk4_ck: sysclk4_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&main_fapll 4>;
++		ti,max-div = <1>;
++		reg = <0x030c>;
++	};
++
++	sysclk5_ck: sysclk5_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&sysclk4_ck>;
++		ti,max-div = <1>;
++		reg = <0x0310>;
++	};
++
++	sysclk6_ck: sysclk6_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&main_fapll 4>;
++		ti,dividers = <2>, <4>;
++		reg = <0x0314>;
++	};
++
++	sysclk10_ck: sysclk10_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&ddr_fapll 2>;
++		ti,max-div = <7>;
++		reg = <0x0324>;
++	};
++
++	sysclk24_ck: sysclk24_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&main_fapll 5>;
++		ti,max-div = <7>;
++		reg = <0x03b4>;
++	};
++
++	mpu_ck: mpu_ck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&sysclk2_ck>;
++		ti,bit-shift = <1>;
++                reg = <0x15dc>;
++	};
++
++	audio_pll_a_ck: audio_pll_a_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&audio_fapll 1>;
++		ti,max-div = <7>;
++		reg = <0x035c>;
++	};
++
++	sysclk18_ck: sysclk18_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_32k_ck>, <&audio_pll_a_ck>;
++		reg = <0x0378>;
++	};
++
++	timer1_fck: timer1_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x0390>;
++	};
++
++	timer2_fck: timer2_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x0394>;
++	};
++
++	timer3_fck: timer3_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x0398>;
++	};
++
++	timer4_fck: timer4_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x039c>;
++	};
++
++	timer5_fck: timer5_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x03a0>;
++	};
++
++	timer6_fck: timer6_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x03a4>;
++	};
++
++	timer7_fck: timer7_fck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&tclkin_ck>, <&sysclk18_ck>, <&sys_clkin_ck>;
++		reg = <0x03a8>;
++	};
++};
+diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
+index 7d575ac..c1029db 100644
+--- a/arch/arm/boot/dts/dm816x.dtsi
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -372,3 +372,4 @@
+ 	};
+ };
+ 
++#include "dm816x-clocks.dtsi"
 -- 
 2.1.4
 
