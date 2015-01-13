@@ -1,50 +1,41 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/3] Convert omap_hsmmc to use common devicetree parsing code.
-Date: Tue, 13 Jan 2015 09:33:31 +0100
-Message-ID: <CAPDyKFrvn-BMQQ6Xn0vXt=CVLnfuX7wfWGosa4PkVHWNaJfYGA@mail.gmail.com>
-References: <20150112191702.2895.75815.stgit@notabene.brown>
+From: Amit Virdi <amit.virdi@st.com>
+Subject: Re: [PATCH RESEND 0/2] usb: dwc3: gadget: Bug fixes
+Date: Tue, 13 Jan 2015 14:16:15 +0530
+Message-ID: <54B4DB57.4020009@st.com>
+References: <cover.1421130636.git.amit.virdi@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20150112191702.2895.75815.stgit@notabene.brown>
-Sender: linux-mmc-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Chris Ball <chris@printf.net>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:56720 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751649AbbAMIqo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2015 03:46:44 -0500
+In-Reply-To: <cover.1421130636.git.amit.virdi@st.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "balbi@ti.com" <balbi@ti.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, Ajay KHANDELWAL <ajay.khandelwal@st.com>
 
-On 12 January 2015 at 20:23, NeilBrown <neilb@suse.de> wrote:
-> This is another resend with mmc_gpio_set_cd_isr() now returning
-> void and being EXPORTed.
+On 1/13/2015 12:10 PM, Amit VIRDI wrote:
+> This is a re-submission of patches [1/4] and [2/4] from:
+> 	http://www.spinics.net/lists/linux-usb/msg118841.html
 >
-> I included
->         WARN_ON(ctx->cd_gpio_isr);
-> to guard against misuse.
+> Commit log of both these patches has been modified for aided clarity. These
+> patches have been rebased on Balbi's testing/next.
 >
-> My goal is to get omap_hsmmc to use the common code for parsing of,
-> particularly so that I can set "cap-power-off-card", which omap_hsmmc
-> doesn't explicitly report.
+> Patches [3/4] and [4/4] were accepted as they were.
 >
-> Thanks,
-> NeilBrown
+> Amit Virdi (2):
+>    usb: dwc3: gadget: Fix TRB preparation during SG
+>    usb: dwc3: gadget: Stop TRB preparation after limit is reached
 >
-> P.S. Sorry for delay - I've been travelling.
->
-> ---
->
-> NeilBrown (3):
->       mmc: core: Allow host driver to provide isr for card-detect interrupts.
->       mmc: omap_hsmmc: use slot-gpio library for gpio support.
->       mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration.
->
->
->  drivers/mmc/core/slot-gpio.c  |   18 +++++++
->  drivers/mmc/host/omap_hsmmc.c |  100 +++++++++--------------------------------
->  include/linux/mmc/slot-gpio.h |    2 +
->  3 files changed, 40 insertions(+), 80 deletions(-)
+>   drivers/usb/dwc3/gadget.c | 6 ++++--
+>   1 file changed, 4 insertions(+), 2 deletions(-)
 >
 
+I was using older git version, so git failed to send patches to 
+stable@vger.kernel.org
 
-Thanks! Applied for next.
-
-Kind regards
-Uffe
+Please discard this patchset. I'm resending with updated git
