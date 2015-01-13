@@ -1,52 +1,40 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC 3/3] ARM: dts: am335x-boneblack: Use new binding in ti,tilcdc,slave node
-Date: Tue, 13 Jan 2015 19:12:28 +0200
-Message-ID: <8a065a80578a1a0b36a9a3786afda51bd319c90f.1421167634.git.jsarha@ti.com>
-References: <cover.1421167634.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC 0/3] Make "ti,tilcdc,slave" DT binding more sensible
+Date: Tue, 13 Jan 2015 19:12:25 +0200
+Message-ID: <cover.1421167634.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1421167634.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45414 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753126AbbAMRMk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2015 12:12:40 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
+Cc: tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Add node for NXP TDA19988 encoder and refer to it in the hdmi node
-instead of referring to the i2c bus where the encoder is connected to.
+These patches are needed for Beaglebone-back HDMI audio. There is no
+direct dependency between these patches and the other (dts and ASoC)
+changes needed for the HDMI audio so these changes can be merged
+independently. I also feel that these changes make sense even without
+the HDMI audio.
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am335x-boneblack.dts |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Best regards,
+Jyri
 
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 5c42d25..c0c8e4b 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -70,10 +70,17 @@
- 	status = "okay";
- };
- 
-+&i2c0 {
-+	tda19988: tda19988@70 {
-+		compatible = "nxp,tda998x";
-+		reg = <0x70>;
-+	};
-+};
-+
- / {
- 	hdmi {
- 		compatible = "ti,tilcdc,slave";
--		i2c = <&i2c0>;
-+		i2c-slave = <&tda19988>;
- 		pinctrl-names = "default", "off";
- 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
- 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+Jyri Sarha (3):
+  drm: encoder_slave: Add drm_i2c_encoder_attach()
+  drm/tilcdc: slave: Add support for "i2c-slave" DT-parameter
+  ARM: dts: am335x-boneblack: Use new binding in ti,tilcdc,slave node
+
+ .../devicetree/bindings/drm/tilcdc/slave.txt       |    4 +-
+ arch/arm/boot/dts/am335x-boneblack.dts             |    9 +++-
+ drivers/gpu/drm/drm_encoder_slave.c                |   51 ++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              |   50 +++++++++++--------
+ include/drm/drm_encoder_slave.h                    |    3 ++
+ 5 files changed, 95 insertions(+), 22 deletions(-)
+
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
