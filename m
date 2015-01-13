@@ -1,56 +1,50 @@
-From: Amit Virdi <amit.virdi@st.com>
-Subject: [PATCH RESEND 2/2] usb: dwc3: gadget: Stop TRB preparation after limit is reached
-Date: Tue, 13 Jan 2015 12:10:38 +0530
-Message-ID: <0850c56feeac33437a2aa22c07a8967007827ee9.1421130636.git.amit.virdi@st.com>
-References: <cover.1421130636.git.amit.virdi@st.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/3] Convert omap_hsmmc to use common devicetree parsing code.
+Date: Tue, 13 Jan 2015 09:33:31 +0100
+Message-ID: <CAPDyKFrvn-BMQQ6Xn0vXt=CVLnfuX7wfWGosa4PkVHWNaJfYGA@mail.gmail.com>
+References: <20150112191702.2895.75815.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35217 "EHLO
-	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751052AbbAMGlO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2015 01:41:14 -0500
-In-Reply-To: <cover.1421130636.git.amit.virdi@st.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20150112191702.2895.75815.stgit@notabene.brown>
+Sender: linux-mmc-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Chris Ball <chris@printf.net>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, pratyush.anand@gmail.com, ajay.khandelwal@st.com, Amit Virdi <amit.virdi@st.com>
 
-DWC3 gadget sets up a pool of 32 TRBs for each EP during initialization. This
-means, the max TRBs that can be submitted for an EP is fixed to 32. Since the
-request queue for an EP is a linked list, any number of requests can be queued
-to it by the gadget layer.  However, the dwc3 driver must not submit TRBs more
-than the pool it has created for. This limit wasn't respected when SG was used
-resulting in submitting more than the max TRBs, eventually leading to
-non-transfer of the TRBs submitted over the max limit.
+On 12 January 2015 at 20:23, NeilBrown <neilb@suse.de> wrote:
+> This is another resend with mmc_gpio_set_cd_isr() now returning
+> void and being EXPORTed.
+>
+> I included
+>         WARN_ON(ctx->cd_gpio_isr);
+> to guard against misuse.
+>
+> My goal is to get omap_hsmmc to use the common code for parsing of,
+> particularly so that I can set "cap-power-off-card", which omap_hsmmc
+> doesn't explicitly report.
+>
+> Thanks,
+> NeilBrown
+>
+> P.S. Sorry for delay - I've been travelling.
+>
+> ---
+>
+> NeilBrown (3):
+>       mmc: core: Allow host driver to provide isr for card-detect interrupts.
+>       mmc: omap_hsmmc: use slot-gpio library for gpio support.
+>       mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration.
+>
+>
+>  drivers/mmc/core/slot-gpio.c  |   18 +++++++
+>  drivers/mmc/host/omap_hsmmc.c |  100 +++++++++--------------------------------
+>  include/linux/mmc/slot-gpio.h |    2 +
+>  3 files changed, 40 insertions(+), 80 deletions(-)
+>
 
-Root cause:
-When SG is used, there are two loops iterating to prepare TRBs:
- - Outer loop over the request_list
- - Inner loop over the SG list
-The code was missing break to get out of the outer loop.
 
-Signed-off-by: Amit Virdi <amit.virdi@st.com>
-Cc: <stable@vger.kernel.org> # v3.9+
----
- drivers/usb/dwc3/gadget.c | 3 +++
- 1 file changed, 3 insertions(+)
+Thanks! Applied for next.
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index cb8939134c32..6c5e344822b9 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -897,6 +897,9 @@ static void dwc3_prepare_trbs(struct dwc3_ep *dep, bool starting)
- 				if (last_one)
- 					break;
- 			}
-+
-+			if (last_one)
-+				break;
- 		} else {
- 			dma = req->request.dma;
- 			length = req->request.length;
--- 
-1.8.0
-
+Kind regards
+Uffe
