@@ -1,107 +1,148 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC 1/3] drm: encoder_slave: Add drm_i2c_encoder_attach()
-Date: Tue, 13 Jan 2015 19:12:26 +0200
-Message-ID: <03c8beb19439c8c20770bba34178c8b7053a5f1d.1421167634.git.jsarha@ti.com>
+Subject: [PATCH RFC 2/3] drm/tilcdc: slave: Add support for "i2c-slave" DT-parameter
+Date: Tue, 13 Jan 2015 19:12:27 +0200
+Message-ID: <a2977a32ee76ea5a1bc116d98d274de560d01986.1421167634.git.jsarha@ti.com>
 References: <cover.1421167634.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55032 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37095 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752469AbbAMRMk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2015 12:12:40 -0500
+	id S1752469AbbAMRMm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2015 12:12:42 -0500
 In-Reply-To: <cover.1421167634.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
 Cc: tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Add drm_i2c_encoder_attach() for attaching an already probed i2c
-encoder. This is needed for instance if the encoder is probed from
-device tree.
+It is more convenient to refer to the i2c slave encoder directly with
+phandle than to refer to the i2c bus and to create the device "manually".
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/gpu/drm/drm_encoder_slave.c |   51 +++++++++++++++++++++++++++++++++++
- include/drm/drm_encoder_slave.h     |    3 +++
- 2 files changed, 54 insertions(+)
+ .../devicetree/bindings/drm/tilcdc/slave.txt       |    4 +-
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              |   50 ++++++++++++--------
+ 2 files changed, 33 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_encoder_slave.c b/drivers/gpu/drm/drm_encoder_slave.c
-index d18b88b..ed627f7 100644
---- a/drivers/gpu/drm/drm_encoder_slave.c
-+++ b/drivers/gpu/drm/drm_encoder_slave.c
-@@ -120,6 +120,57 @@ void drm_i2c_encoder_destroy(struct drm_encoder *drm_encoder)
- }
- EXPORT_SYMBOL(drm_i2c_encoder_destroy);
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/slave.txt b/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+index 3d2c524..930550f 100644
+--- a/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
++++ b/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+@@ -2,6 +2,8 @@ Device-Tree bindings for tilcdc DRM encoder slave output driver
  
-+/**
-+ * drm_i2c_encoder_attach - Attach an I2C slave encoder
-+ * @dev:	DRM device.
-+ * @encoder:	Encoder to be attached to the I2C device. You aren't
-+ *		required to have called drm_encoder_init() before.
-+ * @client:	I2C encoder to be attached.
-+ *
-+ * Attach the I2C device specified to the specified &drm_encoder_slave.
-+ * The @slave_funcs field will be initialized with the hooks provided by
-+ * the slave driver.
-+ *
-+ * Returns 0 on success or a negative errno on failure, in particular,
-+ * -ENODEV is returned when no matching driver is found.
-+ */
-+int drm_i2c_encoder_attach(struct drm_device *dev,
-+			   struct drm_encoder_slave *encoder,
-+			   struct i2c_client *client)
-+{
-+	struct drm_i2c_encoder_driver *encoder_drv;
-+	struct module *module = NULL;
-+	int err = 0;
-+
-+	if (!client->dev.driver) {
-+		err = -ENODEV;
-+		goto fail;
-+	}
-+
-+	module = client->dev.driver->owner;
-+	if (!try_module_get(module)) {
-+		err = -ENODEV;
-+		goto fail;
-+	}
-+
-+	encoder->bus_priv = client;
-+
-+	encoder_drv =
-+		to_drm_i2c_encoder_driver(to_i2c_driver(client->dev.driver));
-+
-+	err = encoder_drv->encoder_init(client, dev, encoder);
-+	if (err)
-+		goto fail_put;
-+
-+	return 0;
-+
-+fail_put:
-+	module_put(module);
-+fail:
-+	return err;
-+}
-+EXPORT_SYMBOL(drm_i2c_encoder_attach);
-+
- /*
-  * Wrapper fxns which can be plugged in to drm_encoder_helper_funcs:
-  */
-diff --git a/include/drm/drm_encoder_slave.h b/include/drm/drm_encoder_slave.h
-index 8b9cc36..4f7f8d5 100644
---- a/include/drm/drm_encoder_slave.h
-+++ b/include/drm/drm_encoder_slave.h
-@@ -106,6 +106,9 @@ int drm_i2c_encoder_init(struct drm_device *dev,
- 			 struct i2c_adapter *adap,
- 			 const struct i2c_board_info *info);
+ Required properties:
+  - compatible: value should be "ti,tilcdc,slave".
++ - i2c-slave: phandle for the encoder slave device
++ or
+  - i2c: the phandle for the i2c device the encoder slave is connected to
  
-+int drm_i2c_encoder_attach(struct drm_device *dev,
-+			   struct drm_encoder_slave *encoder,
-+			   struct i2c_client *client);
+ Recommended properties:
+@@ -12,7 +14,7 @@ Example:
  
- /**
-  * struct drm_i2c_encoder_driver
+ 	hdmi {
+ 		compatible = "ti,tilcdc,slave";
+-		i2c = <&i2c0>;
++		i2c-slave = <&tda19988>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 	};
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 3775fd4..a1e2f86 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -25,6 +25,7 @@
+ struct slave_module {
+ 	struct tilcdc_module base;
+ 	struct i2c_adapter *i2c;
++	struct i2c_client *slave;
+ };
+ #define to_slave_module(x) container_of(x, struct slave_module, base)
+ 
+@@ -140,7 +141,12 @@ static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
+ 
+ 	drm_encoder_helper_add(encoder, &slave_encoder_helper_funcs);
+ 
+-	ret = drm_i2c_encoder_init(dev, to_encoder_slave(encoder), mod->i2c, &info);
++	if (mod->slave)
++		ret = drm_i2c_encoder_attach(dev, to_encoder_slave(encoder),
++					     mod->slave);
++	else
++		ret = drm_i2c_encoder_init(dev, to_encoder_slave(encoder),
++					   mod->i2c, &info);
+ 	if (ret)
+ 		goto fail;
+ 
+@@ -309,12 +315,12 @@ static struct of_device_id slave_of_match[];
+ static int slave_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+-	struct device_node *i2c_node;
++	struct device_node *slave_node;
+ 	struct slave_module *slave_mod;
+ 	struct tilcdc_module *mod;
+ 	struct pinctrl *pinctrl;
+-	uint32_t i2c_phandle;
+-	struct i2c_adapter *slavei2c;
++	struct i2c_adapter *slavei2c = NULL;
++	struct i2c_client *slave = NULL;
+ 	int ret = -EINVAL;
+ 
+ 	/* bail out early if no DT data: */
+@@ -323,26 +329,29 @@ static int slave_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
+ 
+-	/* Bail out early if i2c not specified */
+-	if (of_property_read_u32(node, "i2c", &i2c_phandle)) {
+-		dev_err(&pdev->dev, "could not get i2c bus phandle\n");
+-		return ret;
+-	}
+-
+-	i2c_node = of_find_node_by_phandle(i2c_phandle);
+-	if (!i2c_node) {
+-		dev_err(&pdev->dev, "could not get i2c bus node\n");
+-		return ret;
++	slave_node = of_parse_phandle(node, "i2c-slave", 0);
++	if (slave_node) {
++		slave = of_find_i2c_device_by_node(slave_node);
++		of_node_put(slave_node);
++	} else {
++		struct device_node *i2c_node = of_parse_phandle(node, "i2c", 0);
++
++		if (!i2c_node) {
++			dev_err(&pdev->dev,
++				"phandle for i2c-slave or i2c not found\n");
++			return -ENODEV;
++		}
++		slavei2c = of_find_i2c_adapter_by_node(i2c_node);
++		of_node_put(i2c_node);
+ 	}
+ 
+-	/* but defer the probe if it can't be initialized it might come later */
+-	slavei2c = of_find_i2c_adapter_by_node(i2c_node);
+-	of_node_put(i2c_node);
+-
+-	if (!slavei2c) {
++	/* defer the probe if either slave device or the i2c bus
++	   was not found, they might come later */
++	if (!slavei2c && !slave) {
+ 		ret = -EPROBE_DEFER;
+ 		tilcdc_slave_probedefer(true);
+-		dev_err(&pdev->dev, "could not get i2c\n");
++		dev_info(&pdev->dev,
++			 "could not get i2c-slave or i2c, probe defered\n");
+ 		return ret;
+ 	}
+ 
+@@ -358,6 +367,7 @@ static int slave_probe(struct platform_device *pdev)
+ 	mod->preferred_bpp = slave_info.bpp;
+ 
+ 	slave_mod->i2c = slavei2c;
++	slave_mod->slave = slave;
+ 
+ 	tilcdc_module_init(mod, "slave", &slave_module_ops);
+ 
 -- 
 1.7.9.5
 
