@@ -1,94 +1,143 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
-Date: Tue, 13 Jan 2015 21:50:56 +0100
-Message-ID: <201501132150.56938@pali>
-References: <1421171865-5209-1-git-send-email-tony@atomide.com> <10549142.7lWnPtPtZG@wuerfel> <20150113204219.GJ2419@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] net: davinci_emac: Fix runtime pm calls for
+ davinci_emac
+Date: Tue, 13 Jan 2015 12:54:40 -0800
+Message-ID: <20150113205439.GK2419@atomide.com>
+References: <1421177368-19756-1-git-send-email-tony@atomide.com>
+ <1421177368-19756-3-git-send-email-tony@atomide.com>
+ <20150113195141.GT16533@saruman>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1562934.lrmlcYJ1FA";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:37326 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbbAMUvA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 15:51:00 -0500
-Received: by mail-we0-f173.google.com with SMTP id q58so5204657wes.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2015 12:50:58 -0800 (PST)
-In-Reply-To: <20150113204219.GJ2419@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150113195141.GT16533@saruman>
+Sender: netdev-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, "Mark A. Greer" <mgreer@animalcreek.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>
 
---nextPart1562934.lrmlcYJ1FA
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Felipe Balbi <balbi@ti.com> [150113 11:55]:
+> On Tue, Jan 13, 2015 at 11:29:24AM -0800, Tony Lindgren wrote:
+> > --- a/drivers/net/ethernet/ti/davinci_emac.c
+> > +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> > @@ -1538,7 +1538,7 @@ static int emac_dev_open(struct net_device *ndev)
+> >  	int i = 0;
+> >  	struct emac_priv *priv = netdev_priv(ndev);
+> >  
+> > -	pm_runtime_get(&priv->pdev->dev);
+> > +	pm_runtime_get_sync(&priv->pdev->dev);
+> 
+> gotta check return value on all pm_runtime_get_sync() calls. IIRC,
+> there's a coccinelle script for checking and patching this.
 
-On Tuesday 13 January 2015 21:42:20 Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [150113 12:27]:
-> > On Tuesday 13 January 2015 09:57:41 Tony Lindgren wrote:
-> > > It seems we can now drop omap3517 legacy booting support
-> > > to get a bit closer to making all of omap3 boot in device
-> > > tree only mode.
-> > >=20
-> > > All these boards have at least minimal support for booting
-> > > with device tree, and pretty much anything supported with
-> > > the legacy board files can be configured also for device
-> > > tree based booting if not done already.
-> >=20
-> > Ah, very nice.
-> >=20
-> > Just out of curiosity, what are the remaining showstoppers
-> > for the 3430 and 3530 based boards?
->=20
-> Not much really. We're now printing a warning to get a people
-> to upgrade their systems. So with some boards we need to wait
-> a while.
->=20
-> Then here are the remaining items that I'm aware of:
->=20
-> - A regression at least on some n900 with appended DTB not
-> booting properly any longer reported by Pali
->=20
-> - A regression where the legacy ATAGs don't seem to get
-> properly translated by the uncompress code for atag_rev at
-> least reported by Pali
->=20
-> - A few missing .dts files for devkit8000, omap3logic,
-> omap3stalker, omap3pandora and omap3touchbook
->=20
-> Pali and Sebastian probably know best of any other remaining
-> issues to drop n900 legacy booting.
->=20
-> If people have the boards listed above, please pitch in to do
-> the .dts files or send the boards to me and I can do minimal
-> .dts files for them.
->=20
-> Regards,
->=20
-> Tony
+Sure, here's an updated patch with error checking added.
 
-CCing Pavel Machek
+Regards,
 
-He reported also some (still not fixed) regressions on n900.
+Tony
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+8< ---------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 22 Dec 2014 08:19:06 -0800
+Subject: [PATCH] net: davinci_emac: Fix runtime pm calls for davinci_emac
 
---nextPart1562934.lrmlcYJ1FA
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Commit 3ba97381343b ("net: ethernet: davinci_emac: add pm_runtime support")
+added support for runtime PM, but it causes issues on omap3 related devices
+that actually gate the clocks:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Unhandled fault: external abort on non-linefetch (0x1008)
+...
+[<c04160f0>] (emac_dev_getnetstats) from [<c04d6a3c>] (dev_get_stats+0x78/0xc8)
+[<c04d6a3c>] (dev_get_stats) from [<c04e9ccc>] (rtnl_fill_ifinfo+0x3b8/0x938)
+[<c04e9ccc>] (rtnl_fill_ifinfo) from [<c04eade4>] (rtmsg_ifinfo+0x68/0xd8)
+[<c04eade4>] (rtmsg_ifinfo) from [<c04dd35c>] (register_netdevice+0x3a0/0x4ec)
+[<c04dd35c>] (register_netdevice) from [<c04dd4bc>] (register_netdev+0x14/0x24)
+[<c04dd4bc>] (register_netdev) from [<c041755c>] (davinci_emac_probe+0x408/0x5c8)
+[<c041755c>] (davinci_emac_probe) from [<c0396d78>] (platform_drv_probe+0x48/0xa4)
 
-iEYEABECAAYFAlS1hTAACgkQi/DJPQPkQ1KGzgCeMcFMZko/atFDk6MmweTjJN0P
-JXYAoI4l86EfOUxozy/JmffRVYomY/45
-=Y1rM
------END PGP SIGNATURE-----
+Let's fix it by moving the pm_runtime_get() call earlier, and also add it to
+the emac_dev_getnetstats(). Also note that we want to use pm_runtime_get_sync()
+as we don't want to have deferred_resume happen. And let's also check the
+return value for pm_runtime_get_sync() as noted by Felipe Balbi <balbi@ti.com>.
 
---nextPart1562934.lrmlcYJ1FA--
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Mark A. Greer <mgreer@animalcreek.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1538,7 +1538,13 @@ static int emac_dev_open(struct net_device *ndev)
+ 	int i = 0;
+ 	struct emac_priv *priv = netdev_priv(ndev);
+ 
+-	pm_runtime_get(&priv->pdev->dev);
++	ret = pm_runtime_get_sync(&priv->pdev->dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(&priv->pdev->dev);
++		dev_err(&priv->pdev->dev, "%s: failed to get_sync(%d)\n",
++			__func__, ret);
++		return ret;
++	}
+ 
+ 	netif_carrier_off(ndev);
+ 	for (cnt = 0; cnt < ETH_ALEN; cnt++)
+@@ -1725,6 +1731,15 @@ static struct net_device_stats *emac_dev_getnetstats(struct net_device *ndev)
+ 	struct emac_priv *priv = netdev_priv(ndev);
+ 	u32 mac_control;
+ 	u32 stats_clear_mask;
++	int err;
++
++	err = pm_runtime_get_sync(&priv->pdev->dev);
++	if (err < 0) {
++		pm_runtime_put_noidle(&priv->pdev->dev);
++		dev_err(&priv->pdev->dev, "%s: failed to get_sync(%d)\n",
++			__func__, err);
++		return &ndev->stats;
++	}
+ 
+ 	/* update emac hardware stats and reset the registers*/
+ 
+@@ -1767,6 +1782,8 @@ static struct net_device_stats *emac_dev_getnetstats(struct net_device *ndev)
+ 	ndev->stats.tx_fifo_errors += emac_read(EMAC_TXUNDERRUN);
+ 	emac_write(EMAC_TXUNDERRUN, stats_clear_mask);
+ 
++	pm_runtime_put(&priv->pdev->dev);
++
+ 	return &ndev->stats;
+ }
+ 
+@@ -1981,12 +1998,22 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 	ndev->ethtool_ops = &ethtool_ops;
+ 	netif_napi_add(ndev, &priv->napi, emac_poll, EMAC_POLL_WEIGHT);
+ 
++	pm_runtime_enable(&pdev->dev);
++	rc = pm_runtime_get_sync(&pdev->dev);
++	if (rc < 0) {
++		pm_runtime_put_noidle(&pdev->dev);
++		dev_err(&pdev->dev, "%s: failed to get_sync(%d)\n",
++			__func__, rc);
++		goto no_cpdma_chan;
++	}
++
+ 	/* register the network device */
+ 	SET_NETDEV_DEV(ndev, &pdev->dev);
+ 	rc = register_netdev(ndev);
+ 	if (rc) {
+ 		dev_err(&pdev->dev, "error in register_netdev\n");
+ 		rc = -ENODEV;
++		pm_runtime_put(&pdev->dev);
+ 		goto no_cpdma_chan;
+ 	}
+ 
+@@ -1996,9 +2023,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 			   "(regs: %p, irq: %d)\n",
+ 			   (void *)priv->emac_base_phys, ndev->irq);
+ 	}
+-
+-	pm_runtime_enable(&pdev->dev);
+-	pm_runtime_resume(&pdev->dev);
++	pm_runtime_put(&pdev->dev);
+ 
+ 	return 0;
+ 
