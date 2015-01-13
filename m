@@ -1,139 +1,114 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC PATCH 1/3] of/device: manage resources similar to platform_device_add
-Date: Tue, 13 Jan 2015 16:00:08 -0600
-Message-ID: <CAL_JsqLW9PRktHntLquohH3x_bPgJrrn2Y2_8RYA_HnKhpTDHg@mail.gmail.com>
-References: <1420651854-17768-1-git-send-email-s-anna@ti.com>
- <1420651854-17768-2-git-send-email-s-anna@ti.com> <CAL_Jsq+79cnCiww6g8ejki0yT59-N8eucHC3QGMbsXG4DksWuQ@mail.gmail.com>
- <54B58D5D.5070508@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/2] irqchip: omap-intc: Fix support for dm814 and dm816
+Date: Tue, 13 Jan 2015 14:23:25 -0800
+Message-ID: <1421187806-6804-2-git-send-email-tony@atomide.com>
+References: <1421187806-6804-1-git-send-email-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54B58D5D.5070508@ti.com>
+In-Reply-To: <1421187806-6804-1-git-send-email-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pawel Moll <pawel.moll@arm.com>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, Felipe Balbi <balbi@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 13, 2015 at 3:25 PM, Suman Anna <s-anna@ti.com> wrote:
-> Hi Rob,
->
-> On 01/13/2015 02:38 PM, Rob Herring wrote:
->> On Wed, Jan 7, 2015 at 11:30 AM, Suman Anna <s-anna@ti.com> wrote:
->>> Drivers can use of_platform_populate() to create platform devices
->>> for children of the device main node, and a complementary API
->>> of_platform_depopulate() is provided to delete these child platform
->>> devices. The of_platform_depopulate() leverages the platform API
->>> for performing the cleanup of these devices.
->>>
->>> The platform device resources are managed differently between
->>> of_device_add and platform_device_add, and this asymmetry causes
->>> a kernel oops in platform_device_del during removal of the resources.
->>> Manage the platform device resources similar to platform_device_add
->>> to fix this kernel oops.
->>
->> This is a known issue and has been attempted to be fixed before (I
->> believe there is a revert in mainline). The problem is there are known
->> devicetrees which have overlapping resources and they will break with
->> your change.
->
-> Are you referring to 02bbde7849e6 (Revert "of: use
-> platform_device_add")?
+On dm81xx we have 128 interrupts like am33xx has. Let's add
+compatible flags for dm814x and dm816x, and document the
+existing binding.
 
-I believe that's the one.
+As the dm81xx are booting in device tree only mode, we can now
+also remove ti81xx_init_irq() legacy function.
 
-> That one seems to be in registration path, and
-> this crash is in the unregistration path. If so, to fix the crash,
-> should we be skipping the release_resource() for now in
-> platform_device_del for DT nodes, or replace platform_device_unregister
-> with of_device_unregister in of_platform_device_destroy()?
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ .../interrupt-controller/ti,omap-intc-irq.txt      | 28 ++++++++++++++++++++++
+ drivers/irqchip/irq-omap-intc.c                    | 14 ++++-------
+ include/linux/irqchip/irq-omap-intc.h              |  1 -
+ 3 files changed, 33 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap-intc-irq.txt
 
-IIRC, the problem is inserting a resource twice on add from 2
-different nodes, not the removal path. Perhaps we could make a
-collision non-fatal for in the DT case. Grant may have some ideas on
-what's needed here.
-
-> This is a common crash and we cannot use of_platform_depopulate() today
-> in drivers to complement of_platform_populate().
-
-Yes, I know.
-
-> Also, the platform_data crash is independent of this, I could reproduce
-> that one even with using of_device_unregister in a loop in driver remove.
-
-Missed this one. I'll reply to that patch.
-
-Rob
-
->
-> regards
-> Suman
->
->>
->> Rob
->>
->>>
->>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>> ---
->>>  drivers/of/device.c | 38 +++++++++++++++++++++++++++++++++++++-
->>>  1 file changed, 37 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/of/device.c b/drivers/of/device.c
->>> index 46d6c75c1404..fa27c1c71f29 100644
->>> --- a/drivers/of/device.c
->>> +++ b/drivers/of/device.c
->>> @@ -50,6 +50,8 @@ EXPORT_SYMBOL(of_dev_put);
->>>
->>>  int of_device_add(struct platform_device *ofdev)
->>>  {
->>> +       int i, ret;
->>> +
->>>         BUG_ON(ofdev->dev.of_node == NULL);
->>>
->>>         /* name and id have to be set so that the platform bus doesn't get
->>> @@ -63,7 +65,41 @@ int of_device_add(struct platform_device *ofdev)
->>>         if (!ofdev->dev.parent)
->>>                 set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
->>>
->>> -       return device_add(&ofdev->dev);
->>> +       for (i = 0; i < ofdev->num_resources; i++) {
->>> +               struct resource *p, *r = &ofdev->resource[i];
->>> +
->>> +               if (!r->name)
->>> +                       r->name = dev_name(&ofdev->dev);
->>> +
->>> +               p = r->parent;
->>> +               if (!p) {
->>> +                       if (resource_type(r) == IORESOURCE_MEM)
->>> +                               p = &iomem_resource;
->>> +                       else if (resource_type(r) == IORESOURCE_IO)
->>> +                               p = &ioport_resource;
->>> +               }
->>> +
->>> +               if (p && insert_resource(p, r)) {
->>> +                       dev_err(&ofdev->dev, "failed to claim resource %d\n",
->>> +                               i);
->>> +                       ret = -EBUSY;
->>> +                       goto failed;
->>> +               }
->>> +       }
->>> +
->>> +       ret = device_add(&ofdev->dev);
->>> +       if (ret == 0)
->>> +               return ret;
->>> +
->>> +failed:
->>> +       while (--i >= 0) {
->>> +               struct resource *r = &ofdev->resource[i];
->>> +               unsigned long type = resource_type(r);
->>> +
->>> +               if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
->>> +                       release_resource(r);
->>> +       }
->>> +       return ret;
->>>  }
->>>
->>>  int of_device_register(struct platform_device *pdev)
->>> --
->>> 2.2.1
->>>
->
+diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,omap-intc-irq.txt b/Documentation/devicetree/bindings/interrupt-controller/ti,omap-intc-irq.txt
+new file mode 100644
+index 0000000..38ce5d03
+--- /dev/null
++++ b/Documentation/devicetree/bindings/interrupt-controller/ti,omap-intc-irq.txt
+@@ -0,0 +1,28 @@
++Omap2/3 intc controller
++
++On TI omap2 and 3 the intc interrupt controller can provide
++96 or 128 IRQ signals to the ARM host depending on the SoC.
++
++Required Properties:
++- compatible: should be one of
++			"ti,omap2-intc"
++			"ti,omap3-intc"
++			"ti,dm814-intc"
++			"ti,dm816-intc"
++			"ti,am33xx-intc"
++
++- interrupt-controller : Identifies the node as an interrupt controller
++- #interrupt-cells : Specifies the number of cells needed to encode interrupt
++		     source, should be 1 for intc
++- interrupts: interrupt reference to primary interrupt controller
++
++Please refer to interrupts.txt in this directory for details of the common
++Interrupt Controllers bindings used by client devices.
++
++Example:
++	intc: interrupt-controller@48200000 {
++		compatible = "ti,omap3-intc";
++		interrupt-controller;
++		#interrupt-cells = <1>;
++		reg = <0x48200000 0x1000>;
++	};
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index 28718d3..b75a44a 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -364,14 +364,6 @@ void __init omap3_init_irq(void)
+ 	set_handle_irq(omap_intc_handle_irq);
+ }
+ 
+-void __init ti81xx_init_irq(void)
+-{
+-	omap_nr_irqs = 96;
+-	omap_nr_pending = 4;
+-	omap_init_irq(OMAP34XX_IC_BASE, NULL);
+-	set_handle_irq(omap_intc_handle_irq);
+-}
+-
+ static int __init intc_of_init(struct device_node *node,
+ 			     struct device_node *parent)
+ {
+@@ -383,7 +375,9 @@ static int __init intc_of_init(struct device_node *node,
+ 	if (WARN_ON(!node))
+ 		return -ENODEV;
+ 
+-	if (of_device_is_compatible(node, "ti,am33xx-intc")) {
++	if (of_device_is_compatible(node, "ti,dm814-intc") ||
++	    of_device_is_compatible(node, "ti,dm816-intc") ||
++	    of_device_is_compatible(node, "ti,am33xx-intc")) {
+ 		omap_nr_irqs = 128;
+ 		omap_nr_pending = 4;
+ 	}
+@@ -399,4 +393,6 @@ static int __init intc_of_init(struct device_node *node,
+ 
+ IRQCHIP_DECLARE(omap2_intc, "ti,omap2-intc", intc_of_init);
+ IRQCHIP_DECLARE(omap3_intc, "ti,omap3-intc", intc_of_init);
++IRQCHIP_DECLARE(dm814x_intc, "ti,dm814-intc", intc_of_init);
++IRQCHIP_DECLARE(dm816x_intc, "ti,dm816-intc", intc_of_init);
+ IRQCHIP_DECLARE(am33xx_intc, "ti,am33xx-intc", intc_of_init);
+diff --git a/include/linux/irqchip/irq-omap-intc.h b/include/linux/irqchip/irq-omap-intc.h
+index e06b370..bda426a 100644
+--- a/include/linux/irqchip/irq-omap-intc.h
++++ b/include/linux/irqchip/irq-omap-intc.h
+@@ -20,7 +20,6 @@
+ 
+ void omap2_init_irq(void);
+ void omap3_init_irq(void);
+-void ti81xx_init_irq(void);
+ 
+ int omap_irq_pending(void);
+ void omap_intc_save_context(void);
+-- 
+2.1.4
