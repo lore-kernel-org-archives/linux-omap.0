@@ -1,144 +1,157 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] clk: ti: Initialize clocks for dm816x
-Date: Tue, 13 Jan 2015 14:51:28 -0800
-Message-ID: <1421189488-9657-3-git-send-email-tony@atomide.com>
-References: <1421189488-9657-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52526 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751409AbbAMWz0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 17:55:26 -0500
-In-Reply-To: <1421189488-9657-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [RFC PATCH 1/3] of/device: manage resources similar to platform_device_add
+Date: Tue, 13 Jan 2015 17:04:57 -0600
+Message-ID: <54B5A499.7060106@ti.com>
+References: <1420651854-17768-1-git-send-email-s-anna@ti.com> <1420651854-17768-2-git-send-email-s-anna@ti.com> <CAL_Jsq+79cnCiww6g8ejki0yT59-N8eucHC3QGMbsXG4DksWuQ@mail.gmail.com> <54B58D5D.5070508@ti.com> <CAL_JsqLW9PRktHntLquohH3x_bPgJrrn2Y2_8RYA_HnKhpTDHg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAL_JsqLW9PRktHntLquohH3x_bPgJrrn2Y2_8RYA_HnKhpTDHg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pawel Moll <pawel.moll@arm.com>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, Felipe Balbi <balbi@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-The clocks on ti81xx are not compatible with omap3. On dm816x
-the clock source is a FAPLL (Flying Adder PLL), and on dm814x
-there seems to be an APLL (All Digital PLL).
+On 01/13/2015 04:00 PM, Rob Herring wrote:
+> On Tue, Jan 13, 2015 at 3:25 PM, Suman Anna <s-anna@ti.com> wrote:
+>> Hi Rob,
+>>
+>> On 01/13/2015 02:38 PM, Rob Herring wrote:
+>>> On Wed, Jan 7, 2015 at 11:30 AM, Suman Anna <s-anna@ti.com> wrote:
+>>>> Drivers can use of_platform_populate() to create platform devices
+>>>> for children of the device main node, and a complementary API
+>>>> of_platform_depopulate() is provided to delete these child platform
+>>>> devices. The of_platform_depopulate() leverages the platform API
+>>>> for performing the cleanup of these devices.
+>>>>
+>>>> The platform device resources are managed differently between
+>>>> of_device_add and platform_device_add, and this asymmetry causes
+>>>> a kernel oops in platform_device_del during removal of the resources.
+>>>> Manage the platform device resources similar to platform_device_add
+>>>> to fix this kernel oops.
+>>>
+>>> This is a known issue and has been attempted to be fixed before (I
+>>> believe there is a revert in mainline). The problem is there are known
+>>> devicetrees which have overlapping resources and they will break with
+>>> your change.
+>>
+>> Are you referring to 02bbde7849e6 (Revert "of: use
+>> platform_device_add")?
+> 
+> I believe that's the one.
+> 
+>> That one seems to be in registration path, and
+>> this crash is in the unregistration path. If so, to fix the crash,
+>> should we be skipping the release_resource() for now in
+>> platform_device_del for DT nodes, or replace platform_device_unregister
+>> with of_device_unregister in of_platform_device_destroy()?
+> 
+> IIRC, the problem is inserting a resource twice on add from 2
+> different nodes, not the removal path. Perhaps we could make a
+> collision non-fatal for in the DT case.
 
-Let's fix up things for dm816x in preparation for adding the
-FAPLL support. As we already have a dummy ti81xx_dt_clk_init()
-in place, let's use that for now to avoid adding a dependency
-to the omap patches.
+We may be talking two different things here, I understand that this
+patch would create an issue with inserting a resource twice in the
+devicetrees with overlapping resources (just like the commit that was
+reverted above), but the crash is on devices with resources whose
+parent, child, sibling pointers have never been initialized (the
+of_device_add path does not touch these at all), and get dereferenced in
+platform_device_del()->release_resource(). See the following that has a
+better explanation [1].
 
-Later on if somebody adds dm814x support we can split the
-ti81xx_dt_clk_init() clock init function as needed.
+regards
+Suman
 
-Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/clk/ti/Makefile   |  2 +-
- drivers/clk/ti/clk-3xxx.c |  8 +------
- drivers/clk/ti/clk-816x.c | 53 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+), 8 deletions(-)
- create mode 100644 drivers/clk/ti/clk-816x.c
+[1]
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-July/274412.html
 
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index e55438c..36acc7d 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -3,7 +3,7 @@ obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
- 					  fixed-factor.o mux.o apll.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
--obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o
-+obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-816x.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o clk-3xxx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o
-diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
-index 0d1750a..383a06e 100644
---- a/drivers/clk/ti/clk-3xxx.c
-+++ b/drivers/clk/ti/clk-3xxx.c
-@@ -327,7 +327,6 @@ enum {
- 	OMAP3_SOC_OMAP3430_ES1,
- 	OMAP3_SOC_OMAP3430_ES2_PLUS,
- 	OMAP3_SOC_OMAP3630,
--	OMAP3_SOC_TI81XX,
- };
- 
- static int __init omap3xxx_dt_clk_init(int soc_type)
-@@ -370,7 +369,7 @@ static int __init omap3xxx_dt_clk_init(int soc_type)
- 		(clk_get_rate(clk_get_sys(NULL, "core_ck")) / 1000000),
- 		(clk_get_rate(clk_get_sys(NULL, "arm_fck")) / 1000000));
- 
--	if (soc_type != OMAP3_SOC_TI81XX && soc_type != OMAP3_SOC_OMAP3430_ES1)
-+	if (soc_type != OMAP3_SOC_OMAP3430_ES1)
- 		omap3_clk_lock_dpll5();
- 
- 	return 0;
-@@ -390,8 +389,3 @@ int __init am35xx_dt_clk_init(void)
- {
- 	return omap3xxx_dt_clk_init(OMAP3_SOC_AM35XX);
- }
--
--int __init ti81xx_dt_clk_init(void)
--{
--	return omap3xxx_dt_clk_init(OMAP3_SOC_TI81XX);
--}
-diff --git a/drivers/clk/ti/clk-816x.c b/drivers/clk/ti/clk-816x.c
-new file mode 100644
-index 0000000..9451e65
---- /dev/null
-+++ b/drivers/clk/ti/clk-816x.c
-@@ -0,0 +1,53 @@
-+/*
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/clk-provider.h>
-+#include <linux/clk/ti.h>
-+
-+static struct ti_dt_clk dm816x_clks[] = {
-+	DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
-+	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
-+	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
-+	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
-+	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
-+	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
-+	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
-+	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
-+	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
-+	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
-+	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
-+	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
-+	DT_CLK(NULL, "sysclk5_ck", "sysclk5_ck"),
-+	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
-+	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
-+	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
-+	DT_CLK(NULL, "sysclk24_ck", "sysclk24_ck"),
-+	DT_CLK("4a100000.ethernet", "sysclk24_ck", "sysclk24_ck"),
-+	{ .node_name = NULL },
-+};
-+
-+static const char *enable_init_clks[] = {
-+	"ddr_pll_clk1",
-+	"ddr_pll_clk2",
-+	"ddr_pll_clk3",
-+};
-+
-+int __init ti81xx_dt_clk_init(void)
-+{
-+	ti_dt_clocks_register(dm816x_clks);
-+	omap2_clk_disable_autoidle_all();
-+	omap2_clk_enable_init_clocks(enable_init_clks,
-+				     ARRAY_SIZE(enable_init_clks));
-+
-+	return 0;
-+}
--- 
-2.1.4
 
+> Grant may have some ideas on
+> what's needed here.
+> 
+>> This is a common crash and we cannot use of_platform_depopulate() today
+>> in drivers to complement of_platform_populate().
+> 
+> Yes, I know.
+> 
+>> Also, the platform_data crash is independent of this, I could reproduce
+>> that one even with using of_device_unregister in a loop in driver remove.
+> 
+> Missed this one. I'll reply to that patch.
+> 
+> Rob
+> 
+>>
+>> regards
+>> Suman
+>>
+>>>
+>>> Rob
+>>>
+>>>>
+>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>> ---
+>>>>  drivers/of/device.c | 38 +++++++++++++++++++++++++++++++++++++-
+>>>>  1 file changed, 37 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>>>> index 46d6c75c1404..fa27c1c71f29 100644
+>>>> --- a/drivers/of/device.c
+>>>> +++ b/drivers/of/device.c
+>>>> @@ -50,6 +50,8 @@ EXPORT_SYMBOL(of_dev_put);
+>>>>
+>>>>  int of_device_add(struct platform_device *ofdev)
+>>>>  {
+>>>> +       int i, ret;
+>>>> +
+>>>>         BUG_ON(ofdev->dev.of_node == NULL);
+>>>>
+>>>>         /* name and id have to be set so that the platform bus doesn't get
+>>>> @@ -63,7 +65,41 @@ int of_device_add(struct platform_device *ofdev)
+>>>>         if (!ofdev->dev.parent)
+>>>>                 set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
+>>>>
+>>>> -       return device_add(&ofdev->dev);
+>>>> +       for (i = 0; i < ofdev->num_resources; i++) {
+>>>> +               struct resource *p, *r = &ofdev->resource[i];
+>>>> +
+>>>> +               if (!r->name)
+>>>> +                       r->name = dev_name(&ofdev->dev);
+>>>> +
+>>>> +               p = r->parent;
+>>>> +               if (!p) {
+>>>> +                       if (resource_type(r) == IORESOURCE_MEM)
+>>>> +                               p = &iomem_resource;
+>>>> +                       else if (resource_type(r) == IORESOURCE_IO)
+>>>> +                               p = &ioport_resource;
+>>>> +               }
+>>>> +
+>>>> +               if (p && insert_resource(p, r)) {
+>>>> +                       dev_err(&ofdev->dev, "failed to claim resource %d\n",
+>>>> +                               i);
+>>>> +                       ret = -EBUSY;
+>>>> +                       goto failed;
+>>>> +               }
+>>>> +       }
+>>>> +
+>>>> +       ret = device_add(&ofdev->dev);
+>>>> +       if (ret == 0)
+>>>> +               return ret;
+>>>> +
+>>>> +failed:
+>>>> +       while (--i >= 0) {
+>>>> +               struct resource *r = &ofdev->resource[i];
+>>>> +               unsigned long type = resource_type(r);
+>>>> +
+>>>> +               if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
+>>>> +                       release_resource(r);
+>>>> +       }
+>>>> +       return ret;
+>>>>  }
+>>>>
+>>>>  int of_device_register(struct platform_device *pdev)
+>>>> --
+>>>> 2.2.1
+>>>>
+>>
