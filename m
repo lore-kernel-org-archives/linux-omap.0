@@ -1,150 +1,93 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 2/4] phy: ti-pipe3: Fix SATA across suspend/resume
-Date: Tue, 13 Jan 2015 14:23:20 +0200
-Message-ID: <1421151802-7396-3-git-send-email-rogerq@ti.com>
-References: <1421151802-7396-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2] can: c_can: use regmap_update_bits() to modify RAMINIT
+ register
+Date: Tue, 13 Jan 2015 16:23:11 +0200
+Message-ID: <54B52A4F.8030208@ti.com>
+References: <1420641162-8634-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421151802-7396-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com
-Cc: nm@ti.com, balbi@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46776 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752446AbbAMOX1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2015 09:23:27 -0500
+In-Reply-To: <1420641162-8634-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mkl@pengutronix.de
+Cc: tomi.valkeinen@ti.com, linux-can@vger.kernel.org, wsa@the-dreams.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, Mark Brown <broonie@kernel.org>
 
-Failed test case: Boot without SATA drive connected. Suspend/resume
-the board and then connect SATA drive. It fails to enumerate.
+use of regmap_read() and regmap_write() in c_can_hw_raminit_syscon()
+is not safe as the RAMINIT register can be shared between different drivers
+at least for TI SoCs.
 
-Due to Errata i783 "SATA Lockup After SATA DPLL Unlock/Relock"
-we can't allow SATA DPLL to be in the unlocked state.
-The SATA refclk (sata_ref_clk) is the source of the SATA_DPLL.
-This clock is being controlled only by the AHCI SATA driver and is
-shut off during system suspend (if the SATA drive was not already attached)
-causing the SATA DPLL to be unlocked and so causing errata i783.
+To make the modification atomic we switch to using regmap_update_bits().
 
-To prevent sata_ref_clk from being disabled, we add the control of
-this clock to the SATA PHY driver and prevent it from being disabled.
+regmap_update_bits() skips writing to the register if it's read content is the
+same as what is going to be written. This causes an issue for us when we
+need to clear the DONE bit with the initial condition START:0, DONE:1 as
+DONE bit must be written with 1 to clear it.
 
-This also fixes the issue of SATA not working on OMAP5/DRA7 when
-AHCI platform driver is built as a module.
-
-NOTE: Device tree changes also required for OMAP5 & DRA7.
+So we defer the clearing of DONE bit to later when we set the START bit.
+There we are sure that START bit is changed from 0 to 1 so the write of
+1 to already set DONE bit will happen.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/phy/phy-ti-pipe3.c | 57 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 41 insertions(+), 16 deletions(-)
+ drivers/net/can/c_can/c_can_platform.c | 29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index e60ff14..456dec2 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -85,6 +85,7 @@ struct ti_pipe3 {
- 	struct pipe3_dpll_map	*dpll_map;
- 	u8			id;
- 	bool enabled;
-+	bool refclk_enabled;	/* this flag is needed specifically for SATA */
- 	spinlock_t lock;	/* serialize clock enable/disable */
- };
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index f363972..e36d105 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -103,27 +103,34 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
+ 	mask = 1 << raminit->bits.start | 1 << raminit->bits.done;
+ 	regmap_read(raminit->syscon, raminit->reg, &ctrl);
  
-@@ -333,21 +334,24 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		}
- 	}
+-	/* We clear the done and start bit first. The start bit is
++	/* We clear the start bit first. The start bit is
+ 	 * looking at the 0 -> transition, but is not self clearing;
+-	 * And we clear the init done bit as well.
+ 	 * NOTE: DONE must be written with 1 to clear it.
++	 * We can't clear the DONE bit here using regmap_update_bits()
++	 * as it will bypass the write if initial condition is START:0 DONE:1
++	 * e.g. on DRA7 which needs START pulse.
+ 	 */
+-	ctrl &= ~(1 << raminit->bits.start);
+-	ctrl |= 1 << raminit->bits.done;
+-	regmap_write(raminit->syscon, raminit->reg, ctrl);
++	ctrl &= ~mask;	/* START = 0, DONE = 0 */
++	regmap_update_bits(raminit->syscon, raminit->reg, mask, ctrl);
  
-+	phy->refclk = devm_clk_get(phy->dev, "refclk");
-+	if (IS_ERR(phy->refclk)) {
-+		dev_err(&pdev->dev, "unable to get refclk\n");
-+		/* older DTBs have missing refclk in SATA PHY
-+		 * so don't bail out in case of SATA PHY.
-+		 */
-+		if (!of_device_is_compatible(node, "ti,phy-pipe3-sata"))
-+			return PTR_ERR(phy->refclk);
-+	}
-+
- 	if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
- 		phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
- 		if (IS_ERR(phy->wkupclk)) {
- 			dev_err(&pdev->dev, "unable to get wkupclk\n");
- 			return PTR_ERR(phy->wkupclk);
- 		}
+-	ctrl &= ~(1 << raminit->bits.done);
+-	c_can_hw_raminit_wait_syscon(priv, mask, ctrl);
++	/* check if START bit is 0. Ignore DONE bit for now
++	 * as it can be either 0 or 1.
++	 */
++	c_can_hw_raminit_wait_syscon(priv, 1 << raminit->bits.start, ctrl);
+ 
+ 	if (enable) {
+-		/* Set start bit and wait for the done bit. */
++		/* Clear DONE bit & set START bit. */
+ 		ctrl |= 1 << raminit->bits.start;
+-		regmap_write(raminit->syscon, raminit->reg, ctrl);
 -
--		phy->refclk = devm_clk_get(phy->dev, "refclk");
--		if (IS_ERR(phy->refclk)) {
--			dev_err(&pdev->dev, "unable to get refclk\n");
--			return PTR_ERR(phy->refclk);
--		}
- 	} else {
- 		phy->wkupclk = ERR_PTR(-ENODEV);
--		phy->refclk = ERR_PTR(-ENODEV);
- 	}
++		/* DONE must be written with 1 to clear it */
++		ctrl |= 1 << raminit->bits.done;
++		regmap_update_bits(raminit->syscon, raminit->reg, mask, ctrl);
++		/* prevent further clearing of DONE bit */
++		ctrl &= ~(1 << raminit->bits.done);
+ 		/* clear START bit if start pulse is needed */
+ 		if (raminit->needs_pulse) {
+ 			ctrl &= ~(1 << raminit->bits.start);
+-			regmap_write(raminit->syscon, raminit->reg, ctrl);
++			regmap_update_bits(raminit->syscon, raminit->reg,
++					   mask, ctrl);
+ 		}
  
- 	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
-@@ -428,6 +432,29 @@ static int ti_pipe3_remove(struct platform_device *pdev)
- }
- 
- #ifdef CONFIG_PM
-+static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
-+{
-+	if (!IS_ERR(phy->refclk) && !phy->refclk_enabled) {
-+		int ret;
-+
-+		ret = clk_prepare_enable(phy->refclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
-+			return ret;
-+		}
-+		phy->refclk_enabled = true;
-+	}
-+
-+	return 0;
-+}
-+
-+static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
-+{
-+	if (!IS_ERR(phy->refclk))
-+		clk_disable_unprepare(phy->refclk);
-+
-+	phy->refclk_enabled = false;
-+}
- 
- static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
- {
-@@ -438,13 +465,9 @@ static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
- 	if (phy->enabled)
- 		goto err1;
- 
--	if (!IS_ERR(phy->refclk)) {
--		ret = clk_prepare_enable(phy->refclk);
--		if (ret) {
--			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
--			goto err1;
--		}
--	}
-+	ret = ti_pipe3_enable_refclk(phy);
-+	if (ret)
-+		goto err1;
- 
- 	if (!IS_ERR(phy->wkupclk)) {
- 		ret = clk_prepare_enable(phy->wkupclk);
-@@ -474,6 +497,7 @@ err2:
- 	if (!IS_ERR(phy->refclk))
- 		clk_disable_unprepare(phy->refclk);
- 
-+	ti_pipe3_disable_refclk(phy);
- err1:
- 	spin_unlock_irqrestore(&phy->lock, flags);
- 	return ret;
-@@ -491,8 +515,9 @@ static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy)
- 
- 	if (!IS_ERR(phy->wkupclk))
- 		clk_disable_unprepare(phy->wkupclk);
--	if (!IS_ERR(phy->refclk))
--		clk_disable_unprepare(phy->refclk);
-+	/* Don't disable refclk for SATA PHY due to Errata i783 */
-+	if (!of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata"))
-+		ti_pipe3_disable_refclk(phy);
- 	if (!IS_ERR(phy->div_clk))
- 		clk_disable_unprepare(phy->div_clk);
- 	phy->enabled = false;
+ 		ctrl |= 1 << raminit->bits.done;
 -- 
 2.1.0
+
