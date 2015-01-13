@@ -1,51 +1,32 @@
 From: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
-Subject: [PATCH RESEND(2) 2/2] usb: dwc3: gadget: Stop TRB preparation after limit is reached
-Date: Tue, 13 Jan 2015 14:27:21 +0530
-Message-ID: <0850c56feeac33437a2aa22c07a8967007827ee9.1421138826.git.amit.virdi@st.com>
-References: <cover.1421138825.git.amit.virdi@st.com>
+Subject: [PATCH RESEND(2) 0/2] usb: dwc3: gadget: Bug fixes
+Date: Tue, 13 Jan 2015 14:27:19 +0530
+Message-ID: <cover.1421138825.git.amit.virdi@st.com>
+References: <54B4DB57.4020009@st.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1421138825.git.amit.virdi-qxv4g6HH51o@public.gmane.org>
+In-Reply-To: <54B4DB57.4020009-qxv4g6HH51o@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: balbi-l0cyMroinI0@public.gmane.org, pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ajay.khandelwal-qxv4g6HH51o@public.gmane.org, Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-DWC3 gadget sets up a pool of 32 TRBs for each EP during initialization. This
-means, the max TRBs that can be submitted for an EP is fixed to 32. Since the
-request queue for an EP is a linked list, any number of requests can be queued
-to it by the gadget layer.  However, the dwc3 driver must not submit TRBs more
-than the pool it has created for. This limit wasn't respected when SG was used
-resulting in submitting more than the max TRBs, eventually leading to
-non-transfer of the TRBs submitted over the max limit.
+This is a re-submission of patches [1/4] and [2/4] from:
+	http://www.spinics.net/lists/linux-usb/msg118841.html
 
-Root cause:
-When SG is used, there are two loops iterating to prepare TRBs:
- - Outer loop over the request_list
- - Inner loop over the SG list
-The code was missing break to get out of the outer loop.
+Commit log of both these patches has been modified for aided clarity. These
+patches have been rebased on Balbi's testing/next.
 
-Signed-off-by: Amit Virdi <amit.virdi-qxv4g6HH51o@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.9+
----
- drivers/usb/dwc3/gadget.c | 3 +++
- 1 file changed, 3 insertions(+)
+Patches [3/4] and [4/4] were accepted as they were. 
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index cb8939134c32..6c5e344822b9 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -897,6 +897,9 @@ static void dwc3_prepare_trbs(struct dwc3_ep *dep, bool starting)
- 				if (last_one)
- 					break;
- 			}
-+
-+			if (last_one)
-+				break;
- 		} else {
- 			dma = req->request.dma;
- 			length = req->request.length;
+Amit Virdi (2):
+  usb: dwc3: gadget: Fix TRB preparation during SG
+  usb: dwc3: gadget: Stop TRB preparation after limit is reached
+
+ drivers/usb/dwc3/gadget.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
 -- 
 1.8.0
 
