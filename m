@@ -1,40 +1,60 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC 0/3] Make "ti,tilcdc,slave" DT binding more sensible
-Date: Tue, 13 Jan 2015 19:12:25 +0200
-Message-ID: <cover.1421167634.git.jsarha@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] Drop legacy support for omap3517
+Date: Tue, 13 Jan 2015 09:57:41 -0800
+Message-ID: <1421171865-5209-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45414 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753126AbbAMRMk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2015 12:12:40 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50723 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751109AbbAMSBo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2015 13:01:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
-Cc: tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-These patches are needed for Beaglebone-back HDMI audio. There is no
-direct dependency between these patches and the other (dts and ASoC)
-changes needed for the HDMI audio so these changes can be merged
-independently. I also feel that these changes make sense even without
-the HDMI audio.
+Hi all,
 
-Best regards,
-Jyri
+It seems we can now drop omap3517 legacy booting support to get
+a bit closer to making all of omap3 boot in device tree only mode.
 
-Jyri Sarha (3):
-  drm: encoder_slave: Add drm_i2c_encoder_attach()
-  drm/tilcdc: slave: Add support for "i2c-slave" DT-parameter
-  ARM: dts: am335x-boneblack: Use new binding in ti,tilcdc,slave node
+All these boards have at least minimal support for booting with
+device tree, and pretty much anything supported with the legacy
+board files can be configured also for device tree based booting
+if not done already.
 
- .../devicetree/bindings/drm/tilcdc/slave.txt       |    4 +-
- arch/arm/boot/dts/am335x-boneblack.dts             |    9 +++-
- drivers/gpu/drm/drm_encoder_slave.c                |   51 ++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_slave.c              |   50 +++++++++++--------
- include/drm/drm_encoder_slave.h                    |    3 ++
- 5 files changed, 95 insertions(+), 22 deletions(-)
+If anybody has issues booting 3517 with appended device tree,
+please post the isssues to the mailing lists so we can promptly
+fix those.
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (4):
+  ARM: OMAP3: Remove legacy support for am3517-evm
+  ARM: OMAP3: Remove legacy support for am3517crane
+  ARM: OMAP3: Remove cm-t3517 legacy support
+  ARM: OMAP3: Remove legacy support for am35xx-emac
+
+ arch/arm/mach-omap2/Kconfig                |  17 --
+ arch/arm/mach-omap2/Makefile               |   8 -
+ arch/arm/mach-omap2/am35xx-emac.c          | 114 ---------
+ arch/arm/mach-omap2/am35xx-emac.h          |  15 --
+ arch/arm/mach-omap2/am35xx.h               |  46 ----
+ arch/arm/mach-omap2/board-am3517crane.c    | 150 ------------
+ arch/arm/mach-omap2/board-am3517evm.c      | 373 -----------------------------
+ arch/arm/mach-omap2/board-cm-t3517.c       | 335 --------------------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  33 +--
+ arch/arm/mach-omap2/pdata-quirks.c         |   1 -
+ 10 files changed, 2 insertions(+), 1090 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/am35xx-emac.c
+ delete mode 100644 arch/arm/mach-omap2/am35xx-emac.h
+ delete mode 100644 arch/arm/mach-omap2/am35xx.h
+ delete mode 100644 arch/arm/mach-omap2/board-am3517crane.c
+ delete mode 100644 arch/arm/mach-omap2/board-am3517evm.c
+ delete mode 100644 arch/arm/mach-omap2/board-cm-t3517.c
 
 -- 
-1.7.9.5
+2.1.4
 
