@@ -1,55 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] irqchip: omap-intc: Remove unused legacy interface for omap2
-Date: Tue, 13 Jan 2015 14:23:26 -0800
-Message-ID: <1421187806-6804-3-git-send-email-tony@atomide.com>
-References: <1421187806-6804-1-git-send-email-tony@atomide.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC PATCH 2/3] core: platform: fix an invalid kfree during of_platform_depopulate
+Date: Tue, 13 Jan 2015 16:27:48 -0600
+Message-ID: <CAL_JsqK8ZAUZwd1zjjZ57MQZ+KD-_qiCyMXnhQ-zZ38wxUtf-g@mail.gmail.com>
+References: <1420651854-17768-1-git-send-email-s-anna@ti.com> <1420651854-17768-3-git-send-email-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421187806-6804-1-git-send-email-tony@atomide.com>
+In-Reply-To: <1420651854-17768-3-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pawel Moll <pawel.moll@arm.com>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, Felipe Balbi <balbi@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Nowadays omap2 is booting in device tree only mode so there is no
-need to keep the legacy interface around for omap2_init_irq().
+On Wed, Jan 7, 2015 at 11:30 AM, Suman Anna <s-anna@ti.com> wrote:
+> Drivers can use of_platform_populate() to create platform devices
+> for children of the device main node, and a complementary API
+> of_platform_depopulate() is provided to delete these child devices.
+> Any platform_data supplied for the OF devices through auxdata lookup
+> data is populated directly in the device's platform_data field, unlike
+> those created using platform API. The of_platform_depopulate()
+> leverages the platform code for cleanup, and this will result in a
+> kernel oops due to an invalid kfree on this direct populated
+> platform_data.
+>
+> Fix this by resetting the platform data for OF devices during
+> platform device cleanup.
 
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/irqchip/irq-omap-intc.c       | 8 --------
- include/linux/irqchip/irq-omap-intc.h | 1 -
- 2 files changed, 9 deletions(-)
+We should probably copy the platform_data like is done for non-OF
+platform devices. I'm sure there was some reason for it. It looks
+strange doing this in release.
 
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-index b75a44a..ece8624 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -348,14 +348,6 @@ out:
- 		omap_ack_irq(NULL);
- }
- 
--void __init omap2_init_irq(void)
--{
--	omap_nr_irqs = 96;
--	omap_nr_pending = 3;
--	omap_init_irq(OMAP24XX_IC_BASE, NULL);
--	set_handle_irq(omap_intc_handle_irq);
--}
--
- void __init omap3_init_irq(void)
- {
- 	omap_nr_irqs = 96;
-diff --git a/include/linux/irqchip/irq-omap-intc.h b/include/linux/irqchip/irq-omap-intc.h
-index bda426a..2e3d1af 100644
---- a/include/linux/irqchip/irq-omap-intc.h
-+++ b/include/linux/irqchip/irq-omap-intc.h
-@@ -18,7 +18,6 @@
- #ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H
- #define __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H
- 
--void omap2_init_irq(void);
- void omap3_init_irq(void);
- 
- int omap_irq_pending(void);
--- 
-2.1.4
+However, I'm inclined to not fix this and force users to move off of
+auxdata. That's intended to be a temporary migration path and there
+are only 54 instances of it that have platform_data. What device do
+you care about?
+
+Rob
+
+>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>  drivers/base/platform.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 9421fed40905..129e69c8c894 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -200,6 +200,8 @@ static void platform_device_release(struct device *dev)
+>         struct platform_object *pa = container_of(dev, struct platform_object,
+>                                                   pdev.dev);
+>
+> +       if (pa->pdev.dev.of_node)
+> +               pa->pdev.dev.platform_data = NULL;
+>         of_device_node_put(&pa->pdev.dev);
+>         kfree(pa->pdev.dev.platform_data);
+>         kfree(pa->pdev.mfd_cell);
+> --
+> 2.2.1
+>
