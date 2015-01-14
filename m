@@ -1,36 +1,52 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: Add board-generic.c entry for ti81xx
-Date: Wed, 14 Jan 2015 16:51:29 +0300
-Message-ID: <54B67461.9010402@cogentembedded.com>
-References: <1421192272-20754-1-git-send-email-tony@atomide.com> <1421192272-20754-2-git-send-email-tony@atomide.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
+ is reached
+Date: Wed, 14 Jan 2015 07:39:49 -0800
+Message-ID: <20150114153949.GA26174@kroah.com>
+References: <20141227174628.GB17608@saruman>
+ <CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com>
+ <20141229171232.GI29379@saruman>
+ <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com>
+ <20141230160215.GB415@saruman>
+ <54AB7D3F.3030809@st.com>
+ <20150112183459.GK6525@saruman>
+ <54B4A394.5060005@st.com>
+ <20150113162808.GF16533@saruman>
+ <54B63263.4090201@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:35023 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbbANNvc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2015 08:51:32 -0500
-Received: by mail-la0-f45.google.com with SMTP id gq15so8203144lab.4
-        for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2015 05:51:31 -0800 (PST)
-In-Reply-To: <1421192272-20754-2-git-send-email-tony@atomide.com>
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:43340 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751221AbbANPjx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Jan 2015 10:39:53 -0500
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+	by mailout.nyi.internal (Postfix) with ESMTP id 8C10820E6C
+	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2015 10:39:50 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <54B63263.4090201@st.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: Amit Virdi <amit.virdi@st.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, Amit Virdi <amitvi128@gmail.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pratyush Anand Thakur <pratyush.anand@gmail.com>, Ajay KHANDELWAL <ajay.khandelwal@st.com>
 
-Hello.
+On Wed, Jan 14, 2015 at 02:39:55PM +0530, Amit Virdi wrote:
+> >Alright, I just applied your patches to testing/fixes. I'll start
+> >testing today and should be able to send a pull request to Greg by the
+> >end of the week, hopefully.
+> >
+> 
+> Thanks! Just a small clarification - git failed to send patches to stable
+> kernel list again (unfortunately I used the older configuration; so older
+> git version - my bad).
+> 
+> Does these patches land up in the stable trees through maintainers or I
+> should explicitly cc stable@vger.kernel.org now?
 
-On 1/14/2015 2:37 AM, Tony Lindgren wrote:
+Please read Documentation/stable_kernel_rules.txt for how to get patches
+accepted into the stable trees.
 
-> This allows booting ti81xx boards with with when a .dts
+thanks,
 
-    So, with, with or when? :-)
-
-> file is in place.
-
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-WBR, Sergei
-
+greg k-h
