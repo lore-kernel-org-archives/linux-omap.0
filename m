@@ -1,77 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Add dm816x hwmod support
-Date: Wed, 14 Jan 2015 11:43:01 -0800
-Message-ID: <20150114194301.GR2419@atomide.com>
-References: <1421191355-12835-1-git-send-email-tony@atomide.com>
- <1421191355-12835-3-git-send-email-tony@atomide.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 2/4] Documentation: dt: add the omap hwspinlock bindings document
+Date: Wed, 14 Jan 2015 14:58:19 -0600
+Message-ID: <1421269101-51105-3-git-send-email-s-anna@ti.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36061 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754319AbbANTqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2015 14:46:45 -0500
-Content-Disposition: inline
-In-Reply-To: <1421191355-12835-3-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1421269101-51105-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Aida Mynzhasova <aida.mynzhasova@skitlab.ru>, Brian Hutchinson <b.hutchman@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-* Tony Lindgren <tony@atomide.com> [150113 15:29]:
-> Add minimal hwmod support that works at least on dm8168. This
-> is based on the code in the earlier TI CDP tree, and an earlier
-> patch by Aida Mynzhasova <aida.mynzhasova@skitlab.ru>.
-> 
-> I've set up things to work pretty much the same way as for
-> am33xx. We are basically using cm33xx.c with a different set
-> of clocks and clockdomains.
-> 
-> This code is based on the TI81XX-LINUX-PSP-04.04.00.02 patches
-> published at:
-> 
-> http://downloads.ti.com/dsps/dsps_public_sw/psp/LinuxPSP/TI81XX_04_04/04_04_00_02/index_FDS.html
-> 
-> Cc: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/Makefile               |    1 +
->  arch/arm/mach-omap2/io.c                   |    8 +-
->  arch/arm/mach-omap2/omap_hwmod.c           |    2 +-
->  arch/arm/mach-omap2/omap_hwmod.h           |    1 +
->  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 1025 ++++++++++++++++++++++++++++
->  5 files changed, 1034 insertions(+), 3 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 352873c..926bc39 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -226,6 +226,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
->  obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_43xx_data.o
->  obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_interconnect_data.o
->  obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
-> +obj-$(CONFIG_SOC_TI81XX)		+= omap_hwmod_81xx_data.o
->  obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
->  obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
->  obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+which are all device-tree boot only. This patch adds the
+DT bindings information for OMAP hwspinlock module.
 
-Looks like the Makefile needs the following addition for make randconfig
-builds to work properly.
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+v7: Added information about hwlock-base-id and updated example to use it
 
-Regards,
+ .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
 
-Tony
+diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+new file mode 100644
+index 000000000000..935173ec6b58
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+@@ -0,0 +1,28 @@
++OMAP4+ HwSpinlock Driver
++========================
++
++Required properties:
++- compatible:		Should be "ti,omap4-hwspinlock" for
++			    OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
++- reg:			Contains the hwspinlock module register address space
++			(base address and length)
++- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
++- hwlock-base-id:	Should be 0 for the first IP block instance, or a proper
++			positive value for any subsequent instance (if present)
++			of the IP block.
++- #hwlock-cells:	Should be 1. The OMAP hwspinlock users will use a
++			0-indexed relative hwlock number as the argument
++			specifier value for requesting a specific hwspinlock
++			within a hwspinlock bank.
++
++
++Example:
++
++/* OMAP4 */
++hwspinlock: spinlock@4a0f6000 {
++	compatible = "ti,omap4-hwspinlock";
++	reg = <0x4a0f6000 0x1000>;
++	ti,hwmods = "spinlock";
++	hwlock-base-id = <0>;
++	#hwlock-cells = <1>;
++};
+-- 
+2.2.1
 
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -121,6 +121,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-prcm-4-5-common)
- am33xx-43xx-prcm-common			+= prm33xx.o cm33xx.o
-+obj-$(CONFIG_SOC_TI81XX)		+= $(am33xx-43xx-prcm-common)
- obj-$(CONFIG_SOC_AM33XX)		+= $(am33xx-43xx-prcm-common)
- obj-$(CONFIG_SOC_AM43XX)		+= $(omap-prcm-4-5-common) \
- 					   $(am33xx-43xx-prcm-common)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
