@@ -1,54 +1,32 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH RFC 0/3] Make "ti,tilcdc,slave" DT binding more sensible
-Date: Wed, 14 Jan 2015 07:57:29 +0100
-Message-ID: <20150114075729.7fe4b80a@armhf>
-References: <cover.1421167634.git.jsarha@ti.com>
+From: Amit Virdi <amit.virdi@st.com>
+Subject: Re: [PATCH 2/4] usb: dwc3: gadget: Stop TRB preparation after limit
+ is reached
+Date: Wed, 14 Jan 2015 14:39:55 +0530
+Message-ID: <54B63263.4090201@st.com>
+References: <20141222160626.GD12815@saruman> <CAEOkp44o-a1Onxwxp6rRZvN+vgWhALiNf=Z5FbRtyrOW2JWx=Q@mail.gmail.com> <20141227174628.GB17608@saruman> <CAEOkp447UBzCRfmCO1yy1_k4N40L_TsfbrCpoLXd=Wmav8JROg@mail.gmail.com> <20141229171232.GI29379@saruman> <CAEOkp466i87H2cRkG+GopsiqamV6Ym=Rm5Lbiqc2pk29X0Rt=w@mail.gmail.com> <20141230160215.GB415@saruman> <54AB7D3F.3030809@st.com> <20150112183459.GK6525@saruman> <54B4A394.5060005@st.com> <20150113162808.GF16533@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1421167634.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, detheridge@ti.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:43950 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752142AbbANJKZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Jan 2015 04:10:25 -0500
+In-Reply-To: <20150113162808.GF16533@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "balbi@ti.com" <balbi@ti.com>
+Cc: Amit Virdi <amitvi128@gmail.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pratyush Anand Thakur <pratyush.anand@gmail.com>, Ajay KHANDELWAL <ajay.khandelwal@st.com>
 
-T24gVHVlLCAxMyBKYW4gMjAxNSAxOToxMjoyNSArMDIwMApKeXJpIFNhcmhhIDxqc2FyaGFAdGku
-Y29tPiB3cm90ZToKCj4gVGhlc2UgcGF0Y2hlcyBhcmUgbmVlZGVkIGZvciBCZWFnbGVib25lLWJh
-Y2sgSERNSSBhdWRpby4gVGhlcmUgaXMgbm8KPiBkaXJlY3QgZGVwZW5kZW5jeSBiZXR3ZWVuIHRo
-ZXNlIHBhdGNoZXMgYW5kIHRoZSBvdGhlciAoZHRzIGFuZCBBU29DKQo+IGNoYW5nZXMgbmVlZGVk
-IGZvciB0aGUgSERNSSBhdWRpbyBzbyB0aGVzZSBjaGFuZ2VzIGNhbiBiZSBtZXJnZWQKPiBpbmRl
-cGVuZGVudGx5LiBJIGFsc28gZmVlbCB0aGF0IHRoZXNlIGNoYW5nZXMgbWFrZSBzZW5zZSBldmVu
-IHdpdGhvdXQKPiB0aGUgSERNSSBhdWRpby4KPiAKPiBCZXN0IHJlZ2FyZHMsCj4gSnlyaQo+IAo+
-IEp5cmkgU2FyaGEgKDMpOgo+ICAgZHJtOiBlbmNvZGVyX3NsYXZlOiBBZGQgZHJtX2kyY19lbmNv
-ZGVyX2F0dGFjaCgpCj4gICBkcm0vdGlsY2RjOiBzbGF2ZTogQWRkIHN1cHBvcnQgZm9yICJpMmMt
-c2xhdmUiIERULXBhcmFtZXRlcgo+ICAgQVJNOiBkdHM6IGFtMzM1eC1ib25lYmxhY2s6IFVzZSBu
-ZXcgYmluZGluZyBpbiB0aSx0aWxjZGMsc2xhdmUgbm9kZQo+IAo+ICAuLi4vZGV2aWNldHJlZS9i
-aW5kaW5ncy9kcm0vdGlsY2RjL3NsYXZlLnR4dCAgICAgICB8ICAgIDQgKy0KPiAgYXJjaC9hcm0v
-Ym9vdC9kdHMvYW0zMzV4LWJvbmVibGFjay5kdHMgICAgICAgICAgICAgfCAgICA5ICsrKy0KPiAg
-ZHJpdmVycy9ncHUvZHJtL2RybV9lbmNvZGVyX3NsYXZlLmMgICAgICAgICAgICAgICAgfCAgIDUx
-ICsrKysrKysrKysrKysrKysrKysrCj4gIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3Ns
-YXZlLmMgICAgICAgICAgICAgIHwgICA1MCArKysrKysrKysrKy0tLS0tLS0tCj4gIGluY2x1ZGUv
-ZHJtL2RybV9lbmNvZGVyX3NsYXZlLmggICAgICAgICAgICAgICAgICAgIHwgICAgMyArKwo+ICA1
-IGZpbGVzIGNoYW5nZWQsIDk1IGluc2VydGlvbnMoKyksIDIyIGRlbGV0aW9ucygtKQoKSW5zdGVh
-ZCBvZiBhZGRpbmcgY29kZSB0byBoYXZlIHRoZSBzbGF2ZSBlbmNvZGVyIHdvcmtpbmcsIGl0IHdv
-dWxkIGJlCnNpbXBsZXIgdG8gY2hhbmdlIHRoZSB3YXkgdGlsY2RjIHVzZXMgdGhlIHRkYTk5OHgu
-CkkgYWxyZWFkeSBwcm9wb3NlZCBzdWNoIGEgcGF0Y2g6CgpodHRwOi8vbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnL2FyY2hpdmVzL2RyaS1kZXZlbC8yMDE0LU1hcmNoLzA1NjA2NS5odG1sCgphbmQgdGhl
-IGNoYW5nZXMgaW4gdGhlIHRkYTk5OHggZHJpdmVyIGhhdmUgYmVlbiBkb25lIGJ5IFJ1c3NlbGw6
-Cgpjb21taXQ6IGE4ZjRkNGQ2MzczOWU0YmNhNDU5ZmY0MDYzNmYxZDllNGI3ZWY1ZTYKCWRybS9p
-MmM6IHRkYTk5OHg6IGFsbG93IHJlLXVzZSBvZiB0ZGE5OTh4IHN1cHBvcnQgY29kZQphbmQKY29t
-bWl0OiBjNzA3YzM2MTljYTgxZjQ5OWE1Y2UwMzIwMjE0MDVlOTg5YTk2ZmYwCglkcm0vaTJjOiB0
-ZGE5OTh4OiBhZGQgY29tcG9uZW50IHN1cHBvcnQKCi0tIApLZW4gYXIgYydoZW50YcOxCXwJICAg
-ICAgKiogQnJlaXpoIGhhIExpbnV4IGF0YXYhICoqCkplZgkJfAkJaHR0cDovL21vaW5lamYuZnJl
-ZS5mci8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
-LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+> Alright, I just applied your patches to testing/fixes. I'll start
+> testing today and should be able to send a pull request to Greg by the
+> end of the week, hopefully.
+>
+
+Thanks! Just a small clarification - git failed to send patches to 
+stable kernel list again (unfortunately I used the older configuration; 
+so older git version - my bad).
+
+Does these patches land up in the stable trees through maintainers or I 
+should explicitly cc stable@vger.kernel.org now?
