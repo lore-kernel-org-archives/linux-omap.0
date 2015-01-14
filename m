@@ -1,43 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [patch-net-next 1/3] net: ethernet: cpsw: unroll IRQ request
- loop
-Date: Wed, 14 Jan 2015 00:18:55 -0500 (EST)
-Message-ID: <20150114.001855.480294380856199745.davem@davemloft.net>
-References: <1421178288-7393-1-git-send-email-balbi@ti.com>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH RFC 0/3] Make "ti,tilcdc,slave" DT binding more sensible
+Date: Wed, 14 Jan 2015 07:57:29 +0100
+Message-ID: <20150114075729.7fe4b80a@armhf>
+References: <cover.1421167634.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1421178288-7393-1-git-send-email-balbi@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1421167634.git.jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, detheridge@ti.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi@ti.com>
-Date: Tue, 13 Jan 2015 13:44:46 -0600
-
-> +	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
-> +			0, dev_name(&pdev->dev), priv);
-
-When a function call spans multiple lines, the argument on the second
-and subsequent lines must start on the first column after the openning
-parenthesis of the function call.
-
-If you are using only TAB characters to indent, you are likely not
-doing it correctly.
-
-> +	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
-> +			0, dev_name(&pdev->dev), priv);
-
-Likewise.
-
-> +	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
-> +			0, dev_name(&pdev->dev), priv);
-
-Likewise.
-
-> +	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
-> +			0, dev_name(&pdev->dev), priv);
-
-Likewise.
+T24gVHVlLCAxMyBKYW4gMjAxNSAxOToxMjoyNSArMDIwMApKeXJpIFNhcmhhIDxqc2FyaGFAdGku
+Y29tPiB3cm90ZToKCj4gVGhlc2UgcGF0Y2hlcyBhcmUgbmVlZGVkIGZvciBCZWFnbGVib25lLWJh
+Y2sgSERNSSBhdWRpby4gVGhlcmUgaXMgbm8KPiBkaXJlY3QgZGVwZW5kZW5jeSBiZXR3ZWVuIHRo
+ZXNlIHBhdGNoZXMgYW5kIHRoZSBvdGhlciAoZHRzIGFuZCBBU29DKQo+IGNoYW5nZXMgbmVlZGVk
+IGZvciB0aGUgSERNSSBhdWRpbyBzbyB0aGVzZSBjaGFuZ2VzIGNhbiBiZSBtZXJnZWQKPiBpbmRl
+cGVuZGVudGx5LiBJIGFsc28gZmVlbCB0aGF0IHRoZXNlIGNoYW5nZXMgbWFrZSBzZW5zZSBldmVu
+IHdpdGhvdXQKPiB0aGUgSERNSSBhdWRpby4KPiAKPiBCZXN0IHJlZ2FyZHMsCj4gSnlyaQo+IAo+
+IEp5cmkgU2FyaGEgKDMpOgo+ICAgZHJtOiBlbmNvZGVyX3NsYXZlOiBBZGQgZHJtX2kyY19lbmNv
+ZGVyX2F0dGFjaCgpCj4gICBkcm0vdGlsY2RjOiBzbGF2ZTogQWRkIHN1cHBvcnQgZm9yICJpMmMt
+c2xhdmUiIERULXBhcmFtZXRlcgo+ICAgQVJNOiBkdHM6IGFtMzM1eC1ib25lYmxhY2s6IFVzZSBu
+ZXcgYmluZGluZyBpbiB0aSx0aWxjZGMsc2xhdmUgbm9kZQo+IAo+ICAuLi4vZGV2aWNldHJlZS9i
+aW5kaW5ncy9kcm0vdGlsY2RjL3NsYXZlLnR4dCAgICAgICB8ICAgIDQgKy0KPiAgYXJjaC9hcm0v
+Ym9vdC9kdHMvYW0zMzV4LWJvbmVibGFjay5kdHMgICAgICAgICAgICAgfCAgICA5ICsrKy0KPiAg
+ZHJpdmVycy9ncHUvZHJtL2RybV9lbmNvZGVyX3NsYXZlLmMgICAgICAgICAgICAgICAgfCAgIDUx
+ICsrKysrKysrKysrKysrKysrKysrCj4gIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3Ns
+YXZlLmMgICAgICAgICAgICAgIHwgICA1MCArKysrKysrKysrKy0tLS0tLS0tCj4gIGluY2x1ZGUv
+ZHJtL2RybV9lbmNvZGVyX3NsYXZlLmggICAgICAgICAgICAgICAgICAgIHwgICAgMyArKwo+ICA1
+IGZpbGVzIGNoYW5nZWQsIDk1IGluc2VydGlvbnMoKyksIDIyIGRlbGV0aW9ucygtKQoKSW5zdGVh
+ZCBvZiBhZGRpbmcgY29kZSB0byBoYXZlIHRoZSBzbGF2ZSBlbmNvZGVyIHdvcmtpbmcsIGl0IHdv
+dWxkIGJlCnNpbXBsZXIgdG8gY2hhbmdlIHRoZSB3YXkgdGlsY2RjIHVzZXMgdGhlIHRkYTk5OHgu
+CkkgYWxyZWFkeSBwcm9wb3NlZCBzdWNoIGEgcGF0Y2g6CgpodHRwOi8vbGlzdHMuZnJlZWRlc2t0
+b3Aub3JnL2FyY2hpdmVzL2RyaS1kZXZlbC8yMDE0LU1hcmNoLzA1NjA2NS5odG1sCgphbmQgdGhl
+IGNoYW5nZXMgaW4gdGhlIHRkYTk5OHggZHJpdmVyIGhhdmUgYmVlbiBkb25lIGJ5IFJ1c3NlbGw6
+Cgpjb21taXQ6IGE4ZjRkNGQ2MzczOWU0YmNhNDU5ZmY0MDYzNmYxZDllNGI3ZWY1ZTYKCWRybS9p
+MmM6IHRkYTk5OHg6IGFsbG93IHJlLXVzZSBvZiB0ZGE5OTh4IHN1cHBvcnQgY29kZQphbmQKY29t
+bWl0OiBjNzA3YzM2MTljYTgxZjQ5OWE1Y2UwMzIwMjE0MDVlOTg5YTk2ZmYwCglkcm0vaTJjOiB0
+ZGE5OTh4OiBhZGQgY29tcG9uZW50IHN1cHBvcnQKCi0tIApLZW4gYXIgYydoZW50YcOxCXwJICAg
+ICAgKiogQnJlaXpoIGhhIExpbnV4IGF0YXYhICoqCkplZgkJfAkJaHR0cDovL21vaW5lamYuZnJl
+ZS5mci8KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6
+Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
