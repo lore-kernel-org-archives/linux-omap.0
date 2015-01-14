@@ -1,124 +1,122 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: pcf857x: restore the initial line state of all pcf lines
-Date: Wed, 14 Jan 2015 12:58:24 +0100
-Message-ID: <CACRpkdago2vWJYFmywULna6nkrbtciPZFESuuKixF0r8rSB1Sw@mail.gmail.com>
-References: <1418371601-22658-1-git-send-email-kishon@ti.com>
-	<548F498F.7050202@ti.com>
-	<549271A9.5040701@ti.com>
-	<5492E09F.1000003@ti.com>
-	<54AA2EB1.8090501@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Fix _wait_target_ready() for hwmods
+ without sysc
+Date: Wed, 14 Jan 2015 14:26:37 +0200
+Message-ID: <54B6607D.5040107@ti.com>
+References: <1418917790-1791-1-git-send-email-rogerq@ti.com> <5492F84E.7020706@ti.com> <alpine.DEB.2.02.1501020654050.27058@utopia.booyaka.com> <54AA4CD4.40105@ti.com> <alpine.DEB.2.02.1501060202540.28771@utopia.booyaka.com> <54AD166C.9060507@ti.com> <alpine.DEB.2.02.1501132345220.28034@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <54AA2EB1.8090501@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1501132345220.28034@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, tony@atomide.com, santosh.shilimkar@oracle.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, s-anna@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 5, 2015 at 7:26 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> On Thursday 18 December 2014 07:41 PM, Nishanth Menon wrote:
->> On 12/18/2014 12:18 AM, Kishon Vijay Abraham I wrote:
+On 14/01/15 01:46, Paul Walmsley wrote:
+> On Wed, 7 Jan 2015, Roger Quadros wrote:
+> 
+>>> From: Paul Walmsley <paul@pwsan.com>
+>>> Date: Mon, 5 Jan 2015 15:49:57 -0700
+>>> Subject: [PATCH] Only skip ioremap() if IP block does not have OCP header
+>>>  registers. Experimental.
 >>>
+>>> ---
+>>>  arch/arm/mach-omap2/omap_hwmod.c | 33 +++++++++++++++++++++------------
+>>>  1 file changed, 21 insertions(+), 12 deletions(-)
 >>>
->>> On Tuesday 16 December 2014 02:20 AM, Nishanth Menon wrote:
->>>> On 12/12/2014 02:06 AM, Kishon Vijay Abraham I wrote:
->>>>> The reset values for all the PCF lines are high and hence on shutdown
->>>>> we should drive all the lines high in order to bring it to the reset state.
->>>>>
->>>>> This is actually required since pcf doesn't have a reset line and even after
->>>>> warm reset (by invoking "reboot" in prompt) the pcf lines maintains it's
->>>>> previous programmed state. This becomes a problem if the boards are designed
->>>>> to work with the default initial state.
->>>>>
->>>>> DRA7XX_evm uses PCF8575 and one of the PCF output lines feeds to MMC/SD and
->>>>> this line should be driven high in order for the MMC/SD to be detected.
->>>>> This line is modelled as regulator and the hsmmc driver takes care of enabling
->>>>> and disabling it. In the case of 'reboot', during shutdown path as part of it's
->>>>> cleanup process the hsmmc driver disables this regulator. This makes MMC boot
->>>>> not functional.
->>>>>
->>>>> Fixed it by driving high all the pcf lines.
->>>>>
->>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>> ---
->>>>>  drivers/gpio/gpio-pcf857x.c |    9 +++++++++
->>>>>  1 file changed, 9 insertions(+)
->>>>>
->>>>> diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
->>>>> index 236708a..00b15b2 100644
->>>>> --- a/drivers/gpio/gpio-pcf857x.c
->>>>> +++ b/drivers/gpio/gpio-pcf857x.c
->>>>> @@ -448,6 +448,14 @@ static int pcf857x_remove(struct i2c_client *client)
->>>>>    return status;
->>>>>  }
->>>>>
->>>>> +static void pcf857x_shutdown(struct i2c_client *client)
->>>>> +{
->>>>> +  struct pcf857x *gpio = i2c_get_clientdata(client);
->>>>> +
->>>>> +  /* Drive all the I/O lines high */
->>>>> +  gpio->write(gpio->client, BIT(gpio->chip.ngpio) - 1);
->>>>
->>>> you might force a contention here - depending on System configuration.
->>>> example:
->>>> +-------+
->>>> |       |
->>>> |  U1   |         +------+      +-----------+
->>>> |       +--------->      |      |           |
->>>> +-------+         |      |      |           |
->>>>                   | Switch<-----+    SoC    |
->>>> +-------+         |      |      |           |
->>>> |       |         |      |      |           |
->>>> | U2    <---------+--^---+      +-----------+
->>>> |       |            |
->>>> |       |            |
->>>> +-------+            |
->>>>                   +--+--+
->>>>                   |     |
->>>>                   | PCF |
->>>>                   |     |
->>>>                   +-----+
->>>>
->>>> At low, SoC pin is connected to U2 as drive. when reset to high, you
->>>> now have U1 driving to the same pin that SoC has, potentially
->>>> resulting in contention.
->>>>
->>>>
->>>> Unfortunately, at this level, you do not know what the state of the
->>>> system is, blindly forcing a pin level will potentially cause
->>>> contention risk depending on pin configuration.
->>>
->>> Assume we are doing a reset when the system is powered on, irrespective of the
->>> state of the system, we'll be forcing the pin level to the default state.
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>> index cbb908dc5cf0..03df8833d399 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>> @@ -1938,6 +1938,8 @@ static int _reset(struct omap_hwmod *oh)
+>>>  	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+>>>  
+>>>  	if (oh->class->reset) {
+>>> +		WARN(!oh->_mpu_rt_va, "Attempt to call custom reset with no MPU register target ioremapped: %s",
+>>> +		     oh->name);
 >>
->> Yes, I dont deny that system will be fine *after* reset sequence is
->> started or completed. However there is a duration between the pcf
->> shutdown handler is called and the final reset handler is invoked -
->> that is the duration when  the contention might cause device behavior.
->> Essentially ignoring the state various drivers have asked PCF to setup
->> the pins and doing a hands down configuration may have side effects we
->> cant properly expect.
->
-> The solution might be to invoke the shutdown handler of the various drivers
-> using the PCF before the shutdown handler of the PCF driver itself gets
-> invoked? But I'm not sure how can that be achieved in linux kernel :-(
+>> Not part of $subject.
+> 
+> Hmm, how do you mean?  If we skip the ioremap(), wouldn't you like to know 
+> before some custom reset code gets called that pretty much always depends 
+> on the ioremap() succeeding? :-)
 
-#include <linux/reboot.h>
+Ah yes. you are right.
 
-static int foo_reboot_handler(struct notifier_block *this,
-                                unsigned long code,
-                                void *unused)
-{
-        pr_crit("do some last minute stuff\n");
-        return NOTIFY_OK;
-}
+> 
+>>>  		r = oh->class->reset(oh);
+>>>  	} else {
+>>>  		if (oh->rst_lines_cnt > 0) {
+>>> @@ -2358,15 +2360,19 @@ static int of_dev_hwmod_lookup(struct device_node *np,
+>>>  }
+>>>  
+>>>  /**
+>>> - * _init_mpu_rt_base - populate the virtual address for a hwmod
+>>> + * _init_mpu_rt_base - populate the MPU port and virtual address
+>>>   * @oh: struct omap_hwmod * to locate the virtual address
+>>>   * @data: (unused, caller should pass NULL)
+>>>   * @index: index of the reg entry iospace in device tree
+>>>   * @np: struct device_node * of the IP block's device node in the DT data
+>>>   *
+>>> - * Cache the virtual address used by the MPU to access this IP block's
+>>> - * registers.  This address is needed early so the OCP registers that
+>>> - * are part of the device's address space can be ioremapped properly.
+>>> + * Cache the interconnect target port and the virtual address used by
+>>> + * the MPU to access this IP block's registers.  The address is needed
+>>> + * early so the OCP registers that are part of the device's address
+>>> + * space can be ioremapped properly.  The presence or absence of the
+>>> + * interconnect target port also indicates whether the hwmod code
+>>> + * should wait for the IP block to indicate readiness after it is
+>>> + * enabled.
+>>>   *
+>>>   * Returns 0 on success, -EINVAL if an invalid hwmod is passed, and
+>>>   * -ENXIO on absent or invalid register target address space.
+>>> @@ -2385,6 +2391,13 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
+>>>  	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+>>>  		return -ENXIO;
+>>>  
+>>> +	/*
+>>> +	 * If there's no need for the hwmod code to read or write to
+>>> +	 * the IP block registers, bail out early before the ioremap()
+>>> +	 */
+>>> +	if (!oh->class->sysc)
+>>> +		return 0;
+>>> +
+>>>  	mem = _find_mpu_rt_addr_space(oh);
+>>>  	if (!mem) {
+>>>  		pr_debug("omap_hwmod: %s: no MPU register target found\n",
+>>> @@ -2451,14 +2464,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+>>>  				oh->name, np->name);
+>>>  	}
+>>>  
+>>> -	if (oh->class->sysc) {
+>>> -		r = _init_mpu_rt_base(oh, NULL, index, np);
+>>> -		if (r < 0) {
+>>> -			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+>>> -			     oh->name);
+>>> -			return 0;
+>>> -		}
+>>> -	}
+>>> +	r = _init_mpu_rt_base(oh, NULL, index, np);
+>>> +	if (r < 0)
+>>> +		pr_debug("omap_hwmod: %s: doesn't have mpu register target base\n",
+>>> +			 oh->name);
+>>
+>> This is the real piece that fixes the issue.
+>>
+>>>  
+>>>  	r = _init_clocks(oh, NULL);
+>>>  	if (r < 0) {
+>>>
+>>
+>> I've tested this patch on am43x-gp-evm, and it seems to fix the issue 
+>> although with some unpleasant warning messages.
+> 
+> Could you paste those in?
+> 
+I can't reproduce what I saw earlier. Sorry for the noise.
 
-static struct notifier_block foo_reboot_notifier = {
-        .notifier_call = foo_reboot_handler,
-};
-
-register_reboot_notifier(&foo_reboot_notifier);
-
-Yours,
-Linus Walleij
+cheers,
+-roger
