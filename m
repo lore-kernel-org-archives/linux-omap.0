@@ -1,79 +1,171 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 2/6] net: davinci_emac: Fix runtime pm calls for
- davinci_emac
-Date: Tue, 13 Jan 2015 16:42:36 -0700
-Message-ID: <20150113234236.GA3921@animalcreek.com>
-References: <1421177368-19756-1-git-send-email-tony@atomide.com>
- <1421177368-19756-3-git-send-email-tony@atomide.com>
- <20150113195141.GT16533@saruman>
- <20150113205439.GK2419@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] irqchip: omap-intc: Fix support for dm814 and dm816
+Date: Tue, 13 Jan 2015 19:16:36 -0600
+Message-ID: <20150114011636.GB18523@saruman>
+References: <1421187806-6804-1-git-send-email-tony@atomide.com>
+ <1421187806-6804-2-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from p3plsmtpa08-08.prod.phx3.secureserver.net ([173.201.193.109]:54136
-	"EHLO p3plsmtpa08-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751951AbbAMXtg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2015 18:49:36 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tjCHc7DPkfUGtrlw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150113205439.GK2419@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1421187806-6804-2-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 13, 2015 at 12:54:40PM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [150113 11:55]:
-> > On Tue, Jan 13, 2015 at 11:29:24AM -0800, Tony Lindgren wrote:
-> > > --- a/drivers/net/ethernet/ti/davinci_emac.c
-> > > +++ b/drivers/net/ethernet/ti/davinci_emac.c
-> > > @@ -1538,7 +1538,7 @@ static int emac_dev_open(struct net_device *ndev)
-> > >  	int i = 0;
-> > >  	struct emac_priv *priv = netdev_priv(ndev);
-> > >  
-> > > -	pm_runtime_get(&priv->pdev->dev);
-> > > +	pm_runtime_get_sync(&priv->pdev->dev);
-> > 
-> > gotta check return value on all pm_runtime_get_sync() calls. IIRC,
-> > there's a coccinelle script for checking and patching this.
-> 
-> Sure, here's an updated patch with error checking added.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 8< ---------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 22 Dec 2014 08:19:06 -0800
-> Subject: [PATCH] net: davinci_emac: Fix runtime pm calls for davinci_emac
-> 
-> Commit 3ba97381343b ("net: ethernet: davinci_emac: add pm_runtime support")
-> added support for runtime PM, but it causes issues on omap3 related devices
-> that actually gate the clocks:
-> 
-> Unhandled fault: external abort on non-linefetch (0x1008)
-> ...
-> [<c04160f0>] (emac_dev_getnetstats) from [<c04d6a3c>] (dev_get_stats+0x78/0xc8)
-> [<c04d6a3c>] (dev_get_stats) from [<c04e9ccc>] (rtnl_fill_ifinfo+0x3b8/0x938)
-> [<c04e9ccc>] (rtnl_fill_ifinfo) from [<c04eade4>] (rtmsg_ifinfo+0x68/0xd8)
-> [<c04eade4>] (rtmsg_ifinfo) from [<c04dd35c>] (register_netdevice+0x3a0/0x4ec)
-> [<c04dd35c>] (register_netdevice) from [<c04dd4bc>] (register_netdev+0x14/0x24)
-> [<c04dd4bc>] (register_netdev) from [<c041755c>] (davinci_emac_probe+0x408/0x5c8)
-> [<c041755c>] (davinci_emac_probe) from [<c0396d78>] (platform_drv_probe+0x48/0xa4)
-> 
-> Let's fix it by moving the pm_runtime_get() call earlier, and also add it to
-> the emac_dev_getnetstats(). Also note that we want to use pm_runtime_get_sync()
-> as we don't want to have deferred_resume happen. And let's also check the
-> return value for pm_runtime_get_sync() as noted by Felipe Balbi <balbi@ti.com>.
-> 
+--tjCHc7DPkfUGtrlw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jan 13, 2015 at 02:23:25PM -0800, Tony Lindgren wrote:
+> On dm81xx we have 128 interrupts like am33xx has. Let's add
+> compatible flags for dm814x and dm816x, and document the
+> existing binding.
+>=20
+> As the dm81xx are booting in device tree only mode, we can now
+> also remove ti81xx_init_irq() legacy function.
+>=20
 > Cc: Brian Hutchinson <b.hutchman@gmail.com>
 > Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Mark A. Greer <mgreer@animalcreek.com>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Tony,
+Thanks for documenting the binding :-s
 
-Sorry for the sloppy pm_runtime patch and thanks for fixing it.
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Acked-by: Mark A. Greer <mgreer@animalcreek.com>
+> ---
+>  .../interrupt-controller/ti,omap-intc-irq.txt      | 28 ++++++++++++++++=
+++++++
+>  drivers/irqchip/irq-omap-intc.c                    | 14 ++++-------
+>  include/linux/irqchip/irq-omap-intc.h              |  1 -
+>  3 files changed, 33 insertions(+), 10 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/interrupt-controlle=
+r/ti,omap-intc-irq.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,om=
+ap-intc-irq.txt b/Documentation/devicetree/bindings/interrupt-controller/ti=
+,omap-intc-irq.txt
+> new file mode 100644
+> index 0000000..38ce5d03
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/interrupt-controller/ti,omap-intc=
+-irq.txt
+> @@ -0,0 +1,28 @@
+> +Omap2/3 intc controller
+> +
+> +On TI omap2 and 3 the intc interrupt controller can provide
+> +96 or 128 IRQ signals to the ARM host depending on the SoC.
+> +
+> +Required Properties:
+> +- compatible: should be one of
+> +			"ti,omap2-intc"
+> +			"ti,omap3-intc"
+> +			"ti,dm814-intc"
+> +			"ti,dm816-intc"
+> +			"ti,am33xx-intc"
+> +
+> +- interrupt-controller : Identifies the node as an interrupt controller
+> +- #interrupt-cells : Specifies the number of cells needed to encode inte=
+rrupt
+> +		     source, should be 1 for intc
+> +- interrupts: interrupt reference to primary interrupt controller
+> +
+> +Please refer to interrupts.txt in this directory for details of the comm=
+on
+> +Interrupt Controllers bindings used by client devices.
+> +
+> +Example:
+> +	intc: interrupt-controller@48200000 {
+> +		compatible =3D "ti,omap3-intc";
+> +		interrupt-controller;
+> +		#interrupt-cells =3D <1>;
+> +		reg =3D <0x48200000 0x1000>;
+> +	};
+> diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-i=
+ntc.c
+> index 28718d3..b75a44a 100644
+> --- a/drivers/irqchip/irq-omap-intc.c
+> +++ b/drivers/irqchip/irq-omap-intc.c
+> @@ -364,14 +364,6 @@ void __init omap3_init_irq(void)
+>  	set_handle_irq(omap_intc_handle_irq);
+>  }
+> =20
+> -void __init ti81xx_init_irq(void)
+> -{
+> -	omap_nr_irqs =3D 96;
+> -	omap_nr_pending =3D 4;
+> -	omap_init_irq(OMAP34XX_IC_BASE, NULL);
+> -	set_handle_irq(omap_intc_handle_irq);
+> -}
+> -
+>  static int __init intc_of_init(struct device_node *node,
+>  			     struct device_node *parent)
+>  {
+> @@ -383,7 +375,9 @@ static int __init intc_of_init(struct device_node *no=
+de,
+>  	if (WARN_ON(!node))
+>  		return -ENODEV;
+> =20
+> -	if (of_device_is_compatible(node, "ti,am33xx-intc")) {
+> +	if (of_device_is_compatible(node, "ti,dm814-intc") ||
+> +	    of_device_is_compatible(node, "ti,dm816-intc") ||
+> +	    of_device_is_compatible(node, "ti,am33xx-intc")) {
+>  		omap_nr_irqs =3D 128;
+>  		omap_nr_pending =3D 4;
+>  	}
+> @@ -399,4 +393,6 @@ static int __init intc_of_init(struct device_node *no=
+de,
+> =20
+>  IRQCHIP_DECLARE(omap2_intc, "ti,omap2-intc", intc_of_init);
+>  IRQCHIP_DECLARE(omap3_intc, "ti,omap3-intc", intc_of_init);
+> +IRQCHIP_DECLARE(dm814x_intc, "ti,dm814-intc", intc_of_init);
+> +IRQCHIP_DECLARE(dm816x_intc, "ti,dm816-intc", intc_of_init);
+>  IRQCHIP_DECLARE(am33xx_intc, "ti,am33xx-intc", intc_of_init);
+> diff --git a/include/linux/irqchip/irq-omap-intc.h b/include/linux/irqchi=
+p/irq-omap-intc.h
+> index e06b370..bda426a 100644
+> --- a/include/linux/irqchip/irq-omap-intc.h
+> +++ b/include/linux/irqchip/irq-omap-intc.h
+> @@ -20,7 +20,6 @@
+> =20
+>  void omap2_init_irq(void);
+>  void omap3_init_irq(void);
+> -void ti81xx_init_irq(void);
+> =20
+>  int omap_irq_pending(void);
+>  void omap_intc_save_context(void);
+> --=20
+> 2.1.4
+>=20
+
+--=20
+balbi
+
+--tjCHc7DPkfUGtrlw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUtcN0AAoJEIaOsuA1yqRES1EP/jdHBqs8/FeYgCb9wWyAcZE6
+0SOfEpXqDBBDt8V7G3+lzmRgBrXxTLgaSpQTwMYeCIQuGg5T+7Ty+jTaZ1OnOAAK
+R6q6uk3iRKMkjxHN+nH/peFmaFCz9BDFKfQC7UiRsDVOx4kgab9P1XITM7mxszzR
+HQOdkC2NXSSzRpLHEdbgzIYbD0t1BRxIXw7NT0zdw2DdX8fO0qctZjJawrI1L3VD
+xeHYUea223JptOcNNibhQL7HsAbl+6a8nYhj6ZZvDNkgF8D7yOS9cwZVSn+E6Hgw
+LJaQIH6ajXQGmsHC81ZgmonYgc84ozodO+1CRFcq06ilYxM9AdGiJvqB098Bz19S
+/0XyImlRjRJwjpFO+eQVMRg1NslZPjc6Qlv7tWKANH2Y3lSvp7y7rPbRfi6SFJvQ
+5SWKZ/1865IVxYyrqxfXKEWLoM8Hd4IRm0IUbMg1OM/zPJKwnEtww2aTarIa/o26
+YT2y8qk8IdaMf7nB+QX0mZJPN14h+HW6ipxtU1jTn6gT2RHClNp1BZZqHe2U5tU/
+v36lTebcOhPpBgfE6USfcYkh27jzMi9PfK4V1WbXHdlk1fBfPFctS6ZshPTSX6cT
+OGVzR5lm5mdR3kGQV0ME++vEZ7yY3el+3g7ntapI2+I9FcV3ecC87dkiMkj8knrT
+J5X61iJshAufpwmItWJh
+=ZywO
+-----END PGP SIGNATURE-----
+
+--tjCHc7DPkfUGtrlw--
