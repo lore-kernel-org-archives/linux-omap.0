@@ -1,380 +1,144 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP4: Remove legacy PMIC platform code
-Date: Wed, 14 Jan 2015 16:58:33 -0800
-Message-ID: <20150115005833.GA18552@atomide.com>
+From: Pankaj Dubey <pankaj.dubey@samsung.com>
+Subject: Re: [v3,15/21] ARM: exynos4/5: convert pmu wakeup to stacked domains
+Date: Thu, 15 Jan 2015 12:11:06 +0530
+Message-ID: <54B76102.6050706@samsung.com>
+References: <1421087187-26988-16-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32253 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbbAOBCQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2015 20:02:16 -0500
-Content-Disposition: inline
+Received: from mailout3.samsung.com ([203.254.224.33]:62043 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbbAOGkg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 01:40:36 -0500
+In-reply-to: <1421087187-26988-16-git-send-email-marc.zyngier@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Marc Zyngier <Marc.Zyngier@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, thomas.ab@samsung.com
 
-We've had omap4 booting in DT only mode for quite some time
-now, let's remove the legacy PMIC code that's no longer
-needed.
++CC: Thomas Abraham <thomas.ab@samsung.com>
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Mark,
 
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -39,7 +39,7 @@ static struct i2c_board_info __initdata pmic_i2c_board_info = {
- 	.flags		= I2C_CLIENT_WAKE,
- };
- 
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+#if defined(CONFIG_ARCH_OMAP3)
- static int twl_set_voltage(void *data, int target_uV)
- {
- 	struct voltagedomain *voltdm = (struct voltagedomain *)data;
-@@ -66,20 +66,6 @@ void __init omap_pmic_init(int bus, u32 clkrate,
- 	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
- }
- 
--void __init omap4_pmic_init(const char *pmic_type,
--		    struct twl4030_platform_data *pmic_data,
--		    struct i2c_board_info *devices, int nr_devices)
--{
--	/* PMIC part*/
--	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
--	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
--	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
--
--	/* Register additional devices on i2c1 bus if needed */
--	if (devices)
--		i2c_register_board_info(1, devices, nr_devices);
--}
--
- void __init omap_pmic_late_init(void)
- {
- 	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
-@@ -236,297 +222,6 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
--#if defined(CONFIG_ARCH_OMAP4)
--static struct twl4030_usb_data omap4_usb_pdata = {
--};
--
--static struct regulator_consumer_supply omap4_vdda_hdmi_dac_supplies[] = {
--	REGULATOR_SUPPLY("vdda_hdmi_dac", "omapdss_hdmi"),
--};
--
--static struct regulator_init_data omap4_vdac_idata = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap4_vdda_hdmi_dac_supplies),
--	.consumer_supplies	= omap4_vdda_hdmi_dac_supplies,
--	.supply_regulator	= "V2V1",
--};
--
--static struct regulator_init_data omap4_vaux2_idata = {
--	.constraints = {
--		.min_uV			= 1200000,
--		.max_uV			= 2800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--static struct regulator_init_data omap4_vaux3_idata = {
--	.constraints = {
--		.min_uV			= 1000000,
--		.max_uV			= 3000000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--static struct regulator_consumer_supply omap4_vmmc_supply[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
--};
--
--/* VMMC1 for MMC1 card */
--static struct regulator_init_data omap4_vmmc_idata = {
--	.constraints = {
--		.min_uV			= 1200000,
--		.max_uV			= 3000000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies  = ARRAY_SIZE(omap4_vmmc_supply),
--	.consumer_supplies      = omap4_vmmc_supply,
--};
--
--static struct regulator_init_data omap4_vpp_idata = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 2500000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--static struct regulator_init_data omap4_vana_idata = {
--	.constraints = {
--		.min_uV			= 2100000,
--		.max_uV			= 2100000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--static struct regulator_consumer_supply omap4_vcxio_supply[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.1"),
--};
--
--static struct regulator_init_data omap4_vcxio_idata = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--		.always_on		= true,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap4_vcxio_supply),
--	.consumer_supplies	= omap4_vcxio_supply,
--	.supply_regulator	= "V2V1",
--};
--
--static struct regulator_init_data omap4_vusb_idata = {
--	.constraints = {
--		.min_uV			= 3300000,
--		.max_uV			= 3300000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--static struct regulator_init_data omap4_clk32kg_idata = {
--	.constraints = {
--		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
--	},
--};
--
--static struct regulator_consumer_supply omap4_vdd1_supply[] = {
--	REGULATOR_SUPPLY("vcc", "cpu0"),
--};
--
--static struct regulator_consumer_supply omap4_vdd2_supply[] = {
--	REGULATOR_SUPPLY("vcc", "iva.0"),
--};
--
--static struct regulator_consumer_supply omap4_vdd3_supply[] = {
--	REGULATOR_SUPPLY("vcc", "l3_main.0"),
--};
--
--static struct regulator_init_data omap4_vdd1 = {
--	.constraints = {
--		.name			= "vdd_mpu",
--		.min_uV			= 500000,
--		.max_uV			= 1500000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
--	},
--	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd1_supply),
--	.consumer_supplies		= omap4_vdd1_supply,
--};
--
--static struct regulator_init_data omap4_vdd2 = {
--	.constraints = {
--		.name			= "vdd_iva",
--		.min_uV			= 500000,
--		.max_uV			= 1500000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
--	},
--	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd2_supply),
--	.consumer_supplies		= omap4_vdd2_supply,
--};
--
--static struct regulator_init_data omap4_vdd3 = {
--	.constraints = {
--		.name			= "vdd_core",
--		.min_uV			= 500000,
--		.max_uV			= 1500000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
--	},
--	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd3_supply),
--	.consumer_supplies		= omap4_vdd3_supply,
--};
--
--
--static struct twl_regulator_driver_data omap4_vdd1_drvdata = {
--	.get_voltage = twl_get_voltage,
--	.set_voltage = twl_set_voltage,
--};
--
--static struct twl_regulator_driver_data omap4_vdd2_drvdata = {
--	.get_voltage = twl_get_voltage,
--	.set_voltage = twl_set_voltage,
--};
--
--static struct twl_regulator_driver_data omap4_vdd3_drvdata = {
--	.get_voltage = twl_get_voltage,
--	.set_voltage = twl_set_voltage,
--};
--
--static struct regulator_consumer_supply omap4_v1v8_supply[] = {
--	REGULATOR_SUPPLY("vio", "1-004b"),
--};
--
--static struct regulator_init_data omap4_v1v8_idata = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--		.always_on		= true,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap4_v1v8_supply),
--	.consumer_supplies	= omap4_v1v8_supply,
--};
--
--static struct regulator_consumer_supply omap4_v2v1_supply[] = {
--	REGULATOR_SUPPLY("v2v1", "1-004b"),
--};
--
--static struct regulator_init_data omap4_v2v1_idata = {
--	.constraints = {
--		.min_uV			= 2100000,
--		.max_uV			= 2100000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(omap4_v2v1_supply),
--	.consumer_supplies	= omap4_v2v1_supply,
--};
--
--void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
--				  u32 pdata_flags, u32 regulators_flags)
--{
--	if (!pmic_data->vdd1) {
--		omap4_vdd1.driver_data = &omap4_vdd1_drvdata;
--		omap4_vdd1_drvdata.data = voltdm_lookup("mpu");
--		pmic_data->vdd1 = &omap4_vdd1;
--	}
--
--	if (!pmic_data->vdd2) {
--		omap4_vdd2.driver_data = &omap4_vdd2_drvdata;
--		omap4_vdd2_drvdata.data = voltdm_lookup("iva");
--		pmic_data->vdd2 = &omap4_vdd2;
--	}
--
--	if (!pmic_data->vdd3) {
--		omap4_vdd3.driver_data = &omap4_vdd3_drvdata;
--		omap4_vdd3_drvdata.data = voltdm_lookup("core");
--		pmic_data->vdd3 = &omap4_vdd3;
--	}
--
--	/* Common platform data configurations */
--	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
--		pmic_data->usb = &omap4_usb_pdata;
--
--	/* Common regulator configurations */
--	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
--		pmic_data->vdac = &omap4_vdac_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VAUX2 && !pmic_data->vaux2)
--		pmic_data->vaux2 = &omap4_vaux2_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VAUX3 && !pmic_data->vaux3)
--		pmic_data->vaux3 = &omap4_vaux3_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VMMC && !pmic_data->vmmc)
--		pmic_data->vmmc = &omap4_vmmc_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VPP && !pmic_data->vpp)
--		pmic_data->vpp = &omap4_vpp_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VANA && !pmic_data->vana)
--		pmic_data->vana = &omap4_vana_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VCXIO && !pmic_data->vcxio)
--		pmic_data->vcxio = &omap4_vcxio_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_VUSB && !pmic_data->vusb)
--		pmic_data->vusb = &omap4_vusb_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_CLK32KG &&
--	    !pmic_data->clk32kg)
--		pmic_data->clk32kg = &omap4_clk32kg_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_V1V8 && !pmic_data->v1v8)
--		pmic_data->v1v8 = &omap4_v1v8_idata;
--
--	if (regulators_flags & TWL_COMMON_REGULATOR_V2V1 && !pmic_data->v2v1)
--		pmic_data->v2v1 = &omap4_v2v1_idata;
--}
--#endif /* CONFIG_ARCH_OMAP4 */
--
- #if defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) || \
- 	defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030_MODULE)
- #include <linux/platform_data/omap-twl4030.h>
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -31,7 +31,6 @@
- 
- 
- struct twl4030_platform_data;
--struct twl6040_platform_data;
- struct omap_tw4030_pdata;
- struct i2c_board_info;
- 
-@@ -51,16 +50,9 @@ static inline void omap3_pmic_init(const char *pmic_type,
- 	omap_pmic_init(1, 2600, pmic_type, 7 + OMAP_INTC_START, pmic_data);
- }
- 
--void omap4_pmic_init(const char *pmic_type,
--		    struct twl4030_platform_data *pmic_data,
--		    struct i2c_board_info *devices, int nr_devices);
--
- void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 			   u32 pdata_flags, u32 regulators_flags);
- 
--void omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
--			   u32 pdata_flags, u32 regulators_flags);
--
- void omap_twl4030_audio_init(char *card_name, struct omap_tw4030_pdata *pdata);
- 
- #endif /* __OMAP_PMIC_COMMON__ */
+On Monday 12 January 2015 11:56 PM, Marc Zyngier wrote:
+> Exynos has been (ab)using the gic_arch_extn to provide
+> wakeup from suspend, and it makes a lot of sense to convert
+> this code to use stacked domains instead.
+>
+> This patch does just this, updating the DT files to actually
+> reflect what the HW provides.
+>
+> BIG FAT WARNING: because the DTs were so far lying by not
+> exposing the fact that the PMU block is actually the first
+> interrupt controller in the chain for RTC, kernels with this patch
+> applied wont have any suspend-resume facility when booted
+> with old DTs, and old kernels with updated DTs may not even boot.
+>
+> Also, I stronly suspect that there is more than two wake-up
+> interrupts on these platforms, but I leave it to the maintainers
+> to fix their mess.
+>
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>
+
+I tested this series on Exynos5250, using kgene/for-next and 
+linux-next/next-20150114, but S2R failed on Exynos5250 based SMDK board.
+
+Following is the log I got on SMDK5250 board, (note I have added some 
+debugging log to know what is happening)
+
+I can see is S3C-RTC's "enable_irq_wake" is failing with error -6.
+I also observed that even though we are adding pmu_domain_ops using 
+irq_domain_add_hierarchy, but none of pmu_domain_ops are getting called.
+
+Please let me know if I am missing anything or do I need to modify 
+anything to test S2R on Exynos SoC.
+
+---------------------
+echo +10 > /sys/class/rtc/rtc1/wakealarm; sleep 1; echo mem > /sys/power/sta
+te
+[  257.428163] PM: Syncing filesystems ... done.
+[  257.431786] Freezing user space processes ... (elapsed 0.003 seconds) 
+done.
+[  257.439680] Freezing remaining freezable tasks ... (elapsed 0.001 
+seconds) done.
+[  257.544451] wake enabled for irq 116
+[  257.546916] CPU: 0 PID: 1311 Comm: ash Not tainted 
+3.19.0-rc4-next-20150114-00023-g492ff37 #15
+[  257.555141] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+[  257.561231] [<c0014430>] (unwind_backtrace) from [<c0011594>] 
+(show_stack+0x10/0x14)
+[  257.568948] [<c0011594>] (show_stack) from [<c0418b00>] 
+(dump_stack+0x84/0xc4)
+[  257.576151] [<c0418b00>] (dump_stack) from [<c005ce30>] 
+(set_irq_wake_real+0x58/0x8c)
+[  257.583961] [<c005ce30>] (set_irq_wake_real) from [<c005cef0>] 
+(irq_set_irq_wake+0x8c/0xf0)
+[  257.592295] [<c005cef0>] (irq_set_irq_wake) from [<c02e9d94>] 
+(s3c_rtc_suspend+0xb8/0xdc)
+[  257.600456] [<c02e9d94>] (s3c_rtc_suspend) from [<c0298c80>] 
+(dpm_run_callback.isra.13+0x1c/0x60)
+[  257.609308] [<c0298c80>] (dpm_run_callback.isra.13) from [<c02996a0>] 
+(__device_suspend+0x128/0x2d0)
+[  257.618422] [<c02996a0>] (__device_suspend) from [<c029a850>] 
+(dpm_suspend+0x64/0x22c)
+[  257.626320] [<c029a850>] (dpm_suspend) from [<c0058488>] 
+(suspend_devices_and_enter+0x88/0x3dc)
+[  257.634999] [<c0058488>] (suspend_devices_and_enter) from 
+[<c00589c8>] (pm_suspend+0x1ec/0x24c)
+[  257.643680] [<c00589c8>] (pm_suspend) from [<c00576e0>] 
+(state_store+0x68/0xb8)
+[  257.650972] [<c00576e0>] (state_store) from [<c012835c>] 
+(kernfs_fop_write+0xb8/0x19c)
+[  257.658870] [<c012835c>] (kernfs_fop_write) from [<c00cf620>] 
+(vfs_write+0xa0/0x1ac)
+[  257.666595] [<c00cf620>] (vfs_write) from [<c00cfc78>] 
+(SyS_write+0x44/0x9c)
+[  257.673625] [<c00cfc78>] (SyS_write) from [<c000e6e0>] 
+(ret_fast_syscall+0x0/0x30)
+[  257.681176] genirq: PKD: irq_desc->name: (null): irq: 60
+[  257.686469] genirq: PKD: set_irq_wake_real: ret: -6
+[  257.691349] s3c-rtc 101e0000.rtc: enable_irq_wake failed: -6
+[  257.708926] PM: suspend of devices complete after 260.482 msecs
+[  257.713362] BUCK9: No configuration
+[  257.716840] BUCK8: No configuration
+[  257.720309] BUCK7: No configuration
+[  257.723776] BUCK6: No configuration
+[  257.727254] P1.8V_BUCK_OUT5: No configuration
+[  257.731597] LDO26: No configuration
+[  257.735066] LDO25: No configuration
+[  257.738532] LDO24: No configuration
+[  257.742009] LDO23: No configuration
+[  257.745481] LDO22: No configuration
+[  257.748954] LDO21: No configuration
+[  257.752419] LDO20: No configuration
+[  257.755897] LDO19: No configuration
+[  257.759370] LDO18: No configuration
+[  257.762835] LDO17: No configuration
+[  257.766314] P1.8V_LDO_OUT16: No configuration
+[  257.770653] P1.0V_LDO_OUT15: No configuration
+[  257.774994] P1.8V_LDO_OUT14: No configuration
+[  257.779334] P1.8V_LDO_OUT13: No configuration
+[  257.783668] P3.0V_LDO_OUT12: No configuration
+[  257.788013] P1.8V_LDO_OUT11: No configuration
+[  257.792353] P1.8V_LDO_OUT10: No configuration
+[  257.796693] LDO9: No configuration
+[  257.800079] P1.0V_LDO_OUT8: No configuration
+[  257.804332] P1.1V_LDO_OUT7: No configuration
+[  257.808579] P1.1V_LDO_OUT6: No configuration
+[  257.812838] P1.8V_LDO_OUT5: No configuration
+[  257.817091] P2.8V_LDO_OUT4: No configuration
+[  257.821345] P1.8V_LDO_OUT3: No configuration
+[  257.825599] P1.2V_LDO_OUT2: No configuration
+[  257.829851] P1.0V_LDO_OUT1: No configuration
+[  257.835786] PM: late suspend of devices complete after 1.676 msecs
+[  257.841913] PM: noirq suspend of devices complete after 1.420 msecs
+[  257.846737] Disabling non-boot CPUs ...
+[  257.850810] IRQ54 no longer affine to CPU1
+[  257.850922] CPU1: shutdown
+
+------------------------------------
+
+Thanks,
+Pankaj Dubey
