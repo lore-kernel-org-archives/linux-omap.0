@@ -1,59 +1,82 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v3 13/21] ARM: omap: convert wakeupgen to stacked domains
-Date: Thu, 15 Jan 2015 14:28:53 +0000
-Message-ID: <871tmwi0d6.fsf@approximate.cambridge.arm.com>
-References: <1421087187-26988-1-git-send-email-marc.zyngier@arm.com>
-	<1421087187-26988-14-git-send-email-marc.zyngier@arm.com>
-	<20150114222814.GU2419@atomide.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v2] can: c_can: use regmap_update_bits() to modify RAMINIT
+ register
+Date: Thu, 15 Jan 2015 15:37:28 +0100
+Message-ID: <54B7D0A8.8050806@pengutronix.de>
+References: <1420641162-8634-1-git-send-email-rogerq@ti.com> <54B52A4F.8030208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20150114222814.GU2419@atomide.com> (Tony Lindgren's message of
-	"Wed, 14 Jan 2015 22:28:14 +0000")
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Stefan Agner <stefan@agner.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.k>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <54B52A4F.8030208@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: wsa@the-dreams.de, Mark Brown <broonie@kernel.org>, linux-can@vger.kernel.org, tomi.valkeinen@ti.com, kernel@pengutronix.de, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 14 2015 at 10:28:14 pm GMT, Tony Lindgren <tony@atomide.com> wrote:
-> * Marc Zyngier <marc.zyngier@arm.com> [150112 10:30]:
->> OMAP4/5 has been (ab)using the gic_arch_extn to provide
->> wakeup from suspend, and it makes a lot of sense to convert
->> this code to use stacked domains instead.
->> 
->> This patch does just this, updating the DT files to actually
->> reflect what the HW provides.
->> 
->> BIG FAT WARNING: because the DTs were so far lying by not
->> exposing the WUGEN HW block, kernels with this patch applied
->> won't have any suspend-resume facility when booted with old DTs,
->> and old kernels with updated DTs won't even boot.
->> 
->> On a platform with this patch applied, the system looks like
->> this:
->> 
->> root@bacon-fat:~# cat /proc/interrupts
->>             CPU0       CPU1
->>  16:          0          0     WUGEN  37  gp_timer
->>  19:     233799     155916       GIC  27  arch_timer
->>  23:          0          0     WUGEN   9  l3-dbg-irq
->>  24:          1          0     WUGEN  10  l3-app-irq
->>  27:        282          0     WUGEN  13  omap-dma-engine
->>  44:          0          0  4ae10000.gpio  13  DMA
->
-> FYI, the legacy irq numbers are now all wrong since commit
-> 9a1091ef0017 ("irqchip: gic: Support hierarchy irq domain.").
->
-> Started a separate thread "Regression with legacy IRQ numbers
-> caused by 9a1091ef0017" on it, will give these a try once
-> that's sorted out.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Assuming the workaround I posted earlier works, the OMAP/DRA7 part of
-this series is going to require some rework too (I need to know where
-these legacy interrupts are attached: crossbar, WUGEN, or GIC?).
+On 01/13/2015 03:23 PM, Roger Quadros wrote:
+> use of regmap_read() and regmap_write() in c_can_hw_raminit_syscon()
+> is not safe as the RAMINIT register can be shared between different dri=
+vers
+> at least for TI SoCs.
+>=20
+> To make the modification atomic we switch to using regmap_update_bits()=
+=2E
+>=20
+> regmap_update_bits() skips writing to the register if it's read content=
+ is the
+> same as what is going to be written. This causes an issue for us when w=
+e
+> need to clear the DONE bit with the initial condition START:0, DONE:1 a=
+s
+> DONE bit must be written with 1 to clear it.
+>=20
+> So we defer the clearing of DONE bit to later when we set the START bit=
+=2E
+> There we are sure that START bit is changed from 0 to 1 so the write of=
 
-Thanks,
+> 1 to already set DONE bit will happen.
+>=20
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-        M.
--- 
-Jazz is not dead. It just smells funny.
+Applied to linux-can.
+
+Thanks, Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCgAGBQJUt9CtAAoJECte4hHFiupUIwsQAK078XpHdX4AXkbvB+A7T2WW
+xcJQTQf6hblo4r6s82b89jEURamdvw7qUrwViWJ8x11dH0/oDFV9vkkgqdOCI5nZ
+SKAEOdhZs0v9M3TuZoaz0Z8RL3p2RxPcNSquY4OWfupMGlrLyj/lOvpJiya+/frZ
+sF3MAC7t4cq+9getUe7fopRfNSm3Cwsuk27sVKohDZu4QQMdklaHb2WltGuB1dH7
+HkhWzL3GIT63gMaT9/JTkoHCBwR3osKWXL7UTOoLPXDAzGU45uoVTwchA7lGojjN
+cjI3PIjV8ydPAvLDLVlD/q3FUDkDrYTidbukAWTvXa/xR4QRPzlIwf7s+UL8h0wx
+D3cHE/OVVpXAUp4caXNmg5LP+Kf7TVvyVhryFajVLMFeGFj5O+ikiDmQiX6CLqWy
+uMb5a81qJhBNcUlqlooNbZFBFLAeecQE5P+dbb1y2gVtV4aR2pJ6c35YG5n3CHR+
+WkEe/QYooDo4b1PkOAA1ClwDYco0lO0DE4ZbkijIk55jrB/dTlCitUWGwKmxOvMm
+nt4t8RfHruXb94uXF8A9HmbTUfO5tFY4prB3UFpTTU/Jpm5Px0jbfsr+5su9D/MF
+vY7oi2yIWw0SeRKiQacrp0nRYfrbxp1zmraB7bZhywM2Ahj/9SgI0/NcTR0dQ6gA
+tVuT+k0ZtW/FmlNSqQve
+=MInH
+-----END PGP SIGNATURE-----
+
+--mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP--
