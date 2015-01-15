@@ -1,39 +1,106 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v3 13/21] ARM: omap: convert wakeupgen to stacked domains
-Date: Thu, 15 Jan 2015 14:50:21 +0000
-Message-ID: <87sifcgksy.fsf@approximate.cambridge.arm.com>
-References: <1421087187-26988-1-git-send-email-marc.zyngier@arm.com>
-	<1421087187-26988-14-git-send-email-marc.zyngier@arm.com>
-	<20150114222814.GU2419@atomide.com>
-	<871tmwi0d6.fsf@approximate.cambridge.arm.com>
-	<20150115144016.GA19920@kahuna>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20150115144016.GA19920@kahuna> (Nishanth Menon's message of
-	"Thu, 15 Jan 2015 14:40:16 +0000")
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Stefan Agner <stefan@agner.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@>
+From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/3] input: tsc2007: Add pre-calibration, flipping and rotation
+Date: Thu, 15 Jan 2015 16:04:14 +0100
+Message-ID: <2C4E66DD-1764-4DCA-A58A-78A6986EF7F1@goldelico.com>
+References: <1412108254-19234-1-git-send-email-marek@goldelico.com> <1412108254-19234-2-git-send-email-marek@goldelico.com> <CAAfyv36bD9ZratOzr7FkeQde8k-K9XjEjH9gkntm9qewD-cH9g@mail.gmail.com> <20150115005938.GB9134@dtor-ws> <0F9A17C1-9B01-4EE9-BE98-266B8FC02B84@goldelico.com> <20150115143855.GD512@earth.universe>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20150115143855.GD512@earth.universe>
+Sender: linux-input-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Belisko Marek <marek.belisko@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-input@vger.kernel.org, Marek Belisko <marek@goldelico.com>, Jonathan Richardson <jonathar@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Yoichi Yuasa <yuasa@linux-mips.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, List
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 15 2015 at  2:40:16 pm GMT, Nishanth Menon <nm@ti.com> wrote:
-> On 14:28-20150115, Marc Zyngier wrote:
->> Assuming the workaround I posted earlier works, the OMAP/DRA7 part of
->> this series is going to require some rework too (I need to know where
->> these legacy interrupts are attached: crossbar, WUGEN, or GIC?).
->> 
-> crossbar will never work with legacy static interrupts anyways - since
-> there was never a static interrupt possible - I believe we had removed
-> all the legacy hardcoded interrupt definitions for DRA7. ideally, they
-> should all be dt only now.
+Hi,
 
-Yes, I guessed as much after looking at the DRA7XX hwmod.
+Am 15.01.2015 um 15:38 schrieb Sebastian Reichel <sre@kernel.org>:
 
-So only OMAP4/5 is b0rken at the moment. I can probably work around it
-as I did in this example patch, just by changing the compatible strings
-for the xlate callback. Very ugly.
+> Hi,
+>=20
+> On Thu, Jan 15, 2015 at 08:36:44AM +0100, Dr. H. Nikolaus Schaller wr=
+ote:
+>>> 1. Perform conversion in input core rather than individual drivers.=
+ I
+>>> think we should allocate a new bitmaps for some transformations and=
+ have
+>>> the code do X/Y flip/clip of the coordinates.
+>>=20
+>> Do you have a suggestion where this should be (I have no clue how
+>> the input system works or is structured - we just know how to extend=
+ a
+>> driver that uses it)?
+>>=20
+>>> 2. Standardize on bindings. We already have of-touchscreen.c doing
+>>> rudimentary parsing, we shoudl look into extending it rather than
+>>> creating myriad of driver-specific bindings.
+>>=20
+>> Ok, looks reasonable.
+>=20
+> Documentation is in=20
+>=20
+> Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+>=20
+>>> Also, do we need swap and flip or do we simply need rotation (like =
+the
+>>> proposed Broadcom iproc driver has)?
+>>=20
+>> Well, since the DT should describe hardware, there are 3 sets of wir=
+es which
+>> can have a cross-over: X+ and X-, Y+ and Y-, X and Y.
+>>=20
+>> So IMHO hardware has no =93rotation=94, just crossover of wires. Rot=
+ation is an
+>> interpretation of the result of these connections in combination wit=
+h some
+>> panel the touch is glued to and should therefore not be represented =
+in the DT.
+>>=20
+>> As a result we have proposed a scheme without explicit rotation. We =
+specify what
+>> coordinates X- and X+ should report at their ends (min, max) because=
+ the DT
+>> programmer has to specify them anyways. Flipping is a result of defi=
+ning these
+>> coordinates in an ascending or descending way. Only swapping of the =
+X and Y
+>> wires can=92t be implicitly defined so it has its own property. So t=
+he scheme we
+>> have proposed tries to optimize the efforts needed to adapt new boar=
+ds and write
+>> DTs and focus the DT on hardware description.
+>>=20
+>> As a bonus we also specify the min and max value to be reported for =
+the touch
+>> pressure (Z axis) using the same basic principle.
+>>=20
+>> And it is a pure add-on on top of the existing driver so that it att=
+empts not
+>> to break existing device trees.
+>=20
+> from what I can see there are no in-tree-users using any of the
+> new properties.
 
-	M.
--- 
-Jazz is not dead. It just smells funny.
+Not yet. But our [patch 2/3] of this series defines the DT entry for th=
+e GTA04 devices:
+
+https://lkml.org/lkml/2014/9/30/663
+
+>=20
+>> Maybe could you accept it as a first step for this specific driver (=
+and let=92s do
+>> the big standardization work later on)?
+>=20
+> That does not work, since you create an ABI.
+
+Hm. I don=92t understand what you mean with creating an ABI?
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
