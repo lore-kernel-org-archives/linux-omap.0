@@ -1,281 +1,73 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH] ARM: OMAP: Work around hardcoded interrupts
-Date: Thu, 15 Jan 2015 15:20:12 +0000
-Message-ID: <1421335212-4115-1-git-send-email-marc.zyngier@arm.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [patch-net-next v2 3/3] net: ethernet: cpsw: don't requests IRQs
+ we don't use
+Date: Thu, 15 Jan 2015 09:20:53 -0600
+Message-ID: <20150115152053.GA16409@saruman>
+References: <1421254729-10602-1-git-send-email-balbi@ti.com>
+ <1421254729-10602-3-git-send-email-balbi@ti.com>
+ <54B770FC.6060003@ti.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:34862 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165AbbAOPUk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 10:20:40 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:57594 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753827AbbAOPVk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2015 10:21:40 -0500
+Content-Disposition: inline
+In-Reply-To: <54B770FC.6060003@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Felipe Balbi <balbi@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Yingjoe Chen <yingjoe.chen@mediatek.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, davem@davemloft.net, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 
-Commit 9a1091ef0017 (irqchip: gic: Support hierarchy irq domain)
-changed the GIC driver to use a non-legacy IRQ domain on DT
-platforms. This patch assumes that DT-driven systems are getting
-all of their interrupts from device tree.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Turns out that OMAP has quite a few hidden gems, and still uses
-hardcoded interrupts despite having fairly complete DTs.
+On Thu, Jan 15, 2015 at 01:19:16PM +0530, Mugunthan V N wrote:
+> On Wednesday 14 January 2015 10:28 PM, Felipe Balbi wrote:
+> > CPSW never uses RX_THRESHOLD or MISC interrupts. In
+> > fact, they are always kept masked in their appropriate
+> > IRQ Enable register.
+> >=20
+> > Instead of allocating an IRQ that never fires, it's best
+> > to remove that code altogether and let future patches
+> > implement it if anybody needs those.
+> >=20
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>=20
+> Instead of introducing dummy ISR in previous patch and then removing in
+> this patch, both can be squashed into a single patch.
 
-This patch attempts to work around these by offering a translation
-method that can be called directly from the hwmod code, if present.
-The same hack is sprinkled over PRCM and TWL.
+sure they can. I decided to split to ease review and to make sure only
+one thing happens in a single patch.
 
-It isn't pretty, but it seems to do the job without having to add
-more hacks to the interrupt controller code.
+--=20
+balbi
 
-Tested on OMAP4 (Panda-ES) and OMAP5 (UEVM5432).
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- arch/arm/mach-omap2/common.h               |  1 +
- arch/arm/mach-omap2/omap4-common.c         | 32 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.c           | 10 ++++++++--
- arch/arm/mach-omap2/omap_hwmod.h           |  1 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  5 +++++
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  1 +
- arch/arm/mach-omap2/prcm-common.h          |  1 +
- arch/arm/mach-omap2/prm44xx.c              |  1 +
- arch/arm/mach-omap2/prm_common.c           | 14 +++++++++++--
- arch/arm/mach-omap2/twl-common.c           |  5 ++++-
- 10 files changed, 66 insertions(+), 5 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 377eea8..b664494 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -211,6 +211,7 @@ extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
- extern struct device *omap4_get_dsp_device(void);
- 
-+unsigned int omap4_xlate_irq(unsigned int hwirq);
- void omap_gic_of_init(void);
- 
- #ifdef CONFIG_CACHE_L2X0
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index b7cb44a..cc30e49 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -256,6 +256,38 @@ static int __init omap4_sar_ram_init(void)
- }
- omap_early_initcall(omap4_sar_ram_init);
- 
-+static struct of_device_id gic_match[] = {
-+	{ .compatible = "arm,cortex-a9-gic", },
-+	{ .compatible = "arm,cortex-a15-gic", },
-+	{ },
-+};
-+
-+static struct device_node *gic_node;
-+
-+unsigned int omap4_xlate_irq(unsigned int hwirq)
-+{
-+	struct of_phandle_args irq_data;
-+	unsigned int irq;
-+
-+	if (!gic_node)
-+		gic_node = of_find_matching_node(NULL, gic_match);
-+
-+	if (WARN_ON(!gic_node))
-+		return hwirq;
-+
-+	irq_data.np = gic_node;
-+	irq_data.args_count = 3;
-+	irq_data.args[0] = 0;
-+	irq_data.args[1] = hwirq - OMAP44XX_IRQ_GIC_START;
-+	irq_data.args[2] = IRQ_TYPE_LEVEL_HIGH;
-+
-+	irq = irq_create_of_mapping(&irq_data);
-+	if (WARN_ON(!irq))
-+		irq = hwirq;
-+
-+	return irq;
-+}
-+
- void __init omap_gic_of_init(void)
- {
- 	struct device_node *np;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index cbb908d..9025fff 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3534,9 +3534,15 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
- 
- 	mpu_irqs_cnt = _count_mpu_irqs(oh);
- 	for (i = 0; i < mpu_irqs_cnt; i++) {
-+		unsigned int irq;
-+
-+		if (oh->xlate_irq)
-+			irq = oh->xlate_irq((oh->mpu_irqs + i)->irq);
-+		else
-+			irq = (oh->mpu_irqs + i)->irq;
- 		(res + r)->name = (oh->mpu_irqs + i)->name;
--		(res + r)->start = (oh->mpu_irqs + i)->irq;
--		(res + r)->end = (oh->mpu_irqs + i)->irq;
-+		(res + r)->start = irq;
-+		(res + r)->end = irq;
- 		(res + r)->flags = IORESOURCE_IRQ;
- 		r++;
- 	}
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 35ca6ef..5b42faf 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -676,6 +676,7 @@ struct omap_hwmod {
- 	spinlock_t			_lock;
- 	struct list_head		node;
- 	struct omap_hwmod_ocp_if	*_mpu_port;
-+	unsigned int			(*xlate_irq)(unsigned int);
- 	u16				flags;
- 	u8				mpu_rt_idx;
- 	u8				response_lat;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index c314b3c..f5e68a7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -479,6 +479,7 @@ static struct omap_hwmod omap44xx_dma_system_hwmod = {
- 	.class		= &omap44xx_dma_hwmod_class,
- 	.clkdm_name	= "l3_dma_clkdm",
- 	.mpu_irqs	= omap44xx_dma_system_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.main_clk	= "l3_div_ck",
- 	.prcm = {
- 		.omap4 = {
-@@ -640,6 +641,7 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
- 	.class		= &omap44xx_dispc_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.mpu_irqs	= omap44xx_dss_dispc_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_dispc_sdma_reqs,
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
-@@ -693,6 +695,7 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
- 	.class		= &omap44xx_dsi_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.mpu_irqs	= omap44xx_dss_dsi1_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_dsi1_sdma_reqs,
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
-@@ -726,6 +729,7 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod = {
- 	.class		= &omap44xx_dsi_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.mpu_irqs	= omap44xx_dss_dsi2_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_dsi2_sdma_reqs,
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
-@@ -784,6 +788,7 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
- 	 */
- 	.flags		= HWMOD_SWSUP_SIDLE,
- 	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
- 	.main_clk	= "dss_48mhz_clk",
- 	.prcm = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 3e95230..7c3fac0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -288,6 +288,7 @@ static struct omap_hwmod omap54xx_dma_system_hwmod = {
- 	.class		= &omap54xx_dma_hwmod_class,
- 	.clkdm_name	= "dma_clkdm",
- 	.mpu_irqs	= omap54xx_dma_system_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.main_clk	= "l3_iclk_div",
- 	.prcm = {
- 		.omap4 = {
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index a8e4b58..6163d66 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -498,6 +498,7 @@ struct omap_prcm_irq_setup {
- 	u8 nr_irqs;
- 	const struct omap_prcm_irq *irqs;
- 	int irq;
-+	unsigned int (*xlate_irq)(unsigned int);
- 	void (*read_pending_irqs)(unsigned long *events);
- 	void (*ocp_barrier)(void);
- 	void (*save_and_clear_irqen)(u32 *saved_mask);
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index cc170fb..25c23a6 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -49,6 +49,7 @@ static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
- 	.irqs			= omap4_prcm_irqs,
- 	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
- 	.irq			= 11 + OMAP44XX_IRQ_GIC_START,
-+	.xlate_irq		= omap4_xlate_irq,
- 	.read_pending_irqs	= &omap44xx_prm_read_pending_irqs,
- 	.ocp_barrier		= &omap44xx_prm_ocp_barrier,
- 	.save_and_clear_irqen	= &omap44xx_prm_save_and_clear_irqen,
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 779940c..dea2833 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -187,6 +187,7 @@ int omap_prcm_event_to_irq(const char *name)
-  */
- void omap_prcm_irq_cleanup(void)
- {
-+	unsigned int irq;
- 	int i;
- 
- 	if (!prcm_irq_setup) {
-@@ -211,7 +212,11 @@ void omap_prcm_irq_cleanup(void)
- 	kfree(prcm_irq_setup->priority_mask);
- 	prcm_irq_setup->priority_mask = NULL;
- 
--	irq_set_chained_handler(prcm_irq_setup->irq, NULL);
-+	if (prcm_irq_setup->xlate_irq)
-+		irq = prcm_irq_setup->xlate_irq(prcm_irq_setup->irq);
-+	else
-+		irq = prcm_irq_setup->irq;
-+	irq_set_chained_handler(irq, NULL);
- 
- 	if (prcm_irq_setup->base_irq > 0)
- 		irq_free_descs(prcm_irq_setup->base_irq,
-@@ -259,6 +264,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 	int offset, i;
- 	struct irq_chip_generic *gc;
- 	struct irq_chip_type *ct;
-+	unsigned int irq;
- 
- 	if (!irq_setup)
- 		return -EINVAL;
-@@ -298,7 +304,11 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 				1 << (offset & 0x1f);
- 	}
- 
--	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
-+	if (irq_setup->xlate_irq)
-+		irq = irq_setup->xlate_irq(irq_setup->irq);
-+	else
-+		irq = irq_setup->irq;
-+	irq_set_chained_handler(irq, omap_prcm_irq_handler);
- 
- 	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
- 		0);
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 4457e73..3031ee1 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -71,9 +71,12 @@ void __init omap4_pmic_init(const char *pmic_type,
- 		    struct i2c_board_info *devices, int nr_devices)
- {
- 	/* PMIC part*/
-+	unsigned int irq;
-+
- 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
- 	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
--	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
-+	irq = omap4_xlate_irq(7 + OMAP44XX_IRQ_GIC_START);
-+	omap_pmic_init(1, 400, pmic_type, irq, pmic_data);
- 
- 	/* Register additional devices on i2c1 bus if needed */
- 	if (devices)
--- 
-2.1.4
+iQIcBAEBAgAGBQJUt9rVAAoJEIaOsuA1yqREQbsP/1BoEoxrA57EyUnHpc4/HUa+
+u2ZzihTbmvA9mnZ3iL3+8TRrFyxcqzK0zyPQCvvTpob2C2ysrQbkFsb0U5+FZ+kO
+vP3xq+sUeTGo9Pdsdq/ZPI0s3aD2D3RMaAG0DqArLd2x13a29Ap9/xbkwQKNiXIH
+9oxuuhhLgaQmqm62WZtAegNByDBQeoDECjBrBKIx/DG43QQJ3sHlbuUFttbarl03
++lCc9FMg/scDET6ymPuJbTgiK5y95MqnZNF5ZHBCKnB0NBHcgMpHYzw7d4dqD3ab
++b+lBrRq4MyvjNFsFf2CO/kbNawWvNO6QT1osashNcomgtd39KEBQSv1WmryqeAV
+XPmw/ViOWQZQWPBelcuuga76NvxC961tWpywblXb2npHOigmnXqC5WNanQYLhN+I
+86JUjZN/fP65RxZSy6v4Nd/p941kMeB0bSlLJtyzmas8tPCkyRh8hQS4R3nxzfWA
+5fPVOGlIuwpy9+7XW+W4E9nmx4s7cP6Cnzid6kjK+7/0J7XigzM8hFeKzzQiGXDK
+N6aUwVRtuPduZ5Z58penY89ATgTnh8R2PbDW3C8VpAqtCgxBWVFjHvoYMpZzSnyu
+u9SVQ7pjRviE5ebjvnQZ2qnJo5HGrNOMwB9GLSVzu9yGSNf1IR6KrzMvl1Yj1c+j
+SlmsnP/9mczExAtDaBrq
+=ugt3
+-----END PGP SIGNATURE-----
 
+--IS0zKkzwUGydFO0o--
