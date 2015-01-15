@@ -1,73 +1,77 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [patch-net-next v2 3/3] net: ethernet: cpsw: don't requests IRQs
- we don't use
-Date: Thu, 15 Jan 2015 09:20:53 -0600
-Message-ID: <20150115152053.GA16409@saruman>
-References: <1421254729-10602-1-git-send-email-balbi@ti.com>
- <1421254729-10602-3-git-send-email-balbi@ti.com>
- <54B770FC.6060003@ti.com>
+Subject: Re: dwc3 gadget fails on dra7-evm
+Date: Thu, 15 Jan 2015 09:31:00 -0600
+Message-ID: <20150115153100.GB16409@saruman>
+References: <54B68EC8.9000003@ti.com>
+ <20150114165733.GC16533@saruman>
+ <54B7B52D.6080008@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57594 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36653 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753827AbbAOPVk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2015 10:21:40 -0500
+	id S1752254AbbAOPbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2015 10:31:44 -0500
 Content-Disposition: inline
-In-Reply-To: <54B770FC.6060003@ti.com>
+In-Reply-To: <54B7B52D.6080008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, davem@davemloft.net, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, George Cherian <george.cherian@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
---IS0zKkzwUGydFO0o
+--dTy3Mrz/UPE2dbVg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 15, 2015 at 01:19:16PM +0530, Mugunthan V N wrote:
-> On Wednesday 14 January 2015 10:28 PM, Felipe Balbi wrote:
-> > CPSW never uses RX_THRESHOLD or MISC interrupts. In
-> > fact, they are always kept masked in their appropriate
-> > IRQ Enable register.
+On Thu, Jan 15, 2015 at 02:40:13PM +0200, Roger Quadros wrote:
+> On 14/01/15 18:57, Felipe Balbi wrote:
+> > Hi,
 > >=20
-> > Instead of allocating an IRQ that never fires, it's best
-> > to remove that code altogether and let future patches
-> > implement it if anybody needs those.
+> > On Wed, Jan 14, 2015 at 05:44:08PM +0200, Roger Quadros wrote:
+> >> In 3.19-rc4 on dra7-evm or dra72-evm
+> >>
+> >> modprobe g_zero
+> >> [   34.680683] zero gadget: Gadget Zero, version: Cinco de Mayo 2008
+> >> [   34.687074] zero gadget: zero ready
+> >> [   34.694133] dwc3 48890000.usb: failed to enable ep0out
+> >> [   34.701600] zero 48890000.usb: failed to start zero: -110
+> >> ERROR: could not insert 'g_zero': Connection timed out
+> >>
+> >> my u-boot version is v2015.01
 > >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > hmm... it could be that DRA7x also needs the suspend phy quirk. Can you
+> > try this ?
 >=20
-> Instead of introducing dummy ISR in previous patch and then removing in
-> this patch, both can be squashed into a single patch.
+> The issue goes away with this patch. Thanks.
 
-sure they can. I decided to split to ease review and to make sure only
-one thing happens in a single patch.
+alright, patch coming.
 
 --=20
 balbi
 
---IS0zKkzwUGydFO0o
+--dTy3Mrz/UPE2dbVg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUt9rVAAoJEIaOsuA1yqREQbsP/1BoEoxrA57EyUnHpc4/HUa+
-u2ZzihTbmvA9mnZ3iL3+8TRrFyxcqzK0zyPQCvvTpob2C2ysrQbkFsb0U5+FZ+kO
-vP3xq+sUeTGo9Pdsdq/ZPI0s3aD2D3RMaAG0DqArLd2x13a29Ap9/xbkwQKNiXIH
-9oxuuhhLgaQmqm62WZtAegNByDBQeoDECjBrBKIx/DG43QQJ3sHlbuUFttbarl03
-+lCc9FMg/scDET6ymPuJbTgiK5y95MqnZNF5ZHBCKnB0NBHcgMpHYzw7d4dqD3ab
-+b+lBrRq4MyvjNFsFf2CO/kbNawWvNO6QT1osashNcomgtd39KEBQSv1WmryqeAV
-XPmw/ViOWQZQWPBelcuuga76NvxC961tWpywblXb2npHOigmnXqC5WNanQYLhN+I
-86JUjZN/fP65RxZSy6v4Nd/p941kMeB0bSlLJtyzmas8tPCkyRh8hQS4R3nxzfWA
-5fPVOGlIuwpy9+7XW+W4E9nmx4s7cP6Cnzid6kjK+7/0J7XigzM8hFeKzzQiGXDK
-N6aUwVRtuPduZ5Z58penY89ATgTnh8R2PbDW3C8VpAqtCgxBWVFjHvoYMpZzSnyu
-u9SVQ7pjRviE5ebjvnQZ2qnJo5HGrNOMwB9GLSVzu9yGSNf1IR6KrzMvl1Yj1c+j
-SlmsnP/9mczExAtDaBrq
-=ugt3
+iQIcBAEBAgAGBQJUt900AAoJEIaOsuA1yqREUpcQAKuiNWbgfoXN56eZwrAZ05PI
+b5zLW2eoM/h5GShAWzYw2kzIeIuKUoKP3qQQ0ebjS75ZaNgYpbNlg+SQM0KnoU7I
+WZSHUSFbjVSLy4ZeScnC0P/6YMi7AbO+wUumhkxhcDcxonMVX2cgwc2tQ93KuiFI
+zcUz93mD4SL//JI8qJvz43NV/z1yhOs2a5W5wCnH82uDfOiRasazIIq+9wPh8aLB
+Kl+guE+H6InosTmj1PEwaf7eaEI6XQ+mZMCdVYIEBg5hJwMx+A5pOKhi1/JOLzxn
+6SyWryaejgOaDxetTUF5fz8/J/FkVR3hE8ZFYhNtRlBhHk0a0XKrh/osVDPYmsn0
+fNCgzCbtLUuR6+E7AsHDReXOv/o78k3iyz4mtWVadAis6sZjDrQ49GlmZdgzl62Y
+TOdxSmrcGHjUGSTnDILyAMaq82OzxqM5lDiBYLlBcgYOkxBv5C03TXEBkei7PQtL
+7hsR9zLb1QyDLpvPRZd6fpv+n5sSZrWOciCDBzCg0woOH9dDIkCEMpr6WSJqxpA7
+bj+wS6oK/HfbyI0Kdo5o168nEhFv7pU9VbhErmZp0DpXS3FOmWJw5yt33OG2IlXC
+xcr/vERJuPWuZeNsKHgu2p82WQeK+qmqCrcCi+SOM2hReyzQu0Eb+Xzh2TPP2r8l
+iLU2Oh+GOx/Vra1omzv7
+=ZnQG
 -----END PGP SIGNATURE-----
 
---IS0zKkzwUGydFO0o--
+--dTy3Mrz/UPE2dbVg--
