@@ -1,82 +1,98 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2] can: c_can: use regmap_update_bits() to modify RAMINIT
- register
-Date: Thu, 15 Jan 2015 15:37:28 +0100
-Message-ID: <54B7D0A8.8050806@pengutronix.de>
-References: <1420641162-8634-1-git-send-email-rogerq@ti.com> <54B52A4F.8030208@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 1/3] input: tsc2007: Add pre-calibration, flipping and
+ rotation
+Date: Thu, 15 Jan 2015 15:38:55 +0100
+Message-ID: <20150115143855.GD512@earth.universe>
+References: <1412108254-19234-1-git-send-email-marek@goldelico.com>
+ <1412108254-19234-2-git-send-email-marek@goldelico.com>
+ <CAAfyv36bD9ZratOzr7FkeQde8k-K9XjEjH9gkntm9qewD-cH9g@mail.gmail.com>
+ <20150115005938.GB9134@dtor-ws>
+ <0F9A17C1-9B01-4EE9-BE98-266B8FC02B84@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <54B52A4F.8030208@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: wsa@the-dreams.de, Mark Brown <broonie@kernel.org>, linux-can@vger.kernel.org, tomi.valkeinen@ti.com, kernel@pengutronix.de, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0F9A17C1-9B01-4EE9-BE98-266B8FC02B84@goldelico.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Belisko Marek <marek.belisko@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-input@vger.kernel.org, Marek Belisko <marek@goldelico.com>, Jonathan Richardson <jonathar@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Yoichi Yuasa <yuasa@linux-mips.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, List
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 01/13/2015 03:23 PM, Roger Quadros wrote:
-> use of regmap_read() and regmap_write() in c_can_hw_raminit_syscon()
-> is not safe as the RAMINIT register can be shared between different dri=
-vers
-> at least for TI SoCs.
+On Thu, Jan 15, 2015 at 08:36:44AM +0100, Dr. H. Nikolaus Schaller wrot=
+e:
+> > 1. Perform conversion in input core rather than individual drivers.=
+ I
+> > think we should allocate a new bitmaps for some transformations and=
+ have
+> > the code do X/Y flip/clip of the coordinates.
 >=20
-> To make the modification atomic we switch to using regmap_update_bits()=
-=2E
+> Do you have a suggestion where this should be (I have no clue how
+> the input system works or is structured - we just know how to extend =
+a
+> driver that uses it)?
 >=20
-> regmap_update_bits() skips writing to the register if it's read content=
- is the
-> same as what is going to be written. This causes an issue for us when w=
-e
-> need to clear the DONE bit with the initial condition START:0, DONE:1 a=
-s
-> DONE bit must be written with 1 to clear it.
+> > 2. Standardize on bindings. We already have of-touchscreen.c doing
+> > rudimentary parsing, we shoudl look into extending it rather than
+> > creating myriad of driver-specific bindings.
 >=20
-> So we defer the clearing of DONE bit to later when we set the START bit=
-=2E
-> There we are sure that START bit is changed from 0 to 1 so the write of=
+> Ok, looks reasonable.
 
-> 1 to already set DONE bit will happen.
+Documentation is in=20
+
+Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+
+> > Also, do we need swap and flip or do we simply need rotation (like =
+the
+> > proposed Broadcom iproc driver has)?
 >=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Well, since the DT should describe hardware, there are 3 sets of wire=
+s which
+> can have a cross-over: X+ and X-, Y+ and Y-, X and Y.
+>
+> So IMHO hardware has no =E2=80=9Crotation=E2=80=9D, just crossover of=
+ wires. Rotation is an
+> interpretation of the result of these connections in combination with=
+ some
+> panel the touch is glued to and should therefore not be represented i=
+n the DT.
+>=20
+> As a result we have proposed a scheme without explicit rotation. We s=
+pecify what
+> coordinates X- and X+ should report at their ends (min, max) because =
+the DT
+> programmer has to specify them anyways. Flipping is a result of defin=
+ing these
+> coordinates in an ascending or descending way. Only swapping of the X=
+ and Y
+> wires can=E2=80=99t be implicitly defined so it has its own property.=
+ So the scheme we
+> have proposed tries to optimize the efforts needed to adapt new board=
+s and write
+> DTs and focus the DT on hardware description.
+>=20
+> As a bonus we also specify the min and max value to be reported for t=
+he touch
+> pressure (Z axis) using the same basic principle.
+>=20
+> And it is a pure add-on on top of the existing driver so that it atte=
+mpts not
+> to break existing device trees.
 
-Applied to linux-can.
+from what I can see there are no in-tree-users using any of the
+new properties.
 
-Thanks, Marc
+> Maybe could you accept it as a first step for this specific driver (a=
+nd let=E2=80=99s do
+> the big standardization work later on)?
 
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+That does not work, since you create an ABI.
 
-
---mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCgAGBQJUt9CtAAoJECte4hHFiupUIwsQAK078XpHdX4AXkbvB+A7T2WW
-xcJQTQf6hblo4r6s82b89jEURamdvw7qUrwViWJ8x11dH0/oDFV9vkkgqdOCI5nZ
-SKAEOdhZs0v9M3TuZoaz0Z8RL3p2RxPcNSquY4OWfupMGlrLyj/lOvpJiya+/frZ
-sF3MAC7t4cq+9getUe7fopRfNSm3Cwsuk27sVKohDZu4QQMdklaHb2WltGuB1dH7
-HkhWzL3GIT63gMaT9/JTkoHCBwR3osKWXL7UTOoLPXDAzGU45uoVTwchA7lGojjN
-cjI3PIjV8ydPAvLDLVlD/q3FUDkDrYTidbukAWTvXa/xR4QRPzlIwf7s+UL8h0wx
-D3cHE/OVVpXAUp4caXNmg5LP+Kf7TVvyVhryFajVLMFeGFj5O+ikiDmQiX6CLqWy
-uMb5a81qJhBNcUlqlooNbZFBFLAeecQE5P+dbb1y2gVtV4aR2pJ6c35YG5n3CHR+
-WkEe/QYooDo4b1PkOAA1ClwDYco0lO0DE4ZbkijIk55jrB/dTlCitUWGwKmxOvMm
-nt4t8RfHruXb94uXF8A9HmbTUfO5tFY4prB3UFpTTU/Jpm5Px0jbfsr+5su9D/MF
-vY7oi2yIWw0SeRKiQacrp0nRYfrbxp1zmraB7bZhywM2Ahj/9SgI0/NcTR0dQ6gA
-tVuT+k0ZtW/FmlNSqQve
-=MInH
------END PGP SIGNATURE-----
-
---mX0w9hUJtluj2IJSCDROQ60Lhif5hCGCP--
+-- Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
