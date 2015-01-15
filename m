@@ -1,48 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 13/21] ARM: omap: convert wakeupgen to stacked domains
-Date: Thu, 15 Jan 2015 09:04:43 -0800
-Message-ID: <20150115170443.GF18552@atomide.com>
-References: <1421087187-26988-1-git-send-email-marc.zyngier@arm.com>
- <1421087187-26988-14-git-send-email-marc.zyngier@arm.com>
- <20150114222814.GU2419@atomide.com>
- <871tmwi0d6.fsf@approximate.cambridge.arm.com>
- <20150115144016.GA19920@kahuna>
- <87sifcgksy.fsf@approximate.cambridge.arm.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
+Date: Thu, 15 Jan 2015 17:19:24 +0000
+Message-ID: <20150115171924.GV11502@n2100.arm.linux.org.uk>
+References: <20150114221407.GS2419@atomide.com>
+ <20150115105035.GU11502@n2100.arm.linux.org.uk>
+ <20150115152838.GB18552@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32399 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755063AbbAORIt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 12:08:49 -0500
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:42717 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752574AbbAORTh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2015 12:19:37 -0500
 Content-Disposition: inline
-In-Reply-To: <87sifcgksy.fsf@approximate.cambridge.arm.com>
+In-Reply-To: <20150115152838.GB18552@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Nishanth Menon <nm@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Stefan Agner <stefan@agner.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kerne>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
 
-* Marc Zyngier <marc.zyngier@arm.com> [150115 06:53]:
-> On Thu, Jan 15 2015 at  2:40:16 pm GMT, Nishanth Menon <nm@ti.com> wrote:
-> > On 14:28-20150115, Marc Zyngier wrote:
-> >> Assuming the workaround I posted earlier works, the OMAP/DRA7 part of
-> >> this series is going to require some rework too (I need to know where
-> >> these legacy interrupts are attached: crossbar, WUGEN, or GIC?).
-> >> 
-> > crossbar will never work with legacy static interrupts anyways - since
-> > there was never a static interrupt possible - I believe we had removed
-> > all the legacy hardcoded interrupt definitions for DRA7. ideally, they
-> > should all be dt only now.
+On Thu, Jan 15, 2015 at 07:28:39AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150115 02:53]:
+> > I don't think we've proven a link there.  While you're right that it
+> > causes the wrong interrupt to be claimed, I have two kernels here,
+> > both claim the same interrupt, one which is multi-platform and issues
+> > that strange warning, and one which targets only OMAP4 which doesn't.
+> > 
+> > There's something else going on which causes the bus errors which we
+> > haven't found.
 > 
-> Yes, I guessed as much after looking at the DRA7XX hwmod.
-> 
-> So only OMAP4/5 is b0rken at the moment. I can probably work around it
-> as I did in this example patch, just by changing the compatible strings
-> for the xlate callback. Very ugly.
+> I think it gets triggered if you enable PREEMPT.
 
-For the -rc, it seems the wakeupen still needs a fix as based on grepping
-for OMAP44XX_IRQ_GIC_START. Got any great ideas for that?
+That's something which we can try to prove... build running now with
+CONFIG_PREEMPT=y
 
-Regards,
-
-Tony
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
