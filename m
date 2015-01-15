@@ -1,124 +1,469 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/6] net: davinci_emac: Fix runtime pm calls for davinci_emac
-Date: Thu, 15 Jan 2015 14:45:10 -0800
-Message-ID: <1421361914-4612-3-git-send-email-tony@atomide.com>
-References: <1421361914-4612-1-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: dts: Add basic dm816x device tree configuration
+Date: Thu, 15 Jan 2015 14:59:16 -0800
+Message-ID: <20150115225916.GJ18552@atomide.com>
+References: <1421192272-20754-1-git-send-email-tony@atomide.com>
+ <1421192272-20754-3-git-send-email-tony@atomide.com>
+ <54B82FBD.4040103@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33003 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932222AbbAOWtC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 17:49:02 -0500
-In-Reply-To: <1421361914-4612-1-git-send-email-tony@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25466 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752941AbbAOXC5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 18:02:57 -0500
+Content-Disposition: inline
+In-Reply-To: <54B82FBD.4040103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>
 
-Commit 3ba97381343b ("net: ethernet: davinci_emac: add pm_runtime support")
-added support for runtime PM, but it causes issues on omap3 related devices
-that actually gate the clocks:
+* Suman Anna <s-anna@ti.com> [150115 13:26]:
+> On 01/13/2015 05:37 PM, Tony Lindgren wrote:
+> > +
+> > +		mailbox: mailbox@480c8000 {
+> > +			compatible = "ti,omap3-mailbox";
+> 
+> The Mailbox IP is actually more like that of OMAP4, so the correct one
+> would be "ti,omap4-mailbox"
+> 
+> > +			reg = <0x480c8000 0x2000>;
+> > +			interrupts = <77>;
+> > +			ti,hwmods = "mailbox";
+> > +			ti,mbox-num-users = <4>;
+> > +			ti,mbox-num-fifos = <8>;
+> This should be 12
+> 
+> > +			mbox_wkupm3: wkup_m3 {
+> > +				ti,mbox-tx = <0 0 0>;
+> > +				ti,mbox-rx = <0 0 3>;
+> > +			};
+> 
+> This may have been copied from AM335, so is incorrect. You are better
+> off starting with one for DSP instead of above, below are taken from the
+> corresponding SysLink release associated with above PSP release
+> 			mbox_dsp: mbox_dsp {
+> 				ti,mbox-tx = <3 0 0>;
+> 				ti,mbox-rx = <0 0 0>;
+> 			};
 
-Unhandled fault: external abort on non-linefetch (0x1008)
-...
-[<c04160f0>] (emac_dev_getnetstats) from [<c04d6a3c>] (dev_get_stats+0x78/0xc8)
-[<c04d6a3c>] (dev_get_stats) from [<c04e9ccc>] (rtnl_fill_ifinfo+0x3b8/0x938)
-[<c04e9ccc>] (rtnl_fill_ifinfo) from [<c04eade4>] (rtmsg_ifinfo+0x68/0xd8)
-[<c04eade4>] (rtmsg_ifinfo) from [<c04dd35c>] (register_netdevice+0x3a0/0x4ec)
-[<c04dd35c>] (register_netdevice) from [<c04dd4bc>] (register_netdev+0x14/0x24)
-[<c04dd4bc>] (register_netdev) from [<c041755c>] (davinci_emac_probe+0x408/0x5c8)
-[<c041755c>] (davinci_emac_probe) from [<c0396d78>] (platform_drv_probe+0x48/0xa4)
+Thanks for checking it! Yes I just copied the entry from am33xx.dtsi
+and forgot to even check it.
 
-Let's fix it by moving the pm_runtime_get() call earlier, and also add it to
-the emac_dev_getnetstats(). Also note that we want to use pm_runtime_get_sync()
-as we don't want to have deferred_resume happen. And let's also check the
-return value for pm_runtime_get_sync() as noted by Felipe Balbi <balbi@ti.com>.
+The IO ranges, interrupts and dma channels I generated with printk
+from a booted PSP kernel so those should be mostly correct. But
+everything else is prone to cut and paste type errors.
+
+For reference, the devices I've confirmed to work so far are:
+
+- intc
+- timers
+- gpmc
+- i2c
+- ethernet and mdio
+- mmc
+- edma
+- uart
+
+Updated patch below with the mailbox fixed.
+
+Regards,
+
+Tony
+
+8< ----------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 14 Jan 2015 17:45:22 -0800
+Subject: [PATCH] ARM: dts: Add basic dm816x device tree configuration
+
+Similar to other omap variants, let's add dm816x support.
+
+Note that this is based on generated data from the
+TI81XX-LINUX-PSP-04.04.00.02 patches published at:
+
+http://downloads.ti.com/dsps/dsps_public_sw/psp/LinuxPSP/TI81XX_04_04/04_04_00_02/index_FDS.html
+
+I've verified the basic functionality, but have not been
+able to test all the devices on dm8168-evm.
 
 Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Acked-by: Mark A. Greer <mgreer@animalcreek.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/net/ethernet/ti/davinci_emac.c | 33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index 383ed52..5df339e 100644
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -1538,7 +1538,13 @@ static int emac_dev_open(struct net_device *ndev)
- 	int i = 0;
- 	struct emac_priv *priv = netdev_priv(ndev);
- 
--	pm_runtime_get(&priv->pdev->dev);
-+	ret = pm_runtime_get_sync(&priv->pdev->dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(&priv->pdev->dev);
-+		dev_err(&priv->pdev->dev, "%s: failed to get_sync(%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
- 
- 	netif_carrier_off(ndev);
- 	for (cnt = 0; cnt < ETH_ALEN; cnt++)
-@@ -1725,6 +1731,15 @@ static struct net_device_stats *emac_dev_getnetstats(struct net_device *ndev)
- 	struct emac_priv *priv = netdev_priv(ndev);
- 	u32 mac_control;
- 	u32 stats_clear_mask;
-+	int err;
+--- /dev/null
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -0,0 +1,374 @@
++/*
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
 +
-+	err = pm_runtime_get_sync(&priv->pdev->dev);
-+	if (err < 0) {
-+		pm_runtime_put_noidle(&priv->pdev->dev);
-+		dev_err(&priv->pdev->dev, "%s: failed to get_sync(%d)\n",
-+			__func__, err);
-+		return &ndev->stats;
-+	}
- 
- 	/* update emac hardware stats and reset the registers*/
- 
-@@ -1767,6 +1782,8 @@ static struct net_device_stats *emac_dev_getnetstats(struct net_device *ndev)
- 	ndev->stats.tx_fifo_errors += emac_read(EMAC_TXUNDERRUN);
- 	emac_write(EMAC_TXUNDERRUN, stats_clear_mask);
- 
-+	pm_runtime_put(&priv->pdev->dev);
++#include <dt-bindings/gpio/gpio.h>
 +
- 	return &ndev->stats;
- }
- 
-@@ -1981,12 +1998,22 @@ static int davinci_emac_probe(struct platform_device *pdev)
- 	ndev->ethtool_ops = &ethtool_ops;
- 	netif_napi_add(ndev, &priv->napi, emac_poll, EMAC_POLL_WEIGHT);
- 
-+	pm_runtime_enable(&pdev->dev);
-+	rc = pm_runtime_get_sync(&pdev->dev);
-+	if (rc < 0) {
-+		pm_runtime_put_noidle(&pdev->dev);
-+		dev_err(&pdev->dev, "%s: failed to get_sync(%d)\n",
-+			__func__, rc);
-+		goto no_cpdma_chan;
-+	}
++#include "skeleton.dtsi"
 +
- 	/* register the network device */
- 	SET_NETDEV_DEV(ndev, &pdev->dev);
- 	rc = register_netdev(ndev);
- 	if (rc) {
- 		dev_err(&pdev->dev, "error in register_netdev\n");
- 		rc = -ENODEV;
-+		pm_runtime_put(&pdev->dev);
- 		goto no_cpdma_chan;
- 	}
- 
-@@ -1996,9 +2023,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
- 			   "(regs: %p, irq: %d)\n",
- 			   (void *)priv->emac_base_phys, ndev->irq);
- 	}
--
--	pm_runtime_enable(&pdev->dev);
--	pm_runtime_resume(&pdev->dev);
-+	pm_runtime_put(&pdev->dev);
- 
- 	return 0;
- 
--- 
-2.1.4
-
++/ {
++	compatible = "ti,dm816";
++	interrupt-parent = <&intc>;
++
++	aliases {
++		i2c0 = &i2c1;
++		i2c1 = &i2c2;
++		serial0 = &uart1;
++		serial1 = &uart2;
++		serial2 = &uart3;
++		ethernet0 = &eth0;
++		ethernet1 = &eth1;
++	};
++
++	cpus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		cpu@0 {
++			compatible = "arm,cortex-a8";
++			device_type = "cpu";
++			reg = <0>;
++		};
++	};
++
++	pmu {
++		compatible = "arm,cortex-a8-pmu";
++		interrupts = <3>;
++	};
++
++	/*
++	 * The soc node represents the soc top level view. It is used for IPs
++	 * that are not memory mapped in the MPU view or for the MPU itself.
++	 */
++	soc {
++		compatible = "ti,omap-infra";
++		mpu {
++			compatible = "ti,omap3-mpu";
++			ti,hwmods = "mpu";
++		};
++	};
++
++	/*
++	 * XXX: Use a flat representation of the dm816x interconnect.
++	 * The real dm816x interconnect network is quite complex. Since
++	 * it will not bring real advantage to represent that in DT
++	 * for the moment, just use a fake OCP bus entry to represent
++	 * the whole bus hierarchy.
++	 */
++	ocp {
++		compatible = "ti,omap3-l3-smx", "simple-bus";
++		reg = <0x44000000 0x10000>;
++		interrupts = <9 10>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++		ti,hwmods = "l3_main";
++
++		prcm: prcm@48180000 {
++			compatible = "ti,dm816-prcm";
++			reg = <0x48180000 0x4000>;
++
++			prcm_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			prcm_clockdomains: clockdomains {
++			};
++		};
++
++		scrm: scrm@48140000 {
++			compatible = "ti,dm816-scrm";
++			reg = <0x48140000 0x21000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x48140000 0x21000>;
++
++			scrm_clocks: clocks {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++
++			scrm_clockdomains: clockdomains {
++			};
++		};
++
++		cm: syscon@44e10000 {
++			compatible = "ti,am33xx-controlmodule", "syscon";
++			reg = <0x44e10000 0x800>;
++		};
++
++		edma: edma@49000000 {
++			compatible = "ti,edma3";
++			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2", "tptc3";
++			reg =   <0x49000000 0x10000>,
++			        <0x44e10f90 0x40>;
++			interrupts = <12 13 14>;
++			#dma-cells = <1>;
++		};
++
++		elm: elm@48080000 {
++			compatible = "ti,816-elm";
++			ti,hwmods = "elm";
++			reg = <0x48080000 0x2000>;
++			interrupts = <4>;
++		};
++
++		gpio1: gpio@48032000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio1";
++			reg = <0x48032000 0x1000>;
++			interrupts = <97>;
++		};
++
++		gpio2: gpio@4804c000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio2";
++			reg = <0x4804c000 0x1000>;
++			interrupts = <99>;
++		};
++
++		gpmc: gpmc@50000000 {
++			compatible = "ti,am3352-gpmc";
++			ti,hwmods = "gpmc";
++			reg = <0x50000000 0x2000>;
++			#address-cells = <2>;
++			#size-cells = <1>;
++			interrupts = <100>;
++			gpmc,num-cs = <6>;
++			gpmc,num-waitpins = <2>;
++		};
++
++		i2c1: i2c@48028000 {
++			compatible = "ti,omap4-i2c";
++			ti,hwmods = "i2c1";
++			reg = <0x48028000 0x1000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			interrupts = <70>;
++			dmas = <&edma 58 &edma 59>;
++			dma-names = "tx", "rx";
++		};
++
++		i2c2: i2c@4802a000 {
++			compatible = "ti,omap4-i2c";
++			ti,hwmods = "i2c2";
++			reg = <0x4802a000 0x1000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			interrupts = <71>;
++			dmas = <&edma 60 &edma 61>;
++			dma-names = "tx", "rx";
++		};
++
++		intc: interrupt-controller@48200000 {
++			compatible = "ti,dm816-intc";
++			interrupt-controller;
++			#interrupt-cells = <1>;
++			reg = <0x48200000 0x1000>;
++		};
++
++		mailbox: mailbox@480c8000 {
++			compatible = "ti,omap4-mailbox";
++			reg = <0x480c8000 0x2000>;
++			interrupts = <77>;
++			ti,hwmods = "mailbox";
++			ti,mbox-num-users = <4>;
++			ti,mbox-num-fifos = <12>;
++			mbox_dsp: mbox_dsp {
++				ti,mbox-tx = <3 0 0>;
++				ti,mbox-rx = <0 0 0>;
++			};
++		};
++
++		mdio: mdio@4a100800 {
++			compatible = "ti,davinci_mdio";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x4a100800 0x100>;
++			ti,hwmods = "davinci_mdio";
++			bus_freq = <1000000>;
++			phy0: ethernet-phy@0 {
++				reg = <1>;
++			};
++			phy1: ethernet-phy@1 {
++				reg = <2>;
++			};
++		};
++
++		eth0: ethernet@4a100000 {
++			compatible = "ti,dm816-emac";
++			ti,hwmods = "emac0";
++			reg = <0x4a100000 0x800
++			       0x4a100900 0x3700>;
++			clocks = <&sysclk24_ck>;
++			ti,davinci-ctrl-reg-offset = <0>;
++			ti,davinci-ctrl-mod-reg-offset = <0x900>;
++			ti,davinci-ctrl-ram-offset = <0x2000>;
++			ti,davinci-ctrl-ram-size = <0x2000>;
++			interrupts = <40 41 42 43>;
++			phy-handle = <&phy0>;
++		};
++
++		eth1: ethernet@4a120000 {
++			compatible = "ti,dm816-emac";
++			ti,hwmods = "emac1";
++			reg = <0x4a120000 0x4000>;
++			clocks = <&sysclk24_ck>;
++			ti,davinci-ctrl-reg-offset = <0>;
++			ti,davinci-ctrl-mod-reg-offset = <0x900>;
++			ti,davinci-ctrl-ram-offset = <0x2000>;
++			ti,davinci-ctrl-ram-size = <0x2000>;
++			interrupts = <44 45 46 47>;
++			phy-handle = <&phy1>;
++		};
++
++		mcspi1: spi@48030000 {
++			compatible = "ti,omap3-mcspi";
++			reg = <0x48030000 0x2000>;
++			interrupts = <65>;
++			ti,spi-num-cs = <2>;
++			ti,hwmods = "mcspi1";
++			dmas = <&edma 16 &edma 17
++				&edma 18 &edma 19>;
++			dma-names = "tx0", "rx0", "tx1", "rx1";
++		};
++
++		mmc1: mmc@48060000 {
++			compatible = "ti,omap4-hsmmc";
++			reg = <0x48060000 0x11000>;
++			ti,hwmods = "mmc1";
++			interrupts = <64>;
++			dmas = <&edma 24 &edma 25>;
++			dma-names = "tx", "rx";
++		};
++
++		timer1: timer@4802e000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x4802e000 0x2000>;
++			interrupts = <67>;
++			ti,hwmods = "timer1";
++			ti,timer-alwon;
++		};
++
++		timer2: timer@48040000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x48040000 0x2000>;
++			interrupts = <68>;
++			ti,hwmods = "timer2";
++		};
++
++		timer3: timer@48042000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x48042000 0x2000>;
++			interrupts = <69>;
++			ti,hwmods = "timer3";
++		};
++
++		timer4: timer@48044000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x48044000 0x2000>;
++			interrupts = <92>;
++			ti,hwmods = "timer4";
++		};
++
++		timer5: timer@48046000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x48046000 0x2000>;
++			interrupts = <93>;
++			ti,hwmods = "timer5";
++		};
++
++		timer6: timer@48048000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x48048000 0x2000>;
++			interrupts = <94>;
++			ti,hwmods = "timer6";
++		};
++
++		timer7: timer@4804a000 {
++			compatible = "ti,dm816-timer";
++			reg = <0x4804a000 0x2000>;
++			interrupts = <95>;
++			ti,hwmods = "timer7";
++		};
++
++		uart1: uart@48020000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart1";
++			reg = <0x48020000 0x2000>;
++			clock-frequency = <48000000>;
++			interrupts = <72>;
++			dmas = <&edma 26 &edma 27>;
++			dma-names = "tx", "rx";
++		};
++
++		uart2: uart@48022000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart2";
++			reg = <0x48022000 0x2000>;
++			clock-frequency = <48000000>;
++			interrupts = <73>;
++			dmas = <&edma 28 &edma 29>;
++			dma-names = "tx", "rx";
++		};
++
++		uart3: uart@48024000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart3";
++			reg = <0x48024000 0x2000>;
++			clock-frequency = <48000000>;
++			interrupts = <74>;
++			dmas = <&edma 30 &edma 31>;
++			dma-names = "tx", "rx";
++		};
++
++		/* NOTE: USB needs a transceiver driver for phys to work */
++		usb: usb_otg_hs@47401000 {
++			compatible = "ti,am33xx-usb";
++			reg = <0x47401000 0x400000>;
++			ranges;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ti,hwmods = "usb_otg_hs";
++
++			usb0: usb@47401000 {
++				compatible = "ti,musb-am33xx";
++				reg = <0x47401400 0x400
++				       0x47401000 0x200>;
++				reg-names = "mc", "control";
++				interrupts = <18>;
++				interrupt-names = "mc";
++				dr_mode = "otg";
++				mentor,multipoint = <1>;
++				mentor,num-eps = <16>;
++				mentor,ram-bits = <12>;
++				mentor,power = <500>;
++			};
++
++			usb1: usb@47401800 {
++				compatible = "ti,musb-am33xx";
++				status = "disabled";
++				reg = <0x47401c00 0x400
++				       0x47401800 0x200>;
++				reg-names = "mc", "control";
++				interrupts = <19>;
++				interrupt-names = "mc";
++				dr_mode = "otg";
++				mentor,multipoint = <1>;
++				mentor,num-eps = <16>;
++				mentor,ram-bits = <12>;
++				mentor,power = <500>;
++			};
++		};
++
++		wd_timer2: wd_timer@480c2000 {
++			compatible = "ti,omap3-wdt";
++			ti,hwmods = "wd_timer";
++			reg = <0x480c2000 0x1000>;
++			interrupts = <0>;
++		};
++	};
++};
++
