@@ -1,77 +1,85 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: dwc3 gadget fails on dra7-evm
-Date: Thu, 15 Jan 2015 09:31:00 -0600
-Message-ID: <20150115153100.GB16409@saruman>
-References: <54B68EC8.9000003@ti.com>
- <20150114165733.GC16533@saruman>
- <54B7B52D.6080008@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
+Date: Thu, 15 Jan 2015 07:28:39 -0800
+Message-ID: <20150115152838.GB18552@atomide.com>
+References: <20150114221407.GS2419@atomide.com>
+ <20150115105035.GU11502@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36653 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752254AbbAOPbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2015 10:31:44 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26758 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754295AbbAOPc2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 10:32:28 -0500
 Content-Disposition: inline
-In-Reply-To: <54B7B52D.6080008@ti.com>
+In-Reply-To: <20150115105035.GU11502@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, George Cherian <george.cherian@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
 
---dTy3Mrz/UPE2dbVg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [150115 02:53]:
+> On Wed, Jan 14, 2015 at 02:14:08PM -0800, Tony Lindgren wrote:
+> > Hi all,
+> > 
+> > Looks like the legacy IRQ numbers are now all wrong at least for omap4
+> > since commit 9a1091ef0017 ("irqchip: gic: Support hierarchy irq domain.").
+> > 
+> > Instead of this:
+> > 
+> > # cat /proc/interrupts 
+> >             CPU0       CPU1       
+> >  29:       1124        981       GIC  29  twd
+> >  39:          0          0       GIC  39  TWL6030-PIH
+> >  41:          0          0       GIC  41  l3-dbg-irq
+> >  42:          0          0       GIC  42  l3-app-irq
+> >  44:          0          0       GIC  44  DMA
+> >  45:       7854          0       GIC  45  omap-dma-engine
+> >  52:          0          0       GIC  52  gpmc
+> > ...
+> > 
+> > 
+> > We now have:
+> > 
+> > # cat /proc/interrupts 
+> >             CPU0       CPU1       
+> >  16:        343          0       GIC  69  gp_timer
+> >  17:       1160       1017       GIC  29  twd
+> >  18:          0          0       GIC  41  l3-dbg-irq
+> >  19:          1          0       GIC  42  l3-app-irq
+> >  22:       7850          0       GIC  45  omap-dma-engine
+> >  44:          0          0  4a310000.gpio  18  DMA
+> >  61:       2730          0  48055000.gpio   2  eth0
+> > 223:          0          0       GIC  52  gpmc
+> > ...
+> > 
+> > So the DMA interrupt using the legacy mapping with something like
+> > irq = 12 + OMAP44XX_IRQ_GIC_START now is wrong and unfortunately
+> > at least omaps still have a bunch of the legacy interrupts still
+> > around.
+> > 
+> > And that naturally produces all kinds of strange errors like:
+> > 
+> > WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x214/0x340()
+> > 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Idle): Data Access in Supervisor mode during Functional access
+> > ...
+> > [<c05f21e4>] (__irq_svc) from [<c05f1974>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+> > [<c05f1974>] (_raw_spin_unlock_irqrestore) from [<c00914a8>] (__setup_irq+0x244/0x530)
+> > [<c00914a8>] (__setup_irq) from [<c00917d4>] (setup_irq+0x40/0x8c)
+> > [<c00917d4>] (setup_irq) from [<c0039c8c>] (omap_system_dma_probe+0x1d4/0x2b4)
+> > [<c0039c8c>] (omap_system_dma_probe) from [<c03b2200>] (platform_drv_probe+0x44/0xa4)
+> > ...
+> 
+> I don't think we've proven a link there.  While you're right that it
+> causes the wrong interrupt to be claimed, I have two kernels here,
+> both claim the same interrupt, one which is multi-platform and issues
+> that strange warning, and one which targets only OMAP4 which doesn't.
+> 
+> There's something else going on which causes the bus errors which we
+> haven't found.
 
-On Thu, Jan 15, 2015 at 02:40:13PM +0200, Roger Quadros wrote:
-> On 14/01/15 18:57, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Wed, Jan 14, 2015 at 05:44:08PM +0200, Roger Quadros wrote:
-> >> In 3.19-rc4 on dra7-evm or dra72-evm
-> >>
-> >> modprobe g_zero
-> >> [   34.680683] zero gadget: Gadget Zero, version: Cinco de Mayo 2008
-> >> [   34.687074] zero gadget: zero ready
-> >> [   34.694133] dwc3 48890000.usb: failed to enable ep0out
-> >> [   34.701600] zero 48890000.usb: failed to start zero: -110
-> >> ERROR: could not insert 'g_zero': Connection timed out
-> >>
-> >> my u-boot version is v2015.01
-> >=20
-> > hmm... it could be that DRA7x also needs the suspend phy quirk. Can you
-> > try this ?
->=20
-> The issue goes away with this patch. Thanks.
+I think it gets triggered if you enable PREEMPT.
 
-alright, patch coming.
+Regards,
 
---=20
-balbi
-
---dTy3Mrz/UPE2dbVg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUt900AAoJEIaOsuA1yqREUpcQAKuiNWbgfoXN56eZwrAZ05PI
-b5zLW2eoM/h5GShAWzYw2kzIeIuKUoKP3qQQ0ebjS75ZaNgYpbNlg+SQM0KnoU7I
-WZSHUSFbjVSLy4ZeScnC0P/6YMi7AbO+wUumhkxhcDcxonMVX2cgwc2tQ93KuiFI
-zcUz93mD4SL//JI8qJvz43NV/z1yhOs2a5W5wCnH82uDfOiRasazIIq+9wPh8aLB
-Kl+guE+H6InosTmj1PEwaf7eaEI6XQ+mZMCdVYIEBg5hJwMx+A5pOKhi1/JOLzxn
-6SyWryaejgOaDxetTUF5fz8/J/FkVR3hE8ZFYhNtRlBhHk0a0XKrh/osVDPYmsn0
-fNCgzCbtLUuR6+E7AsHDReXOv/o78k3iyz4mtWVadAis6sZjDrQ49GlmZdgzl62Y
-TOdxSmrcGHjUGSTnDILyAMaq82OzxqM5lDiBYLlBcgYOkxBv5C03TXEBkei7PQtL
-7hsR9zLb1QyDLpvPRZd6fpv+n5sSZrWOciCDBzCg0woOH9dDIkCEMpr6WSJqxpA7
-bj+wS6oK/HfbyI0Kdo5o168nEhFv7pU9VbhErmZp0DpXS3FOmWJw5yt33OG2IlXC
-xcr/vERJuPWuZeNsKHgu2p82WQeK+qmqCrcCi+SOM2hReyzQu0Eb+Xzh2TPP2r8l
-iLU2Oh+GOx/Vra1omzv7
-=ZnQG
------END PGP SIGNATURE-----
-
---dTy3Mrz/UPE2dbVg--
+Tony
