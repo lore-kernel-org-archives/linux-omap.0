@@ -1,72 +1,61 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: boot: dts: dra7: enable dwc3 suspend PHY quirk
-Date: Thu, 15 Jan 2015 09:38:03 -0600
-Message-ID: <1421336283-17904-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
+Date: Thu, 15 Jan 2015 07:37:48 -0800
+Message-ID: <20150115153746.GC18552@atomide.com>
+References: <20150114221407.GS2419@atomide.com>
+ <8761c8i2hq.fsf@approximate.cambridge.arm.com>
+ <2776397.iNGHcrIBZz@wuerfel>
+ <87wq4ogl48.fsf@approximate.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37024 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751700AbbAOPjK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2015 10:39:10 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45692 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752275AbbAOPlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 10:41:46 -0500
+Content-Disposition: inline
+In-Reply-To: <87wq4ogl48.fsf@approximate.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Whenever Suspend PHY bit is set on DRA7x devices,
-USB will not work due to Set EP Configuration command
-always failing.
+* Marc Zyngier <marc.zyngier@arm.com> [150115 06:46]:
+> On Thu, Jan 15 2015 at  2:27:56 pm GMT, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Thursday 15 January 2015 13:42:57 Marc Zyngier wrote:
+> >> Of course, this is in no way a proper fix, but I suppose the OMAP DT is
+> >> still missing a few bits...
+> >
+> > I must be missing something here, but all the interrupts are listed
+> > correctly in the DT, so what is the omap_hwmod_irq_info actually
+> > achieving on omap4 and omap5?
+> >
+> > Would it work if we just remove the incorrect copy of the resource
+> > and use the one that comes from DT?
+> 
+> By the look of it, omap_hwmod_irq_info serves multiple purposes:
+> - low level configuration (pads, probably more stuff)
 
-This was only found after a recent commit 2164a47 (usb:
-dwc3: set SUSPHY bit for all cores, which will be merged
-for v3.19) added a missing *required* step to dwc3
-initialization. Synopsys Databook requires that we enable
-Suspend PHY bit after initialization but that, unfortunately,
-breaks DRA7x.
+The muxing is only done for omap3 in legacy booting mode.
 
-Note that the same regression was already patched for AM437x.
+> - interrupt description for some drivers, using resources.
 
-Reported-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
-
-Tony, this fixes a regression with v3.19
-
- arch/arm/boot/dts/dra7.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 22771bc1643a..63f8b007bdc5 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1257,6 +1257,8 @@
- 				tx-fifo-resize;
- 				maximum-speed = "super-speed";
- 				dr_mode = "otg";
-+				snps,dis_u3_susphy_quirk;
-+				snps,dis_u2_susphy_quirk;
- 			};
- 		};
+That's still used to create legacy platform_device entries on omap4
+for legacy DMA, DSS, PRM. The twl6040 entries are already unused
+and I have a patch queued to remove them.
  
-@@ -1278,6 +1280,8 @@
- 				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
-+				snps,dis_u3_susphy_quirk;
-+				snps,dis_u2_susphy_quirk;
- 			};
- 		};
- 
-@@ -1299,6 +1303,8 @@
- 				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
-+				snps,dis_u3_susphy_quirk;
-+				snps,dis_u2_susphy_quirk;
- 			};
- 		};
- 
--- 
-2.2.0
+> It should be fairly easy to do the latter, but the former looks more
+> tricky (it would push the pad configuration down to the drivers, which
+> is avoided at the moment).
 
+The pad configuration is already done with pinctrl-single.
+ 
+> Probably there is a workable strategy, but my knowledge about OMAP is
+> close to *nothing*...
+
+I have a feeling this might bite other platforms too and we just have
+not noticed it yet..
+
+Regards,
+
+Tony
