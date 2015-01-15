@@ -1,91 +1,92 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for
- hwspinlock
-Date: Thu, 15 Jan 2015 13:55:56 +0000
-Message-ID: <20150115135556.GH16217@leverpostej>
-References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
- <1421269101-51105-2-git-send-email-s-anna@ti.com>
- <20150115135201.GG16217@leverpostej>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
+Date: Thu, 15 Jan 2015 15:25:36 +0100
+Message-ID: <20150115142536.GC512@earth.universe>
+References: <1421171865-5209-1-git-send-email-tony@atomide.com>
+ <10549142.7lWnPtPtZG@wuerfel>
+ <20150113204219.GJ2419@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:52283 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753570AbbAOOZu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2015 09:25:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20150115135201.GG16217@leverpostej>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Kumar Gala <galak@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
+In-Reply-To: <20150113204219.GJ2419@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 
-On Thu, Jan 15, 2015 at 01:52:01PM +0000, Mark Rutland wrote:
-> On Wed, Jan 14, 2015 at 08:58:18PM +0000, Suman Anna wrote:
-> > This patch adds the generic common bindings used to represent
-> > a hwlock device and use/request locks in a device-tree build.
-> > 
-> > All the platform-specific hwlock driver implementations need the
-> > number of locks and associated base id for registering the locks
-> > present within the device with the driver core. This base id
-> > needs to be unique across multiple IP instances of a hwspinlock
-> > device, so that each hwlock can be represented uniquely in a
-> > system.
-> > 
-> > The number of locks is represented by 'hwlock-num-locks' property,
-> > and the base id is represented by the 'hwlock-base-id' property.
-> > The args specifier length is dependent on each vendor-specific
-> > implementation and is represented through the '#hwlock-cells'
-> > property. Client users need to use the property 'hwlocks' for
-> > requesting specific lock(s).
-> > 
-> > Note that the document is named hwlock.txt deliberately to keep
-> > it a bit more generic.
-> > 
-> > Cc: Rob Herring <robh+dt@kernel.org>
-> > Signed-off-by: Suman Anna <s-anna@ti.com>
-> > ---
-> > v7: Revised binding info for hwlock-base-id, it is mandatory now
-> > 
-> >  .../devicetree/bindings/hwlock/hwlock.txt          | 55 ++++++++++++++++++++++
-> >  1 file changed, 55 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> > new file mode 100644
-> > index 000000000000..8de7aaf878f9
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
-> > @@ -0,0 +1,55 @@
-> > +Generic hwlock bindings
-> > +=======================
-> > +
-> > +Generic bindings that are common to all the hwlock platform specific driver
-> > +implementations.
-> > +
-> > +The validity and need of these common properties may vary from one platform
-> > +implementation to another. The platform specific bindings should explicitly
-> > +state if an optional property is used. Please also look through the individual
-> > +platform specific hwlock binding documentations for identifying the applicable
-> > +properties.
-> > +
-> > +Common properties:
-> > +- #hwlock-cells:	Specifies the number of cells needed to represent a
-> > +			specific lock. This property is mandatory for all
-> > +			platform implementations.
-> > +- hwlock-num-locks:	Number of locks present in a hwlock device. This
-> > +			property is needed on hwlock devices, where the number
-> > +			of supported locks within a hwlock device cannot be
-> > +			read from a register.
-> > +- hwlock-base-id:	An unique base Id for the locks for a particular hwlock
-> > +			device. This property is mandatory for all platform
-> > +			implementations.
-> 
-> This property makes no sense. The ID encoded in the hwlock cells is
-> relative to the instance (identified by phandle), not global. So the DT
-> has no global ID space.
-> 
-> Why do you think you need this?
 
-Having looked at the way this proeprty is used, NAK.
+--5QAgd0e35j3NYeGe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If you need to carve up a Linux-internal ID space, do that dynamically.
-There is no need for this property.
+On Tue, Jan 13, 2015 at 12:42:20PM -0800, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [150113 12:27]:
+> > On Tuesday 13 January 2015 09:57:41 Tony Lindgren wrote:
+> > >=20
+> > > It seems we can now drop omap3517 legacy booting support to get
+> > > a bit closer to making all of omap3 boot in device tree only mode.
+> > >=20
+> > > All these boards have at least minimal support for booting with
+> > > device tree, and pretty much anything supported with the legacy
+> > > board files can be configured also for device tree based booting
+> > > if not done already.
+> >=20
+> > Ah, very nice.
+> >=20
+> > Just out of curiosity, what are the remaining showstoppers for
+> > the 3430 and 3530 based boards?
+>=20
+> Not much really. We're now printing a warning to get a people to
+> upgrade their systems. So with some boards we need to wait a while.
+>=20
+> Then here are the remaining items that I'm aware of:
+>=20
+> - A regression at least on some n900 with appended DTB not booting
+>   properly any longer reported by Pali
+>=20
+> - A regression where the legacy ATAGs don't seem to get properly
+>   translated by the uncompress code for atag_rev at least reported
+>   by Pali
+>=20
+> - A few missing .dts files for devkit8000, omap3logic, omap3stalker,
+>   omap3pandora and omap3touchbook
+>=20
+> Pali and Sebastian probably know best of any other remaining
+> issues to drop n900 legacy booting.
 
-Mark.
+Apart from the bugs there is only one feature-wise regression when
+the system is booted via DT, which is the accelerometer. I will
+(re)send patches for that in the next days.
+
+-- Sebastian
+
+--5QAgd0e35j3NYeGe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUt83dAAoJENju1/PIO/qaF8YP/1oifU6pHNbOF/a2VTIUkbfl
+zzbxL8CVKLnmMTsliVAQBtTnXxAqj/RQBkVdzT59MHeAU90q/DM48ACshL9LG3m+
+BhDl41meZMYVpJ9Not6p+zjWmQe5jrR/URMiQgctLih/CmeeJ/0YELwebrRKID/x
+T6o11Qsk84J2JVh2VdAnAvOrftrn6LgTFco39ySQGGtecQJUGr0d1ESK0vMGjFKC
+LQo6n8m5jlewrLCxHCNcDtuZdH5ZQWrEwrpfQIiow3b2Jz5LK1B3jxyU3yB15jpB
+RxOFnq7llJDz94c5gh6+NxVVkjCV68Bz5kh/UobWx3xDZCo4oTBz3t9BxFNs8MH8
+tYCFnt1x4nZpI2AjE/NfAuzCT/fIwyoHbsBngX0KH2bsnrsshVR2QBvS8S4FURo9
+kcXGVW1uyJ8PTXUYYososLZy1Rf22gHYBy71Dl/+jK5nIRup/GeGOrA90Q9ZsBbL
+el2b4oLO52wlBd2vusois4VQ6MF1LnjXLuZuWkxxIEroGUfZDGoMgSz2yqYiMOtA
+VBCWyejyY6L7dZxdAIQc0zZ56Tr97VbdKhjh4aUXTiup2gdmWzbJzqLeWUaM0tHE
+dMnnYv/urPIMH/1qE5JM9cRjKyKhHZjw1elD1O5Zirbeoz7QfCN92ElMp2FORp6W
++t6Cs/54VjJqvysrYeqc
+=Epww
+-----END PGP SIGNATURE-----
+
+--5QAgd0e35j3NYeGe--
