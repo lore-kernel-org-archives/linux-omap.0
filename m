@@ -1,109 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Work around hardcoded interrupts
-Date: Thu, 15 Jan 2015 08:20:23 -0800
-Message-ID: <20150115162022.GD18552@atomide.com>
-References: <1421335212-4115-1-git-send-email-marc.zyngier@arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
+Date: Thu, 15 Jan 2015 17:37:50 +0100
+Message-ID: <20923934.GLG5LeSnXd@wuerfel>
+References: <20150114221407.GS2419@atomide.com> <2776397.iNGHcrIBZz@wuerfel> <87wq4ogl48.fsf@approximate.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15133 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751219AbbAOQYX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 11:24:23 -0500
-Content-Disposition: inline
-In-Reply-To: <1421335212-4115-1-git-send-email-marc.zyngier@arm.com>
+Received: from mout.kundenserver.de ([212.227.126.187]:59917 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929AbbAOQi5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 11:38:57 -0500
+In-Reply-To: <87wq4ogl48.fsf@approximate.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Felipe Balbi <balbi@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Yingjoe Chen <yingjoe.chen@mediatek.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Marc Zyngier <marc.zyngier@arm.com> [150115 07:24]:
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -256,6 +256,38 @@ static int __init omap4_sar_ram_init(void)
->  }
->  omap_early_initcall(omap4_sar_ram_init);
->  
-> +static struct of_device_id gic_match[] = {
-> +	{ .compatible = "arm,cortex-a9-gic", },
-> +	{ .compatible = "arm,cortex-a15-gic", },
-> +	{ },
-> +};
-> +
-> +static struct device_node *gic_node;
-> +
-> +unsigned int omap4_xlate_irq(unsigned int hwirq)
-> +{
-> +	struct of_phandle_args irq_data;
-> +	unsigned int irq;
-> +
-> +	if (!gic_node)
-> +		gic_node = of_find_matching_node(NULL, gic_match);
-> +
-> +	if (WARN_ON(!gic_node))
-> +		return hwirq;
-> +
-> +	irq_data.np = gic_node;
-> +	irq_data.args_count = 3;
-> +	irq_data.args[0] = 0;
-> +	irq_data.args[1] = hwirq - OMAP44XX_IRQ_GIC_START;
-> +	irq_data.args[2] = IRQ_TYPE_LEVEL_HIGH;
-> +
-> +	irq = irq_create_of_mapping(&irq_data);
-> +	if (WARN_ON(!irq))
-> +		irq = hwirq;
-> +
-> +	return irq;
-> +}
-> +
->  void __init omap_gic_of_init(void)
->  {
->  	struct device_node *np;
+On Thursday 15 January 2015 14:43:35 Marc Zyngier wrote:
+> On Thu, Jan 15 2015 at  2:27:56 pm GMT, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Thursday 15 January 2015 13:42:57 Marc Zyngier wrote:
+> >> Of course, this is in no way a proper fix, but I suppose the OMAP DT is
+> >> still missing a few bits...
+> >
+> > I must be missing something here, but all the interrupts are listed
+> > correctly in the DT, so what is the omap_hwmod_irq_info actually
+> > achieving on omap4 and omap5?
+> >
+> > Would it work if we just remove the incorrect copy of the resource
+> > and use the one that comes from DT?
+> 
+> By the look of it, omap_hwmod_irq_info serves multiple purposes:
+> - low level configuration (pads, probably more stuff)
+> - interrupt description for some drivers, using resources.
+> 
+> It should be fairly easy to do the latter, but the former looks more
+> tricky (it would push the pad configuration down to the drivers, which
+> is avoided at the moment).
+> 
+> Probably there is a workable strategy, but my knowledge about OMAP is
+> close to *nothing*...
 
-Thanks for the quick fix, this is is fine with me as long as we
-don't have other legacy users. At least I did not find any other
-legacy users based on a quick grep.
+I don't know much about OMAP either so maybe it's better to let someone
+comment who understands this better. ;-)
 
-> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> @@ -288,6 +288,7 @@ static struct omap_hwmod omap54xx_dma_system_hwmod = {
->  	.class		= &omap54xx_dma_hwmod_class,
->  	.clkdm_name	= "dma_clkdm",
->  	.mpu_irqs	= omap54xx_dma_system_irqs,
-> +	.xlate_irq	= omap4_xlate_irq,
->  	.main_clk	= "l3_iclk_div",
->  	.prcm = {
->  		.omap4 = {
+A number of commits have in the past removed omap_hwmod_irq_info entries
+here, the last one was  09182ab11b49 ("ARM: OMAP4: hwmod data: Remove
+irq entries from mcspi, mmc hwmods").
 
-We could now drop the legacy DMA init completely for omap4 and later.
-But that would require patching the legacy DMA for the exported
-functions.. So probably not doable for the -rc series and does not
-solve the issue with other legacy IRQ users.
+>From what I can tell, we could drop the omap44xx_dss_dispc_irqs,
+omap44xx_dss_dsi1_irqs, omap44xx_dss_dsi2_irqs, and omap44xx_dss_hdmi_irqs
+in the samem way, after this data got added to DT as part of
+cfe86fcf2d0079f03 ("ARM: omap4.dtsi: add omapdss information").
 
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -71,9 +71,12 @@ void __init omap4_pmic_init(const char *pmic_type,
->  		    struct i2c_board_info *devices, int nr_devices)
->  {
->  	/* PMIC part*/
-> +	unsigned int irq;
-> +
->  	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
->  	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
-> -	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
-> +	irq = omap4_xlate_irq(7 + OMAP44XX_IRQ_GIC_START);
-> +	omap_pmic_init(1, 400, pmic_type, irq, pmic_data);
->  
->  	/* Register additional devices on i2c1 bus if needed */
->  	if (devices)
+Unfortunately, the omap-dma driver once again gets in the way, since
+there are still users of this that are not converted to use dmaengine,
+and unlike the proper driver (drivers/dma/omap-dma.c), the legacy
+driver (arch/arm/mach-omap2/dma.c) does not get probed from DT and
+instead gets the wrong irq numbers from hwmod now.
 
-FYI, I posted a patch yesterday to drop the legacy init code
-for twl6040 as the legacy omap4_pmic_init() is no longer used.
-No need to change this patch though.
-
-So unless somebody has better ideas for the fix for -rc series,
-I'll queue this with the twl6040 code removal patch.
-
-Regards,
-
-Tony
+	Arnd
