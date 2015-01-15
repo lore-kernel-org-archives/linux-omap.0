@@ -1,144 +1,149 @@
-From: Pankaj Dubey <pankaj.dubey@samsung.com>
-Subject: Re: [v3,15/21] ARM: exynos4/5: convert pmu wakeup to stacked domains
-Date: Thu, 15 Jan 2015 12:11:06 +0530
-Message-ID: <54B76102.6050706@samsung.com>
-References: <1421087187-26988-16-git-send-email-marc.zyngier@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:62043 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbbAOGkg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2015 01:40:36 -0500
-In-reply-to: <1421087187-26988-16-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/3] input: tsc2007: Add pre-calibration, flipping and rotation
+Date: Thu, 15 Jan 2015 08:36:44 +0100
+Message-ID: <0F9A17C1-9B01-4EE9-BE98-266B8FC02B84@goldelico.com>
+References: <1412108254-19234-1-git-send-email-marek@goldelico.com> <1412108254-19234-2-git-send-email-marek@goldelico.com> <CAAfyv36bD9ZratOzr7FkeQde8k-K9XjEjH9gkntm9qewD-cH9g@mail.gmail.com> <20150115005938.GB9134@dtor-ws>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20150115005938.GB9134@dtor-ws>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-input@vger.kernel.org, Marek Belisko <marek@goldelico.com>, Jonathan Richardson <jonathar@broadcom.com>, Scott Branden <sbranden@broadcom.com>, Yoichi Yuasa <yuasa@linux-mips.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, List for communicating with real GTA04 owners <gta04-owne>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <Marc.Zyngier@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, thomas.ab@samsung.com
 
-+CC: Thomas Abraham <thomas.ab@samsung.com>
+Hi,
 
-Hi Mark,
+Am 15.01.2015 um 01:59 schrieb Dmitry Torokhov <dmitry.torokhov@gmail.c=
+om>:
 
-On Monday 12 January 2015 11:56 PM, Marc Zyngier wrote:
-> Exynos has been (ab)using the gic_arch_extn to provide
-> wakeup from suspend, and it makes a lot of sense to convert
-> this code to use stacked domains instead.
->
-> This patch does just this, updating the DT files to actually
-> reflect what the HW provides.
->
-> BIG FAT WARNING: because the DTs were so far lying by not
-> exposing the fact that the PMU block is actually the first
-> interrupt controller in the chain for RTC, kernels with this patch
-> applied wont have any suspend-resume facility when booted
-> with old DTs, and old kernels with updated DTs may not even boot.
->
-> Also, I stronly suspect that there is more than two wake-up
-> interrupts on these platforms, but I leave it to the maintainers
-> to fix their mess.
->
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->
+> On Sat, Jan 10, 2015 at 03:15:39PM +0100, Belisko Marek wrote:
+>> Ping for input maintainer. DT changes was acked. Thanks.
+>>=20
+>> On Tue, Sep 30, 2014 at 10:17 PM, Marek Belisko <marek@goldelico.com=
+> wrote:
+>>> This patch adds new parameters that allow to address typical hardwa=
+re
+>>> design differences: touch screens may be wired or oriented differen=
+tly
+>>> (portrait or landscape). And usually the active area of the touch i=
+s a
+>>> little larger than the active area of the LCD. This results in the =
+touch
+>>> coordinates that have some significant deviation from LCD coordinat=
+es.
+>>> Usually this is addressed in user space by a calibration tool (e.g.=
+ tslib
+>>> or xinput-calibrator) but some systems don't have these tools or re=
+quire
+>>> that the screen is already roughly calibrated (e.g. Replicant) to o=
+perate
+>>> the device until a better calibration can be done. And, some system=
+s
+>>> react very strangely if the touch event stream reports coordinates
+>>> outside of the active area.
+>>>=20
+>>> This makes it necessry to be able to configure:
+>>> 1. swapping x and y wires (coordinate values)
+>>> 2. flipping of x (left - right) or y (top - bottom) or even both
+>>> 3. define an active area so that an uncalibrated screen already
+>>> roughly matches the LCD to be useful.
+>>> 4. clip reported coordinates to the active area.
+>>>=20
+>>> If none of the new parameters is defined (in DT) or set in a board =
+file,
+>>> the driver behaves the same as without this patch.
+>>>=20
+>>> Author (1&2): H. Nikolaus Schaller <hns@goldelico.com>
+>>> Author (3&4): Paul Kocialkowski <contact@paulk.fr>
+>>>=20
+>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>=20
+> OK, I was hesitant of adding these as normally we have tslib to perfo=
+rm
+> the conversion, but maybe it is time to allow it in the kernel and
+> standardize users.
 
-I tested this series on Exynos5250, using kgene/for-next and 
-linux-next/next-20150114, but S2R failed on Exynos5250 based SMDK board.
+Well, tslib isn=92t a good replacement for this problem any more and
+pre-initializing tslib makes some deep hardware dependency visible
+in user space (each board needs a different tslib config and pointercal
+default - and on some user spaces tslib is broken with Xorg).
 
-Following is the log I got on SMDK5250 board, (note I have added some 
-debugging log to know what is happening)
+But the issue to be solved is more hardware related, i.e. if the Y- and=
+ Y+
+pins of the controller are connected in a swapped way to the resistor
+ends of the panel.
 
-I can see is S3C-RTC's "enable_irq_wake" is failing with error -6.
-I also observed that even though we are adding pmu_domain_ops using 
-irq_domain_add_hierarchy, but none of pmu_domain_ops are getting called.
+Hence in a DT based system, this must IMHO be described by the DT
+and can not be left to some user-space functions any more.
 
-Please let me know if I am missing anything or do I need to modify 
-anything to test S2R on Exynos SoC.
+> However, this seems like a general issue and we
+> should:
+>=20
+> 1. Perform conversion in input core rather than individual drivers. I
+> think we should allocate a new bitmaps for some transformations and h=
+ave
+> the code do X/Y flip/clip of the coordinates.
 
----------------------
-echo +10 > /sys/class/rtc/rtc1/wakealarm; sleep 1; echo mem > /sys/power/sta
-te
-[  257.428163] PM: Syncing filesystems ... done.
-[  257.431786] Freezing user space processes ... (elapsed 0.003 seconds) 
-done.
-[  257.439680] Freezing remaining freezable tasks ... (elapsed 0.001 
-seconds) done.
-[  257.544451] wake enabled for irq 116
-[  257.546916] CPU: 0 PID: 1311 Comm: ash Not tainted 
-3.19.0-rc4-next-20150114-00023-g492ff37 #15
-[  257.555141] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[  257.561231] [<c0014430>] (unwind_backtrace) from [<c0011594>] 
-(show_stack+0x10/0x14)
-[  257.568948] [<c0011594>] (show_stack) from [<c0418b00>] 
-(dump_stack+0x84/0xc4)
-[  257.576151] [<c0418b00>] (dump_stack) from [<c005ce30>] 
-(set_irq_wake_real+0x58/0x8c)
-[  257.583961] [<c005ce30>] (set_irq_wake_real) from [<c005cef0>] 
-(irq_set_irq_wake+0x8c/0xf0)
-[  257.592295] [<c005cef0>] (irq_set_irq_wake) from [<c02e9d94>] 
-(s3c_rtc_suspend+0xb8/0xdc)
-[  257.600456] [<c02e9d94>] (s3c_rtc_suspend) from [<c0298c80>] 
-(dpm_run_callback.isra.13+0x1c/0x60)
-[  257.609308] [<c0298c80>] (dpm_run_callback.isra.13) from [<c02996a0>] 
-(__device_suspend+0x128/0x2d0)
-[  257.618422] [<c02996a0>] (__device_suspend) from [<c029a850>] 
-(dpm_suspend+0x64/0x22c)
-[  257.626320] [<c029a850>] (dpm_suspend) from [<c0058488>] 
-(suspend_devices_and_enter+0x88/0x3dc)
-[  257.634999] [<c0058488>] (suspend_devices_and_enter) from 
-[<c00589c8>] (pm_suspend+0x1ec/0x24c)
-[  257.643680] [<c00589c8>] (pm_suspend) from [<c00576e0>] 
-(state_store+0x68/0xb8)
-[  257.650972] [<c00576e0>] (state_store) from [<c012835c>] 
-(kernfs_fop_write+0xb8/0x19c)
-[  257.658870] [<c012835c>] (kernfs_fop_write) from [<c00cf620>] 
-(vfs_write+0xa0/0x1ac)
-[  257.666595] [<c00cf620>] (vfs_write) from [<c00cfc78>] 
-(SyS_write+0x44/0x9c)
-[  257.673625] [<c00cfc78>] (SyS_write) from [<c000e6e0>] 
-(ret_fast_syscall+0x0/0x30)
-[  257.681176] genirq: PKD: irq_desc->name: (null): irq: 60
-[  257.686469] genirq: PKD: set_irq_wake_real: ret: -6
-[  257.691349] s3c-rtc 101e0000.rtc: enable_irq_wake failed: -6
-[  257.708926] PM: suspend of devices complete after 260.482 msecs
-[  257.713362] BUCK9: No configuration
-[  257.716840] BUCK8: No configuration
-[  257.720309] BUCK7: No configuration
-[  257.723776] BUCK6: No configuration
-[  257.727254] P1.8V_BUCK_OUT5: No configuration
-[  257.731597] LDO26: No configuration
-[  257.735066] LDO25: No configuration
-[  257.738532] LDO24: No configuration
-[  257.742009] LDO23: No configuration
-[  257.745481] LDO22: No configuration
-[  257.748954] LDO21: No configuration
-[  257.752419] LDO20: No configuration
-[  257.755897] LDO19: No configuration
-[  257.759370] LDO18: No configuration
-[  257.762835] LDO17: No configuration
-[  257.766314] P1.8V_LDO_OUT16: No configuration
-[  257.770653] P1.0V_LDO_OUT15: No configuration
-[  257.774994] P1.8V_LDO_OUT14: No configuration
-[  257.779334] P1.8V_LDO_OUT13: No configuration
-[  257.783668] P3.0V_LDO_OUT12: No configuration
-[  257.788013] P1.8V_LDO_OUT11: No configuration
-[  257.792353] P1.8V_LDO_OUT10: No configuration
-[  257.796693] LDO9: No configuration
-[  257.800079] P1.0V_LDO_OUT8: No configuration
-[  257.804332] P1.1V_LDO_OUT7: No configuration
-[  257.808579] P1.1V_LDO_OUT6: No configuration
-[  257.812838] P1.8V_LDO_OUT5: No configuration
-[  257.817091] P2.8V_LDO_OUT4: No configuration
-[  257.821345] P1.8V_LDO_OUT3: No configuration
-[  257.825599] P1.2V_LDO_OUT2: No configuration
-[  257.829851] P1.0V_LDO_OUT1: No configuration
-[  257.835786] PM: late suspend of devices complete after 1.676 msecs
-[  257.841913] PM: noirq suspend of devices complete after 1.420 msecs
-[  257.846737] Disabling non-boot CPUs ...
-[  257.850810] IRQ54 no longer affine to CPU1
-[  257.850922] CPU1: shutdown
+Do you have a suggestion where this should be (I have no clue how
+the input system works or is structured - we just know how to extend a
+driver that uses it)?
 
-------------------------------------
+>=20
+> 2. Standardize on bindings. We already have of-touchscreen.c doing
+> rudimentary parsing, we shoudl look into extending it rather than
+> creating myriad of driver-specific bindings.
 
-Thanks,
-Pankaj Dubey
+Ok, looks reasonable.
+
+>=20
+> Also, do we need swap and flip or do we simply need rotation (like th=
+e
+> proposed Broadcom iproc driver has)?
+
+Well, since the DT should describe hardware, there are 3 sets of wires =
+which
+can have a cross-over: X+ and X-, Y+ and Y-, X and Y.
+
+So IMHO hardware has no =93rotation=94, just crossover of wires. Rotati=
+on is an
+interpretation of the result of these connections in combination with s=
+ome
+panel the touch is glued to and should therefore not be represented in =
+the DT.
+
+As a result we have proposed a scheme without explicit rotation. We spe=
+cify what
+coordinates X- and X+ should report at their ends (min, max) because th=
+e DT
+programmer has to specify them anyways. Flipping is a result of definin=
+g these
+coordinates in an ascending or descending way. Only swapping of the X a=
+nd Y
+wires can=92t be implicitly defined so it has its own property. So the =
+scheme we
+have proposed tries to optimize the efforts needed to adapt new boards =
+and write
+DTs and focus the DT on hardware description.
+
+As a bonus we also specify the min and max value to be reported for the=
+ touch
+pressure (Z axis) using the same basic principle.
+
+And it is a pure add-on on top of the existing driver so that it attemp=
+ts not
+to break existing device trees.
+
+Maybe could you accept it as a first step for this specific driver (and=
+ let=92s do
+the big standardization work later on)?
+
+=97 hns
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
