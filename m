@@ -1,44 +1,48 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v7 0/4] hwspinlock core & omap dt support
-Date: Thu, 15 Jan 2015 12:13:34 +0200
-Message-ID: <CAK=Wgba1S58OMs=FTfv=UraU_3EZn_eOLmADtCjrvJkDSGw8WA@mail.gmail.com>
-References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP 4430 SDP: rather sick with recent kernels
+Date: Thu, 15 Jan 2015 10:48:32 +0000
+Message-ID: <20150115104832.GT11502@n2100.arm.linux.org.uk>
+References: <20141217095252.GH11502@n2100.arm.linux.org.uk>
+ <20150114175132.GR11502@n2100.arm.linux.org.uk>
+ <20150114190925.GP2419@atomide.com>
+ <20150114231007.GS11502@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421269101-51105-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:41970 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752132AbbAOKsj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2015 05:48:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20150114231007.GS11502@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
 
-Hi Suman,
+On Wed, Jan 14, 2015 at 11:10:08PM +0000, Russell King - ARM Linux wrote:
+> On Wed, Jan 14, 2015 at 11:09:26AM -0800, Tony Lindgren wrote:
+> > This seems like it could be a similar issue to what we were seeing on
+> > omap3 where the legacy IRQ mappings went wrong without using the
+> > irq_domain_add_legacy(). Maybe vexpress affects NR_IRQS or something?
+> > 
+> > Also, I think we could now disable the legacy DMA init completely
+> > except for omap2 and 3.
+> 
+> I've added a "cat /proc/interrupts" which should reveal whether the IRQs
+> have changed between the two different builds.
 
-On Wed, Jan 14, 2015 at 10:58 PM, Suman Anna <s-anna@ti.com> wrote:
-> This is an updated version of the hwspinlock dt support series,
-> rebased onto v3.19-rc3 and mainly addresses the continued discussion
-> on the need to maintain a list of registered spinlock banks [1].
-> I have removed this patch as per your wish, and as a result the
-> burden of the spinlock validation and deferred probing is pushed
-> onto the hwspinlock clients. Sorry for the delay in refreshing this
-> series, hopefully this can be the last revision.
->
-> Following are the main changes in v7 w.r.t v6:
-> - Dropped the patch "hwspinlock/core: maintain a list of registered
->   hwspinlock banks"
-> - Updated generic hwspinlock bindings to make hwlock-base-id property
->   mandatory.
-> - Updated the OMAP hwspinlock binding and DT support patches to correct
->   for the mandatory hwlock-base-id property.
-> - Updated the common OF helpers patch to move the of_hwspin_lock_get_base_id()
->   and of_hwspin_lock_get_num_locks() functions into the internal header,
->   these are no longer exported, but available for platform implementations.
->   of_hwspin_lock_get_id() is also simplified now.
+Okay, both omap4 and combined kernels indicate that the legacy DMA gets
+the same interrupt:
 
-This looks good, thanks.
+ 44:          0          0  4a310000.gpio  18  DMA
 
-Please try to get an ACK from a DT maintainer on the first two dt
-patches, and then I can take the patches to Linus.
+so that can't be the issue as the combined kernel spits out the warning,
+but the omap4 kernel doesn't.  Something else is going on which causes
+this; the hint that it's got something to do with this is just a symptom
+of some other problem.
 
-Thanks,
-Ohad.
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
