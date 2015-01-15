@@ -1,36 +1,44 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [patch-net-next v2 3/3] net: ethernet: cpsw: don't requests IRQs
- we don't use
-Date: Thu, 15 Jan 2015 13:19:16 +0530
-Message-ID: <54B770FC.6060003@ti.com>
-References: <1421254729-10602-1-git-send-email-balbi@ti.com> <1421254729-10602-3-git-send-email-balbi@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v7 0/4] hwspinlock core & omap dt support
+Date: Thu, 15 Jan 2015 12:13:34 +0200
+Message-ID: <CAK=Wgba1S58OMs=FTfv=UraU_3EZn_eOLmADtCjrvJkDSGw8WA@mail.gmail.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39995 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751256AbbAOHtW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2015 02:49:22 -0500
-In-Reply-To: <1421254729-10602-3-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, davem@davemloft.net
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 
-On Wednesday 14 January 2015 10:28 PM, Felipe Balbi wrote:
-> CPSW never uses RX_THRESHOLD or MISC interrupts. In
-> fact, they are always kept masked in their appropriate
-> IRQ Enable register.
-> 
-> Instead of allocating an IRQ that never fires, it's best
-> to remove that code altogether and let future patches
-> implement it if anybody needs those.
-> 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+Hi Suman,
 
-Instead of introducing dummy ISR in previous patch and then removing in
-this patch, both can be squashed into a single patch.
+On Wed, Jan 14, 2015 at 10:58 PM, Suman Anna <s-anna@ti.com> wrote:
+> This is an updated version of the hwspinlock dt support series,
+> rebased onto v3.19-rc3 and mainly addresses the continued discussion
+> on the need to maintain a list of registered spinlock banks [1].
+> I have removed this patch as per your wish, and as a result the
+> burden of the spinlock validation and deferred probing is pushed
+> onto the hwspinlock clients. Sorry for the delay in refreshing this
+> series, hopefully this can be the last revision.
+>
+> Following are the main changes in v7 w.r.t v6:
+> - Dropped the patch "hwspinlock/core: maintain a list of registered
+>   hwspinlock banks"
+> - Updated generic hwspinlock bindings to make hwlock-base-id property
+>   mandatory.
+> - Updated the OMAP hwspinlock binding and DT support patches to correct
+>   for the mandatory hwlock-base-id property.
+> - Updated the common OF helpers patch to move the of_hwspin_lock_get_base_id()
+>   and of_hwspin_lock_get_num_locks() functions into the internal header,
+>   these are no longer exported, but available for platform implementations.
+>   of_hwspin_lock_get_id() is also simplified now.
 
-Regards
-Mugunthan V N
+This looks good, thanks.
+
+Please try to get an ACK from a DT maintainer on the first two dt
+patches, and then I can take the patches to Linus.
+
+Thanks,
+Ohad.
