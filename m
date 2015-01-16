@@ -1,158 +1,131 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [v3,15/21] ARM: exynos4/5: convert pmu wakeup to stacked domains
-Date: Fri, 16 Jan 2015 19:22:54 +0000
-Message-ID: <54B9650E.3080505@arm.com>
-References: <1421087187-26988-16-git-send-email-marc.zyngier@arm.com> <54B76102.6050706@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <54B76102.6050706@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Pankaj Dubey <pankaj.dubey@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Stefan Agner <stefan@agner.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "thomas.ab@samsung.com" <thomas.ab@samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/1] gpio: omap: Fix bad device access with setup_irq()
+Date: Fri, 16 Jan 2015 14:50:50 -0800
+Message-ID: <1421448650-15904-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31989 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217AbbAPWyr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 17:54:47 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 
-Hi Pankaj,
+Similar to omap_gpio_irq_type() let's make sure that the GPIO
+is usable as an interrupt if the platform init code did not
+call gpio_request(). Otherwise we can get invalid device access
+after setup_irq():
 
-On 15/01/15 06:41, Pankaj Dubey wrote:
-> +CC: Thomas Abraham <thomas.ab@samsung.com>
-> 
-> Hi Mark,
-> 
-> On Monday 12 January 2015 11:56 PM, Marc Zyngier wrote:
->> Exynos has been (ab)using the gic_arch_extn to provide
->> wakeup from suspend, and it makes a lot of sense to convert
->> this code to use stacked domains instead.
->>
->> This patch does just this, updating the DT files to actually
->> reflect what the HW provides.
->>
->> BIG FAT WARNING: because the DTs were so far lying by not
->> exposing the fact that the PMU block is actually the first
->> interrupt controller in the chain for RTC, kernels with this patch
->> applied wont have any suspend-resume facility when booted
->> with old DTs, and old kernels with updated DTs may not even boot.
->>
->> Also, I stronly suspect that there is more than two wake-up
->> interrupts on these platforms, but I leave it to the maintainers
->> to fix their mess.
->>
->> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->>
-> 
-> I tested this series on Exynos5250, using kgene/for-next and 
-> linux-next/next-20150114, but S2R failed on Exynos5250 based SMDK board.
-> 
-> Following is the log I got on SMDK5250 board, (note I have added some 
-> debugging log to know what is happening)
-> 
-> I can see is S3C-RTC's "enable_irq_wake" is failing with error -6.
-> I also observed that even though we are adding pmu_domain_ops using 
-> irq_domain_add_hierarchy, but none of pmu_domain_ops are getting called.
-> 
-> Please let me know if I am missing anything or do I need to modify 
-> anything to test S2R on Exynos SoC.
+WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x214/0x340()
+44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Idle): Data Access in Supervisor mode during Functional access
+...
+[<c05f21e4>] (__irq_svc) from [<c05f1974>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+[<c05f1974>] (_raw_spin_unlock_irqrestore) from [<c00914a8>] (__setup_irq+0x244/0x530)
+[<c00914a8>] (__setup_irq) from [<c00917d4>] (setup_irq+0x40/0x8c)
+[<c00917d4>] (setup_irq) from [<c0039c8c>] (omap_system_dma_probe+0x1d4/0x2b4)
+[<c0039c8c>] (omap_system_dma_probe) from [<c03b2200>] (platform_drv_probe+0x44/0xa4)
+...
 
-Thanks for giving it a go. One think I noticed is that I forgot to add a
-"#interrupt-cells = <3>;" to the pmu_system_controller node.
+We can fix this the same way omap_gpio_irq_type() is handling it.
 
-Also, it would be interesting to know what is the hwirq associated with
-the irq_desc you've printed below.
+Note that the long term solution is to change the gpio-omap driver
+to handle the banks as separate driver instances. This will allow
+us to rely on just runtime PM for tracking the bank specific state.
 
-Thanks,
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/gpio/gpio-omap.c | 39 +++++++++++++++++++++++++++++++++------
+ 1 file changed, 33 insertions(+), 6 deletions(-)
 
-	M.
-
-> ---------------------
-> echo +10 > /sys/class/rtc/rtc1/wakealarm; sleep 1; echo mem > /sys/power/sta
-> te
-> [  257.428163] PM: Syncing filesystems ... done.
-> [  257.431786] Freezing user space processes ... (elapsed 0.003 seconds) 
-> done.
-> [  257.439680] Freezing remaining freezable tasks ... (elapsed 0.001 
-> seconds) done.
-> [  257.544451] wake enabled for irq 116
-> [  257.546916] CPU: 0 PID: 1311 Comm: ash Not tainted 
-> 3.19.0-rc4-next-20150114-00023-g492ff37 #15
-> [  257.555141] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-> [  257.561231] [<c0014430>] (unwind_backtrace) from [<c0011594>] 
-> (show_stack+0x10/0x14)
-> [  257.568948] [<c0011594>] (show_stack) from [<c0418b00>] 
-> (dump_stack+0x84/0xc4)
-> [  257.576151] [<c0418b00>] (dump_stack) from [<c005ce30>] 
-> (set_irq_wake_real+0x58/0x8c)
-> [  257.583961] [<c005ce30>] (set_irq_wake_real) from [<c005cef0>] 
-> (irq_set_irq_wake+0x8c/0xf0)
-> [  257.592295] [<c005cef0>] (irq_set_irq_wake) from [<c02e9d94>] 
-> (s3c_rtc_suspend+0xb8/0xdc)
-> [  257.600456] [<c02e9d94>] (s3c_rtc_suspend) from [<c0298c80>] 
-> (dpm_run_callback.isra.13+0x1c/0x60)
-> [  257.609308] [<c0298c80>] (dpm_run_callback.isra.13) from [<c02996a0>] 
-> (__device_suspend+0x128/0x2d0)
-> [  257.618422] [<c02996a0>] (__device_suspend) from [<c029a850>] 
-> (dpm_suspend+0x64/0x22c)
-> [  257.626320] [<c029a850>] (dpm_suspend) from [<c0058488>] 
-> (suspend_devices_and_enter+0x88/0x3dc)
-> [  257.634999] [<c0058488>] (suspend_devices_and_enter) from 
-> [<c00589c8>] (pm_suspend+0x1ec/0x24c)
-> [  257.643680] [<c00589c8>] (pm_suspend) from [<c00576e0>] 
-> (state_store+0x68/0xb8)
-> [  257.650972] [<c00576e0>] (state_store) from [<c012835c>] 
-> (kernfs_fop_write+0xb8/0x19c)
-> [  257.658870] [<c012835c>] (kernfs_fop_write) from [<c00cf620>] 
-> (vfs_write+0xa0/0x1ac)
-> [  257.666595] [<c00cf620>] (vfs_write) from [<c00cfc78>] 
-> (SyS_write+0x44/0x9c)
-> [  257.673625] [<c00cfc78>] (SyS_write) from [<c000e6e0>] 
-> (ret_fast_syscall+0x0/0x30)
-> [  257.681176] genirq: PKD: irq_desc->name: (null): irq: 60
-> [  257.686469] genirq: PKD: set_irq_wake_real: ret: -6
-> [  257.691349] s3c-rtc 101e0000.rtc: enable_irq_wake failed: -6
-> [  257.708926] PM: suspend of devices complete after 260.482 msecs
-> [  257.713362] BUCK9: No configuration
-> [  257.716840] BUCK8: No configuration
-> [  257.720309] BUCK7: No configuration
-> [  257.723776] BUCK6: No configuration
-> [  257.727254] P1.8V_BUCK_OUT5: No configuration
-> [  257.731597] LDO26: No configuration
-> [  257.735066] LDO25: No configuration
-> [  257.738532] LDO24: No configuration
-> [  257.742009] LDO23: No configuration
-> [  257.745481] LDO22: No configuration
-> [  257.748954] LDO21: No configuration
-> [  257.752419] LDO20: No configuration
-> [  257.755897] LDO19: No configuration
-> [  257.759370] LDO18: No configuration
-> [  257.762835] LDO17: No configuration
-> [  257.766314] P1.8V_LDO_OUT16: No configuration
-> [  257.770653] P1.0V_LDO_OUT15: No configuration
-> [  257.774994] P1.8V_LDO_OUT14: No configuration
-> [  257.779334] P1.8V_LDO_OUT13: No configuration
-> [  257.783668] P3.0V_LDO_OUT12: No configuration
-> [  257.788013] P1.8V_LDO_OUT11: No configuration
-> [  257.792353] P1.8V_LDO_OUT10: No configuration
-> [  257.796693] LDO9: No configuration
-> [  257.800079] P1.0V_LDO_OUT8: No configuration
-> [  257.804332] P1.1V_LDO_OUT7: No configuration
-> [  257.808579] P1.1V_LDO_OUT6: No configuration
-> [  257.812838] P1.8V_LDO_OUT5: No configuration
-> [  257.817091] P2.8V_LDO_OUT4: No configuration
-> [  257.821345] P1.8V_LDO_OUT3: No configuration
-> [  257.825599] P1.2V_LDO_OUT2: No configuration
-> [  257.829851] P1.0V_LDO_OUT1: No configuration
-> [  257.835786] PM: late suspend of devices complete after 1.676 msecs
-> [  257.841913] PM: noirq suspend of devices complete after 1.420 msecs
-> [  257.846737] Disabling non-boot CPUs ...
-> [  257.850810] IRQ54 no longer affine to CPU1
-> [  257.850922] CPU1: shutdown
-> 
-> ------------------------------------
-> 
-> Thanks,
-> Pankaj Dubey
-> 
-
-
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 30646cf..f476ae2 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -88,6 +88,8 @@ struct gpio_bank {
+ #define BANK_USED(bank) (bank->mod_usage || bank->irq_usage)
+ #define LINE_USED(line, offset) (line & (BIT(offset)))
+ 
++static void omap_gpio_unmask_irq(struct irq_data *d);
++
+ static int omap_irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+ {
+ 	return bank->chip.base + gpio_irq;
+@@ -477,6 +479,16 @@ static int omap_gpio_is_input(struct gpio_bank *bank, int mask)
+ 	return readl_relaxed(reg) & mask;
+ }
+ 
++static void omap_gpio_init_irq(struct gpio_bank *bank, unsigned gpio,
++			       unsigned offset)
++{
++	if (!LINE_USED(bank->mod_usage, offset)) {
++		omap_enable_gpio_module(bank, offset);
++		omap_set_gpio_direction(bank, offset, 1);
++	}
++	bank->irq_usage |= BIT(GPIO_INDEX(bank, gpio));
++}
++
+ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+ {
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+@@ -506,15 +518,11 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	offset = GPIO_INDEX(bank, gpio);
+ 	retval = omap_set_gpio_triggering(bank, offset, type);
+-	if (!LINE_USED(bank->mod_usage, offset)) {
+-		omap_enable_gpio_module(bank, offset);
+-		omap_set_gpio_direction(bank, offset, 1);
+-	} else if (!omap_gpio_is_input(bank, BIT(offset))) {
++	omap_gpio_init_irq(bank, gpio, offset);
++	if (!omap_gpio_is_input(bank, BIT(offset))) {
+ 		spin_unlock_irqrestore(&bank->lock, flags);
+ 		return -EINVAL;
+ 	}
+-
+-	bank->irq_usage |= BIT(GPIO_INDEX(bank, gpio));
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+@@ -792,6 +800,24 @@ exit:
+ 	pm_runtime_put(bank->dev);
+ }
+ 
++static unsigned int omap_gpio_irq_startup(struct irq_data *d)
++{
++	struct gpio_bank *bank = omap_irq_data_get_bank(d);
++	unsigned int gpio = omap_irq_to_gpio(bank, d->hwirq);
++	unsigned long flags;
++	unsigned offset = GPIO_INDEX(bank, gpio);
++
++	if (!BANK_USED(bank))
++		pm_runtime_get_sync(bank->dev);
++
++	spin_lock_irqsave(&bank->lock, flags);
++	omap_gpio_init_irq(bank, gpio, offset);
++	spin_unlock_irqrestore(&bank->lock, flags);
++	omap_gpio_unmask_irq(d);
++
++	return 0;
++}
++
+ static void omap_gpio_irq_shutdown(struct irq_data *d)
+ {
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+@@ -1181,6 +1207,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	if (!irqc)
+ 		return -ENOMEM;
+ 
++	irqc->irq_startup = omap_gpio_irq_startup,
+ 	irqc->irq_shutdown = omap_gpio_irq_shutdown,
+ 	irqc->irq_ack = omap_gpio_ack_irq,
+ 	irqc->irq_mask = omap_gpio_mask_irq,
 -- 
-Jazz is not dead. It just smells funny...
+2.1.4
+
