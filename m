@@ -1,94 +1,84 @@
-From: Thomas =?ISO-8859-1?Q?Niederpr=FCm?= <niederp@physik.uni-kl.de>
-Subject: Re: [PATCH] ASoC: OMAP: mcbsp: ensure that CLKX and CLKR are not
- used as ouput pins when they are used as input clock for the SRG.
-Date: Fri, 16 Jan 2015 11:15:35 +0100
-Message-ID: <1421403335.2546.14.camel@ag-ott-thomas.physik.uni-kl.de>
-References: <1421360901-20671-1-git-send-email-niederp@physik.uni-kl.de>
-	 <54B8D6CB.6020801@ti.com>
-Reply-To: niederp@physik.uni-kl.de
+From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for
+ hwspinlock
+Date: Fri, 16 Jan 2015 10:17:47 +0000
+Message-ID: <20150116101746.GA21809@leverpostej>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+ <1421269101-51105-2-git-send-email-s-anna@ti.com>
+ <20150115135201.GG16217@leverpostej>
+ <20150115135556.GH16217@leverpostej>
+ <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
+ <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailgw1.uni-kl.de ([131.246.120.220]:60709 "EHLO
-	mailgw1.uni-kl.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbbAPKPq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 05:15:46 -0500
-In-Reply-To: <54B8D6CB.6020801@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: jarkko.nikula@bitmer.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-Am Freitag, den 16.01.2015, 11:15 +0200 schrieb Peter Ujfalusi:
-> On 01/16/2015 12:28 AM, Thomas Niederpr=C3=BCm wrote:
-> > This patch fixes faulty behaviour in a setup where the input clock =
-for
-> > the SRG is fed through the CLKR pin but the McBSP is configured to =
-be
-> > master (SND_SOC_DAIFMT_CBS_CFS). In that case of course CLKR must n=
-ot be
-> > configured as output pin. Otherwise the input clock is messed up
-> > horribly. The same reasoning applies if CLKX is configured as input=
- for
-> > the SRG.
->=20
-> If CLKX/CLKR is used as input clock for McBSP then the CBS_CFS is not=
- valid.
-> In this case you need to use CBM_CFS.
->=20
-The setup I am using is the following: McBSP is driving an external i2s
-DAC as master by supplying CLKX and FSX and DX. The DAC only supports
-i2s slave mode. For synchronization the DAC and the McBSP should share
-the same master/reference clock (CLKM). Since I don't need the receive
-path of the McBSP anyway for the DAC I can use the CLKR pin to insert
-the CLKM as input to the SRG. I think in this scenario CBS_CFS is valid
-since the McBSP acts as master (for the transmit path)
+On Fri, Jan 16, 2015 at 06:09:00AM +0000, Ohad Ben-Cohen wrote:
+> On Thu, Jan 15, 2015 at 4:42 PM, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > On Thu, Jan 15, 2015 at 7:55 AM, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
+> >> On Thu, Jan 15, 2015 at 01:52:01PM +0000, Mark Rutland wrote:
+> >>> On Wed, Jan 14, 2015 at 08:58:18PM +0000, Suman Anna wrote:
+> >>> > +- hwlock-base-id:  An unique base Id for the locks for a particular hwlock
+> >>> > +                   device. This property is mandatory for all platform
+> >>> > +                   implementations.
+> >>>
+> >>> This property makes no sense. The ID encoded in the hwlock cells is
+> >>> relative to the instance (identified by phandle), not global. So the DT
+> >>> has no global ID space.
+> >>>
+> >>> Why do you think you need this?
+> >>
+> >> Having looked at the way this proeprty is used, NAK.
+> >>
+> >> If you need to carve up a Linux-internal ID space, do that dynamically.
+> >> There is no need for this property.
+> >
+> > Better yet, don't create a Linux ID space for this. Everywhere we have
+> > one, we want to get rid of it.
+> 
+> Rob, Mark,
+> 
+> The hwlock is a basic hardware primitive that allow synchronization
+> between different processors in the system, which may be running Linux
+> as well as other operating systems, and may have no other means of
+> communication.
+> 
+> The hwlock id numbers are predefined, global and static across the
+> entire system: Linux may boot well after other operating systems are
+> already running and using these hwlocks to communicate, and therefore,
+> in order to use these hardware devices, it must not enumerate them
+> differently than the rest of the system.
 
-It might be more common to use the CKLS pin to inject the reference
-clock, but the beagleboard-xm I am using already hard wired this to the
-built-in twl4030 codec which makes it unusable.
+That's not true.
 
-> >=20
-> > Signed-off-by: Thomas Niederpr=C3=BCm <niederp@physik.uni-kl.de>
-> > ---
-> >  sound/soc/omap/omap-mcbsp.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> >=20
-> > diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbs=
-p.c
-> > index bd3ef2a..c89f562 100644
-> > --- a/sound/soc/omap/omap-mcbsp.c
-> > +++ b/sound/soc/omap/omap-mcbsp.c
-> > @@ -530,8 +530,12 @@ static int omap_mcbsp_dai_set_dai_sysclk(struc=
-t snd_soc_dai *cpu_dai,
-> > =20
-> >  	case OMAP_MCBSP_SYSCLK_CLKX_EXT:
-> >  		regs->srgr2	|=3D CLKSM;
-> > +		regs->pcr0	|=3D SCLKME;
-> > +		regs->pcr0	&=3D ~CLKXM;
-> > +		break;
-> >  	case OMAP_MCBSP_SYSCLK_CLKR_EXT:
-> >  		regs->pcr0	|=3D SCLKME;
-> > +		regs->pcr0	&=3D ~CLKRM;
-> >  		break;
-> >  	default:
-> >  		err =3D -ENODEV;
-> >=20
->=20
->=20
+In order to communicate it must agree with the other users as to the
+meaning of each instance, and the protocol for use. That doesn't
+necessarily mean that Linux needs to know the numerical ID from a
+datasheet, and regardless that ID is separate from the logical ID Linux
+uses internally.
 
---=20
-Thomas Niederpr=C3=BCm
-TU Kaiserslautern
-=46B Physik (AG Ott)
-Erwin-Schr=C3=B6dinger-Str. 46/431
-67663 Kaiserslautern
-Tel.: 0631 205 2387
-=46ax: 0631 205 3906
+> Given that these id numbers are global, system-wide, static and
+> predefined, where Linux may just be one user of them, please
+> reconsider the approach as implemented by Suman, or suggest an
+> alternative one you may prefer.
 
+To communicate with the other processors, Linux will need to understand
+the protocol. So there will need to be nodes in the DT describing the
+protocol. Those nodes can refer to the relevant locks using phandle +
+args (with a hwlock-names list if indexing is not appropriate). The
+entire point of the hwlock-cells is to allow individual locks to be
+referred to in this way.
+
+Thanks,
+Mark.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
