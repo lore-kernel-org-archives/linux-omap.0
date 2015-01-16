@@ -1,163 +1,46 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [patch-net-next v3 2/2] net: ethernet: cpsw: don't requests IRQs we don't use
-Date: Fri, 16 Jan 2015 10:11:12 -0600
-Message-ID: <1421424672-19323-2-git-send-email-balbi@ti.com>
-References: <1421424672-19323-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
+Date: Fri, 16 Jan 2015 08:21:20 -0800
+Message-ID: <20150116162119.GK18552@atomide.com>
+References: <20150114221407.GS2419@atomide.com>
+ <20150115105035.GU11502@n2100.arm.linux.org.uk>
+ <20150115152838.GB18552@atomide.com>
+ <20150115171924.GV11502@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38838 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537AbbAPQMH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 11:12:07 -0500
-In-Reply-To: <1421424672-19323-1-git-send-email-balbi@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40450 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752342AbbAPQZI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 11:25:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20150115171924.GV11502@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: davem@davemloft.net
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
 
-CPSW never uses RX_THRESHOLD or MISC interrupts. In
-fact, they are always kept masked in their appropriate
-IRQ Enable register.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [150115 09:22]:
+> On Thu, Jan 15, 2015 at 07:28:39AM -0800, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150115 02:53]:
+> > > I don't think we've proven a link there.  While you're right that it
+> > > causes the wrong interrupt to be claimed, I have two kernels here,
+> > > both claim the same interrupt, one which is multi-platform and issues
+> > > that strange warning, and one which targets only OMAP4 which doesn't.
+> > > 
+> > > There's something else going on which causes the bus errors which we
+> > > haven't found.
+> > 
+> > I think it gets triggered if you enable PREEMPT.
+> 
+> That's something which we can try to prove... build running now with
+> CONFIG_PREEMPT=y
 
-Instead of allocating an IRQ that never fires, it's best
-to remove that code altogether and let future patches
-implement it if anybody needs those.
+Looks like you now have the omap_l3_noc error appear for sdp4430 in
+your logs after enabling PREEMPT.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+I guess that means case closed for this one?
 
-combined patches 2 and 3.
+Regards,
 
- drivers/net/ethernet/ti/cpsw.c | 72 +++++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 8e1af51e4b76..ba09ff3c1695 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -754,17 +754,25 @@ requeue:
- 		dev_kfree_skb_any(new_skb);
- }
- 
--static irqreturn_t cpsw_interrupt(int irq, void *dev_id)
-+static irqreturn_t cpsw_tx_interrupt(int irq, void *dev_id)
- {
- 	struct cpsw_priv *priv = dev_id;
--	int value = irq - priv->irqs_table[0];
- 
--	/* NOTICE: Ending IRQ here. The trick with the 'value' variable above
--	 * is to make sure we will always write the correct value to the EOI
--	 * register. Namely 0 for RX_THRESH Interrupt, 1 for RX Interrupt, 2
--	 * for TX Interrupt and 3 for MISC Interrupt.
--	 */
--	cpdma_ctlr_eoi(priv->dma, value);
-+	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_TX);
-+	cpdma_chan_process(priv->txch, 128);
-+
-+	priv = cpsw_get_slave_priv(priv, 1);
-+	if (priv)
-+		cpdma_chan_process(priv->txch, 128);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t cpsw_rx_interrupt(int irq, void *dev_id)
-+{
-+	struct cpsw_priv *priv = dev_id;
-+
-+	cpdma_ctlr_eoi(priv->dma, CPDMA_EOI_RX);
- 
- 	cpsw_intr_disable(priv);
- 	if (priv->irq_enabled == true) {
-@@ -1617,7 +1625,8 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
- 
- 	cpsw_intr_disable(priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, false);
--	cpsw_interrupt(ndev->irq, priv);
-+	cpsw_rx_interrupt(priv->irq[0], priv);
-+	cpsw_tx_interrupt(priv->irq[1], priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
- }
-@@ -2339,62 +2348,47 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_dma_ret;
- 	}
- 
--	ndev->irq = platform_get_irq(pdev, 0);
-+	ndev->irq = platform_get_irq(pdev, 1);
- 	if (ndev->irq < 0) {
- 		dev_err(priv->dev, "error getting irq resource\n");
- 		ret = -ENOENT;
- 		goto clean_ale_ret;
- 	}
- 
--	irq = platform_get_irq(pdev, 0);
--	if (irq < 0)
--		goto clean_ale_ret;
--
--	priv->irqs_table[0] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
--			       0, dev_name(&pdev->dev), priv);
--	if (ret < 0) {
--		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
--		goto clean_ale_ret;
--	}
-+	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
-+	 * MISC IRQs which are always kept disabled with this driver so
-+	 * we will not request them.
-+	 *
-+	 * If anyone wants to implement support for those, make sure to
-+	 * first request and append them to irqs_table array.
-+	 */
- 
-+	/* RX IRQ */
- 	irq = platform_get_irq(pdev, 1);
- 	if (irq < 0)
- 		goto clean_ale_ret;
- 
--	priv->irqs_table[1] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
-+	priv->irqs_table[0] = irq;
-+	ret = devm_request_irq(&pdev->dev, irq, cpsw_rx_interrupt,
- 			       0, dev_name(&pdev->dev), priv);
- 	if (ret < 0) {
- 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
- 		goto clean_ale_ret;
- 	}
- 
-+	/* TX IRQ */
- 	irq = platform_get_irq(pdev, 2);
- 	if (irq < 0)
- 		goto clean_ale_ret;
- 
--	priv->irqs_table[2] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
--			       0, dev_name(&pdev->dev), priv);
--	if (ret < 0) {
--		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
--		goto clean_ale_ret;
--	}
--
--	irq = platform_get_irq(pdev, 3);
--	if (irq < 0)
--		goto clean_ale_ret;
--
--	priv->irqs_table[3] = irq;
--	ret = devm_request_irq(&pdev->dev, irq, cpsw_interrupt,
-+	priv->irqs_table[1] = irq;
-+	ret = devm_request_irq(&pdev->dev, irq, cpsw_tx_interrupt,
- 			       0, dev_name(&pdev->dev), priv);
- 	if (ret < 0) {
- 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
- 		goto clean_ale_ret;
- 	}
--
--	priv->num_irqs = 4;
-+	priv->num_irqs = 2;
- 
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
- 
--- 
-2.2.0
-
+Tony
