@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] omap device tree changes for v3.20
-Date: Fri, 16 Jan 2015 15:21:22 -0800
-Message-ID: <18535.2376699031$1421450768@news.gmane.org>
-References: <pull-1421450357-648499>
+Subject: [GIT PULL 1/3] omap non-urgent fixes for v3.20
+Date: Fri, 16 Jan 2015 15:21:20 -0800
+Message-ID: <10877.9648355723$1421450773@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1421450357-648499>
-In-Reply-To: <pull-1421450357-648499>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -28,74 +25,38 @@ The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/dt-pt1
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/fixes-not-urgent-pt1
 
-for you to fetch changes up to 7300bfff886a1340cfeb252035303e265cd556d9:
+for you to fetch changes up to 13efcb188984f69e1f97b4d9e7d3663fb782946f:
 
-  ARM: dts: omap3-gta04: Add handling for tv output (2015-01-13 08:02:21 -0800)
-
-----------------------------------------------------------------
-Device tree changes for omaps. Mostly to add support for new
-am437x-idk and update am437x-sk boards. Also enabling new
-devices for multiple boards.
+  ARM: OMAP2+: Disable omap3 PM init for ti81xx (2015-01-14 17:37:16 -0800)
 
 ----------------------------------------------------------------
-Aaro Koskinen (1):
-      ARM: dts: N950/N9: add twl_power
+Non-urgent fixes for omap variant dm816x that has been in a sorry
+broken half merged state for a few years now. This gets us to the
+point where we can boot it properly once the related SoC data is
+added. Note that we've already made dm816x device tree only by
+removing the known broken board file.
 
-Benoit Parrot (3):
-      ARM: dts: am4372: add VPFE DT node entries
-      ARM: dts: am43x-epos-evm: add VPFE device tree data
-      ARM: dts: am437x-gp-evm: add VPFE device tree data
+----------------------------------------------------------------
+Tony Lindgren (6):
+      ARM: OMAP2+: Fix error handling for omap2_clk_enable_init_clocks
+      ARM: OMAP2+: Fix ti81xx devtype
+      ARM: OMAP2+: Fix ti81xx class type
+      ARM: OMAP2+: Fix dm814 and dm816 for clocks and timer init
+      ARM: OMAP2+: Fix reboot for 81xx
+      ARM: OMAP2+: Disable omap3 PM init for ti81xx
 
-Darren Etheridge (1):
-      ARM: dts: am437x-sk-evm: add VPFE device tree data
-
-Dave Gerlach (1):
-      ARM: dts: am437x-sk-evm: Hook dcdc2 as the cpu0-supply
-
-Dmitry Lifshitz (1):
-      ARM: dts: cm-t3x: add NAND support
-
-Felipe Balbi (10):
-      ARM: dts: am437x-sk: remove internal pulls from QSPI
-      ARM: dts: am437x-sk: add explicit MMC0 pinmux
-      ARM: dts: am437x-sk: remove ethernet pulls
-      ARM: dts: am437x-sk: add explicit pinmux for both USB instances
-      ARM: dts: am437x-sk: remove internal i2c pullups
-      ARM: dts: am437x-sk: remove DSS pulls
-      ARM: dts: am57xx-beagle-x15: Add dual ethernet
-      ARM: dts: add support for AM437x IDK
-      ARM: dts: am437x-sk: add power button binding
-      ARM: dts: am437x-idk: add gpio-based power key
-
-Marek Belisko (1):
-      ARM: dts: omap3-gta04: Add handling for tv output
-
-Nishanth Menon (1):
-      ARM: dts: am57xx-beagle-x15: Add GPIO controlled fan node
-
-Pavel Machek (1):
-      ARM: dts: omap3-n900: cleanup english
-
-Vignesh R (1):
-      ARM: dts: DRA7X: drop id property in pcie_phy
-
- arch/arm/boot/dts/Makefile              |   1 +
- arch/arm/boot/dts/am4372.dtsi           |  16 ++
- arch/arm/boot/dts/am437x-gp-evm.dts     | 106 +++++++++
- arch/arm/boot/dts/am437x-idk-evm.dts    | 405 ++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am437x-sk-evm.dts     | 217 ++++++++++++-----
- arch/arm/boot/dts/am43x-epos-evm.dts    |  53 +++++
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 120 ++++++++++
- arch/arm/boot/dts/dra7.dtsi             |   2 -
- arch/arm/boot/dts/omap3-cm-t3x.dtsi     |  58 +++++
- arch/arm/boot/dts/omap3-cm-t3x30.dtsi   |   3 +-
- arch/arm/boot/dts/omap3-gta04.dtsi      |  49 ++++
- arch/arm/boot/dts/omap3-n900.dts        |   3 +-
- arch/arm/boot/dts/omap3-n950-n9.dtsi    |   5 +
- arch/arm/boot/dts/omap3-sbc-t3517.dts   |   4 +
- arch/arm/boot/dts/omap3-sbc-t3530.dts   |  10 +-
- arch/arm/boot/dts/omap3-sbc-t3730.dts   |   5 +-
- 16 files changed, 979 insertions(+), 78 deletions(-)
- create mode 100644 arch/arm/boot/dts/am437x-idk-evm.dts
+ arch/arm/mach-omap2/Makefile                |  1 +
+ arch/arm/mach-omap2/clock.c                 |  3 +++
+ arch/arm/mach-omap2/common.h                | 11 +++++++++-
+ arch/arm/mach-omap2/control.h               |  4 ++++
+ arch/arm/mach-omap2/id.c                    |  2 ++
+ arch/arm/mach-omap2/io.c                    | 26 +++++++++++++++++-----
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |  2 +-
+ arch/arm/mach-omap2/prm_common.c            |  4 ++++
+ arch/arm/mach-omap2/soc.h                   |  4 ++--
+ arch/arm/mach-omap2/ti81xx-restart.c        | 34 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/timer.c                 |  2 ++
+ 11 files changed, 84 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/ti81xx-restart.c
