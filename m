@@ -1,39 +1,53 @@
-From: Paolo Pisati <p.pisati@gmail.com>
-Subject: am335x boneblack memory size and dtb: is memory live patched?
-Date: Fri, 16 Jan 2015 10:04:45 +0100
-Message-ID: <20150116090445.GA23266@luxor.wired.org>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] ASoC: OMAP: mcbsp: ensure that CLKX and
+ CLKR are not used as ouput pins when they are used as input clock for the
+ SRG.
+Date: Fri, 16 Jan 2015 11:09:04 +0200
+Message-ID: <20150116090904.GA8247@bitmer.com>
+References: <1421360901-20671-1-git-send-email-niederp@physik.uni-kl.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:35259 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753126AbbAPJEt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 04:04:49 -0500
-Received: by mail-we0-f171.google.com with SMTP id u56so19103172wes.2
-        for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2015 01:04:48 -0800 (PST)
-Received: from gmail.com (2-230-238-136.ip204.fastwebnet.it. [2.230.238.136])
-        by mx.google.com with ESMTPSA id g2sm5202513wjn.11.2015.01.16.01.04.46
-        for <linux-omap@vger.kernel.org>
-        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Fri, 16 Jan 2015 01:04:47 -0800 (PST)
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1421360901-20671-1-git-send-email-niederp@physik.uni-kl.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Thomas =?iso-8859-1?Q?Niederpr=FCm?= <niederp@physik.uni-kl.de>
+Cc: peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
 
-Lately i've been trying to track down a panic i hit when i pass the "mem=256M"
-option to a 3.16 kernel on a bleaglebone black, and i noticed this:
+Hi
 
-dtc -I dtb ./arch/arm/boot/dts/am335x-boneblack.dtb
-...
-        memory {
-                device_type = "memory";
-                reg = <0x80000000 0x10000000>;
-        };
-...
+On Thu, Jan 15, 2015 at 11:28:21PM +0100, Thomas Niederpr=FCm wrote:
+> This patch fixes faulty behaviour in a setup where the input clock for
+> the SRG is fed through the CLKR pin but the McBSP is configured to be
+> master (SND_SOC_DAIFMT_CBS_CFS). In that case of course CLKR must not be
+> configured as output pin. Otherwise the input clock is messed up
+> horribly. The same reasoning applies if CLKX is configured as input for
+> the SRG.
+> =
 
-that's 256M of memory while the beaglebone black has 512M, does it mean the dtb
-is live patched (by u-boot?) before being passed to the kernel?
--- 
-bye,
-p.
+> Signed-off-by: Thomas Niederpr=FCm <niederp@physik.uni-kl.de>
+> ---
+>  sound/soc/omap/omap-mcbsp.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> =
+
+I cannot check at the moment but is this actually a contradictory
+configuration if McBSP is set to bit clock master but at the same want
+to use it as an input also? Should you use SND_SOC_DAIFMT_CBM_CFS
+instead?
+
+Peter: care to check?
+
+-- =
+
+Jarkko
