@@ -1,56 +1,101 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
-Date: Fri, 16 Jan 2015 17:23:05 +0000
-Message-ID: <54B948F9.2060100@arm.com>
-References: <20150114221407.GS2419@atomide.com> <87wq4ogl48.fsf@approximate.cambridge.arm.com> <20150115153746.GC18552@atomide.com> <3822486.YZLIqXdAgt@wuerfel>
+Date: Fri, 16 Jan 2015 09:29:06 -0800
+Message-ID: <20150116172905.GM18552@atomide.com>
+References: <20150114221407.GS2419@atomide.com>
+ <20150115105035.GU11502@n2100.arm.linux.org.uk>
+ <20150115152838.GB18552@atomide.com>
+ <20150115171924.GV11502@n2100.arm.linux.org.uk>
+ <20150116162119.GK18552@atomide.com>
+ <20150116163019.GW11502@n2100.arm.linux.org.uk>
+ <20150116164105.GL18552@atomide.com>
+ <20150116172223.GX11502@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:36426 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900AbbAPRXN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 12:23:13 -0500
-In-Reply-To: <3822486.YZLIqXdAgt@wuerfel>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39647 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198AbbAPRcw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 12:32:52 -0500
+Content-Disposition: inline
+In-Reply-To: <20150116172223.GX11502@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "horms+renesas@verge.net.au" <horms+renesas@verge.net.au>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On 16/01/15 16:56, Arnd Bergmann wrote:
-> On Thursday 15 January 2015 07:37:48 Tony Lindgren wrote:
->> * Marc Zyngier <marc.zyngier@arm.com> [150115 06:46]:
->>> On Thu, Jan 15 2015 at  2:27:56 pm GMT, Arnd Bergmann <arnd@arndb.de> wrote:
->>>> On Thursday 15 January 2015 13:42:57 Marc Zyngier wrote:
->>> Probably there is a workable strategy, but my knowledge about OMAP is
->>> close to *nothing*...
->>
->> I have a feeling this might bite other platforms too and we just have
->> not noticed it yet..
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 09:25]:
+> On Fri, Jan 16, 2015 at 08:41:06AM -0800, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 08:33]:
+> > > I would still like to understand /why/ enabling preempt causes the error.
+> > > Changing the preempt configuration really should not change what happens
+> > > on the bus.  (Think about it.)  It's an indication that there is some
+> > > other error present.
+> > 
+> > We have a wrong irq number caused by $subject. And the wrong irq
+> > gets triggered before the dma hardware is configured during dma
+> > init. And then we get the invalid access error from omap_l3_noc.
 > 
-> I'm looking through the entire tree now, scanning for machines that have
-> GIC and use IORESOURCE_IRQ or DEFINE_RES_IRQ in their platform code.
-> Most platforms using GIC are completely converted to DT and have no
-> hardcoded legacy IRQs.
+> ... which should happen whether or not preempt is enabled, which is
+> really my point.
 > 
-> I have checked that cns3xxx and realview are both fine by inspection.
+> We know tha the wrong IRQ gets requested by the driver - and that wrong
+> IRQ is requested whether or not we have preempt enabled.  Yet we get
+> the warning whether or not preempt is enabled.
 > 
-> The only one I'm not sure about is shmobile, which looks like it might
-> suffer from the same problem. Simon/Magnus, could you verify this
-> with a multiplatform kernel on any SoC that has GIC and uses devices
-> that have interrupts defined in setup-*.c or board-*.c?
+> The DMA handler is not registered as a threaded handler, so it's not
+> depending on a context switch to execute omap2_dma_irq_handler().
+> 
+> Another reason why I don't agree with your explanation is that by the
+> time setup_irq() is called, we have already poked at the DMA hardware
+> several times - omap_clear_dma() and omap2_disable_irq_lch() will have
+> been called for each DMA channel - and both will write to the hardware.
+> 
+> What's more is that the only things left after setup_irq() has been
+> called is to possibly reserve the first two DMA channels and print
+> the DMA message (via show_dma_caps).  So I see nothing after setup_irq()
+> which would "finish" any unfinished hardware initialisation.
+> 
+> The final reason I don't agree is that I've put a printk() in
+> omap2_dma_irq_handler(), and this does not trigger.
 
-There are 3 patches floating around for shmobile, converting their
-non-DT support to directly initializing the GIC instead of relying on
-irqchip_init(). That's assuming their DT implementation doesn't use any
-of these device declarations.
+Oh, yes that blows my theory completely then.
+ 
+> So, I think this has nothing to do with the DMA hardware /at all/,
+> but more to do with the GPIO code, and it suggests that the GPIO code
+> publishes IRQs before it is safe for those IRQs to be used.
+> 
+> Maybe it has to do with omap_gpio_irq_handler() being called... added
+> printk(), nope, that's not called either.  So it's not an IRQ which
+> gets triggered at all.
+> 
+> What is called are (in order):
+> 
+> omap_gpio_unmask_irq()
+> omap_set_gpio_irqenable()
+> omap_enable_gpio_irqbank()
+> 
+> and this reveals where the problem is, especially when you then add
+> instrumentation into the runtime PM functions - and this reveals that
+> when a GPIO IRQ is requested, these functions are called while the
+> GPIO is runtime suspended.
+> 
+> _That_ is where the *real* problem lies - requesting a GPIO interrupt
+> results in the kernel touching possibly runtime-suspended hardware.
+> 
+> The reason it happens with preempt is that preempt introduces scheduling
+> points during the kernel boot which would not otherwise be there (with
+> preempt disabled, you have to hit an explicit context switch due to
+> contention on some lock or a wait in order for some other thread to run.)
 
-If they do, we could use a hack similar to the one I implemented for
-OMAP, populating the virtual IRQ in the resource at boot time, just
-after the irqchip initialization.
+OK makes sense.
+ 
+> So, the GPIO driver really needs fixing - and I'd suggest fixing it
+> first, before fixing the DMA problem, because the DMA problem allows
+> us to see the GPIO problem.
 
-Thanks,
+Yes we need to fix that.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Regards,
+
+Tony
