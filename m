@@ -1,47 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
-Date: Fri, 16 Jan 2015 14:57:18 -0800
-Message-ID: <20150116225717.GO18552@atomide.com>
-References: <20150115105035.GU11502@n2100.arm.linux.org.uk>
- <20150115152838.GB18552@atomide.com>
- <20150115171924.GV11502@n2100.arm.linux.org.uk>
- <20150116162119.GK18552@atomide.com>
- <20150116163019.GW11502@n2100.arm.linux.org.uk>
- <20150116164105.GL18552@atomide.com>
- <20150116172223.GX11502@n2100.arm.linux.org.uk>
- <20150116172905.GM18552@atomide.com>
- <20150116225243.GN18552@atomide.com>
- <20150116225727.GY11502@n2100.arm.linux.org.uk>
+Subject: [GIT PULL 1/3] omap non-urgent fixes for v3.20
+Date: Fri, 16 Jan 2015 15:21:20 -0800
+Message-ID: <47200.9477591657$1421450711@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50444 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19492 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751041AbbAPXBF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 18:01:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20150116225727.GY11502@n2100.arm.linux.org.uk>
+	with ESMTP id S1750983AbbAPXZD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 18:25:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 15:00]:
-> On Fri, Jan 16, 2015 at 02:52:44PM -0800, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [150116 09:36]:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 09:25]:
-> > > > So, the GPIO driver really needs fixing - and I'd suggest fixing it
-> > > > first, before fixing the DMA problem, because the DMA problem allows
-> > > > us to see the GPIO problem.
-> > > 
-> > > Yes we need to fix that.
-> > 
-> > Posted a minimal fix for that one as a separate thread:
-> > 
-> > [PATCH 1/1] gpio: omap: Fix bad device access with setup_irq()
-> 
-> Thanks, I'll throw that onto the build tree for tonights build.
+The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
 
-Great thanks!
+  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
 
-Tony
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/fixes-not-urgent-pt1
+
+for you to fetch changes up to 13efcb188984f69e1f97b4d9e7d3663fb782946f:
+
+  ARM: OMAP2+: Disable omap3 PM init for ti81xx (2015-01-14 17:37:16 -0800)
+
+----------------------------------------------------------------
+Non-urgent fixes for omap variant dm816x that has been in a sorry
+broken half merged state for a few years now. This gets us to the
+point where we can boot it properly once the related SoC data is
+added. Note that we've already made dm816x device tree only by
+removing the known broken board file.
+
+----------------------------------------------------------------
+Tony Lindgren (6):
+      ARM: OMAP2+: Fix error handling for omap2_clk_enable_init_clocks
+      ARM: OMAP2+: Fix ti81xx devtype
+      ARM: OMAP2+: Fix ti81xx class type
+      ARM: OMAP2+: Fix dm814 and dm816 for clocks and timer init
+      ARM: OMAP2+: Fix reboot for 81xx
+      ARM: OMAP2+: Disable omap3 PM init for ti81xx
+
+ arch/arm/mach-omap2/Makefile                |  1 +
+ arch/arm/mach-omap2/clock.c                 |  3 +++
+ arch/arm/mach-omap2/common.h                | 11 +++++++++-
+ arch/arm/mach-omap2/control.h               |  4 ++++
+ arch/arm/mach-omap2/id.c                    |  2 ++
+ arch/arm/mach-omap2/io.c                    | 26 +++++++++++++++++-----
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |  2 +-
+ arch/arm/mach-omap2/prm_common.c            |  4 ++++
+ arch/arm/mach-omap2/soc.h                   |  4 ++--
+ arch/arm/mach-omap2/ti81xx-restart.c        | 34 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/timer.c                 |  2 ++
+ 11 files changed, 84 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/ti81xx-restart.c
