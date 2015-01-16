@@ -1,107 +1,96 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
-Date: Fri, 16 Jan 2015 14:52:44 -0800
-Message-ID: <20150116225243.GN18552@atomide.com>
-References: <20150114221407.GS2419@atomide.com>
- <20150115105035.GU11502@n2100.arm.linux.org.uk>
- <20150115152838.GB18552@atomide.com>
- <20150115171924.GV11502@n2100.arm.linux.org.uk>
- <20150116162119.GK18552@atomide.com>
- <20150116163019.GW11502@n2100.arm.linux.org.uk>
- <20150116164105.GL18552@atomide.com>
- <20150116172223.GX11502@n2100.arm.linux.org.uk>
- <20150116172905.GM18552@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/1] gpio: omap: Fix bad device access with setup_irq()
+Date: Fri, 16 Jan 2015 16:55:50 -0600
+Message-ID: <20150116225550.GA6254@saruman>
+References: <1421448650-15904-1-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33456 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934AbbAPW4Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 17:56:24 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150116172905.GM18552@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1421448650-15904-1-git-send-email-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
 
-* Tony Lindgren <tony@atomide.com> [150116 09:36]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 09:25]:
-> > On Fri, Jan 16, 2015 at 08:41:06AM -0800, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 08:33]:
-> > > > I would still like to understand /why/ enabling preempt causes the error.
-> > > > Changing the preempt configuration really should not change what happens
-> > > > on the bus.  (Think about it.)  It's an indication that there is some
-> > > > other error present.
-> > > 
-> > > We have a wrong irq number caused by $subject. And the wrong irq
-> > > gets triggered before the dma hardware is configured during dma
-> > > init. And then we get the invalid access error from omap_l3_noc.
-> > 
-> > ... which should happen whether or not preempt is enabled, which is
-> > really my point.
-> > 
-> > We know tha the wrong IRQ gets requested by the driver - and that wrong
-> > IRQ is requested whether or not we have preempt enabled.  Yet we get
-> > the warning whether or not preempt is enabled.
-> > 
-> > The DMA handler is not registered as a threaded handler, so it's not
-> > depending on a context switch to execute omap2_dma_irq_handler().
-> > 
-> > Another reason why I don't agree with your explanation is that by the
-> > time setup_irq() is called, we have already poked at the DMA hardware
-> > several times - omap_clear_dma() and omap2_disable_irq_lch() will have
-> > been called for each DMA channel - and both will write to the hardware.
-> > 
-> > What's more is that the only things left after setup_irq() has been
-> > called is to possibly reserve the first two DMA channels and print
-> > the DMA message (via show_dma_caps).  So I see nothing after setup_irq()
-> > which would "finish" any unfinished hardware initialisation.
-> > 
-> > The final reason I don't agree is that I've put a printk() in
-> > omap2_dma_irq_handler(), and this does not trigger.
-> 
-> Oh, yes that blows my theory completely then.
->  
-> > So, I think this has nothing to do with the DMA hardware /at all/,
-> > but more to do with the GPIO code, and it suggests that the GPIO code
-> > publishes IRQs before it is safe for those IRQs to be used.
-> > 
-> > Maybe it has to do with omap_gpio_irq_handler() being called... added
-> > printk(), nope, that's not called either.  So it's not an IRQ which
-> > gets triggered at all.
-> > 
-> > What is called are (in order):
-> > 
-> > omap_gpio_unmask_irq()
-> > omap_set_gpio_irqenable()
-> > omap_enable_gpio_irqbank()
-> > 
-> > and this reveals where the problem is, especially when you then add
-> > instrumentation into the runtime PM functions - and this reveals that
-> > when a GPIO IRQ is requested, these functions are called while the
-> > GPIO is runtime suspended.
-> > 
-> > _That_ is where the *real* problem lies - requesting a GPIO interrupt
-> > results in the kernel touching possibly runtime-suspended hardware.
-> > 
-> > The reason it happens with preempt is that preempt introduces scheduling
-> > points during the kernel boot which would not otherwise be there (with
-> > preempt disabled, you have to hit an explicit context switch due to
-> > contention on some lock or a wait in order for some other thread to run.)
-> 
-> OK makes sense.
->  
-> > So, the GPIO driver really needs fixing - and I'd suggest fixing it
-> > first, before fixing the DMA problem, because the DMA problem allows
-> > us to see the GPIO problem.
-> 
-> Yes we need to fix that.
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Posted a minimal fix for that one as a separate thread:
+On Fri, Jan 16, 2015 at 02:50:50PM -0800, Tony Lindgren wrote:
+> Similar to omap_gpio_irq_type() let's make sure that the GPIO
+> is usable as an interrupt if the platform init code did not
+> call gpio_request(). Otherwise we can get invalid device access
+> after setup_irq():
+>=20
+> WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_hand=
+ler+0x214/0x340()
+> 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Idle): Data Access=
+ in Supervisor mode during Functional access
+> ...
+> [<c05f21e4>] (__irq_svc) from [<c05f1974>] (_raw_spin_unlock_irqrestore+0=
+x34/0x44)
+> [<c05f1974>] (_raw_spin_unlock_irqrestore) from [<c00914a8>] (__setup_irq=
++0x244/0x530)
+> [<c00914a8>] (__setup_irq) from [<c00917d4>] (setup_irq+0x40/0x8c)
+> [<c00917d4>] (setup_irq) from [<c0039c8c>] (omap_system_dma_probe+0x1d4/0=
+x2b4)
+> [<c0039c8c>] (omap_system_dma_probe) from [<c03b2200>] (platform_drv_prob=
+e+0x44/0xa4)
+> ...
+>=20
+> We can fix this the same way omap_gpio_irq_type() is handling it.
+>=20
+> Note that the long term solution is to change the gpio-omap driver
+> to handle the banks as separate driver instances. This will allow
+> us to rely on just runtime PM for tracking the bank specific state.
+>=20
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: Kevin Hilman <khilman@kernel.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-[PATCH 1/1] gpio: omap: Fix bad device access with setup_irq()
+Tony sent me this patch privately for testing, I've boot tested with
+AM437x IDK, AM437x SK and BBB with CONFIG_PREEMPT.
 
-Regards,
+Here are the logs:
 
-Tony
+http://hastebin.com/vabenibema
+http://hastebin.com/weyukexuzi
+http://hastebin.com/siceyiwite
+
+Tested-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--M9NhX3UHpAaciwkO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUuZb2AAoJEIaOsuA1yqRE+uQP/AvsERtxskpWBOqlBGfVJFxk
+86tHGQj+U6t+xKwUn7hPrKJL4T7eszMxcp/xVhFWGtm0uR+pzb9G2cGh6TicYRJi
+s1RulF0yCrfLATWNfe8SMmM3TMm/IcTYKL7kBLNTXRV81Ye1fCvaZ4A4LVPn3Jsd
+QiaFbEtCP3b9Yo99rVBJHveOjRChoMvKsib1cWsEZFQWz09hnJWOuoD+cINX9egW
+6Xy8aoEt/5eZrs4rRmoFnKE6XFC1du4dzUc6ayjTMcIo3kTRQF07Sq1/PsZvcRb9
+9EeNgd09cVYqGli+y52Yzk1k3Wdk0AktHPmP1rbL1RBydhreaBmvdn3iT7M9lZGY
+XII5sXxlekuG7Uq8CJcYHuOUXbKlV2dNOrB1/4CULtAgEFSXadJ3pkfDFVDw6pXg
+vX/V6XCzZtssY75zT1Q7fs1w1+w5mJGJa0JDCMRIKkMzLf+zBAfTf45Rzkua9+7E
+0jXxkoVTeuXviWhSb7sqNV5Sd5uhNHDuMjgcIbNSgjiOwI90TbUgmkqVt4jeP9Al
+0BxQyR2B7upXELFZGue8SM/8QXFvfjOxd63/j1hApHo8hf+XNWTD+7g81kb6sbR+
+8Rzhshm+XlLrbK1uLEH6+4hkM9Dno89J0msJJFyng2dKVEi2UsxPWho//uI0Q+hx
+QmDthGe+aNDRSvM27RKu
+=hEGI
+-----END PGP SIGNATURE-----
+
+--M9NhX3UHpAaciwkO--
