@@ -1,15 +1,14 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [PATCH] ASoC: OMAP: mcbsp: ensure that CLKX and
  CLKR are not used as ouput pins when they are used as input clock for the
  SRG.
-Date: Fri, 16 Jan 2015 11:09:04 +0200
-Message-ID: <20150116090904.GA8247@bitmer.com>
+Date: Fri, 16 Jan 2015 11:15:55 +0200
+Message-ID: <54B8D6CB.6020801@ti.com>
 References: <1421360901-20671-1-git-send-email-niederp@physik.uni-kl.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
 In-Reply-To: <1421360901-20671-1-git-send-email-niederp@physik.uni-kl.de>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
@@ -20,19 +19,21 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Errors-To: alsa-devel-bounces@alsa-project.org
 Sender: alsa-devel-bounces@alsa-project.org
-To: Thomas =?iso-8859-1?Q?Niederpr=FCm?= <niederp@physik.uni-kl.de>
-Cc: peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: =?windows-1252?Q?Thomas_Niederpr=FCm?= <niederp@physik.uni-kl.de>, jarkko.nikula@bitmer.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
-
-On Thu, Jan 15, 2015 at 11:28:21PM +0100, Thomas Niederpr=FCm wrote:
+On 01/16/2015 12:28 AM, Thomas Niederpr=FCm wrote:
 > This patch fixes faulty behaviour in a setup where the input clock for
 > the SRG is fed through the CLKR pin but the McBSP is configured to be
 > master (SND_SOC_DAIFMT_CBS_CFS). In that case of course CLKR must not be
 > configured as output pin. Otherwise the input clock is messed up
 > horribly. The same reasoning applies if CLKX is configured as input for
 > the SRG.
+
+If CLKX/CLKR is used as input clock for McBSP then the CBS_CFS is not valid.
+In this case you need to use CBM_CFS.
+
 > =
 
 > Signed-off-by: Thomas Niederpr=FCm <niederp@physik.uni-kl.de>
@@ -41,13 +42,29 @@ On Thu, Jan 15, 2015 at 11:28:21PM +0100, Thomas Niederpr=FCm wrote:
 >  1 file changed, 4 insertions(+)
 > =
 
-I cannot check at the moment but is this actually a contradictory
-configuration if McBSP is set to bit clock master but at the same want
-to use it as an input also? Should you use SND_SOC_DAIFMT_CBM_CFS
-instead?
+> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+> index bd3ef2a..c89f562 100644
+> --- a/sound/soc/omap/omap-mcbsp.c
+> +++ b/sound/soc/omap/omap-mcbsp.c
+> @@ -530,8 +530,12 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_=
+soc_dai *cpu_dai,
+>  =
 
-Peter: care to check?
+>  	case OMAP_MCBSP_SYSCLK_CLKX_EXT:
+>  		regs->srgr2	|=3D CLKSM;
+> +		regs->pcr0	|=3D SCLKME;
+> +		regs->pcr0	&=3D ~CLKXM;
+> +		break;
+>  	case OMAP_MCBSP_SYSCLK_CLKR_EXT:
+>  		regs->pcr0	|=3D SCLKME;
+> +		regs->pcr0	&=3D ~CLKRM;
+>  		break;
+>  	default:
+>  		err =3D -ENODEV;
+> =
+
+
 
 -- =
 
-Jarkko
+P=E9ter
