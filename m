@@ -1,101 +1,110 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Regression with legacy IRQ numbers caused by 9a1091ef0017
-Date: Fri, 16 Jan 2015 09:29:06 -0800
-Message-ID: <20150116172905.GM18552@atomide.com>
-References: <20150114221407.GS2419@atomide.com>
- <20150115105035.GU11502@n2100.arm.linux.org.uk>
- <20150115152838.GB18552@atomide.com>
- <20150115171924.GV11502@n2100.arm.linux.org.uk>
- <20150116162119.GK18552@atomide.com>
- <20150116163019.GW11502@n2100.arm.linux.org.uk>
- <20150116164105.GL18552@atomide.com>
- <20150116172223.GX11502@n2100.arm.linux.org.uk>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Fri, 16 Jan 2015 11:49:35 -0600
+Message-ID: <54B94F2F.3050303@ti.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com> <1421269101-51105-2-git-send-email-s-anna@ti.com> <20150115135201.GG16217@leverpostej> <20150115135556.GH16217@leverpostej> <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com> <20150116101903.GB21809@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39647 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752198AbbAPRcw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2015 12:32:52 -0500
-Content-Disposition: inline
-In-Reply-To: <20150116172223.GX11502@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150116101903.GB21809@leverpostej>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Yingjoe Chen <yingjoe.chen@mediatek.com>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 09:25]:
-> On Fri, Jan 16, 2015 at 08:41:06AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150116 08:33]:
-> > > I would still like to understand /why/ enabling preempt causes the error.
-> > > Changing the preempt configuration really should not change what happens
-> > > on the bus.  (Think about it.)  It's an indication that there is some
-> > > other error present.
-> > 
-> > We have a wrong irq number caused by $subject. And the wrong irq
-> > gets triggered before the dma hardware is configured during dma
-> > init. And then we get the invalid access error from omap_l3_noc.
+On 01/16/2015 04:19 AM, Mark Rutland wrote:
+> On Thu, Jan 15, 2015 at 02:42:23PM +0000, Rob Herring wrote:
+>> On Thu, Jan 15, 2015 at 7:55 AM, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
+>>> On Thu, Jan 15, 2015 at 01:52:01PM +0000, Mark Rutland wrote:
+>>>> On Wed, Jan 14, 2015 at 08:58:18PM +0000, Suman Anna wrote:
+>>>>> This patch adds the generic common bindings used to represent
+>>>>> a hwlock device and use/request locks in a device-tree build.
+>>>>>
+>>>>> All the platform-specific hwlock driver implementations need the
+>>>>> number of locks and associated base id for registering the locks
+>>>>> present within the device with the driver core. This base id
+>>>>> needs to be unique across multiple IP instances of a hwspinlock
+>>>>> device, so that each hwlock can be represented uniquely in a
+>>>>> system.
+>>>>>
+>>>>> The number of locks is represented by 'hwlock-num-locks' property,
+>>>>> and the base id is represented by the 'hwlock-base-id' property.
+>>>>> The args specifier length is dependent on each vendor-specific
+>>>>> implementation and is represented through the '#hwlock-cells'
+>>>>> property. Client users need to use the property 'hwlocks' for
+>>>>> requesting specific lock(s).
+>>>>>
+>>>>> Note that the document is named hwlock.txt deliberately to keep
+>>>>> it a bit more generic.
+>>>>>
+>>>>> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>>>> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+>>>>> ---
+>>>>> v7: Revised binding info for hwlock-base-id, it is mandatory now
+>>>>>
+>>>>>  .../devicetree/bindings/hwlock/hwlock.txt          | 55 ++++++++++++++++++++++
+>>>>>  1 file changed, 55 insertions(+)
+>>>>>  create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+>>>>> new file mode 100644
+>>>>> index 000000000000..8de7aaf878f9
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+>>>>> @@ -0,0 +1,55 @@
+>>>>> +Generic hwlock bindings
+>>>>> +=======================
+>>>>> +
+>>>>> +Generic bindings that are common to all the hwlock platform specific driver
+>>>>> +implementations.
+>>>>> +
+>>>>> +The validity and need of these common properties may vary from one platform
+>>>>> +implementation to another. The platform specific bindings should explicitly
+>>>>> +state if an optional property is used. Please also look through the individual
+>>>>> +platform specific hwlock binding documentations for identifying the applicable
+>>>>> +properties.
+>>>>> +
+>>>>> +Common properties:
+>>>>> +- #hwlock-cells:   Specifies the number of cells needed to represent a
+>>>>> +                   specific lock. This property is mandatory for all
+>>>>> +                   platform implementations.
+>>>>> +- hwlock-num-locks:        Number of locks present in a hwlock device. This
+>>>>> +                   property is needed on hwlock devices, where the number
+>>>>> +                   of supported locks within a hwlock device cannot be
+>>>>> +                   read from a register.
+>>>>> +- hwlock-base-id:  An unique base Id for the locks for a particular hwlock
+>>>>> +                   device. This property is mandatory for all platform
+>>>>> +                   implementations.
+>>>>
+>>>> This property makes no sense. The ID encoded in the hwlock cells is
+>>>> relative to the instance (identified by phandle), not global. So the DT
+>>>> has no global ID space.
+>>>>
+>>>> Why do you think you need this?
+>>>
+>>> Having looked at the way this proeprty is used, NAK.
+>>>
+>>> If you need to carve up a Linux-internal ID space, do that dynamically.
+>>> There is no need for this property.
+>>
+>> Better yet, don't create a Linux ID space for this. Everywhere we have
+>> one, we want to get rid of it.
 > 
-> ... which should happen whether or not preempt is enabled, which is
-> really my point.
-> 
-> We know tha the wrong IRQ gets requested by the driver - and that wrong
-> IRQ is requested whether or not we have preempt enabled.  Yet we get
-> the warning whether or not preempt is enabled.
-> 
-> The DMA handler is not registered as a threaded handler, so it's not
-> depending on a context switch to execute omap2_dma_irq_handler().
-> 
-> Another reason why I don't agree with your explanation is that by the
-> time setup_irq() is called, we have already poked at the DMA hardware
-> several times - omap_clear_dma() and omap2_disable_irq_lch() will have
-> been called for each DMA channel - and both will write to the hardware.
-> 
-> What's more is that the only things left after setup_irq() has been
-> called is to possibly reserve the first two DMA channels and print
-> the DMA message (via show_dma_caps).  So I see nothing after setup_irq()
-> which would "finish" any unfinished hardware initialisation.
-> 
-> The final reason I don't agree is that I've put a printk() in
-> omap2_dma_irq_handler(), and this does not trigger.
+> Agreed. A completely opaque token / desc structure would prevent a lot
+> of potential abuse and save us from painful breakage.
 
-Oh, yes that blows my theory completely then.
- 
-> So, I think this has nothing to do with the DMA hardware /at all/,
-> but more to do with the GPIO code, and it suggests that the GPIO code
-> publishes IRQs before it is safe for those IRQs to be used.
-> 
-> Maybe it has to do with omap_gpio_irq_handler() being called... added
-> printk(), nope, that's not called either.  So it's not an IRQ which
-> gets triggered at all.
-> 
-> What is called are (in order):
-> 
-> omap_gpio_unmask_irq()
-> omap_set_gpio_irqenable()
-> omap_enable_gpio_irqbank()
-> 
-> and this reveals where the problem is, especially when you then add
-> instrumentation into the runtime PM functions - and this reveals that
-> when a GPIO IRQ is requested, these functions are called while the
-> GPIO is runtime suspended.
-> 
-> _That_ is where the *real* problem lies - requesting a GPIO interrupt
-> results in the kernel touching possibly runtime-suspended hardware.
-> 
-> The reason it happens with preempt is that preempt introduces scheduling
-> points during the kernel boot which would not otherwise be there (with
-> preempt disabled, you have to hit an explicit context switch due to
-> contention on some lock or a wait in order for some other thread to run.)
+The regular API to acquire or release a lock on Linux does indeed use
+opaque handles, but the id space is needed for communication with other
+processors as the handles have no meaning on non-Linux processors. The
+id space is the simplest to exchange which lock to use with other
+processors compared to the device instance plus the lock number within
+that device.
 
-OK makes sense.
- 
-> So, the GPIO driver really needs fixing - and I'd suggest fixing it
-> first, before fixing the DMA problem, because the DMA problem allows
-> us to see the GPIO problem.
+regards
+Suman
 
-Yes we need to fix that.
-
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
