@@ -1,88 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] omap clean-up for v3.20
-Date: Fri, 16 Jan 2015 15:21:21 -0800
-Message-ID: <39078.8579396487$1421450780@news.gmane.org>
-References: <pull-1421450357-648499>
+From: santosh shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH 1/1] gpio: omap: Fix bad device access with setup_irq()
+Date: Fri, 16 Jan 2015 16:19:41 -0800
+Message-ID: <54B9AA9D.7080300@oracle.com>
+References: <1421448650-15904-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1421450357-648499>
-In-Reply-To: <pull-1421450357-648499>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1421448650-15904-1-git-send-email-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
+On 1/16/2015 2:50 PM, Tony Lindgren wrote:
+> Similar to omap_gpio_irq_type() let's make sure that the GPIO
+> is usable as an interrupt if the platform init code did not
+> call gpio_request(). Otherwise we can get invalid device access
+> after setup_irq():
+>
+I let Linus W comment on it but IIRC we chewed this issue last
+time and the conclusion was the gpio_request() must have to be called
+directly or indirectly in case of irq line.
 
-  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
+One old thread on possibly similar issue is here[1]
 
-are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/cleanup-pt1
+> WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x214/0x340()
+> 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4CFG (Idle): Data Access in Supervisor mode during Functional access
+> ...
+> [<c05f21e4>] (__irq_svc) from [<c05f1974>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+> [<c05f1974>] (_raw_spin_unlock_irqrestore) from [<c00914a8>] (__setup_irq+0x244/0x530)
+> [<c00914a8>] (__setup_irq) from [<c00917d4>] (setup_irq+0x40/0x8c)
+> [<c00917d4>] (setup_irq) from [<c0039c8c>] (omap_system_dma_probe+0x1d4/0x2b4)
+> [<c0039c8c>] (omap_system_dma_probe) from [<c03b2200>] (platform_drv_probe+0x44/0xa4)
+> ...
+>
+> We can fix this the same way omap_gpio_irq_type() is handling it.
+>
+> Note that the long term solution is to change the gpio-omap driver
+> to handle the banks as separate driver instances. This will allow
+> us to rely on just runtime PM for tracking the bank specific state.
+>
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: Kevin Hilman <khilman@kernel.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   drivers/gpio/gpio-omap.c | 39 +++++++++++++++++++++++++++++++++------
+>   1 file changed, 33 insertions(+), 6 deletions(-)
+>
+Is it really OMAP specific issue ? On OMAP, clocks needs to enabled for 
+GPIO's to work which is what the init is doing but I believe the same
+should apply to other GPIO controllers as well.
 
-for you to fetch changes up to ca662ee7b8a85c54c1cb9ef34b7c6b4f67933a7e:
+regards,
+Santosh
 
-  ARM: OMAP2+: Remove unused ti81xx platform init code (2015-01-14 17:21:00 -0800)
+[1] https://lkml.org/lkml/2013/8/27/509
 
-----------------------------------------------------------------
-Clean-up for omaps to remove dead code found with cppcheck after
-we've made several SoCs to boot in device tree only mode.
-
-----------------------------------------------------------------
-Rickard Strandqvist (10):
-      ARM: OMAP2+: clkt2xxx_apll.c: Remove some unused functions
-      ARM: OMAP2+: cm33xx.c: Remove some unused functions
-      ARM: OMAP2+: dpll44xx.c: Remove unused function
-      ARM: OMAP2+: omap_hwmod.c: Remove some unused functions
-      ARM: OMAP2+: powerdomain.c: Remove some unused functions
-      ARM: OMAP2+: voltage: Remove some unused functions
-      ARM: OMAP2+: omap-pm-noop.c: Remove some unused functions
-      ARM: OMAP1: irq.c: Remove unused function
-      ARM: OMAP1: timer32k.c: Remove unused function
-      ARM: OMAP: dma.c: Remove unused function
-
-Tero Kristo (3):
-      ARM: OMAP2: clock: remove unused apll code
-      ARM: OMAP2: CM: remove unused PLL functions
-      ARM: OMAP3+: PRM: remove prm_get_reset_sources declaration from headers
-
-Tony Lindgren (1):
-      ARM: OMAP2+: Remove unused ti81xx platform init code
-
- arch/arm/mach-omap1/irq.c               |   5 -
- arch/arm/mach-omap1/timer32k.c          |   5 -
- arch/arm/mach-omap2/Makefile            |   1 -
- arch/arm/mach-omap2/cclock3xxx_data.c   |   6 +-
- arch/arm/mach-omap2/clkt2xxx_apll.c     | 142 -------------------
- arch/arm/mach-omap2/clock.h             |   1 -
- arch/arm/mach-omap2/clock2xxx.h         |  11 --
- arch/arm/mach-omap2/cm2xxx.c            |  10 --
- arch/arm/mach-omap2/cm2xxx.h            |   2 -
- arch/arm/mach-omap2/cm33xx.c            |  21 ---
- arch/arm/mach-omap2/dpll44xx.c          |  20 ---
- arch/arm/mach-omap2/omap-pm-noop.c      | 196 ---------------------------
- arch/arm/mach-omap2/omap-pm.h           | 192 --------------------------
- arch/arm/mach-omap2/omap_hwmod.c        | 232 --------------------------------
- arch/arm/mach-omap2/omap_hwmod.h        |  16 ---
- arch/arm/mach-omap2/omap_phy_internal.c |  35 -----
- arch/arm/mach-omap2/powerdomain.c       |  82 -----------
- arch/arm/mach-omap2/powerdomain.h       |   5 -
- arch/arm/mach-omap2/prm3xxx.h           |   1 -
- arch/arm/mach-omap2/prm44xx_54xx.h      |   1 -
- arch/arm/mach-omap2/usb-musb.c          |  12 +-
- arch/arm/mach-omap2/usb.h               |   2 -
- arch/arm/mach-omap2/voltage.c           | 110 ---------------
- arch/arm/mach-omap2/voltage.h           |  13 --
- arch/arm/plat-omap/dma.c                |   8 --
- 25 files changed, 3 insertions(+), 1126 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clkt2xxx_apll.c
