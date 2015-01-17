@@ -1,298 +1,1194 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2] ARM: OMAP: Work around hardcoded interrupts
-Date: Sat, 17 Jan 2015 10:21:08 +0000
-Message-ID: <1421490068-20385-1-git-send-email-marc.zyngier@arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: Add dm816x hwmod support
+Date: Sat, 17 Jan 2015 08:31:45 -0800
+Message-ID: <20150117163144.GQ18552@atomide.com>
+References: <1421191355-12835-1-git-send-email-tony@atomide.com>
+ <1421191355-12835-3-git-send-email-tony@atomide.com>
+ <20150114194301.GR2419@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from inca-roads.misterjones.org ([213.251.177.50]:43792 "EHLO
-	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751636AbbAQKVn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 17 Jan 2015 05:21:43 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44704 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751553AbbAQQfV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jan 2015 11:35:21 -0500
+Content-Disposition: inline
+In-Reply-To: <20150114194301.GR2419@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Felipe Balbi <balbi@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Yingjoe Chen <yingjoe.chen@mediatek.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Aida Mynzhasova <aida.mynzhasova@skitlab.ru>, Brian Hutchinson <b.hutchman@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-Commit 9a1091ef0017 (irqchip: gic: Support hierarchy irq domain)
-changed the GIC driver to use a non-legacy IRQ domain on DT
-platforms. This patch assumes that DT-driven systems are getting
-all of their interrupts from device tree.
+* Tony Lindgren <tony@atomide.com> [150114 11:49]:
+> * Tony Lindgren <tony@atomide.com> [150113 15:29]:
+> > Add minimal hwmod support that works at least on dm8168. This
+> > is based on the code in the earlier TI CDP tree, and an earlier
+> > patch by Aida Mynzhasova <aida.mynzhasova@skitlab.ru>.
+> > 
+> > I've set up things to work pretty much the same way as for
+> > am33xx. We are basically using cm33xx.c with a different set
+> > of clocks and clockdomains.
+> > 
+> > This code is based on the TI81XX-LINUX-PSP-04.04.00.02 patches
+> > published at:
+> > 
+> > http://downloads.ti.com/dsps/dsps_public_sw/psp/LinuxPSP/TI81XX_04_04/04_04_00_02/index_FDS.html
+> > 
+> > Cc: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+> > Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap2/Makefile               |    1 +
+> >  arch/arm/mach-omap2/io.c                   |    8 +-
+> >  arch/arm/mach-omap2/omap_hwmod.c           |    2 +-
+> >  arch/arm/mach-omap2/omap_hwmod.h           |    1 +
+> >  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 1025 ++++++++++++++++++++++++++++
+> >  5 files changed, 1034 insertions(+), 3 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> > 
+> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> > index 352873c..926bc39 100644
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -226,6 +226,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
+> >  obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_43xx_data.o
+> >  obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_interconnect_data.o
+> >  obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
+> > +obj-$(CONFIG_SOC_TI81XX)		+= omap_hwmod_81xx_data.o
+> >  obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+> >  obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
+> >  obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+> 
+> Looks like the Makefile needs the following addition for make randconfig
+> builds to work properly.
 
-Turns out that OMAP has quite a few hidden gems, and still uses
-hardcoded interrupts despite having fairly complete DTs.
+And the sysc and syss offsets for mcspi1 need 0x100 added to them for
+it to work, like on am33xx. Updated patch below.
 
-This patch attempts to work around these by offering a translation
-method that can be called directly from the hwmod code, if present.
-The same hack is sprinkled over PRCM and TWL.
+Regards,
 
-It isn't pretty, but it seems to do the job without having to add
-more hacks to the interrupt controller code.
+Tony
 
-Tested on OMAP4 (Panda-ES) and OMAP5 (UEVM5432).
+8< --------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 14 Jan 2015 17:45:22 -0800
+Subject: [PATCH] ARM: OMAP2+: Add dm816x hwmod support
 
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
->From v1:
-- OMAP4 can either get the PRM interrupt from hwmod or from device tree.
-  In the latter case, remove the xlate_irq method.
+Add minimal hwmod support that works at least on dm8168. This
+is based on the code in the earlier TI CDP tree, and an earlier
+patch by Aida Mynzhasova <aida.mynzhasova@skitlab.ru>.
 
- arch/arm/mach-omap2/common.h               |  1 +
- arch/arm/mach-omap2/omap4-common.c         | 32 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.c           | 10 ++++++++--
- arch/arm/mach-omap2/omap_hwmod.h           |  1 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  5 +++++
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  1 +
- arch/arm/mach-omap2/prcm-common.h          |  1 +
- arch/arm/mach-omap2/prm44xx.c              |  5 ++++-
- arch/arm/mach-omap2/prm_common.c           | 14 +++++++++++--
- arch/arm/mach-omap2/twl-common.c           |  5 ++++-
- 10 files changed, 69 insertions(+), 6 deletions(-)
+I've set up things to work pretty much the same way as for
+am33xx. We are basically using cm33xx.c with a different set
+of clocks and clockdomains.
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 377eea8..b664494 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -211,6 +211,7 @@ extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
- extern struct device *omap4_get_dsp_device(void);
+This code is based on the TI81XX-LINUX-PSP-04.04.00.02 patches
+published at:
+
+http://downloads.ti.com/dsps/dsps_public_sw/psp/LinuxPSP/TI81XX_04_04/04_04_00_02/index_FDS.html
+
+Cc: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -121,6 +121,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common)
+ obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
+ obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-prcm-4-5-common)
+ am33xx-43xx-prcm-common			+= prm33xx.o cm33xx.o
++obj-$(CONFIG_SOC_TI81XX)		+= $(am33xx-43xx-prcm-common)
+ obj-$(CONFIG_SOC_AM33XX)		+= $(am33xx-43xx-prcm-common)
+ obj-$(CONFIG_SOC_AM43XX)		+= $(omap-prcm-4-5-common) \
+ 					   $(am33xx-43xx-prcm-common)
+@@ -226,6 +227,7 @@ obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
+ obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_43xx_data.o
+ obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_interconnect_data.o
+ obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
++obj-$(CONFIG_SOC_TI81XX)		+= omap_hwmod_81xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
+ obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -502,10 +502,12 @@ void __init ti814x_init_early(void)
+ 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE), NULL);
+ 	omap3xxx_check_revision();
+ 	ti81xx_check_features();
++	am33xx_prm_init();
++	am33xx_cm_init();
+ 	omap3xxx_voltagedomains_init();
+ 	omap3xxx_powerdomains_init();
+ 	ti81xx_clockdomains_init();
+-	omap3xxx_hwmod_init();
++	ti81xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+ 	if (of_have_populated_dt())
+ 		omap_clk_soc_init = ti81xx_dt_clk_init;
+@@ -521,10 +523,12 @@ void __init ti816x_init_early(void)
+ 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE), NULL);
+ 	omap3xxx_check_revision();
+ 	ti81xx_check_features();
++	am33xx_prm_init();
++	am33xx_cm_init();
+ 	omap3xxx_voltagedomains_init();
+ 	omap3xxx_powerdomains_init();
+ 	ti81xx_clockdomains_init();
+-	omap3xxx_hwmod_init();
++	ti81xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+ 	if (of_have_populated_dt())
+ 		omap_clk_soc_init = ti81xx_dt_clk_init;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cbb908d..d7e6d5c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -4142,7 +4142,7 @@ void __init omap_hwmod_init(void)
+ 		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
+ 		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
+ 		soc_ops.init_clkdm = _init_clkdm;
+-	} else if (soc_is_am33xx()) {
++	} else if (cpu_is_ti816x() || soc_is_am33xx()) {
+ 		soc_ops.enable_module = _omap4_enable_module;
+ 		soc_ops.disable_module = _omap4_disable_module;
+ 		soc_ops.wait_target_ready = _omap4_wait_target_ready;
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -763,6 +763,7 @@ extern int omap3xxx_hwmod_init(void);
+ extern int omap44xx_hwmod_init(void);
+ extern int omap54xx_hwmod_init(void);
+ extern int am33xx_hwmod_init(void);
++extern int ti81xx_hwmod_init(void);
+ extern int dra7xx_hwmod_init(void);
+ int am43xx_hwmod_init(void);
  
-+unsigned int omap4_xlate_irq(unsigned int hwirq);
- void omap_gic_of_init(void);
- 
- #ifdef CONFIG_CACHE_L2X0
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index b7cb44a..cc30e49 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -256,6 +256,38 @@ static int __init omap4_sar_ram_init(void)
- }
- omap_early_initcall(omap4_sar_ram_init);
- 
-+static struct of_device_id gic_match[] = {
-+	{ .compatible = "arm,cortex-a9-gic", },
-+	{ .compatible = "arm,cortex-a15-gic", },
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+@@ -0,0 +1,1025 @@
++/*
++ * DM81xx hwmod data.
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
++ * Copyright (C) 2013 SKTB SKiT, http://www.skitlab.ru/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/hsmmc-omap.h>
++#include <linux/platform_data/spi-omap2-mcspi.h>
++#include <plat/dmtimer.h>
++
++#include "omap_hwmod_common_data.h"
++#include "cm81xx.h"
++#include "ti81xx.h"
++#include "wd_timer.h"
++
++/*
++ * DM816X hardware modules integration data
++ *
++ * Note: This is incomplete and at present, not generated from h/w database.
++ *
++ * The .clkctrl_offs field is offset from the CM_ALWON, so basically the
++ * TRM 18.7.17 CM_ALWON device register values minus 0x1400.
++ */
++
++/* L3 Interconnect entries */
++static struct omap_hwmod dm816x_l3_s_hwmod = {
++	.name		= "l3_s",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &l3_hwmod_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++static struct omap_hwmod __used dm816x_l3_med_hwmod = {
++	.name		= "l3_med",
++	.clkdm_name	= "alwon_l3_med_clkdm",
++	.class		= &l3_hwmod_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++static struct omap_hwmod __used dm816x_l3_fast_hwmod = {
++	.name		= "l3_fast",
++	.clkdm_name	= "alwon_l3_fast_clkdm",
++	.class		= &l3_hwmod_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++/*
++ * L4 standard peripherals, see TRM table 1-12 for devices using this.
++ * Devices using this have 125MHz SYSCLK5 clock.
++ */
++static struct omap_hwmod dm816x_l4_ls_hwmod = {
++	.name		= "l4_ls",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &l4_hwmod_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++/*
++ * L4 high-speed peripherals. For devices using this, please see the TRM
++ * "Table 1-13. L4 High-Speed Peripheral Memory Map". On dm816x, only
++ * EMAC, MDIO and SATA use this.
++ */
++static struct omap_hwmod dm816x_l4_hs_hwmod = {
++	.name		= "l4_hs",
++	.clkdm_name	= "alwon_l3_med_clkdm",
++	.class		= &l4_hwmod_class,
++	.flags		= HWMOD_NO_IDLEST,
++};
++
++/* L3 SLOW -> L4 ls peripheral interface */
++static struct omap_hwmod_ocp_if dm816x_l3_s__l4_ls = {
++	.master	= &dm816x_l3_s_hwmod,
++	.slave	= &dm816x_l4_ls_hwmod,
++	.user	= OCP_USER_MPU,
++};
++
++/* MPU */
++static struct omap_hwmod dm816x_mpu_hwmod = {
++	.name		= "mpu",
++	.clkdm_name	= "alwon_mpu_clkdm",
++	.class		= &mpu_hwmod_class,
++	.flags		= HWMOD_INIT_NO_IDLE,
++	.main_clk	= "mpu_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x1dc,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod_ocp_if dm816x_mpu__l3_slow = {
++	.master		= &dm816x_mpu_hwmod,
++	.slave		= &dm816x_l3_s_hwmod,
++	.user		= OCP_USER_MPU,
++};
++
++/* UART common */
++static struct omap_hwmod_class_sysconfig uart_sysc = {
++	.rev_offs	= 0x50,
++	.sysc_offs	= 0x54,
++	.syss_offs	= 0x58,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++				 SYSC_HAS_AUTOIDLE,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class uart_class = {
++	.name = "uart",
++	.sysc = &uart_sysc,
++};
++
++static struct omap_hwmod dm816x_uart1_hwmod = {
++	.name		= "uart1",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x150,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &uart_class,
++	.flags		= DEBUG_TI81XXUART1_FLAGS,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__uart1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_uart1_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod dm816x_uart2_hwmod = {
++	.name		= "uart2",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x154,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &uart_class,
++	.flags		= DEBUG_TI81XXUART2_FLAGS,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__uart2 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_uart2_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod dm816x_uart3_hwmod = {
++	.name		= "uart3",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x158,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &uart_class,
++	.flags		= DEBUG_TI81XXUART3_FLAGS,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__uart3 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_uart3_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class_sysconfig wd_timer_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x10,
++	.syss_offs	= 0x14,
++	.sysc_flags	= SYSC_HAS_EMUFREE | SYSC_HAS_SOFTRESET |
++				SYSS_HAS_RESET_STATUS,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class wd_timer_class = {
++	.name		= "wd_timer",
++	.sysc		= &wd_timer_sysc,
++	.pre_shutdown	= &omap2_wd_timer_disable,
++	.reset		= &omap2_wd_timer_reset,
++};
++
++static struct omap_hwmod dm816x_wd_timer_hwmod = {
++	.name		= "wd_timer",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk18_ck",
++	.flags		= HWMOD_NO_IDLEST,
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x18c,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &wd_timer_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__wd_timer1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_wd_timer_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++/* I2C common */
++static struct omap_hwmod_class_sysconfig i2c_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x10,
++	.syss_offs	= 0x90,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++				SYSC_HAS_AUTOIDLE,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class i2c_class = {
++	.name = "i2c",
++	.sysc = &i2c_sysc,
++};
++
++static struct omap_hwmod dm81xx_i2c1_hwmod = {
++	.name		= "i2c1",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x164,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &i2c_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__i2c1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm81xx_i2c1_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod dm816x_i2c2_hwmod = {
++	.name		= "i2c2",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x168,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &i2c_class,
++};
++
++static struct omap_hwmod_class_sysconfig dm81xx_elm_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_SOFTRESET |
++				SYSS_HAS_RESET_STATUS,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__i2c2 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_i2c2_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class dm81xx_elm_hwmod_class = {
++	.name = "elm",
++	.sysc = &dm81xx_elm_sysc,
++};
++
++static struct omap_hwmod dm81xx_elm_hwmod = {
++	.name		= "elm",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &dm81xx_elm_hwmod_class,
++	.main_clk	= "sysclk6_ck",
++};
++
++static struct omap_hwmod_ocp_if dm81xx_l4_ls__elm = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm81xx_elm_hwmod,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class_sysconfig dm81xx_gpio_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0114,
++	.sysc_flags	= SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
++				SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++				SYSS_HAS_RESET_STATUS,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++				SIDLE_SMART_WKUP,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class dm81xx_gpio_hwmod_class = {
++	.name	= "gpio",
++	.sysc	= &dm81xx_gpio_sysc,
++	.rev	= 2,
++};
++
++static struct omap_gpio_dev_attr gpio_dev_attr = {
++	.bank_width	= 32,
++	.dbck_flag	= true,
++};
++
++static struct omap_hwmod_opt_clk gpio1_opt_clks[] = {
++	{ .role = "dbclk", .clk = "sysclk18_ck" },
++};
++
++static struct omap_hwmod dm81xx_gpio1_hwmod = {
++	.name		= "gpio1",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &dm81xx_gpio_hwmod_class,
++	.main_clk	= "sysclk6_ck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = 0x15c,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.opt_clks	= gpio1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio1_opt_clks),
++	.dev_attr	= &gpio_dev_attr,
++};
++
++static struct omap_hwmod_ocp_if dm81xx_l4_ls__gpio1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm81xx_gpio1_hwmod,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_opt_clk gpio2_opt_clks[] = {
++	{ .role = "dbclk", .clk = "sysclk18_ck" },
++};
++
++static struct omap_hwmod dm81xx_gpio2_hwmod = {
++	.name		= "gpio2",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &dm81xx_gpio_hwmod_class,
++	.main_clk	= "sysclk6_ck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = 0x160,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.opt_clks	= gpio2_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio2_opt_clks),
++	.dev_attr	= &gpio_dev_attr,
++};
++
++static struct omap_hwmod_ocp_if dm81xx_l4_ls__gpio2 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm81xx_gpio2_hwmod,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_class_sysconfig dm81xx_gpmc_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x10,
++	.syss_offs	= 0x14,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++				SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class dm81xx_gpmc_hwmod_class = {
++	.name	= "gpmc",
++	.sysc	= &dm81xx_gpmc_sysc,
++};
++
++static struct omap_hwmod dm81xx_gpmc_hwmod = {
++	.name		= "gpmc",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &dm81xx_gpmc_hwmod_class,
++	.main_clk	= "sysclk6_ck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = 0x1d0,		/* GPMC_CLKCTRL */
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm81xx_l3_s__gpmc = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm81xx_gpmc_hwmod,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class_sysconfig dm81xx_usbhsotg_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x10,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
++				SYSC_HAS_SOFTRESET,
++	.idlemodes	= SIDLE_SMART | MSTANDBY_FORCE | MSTANDBY_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class dm81xx_usbotg_class = {
++	.name = "usbotg",
++	.sysc = &dm81xx_usbhsotg_sysc,
++};
++
++static struct omap_hwmod dm81xx_usbss_hwmod = {
++	.name		= "usb_otg_hs",
++	.clkdm_name	= "default_usb_clkdm",
++	.main_clk	= "sysclk6_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x058,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &dm81xx_usbotg_class,
++};
++
++static struct omap_hwmod_ocp_if dm81xx_l3_s__usbss = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm81xx_usbss_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_class_sysconfig dm816x_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++				SIDLE_SMART_WKUP,
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class dm816x_timer_hwmod_class = {
++	.name = "timer",
++	.sysc = &dm816x_timer_sysc,
++};
++
++static struct omap_timer_capability_dev_attr capability_alwon_dev_attr = {
++	.timer_capability	= OMAP_TIMER_ALWON,
++};
++
++static struct omap_hwmod dm816x_timer1_hwmod = {
++	.name		= "timer1",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer1_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x170,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer1_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dm816x_timer2_hwmod = {
++	.name		= "timer2",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer2_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x174,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer2 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer2_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dm816x_timer3_hwmod = {
++	.name		= "timer3",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer3_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x178,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer3 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer3_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dm816x_timer4_hwmod = {
++	.name		= "timer4",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer4_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x17c,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer4 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer4_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dm816x_timer5_hwmod = {
++	.name		= "timer5",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer5_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x180,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer5 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer5_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dm816x_timer6_hwmod = {
++	.name		= "timer6",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer6_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x184,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer6 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer6_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod dm816x_timer7_hwmod = {
++	.name		= "timer7",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "timer7_fck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x188,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &capability_alwon_dev_attr,
++	.class		= &dm816x_timer_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__timer7 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_timer7_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* EMAC Ethernet */
++static struct omap_hwmod_class_sysconfig dm816x_emac_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x4,
++	.sysc_flags	= SYSC_HAS_SOFTRESET,
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class dm816x_emac_hwmod_class = {
++	.name		= "emac",
++	.sysc		= &dm816x_emac_sysc,
++};
++
++/*
++ * On dm816x the MDIO is within EMAC0. As the MDIO driver is a separate
++ * driver probed before EMAC0, we let MDIO do the clock idling.
++ */
++static struct omap_hwmod dm816x_emac0_hwmod = {
++	.name		= "emac0",
++	.clkdm_name	= "alwon_ethernet_clkdm",
++	.class		= &dm816x_emac_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_hs__emac0 = {
++	.master		= &dm816x_l4_hs_hwmod,
++	.slave		= &dm816x_emac0_hwmod,
++	.clk		= "sysclk5_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_class dm816x_mdio_hwmod_class = {
++	.name		= "davinci_mdio",
++	.sysc		= &dm816x_emac_sysc,
++};
++
++struct omap_hwmod dm816x_emac0_mdio_hwmod = {
++	.name		= "davinci_mdio",
++	.class		= &dm816x_mdio_hwmod_class,
++	.clkdm_name	= "alwon_ethernet_clkdm",
++	.main_clk	= "sysclk24_ck",
++	.flags		= HWMOD_NO_IDLEST,
++	/*
++	 * REVISIT: This should be moved to the emac0_hwmod
++	 * once we have a better way to handle device slaves.
++	 */
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x1d4,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm816x_emac0__mdio = {
++	.master		= &dm816x_l4_hs_hwmod,
++	.slave		= &dm816x_emac0_mdio_hwmod,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod dm816x_emac1_hwmod = {
++	.name		= "emac1",
++	.clkdm_name	= "alwon_ethernet_clkdm",
++	.main_clk	= "sysclk24_ck",
++	.flags		= HWMOD_NO_IDLEST,
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x1d8,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &dm816x_emac_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_hs__emac1 = {
++	.master		= &dm816x_l4_hs_hwmod,
++	.slave		= &dm816x_emac1_hwmod,
++	.clk		= "sysclk5_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_class_sysconfig dm816x_mmc_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x110,
++	.syss_offs	= 0x114,
++	.sysc_flags	= SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++				SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class dm816x_mmc_class = {
++	.name = "mmc",
++	.sysc = &dm816x_mmc_sysc,
++};
++
++static struct omap_hwmod_opt_clk dm816x_mmc1_opt_clks[] = {
++	{ .role = "dbck", .clk = "sysclk18_ck", },
++};
++
++static struct omap_hsmmc_dev_attr mmc1_dev_attr = {
++	.flags = OMAP_HSMMC_SUPPORTS_DUAL_VOLT,
++};
++
++static struct omap_hwmod dm816x_mmc1_hwmod = {
++	.name		= "mmc1",
++	.clkdm_name	= "l3s_clkdm",
++	.opt_clks	= dm816x_mmc1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dm816x_mmc1_opt_clks),
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x1b0,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.dev_attr	= &mmc1_dev_attr,
++	.class		= &dm816x_mmc_class,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__mmc1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_mmc1_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++	.flags		= OMAP_FIREWALL_L4
++};
++
++static struct omap_hwmod_class_sysconfig dm816x_mcspi_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x110,
++	.syss_offs	= 0x114,
++	.sysc_flags	= SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++				SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class dm816x_mcspi_class = {
++	.name = "mcspi",
++	.sysc = &dm816x_mcspi_sysc,
++	.rev = OMAP3_MCSPI_REV,
++};
++
++static struct omap2_mcspi_dev_attr dm816x_mcspi1_dev_attr = {
++	.num_chipselect = 4,
++};
++
++static struct omap_hwmod dm816x_mcspi1_hwmod = {
++	.name		= "mcspi1",
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk10_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x190,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &dm816x_mcspi_class,
++	.dev_attr	= &dm816x_mcspi1_dev_attr,
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__mcspi1 = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_mcspi1_hwmod,
++	.clk		= "sysclk6_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_class_sysconfig dm816x_mailbox_sysc = {
++	.rev_offs	= 0x000,
++	.sysc_offs	= 0x010,
++	.syss_offs	= 0x014,
++	.sysc_flags	= SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
++				SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class dm816x_mailbox_hwmod_class = {
++	.name = "mailbox",
++	.sysc = &dm816x_mailbox_sysc,
++};
++
++static struct omap_hwmod dm816x_mailbox_hwmod = {
++	.name		= "mailbox",
++	.clkdm_name	= "l3s_clkdm",
++	.class		= &dm816x_mailbox_hwmod_class,
++	.main_clk	= "sysclk6_ck",
++	.prcm		= {
++		.omap4 = {
++			.clkctrl_offs = 0x194,
++			.modulemode = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod_ocp_if dm816x_l4_ls__mailbox = {
++	.master		= &dm816x_l4_ls_hwmod,
++	.slave		= &dm816x_mailbox_hwmod,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_class dm816x_tpcc_hwmod_class = {
++	.name		= "tpcc",
++};
++
++struct omap_hwmod dm816x_tpcc_hwmod = {
++	.name		= "tpcc",
++	.class		= &dm816x_tpcc_hwmod_class,
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= 0x1f4,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm816x_l3_main__tpcc = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm816x_tpcc_hwmod,
++	.clk		= "sysclk4_ck",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space dm816x_tptc0_addr_space[] = {
++	{
++		.pa_start	= 0x49800000,
++		.pa_end		= 0x49800000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
 +	{ },
 +};
 +
-+static struct device_node *gic_node;
++static struct omap_hwmod_class dm816x_tptc0_hwmod_class = {
++	.name		= "tptc0",
++};
 +
-+unsigned int omap4_xlate_irq(unsigned int hwirq)
++struct omap_hwmod dm816x_tptc0_hwmod = {
++	.name		= "tptc0",
++	.class		= &dm816x_tptc0_hwmod_class,
++	.clkdm_name	= "l3s_clkdm",	/* CM_ALWON */
++	.main_clk	= "sysclk4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= 0x1f8,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm816x_l3_main__tptc0 = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm816x_tptc0_hwmod,
++	.clk		= "sysclk4_ck",
++	.addr		= dm816x_tptc0_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space dm816x_tptc1_addr_space[] = {
++	{
++		.pa_start	= 0x49900000,
++		.pa_end		= 0x49900000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ },
++};
++
++static struct omap_hwmod_class dm816x_tptc1_hwmod_class = {
++	.name		= "tptc1",
++};
++
++struct omap_hwmod dm816x_tptc1_hwmod = {
++	.name		= "tptc1",
++	.class		= &dm816x_tptc1_hwmod_class,
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= 0x1fc,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm816x_l3_main__tptc1 = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm816x_tptc1_hwmod,
++	.clk		= "sysclk4_ck",
++	.addr		= dm816x_tptc1_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space dm816x_tptc2_addr_space[] = {
++	{
++		.pa_start	= 0x49a00000,
++		.pa_end		= 0x49a00000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ },
++};
++
++static struct omap_hwmod_class dm816x_tptc2_hwmod_class = {
++	.name		= "tptc2",
++};
++
++struct omap_hwmod dm816x_tptc2_hwmod = {
++	.name		= "tptc2",
++	.class		= &dm816x_tptc2_hwmod_class,
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= 0x200,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm816x_l3_main__tptc2 = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm816x_tptc2_hwmod,
++	.clk		= "sysclk4_ck",
++	.addr		= dm816x_tptc2_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space dm816x_tptc3_addr_space[] = {
++	{
++		.pa_start	= 0x49b00000,
++		.pa_end		= 0x49b00000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ },
++};
++
++static struct omap_hwmod_class dm816x_tptc3_hwmod_class = {
++	.name		= "tptc3",
++};
++
++struct omap_hwmod dm816x_tptc3_hwmod = {
++	.name		= "tptc3",
++	.class		= &dm816x_tptc3_hwmod_class,
++	.clkdm_name	= "l3s_clkdm",
++	.main_clk	= "sysclk4_ck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= 0x204,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++struct omap_hwmod_ocp_if dm816x_l3_main__tptc3 = {
++	.master		= &dm816x_l3_s_hwmod,
++	.slave		= &dm816x_tptc3_hwmod,
++	.clk		= "sysclk4_ck",
++	.addr		= dm816x_tptc3_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if *dm816x_hwmod_ocp_ifs[] __initdata = {
++	&dm816x_mpu__l3_slow,
++	&dm816x_l3_s__l4_ls,
++	&dm816x_l4_ls__uart1,
++	&dm816x_l4_ls__uart2,
++	&dm816x_l4_ls__uart3,
++	&dm816x_l4_ls__wd_timer1,
++	&dm816x_l4_ls__i2c1,
++	&dm816x_l4_ls__i2c2,
++	&dm81xx_l4_ls__gpio1,
++	&dm81xx_l4_ls__gpio2,
++	&dm81xx_l4_ls__elm,
++	&dm816x_l4_ls__mmc1,
++	&dm816x_l4_ls__timer1,
++	&dm816x_l4_ls__timer2,
++	&dm816x_l4_ls__timer3,
++	&dm816x_l4_ls__timer4,
++	&dm816x_l4_ls__timer5,
++	&dm816x_l4_ls__timer6,
++	&dm816x_l4_ls__timer7,
++	&dm816x_l4_ls__mcspi1,
++	&dm816x_l4_ls__mailbox,
++	&dm816x_l4_hs__emac0,
++	&dm816x_emac0__mdio,
++	&dm816x_l4_hs__emac1,
++	&dm816x_l3_main__tpcc,
++	&dm816x_l3_main__tptc0,
++	&dm816x_l3_main__tptc1,
++	&dm816x_l3_main__tptc2,
++	&dm816x_l3_main__tptc3,
++	&dm81xx_l3_s__gpmc,
++	&dm81xx_l3_s__usbss,
++	NULL,
++};
++
++int __init ti81xx_hwmod_init(void)
 +{
-+	struct of_phandle_args irq_data;
-+	unsigned int irq;
-+
-+	if (!gic_node)
-+		gic_node = of_find_matching_node(NULL, gic_match);
-+
-+	if (WARN_ON(!gic_node))
-+		return hwirq;
-+
-+	irq_data.np = gic_node;
-+	irq_data.args_count = 3;
-+	irq_data.args[0] = 0;
-+	irq_data.args[1] = hwirq - OMAP44XX_IRQ_GIC_START;
-+	irq_data.args[2] = IRQ_TYPE_LEVEL_HIGH;
-+
-+	irq = irq_create_of_mapping(&irq_data);
-+	if (WARN_ON(!irq))
-+		irq = hwirq;
-+
-+	return irq;
++	omap_hwmod_init();
++	return omap_hwmod_register_links(dm816x_hwmod_ocp_ifs);
 +}
-+
- void __init omap_gic_of_init(void)
- {
- 	struct device_node *np;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index cbb908d..9025fff 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3534,9 +3534,15 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
- 
- 	mpu_irqs_cnt = _count_mpu_irqs(oh);
- 	for (i = 0; i < mpu_irqs_cnt; i++) {
-+		unsigned int irq;
-+
-+		if (oh->xlate_irq)
-+			irq = oh->xlate_irq((oh->mpu_irqs + i)->irq);
-+		else
-+			irq = (oh->mpu_irqs + i)->irq;
- 		(res + r)->name = (oh->mpu_irqs + i)->name;
--		(res + r)->start = (oh->mpu_irqs + i)->irq;
--		(res + r)->end = (oh->mpu_irqs + i)->irq;
-+		(res + r)->start = irq;
-+		(res + r)->end = irq;
- 		(res + r)->flags = IORESOURCE_IRQ;
- 		r++;
- 	}
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 35ca6ef..5b42faf 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -676,6 +676,7 @@ struct omap_hwmod {
- 	spinlock_t			_lock;
- 	struct list_head		node;
- 	struct omap_hwmod_ocp_if	*_mpu_port;
-+	unsigned int			(*xlate_irq)(unsigned int);
- 	u16				flags;
- 	u8				mpu_rt_idx;
- 	u8				response_lat;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index c314b3c..f5e68a7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -479,6 +479,7 @@ static struct omap_hwmod omap44xx_dma_system_hwmod = {
- 	.class		= &omap44xx_dma_hwmod_class,
- 	.clkdm_name	= "l3_dma_clkdm",
- 	.mpu_irqs	= omap44xx_dma_system_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.main_clk	= "l3_div_ck",
- 	.prcm = {
- 		.omap4 = {
-@@ -640,6 +641,7 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
- 	.class		= &omap44xx_dispc_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.mpu_irqs	= omap44xx_dss_dispc_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_dispc_sdma_reqs,
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
-@@ -693,6 +695,7 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
- 	.class		= &omap44xx_dsi_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.mpu_irqs	= omap44xx_dss_dsi1_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_dsi1_sdma_reqs,
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
-@@ -726,6 +729,7 @@ static struct omap_hwmod omap44xx_dss_dsi2_hwmod = {
- 	.class		= &omap44xx_dsi_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.mpu_irqs	= omap44xx_dss_dsi2_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_dsi2_sdma_reqs,
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
-@@ -784,6 +788,7 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
- 	 */
- 	.flags		= HWMOD_SWSUP_SIDLE,
- 	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
- 	.main_clk	= "dss_48mhz_clk",
- 	.prcm = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 3e95230..7c3fac0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -288,6 +288,7 @@ static struct omap_hwmod omap54xx_dma_system_hwmod = {
- 	.class		= &omap54xx_dma_hwmod_class,
- 	.clkdm_name	= "dma_clkdm",
- 	.mpu_irqs	= omap54xx_dma_system_irqs,
-+	.xlate_irq	= omap4_xlate_irq,
- 	.main_clk	= "l3_iclk_div",
- 	.prcm = {
- 		.omap4 = {
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index a8e4b58..6163d66 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -498,6 +498,7 @@ struct omap_prcm_irq_setup {
- 	u8 nr_irqs;
- 	const struct omap_prcm_irq *irqs;
- 	int irq;
-+	unsigned int (*xlate_irq)(unsigned int);
- 	void (*read_pending_irqs)(unsigned long *events);
- 	void (*ocp_barrier)(void);
- 	void (*save_and_clear_irqen)(u32 *saved_mask);
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index cc170fb..408c64e 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -49,6 +49,7 @@ static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
- 	.irqs			= omap4_prcm_irqs,
- 	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
- 	.irq			= 11 + OMAP44XX_IRQ_GIC_START,
-+	.xlate_irq		= omap4_xlate_irq,
- 	.read_pending_irqs	= &omap44xx_prm_read_pending_irqs,
- 	.ocp_barrier		= &omap44xx_prm_ocp_barrier,
- 	.save_and_clear_irqen	= &omap44xx_prm_save_and_clear_irqen,
-@@ -751,8 +752,10 @@ static int omap44xx_prm_late_init(void)
- 		}
- 
- 		/* Once OMAP4 DT is filled as well */
--		if (irq_num >= 0)
-+		if (irq_num >= 0) {
- 			omap4_prcm_irq_setup.irq = irq_num;
-+			omap4_prcm_irq_setup.xlate_irq = NULL;
-+		}
- 	}
- 
- 	omap44xx_prm_enable_io_wakeup();
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 779940c..dea2833 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -187,6 +187,7 @@ int omap_prcm_event_to_irq(const char *name)
-  */
- void omap_prcm_irq_cleanup(void)
- {
-+	unsigned int irq;
- 	int i;
- 
- 	if (!prcm_irq_setup) {
-@@ -211,7 +212,11 @@ void omap_prcm_irq_cleanup(void)
- 	kfree(prcm_irq_setup->priority_mask);
- 	prcm_irq_setup->priority_mask = NULL;
- 
--	irq_set_chained_handler(prcm_irq_setup->irq, NULL);
-+	if (prcm_irq_setup->xlate_irq)
-+		irq = prcm_irq_setup->xlate_irq(prcm_irq_setup->irq);
-+	else
-+		irq = prcm_irq_setup->irq;
-+	irq_set_chained_handler(irq, NULL);
- 
- 	if (prcm_irq_setup->base_irq > 0)
- 		irq_free_descs(prcm_irq_setup->base_irq,
-@@ -259,6 +264,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 	int offset, i;
- 	struct irq_chip_generic *gc;
- 	struct irq_chip_type *ct;
-+	unsigned int irq;
- 
- 	if (!irq_setup)
- 		return -EINVAL;
-@@ -298,7 +304,11 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 				1 << (offset & 0x1f);
- 	}
- 
--	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
-+	if (irq_setup->xlate_irq)
-+		irq = irq_setup->xlate_irq(irq_setup->irq);
-+	else
-+		irq = irq_setup->irq;
-+	irq_set_chained_handler(irq, omap_prcm_irq_handler);
- 
- 	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
- 		0);
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 4457e73..3031ee1 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -71,9 +71,12 @@ void __init omap4_pmic_init(const char *pmic_type,
- 		    struct i2c_board_info *devices, int nr_devices)
- {
- 	/* PMIC part*/
-+	unsigned int irq;
-+
- 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
- 	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
--	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
-+	irq = omap4_xlate_irq(7 + OMAP44XX_IRQ_GIC_START);
-+	omap_pmic_init(1, 400, pmic_type, irq, pmic_data);
- 
- 	/* Register additional devices on i2c1 bus if needed */
- 	if (devices)
--- 
-2.1.3
-
