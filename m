@@ -1,67 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re:
- 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Sat, 17 Jan 2015 09:41:26 -0800
-Message-ID: <20150117174125.GV18552@atomide.com>
-References: <20131206213613.GA19648@earth.universe>
- <201501171018.51811@pali>
- <20150117170411.GT18552@atomide.com>
- <201501171829.18354@pali>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
+Date: Sat, 17 Jan 2015 18:51:19 +0100
+Message-ID: <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
+References: <1421192272-20754-1-git-send-email-tony@atomide.com>
+ <1421192272-20754-5-git-send-email-tony@atomide.com> <20150117164709.GS18552@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44778 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbbAQRpB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jan 2015 12:45:01 -0500
-Content-Disposition: inline
-In-Reply-To: <201501171829.18354@pali>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:38640 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbbAQRvl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jan 2015 12:51:41 -0500
+Received: by mail-wg0-f52.google.com with SMTP id l2so3383661wgh.11
+        for <linux-omap@vger.kernel.org>; Sat, 17 Jan 2015 09:51:40 -0800 (PST)
+In-Reply-To: <20150117164709.GS18552@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Joel Fernandes <joelf@ti.com>, Sebastian Reichel <sre@ring0.de>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150117 09:32]:
-> On Saturday 17 January 2015 18:04:11 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150117 01:21]:
-> > > Hello, after playing with aes and non-aes version of
-> > > bootloaders I found out that code which configure L3
-> > > firewall must be in signed X-Loader part. So probably we
-> > > cannot change configuration at runtime...
-> > >=20
-> > > Tony,
-> > > any idea how to dump L3_PM_ADDR_MATCH_* registers from
-> > > userspace or from kernel? Now I have configured one N900
-> > > with original Nokia X-Loader (where loading omap aes driver
-> > > cause kernel crash) and one N900 with aes X-Loader (where
-> > > loading omap aes driver is working).
-> >=20
-> > Hmm maybe give the omapconf too a try? It's at:
-> >=20
-> > https://github.com/omapconf/omapconf
-> >=20
-> > That uses /dev/mem from userspace, then you can just ioremap
-> > them in the kernel code if you need to do something during
-> > runtime. Probably best to access them with a syscon mapping
-> > from the aes driver.
-> >=20
-> > Regards,
-> >=20
-> > Tony
->=20
-> https://github.com/omapconf/omapconf/wiki
->=20
-> Legacy TI OMAP platforms (OMAP[1-2-3]) are not supported.
+On 17 January 2015 at 17:47, Tony Lindgren <tony@atomide.com> wrote:
+> Also looks like the PULL_ENA bit is inverted on dm816x like on am33xx
 
-Oh OK. Well at least you can look at the code if you want to
-do it from the user space :)
+Yes, ditto on dm814x but there things get even more interesting:
 
-Regards,
+It has the same four config bits as am335x but moved them to bits
+16-19, while bits 0-7 contains 1 << mode.  The benefit is that you can
+also select no mode at all (high-Z or just the pull if enabled) and
+this is in fact the default, though I'm curious what would happen if
+multiple bits are set (though not curious enough to risk my hardware
+:P ).
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It also means you can change mode with a byte-write to avoid touching
+the upper bits, which is nice especially since slew is preconfigured
+per pin to match I/O timings and you're supposed to never change it
+(after fixing the ones ROM messed up due to bugs).  Also on rev 2.x
+silicon you're not allowed to disable the receiver if using 3.3V I/O.
+
+
+> +#define DM816X_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+> #define AM33XX_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+> #define AM4372_IOPAD(pa, val)          OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+
+The overall control module layout is actually compatible across the
+whole happy family; basically any register they have in common is at
+the same offset (with notable exception of ADC and eCAP event muxes on
+am335x versus c6a811x/dra62x, but the latter is a semi-mythical device
+anyway, not even a product brief in circulation). They often even have
+the same semantics, though padconf shows this isn't always true
+unfortunately.
+
+A similar thing is true for the overall device memory map actually:
+https://docs.google.com/spreadsheets/d/1hRgpmJ-4Yeojyl8XPO9n3IoYSWKPkg6oRnEvdfV_RaM/view
