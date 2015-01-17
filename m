@@ -1,453 +1,218 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: dts: Add basic dm816x device tree configuration
-Date: Sat, 17 Jan 2015 08:41:02 -0800
-Message-ID: <20150117164102.GR18552@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
+Date: Sat, 17 Jan 2015 08:47:09 -0800
+Message-ID: <20150117164709.GS18552@atomide.com>
 References: <1421192272-20754-1-git-send-email-tony@atomide.com>
- <1421192272-20754-3-git-send-email-tony@atomide.com>
- <54B82FBD.4040103@ti.com>
- <20150115225916.GJ18552@atomide.com>
+ <1421192272-20754-5-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36313 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750928AbbAQQoh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jan 2015 11:44:37 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59623 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbbAQQun (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jan 2015 11:50:43 -0500
 Content-Disposition: inline
-In-Reply-To: <20150115225916.GJ18552@atomide.com>
+In-Reply-To: <1421192272-20754-5-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-* Tony Lindgren <tony@atomide.com> [150115 15:05]:
+* Tony Lindgren <tony@atomide.com> [150113 15:44]:
+> This allows booting the device with basic functionality.
 > 
-> For reference, the devices I've confirmed to work so far are:
+> Note that at least on my revision c board the DDR3 does
+> not seem to work properly and only some of the memory
+> can be reliably used.
 > 
-> - intc
-> - timers
-> - gpmc
-> - i2c
-> - ethernet and mdio
-> - mmc
-> - edma
-> - uart
+> Also, the mainline u-boot does not seem to properly
+> initialize the ethernet, so I've been using the old TI
+> u-boot at:
 > 
-> Updated patch below with the mailbox fixed.
+> http://arago-project.org/git/projects/?p=u-boot-omap3.git;a=summary
 
-Got the spi working too. The it needs to be compatible with
-ti,omap4-mcspi with four chip selects. Updated patch below.
-
-Also added the pinctrl-single entry.
+Here's this one updated with spi-nor detected and a minimal
+pinctrl-single configuration. No partition info yet configured
+though. Also looks like the PULL_ENA bit is inverted on dm816x
+like on am33xx so at some point we probably want to have
+a arch/arm/boot/dts/include/dt-bindings/pinctrl/dm816x.h.
 
 Regards,
 
 Tony
 
-8< ------------------
+8< -------------
 From: Tony Lindgren <tony@atomide.com>
 Date: Wed, 14 Jan 2015 17:45:22 -0800
-Subject: [PATCH] ARM: dts: Add basic dm816x device tree configuration
+Subject: [PATCH] ARM: dts: Add minimal support for dm8168-evm
 
-Similar to other omap variants, let's add dm816x support.
+This allows booting the device with basic functionality.
 
-Note that this is based on generated data from the
-TI81XX-LINUX-PSP-04.04.00.02 patches published at:
+Note that at least on my revision c board the DDR3 does
+not seem to work properly and only some of the memory
+can be reliably used.
 
-http://downloads.ti.com/dsps/dsps_public_sw/psp/LinuxPSP/TI81XX_04_04/04_04_00_02/index_FDS.html
+Also, the mainline u-boot does not seem to properly
+initialize the ethernet, so I've been using the old TI
+u-boot at:
 
-I've verified the basic functionality, but have not been
-able to test all the devices on dm8168-evm.
+http://arago-project.org/git/projects/?p=u-boot-omap3.git;a=summary
 
 Cc: Brian Hutchinson <b.hutchman@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -348,6 +348,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
+ 	omap3-sbc-t3730.dtb \
+ 	omap3-thunder.dtb \
+ 	omap3-zoom3.dtb
++dtb-$(CONFIG_SOC_TI81XX) += dm8168-evm.dtb
+ dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
+ 	am335x-bone.dtb \
+ 	am335x-boneblack.dtb \
+diff --git a/arch/arm/boot/dts/dm8168-evm.dts b/arch/arm/boot/dts/dm8168-evm.dts
+new file mode 100644
+index 0000000..857d028
 --- /dev/null
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -0,0 +1,386 @@
++++ b/arch/arm/boot/dts/dm8168-evm.dts
+@@ -0,0 +1,129 @@
 +/*
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
++/dts-v1/;
 +
-+#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/pinctrl/omap.h>
-+
-+#include "skeleton.dtsi"
++#include "dm816x.dtsi"
 +
 +/ {
-+	compatible = "ti,dm816";
-+	interrupt-parent = <&intc>;
++	model = "DM8168 EVM";
++	compatible = "ti,dm8168-evm", "ti,dm8168";
 +
-+	aliases {
-+		i2c0 = &i2c1;
-+		i2c1 = &i2c2;
-+		serial0 = &uart1;
-+		serial1 = &uart2;
-+		serial2 = &uart3;
-+		ethernet0 = &eth0;
-+		ethernet1 = &eth1;
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x40000000	/* 1 GB */
++		       0xc0000000 0x40000000>;	/* 1 GB */
 +	};
 +
-+	cpus {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		cpu@0 {
-+			compatible = "arm,cortex-a8";
-+			device_type = "cpu";
-+			reg = <0>;
-+		};
++	/* FDC6331L controlled by SD_POW pin */
++	vmmcsd_fixed: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
 +	};
++};
 +
-+	pmu {
-+		compatible = "arm,cortex-a8-pmu";
-+		interrupts = <3>;
++&dm816x_pinmux {
++	mcspi1_pins: pinmux_mcspi1_pins {
++		pinctrl-single,pins = <
++			DM816X_IOPAD(0x0a94, PIN_INPUT | MUX_MODE0)	/* SPI_SCLK */
++			DM816X_IOPAD(0x0a98, PIN_OUTPUT | MUX_MODE0)	/* SPI_SCS0 */
++			DM816X_IOPAD(0x0aa8, PIN_INPUT | MUX_MODE0)	/* SPI_D0 */
++			DM816X_IOPAD(0x0aac, PIN_INPUT | MUX_MODE0)	/* SPI_D1 */
++		>;
 +	};
++};
 +
-+	/*
-+	 * The soc node represents the soc top level view. It is used for IPs
-+	 * that are not memory mapped in the MPU view or for the MPU itself.
-+	 */
-+	soc {
-+		compatible = "ti,omap-infra";
-+		mpu {
-+			compatible = "ti,omap3-mpu";
-+			ti,hwmods = "mpu";
-+		};
++&i2c1 {
++	extgpio0: pcf8575@20 {
++		compatible = "nxp,pcf8575";
++		reg = <0x20>;
++		gpio-controller;
++		#gpio-cells = <2>;
 +	};
++};
 +
-+	dm816x_pinmux: pinmux@44e10800 {
-+		compatible = "pinctrl-single";
-+		reg = <0x48140800 0x50a>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-single,register-width = <16>;
-+		pinctrl-single,function-mask = <0xf>;
++&i2c2 {
++	extgpio1: pcf8575@20 {
++		compatible = "nxp,pcf8575";
++		reg = <0x20>;
++		gpio-controller;
++		#gpio-cells = <2>;
 +	};
++};
 +
-+	/*
-+	 * XXX: Use a flat representation of the dm816x interconnect.
-+	 * The real dm816x interconnect network is quite complex. Since
-+	 * it will not bring real advantage to represent that in DT
-+	 * for the moment, just use a fake OCP bus entry to represent
-+	 * the whole bus hierarchy.
-+	 */
-+	ocp {
-+		compatible = "ti,omap3-l3-smx", "simple-bus";
-+		reg = <0x44000000 0x10000>;
-+		interrupts = <9 10>;
++&gpmc {
++	ranges = <0 0 0x04000000 0x01000000>;	/* CS0: 16MB for NAND */
++
++	nand@0,0 {
++		linux,mtd-name= "micron,mt29f2g16aadwp";
++		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
 +		#address-cells = <1>;
 +		#size-cells = <1>;
-+		ranges;
-+		ti,hwmods = "l3_main";
-+
-+		prcm: prcm@48180000 {
-+			compatible = "ti,dm816-prcm";
-+			reg = <0x48180000 0x4000>;
-+
-+			prcm_clocks: clocks {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+
-+			prcm_clockdomains: clockdomains {
-+			};
++		ti,nand-ecc-opt = "bch8";
++		nand-bus-width = <16>;
++		gpmc,device-width = <2>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-on-ns = <0>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wait-on-read = "true";
++		gpmc,wait-on-write = "true";
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		partition@0 {
++			label = "X-Loader";
++			reg = <0 0x80000>;
 +		};
-+
-+		scrm: scrm@48140000 {
-+			compatible = "ti,dm816-scrm";
-+			reg = <0x48140000 0x21000>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0 0x48140000 0x21000>;
-+
-+			scrm_clocks: clocks {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+
-+			scrm_clockdomains: clockdomains {
-+			};
++		partition@0x80000 {
++			label = "U-Boot";
++			reg = <0x80000 0x1c0000>;
 +		};
-+
-+		cm: syscon@44e10000 {
-+			compatible = "ti,am33xx-controlmodule", "syscon";
-+			reg = <0x44e10000 0x800>;
++		partition@0x1c0000 {
++			label = "Environment";
++			reg = <0x240000 0x40000>;
 +		};
-+
-+		edma: edma@49000000 {
-+			compatible = "ti,edma3";
-+			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2", "tptc3";
-+			reg =   <0x49000000 0x10000>,
-+			        <0x44e10f90 0x40>;
-+			interrupts = <12 13 14>;
-+			#dma-cells = <1>;
++		partition@0x280000 {
++			label = "Kernel";
++			reg = <0x280000 0x500000>;
 +		};
-+
-+		elm: elm@48080000 {
-+			compatible = "ti,816-elm";
-+			ti,hwmods = "elm";
-+			reg = <0x48080000 0x2000>;
-+			interrupts = <4>;
-+		};
-+
-+		gpio1: gpio@48032000 {
-+			compatible = "ti,omap3-gpio";
-+			ti,hwmods = "gpio1";
-+			reg = <0x48032000 0x1000>;
-+			interrupts = <97>;
-+		};
-+
-+		gpio2: gpio@4804c000 {
-+			compatible = "ti,omap3-gpio";
-+			ti,hwmods = "gpio2";
-+			reg = <0x4804c000 0x1000>;
-+			interrupts = <99>;
-+		};
-+
-+		gpmc: gpmc@50000000 {
-+			compatible = "ti,am3352-gpmc";
-+			ti,hwmods = "gpmc";
-+			reg = <0x50000000 0x2000>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			interrupts = <100>;
-+			gpmc,num-cs = <6>;
-+			gpmc,num-waitpins = <2>;
-+		};
-+
-+		i2c1: i2c@48028000 {
-+			compatible = "ti,omap4-i2c";
-+			ti,hwmods = "i2c1";
-+			reg = <0x48028000 0x1000>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			interrupts = <70>;
-+			dmas = <&edma 58 &edma 59>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		i2c2: i2c@4802a000 {
-+			compatible = "ti,omap4-i2c";
-+			ti,hwmods = "i2c2";
-+			reg = <0x4802a000 0x1000>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			interrupts = <71>;
-+			dmas = <&edma 60 &edma 61>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		intc: interrupt-controller@48200000 {
-+			compatible = "ti,dm816-intc";
-+			interrupt-controller;
-+			#interrupt-cells = <1>;
-+			reg = <0x48200000 0x1000>;
-+		};
-+
-+		mailbox: mailbox@480c8000 {
-+			compatible = "ti,omap4-mailbox";
-+			reg = <0x480c8000 0x2000>;
-+			interrupts = <77>;
-+			ti,hwmods = "mailbox";
-+			ti,mbox-num-users = <4>;
-+			ti,mbox-num-fifos = <12>;
-+			mbox_dsp: mbox_dsp {
-+				ti,mbox-tx = <3 0 0>;
-+				ti,mbox-rx = <0 0 0>;
-+			};
-+		};
-+
-+		mdio: mdio@4a100800 {
-+			compatible = "ti,davinci_mdio";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0x4a100800 0x100>;
-+			ti,hwmods = "davinci_mdio";
-+			bus_freq = <1000000>;
-+			phy0: ethernet-phy@0 {
-+				reg = <1>;
-+			};
-+			phy1: ethernet-phy@1 {
-+				reg = <2>;
-+			};
-+		};
-+
-+		eth0: ethernet@4a100000 {
-+			compatible = "ti,dm816-emac";
-+			ti,hwmods = "emac0";
-+			reg = <0x4a100000 0x800
-+			       0x4a100900 0x3700>;
-+			clocks = <&sysclk24_ck>;
-+			ti,davinci-ctrl-reg-offset = <0>;
-+			ti,davinci-ctrl-mod-reg-offset = <0x900>;
-+			ti,davinci-ctrl-ram-offset = <0x2000>;
-+			ti,davinci-ctrl-ram-size = <0x2000>;
-+			interrupts = <40 41 42 43>;
-+			phy-handle = <&phy0>;
-+		};
-+
-+		eth1: ethernet@4a120000 {
-+			compatible = "ti,dm816-emac";
-+			ti,hwmods = "emac1";
-+			reg = <0x4a120000 0x4000>;
-+			clocks = <&sysclk24_ck>;
-+			ti,davinci-ctrl-reg-offset = <0>;
-+			ti,davinci-ctrl-mod-reg-offset = <0x900>;
-+			ti,davinci-ctrl-ram-offset = <0x2000>;
-+			ti,davinci-ctrl-ram-size = <0x2000>;
-+			interrupts = <44 45 46 47>;
-+			phy-handle = <&phy1>;
-+		};
-+
-+		mcspi1: spi@48030000 {
-+			compatible = "ti,omap4-mcspi";
-+			reg = <0x48030000 0x1000>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			interrupts = <65>;
-+			ti,spi-num-cs = <4>;
-+			ti,hwmods = "mcspi1";
-+			dmas = <&edma 16 &edma 17
-+				&edma 18 &edma 19>;
-+			dma-names = "tx0", "rx0", "tx1", "rx1";
-+		};
-+
-+		mmc1: mmc@48060000 {
-+			compatible = "ti,omap4-hsmmc";
-+			reg = <0x48060000 0x11000>;
-+			ti,hwmods = "mmc1";
-+			interrupts = <64>;
-+			dmas = <&edma 24 &edma 25>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		timer1: timer@4802e000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x4802e000 0x2000>;
-+			interrupts = <67>;
-+			ti,hwmods = "timer1";
-+			ti,timer-alwon;
-+		};
-+
-+		timer2: timer@48040000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x48040000 0x2000>;
-+			interrupts = <68>;
-+			ti,hwmods = "timer2";
-+		};
-+
-+		timer3: timer@48042000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x48042000 0x2000>;
-+			interrupts = <69>;
-+			ti,hwmods = "timer3";
-+		};
-+
-+		timer4: timer@48044000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x48044000 0x2000>;
-+			interrupts = <92>;
-+			ti,hwmods = "timer4";
-+		};
-+
-+		timer5: timer@48046000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x48046000 0x2000>;
-+			interrupts = <93>;
-+			ti,hwmods = "timer5";
-+		};
-+
-+		timer6: timer@48048000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x48048000 0x2000>;
-+			interrupts = <94>;
-+			ti,hwmods = "timer6";
-+		};
-+
-+		timer7: timer@4804a000 {
-+			compatible = "ti,dm816-timer";
-+			reg = <0x4804a000 0x2000>;
-+			interrupts = <95>;
-+			ti,hwmods = "timer7";
-+		};
-+
-+		uart1: uart@48020000 {
-+			compatible = "ti,omap3-uart";
-+			ti,hwmods = "uart1";
-+			reg = <0x48020000 0x2000>;
-+			clock-frequency = <48000000>;
-+			interrupts = <72>;
-+			dmas = <&edma 26 &edma 27>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		uart2: uart@48022000 {
-+			compatible = "ti,omap3-uart";
-+			ti,hwmods = "uart2";
-+			reg = <0x48022000 0x2000>;
-+			clock-frequency = <48000000>;
-+			interrupts = <73>;
-+			dmas = <&edma 28 &edma 29>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		uart3: uart@48024000 {
-+			compatible = "ti,omap3-uart";
-+			ti,hwmods = "uart3";
-+			reg = <0x48024000 0x2000>;
-+			clock-frequency = <48000000>;
-+			interrupts = <74>;
-+			dmas = <&edma 30 &edma 31>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		/* NOTE: USB needs a transceiver driver for phys to work */
-+		usb: usb_otg_hs@47401000 {
-+			compatible = "ti,am33xx-usb";
-+			reg = <0x47401000 0x400000>;
-+			ranges;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ti,hwmods = "usb_otg_hs";
-+
-+			usb0: usb@47401000 {
-+				compatible = "ti,musb-am33xx";
-+				reg = <0x47401400 0x400
-+				       0x47401000 0x200>;
-+				reg-names = "mc", "control";
-+				interrupts = <18>;
-+				interrupt-names = "mc";
-+				dr_mode = "otg";
-+				mentor,multipoint = <1>;
-+				mentor,num-eps = <16>;
-+				mentor,ram-bits = <12>;
-+				mentor,power = <500>;
-+			};
-+
-+			usb1: usb@47401800 {
-+				compatible = "ti,musb-am33xx";
-+				status = "disabled";
-+				reg = <0x47401c00 0x400
-+				       0x47401800 0x200>;
-+				reg-names = "mc", "control";
-+				interrupts = <19>;
-+				interrupt-names = "mc";
-+				dr_mode = "otg";
-+				mentor,multipoint = <1>;
-+				mentor,num-eps = <16>;
-+				mentor,ram-bits = <12>;
-+				mentor,power = <500>;
-+			};
-+		};
-+
-+		wd_timer2: wd_timer@480c2000 {
-+			compatible = "ti,omap3-wdt";
-+			ti,hwmods = "wd_timer";
-+			reg = <0x480c2000 0x1000>;
-+			interrupts = <0>;
++		partition@0x780000 {
++			label = "Filesystem";
++			reg = <0x780000 0xf880000>;
 +		};
 +	};
 +};
 +
++&mcspi1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcspi1_pins>;
++
++	m25p80@0 {
++		compatible = "w25x32";
++		spi-max-frequency = <48000000>;
++		reg = <0>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++	};
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
+--- a/include/dt-bindings/pinctrl/omap.h
++++ b/include/dt-bindings/pinctrl/omap.h
+@@ -61,6 +61,7 @@
+ #define OMAP3430_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25d8) (val)
+ #define OMAP3630_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25a0) (val)
+ #define OMAP3_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2a00) (val)
++#define DM816X_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define AM4372_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define DRA7XX_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x3400) (val)
