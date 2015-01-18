@@ -1,58 +1,233 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: beaglebone black: is mem=... broken?
-Date: Sun, 18 Jan 2015 18:38:46 +0100
-Message-ID: <CAMuHMdX07-5xUt8KpS_biZMhpeoZcQFHvZL9ZFQGvKm9-CEKng@mail.gmail.com>
-References: <20150118143448.GA4023@luxor.wired.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCHv2] cleanup ti-soc-thermal
+Date: Sun, 18 Jan 2015 21:17:10 +0100
+Message-ID: <20150118201710.GA27800@amd>
+References: <20150103111904.GA11545@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:40807 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593AbbARRir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Jan 2015 12:38:47 -0500
-Received: by mail-lb0-f181.google.com with SMTP id u14so15414306lbd.12
-        for <linux-omap@vger.kernel.org>; Sun, 18 Jan 2015 09:38:46 -0800 (PST)
-In-Reply-To: <20150118143448.GA4023@luxor.wired.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150103111904.GA11545@amd>
+Sender: linux-pm-owner@vger.kernel.org
+To: edubezval@gmail.com, rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paolo Pisati <p.pisati@gmail.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-On Sun, Jan 18, 2015 at 3:34 PM, Paolo Pisati <p.pisati@gmail.com> wrote:
-> Boot hangs when passing mem=256M to a 3.16 kernel (but i was able to reproduce
-> it with multi_v7_defconfig on a 3.19rcX kernel too):
->
-> 80e6d694: 00240000 00000000 65746e49 6c616e72    ..$.....Internal
-> 80e6d6a4: 72726520 203a726f 73706f4f 2035203a     error: Oops: 5
-> 80e6d6b4: 5d31235b 504d5320 4d524120 00000000    [#1] SMP ARM....
-> 80e6d6c4: 00000000 00120000 00000000 75646f4d    ............Modu
-> 80e6d6d4: 2073656c 6b6e696c 69206465 00003a6e    les linked in:..
-> 80e6d6e4: 00000000 00000000 00000000 00000000    ................
-> 80e6d6f4: 00000000 00000000 00000000 6f432030    ............0 Co
-> 80e6d704: 203a6d6d 70617773 20726570 20746f4e    mm: swapper Not
-> 80e6d714: 6e696174 20646574 36312e33 322d302e    tainted 3.16.0-2
-> 80e6d724: 65672d38 6972656e 33232063 62552d38    8-generic #38-Ub
-> 80e6d734: 75746e75 00000000 00000000 002d0000    untu..........-.
-> 80e6d744: 00000000 6b736174 3063203a 61313964    ....task: c0d91a
-> 80e6d754: 74203832 63203a69 34386430 20303030    28 ti: c0d84000
-> 80e6d764: 6b736174 3a69742e 64306320 30303438    task.ti: c0d8400
-> 80e6d774: 00000030 00000000 00000000 00220000    0.............".
-> 80e6d784: 00000000 69204350 74612073 74646620    ....PC is at fdt
-> 80e6d794: 6568635f 685f6b63 65646165 78302b72    _check_header+0x
-> 80e6d7a4: 78302f30 00003437 00000000 00000000    0/0x74..........
-> 80e6d7b4: 00000000 00000000 00000000 74612073    ............s at
+Simplify code by removing goto's where they point to simple return.
 
-The boot loader copied the DT to the end of real RAM, not to the end of
-the 256 MiB block? Hence the kernel accesses unmapped memory
-when checking the FDT header?
+Avoid confusing |= on error values.
 
-Gr{oetje,eeting}s,
+Correct whitespace.
 
-                        Geert
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+---
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Please apply,
+								Pavel
+
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+index 634b6ce..2fde78c 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -103,19 +105,15 @@ do {								\
+  */
+ static int ti_bandgap_power(struct ti_bandgap *bgp, bool on)
+ {
+-	int i, ret = 0;
++	int i;
+ 
+-	if (!TI_BANDGAP_HAS(bgp, POWER_SWITCH)) {
+-		ret = -ENOTSUPP;
+-		goto exit;
+-	}
++	if (!TI_BANDGAP_HAS(bgp, POWER_SWITCH))
++		return -ENOTSUPP;
+ 
+ 	for (i = 0; i < bgp->conf->sensor_count; i++)
+ 		/* active on 0 */
+ 		RMW_BITS(bgp, i, temp_sensor_ctrl, bgap_tempsoff_mask, !on);
+-
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -263,18 +261,13 @@ static
+ int ti_bandgap_adc_to_mcelsius(struct ti_bandgap *bgp, int adc_val, int *t)
+ {
+ 	const struct ti_bandgap_data *conf = bgp->conf;
+-	int ret = 0;
+ 
+ 	/* look up for temperature in the table and return the temperature */
+-	if (adc_val < conf->adc_start_val || adc_val > conf->adc_end_val) {
+-		ret = -ERANGE;
+-		goto exit;
+-	}
++	if (adc_val < conf->adc_start_val || adc_val > conf->adc_end_val)
++		return -ERANGE;
+ 
+ 	*t = bgp->conf->conv_table[adc_val - conf->adc_start_val];
+-
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -295,16 +288,14 @@ int ti_bandgap_mcelsius_to_adc(struct ti_bandgap *bgp, long temp, int *adc)
+ {
+ 	const struct ti_bandgap_data *conf = bgp->conf;
+ 	const int *conv_table = bgp->conf->conv_table;
+-	int high, low, mid, ret = 0;
++	int high, low, mid;
+ 
+ 	low = 0;
+ 	high = conf->adc_end_val - conf->adc_start_val;
+ 	mid = (high + low) / 2;
+ 
+-	if (temp < conv_table[low] || temp > conv_table[high]) {
+-		ret = -ERANGE;
+-		goto exit;
+-	}
++	if (temp < conv_table[low] || temp > conv_table[high])
++		return -ERANGE;
+ 
+ 	while (low < high) {
+ 		if (temp < conv_table[mid])
+@@ -315,9 +306,7 @@ int ti_bandgap_mcelsius_to_adc(struct ti_bandgap *bgp, long temp, int *adc)
+ 	}
+ 
+ 	*adc = conf->adc_start_val + low;
+-
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -343,13 +332,11 @@ int ti_bandgap_add_hyst(struct ti_bandgap *bgp, int adc_val, int hyst_val,
+ 	 */
+ 	ret = ti_bandgap_adc_to_mcelsius(bgp, adc_val, &temp);
+ 	if (ret < 0)
+-		goto exit;
++		return ret;
+ 
+ 	temp += hyst_val;
+ 
+ 	ret = ti_bandgap_mcelsius_to_adc(bgp, temp, sum);
+-
+-exit:
+ 	return ret;
+ }
+ 
+@@ -468,22 +455,18 @@ exit:
+  */
+ static inline int ti_bandgap_validate(struct ti_bandgap *bgp, int id)
+ {
+-	int ret = 0;
+-
+ 	if (!bgp || IS_ERR(bgp)) {
+ 		pr_err("%s: invalid bandgap pointer\n", __func__);
+-		ret = -EINVAL;
+-		goto exit;
++		return -EINVAL;
+ 	}
+ 
+ 	if ((id < 0) || (id >= bgp->conf->sensor_count)) {
+ 		dev_err(bgp->dev, "%s: sensor id out of range (%d)\n",
+ 			__func__, id);
+-		ret = -ERANGE;
++		return -ERANGE;
+ 	}
+ 
+-exit:
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -511,12 +494,10 @@ static int _ti_bandgap_write_threshold(struct ti_bandgap *bgp, int id, int val,
+ 
+ 	ret = ti_bandgap_validate(bgp, id);
+ 	if (ret)
+-		goto exit;
++		return ret;
+ 
+-	if (!TI_BANDGAP_HAS(bgp, TALERT)) {
+-		ret = -ENOTSUPP;
+-		goto exit;
+-	}
++	if (!TI_BANDGAP_HAS(bgp, TALERT))
++		return -ENOTSUPP;
+ 
+ 	ts_data = bgp->conf->sensors[id].ts_data;
+ 	tsr = bgp->conf->sensors[id].registers;
+@@ -529,17 +510,15 @@ static int _ti_bandgap_write_threshold(struct ti_bandgap *bgp, int id, int val,
+ 	}
+ 
+ 	if (ret)
+-		goto exit;
++		return ret;
+ 
+ 	ret = ti_bandgap_mcelsius_to_adc(bgp, val, &adc_val);
+ 	if (ret < 0)
+-		goto exit;
++		return ret;
+ 
+ 	spin_lock(&bgp->lock);
+ 	ret = ti_bandgap_update_alert_threshold(bgp, id, adc_val, hot);
+ 	spin_unlock(&bgp->lock);
+-
+-exit:
+ 	return ret;
+ }
+ 
+@@ -582,7 +561,7 @@ static int _ti_bandgap_read_threshold(struct ti_bandgap *bgp, int id,
+ 
+ 	temp = ti_bandgap_readl(bgp, tsr->bgap_threshold);
+ 	temp = (temp & mask) >> __ffs(mask);
+-	ret |= ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
++	ret = ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
+ 	if (ret) {
+ 		dev_err(bgp->dev, "failed to read thot\n");
+ 		ret = -EIO;
+@@ -852,6 +831,6 @@ int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
+ 	spin_unlock(&bgp->lock);
+ 
+-	ret |= ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
++	ret = ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
+ 	if (ret)
+ 		return -EIO;
+ 
+@@ -1220,11 +1222,10 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 		goto free_irqs;
+ 	}
+ 
+-	bgp->div_clk = clk_get(NULL,  bgp->conf->div_ck_name);
++	bgp->div_clk = clk_get(NULL, bgp->conf->div_ck_name);
+ 	ret = IS_ERR(bgp->div_clk);
+ 	if (ret) {
+-		dev_err(&pdev->dev,
+-			"failed to request div_ts_ck clock ref\n");
++		dev_err(&pdev->dev, "failed to request div_ts_ck clock ref\n");
+ 		ret = PTR_ERR(bgp->div_clk);
+ 		goto free_irqs;
+ 	}
+index 5fd0386..33b2c01 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -76,7 +76,7 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
+ }
+ 
+ /* thermal zone ops */
+-/* Get temperature callback function for thermal zone*/
++/* Get temperature callback function for thermal zone */
+ static inline int __ti_thermal_get_temp(void *devdata, long *temp)
+ {
+ 	struct thermal_zone_device *pcb_tz = NULL;
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
