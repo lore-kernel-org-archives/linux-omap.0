@@ -1,53 +1,64 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH 2/3] hwmon: Driver for OMAP3 temperature sensor
-Date: Sun, 18 Jan 2015 14:18:24 -0800
-Message-ID: <54BC3130.4010401@roeck-us.net>
-References: <20141226102933.GA28778@amd> <1419597294-21487-1-git-send-email-sre@kernel.org> <1419597294-21487-3-git-send-email-sre@kernel.org> <CANOLnON6rAQ2+jJEFDKseH2Htu6bqRkURDioGt7zp1Ze73f8Pw@mail.gmail.com> <CAGo_u6qO0ok+GBnm7SQtw6dJuwGN2OuP7CpKDEWawS3V2go4KA@mail.gmail.com> <20141229181556.GA26926@amd> <20141229190448.GA27124@roeck-us.net> <20150103091858.GA30538@amd> <20150107161944.GB9012@roeck-us.net> <20150118203346.GA29863@amd>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
+Date: Sun, 18 Jan 2015 23:29:45 +0100
+Message-ID: <20150118222944.GA1698@earth.universe>
+References: <1421171865-5209-1-git-send-email-tony@atomide.com>
+ <10549142.7lWnPtPtZG@wuerfel>
+ <20150113204219.GJ2419@atomide.com>
+ <201501132150.56938@pali>
+ <20150118210217.GB31807@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:49286 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbbARWSz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Jan 2015 17:18:55 -0500
-Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
-	(envelope-from <linux@roeck-us.net>)
-	id 1YCyBL-000SYJ-47
-	for linux-omap@vger.kernel.org; Sun, 18 Jan 2015 22:18:55 +0000
-In-Reply-To: <20150118203346.GA29863@amd>
+Received: from mail.kernel.org ([198.145.29.136]:53424 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751147AbbARW3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 18 Jan 2015 17:29:51 -0500
+Content-Disposition: inline
+In-Reply-To: <20150118210217.GB31807@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
-Cc: Nishanth Menon <nm@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, dt list <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Rob Herring <robh+dt@kernel.org>, Jean Delvare <jdelvare@suse.de>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Pali Rohar <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 01/18/2015 12:33 PM, Pavel Machek wrote:
 
->>>> Pavel,
->>>>
->>>> can you look into the omap4 thermal driver to see if it can be used ?
->>>
->>> After some fixes... yes, it seems to be same hardware.
->>>
->> So this should be the way to go, but then we have others claim that
->> it should not be done because the OMAP3 sensors are too unreliable
->> to use for thermal decisions. Not really sure where that leaves us.
->> I am kind of opposed to have similar drivers for similar chips
->> in two different subsystems.
->>
->> Is it possible to add the patch below to the omap thermal driver
->> and not use it for thermal decisions ?
->
-> Well... noone forces you to enable the driver, and I don't think it
-> will do any thermal decisions on N900 as it is ... so we should be ok.
->
-> Plus, it seems to work reasonably well (say +- 5 C), so situation does
-> not seem to be as bad as TI claims.
->
-> Nokia was actually using it in production.
->
-Ok, I'll assume that omap3 support will be added to the omap thermal driver.
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Guenter
+On Sun, Jan 18, 2015 at 10:02:17PM +0100, Pavel Machek wrote:
+> > He reported also some (still not fixed) regressions on n900.
+>=20
+> adp1653 flash driver does not have device tree bindings, yet. Patches
+> were submitted, but I guess I'll need to push them some more.
 
+Yes, but that's not a regression, since mainline kernel does not
+load adp1653 when booted in legacy mode.
+
+-- Sebastian
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUvDPVAAoJENju1/PIO/qaryUP/0A7i1EY0CL6EYR6KCnBxm3y
+eC17z75KbX+mpFwaJj7jABd0E37WpG7dqivnxoYFQVL1zpgr+oUzMjD1pAPc3tr7
+bTNnXR2lH0MKeLBBRfOCjOgKtf6Tyz7DI9/BVBAvOflBlGoi9/uW+HzupGVQ/Bf2
+VbVSMFf0pU+ek8EH1166LzpnN4X+WZCGj08ZsbsL5JHFeluzbxBVM/TakeULnrSC
+3d808dlkZ2Ki3tDgAdYUy//EEFlnFfZ4VoUef1B3NIuOMFas7GuXFSgShrAxMM0w
+2cNQVATxf6OOl5bCqOPE5xu+f4T1MG1KzHFwOQIS6aMaFW9NXrvo3SCTsCnadcS7
+fdj84DQGgbh3m7UuPv+fCX+GviQI75z2GB+J+H/tuu/AJ7il4rqqE/94vMcIICdz
+J4hkqkdMIUCBBO1dmHJ4T0a+01wd+zLyVxGJi2mUH+00HIu/B1o2qblLDMgaCABZ
+bv02b50GEZFT+925seQWocbEpnZ34B99Rt7qgrXfWSqghh1oYUKa7WiWL1sxOIYa
+q3r0cews9RTeF5FsZm8aR2Si1DHCkrMcGo1/p6gyCfBGwGvj4jNIN4VMGAN8jL4e
+Osmbua/4wXkl9HGbWSevdnrVUS1kKWWkbCfirQb6MHgKe0pA8m+vroQ1sqw3MfLR
+g7KU0G++93zldU3dnJwd
+=e4eA
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
