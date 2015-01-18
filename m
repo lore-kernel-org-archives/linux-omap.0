@@ -1,50 +1,42 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Sun, 18 Jan 2015 13:01:39 +0100
-Message-ID: <20150118120139.GA1509@amd>
-References: <20150106170433.GA5408@amd>
+Subject: Re: [PATCH] bluetooth: Add hci_h4p driver
+Date: Sun, 18 Jan 2015 13:02:38 +0100
+Message-ID: <20150118120238.GA16357@amd>
+References: <20141223130219.GA5731@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60574 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60674 "EHLO
 	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685AbbARMBm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Jan 2015 07:01:42 -0500
+	with ESMTP id S1751401AbbARMCk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Jan 2015 07:02:40 -0500
 Content-Disposition: inline
-In-Reply-To: <20150106170433.GA5408@amd>
+In-Reply-To: <20141223130219.GA5731@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, marcel@holtmann.org
 
 Hi!
 
-If you have any idea about playback problems, help would be still
-welcome. I'll have to do bisect, otherwise, and it will not be easy.
-
-> In 3.18, sound is nice and clear.
+> Add HCI driver for H4 with Nokia extensions. This device is used on
+> Nokia N900 cell phone.
 > 
-> In 3.19, sound is unusable. It produces nasty tone when it should be
-> quiet, and there's at least as much noise as is sound.
-> 
-> Unfortunately, list of mixers also changed (and there's cca 120
-> settings), but a) it does not work with the old list and b) nothing I
-> could figure out did make the sound usable. Some setting resulted in
-> even more noise.
-> 
-> Any idea what could have caused it?
+> Older version of this driver lived in staging, before being reverted
+> in a4102f90e87cfaa3fdbed6fdf469b23f0eeb4bfd .
 
-I tried audio recording this time.
+Any news here? I'd like the driver to hit 3.20...
 
-In 2.6.28-nokia, it is neccessary to set "Input select" na "digital
-mic", then it works. Input select being in "playback" option makes it
-easy to miss.
+								Pavel
 
-In 3.18 and 3.19-rc3, all I can record are zeros.
 
-Does playback/recording work for you on OMAP 3430-based machines?
+>  Kconfig      |   10 
+>  Makefile     |    4 
+>  nokia_core.c | 1149 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  nokia_fw.c   |   99 +++++
+>  nokia_h4p.h  |  214 ++++++++++
+>  nokia_uart.c |  171 ++++++++
+>  7 files changed, 1667 insertions(+)
 
-Thanks,
-									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
