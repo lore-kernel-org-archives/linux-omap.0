@@ -1,85 +1,73 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] mfd: tps65218: make INT[12] and STATUS registers
- volatile
-Date: Mon, 19 Jan 2015 08:41:07 -0600
-Message-ID: <20150119144107.GC20386@saruman>
-References: <1419622104-25812-1-git-send-email-balbi@ti.com>
- <1419622104-25812-2-git-send-email-balbi@ti.com>
- <20150118095214.GA3574@x1>
+Subject: Re: [PATCH v2 2/5] usb: dwc3: add revision number DWC3_REVISION_300A
+Date: Mon, 19 Jan 2015 08:46:42 -0600
+Message-ID: <20150119144642.GD20386@saruman>
+References: <1421654209-6486-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1421654209-6486-3-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yLVHuoLXiP9kZBkt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40192 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356AbbASOmZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Jan 2015 09:42:25 -0500
+	protocol="application/pgp-signature"; boundary="SO98HVl1bnMOfKZd"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150118095214.GA3574@x1>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1421654209-6486-3-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sneeker Yeh <sneeker.yeh@gmail.com>, Paul Zimmerman <paul.zimmerman@synopsys.com>, John Youn <johnyoun@synopsys.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, stable@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 
---yLVHuoLXiP9kZBkt
+--SO98HVl1bnMOfKZd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 18, 2015 at 09:52:14AM +0000, Lee Jones wrote:
-> On Fri, 26 Dec 2014, Felipe Balbi wrote:
+Hi,
+
+On Mon, Jan 19, 2015 at 03:56:46PM +0800, Sneeker Yeh wrote:
+> Add the contstant for v3.00a dwc3 IP detection
 >=20
-> > STATUS register can be modified by the HW, so we
-> > should bypass cache because of that.
-> >=20
-> > In the case of INT[12] registers, they are the ones
-> > that actually clear the IRQ source at the time they
-> > are read. If we rely on the cache for them, we will
-> > never be able to clear the interrupt, which will cause
-> > our IRQ line to be disabled due to IRQ throttling.
-> >=20
-> > Fixes: 44b4dc6 mfd: tps65218: Add driver for the TPS65218 PMIC
-> > Cc: <stable@vger.kernel.org> # v3.15+
-> > Cc: Keerthy <j-keerthy@ti.com>
-> > Cc: Lee Jones <lee.jones@linaro.org>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/mfd/tps65218.c | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
+> Signed-off-by: Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
+> ---
+>  drivers/usb/dwc3/core.h |    1 +
+>  1 file changed, 1 insertion(+)
 >=20
-> Sorry for the delay.  It's difficult to get a WiFi signal 2000m up in
-> an Austrian mountain. :)
+> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+> index 4bb9aa6..8090249 100644
+> --- a/drivers/usb/dwc3/core.h
+> +++ b/drivers/usb/dwc3/core.h
+> @@ -776,6 +776,7 @@ struct dwc3 {
+>  #define DWC3_REVISION_260A	0x5533260a
+>  #define DWC3_REVISION_270A	0x5533270a
+>  #define DWC3_REVISION_280A	0x5533280a
+> +#define DWC3_REVISION_300A	0x5533300a
 
-now you're just making excuses ;-)
-
-> Applied now, thanks.
-
-thanks :-)
+looking at Synopsys Solvnet for this IP, it shows that current version
+is 2.90a. There's no 3.00a. Paul, John, is there a 3.00a version of the
+DWC USB3 IP ?
 
 --=20
 balbi
 
---yLVHuoLXiP9kZBkt
+--SO98HVl1bnMOfKZd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUvReDAAoJEIaOsuA1yqREzTEQAKUiV3wcT4B0fNjFeTHiffC4
-GyeF0MVYuexwwnb+EhNfSm3ykAc1DU6T8C0xvcgfWhS9H4hy/EQcVVtVLQJybUm2
-pYZkNuOcN+FN1sZOBIwXwMu3ggmZpltMTW6rmR8wu6/9uWfVwDdg/5vfjyWmMsZu
-8EsXVZzzmrqL1W5Fd+iOr89qlWnLICl8FQ0QdSwdVRgsOZrv7+zB05iXcGPB/SU3
-/bbKFTX8v1fEr6RXJyX86DsJQCy3LZBU70Wienvbk2JJxcn4hH0KHNnHHfKMaTZB
-vGwJqGQ2mP3IEAN23rItI5QQevWIUh+iZgZT/vyjwl+oCfW3dYYCZfdrVMBhrPVY
-GC56zvTHrC5TSlZotbNG+bGNfohNnQ1wJV7YCk1MpCEdCmYoALfIsdtbJDrrIyeN
-xJJwKZMCjPM+C3jQhEq7mgmPrs1nTmHiyQGWu6VxmcauUgbX0hJ0Qbxl1HLcVRNk
-1G1RwrDhkjh4/NUC1Uhaetqq/va8456dhjDRS08JzGF9HfRhEE59meqmnOxiw/qZ
-VPq18e+Qbebf374NMQlr1RioXnj98NVZcNqjG0RI2e0+Zohxy/niCqYaGz6MBBxt
-LtJJvbC1cczRSP7e9bSPVaUxkFh5gclMrwjJYXarlGla84vUckLplqvydMSZcWJd
-zcfWffnqoly6MbeuMQSB
-=lUXq
+iQIcBAEBAgAGBQJUvRjSAAoJEIaOsuA1yqREqyIP/3XBnqW9XhXxzuZNM0P+I+cZ
+0lXliX5TJ6N31c7IxzxWxLizG7oOKCTm7t9dHJtzIWVYIyXg529kslfnl7SYO+2+
+0Nc5uMY3a8EF3Cz5CCwjkhqJIrq8OfNPh1ACBCg60CxY1G956hannwjKIo97RIsG
+PLoxPQW7ryPkK09gi6f1ZCfsj3xMNFma5ulFIogVctor40Psy3bRRT0WdlCkLUi0
+GApw/+jFcDzTgblHrf5B5USuC0rIbWMpdgjuws5XTxbRsqKiC49wpCkB4/Q9URFl
+acinYw9zUsP+FCU0W1dVVQcc8h74nBAOFbqOm/ta6Nbj994euyMKKtgDfXx4gN/F
+k/UT42+qxxP4i7AtijN1s0bEGZl5xCqZ60vVrgdcqjJkDQvBZgbNRT3v0PsobNdL
++CtFAn82N9I2x43Cw5JWlHmT7xeiNYrlVh0Lf67atf6Md0KIvEM2F+T3k7VtjPs7
+6w0ORgRkZQZFggRXP7X4EBOi5KglOGdsVasTldo5l19AeSP6NLrEgbd5WWXMxzWg
+2+3LSirwYcpr0T/Z7Z+Ll8Goh+kUaYRuFZbuwDV3KZ4dVlkPahTTInNxakcAL8Yq
+M/pN0GOG06xqhnYGJdIL2/SgqIOozbNXEbU7dgvqKaWOSMe1aEX92EdsOfyaQL0C
+tXt8D7GzV5GOSHr982z9
+=mmjK
 -----END PGP SIGNATURE-----
 
---yLVHuoLXiP9kZBkt--
+--SO98HVl1bnMOfKZd--
