@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v4 10/21] irqchip: GIC: get rid of routable domain
-Date: Mon, 19 Jan 2015 09:44:04 +0000
-Message-ID: <1421660655-21394-11-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v4 11/21] DT: arm,gic: kill arm,routable-irqs
+Date: Mon, 19 Jan 2015 09:44:05 +0000
+Message-ID: <1421660655-21394-12-git-send-email-marc.zyngier@arm.com>
 References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
@@ -10,134 +10,36 @@ To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail
 Cc: Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The only user of the so called "routable domain" functionality
-now being fixed, let's clean up the GIC.
+Nobody will regret it.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c       | 59 ++++-------------------------------------
- include/linux/irqchip/arm-gic.h |  6 -----
- 2 files changed, 5 insertions(+), 60 deletions(-)
+ Documentation/devicetree/bindings/arm/gic.txt | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index d617ee5..9c30a76 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -795,15 +795,12 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
- 		irq_domain_set_info(d, irq, hw, &gic_chip, d->host_data,
- 				    handle_fasteoi_irq, NULL, NULL);
- 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
--
--		gic_routable_irq_domain_ops->map(d, irq, hw);
- 	}
- 	return 0;
- }
+diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
+index 8112d0c..631cb71 100644
+--- a/Documentation/devicetree/bindings/arm/gic.txt
++++ b/Documentation/devicetree/bindings/arm/gic.txt
+@@ -52,11 +52,6 @@ Optional
+   regions, used when the GIC doesn't have banked registers. The offset is
+   cpu-offset * cpu-nr.
  
- static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
- {
--	gic_routable_irq_domain_ops->unmap(d, irq);
- }
+-- arm,routable-irqs : Total number of gic irq inputs which are not directly
+-		  connected from the peripherals, but are routed dynamically
+-		  by a crossbar/multiplexer preceding the GIC. The GIC irq
+-		  input line is assigned dynamically when the corresponding
+-		  peripheral's crossbar line is mapped.
+ Example:
  
- static int gic_irq_domain_xlate(struct irq_domain *d,
-@@ -822,16 +819,8 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
- 	*out_hwirq = intspec[1] + 16;
- 
- 	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
--	if (!intspec[0]) {
--		ret = gic_routable_irq_domain_ops->xlate(d, controller,
--							 intspec,
--							 intsize,
--							 out_hwirq,
--							 out_type);
--
--		if (IS_ERR_VALUE(ret))
--			return ret;
--	}
-+	if (!intspec[0])
-+		*out_hwirq += 16;
- 
- 	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
- 
-@@ -888,37 +877,6 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
- 	.xlate = gic_irq_domain_xlate,
- };
- 
--/* Default functions for routable irq domain */
--static int gic_routable_irq_domain_map(struct irq_domain *d, unsigned int irq,
--			      irq_hw_number_t hw)
--{
--	return 0;
--}
--
--static void gic_routable_irq_domain_unmap(struct irq_domain *d,
--					  unsigned int irq)
--{
--}
--
--static int gic_routable_irq_domain_xlate(struct irq_domain *d,
--				struct device_node *controller,
--				const u32 *intspec, unsigned int intsize,
--				unsigned long *out_hwirq,
--				unsigned int *out_type)
--{
--	*out_hwirq += 16;
--	return 0;
--}
--
--static const struct irq_domain_ops gic_default_routable_irq_domain_ops = {
--	.map = gic_routable_irq_domain_map,
--	.unmap = gic_routable_irq_domain_unmap,
--	.xlate = gic_routable_irq_domain_xlate,
--};
--
--const struct irq_domain_ops *gic_routable_irq_domain_ops =
--					&gic_default_routable_irq_domain_ops;
--
- void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
- 			   u32 percpu_offset, struct device_node *node)
-@@ -926,7 +884,6 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 	irq_hw_number_t hwirq_base;
- 	struct gic_chip_data *gic;
- 	int gic_irqs, irq_base, i;
--	int nr_routable_irqs;
- 
- 	BUG_ON(gic_nr >= MAX_GIC_NR);
- 
-@@ -982,15 +939,9 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 	gic->gic_irqs = gic_irqs;
- 
- 	if (node) {		/* DT case */
--		const struct irq_domain_ops *ops = &gic_irq_domain_hierarchy_ops;
--
--		if (!of_property_read_u32(node, "arm,routable-irqs",
--					  &nr_routable_irqs)) {
--			ops = &gic_irq_domain_ops;
--			gic_irqs = nr_routable_irqs;
--		}
--
--		gic->domain = irq_domain_add_linear(node, gic_irqs, ops, gic);
-+		gic->domain = irq_domain_add_linear(node, gic_irqs,
-+						    &gic_irq_domain_hierarchy_ops,
-+						    gic);
- 	} else {		/* Non-DT case */
- 		/*
- 		 * For primary GICs, skip over SGIs.
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index 71d706d..3978c5b 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -115,11 +115,5 @@ int gic_get_cpu_id(unsigned int cpu);
- void gic_migrate_target(unsigned int new_cpu_id);
- unsigned long gic_get_sgir_physaddr(void);
- 
--extern const struct irq_domain_ops *gic_routable_irq_domain_ops;
--static inline void __init register_routable_domain_ops
--					(const struct irq_domain_ops *ops)
--{
--	gic_routable_irq_domain_ops = ops;
--}
- #endif /* __ASSEMBLY */
- #endif
+ 	intc: interrupt-controller@fff11000 {
+@@ -64,7 +59,6 @@ Example:
+ 		#interrupt-cells = <3>;
+ 		#address-cells = <1>;
+ 		interrupt-controller;
+-		arm,routable-irqs = <160>;
+ 		reg = <0xfff11000 0x1000>,
+ 		      <0xfff10100 0x100>;
+ 	};
 -- 
 2.1.4
