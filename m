@@ -1,46 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: l2c: OMAP4/AM437x: Additional register
- programming support.
-Date: Mon, 19 Jan 2015 13:28:09 -0800
-Message-ID: <20150119212808.GI18552@atomide.com>
-References: <1420219072-6521-1-git-send-email-nm@ti.com>
- <20150102173859.GE3298@atomide.com>
- <54A6DAE8.90609@ti.com>
-Mime-Version: 1.0
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH] bluetooth: Add hci_h4p driver
+Date: Mon, 19 Jan 2015 13:36:08 -0800
+Message-ID: <CB643345-4B50-4ED0-8C3E-296CD225754D@holtmann.org>
+References: <20141223130219.GA5731@amd>
+Mime-Version: 1.0 (Mac OS X Mail 8.1 \(1993\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54A6DAE8.90609@ti.com>
+In-Reply-To: <20141223130219.GA5731@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Santosh <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [150102 09:55]:
-> On 01/02/2015 11:38 AM, Tony Lindgren wrote:
-> > * Nishanth Menon <nm@ti.com> [150102 09:20]:
-> >> Hi,
-> >>
-> >> OMAP4 and AM437x ROM code provides services to program PL310's latency
-> >> registers and AM437x provides service for programming Address filter
-> >> registers.
-> >>
-> >> Provide support in the kernel for the same.
-> >>
-> >> This provides some support to the series: http://marc.info/?l=linux-arm-kernel&m=141933190912495&w=2
-> > 
-> > Are these to be applied before Thomasz's series as fixes? If we
-> > don't need these as fixes for the -rc, then probably makes sense
-> > for RMK to merge them all together for v3.20.
-> > 
-> These dont need to go in fixes. Can easily wait till 3.20. Thomaz
-> series wont exercise these path by default until someone modifies the
-> DT properties. Yes, will be nice to have them along with other changes
-> in v3.20. just for the record, i made a couple of typos in v1 of this
-> series and have updated a retested v2 of the series.
+Hi Pavel,
 
-Applying both int omap-for-v3.20/fixes thanks.
+> Add HCI driver for H4 with Nokia extensions. This device is used on
+> Nokia N900 cell phone.
+> 
+> Older version of this driver lived in staging, before being reverted
+> in a4102f90e87cfaa3fdbed6fdf469b23f0eeb4bfd .
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Thanks-to: Sebastian Reichel <sre@debian.org>
+> Thanks-to: Joe Perches <joe@perches.com>
+> 
+> ---
+> 
+> Please apply,
+> 								Pavel
+> 
+> 
+> Kconfig      |   10 
+> Makefile     |    4 
+> nokia_core.c | 1149 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+> nokia_fw.c   |   99 +++++
+> nokia_h4p.h  |  214 ++++++++++
+> nokia_uart.c |  171 ++++++++
+> 7 files changed, 1667 insertions(+)
 
-Regards,
+so when I run this through checkpatch --strict, then I get tons of warning that we have DOS style ^M line breaks. There are also trailing whitespace that need fixing. I can use cleanpatch to do this, but so can you.
 
-Tony
+Even after doing that there are still obvious plain coding style violation in the patch. For example:
+
+ERROR: space prohibited before that ',' (ctx:WxW)
+#610: FILE: drivers/bluetooth/nokia_core.c:517:
++			__h4p_set_auto_ctsrts(info, 0 , UART_EFR_RTS);
+ 			                              ^
+
+CHECK: Alignment should match open parenthesis
+#662: FILE: drivers/bluetooth/nokia_core.c:569:
++		h4p_outb(info, UART_OMAP_SCR,
++			     h4p_inb(info, UART_OMAP_SCR) |
+
+CHECK: Blank lines aren't necessary before a close brace '}'
+#692: FILE: drivers/bluetooth/nokia_core.c:599:
++
++}
+
+These are only few. They are more and all these need fixing before I even consider it.
+
+Also this worries me:
+
+WARNING: DT compatible string "brcm,uart,bcm2048" appears un-documented -- check ./Documentation/devicetree/bindings/
+#1222: FILE: drivers/bluetooth/nokia_core.c:1129:
++	{ .compatible = "brcm,uart,bcm2048" },
+
+Regards
+
+Marcel
