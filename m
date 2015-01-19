@@ -1,265 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3.19-rc2 v15 5/8] arm: omap1: Migrate debug_ll macros to
- use 8250.S
-Date: Mon, 19 Jan 2015 13:38:46 -0800
-Message-ID: <20150119213845.GL18552@atomide.com>
-References: <1420461624-4410-1-git-send-email-daniel.thompson@linaro.org>
- <1420461624-4410-6-git-send-email-daniel.thompson@linaro.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2] ARM: omap2plus_defconfig: Enable OHCI & EHCI HCD
+ support
+Date: Mon, 19 Jan 2015 15:41:48 -0600
+Message-ID: <20150119214148.GV20386@saruman>
+References: <1421702916-19018-1-git-send-email-sjoerd.simons@collabora.co.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ln+iIw7POnzHEEo5"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57957 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751758AbbASVnS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Jan 2015 16:43:18 -0500
 Content-Disposition: inline
-In-Reply-To: <1420461624-4410-6-git-send-email-daniel.thompson@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, linaro-kernel@lists.linaro.org, patches@linaro.org, spear-devel@list.st.com, linux-kernel@vger.kernel.org, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1421702916-19018-1-git-send-email-sjoerd.simons@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-omap@vger.kernel.org
 
-* Daniel Thompson <daniel.thompson@linaro.org> [150105 04:49]:
-> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
-> the 8520 code the omap1 macro automatically determines what UART to use
-> based on breadcrumbs left by the bootloader and automatically copes with
-> the eccentric register layout on OMAP7XX.
-> 
-> This patch drops both these features and relies instead on the generic
-> 8250 macros:
-> 
-> 1. Dropping support for the bootloader breadcrumbs is identical to the
->    way the migration was handled for OMAP2 (see 808b7e07464d...).
-> 
-> 2. Support for OMAP7XX still exists but it must be configured by hand
->    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
-> 
-> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
-> Cc: linux-omap@vger.kernel.org
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Acked-by: Tony Lindgren <tony@atomide.com>
+--Ln+iIw7POnzHEEo5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Daniel, I suggest you upload this patch into Russell's patch tracking
-system to get it merged. That at least shrinks down your patch series
-if the other patches need more work.
+On Mon, Jan 19, 2015 at 10:28:36PM +0100, Sjoerd Simons wrote:
+> Enable CONFIG_USB_EHCI_HCD and CONFIG_USB_OHCI_HCD to get USB supports
+> with omap2plus_defconfig.
+>=20
+> Signed-off-by: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
 
-Regards,
-
-Tony
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
 > ---
->  arch/arm/Kconfig.debug                         |  57 +++++++++++++-
->  arch/arm/mach-omap1/include/mach/debug-macro.S | 101 -------------------------
->  2 files changed, 56 insertions(+), 102 deletions(-)
->  delete mode 100644 arch/arm/mach-omap1/include/mach/debug-macro.S
-> 
-> diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
-> index eba36e35bad2..ec25d746b4dd 100644
-> --- a/arch/arm/Kconfig.debug
-> +++ b/arch/arm/Kconfig.debug
-> @@ -527,6 +527,30 @@ choice
->  		  Say Y here if you want kernel low-level debugging support
->  		  on TI-NSPIRE CX models.
->  
-> +	config DEBUG_OMAP1UART1
-> +		bool "Kernel low-level debugging via OMAP1 UART1"
-> +		depends on ARCH_OMAP1
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (except OMAP730) on the UART1.
-> +
-> +	config DEBUG_OMAP1UART2
-> +		bool "Kernel low-level debugging via OMAP1 UART2"
-> +		depends on ARCH_OMAP1
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (except OMAP730) on the UART2.
-> +
-> +	config DEBUG_OMAP1UART3
-> +		bool "Kernel low-level debugging via OMAP1 UART3"
-> +		depends on ARCH_OMAP1
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (except OMAP730) on the UART3.
-> +
->  	config DEBUG_OMAP2UART1
->  		bool "OMAP2/3/4 UART1 (omap2/3 sdp boards and some omap3 boards)"
->  		depends on ARCH_OMAP2PLUS
-> @@ -569,6 +593,30 @@ choice
->  		depends on ARCH_OMAP2PLUS
->  		select DEBUG_OMAP2PLUS_UART
->  
-> +	config DEBUG_OMAP7XXUART1
-> +		bool "Kernel low-level debugging via OMAP730 UART1"
-> +		depends on ARCH_OMAP730
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP730 based platforms on the UART1.
-> +
-> +	config DEBUG_OMAP7XXUART2
-> +		bool "Kernel low-level debugging via OMAP730 UART2"
-> +		depends on ARCH_OMAP730
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP730 based platforms on the UART2.
-> +
-> +	config DEBUG_OMAP7XXUART3
-> +		bool "Kernel low-level debugging via OMAP730 UART3"
-> +		depends on ARCH_OMAP730
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP730 based platforms on the UART3.
-> +
->  	config DEBUG_TI81XXUART1
->  		bool "Kernel low-level debugging messages via TI81XX UART1 (ti8148evm)"
->  		depends on ARCH_OMAP2PLUS
-> @@ -1308,6 +1356,9 @@ config DEBUG_UART_PHYS
->  	default 0xffe40000 if DEBUG_RCAR_GEN1_SCIF0
->  	default 0xffe42000 if DEBUG_RCAR_GEN1_SCIF2
->  	default 0xfff36000 if DEBUG_HIGHBANK_UART
-> +	default 0xfffb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
-> +	default 0xfffb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
-> +	default 0xfffb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
->  	default 0xfffe8600 if DEBUG_UART_BCM63XX
->  	default 0xfffff700 if ARCH_IOP33X
->  	depends on DEBUG_LL_UART_8250 || DEBUG_LL_UART_PL01X || \
-> @@ -1390,6 +1441,9 @@ config DEBUG_UART_VIRT
->  	default 0xfef00000 if ARCH_IXP4XX && !CPU_BIG_ENDIAN
->  	default 0xfef00003 if ARCH_IXP4XX && CPU_BIG_ENDIAN
->  	default 0xfef36000 if DEBUG_HIGHBANK_UART
-> +	default 0xfefb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
-> +	default 0xfefb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
-> +	default 0xfefb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
->  	default 0xfefff700 if ARCH_IOP33X
->  	default 0xff003000 if DEBUG_U300_UART
->  	default DEBUG_UART_PHYS if !MMU
-> @@ -1401,7 +1455,8 @@ config DEBUG_UART_VIRT
->  config DEBUG_UART_8250_SHIFT
->  	int "Register offset shift for the 8250 debug UART"
->  	depends on DEBUG_LL_UART_8250 || DEBUG_UART_8250
-> -	default 0 if FOOTBRIDGE || ARCH_IOP32X || DEBUG_BCM_5301X
-> +	default 0 if FOOTBRIDGE || ARCH_IOP32X || DEBUG_BCM_5301X || \
-> +		DEBUG_OMAP7XXUART1 || DEBUG_OMAP7XXUART2 || DEBUG_OMAP7XXUART3
->  	default 2
->  
->  config DEBUG_UART_8250_WORD
-> diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
-> deleted file mode 100644
-> index 5c1a26c9f490..000000000000
-> --- a/arch/arm/mach-omap1/include/mach/debug-macro.S
-> +++ /dev/null
-> @@ -1,101 +0,0 @@
-> -/* arch/arm/mach-omap1/include/mach/debug-macro.S
-> - *
-> - * Debugging macro include header
-> - *
-> - *  Copyright (C) 1994-1999 Russell King
-> - *  Moved from linux/arch/arm/kernel/debug.S by Ben Dooks
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - *
-> -*/
-> -
-> -#include <linux/serial_reg.h>
-> -
-> -#include "serial.h"
-> -
-> -		.pushsection .data
-> -omap_uart_phys:	.word	0x0
-> -omap_uart_virt:	.word	0x0
-> -		.popsection
-> -
-> -		/*
-> -		 * Note that this code won't work if the bootloader passes
-> -		 * a wrong machine ID number in r1. To debug, just hardcode
-> -		 * the desired UART phys and virt addresses temporarily into
-> -		 * the omap_uart_phys and omap_uart_virt above.
-> -		 */
-> -		.macro	addruart, rp, rv, tmp
-> -
-> -		/* Use omap_uart_phys/virt if already configured */
-> -9:		adr	\rp, 99f		@ get effective addr of 99f
-> -		ldr	\rv, [\rp]		@ get absolute addr of 99f
-> -		sub	\rv, \rv, \rp		@ offset between the two
-> -		ldr	\rp, [\rp, #4]		@ abs addr of omap_uart_phys
-> -		sub	\tmp, \rp, \rv		@ make it effective
-> -		ldr	\rp, [\tmp, #0]		@ omap_uart_phys
-> -		ldr	\rv, [\tmp, #4]		@ omap_uart_virt
-> -		cmp	\rp, #0			@ is port configured?
-> -		cmpne	\rv, #0
-> -		bne	100f			@ already configured
-> -
-> -		/* Check the debug UART configuration set in uncompress.h */
-> -		and	\rp, pc, #0xff000000
-> -		ldr	\rv, =OMAP_UART_INFO_OFS
-> -		ldr	\rp, [\rp, \rv]
-> -
-> -		/* Select the UART to use based on the UART1 scratchpad value */
-> -10:		cmp	\rp, #0			@ no port configured?
-> -		beq	11f			@ if none, try to use UART1
-> -		cmp	\rp, #OMAP1UART1
-> -		beq	11f			@ configure OMAP1UART1
-> -		cmp	\rp, #OMAP1UART2
-> -		beq	12f			@ configure OMAP1UART2
-> -		cmp	\rp, #OMAP1UART3
-> -		beq	13f			@ configure OMAP2UART3
-> -
-> -		/* Configure the UART offset from the phys/virt base */
-> -11:		mov	\rp, #0x00fb0000	@ OMAP1UART1
-> -		b	98f
-> -12:		mov	\rp, #0x00fb0000	@ OMAP1UART1
-> -		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
-> -		b	98f
-> -13:		mov	\rp, #0x00fb0000	@ OMAP1UART1
-> -		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
-> -		orr	\rp, \rp, #0x00009000	@ OMAP1UART3
-> -
-> -		/* Store both phys and virt address for the uart */
-> -98:		add	\rp, \rp, #0xff000000	@ phys base
-> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
-> -		sub	\rp, \rp, #0xff000000	@ phys base
-> -		add	\rp, \rp, #0xfe000000	@ virt base
-> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
-> -		b	9b
-> -
-> -		.align
-> -99:		.word	.
-> -		.word	omap_uart_phys
-> -		.ltorg
-> -
-> -100:
-> -		.endm
-> -
-> -		.macro	senduart,rd,rx
-> -		strb	\rd, [\rx]
-> -		.endm
-> -
-> -		.macro	busyuart,rd,rx
-> -1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
-> -		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-> -		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-> -		beq	1002f
-> -		ldrb	\rd, [\rx, #(UART_LSR << OMAP7XX_PORT_SHIFT)]
-> -		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-> -		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
-> -		bne	1001b
-> -1002:
-> -		.endm
-> -
-> -		.macro	waituart,rd,rx
-> -		.endm
-> -- 
-> 1.9.3
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+> Changes in v2: Enable as modules rather then builtin
+>=20
+>  arch/arm/configs/omap2plus_defconfig | 2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
+2plus_defconfig
+> index c2c3a85..f4009a2 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -159,6 +159,8 @@ CONFIG_USB_NET_SMSC95XX=3Dy
+>  CONFIG_USB_ALI_M5632=3Dy
+>  CONFIG_USB_AN2720=3Dy
+>  CONFIG_USB_EPSON2888=3Dy
+> +CONFIG_USB_EHCI_HCD=3Dm
+> +CONFIG_USB_OHCI_HCD=3Dm
+>  CONFIG_USB_KC2190=3Dy
+>  CONFIG_LIBERTAS=3Dm
+>  CONFIG_LIBERTAS_USB=3Dm
+> --=20
+> 2.1.4
+>=20
+
+--=20
+balbi
+
+--Ln+iIw7POnzHEEo5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUvXocAAoJEIaOsuA1yqREEAIP/1KnxuBd+5s6UajwBbgb9MGW
+TyUh3YBq2fU+eMxNzLOYEfDs0nQTJjEnyZMNQvqTvmhsv7XW2ueubQI9TVv3z4Bt
+qAv+Hjna863mqAxdawmxQcfNhJngBFreR4oKuZzcUib7ooqm6jmWDNRt3LtUrn55
+j3isTRDQ1LnYuPr1FLcc/8kXvAgdkHJh5vt0A598WlK9Di81Bj9OO6Zxw2fKYhhF
+9oy9LnAlfpONYtDLg2rPZvQ5k/anh+Oa9Q9HGCtvNuSYWb1HuwoHO4U/TpRw3ycN
+8HEtyjqLP16e8dcA6M0qQZXHnhMLcDUANWnTiLYu8HP8fJu4Zcic5Z2x6OsXhhpG
+5591SIJpiqgSBS1WKSe6Sy3N59CUsAdoDa7j80ooTzw6PCNLJyLs4H4l4tsPp1JL
+BrMGIlR4gHn0aGIH8F7iwpfgUK8nMboEA3g2Lgp2b5zACRdGshuK1YgUmtrruYml
+hshva1YicoeFlkjN0edkhp4r7+a+zFLbWpNp5fb3j3dp60J+vXPPuEOdyTsSLnkS
+FW3XNzfSQEw0g6xd9nKvmrEW3trxzMbmmBamt8hyNjQtl+Wo2NZMk9VT6Ay74yNO
+TYDi1A/79FmuNEK8OAgY/GhPUtEINIAxc2ZB48JUJEIC6InVHBKt5XMshbv6NH//
+TJGtnpAKQeUAMjL+ae0K
+=Dheh
+-----END PGP SIGNATURE-----
+
+--Ln+iIw7POnzHEEo5--
