@@ -1,853 +1,155 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v9 3/3] clk: Add floor and ceiling constraints to clock rates
-Date: Mon, 19 Jan 2015 18:21:00 +0100
-Message-ID: <1421688067-24426-4-git-send-email-tomeu.vizoso@collabora.com>
-References: <1421688067-24426-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421688067-24426-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ralf Baechle <ralf@linux-mips.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Manuel Lauss <manuel.lauss@gmail.com>, Alex Elder <elder@linaro.org>, Matt Porter <mporter@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, Bintian Wang <bintian.wang@huawei.com>, Chao Xie <chao.xie@marvell.com>, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
+Date: Mon, 19 Jan 2015 09:29:14 -0800
+Message-ID: <20150119172914.GY18552@atomide.com>
+References: <1421192272-20754-1-git-send-email-tony@atomide.com>
+ <1421192272-20754-5-git-send-email-tony@atomide.com>
+ <20150117164709.GS18552@atomide.com>
+ <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
+ <20150117181404.GW18552@atomide.com>
+ <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40306 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbbASRco (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2015 12:32:44 -0500
+Content-Disposition: inline
+In-Reply-To: <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-Adds a way for clock consumers to set maximum and minimum rates. This can be
-used for thermal drivers to set ceiling rates, or by misc. drivers to set
-floor rates to assure a minimum performance level.
+* Matthijs van Duin <matthijsvanduin@gmail.com> [150117 14:41]:
+> On 17 January 2015 at 19:14, Tony Lindgren <tony@atomide.com> wrote:
+> > Oh OK. And looks like dm814x trm claims to have PINCNTL[7:0]
+> > bits for MUXMODE instead of just bits [2:0]?
+> 
+> However, the datasheet's table of possible mux modes per pin has as
+> column headers: 0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80. (mode 0,
+> called "safe mode" is mentioned separately)
+> 
+> For compatibility sake I'm personally more inclined to consider them
+> modes 0-7 with "safe mode" being -1.
+> 
+> Oh, and I just remembered: while 811x is mostly compatible with 814x,
+> it has up to 12 mux modes per pin. So replace "byte-write" by
+> "u16-write" in my previous post ;-)
 
-Changes the signature of the determine_rate callback by adding the
-parameters floor_rate and ceiling_rate.
+Luckily those can be defined which ever way in pinctrl single just
+by changing the pinctrl-single,register-width entry.
+ 
+> > Got any generic naming in mind for the helper macro we could use?
+> 
+> I've already been pondering what to call this family, since
+> architecturally they do very clearly form a fairly close family
+> related to, but also clearly distinct from, the omap4/5 line.
+> 
+> As you may notice from my spreadsheet I already generally prefer to
+> use their names (Netra, Centaurus, Subarctic, Aegis), both because
+> names are rather more memorable and distinguishable for humans than
+> 4-digit numbers and because each actually has a flurry of wildly
+> different part codes depending on which subsystems happen to fail the
+> factory test and get disabled (which may of course be a big deal
+> featurewise but is rather irrelevant to the kernel).
+> 
+> Still leaves four names to unify... I may be biased but I'm leaning
+> towards "Centauroid": Centaurus (814x) seems to have a fairly central
+> position, being memory-map compatible with the there other members
+> (i.e. no subsystem/peripheral of Centaurus overlaps a different one of
+> another device), while the same is not true between Netra (816x) and
+> subarctic (335x).  I suspect this may be because Centaurus and Netra
+> form a single product line (DM81xx) iin one market segment (video)
+> while Centaurus and Subarctic form a single product line (DRA6xx) in
+> another market segment (automotive).
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Well sounds like no need to start messing with the existing ti81xx
+defines excemt maybe rename cpu_is_ti81xx to soc_is_dm81xx and so
+on. There are only very few places referencing that now. 
+ 
+> > Cool, that certainly helps. To me it looks dm814x needs it's own
+> > clock driver for the source clocks, but after that the dividers
+> > are similar to dm816x and am33xx. Have not looked at the am814x
+> > beyond that though.
+> 
+> dm814x you mean... the downfeatured Sitara version got called am387x,
+> naturally. ;-)
 
----
-v9:	* s/floor/min and s/ceiling/max
-	* Add a bunch of NULL checks
-	* Propagate our rate range when querying our parent for the rate
-	* Take constraints into account in clk_round_rate
-	* Add __clk_determine_rate() for clk providers to ask their
-	parents for a rate within their range
-	* Make sure that what ops->round_rate returns when changing
-	rates is within the range
+Yes I mean dm814x sorry :)
+ 
+> The biggest architectural differences between three chips are indeed
+> in PRCM, where each member has its own peculiarities:
+> 
+> Netra and Centaurus both have the simple but clean omap4-subset PRCM.
+> No fancy auto-management by hardware but at least a clean
+> well-organised interface, with the biggest blemish being the
+> register-swap in PRM_SGX.  (Subarctic's PRCM is of course shocking in
+> contrast, being organized by "sort -R", incompatibility with the
+> omap4/5 register layouts, and a seemingly endless supply of novel ways
+> of being inconsistent.)
 
-v7:	* Update a few more instances in new code
+Uhh yeah.
+ 
+> Netra however has the FAPLL experiment, which apparently wasn't a
+> success so while Centaurus retained much of the clock tree it reverted
+> to using normal PLLs by replacing the FAPLLs with its PLL subsystem
+> containing additional clock muxes to sort of glue it onto the existing
+> clock tree, making the clock tree a bit messier. (Especially older
+> versions of the TRM were very confusing to those unfamiliar with this
+> Netra-heritage since FAPLL names were still all over the place.)  In
+> line with the "fully software managed" tradition, it seems to wire
+> *all* control/status signals of the PLLs directly into registers. They
+> can be slightly fickle (and mucking up the MPU PLL can leave you
+> pretty screwed, especially since the watchdog reset doesn't reset the
+> PLLs).
 
-v6:	* Take the prepare lock before removing a per-user clk
-	* Init per-user clks list before adding the first clk
-	* Pass the constraints to determine_rate and let clk
-	  implementations deal with constraints
-	* Add clk_set_rate_range
+Hmm I sort of got the idea that dm814x and dm816x were done about
+the same time. Are you saying dm814x was actually done after dm816x? 
+ 
+> Also important: Centaurus has very similar Ethernet subsystem to that
+> of subarctic, though some components are a slightly older minor
+> revision. In violation of what a "minor revision" normally means, they
+> are however software-incompatible thanks to moving blocks of registers
+> around to different offsets, and some per-port settings became global
+> or vice versa.  This however seems to be a tradition for the 3-port
+> gigabit switch subsystem: out of curiosity I examined the ones in
+> other TI SoCs, and it turns out that literally *all* of them have
+> different, incompatible register layouts (sometimes also extending to
+> the switch table entries and/or DMA descriptors).
 
-v5:	* Initialize clk.ceiling_constraint to ULONG_MAX
-	* Warn about inconsistent constraints
+Yeah this davinci_emac vs cpsw stuff is messy and I noticed too that
+the registers are different. 
+ 
+> Other than this, the subsystems and peripherals are mostly familiar
+> omap4-generation stuff, but with a standard C674x DSP instead of
+> omap4's weird custom "Tesla" DSP (although some Tesla documentation
+> accidentally got copy-pasted into Netra's TRM). An overview of the
+> video situation on Centaurus (afaik, I'm not deeply into the video
+> stuff) can be found in this post, where I was also cheerleading your
+> efforts towards mainline dm81xx support:
+> http://e2e.ti.com/support/dsp/davinci_digital_media_processors/f/716/p/246653/1396681#1396681
 
-v4:	* Copy function docs from header
-	* Move WARN out of critical section
-	* Refresh rate after removing a per-user clk
-	* Rename clk_core.per_user_clks to clk_core.clks
-	* Store requested rate and re-apply it when constraints are updated
----
- Documentation/clk.txt               |   2 +
- arch/arm/mach-omap2/dpll3xxx.c      |   2 +
- arch/arm/mach-omap2/dpll44xx.c      |   2 +
- arch/mips/alchemy/common/clock.c    |   8 ++
- drivers/clk/at91/clk-programmable.c |   2 +
- drivers/clk/bcm/clk-kona.c          |   2 +
- drivers/clk/clk-composite.c         |   9 +-
- drivers/clk/clk.c                   | 216 ++++++++++++++++++++++++++++++------
- drivers/clk/hisilicon/clk-hi3620.c  |   2 +
- drivers/clk/mmp/clk-mix.c           |   2 +
- drivers/clk/qcom/clk-pll.c          |   1 +
- drivers/clk/qcom/clk-rcg.c          |  10 +-
- drivers/clk/qcom/clk-rcg2.c         |   6 +
- drivers/clk/sunxi/clk-factors.c     |   2 +
- drivers/clk/sunxi/clk-sun6i-ar100.c |   2 +
- include/linux/clk-private.h         |   6 +
- include/linux/clk-provider.h        |  15 ++-
- include/linux/clk.h                 |  28 +++++
- include/linux/clk/ti.h              |   4 +
- 19 files changed, 281 insertions(+), 40 deletions(-)
+Yeah all the add on devices are a whole different project.. But if
+we get the basics working then at least somebody can work on that
+if they want to.
+ 
+> There's also an interesting Security Subsystem, which houses the
+> crypto accelerators (2x AES, 2x Hash, DES, PKA, RNG), an SDMA engine,
+> 128 KB + 16 KB of local RAM, a cortex-M3, some timers for its benefit,
+> irq routing, and an elaborate L3 firewall instance covering both
+> external and internal access. It is about as well-documented as the
+> crypto accelerators on the am335x are :P  Still, it's not hard to get
+> it operational, and allows e.g. sequencing of composite crypto
+> operations combined with DMA without the kernel having to micro-manage
+> it, along with secure local key storage.
 
-diff --git a/Documentation/clk.txt b/Documentation/clk.txt
-index 4ff8462..0e4f90a 100644
---- a/Documentation/clk.txt
-+++ b/Documentation/clk.txt
-@@ -73,6 +73,8 @@ the operations defined in clk.h:
- 						unsigned long *parent_rate);
- 		long		(*determine_rate)(struct clk_hw *hw,
- 						unsigned long rate,
-+						unsigned long min_rate,
-+						unsigned long max_rate,
- 						unsigned long *best_parent_rate,
- 						struct clk_hw **best_parent_clk);
- 		int		(*set_parent)(struct clk_hw *hw, u8 index);
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index c2da2a0..ac3fb11 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -473,6 +473,8 @@ void omap3_noncore_dpll_disable(struct clk_hw *hw)
-  * in failure.
-  */
- long omap3_noncore_dpll_determine_rate(struct clk_hw *hw, unsigned long rate,
-+				       unsigned long min_rate,
-+				       unsigned long max_rate,
- 				       unsigned long *best_parent_rate,
- 				       struct clk_hw **best_parent_clk)
- {
-diff --git a/arch/arm/mach-omap2/dpll44xx.c b/arch/arm/mach-omap2/dpll44xx.c
-index 0e58e5a..acacb90 100644
---- a/arch/arm/mach-omap2/dpll44xx.c
-+++ b/arch/arm/mach-omap2/dpll44xx.c
-@@ -222,6 +222,8 @@ out:
-  * in failure.
-  */
- long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk)
- {
-diff --git a/arch/mips/alchemy/common/clock.c b/arch/mips/alchemy/common/clock.c
-index 48a9dfc..4e65404 100644
---- a/arch/mips/alchemy/common/clock.c
-+++ b/arch/mips/alchemy/common/clock.c
-@@ -373,6 +373,8 @@ static long alchemy_calc_div(unsigned long rate, unsigned long prate,
- }
+Hmm that's a lot of accelerators..
  
- static long alchemy_clk_fgcs_detr(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk,
- 					int scale, int maxdiv)
-@@ -546,6 +548,8 @@ static unsigned long alchemy_clk_fgv1_recalc(struct clk_hw *hw,
- }
- 
- static long alchemy_clk_fgv1_detr(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk)
- {
-@@ -678,6 +682,8 @@ static unsigned long alchemy_clk_fgv2_recalc(struct clk_hw *hw,
- }
- 
- static long alchemy_clk_fgv2_detr(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk)
- {
-@@ -897,6 +903,8 @@ static int alchemy_clk_csrc_setr(struct clk_hw *hw, unsigned long rate,
- }
- 
- static long alchemy_clk_csrc_detr(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk)
- {
-diff --git a/drivers/clk/at91/clk-programmable.c b/drivers/clk/at91/clk-programmable.c
-index bbdb1b9..86c8a07 100644
---- a/drivers/clk/at91/clk-programmable.c
-+++ b/drivers/clk/at91/clk-programmable.c
-@@ -56,6 +56,8 @@ static unsigned long clk_programmable_recalc_rate(struct clk_hw *hw,
- 
- static long clk_programmable_determine_rate(struct clk_hw *hw,
- 					    unsigned long rate,
-+					    unsigned long min_rate,
-+					    unsigned long max_rate,
- 					    unsigned long *best_parent_rate,
- 					    struct clk_hw **best_parent_hw)
- {
-diff --git a/drivers/clk/bcm/clk-kona.c b/drivers/clk/bcm/clk-kona.c
-index 1c06f6f..05abae8 100644
---- a/drivers/clk/bcm/clk-kona.c
-+++ b/drivers/clk/bcm/clk-kona.c
-@@ -1032,6 +1032,8 @@ static long kona_peri_clk_round_rate(struct clk_hw *hw, unsigned long rate,
- }
- 
- static long kona_peri_clk_determine_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long min_rate,
-+		unsigned long max_rate,
- 		unsigned long *best_parent_rate, struct clk_hw **best_parent)
- {
- 	struct kona_clk *bcm_clk = to_kona_clk(hw);
-diff --git a/drivers/clk/clk-composite.c b/drivers/clk/clk-composite.c
-index 4386697..dee81b8 100644
---- a/drivers/clk/clk-composite.c
-+++ b/drivers/clk/clk-composite.c
-@@ -56,6 +56,8 @@ static unsigned long clk_composite_recalc_rate(struct clk_hw *hw,
- }
- 
- static long clk_composite_determine_rate(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_p)
- {
-@@ -73,7 +75,9 @@ static long clk_composite_determine_rate(struct clk_hw *hw, unsigned long rate,
- 
- 	if (rate_hw && rate_ops && rate_ops->determine_rate) {
- 		rate_hw->clk = hw->clk;
--		return rate_ops->determine_rate(rate_hw, rate, best_parent_rate,
-+		return rate_ops->determine_rate(rate_hw, rate, min_rate,
-+						max_rate,
-+						best_parent_rate,
- 						best_parent_p);
- 	} else if (rate_hw && rate_ops && rate_ops->round_rate &&
- 		   mux_hw && mux_ops && mux_ops->set_parent) {
-@@ -117,7 +121,8 @@ static long clk_composite_determine_rate(struct clk_hw *hw, unsigned long rate,
- 		return best_rate;
- 	} else if (mux_hw && mux_ops && mux_ops->determine_rate) {
- 		mux_hw->clk = hw->clk;
--		return mux_ops->determine_rate(mux_hw, rate, best_parent_rate,
-+		return mux_ops->determine_rate(mux_hw, rate, min_rate,
-+					       max_rate, best_parent_rate,
- 					       best_parent_p);
- 	} else {
- 		pr_err("clk: clk_composite_determine_rate function called, but no mux or rate callback set!\n");
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index f2a1ff3..55b3124 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -742,12 +742,30 @@ struct clk *__clk_lookup(const char *name)
- 	return !core ? NULL : core->hw->clk;
- }
- 
-+static void clk_core_get_boundaries(struct clk_core *clk,
-+				    unsigned long *min_rate,
-+				    unsigned long *max_rate)
-+{
-+	struct clk *clk_user;
-+
-+	*min_rate = 0;
-+	*max_rate = ULONG_MAX;
-+
-+	hlist_for_each_entry(clk_user, &clk->clks, child_node)
-+		*min_rate = max(*min_rate, clk_user->min_rate);
-+
-+	hlist_for_each_entry(clk_user, &clk->clks, child_node)
-+		*max_rate = min(*max_rate, clk_user->max_rate);
-+}
-+
- /*
-  * Helper for finding best parent to provide a given frequency. This can be used
-  * directly as a determine_rate callback (e.g. for a mux), or from a more
-  * complex clock that may combine a mux with other operations.
-  */
- long __clk_mux_determine_rate(struct clk_hw *hw, unsigned long rate,
-+			      unsigned long min_rate,
-+			      unsigned long max_rate,
- 			      unsigned long *best_parent_rate,
- 			      struct clk_hw **best_parent_p)
- {
-@@ -759,7 +777,8 @@ long __clk_mux_determine_rate(struct clk_hw *hw, unsigned long rate,
- 	if (core->flags & CLK_SET_RATE_NO_REPARENT) {
- 		parent = core->parent;
- 		if (core->flags & CLK_SET_RATE_PARENT)
--			best = clk_core_round_rate(parent, rate);
-+			best = __clk_determine_rate(parent->hw, rate,
-+						    min_rate, max_rate);
- 		else if (parent)
- 			best = clk_core_get_rate(parent);
- 		else
-@@ -774,7 +793,9 @@ long __clk_mux_determine_rate(struct clk_hw *hw, unsigned long rate,
- 		if (!parent)
- 			continue;
- 		if (core->flags & CLK_SET_RATE_PARENT)
--			parent_rate = clk_core_round_rate(parent, rate);
-+			parent_rate = __clk_determine_rate(parent->hw, rate,
-+							   min_rate,
-+							   max_rate);
- 		else
- 			parent_rate = clk_core_get_rate(parent);
- 		if (parent_rate <= rate && parent_rate > best) {
-@@ -1002,9 +1023,11 @@ int clk_enable(struct clk *clk)
- EXPORT_SYMBOL_GPL(clk_enable);
- 
- static unsigned long clk_core_round_rate_nolock(struct clk_core *clk,
--						    unsigned long rate)
-+						unsigned long rate)
- {
- 	unsigned long parent_rate = 0;
-+	unsigned long min_rate;
-+	unsigned long max_rate;
- 	struct clk_core *parent;
- 	struct clk_hw *parent_hw;
- 
-@@ -1016,9 +1039,11 @@ static unsigned long clk_core_round_rate_nolock(struct clk_core *clk,
- 		parent_rate = parent->rate;
- 
- 	if (clk->ops->determine_rate) {
-+		clk_core_get_boundaries(clk, &min_rate, &max_rate);
- 		parent_hw = parent ? parent->hw : NULL;
--		return clk->ops->determine_rate(clk->hw, rate, &parent_rate,
--						&parent_hw);
-+		return clk->ops->determine_rate(clk->hw, rate,
-+						min_rate, max_rate,
-+						&parent_rate, &parent_hw);
- 	} else if (clk->ops->round_rate)
- 		return clk->ops->round_rate(clk->hw, rate, &parent_rate);
- 	else if (clk->flags & CLK_SET_RATE_PARENT)
-@@ -1026,6 +1051,28 @@ static unsigned long clk_core_round_rate_nolock(struct clk_core *clk,
- 	else
- 		return clk->rate;
- }
-+unsigned long __clk_determine_rate(struct clk_hw *hw,
-+				   unsigned long rate,
-+				   unsigned long min_rate,
-+				   unsigned long max_rate)
-+{
-+	unsigned long parent_rate = 0;
-+	struct clk_core *core = hw->core;
-+	struct clk_hw *parent_hw;
-+
-+	if (!core->ops->determine_rate)
-+		return 0;
-+
-+	if (core->parent) {
-+		parent_rate = core->parent->rate;
-+		parent_hw = core->parent->hw;
-+	}
-+
-+	return core->ops->determine_rate(core->hw, rate,
-+					min_rate, max_rate,
-+					&parent_rate, &parent_hw);
-+}
-+EXPORT_SYMBOL_GPL(__clk_determine_rate);
- 
- /**
-  * __clk_round_rate - round the given rate for a clk
-@@ -1450,6 +1497,8 @@ static struct clk_core *clk_calc_new_rates(struct clk_core *clk,
- 	struct clk_hw *parent_hw;
- 	unsigned long best_parent_rate = 0;
- 	unsigned long new_rate;
-+	unsigned long min_rate;
-+	unsigned long max_rate;
- 	int p_index = 0;
- 
- 	/* sanity */
-@@ -1461,16 +1510,22 @@ static struct clk_core *clk_calc_new_rates(struct clk_core *clk,
- 	if (parent)
- 		best_parent_rate = parent->rate;
- 
-+	clk_core_get_boundaries(clk, &min_rate, &max_rate);
-+
- 	/* find the closest rate and parent clk/rate */
- 	if (clk->ops->determine_rate) {
- 		parent_hw = parent ? parent->hw : NULL;
- 		new_rate = clk->ops->determine_rate(clk->hw, rate,
-+						    min_rate,
-+						    max_rate,
- 						    &best_parent_rate,
- 						    &parent_hw);
- 		parent = parent_hw ? parent_hw->core : NULL;
- 	} else if (clk->ops->round_rate) {
- 		new_rate = clk->ops->round_rate(clk->hw, rate,
- 						&best_parent_rate);
-+		if (new_rate < min_rate || new_rate > max_rate)
-+			return NULL;
- 	} else if (!parent || !(clk->flags & CLK_SET_RATE_PARENT)) {
- 		/* pass-through clock without adjustable parent */
- 		clk->new_rate = clk->rate;
-@@ -1608,30 +1663,10 @@ static void clk_change_rate(struct clk_core *clk)
- 		clk_change_rate(clk->new_child);
- }
- 
--/**
-- * clk_set_rate - specify a new rate for clk
-- * @clk: the clk whose rate is being changed
-- * @rate: the new rate for clk
-- *
-- * In the simplest case clk_set_rate will only adjust the rate of clk.
-- *
-- * Setting the CLK_SET_RATE_PARENT flag allows the rate change operation to
-- * propagate up to clk's parent; whether or not this happens depends on the
-- * outcome of clk's .round_rate implementation.  If *parent_rate is unchanged
-- * after calling .round_rate then upstream parent propagation is ignored.  If
-- * *parent_rate comes back with a new rate for clk's parent then we propagate
-- * up to clk's parent and set its rate.  Upward propagation will continue
-- * until either a clk does not support the CLK_SET_RATE_PARENT flag or
-- * .round_rate stops requesting changes to clk's parent_rate.
-- *
-- * Rate changes are accomplished via tree traversal that also recalculates the
-- * rates for the clocks and fires off POST_RATE_CHANGE notifiers.
-- *
-- * Returns 0 on success, -EERROR otherwise.
-- */
--int clk_set_rate(struct clk *clk, unsigned long rate)
-+static int clk_core_set_rate(struct clk_core *clk, unsigned long req_rate)
- {
- 	struct clk_core *top, *fail_clk;
-+	unsigned long rate = req_rate;
- 	int ret = 0;
- 
- 	if (!clk)
-@@ -1641,17 +1676,17 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
- 	clk_prepare_lock();
- 
- 	/* bail early if nothing to do */
--	if (rate == clk_get_rate(clk))
-+	if (rate == clk_core_get_rate_nolock(clk))
- 		goto out;
- 
--	if ((clk->core->flags & CLK_SET_RATE_GATE) &&
--	    clk->core->prepare_count) {
-+	if ((clk->flags & CLK_SET_RATE_GATE) &&
-+	    clk->prepare_count) {
- 		ret = -EBUSY;
- 		goto out;
- 	}
- 
- 	/* calculate new rates and get the topmost changed clock */
--	top = clk_calc_new_rates(clk->core, rate);
-+	top = clk_calc_new_rates(clk, rate);
- 	if (!top) {
- 		ret = -EINVAL;
- 		goto out;
-@@ -1670,13 +1705,104 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
- 	/* change the rates */
- 	clk_change_rate(top);
- 
-+	clk->req_rate = req_rate;
-+
- out:
- 	clk_prepare_unlock();
- 
- 	return ret;
- }
-+
-+/**
-+ * clk_set_rate - specify a new rate for clk
-+ * @clk: the clk whose rate is being changed
-+ * @rate: the new rate for clk
-+ *
-+ * In the simplest case clk_set_rate will only adjust the rate of clk.
-+ *
-+ * Setting the CLK_SET_RATE_PARENT flag allows the rate change operation to
-+ * propagate up to clk's parent; whether or not this happens depends on the
-+ * outcome of clk's .round_rate implementation.  If *parent_rate is unchanged
-+ * after calling .round_rate then upstream parent propagation is ignored.  If
-+ * *parent_rate comes back with a new rate for clk's parent then we propagate
-+ * up to clk's parent and set its rate.  Upward propagation will continue
-+ * until either a clk does not support the CLK_SET_RATE_PARENT flag or
-+ * .round_rate stops requesting changes to clk's parent_rate.
-+ *
-+ * Rate changes are accomplished via tree traversal that also recalculates the
-+ * rates for the clocks and fires off POST_RATE_CHANGE notifiers.
-+ *
-+ * Returns 0 on success, -EERROR otherwise.
-+ */
-+int clk_set_rate(struct clk *clk, unsigned long rate)
-+{
-+	if (!clk)
-+		return 0;
-+
-+	return clk_core_set_rate(clk->core, rate);
-+}
- EXPORT_SYMBOL_GPL(clk_set_rate);
- 
-+int clk_set_rate_range(struct clk *clk, unsigned long min, unsigned long max)
-+{
-+	int ret = 0;
-+
-+	if (!clk)
-+		return 0;
-+
-+	if (min > max) {
-+		pr_err("%s: clk %s dev %s con %s: invalid range [%lu, %lu]\n",
-+		       __func__, clk->core->name, clk->dev_id, clk->con_id,
-+		       min, max);
-+		return -EINVAL;
-+	}
-+
-+	clk_prepare_lock();
-+
-+	if (min != clk->min_rate || max != clk->max_rate) {
-+		clk->min_rate = min;
-+		clk->max_rate = max;
-+		ret = clk_set_rate(clk, clk->core->req_rate);
-+	}
-+
-+	clk_prepare_unlock();
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(clk_set_rate_range);
-+
-+/**
-+ * clk_set_min_rate - set a minimum clock rate for a clock source
-+ * @clk: clock source
-+ * @rate: desired minimum clock rate in Hz
-+ *
-+ * Returns success (0) or negative errno.
-+ */
-+int clk_set_min_rate(struct clk *clk, unsigned long rate)
-+{
-+	if (!clk)
-+		return 0;
-+
-+	return clk_set_rate_range(clk, rate, clk->max_rate);
-+}
-+EXPORT_SYMBOL_GPL(clk_set_min_rate);
-+
-+/**
-+ * clk_set_max_rate - set a maximum clock rate for a clock source
-+ * @clk: clock source
-+ * @rate: desired maximum clock rate in Hz
-+ *
-+ * Returns success (0) or negative errno.
-+ */
-+int clk_set_max_rate(struct clk *clk, unsigned long rate)
-+{
-+	if (!clk)
-+		return 0;
-+
-+	return clk_set_rate_range(clk, clk->min_rate, rate);
-+}
-+EXPORT_SYMBOL_GPL(clk_set_max_rate);
-+
- /**
-  * clk_get_parent - return the parent of a clk
-  * @clk: the clk whose parent gets returned
-@@ -2138,6 +2264,10 @@ struct clk *__clk_register(struct device *dev, struct clk_hw *hw)
- 	else
- 		clk->owner = NULL;
- 
-+	INIT_HLIST_HEAD(&clk->clks);
-+
-+	hw->clk = __clk_create_clk(hw, NULL, NULL);
-+
- 	ret = __clk_init(dev, hw->clk);
- 	if (ret)
- 		return ERR_PTR(ret);
-@@ -2146,6 +2276,19 @@ struct clk *__clk_register(struct device *dev, struct clk_hw *hw)
- }
- EXPORT_SYMBOL_GPL(__clk_register);
- 
-+static void __clk_free_clk(struct clk *clk)
-+{
-+	struct clk_core *core = clk->core;
-+
-+	clk_prepare_lock();
-+	hlist_del(&clk->child_node);
-+	clk_prepare_unlock();
-+
-+	kfree(clk);
-+
-+	clk_core_set_rate(core, core->req_rate);
-+}
-+
- /**
-  * clk_register - allocate a new clock, register it and return an opaque cookie
-  * @dev: device that is registering this clock
-@@ -2205,12 +2348,14 @@ struct clk *clk_register(struct device *dev, struct clk_hw *hw)
- 		}
- 	}
- 
-+	INIT_HLIST_HEAD(&clk->clks);
-+
- 	hw->clk = __clk_create_clk(hw, NULL, NULL);
- 	ret = __clk_init(dev, hw->clk);
- 	if (!ret)
- 		return hw->clk;
- 
--	kfree(hw->clk);
-+	__clk_free_clk(hw->clk);
- fail_parent_names_copy:
- 	while (--i >= 0)
- 		kfree(clk->parent_names[i]);
-@@ -2416,7 +2561,7 @@ void __clk_put(struct clk *clk)
- 		return;
- 
- 	clk_core_put(clk->core);
--	kfree(clk);
-+	__clk_free_clk(clk);
- }
- 
- /***        clk rate change notifiers        ***/
-@@ -2543,6 +2688,11 @@ struct clk *__clk_create_clk(struct clk_hw *hw, const char *dev_id,
- 	clk->core = hw->core;
- 	clk->dev_id = dev_id;
- 	clk->con_id = con_id;
-+	clk->max_rate = ULONG_MAX;
-+
-+	clk_prepare_lock();
-+	hlist_add_head(&clk->child_node, &hw->core->clks);
-+	clk_prepare_unlock();
- 
- 	return clk;
- }
-diff --git a/drivers/clk/hisilicon/clk-hi3620.c b/drivers/clk/hisilicon/clk-hi3620.c
-index 007144f..2e4f6d4 100644
---- a/drivers/clk/hisilicon/clk-hi3620.c
-+++ b/drivers/clk/hisilicon/clk-hi3620.c
-@@ -295,6 +295,8 @@ static unsigned long mmc_clk_recalc_rate(struct clk_hw *hw,
- }
- 
- static long mmc_clk_determine_rate(struct clk_hw *hw, unsigned long rate,
-+			      unsigned long min_rate,
-+			      unsigned long max_rate,
- 			      unsigned long *best_parent_rate,
- 			      struct clk_hw **best_parent_p)
- {
-diff --git a/drivers/clk/mmp/clk-mix.c b/drivers/clk/mmp/clk-mix.c
-index 48fa53c..de6a873 100644
---- a/drivers/clk/mmp/clk-mix.c
-+++ b/drivers/clk/mmp/clk-mix.c
-@@ -202,6 +202,8 @@ error:
- }
- 
- static long mmp_clk_mix_determine_rate(struct clk_hw *hw, unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk)
- {
-diff --git a/drivers/clk/qcom/clk-pll.c b/drivers/clk/qcom/clk-pll.c
-index 60873a7..b4325f6 100644
---- a/drivers/clk/qcom/clk-pll.c
-+++ b/drivers/clk/qcom/clk-pll.c
-@@ -141,6 +141,7 @@ struct pll_freq_tbl *find_freq(const struct pll_freq_tbl *f, unsigned long rate)
- 
- static long
- clk_pll_determine_rate(struct clk_hw *hw, unsigned long rate,
-+		       unsigned long min_rate, unsigned long max_rate,
- 		       unsigned long *p_rate, struct clk_hw **p)
- {
- 	struct clk_pll *pll = to_clk_pll(hw);
-diff --git a/drivers/clk/qcom/clk-rcg.c b/drivers/clk/qcom/clk-rcg.c
-index 0b93972..0039bd7 100644
---- a/drivers/clk/qcom/clk-rcg.c
-+++ b/drivers/clk/qcom/clk-rcg.c
-@@ -368,6 +368,7 @@ clk_dyn_rcg_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
- 
- static long _freq_tbl_determine_rate(struct clk_hw *hw,
- 		const struct freq_tbl *f, unsigned long rate,
-+		unsigned long min_rate, unsigned long max_rate,
- 		unsigned long *p_rate, struct clk_hw **p_hw)
- {
- 	unsigned long clk_flags;
-@@ -397,22 +398,27 @@ static long _freq_tbl_determine_rate(struct clk_hw *hw,
- }
- 
- static long clk_rcg_determine_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long min_rate, unsigned long max_rate,
- 		unsigned long *p_rate, struct clk_hw **p)
- {
- 	struct clk_rcg *rcg = to_clk_rcg(hw);
- 
--	return _freq_tbl_determine_rate(hw, rcg->freq_tbl, rate, p_rate, p);
-+	return _freq_tbl_determine_rate(hw, rcg->freq_tbl, rate, min_rate,
-+			max_rate, p_rate, p);
- }
- 
- static long clk_dyn_rcg_determine_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long min_rate, unsigned long max_rate,
- 		unsigned long *p_rate, struct clk_hw **p)
- {
- 	struct clk_dyn_rcg *rcg = to_clk_dyn_rcg(hw);
- 
--	return _freq_tbl_determine_rate(hw, rcg->freq_tbl, rate, p_rate, p);
-+	return _freq_tbl_determine_rate(hw, rcg->freq_tbl, rate, min_rate,
-+			max_rate, p_rate, p);
- }
- 
- static long clk_rcg_bypass_determine_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long min_rate, unsigned long max_rate,
- 		unsigned long *p_rate, struct clk_hw **p_hw)
- {
- 	struct clk_rcg *rcg = to_clk_rcg(hw);
-diff --git a/drivers/clk/qcom/clk-rcg2.c b/drivers/clk/qcom/clk-rcg2.c
-index 08b8b37..742acfa 100644
---- a/drivers/clk/qcom/clk-rcg2.c
-+++ b/drivers/clk/qcom/clk-rcg2.c
-@@ -208,6 +208,7 @@ static long _freq_tbl_determine_rate(struct clk_hw *hw,
- }
- 
- static long clk_rcg2_determine_rate(struct clk_hw *hw, unsigned long rate,
-+		unsigned long min_rate, unsigned long max_rate,
- 		unsigned long *p_rate, struct clk_hw **p)
- {
- 	struct clk_rcg2 *rcg = to_clk_rcg2(hw);
-@@ -361,6 +362,8 @@ static int clk_edp_pixel_set_rate_and_parent(struct clk_hw *hw,
- }
- 
- static long clk_edp_pixel_determine_rate(struct clk_hw *hw, unsigned long rate,
-+				 unsigned long min_rate,
-+				 unsigned long max_rate,
- 				 unsigned long *p_rate, struct clk_hw **p)
- {
- 	struct clk_rcg2 *rcg = to_clk_rcg2(hw);
-@@ -412,6 +415,7 @@ const struct clk_ops clk_edp_pixel_ops = {
- EXPORT_SYMBOL_GPL(clk_edp_pixel_ops);
- 
- static long clk_byte_determine_rate(struct clk_hw *hw, unsigned long rate,
-+			 unsigned long min_rate, unsigned long max_rate,
- 			 unsigned long *p_rate, struct clk_hw **p_hw)
- {
- 	struct clk_rcg2 *rcg = to_clk_rcg2(hw);
-@@ -476,6 +480,8 @@ static const struct frac_entry frac_table_pixel[] = {
- };
- 
- static long clk_pixel_determine_rate(struct clk_hw *hw, unsigned long rate,
-+				 unsigned long min_rate,
-+				 unsigned long max_rate,
- 				 unsigned long *p_rate, struct clk_hw **p)
- {
- 	struct clk_rcg2 *rcg = to_clk_rcg2(hw);
-diff --git a/drivers/clk/sunxi/clk-factors.c b/drivers/clk/sunxi/clk-factors.c
-index 62e08fb..761029b 100644
---- a/drivers/clk/sunxi/clk-factors.c
-+++ b/drivers/clk/sunxi/clk-factors.c
-@@ -80,6 +80,8 @@ static long clk_factors_round_rate(struct clk_hw *hw, unsigned long rate,
- }
- 
- static long clk_factors_determine_rate(struct clk_hw *hw, unsigned long rate,
-+				       unsigned long min_rate,
-+				       unsigned long max_rate,
- 				       unsigned long *best_parent_rate,
- 				       struct clk_hw **best_parent_p)
- {
-diff --git a/drivers/clk/sunxi/clk-sun6i-ar100.c b/drivers/clk/sunxi/clk-sun6i-ar100.c
-index 3d282fb..63cf149 100644
---- a/drivers/clk/sunxi/clk-sun6i-ar100.c
-+++ b/drivers/clk/sunxi/clk-sun6i-ar100.c
-@@ -45,6 +45,8 @@ static unsigned long ar100_recalc_rate(struct clk_hw *hw,
- }
- 
- static long ar100_determine_rate(struct clk_hw *hw, unsigned long rate,
-+				 unsigned long min_rate,
-+				 unsigned long max_rate,
- 				 unsigned long *best_parent_rate,
- 				 struct clk_hw **best_parent_clk)
- {
-diff --git a/include/linux/clk-private.h b/include/linux/clk-private.h
-index 1cdb727..9089f9d 100644
---- a/include/linux/clk-private.h
-+++ b/include/linux/clk-private.h
-@@ -39,6 +39,7 @@ struct clk_core {
- 	u8			num_parents;
- 	u8			new_parent_index;
- 	unsigned long		rate;
-+	unsigned long		req_rate;
- 	unsigned long		new_rate;
- 	struct clk_core		*new_parent;
- 	struct clk_core		*new_child;
-@@ -50,6 +51,7 @@ struct clk_core {
- 	struct hlist_head	children;
- 	struct hlist_node	child_node;
- 	struct hlist_node	debug_node;
-+	struct hlist_head	clks;
- 	unsigned int		notifier_count;
- #ifdef CONFIG_DEBUG_FS
- 	struct dentry		*dentry;
-@@ -61,6 +63,10 @@ struct clk {
- 	struct clk_core	*core;
- 	const char *dev_id;
- 	const char *con_id;
-+
-+	unsigned long min_rate;
-+	unsigned long max_rate;
-+	struct hlist_node child_node;
- };
- 
- /*
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 5065172..a6ec0b2 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -175,9 +175,12 @@ struct clk_ops {
- 					unsigned long parent_rate);
- 	long		(*round_rate)(struct clk_hw *hw, unsigned long rate,
- 					unsigned long *parent_rate);
--	long		(*determine_rate)(struct clk_hw *hw, unsigned long rate,
--					unsigned long *best_parent_rate,
--					struct clk_hw **best_parent_hw);
-+	long		(*determine_rate)(struct clk_hw *hw,
-+					  unsigned long rate,
-+					  unsigned long min_rate,
-+					  unsigned long max_rate,
-+					  unsigned long *best_parent_rate,
-+					  struct clk_hw **best_parent_hw);
- 	int		(*set_parent)(struct clk_hw *hw, u8 index);
- 	u8		(*get_parent)(struct clk_hw *hw);
- 	int		(*set_rate)(struct clk_hw *hw, unsigned long rate,
-@@ -555,8 +558,14 @@ bool __clk_is_prepared(struct clk *clk);
- bool __clk_is_enabled(struct clk *clk);
- struct clk *__clk_lookup(const char *name);
- long __clk_mux_determine_rate(struct clk_hw *hw, unsigned long rate,
-+			      unsigned long min_rate,
-+			      unsigned long max_rate,
- 			      unsigned long *best_parent_rate,
- 			      struct clk_hw **best_parent_p);
-+unsigned long __clk_determine_rate(struct clk_hw *core,
-+				   unsigned long rate,
-+				   unsigned long min_rate,
-+				   unsigned long max_rate);
- 
- /*
-  * FIXME clock api without lock protection
-diff --git a/include/linux/clk.h b/include/linux/clk.h
-index c7f258a..9368cfa 100644
---- a/include/linux/clk.h
-+++ b/include/linux/clk.h
-@@ -302,6 +302,34 @@ long clk_round_rate(struct clk *clk, unsigned long rate);
- int clk_set_rate(struct clk *clk, unsigned long rate);
- 
- /**
-+ * clk_set_rate_range - set a rate range for a clock source
-+ * @clk: clock source
-+ * @min: desired minimum clock rate in Hz
-+ * @max: desired maximum clock rate in Hz
-+ *
-+ * Returns success (0) or negative errno.
-+ */
-+int clk_set_rate_range(struct clk *clk, unsigned long min, unsigned long max);
-+
-+/**
-+ * clk_set_min_rate - set a minimum clock rate for a clock source
-+ * @clk: clock source
-+ * @rate: desired minimum clock rate in Hz
-+ *
-+ * Returns success (0) or negative errno.
-+ */
-+int clk_set_min_rate(struct clk *clk, unsigned long rate);
-+
-+/**
-+ * clk_set_max_rate - set a maximum clock rate for a clock source
-+ * @clk: clock source
-+ * @rate: desired maximum clock rate in Hz
-+ *
-+ * Returns success (0) or negative errno.
-+ */
-+int clk_set_max_rate(struct clk *clk, unsigned long rate);
-+
-+/**
-  * clk_set_parent - set the parent clock source for this clock
-  * @clk: clock source
-  * @parent: parent clock source
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 55ef529..cfb9e55 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -263,6 +263,8 @@ int omap3_noncore_dpll_set_rate_and_parent(struct clk_hw *hw,
- 					   u8 index);
- long omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
- 				       unsigned long rate,
-+				       unsigned long min_rate,
-+				       unsigned long max_rate,
- 				       unsigned long *best_parent_rate,
- 				       struct clk_hw **best_parent_clk);
- unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
-@@ -272,6 +274,8 @@ long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
- 				    unsigned long *parent_rate);
- long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw,
- 					unsigned long rate,
-+					unsigned long min_rate,
-+					unsigned long max_rate,
- 					unsigned long *best_parent_rate,
- 					struct clk_hw **best_parent_clk);
- u8 omap2_init_dpll_parent(struct clk_hw *hw);
--- 
-1.9.3
+> Once the basics work there's definitely some neat gear on these chips
+> to play with
+
+Yup :)
+
+Tony
