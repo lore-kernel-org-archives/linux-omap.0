@@ -1,41 +1,85 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [patch-net-next v3] net: ethernet: ti: cpsw: fix buld break when NET_POLL_CONTROLLER
-Date: Mon, 19 Jan 2015 11:52:36 -0600
-Message-ID: <1421689956-14369-1-git-send-email-balbi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 3/5] ARM: dts: dra7-evm: Add extcon nodes for USB
+Date: Mon, 19 Jan 2015 19:52:20 +0200
+Message-ID: <1421689942-10201-4-git-send-email-rogerq@ti.com>
+References: <1421689942-10201-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1421689942-10201-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Commit c03abd84634d (net: ethernet: cpsw: don't requests IRQs we don't
-use) left one build breakage when NET_POLL_CONTROLLER is enabled.
+On this EVM, the USB cable state has to be determined via the
+ID pin tied to a GPIO line. We use the gpio-usb-extcon driver
+to read the ID pin and the extcon framework to forward
+the USB cable state information to the USB driver so the
+controller can be configured in the right mode (host/peripheral).
 
-Fix this build break by referring to the correct irqs_table array.
+Gets USB peripheral mode to work on this EVM.
 
-Fixes: c03abd84634d (net: ethernet: cpsw: don't requests IRQs we don't use)
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index ba09ff3c1695..a0e9a2b384f8 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1625,8 +1625,8 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 10b725c..47d9a06 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -26,6 +26,16 @@
+ 		regulator-max-microvolt = <3300000>;
+ 	};
  
- 	cpsw_intr_disable(priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, false);
--	cpsw_rx_interrupt(priv->irq[0], priv);
--	cpsw_tx_interrupt(priv->irq[1], priv);
-+	cpsw_rx_interrupt(priv->irqs_table[0], priv);
-+	cpsw_tx_interrupt(priv->irqs_table[1], priv);
- 	cpdma_ctlr_int_ctrl(priv->dma, true);
- 	cpsw_intr_enable(priv);
- }
++	extcon_usb1: extcon_usb1 {
++		compatible = "linux,extcon-usb";
++		id-gpio = <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
++	};
++
++	extcon_usb2: extcon_usb2 {
++		compatible = "linux,extcon-usb";
++		id-gpio = <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
++	};
++
+ 	vtt_fixed: fixedregulator-vtt {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vtt_fixed";
+@@ -391,6 +401,19 @@
+ 			};
+ 		};
+ 	};
++
++	pcf_gpio_21: gpio@21 {
++		compatible = "ti,pcf8575";
++		reg = <0x21>;
++		lines-initial-states = <0x1408>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&gpio6>;
++		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
++
+ };
+ 
+ &i2c2 {
+@@ -520,6 +543,14 @@
+ 	};
+ };
+ 
++&omap_dwc3_1 {
++	extcon = <&extcon_usb1>;
++};
++
++&omap_dwc3_2 {
++	extcon = <&extcon_usb2>;
++};
++
+ &usb1 {
+ 	dr_mode = "peripheral";
+ 	pinctrl-names = "default";
 -- 
-2.2.0
+2.1.0
