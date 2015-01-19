@@ -1,45 +1,220 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [next-20150119]regression (mm)?
-Date: Mon, 19 Jan 2015 10:42:04 -0600
-Message-ID: <54BD33DC.40200@ti.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH RESEND v8 2/2] clk: Add floor and ceiling constraints to
+ clock rates
+Date: Mon, 19 Jan 2015 18:00:56 +0100
+Message-ID: <CAAObsKA=6tPiR2MMwJ2Wn7mcL-nr_5NtpLL6wmURLGubnVdX6A@mail.gmail.com>
+References: <1421071809-17402-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1421071809-17402-3-git-send-email-tomeu.vizoso@collabora.com> <20150117015701.GB27202@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, linux-next <linux-next@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "Balbi, Felipe" <balbi@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:35051 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751433AbbASRBS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2015 12:01:18 -0500
+In-Reply-To: <20150117015701.GB27202@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ralf Baechle <ralf@linux-mips.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, =?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Manuel Lauss <manuel.lauss@gmail.com>, Alex Elder <elder@linaro.org>, Matt Porter <mporter@linaro.org>, Tim Kryger <tim.kryger@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Chao Xie <chao.xie@marvell.com>, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infra
 
-Hi,
+On 17 January 2015 at 02:57, Stephen Boyd <sboyd@codeaurora.org> wrote:
+> On 01/12, Tomeu Vizoso wrote:
+>> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+>> index 7eddfd8..2793bd7 100644
+>> --- a/drivers/clk/clk.c
+>> +++ b/drivers/clk/clk.c
+>> @@ -1013,8 +1015,8 @@ static unsigned long clk_core_round_rate_nolock(struct clk_core *clk,
+>>
+>>       if (clk->ops->determine_rate) {
+>>               parent_hw = parent ? parent->hw : NULL;
+>> -             return clk->ops->determine_rate(clk->hw, rate, &parent_rate,
+>> -                                             &parent_hw);
+>> +             return clk->ops->determine_rate(clk->hw, rate, 0, ULONG_MAX,
+>> +                                             &parent_rate, &parent_hw);
+>>       } else if (clk->ops->round_rate)
+>>               return clk->ops->round_rate(clk->hw, rate, &parent_rate);
+>>       else if (clk->flags & CLK_SET_RATE_PARENT)
+>> @@ -1453,8 +1458,20 @@ static struct clk_core *clk_calc_new_rates(struct clk_core *clk,
+>>
+>>       /* find the closest rate and parent clk/rate */
+>>       if (clk->ops->determine_rate) {
+>> +             hlist_for_each_entry(clk_user, &clk->clks, child_node) {
+>> +                     floor_rate = max(floor_rate,
+>> +                                      clk_user->floor_constraint);
+>> +             }
+>> +
+>> +             hlist_for_each_entry(clk_user, &clk->clks, child_node) {
+>> +                     ceiling_rate = min(ceiling_rate,
+>> +                                        clk_user->ceiling_constraint);
+>> +             }
+>
+> I would think we need to do this in the clk_round_rate() path as
+> well. We can't just pass 0 and ULONG_MAX there or we'll determine
+> one rate here and another rate in round_rate(), violating the
+> contract between set_rate() and round_rate().
 
-Most platforms seem broken intoday's next tag.
+Right, I have added a test for this.
 
-https://github.com/nmenon/kernel-test-logs/tree/next-20150119
-(defconfig: omap2plus_defconfig)
+>> +
+>>               parent_hw = parent ? parent->hw : NULL;
+>>               new_rate = clk->ops->determine_rate(clk->hw, rate,
+>> +                                                 floor_rate,
+>> +                                                 ceiling_rate,
+>>                                                   &best_parent_rate,
+>>                                                   &parent_hw);
+>>               parent = parent_hw ? parent_hw->core : NULL;
+>
+> We should enforce a constraint if the clk is using the
+> round_rate() op too. If the .round_rate() op returns some rate
+> within range it should be ok.  Otherwise we can fail the rate
+> change because it's out of range.
 
-> [    7.166600] ------------[ cut here ]------------
-> [    7.171676] WARNING: CPU: 0 PID: 54 at mm/mmap.c:2859 exit_mmap+0x1a8/0x21c()
-> [    7.179194] Modules linked in:
-> [    7.182479] CPU: 0 PID: 54 Comm: init Not tainted 3.19.0-rc5-next-20150119-00002-gfdefcded1272 #1
-> [    7.191863] Hardware name: Generic AM33XX (Flattened Device Tree)
-> [    7.198318] [<c00153f0>] (unwind_backtrace) from [<c0011a74>] (show_stack+0x10/0x14)
-> [    7.206528] [<c0011a74>] (show_stack) from [<c0580150>] (dump_stack+0x78/0x94)
-> [    7.214191] [<c0580150>] (dump_stack) from [<c003d4d0>] (warn_slowpath_common+0x7c/0xb4)
-> [    7.222751] [<c003d4d0>] (warn_slowpath_common) from [<c003d524>] (warn_slowpath_null+0x1c/0x24)
-> [    7.232038] [<c003d524>] (warn_slowpath_null) from [<c012de64>] (exit_mmap+0x1a8/0x21c)
-> [    7.240536] [<c012de64>] (exit_mmap) from [<c003abb8>] (mmput+0x44/0xec)
-> [    7.247612] [<c003abb8>] (mmput) from [<c0151368>] (flush_old_exec+0x300/0x5a4)
-> [    7.255357] [<c0151368>] (flush_old_exec) from [<c0195c10>] (load_elf_binary+0x2ec/0x1144)
-> [    7.264111] [<c0195c10>] (load_elf_binary) from [<c0150ea0>] (search_binary_handler+0x88/0x1ac)
-> [    7.273311] [<c0150ea0>] (search_binary_handler) from [<c019554c>] (load_script+0x260/0x280)
-> [    7.282232] [<c019554c>] (load_script) from [<c0150ea0>] (search_binary_handler+0x88/0x1ac)
-> [    7.291066] [<c0150ea0>] (search_binary_handler) from [<c0151f0c>] (do_execveat_common+0x538/0x6c4)
-> [    7.300628] [<c0151f0c>] (do_execveat_common) from [<c01520c4>] (do_execve+0x2c/0x34)
-> [    7.308881] [<c01520c4>] (do_execve) from [<c000e5e0>] (ret_fast_syscall+0x0/0x4c)
-> [    7.316881] ---[ end trace 3b8a46b1b280f423 ]---
+Ok.
 
+> We'll also need to introduce some sort of
+> clk_core_determine_rate(core, rate, min, max) so that clock
+> providers can ask parent clocks to find a rate within some range
+> that they can tolerate. If we update __clk_mux_determine_rate()
+> we can see how that would work out.
 
--- 
-Regards,
-Nishanth Menon
+Ok, I'm testing this case as well now.
+
+>> @@ -1660,13 +1657,92 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
+> [...]
+>> + */
+>> +int clk_set_rate(struct clk *clk, unsigned long rate)
+>> +{
+>> +     return clk_core_set_rate(clk->core, rate);
+>
+> clk could be NULL.
+>
+>> +}
+>>  EXPORT_SYMBOL_GPL(clk_set_rate);
+>>
+>> +int clk_set_rate_range(struct clk *clk, unsigned long min, unsigned long max)
+>> +{
+>> +     int ret = 0;
+>
+> Check for NULL clk.
+>
+>> +
+>> +/**
+>> + * clk_set_floor_rate - set a minimum clock rate for a clock source
+>> + * @clk: clock source
+>> + * @rate: desired minimum clock rate in Hz
+>> + *
+>> + * Returns success (0) or negative errno.
+>> + */
+>> +int clk_set_floor_rate(struct clk *clk, unsigned long rate)
+>> +{
+>> +     return clk_set_rate_range(clk, rate, clk->ceiling_constraint);
+>
+> clk could be NULL.
+>
+>> +}
+>> +EXPORT_SYMBOL_GPL(clk_set_floor_rate);
+>> +
+>> +/**
+>> + * clk_set_ceiling_rate - set a maximum clock rate for a clock source
+>> + * @clk: clock source
+>> + * @rate: desired maximum clock rate in Hz
+>> + *
+>> + * Returns success (0) or negative errno.
+>> + */
+>> +int clk_set_ceiling_rate(struct clk *clk, unsigned long rate)
+>> +{
+>> +     return clk_set_rate_range(clk, clk->floor_constraint, rate);
+>
+> clk could be NULL.
+>
+>> +}
+>> +EXPORT_SYMBOL_GPL(clk_set_ceiling_rate);
+>> +
+>>  static struct clk_core *clk_core_get_parent(struct clk_core *core)
+>>  {
+>>       struct clk_core *parent;
+>> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+>> index 2e65419..ae5c800 100644
+>> --- a/include/linux/clk-provider.h
+>> +++ b/include/linux/clk-provider.h
+>> @@ -175,9 +175,12 @@ struct clk_ops {
+>>                                       unsigned long parent_rate);
+>>       long            (*round_rate)(struct clk_hw *hw, unsigned long rate,
+>>                                       unsigned long *parent_rate);
+>> -     long            (*determine_rate)(struct clk_hw *hw, unsigned long rate,
+>> -                                     unsigned long *best_parent_rate,
+>> -                                     struct clk_hw **best_parent_hw);
+>> +     long            (*determine_rate)(struct clk_hw *hw,
+>> +                                       unsigned long rate,
+>> +                                       unsigned long floor_rate,
+>> +                                       unsigned long ceiling_rate,
+>
+> I wonder if we should call this min_rate and max_rate?
+
+I have gone ahead and replaced all floor/ceiling instances for
+min/max. I don't even remember why I went with the formers any more.
+
+>> +                                       unsigned long *best_parent_rate,
+>> +                                       struct clk_hw **best_parent_hw);
+>>       int             (*set_parent)(struct clk_hw *hw, u8 index);
+>>       u8              (*get_parent)(struct clk_hw *hw);
+>>       int             (*set_rate)(struct clk_hw *hw, unsigned long rate,
+>> diff --git a/include/linux/clk.h b/include/linux/clk.h
+>> index c7f258a..f99ae67 100644
+>> --- a/include/linux/clk.h
+>> +++ b/include/linux/clk.h
+>> @@ -302,6 +302,34 @@ long clk_round_rate(struct clk *clk, unsigned long rate);
+>>  int clk_set_rate(struct clk *clk, unsigned long rate);
+>>
+>>  /**
+>> + * clk_set_rate_range - set a rate range for a clock source
+>> + * @clk: clock source
+>> + * @min: desired minimum clock rate in Hz
+>> + * @max: desired maximum clock rate in Hz
+>> + *
+>> + * Returns success (0) or negative errno.
+>> + */
+>> +int clk_set_rate_range(struct clk *clk, unsigned long min, unsigned long max);
+>> +
+>> +/**
+>> + * clk_set_floor_rate - set a minimum clock rate for a clock source
+>> + * @clk: clock source
+>> + * @rate: desired minimum clock rate in Hz
+>> + *
+>> + * Returns success (0) or negative errno.
+>> + */
+>> +int clk_set_floor_rate(struct clk *clk, unsigned long rate);
+>
+> And this called clk_set_max_rate()?
+>
+>> +
+>> +/**
+>> + * clk_set_ceiling_rate - set a maximum clock rate for a clock source
+>> + * @clk: clock source
+>> + * @rate: desired maximum clock rate in Hz
+>> + *
+>> + * Returns success (0) or negative errno.
+>> + */
+>> +int clk_set_ceiling_rate(struct clk *clk, unsigned long rate);
+>
+> And this called clk_set_min_rate()?
+>
+>> +
+>> +/**
+>>   * clk_set_parent - set the parent clock source for this clock
+>>   * @clk: clock source
+>>   * @parent: parent clock source
+
+Thanks for the review!
+
+Tomeu
+
+> --
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+> a Linux Foundation Collaborative Project
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
