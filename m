@@ -1,43 +1,41 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 5/5] ARM: omap2plus_defconfig: Enable PCF857X and EXTCON_GPIO_USB
-Date: Mon, 19 Jan 2015 19:52:22 +0200
-Message-ID: <1421689942-10201-6-git-send-email-rogerq@ti.com>
-References: <1421689942-10201-1-git-send-email-rogerq@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [patch-net-next v3] net: ethernet: ti: cpsw: fix buld break when NET_POLL_CONTROLLER
+Date: Mon, 19 Jan 2015 11:52:36 -0600
+Message-ID: <1421689956-14369-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421689942-10201-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, mugunthanvnm@ti.com, netdev@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Both are needed for USB cable type detection on dra7-evm.
+Commit c03abd84634d (net: ethernet: cpsw: don't requests IRQs we don't
+use) left one build breakage when NET_POLL_CONTROLLER is enabled.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Fix this build break by referring to the correct irqs_table array.
+
+Fixes: c03abd84634d (net: ethernet: cpsw: don't requests IRQs we don't use)
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/ethernet/ti/cpsw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index c2c3a85..bc23b90 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -203,6 +203,7 @@ CONFIG_SPI_OMAP24XX=y
- CONFIG_PINCTRL_SINGLE=y
- CONFIG_DEBUG_GPIO=y
- CONFIG_GPIO_SYSFS=y
-+CONFIG_GPIO_PCF857X=y
- CONFIG_GPIO_TWL4030=y
- CONFIG_W1=y
- CONFIG_BATTERY_BQ27x00=m
-@@ -326,6 +327,7 @@ CONFIG_DMADEVICES=y
- CONFIG_TI_EDMA=y
- CONFIG_DMA_OMAP=y
- CONFIG_EXTCON=y
-+CONFIG_EXTCON_GPIO_USB=y
- CONFIG_EXTCON_PALMAS=y
- CONFIG_PWM=y
- CONFIG_PWM_TIECAP=y
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index ba09ff3c1695..a0e9a2b384f8 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1625,8 +1625,8 @@ static void cpsw_ndo_poll_controller(struct net_device *ndev)
+ 
+ 	cpsw_intr_disable(priv);
+ 	cpdma_ctlr_int_ctrl(priv->dma, false);
+-	cpsw_rx_interrupt(priv->irq[0], priv);
+-	cpsw_tx_interrupt(priv->irq[1], priv);
++	cpsw_rx_interrupt(priv->irqs_table[0], priv);
++	cpsw_tx_interrupt(priv->irqs_table[1], priv);
+ 	cpdma_ctlr_int_ctrl(priv->dma, true);
+ 	cpsw_intr_enable(priv);
+ }
 -- 
-2.1.0
+2.2.0
