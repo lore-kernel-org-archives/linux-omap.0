@@ -1,51 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] irqchip: omap-intc: fix legacy DMA regression
-Date: Mon, 19 Jan 2015 10:34:09 -0800
-Message-ID: <20150119183409.GZ18552@atomide.com>
-References: <1420563093-26026-1-git-send-email-balbi@ti.com>
- <1420576688-10604-1-git-send-email-balbi@ti.com>
- <20150107030029.GE24989@titan.lakedaemon.net>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH RESEND v8 1/2] clk: Make clk API return per-user struct
+ clk instances
+Date: Mon, 19 Jan 2015 10:40:04 -0800
+Message-ID: <54BD4F84.1010501@codeaurora.org>
+References: <1421071809-17402-1-git-send-email-tomeu.vizoso@collabora.com> <1421071809-17402-2-git-send-email-tomeu.vizoso@collabora.com> <20150117010238.GA27202@codeaurora.org> <CAAObsKAc6kqgBdWpAvAc2fDW42jNtT1hCD_uL8ums0hHCTXgng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150107030029.GE24989@titan.lakedaemon.net>
+In-Reply-To: <CAAObsKAc6kqgBdWpAvAc2fDW42jNtT1hCD_uL8ums0hHCTXgng@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Cooper <jason@lakedaemon.net>
-Cc: Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter =?utf-8?Q?K=C3=BCmmel?= <syntheticpp@gmx.net>, Pavel Machek <pavel@ucw.cz>, Santosh Shilimkar <ssantosh@kernel.org>, stable@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jason Cooper <jason@lakedaemon.net> [150106 19:03]:
-> On Tue, Jan 06, 2015 at 02:38:08PM -0600, Felipe Balbi wrote:
-> > commit 55601c9f2467 (arm: omap: intc: switch over
-> > to linear irq domain) introduced a regression with
-> > SDMA legacy driver because that driver strictly depends
-> > on INTC's IRQs starting at NR_IRQs. Aparently
-> > irq_domain_add_linear() won't guarantee that, since we see
-> > a 7 IRQs difference when booting with and without the
-> > commit cited above.
-> > 
-> > Until arch/arm/plat-omap/dma.c is properly fixed, we
-> > must maintain OMAP2/3 using irq_domain_add_legacy().
-> > 
-> > A FIXME note was added so people know to delete that
-> > code once that legacy DMA driver is fixed up.
-> > 
-> > Fixes: 55601c9f2467 (arm: omap: intc: switch over to linear irq domain)
-> > Cc: <stable@vger.kernel.org> # v3.18
-> > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > Tested-by: Tony Lindgren <tony@atomide.com>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/irqchip/irq-omap-intc.c | 26 +++++++++++++++++++++-----
-> >  1 file changed, 21 insertions(+), 5 deletions(-)
-> 
-> Applied to irqchip/urgent.  Thanks for taking care of the Fixes and
-> stable tags!
+On 01/19/2015 01:55 AM, Tomeu Vizoso wrote:
+> On 17 January 2015 at 02:02, Stephen Boyd <sboyd@codeaurora.org> wrote:
+>> On 01/12, Tomeu Vizoso wrote:
+>>
+>>> +}
+>>>  EXPORT_SYMBOL_GPL(__clk_get_rate);
+>>>
+>>> @@ -630,7 +656,12 @@ out:
+>>>       return !!ret;
+>>>  }
+>>>
+>>> -bool __clk_is_enabled(struct clk *clk)
+>>> +bool __clk_is_prepared(struct clk *clk)
+>>> +{
+>>> +     return clk_core_is_prepared(clk->core);
+>> Oops. clk can be NULL here. Return false if so. Or drop the
+>> function entirely? It looks like it may become unused.
+> Are you thinking of anything specific that the alchemy arch can do
+> instead of calling __clk_is_prepared?
+>
+>
 
-Jason, I'm not seeing this merged into v3.19-rc5, seems to be
-in Linux next though.
+Ah I missed that one. Bad grep.
 
-Regards,
+>>> +}
+>>>  EXPORT_SYMBOL_GPL(__clk_is_enabled);
+>>>
+>>> @@ -762,7 +805,12 @@ void __clk_unprepare(struct clk *clk)
+>>>       if (clk->ops->unprepare)
+>>>               clk->ops->unprepare(clk->hw);
+>>>
+>>> -     __clk_unprepare(clk->parent);
+>>> +     clk_core_unprepare(clk->parent);
+>>> +}
+>>> +
+>>> +void __clk_unprepare(struct clk *clk)
+>>> +{
+>>> +     clk_core_unprepare(clk->core);
+>> OOps. clk can be NULL here. Bail early if so.
+> Actually, looks like nobody is using __clk_prepare nor __clk_unprepare
+> so I'm removing these.
+>
 
-Tony
+Ok.
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
