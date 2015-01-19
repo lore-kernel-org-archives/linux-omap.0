@@ -1,20 +1,20 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v4 14/21] ARM: imx6: convert GPC to stacked domains
-Date: Mon, 19 Jan 2015 09:44:08 +0000
-Message-ID: <1421660655-21394-15-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v4 15/21] ARM: exynos4/5: convert pmu wakeup to stacked domains
+Date: Mon, 19 Jan 2015 09:44:09 +0000
+Message-ID: <1421660655-21394-16-git-send-email-marc.zyngier@arm.com>
 References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:37445 "EHLO
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:37468 "EHLO
 	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183AbbASJpJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2015 04:45:09 -0500
+	with ESMTP id S1752004AbbASJpM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2015 04:45:12 -0500
 In-Reply-To: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Pankaj Dubey <pankaj.dubey@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
 Cc: Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 
-IMX6 has been (ab)using the gic_arch_extn to provide
+Exynos has been (ab)using the gic_arch_extn to provide
 wakeup from suspend, and it makes a lot of sense to convert
 this code to use stacked domains instead.
 
@@ -22,232 +22,190 @@ This patch does just this, updating the DT files to actually
 reflect what the HW provides.
 
 BIG FAT WARNING: because the DTs were so far lying by not
-exposing the fact that the GPC block is actually the first
-interrupt controller in the chain, kernels with this patch
+exposing the fact that the PMU block is actually the first
+interrupt controller in the chain for RTC, kernels with this patch
 applied wont have any suspend-resume facility when booted
-with old DTs, and old kernels with updated DTs won't even boot.
+with old DTs, and old kernels with updated DTs may not even boot.
 
-Tested-by: Stefan Agner <stefan@agner.ch>
-Acked-by: Stefan Agner <stefan@agner.ch>
+Also, I stronly suspect that there is more than two wake-up
+interrupts on these platforms, but I leave it to the maintainers
+to fix their mess.
+
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- arch/arm/boot/dts/imx6qdl.dtsi  |   7 ++-
- arch/arm/boot/dts/imx6sl.dtsi   |   6 +-
- arch/arm/boot/dts/imx6sx.dtsi   |   6 +-
- arch/arm/mach-imx/common.h      |   1 -
- arch/arm/mach-imx/gpc.c         | 127 ++++++++++++++++++++++++++++++++--------
- arch/arm/mach-imx/mach-imx6q.c  |   1 -
- arch/arm/mach-imx/mach-imx6sl.c |   1 -
- arch/arm/mach-imx/mach-imx6sx.c |   1 -
- 8 files changed, 119 insertions(+), 31 deletions(-)
+ arch/arm/boot/dts/exynos4.dtsi    |   4 ++
+ arch/arm/boot/dts/exynos5250.dtsi |   4 ++
+ arch/arm/boot/dts/exynos5420.dtsi |   4 ++
+ arch/arm/mach-exynos/exynos.c     |  14 ++---
+ arch/arm/mach-exynos/suspend.c    | 122 ++++++++++++++++++++++++++++++++++----
+ 5 files changed, 129 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index 4fc03b7..aff9ded 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -53,6 +53,7 @@
- 		interrupt-controller;
- 		reg = <0x00a01000 0x1000>,
- 		      <0x00a00100 0x100>;
-+		interrupt-parent = <&intc>;
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index b8168f1..0e7d74e 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -141,6 +141,9 @@
+ 	pmu_system_controller: system-controller@10020000 {
+ 		compatible = "samsung,exynos4210-pmu", "syscon";
+ 		reg = <0x10020000 0x4000>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&gic>;
  	};
  
- 	clocks {
-@@ -82,7 +83,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		compatible = "simple-bus";
--		interrupt-parent = <&intc>;
-+		interrupt-parent = <&gpc>;
- 		ranges;
- 
- 		dma_apbh: dma-apbh@00110000 {
-@@ -122,6 +123,7 @@
- 			compatible = "arm,cortex-a9-twd-timer";
- 			reg = <0x00a00600 0x20>;
- 			interrupts = <1 13 0xf01>;
-+			interrupt-parent = <&intc>;
- 			clocks = <&clks IMX6QDL_CLK_TWD>;
- 		};
- 
-@@ -694,8 +696,11 @@
- 			gpc: gpc@020dc000 {
- 				compatible = "fsl,imx6q-gpc";
- 				reg = <0x020dc000 0x4000>;
-+				interrupt-controller;
-+				#interrupt-cells = <3>;
- 				interrupts = <0 89 IRQ_TYPE_LEVEL_HIGH>,
- 					     <0 90 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-parent = <&intc>;
- 			};
- 
- 			gpr: iomuxc-gpr@020e0000 {
-diff --git a/arch/arm/boot/dts/imx6sl.dtsi b/arch/arm/boot/dts/imx6sl.dtsi
-index 36ab8e0..0d0962b 100644
---- a/arch/arm/boot/dts/imx6sl.dtsi
-+++ b/arch/arm/boot/dts/imx6sl.dtsi
-@@ -72,6 +72,7 @@
- 		interrupt-controller;
- 		reg = <0x00a01000 0x1000>,
- 		      <0x00a00100 0x100>;
-+		interrupt-parent = <&intc>;
+ 	dsi_0: dsi@11C80000 {
+@@ -253,6 +256,7 @@
+ 	rtc@10070000 {
+ 		compatible = "samsung,s3c6410-rtc";
+ 		reg = <0x10070000 0x100>;
++		interrupt-parent = <&pmu_system_controller>;
+ 		interrupts = <0 44 0>, <0 45 0>;
+ 		clocks = <&clock CLK_RTC>;
+ 		clock-names = "rtc";
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index 0a229fc..1dc5f6b 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -194,6 +194,9 @@
+ 		clock-names = "clkout16";
+ 		clocks = <&clock CLK_FIN_PLL>;
+ 		#clock-cells = <1>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&gic>;
  	};
  
- 	clocks {
-@@ -95,7 +96,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		compatible = "simple-bus";
--		interrupt-parent = <&intc>;
-+		interrupt-parent = <&gpc>;
- 		ranges;
- 
- 		ocram: sram@00900000 {
-@@ -603,7 +604,10 @@
- 			gpc: gpc@020dc000 {
- 				compatible = "fsl,imx6sl-gpc", "fsl,imx6q-gpc";
- 				reg = <0x020dc000 0x4000>;
-+				interrupt-controller;
-+				#interrupt-cells = <3>;
- 				interrupts = <0 89 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-parent = <&intc>;
- 			};
- 
- 			gpr: iomuxc-gpr@020e0000 {
-diff --git a/arch/arm/boot/dts/imx6sx.dtsi b/arch/arm/boot/dts/imx6sx.dtsi
-index 7a24fee..dabaf89 100644
---- a/arch/arm/boot/dts/imx6sx.dtsi
-+++ b/arch/arm/boot/dts/imx6sx.dtsi
-@@ -88,6 +88,7 @@
- 		interrupt-controller;
- 		reg = <0x00a01000 0x1000>,
- 		      <0x00a00100 0x100>;
-+		interrupt-parent = <&intc>;
+ 	sysreg_system_controller: syscon@10050000 {
+@@ -230,6 +233,7 @@
+ 	rtc: rtc@101E0000 {
+ 		clocks = <&clock CLK_RTC>;
+ 		clock-names = "rtc";
++		interrupt-parent = <&pmu_system_controller>;
+ 		status = "disabled";
  	};
  
- 	clocks {
-@@ -131,7 +132,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		compatible = "simple-bus";
--		interrupt-parent = <&intc>;
-+		interrupt-parent = <&gpc>;
- 		ranges;
+diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
+index 517e50f..35ecd36 100644
+--- a/arch/arm/boot/dts/exynos5420.dtsi
++++ b/arch/arm/boot/dts/exynos5420.dtsi
+@@ -309,6 +309,7 @@
+ 	rtc: rtc@101E0000 {
+ 		clocks = <&clock CLK_RTC>;
+ 		clock-names = "rtc";
++		interrupt-parent = <&pmu_system_controller>;
+ 		status = "disabled";
+ 	};
  
- 		pmu {
-@@ -700,7 +701,10 @@
- 			gpc: gpc@020dc000 {
- 				compatible = "fsl,imx6sx-gpc", "fsl,imx6q-gpc";
- 				reg = <0x020dc000 0x4000>;
-+				interrupt-controller;
-+				#interrupt-cells = <3>;
- 				interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-parent = <&intc>;
- 			};
+@@ -748,6 +749,9 @@
+ 		clock-names = "clkout16";
+ 		clocks = <&clock CLK_FIN_PLL>;
+ 		#clock-cells = <1>;
++		interrupt-controller;
++		#interrupt-cells = <3>;
++		interrupt-parent = <&gic>;
+ 	};
  
- 			iomuxc: iomuxc@020e0000 {
-diff --git a/arch/arm/mach-imx/common.h b/arch/arm/mach-imx/common.h
-index cfcdb62..7052302 100644
---- a/arch/arm/mach-imx/common.h
-+++ b/arch/arm/mach-imx/common.h
-@@ -102,7 +102,6 @@ static inline void imx_scu_map_io(void) {}
- static inline void imx_smp_prepare(void) {}
- #endif
- void imx_src_init(void);
--void imx_gpc_init(void);
- void imx_gpc_pre_suspend(bool arm_power_off);
- void imx_gpc_post_resume(void);
- void imx_gpc_mask_all(void);
-diff --git a/arch/arm/mach-imx/gpc.c b/arch/arm/mach-imx/gpc.c
-index 5f3602e..838da3c 100644
---- a/arch/arm/mach-imx/gpc.c
-+++ b/arch/arm/mach-imx/gpc.c
-@@ -22,6 +22,7 @@
- #define GPC_PGC_CPU_PDN		0x2a0
- 
- #define IMR_NUM			4
-+#define GPC_MAX_IRQS		(IMR_NUM * 32)
- 
- static void __iomem *gpc_base;
- static u32 gpc_wake_irqs[IMR_NUM];
-@@ -56,17 +57,17 @@ void imx_gpc_post_resume(void)
- 
- static int imx_gpc_irq_set_wake(struct irq_data *d, unsigned int on)
- {
--	unsigned int idx = d->hwirq / 32 - 1;
-+	unsigned int idx = d->hwirq / 32;
- 	u32 mask;
- 
--	/* Sanity check for SPI irq */
--	if (d->hwirq < 32)
--		return -EINVAL;
--
- 	mask = 1 << d->hwirq % 32;
- 	gpc_wake_irqs[idx] = on ? gpc_wake_irqs[idx] | mask :
- 				  gpc_wake_irqs[idx] & ~mask;
- 
-+	/*
-+	 * Do *not* call into the parent, as the GIC doesn't have any
-+	 * wake-up facility...
-+	 */
- 	return 0;
+ 	sysreg_system_controller: syscon@10050000 {
+diff --git a/arch/arm/mach-exynos/exynos.c b/arch/arm/mach-exynos/exynos.c
+index c13d083..e417fdc 100644
+--- a/arch/arm/mach-exynos/exynos.c
++++ b/arch/arm/mach-exynos/exynos.c
+@@ -175,16 +175,15 @@ static void __init exynos_init_io(void)
+ 	exynos_map_io();
  }
  
-@@ -96,7 +97,7 @@ void imx_gpc_hwirq_unmask(unsigned int hwirq)
- 	void __iomem *reg;
- 	u32 val;
++/*
++ * Apparently, these SoCs are not able to wake-up from suspend using
++ * the PMU. Too bad. Should they suddenly become capable of such a
++ * feat, the matches below should be moved to suspend.c.
++ */
+ static const struct of_device_id exynos_dt_pmu_match[] = {
+ 	{ .compatible = "samsung,exynos3250-pmu" },
+-	{ .compatible = "samsung,exynos4210-pmu" },
+-	{ .compatible = "samsung,exynos4212-pmu" },
+-	{ .compatible = "samsung,exynos4412-pmu" },
+-	{ .compatible = "samsung,exynos4415-pmu" },
+-	{ .compatible = "samsung,exynos5250-pmu" },
+ 	{ .compatible = "samsung,exynos5260-pmu" },
+ 	{ .compatible = "samsung,exynos5410-pmu" },
+-	{ .compatible = "samsung,exynos5420-pmu" },
+ 	{ /*sentinel*/ },
+ };
  
--	reg = gpc_base + GPC_IMR1 + (hwirq / 32 - 1) * 4;
-+	reg = gpc_base + GPC_IMR1 + hwirq / 32 * 4;
- 	val = readl_relaxed(reg);
- 	val &= ~(1 << hwirq % 32);
- 	writel_relaxed(val, reg);
-@@ -107,7 +108,7 @@ void imx_gpc_hwirq_mask(unsigned int hwirq)
- 	void __iomem *reg;
- 	u32 val;
- 
--	reg = gpc_base + GPC_IMR1 + (hwirq / 32 - 1) * 4;
-+	reg = gpc_base + GPC_IMR1 + hwirq / 32 * 4;
- 	val = readl_relaxed(reg);
- 	val |= 1 << (hwirq % 32);
- 	writel_relaxed(val, reg);
-@@ -115,37 +116,115 @@ void imx_gpc_hwirq_mask(unsigned int hwirq)
- 
- static void imx_gpc_irq_unmask(struct irq_data *d)
- {
--	/* Sanity check for SPI irq */
--	if (d->hwirq < 32)
--		return;
+@@ -195,9 +194,6 @@ static void exynos_map_pmu(void)
+ 	np = of_find_matching_node(NULL, exynos_dt_pmu_match);
+ 	if (np)
+ 		pmu_base_addr = of_iomap(np, 0);
 -
- 	imx_gpc_hwirq_unmask(d->hwirq);
-+	irq_chip_unmask_parent(d);
+-	if (!pmu_base_addr)
+-		panic("failed to find exynos pmu register\n");
  }
  
- static void imx_gpc_irq_mask(struct irq_data *d)
- {
--	/* Sanity check for SPI irq */
--	if (d->hwirq < 32)
--		return;
--
- 	imx_gpc_hwirq_mask(d->hwirq);
-+	irq_chip_mask_parent(d);
-+}
-+
-+static struct irq_chip imx_gpc_chip = {
-+	.name		= "GPC",
+ static void __init exynos_init_irq(void)
+diff --git a/arch/arm/mach-exynos/suspend.c b/arch/arm/mach-exynos/suspend.c
+index f8e7dcd..b325ecd 100644
+--- a/arch/arm/mach-exynos/suspend.c
++++ b/arch/arm/mach-exynos/suspend.c
+@@ -18,7 +18,9 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/cpu_pm.h>
+ #include <linux/io.h>
+-#include <linux/irqchip/arm-gic.h>
++#include <linux/irq.h>
++#include <linux/irqdomain.h>
++#include <linux/of_address.h>
+ #include <linux/err.h>
+ #include <linux/regulator/machine.h>
+ 
+@@ -44,8 +46,8 @@
+ #define EXYNOS5420_CPU_STATE	0x28
+ 
+ /**
+- * struct exynos_wkup_irq - Exynos GIC to PMU IRQ mapping
+- * @hwirq: Hardware IRQ signal of the GIC
++ * struct exynos_wkup_irq - PMU IRQ to mask mapping
++ * @hwirq: Hardware IRQ signal of the PMU
+  * @mask: Mask in PMU wake-up mask register
+  */
+ struct exynos_wkup_irq {
+@@ -92,14 +94,14 @@ static unsigned int exynos_pmu_spare3;
+ static u32 exynos_irqwake_intmask = 0xffffffff;
+ 
+ static const struct exynos_wkup_irq exynos4_wkup_irq[] = {
+-	{ 76, BIT(1) }, /* RTC alarm */
+-	{ 77, BIT(2) }, /* RTC tick */
++	{ 44, BIT(1) }, /* RTC alarm */
++	{ 45, BIT(2) }, /* RTC tick */
+ 	{ /* sentinel */ },
+ };
+ 
+ static const struct exynos_wkup_irq exynos5250_wkup_irq[] = {
+-	{ 75, BIT(1) }, /* RTC alarm */
+-	{ 76, BIT(2) }, /* RTC tick */
++	{ 43, BIT(1) }, /* RTC alarm */
++	{ 44, BIT(2) }, /* RTC tick */
+ 	{ /* sentinel */ },
+ };
+ 
+@@ -153,6 +155,109 @@ static int exynos_irq_set_wake(struct irq_data *data, unsigned int state)
+ 	return -ENOENT;
+ }
+ 
++static struct irq_chip exynos_pmu_chip = {
++	.name		= "PMU",
 +	.irq_eoi	= irq_chip_eoi_parent,
-+	.irq_mask	= imx_gpc_irq_mask,
-+	.irq_unmask	= imx_gpc_irq_unmask,
++	.irq_mask	= irq_chip_mask_parent,
++	.irq_unmask	= irq_chip_unmask_parent,
 +	.irq_retrigger	= irq_chip_retrigger_hierarchy,
-+	.irq_set_wake	= imx_gpc_irq_set_wake,
++	.irq_set_wake	= exynos_irq_set_wake,
 +};
 +
-+static int imx_gpc_domain_xlate(struct irq_domain *domain,
-+				struct device_node *controller,
-+				const u32 *intspec,
-+				unsigned int intsize,
-+				unsigned long *out_hwirq,
-+				unsigned int *out_type)
++static int exynos_pmu_domain_xlate(struct irq_domain *domain,
++				   struct device_node *controller,
++				   const u32 *intspec,
++				   unsigned int intsize,
++				   unsigned long *out_hwirq,
++				   unsigned int *out_type)
 +{
 +	if (domain->of_node != controller)
 +		return -EINVAL;	/* Shouldn't happen, really... */
@@ -261,9 +219,9 @@ index 5f3602e..838da3c 100644
 +	return 0;
 +}
 +
-+static int imx_gpc_domain_alloc(struct irq_domain *domain,
-+				  unsigned int irq,
-+				  unsigned int nr_irqs, void *data)
++static int exynos_pmu_domain_alloc(struct irq_domain *domain,
++				   unsigned int virq,
++				   unsigned int nr_irqs, void *data)
 +{
 +	struct of_phandle_args *args = data;
 +	struct of_phandle_args parent_args;
@@ -276,35 +234,27 @@ index 5f3602e..838da3c 100644
 +		return -EINVAL;	/* No PPI should point to this domain */
 +
 +	hwirq = args->args[1];
-+	if (hwirq >= GPC_MAX_IRQS)
-+		return -EINVAL;	/* Can't deal with this */
 +
 +	for (i = 0; i < nr_irqs; i++)
-+		irq_domain_set_hwirq_and_chip(domain, irq + i, hwirq + i,
-+					      &imx_gpc_chip, NULL);
++		irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
++					      &exynos_pmu_chip, NULL);
 +
 +	parent_args = *args;
 +	parent_args.np = domain->parent->of_node;
-+	return irq_domain_alloc_irqs_parent(domain, irq, nr_irqs, &parent_args);
- }
- 
--void __init imx_gpc_init(void)
-+static struct irq_domain_ops imx_gpc_domain_ops = {
-+	.xlate	= imx_gpc_domain_xlate,
-+	.alloc	= imx_gpc_domain_alloc,
++	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, &parent_args);
++}
++
++static struct irq_domain_ops exynos_pmu_domain_ops = {
++	.xlate	= exynos_pmu_domain_xlate,
++	.alloc	= exynos_pmu_domain_alloc,
 +	.free	= irq_domain_free_irqs_common,
 +};
 +
-+static int __init imx_gpc_init(struct device_node *node,
-+			       struct device_node *parent)
- {
--	struct device_node *np;
++static int __init exynos_pmu_irq_init(struct device_node *node,
++				      struct device_node *parent)
++{
 +	struct irq_domain *parent_domain, *domain;
- 	int i;
- 
--	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-gpc");
--	gpc_base = of_iomap(np, 0);
--	WARN_ON(!gpc_base);
++
 +	if (!parent) {
 +		pr_err("%s: no parent, giving up\n", node->full_name);
 +		return -ENODEV;
@@ -316,70 +266,47 @@ index 5f3602e..838da3c 100644
 +		return -ENXIO;
 +	}
 +
-+	gpc_base = of_iomap(node, 0);
-+	if (WARN_ON(!gpc_base))
-+	        return -ENOMEM;
++	pmu_base_addr = of_iomap(node, 0);
 +
-+	domain = irq_domain_add_hierarchy(parent_domain, 0, GPC_MAX_IRQS,
-+					  node, &imx_gpc_domain_ops,
-+					  NULL);
-+	if (!domain) {
-+		iounmap(gpc_base);
++	if (!pmu_base_addr) {
++		pr_err("%s: failed to find exynos pmu register\n",
++		       node->full_name);
 +		return -ENOMEM;
 +	}
- 
- 	/* Initially mask all interrupts */
- 	for (i = 0; i < IMR_NUM; i++)
- 		writel_relaxed(~0, gpc_base + GPC_IMR1 + i * 4);
- 
--	/* Register GPC as the secondary interrupt controller behind GIC */
--	gic_arch_extn.irq_mask = imx_gpc_irq_mask;
--	gic_arch_extn.irq_unmask = imx_gpc_irq_unmask;
--	gic_arch_extn.irq_set_wake = imx_gpc_irq_set_wake;
-+	return 0;
- }
 +
-+/*
-+ * We cannot use the IRQCHIP_DECLARE macro that lives in
-+ * drivers/irqchip, so we're forced to roll our own. Not very nice.
-+ */
-+OF_DECLARE_2(irqchip, imx_gpc, "fsl,imx6q-gpc", imx_gpc_init);
-diff --git a/arch/arm/mach-imx/mach-imx6q.c b/arch/arm/mach-imx/mach-imx6q.c
-index 5057d61..bbe6ff8 100644
---- a/arch/arm/mach-imx/mach-imx6q.c
-+++ b/arch/arm/mach-imx/mach-imx6q.c
-@@ -390,7 +390,6 @@ static void __init imx6q_init_irq(void)
- 	imx_init_revision_from_anatop();
- 	imx_init_l2cache();
- 	imx_src_init();
--	imx_gpc_init();
- 	irqchip_init();
- }
++	domain = irq_domain_add_hierarchy(parent_domain, 0, 0,
++					  node, &exynos_pmu_domain_ops,
++					  NULL);
++	if (!domain) {
++		iounmap(pmu_base_addr);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++#define EXYNOS_PMU_IRQ(symbol, name)	OF_DECLARE_2(irqchip, symbol, name, exynos_pmu_irq_init)
++
++EXYNOS_PMU_IRQ(exynos4210_pmu_irq, "samsung,exynos4210-pmu");
++EXYNOS_PMU_IRQ(exynos4212_pmu_irq, "samsung,exynos4212-pmu");
++EXYNOS_PMU_IRQ(exynos4412_pmu_irq, "samsung,exynos4412-pmu");
++EXYNOS_PMU_IRQ(exynos4415_pmu_irq, "samsung,exynos4415-pmu");
++EXYNOS_PMU_IRQ(exynos5250_pmu_irq, "samsung,exynos5250-pmu");
++EXYNOS_PMU_IRQ(exynos5420_pmu_irq, "samsung,exynos5420-pmu");
++
+ static int exynos_cpu_do_idle(void)
+ {
+ 	/* issue the standby signal into the pm unit. */
+@@ -550,9 +655,6 @@ void __init exynos_pm_init(void)
+ 	}
+ 	pm_data = (struct exynos_pm_data *) match->data;
  
-diff --git a/arch/arm/mach-imx/mach-imx6sl.c b/arch/arm/mach-imx/mach-imx6sl.c
-index 24bfaaf..d39c274 100644
---- a/arch/arm/mach-imx/mach-imx6sl.c
-+++ b/arch/arm/mach-imx/mach-imx6sl.c
-@@ -64,7 +64,6 @@ static void __init imx6sl_init_irq(void)
- 	imx_init_revision_from_anatop();
- 	imx_init_l2cache();
- 	imx_src_init();
--	imx_gpc_init();
- 	irqchip_init();
- }
- 
-diff --git a/arch/arm/mach-imx/mach-imx6sx.c b/arch/arm/mach-imx/mach-imx6sx.c
-index 7a96c65..72fa22d 100644
---- a/arch/arm/mach-imx/mach-imx6sx.c
-+++ b/arch/arm/mach-imx/mach-imx6sx.c
-@@ -84,7 +84,6 @@ static void __init imx6sx_init_irq(void)
- 	imx_init_revision_from_anatop();
- 	imx_init_l2cache();
- 	imx_src_init();
--	imx_gpc_init();
- 	irqchip_init();
- }
- 
+-	/* Platform-specific GIC callback */
+-	gic_arch_extn.irq_set_wake = exynos_irq_set_wake;
+-
+ 	/* All wakeup disable */
+ 	tmp = pmu_raw_readl(S5P_WAKEUP_MASK);
+ 	tmp |= pm_data->wake_disable_mask;
 -- 
 2.1.4
 
