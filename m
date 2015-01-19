@@ -1,102 +1,138 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: Add board-generic.c entry for ti81xx
-Date: Mon, 19 Jan 2015 14:42:01 -0600
-Message-ID: <20150119204201.GQ20386@saruman>
-References: <1421192272-20754-1-git-send-email-tony@atomide.com>
- <1421192272-20754-2-git-send-email-tony@atomide.com>
- <54B67461.9010402@cogentembedded.com>
- <20150115000713.GV2419@atomide.com>
- <20150119191833.GC18552@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v9 2/3] clk: Make clk API return per-user struct clk
+ instances
+Date: Mon, 19 Jan 2015 12:59:08 -0800
+Message-ID: <20150119205908.GC27202@codeaurora.org>
+References: <1421688067-24426-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1421688067-24426-3-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QVgWX4+QEldMe/r9"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55749 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751317AbbASUn3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Jan 2015 15:43:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20150119191833.GC18552@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
-
---QVgWX4+QEldMe/r9
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1421688067-24426-3-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 19, 2015 at 11:18:34AM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150114 16:14]:
-> > * Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [150114 05:54]:
-> > > Hello.
-> > >=20
-> > > On 1/14/2015 2:37 AM, Tony Lindgren wrote:
-> > >=20
-> > > >This allows booting ti81xx boards with with when a .dts
-> > >=20
-> > >    So, with, with or when? :-)
-> >=20
-> > Heh thanks will updated to:
-> >=20
-> > This allows booting ti81xx boards when a .dts file
-> > is in place.
->=20
-> This too needs to be in a separate ifdef CONFIG_SOC_TI81XX block
-> to avoid make randconfig build errors. Updated patch below.
->=20
-> Regards,
->=20
-> Tony
->=20
-> 8< -----------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 19 Jan 2015 10:38:07 -0800
-> Subject: [PATCH] ARM: OMAP2+: Add board-generic.c entry for ti81xx
->=20
-> This allows booting ti81xx boards when a .dts file
-> is in place.
->=20
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->=20
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -142,6 +142,42 @@ DT_MACHINE_START(AM3517_DT, "Generic AM3517 (Flatten=
-ed Device Tree)")
->  	.dt_compat	=3D am3517_boards_compat,
->  	.restart	=3D omap3xxx_restart,
->  MACHINE_END
+On 01/19, Tomeu Vizoso wrote:
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index 97f3425..f2a1ff3 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -694,32 +751,32 @@ long __clk_mux_determine_rate(struct clk_hw *hw, unsigned long rate,
+>  			      unsigned long *best_parent_rate,
+>  			      struct clk_hw **best_parent_p)
+>  {
+> -	struct clk *clk = hw->clk, *parent, *best_parent = NULL;
+> +	struct clk_core *core = hw->clk->core, *parent, *best_parent = NULL;
+
+Can't we just use hw->core here?
+
+>  	int i, num_parents;
+>  	unsigned long parent_rate, best = 0;
+>  
+>  
+> @@ -820,15 +877,18 @@ int clk_prepare(struct clk *clk)
+>  {
+>  	int ret;
+>  
+> +	if (IS_ERR_OR_NULL(clk))
+> +		return PTR_ERR(clk);
+
+What's going on here? Should be if (!clk)?
+
 > +
-> +static const char *const ti814x_boards_compat[] __initconst =3D {
+>  	clk_prepare_lock();
+> -	ret = __clk_prepare(clk);
+> +	ret = clk_core_prepare(clk->core);
+>  	clk_prepare_unlock();
+>  
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(clk_prepare);
+> @@ -1066,9 +1149,24 @@ long clk_get_accuracy(struct clk *clk)
+>  
+>  	return accuracy;
+>  }
+> +
+> +/**
+> + * clk_get_accuracy - return the accuracy of clk
+> + * @clk: the clk whose accuracy is being returned
+> + *
+> + * Simply returns the cached accuracy of the clk, unless
+> + * CLK_GET_ACCURACY_NOCACHE flag is set, which means a recalc_rate will be
+> + * issued.
+> + * If clk is NULL then returns 0.
+> + */
+> +long clk_get_accuracy(struct clk *clk)
+> +{
+> +	return clk_core_get_accuracy(clk->core);
 
-should this definition be within that ifdef too ?
+Oops. Missing NULL check.
 
---=20
-balbi
+> +}
+>  EXPORT_SYMBOL_GPL(clk_get_accuracy);
+>  
+> @@ -1130,14 +1220,29 @@ unsigned long clk_get_rate(struct clk *clk)
+[...]
+> + *
+> + * Simply returns the cached rate of the clk, unless CLK_GET_RATE_NOCACHE flag
+> + * is set, which means a recalc_rate will be issued.
+> + * If clk is NULL then returns 0.
+> + */
+> +unsigned long clk_get_rate(struct clk *clk)
+> +{
+> +	return clk_core_get_rate(clk->core);
 
---QVgWX4+QEldMe/r9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Oops. Missing NULL check.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> +}
+>  EXPORT_SYMBOL_GPL(clk_get_rate);
+> @@ -1629,37 +1741,26 @@ static struct clk *__clk_init_parent(struct clk *clk)
+[...]
+> -int clk_set_parent(struct clk *clk, struct clk *parent)
+> +void __clk_reparent(struct clk *clk, struct clk *new_parent)
+> +{
+> +	clk_core_reparent(clk->core, new_parent->core);
+> +}
 
-iQIcBAEBAgAGBQJUvWwZAAoJEIaOsuA1yqREaaIP/itQCRkuRBEEMvs6f2PmokWX
-3+bA5lm3kUYKAczOeHNZ4lAS0sl4nhTIiSv5oLkbtGxdHPvjNqWicIkaq57r+VfH
-nVN437/3Dw2Caqy6sme1TK1sHfyZJ9CSAhORhyAmqQlqwIBTM7B6qtiLjqSrsXy1
-RxuVVxubskR1f19ew291j2mm2uhLWvtTXqHUWHICZ96GitsHnYezQh7pg4eFzrTI
-j329bpdni1IX8JP6PDLM82Higo3Fen2uHYPFtuoAjrJ7MiP4bbASDqz3WuFa4JWI
-5AgckQDiwrp2TbrnQpvn+wHq13nXzya8k2VOjYAhzjXu0IFAg9DoB8Z57FnzflN5
-2M0A9ksVkH6iSoXLboNK9Ylurao6R4OP05pAjMXmVX8wav1RqpOIZs7QTHveiChv
-52JCuB0vWnNKH3z+NQ5vI1wrNrHSNbC9eCGc/3OFkSw0Q5eiXHueDfRcw91yPPAI
-k9NAkIYhWL3iIsZxfPmQ07bD7E3hSptvhImpf5kxdHfR/ufoVE0xm3K897gR67mm
-bnZarkFnceNSHaKHkYGGVi0JbqcTJ0yKpQqimegQmdQ/NjPeghOzhOQMx2O6cFll
-Ewffuk87RozXLavj7qpPlCcvOPPtKV5u8ZyEd0e1ZkHZtyrf9UXO8ucf7bhvtYG/
-IgR45i2QJuT8O53kSrWx
-=Absb
------END PGP SIGNATURE-----
+Is this used? Looks like we can remove it. Sorry, not sure how I
+missed this last time.
 
---QVgWX4+QEldMe/r9--
+> +
+> +static int clk_core_set_parent(struct clk_core *clk, struct clk_core *parent)
+>  {
+>  	int ret = 0;
+>  	int p_index = 0;
+> @@ -1719,6 +1820,28 @@ out:
+[...]
+> +int clk_set_parent(struct clk *clk, struct clk *parent)
+> +{
+> +	return clk_core_set_parent(clk->core, parent->core);
+
+Oops. Missing NULL check for both inputs.
+
+> +}
+>  EXPORT_SYMBOL_GPL(clk_set_parent);
+>  
+>  /**
+> @@ -1793,18 +1909,31 @@ out:
+>  }
+>  
+>  /**
+> + * clk_get_phase - return the phase shift of a clock signal
+> + * @clk: clock signal source
+> + *
+> + * Returns the phase shift of a clock node in degrees, otherwise returns
+> + * -EERROR.
+> + */
+> +int clk_get_phase(struct clk *clk)
+> +{
+> +	return clk_core_get_phase(clk->core);
+
+Oops. Missing NULL check.
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
