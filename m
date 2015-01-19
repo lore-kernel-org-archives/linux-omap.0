@@ -1,51 +1,105 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: l2c: OMAP4/AM437x: Additional register
- programming support.
-Date: Mon, 19 Jan 2015 13:32:54 -0800
-Message-ID: <20150119213252.GJ18552@atomide.com>
-References: <1420219072-6521-1-git-send-email-nm@ti.com>
- <20150102173859.GE3298@atomide.com>
- <54A6DAE8.90609@ti.com>
- <20150119212808.GI18552@atomide.com>
+Subject: Re: [PATCH] irqchip: omap-intc: improve IRQ handler
+Date: Mon, 19 Jan 2015 13:34:59 -0800
+Message-ID: <20150119213458.GK18552@atomide.com>
+References: <1420224433-27001-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24773 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751345AbbASVi3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2015 16:38:29 -0500
 Content-Disposition: inline
-In-Reply-To: <20150119212808.GI18552@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Santosh <ssantosh@kernel.org>, Sekhar Nori <nsekhar@ti.com>
+In-Reply-To: <1420224433-27001-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Tony Lindgren <tony@atomide.com> [150119 13:35]:
-> * Nishanth Menon <nm@ti.com> [150102 09:55]:
-> > On 01/02/2015 11:38 AM, Tony Lindgren wrote:
-> > > * Nishanth Menon <nm@ti.com> [150102 09:20]:
-> > >> Hi,
-> > >>
-> > >> OMAP4 and AM437x ROM code provides services to program PL310's latency
-> > >> registers and AM437x provides service for programming Address filter
-> > >> registers.
-> > >>
-> > >> Provide support in the kernel for the same.
-> > >>
-> > >> This provides some support to the series: http://marc.info/?l=linux-arm-kernel&m=141933190912495&w=2
-> > > 
-> > > Are these to be applied before Thomasz's series as fixes? If we
-> > > don't need these as fixes for the -rc, then probably makes sense
-> > > for RMK to merge them all together for v3.20.
-> > > 
-> > These dont need to go in fixes. Can easily wait till 3.20. Thomaz
-> > series wont exercise these path by default until someone modifies the
-> > DT properties. Yes, will be nice to have them along with other changes
-> > in v3.20. just for the record, i made a couple of typos in v1 of this
-> > series and have updated a retested v2 of the series.
+* Felipe Balbi <balbi@ti.com> [150102 10:50]:
+> as it turns out the current IRQ number will
+> *always* be available from SIR register which
+> renders the reads of PENDING registers as plain
+> unnecessary overhead.
 > 
-> Applying both int omap-for-v3.20/fixes thanks.
+> In order to catch any situation where SIR reads
+> as zero, we're adding a WARN() to turn it into
+> a very verbose error and users actually report
+> it.
+> 
+> With this patch average running time of
+> omap_intc_handle_irq() reduced from about 28.5us
+> to 19.8us as measured by the kernel function
+> profiler.
+> 
+> Tested with BeagleBoneBlack Rev A5C.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Oops actually not applying based on reading the comments in v2
-of this series. Please repost if you still want to patch something.
+Jason, looks like this is not showing up in Linux next. The
+same for the changes I did for dm81xx.
 
 Regards,
 
 Tony
+
+> ---
+> 
+> Before applying, it would be very nice to get reports
+> from other folks on different platforms, specially OMAP2/3
+> ones which I don't have (easy) access.
+> 
+>  drivers/irqchip/irq-omap-intc.c | 35 +++++------------------------------
+>  1 file changed, 5 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+> index 28718d3..a2da6d5 100644
+> --- a/drivers/irqchip/irq-omap-intc.c
+> +++ b/drivers/irqchip/irq-omap-intc.c
+> @@ -315,37 +315,12 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+>  static asmlinkage void __exception_irq_entry
+>  omap_intc_handle_irq(struct pt_regs *regs)
+>  {
+> -	u32 irqnr = 0;
+> -	int handled_irq = 0;
+> -	int i;
+> -
+> -	do {
+> -		for (i = 0; i < omap_nr_pending; i++) {
+> -			irqnr = intc_readl(INTC_PENDING_IRQ0 + (0x20 * i));
+> -			if (irqnr)
+> -				goto out;
+> -		}
+> -
+> -out:
+> -		if (!irqnr)
+> -			break;
+> -
+> -		irqnr = intc_readl(INTC_SIR);
+> -		irqnr &= ACTIVEIRQ_MASK;
+> +	u32 irqnr;
+>  
+> -		if (irqnr) {
+> -			handle_domain_irq(domain, irqnr, regs);
+> -			handled_irq = 1;
+> -		}
+> -	} while (irqnr);
+> -
+> -	/*
+> -	 * If an irq is masked or deasserted while active, we will
+> -	 * keep ending up here with no irq handled. So remove it from
+> -	 * the INTC with an ack.
+> -	 */
+> -	if (!handled_irq)
+> -		omap_ack_irq(NULL);
+> +	irqnr = intc_readl(INTC_SIR);
+> +	irqnr &= ACTIVEIRQ_MASK;
+> +	WARN(!irqnr, "Spuriour IRQ ?\n");
+> +	handle_domain_irq(domain, irqnr, regs);
+>  }
+>  
+>  void __init omap2_init_irq(void)
+> -- 
+> 2.2.0
+> 
