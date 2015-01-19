@@ -1,64 +1,141 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
-Date: Sun, 18 Jan 2015 23:29:45 +0100
-Message-ID: <20150118222944.GA1698@earth.universe>
-References: <1421171865-5209-1-git-send-email-tony@atomide.com>
- <10549142.7lWnPtPtZG@wuerfel>
- <20150113204219.GJ2419@atomide.com>
- <201501132150.56938@pali>
- <20150118210217.GB31807@amd>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.19-rc4
+Date: Mon, 19 Jan 2015 04:23:23 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501190422070.5450@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53424 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751147AbbARW3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 18 Jan 2015 17:29:51 -0500
-Content-Disposition: inline
-In-Reply-To: <20150118210217.GB31807@amd>
+Received: from utopia.booyaka.com ([74.50.51.50]:42703 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751128AbbASEXY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Jan 2015 23:23:24 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here are some basic OMAP test results for Linux v3.19-rc4.
+Logs and other details at:
 
-On Sun, Jan 18, 2015 at 10:02:17PM +0100, Pavel Machek wrote:
-> > He reported also some (still not fixed) regressions on n900.
->=20
-> adp1653 flash driver does not have device tree bindings, yet. Patches
-> were submitted, but I guess I'll need to push them some more.
+    http://www.pwsan.com/omap/testlogs/test_v3.19-rc4/20150118192109/
 
-Yes, but that's not a regression, since mainline kernel does not
-load adp1653 when booted in legacy mode.
 
--- Sebastian
+Test summary
+------------
 
---ZPt4rx8FFjLCG7dd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-iQIcBAEBCgAGBQJUvDPVAAoJENju1/PIO/qaryUP/0A7i1EY0CL6EYR6KCnBxm3y
-eC17z75KbX+mpFwaJj7jABd0E37WpG7dqivnxoYFQVL1zpgr+oUzMjD1pAPc3tr7
-bTNnXR2lH0MKeLBBRfOCjOgKtf6Tyz7DI9/BVBAvOflBlGoi9/uW+HzupGVQ/Bf2
-VbVSMFf0pU+ek8EH1166LzpnN4X+WZCGj08ZsbsL5JHFeluzbxBVM/TakeULnrSC
-3d808dlkZ2Ki3tDgAdYUy//EEFlnFfZ4VoUef1B3NIuOMFas7GuXFSgShrAxMM0w
-2cNQVATxf6OOl5bCqOPE5xu+f4T1MG1KzHFwOQIS6aMaFW9NXrvo3SCTsCnadcS7
-fdj84DQGgbh3m7UuPv+fCX+GviQI75z2GB+J+H/tuu/AJ7il4rqqE/94vMcIICdz
-J4hkqkdMIUCBBO1dmHJ4T0a+01wd+zLyVxGJi2mUH+00HIu/B1o2qblLDMgaCABZ
-bv02b50GEZFT+925seQWocbEpnZ34B99Rt7qgrXfWSqghh1oYUKa7WiWL1sxOIYa
-q3r0cews9RTeF5FsZm8aR2Si1DHCkrMcGo1/p6gyCfBGwGvj4jNIN4VMGAN8jL4e
-Osmbua/4wXkl9HGbWSevdnrVUS1kKWWkbCfirQb6MHgKe0pA8m+vroQ1sqw3MfLR
-g7KU0G++93zldU3dnJwd
-=e4eA
------END PGP SIGNATURE-----
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
---ZPt4rx8FFjLCG7dd--
+Build warnings from toolchain: uImage:
+    FAIL ( 1/ 3): omap1_defconfig_1510innovator_only
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL ( 2/17): omap2plus_defconfig_no_pm, multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 2/17): 5912osk, 3517evm
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  5430es2sbct54, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
+    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 7/17): 4430es2panda, 4460varsomom, 37xxevm, 3530es3beagle,
+		  3530es31beagle, 3730beaglexm, 3730es12beaglexm
+
+
+vmlinux object size
+(delta in bytes from test_v3.19-rc3 (b1940cd21c0f4abdce101253e860feff547291b0)):
+   text     data      bss    total  kernel
+   +216        0        0     +216  omap1_defconfig
+   +216        0        0     +216  omap1_defconfig_1510innovator_only
+   +216        0        0     +216  omap1_defconfig_5912osk_only
+   +888     +144        0    +1032  multi_v7_defconfig
+    -64        0        0      -64  omap2plus_defconfig
+   -200        0        0     -200  omap2plus_defconfig_2430sdp_only
+      0        0        0        0  omap2plus_defconfig_am33xx_only
+      0        0        0        0  omap2plus_defconfig_am43xx_only
+    -64        0        0      -64  omap2plus_defconfig_cpupm
+      0        0        0        0  omap2plus_defconfig_dra7xx_only
+    -12        0        0      -12  omap2plus_defconfig_n800_multi_omap2xxx
+   +180       -8        0     +172  omap2plus_defconfig_n800_only_a
+      0        0        0        0  omap2plus_defconfig_no_pm
+    -64        0        0      -64  omap2plus_defconfig_omap2_4_only
+      0        0        0        0  omap2plus_defconfig_omap3_4_only
+    -64        0        0      -64  omap2plus_defconfig_omap5_only
+   +220        0      -28     +192  rmk_omap3430_ldp_allnoconfig
+   +160        0        0     +160  rmk_omap3430_ldp_oldconfig
+   +236        0      -44     +192  rmk_omap4430_sdp_allnoconfig
+ +37686    +1008        0   +38694  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.19-rc3 (b1940cd21c0f4abdce101253e860feff547291b0))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
