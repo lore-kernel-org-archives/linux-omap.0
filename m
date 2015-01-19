@@ -1,492 +1,259 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH RESEND v8 1/2] clk: Make clk API return per-user struct
- clk instances
-Date: Mon, 19 Jan 2015 10:55:37 +0100
-Message-ID: <CAAObsKAc6kqgBdWpAvAc2fDW42jNtT1hCD_uL8ums0hHCTXgng@mail.gmail.com>
-References: <1421071809-17402-1-git-send-email-tomeu.vizoso@collabora.com>
- <1421071809-17402-2-git-send-email-tomeu.vizoso@collabora.com> <20150117010238.GA27202@codeaurora.org>
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: Re: [PATCH v4 14/21] ARM: imx6: convert GPC to stacked domains
+Date: Mon, 19 Jan 2015 11:47:30 +0100
+Message-ID: <1421664450.3388.14.camel@pengutronix.de>
+References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
+	 <1421660655-21394-15-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150117010238.GA27202@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33188 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879AbbASKr7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2015 05:47:59 -0500
+In-Reply-To: <1421660655-21394-15-git-send-email-marc.zyngier@arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Pankaj Dubey <pankaj.dubey@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stefan Agner <stefan@agner.ch>
 
-On 17 January 2015 at 02:02, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> On 01/12, Tomeu Vizoso wrote:
->> Moves clock state to struct clk_core, but takes care to change as little API as
->> possible.
->>
->> struct clk_hw still has a pointer to a struct clk, which is the
->> implementation's per-user clk instance, for backwards compatibility.
->>
->> The struct clk that clk_get_parent() returns isn't owned by the caller, but by
->> the clock implementation, so the former shouldn't call clk_put() on it.
->>
->> Because some boards in mach-omap2 still register clocks statically, their clock
->> registration had to be updated to take into account that the clock information
->> is stored in struct clk_core now.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->>
->
-> Looks mostly good. Missing some NULL checks mostly.
+Am Montag, den 19.01.2015, 09:44 +0000 schrieb Marc Zyngier:
+> IMX6 has been (ab)using the gic_arch_extn to provide
+> wakeup from suspend, and it makes a lot of sense to convert
+> this code to use stacked domains instead.
+> 
+> This patch does just this, updating the DT files to actually
+> reflect what the HW provides.
+> 
+> BIG FAT WARNING: because the DTs were so far lying by not
+> exposing the fact that the GPC block is actually the first
+> interrupt controller in the chain, kernels with this patch
+> applied wont have any suspend-resume facility when booted
+> with old DTs, and old kernels with updated DTs won't even boot.
+> 
+> Tested-by: Stefan Agner <stefan@agner.ch>
+> Acked-by: Stefan Agner <stefan@agner.ch>
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  arch/arm/boot/dts/imx6qdl.dtsi  |   7 ++-
+>  arch/arm/boot/dts/imx6sl.dtsi   |   6 +-
+>  arch/arm/boot/dts/imx6sx.dtsi   |   6 +-
+>  arch/arm/mach-imx/common.h      |   1 -
+>  arch/arm/mach-imx/gpc.c         | 127 ++++++++++++++++++++++++++++++++--------
+>  arch/arm/mach-imx/mach-imx6q.c  |   1 -
+>  arch/arm/mach-imx/mach-imx6sl.c |   1 -
+>  arch/arm/mach-imx/mach-imx6sx.c |   1 -
+>  8 files changed, 119 insertions(+), 31 deletions(-)
+> 
+[...]
 
-Sorry about that, I should have been more careful there.
+> --- a/arch/arm/mach-imx/common.h
+> +++ b/arch/arm/mach-imx/common.h
+> @@ -102,7 +102,6 @@ static inline void imx_scu_map_io(void) {}
+>  static inline void imx_smp_prepare(void) {}
+>  #endif
+>  void imx_src_init(void);
+> -void imx_gpc_init(void);
+>  void imx_gpc_pre_suspend(bool arm_power_off);
+>  void imx_gpc_post_resume(void);
+>  void imx_gpc_mask_all(void);
+> diff --git a/arch/arm/mach-imx/gpc.c b/arch/arm/mach-imx/gpc.c
+> index 5f3602e..838da3c 100644
+> --- a/arch/arm/mach-imx/gpc.c
+> +++ b/arch/arm/mach-imx/gpc.c
+> @@ -22,6 +22,7 @@
+>  #define GPC_PGC_CPU_PDN		0x2a0
+>  
+>  #define IMR_NUM			4
+> +#define GPC_MAX_IRQS		(IMR_NUM * 32)
+>  
+>  static void __iomem *gpc_base;
+>  static u32 gpc_wake_irqs[IMR_NUM];
+> @@ -56,17 +57,17 @@ void imx_gpc_post_resume(void)
+>  
+>  static int imx_gpc_irq_set_wake(struct irq_data *d, unsigned int on)
+>  {
+> -	unsigned int idx = d->hwirq / 32 - 1;
+> +	unsigned int idx = d->hwirq / 32;
+>  	u32 mask;
+>  
+> -	/* Sanity check for SPI irq */
+> -	if (d->hwirq < 32)
+> -		return -EINVAL;
+> -
+>  	mask = 1 << d->hwirq % 32;
+>  	gpc_wake_irqs[idx] = on ? gpc_wake_irqs[idx] | mask :
+>  				  gpc_wake_irqs[idx] & ~mask;
+>  
+> +	/*
+> +	 * Do *not* call into the parent, as the GIC doesn't have any
+> +	 * wake-up facility...
+> +	 */
+>  	return 0;
+>  }
+>  
+> @@ -96,7 +97,7 @@ void imx_gpc_hwirq_unmask(unsigned int hwirq)
+>  	void __iomem *reg;
+>  	u32 val;
+>  
+> -	reg = gpc_base + GPC_IMR1 + (hwirq / 32 - 1) * 4;
+> +	reg = gpc_base + GPC_IMR1 + hwirq / 32 * 4;
+>  	val = readl_relaxed(reg);
+>  	val &= ~(1 << hwirq % 32);
+>  	writel_relaxed(val, reg);
+> @@ -107,7 +108,7 @@ void imx_gpc_hwirq_mask(unsigned int hwirq)
+>  	void __iomem *reg;
+>  	u32 val;
+>  
+> -	reg = gpc_base + GPC_IMR1 + (hwirq / 32 - 1) * 4;
+> +	reg = gpc_base + GPC_IMR1 + hwirq / 32 * 4;
+>  	val = readl_relaxed(reg);
+>  	val |= 1 << (hwirq % 32);
+>  	writel_relaxed(val, reg);
+> @@ -115,37 +116,115 @@ void imx_gpc_hwirq_mask(unsigned int hwirq)
+>  
+>  static void imx_gpc_irq_unmask(struct irq_data *d)
+>  {
+> -	/* Sanity check for SPI irq */
+> -	if (d->hwirq < 32)
+> -		return;
+> -
+>  	imx_gpc_hwirq_unmask(d->hwirq);
+> +	irq_chip_unmask_parent(d);
+>  }
+>  
+>  static void imx_gpc_irq_mask(struct irq_data *d)
+>  {
+> -	/* Sanity check for SPI irq */
+> -	if (d->hwirq < 32)
+> -		return;
+> -
+>  	imx_gpc_hwirq_mask(d->hwirq);
+> +	irq_chip_mask_parent(d);
+> +}
+> +
+> +static struct irq_chip imx_gpc_chip = {
+> +	.name		= "GPC",
+> +	.irq_eoi	= irq_chip_eoi_parent,
+> +	.irq_mask	= imx_gpc_irq_mask,
+> +	.irq_unmask	= imx_gpc_irq_unmask,
+> +	.irq_retrigger	= irq_chip_retrigger_hierarchy,
+> +	.irq_set_wake	= imx_gpc_irq_set_wake,
+> +};
+> +
+> +static int imx_gpc_domain_xlate(struct irq_domain *domain,
+> +				struct device_node *controller,
+> +				const u32 *intspec,
+> +				unsigned int intsize,
+> +				unsigned long *out_hwirq,
+> +				unsigned int *out_type)
+> +{
+> +	if (domain->of_node != controller)
+> +		return -EINVAL;	/* Shouldn't happen, really... */
+> +	if (intsize != 3)
+> +		return -EINVAL;	/* Not GIC compliant */
+> +	if (intspec[0] != 0)
+> +		return -EINVAL;	/* No PPI should point to this domain */
+> +
+> +	*out_hwirq = intspec[1];
+> +	*out_type = intspec[2];
+> +	return 0;
+> +}
+> +
+> +static int imx_gpc_domain_alloc(struct irq_domain *domain,
+> +				  unsigned int irq,
+> +				  unsigned int nr_irqs, void *data)
+> +{
+> +	struct of_phandle_args *args = data;
+> +	struct of_phandle_args parent_args;
+> +	irq_hw_number_t hwirq;
+> +	int i;
+> +
+> +	if (args->args_count != 3)
+> +		return -EINVAL;	/* Not GIC compliant */
+> +	if (args->args[0] != 0)
+> +		return -EINVAL;	/* No PPI should point to this domain */
+> +
+> +	hwirq = args->args[1];
+> +	if (hwirq >= GPC_MAX_IRQS)
+> +		return -EINVAL;	/* Can't deal with this */
+> +
+> +	for (i = 0; i < nr_irqs; i++)
+> +		irq_domain_set_hwirq_and_chip(domain, irq + i, hwirq + i,
+> +					      &imx_gpc_chip, NULL);
+> +
+> +	parent_args = *args;
+> +	parent_args.np = domain->parent->of_node;
+> +	return irq_domain_alloc_irqs_parent(domain, irq, nr_irqs, &parent_args);
+>  }
+>  
+> -void __init imx_gpc_init(void)
+> +static struct irq_domain_ops imx_gpc_domain_ops = {
+> +	.xlate	= imx_gpc_domain_xlate,
+> +	.alloc	= imx_gpc_domain_alloc,
+> +	.free	= irq_domain_free_irqs_common,
+> +};
+> +
+> +static int __init imx_gpc_init(struct device_node *node,
+> +			       struct device_node *parent)
+>  {
+> -	struct device_node *np;
+> +	struct irq_domain *parent_domain, *domain;
+>  	int i;
+>  
+> -	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-gpc");
+> -	gpc_base = of_iomap(np, 0);
+> -	WARN_ON(!gpc_base);
+> +	if (!parent) {
+> +		pr_err("%s: no parent, giving up\n", node->full_name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	parent_domain = irq_find_host(parent);
+> +	if (!parent_domain) {
+> +		pr_err("%s: unable to obtain parent domain\n", node->full_name);
+> +		return -ENXIO;
+> +	}
+> +
+> +	gpc_base = of_iomap(node, 0);
+> +	if (WARN_ON(!gpc_base))
+> +	        return -ENOMEM;
+> +
+> +	domain = irq_domain_add_hierarchy(parent_domain, 0, GPC_MAX_IRQS,
+> +					  node, &imx_gpc_domain_ops,
+> +					  NULL);
+> +	if (!domain) {
+> +		iounmap(gpc_base);
+> +		return -ENOMEM;
+> +	}
+>  
+>  	/* Initially mask all interrupts */
+>  	for (i = 0; i < IMR_NUM; i++)
+>  		writel_relaxed(~0, gpc_base + GPC_IMR1 + i * 4);
+>  
+> -	/* Register GPC as the secondary interrupt controller behind GIC */
+> -	gic_arch_extn.irq_mask = imx_gpc_irq_mask;
+> -	gic_arch_extn.irq_unmask = imx_gpc_irq_unmask;
+> -	gic_arch_extn.irq_set_wake = imx_gpc_irq_set_wake;
+> +	return 0;
+>  }
+> +
+> +/*
+> + * We cannot use the IRQCHIP_DECLARE macro that lives in
+> + * drivers/irqchip, so we're forced to roll our own. Not very nice.
+> + */
+> +OF_DECLARE_2(irqchip, imx_gpc, "fsl,imx6q-gpc", imx_gpc_init);
 
->> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
->> index f4963b7..7eddfd8 100644
->> --- a/drivers/clk/clk.c
->> +++ b/drivers/clk/clk.c
->> @@ -114,7 +123,7 @@ static struct hlist_head *orphan_list[] = {
->> +static void clk_summary_show_one(struct seq_file *s, struct clk_core *c, int level)
->>  {
->>       if (!c)
->>               return;
->> @@ -122,14 +131,14 @@ static void clk_summary_show_one(struct seq_file *s, struct clk *c, int level)
-> [...]
->> -static void clk_summary_show_subtree(struct seq_file *s, struct clk *c,
->> +static void clk_summary_show_subtree(struct seq_file *s, struct clk_core *c,
->>                                    int level)
->>  {
->> -     struct clk *child;
->> +     struct clk_core *child;
->>
->>       if (!c)
->>               return;
->> @@ -172,7 +181,7 @@ static const struct file_operations clk_summary_fops = {
->>       .release        = single_release,
->>  };
->>
->> -static void clk_dump_one(struct seq_file *s, struct clk *c, int level)
->> +static void clk_dump_one(struct seq_file *s, struct clk_core *c, int level)
->>  {
->>       if (!c)
->>               return;
->> @@ -180,14 +189,14 @@ static void clk_dump_one(struct seq_file *s, struct clk *c, int level)
-> [...]
->> -static void clk_dump_subtree(struct seq_file *s, struct clk *c, int level)
->> +static void clk_dump_subtree(struct seq_file *s, struct clk_core *c, int level)
->>  {
->> -     struct clk *child;
->> +     struct clk_core *child;
->>
->>       if (!c)
->>               return;
->> @@ -418,19 +427,20 @@ static int __init clk_debug_init(void)
-> [...]
->>
->>  /* caller must hold prepare_lock */
->> -static void clk_unprepare_unused_subtree(struct clk *clk)
->> +static void clk_unprepare_unused_subtree(struct clk_core *clk)
->>  {
->> -     struct clk *child;
->> +     struct clk_core *child;
->>
->>       if (!clk)
->>               return;
->> @@ -453,9 +463,9 @@ static void clk_unprepare_unused_subtree(struct clk *clk)
->>  }
->>
->>  /* caller must hold prepare_lock */
->> -static void clk_disable_unused_subtree(struct clk *clk)
->> +static void clk_disable_unused_subtree(struct clk_core *clk)
->>  {
->> -     struct clk *child;
->> +     struct clk_core *child;
->>       unsigned long flags;
->>
->>       if (!clk)
->
-> Note: These NULL checks look bogus. No need to fix them here, but
-> a patch to remove them would be nice.
+The above seems to be a recurring pattern, so it might be a good idea to
+expose the irqchip header.
 
-Indeed.
+But in the case of the GPC I don't see anything after your patch that
+would make it tied into the arch. So can you just move this driver to
+the irqchip directory?
 
->> @@ -532,48 +542,59 @@ late_initcall_sync(clk_disable_unused);
-> [...]
->> +
->> +struct clk *clk_get_parent_by_index(struct clk *clk, u8 index)
->> +{
->> +     struct clk_core *parent;
->> +
->> +     parent = clk_core_get_parent_by_index(clk->core, index);
->
-> I suppose clk could be NULL here (although this is mostly a
-> clk-provider function). At least before we would return NULL in
-> such a case so we should keep the same behavior instead of NULL
-> deref.
+Regards,
+Lucas 
+ 
 
-Agreed.
 
->> +
->> +     return !parent ? NULL : parent->hw->clk;
->> +}
->>  EXPORT_SYMBOL_GPL(clk_get_parent_by_index);
->>
->> @@ -593,9 +614,14 @@ unsigned long __clk_get_rate(struct clk *clk)
->>  out:
->>       return ret;
->>  }
->> +
->> +unsigned long __clk_get_rate(struct clk *clk)
->> +{
->> +     return clk_core_get_rate_nolock(clk->core);
->
-> Oops. clk can be NULL here. We should check for that and return
-> 0.
-
-Agreed.
-
->> +}
->>  EXPORT_SYMBOL_GPL(__clk_get_rate);
->>
->> @@ -630,7 +656,12 @@ out:
->>       return !!ret;
->>  }
->>
->> -bool __clk_is_enabled(struct clk *clk)
->> +bool __clk_is_prepared(struct clk *clk)
->> +{
->> +     return clk_core_is_prepared(clk->core);
->
-> Oops. clk can be NULL here. Return false if so. Or drop the
-> function entirely? It looks like it may become unused.
-
-Are you thinking of anything specific that the alchemy arch can do
-instead of calling __clk_is_prepared?
-
->> +}
->> @@ -650,12 +681,17 @@ bool __clk_is_enabled(struct clk *clk)
->>  out:
->>       return !!ret;
->>  }
->> +
->> +bool __clk_is_enabled(struct clk *clk)
->> +{
->> +     return clk_core_is_enabled(clk->core);
->
-> Oops. clk can be NULL here. Return false if so.
-
-Agreed.
-
->> +}
->>  EXPORT_SYMBOL_GPL(__clk_is_enabled);
->>
->> @@ -762,7 +805,12 @@ void __clk_unprepare(struct clk *clk)
->>       if (clk->ops->unprepare)
->>               clk->ops->unprepare(clk->hw);
->>
->> -     __clk_unprepare(clk->parent);
->> +     clk_core_unprepare(clk->parent);
->> +}
->> +
->> +void __clk_unprepare(struct clk *clk)
->> +{
->> +     clk_core_unprepare(clk->core);
->
-> OOps. clk can be NULL here. Bail early if so.
-
-Actually, looks like nobody is using __clk_prepare nor __clk_unprepare
-so I'm removing these.
-
->>  }
->>
->>  /**
->> @@ -813,6 +861,11 @@ int __clk_prepare(struct clk *clk)
->>       return 0;
->>  }
->>
->> +int __clk_prepare(struct clk *clk)
->> +{
->> +     return clk_core_prepare(clk->core);
->
-> Oops. clk can be NULL here. Return 0 if so.
-
-See above.
-
->> +}
->> +
->> @@ -851,7 +904,12 @@ static void __clk_disable(struct clk *clk)
-> [...]
->> +
->> +static void __clk_disable(struct clk *clk)
->> +{
->> +     clk_core_disable(clk->core);
->
-> Oops. clk can be NULL here. Bail early if so. Is this function
-> used though?
-
-It's still used, will add a check.
-
->>  }
->>
->>  /**
->> @@ -908,6 +966,11 @@ static int __clk_enable(struct clk *clk)
->>       return 0;
->>  }
->>
->> +static int __clk_enable(struct clk *clk)
->> +{
->> +     return clk_core_enable(clk->core);
->> +}
->
-> Same problem. Is this function used either?
-
-It's still used, will add a check.
-
->> +
->>  /**
->>   * clk_enable - ungate a clock
->>   * @clk: the clk being ungated
->> @@ -961,12 +1018,35 @@ unsigned long __clk_round_rate(struct clk *clk, unsigned long rate)
-> [...]
->> +unsigned long __clk_round_rate(struct clk *clk, unsigned long rate)
->> +{
->> +     return clk_core_round_rate_nolock(clk->core, rate);
->
-> Oops. clk can be NULL here. Return 0 if so.
-
-Agreed.
-
->> +}
->>  EXPORT_SYMBOL_GPL(__clk_round_rate);
->>
->> @@ -978,13 +1058,7 @@ EXPORT_SYMBOL_GPL(__clk_round_rate);
->>   */
->>  long clk_round_rate(struct clk *clk, unsigned long rate)
->>  {
->> -     unsigned long ret;
->> -
->> -     clk_prepare_lock();
->> -     ret = __clk_round_rate(clk, rate);
->> -     clk_prepare_unlock();
->> -
->> -     return ret;
->> +     return clk_core_round_rate(clk->core, rate);
->
-> Oops. clk can be NULL here. Return 0 if so.
-
-Agreed.
-
->>  }
->>  EXPORT_SYMBOL_GPL(clk_round_rate);
->>
->> @@ -1002,22 +1076,21 @@ EXPORT_SYMBOL_GPL(clk_round_rate);
->>   * called if all went well, or NOTIFY_STOP or NOTIFY_BAD immediately if
->>   * a driver returns that.
->>   */
->> -static int __clk_notify(struct clk *clk, unsigned long msg,
->> +static int __clk_notify(struct clk_core *clk, unsigned long msg,
->>               unsigned long old_rate, unsigned long new_rate)
->>  {
->>       struct clk_notifier *cn;
->>       struct clk_notifier_data cnd;
->>       int ret = NOTIFY_DONE;
->>
->> -     cnd.clk = clk;
->>       cnd.old_rate = old_rate;
->>       cnd.new_rate = new_rate;
->>
->>       list_for_each_entry(cn, &clk_notifier_list, node) {
->> -             if (cn->clk == clk) {
->> +             if (cn->clk->core == clk) {
->> +                     cnd.clk = cn->clk;
->>                       ret = srcu_notifier_call_chain(&cn->notifier_head, msg,
->>                                       &cnd);
->> -                     break;
->
-> Ah now the list is full of struct clk pointers that are unique so
-> we drop the break here?
-
-Yeah, as we want to notify all the per-user clks that wrap the
-clk_core that is changing rates.
-
-> It would be good if someone:
->
->  1) Made a notifier_head per clk_core structure
->  2) Hooked up clk notifiers to that head instead of a global list
->  3) Hid struct clk_notifier in clk.c
->
-> This way when we notify the chain we don't have to loop through
-> all possible notifiers to find blocks containing clks that we care about
-> and then notify that chain which is probably only ever going to
-> be a single notifier long because struct clk is unique now.
-
-That makes sense, if my other in-flight patchsets give me some time, I
-will look at this.
-
->>               }
->>       }
->>
->> @@ -1139,14 +1210,29 @@ unsigned long clk_get_rate(struct clk *clk)
->>       if (clk && (clk->flags & CLK_GET_RATE_NOCACHE))
->>               __clk_recalc_rates(clk, 0);
->>
->> -     rate = __clk_get_rate(clk);
->> +     rate = clk_core_get_rate_nolock(clk);
->>       clk_prepare_unlock();
->>
->>       return rate;
->>  }
->> +EXPORT_SYMBOL_GPL(clk_core_get_rate);
->> +
->> +/**
->> + * clk_get_rate - return the rate of clk
->> + * @clk: the clk whose rate is being returned
->> + *
->> + * Simply returns the cached rate of the clk, unless CLK_GET_RATE_NOCACHE flag
->> + * is set, which means a recalc_rate will be issued.
->> + * If clk is NULL then returns 0.
->> + */
->> +unsigned long clk_get_rate(struct clk *clk)
->> +{
->> +     return clk_core_get_rate(clk->core);
->> +}
->>  EXPORT_SYMBOL_GPL(clk_get_rate);
->>
->> -static int clk_fetch_parent_index(struct clk *clk, struct clk *parent)
->> +static int clk_fetch_parent_index(struct clk_core *clk,
->> +                               struct clk_core *parent)
->>  {
->>       int i;
->>
->> @@ -1366,7 +1457,7 @@ static struct clk *clk_calc_new_rates(struct clk *clk, unsigned long rate)
->>               new_rate = clk->ops->determine_rate(clk->hw, rate,
->>                                                   &best_parent_rate,
->>                                                   &parent_hw);
->> -             parent = parent_hw->clk;
->> +             parent = parent_hw ? parent_hw->core : NULL;
->
-> Here's the fix!
-
-Oops, sorry about that.
-
->>       } else if (clk->ops->round_rate) {
->>               new_rate = clk->ops->round_rate(clk->hw, rate,
->>                                               &best_parent_rate);
->> @@ -1574,6 +1667,18 @@ out:
->>  }
->>  EXPORT_SYMBOL_GPL(clk_set_rate);
->>
->> +static struct clk_core *clk_core_get_parent(struct clk_core *core)
->> +{
->> +     struct clk_core *parent;
->> +
->> +     clk_prepare_lock();
->> +     parent = !core ? NULL : core->parent;
->
-> Looks wrong. core should never be NULL?
-
-Actually, this function was only called from clk_get_parent so I have
-removed it.
-
->> +     clk_prepare_unlock();
->> +
->> +     return parent;
->> +}
->> +EXPORT_SYMBOL_GPL(clk_core_get_parent);
->> +
->>  /**
->>   * clk_get_parent - return the parent of a clk
->>   * @clk: the clk whose parent gets returned
->> @@ -1582,13 +1687,11 @@ EXPORT_SYMBOL_GPL(clk_set_rate);
->>   */
->>  struct clk *clk_get_parent(struct clk *clk)
->>  {
->> -     struct clk *parent;
->> +     struct clk_core *parent;
->>
->> -     clk_prepare_lock();
->> -     parent = __clk_get_parent(clk);
->> -     clk_prepare_unlock();
->> +     parent = clk_core_get_parent(clk->core);
->
-> Oops if clk is NULL. So far we've allowed that and returned NULL.
-
-Agreed.
-
->>
->> -     return parent;
->> +     return !parent ? NULL : parent->hw->clk;
->>  }
->>  EXPORT_SYMBOL_GPL(clk_get_parent);
->> @@ -2258,33 +2381,42 @@ void devm_clk_unregister(struct device *dev, struct clk *clk)
->>  }
->>  EXPORT_SYMBOL_GPL(devm_clk_unregister);
->>
->> +static void clk_core_put(struct clk_core *core)
->> +{
->> +     struct module *owner;
->> +
->> +     if (!core || WARN_ON_ONCE(IS_ERR(core)))
->> +             return;
->
-> This doesn't look right. When would the clk_core structure ever
-> be NULL or some error pointer? I would think we want to leave
-> this check in __clk_put() and leave it checking the struct clk
-> instance that we may get from some random driver.
-
-You are right, this is also embarrassing.
-
->> +
->> +     owner = core->owner;
->> +
->> +     clk_prepare_lock();
->> +     kref_put(&core->ref, __clk_release);
->> +     clk_prepare_unlock();
->> +
->> +     module_put(owner);
->> +}
->
-> Can you also move this next to __clk_put() and after __clk_get() please?
-
-Sure.
-
->> +
->>  /*
->>   * clkdev helpers
->>   */
->>  int __clk_get(struct clk *clk)
->>  {
->> -     if (clk) {
->> -             if (!try_module_get(clk->owner))
->> +     struct clk_core *core = !clk ? NULL : clk->core;
->> +
->> +     if (core) {
->> +             if (!try_module_get(core->owner))
->>                       return 0;
->>
->> -             kref_get(&clk->ref);
->> +             kref_get(&core->ref);
->>       }
->>       return 1;
->>  }
->>
->>  void __clk_put(struct clk *clk)
->>  {
->> -     struct module *owner;
->> -
->> -     if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
->> -             return;
->> -
->> -     clk_prepare_lock();
->> -     owner = clk->owner;
->> -     kref_put(&clk->ref, __clk_release);
->> -     clk_prepare_unlock();
->> -
->> -     module_put(owner);
->> +     clk_core_put(clk->core);
->
-> clk can be NULL here.
-
-Fixed.
-
->> +     kfree(clk);
->>  }
-
-Thanks,
-
-Tomeu
