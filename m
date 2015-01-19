@@ -1,73 +1,58 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 2/5] usb: dwc3: add revision number DWC3_REVISION_300A
-Date: Mon, 19 Jan 2015 08:46:42 -0600
-Message-ID: <20150119144642.GD20386@saruman>
+Subject: Re: [PATCH v2 1/5] usb: dwc3: add Fujitsu Specific Glue layer
+Date: Mon, 19 Jan 2015 08:48:28 -0600
+Message-ID: <20150119144828.GE20386@saruman>
 References: <1421654209-6486-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <1421654209-6486-3-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+ <1421654209-6486-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SO98HVl1bnMOfKZd"
+	protocol="application/pgp-signature"; boundary="BZaMRJmqxGScZ8Mx"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1421654209-6486-3-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+In-Reply-To: <1421654209-6486-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sneeker Yeh <sneeker.yeh@gmail.com>, Paul Zimmerman <paul.zimmerman@synopsys.com>, John Youn <johnyoun@synopsys.com>
+To: Sneeker Yeh <sneeker.yeh@gmail.com>
 Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 List-Id: linux-omap@vger.kernel.org
 
---SO98HVl1bnMOfKZd
+--BZaMRJmqxGScZ8Mx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Jan 19, 2015 at 03:56:46PM +0800, Sneeker Yeh wrote:
-> Add the contstant for v3.00a dwc3 IP detection
+On Mon, Jan 19, 2015 at 03:56:45PM +0800, Sneeker Yeh wrote:
+> This patch adds support for Synopsis DesignWare USB3 IP Core found
+> on Fujitsu Socs.
 >=20
 > Signed-off-by: Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
-> ---
->  drivers/usb/dwc3/core.h |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-> index 4bb9aa6..8090249 100644
-> --- a/drivers/usb/dwc3/core.h
-> +++ b/drivers/usb/dwc3/core.h
-> @@ -776,6 +776,7 @@ struct dwc3 {
->  #define DWC3_REVISION_260A	0x5533260a
->  #define DWC3_REVISION_270A	0x5533270a
->  #define DWC3_REVISION_280A	0x5533280a
-> +#define DWC3_REVISION_300A	0x5533300a
 
-looking at Synopsys Solvnet for this IP, it shows that current version
-is 2.90a. There's no 3.00a. Paul, John, is there a 3.00a version of the
-DWC USB3 IP ?
+if this is moved after patch 3, you don't need to patch it again to add
+the quirk ;-)
 
 --=20
 balbi
 
---SO98HVl1bnMOfKZd
+--BZaMRJmqxGScZ8Mx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUvRjSAAoJEIaOsuA1yqREqyIP/3XBnqW9XhXxzuZNM0P+I+cZ
-0lXliX5TJ6N31c7IxzxWxLizG7oOKCTm7t9dHJtzIWVYIyXg529kslfnl7SYO+2+
-0Nc5uMY3a8EF3Cz5CCwjkhqJIrq8OfNPh1ACBCg60CxY1G956hannwjKIo97RIsG
-PLoxPQW7ryPkK09gi6f1ZCfsj3xMNFma5ulFIogVctor40Psy3bRRT0WdlCkLUi0
-GApw/+jFcDzTgblHrf5B5USuC0rIbWMpdgjuws5XTxbRsqKiC49wpCkB4/Q9URFl
-acinYw9zUsP+FCU0W1dVVQcc8h74nBAOFbqOm/ta6Nbj994euyMKKtgDfXx4gN/F
-k/UT42+qxxP4i7AtijN1s0bEGZl5xCqZ60vVrgdcqjJkDQvBZgbNRT3v0PsobNdL
-+CtFAn82N9I2x43Cw5JWlHmT7xeiNYrlVh0Lf67atf6Md0KIvEM2F+T3k7VtjPs7
-6w0ORgRkZQZFggRXP7X4EBOi5KglOGdsVasTldo5l19AeSP6NLrEgbd5WWXMxzWg
-2+3LSirwYcpr0T/Z7Z+Ll8Goh+kUaYRuFZbuwDV3KZ4dVlkPahTTInNxakcAL8Yq
-M/pN0GOG06xqhnYGJdIL2/SgqIOozbNXEbU7dgvqKaWOSMe1aEX92EdsOfyaQL0C
-tXt8D7GzV5GOSHr982z9
-=mmjK
+iQIcBAEBAgAGBQJUvRk8AAoJEIaOsuA1yqREvMcQAKU0ZjgqEA7hIh9IU2MnVi2H
+yv6qyMTdcnI+hD4LQIZJirsLwWeoRw/8nHDLvi2w5D3zhSVp5uh5TmbRjh0d0X3x
+XIb5vNooZm0QezHnINTwfWV3bD20GP3czdEwntu8ymFXo87U0/7+1D2TunpfP1Qm
+qrmVlXXXHE3baF2Xnveadbfzja1oB7RUDXhTaImK4oIqqO03YRIp+iaJrloLwcSy
+aaLddlfNfpupD3yHfasSCtR5X+ktAoOGxzqRTS3J5tZ/aky2/ATqSD4/SDJP6S/R
+9Nudb67FkKEI6I2bWi4B4Bm+dufLgnkdZb9+t7QixIo0yxabBm3d/KLcurtijURF
+0+CNck4fLwxN/0nAGKppOyBRTkV1wyLr5WhgEgUqimtFjwbM0Pmu0oXcdq72i4IW
+79ZKfc5qOUw+ICGSETjOe3GeQTYcCqnjkrspWCmN+pvoc0sxCBzb/CvOw9ARZUE4
+29oErmaSAROE6ONMLr1cDDOiW89WaXkYkXpm1FrVwPDHzPAj+25B3ykggjIXGjTJ
+fvzqddD6wGwlHzezbCnZDxv/GpeF4Kc1RGyJ4+9fiVC4QRL56kQRLeohCcH/605r
+LGszV8JYURl5RS9SSYb060Z1bB+cqPUDrSMJH0i9XTriCpbJdTbnadganeL11fHa
+43nqUD17w6iFpzHOdfTb
+=v5/u
 -----END PGP SIGNATURE-----
 
---SO98HVl1bnMOfKZd--
+--BZaMRJmqxGScZ8Mx--
