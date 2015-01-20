@@ -1,71 +1,125 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] drop legacy booting for omap3517
-Date: Tue, 20 Jan 2015 10:25:38 -0800
-Message-ID: <38634.7748376012$1421778659@news.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH] bluetooth: Add hci_h4p driver
+Date: Tue, 20 Jan 2015 10:34:30 -0800
+Message-ID: <7522CAC7-AFD9-470F-B4F8-3C39942DBC04@holtmann.org>
+References: <20141223130219.GA5731@amd> <CB643345-4B50-4ED0-8C3E-296CD225754D@holtmann.org> <20150120173604.GA712@amd>
+Mime-Version: 1.0 (Mac OS X Mail 8.1 \(1993\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150120173604.GA712@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-bluetooth@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
+Hi Pavel,
 
-  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
+>>> Add HCI driver for H4 with Nokia extensions. This device is used on
+>>> Nokia N900 cell phone.
+>>> 
+>>> Older version of this driver lived in staging, before being reverted
+>>> in a4102f90e87cfaa3fdbed6fdf469b23f0eeb4bfd .
+>>> 
+>>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>>> Thanks-to: Sebastian Reichel <sre@debian.org>
+>>> Thanks-to: Joe Perches <joe@perches.com>
+>>> 
+>>> ---
+>>> 
+>>> Please apply,
+>>> 								Pavel
+>>> 
+>>> 
+>>> Kconfig      |   10 
+>>> Makefile     |    4 
+>>> nokia_core.c | 1149 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>> nokia_fw.c   |   99 +++++
+>>> nokia_h4p.h  |  214 ++++++++++
+>>> nokia_uart.c |  171 ++++++++
+>>> 7 files changed, 1667 insertions(+)
+> 
+> Speaking about formatting, could you properly format your emails, that
+> is inserting newline after ~78 columns, to make them easier to reply
+> to?
 
-are available in the git repository at:
+or you get an email client that can handle that part.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/drop-legacy-3517-v2
+>> so when I run this through checkpatch --strict, then I get tons of warning that we have DOS style ^M line breaks. There are also trailing whitespace that need fixing. I can use cleanpatch to do this, but so can you.
+>> 
+> 
+> Strange, where do you see DOS style line breaks? Checkpatch here does
+> not warn about that, and they really should not be there.
 
-for you to fetch changes up to 549f95ed20168daa06901054a028e185ebb905ab:
+If that would be the only pieces, then I would have fixed it already. That is not the big deal. The rest of checkpatch is what I am not going to fix for you.
 
-  ARM: OMAP3: Add back Kconfig option MACH_OMAP3517EVM for ASoC (2015-01-20 08:49:08 -0800)
+>> Even after doing that there are still obvious plain coding style violation in the patch. For example:
+>> 
+>> ERROR: space prohibited before that ',' (ctx:WxW)
+>> #610: FILE: drivers/bluetooth/nokia_core.c:517:
+>> +			__h4p_set_auto_ctsrts(info, 0 , UART_EFR_RTS);
+> 
+> Yeah, I should have catched that one.
+> 
+>> CHECK: Alignment should match open parenthesis
+>> #662: FILE: drivers/bluetooth/nokia_core.c:569:
+>> +		h4p_outb(info, UART_OMAP_SCR,
+>> +			     h4p_inb(info, UART_OMAP_SCR) |
+>> 
+>> CHECK: Blank lines aren't necessary before a close brace '}'
+>> #692: FILE: drivers/bluetooth/nokia_core.c:599:
+>> +
+>> +}
+>> 
+>> These are only few. They are more and all these need fixing before I
+>> even consider it.
+> 
+> Yeah, so first patch was too good for staging, and I "would be allowed
+> to clean it up in tree", and now you run checkpatch --strict,
+> complaining about very serious stuff such as "blank lines before }".
 
-----------------------------------------------------------------
-We have had omap3517 booting in device tree mode for quite some
-time now and we have at least a minimal dts file for the 3517
-based boards. Also almost all the drivers are usable in device
-tree mode. And if there are any drivers not yet supported in device
-tree mode, those can be enabled using pdata quirks.
+The network subsystem requires the --strict option.
 
-This leaves omap3430 to omap3730 as the only remaining mach-omap2
-platforms still booting in legacy mode also. For those were are
-printing a warning during the boot to get people to update their
-systems to boot in device tree mode and slowly converting them
-over to device tree based booting.
+Please stop complaining about staging. The patch went in, it was ignored for month and multiple kernel release and it got removed. Deal with it.
 
-----------------------------------------------------------------
-Tony Lindgren (5):
-      ARM: OMAP3: Remove legacy support for am3517-evm
-      ARM: OMAP3: Remove legacy support for am3517crane
-      ARM: OMAP3: Remove cm-t3517 legacy support
-      ARM: OMAP3: Remove legacy support for am35xx-emac
-      ARM: OMAP3: Add back Kconfig option MACH_OMAP3517EVM for ASoC
+> 
+> Yes, checkpatch produces a lot of junk, like warnings about
+> mdelay(). I'm not sure how you'd want #662 above, formatted.
+> 
+> pavel@amd:/data/l/linux-n900$ scripts/checkpatch.pl --strict --file
+> drivers/bluetooth/*.c | wc -l 3194
+> pavel@amd:/data/l/linux-n900$
+> 
+> ...so I really can't know which checkpatch complains you consider
+> serious and which are ok... And yes, I guess I should trim down those
+> FSF notices.
 
- arch/arm/mach-omap2/Kconfig                |  12 -
- arch/arm/mach-omap2/Makefile               |   8 -
- arch/arm/mach-omap2/am35xx-emac.c          | 114 ---------
- arch/arm/mach-omap2/am35xx-emac.h          |  15 --
- arch/arm/mach-omap2/am35xx.h               |  46 ----
- arch/arm/mach-omap2/board-am3517crane.c    | 150 ------------
- arch/arm/mach-omap2/board-am3517evm.c      | 373 -----------------------------
- arch/arm/mach-omap2/board-cm-t3517.c       | 335 --------------------------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  33 +--
- arch/arm/mach-omap2/pdata-quirks.c         |   1 -
- 10 files changed, 2 insertions(+), 1085 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/am35xx-emac.c
- delete mode 100644 arch/arm/mach-omap2/am35xx-emac.h
- delete mode 100644 arch/arm/mach-omap2/am35xx.h
- delete mode 100644 arch/arm/mach-omap2/board-am3517crane.c
- delete mode 100644 arch/arm/mach-omap2/board-am3517evm.c
- delete mode 100644 arch/arm/mach-omap2/board-cm-t3517.c
+The FSF notices are the ones I do not care about right now. Even the over 80 characters lines can be ignored if it just makes sense to go over.
+
+The indentations ones need to be fixed.
+
+> 
+>> Also this worries me:
+>> 
+>> WARNING: DT compatible string "brcm,uart,bcm2048" appears un-documented -- check ./Documentation/devicetree/bindings/
+>> #1222: FILE: drivers/bluetooth/nokia_core.c:1129:
+>> +	{ .compatible = "brcm,uart,bcm2048" },
+> 
+> Yes, that wories me, too. It is one of reasons I wanted this to be
+> merged to staging. Arguing about right bindings will take some time.
+
+Then that needs to be figured out. It is not that I have mentioned DT for the first time. I said that right from the beginning.
+
+> I can fix the checkpatch stuff that makes sense. That does not include
+> uglyfying code just for checkpatch.  Can you then take the patch, as
+> you promised, and let me argue the bindings, and the other stuff that
+> needs to be fixed?
+> 
+> If not, can we agree that the driver in staging should be reverted, as
+> Greg promised would be "easy", and I can clean it up there?
+
+I am refusing to allow this into staging. Get this into shape for drivers/bluetooth/ or keep the driver external.
+
+Regards
+
+Marcel
