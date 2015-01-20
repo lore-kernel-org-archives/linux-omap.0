@@ -1,65 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3.19-rc2 v15 5/8] arm: omap1: Migrate debug_ll macros to
- use 8250.S
-Date: Tue, 20 Jan 2015 08:04:48 -0800
-Message-ID: <20150120160448.GC7718@atomide.com>
-References: <1420461624-4410-1-git-send-email-daniel.thompson@linaro.org>
- <1420461624-4410-6-git-send-email-daniel.thompson@linaro.org>
- <20150119213845.GL18552@atomide.com>
- <54BE1921.5050902@linaro.org>
+Subject: Re: ARM: OMAP3: MACH_OMAP3517EVM?
+Date: Tue, 20 Jan 2015 08:44:55 -0800
+Message-ID: <20150120164455.GD7718@atomide.com>
+References: <1421744597.9655.92.camel@x220>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32522 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755494AbbATQsX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 11:48:23 -0500
 Content-Disposition: inline
-In-Reply-To: <54BE1921.5050902@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, linaro-kernel@lists.linaro.org, patches@linaro.org, spear-devel@list.st.com, linux-kernel@vger.kernel.org, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1421744597.9655.92.camel@x220>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Valentin Rothberg <valentinrothberg@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Daniel Thompson <daniel.thompson@linaro.org> [150120 01:03]:
-> On 19/01/15 21:38, Tony Lindgren wrote:
-> > * Daniel Thompson <daniel.thompson@linaro.org> [150105 04:49]:
-> >> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
-> >> the 8520 code the omap1 macro automatically determines what UART to use
-> >> based on breadcrumbs left by the bootloader and automatically copes with
-> >> the eccentric register layout on OMAP7XX.
-> >>
-> >> This patch drops both these features and relies instead on the generic
-> >> 8250 macros:
-> >>
-> >> 1. Dropping support for the bootloader breadcrumbs is identical to the
-> >>    way the migration was handled for OMAP2 (see 808b7e07464d...).
-> >>
-> >> 2. Support for OMAP7XX still exists but it must be configured by hand
-> >>    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
-> >>
-> >> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-> >> Cc: Russell King <linux@arm.linux.org.uk>
-> >> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
-> >> Cc: linux-omap@vger.kernel.org
-> >> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> >> Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Daniel, I suggest you upload this patch into Russell's patch tracking
-> > system to get it merged. That at least shrinks down your patch series
-> > if the other patches need more work.
+* Paul Bolle <pebolle@tiscali.nl> [150120 01:06]:
+> Tony,
 > 
-> This has been in the patch tracker for a week or so:
-> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8271/1
+> Your commit 4d62dbda8561 ("ARM: OMAP3: Remove legacy support for
+> am3517-evm") is included in today's linux-next (ie, next-20150120). I
+> noticed because a script I use to check linux-next spotted a problem
+> caused by it.
 
-OK good to hear thanks.
+OK thanks for spotting that.
  
-> I'm very aware that this patch (and indeed the whole patch set) has been
-> knocking round for longer than it should have. The changelog for this
-> patchset is certainly not one to be especially proud off ;-) .
+> See, your commit removes the Kconfig symbol MACH_OMAP3517EVM. But
+> there's still a reference to that symbol in sound/soc/omap/Kconfig. This
+> means that in linux-next a symbol, SND_OMAP_SOC_AM3517EVM, cannot be set
+> anymore.
+> 
+> I assume a patch that address this (either by removing
+> SND_OMAP_SOC_AM3517EVM or by updating its dependencies) is queued
+> somewhere. Is that correct?
 
-Yeah, it's been floating around for a while :)
-
-Here it may have been doable to first add the Kconfig entries, then
-flip them on and remove the related .S file in a follow up patch. Not
-sure if that would have helped to remove the dependencies for the
-rest of the series though.
+Not yet, I missed that part sorry. I'll add back the Kconfig symbol.
+I'll rather do the removal in smaller steps, and first remove the
+3517 related board-*.c file before messing with the legacy drivers.
 
 Regards,
 
