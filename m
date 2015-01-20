@@ -1,83 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM: OMAP3: MACH_OMAP3517EVM?
-Date: Tue, 20 Jan 2015 09:00:22 -0800
-Message-ID: <20150120170022.GE7718@atomide.com>
-References: <1421744597.9655.92.camel@x220>
- <20150120164455.GD7718@atomide.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/7] Menelaus cleanup for DT, phase 1
+Date: Tue, 20 Jan 2015 17:13:04 +0000
+Message-ID: <20150120171304.GA32495@x1>
+References: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150120164455.GD7718@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1419702779-16001-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150120 08:52]:
-> * Paul Bolle <pebolle@tiscali.nl> [150120 01:06]:
-> > Tony,
-> > 
-> > Your commit 4d62dbda8561 ("ARM: OMAP3: Remove legacy support for
-> > am3517-evm") is included in today's linux-next (ie, next-20150120). I
-> > noticed because a script I use to check linux-next spotted a problem
-> > caused by it.
-> 
-> OK thanks for spotting that.
->  
-> > See, your commit removes the Kconfig symbol MACH_OMAP3517EVM. But
-> > there's still a reference to that symbol in sound/soc/omap/Kconfig. This
-> > means that in linux-next a symbol, SND_OMAP_SOC_AM3517EVM, cannot be set
-> > anymore.
-> > 
-> > I assume a patch that address this (either by removing
-> > SND_OMAP_SOC_AM3517EVM or by updating its dependencies) is queued
-> > somewhere. Is that correct?
-> 
-> Not yet, I missed that part sorry. I'll add back the Kconfig symbol.
-> I'll rather do the removal in smaller steps, and first remove the
-> 3517 related board-*.c file before messing with the legacy drivers.
+On Sat, 27 Dec 2014, Aaro Koskinen wrote:
+> These patches start removal of board-specific callbacks from Menelaus=
+:
+> delete platform data and a callback from the driver to the board file=
+s.
+>=20
+> Tested on top of 3.19-rc1 on N800/N810 which are the only in-tree use=
+rs
+> for the driver.
+>=20
+> Aaro Koskinen (7):
+>   mfd: menelaus: delete omap_has_menelaus
+>   mfd: menelaus: drop support for SW controller VCORE
+>   mfd: menelaus: add initial DT support
+>   ARM: OMAP: N8x0: configure menelaus using DT
+>   mfd: menelaus: delete platform data support
+>   mfd: menelaus: make vcore and regulator controls internal
+>   mfd: menelaus: use macro for magic number
+>=20
+>  Documentation/devicetree/bindings/mfd/menelaus.txt | 30 ++++++++
+>  arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |  3 +
+>  arch/arm/mach-omap2/board-n8x0.c                   | 57 ------------=
+--
+>  arch/arm/mach-omap2/common-board-devices.h         |  2 -
+>  arch/arm/mach-omap2/pdata-quirks.c                 |  1 -
+>  drivers/mfd/menelaus.c                             | 86 ++++++++++++=
+++--------
+>  include/linux/mfd/menelaus.h                       | 25 -------
+>  7 files changed, 87 insertions(+), 117 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/menelaus.tx=
+t
 
-Below is a fix for this.
+Scrap that.  Looks like I can't apply the other patches without
+03/07.  Please sort this out with Felipe and re-submit.  Don't forget
+to apply my Ack to the patches I said I "applied".
 
-Regards,
-
-Tony
-
-8< ----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 20 Jan 2015 08:49:08 -0800
-Subject: [PATCH] ARM: OMAP3: Add back Kconfig option MACH_OMAP3517EVM for ASoC
-
-We still have SND_OMAP_SOC_AM3517EVM depending on MACH_OMAP3517EVM,
-so let's keep MACH_OMAP3517EVM Kconfig option around for a little
-bit longer.
-
-This removes the dependency between ARM SoC changes and the ASoC
-changes, and allows the following three options for the driver:
-
-1. Update the driver for device tree based booting
-
-2. Initialize the driver with legacy platform data, then update
-   the driver for device tree based booting
-
-3. Just remove the driver if there are no audio users for
-   3517-evm board
-
-Reported-by: Paul Bolle <pebolle@tiscali.nl>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -213,6 +213,11 @@ config MACH_OVERO
- 	default y
- 	select OMAP_PACKAGE_CBB
- 
-+config MACH_OMAP3517EVM
-+	bool "OMAP3517/ AM3517 EVM board"
-+	depends on ARCH_OMAP3
-+	default y
-+
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
