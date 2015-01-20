@@ -1,48 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC/PATCH] arm: omap: hwmod: add debugfs interface
-Date: Tue, 20 Jan 2015 08:13:57 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501200810270.5450@utopia.booyaka.com>
-References: <1417818672-11586-1-git-send-email-balbi@ti.com> <alpine.DEB.2.02.1501200515370.5450@utopia.booyaka.com>
+From: Johan Hedberg <johan.hedberg@gmail.com>
+Subject: Re: [PATCH] bluetooth: Add hci_h4p driver
+Date: Tue, 20 Jan 2015 10:28:50 +0200
+Message-ID: <20150120082850.GA27162@t440s.lan>
+References: <20141223130219.GA5731@amd>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55155 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbbATIN6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 03:13:58 -0500
-In-Reply-To: <alpine.DEB.2.02.1501200515370.5450@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141223130219.GA5731@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org, marcel@holtmann.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 20 Jan 2015, Paul Walmsley wrote:
+Hi Pavel,
 
-> On Fri, 5 Dec 2014, Felipe Balbi wrote:
-> 
-> > By exposing the details of hwmod structures
-> > to debugfs we can much more easily verify
-> > that changes to hwmod data is correct and won't
-> > cause regressions.
-> > 
-> > The idea is that this can be used to check the
-> > state of one hwmod, verify hwmod sysc fields, etc.
-> > 
-> > For example, this will be used to move some of
-> > the sysc fields to DT and later verify that they
-> > are correct pre- and post-patch.
-> > 
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> 
-> This one had a bunch of unnecessary includes and checkpatch issues 
-> (below).  I cleaned those up here and have queued the result (also below) 
-> for v3.20.
+On Tue, Dec 23, 2014, Pavel Machek wrote:
+> +	while (1) {
+> +		int cmd, len;
+> +
+> +		fw_pos += cmd_len;
+> +
+> +		if (fw_pos >= fw_entry->size)
+> +			break;
+> +
+> +		if (fw_pos + 2 > fw_entry->size) {
+> +			dev_err(info->dev, "Corrupted firmware image\n");
+> +			err = -EMSGSIZE;
+> +			break;
+> +		}
+> +
+> +		cmd_len = fw_entry->data[fw_pos++];
+> +		cmd_len += fw_entry->data[fw_pos++] << 8;
+> +		if (cmd_len == 0)
+> +			break;
+> +
+> +		if (fw_pos + cmd_len > fw_entry->size) {
+> +			dev_err(info->dev, "Corrupted firmware image\n");
+> +			err = -EMSGSIZE;
+> +			break;
+> +		}
+> +
+> +		/* Skip first two packets */
+> +		if (++num <= 2)
+> +			continue;
+> +
+> +		/* Note that this is timing-critical. If sending packets takes too
+> +		 * long, initialization will fail.
+> +		 */
+> +		cmd = fw_entry->data[fw_pos+1];
+> +		cmd += fw_entry->data[fw_pos+2] << 8;
+> +		len = fw_entry->data[fw_pos+3];
+> +
+> +		skb = __hci_cmd_sync(info->hdev, cmd, len, fw_entry->data+fw_pos+4, 500);
+> +		if (IS_ERR(skb)) {
+> +			dev_err(info->dev, "...sending cmd %x len %d failed %ld\n",
+> +				cmd, len, PTR_ERR(skb));
+> +			err = -EIO;
+> +			break;
+> +		}
+> +	}
 
-... and, the patch doesn't even boot.  Dropped.
+Looks like the code is leaking skb when __hci_cmd_sync() succeeds.
 
-If you really want something like this to be merged, resend a version that 
-boots, and has checkpatch warnings fixed and unnecessary includes dropped.  
-Otherwise you're just wasting my time.
-
-
-- Paul
+Johan
