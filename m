@@ -1,25 +1,67 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/1] ARM: dts: dra72-evm: Add qspi device
-Date: Tue, 20 Jan 2015 10:07:52 -0800
-Message-ID: <20150120180751.GL7718@atomide.com>
-References: <1421660968-16134-1-git-send-email-mugunthanvnm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/3] drop legacy booting for omap3517
+Date: Tue, 20 Jan 2015 10:25:38 -0800
+Message-ID: <29380.8374125094$1421778576@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1421660968-16134-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58072 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751713AbbATS33 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 13:29:29 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> [150119 01:53]:
-> These add device tree entry for qspi device on dra72-evm.
+The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
 
-Applying into omap-for-v3.20/dt thanks.
+  Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/drop-legacy-3517-v2
+
+for you to fetch changes up to 549f95ed20168daa06901054a028e185ebb905ab:
+
+  ARM: OMAP3: Add back Kconfig option MACH_OMAP3517EVM for ASoC (2015-01-20 08:49:08 -0800)
+
+----------------------------------------------------------------
+We have had omap3517 booting in device tree mode for quite some
+time now and we have at least a minimal dts file for the 3517
+based boards. Also almost all the drivers are usable in device
+tree mode. And if there are any drivers not yet supported in device
+tree mode, those can be enabled using pdata quirks.
+
+This leaves omap3430 to omap3730 as the only remaining mach-omap2
+platforms still booting in legacy mode also. For those were are
+printing a warning during the boot to get people to update their
+systems to boot in device tree mode and slowly converting them
+over to device tree based booting.
+
+----------------------------------------------------------------
+Tony Lindgren (5):
+      ARM: OMAP3: Remove legacy support for am3517-evm
+      ARM: OMAP3: Remove legacy support for am3517crane
+      ARM: OMAP3: Remove cm-t3517 legacy support
+      ARM: OMAP3: Remove legacy support for am35xx-emac
+      ARM: OMAP3: Add back Kconfig option MACH_OMAP3517EVM for ASoC
+
+ arch/arm/mach-omap2/Kconfig                |  12 -
+ arch/arm/mach-omap2/Makefile               |   8 -
+ arch/arm/mach-omap2/am35xx-emac.c          | 114 ---------
+ arch/arm/mach-omap2/am35xx-emac.h          |  15 --
+ arch/arm/mach-omap2/am35xx.h               |  46 ----
+ arch/arm/mach-omap2/board-am3517crane.c    | 150 ------------
+ arch/arm/mach-omap2/board-am3517evm.c      | 373 -----------------------------
+ arch/arm/mach-omap2/board-cm-t3517.c       | 335 --------------------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  33 +--
+ arch/arm/mach-omap2/pdata-quirks.c         |   1 -
+ 10 files changed, 2 insertions(+), 1085 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/am35xx-emac.c
+ delete mode 100644 arch/arm/mach-omap2/am35xx-emac.h
+ delete mode 100644 arch/arm/mach-omap2/am35xx.h
+ delete mode 100644 arch/arm/mach-omap2/board-am3517crane.c
+ delete mode 100644 arch/arm/mach-omap2/board-am3517evm.c
+ delete mode 100644 arch/arm/mach-omap2/board-cm-t3517.c
