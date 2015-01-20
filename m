@@ -1,72 +1,67 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 6/7] mfd: menelaus: make vcore and regulator controls
- internal
-Date: Tue, 20 Jan 2015 14:01:43 +0000
-Message-ID: <20150120140143.GQ13701@x1>
-References: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
- <1419702779-16001-7-git-send-email-aaro.koskinen@iki.fi>
- <20150120135840.GO13701@x1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: Re: [next-20150119]regression (mm)?
+Date: Tue, 20 Jan 2015 16:05:46 +0200 (EET)
+Message-ID: <20150120140546.DDCB8D4@black.fi.intel.com>
+References: <54BD33DC.40200@ti.com>
+ <20150119174317.GK20386@saruman>
+ <20150120001643.7D15AA8@black.fi.intel.com>
+ <20150120114555.GA11502@n2100.arm.linux.org.uk>
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:44418 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751703AbbATOB4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 09:01:56 -0500
-Received: by mail-ig0-f177.google.com with SMTP id h15so8875905igd.4
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2015 06:01:55 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20150120135840.GO13701@x1>
+Received: from mga09.intel.com ([134.134.136.24]:16494 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752115AbbATOGf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Jan 2015 09:06:35 -0500
+In-Reply-To: <20150120114555.GA11502@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 20 Jan 2015, Lee Jones wrote:
+Russell King - ARM Linux wrote:
+> On Tue, Jan 20, 2015 at 02:16:43AM +0200, Kirill A. Shutemov wrote:
+> > Better option would be converting 2-lvl ARM configuration to
+> > <asm-generic/pgtable-nopmd.h>, but I'm not sure if it's possible.
+> 
+> Well, IMHO the folded approach in asm-generic was done the wrong way
+> which barred ARM from ever using it.
 
-> On Sat, 27 Dec 2014, Aaro Koskinen wrote:
->=20
-> > Make vcore and regulator control functions internal to the driver.
-> >=20
-> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > ---
-> >  drivers/mfd/menelaus.c       | 13 +++++++++++--
-> >  include/linux/mfd/menelaus.h | 12 ------------
-> >  2 files changed, 11 insertions(+), 14 deletions(-)
-> >=20
-> > diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-> > index 4a900cc..8660adf 100644
-> > --- a/drivers/mfd/menelaus.c
-> > +++ b/drivers/mfd/menelaus.c
-> > @@ -163,6 +163,15 @@
-> >  #define MCT_PIN_ST_S1_CD_ST		(1 << 0)
-> >  #define MCT_PIN_ST_S2_CD_ST		(1 << 1)
-> > =20
-> > +#define EN_VPLL_SLEEP			(1 << 7)
-> > +#define EN_VMMC_SLEEP			(1 << 6)
-> > +#define EN_VAUX_SLEEP			(1 << 5)
-> > +#define EN_VIO_SLEEP			(1 << 4)
-> > +#define EN_VMEM_SLEEP			(1 << 3)
-> > +#define EN_DC3_SLEEP			(1 << 2)
-> > +#define EN_DC2_SLEEP			(1 << 1)
-> > +#define EN_VC_SLEEP			(1 << 0)
->=20
-> Better to use the BIT() macro for this kind of stuff.
->=20
-> Please take this opportunity to use it.
+Okay, I see.
 
-In fact, nevermind.  I'll do it from here.
+Regarding the topic bug. Completely untested patch is below. Could anybody
+check if it helps?
 
-Applied, thanks.
+>From 34b9182d08ef2b541829e305fcc91ef1d26b27ea Mon Sep 17 00:00:00 2001
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Date: Tue, 20 Jan 2015 15:47:22 +0200
+Subject: [PATCH] arm: define __PAGETABLE_PMD_FOLDED for !LPAE
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ARM uses custom implementation of PMD folding in 2-level page table case.
+Generic code expects to see __PAGETABLE_PMD_FOLDED to be defined if PMD is
+folded, but ARM doesn't do this. Let's fix it.
+
+Defining __PAGETABLE_PMD_FOLDED will drop out unused __pmd_alloc().
+It also fixes problems with recently-introduced pmd accounting on ARM
+without LPAE.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/include/asm/pgtable-2level.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/include/asm/pgtable-2level.h b/arch/arm/include/asm/pgtable-2level.h
+index bcc5e300413f..bfd662e49a25 100644
+--- a/arch/arm/include/asm/pgtable-2level.h
++++ b/arch/arm/include/asm/pgtable-2level.h
+@@ -10,6 +10,8 @@
+ #ifndef _ASM_PGTABLE_2LEVEL_H
+ #define _ASM_PGTABLE_2LEVEL_H
+ 
++#define __PAGETABLE_PMD_FOLDED
++
+ /*
+  * Hardware-wise, we have a two level page table structure, where the first
+  * level has 4096 entries, and the second level has 256 entries.  Each entry
+-- 
+2.1.4
