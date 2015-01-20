@@ -1,83 +1,96 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [next-20150119]regression (mm)?
-Date: Tue, 20 Jan 2015 09:10:38 -0600
-Message-ID: <20150120151038.GC6556@saruman>
-References: <54BD33DC.40200@ti.com>
- <20150119174317.GK20386@saruman>
- <20150120001643.7D15AA8@black.fi.intel.com>
- <20150120114555.GA11502@n2100.arm.linux.org.uk>
- <20150120140546.DDCB8D4@black.fi.intel.com>
- <CAOMZO5D-Z-FLPmQ4Yy3rxBa-FebLcnG9TSzg3F-MF-TFBBMrwQ@mail.gmail.com>
+Subject: Re: [RFC/PATCH] arm: omap: hwmod: add debugfs interface
+Date: Tue, 20 Jan 2015 09:11:44 -0600
+Message-ID: <20150120151144.GD6556@saruman>
+References: <1417818672-11586-1-git-send-email-balbi@ti.com>
+ <alpine.DEB.2.02.1501200515370.5450@utopia.booyaka.com>
+ <alpine.DEB.2.02.1501200810270.5450@utopia.booyaka.com>
+ <20150120143603.GB6556@saruman>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OBd5C1Lgu00Gd/Tn"
-Return-path: <owner-linux-mm@kvack.org>
+	protocol="application/pgp-signature"; boundary="NklN7DEeGtkPCoo3"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38471 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751801AbbATPM7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Jan 2015 10:12:59 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOMZO5D-Z-FLPmQ4Yy3rxBa-FebLcnG9TSzg3F-MF-TFBBMrwQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Fabio Estevam <festevam@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+In-Reply-To: <20150120143603.GB6556@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---OBd5C1Lgu00Gd/Tn
+--NklN7DEeGtkPCoo3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 20, 2015 at 12:50:59PM -0200, Fabio Estevam wrote:
-> On Tue, Jan 20, 2015 at 12:05 PM, Kirill A. Shutemov
-> <kirill.shutemov@linux.intel.com> wrote:
-> > Russell King - ARM Linux wrote:
-> >> On Tue, Jan 20, 2015 at 02:16:43AM +0200, Kirill A. Shutemov wrote:
-> >> > Better option would be converting 2-lvl ARM configuration to
-> >> > <asm-generic/pgtable-nopmd.h>, but I'm not sure if it's possible.
-> >>
-> >> Well, IMHO the folded approach in asm-generic was done the wrong way
-> >> which barred ARM from ever using it.
-> >
-> > Okay, I see.
-> >
-> > Regarding the topic bug. Completely untested patch is below. Could anyb=
-ody
-> > check if it helps?
+On Tue, Jan 20, 2015 at 08:36:03AM -0600, Felipe Balbi wrote:
+> Hi,
 >=20
-> Yes, it helps. Now I can boot mx6 running linux-next 20150120 with
-> your patch applied.
+> On Tue, Jan 20, 2015 at 08:13:57AM +0000, Paul Walmsley wrote:
+> > On Tue, 20 Jan 2015, Paul Walmsley wrote:
+> >=20
+> > > On Fri, 5 Dec 2014, Felipe Balbi wrote:
+> > >=20
+> > > > By exposing the details of hwmod structures
+> > > > to debugfs we can much more easily verify
+> > > > that changes to hwmod data is correct and won't
+> > > > cause regressions.
+> > > >=20
+> > > > The idea is that this can be used to check the
+> > > > state of one hwmod, verify hwmod sysc fields, etc.
+> > > >=20
+> > > > For example, this will be used to move some of
+> > > > the sysc fields to DT and later verify that they
+> > > > are correct pre- and post-patch.
+> > > >=20
+> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > >=20
+> > > This one had a bunch of unnecessary includes and checkpatch issues=20
+> > > (below).  I cleaned those up here and have queued the result (also be=
+low)=20
+> > > for v3.20.
+> >=20
+> > ... and, the patch doesn't even boot.  Dropped.
+> >=20
+> > If you really want something like this to be merged, resend a version t=
+hat=20
+> > boots, and has checkpatch warnings fixed and unnecessary includes dropp=
+ed. =20
+> > Otherwise you're just wasting my time.
+>=20
+> you're using a really old version, though. There have been other
+> versions which are still under discussion.
 
-worked fine here too with AM437x SK, AM437x IDK and BeagleBoneBlack.
-
-thanks
+not to mention that this was an RFC, not meant for merging at the time
+it was sent.
 
 --=20
 balbi
 
---OBd5C1Lgu00Gd/Tn
+--NklN7DEeGtkPCoo3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUvm/uAAoJEIaOsuA1yqREP4gP/AnR/1cR2pv/Ev9OLcxQYXku
-ei4TJAaA2TXLne1aoqEUDdrhdt1iGwUe8hmFqe/OHkEpJuz65AkbXtEOtrcsCary
-6DiJ+/GwMqo+rCT71FHZUCmlipIIKFzqMFsKEtKn2eKaETJ/njuGNZ6Lrzt3xA0l
-sdqgI8Wy8PqurtB2BIM+OfPGpaNY0qd0yKuHLxOqEnDpxgdgVFcVjZVZgsY42UOW
-vQ40UKfU387qOiu4fm2rBwuDssGsUdduyoazJv8Ym3NeoH9HTSR9LZF4I778xxRi
-dMqQRru2jIaXTyKoZVNnscKTfMwiLp+DRDxELIPrfxQqC8BbUAp57RQxgAG/0afb
-b4vBQTk7rFsE2Ct38rCxf3OpeZ6GGD3u2BHGQqxYEsTyOoI4r6x1K79kbYZKLs1l
-Nqs59LnXpF38BgsJdoO7BmRKCQbnjYzx5V6trr1YCCMKl9lmxWy9xI6lYlBBVnCK
-vdReEdsxVG2lXuUVMckTNWV6nMqqykXqPch1PFuVSn0RIWgJWAaO63u3FGbaHR2l
-VFGtT2NtMP3N0b3mlW75if2wBj5fjxEiy+WJzW/QlEpFec2M8LAfdwW2S37XLXFd
-kN7nizgVUkxVFPQ201SVOQwI5wqCX+WeDQ5YrESH3IYLo3gPxmA7KEqLDZ4WP5HW
-gZ2m3za56GDEmB3YiK1h
-=BZo1
+iQIcBAEBAgAGBQJUvnAwAAoJEIaOsuA1yqREeYIP/iXDCIyJ/Z5UCEgGEcSsG4RI
+0Qz45AUT7jkNuJ5MXszeOM9LK8lMHKEvVY4F5lI+FbwPR4bWAvTLfFKTGtuwNAxI
+meunVly6Va1dm/XSFg3gjsaGaLVKok2ckh9uGxriXkf3gnuCKO/QV/5h8SDDCD9C
+NaLkVF0AVEZabyMtg//TWWeiwnZB4ztRfGzbNS/g0px28qh1ic0iZYaVIqtFyVAg
+hsHG85XSqjcqWtiQ6YHg2/ewchuF7Wx+IFI3UBrocaY/u9dLbALkhopUP55cdOdt
+wRQ93H6fVIqXuMEFnvdT44vq6DGu/BuFIK3nJ/8nb6cDW+G11T59eBfedOMbSQRV
+LADCqhFXj6f2hV9A1VSmYyuJ2i+tW87q54XiMo8eJPz8lyam2ScrqlKdxYhBKHlT
+a+V7G62e/DzzabkFBDV3OPpK/UMN8GRxKBHSl6Gb+q03dORbpwAsVAAt3MXFDUso
+h8RVKM8cNxJR9ql5770CxEKCFxLqmkBT5INQjAGN1drsdTzDpsmFxV5NL9Jqfwgl
+lZ3j/I4NFhZox+KHAKYkLyZeJwKHGbbZ0z2nppJTHOe7AVaiFGILXtwxCTYzzsR2
+4e+bq4zjQbL9t8wnVDdvGCqauqm9/8nmlUn3N/kGCcNLxqMNej+j9V1Fp9M98mKW
+IXQodz7Py0ocnokJUHQq
+=YCsa
 -----END PGP SIGNATURE-----
 
---OBd5C1Lgu00Gd/Tn--
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+--NklN7DEeGtkPCoo3--
