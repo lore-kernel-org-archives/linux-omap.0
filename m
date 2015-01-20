@@ -1,67 +1,91 @@
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: Re: [next-20150119]regression (mm)?
-Date: Tue, 20 Jan 2015 16:05:46 +0200 (EET)
-Message-ID: <20150120140546.DDCB8D4@black.fi.intel.com>
-References: <54BD33DC.40200@ti.com>
- <20150119174317.GK20386@saruman>
- <20150120001643.7D15AA8@black.fi.intel.com>
- <20150120114555.GA11502@n2100.arm.linux.org.uk>
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH] arm: omap: hwmod: add debugfs interface
+Date: Tue, 20 Jan 2015 08:36:03 -0600
+Message-ID: <20150120143603.GB6556@saruman>
+References: <1417818672-11586-1-git-send-email-balbi@ti.com>
+ <alpine.DEB.2.02.1501200515370.5450@utopia.booyaka.com>
+ <alpine.DEB.2.02.1501200810270.5450@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2B/JsCI69OhZNC5r"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16494 "EHLO mga09.intel.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37033 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752115AbbATOGf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Jan 2015 09:06:35 -0500
-In-Reply-To: <20150120114555.GA11502@n2100.arm.linux.org.uk>
+	id S1752248AbbATOhT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Jan 2015 09:37:19 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1501200810270.5450@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Russell King - ARM Linux wrote:
-> On Tue, Jan 20, 2015 at 02:16:43AM +0200, Kirill A. Shutemov wrote:
-> > Better option would be converting 2-lvl ARM configuration to
-> > <asm-generic/pgtable-nopmd.h>, but I'm not sure if it's possible.
-> 
-> Well, IMHO the folded approach in asm-generic was done the wrong way
-> which barred ARM from ever using it.
+--2B/JsCI69OhZNC5r
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Okay, I see.
+Hi,
 
-Regarding the topic bug. Completely untested patch is below. Could anybody
-check if it helps?
+On Tue, Jan 20, 2015 at 08:13:57AM +0000, Paul Walmsley wrote:
+> On Tue, 20 Jan 2015, Paul Walmsley wrote:
+>=20
+> > On Fri, 5 Dec 2014, Felipe Balbi wrote:
+> >=20
+> > > By exposing the details of hwmod structures
+> > > to debugfs we can much more easily verify
+> > > that changes to hwmod data is correct and won't
+> > > cause regressions.
+> > >=20
+> > > The idea is that this can be used to check the
+> > > state of one hwmod, verify hwmod sysc fields, etc.
+> > >=20
+> > > For example, this will be used to move some of
+> > > the sysc fields to DT and later verify that they
+> > > are correct pre- and post-patch.
+> > >=20
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > This one had a bunch of unnecessary includes and checkpatch issues=20
+> > (below).  I cleaned those up here and have queued the result (also belo=
+w)=20
+> > for v3.20.
+>=20
+> ... and, the patch doesn't even boot.  Dropped.
+>=20
+> If you really want something like this to be merged, resend a version tha=
+t=20
+> boots, and has checkpatch warnings fixed and unnecessary includes dropped=
+=2E =20
+> Otherwise you're just wasting my time.
 
->From 34b9182d08ef2b541829e305fcc91ef1d26b27ea Mon Sep 17 00:00:00 2001
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Date: Tue, 20 Jan 2015 15:47:22 +0200
-Subject: [PATCH] arm: define __PAGETABLE_PMD_FOLDED for !LPAE
+you're using a really old version, though. There have been other
+versions which are still under discussion.
 
-ARM uses custom implementation of PMD folding in 2-level page table case.
-Generic code expects to see __PAGETABLE_PMD_FOLDED to be defined if PMD is
-folded, but ARM doesn't do this. Let's fix it.
+--=20
+balbi
 
-Defining __PAGETABLE_PMD_FOLDED will drop out unused __pmd_alloc().
-It also fixes problems with recently-introduced pmd accounting on ARM
-without LPAE.
+--2B/JsCI69OhZNC5r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/include/asm/pgtable-2level.h | 2 ++
- 1 file changed, 2 insertions(+)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/arch/arm/include/asm/pgtable-2level.h b/arch/arm/include/asm/pgtable-2level.h
-index bcc5e300413f..bfd662e49a25 100644
---- a/arch/arm/include/asm/pgtable-2level.h
-+++ b/arch/arm/include/asm/pgtable-2level.h
-@@ -10,6 +10,8 @@
- #ifndef _ASM_PGTABLE_2LEVEL_H
- #define _ASM_PGTABLE_2LEVEL_H
- 
-+#define __PAGETABLE_PMD_FOLDED
-+
- /*
-  * Hardware-wise, we have a two level page table structure, where the first
-  * level has 4096 entries, and the second level has 256 entries.  Each entry
--- 
-2.1.4
+iQIcBAEBAgAGBQJUvmfTAAoJEIaOsuA1yqRE1osP/2vGGGQnNyQyNjwWe0CSmVlJ
+9OLSnjUeVLgpaDa8m2/mgXam7uLVXG5Y60lchGg5vcOPRV/vJQzYtwtKmaG4zCQi
+zNuS0C3FBeG//5C9lajc0Lwq2ipj0z3sFM0K9M8nLVhSzoExf/A+Fbrq0KUyPgZq
+U+7jaRoy23XkjJ5w9bZxFflr2bk/9sb9OLDmcrIMGCWnuz6KqtOOpILzNn3HLHKK
+6jgEF1JQ3GZrojCiq+r5A2Evg3dpkoPR1G9IaFsGWBiL32QPWCYf7+NHM673Pbm4
+u0acwCq1Ayy2rcfa7BHfKXttFGq30PpZ00Ud19u0tB+4GZmdiDo7ZW6QjQBRXT44
+v+MURohfY5q1yHNfMZSqBwfQ3B/Bkqcd34F8kwD575OSB2NKefW8VXudVi7zw7wN
+oplULSjR4xv7lZ76eeT6EiI+IEj3cL7f0eMcptKjloq+PrY+bJUykU6ovLdrvfD8
+dAMzlacVDVm0gnHYCuS0Ews2E+Buviu5/KozUYfzXaI2yRpHi3G0liTdyBCVnsPd
+3OSG0T4XyYwaDWcewPJ/KZln/8NLMF/MOGk4/s5/qhyKjuqG4CNnbyeyho+qiHpB
+lnGB3J3YCgCVzjtylo1nyvaHzr25IzXiZjXC87TzWrFGgAek1CKgIKrAn48eXsua
+uzqt4sDFRxuvuJ/l2K05
+=+H8H
+-----END PGP SIGNATURE-----
+
+--2B/JsCI69OhZNC5r--
