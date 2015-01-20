@@ -1,61 +1,161 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 5/5] ARM: omap2plus_defconfig: Enable PCF857X and EXTCON_GPIO_USB
-Date: Tue, 20 Jan 2015 11:26:34 +0200
-Message-ID: <54BE1F4A.109@ti.com>
-References: <1421689942-10201-1-git-send-email-rogerq@ti.com> <1421689942-10201-6-git-send-email-rogerq@ti.com> <20150119184546.GA18552@atomide.com> <20150119193841.GD18552@atomide.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v4 15/21] ARM: exynos4/5: convert pmu wakeup to stacked  domains
+Date: Tue, 20 Jan 2015 09:43:32 +0000
+Message-ID: <fb800e47e40b0daf7771347e9a6b2482@www.loen.fr>
+References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
+ <1421660655-21394-16-git-send-email-marc.zyngier@arm.com>
+ <54BE06FD.2020702@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150119193841.GD18552@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <54BE06FD.2020702@samsung.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Pankaj Dubey <pankaj.dubey@samsung.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Chanwoo Choi <cw00.choi@samsung.com>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stefan Agner <stefan@agner.ch>
 List-Id: linux-omap@vger.kernel.org
 
-On 19/01/15 21:38, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150119 10:52]:
->> * Roger Quadros <rogerq@ti.com> [150119 09:55]:
->>> Both are needed for USB cable type detection on dra7-evm.
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  arch/arm/configs/omap2plus_defconfig | 2 ++
->>>  1 file changed, 2 insertions(+)
->>>
->>> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
->>> index c2c3a85..bc23b90 100644
->>> --- a/arch/arm/configs/omap2plus_defconfig
->>> +++ b/arch/arm/configs/omap2plus_defconfig
->>> @@ -203,6 +203,7 @@ CONFIG_SPI_OMAP24XX=y
->>>  CONFIG_PINCTRL_SINGLE=y
->>>  CONFIG_DEBUG_GPIO=y
->>>  CONFIG_GPIO_SYSFS=y
->>> +CONFIG_GPIO_PCF857X=y
->>>  CONFIG_GPIO_TWL4030=y
->>>  CONFIG_W1=y
->>>  CONFIG_BATTERY_BQ27x00=m
->>
->> Looks like I have this too but as a loadable module :) So I'll keep
->> that one.
->>
->>> @@ -326,6 +327,7 @@ CONFIG_DMADEVICES=y
->>>  CONFIG_TI_EDMA=y
->>>  CONFIG_DMA_OMAP=y
->>>  CONFIG_EXTCON=y
->>> +CONFIG_EXTCON_GPIO_USB=y
->>>  CONFIG_EXTCON_PALMAS=y
->>>  CONFIG_PWM=y
->>>  CONFIG_PWM_TIECAP=y
->>
->> I'll apply this part into omap-for-v3.20/defconfig but make it into =m
->> instead of =y.
-> 
-> Oh but this depends on the driver being added, so not applying.
-> Can you please repost a patch adding CONFIG_EXTCON_GPIO_USB=m
-> once the driver is merged?
-> 
-Yes, I'll do that.
+Hi Pankaj,
 
-cheers,
--roger
+On 2015-01-20 07:42, Pankaj Dubey wrote:
+> Hi Marc,
+>
+> On Monday 19 January 2015 03:14 PM, Marc Zyngier wrote:
+>> Exynos has been (ab)using the gic_arch_extn to provide
+>> wakeup from suspend, and it makes a lot of sense to convert
+>> this code to use stacked domains instead.
+>>
+>> This patch does just this, updating the DT files to actually
+>> reflect what the HW provides.
+>>
+>> BIG FAT WARNING: because the DTs were so far lying by not
+>> exposing the fact that the PMU block is actually the first
+>> interrupt controller in the chain for RTC, kernels with this patch
+>> applied wont have any suspend-resume facility when booted
+>> with old DTs, and old kernels with updated DTs may not even boot.
+>>
+>> Also, I stronly suspect that there is more than two wake-up
+>> interrupts on these platforms, but I leave it to the maintainers
+>> to fix their mess.
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>
+> I tested this patch series on SMDK5250 board.
+>
+> With the addition of "#interrupt-cells = <3>;"in PMU device node S2R
+> is working on Exynos5250 based SMDK board.
+
+Thanks for letting me know. Can I add your Tested-by tag on this?
+
+>>   arch/arm/boot/dts/exynos4.dtsi    |   4 ++
+>>   arch/arm/boot/dts/exynos5250.dtsi |   4 ++
+>>   arch/arm/boot/dts/exynos5420.dtsi |   4 ++
+>>   arch/arm/mach-exynos/exynos.c     |  14 ++---
+>>   arch/arm/mach-exynos/suspend.c    | 122 
+>> ++++++++++++++++++++++++++++++++++----
+>>   5 files changed, 129 insertions(+), 19 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/exynos4.dtsi 
+>> b/arch/arm/boot/dts/exynos4.dtsi
+>> index b8168f1..0e7d74e 100644
+>> --- a/arch/arm/boot/dts/exynos4.dtsi
+>> +++ b/arch/arm/boot/dts/exynos4.dtsi
+>> @@ -141,6 +141,9 @@
+>>   	pmu_system_controller: system-controller@10020000 {
+>>   		compatible = "samsung,exynos4210-pmu", "syscon";
+>>   		reg = <0x10020000 0x4000>;
+>> +		interrupt-controller;
+>> +		#interrupt-cells = <3>;
+>> +		interrupt-parent = <&gic>;
+>>   	};
+>>
+>>   	dsi_0: dsi@11C80000 {
+>> @@ -253,6 +256,7 @@
+>>   	rtc@10070000 {
+>>   		compatible = "samsung,s3c6410-rtc";
+>>   		reg = <0x10070000 0x100>;
+>> +		interrupt-parent = <&pmu_system_controller>;
+>>   		interrupts = <0 44 0>, <0 45 0>;
+>>   		clocks = <&clock CLK_RTC>;
+>>   		clock-names = "rtc";
+>> diff --git a/arch/arm/boot/dts/exynos5250.dtsi 
+>> b/arch/arm/boot/dts/exynos5250.dtsi
+>> index 0a229fc..1dc5f6b 100644
+>> --- a/arch/arm/boot/dts/exynos5250.dtsi
+>> +++ b/arch/arm/boot/dts/exynos5250.dtsi
+>> @@ -194,6 +194,9 @@
+>>   		clock-names = "clkout16";
+>>   		clocks = <&clock CLK_FIN_PLL>;
+>>   		#clock-cells = <1>;
+>> +		interrupt-controller;
+>> +		#interrupt-cells = <3>;
+>> +		interrupt-parent = <&gic>;
+>>   	};
+>>
+>>   	sysreg_system_controller: syscon@10050000 {
+>> @@ -230,6 +233,7 @@
+>>   	rtc: rtc@101E0000 {
+>>   		clocks = <&clock CLK_RTC>;
+>>   		clock-names = "rtc";
+>> +		interrupt-parent = <&pmu_system_controller>;
+>>   		status = "disabled";
+>>   	};
+>>
+>> diff --git a/arch/arm/boot/dts/exynos5420.dtsi 
+>> b/arch/arm/boot/dts/exynos5420.dtsi
+>> index 517e50f..35ecd36 100644
+>> --- a/arch/arm/boot/dts/exynos5420.dtsi
+>> +++ b/arch/arm/boot/dts/exynos5420.dtsi
+>> @@ -309,6 +309,7 @@
+>>   	rtc: rtc@101E0000 {
+>>   		clocks = <&clock CLK_RTC>;
+>>   		clock-names = "rtc";
+>> +		interrupt-parent = <&pmu_system_controller>;
+>>   		status = "disabled";
+>>   	};
+>>
+>> @@ -748,6 +749,9 @@
+>>   		clock-names = "clkout16";
+>>   		clocks = <&clock CLK_FIN_PLL>;
+>>   		#clock-cells = <1>;
+>> +		interrupt-controller;
+>> +		#interrupt-cells = <3>;
+>> +		interrupt-parent = <&gic>;
+>>   	};
+>>
+>>   	sysreg_system_controller: syscon@10050000 {
+>> diff --git a/arch/arm/mach-exynos/exynos.c 
+>> b/arch/arm/mach-exynos/exynos.c
+>> index c13d083..e417fdc 100644
+>> --- a/arch/arm/mach-exynos/exynos.c
+>> +++ b/arch/arm/mach-exynos/exynos.c
+>> @@ -175,16 +175,15 @@ static void __init exynos_init_io(void)
+>>   	exynos_map_io();
+>>   }
+>>
+>> +/*
+>> + * Apparently, these SoCs are not able to wake-up from suspend 
+>> using
+>> + * the PMU. Too bad. Should they suddenly become capable of such a
+>> + * feat, the matches below should be moved to suspend.c.
+>> + */
+>>   static const struct of_device_id exynos_dt_pmu_match[] = {
+>>   	{ .compatible = "samsung,exynos3250-pmu" },
+>
+> As I know Exynos3250, S2R support has been added in kgene/for-next
+> and should work as expected so we may need to do update
+> "exynos_wkup_irq" for exynos3250 and remove it from this list, so 
+> that
+> it's S2R should not break. I am adding concern engineer (+cc: Chanwoo
+> Choi) in the loop.
+
+That would have to be an additional patch, unless we decide to delay 
+this series.
+
+Thanks,
+
+         M.
+-- 
+Fast, cheap, reliable. Pick two.
