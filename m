@@ -1,21 +1,21 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/7] mfd: menelaus: drop support for SW controller VCORE
-Date: Tue, 20 Jan 2015 13:52:01 +0000
-Message-ID: <20150120135201.GM13701@x1>
+Subject: Re: [PATCH 5/7] mfd: menelaus: delete platform data support
+Date: Tue, 20 Jan 2015 13:54:39 +0000
+Message-ID: <20150120135439.GN13701@x1>
 References: <1419702779-16001-1-git-send-email-aaro.koskinen@iki.fi>
- <1419702779-16001-3-git-send-email-aaro.koskinen@iki.fi>
+ <1419702779-16001-6-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:56243 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753267AbbATNwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 08:52:12 -0500
-Received: by mail-ig0-f182.google.com with SMTP id z20so7599573igj.3
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2015 05:52:12 -0800 (PST)
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:47657 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152AbbATNzJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 08:55:09 -0500
+Received: by mail-ie0-f176.google.com with SMTP id rd18so7979191iec.7
+        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2015 05:55:09 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1419702779-16001-3-git-send-email-aaro.koskinen@iki.fi>
+In-Reply-To: <1419702779-16001-6-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Aaro Koskinen <aaro.koskinen@iki.fi>
@@ -23,66 +23,88 @@ Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, devi
 
 On Sat, 27 Dec 2014, Aaro Koskinen wrote:
 
-> Drop support for SW controlled VCORE, nobody uses it.
+> Delete platform data support.
 >=20
 > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > ---
->  drivers/mfd/menelaus.c       | 23 -----------------------
->  include/linux/mfd/menelaus.h |  1 -
->  2 files changed, 24 deletions(-)
+>  arch/arm/mach-omap2/common-board-devices.h |  2 --
+>  drivers/mfd/menelaus.c                     | 10 +---------
+>  include/linux/mfd/menelaus.h               |  6 ------
+>  3 files changed, 1 insertion(+), 17 deletions(-)
 
 Applied, thanks.
 
+> diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/ma=
+ch-omap2/common-board-devices.h
+> index 07c88ae..7a30228 100644
+> --- a/arch/arm/mach-omap2/common-board-devices.h
+> +++ b/arch/arm/mach-omap2/common-board-devices.h
+> @@ -2,7 +2,6 @@
+>  #define __OMAP_COMMON_BOARD_DEVICES__
+> =20
+>  #include <sound/tlv320aic3x.h>
+> -#include <linux/mfd/menelaus.h>
+>  #include "twl-common.h"
+> =20
+>  #define NAND_BLOCK_SIZE	SZ_128K
+> @@ -14,7 +13,6 @@ void omap_ads7846_init(int bus_num, int gpio_pendow=
+n, int gpio_debounce,
+>  		       struct ads7846_platform_data *board_pdata);
+>  void *n8x0_legacy_init(void);
+> =20
+> -extern struct menelaus_platform_data n8x0_menelaus_platform_data;
+>  extern struct aic3x_pdata n810_aic33_data;
+> =20
+>  #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
 > diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-> index 9f01aef..917fa86 100644
+> index 3e04c64..4a900cc 100644
 > --- a/drivers/mfd/menelaus.c
 > +++ b/drivers/mfd/menelaus.c
-> @@ -532,29 +532,6 @@ static const struct menelaus_vtg_value vcore_val=
-ues[] =3D {
->  	{ 1450, 18 },
->  };
+> @@ -1181,8 +1181,6 @@ static int menelaus_probe(struct i2c_client *cl=
+ient,
+>  	int			rev =3D 0;
+>  	int			err =3D 0;
+>  	struct device_node	*np =3D client->dev.of_node;
+> -	struct menelaus_platform_data *menelaus_pdata =3D
+> -					dev_get_platdata(&client->dev);
 > =20
-> -int menelaus_set_vcore_sw(unsigned int mV)
-> -{
-> -	int val, ret;
-> -	struct i2c_client *c =3D the_menelaus->client;
-> -
-> -	val =3D menelaus_get_vtg_value(mV, vcore_values,
-> -				     ARRAY_SIZE(vcore_values));
-> -	if (val < 0)
-> -		return -EINVAL;
-> -
-> -	dev_dbg(&c->dev, "Setting VCORE to %d mV (val 0x%02x)\n", mV, val);
-> -
-> -	/* Set SW mode and the voltage in one go. */
-> -	mutex_lock(&the_menelaus->lock);
-> -	ret =3D menelaus_write_reg(MENELAUS_VCORE_CTRL1, val);
-> -	if (ret =3D=3D 0)
-> -		the_menelaus->vcore_hw_mode =3D 0;
-> -	mutex_unlock(&the_menelaus->lock);
-> -	msleep(1);
-> -
-> -	return ret;
-> -}
-> -
->  int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int floor_m=
-V)
->  {
->  	int fval, rval, val, ret;
+>  	if (the_menelaus) {
+>  		dev_dbg(&client->dev, "only one %s for now\n",
+> @@ -1240,13 +1238,7 @@ static int menelaus_probe(struct i2c_client *c=
+lient,
+>  	else
+>  		menelaus->vcore_hw_mode =3D 0;
+> =20
+> -	if (menelaus_pdata !=3D NULL) {
+> -		if (menelaus_pdata->late_init !=3D NULL) {
+> -			err =3D menelaus_pdata->late_init(&client->dev);
+> -			if (err < 0)
+> -				goto fail;
+> -		}
+> -	} else if (np) {
+> +	if (np) {
+>  		u32 vcore_min;
+>  		u32 vcore_max;
+> =20
 > diff --git a/include/linux/mfd/menelaus.h b/include/linux/mfd/menelau=
 s.h
-> index a1e12bf3..9e85ac0 100644
+> index 9e85ac0..21eeff5 100644
 > --- a/include/linux/mfd/menelaus.h
 > +++ b/include/linux/mfd/menelaus.h
-> @@ -24,7 +24,6 @@ extern int menelaus_set_vaux(unsigned int mV);
->  extern int menelaus_set_vdcdc(int dcdc, unsigned int mV);
->  extern int menelaus_set_slot_sel(int enable);
->  extern int menelaus_get_slot_pin_states(void);
-> -extern int menelaus_set_vcore_sw(unsigned int mV);
->  extern int menelaus_set_vcore_hw(unsigned int roof_mV, unsigned int =
-floor_mV);
+> @@ -5,12 +5,6 @@
+>  #ifndef __ASM_ARCH_MENELAUS_H
+>  #define __ASM_ARCH_MENELAUS_H
 > =20
->  #define EN_VPLL_SLEEP	(1 << 7)
+> -struct device;
+> -
+> -struct menelaus_platform_data {
+> -	int (* late_init)(struct device *dev);
+> -};
+> -
+>  extern int menelaus_register_mmc_callback(void (*callback)(void *dat=
+a, u8 card_mask),
+>  					  void *data);
+>  extern void menelaus_unregister_mmc_callback(void);
 
 --=20
 Lee Jones
