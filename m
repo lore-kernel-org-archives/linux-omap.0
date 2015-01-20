@@ -1,49 +1,52 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: DRA7: hwmod: Make gpmc software supervised
- as the smart idle is broken
-Date: Tue, 20 Jan 2015 11:53:37 +0530
-Message-ID: <54BDF469.3030907@ti.com>
-References: <1421139085-27183-1-git-send-email-j-keerthy@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP: hwmod fixes for v3.19-rc
+Date: Tue, 20 Jan 2015 06:48:29 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501200647540.5450@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1501042334250.28771@utopia.booyaka.com> <20150119194305.GE18552@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421139085-27183-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:54438 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152AbbATGsa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 01:48:30 -0500
+In-Reply-To: <20150119194305.GE18552@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Hi Tony
 
-On Tuesday 13 January 2015 02:21 PM, Keerthy wrote:
-> This patch fixes: 'omap_hwmod: gpmc: _wait_target_disable failed'
-> error during suspend.
->
-> This is because smart idle is broken.
-> Tested in dra7-evm D1 board.
+On Mon, 19 Jan 2015, Tony Lindgren wrote:
 
-Ping on this.
+> * Paul Walmsley <paul@pwsan.com> [150104 15:38]:
+> > The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
+> > 
+> >   Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.19-rc/omap-fixes-a
+> > 
+> > for you to fetch changes up to 99d076b747455449b2eec9e37f3fb0bfdf51af32:
+> > 
+> >   MAINTAINERS: add maintainer for OMAP hwmod data (2015-01-02 16:24:27 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > For v3.19-rc, fix some hwmod structure details for the OMAP DSS modules
+> > for DRA7xx and AM43xx.  Also update the MAINTAINERS file to encourage
+> > folks to cc me on hwmod data patches.
+> > 
+> > Basic build, boot, and PM testlogs are available here:
+> > 
+> > http://www.pwsan.com/omap/testlogs/omap-fixes-a-for-v3.19-rc/20150103144242/
+> 
+> Paul, got any updates on this? Anyways, I'll just untag this email as
+> you asked me to wait on pulling this.
 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_7xx_data.c |    3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 9cdd8b8..29e55fe 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -826,7 +826,8 @@ static struct omap_hwmod dra7xx_gpmc_hwmod = {
->   	.name		= "gpmc",
->   	.class		= &dra7xx_gpmc_hwmod_class,
->   	.clkdm_name	= "l3main1_clkdm",
-> -	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-> +	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
-> +			   HWMOD_SWSUP_SIDLE),
->   	.main_clk	= "l3_iclk_div",
->   	.prcm = {
->   		.omap4 = {
+At this point I think I will just requeue the remaining two valid patches 
+for v3.20.  Thanks for the ping
 
-Regards,
-Keerthy
+
+- Paul
