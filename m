@@ -1,63 +1,44 @@
-From: Pankaj Dubey <pankaj.dubey@samsung.com>
-Subject: Re: [PATCH v4 16/21] DT: exynos: update PMU binding
-Date: Tue, 20 Jan 2015 13:17:00 +0530
-Message-ID: <54BE07F4.1000106@samsung.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH v4 02/21] irqchip: tegra: add DT-based support for legacy
+ interrupt controller
+Date: Tue, 20 Jan 2015 09:51:26 +0200
+Message-ID: <20150120075126.GA31060@tbergstrom-lnx.Nvidia.com>
 References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
- <1421660655-21394-17-git-send-email-marc.zyngier@arm.com>
+ <1421660655-21394-3-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1421660655-21394-17-git-send-email-marc.zyngier@arm.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:2646 "EHLO
+	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761AbbATHv5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 02:51:57 -0500
+Content-Disposition: inline
+In-Reply-To: <1421660655-21394-3-git-send-email-marc.zyngier@arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Pankaj Dubey <pankaj.dubey@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stefan Agner <stefan@agner.ch>
 
-Hi Marc,
+On Mon, Jan 19, 2015 at 09:43:56AM +0000, Marc Zyngier wrote:
+> Tegra's LIC (Legacy Interrupt Controller) has been so far only
+> supported as a weird extension of the GIC, which is not exactly
+> pretty.
+> 
+> The stacked IRQ domain framework fits this pretty well, and allows
+> the LIC code to be turned into a standalone irqchip. In the process,
+> make the driver DT aware, something that was sorely missing from
+> the mach-tegra implementation.
+> 
 
-On Monday 19 January 2015 03:14 PM, Marc Zyngier wrote:
-> Document the fact that some Exynos PMUs are capable of acting as
-> an interrupt controller.
->
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->   Documentation/devicetree/bindings/arm/samsung/pmu.txt | 13 +++++++++++++
->   1 file changed, 13 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/arm/samsung/pmu.txt b/Documentation/devicetree/bindings/arm/samsung/pmu.txt
-> index 1e1979b..d698e74 100644
-> --- a/Documentation/devicetree/bindings/arm/samsung/pmu.txt
-> +++ b/Documentation/devicetree/bindings/arm/samsung/pmu.txt
-> @@ -28,10 +28,23 @@ Properties:
->    - clocks : list of phandles and specifiers to all input clocks listed in
->   		clock-names property.
->
-> +Optional properties:
-> +
-> +Some PMUs are capable of behaving as an interrupt controller (mostly
-> +to wake up a suspended PMU). In which case, they can have the
-> +following properties:
-> +
-> +- interrupt-controller: indicate that said PMU is an interrupt controller
-> +
+Note that the GIC isn't really stacked on top of the LIC. Each IRQ is
+presented to both the LIC and the GIC (as an SPI). The LIC is only used
+to wakeup the CPU in case the GIC is not powered. The LIC can also
+generate interrupts towards the AVP/ARM7, but that's outside the scope
+of Linux ofcourse. The LIC can also be used to force an IRQ and that
+forced IRQ will be propagated to the GIC. (see also figure 2, page 36
+of the Tegra K1 TRM)
 
-Need to add #interrupt-cells property here.
+Cheers,
 
+Peter.
 
-> +- interrupt-parent: a phandle indicating which interrupt controller
-> +  this PMU signals interrupts to.
-> +
->   Example :
->   pmu_system_controller: system-controller@10040000 {
->   	compatible = "samsung,exynos5250-pmu", "syscon";
->   	reg = <0x10040000 0x5000>;
-> +	interrupt-controller;
-> +	interrupt-parent = <&gic>;
->   	#clock-cells = <1>;
->   	clock-names = "clkout0", "clkout1", "clkout2", "clkout3",
->   			"clkout4", "clkout8", "clkout9";
->
-
-Thanks,
-Pankaj Dubey
