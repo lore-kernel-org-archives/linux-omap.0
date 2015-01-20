@@ -1,41 +1,70 @@
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [PATCH v4 14/21] ARM: imx6: convert GPC to stacked domains
-Date: Tue, 20 Jan 2015 19:19:01 +0800
-Message-ID: <20150120111900.GB2766@dragon>
-References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
- <1421660655-21394-15-git-send-email-marc.zyngier@arm.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [next-20150119]regression (mm)?
+Date: Tue, 20 Jan 2015 11:45:55 +0000
+Message-ID: <20150120114555.GA11502@n2100.arm.linux.org.uk>
+References: <54BD33DC.40200@ti.com>
+ <20150119174317.GK20386@saruman>
+ <20150120001643.7D15AA8@black.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:53565 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753451AbbATLTy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 06:19:54 -0500
-Received: by mail-pa0-f54.google.com with SMTP id eu11so10712468pac.13
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2015 03:19:54 -0800 (PST)
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <1421660655-21394-15-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150120001643.7D15AA8@black.fi.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Pankaj Dubey <pankaj.dubey@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Stefan Agner <stefan@agner.ch>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Mon, Jan 19, 2015 at 09:44:08AM +0000, Marc Zyngier wrote:
-> IMX6 has been (ab)using the gic_arch_extn to provide
-> wakeup from suspend, and it makes a lot of sense to convert
-> this code to use stacked domains instead.
-> 
-> This patch does just this, updating the DT files to actually
-> reflect what the HW provides.
-> 
-> BIG FAT WARNING: because the DTs were so far lying by not
-> exposing the fact that the GPC block is actually the first
-> interrupt controller in the chain, kernels with this patch
-> applied wont have any suspend-resume facility when booted
-> with old DTs, and old kernels with updated DTs won't even boot.
-> 
-> Tested-by: Stefan Agner <stefan@agner.ch>
-> Acked-by: Stefan Agner <stefan@agner.ch>
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+On Tue, Jan 20, 2015 at 02:16:43AM +0200, Kirill A. Shutemov wrote:
+> Better option would be converting 2-lvl ARM configuration to
+> <asm-generic/pgtable-nopmd.h>, but I'm not sure if it's possible.
 
-Acked-by: Shawn Guo <shawn.guo@linaro.org>
+Well, IMHO the folded approach in asm-generic was done the wrong way
+which barred ARM from ever using it.
+
+By that, I mean that the asm-generic stuff encapsulates a pgd into a pud,
+and a pud into a pmd:
+
+typedef struct { pgd_t pgd; } pud_t;
+typedef struct { pud_t pud; } pmd_t;
+
+This, I assert, is the wrong way around.  Think about it when you have a
+real 4 level page table structure - a single pgd points to a set of puds.
+So, one pgd encapsulates via a pointer a set of puds.  One pud does not
+encapsulate a set of pgds.
+
+What we have on ARM is slightly different: because of the sizes of page
+tables, we have a pgd entry which is physically two page table pointers.
+However, there are cases where we want to access these as two separate
+pointers.
+
+So, we define pgd_t to be an array of two u32's, and a pmd_t to be a
+single entry.  This works fine, we set the masks, shifts and sizes
+appropriately so that the pmd code is optimised away, but leaves us with
+the ability to go down to the individual pgd_t entries when we need to
+(eg, for section mappings, writing the pgd pointers for page tables,
+etc.)
+
+I think I also ran into problems with:
+
+#define pmd_val(x)                              (pud_val((x).pud))
+#define __pmd(x)                                ((pmd_t) { __pud(x) } )
+
+too - but it's been a very long time since the nopmd.h stuff was
+introduced, and I last looked at it.
+
+In any case, what we have today is what has worked for well over a decade
+(and pre-dates nopmd.h), and I'm really not interested today in trying to
+rework tonnes of code to make use of nopmd.h - especially as it will most
+likely require nopmd.h to be rewritten too, and we now have real 3 level
+page table support (which I have no way to test.)
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
