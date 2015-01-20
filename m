@@ -1,44 +1,48 @@
-From: Peter De Schrijver <pdeschrijver@nvidia.com>
-Subject: Re: [PATCH v4 02/21] irqchip: tegra: add DT-based support for legacy
- interrupt controller
-Date: Tue, 20 Jan 2015 09:51:26 +0200
-Message-ID: <20150120075126.GA31060@tbergstrom-lnx.Nvidia.com>
-References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
- <1421660655-21394-3-git-send-email-marc.zyngier@arm.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC/PATCH] arm: omap: hwmod: add debugfs interface
+Date: Tue, 20 Jan 2015 08:13:57 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501200810270.5450@utopia.booyaka.com>
+References: <1417818672-11586-1-git-send-email-balbi@ti.com> <alpine.DEB.2.02.1501200515370.5450@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:2646 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761AbbATHv5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 02:51:57 -0500
-Content-Disposition: inline
-In-Reply-To: <1421660655-21394-3-git-send-email-marc.zyngier@arm.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:55155 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbbATIN6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 03:13:58 -0500
+In-Reply-To: <alpine.DEB.2.02.1501200515370.5450@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Pankaj Dubey <pankaj.dubey@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stefan Agner <stefan@agner.ch>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Jan 19, 2015 at 09:43:56AM +0000, Marc Zyngier wrote:
-> Tegra's LIC (Legacy Interrupt Controller) has been so far only
-> supported as a weird extension of the GIC, which is not exactly
-> pretty.
+On Tue, 20 Jan 2015, Paul Walmsley wrote:
+
+> On Fri, 5 Dec 2014, Felipe Balbi wrote:
 > 
-> The stacked IRQ domain framework fits this pretty well, and allows
-> the LIC code to be turned into a standalone irqchip. In the process,
-> make the driver DT aware, something that was sorely missing from
-> the mach-tegra implementation.
+> > By exposing the details of hwmod structures
+> > to debugfs we can much more easily verify
+> > that changes to hwmod data is correct and won't
+> > cause regressions.
+> > 
+> > The idea is that this can be used to check the
+> > state of one hwmod, verify hwmod sysc fields, etc.
+> > 
+> > For example, this will be used to move some of
+> > the sysc fields to DT and later verify that they
+> > are correct pre- and post-patch.
+> > 
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
 > 
+> This one had a bunch of unnecessary includes and checkpatch issues 
+> (below).  I cleaned those up here and have queued the result (also below) 
+> for v3.20.
 
-Note that the GIC isn't really stacked on top of the LIC. Each IRQ is
-presented to both the LIC and the GIC (as an SPI). The LIC is only used
-to wakeup the CPU in case the GIC is not powered. The LIC can also
-generate interrupts towards the AVP/ARM7, but that's outside the scope
-of Linux ofcourse. The LIC can also be used to force an IRQ and that
-forced IRQ will be propagated to the GIC. (see also figure 2, page 36
-of the Tegra K1 TRM)
+... and, the patch doesn't even boot.  Dropped.
 
-Cheers,
+If you really want something like this to be merged, resend a version that 
+boots, and has checkpatch warnings fixed and unnecessary includes dropped.  
+Otherwise you're just wasting my time.
 
-Peter.
 
+- Paul
