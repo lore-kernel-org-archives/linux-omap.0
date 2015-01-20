@@ -1,92 +1,52 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2] ASoC: OMAP: mcbsp: ensure that CLKX and CLKR are not
- used as ouput pins when they are used as input clock for the SRG.
-Date: Tue, 20 Jan 2015 10:47:55 +0200
-Message-ID: <54BE163B.2000208@ti.com>
-References: <1421702668-21135-1-git-send-email-niederp@physik.uni-kl.de>
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: Re: [PATCH 3.19-rc2 v15 5/8] arm: omap1: Migrate debug_ll macros
+ to use 8250.S
+Date: Tue, 20 Jan 2015 09:00:17 +0000
+Message-ID: <54BE1921.5050902@linaro.org>
+References: <1420461624-4410-1-git-send-email-daniel.thompson@linaro.org> <1420461624-4410-6-git-send-email-daniel.thompson@linaro.org> <20150119213845.GL18552@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52236 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248AbbATIsM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Jan 2015 03:48:12 -0500
-In-Reply-To: <1421702668-21135-1-git-send-email-niederp@physik.uni-kl.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150119213845.GL18552@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, linaro-kernel@lists.linaro.org, patches@linaro.org, spear-devel@list.st.com, linux-kernel@vger.kernel.org, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?VGhvbWFzIE5pZWRlcnByw7xt?= <niederp@physik.uni-kl.de>, jarkko.nikula@bitmer.com
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On 01/19/2015 11:24 PM, Thomas Niederpr=C3=BCm wrote:
-> This patch fixes faulty behaviour in a setup where the input clock fo=
-r the
-> SRG is fed through the CLKR/CLKX pin but the McBSP is configured to b=
-e
-> master (SND_SOC_DAIFMT_CBS_CFS). In that case of course CLKR/CLKX mus=
-t
-> not be configured as output pin. Otherwise the input clock is messed =
-up
-> horribly.
->=20
-> This patch makes it possible to use the CLKR/CLKX pin rather than CLK=
-S to
-> inject a reference clock in setups where McBSP is master and not both
-> rx and tx are used. However for this to work it has to be ensured tha=
-t
-> set_dai_sysclk() is called after set_dai_fmt().
->=20
-> This was tested on a beagleboard-xm using McBSP1 to drive a i2s DAC t=
-hrough
-> the tx lines (CLKX,FSX,DX). Using this patch the CLKR pin is used to =
-inject
-> an external reference clock.
->=20
-> changes since v1:
-> - added comments explaining the bit masking to disable output on CLKR=
-/CLKX
+On 19/01/15 21:38, Tony Lindgren wrote:
+> * Daniel Thompson <daniel.thompson@linaro.org> [150105 04:49]:
+>> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
+>> the 8520 code the omap1 macro automatically determines what UART to use
+>> based on breadcrumbs left by the bootloader and automatically copes with
+>> the eccentric register layout on OMAP7XX.
+>>
+>> This patch drops both these features and relies instead on the generic
+>> 8250 macros:
+>>
+>> 1. Dropping support for the bootloader breadcrumbs is identical to the
+>>    way the migration was handled for OMAP2 (see 808b7e07464d...).
+>>
+>> 2. Support for OMAP7XX still exists but it must be configured by hand
+>>    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
+>>
+>> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+>> Cc: linux-omap@vger.kernel.org
+>> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> Daniel, I suggest you upload this patch into Russell's patch tracking
+> system to get it merged. That at least shrinks down your patch series
+> if the other patches need more work.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+This has been in the patch tracker for a week or so:
+http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8271/1
 
->=20
-> Signed-off-by: Thomas Niederpr=C3=BCm <niederp@physik.uni-kl.de>
-> ---
->  sound/soc/omap/omap-mcbsp.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->=20
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.=
-c
-> index bd3ef2a..c37f606 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -530,8 +530,19 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct =
-snd_soc_dai *cpu_dai,
-> =20
->  	case OMAP_MCBSP_SYSCLK_CLKX_EXT:
->  		regs->srgr2	|=3D CLKSM;
-> +		regs->pcr0	|=3D SCLKME;
-> +		/*
-> +		 * If McBSP is master but yet the CLKX/CLKR pin drives the SRG,
-> +		 * disable output on those pins. This enables to inject the=20
-> +		 * reference clock through CLKX/CLKR. For this to work=20
-> +		 * set_dai_sysclk() _needs_ to be called after set_dai_fmt().
-> +		 */
-> +		regs->pcr0	&=3D ~CLKXM;
-> +		break;
->  	case OMAP_MCBSP_SYSCLK_CLKR_EXT:
->  		regs->pcr0	|=3D SCLKME;
-> +		/* Disable ouput on CLKR pin in master mode */
-> +		regs->pcr0	&=3D ~CLKRM;
->  		break;
->  	default:
->  		err =3D -ENODEV;
->=20
+I'm very aware that this patch (and indeed the whole patch set) has been
+knocking round for longer than it should have. The changelog for this
+patchset is certainly not one to be especially proud off ;-) .
 
 
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Daniel.
