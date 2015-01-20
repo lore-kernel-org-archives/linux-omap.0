@@ -1,88 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5] ARM: AM43xx: hwmod: add VPFE hwmod entries
-Date: Tue, 20 Jan 2015 07:18:19 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501200709440.5450@utopia.booyaka.com>
-References: <1418919854-16164-1-git-send-email-prabhakar.csengg@gmail.com> <1418919854-16164-2-git-send-email-prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: DRA7: hwmod: Make gpmc software supervised
+ as the smart idle is broken
+Date: Tue, 20 Jan 2015 07:23:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501200722560.5450@utopia.booyaka.com>
+References: <1421139085-27183-1-git-send-email-j-keerthy@ti.com> <54BDF469.3030907@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1418919854-16164-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <54BDF469.3030907@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>, bparrot@ti.com, detheridge@ti.com, balbi@ti.com
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>, OMAP <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Keerthy <a0393675@ti.com>
+Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+On Tue, 20 Jan 2015, Keerthy wrote:
 
-On Thu, 18 Dec 2014, Lad, Prabhakar wrote:
-
-> From: Benoit Parrot <bparrot@ti.com>
+> On Tuesday 13 January 2015 02:21 PM, Keerthy wrote:
+> > This patch fixes: 'omap_hwmod: gpmc: _wait_target_disable failed'
+> > error during suspend.
+> > 
+> > This is because smart idle is broken.
+> > Tested in dra7-evm D1 board.
 > 
-> this patch adds VPFE HWMOD data for AM43xx.
+> Ping on this.
 > 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> > ---
+> >   arch/arm/mach-omap2/omap_hwmod_7xx_data.c |    3 ++-
+> >   1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > index 9cdd8b8..29e55fe 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > @@ -826,7 +826,8 @@ static struct omap_hwmod dra7xx_gpmc_hwmod = {
+> >   	.name		= "gpmc",
+> >   	.class		= &dra7xx_gpmc_hwmod_class,
+> >   	.clkdm_name	= "l3main1_clkdm",
+> > -	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+> > +	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
+> > +			   HWMOD_SWSUP_SIDLE),
+> >   	.main_clk	= "l3_iclk_div",
+> >   	.prcm = {
+> >   		.omap4 = {
 
-...
+Thanks, queued for v3.20.
 
-> ---
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 56 ++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/prcm43xx.h             |  3 +-
->  2 files changed, 58 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> index fea01aa..bd9067e 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-
-...
-
-> @@ -750,6 +788,22 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
-> +	.master         = &am33xx_l3_main_hwmod,
-> +	.slave          = &am43xx_vpfe0_hwmod,
-> +	.clk            = "l3_gclk",
-> +	.flags          = OCPIF_SWSUP_IDLE,
-> +	.user           = OCP_USER_MPU,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
-> +	.master         = &am33xx_l3_main_hwmod,
-> +	.slave          = &am43xx_vpfe1_hwmod,
-> +	.clk            = "l3_gclk",
-> +	.flags          = OCPIF_SWSUP_IDLE,
-> +	.user           = OCP_USER_MPU,
-> +};
-> +
->  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am33xx_l4_wkup__synctimer,
->  	&am43xx_l4_ls__timer8,
-> @@ -848,6 +902,8 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am43xx_l4_ls__dss,
->  	&am43xx_l4_ls__dss_dispc,
->  	&am43xx_l4_ls__dss_rfbi,
-> +	&am43xx_l3__vpfe0,
-> +	&am43xx_l3__vpfe1,
->  	NULL,
->  };
-
-According to SPRUHL7 Figure 14-1 "VPFE Integration" and Table 14-2 "VPFE 
-Connectivity Attributes", a VPFE has two interconnect ports per instance: 
-one L4-Per port as a register target, and one L3 port as a DMA initiator.  
-It's unclear to me whether the L3 port can also serve as a register 
-target, but Section 2.1 "ARM Cortex-A9 Memory Map", Table 4-1 "L3 
-Master-Slave Connectivity", and Figure 4-2 "L4 Topology" suggest that it 
-cannot.
-
-So if that's correct, there should be two more struct omap_hwmod_ocp_if 
-records added in this patch for the register target ports that are 
-connected to the L4.  DSS is a good example: see am43xx_dss__l3_main and 
-am43xx_l4_ls__dss in this same file.
+Note that I cannot test this since I don't have a DRA7xx board.
 
 
 - Paul
