@@ -1,110 +1,37 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] bluetooth: Add hci_h4p driver
-Date: Tue, 20 Jan 2015 18:36:04 +0100
-Message-ID: <20150120173604.GA712@amd>
-References: <20141223130219.GA5731@amd>
- <CB643345-4B50-4ED0-8C3E-296CD225754D@holtmann.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2plus_defconfig: Enable misc options for
+ BeagleBoard-X15 platform
+Date: Tue, 20 Jan 2015 09:45:01 -0800
+Message-ID: <20150120174500.GH7718@atomide.com>
+References: <1420751680-21230-1-git-send-email-nm@ti.com>
+ <20150108215943.GW31926@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CB643345-4B50-4ED0-8C3E-296CD225754D@holtmann.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>, Sebastian Reichel <sre@ring0.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, linux-bluetooth@vger.kernel.org
+In-Reply-To: <20150108215943.GW31926@saruman>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> > Add HCI driver for H4 with Nokia extensions. This device is used on
-> > Nokia N900 cell phone.
+* Felipe Balbi <balbi@ti.com> [150108 14:03]:
+> On Thu, Jan 08, 2015 at 03:14:40PM -0600, Nishanth Menon wrote:
+> > BeagleBoard-X15 has options such as rtc, fan that need to be functional
 > > 
-> > Older version of this driver lived in staging, before being reverted
-> > in a4102f90e87cfaa3fdbed6fdf469b23f0eeb4bfd .
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > Thanks-to: Sebastian Reichel <sre@debian.org>
-> > Thanks-to: Joe Perches <joe@perches.com>
-> > 
-> > ---
-> > 
-> > Please apply,
-> > 								Pavel
-> > 
-> > 
-> > Kconfig      |   10 
-> > Makefile     |    4 
-> > nokia_core.c | 1149 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-> > nokia_fw.c   |   99 +++++
-> > nokia_h4p.h  |  214 ++++++++++
-> > nokia_uart.c |  171 ++++++++
-> > 7 files changed, 1667 insertions(+)
-
-Speaking about formatting, could you properly format your emails, that
-is inserting newline after ~78 columns, to make them easier to reply
-to?
-
-> so when I run this through checkpatch --strict, then I get tons of warning that we have DOS style ^M line breaks. There are also trailing whitespace that need fixing. I can use cleanpatch to do this, but so can you.
->
-
-Strange, where do you see DOS style line breaks? Checkpatch here does
-not warn about that, and they really should not be there.
-
-> Even after doing that there are still obvious plain coding style violation in the patch. For example:
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
 > 
-> ERROR: space prohibited before that ',' (ctx:WxW)
-> #610: FILE: drivers/bluetooth/nokia_core.c:517:
-> +			__h4p_set_auto_ctsrts(info, 0 , UART_EFR_RTS);
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-Yeah, I should have catched that one.
+Applying into omap-for-v3.20/defconfig thanks.
 
-> CHECK: Alignment should match open parenthesis
-> #662: FILE: drivers/bluetooth/nokia_core.c:569:
-> +		h4p_outb(info, UART_OMAP_SCR,
-> +			     h4p_inb(info, UART_OMAP_SCR) |
-> 
-> CHECK: Blank lines aren't necessary before a close brace '}'
-> #692: FILE: drivers/bluetooth/nokia_core.c:599:
-> +
-> +}
-> 
-> These are only few. They are more and all these need fixing before I
-> even consider it.
-
-Yeah, so first patch was too good for staging, and I "would be allowed
-to clean it up in tree", and now you run checkpatch --strict,
-complaining about very serious stuff such as "blank lines before }".
-
-Yes, checkpatch produces a lot of junk, like warnings about
-mdelay(). I'm not sure how you'd want #662 above, formatted.
-
-pavel@amd:/data/l/linux-n900$ scripts/checkpatch.pl --strict --file
-drivers/bluetooth/*.c | wc -l 3194
-pavel@amd:/data/l/linux-n900$
-
-...so I really can't know which checkpatch complains you consider
-serious and which are ok... And yes, I guess I should trim down those
-FSF notices.
-
-> Also this worries me:
-> 
-> WARNING: DT compatible string "brcm,uart,bcm2048" appears un-documented -- check ./Documentation/devicetree/bindings/
-> #1222: FILE: drivers/bluetooth/nokia_core.c:1129:
-> +	{ .compatible = "brcm,uart,bcm2048" },
-
-Yes, that wories me, too. It is one of reasons I wanted this to be
-merged to staging. Arguing about right bindings will take some time.
-
-I can fix the checkpatch stuff that makes sense. That does not include
-uglyfying code just for checkpatch.  Can you then take the patch, as
-you promised, and let me argue the bindings, and the other stuff that
-needs to be fixed?
-
-If not, can we agree that the driver in staging should be reverted, as
-Greg promised would be "easy", and I can clean it up there?
-
-Thanks,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Tony
