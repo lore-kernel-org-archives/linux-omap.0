@@ -1,73 +1,118 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [next-20150119]regression (mm)?
-Date: Wed, 21 Jan 2015 11:23:19 +0200
-Message-ID: <54BF7007.7050800@ti.com>
-References: <54BD33DC.40200@ti.com> <20150119174317.GK20386@saruman> <20150120001643.7D15AA8@black.fi.intel.com> <20150120114555.GA11502@n2100.arm.linux.org.uk> <20150120140546.DDCB8D4@black.fi.intel.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v6 3/6] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache
+ save
+Date: Wed, 21 Jan 2015 15:44:44 +0530
+Message-ID: <54BF7C14.1080907@ti.com>
+References: <1420609779-11156-1-git-send-email-vigneshr@ti.com> <1420609779-11156-4-git-send-email-vigneshr@ti.com> <20150120115325.GK13701@x1> <54BE4CD1.1020709@ti.com> <20150120160410.GL13701@x1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20150120140546.DDCB8D4@black.fi.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:32985 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751562AbbAUKQH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Jan 2015 05:16:07 -0500
+In-Reply-To: <20150120160410.GL13701@x1>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Brad Griffis <bgriffis@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Jan Kardell <jan.kardell@telliq.com>, Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@
 
-On 01/20/2015 04:05 PM, Kirill A. Shutemov wrote:
-> Russell King - ARM Linux wrote:
->> On Tue, Jan 20, 2015 at 02:16:43AM +0200, Kirill A. Shutemov wrote:
->>> Better option would be converting 2-lvl ARM configuration to
->>> <asm-generic/pgtable-nopmd.h>, but I'm not sure if it's possible.
+
+
+On Tuesday 20 January 2015 09:34 PM, Lee Jones wrote:
+> On Tue, 20 Jan 2015, R, Vignesh wrote:
+>> On 1/20/2015 5:23 PM, Lee Jones wrote:
+>>> On Wed, 07 Jan 2015, Vignesh R wrote:
+>>>
+>>>> In one shot mode, sequencer automatically disables all enabled steps at
+>>>> the end of each cycle. (both ADC steps and TSC steps) Hence these steps
+>>>> need not be saved in reg_se_cache for clearing these steps at a later
+>>>> stage.
+>>>> Also, when ADC wakes up Sequencer should not be busy executing any of the
+>>>> config steps except for the charge step. Previously charge step was 1 ADC
+>>>> clock cycle and hence it was ignored.
+>>>> TSC steps are always disabled at the end of each conversion cycle, hence
+>>>> there is no need to explicitly disable TSC steps by writing 0 to REG_SE.
+>>>>
+>>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>>> ---
+>>>>
+>>>> v5:
+>>>>  - Remove unnecessary clearing of REG_SE
+>>>>
+>>>>  drivers/mfd/ti_am335x_tscadc.c       | 13 +++++--------
+>>>>  include/linux/mfd/ti_am335x_tscadc.h |  1 +
+>>>>  2 files changed, 6 insertions(+), 8 deletions(-)
+>>>
+>>> Looks fine.
+>>>
+>>> For my own reference:
+>>>   Acked-by: Lee Jones <lee.jones@linaro.org>
+>>>
+>>> Can this patch be applied on its own?
+>>>
 >>
->> Well, IMHO the folded approach in asm-generic was done the wrong way
->> which barred ARM from ever using it.
+>> I prefer to wait until input patches are picked up.
 > 
-> Okay, I see.
-> 
-> Regarding the topic bug. Completely untested patch is below. Could anybody
-> check if it helps?
-> 
-> From 34b9182d08ef2b541829e305fcc91ef1d26b27ea Mon Sep 17 00:00:00 2001
-> From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-> Date: Tue, 20 Jan 2015 15:47:22 +0200
-> Subject: [PATCH] arm: define __PAGETABLE_PMD_FOLDED for !LPAE
-> 
-> ARM uses custom implementation of PMD folding in 2-level page table case.
-> Generic code expects to see __PAGETABLE_PMD_FOLDED to be defined if PMD is
-> folded, but ARM doesn't do this. Let's fix it.
-> 
-> Defining __PAGETABLE_PMD_FOLDED will drop out unused __pmd_alloc().
-> It also fixes problems with recently-introduced pmd accounting on ARM
-> without LPAE.
-> 
-> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> Reported-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/include/asm/pgtable-2level.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/include/asm/pgtable-2level.h b/arch/arm/include/asm/pgtable-2level.h
-> index bcc5e300413f..bfd662e49a25 100644
-> --- a/arch/arm/include/asm/pgtable-2level.h
-> +++ b/arch/arm/include/asm/pgtable-2level.h
-> @@ -10,6 +10,8 @@
->  #ifndef _ASM_PGTABLE_2LEVEL_H
->  #define _ASM_PGTABLE_2LEVEL_H
->  
-> +#define __PAGETABLE_PMD_FOLDED
-> +
->  /*
->   * Hardware-wise, we have a two level page table structure, where the first
->   * level has 4096 entries, and the second level has 256 entries.  Each entry
+> I have no problem with that, but is there a technical reason why?
 > 
 
-Among other boards I have my daVinci board (OMAP-L138-EVM) boots fine with
-this patch.
+Nothing, in particular. This patch alone has no impact on the
+performance of TSC/ADC unit. Patch 2/6 is necessary to observe the
+changes caused by this series. Hence, please wait until those patches
+are picked up.
 
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>>>> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+>>>> index 467c80e1c4ae..e4e4b22eebc9 100644
+>>>> --- a/drivers/mfd/ti_am335x_tscadc.c
+>>>> +++ b/drivers/mfd/ti_am335x_tscadc.c
+>>>> @@ -68,12 +68,6 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
+>>>>  	DEFINE_WAIT(wait);
+>>>>  	u32 reg;
+>>>>  
+>>>> -	/*
+>>>> -	 * disable TSC steps so it does not run while the ADC is using it. If
+>>>> -	 * write 0 while it is running (it just started or was already running)
+>>>> -	 * then it completes all steps that were enabled and stops then.
+>>>> -	 */
+>>>> -	tscadc_writel(tsadc, REG_SE, 0);
+>>>>  	reg = tscadc_readl(tsadc, REG_ADCFSM);
+>>>>  	if (reg & SEQ_STATUS) {
+>>>>  		tsadc->adc_waiting = true;
+>>>> @@ -86,8 +80,12 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
+>>>>  		spin_lock_irq(&tsadc->reg_lock);
+>>>>  		finish_wait(&tsadc->reg_se_wait, &wait);
+>>>>  
+>>>> +		/*
+>>>> +		 * Sequencer should either be idle or
+>>>> +		 * busy applying the charge step.
+>>>> +		 */
+>>>>  		reg = tscadc_readl(tsadc, REG_ADCFSM);
+>>>> -		WARN_ON(reg & SEQ_STATUS);
+>>>> +		WARN_ON((reg & SEQ_STATUS) && !(reg & CHARGE_STEP));
+>>>>  		tsadc->adc_waiting = false;
+>>>>  	}
+>>>>  	tsadc->adc_in_use = true;
+>>>> @@ -96,7 +94,6 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
+>>>>  void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
+>>>>  {
+>>>>  	spin_lock_irq(&tsadc->reg_lock);
+>>>> -	tsadc->reg_se_cache |= val;
+>>>>  	am335x_tscadc_need_adc(tsadc);
+>>>>  
+>>>>  	tscadc_writel(tsadc, REG_SE, val);
+>>>> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+>>>> index 3f4e994ace2b..1fd50dcfe47c 100644
+>>>> --- a/include/linux/mfd/ti_am335x_tscadc.h
+>>>> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+>>>> @@ -128,6 +128,7 @@
+>>>>  
+>>>>  /* Sequencer Status */
+>>>>  #define SEQ_STATUS BIT(5)
+>>>> +#define CHARGE_STEP		0x11
+>>>>  
+>>>>  #define ADC_CLK			3000000
+>>>>  #define TOTAL_STEPS		16
+>>>
+> 
