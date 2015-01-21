@@ -1,67 +1,38 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v10 2/3] clk: Make clk API return per-user struct clk
- instances
-Date: Tue, 20 Jan 2015 16:14:15 -0800
-Message-ID: <20150121001415.GE27202@codeaurora.org>
-References: <1421760306-6301-1-git-send-email-tomeu.vizoso@collabora.com>
- <1421760306-6301-3-git-send-email-tomeu.vizoso@collabora.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL enabled
+ on UART3
+Date: Wed, 21 Jan 2015 00:39:26 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501210039040.5450@utopia.booyaka.com>
+References: <1420717924-3721-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1421760306-6301-3-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1420717924-3721-1-git-send-email-lokeshvutla@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, balbi@ti.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/20, Tomeu Vizoso wrote:
-> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> index 97f3425..e867d6a 100644
-> --- a/drivers/clk/clk.c
-> +++ b/drivers/clk/clk.c
-> @@ -1719,6 +1817,31 @@ out:
->  
->  	return ret;
->  }
-> +
-> +/**
-> + * clk_set_parent - switch the parent of a mux clk
-> + * @clk: the mux clk whose input we are switching
-> + * @parent: the new input to clk
-> + *
-> + * Re-parent clk to use parent as its new input source.  If clk is in
-> + * prepared state, the clk will get enabled for the duration of this call. If
-> + * that's not acceptable for a specific clk (Eg: the consumer can't handle
-> + * that, the reparenting is glitchy in hardware, etc), use the
-> + * CLK_SET_PARENT_GATE flag to allow reparenting only when clk is unprepared.
-> + *
-> + * After successfully changing clk's parent clk_set_parent will update the
-> + * clk topology, sysfs topology and propagate rate recalculation via
-> + * __clk_recalc_rates.
-> + *
-> + * Returns 0 on success, -EERROR otherwise.
-> + */
-> +int clk_set_parent(struct clk *clk, struct clk *parent)
-> +{
-> +	if (!clk || !parent)
-> +		return 0;
+On Thu, 8 Jan 2015, Lokesh Vutla wrote:
 
-This is a behavior change, although it's very possible nobody
-cares besides clk.c itself. Before this change
-clk_set_parent(clk, NULL) would orphan the clock and move it to
-the orphan list. Now we're going to do nothing. We should keep
-the original behavior, although I don't know why anybody would
-want to orphan a clock from a driver. The only place I think
-we're using this correctly is on the clock unregistration path.
+> With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset()
+> with DEBUG_LL' we moved from parsing cmdline to identify uart used
+> for earlycon to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
+> 
+> On DRA7 UART3 hwmod doesn't have this flag enabled, and atleast on
+> BeagleBoard-X15, where we use UART3 for console, boot fails with
+> DEBUG_LL enabled. Enable DEBUG_OMAP4UART3_FLAGS for UART3 hwmod.
+> 
+> For using DEBUG_LL, enable CONFIG_DEBUG_OMAP4UART3 in menuconfig.
+> 
+> Fixes: 90020c7b2c5e ("ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data")
+> Cc: <stable@vger.kernel.org> # v3.12+
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-> +
-> +	return clk_core_set_parent(clk->core, parent->core);
-> +}
->  EXPORT_SYMBOL_GPL(clk_set_parent);
->  
->  /**
+Thanks, queued for v3.20.  Note that I don't have a DRA7xx board, so, 
+cannot test.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+
+- Paul
