@@ -1,56 +1,39 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] bluetooth: Add hci_h4p driver
-Date: Wed, 21 Jan 2015 12:46:27 +0100
-Message-ID: <201501211246.27449@pali>
-References: <20141223130219.GA5731@amd> <7522CAC7-AFD9-470F-B4F8-3C39942DBC04@holtmann.org> <20150121110131.GA19792@amd>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Wed, 21 Jan 2015 14:41:00 +0200
+Message-ID: <CAK=WgbZGGtwmQwzWumjpYOsYHTt8vPQpTraABwJBsv5VXOmJ_Q@mail.gmail.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+ <1421269101-51105-2-git-send-email-s-anna@ti.com> <20150115135201.GG16217@leverpostej>
+ <20150115135556.GH16217@leverpostej> <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
+ <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
+ <20150116101746.GA21809@leverpostej> <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
+ <20150120180548.GK7718@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2668218.qebEoV65DQ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150121110131.GA19792@amd>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46099 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751860AbbAUMlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2015 07:41:22 -0500
+Received: by mail-lb0-f174.google.com with SMTP id f15so246238lbj.5
+        for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2015 04:41:20 -0800 (PST)
+In-Reply-To: <20150120180548.GK7718@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robherring2@gmail.com>, Suman Anna <s-anna@ti.com>, Kumar Gala <galak@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 
---nextPart2668218.qebEoV65DQ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jan 20, 2015 at 8:05 PM, Tony Lindgren <tony@atomide.com> wrote:
+> How about default to Linux id space and allow overriding that with
+> a module param option if needed?
 
-On Wednesday 21 January 2015 12:01:31 Pavel Machek wrote:
-> > > Strange, where do you see DOS style line breaks?
-> > > Checkpatch here does not warn about that, and they really
-> > > should not be there.
-> >=20
-> > If that would be the only pieces, then I would have fixed it
-> > already. That is not the big deal. The rest of checkpatch
-> > is what I am not going to fix for you.
->=20
-> I can fix the checkpatch, but I'd like to understand how ^Ms
-> got there, because otherwise it will happen again.
->=20
+I'm not sure I'm following.
 
-IIRC lines in email according to RFC2822 specification must be=20
-delimited by CRLF. Maybe this is reason?
+If the main point of contention is the base_id field, I'm also fine
+with removing it entirely, as I'm not aware of any actual user for it
+(Suman please confirm?).
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Mark? Rob? Will you accept Suman's patches if the base_id field is removed?
 
---nextPart2668218.qebEoV65DQ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlS/kZMACgkQi/DJPQPkQ1KHNwCgirb0YAu/ipLdvsiz3UwuHR+y
-PYIAmweevr4kH+u6tyK2tvaHab42Ewdw
-=/x02
------END PGP SIGNATURE-----
-
---nextPart2668218.qebEoV65DQ--
+Thanks,
+Ohad.
