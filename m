@@ -1,89 +1,78 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH] ti-soc-thermal: implement eocz bit to make driver useful
- on omap3
-Date: Wed, 21 Jan 2015 01:21:57 -0400
-Message-ID: <20150121052156.GB13468@developer.hsd1.ca.comcast.net>
-References: <20150103114632.GA21883@amd>
- <20150103122634.GB22356@developer>
- <20150103162241.GA26680@amd>
- <20150105213557.GD31536@developer>
- <20150118201821.GA28530@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 12/21] DT: omap4/5: add binding for the wake-up
+ generator
+Date: Wed, 21 Jan 2015 08:26:34 -0800
+Message-ID: <20150121162633.GQ7718@atomide.com>
+References: <1421660655-21394-1-git-send-email-marc.zyngier@arm.com>
+ <1421660655-21394-13-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kORqDWCi7qDJ0mEj"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150118201821.GA28530@amd>
-Sender: linux-pm-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org
+In-Reply-To: <1421660655-21394-13-git-send-email-marc.zyngier@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Nishanth Menon <nm@ti.com>, Mark Rutland <mark.rutland@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Stefan Agner <stefan@agner.ch>, Thierry Reding <thierry.reding@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Alexandre Courbot <gnurou@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Pankaj Dubey <pankaj.dubey@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, linux-samsung-soc@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Stephen Warren <swarren@wwwdotorg.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <ssantosh@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Marc Zyngier <marc.zyngier@arm.com> [150119 01:48]:
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 
---kORqDWCi7qDJ0mEj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-On Sun, Jan 18, 2015 at 09:18:21PM +0100, Pavel Machek wrote:
-> Hi!
->=20
-> > > Ok, what do you suggest? AFAICT, without MODE_CONFIG, continuous ADC
-> > > mode is not available, so we have to force it periodically, so this
-> > > should be correct.
-> >=20
-> > I will have a better look and let you know. for now, adding a single
-> > read should not hurt ( but I will double check)
->=20
-> Any news there?
-
-I believe it is OK to keep your code the way you posted.
-
-Thanks.
-
->=20
-> > > > > +		if (ret)
-> > > > > +			return ret;
-> > > > > +	}
-> > > > > +
-> > > > >  	spin_lock(&bgp->lock);
-> > > > >  	temp =3D ti_bandgap_read_temp(bgp, id);
-> > > > >  	spin_unlock(&bgp->lock);
-> > > > > =20
-> > > > > -	ret |=3D ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
-> > > > > +	ret =3D ti_bandgap_adc_to_mcelsius(bgp, temp, &temp);
-> > > >=20
-> > > > this one should be part of your clean up patch
-> > >=20
-> > > Ok, can you apply the cleanup patch and I'll prepare one on the top of
-> > > it?
-> >=20
-> > I mean, you should resend the cleanup patch including the above '|=3D' =
-removal, as you are already doing in the cleanup patch.
-> >=20
->=20
-> Ok, little patch-editing can not hurt :-).
->=20
-> 									Pavel
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
---kORqDWCi7qDJ0mEj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUvzdpAAoJEMLUO4d9pOJWwjcH/32vXc//2M5ZyN6q35OPXZ93
-iOMnoRkEzBrUVtLrCShZ/48Q+eJcofcvSba5IYXfd4a2KBBfp+mKJFPvnYOvdzox
-AOGFKidlnmtX4fGYET7dj75e2Z+qnOY3rA0V0OsDbL6wgvX7/oRVZUa/FnCq6Ejx
-jhpd7kMAyrzfNDRFGLqt+PT/DYNCGP2hsLf7H6oAdzItvDeHXW1/hWrCfTluwZzr
-8IyNfBZKuoB7lwPpvKPQQkjbndxQLAYjZmwTPIilbOymRa1puCbvJOlgI6e/LSGe
-Mr1XNcyRVWaQ649K8xA4FtC6b9k5ffCWYGvhf35zJjHTYxw79enTCNB38h7uuiI=
-=tStF
------END PGP SIGNATURE-----
-
---kORqDWCi7qDJ0mEj--
+> ---
+>  .../interrupt-controller/ti,omap4-wugen-mpu        | 33 ++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+> 
+> diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu b/Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+> new file mode 100644
+> index 0000000..43effa0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+> @@ -0,0 +1,33 @@
+> +TI OMAP4 Wake-up Generator
+> +
+> +All TI OMAP4/5 (and their derivatives) an interrupt controller that
+> +routes interrupts to the GIC, and also serves as a wakeup source. It
+> +is also referred to as "WUGEN-MPU", hence the name of the binding.
+> +
+> +Reguired properties:
+> +
+> +- compatible : should contain at least "ti,omap4-wugen-mpu" or
+> +  "ti,omap5-wugen-mpu"
+> +- reg : Specifies base physical address and size of the registers.
+> +- interrupt-controller : Identifies the node as an interrupt controller.
+> +- #interrupt-cells : Specifies the number of cells needed to encode an
+> +  interrupt source. The value must be 3.
+> +- interrupt-parent : a phandle to the GIC these interrupts are routed
+> +  to.
+> +
+> +Notes:
+> +
+> +- Because this HW ultimately routes interrupts to the GIC, the
+> +  interrupt specifier must be that of the GIC.
+> +- Only SPIs can use the WUGEN as an interrupt parent. SGIs and PPIs
+> +  are explicitly forbiden.
+> +
+> +Example:
+> +
+> +       wakeupgen: interrupt-controller@48281000 {
+> +               compatible = "ti,omap5-wugen-mpu", "ti,omap4-wugen-mpu";
+> +               interrupt-controller;
+> +               #interrupt-cells = <3>;
+> +               reg = <0x48281000 0x1000>;
+> +               interrupt-parent = <&gic>;
+> +       };
+> -- 
+> 2.1.4
+> 
