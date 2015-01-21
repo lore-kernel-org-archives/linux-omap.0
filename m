@@ -1,38 +1,104 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL enabled
- on UART3
-Date: Wed, 21 Jan 2015 00:39:26 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501210039040.5450@utopia.booyaka.com>
-References: <1420717924-3721-1-git-send-email-lokeshvutla@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v10 3/3] clk: Add rate constraints to clocks
+Date: Tue, 20 Jan 2015 16:46:55 -0800
+Message-ID: <20150121004655.GG27202@codeaurora.org>
+References: <1421760306-6301-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1421760306-6301-4-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1420717924-3721-1-git-send-email-lokeshvutla@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, t-kristo@ti.com, nm@ti.com, nsekhar@ti.com, balbi@ti.com, stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:35378 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbbAUAq7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2015 19:46:59 -0500
+Content-Disposition: inline
+In-Reply-To: <1421760306-6301-4-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ralf Baechle <ralf@linux-mips.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Manuel Lauss <manuel.lauss@gmail.com>, Alex Elder <elder@linaro.org>, Matt Porter <mporter@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Chao Xie <chao.xie@marvell.com>, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org
 
-On Thu, 8 Jan 2015, Lokesh Vutla wrote:
+It's looking fairly close. Thanks for keeping up with the review
+comments.
 
-> With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset()
-> with DEBUG_LL' we moved from parsing cmdline to identify uart used
-> for earlycon to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
-> 
-> On DRA7 UART3 hwmod doesn't have this flag enabled, and atleast on
-> BeagleBoard-X15, where we use UART3 for console, boot fails with
-> DEBUG_LL enabled. Enable DEBUG_OMAP4UART3_FLAGS for UART3 hwmod.
-> 
-> For using DEBUG_LL, enable CONFIG_DEBUG_OMAP4UART3 in menuconfig.
-> 
-> Fixes: 90020c7b2c5e ("ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data")
-> Cc: <stable@vger.kernel.org> # v3.12+
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+On 01/20, Tomeu Vizoso wrote:
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index e867d6a..f241e27 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -2143,6 +2280,10 @@ struct clk *__clk_register(struct device *dev, struct clk_hw *hw)
+>  	else
+>  		clk->owner = NULL;
+>  
+> +	INIT_HLIST_HEAD(&clk->clks);
+> +
+> +	hw->clk = __clk_create_clk(hw, NULL, NULL);
+> +
+>  	ret = __clk_init(dev, hw->clk);
+>  	if (ret)
+>  		return ERR_PTR(ret);
 
-Thanks, queued for v3.20.  Note that I don't have a DRA7xx board, so, 
-cannot test.
+Don't we need to __clk_free_clk() here too?
 
+> @@ -2151,6 +2292,19 @@ struct clk *__clk_register(struct device *dev, struct clk_hw *hw)
+>  }
+>  EXPORT_SYMBOL_GPL(__clk_register);
+>  
+> +static void __clk_free_clk(struct clk *clk)
+> +{
+> +	struct clk_core *core = clk->core;
+> +
+> +	clk_prepare_lock();
+> +	hlist_del(&clk->child_node);
+> +	clk_prepare_unlock();
+> +
+> +	kfree(clk);
+> +
+> +	clk_core_set_rate(core, core->req_rate);
 
-- Paul
+Is it safe to call this during clock registration? I hope that it
+will just bail out and do nothing because core->rate ==
+core->req_rate. Maybe we can avoid this given my next comment
+below.
+
+> +}
+> +
+>  /**
+>   * clk_register - allocate a new clock, register it and return an opaque cookie
+>   * @dev: device that is registering this clock
+> @@ -2210,12 +2364,14 @@ struct clk *clk_register(struct device *dev, struct clk_hw *hw)
+>  		}
+>  	}
+>  
+> +	INIT_HLIST_HEAD(&clk->clks);
+> +
+>  	hw->clk = __clk_create_clk(hw, NULL, NULL);
+>  	ret = __clk_init(dev, hw->clk);
+>  	if (!ret)
+>  		return hw->clk;
+>  
+> -	kfree(hw->clk);
+> +	__clk_free_clk(hw->clk);
+>  fail_parent_names_copy:
+>  	while (--i >= 0)
+>  		kfree(clk->parent_names[i]);
+> @@ -2421,7 +2577,7 @@ void __clk_put(struct clk *clk)
+>  		return;
+>  
+>  	clk_core_put(clk->core);
+> -	kfree(clk);
+> +	__clk_free_clk(clk);
+
+This doesn't look right. First we drop the core reference here
+with clk_core_put() and then we call __clk_free_clk() which will
+go and call clk_core_set_rate() on the clk->core which may or may
+not exist anymore. I'd think we want to do these steps:
+
+ 1. Unlink clk from clks list
+ 2. Recalculate rate and set if changed
+ 3. Drop kref on core with clk_core_put()
+ 4. kfree the clk
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
