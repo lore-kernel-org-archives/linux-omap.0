@@ -1,7 +1,7 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 11/13] ARM: dts: omap3-gta04: only power DSS when necessary.
-Date: Thu, 22 Jan 2015 21:38:17 +0100
-Message-ID: <1421959099-28319-12-git-send-email-marek@goldelico.com>
+Subject: [PATCH 13/13] ARM: dts: omap3-gta04: Disable keypad
+Date: Thu, 22 Jan 2015 21:38:19 +0100
+Message-ID: <1421959099-28319-14-git-send-email-marek@goldelico.com>
 References: <1421959099-28319-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1421959099-28319-1-git-send-email-marek@goldelico.com>
@@ -12,35 +12,28 @@ List-Id: linux-omap@vger.kernel.org
 
 From: NeilBrown <neil@brown.name>
 
-i.e. configure vpll2 as a supply for the dss rather
-than being always-on.
+The twl4030 keypad is not wired up in the gta04, so mark it disabled
+to avoid pointless initialization.
 
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 08f0b25..228e79b 100644
+index 8d2b0a1..b3ecf1f 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -393,16 +393,12 @@
- 	regulator-max-microvolt = <3150000>;
+@@ -342,6 +342,10 @@
+ 	status = "disabled";
  };
  
--/* Needed to power the DPI pins */
--&vpll2 {
--	regulator-always-on;
--};
--
- &dss {
++&twl_keypad {
++	status = "disabled";
++};
++
+ &uart1 {
  	pinctrl-names = "default";
- 	pinctrl-0 = < &dss_dpi_pins >;
- 
- 	status = "okay";
-+	vdds_dsi-supply = <&vpll2>;
- 
- 	port {
- 		dpi_out: endpoint {
+ 	pinctrl-0 = <&uart1_pins>;
 -- 
 1.9.1
