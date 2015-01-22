@@ -1,7 +1,7 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 13/13] ARM: dts: omap3-gta04: Disable keypad
-Date: Thu, 22 Jan 2015 21:38:19 +0100
-Message-ID: <1421959099-28319-14-git-send-email-marek@goldelico.com>
+Subject: [PATCH 12/13] ARM: dts: omap3-gta04: uart4 is not connected, so mark it "disabled"
+Date: Thu, 22 Jan 2015 21:38:18 +0100
+Message-ID: <1421959099-28319-13-git-send-email-marek@goldelico.com>
 References: <1421959099-28319-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1421959099-28319-1-git-send-email-marek@goldelico.com>
@@ -12,28 +12,25 @@ List-Id: linux-omap@vger.kernel.org
 
 From: NeilBrown <neil@brown.name>
 
-The twl4030 keypad is not wired up in the gta04, so mark it disabled
-to avoid pointless initialization.
-
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
  arch/arm/boot/dts/omap3-gta04.dtsi | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 8d2b0a1..b3ecf1f 100644
+index 228e79b..8d2b0a1 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -342,6 +342,10 @@
- 	status = "disabled";
+@@ -357,6 +357,10 @@
+ 	pinctrl-0 = <&uart3_pins>;
  };
  
-+&twl_keypad {
++&uart4 {
 +	status = "disabled";
 +};
 +
- &uart1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart1_pins>;
+ &charger {
+ 	ti,bb-uvolt = <3200000>;
+ 	ti,bb-uamp = <150>;
 -- 
 1.9.1
