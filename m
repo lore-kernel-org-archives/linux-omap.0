@@ -1,11 +1,13 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 00/13] ARM: dts: omap3-gta04: Various DT fixes
-Date: Thu, 22 Jan 2015 21:38:06 +0100
-Message-ID: <1421959099-28319-1-git-send-email-marek@goldelico.com>
+Subject: [PATCH 02/13] ARM: dts: omap3-gta04: Fix audio node malformatting
+Date: Thu, 22 Jan 2015 21:38:08 +0100
+Message-ID: <1421959099-28319-3-git-send-email-marek@goldelico.com>
+References: <1421959099-28319-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1421959099-28319-1-git-send-email-marek@goldelico.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,34 +18,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bcousson@baylibre.com, tony@atomide.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, neilb@suse.de, hns@goldelico.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, galak@codeaurora.org, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, neilb@suse.de, hns@goldelico.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This series contains fixes for gta04 devicetree. I collected patches
-from H. Nikolaus Schaller + NeilBrown and myself. Patches contains mostly fixes
-+ adding new nodes and comments. All changes tested on gta04a4 board.
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-H. Nikolaus Schaller (5):
-  ARM: dts: omap3-gta04: Fix backup-battery charging in devicetree file.
-  ARM: dts: omap3-gta04: Fix audio node malformatting
-  ARM: dts: omap3-gta04: Enable mcbps2 necessary for audio
-  ARM: dts: omap3-gta04: Enable twl audio vibra support
-  ARM: dts: omap3-gta04: Enable power-off using twl4030
+Audio should be child of twl node.
 
-Marek Belisko (2):
-  ARM: dts: omap3-gta04: Fix a GPIO line for bma180 node
-  ARM: dts: omap3-gta04: Add ramp value for twl4030 audio
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-NeilBrown (6):
-  ARM: dts: omap3-gta04: add comments about gpios
-  ARM: dts: omap3-gta04: enable power-off for wifi card.
-  ARM: dts: omap3-gta04: add gyroscope
-  ARM: dts: omap3-gta04: only power DSS when necessary.
-  ARM: dts: omap3-gta04: uart4 is not connected, so mark it "disabled"
-  ARM: dts: omap3-gta04: Disable keypad
-
- arch/arm/boot/dts/omap3-gta04.dtsi | 54 +++++++++++++++++++++++++++-----------
- 1 file changed, 39 insertions(+), 15 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index fa39232..c78380e 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -202,11 +202,11 @@
+ 		reg = <0x48>;
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
+-	};
+ 
+-	twl_audio: audio {
+-		compatible = "ti,twl4030-audio";
+-		codec {
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
+ 		};
+ 	};
+ };
 -- 
 1.9.1
