@@ -1,59 +1,50 @@
-From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH 08/13] ARM: dts: omap3-gta04: add comments about gpios
-Date: Thu, 22 Jan 2015 21:38:14 +0100
-Message-ID: <1421959099-28319-9-git-send-email-marek@goldelico.com>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH 06/13] ARM: dts: omap3-gta04: Enable power-off using twl4030
+Date: Thu, 22 Jan 2015 21:38:12 +0100
+Message-ID: <1421959099-28319-7-git-send-email-marek@goldelico.com>
 References: <1421959099-28319-1-git-send-email-marek@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1421959099-28319-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org, NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1421959099-28319-1-git-send-email-marek@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, neilb@suse.de, hns@goldelico.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-Add comments to state which GPIO is used for some interrupts.
+Enabled poweroff through PMIC on GTA04.
 
-Signed-off-by: NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 6f5fcbb..b65b5ed 100644
+index 0265474..b56c85b 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -229,7 +229,7 @@
- 		compatible = "bosch,bmp085";
- 		reg = <0x77>;
- 		interrupt-parent = <&gpio4>;
--		interrupts = <17 IRQ_TYPE_EDGE_RISING>;
-+		interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* GPIO_113 */
+@@ -209,6 +209,11 @@
+ 			codec {
+ 			};
+ 		};
++
++		twl_power: power {
++			compatible = "ti,twl4030-power";
++			ti,use_poweroff;
++		};
  	};
+ };
  
- 	/* accelerometer */
-@@ -237,7 +237,7 @@
- 		compatible = "bosch,bma180";
- 		reg = <0x41>;
- 		interrupt-parent = <&gpio4>;
--		interrupts = <19 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <19 IRQ_TYPE_LEVEL_HIGH>; /* GPIO_115 */
- 	};
- 
- 	/* leds */
-@@ -288,7 +288,7 @@
- 		compatible = "ti,tsc2007";
- 		reg = <0x48>;
- 		interrupt-parent = <&gpio6>;
--		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
-+		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
- 		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
- 		ti,x-plate-ohms = <600>;
- 	};
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
