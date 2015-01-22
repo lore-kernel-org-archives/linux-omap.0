@@ -1,56 +1,110 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod: first set of patches for v3.20
-Date: Wed, 21 Jan 2015 16:54:26 -0800
-Message-ID: <20150122005426.GV7718@atomide.com>
-References: <alpine.DEB.2.02.1501212338100.5450@utopia.booyaka.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v11 2/4] clk: Make clk API return per-user struct clk
+ instances
+Date: Wed, 21 Jan 2015 17:01:36 -0800
+Message-ID: <20150122010136.GH27202@codeaurora.org>
+References: <1421847039-29544-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1421847039-29544-3-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:41738 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800AbbAVBBi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2015 20:01:38 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1501212338100.5450@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1421847039-29544-3-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [150121 15:42]:
-> Hi Tony
-> 
-> The following changes since commit 97bf6af1f928216fd6c5a66e8a57bfa95a659672:
-> 
->   Linux 3.19-rc1 (2014-12-20 17:08:50 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.20/omap-hwmod-a
-> 
-> for you to fetch changes up to 1c7e36bfc3e2fb2df5e2d1989a4b6fb9055a0f9b:
-> 
->   ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL enabled on UART3 (2015-01-20 18:12:17 -0700)
-> 
-> ----------------------------------------------------------------
-> ARM: OMAP2+: hwmod: first set of patches for v3.20
-> 
-> First set of OMAP2+ hwmod patches for Linux v3.20.  These are mostly
-> fixes for warnings, although there's one DRA7xx patch that fixes
-> CONFIG_DEBUG_LL for AM572x/DRA7xx SoCs that use UART3 for console,
-> such as the BeagleBoard-X15.
-> 
-> These patches entered Linux-next starting with the next-20150121 tag.
-> 
-> Basic build, boot, and PM test results can be found here:
-> 
-> http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v3.20/20150121142621/
+On 01/21, Tomeu Vizoso wrote:
+> @@ -2075,10 +2210,12 @@ struct clk *clk_register(struct device *dev, struct clk_hw *hw)
+>  		}
+>  	}
+>  
+> -	ret = __clk_init(dev, clk);
+> +	hw->clk = __clk_create_clk(hw, NULL, NULL);
+> +	ret = __clk_init(dev, hw->clk);
+>  	if (!ret)
+> -		return clk;
+> +		return hw->clk;
+>  
+> +	kfree(hw->clk);
+>  fail_parent_names_copy:
+>  	while (--i >= 0)
+>  		kfree(clk->parent_names[i]);
 
-Thanks pulling into omap-for-v3.20/fixes-not-urgent.
+Sigh, this patch is so huge I keep finding more things. Sorry. It
+looks like __clk_create_clk() can return an error pointer, which
+we then send directly to __clk_init. First off, we shouldn't
+kfree() that pointer if it's an error pointer. Second, we
+shouldn't crash in __clk_init() in such a situation so there
+needs to be some sort of check somewhere.
 
-Tony
+BTW, please try and fixup checkpatch warnings.
+
+> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+> index da4bda8..fac3244 100644
+> --- a/drivers/clk/clkdev.c
+> +++ b/drivers/clk/clkdev.c
+> @@ -69,20 +70,22 @@ struct clk *of_clk_get(struct device_node *np, int index)
+[...]
+> -struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+> +static struct clk *__of_clk_get_by_name(struct device_node *np, const char *name)
+
+It would be nice if this returned an already __clk_create_clk()ed
+pointer.
+
+>  {
+>  	struct clk *clk = ERR_PTR(-ENOENT);
+>  
+> @@ -119,7 +122,33 @@ struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+[...]
+> +struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+> +{
+> +	struct clk *clk = __of_clk_get_by_name(np, name);
+> +
+> +	if (!IS_ERR(clk))
+> +		clk = __clk_create_clk(__clk_get_hw(clk), np->full_name, name);
+
+Because we do it here where we know we're CONFIG_COMMON_CLK=y.
+
+> +
+> +	return clk;
+> +}
+>  EXPORT_SYMBOL(of_clk_get_by_name);
+> +
+> +#else /* defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK) */
+> +
+> +static struct clk *__of_clk_get_by_name(struct device_node *np, const char *name)
+> +{
+> +	return ERR_PTR(-ENOENT);
+> +}
+>  #endif
+>  
+>  /*
+> @@ -185,9 +229,13 @@ struct clk *clk_get(struct device *dev, const char *con_id)
+>  	struct clk *clk;
+>  
+>  	if (dev) {
+> -		clk = of_clk_get_by_name(dev->of_node, con_id);
+> -		if (!IS_ERR(clk))
+> +		clk = __of_clk_get_by_name(dev->of_node, con_id);
+> +		if (!IS_ERR(clk)) {
+> +#if defined(CONFIG_COMMON_CLK)
+> +			clk = __clk_create_clk(__clk_get_hw(clk), dev_id, con_id);
+> +#endif
+
+And we do it here where we could remove the #ifdef.
+
+>  			return clk;
+> +		}
+>  		if (PTR_ERR(clk) == -EPROBE_DEFER)
+>  			return clk;
+>  	}
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
