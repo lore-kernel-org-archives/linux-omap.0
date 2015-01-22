@@ -1,7 +1,7 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 09/13] ARM: dts: omap3-gta04: enable power-off for wifi card.
-Date: Thu, 22 Jan 2015 21:38:15 +0100
-Message-ID: <1421959099-28319-10-git-send-email-marek@goldelico.com>
+Subject: [PATCH 10/13] ARM: dts: omap3-gta04: add gyroscope
+Date: Thu, 22 Jan 2015 21:38:16 +0100
+Message-ID: <1421959099-28319-11-git-send-email-marek@goldelico.com>
 References: <1421959099-28319-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1421959099-28319-1-git-send-email-marek@goldelico.com>
@@ -14,20 +14,27 @@ From: NeilBrown <neil@brown.name>
 
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index b65b5ed..ab5dd98 100644
+index ab5dd98..08f0b25 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -327,6 +327,7 @@
- 	vmmc-supply = <&vaux4>;
- 	bus-width = <4>;
- 	ti,non-removable;
-+	cap-power-off-card;
- };
+@@ -240,6 +240,14 @@
+ 		interrupts = <19 IRQ_TYPE_LEVEL_HIGH>; /* GPIO_115 */
+ 	};
  
- &mmc3 {
++	/* gyroscope */
++	itg3200@68 {
++		compatible = "invensense,itg3200";
++		reg = <0x68>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <24 0>; /* GPIO_56 */
++	};
++
+ 	/* leds */
+ 	tca6507@45 {
+ 		compatible = "ti,tca6507";
 -- 
 1.9.1
