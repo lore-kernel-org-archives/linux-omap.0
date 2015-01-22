@@ -1,7 +1,7 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 01/13] ARM: dts: omap3-gta04: Fix backup-battery charging in devicetree file.
-Date: Thu, 22 Jan 2015 21:38:07 +0100
-Message-ID: <1421959099-28319-2-git-send-email-marek@goldelico.com>
+Subject: [PATCH 04/13] ARM: dts: omap3-gta04: Enable twl audio vibra support
+Date: Thu, 22 Jan 2015 21:38:10 +0100
+Message-ID: <1421959099-28319-5-git-send-email-marek@goldelico.com>
 References: <1421959099-28319-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1421959099-28319-1-git-send-email-marek@goldelico.com>
@@ -12,27 +12,22 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-Fix attribute names.
-
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 655d6e9..fa39232 100644
+index 7272591..fd6ac80 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dtsi
 +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -342,8 +342,8 @@
- };
+@@ -205,6 +205,7 @@
  
- &charger {
--	bb_uvolt = <3200000>;
--	bb_uamp = <150>;
-+	ti,bb-uvolt = <3200000>;
-+	ti,bb-uamp = <150>;
- };
- 
- /* spare */
+ 		twl_audio: audio {
+ 			compatible = "ti,twl4030-audio";
++			ti,enable-vibra = <1>;
+ 			codec {
+ 			};
+ 		};
 -- 
 1.9.1
