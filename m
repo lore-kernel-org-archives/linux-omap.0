@@ -1,31 +1,130 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] treewide: Convert clockevents_notify to use int cpu
-Date: Thu, 22 Jan 2015 11:23:58 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1501221121570.5526@nanos>
-References: <1418254133.18092.22.camel@perches.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v11 2/4] clk: Make clk API return per-user struct clk
+ instances
+Date: Thu, 22 Jan 2015 12:15:34 +0100
+Message-ID: <54C0DBD6.2000502@collabora.com>
+References: <1421847039-29544-1-git-send-email-tomeu.vizoso@collabora.com> <1421847039-29544-3-git-send-email-tomeu.vizoso@collabora.com> <20150122010136.GH27202@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <1418254133.18092.22.camel@perches.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:35484 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814AbbAVLPo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2015 06:15:44 -0500
+In-Reply-To: <20150122010136.GH27202@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 10 Dec 2014, Joe Perches wrote:
-> As far as I can tell, there's no value indirecting
-> the cpu passed to this function via a void *.
+On 01/22/2015 02:01 AM, Stephen Boyd wrote:
+> On 01/21, Tomeu Vizoso wrote:
+>> @@ -2075,10 +2210,12 @@ struct clk *clk_register(struct device *dev, struct clk_hw *hw)
+>>  		}
+>>  	}
+>>  
+>> -	ret = __clk_init(dev, clk);
+>> +	hw->clk = __clk_create_clk(hw, NULL, NULL);
+>> +	ret = __clk_init(dev, hw->clk);
+>>  	if (!ret)
+>> -		return clk;
+>> +		return hw->clk;
+>>  
+>> +	kfree(hw->clk);
+>>  fail_parent_names_copy:
+>>  	while (--i >= 0)
+>>  		kfree(clk->parent_names[i]);
 > 
-> Update all the callers and called functions from within
-> clockevents_notify.
+> Sigh, this patch is so huge I keep finding more things. Sorry. It
+> looks like __clk_create_clk() can return an error pointer, which
+> we then send directly to __clk_init. First off, we shouldn't
+> kfree() that pointer if it's an error pointer. Second, we
+> shouldn't crash in __clk_init() in such a situation so there
+> needs to be some sort of check somewhere.
 
-Aside of that there is no value for this 'notification' function at
-all. This should be seperate explicit calls. The notify function is a
-leftover from the original implementation which used actual notifier
-chains. I'll send out a cleanup series later today.
+Oops, done. I have reused the fail_parent_names_copy label as the
+less-bad possibility. Probably the error labels should be named after
+the target code and not after what the source code does, as per the
+latest CodingStyle additions.
+
+> BTW, please try and fixup checkpatch warnings.
+
+What were you thinking of specifically? I'm running it with
+--max-line-length=106 and the other warnings are in clk-test.c that I
+still have to polish when I get some time.
+
+>> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+>> index da4bda8..fac3244 100644
+>> --- a/drivers/clk/clkdev.c
+>> +++ b/drivers/clk/clkdev.c
+>> @@ -69,20 +70,22 @@ struct clk *of_clk_get(struct device_node *np, int index)
+> [...]
+>> -struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+>> +static struct clk *__of_clk_get_by_name(struct device_node *np, const char *name)
+> 
+> It would be nice if this returned an already __clk_create_clk()ed
+> pointer.
+> 
+>>  {
+>>  	struct clk *clk = ERR_PTR(-ENOENT);
+>>  
+>> @@ -119,7 +122,33 @@ struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+> [...]
+>> +struct clk *of_clk_get_by_name(struct device_node *np, const char *name)
+>> +{
+>> +	struct clk *clk = __of_clk_get_by_name(np, name);
+>> +
+>> +	if (!IS_ERR(clk))
+>> +		clk = __clk_create_clk(__clk_get_hw(clk), np->full_name, name);
+> 
+> Because we do it here where we know we're CONFIG_COMMON_CLK=y.
+> 
+>> +
+>> +	return clk;
+>> +}
+>>  EXPORT_SYMBOL(of_clk_get_by_name);
+>> +
+>> +#else /* defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK) */
+>> +
+>> +static struct clk *__of_clk_get_by_name(struct device_node *np, const char *name)
+>> +{
+>> +	return ERR_PTR(-ENOENT);
+>> +}
+>>  #endif
+>>  
+>>  /*
+>> @@ -185,9 +229,13 @@ struct clk *clk_get(struct device *dev, const char *con_id)
+>>  	struct clk *clk;
+>>  
+>>  	if (dev) {
+>> -		clk = of_clk_get_by_name(dev->of_node, con_id);
+>> -		if (!IS_ERR(clk))
+>> +		clk = __of_clk_get_by_name(dev->of_node, con_id);
+>> +		if (!IS_ERR(clk)) {
+>> +#if defined(CONFIG_COMMON_CLK)
+>> +			clk = __clk_create_clk(__clk_get_hw(clk), dev_id, con_id);
+>> +#endif
+> 
+> And we do it here where we could remove the #ifdef.
+
+Yeah, I tried to reduce the ifdefing back then and this is the simplest
+I could come up with. The reason for clk_get() to call
+__clk_create_clk() directly is that it has more relevant information
+with which to tag the per-user clk.
+
+of_clk_get_by_name() has the name of the node but not the dev_id, which
+in my testing looked as much less useful when debugging who did what to
+a clock.
 
 Thanks,
 
-	tglx
+Tomeu
 
+>>  			return clk;
+>> +		}
+>>  		if (PTR_ERR(clk) == -EPROBE_DEFER)
+>>  			return clk;
+>>  	}
+> 
 
