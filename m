@@ -1,83 +1,56 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for
- hwspinlock
-Date: Thu, 22 Jan 2015 18:56:22 +0000
-Message-ID: <20150122185622.GE12911@leverpostej>
-References: <1421269101-51105-2-git-send-email-s-anna@ti.com>
- <20150115135201.GG16217@leverpostej>
- <20150115135556.GH16217@leverpostej>
- <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
- <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
- <20150116101746.GA21809@leverpostej>
- <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
- <20150120180548.GK7718@atomide.com>
- <CAK=WgbZGGtwmQwzWumjpYOsYHTt8vPQpTraABwJBsv5VXOmJ_Q@mail.gmail.com>
- <54BFE855.3090200@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v11 2/4] clk: Make clk API return per-user struct clk
+ instances
+Date: Thu, 22 Jan 2015 10:59:23 -0800
+Message-ID: <20150122185923.GL27202@codeaurora.org>
+References: <1421847039-29544-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1421847039-29544-3-git-send-email-tomeu.vizoso@collabora.com>
+ <20150122010136.GH27202@codeaurora.org>
+ <54C0DBD6.2000502@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:45876 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753321AbbAVS7Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2015 13:59:25 -0500
 Content-Disposition: inline
-In-Reply-To: <54BFE855.3090200-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <54C0DBD6.2000502@collabora.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jan 21, 2015 at 05:56:37PM +0000, Suman Anna wrote:
-> On 01/21/2015 06:41 AM, Ohad Ben-Cohen wrote:
-> > On Tue, Jan 20, 2015 at 8:05 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> >> How about default to Linux id space and allow overriding that with
-> >> a module param option if needed?
-> > 
-> > I'm not sure I'm following.
-> > 
-> > If the main point of contention is the base_id field, I'm also fine
-> > with removing it entirely, as I'm not aware of any actual user for it
-> > (Suman please confirm?).
+On 01/22, Tomeu Vizoso wrote:
+> On 01/22/2015 02:01 AM, Stephen Boyd wrote:
+> > BTW, please try and fixup checkpatch warnings.
 > 
-> Yeah, well the current implementations that I am aware of only have a
-> single bank, so all of them would be using a value of 0. I am yet to see
-> a platform with multiple instances where the property really makes a
-> difference. v7 has the property mandatory, so all the implementations
-> would need to define this value even if it is 0.
-> 
-> regards
-> Suman
-> 
+> What were you thinking of specifically? I'm running it with
+> --max-line-length=106 and the other warnings are in clk-test.c that I
+> still have to polish when I get some time.
+
+I can see that sometimes we exceed the 80 character limits that
+are configured by default. We mostly stick to 80 in this file it
+seems so I'm not sure why 106 is being used.
+
 > > 
-> > Mark? Rob? Will you accept Suman's patches if the base_id field is removed?
+> > And we do it here where we could remove the #ifdef.
+> 
+> Yeah, I tried to reduce the ifdefing back then and this is the simplest
+> I could come up with. The reason for clk_get() to call
+> __clk_create_clk() directly is that it has more relevant information
+> with which to tag the per-user clk.
+> 
+> of_clk_get_by_name() has the name of the node but not the dev_id, which
+> in my testing looked as much less useful when debugging who did what to
+> a clock.
+> 
 
-My concern is that the mapping of hwspinlock IDs doesn't seem to be
-explicit in the DT on a per-context basis, which is what I'd expect.
+Agreed. But didn't we add __of_clk_get_by_name() so that we could
+pass the dev_id and con_id to it? If we did that then all the
+relevant information is there and we can call __clk_create_clk()
+directly instead of relying on the caller to do it.
 
-e.g.
-
-lck: hwspinlock-device@f00 {
-	...
-	#hwlock-cells = <1>;
-};
-
-some-other-os-interface {
-	...
-	hwlocks = <&lck 0>, <&lck 1>, <&lck 2>, <&lck 3>;
-	hwlock-names = "glbl", "pool0", "pool1", "pool2";
-};
-
-a-different-os-interface {
-	...
-	hwlocks = <&lck 18>, <&lck 21>, <&lck 4>, <&lck 5>;
-	hwlock-names = "init", "teardown", "pool0", "pool1";
-};
-
-That's the only way I would expect this to possibly remain a stable
-over time, and it's the entire reason for #hwlock-cells, no?
-
-How do you expect the other components sharing the hwspinlocks to be
-described?
-
-Thanks,
-Mark.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
