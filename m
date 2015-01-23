@@ -1,204 +1,109 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Add dm816x hwmod support
-Date: Fri, 23 Jan 2015 18:21:48 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501231757400.5450@utopia.booyaka.com>
-References: <1421191355-12835-1-git-send-email-tony@atomide.com> <1421191355-12835-3-git-send-email-tony@atomide.com> <20150114194301.GR2419@atomide.com> <20150117163144.GQ18552@atomide.com> <20150121043436.GP7718@atomide.com>
- <alpine.DEB.2.02.1501230918390.5450@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [next-20150119]regression (mm)?
+Date: Fri, 23 Jan 2015 12:37:06 -0600
+Message-ID: <20150123183706.GA15791@kahuna>
+References: <54BD33DC.40200@ti.com>
+ <20150119174317.GK20386@saruman>
+ <20150120001643.7D15AA8@black.fi.intel.com>
+ <20150120114555.GA11502@n2100.arm.linux.org.uk>
+ <20150120140546.DDCB8D4@black.fi.intel.com>
+ <20150123172736.GA15392@kahuna>
+ <CANMBJr7w2jZBwRDEsVNvL3XrDZ2ttwFz7qBf4zySAMMmcgAxiw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38880 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879AbbAWSVt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2015 13:21:49 -0500
-In-Reply-To: <alpine.DEB.2.02.1501230918390.5450@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <CANMBJr7w2jZBwRDEsVNvL3XrDZ2ttwFz7qBf4zySAMMmcgAxiw@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Tyler Baker <tyler.baker@linaro.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aida Mynzhasova <aida.mynzhasova@skitlab.ru>, Brian Hutchinson <b.hutchman@gmail.com>
 
-Hi Tony 
-
-thought about this some more overnight...
-
-On Fri, 23 Jan 2015, Paul Walmsley wrote:
-
-> On Tue, 20 Jan 2015, Tony Lindgren wrote:
-
-> > +/* L3 Interconnect entries */
-> > +static struct omap_hwmod dm816x_l3_s_hwmod = {
-> > +	.name		= "l3_s",
+On 09:39-20150123, Tyler Baker wrote:
+> Hi,
 > 
-> Would suggest naming this l3_slow
+> On 23 January 2015 at 09:27, Nishanth Menon <nm@ti.com> wrote:
+> > On 16:05-20150120, Kirill A. Shutemov wrote:
+> > [..]
+> >> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> >> Reported-by: Nishanth Menon <nm@ti.com>
+> > Just to close on this thread:
+> > https://github.com/nmenon/kernel-test-logs/tree/next-20150123 looks good
+> > and back to old status. Thank you folks for all the help.
 > 
-> > +	.clkdm_name	= "alwon_l3s_clkdm",
-> > +	.class		= &l3_hwmod_class,
-> > +	.flags		= HWMOD_NO_IDLEST,
-> > +};
-> > +
-> > +static struct omap_hwmod __used dm816x_l3_med_hwmod = {
+> I just reviewed the boot logs for next-20150123 and there still seems
+> to be a related issue. I've been boot testing
+> multi_v7_defconfig+CONFIG_ARM_LPAE=y kernel configurations which still
+> seem broken.
 > 
-> Hmm, why __used for this -- maybe just add it to the hwmod list at the 
-> bottom?
+> For example here are two boots with exynos5250-arndale, one with
+> multi_v7_defconfig+CONFIG_ARM_LPAE=y [1] and the other with
+> multi_v7_defconfig[2]. You can see the kernel configurations with
+> CONFIG_ARM_LPAE=y show the splat:
 > 
-> > +	.name		= "l3_med",
-> > +	.clkdm_name	= "alwon_l3_med_clkdm",
-> > +	.class		= &l3_hwmod_class,
-> > +	.flags		= HWMOD_NO_IDLEST,
-> > +};
-> > +
-> > +static struct omap_hwmod __used dm816x_l3_fast_hwmod = {
+> [   14.605950] ------------[ cut here ]------------
+> [   14.609163] WARNING: CPU: 1 PID: 63 at ../mm/mmap.c:2858
+> exit_mmap+0x1b8/0x224()
+> [   14.616548] Modules linked in:
+> [   14.619553] CPU: 1 PID: 63 Comm: init Not tainted 3.19.0-rc5-next-20150123 #1
+> [   14.626713] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+> [   14.632830] [] (unwind_backtrace) from [] (show_stack+0x10/0x14)
+> [   14.640473] [] (show_stack) from [] (dump_stack+0x78/0x94)
+> [   14.647678] [] (dump_stack) from [] (warn_slowpath_common+0x74/0xb0)
+> [   14.655744] [] (warn_slowpath_common) from [] (warn_slowpath_null+0x1c/0x24)
+> [   14.664510] [] (warn_slowpath_null) from [] (exit_mmap+0x1b8/0x224)
+> [   14.672497] [] (exit_mmap) from [] (mmput+0x40/0xf8)
+> [   14.679180] [] (mmput) from [] (flush_old_exec+0x328/0x604)
+> [   14.686471] [] (flush_old_exec) from [] (load_elf_binary+0x26c/0x11f4)
+> [   14.694715] [] (load_elf_binary) from [] (search_binary_handler+0x98/0x244)
+> [   14.703395] [] (search_binary_handler) from []
+> (do_execveat_common+0x4dc/0x5bc)
+> [   14.712421] [] (do_execveat_common) from [] (do_execve+0x28/0x30)
+> [   14.720235] [] (do_execve) from [] (ret_fast_syscall+0x0/0x34)
+> [   14.727782] ---[ end trace 5e3ca48b454c7e0a ]---
+> [   14.733758] ------------[ cut here ]------------
 > 
-> Same __used comment as above.
+> Has anyone else tested with CONFIG_ARM_LPAE=y that can confirm my findings?
+Uggh... I missed since i was looking at non LPAE omap2plus_defconfig.
 
-Looking at the TRM CLKSTCTRL registers for the various L3 buses, it 
-occurred to me that if we wanted to portray this accurately, we'd 
-probably need separate hwmods for the ALWON and DEFAULT branches of the L3 
-as well.  So there would be six in total: 
-{alwon,default}_l3_{slow,med,fast}.  
+Dual A15 OMAP5432 with multi_v7_defconfig + CONFIG_ARM_LPAE=y
+https://github.com/nmenon/kernel-test-logs/blob/next-20150123/multi_lpae_defconfig/omap5-evm.txt
 
-It looks like it's possible to roughly figure out which targets are 
-associated with which variant of the L3 by looking at the CLKACTIVITY 
-bits.  So for example, it looks like most of the L3 Slow targets are on 
-ALWON_L3_SLOW according to Table 18-136 "CM_ALWON_L3_SLOW_CLKSTCTRL 
-Register Field descriptions", with the exception of USB, which appears to 
-be on DEFAULT_L3_SLOW according to Table 18-80 
-"CM_DEFAULT_L3_SLOW_CLKSTCTRL Register Field Descriptions".
+Dual A15 DRA7/AM572x with same configuration as above.
+https://raw.githubusercontent.com/nmenon/kernel-test-logs/next-20150123/multi_lpae_defconfig/dra7xx-evm.txt
+https://github.com/nmenon/kernel-test-logs/blob/next-20150123/multi_lpae_defconfig/am57xx-evm.txt
 
-Anyway, I'm sorry to put you through this, reverse-engineering this stuff 
-isn't very pleasant :-(  After reflecting on the matter, I would be OK to 
-ack the merge of the original L3-related hwmod data that you proposed, 
-with two changes:
+Single A15 DRA72 with same configuration as above:
+https://raw.githubusercontent.com/nmenon/kernel-test-logs/next-20150123/multi_lpae_defconfig/dra72x-evm.txt
 
-- dropping the __used and adding the two hwmods to the list at the bottom, 
-assuming that the system still boots in that configuration (i.e., if it 
-doesn't cause problems with the clockdomain programming, since it might 
-appear that there are no devices/clocks active in those clockdomains)
+You are right. the issue re-appears with LPAE on :(
+Apologies on missing that.
 
-- adding a comment noting that there probably should be six L3 hwmods as 
-described above, but that this is left for future work
-
-It would still be cool if you could doublecheck the SYSC/SYSS data for the 
-other IP blocks that are listed below.
-
-> > +	.name		= "l3_fast",
-> > +	.clkdm_name	= "alwon_l3_fast_clkdm",
-> > +	.class		= &l3_hwmod_class,
-> > +	.flags		= HWMOD_NO_IDLEST,
-> > +};
-
-See below, I screwed up the review comment ordering here...
-
-> > +
-> > +/*
-> > + * L4 standard peripherals, see TRM table 1-12 for devices using this.
-> > + * Devices using this have 125MHz SYSCLK5 clock.
-> > + */
-> > +static struct omap_hwmod dm816x_l4_ls_hwmod = {
-> > +	.name		= "l4_ls",
-> > +	.clkdm_name	= "alwon_l3s_clkdm",
-> > +	.class		= &l4_hwmod_class,
-> > +	.flags		= HWMOD_NO_IDLEST,
 > 
-> Section 18.7.17.46 "CM_ALWON_L3_CLKCTRL Register" lists an IDLEST bitfield 
-> for this.
-
-Well I meant for this comment to be attached to the l3_fast hwmod.  But 
-thinking about it further, I think this IDLEST is actually associated with 
-the L3 configuration *register target*, rather than the L3 itself.  This 
-appears to be located at 0x44000000, according to the memory map in 
-Section 1.5.1.  Register targets are usually what the IDLEST bits are 
-intended to protect.  So I think it's OK to keep HWMOD_NO_IDLEST for the 
-l3_fast hwmod, and then later to add a separate hwmod for the L3 config 
-space.
-
-What I meant to write was:
-
-Section 18.7.17.48 "CM_ALWON_L4LS_CLKCTRL Register" lists an IDLEST   
-bitfield for this.
-
-> > +};
-> > +
-> > +/*
-> > + * L4 high-speed peripherals. For devices using this, please see the TRM
-> > + * "Table 1-13. L4 High-Speed Peripheral Memory Map". On dm816x, only
-> > + * EMAC, MDIO and SATA use this.
-> > + */
-> > +static struct omap_hwmod dm816x_l4_hs_hwmod = {
-> > +	.name		= "l4_hs",
-> > +	.clkdm_name	= "alwon_l3_med_clkdm",
-> > +	.class		= &l4_hwmod_class,
-> > +	.flags		= HWMOD_NO_IDLEST,
 > 
-> Section 18.7.17.47 "CM_ALWON_L4HS_CLKCTRL Register" lists an IDLEST 
-> bitfield for this.
+> > --
+> > Regards,
+> > Nishanth Menon
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 > 
-
-[ ... ]
-
-> The 816x TRM is pretty crappy when it comes to integration documentation, 
-> so it's not so easy to figure out what IP blocks are connected to which 
-> initiators.  (Maybe it doesn't even matter that much in the long run; I 
-> doubt anyone is going to spend much time on PM or DMA path hacking for 
-> these DM816x chips.)  Anyway, I think it's pretty safe to assume that any 
-> IP block with a 128-bit or 64-bit initiator port onto the interconnect 
-> probably isn't connected to the L3 Slow interconnect.  So looking at 
-> Figure 1-75 "L3 Interconnect Block Diagram" and Section 1.11.2.2 "L3 Port 
-> Mapping" this includes the MPU L3 port, HDVICP2-{0,1,2} initiator ports, 
-> IOMMU, DSP, TPTC, TPCC, VPSS M0/M1 ports, SGX, Media Controller, expansion 
-> slot 0 initiator, EMIF0/1, and PCIe.    Similarly I'd assume that anything 
-> with a 128-bit target port off of the interconnect is on the L3 Fast: DMM 
-> T0/T1, HDVICP-{0,1,2} target ports, DSP SDMA, expansion slot 0 target.
->  
-> One should be able to cross-check these in two ways: first, by clocking, 
-> by looking at Table 1-73 "System Clock Domains" and Figure 1-68 "Detailed 
-> Clock Architecture".  The L3 Fast is driven by SYSCLK4, so anything with 
-> an interface clock of SYSCLK4 is probably hanging off the L3 Fast.  A 
-> SYSCLK5 interface clock probably means either L3 Medium or L4 HS.  
-> SYSCLK6 interface clocks likely mean either L3 Slow or L4 LS.
+> [1] http://storage.kernelci.org/next/next-20150123/arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y/lab-tbaker/boot-exynos5250-arndale.html
 > 
-> The other way to cross-check these is by the address ranges in Section 1.5 
-> "Memory Map".   This looks primarily useful for L4 HS/L4 LS...
-
-Well also as I mentioned above, one can doublecheck with the CLKSTCTRL 
-registers too, at least for some of the IP blocks...
-
-> Glancing at Table 1-73, it looks to me like a reasonable rule of thumb 
-> would be that anything with a 128-bit interconnect port is probably on L3 
-> Fast, anything with a 64-bit interconnect port is probably on L3 Medium, 
-> and anything with a 32-bit port on the L3 is probably on L3 Slow.
-
-... but if you agree with my earlier comments about postponing the 
-accurate encoding of the details of the interconnect structure until 
-later, and getting something basic that boots into mainline so we have a 
-platform to regression-test against, I'm OK with putting this step off 
-until later, as long as we have a comment noting that in our docs.
-
-> > +
-> > +/* UART common */
-> > +static struct omap_hwmod_class_sysconfig uart_sysc = {
-> > +	.rev_offs	= 0x50,
-> > +	.sysc_offs	= 0x54,
-> > +	.syss_offs	= 0x58,
-> > +	.sysc_flags	= SYSC_HAS_SIDLEMODE |
-> > +				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-> > +				 SYSC_HAS_AUTOIDLE,
+> [2] http://storage.kernelci.org/next/next-20150123/arm-multi_v7_defconfig/lab-tbaker/boot-exynos5250-arndale.html
 > 
-> Also SYSS_HAS_RESET_STATUS should be set, according to Table 23-44 "System 
-> Status Register (SYSS) Field Descriptions"
+> Cheers,
 > 
-> > +	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
-> 
-> Also SIDLE_SMART_WKUP is supported, according to Table 23-43 "System 
-> Configuration Register (SYSC) Field Descriptions"
+> Tyler
 
-Anyway, if you can doublecheck the SYSC/SYSS data for accuracy, then the 
-rest is
+-- 
+Regards,
+Nishanth Menon
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-and we'll try to proceed incrementally with the rest of it.
-
-
-
-- Paul
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
