@@ -1,87 +1,72 @@
-From: Tyler Baker <tyler.baker@linaro.org>
-Subject: Re: [next-20150119]regression (mm)?
-Date: Fri, 23 Jan 2015 09:39:46 -0800
-Message-ID: <CANMBJr7w2jZBwRDEsVNvL3XrDZ2ttwFz7qBf4zySAMMmcgAxiw@mail.gmail.com>
-References: <54BD33DC.40200@ti.com>
-	<20150119174317.GK20386@saruman>
-	<20150120001643.7D15AA8@black.fi.intel.com>
-	<20150120114555.GA11502@n2100.arm.linux.org.uk>
-	<20150120140546.DDCB8D4@black.fi.intel.com>
-	<20150123172736.GA15392@kahuna>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: N900 v3.19-rc5 errors
+Date: Fri, 23 Jan 2015 18:47:15 +0100
+Message-ID: <201501231847.15243@pali>
+References: <201501231415.56922@pali> <20150123172012.GA12344@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20150123172736.GA15392@kahuna>
-Sender: owner-linux-mm@kvack.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed;
+  boundary="nextPart1940322.5JGjEy15gW";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150123172012.GA12344@roeck-us.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+--nextPart1940322.5JGjEy15gW
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 23 January 2015 at 09:27, Nishanth Menon <nm@ti.com> wrote:
-> On 16:05-20150120, Kirill A. Shutemov wrote:
-> [..]
->> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
->> Reported-by: Nishanth Menon <nm@ti.com>
-> Just to close on this thread:
-> https://github.com/nmenon/kernel-test-logs/tree/next-20150123 looks good
-> and back to old status. Thank you folks for all the help.
+On Friday 23 January 2015 18:20:12 Guenter Roeck wrote:
+> On Fri, Jan 23, 2015 at 02:15:56PM +0100, Pali Roh=C3=A1r wrote:
+> > Hello,
+>=20
+> > I'm getting these two errors when booting DT linux v3.19-rc5=20
+in n900 qemu:
+> Hello Pali,
+>=20
+> can you send me the kernel confguration and qemu command line
+> you are using ?
+>=20
+> Thanks,
+> Guenter
 
-I just reviewed the boot logs for next-20150123 and there still seems
-to be a related issue. I've been boot testing
-multi_v7_defconfig+CONFIG_ARM_LPAE=y kernel configurations which still
-seem broken.
+Hello,
 
-For example here are two boots with exynos5250-arndale, one with
-multi_v7_defconfig+CONFIG_ARM_LPAE=y [1] and the other with
-multi_v7_defconfig[2]. You can see the kernel configurations with
-CONFIG_ARM_LPAE=y show the splat:
+instructions how to use qemu for n900 I wrote on uboot ml:
+http://lists.denx.de/pipermail/u-boot/2015-January/200171.html
 
-[   14.605950] ------------[ cut here ]------------
-[   14.609163] WARNING: CPU: 1 PID: 63 at ../mm/mmap.c:2858
-exit_mmap+0x1b8/0x224()
-[   14.616548] Modules linked in:
-[   14.619553] CPU: 1 PID: 63 Comm: init Not tainted 3.19.0-rc5-next-20150123 #1
-[   14.626713] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[   14.632830] [] (unwind_backtrace) from [] (show_stack+0x10/0x14)
-[   14.640473] [] (show_stack) from [] (dump_stack+0x78/0x94)
-[   14.647678] [] (dump_stack) from [] (warn_slowpath_common+0x74/0xb0)
-[   14.655744] [] (warn_slowpath_common) from [] (warn_slowpath_null+0x1c/0x24)
-[   14.664510] [] (warn_slowpath_null) from [] (exit_mmap+0x1b8/0x224)
-[   14.672497] [] (exit_mmap) from [] (mmput+0x40/0xf8)
-[   14.679180] [] (mmput) from [] (flush_old_exec+0x328/0x604)
-[   14.686471] [] (flush_old_exec) from [] (load_elf_binary+0x26c/0x11f4)
-[   14.694715] [] (load_elf_binary) from [] (search_binary_handler+0x98/0x244)
-[   14.703395] [] (search_binary_handler) from []
-(do_execveat_common+0x4dc/0x5bc)
-[   14.712421] [] (do_execveat_common) from [] (do_execve+0x28/0x30)
-[   14.720235] [] (do_execve) from [] (ret_fast_syscall+0x0/0x34)
-[   14.727782] ---[ end trace 5e3ca48b454c7e0a ]---
-[   14.733758] ------------[ cut here ]------------
+Just replace u-boot.bin file with bootable kernel image zImage.=20
+In above instructions is u-boot.bin booted as regular kernel=20
+image by Nokia bootloader. If you do not have qflasher (for=20
+generating qemu MTD nand image) + Nokia bootloaders and you are=20
+OK with Nokia license I can provide you needed binaries.
 
-Has anyone else tested with CONFIG_ARM_LPAE=y that can confirm my findings?
+Kernel config which I used you can find on:
+https://gitorious.org/linux-n900/linux-n900/source/v3.19-rc5-n900:arch/arm/=
+configs/rx51_defconfig
 
+There is also v3.19-rc5-n900 branch which contains some patches:
+https://gitorious.org/linux-n900/linux-n900
 
-> --
-> Regards,
-> Nishanth Menon
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-[1] http://storage.kernelci.org/next/next-20150123/arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y/lab-tbaker/boot-exynos5250-arndale.html
+--nextPart1940322.5JGjEy15gW
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-[2] http://storage.kernelci.org/next/next-20150123/arm-multi_v7_defconfig/lab-tbaker/boot-exynos5250-arndale.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Cheers,
+iEUEABECAAYFAlTCiSMACgkQi/DJPQPkQ1Ja2ACfdCBPE89AXMcJ7bF/IlBLa3dc
+TDUAljuLIM9k8cybI+rXr68iY2Tl0As=
+=U4wD
+-----END PGP SIGNATURE-----
 
-Tyler
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+--nextPart1940322.5JGjEy15gW--
