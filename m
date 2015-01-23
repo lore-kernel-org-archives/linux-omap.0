@@ -1,66 +1,72 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/4] arm: dts: am4372: add pmu DT data
-Date: Fri, 23 Jan 2015 17:11:44 -0600
-Message-ID: <1422054704-14915-5-git-send-email-balbi@ti.com>
-References: <1422054704-14915-1-git-send-email-balbi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
+Date: Sat, 24 Jan 2015 00:48:55 +0100
+Message-ID: <20150123234855.GB27111@amd>
+References: <201501232239.55801@pali>
+ <201501232336.36187@pali>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1422054704-14915-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201501232336.36187@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Laura Abbott <lauraa@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-with this patch, performance monitors work
-and show sensible data on AM43xx devices:
+On Fri 2015-01-23 23:36:36, Pali Roh=E1r wrote:
+> On Friday 23 January 2015 22:39:55 Pali Roh=E1r wrote:
+> > Hello,
+> >=20
+> > when I boot zImage with appended DT n900 in qemu
+> > fdt_open_into() function called from file
+> > arch/arm/boot/compressed/atags_to_fdt.c (in function
+> > atags_to_fdt) always returns -FDT_ERR_NOSPACE.
+> >=20
+> > It means that all ATAGS (including cmdline arguments) passed
+> > by bootloader are ignored.
+> >=20
+> > On real n900 device I see that booted DT version also ignore
+> > cmdline arguments from bootloader. I cannot debug decompress
+> > code on real device, but I think it is same problem as in
+> > qemu.
+>=20
+> Looks like this quick patch is fixing above problem:
 
-~# perf stat sleep 5
+So... something overruns stack, and bigger stack fixes it...?
 
- Performance counter stats for 'sleep 5':
+							Pavel
 
-          6.079585      task-clock (msec)         #    0.001 CPUs utilized
-                 3      context-switches          #    0.493 K/sec
-                 0      cpu-migrations            #    0.000 K/sec
-                35      page-faults               #    0.006 M/sec
-           5888256      cycles                    #    0.969 GHz
-           1458715      stalled-cycles-frontend   #   24.77% frontend cycles idle
-           4632019      stalled-cycles-backend    #   78.67% backend  cycles idle
-           1892556      instructions              #    0.32  insns per cycle
-                                                  #    2.45  stalled cycles per insn
-            141832      branches                  #   23.329 M/sec
-             56093      branch-misses             #   39.55% of all branches
+> diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compress=
+ed/head.S
+> index 68be901..4a7d75b 100644
+> --- a/arch/arm/boot/compressed/head.S
+> +++ b/arch/arm/boot/compressed/head.S
+> @@ -268,7 +268,7 @@ restart:	adr	r0, LC0
+>  		 * area.  No GOT fixup has occurred yet, but none of the
+>  		 * code we're about to call uses any global variable.
+>  		*/
+> -		add	sp, sp, #0x10000
+> +		add	sp, sp, #0x20000
+>  		stmfd	sp!, {r0-r3, ip, lr}
+>  		mov	r0, r8
+>  		mov	r1, r6
+> @@ -289,7 +289,7 @@ restart:	adr	r0, LC0
+>  		bleq	atags_to_fdt
+> =20
+>  		ldmfd	sp!, {r0-r3, ip, lr}
+> -		sub	sp, sp, #0x10000
+> +		sub	sp, sp, #0x20000
+>  #endif
+> =20
+>  		mov	r8, r6			@ use the appended device tree
+>=20
+>=20
 
-       5.018813000 seconds time elapsed
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am4372.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 861f127dfead..ea103aa970f1 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -51,6 +51,14 @@
- 		};
- 	};
- 
-+	pmu {
-+		compatible = "arm,cortex-a9-pmu";
-+		reg = <0x4b000000 0x800000>;
-+		interrutps = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>,
-+				<GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
-+		ti,hwmods = "debugss";
-+	};
-+
- 	gic: interrupt-controller@48241000 {
- 		compatible = "arm,cortex-a9-gic";
- 		interrupt-controller;
--- 
-2.3.0-rc1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
