@@ -1,109 +1,373 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [next-20150119]regression (mm)?
-Date: Fri, 23 Jan 2015 12:37:06 -0600
-Message-ID: <20150123183706.GA15791@kahuna>
-References: <54BD33DC.40200@ti.com>
- <20150119174317.GK20386@saruman>
- <20150120001643.7D15AA8@black.fi.intel.com>
- <20150120114555.GA11502@n2100.arm.linux.org.uk>
- <20150120140546.DDCB8D4@black.fi.intel.com>
- <20150123172736.GA15392@kahuna>
- <CANMBJr7w2jZBwRDEsVNvL3XrDZ2ttwFz7qBf4zySAMMmcgAxiw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: perf not capturing stack traces
+Date: Fri, 23 Jan 2015 13:51:28 -0600
+Message-ID: <20150123195128.GE26557@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jTMWTj4UTAEmbWeb"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CANMBJr7w2jZBwRDEsVNvL3XrDZ2ttwFz7qBf4zySAMMmcgAxiw@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Tyler Baker <tyler.baker@linaro.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09:39-20150123, Tyler Baker wrote:
-> Hi,
-> 
-> On 23 January 2015 at 09:27, Nishanth Menon <nm@ti.com> wrote:
-> > On 16:05-20150120, Kirill A. Shutemov wrote:
-> > [..]
-> >> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> >> Reported-by: Nishanth Menon <nm@ti.com>
-> > Just to close on this thread:
-> > https://github.com/nmenon/kernel-test-logs/tree/next-20150123 looks good
-> > and back to old status. Thank you folks for all the help.
-> 
-> I just reviewed the boot logs for next-20150123 and there still seems
-> to be a related issue. I've been boot testing
-> multi_v7_defconfig+CONFIG_ARM_LPAE=y kernel configurations which still
-> seem broken.
-> 
-> For example here are two boots with exynos5250-arndale, one with
-> multi_v7_defconfig+CONFIG_ARM_LPAE=y [1] and the other with
-> multi_v7_defconfig[2]. You can see the kernel configurations with
-> CONFIG_ARM_LPAE=y show the splat:
-> 
-> [   14.605950] ------------[ cut here ]------------
-> [   14.609163] WARNING: CPU: 1 PID: 63 at ../mm/mmap.c:2858
-> exit_mmap+0x1b8/0x224()
-> [   14.616548] Modules linked in:
-> [   14.619553] CPU: 1 PID: 63 Comm: init Not tainted 3.19.0-rc5-next-20150123 #1
-> [   14.626713] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-> [   14.632830] [] (unwind_backtrace) from [] (show_stack+0x10/0x14)
-> [   14.640473] [] (show_stack) from [] (dump_stack+0x78/0x94)
-> [   14.647678] [] (dump_stack) from [] (warn_slowpath_common+0x74/0xb0)
-> [   14.655744] [] (warn_slowpath_common) from [] (warn_slowpath_null+0x1c/0x24)
-> [   14.664510] [] (warn_slowpath_null) from [] (exit_mmap+0x1b8/0x224)
-> [   14.672497] [] (exit_mmap) from [] (mmput+0x40/0xf8)
-> [   14.679180] [] (mmput) from [] (flush_old_exec+0x328/0x604)
-> [   14.686471] [] (flush_old_exec) from [] (load_elf_binary+0x26c/0x11f4)
-> [   14.694715] [] (load_elf_binary) from [] (search_binary_handler+0x98/0x244)
-> [   14.703395] [] (search_binary_handler) from []
-> (do_execveat_common+0x4dc/0x5bc)
-> [   14.712421] [] (do_execveat_common) from [] (do_execve+0x28/0x30)
-> [   14.720235] [] (do_execve) from [] (ret_fast_syscall+0x0/0x34)
-> [   14.727782] ---[ end trace 5e3ca48b454c7e0a ]---
-> [   14.733758] ------------[ cut here ]------------
-> 
-> Has anyone else tested with CONFIG_ARM_LPAE=y that can confirm my findings?
-Uggh... I missed since i was looking at non LPAE omap2plus_defconfig.
+--jTMWTj4UTAEmbWeb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Dual A15 OMAP5432 with multi_v7_defconfig + CONFIG_ARM_LPAE=y
-https://github.com/nmenon/kernel-test-logs/blob/next-20150123/multi_lpae_defconfig/omap5-evm.txt
+Hi,
 
-Dual A15 DRA7/AM572x with same configuration as above.
-https://raw.githubusercontent.com/nmenon/kernel-test-logs/next-20150123/multi_lpae_defconfig/dra7xx-evm.txt
-https://github.com/nmenon/kernel-test-logs/blob/next-20150123/multi_lpae_defconfig/am57xx-evm.txt
+I'm using v3.19-rc5 on an ARM Cortex A9 board. Unfortunately, perf is
+not able to capture any stack traces even though I CONFIG_STACKTRACE,
+CONFIG_FRAME_POINTER and CONFIG_ARM_UNWIND all enabled.
 
-Single A15 DRA72 with same configuration as above:
-https://raw.githubusercontent.com/nmenon/kernel-test-logs/next-20150123/multi_lpae_defconfig/dra72x-evm.txt
+I wonder if anybody else is facing similar issues.
 
-You are right. the issue re-appears with LPAE on :(
-Apologies on missing that.
+Here's console grab:
 
-> 
-> 
-> > --
-> > Regards,
-> > Nishanth Menon
-> >
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
-> [1] http://storage.kernelci.org/next/next-20150123/arm-multi_v7_defconfig+CONFIG_ARM_LPAE=y/lab-tbaker/boot-exynos5250-arndale.html
-> 
-> [2] http://storage.kernelci.org/next/next-20150123/arm-multi_v7_defconfig/lab-tbaker/boot-exynos5250-arndale.html
-> 
-> Cheers,
-> 
-> Tyler
+perf record -e 'sched:*' -ag sleep 5  && perf report --stdio
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.092 MB perf.data (~4024 samples) ]
+# To display the perf.data header info, please use --header/--header-only o=
+ption
+#
+# Samples: 0  of event 'sched:sched_kthread_stop'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
 
--- 
-Regards,
-Nishanth Menon
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+# Samples: 0  of event 'sched:sched_kthread_stop_ret'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 62  of event 'sched:sched_wakeup'
+# Event count (approx.): 62
+#
+# Children      Self  Command      Shared Object  Symbol       =20
+# ........  ........  ...........  .............  ..............
+:#
+    74.19%    74.19%  swapper      [unknown]      [.] 00000000 =20
+                |
+                ---0
+
+    11.29%    11.29%  kworker/0:2  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+     9.68%     9.68%  perf         [unknown]      [.] 00000000 =20
+                   |
+                   ---0
+
+     3.23%     3.23%  sleep        [unknown]      [.] 00000000 =20
+                  |
+                  ---0
+
+     1.61%     1.61%  ksoftirqd/0  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+
+
+:# Samples: 0  of event 'sched:sched_wakeup_new'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 102  of event 'sched:sched_switch'
+# Event count (approx.): 102
+#
+# Children      Self  Command       Shared Object  Symbol       =20
+# ........  ........  ............  .............  ..............
+#
+    31.37%    31.37%  swapper       [unknown]      [.] 00000000 =20
+                 |
+                 ---0
+
+    20.59%    20.59%  kworker/0:2   [unknown]      [.] 00000000 =20
+             |
+             ---0
+
+    15.69%    15.69%  ksoftirqd/0   [unknown]      [.] 00000000 =20
+:             |
+             ---0
+
+    11.76%    11.76%  perf          [unknown]      [.] 00000000 =20
+                    |
+                    ---0
+
+    11.76%    11.76%  sleep         [unknown]      [.] 00000000 =20
+                   |
+                   ---0
+
+     7.84%     7.84%  rcu_sched     [unknown]      [.] 00000000 =20
+               |
+               ---0
+
+     0.98%     0.98%  kworker/u2:1  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+
+
+# Samples: 0  of event 'sched:sched_migrate_task'
+# Event count (approx.): 0
+:#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_process_free'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 1  of event 'sched:sched_process_exit'
+# Event count (approx.): 1
+#
+# Children      Self  Command  Shared Object  Symbol       =20
+# ........  ........  .......  .............  ..............
+#
+   100.00%   100.00%  sleep    [unknown]      [.] 00000000 =20
+              |
+              ---0
+:
+
+
+# Samples: 0  of event 'sched:sched_wait_task'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_process_wait'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_process_fork'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+:# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 1  of event 'sched:sched_process_exec'
+# Event count (approx.): 1
+#
+# Children      Self  Command  Shared Object  Symbol       =20
+# ........  ........  .......  .............  ..............
+#
+   100.00%   100.00%  sleep    [unknown]      [.] 00000000 =20
+              |
+              ---0
+
+
+
+# Samples: 70  of event 'sched:sched_stat_wait'
+# Event count (approx.): 17926123
+#
+# Children      Self  Command      Shared Object  Symbol       =20
+# ........  ........  ...........  .............  ..............
+#
+    33.13%    33.13%  ksoftirqd/0  [unknown]      [.] 00000000 =20
+:            |
+            ---0
+
+    24.83%    24.83%  perf         [unknown]      [.] 00000000 =20
+                   |
+                   ---0
+
+    21.44%    21.44%  sleep        [unknown]      [.] 00000000 =20
+                  |
+                  ---0
+
+    20.60%    20.60%  rcu_sched    [unknown]      [.] 00000000 =20
+              |
+              ---0
+
+     0.00%     0.00%  kworker/0:2  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+     0.00%     0.00%  swapper      [unknown]      [.] 00000000 =20
+                |
+                ---0
+
+:
+
+# Samples: 43  of event 'sched:sched_stat_sleep'
+# Event count (approx.): 119659990589
+#
+# Children      Self  Command  Shared Object  Symbol       =20
+# ........  ........  .......  .............  ..............
+#
+    95.01%    95.01%  swapper  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+     4.93%     4.93%  sleep    [unknown]      [.] 00000000 =20
+              |
+              ---0
+
+     0.06%     0.06%  perf     [unknown]      [.] 00000000 =20
+               |
+               ---0
+
+
+
+# Samples: 7  of event 'sched:sched_stat_iowait'
+:# Event count (approx.): 37447751
+#
+# Children      Self  Command      Shared Object  Symbol       =20
+# ........  ........  ...........  .............  ..............
+#
+   100.00%   100.00%  kworker/0:2  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+
+
+# Samples: 19  of event 'sched:sched_stat_blocked'
+# Event count (approx.): 42514750
+#
+# Children      Self  Command      Shared Object  Symbol       =20
+# ........  ........  ...........  .............  ..............
+#
+    88.08%    88.08%  kworker/0:2  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+     7.24%     7.24%  swapper      [unknown]      [.] 00000000 =20
+                |
+:                ---0
+
+     3.81%     3.81%  ksoftirqd/0  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+     0.86%     0.86%  perf         [unknown]      [.] 00000000 =20
+                   |
+                   ---0
+
+
+
+# Samples: 79  of event 'sched:sched_stat_runtime'
+# Event count (approx.): 46820375
+#
+# Children      Self  Command       Shared Object  Symbol       =20
+# ........  ........  ............  .............  ..............
+#
+    27.85%    27.85%  perf          [unknown]      [.] 00000000 =20
+                    |
+                    ---0
+
+    27.48%    27.48%  kworker/0:2   [unknown]      [.] 00000000 =20
+:             |
+             ---0
+
+    20.79%    20.79%  sleep         [unknown]      [.] 00000000 =20
+                   |
+                   ---0
+
+    12.51%    12.51%  ksoftirqd/0   [unknown]      [.] 00000000 =20
+             |
+             ---0
+
+     8.96%     8.96%  rcu_sched     [unknown]      [.] 00000000 =20
+               |
+               ---0
+
+     2.41%     2.41%  kworker/u2:1  [unknown]      [.] 00000000 =20
+            |
+            ---0
+
+
+
+# Samples: 0  of event 'sched:sched_pi_setprio'
+# Event count (approx.): 0
+:#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_move_numa'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_stick_numa'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_swap_numa'
+:# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'sched:sched_wake_idle_without_ipi'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+--=20
+balbi
+
+--jTMWTj4UTAEmbWeb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUwqZAAAoJEIaOsuA1yqREMSAP/0fpnuMqaZKY3kkwr853KtJS
+BMRN4bXqxH1wnZvu0UWRAT1JytlW79H9os/8WjqbXSUnVbBHtcz5I6SpN0DfOTAY
+QfO/pJfs/sKskXcePjrIWLemtdv2UD1eWiuajO8PtDj/KKMu7rp8FIGblgX66UPm
+d2lEKEZYC4n10r35R4QZIM8hXfQ+PqH34Ue+d8ux5kl1fjo0B2a5g8/oXkDBXSqp
++ABiovPTsnWzEmOoXmq6+E9uuNIPObayaHPWhgo80fjtSeA61T9bE+/67bsgrbsX
+4Z/HJZ9gSOff5buve4krFZhOE+9i2TrnGpqw/5846tsUYsodqpIFMyYvtpF8ov9B
+OvrxBy/weulKNjwgmkbr2OpTU6nRCLcrsb8goDohH3Vyp1kVB0Y431+dWX17/a+W
+oXarKUWfIq/2VNvmo3IJAmgGim6+7IDVpABVwt9rgchcoytMlUUKhS/XT86h9Zsx
+xLEMTgj897wnQ4Y2KvHDSvIclyvOPWDNxGq3ROlR5yI9gvt+71ORkjYv5xcJvPsu
+2HWqeydztQF/XLGVSFsmL6be3ZrLqLZhKK09LcAxe/dYVt5q3jUSNFwiABjrDt12
+hDod6qOzVNpekA6TBZ2v2QQG0eryAyEVC8sEaqHqUErW8YzB0oJdrSNygAVT+93k
+EPsXWrP5M5dY8MS0YyzG
+=bTn+
+-----END PGP SIGNATURE-----
+
+--jTMWTj4UTAEmbWeb--
