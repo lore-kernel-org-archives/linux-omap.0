@@ -1,153 +1,107 @@
-From: Tyler Baker <tyler.baker@linaro.org>
-Subject: Re: [next-20150119]regression (mm)?
-Date: Fri, 23 Jan 2015 14:42:17 -0800
-Message-ID: <CANMBJr4YOcHj2G7w-gwfoZjQQd=h0Mj59QNBo3ei_=ejYRcdnw@mail.gmail.com>
-References: <54BD33DC.40200@ti.com>
-	<20150119174317.GK20386@saruman>
-	<20150120001643.7D15AA8@black.fi.intel.com>
-	<20150120114555.GA11502@n2100.arm.linux.org.uk>
-	<20150120140546.DDCB8D4@black.fi.intel.com>
-	<20150123172736.GA15392@kahuna>
-	<CANMBJr7w2jZBwRDEsVNvL3XrDZ2ttwFz7qBf4zySAMMmcgAxiw@mail.gmail.com>
-	<20150123183706.GA15791@kahuna>
-	<20150123202229.GA9038@node.dhcp.inet.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 1/4] arm: omap: hwmod: 43xx: add DebugSS hwmod data
+Date: Fri, 23 Jan 2015 17:11:41 -0600
+Message-ID: <1422054704-14915-2-git-send-email-balbi@ti.com>
+References: <1422054704-14915-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20150123202229.GA9038@node.dhcp.inet.fi>
-Sender: owner-linux-mm@kvack.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Nishanth Menon <nm@ti.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, linux-mm@kvack.org, linux-next <linux-next@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54501 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561AbbAWXMO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2015 18:12:14 -0500
+In-Reply-To: <1422054704-14915-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-Hi Kirill,
+Without hwmod data for DebugSS, performance monitors
+have no chance of running on AM43xx devices.
 
-On 23 January 2015 at 12:22, Kirill A. Shutemov <kirill@shutemov.name> wrote:
-> On Fri, Jan 23, 2015 at 12:37:06PM -0600, Nishanth Menon wrote:
->> On 09:39-20150123, Tyler Baker wrote:
->> > Hi,
->> >
->> > On 23 January 2015 at 09:27, Nishanth Menon <nm@ti.com> wrote:
->> > > On 16:05-20150120, Kirill A. Shutemov wrote:
->> > > [..]
->> > >> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
->> > >> Reported-by: Nishanth Menon <nm@ti.com>
->> > > Just to close on this thread:
->> > > https://github.com/nmenon/kernel-test-logs/tree/next-20150123 looks good
->> > > and back to old status. Thank you folks for all the help.
->> >
->> > I just reviewed the boot logs for next-20150123 and there still seems
->> > to be a related issue. I've been boot testing
->> > multi_v7_defconfig+CONFIG_ARM_LPAE=y kernel configurations which still
->> > seem broken.
->> >
->> > For example here are two boots with exynos5250-arndale, one with
->> > multi_v7_defconfig+CONFIG_ARM_LPAE=y [1] and the other with
->> > multi_v7_defconfig[2]. You can see the kernel configurations with
->> > CONFIG_ARM_LPAE=y show the splat:
->> >
->> > [   14.605950] ------------[ cut here ]------------
->> > [   14.609163] WARNING: CPU: 1 PID: 63 at ../mm/mmap.c:2858
->> > exit_mmap+0x1b8/0x224()
->> > [   14.616548] Modules linked in:
->> > [   14.619553] CPU: 1 PID: 63 Comm: init Not tainted 3.19.0-rc5-next-20150123 #1
->> > [   14.626713] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
->> > [   14.632830] [] (unwind_backtrace) from [] (show_stack+0x10/0x14)
->> > [   14.640473] [] (show_stack) from [] (dump_stack+0x78/0x94)
->> > [   14.647678] [] (dump_stack) from [] (warn_slowpath_common+0x74/0xb0)
->> > [   14.655744] [] (warn_slowpath_common) from [] (warn_slowpath_null+0x1c/0x24)
->> > [   14.664510] [] (warn_slowpath_null) from [] (exit_mmap+0x1b8/0x224)
->> > [   14.672497] [] (exit_mmap) from [] (mmput+0x40/0xf8)
->> > [   14.679180] [] (mmput) from [] (flush_old_exec+0x328/0x604)
->> > [   14.686471] [] (flush_old_exec) from [] (load_elf_binary+0x26c/0x11f4)
->> > [   14.694715] [] (load_elf_binary) from [] (search_binary_handler+0x98/0x244)
->> > [   14.703395] [] (search_binary_handler) from []
->> > (do_execveat_common+0x4dc/0x5bc)
->> > [   14.712421] [] (do_execveat_common) from [] (do_execve+0x28/0x30)
->> > [   14.720235] [] (do_execve) from [] (ret_fast_syscall+0x0/0x34)
->> > [   14.727782] ---[ end trace 5e3ca48b454c7e0a ]---
->> > [   14.733758] ------------[ cut here ]------------
->> >
->> > Has anyone else tested with CONFIG_ARM_LPAE=y that can confirm my findings?
->> Uggh... I missed since i was looking at non LPAE omap2plus_defconfig.
->>
->> Dual A15 OMAP5432 with multi_v7_defconfig + CONFIG_ARM_LPAE=y
->> https://github.com/nmenon/kernel-test-logs/blob/next-20150123/multi_lpae_defconfig/omap5-evm.txt
->>
->> Dual A15 DRA7/AM572x with same configuration as above.
->> https://raw.githubusercontent.com/nmenon/kernel-test-logs/next-20150123/multi_lpae_defconfig/dra7xx-evm.txt
->> https://github.com/nmenon/kernel-test-logs/blob/next-20150123/multi_lpae_defconfig/am57xx-evm.txt
->>
->> Single A15 DRA72 with same configuration as above:
->> https://raw.githubusercontent.com/nmenon/kernel-test-logs/next-20150123/multi_lpae_defconfig/dra72x-evm.txt
->>
->> You are right. the issue re-appears with LPAE on :(
->> Apologies on missing that.
->
-> Guys, could you instrument mm_{inc,dec}_nr_pmds() with dump_stack() +
-> printk() of the counter and add printk() on mmap_exit() then run a simple
-> program which triggers the issue?
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 40 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |  1 +
+ 2 files changed, 41 insertions(+)
 
-For reference, here is the patch I've applied for testing, mostly
-stolen from Felipe's debug patch above in this thread.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 5c6c8410160e..6709704dd5b5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -19,6 +19,7 @@
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_33xx_43xx_common_data.h"
+ #include "prcm43xx.h"
++#include "prm44xx.h"
+ #include "omap_hwmod_common_data.h"
+ 
+ 
+@@ -60,6 +61,44 @@ static struct omap_hwmod am43xx_wkup_m3_hwmod = {
+ 	.rst_lines_cnt	= ARRAY_SIZE(am33xx_wkup_m3_resets),
+ };
+ 
++/*
++ * 'debugss' class
++ * debug and emulation sub system
++ */
++static struct omap_hwmod_opt_clk am43xx_debugss_opt_clks[] = {
++	{ .role = "dbg_sysclk", .clk = "dbg_sysclk_ck" },
++	{ .role = "dbg_clka", .clk = "dbg_clka_ck", },
++	{ .role = "dbg_clkb", .clk = "dbg_clkb_ck", },
++	{ .role = "dbg_clkc", .clk = "dbg_clkc_ck", },
++};
++
++static struct omap_hwmod_class am43xx_debugss_hwmod_class = {
++	.name	= "debugss",
++};
++
++/* debugss */
++static struct omap_hwmod am43xx_debugss_hwmod = {
++	.name		= "debugss",
++	.class		= &am43xx_debugss_hwmod_class,
++	.clkdm_name	= "l3_aon_clkdm",
++	.main_clk	= "trace_clk_div_ck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_WKUP_DBGSS_CLKCTRL_OFFSET,
++		},
++	},
++	.opt_clks	= am43xx_debugss_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(am43xx_debugss_opt_clks),
++};
++
++/* debugss -> l3_main_2 */
++static struct omap_hwmod_ocp_if am43xx_debugss__l3_main = {
++	.master		= &am43xx_debugss_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "sys_clkin_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod am43xx_control_hwmod = {
+ 	.name		= "control",
+ 	.class		= &am33xx_control_hwmod_class,
+@@ -875,6 +914,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_main__tptc1,
+ 	&am33xx_l3_main__tptc2,
+ 	&am33xx_l3_main__ocmc,
++	&am43xx_debugss__l3_main,
+ 	&am43xx_l4_hs__cpgmac0,
+ 	&am33xx_cpgmac0__mdio,
+ 	&am33xx_l3_main__sha0,
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index ad7b3e9977f8..bb42cd80526d 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -93,6 +93,7 @@
+ #define AM43XX_CM_PER_TIMER5_CLKCTRL_OFFSET		0x0548
+ #define AM43XX_CM_PER_TIMER6_CLKCTRL_OFFSET		0x0550
+ #define AM43XX_CM_PER_TIMER7_CLKCTRL_OFFSET		0x0558
++#define AM43XX_CM_WKUP_DBGSS_CLKCTRL_OFFSET		0x0020
+ #define AM43XX_CM_WKUP_WKUP_M3_CLKCTRL_OFFSET		0x0228
+ #define AM43XX_CM_WKUP_CONTROL_CLKCTRL_OFFSET		0x0360
+ #define AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET	0x0350
+-- 
+2.3.0-rc1
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 1fbd0e8..e5b0444 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1455,11 +1455,17 @@ static inline unsigned long mm_nr_pmds(struct
-mm_struct *mm)
- static inline void mm_inc_nr_pmds(struct mm_struct *mm)
- {
-        atomic_long_inc(&mm->nr_pmds);
-+        dump_stack();
-+        printk(KERN_INFO "===> %s nr_pmds %ld\n", __func__,
-+                atomic_long_read(&mm->nr_pmds));
- }
-
- static inline void mm_dec_nr_pmds(struct mm_struct *mm)
- {
-        atomic_long_dec(&mm->nr_pmds);
-+        dump_stack();
-+        printk(KERN_INFO "===> %s nr_pmds %ld\n", __func__,
-+                atomic_long_read(&mm->nr_pmds));
- }
- #endif
-
-diff --git a/mm/mmap.c b/mm/mmap.c
-index 6a7d36d..a16471f 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -2809,6 +2809,7 @@ EXPORT_SYMBOL(vm_brk);
- /* Release all mmaps. */
- void exit_mmap(struct mm_struct *mm)
- {
-+       printk(KERN_INFO "===> %s exit_mmap enter\n", __func__);
-        struct mmu_gather tlb;
-        struct vm_area_struct *vma;
-        unsigned long nr_accounted = 0;
-
-I applied this patch to the tip of linux-next, configured for
-multi_v7_defconfig and set CONFIG_ARM_LPAE=y. The log for this arndale
-boot can be found here [1]. For good measure, I then rebuilt the
-kernel with CONFIG_ARM_LPAE=n and booted the same platform again. This
-log can be found here [2].
-
-Happy hunting!
-
->
-> --
->  Kirill A. Shutemov
-
-[1] http://storage.kernelci.org/debug/mm/arndale-lpae-debug-next-20150123.html
-[2] http://storage.kernelci.org/debug/mm/arndale-no-lpae-debug-next-20150123.html
-
-Cheers,
-
-Tyler
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
