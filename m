@@ -1,46 +1,39 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 3/4] clk: ti: 43xx: add debugss clocks to DT_CLK() table
-Date: Fri, 23 Jan 2015 17:11:43 -0600
-Message-ID: <1422054704-14915-4-git-send-email-balbi@ti.com>
-References: <1422054704-14915-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 0/4] arm: am43xx: add PMU support
+Date: Fri, 23 Jan 2015 17:11:40 -0600
+Message-ID: <1422054704-14915-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42058 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49875 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753451AbbAWXMQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Jan 2015 18:12:16 -0500
-In-Reply-To: <1422054704-14915-1-git-send-email-balbi@ti.com>
+	id S1754995AbbAWXMT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Jan 2015 18:12:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-without these entries, omap_hwmod will not be
-able to find debugss clocks.
+Hi all,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/clk/ti/clk-43xx.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+with these patches we can use perf with AM43xx devices
+and get actual statistics.
 
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-index 3795fce8a830..46a597c815c9 100644
---- a/drivers/clk/ti/clk-43xx.c
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -83,6 +83,12 @@ static struct ti_dt_clk am43xx_clks[] = {
- 	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
- 	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
- 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
-+	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
-+	DT_CLK(NULL, "trace_pm_clk_mux_ck", "trace_pm_clk_mux_ck"),
-+	DT_CLK(NULL, "dbg_sysclk_ck", "dbg_sysclk_ck"),
-+	DT_CLK(NULL, "dbg_clka_ck", "dbg_clka_ck"),
-+	DT_CLK(NULL, "dbg_clkb_ck", "dbg_clkb_ck"),
-+	DT_CLK(NULL, "dbg_clkc_ck", "dbg_clkc_ck"),
- 	DT_CLK(NULL, "sysclk_div", "sysclk_div"),
- 	DT_CLK(NULL, "disp_clk", "disp_clk"),
- 	DT_CLK(NULL, "clk_32k_mosc_ck", "clk_32k_mosc_ck"),
+Full boot logs: http://hastebin.com/yoxaxurohu
+
+Felipe Balbi (4):
+  arm: omap: hwmod: 43xx: add DebugSS hwmod data
+  arm: dts: am4372: add missing debugss clocks
+  clk: ti: 43xx: add debugss clocks to DT_CLK() table
+  arm: dts: am4372: add pmu DT data
+
+ arch/arm/boot/dts/am4372.dtsi              |  8 +++++
+ arch/arm/boot/dts/am43xx-clocks.dtsi       | 51 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 40 +++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |  1 +
+ drivers/clk/ti/clk-43xx.c                  |  6 ++++
+ 5 files changed, 106 insertions(+)
+
 -- 
 2.3.0-rc1
 
