@@ -1,93 +1,151 @@
 From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Sat, 24 Jan 2015 11:40:34 +0100
-Message-ID: <201501241140.34479@pali>
-References: <20131206213613.GA19648@earth.universe> <20131207230305.GA9103@earth.universe> <20131207232205.GS26766@atomide.com>
+Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
+Date: Sat, 24 Jan 2015 13:00:00 +0100
+Message-ID: <201501241300.00723@pali>
+References: <1421171865-5209-1-git-send-email-tony@atomide.com> <20150113204219.GJ2419@atomide.com> <20150115142536.GC512@earth.universe>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart11567302.RfjF2xuMdB";
+  boundary="nextPart1881668.s5S6y2blRv";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:48171 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751476AbbAXKkh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2015 05:40:37 -0500
-Received: by mail-we0-f181.google.com with SMTP id k48so1594098wev.12
-        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2015 02:40:36 -0800 (PST)
-In-Reply-To: <20131207232205.GS26766@atomide.com>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:54335 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190AbbAXMAE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2015 07:00:04 -0500
+Received: by mail-we0-f172.google.com with SMTP id q59so1822423wes.3
+        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2015 04:00:02 -0800 (PST)
+In-Reply-To: <20150115142536.GC512@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@ring0.de>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
---nextPart11567302.RfjF2xuMdB
+--nextPart1881668.s5S6y2blRv
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sunday 08 December 2013 00:22:06 Tony Lindgren wrote:
-> * Sebastian Reichel <sre@ring0.de> [131207 15:04]:
-> > On Sat, Dec 07, 2013 at 01:11:37PM -0800, Tony Lindgren=20
-wrote:
-> > > > I asked Pali to send me his copy of the updated NOLO
-> > > > bootloader, so that I can test this. I just checked the
-> > > > omap documentation (I only have access to the public
-> > > > one) and crypto related stuff is not documented for the
-> > > > L3_PM_READ_PERMISSION register. There are a couple of
-> > > > reserved bits, which may be used for this, though.
+On Thursday 15 January 2015 15:25:36 Sebastian Reichel wrote:
+> On Tue, Jan 13, 2015 at 12:42:20PM -0800, Tony Lindgren wrote:
+> > * Arnd Bergmann <arnd@arndb.de> [150113 12:27]:
+> > > On Tuesday 13 January 2015 09:57:41 Tony Lindgren wrote:
+> > > > It seems we can now drop omap3517 legacy booting support
+> > > > to get a bit closer to making all of omap3 boot in
+> > > > device tree only mode.
 > > > >=20
-> > > > I also CC'd Joel Fernandes, since he worked on the
-> > > > driver before and may have access to the documentation.
+> > > > All these boards have at least minimal support for
+> > > > booting with device tree, and pretty much anything
+> > > > supported with the legacy board files can be configured
+> > > > also for device tree based booting if not done already.
 > > >=20
-> > > Looks like at least the 36xx public version referenced
-> > > here has them:
+> > > Ah, very nice.
 > > >=20
-> > > http://www.spinics.net/lists/linux-omap/msg21857.html
-> > >=20
-> > > I'd assume the registers are the same for 34xx since we
-> > > don't have them defined separately in the kernel.
+> > > Just out of curiosity, what are the remaining showstoppers
+> > > for the 3430 and 3530 based boards?
 > >=20
-> > I can't find it in the omap36xx documentation either. Maybe
-> > I search at the wrong position. I tried to find something
-> > crypto related in
+> > Not much really. We're now printing a warning to get a
+> > people to upgrade their systems. So with some boards we
+> > need to wait a while.
 > >=20
-> > Table 9-89. L3_PM_READ_PERMISSION_i
+> > Then here are the remaining items that I'm aware of:
+> >=20
+> > - A regression at least on some n900 with appended DTB not
+> > booting
+> >=20
+> >   properly any longer reported by Pali
+> >=20
+> > - A regression where the legacy ATAGs don't seem to get
+> > properly
+> >=20
+> >   translated by the uncompress code for atag_rev at least
+> >   reported by Pali
+> >=20
+> > - A few missing .dts files for devkit8000, omap3logic,
+> > omap3stalker,
+> >=20
+> >   omap3pandora and omap3touchbook
+> >=20
+> > Pali and Sebastian probably know best of any other remaining
+> > issues to drop n900 legacy booting.
 >=20
-> Hmm maybe it's done based on the address in
-> L3_PM_ADDR_MATCH_k?
+> Apart from the bugs there is only one feature-wise regression
+> when the system is booted via DT, which is the accelerometer.
+> I will (re)send patches for that in the next days.
 >=20
-> I guess the thing to do would be to compare the register
-> output between the two different firmware versions.
->=20
-> Regards,
->=20
-> Tony
+> -- Sebastian
 
-Joel Fernandes, you are author of omap-des driver. Do you know=20
-something about crashing kernel when omap crypto support (via L3=20
-firewall) is not enabled by bootloader? Do you know something=20
-about runtime detection of crypto support to prevent kernel/board=20
-crash?
+Another regression for DT setup (which does not occur for board code):
 
-Problem with kernel log of omap-aes is reported there:
-http://thread.gmane.org/gmane.linux.ports.arm.omap/108397/
+omap_hsmmc driver does not export slot_name sysfs entry because
+it not supported by DT yet. Entry slot_name is used by userspace
+application to determinate if mmc block device is internal eMMC
+memory or external uSD card. So support for this property also in
+DT is needed.
+
+Here is simple patch which fix this problem:
+
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n90=
+0.dts
+index 8571027..31ca609 100644
+=2D-- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -665,6 +665,7 @@
+ };
+=20
+ &mmc1 {
++	slot-name =3D "external";
+ 	pinctrl-names =3D "default";
+ 	pinctrl-0 =3D <&mmc1_pins>;
+ 	vmmc-supply =3D <&vmmc1>;
+@@ -674,6 +675,7 @@
+=20
+ /* most boards use vaux3, only some old versions use vmmc2 instead */
+ &mmc2 {
++	slot-name =3D "internal";
+ 	pinctrl-names =3D "default";
+ 	pinctrl-0 =3D <&mmc2_pins>;
+ 	vmmc-supply =3D <&vaux3>;
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 7c71dcd..cd189eb 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2021,6 +2021,8 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_=
+pdata(struct device *dev)
+ 	if (of_find_property(np, "enable-sdio-wakeup", NULL))
+ 		pdata->pm_caps |=3D MMC_PM_WAKE_SDIO_IRQ;
+=20
++	of_property_read_string(np, "slot-name", &pdata->name);
++
+ 	return pdata;
+ }
+ #else
+
+
+With this patch identification works fine:
+
+/ # cat /sys/block/mmcblk0/device/../slot_name=20
+external
+/ # cat /sys/block/mmcblk1/device/../slot_name=20
+internal
+
+Without patch omap_hsmmc driver does not create slot_name.
 
 =2D-=20
 Pali Roh=C3=A1r
 pali.rohar@gmail.com
 
---nextPart11567302.RfjF2xuMdB
+--nextPart1881668.s5S6y2blRv
 Content-Type: application/pgp-signature; name=signature.asc 
 Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEABECAAYFAlTDdqIACgkQi/DJPQPkQ1LOFwCeKo6x5sgF1G/59Y30sywgTrLg
-CkcAoLYXxTqFLTBAH4hSfaAKv08aH8IT
-=jofD
+iEYEABECAAYFAlTDiUAACgkQi/DJPQPkQ1IkLACgiLuxGz5zy+BfHSd1PtQjQBBp
+L+cAoKBHj5uR+VxIr8Ku6Rqqs/OHSFG+
+=8w7M
 -----END PGP SIGNATURE-----
 
---nextPart11567302.RfjF2xuMdB--
+--nextPart1881668.s5S6y2blRv--
