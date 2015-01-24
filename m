@@ -1,100 +1,93 @@
 From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
-Date: Sat, 24 Jan 2015 10:04:37 +0100
-Message-ID: <201501241004.37391@pali>
-References: <201501232239.55801@pali> <201501232336.36187@pali> <20150123234855.GB27111@amd>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Sat, 24 Jan 2015 11:40:34 +0100
+Message-ID: <201501241140.34479@pali>
+References: <20131206213613.GA19648@earth.universe> <20131207230305.GA9103@earth.universe> <20131207232205.GS26766@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart9180321.85KiyxG8Rs";
+  boundary="nextPart11567302.RfjF2xuMdB";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150123234855.GB27111@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Laura Abbott <lauraa@codeaurora.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:48171 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751476AbbAXKkh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2015 05:40:37 -0500
+Received: by mail-we0-f181.google.com with SMTP id k48so1594098wev.12
+        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2015 02:40:36 -0800 (PST)
+In-Reply-To: <20131207232205.GS26766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@ring0.de>
 
---nextPart9180321.85KiyxG8Rs
+--nextPart11567302.RfjF2xuMdB
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Saturday 24 January 2015 00:48:55 Pavel Machek wrote:
-> On Fri 2015-01-23 23:36:36, Pali Roh=C3=A1r wrote:
-> > On Friday 23 January 2015 22:39:55 Pali Roh=C3=A1r wrote:
-> > > Hello,
+On Sunday 08 December 2013 00:22:06 Tony Lindgren wrote:
+> * Sebastian Reichel <sre@ring0.de> [131207 15:04]:
+> > On Sat, Dec 07, 2013 at 01:11:37PM -0800, Tony Lindgren=20
+wrote:
+> > > > I asked Pali to send me his copy of the updated NOLO
+> > > > bootloader, so that I can test this. I just checked the
+> > > > omap documentation (I only have access to the public
+> > > > one) and crypto related stuff is not documented for the
+> > > > L3_PM_READ_PERMISSION register. There are a couple of
+> > > > reserved bits, which may be used for this, though.
+> > > >=20
+> > > > I also CC'd Joel Fernandes, since he worked on the
+> > > > driver before and may have access to the documentation.
 > > >=20
-> > > when I boot zImage with appended DT n900 in qemu
-> > > fdt_open_into() function called from file
-> > > arch/arm/boot/compressed/atags_to_fdt.c (in function
-> > > atags_to_fdt) always returns -FDT_ERR_NOSPACE.
+> > > Looks like at least the 36xx public version referenced
+> > > here has them:
 > > >=20
-> > > It means that all ATAGS (including cmdline arguments)
-> > > passed by bootloader are ignored.
+> > > http://www.spinics.net/lists/linux-omap/msg21857.html
 > > >=20
-> > > On real n900 device I see that booted DT version also
-> > > ignore cmdline arguments from bootloader. I cannot debug
-> > > decompress code on real device, but I think it is same
-> > > problem as in qemu.
+> > > I'd assume the registers are the same for 34xx since we
+> > > don't have them defined separately in the kernel.
 > >=20
-> > Looks like this quick patch is fixing above problem:
-> So... something overruns stack, and bigger stack fixes it...?
+> > I can't find it in the omap36xx documentation either. Maybe
+> > I search at the wrong position. I tried to find something
+> > crypto related in
+> >=20
+> > Table 9-89. L3_PM_READ_PERMISSION_i
 >=20
-> 							Pavel
+> Hmm maybe it's done based on the address in
+> L3_PM_ADDR_MATCH_k?
 >=20
+> I guess the thing to do would be to compare the register
+> output between the two different firmware versions.
+>=20
+> Regards,
+>=20
+> Tony
 
-Yes, it looks like that DTB file for n900 is too big and=20
-atags_to_fdt.c cannot append anything to it (kernel cmdline)...
+Joel Fernandes, you are author of omap-des driver. Do you know=20
+something about crashing kernel when omap crypto support (via L3=20
+firewall) is not enabled by bootloader? Do you know something=20
+about runtime detection of crypto support to prevent kernel/board=20
+crash?
 
-> > diff --git a/arch/arm/boot/compressed/head.S
-> > b/arch/arm/boot/compressed/head.S index 68be901..4a7d75b
-> > 100644
-> > --- a/arch/arm/boot/compressed/head.S
-> > +++ b/arch/arm/boot/compressed/head.S
-> > @@ -268,7 +268,7 @@ restart:	adr	r0, LC0
-> >=20
-> >  		 * area.  No GOT fixup has occurred yet, but none of=20
-the
-> >  		 * code we're about to call uses any global variable.
-> >  	=09
-> >  		*/
-> >=20
-> > -		add	sp, sp, #0x10000
-> > +		add	sp, sp, #0x20000
-> >=20
-> >  		stmfd	sp!, {r0-r3, ip, lr}
-> >  		mov	r0, r8
-> >  		mov	r1, r6
-> >=20
-> > @@ -289,7 +289,7 @@ restart:	adr	r0, LC0
-> >=20
-> >  		bleq	atags_to_fdt
-> >  	=09
-> >  		ldmfd	sp!, {r0-r3, ip, lr}
-> >=20
-> > -		sub	sp, sp, #0x10000
-> > +		sub	sp, sp, #0x20000
-> >=20
-> >  #endif
-> > =20
-> >  		mov	r8, r6			@ use the appended device tree
+Problem with kernel log of omap-aes is reported there:
+http://thread.gmane.org/gmane.linux.ports.arm.omap/108397/
 
 =2D-=20
 Pali Roh=C3=A1r
 pali.rohar@gmail.com
 
---nextPart9180321.85KiyxG8Rs
+--nextPart11567302.RfjF2xuMdB
 Content-Type: application/pgp-signature; name=signature.asc 
 Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEABECAAYFAlTDYCUACgkQi/DJPQPkQ1JBBACeOPAeqxfpzGp40XeRshhof/AJ
-EQIAoJaxpX9yo0YF1B+C+PFo5ltCZt0s
-=YwcT
+iEYEABECAAYFAlTDdqIACgkQi/DJPQPkQ1LOFwCeKo6x5sgF1G/59Y30sywgTrLg
+CkcAoLYXxTqFLTBAH4hSfaAKv08aH8IT
+=jofD
 -----END PGP SIGNATURE-----
 
---nextPart9180321.85KiyxG8Rs--
+--nextPart11567302.RfjF2xuMdB--
