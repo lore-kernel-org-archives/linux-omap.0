@@ -1,71 +1,85 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
-Date: Sat, 24 Jan 2015 23:14:58 +0100
-Message-ID: <201501242314.58201@pali>
-References: <1421171865-5209-1-git-send-email-tony@atomide.com> <201501241300.00723@pali> <2871852.qm0MoZvdlF@wuerfel>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: perf not capturing stack traces
+Date: Sat, 24 Jan 2015 16:23:42 -0600
+Message-ID: <20150124222342.GA26941@saruman.tx.rr.com>
+References: <20150123195128.GE26557@saruman.tx.rr.com>
+ <20150123205959.GD3073@kernel.org>
+ <20150123223745.GJ26557@saruman.tx.rr.com>
+ <20150124151204.GF3073@kernel.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2844144.FijMrupoIz";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:54947 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956AbbAXWPB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2015 17:15:01 -0500
-Received: by mail-we0-f172.google.com with SMTP id q59so3279483wes.3
-        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2015 14:15:00 -0800 (PST)
-In-Reply-To: <2871852.qm0MoZvdlF@wuerfel>
+Received: from comal.ext.ti.com ([198.47.26.152]:54921 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750956AbbAXWYj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Jan 2015 17:24:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20150124151204.GF3073@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
---nextPart2844144.FijMrupoIz
-Content-Type: Text/Plain;
-  charset="utf-8"
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Saturday 24 January 2015 23:08:00 Arnd Bergmann wrote:
-> On Saturday 24 January 2015 13:00:00 Pali Roh=C3=A1r wrote:
-> > Another regression for DT setup (which does not occur for
-> > board code):
+Hi,
+
+On Sat, Jan 24, 2015 at 12:12:04PM -0300, Arnaldo Carvalho de Melo wrote:
+> Em Fri, Jan 23, 2015 at 04:37:45PM -0600, Felipe Balbi escreveu:
+> > On Fri, Jan 23, 2015 at 05:59:59PM -0300, Arnaldo Carvalho de Melo wrot=
+e:
+> > > Em Fri, Jan 23, 2015 at 01:51:28PM -0600, Felipe Balbi escreveu:
+> > > > I'm using v3.19-rc5 on an ARM Cortex A9 board. Unfortunately, perf =
+is
+> > > > not able to capture any stack traces even though I CONFIG_STACKTRAC=
+E,
+> > > > CONFIG_FRAME_POINTER and CONFIG_ARM_UNWIND all enabled.
+> > > >=20
+> > > > I wonder if anybody else is facing similar issues.
+> > >=20
+> > > Did it work with a previous kernel?
 > >=20
-> > omap_hsmmc driver does not export slot_name sysfs entry
-> > because it not supported by DT yet. Entry slot_name is used
-> > by userspace application to determinate if mmc block device
-> > is internal eMMC memory or external uSD card. So support
-> > for this property also in DT is needed.
+> > haven't checked with this board. First time I tried to use perf for
+> > anything.
 >=20
-> > Here is simple patch which fix this problem:
-> The sysfs file only exists for the two OMAP drivers, and the
-> naming is used only by board-n8x0, board-rx51 and
-> board-omap3logic.
->=20
-> It may be better to add a board-specific hack for these to
-> keep the existing user space working but not spread the use
-> of this file anywhere else.
->=20
-> 	Arnd
+> And it is the first time I've heard about such a problem, not dealing
+> with ARM myself, so I guess this is a case for looking if there was some
+> previous kernel where this worked, then trying to bisect where the
+> problem was introduced :-\
 
-Why? omap_hsmmc.c has already support for slot_name sysfs entry,=20
-just it is not filled from DT data (only from platform_data)...
+yeah, I'll try a few older kernels, also see if I can reproduce on other
+boards.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+cheers
 
---nextPart2844144.FijMrupoIz
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+--=20
+balbi
+
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1
 
-iEYEABECAAYFAlTEGWIACgkQi/DJPQPkQ1IZ9gCeOV4ipAuHslsQp5Up1vM0e7CJ
-WrsAoJcByuveyCggxJjLKdsIeBFIm2ya
-=lAob
+iQIcBAEBAgAGBQJUxBtuAAoJEIaOsuA1yqREY04QAKD2Iw6pAQN7tCjURA8ll+aa
+qVa14qrSQWadeqcvuNHwmtr6e0fTtVnEb5GwaNR9rG27XiteEv51WHnhGPR9bYWG
+z3d5lyHF8Aha2KZH9kmzi8RBQ3MRuMmWQ1bmNDyXMTWGZxbNA7AseIS/yxEwiHAd
+vP+cFPNdNCq51KhT7CYBPc0B+6ORjQ+xFZhSwyvGI3HbBjiaioJUbi/mPuFOQUyl
+lMqrMNW+e8VI8rhLERWBJqmCLKWdKceWTGA35d1XwFR37gBZvJAwRCcyb68sWjfE
+zgnQGng/kL3tX7JjwvRydByfsxDAf1wYKEuI6Hbxe9GY8mRn+ehkKiKhDr+cyJx9
+rjOnpYksmqutKUHeA0wCSqeGeGdb7c9cXZ+Qpp2h2Mj7GU+oXYLm/fII6Q08DM+y
+8S2Z4tvgYf74MAhLhEOiuy18OGk8+IaSxulfd1o97RT0Uk4pRz74YebW6AKoOlfs
+42m6fjjEae5gpPe5dyOzqkdYpMQlfuv2gw4RLjVtKS62Q8ypFLY9zgwhIPnUbXG6
+/2383K1A1PuBB2m2OJ5pLGkOlPGjtU3DRJfe9LHfCNr2qT3LBFzqVHIrX7bfw3eI
+w+dWbKLi1R7VlVoI+3NdufdZ6lUU7BDJcDLkZAPirsYEJ5t85J8/kZSA6HULHL6U
+9y7Pc+ihMmnsH63Ay2D1
+=eaJX
 -----END PGP SIGNATURE-----
 
---nextPart2844144.FijMrupoIz--
+--XsQoSWH+UP9D9v3l--
