@@ -1,36 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: perf not capturing stack traces
-Date: Sun, 25 Jan 2015 15:56:52 +0000
-Message-ID: <20150125155651.GB11502@n2100.arm.linux.org.uk>
-References: <20150123195128.GE26557@saruman.tx.rr.com>
- <20150123205959.GD3073@kernel.org>
- <20150123223745.GJ26557@saruman.tx.rr.com>
- <20150124151204.GF3073@kernel.org>
- <20150124222342.GA26941@saruman.tx.rr.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150124222342.GA26941@saruman.tx.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: [PATCH 2/4] serial: 8250_omap: Use UPSTAT_AUTORTS for RTS handling
+Date: Sun, 25 Jan 2015 14:44:52 -0500
+Message-ID: <1422215094-3216-3-git-send-email-peter@hurleysoftware.com>
+References: <1422215094-3216-1-git-send-email-peter@hurleysoftware.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:55180 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755632AbbAYTpI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jan 2015 14:45:08 -0500
+Received: by mail-qc0-f175.google.com with SMTP id c9so4463178qcz.6
+        for <linux-omap@vger.kernel.org>; Sun, 25 Jan 2015 11:45:07 -0800 (PST)
+In-Reply-To: <1422215094-3216-1-git-send-email-peter@hurleysoftware.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, Peter Hurley <peter@hurleysoftware.com>
 
-On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
-> yeah, I'll try a few older kernels, also see if I can reproduce on other
-> boards.
+Commit 88838d3112702 ("serial: omap_8250: Fix RTS handling") fixed
+RTS pin control when in autoRTS mode.
 
-Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
-space, and for userspace where the programs have been built for ARM mode
-with frame pointers.
+New support added in "serial: core: Rework hw-assisted flow control support"
+enables a much simpler approach; rather than masking out autoRTS
+whenever writing the EFR register, use the UPSTAT_* mode to determine if
+autoRTS should be enabled when raising RTS (in omap8250_set_mctrl()).
 
-The kernel may work without CONFIG_FRAME_POINTER set, but I've never
-tested that, and I'd suggest that (given my experience looking at oops
-dumps) it's not all that reliable.
+Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-Lastly, userspace without frame pointers is pretty much hopeless.
-
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 4473881..59d6e90 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -120,10 +120,11 @@ static void omap8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ 	 */
+ 	lcr = serial_in(up, UART_LCR);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+-	if (mctrl & TIOCM_RTS)
+-		serial_out(up, UART_EFR, priv->efr);
++	if ((mctrl & TIOCM_RTS) && (port->status & UPSTAT_AUTORTS))
++		priv->efr |= UART_EFR_RTS;
+ 	else
+-		serial_out(up, UART_EFR, priv->efr & ~UART_EFR_RTS);
++		priv->efr &= ~UART_EFR_RTS;
++	serial_out(up, UART_EFR, priv->efr);
+ 	serial_out(up, UART_LCR, lcr);
+ }
+ 
+@@ -272,10 +273,7 @@ static void omap8250_restore_regs(struct uart_8250_port *up)
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 	serial_dl_write(up, priv->quot);
+ 
+-	if (up->port.mctrl & TIOCM_RTS)
+-		serial_out(up, UART_EFR, priv->efr);
+-	else
+-		serial_out(up, UART_EFR, priv->efr & ~UART_EFR_RTS);
++	serial_out(up, UART_EFR, priv->efr);
+ 
+ 	/* Configure flow control */
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+@@ -424,9 +422,9 @@ static void omap_8250_set_termios(struct uart_port *port,
+ 	up->port.status &= ~(UPSTAT_AUTOCTS | UPSTAT_AUTORTS | UPSTAT_AUTOXOFF);
+ 
+ 	if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW) {
+-		/* Enable AUTORTS and AUTOCTS */
++		/* Enable AUTOCTS (autoRTS is enabled when RTS is raised) */
+ 		up->port.status |= UPSTAT_AUTOCTS | UPSTAT_AUTORTS;
+-		priv->efr |= UART_EFR_CTS | UART_EFR_RTS;
++		priv->efr |= UART_EFR_CTS;
+ 	} else	if (up->port.flags & UPF_SOFT_FLOW) {
+ 		/*
+ 		 * IXON Flag:
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+2.2.2
+
