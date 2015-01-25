@@ -1,73 +1,48 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
-Date: Sun, 25 Jan 2015 22:49:48 +0100
-Message-ID: <20150125214947.GB20695@earth.universe>
-References: <1421171865-5209-1-git-send-email-tony@atomide.com>
- <20150113204219.GJ2419@atomide.com>
- <20150115142536.GC512@earth.universe>
- <201501241300.00723@pali>
- <20150125212015.GA14307@amd>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: N900 v3.19-rc5 errors
+Date: Mon, 26 Jan 2015 00:40:39 +0200
+Message-ID: <20150125224039.GB5048@fuloong-minipc.musicnaut.iki.fi>
+References: <201501231415.56922@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="neYutvxvOLaeuPCA"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35207 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750789AbbAYVty (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 25 Jan 2015 16:49:54 -0500
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:51803 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778AbbAYWkr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jan 2015 17:40:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20150125212015.GA14307@amd>
+In-Reply-To: <201501231415.56922@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>
 
+Hi,
 
---neYutvxvOLaeuPCA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Jan 25, 2015 at 10:22:58PM +0100, Pavel Machek wrote:
-> > Another regression for DT setup (which does not occur for board code):
-> >=20
-> > omap_hsmmc driver does not export slot_name sysfs entry because
-> > it not supported by DT yet. Entry slot_name is used by userspace
-> > application to determinate if mmc block device is internal eMMC
-> > memory or external uSD card. So support for this property also in
-> > DT is needed.
-> >=20
-> > Here is simple patch which fix this problem:
+On Fri, Jan 23, 2015 at 02:15:56PM +0100, Pali Roh=E1r wrote:
+> I'm getting these two errors when booting DT linux v3.19-rc5 in n900 =
+qemu:
 >=20
-> Thanks!
+> [    0.309234] device-tree: Duplicate name in onenand@0,0, renamed to=
+ "#1"
+> [    0.309417] device-tree: Duplicate name in onenand@0,0, renamed to=
+ "#2"
+> [    0.309844] device-tree: Duplicate name in ethernet@gpmc, renamed =
+to "#1"
+> [    0.309967] device-tree: Duplicate name in ethernet@gpmc, renamed =
+to "#2"
 >=20
-> Does it need line into Documentation/devicetree/ somewhere?
+> [    0.730743] ------------[ cut here ]------------
+> [    0.731018] WARNING: CPU: 0 PID: 31 at drivers/memory/omap-gpmc.c:=
+1757=20
+> gpmc_probe_generic_child+0x128/0x24c()
 
-Documentation/devicetree/bindings/mmc/mmc.txt (generic)
-Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt (omap specific)
+I don't see these on real HW.
 
--- Sebastian
-
---neYutvxvOLaeuPCA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUxWT7AAoJENju1/PIO/qaNiMP/0rjUsyPGFTfegZoB/qPV0VR
-SQlGRLadjXAGggpCMY7Q+a0oYrENZOw5EeA4Odk3L70cUs2fcXbeChAkz1kQYeoP
-GQf35B/2qhXO5sWjCQXLd4Isc4tu2TRHRMKspa2fr1HClTTTQTVTZTIrxEn/oYJc
-QIp5dSxC7ELocOY+ov6Lk590t2ku9EX84mg/JSPjDLNTIWW3u39QRzRnJBQnVzCj
-nzH65Axoxww38AyWvxl8zvQJ9uFx6MgEma3oEn9y42z1Pu4em8Dn25KKSaFmZvTg
-vsDxIfjsWht4VvpBDVCv8E/utCY8iPCRUbRrKI6ZHS1SQ0OOuuKdeq1HzNt4jCLT
-BwrG5hUWiZTbclKiR8y3lpELoFzn6i5V0mD7zxErtnQYAsEOWSfncVp2DGgkWyer
-ltReLrcjg1Tb4LhDtZ0B5uYoPcIKxn/MtFSp/tMfIAhY41szYUgEUhnS4Pad+H2Q
-HA9hqJxt1PyUFNd9pWLNZgRtnGVTOuZ4zbpzNjBsT+XURSCLL7RCvVCaZh9DSPzi
-Jv6XUzwnrCgMDEOXfqx8SmIbF4LOpsg7RVuVjYClI8AlNm7gFM2g3h0EjzPXvoyw
-QL50vmuZhqe1hcPg98W2Bwr7WLdxPGSHiZXCY/ll9kZRfPQuQjahUnDsPGshcuc5
-vPIwmG4pIC/7igcrSoP6
-=fYyz
------END PGP SIGNATURE-----
-
---neYutvxvOLaeuPCA--
+A.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
