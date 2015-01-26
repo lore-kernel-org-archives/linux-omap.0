@@ -1,177 +1,152 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add VPFE hwmod entries
-Date: Mon, 26 Jan 2015 02:15:45 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501260205090.5450@utopia.booyaka.com>
-References: <1422217915-24231-1-git-send-email-prabhakar.csengg@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 3/3] ARM: edma: Split up header file to
+ platform_data and API file
+Date: Mon, 26 Jan 2015 09:29:56 +0200
+Message-ID: <54C5ECF4.10709@ti.com>
+References: <1417084891-17990-1-git-send-email-peter.ujfalusi@ti.com>	<1417084891-17990-4-git-send-email-peter.ujfalusi@ti.com>
+ <CAOesGMgdLB9WkOwCt__iRMnTYZ-tMNS==FL+b6s3CzHK4b0MYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:51024 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbbAZCPq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jan 2015 21:15:46 -0500
-In-Reply-To: <1422217915-24231-1-git-send-email-prabhakar.csengg@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <CAOesGMgdLB9WkOwCt__iRMnTYZ-tMNS==FL+b6s3CzHK4b0MYQ@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Olof Johansson <olof@lixom.net>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, linux-omap <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "Koul, Vinod" <vinod.koul@intel.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Chris Ball <chris@printf.net>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-spi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>, Darren Etheridge <detheridge@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Hi
+Hi,
 
-On Sun, 25 Jan 2015, Lad, Prabhakar wrote:
+On 01/22/2015 03:40 AM, Olof Johansson wrote:
+> Hi,
+> =
 
-> From: Benoit Parrot <bparrot@ti.com>
-> 
-> this patch adds VPFE HWMOD data for AM43xx.
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  Hi Paul,
->  
->  You were right, the hardware team has confirmed that, the VPFE master port is
->  connected to L3 and the VPFE slave port is connected to L4. The L3 port cannot
->  serve as a register target because it is initiator only.
+> On Thu, Nov 27, 2014 at 2:41 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> w=
+rote:
+>> include/linux/platform_data/ is not a correct place to keep the API
+>> definitions for edma, it is meant to be only for the pdata for the devic=
+e.
+>> Clean up this by moving the API to include/linux/edma.h
+> =
 
-OK makes sense to me.,
+> It's a nice net improvement, but it moves some things that should be
+> in _neither_ location to a new place where it doesn't belong either --
+> and the new location is even more global. See below.
+> =
 
->  
->  I have created links referring to dss l3/l4 hwmod and tested it, lemme know
->  if I have missed something.
+> ...
+> =
 
-A few minor comments below
+>> diff --git a/include/linux/edma.h b/include/linux/edma.h
+>> new file mode 100644
+>> index 000000000000..9df92198c117
+>> --- /dev/null
+>> +++ b/include/linux/edma.h
+>> @@ -0,0 +1,153 @@
+>> +/*
+>> + * TI EDMA definitions
+>> + *
+>> + * Copyright (C) 2006-2013 Texas Instruments.
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License as
+>> + * published by the Free Software Foundation version 2.
+>> + *
+>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>> + * kind, whether express or implied; without even the implied warranty
+>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +/*
+>> + * This EDMA3 programming framework exposes two basic kinds of resource:
+>> + *
+>> + *  Channel    Triggers transfers, usually from a hardware event but
+>> + *             also manually or by "chaining" from DMA completions.
+>> + *             Each channel is coupled to a Parameter RAM (PaRAM) slot.
+>> + *
+>> + *  Slot       Each PaRAM slot holds a DMA transfer descriptor (PaRAM
+>> + *             "set"), source and destination addresses, a link to a
+>> + *             next PaRAM slot (if any), options for the transfer, and
+>> + *             instructions for updating those addresses.  There are
+>> + *             more than twice as many slots as event channels.
+>> + *
+>> + * Each PaRAM set describes a sequence of transfers, either for one lar=
+ge
+>> + * buffer or for several discontiguous smaller buffers.  An EDMA transf=
+er
+>> + * is driven only from a channel, which performs the transfers specified
+>> + * in its PaRAM slot until there are no more transfers.  When that last
+>> + * transfer completes, the "link" field may be used to reload the chann=
+el's
+>> + * PaRAM slot with a new transfer descriptor.
+>> + *
+>> + * The EDMA Channel Controller (CC) maps requests from channels into ph=
+ysical
+>> + * Transfer Controller (TC) requests when the channel triggers (by hard=
+ware
+>> + * or software events, or by chaining).  The two physical DMA channels =
+provided
+>> + * by the TCs are thus shared by many logical channels.
+>> + *
+>> + * DaVinci hardware also has a "QDMA" mechanism which is not currently
+>> + * supported through this interface.  (DSP firmware uses it though.)
+>> + */
+>> +
+>> +#ifndef __LINUX_EDMA_H_
+>> +#define __LINUX_EDMA_H_
+>> +
+>> +#include <linux/platform_data/edma.h>
+>> +
+>> +/* PaRAM slots are laid out like this */
+>> +struct edmacc_param {
+>> +       u32 opt;
+>> +       u32 src;
+>> +       u32 a_b_cnt;
+>> +       u32 dst;
+>> +       u32 src_dst_bidx;
+>> +       u32 link_bcntrld;
+>> +       u32 src_dst_cidx;
+>> +       u32 ccnt;
+>> +} __packed;
+>> +
+>> +/* fields in edmacc_param.opt */
+>> +#define SAM            BIT(0)
+>> +#define DAM            BIT(1)
+>> +#define SYNCDIM                BIT(2)
+>> +#define STATIC         BIT(3)
+>> +#define EDMA_FWID      (0x07 << 8)
+>> +#define TCCMODE                BIT(11)
+>> +#define EDMA_TCC(t)    ((t) << 12)
+>> +#define TCINTEN                BIT(20)
+>> +#define ITCINTEN       BIT(21)
+>> +#define TCCHEN         BIT(22)
+>> +#define ITCCHEN                BIT(23)
+> =
 
->  
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 72 ++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/prcm43xx.h             |  3 +-
->  2 files changed, 74 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> index 5c6c841..3787824 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> @@ -514,6 +514,44 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
->  	},
->  };
->  
-> +static struct omap_hwmod_class_sysconfig am43xx_vpfe_sysc = {
-> +	.rev_offs       = 0x0,
-> +	.sysc_offs      = 0x104,
-> +	.sysc_flags     = SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE,
-> +	.idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +				MSTANDBY_FORCE | MSTANDBY_SMART | MSTANDBY_NO),
-> +	.sysc_fields    = &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class am43xx_vpfe_hwmod_class = {
-> +	.name           = "vpfe",
-> +	.sysc           = &am43xx_vpfe_sysc,
-> +};
-> +
-> +static struct omap_hwmod am43xx_vpfe0_hwmod = {
-> +	.name           = "vpfe0",
-> +	.class          = &am43xx_vpfe_hwmod_class,
-> +	.clkdm_name     = "l3s_clkdm",
-> +	.prcm           = {
-> +		.omap4  = {
-> +			.modulemode     = MODULEMODE_SWCTRL,
-> +			.clkctrl_offs   = AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET,
-> +		},
-> +	},
-> +};
-> +
-> +static struct omap_hwmod am43xx_vpfe1_hwmod = {
-> +	.name           = "vpfe1",
-> +	.class          = &am43xx_vpfe_hwmod_class,
-> +	.clkdm_name     = "l3s_clkdm",
-> +	.prcm           = {
-> +		.omap4  = {
-> +			.modulemode     = MODULEMODE_SWCTRL,
-> +			.clkctrl_offs   = AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET,
-> +		},
-> +	},
-> +};
-> +
->  /* Interfaces */
->  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
->  	.master		= &am33xx_l3_main_hwmod,
-> @@ -788,6 +826,36 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
-> +	.master         = &am43xx_vpfe0_hwmod,
-> +	.slave          = &am33xx_l3_main_hwmod,
-> +	.clk            = "l3_gclk",
-> +	.flags          = OCPIF_SWSUP_IDLE,
+> This seems like the kind of thing that should go with the edma driver
+> instead of being globally exported to the kernel through a
+> include/linux header file.
 
-OCPIF_SWSUP_IDLE probably isn't needed here.  Could you please try without 
-it?
+Currently the edmacc_param struct is used by arch/arm/common/edma.c,
+drivers/dma/edma.c and the sound/soc/davinci/davinci-pcm.c
 
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
-> +	.master         = &am43xx_vpfe1_hwmod,
-> +	.slave          = &am33xx_l3_main_hwmod,
-> +	.clk            = "l3_gclk",
-> +	.flags          = OCPIF_SWSUP_IDLE,
+For now this has to be in a global header file. Even with my local VIP bran=
+ch
+where I had removed the davinci-pcm already the two drivers for edma needs
+this in global header file.
+I can assure you, it will be gone (along with the arch/arm/common/edma.c) b=
+ut
+not right away.
 
-Same point as the above.
+-- =
 
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__vpfe0 = {
-> +	.master         = &am33xx_l4_ls_hwmod,
-> +	.slave          = &am43xx_vpfe0_hwmod,
-> +	.clk            = "l4ls_gclk",
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__vpfe1 = {
-> +	.master         = &am33xx_l4_ls_hwmod,
-> +	.slave          = &am43xx_vpfe1_hwmod,
-> +	.clk            = "l4ls_gclk",
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am33xx_l4_wkup__synctimer,
->  	&am43xx_l4_ls__timer8,
-> @@ -887,6 +955,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am43xx_l4_ls__dss,
->  	&am43xx_l4_ls__dss_dispc,
->  	&am43xx_l4_ls__dss_rfbi,
-> +	&am43xx_l3__vpfe0,
-> +	&am43xx_l3__vpfe1,
-> +	&am43xx_l4_ls__vpfe0,
-> +	&am43xx_l4_ls__vpfe1,
->  	NULL,
->  };
->  
-> diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-> index ad7b3e9..8aa4c2c 100644
-> --- a/arch/arm/mach-omap2/prcm43xx.h
-> +++ b/arch/arm/mach-omap2/prcm43xx.h
-> @@ -143,5 +143,6 @@
->  #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
->  #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
->  #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
-> -
-> +#define AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET		0x0068
-> +#define AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET		0x0070
->  #endif
-> -- 
-> 2.1.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
+P=E9ter
