@@ -1,65 +1,41 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 0/4] Drop legacy support for omap3517
-Date: Mon, 26 Jan 2015 11:16:58 +0100
-Message-ID: <3668717.H6LOeCvYZ4@wuerfel>
-References: <1421171865-5209-1-git-send-email-tony@atomide.com> <2871852.qm0MoZvdlF@wuerfel> <201501242314.58201@pali>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: perf not capturing stack traces
+Date: Mon, 26 Jan 2015 10:27:11 +0000
+Message-ID: <20150126102711.GC15598@arm.com>
+References: <20150123195128.GE26557@saruman.tx.rr.com>
+ <20150123205959.GD3073@kernel.org>
+ <20150123223745.GJ26557@saruman.tx.rr.com>
+ <20150124151204.GF3073@kernel.org>
+ <20150124222342.GA26941@saruman.tx.rr.com>
+ <20150125155651.GB11502@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:64647 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754589AbbAZKRr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 05:17:47 -0500
-In-Reply-To: <201501242314.58201@pali>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150125155651.GB11502@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
 
-On Saturday 24 January 2015 23:14:58 Pali Roh=E1r wrote:
-> On Saturday 24 January 2015 23:08:00 Arnd Bergmann wrote:
-> > On Saturday 24 January 2015 13:00:00 Pali Roh=E1r wrote:
-> > > Another regression for DT setup (which does not occur for
-> > > board code):
-> > >=20
-> > > omap_hsmmc driver does not export slot_name sysfs entry
-> > > because it not supported by DT yet. Entry slot_name is used
-> > > by userspace application to determinate if mmc block device
-> > > is internal eMMC memory or external uSD card. So support
-> > > for this property also in DT is needed.
-> >=20
-> > > Here is simple patch which fix this problem:
-> > The sysfs file only exists for the two OMAP drivers, and the
-> > naming is used only by board-n8x0, board-rx51 and
-> > board-omap3logic.
-> >=20
-> > It may be better to add a board-specific hack for these to
-> > keep the existing user space working but not spread the use
-> > of this file anywhere else.
->=20
-> Why? omap_hsmmc.c has already support for slot_name sysfs entry,=20
-> just it is not filled from DT data (only from platform_data)...
+On Sun, Jan 25, 2015 at 03:56:52PM +0000, Russell King - ARM Linux wrote:
+> On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
+> > yeah, I'll try a few older kernels, also see if I can reproduce on other
+> > boards.
+> 
+> Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
+> space, and for userspace where the programs have been built for ARM mode
+> with frame pointers.
+> 
+> The kernel may work without CONFIG_FRAME_POINTER set, but I've never
+> tested that, and I'd suggest that (given my experience looking at oops
+> dumps) it's not all that reliable.
+> 
+> Lastly, userspace without frame pointers is pretty much hopeless.
 
-It's a highly nonstandard interface, none of the other controllers
-support it, and even changing the the other omap machines to use
-the same strings might break existing user space that might rely
-on whatever gets printed in those properties today.
+FWIW, perf can now use libunwind for unwinding the userspace side of
+things, so it's not quite as bad as it used to be. For the kernel side,
+if the unwinder isn't working properly it would be nice to know *why*,
+but I agree that it tends to be far flakier than the frame-pointer method.
 
-We should limit the use of those strings to the boards that
-are known to run software that requires them to avoid regressions.
-We could also define a standard way of finding out whether an
-mmc device is removable. We already have the MMC_CAP_NONREMOVABLE
-flag in the kernel and could have a read-only boolean attribute
-in sysfs for it.
-
-Putting a "name" property into DT because some random user space
-requires a particular name to show up in sysfs however does not
-seem a legitimate hardware description.
-
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will
