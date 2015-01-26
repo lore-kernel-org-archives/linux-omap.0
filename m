@@ -1,87 +1,69 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 3/7] ARM: dts: dra7-evm: Add extcon nodes for USB
-Date: Mon, 26 Jan 2015 14:15:28 +0200
-Message-ID: <1422274532-9488-4-git-send-email-rogerq@ti.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+From: Arnaldo Carvalho de Melo <acme@kernel.org>
+Subject: Re: perf not capturing stack traces
+Date: Mon, 26 Jan 2015 09:29:32 -0300
+Message-ID: <20150126122932.GB16629@kernel.org>
+References: <20150123195128.GE26557@saruman.tx.rr.com>
+ <20150123205959.GD3073@kernel.org>
+ <20150123223745.GJ26557@saruman.tx.rr.com>
+ <20150124151204.GF3073@kernel.org>
+ <20150124222342.GA26941@saruman.tx.rr.com>
+ <20150125155651.GB11502@n2100.arm.linux.org.uk>
+ <20150126102711.GC15598@arm.com>
+ <20150126121243.GA16629@kernel.org>
+ <20150126121621.GG15598@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1422274532-9488-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:33556 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752595AbbAZM33 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Jan 2015 07:29:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20150126121621.GG15598@arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On this EVM, the USB cable state has to be determined via the
-ID pin tied to a GPIO line. We use the gpio-usb-extcon driver
-to read the ID pin and the extcon framework to forward
-the USB cable state information to the USB driver so the
-controller can be configured in the right mode (host/peripheral).
+Em Mon, Jan 26, 2015 at 12:16:21PM +0000, Will Deacon escreveu:
+> On Mon, Jan 26, 2015 at 12:12:43PM +0000, Arnaldo Carvalho de Melo wrote:
+> > Em Mon, Jan 26, 2015 at 10:27:11AM +0000, Will Deacon escreveu:
+> > > On Sun, Jan 25, 2015 at 03:56:52PM +0000, Russell King - ARM Linux wrote:
+> > > > On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
+> > > > > yeah, I'll try a few older kernels, also see if I can reproduce on other
+> > > > > boards.
+> > > > 
+> > > > Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
+> > > > space, and for userspace where the programs have been built for ARM mode
+> > > > with frame pointers.
+> > > > 
+> > > > The kernel may work without CONFIG_FRAME_POINTER set, but I've never
+> > > > tested that, and I'd suggest that (given my experience looking at oops
+> > > > dumps) it's not all that reliable.
+> > > > 
+> > > > Lastly, userspace without frame pointers is pretty much hopeless.
+> > > 
+> > > FWIW, perf can now use libunwind for unwinding the userspace side of
+> > > things, so it's not quite as bad as it used to be. For the kernel side,
+> > > if the unwinder isn't working properly it would be nice to know *why*,
+> > > but I agree that it tends to be far flakier than the frame-pointer method.
+> > 
+> > Any idea why, with userspace using frame pointers, perf doesn't go all
+> > the way from kernel to userspace main() (or whatever is the endpoint),
+> > as Russel stated?
+> 
+> Did he state that? I thought he was just saying that he couldn't unwind
+> userspace when *not* using frame pointers, which requires you to link
 
-Gets USB peripheral mode to work on this EVM.
+sorry, yeah I misunderstood, so all is good for kernel + userspace when
+both are built with frame pointers :-)
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+"The only for kernel space" caught my attention, I thought that he said
+that it works only for the kernel with frame pointers, even with a
+userspace built with fp.
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index ad4118f..746cddb 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -26,6 +26,16 @@
- 		regulator-max-microvolt = <3300000>;
- 	};
- 
-+	extcon_usb1: extcon_usb1 {
-+		compatible = "linux,extcon-usb-gpio";
-+		id-gpio = <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	extcon_usb2: extcon_usb2 {
-+		compatible = "linux,extcon-usb-gpio";
-+		id-gpio = <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
-+	};
-+
- 	vtt_fixed: fixedregulator-vtt {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vtt_fixed";
-@@ -391,6 +401,19 @@
- 			};
- 		};
- 	};
-+
-+	pcf_gpio_21: gpio@21 {
-+		compatible = "ti,pcf8575";
-+		reg = <0x21>;
-+		lines-initial-states = <0x1408>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
-+	};
-+
- };
- 
- &i2c2 {
-@@ -520,6 +543,14 @@
- 	};
- };
- 
-+&omap_dwc3_1 {
-+	extcon = <&extcon_usb1>;
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon_usb2>;
-+};
-+
- &usb1 {
- 	dr_mode = "peripheral";
- 	pinctrl-names = "default";
--- 
-2.1.0
+- Arnaldo
+
+> a recent perf with a bleeding-edge libunwind.
+> 
+> Will
