@@ -1,69 +1,60 @@
-From: Arnaldo Carvalho de Melo <acme@kernel.org>
-Subject: Re: perf not capturing stack traces
-Date: Mon, 26 Jan 2015 09:29:32 -0300
-Message-ID: <20150126122932.GB16629@kernel.org>
-References: <20150123195128.GE26557@saruman.tx.rr.com>
- <20150123205959.GD3073@kernel.org>
- <20150123223745.GJ26557@saruman.tx.rr.com>
- <20150124151204.GF3073@kernel.org>
- <20150124222342.GA26941@saruman.tx.rr.com>
- <20150125155651.GB11502@n2100.arm.linux.org.uk>
- <20150126102711.GC15598@arm.com>
- <20150126121243.GA16629@kernel.org>
- <20150126121621.GG15598@arm.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: hdmi5: remove unneeded check
+Date: Mon, 26 Jan 2015 14:41:42 +0200
+Message-ID: <54C63606.30002@ti.com>
+References: <1421167620-17290-1-git-send-email-sudipm.mukherjee@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:33556 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595AbbAZM33 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Jan 2015 07:29:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20150126121621.GG15598@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="83rKs0qH6sFP7O5ktTRcJLWXMwmpmwDhW"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1421167620-17290-1-git-send-email-sudipm.mukherjee@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Em Mon, Jan 26, 2015 at 12:16:21PM +0000, Will Deacon escreveu:
-> On Mon, Jan 26, 2015 at 12:12:43PM +0000, Arnaldo Carvalho de Melo wrote:
-> > Em Mon, Jan 26, 2015 at 10:27:11AM +0000, Will Deacon escreveu:
-> > > On Sun, Jan 25, 2015 at 03:56:52PM +0000, Russell King - ARM Linux wrote:
-> > > > On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
-> > > > > yeah, I'll try a few older kernels, also see if I can reproduce on other
-> > > > > boards.
-> > > > 
-> > > > Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
-> > > > space, and for userspace where the programs have been built for ARM mode
-> > > > with frame pointers.
-> > > > 
-> > > > The kernel may work without CONFIG_FRAME_POINTER set, but I've never
-> > > > tested that, and I'd suggest that (given my experience looking at oops
-> > > > dumps) it's not all that reliable.
-> > > > 
-> > > > Lastly, userspace without frame pointers is pretty much hopeless.
-> > > 
-> > > FWIW, perf can now use libunwind for unwinding the userspace side of
-> > > things, so it's not quite as bad as it used to be. For the kernel side,
-> > > if the unwinder isn't working properly it would be nice to know *why*,
-> > > but I agree that it tends to be far flakier than the frame-pointer method.
-> > 
-> > Any idea why, with userspace using frame pointers, perf doesn't go all
-> > the way from kernel to userspace main() (or whatever is the endpoint),
-> > as Russel stated?
-> 
-> Did he state that? I thought he was just saying that he couldn't unwind
-> userspace when *not* using frame pointers, which requires you to link
+--83rKs0qH6sFP7O5ktTRcJLWXMwmpmwDhW
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-sorry, yeah I misunderstood, so all is good for kernel + userspace when
-both are built with frame pointers :-)
+On 13/01/15 18:46, Sudip Mukherjee wrote:
+> prior to this check we are checking for word_length_16b and if word_len=
+gth_16b
+> is false then we are returning with -EINVAL.
+> So at this point word_length_16b can only be true.
 
-"The only for kernel space" caught my attention, I thought that he said
-that it works only for the kernel with frame pointers, even with a
-userspace built with fp.
+True, but it looks to me the code may be extended in the future.
 
-- Arnaldo
+And if it would be clear that it won't be extended in the future, then
+there's more code changes needed to reflect that (the whole
+word_length_16b can be removed, etc).
 
-> a recent perf with a bleeding-edge libunwind.
-> 
-> Will
+ Tomi
+
+
+
+--83rKs0qH6sFP7O5ktTRcJLWXMwmpmwDhW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUxjYGAAoJEPo9qoy8lh712nwP/j8/gAztbH+lyD8lx3wXU3vU
+3bZmI2N8fg/DPCdr578O+smRcLnOguWiyo0rzRumvktU1okxDZl+OOxKZ0Cwq+Ir
+tP8kqdQl78jK/bv/RQ1vvhM5WcLbE5AWAsWLkkC5fW2oSbvdQV3OgVQBXFxww2Gw
+t1MLD0k/9omv6O4XTjOT3GQlNo37q15hPYvNsEE95Q/VHpqiSDyY1Qc+Koj2IxA9
+PG2/HJwOxcxsOSbjHvcUYc12buy++fETmJHTTGGGsZ5R9R1TegqApRwd2Hu8vBhN
+yoOaQBkK0Z9bp+8FPFhYUsRskYJwEtYYYK+YN8qIj+fDa9aCyCL1CqXFuPm6fQ8f
+I296BOSmN/j+4SqmXaz9W1ykb/osomdB5PxCfXbJo2fQbMhaM+DByWhyYUbIoUnx
+hGBvQfThAS9NOZy4eMVgGG8eSw526BrDpA7NwfFN4uFXLc+mNAevtBbBWyoW9AGX
+tIahmCQW++ui04LKVOl1pN+gnm0c8C7cEl2MkDLvKf2SLqnLuAV7wytDd+io6v3b
+lTnahU8AJLWpNwZV5IuN6ciRoU2bW1/Lv430Qblhxt/whoutHsOaI3LeQksS9BdI
+XCPgCKlLs5qhl65d+42ji+Cbio5ujhR6OZ8T1Z3kDlgR618HLfOW144MzrMm9xDX
+v39GAS8tHZFkP6OI7/Q4
+=YGRp
+-----END PGP SIGNATURE-----
+
+--83rKs0qH6sFP7O5ktTRcJLWXMwmpmwDhW--
