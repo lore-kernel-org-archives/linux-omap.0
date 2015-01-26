@@ -1,51 +1,92 @@
-From: Arnaldo Carvalho de Melo <acme@kernel.org>
-Subject: Re: perf not capturing stack traces
-Date: Mon, 26 Jan 2015 09:12:43 -0300
-Message-ID: <20150126121243.GA16629@kernel.org>
-References: <20150123195128.GE26557@saruman.tx.rr.com>
- <20150123205959.GD3073@kernel.org>
- <20150123223745.GJ26557@saruman.tx.rr.com>
- <20150124151204.GF3073@kernel.org>
- <20150124222342.GA26941@saruman.tx.rr.com>
- <20150125155651.GB11502@n2100.arm.linux.org.uk>
- <20150126102711.GC15598@arm.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 0/7] extcon: usb: Introduce USB GPIO extcon driver. Fix DRA7 & AM57xx USB.
+Date: Mon, 26 Jan 2015 14:15:25 +0200
+Message-ID: <1422274532-9488-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:60698 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753947AbbAZMMl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Jan 2015 07:12:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20150126102711.GC15598@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Em Mon, Jan 26, 2015 at 10:27:11AM +0000, Will Deacon escreveu:
-> On Sun, Jan 25, 2015 at 03:56:52PM +0000, Russell King - ARM Linux wrote:
-> > On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
-> > > yeah, I'll try a few older kernels, also see if I can reproduce on other
-> > > boards.
-> > 
-> > Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
-> > space, and for userspace where the programs have been built for ARM mode
-> > with frame pointers.
-> > 
-> > The kernel may work without CONFIG_FRAME_POINTER set, but I've never
-> > tested that, and I'd suggest that (given my experience looking at oops
-> > dumps) it's not all that reliable.
-> > 
-> > Lastly, userspace without frame pointers is pretty much hopeless.
-> 
-> FWIW, perf can now use libunwind for unwinding the userspace side of
-> things, so it's not quite as bad as it used to be. For the kernel side,
-> if the unwinder isn't working properly it would be nice to know *why*,
-> but I agree that it tends to be far flakier than the frame-pointer method.
+Hi,
 
-Any idea why, with userspace using frame pointers, perf doesn't go all
-the way from kernel to userspace main() (or whatever is the endpoint),
-as Russel stated?
+Still hoping this can make into 3.20 else we have USB peripheral mode broken on
+DRA7-evm, DRA72-evm and AM57xx-beagle-x15.
 
-- Arnaldo
+On DRA7 and AM57xx EVMs the USB ID pin is connected to a GPIO line.
+The USB drivers (dwc3 + dwc3-omap) depend on extcon framework to get the
+USB cable state (USB or USB-Host) to put the controller in the right mode.
+
+There were earlier attempts [1] to get this working by trying to patch up
+the existing GPIO extcon driver.
+
+This series attemts to take a different approach by introducing a new
+USB specific extcon driver to handle the USB ID GPIO pin and
+interpret a right USB cable state.
+
+The reasoning to introduce this new driver is:
+1) The existing GPIO extcon driver doesn't understand USB cable states
+and it can't handle more than one cable per instance.
+   
+For the USB case we need to handle at least 2 cable states.
+    a) USB (attach/detach)
+    b) USB-Host (attach/detach)
+and could possible include more states like
+    c) Fast-charger (attach/detach)
+    d) Slow-charger (attach/detach)
+    
+2) This USB specific driver can be easily updated in the future to
+handle VBUS events, or charger detect events, in case it happens
+to be available on GPIO for any platform.
+
+3) The DT implementation is very easy. You just need one extcon node per USB
+instead of one extcon node per cable state as in case of [1].
+
+4) The cable state string doesn't need to be encoded in the device tree
+as in case of [1].
+
+5) With only ID event available, you can simulate a USB-peripheral attach
+when USB-Host is detacted instead of hacking the USB driver to do the same.
+
+Tested on DRA7-evm, DRA72-evm and AM57xx-beagle-x15
+
+Changelog:
+v2
+- Addressed review comments.
+- Fixed auto load of extcon-usb-gpio driver when used as module.
+- Fixed up AM57xx USB.
+
+--
+cheers,
+-roger
+[1] - https://lkml.org/lkml/2014/11/3/513
+
+Roger Quadros (7):
+  extcon: usb-gpio: Introduce gpio usb extcon driver
+  usb: extcon: Fix USB-Host cable name
+  ARM: dts: dra7-evm: Add extcon nodes for USB
+  ARM: dts: dra72-evm: Add extcon nodes for USB
+  ARM: dts: am57xx-beagle-x15: Add extcon nodes for USB
+  ARM: dts: am57xx-beagle-x15: Fix USB2 mode
+  ARM: omap2plus_defconfig: Enable EXTCON_GPIO_USB
+
+ .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  20 ++
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            |  37 ++++
+ arch/arm/boot/dts/dra7-evm.dts                     |  31 +++
+ arch/arm/boot/dts/dra72-evm.dts                    |  31 +++
+ arch/arm/configs/omap2plus_defconfig               |   1 +
+ drivers/extcon/Kconfig                             |   7 +
+ drivers/extcon/Makefile                            |   1 +
+ drivers/extcon/extcon-palmas.c                     |  18 +-
+ drivers/extcon/extcon-usb-gpio.c                   | 214 +++++++++++++++++++++
+ drivers/usb/dwc3/dwc3-omap.c                       |   6 +-
+ drivers/usb/phy/phy-omap-otg.c                     |   4 +-
+ drivers/usb/phy/phy-tahvo.c                        |   8 +-
+ 12 files changed, 360 insertions(+), 18 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
+ create mode 100644 drivers/extcon/extcon-usb-gpio.c
+
+-- 
+2.1.0
