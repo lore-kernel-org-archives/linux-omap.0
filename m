@@ -1,183 +1,131 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
-Date: Mon, 26 Jan 2015 13:57:08 -0500 (EST)
-Message-ID: <alpine.LFD.2.11.1501261318590.1322@knanqh.ubzr>
-References: <201501232239.55801@pali> <201501232336.36187@pali> <20150126161454.GE28663@atomide.com> <201501261723.10505@pali> <20150126170323.GF28663@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] arm: omap: hwmod: 43xx: add DebugSS hwmod data
+Date: Mon, 26 Jan 2015 13:49:33 -0600
+Message-ID: <20150126194933.GG6660@saruman.tx.rr.com>
+References: <1422054704-14915-1-git-send-email-balbi@ti.com>
+ <1422054704-14915-2-git-send-email-balbi@ti.com>
+ <alpine.DEB.2.02.1501260142590.5450@utopia.booyaka.com>
+ <20150126165640.GA10679@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1818631455-1422298629=:1322"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cyV/sMl4KAhiehtf"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f44.google.com ([209.85.192.44]:61700 "EHLO
-	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521AbbAZS5M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 13:57:12 -0500
-Received: by mail-qg0-f44.google.com with SMTP id l89so8316414qgf.3
-        for <linux-omap@vger.kernel.org>; Mon, 26 Jan 2015 10:57:11 -0800 (PST)
-In-Reply-To: <20150126170323.GF28663@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54278 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753120AbbAZTuE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Jan 2015 14:50:04 -0500
+Content-Disposition: inline
+In-Reply-To: <20150126165640.GA10679@saruman.tx.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Laura Abbott <lauraa@codeaurora.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--cyV/sMl4KAhiehtf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---8323328-1818631455-1422298629=:1322
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Hi,
 
-On Mon, 26 Jan 2015, Tony Lindgren wrote:
+On Mon, Jan 26, 2015 at 10:56:40AM -0600, Felipe Balbi wrote:
+> > the references below are from SPRUHL7
+> >=20
+> > On Fri, 23 Jan 2015, Felipe Balbi wrote:
+> >=20
+> > > Without hwmod data for DebugSS, performance monitors
+> > > have no chance of running on AM43xx devices.
+> > >=20
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 40 ++++++++++++++++++++=
+++++++++++
+> > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+> > >  2 files changed, 41 insertions(+)
+> > >=20
+> > > diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/ma=
+ch-omap2/omap_hwmod_43xx_data.c
+> > > index 5c6c8410160e..6709704dd5b5 100644
+> > > --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> > > +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> > > @@ -19,6 +19,7 @@
+> > >  #include "omap_hwmod.h"
+> > >  #include "omap_hwmod_33xx_43xx_common_data.h"
+> > >  #include "prcm43xx.h"
+> > > +#include "prm44xx.h"
+> > >  #include "omap_hwmod_common_data.h"
+> > > =20
+> > > =20
+> > > @@ -60,6 +61,44 @@ static struct omap_hwmod am43xx_wkup_m3_hwmod =3D {
+> > >  	.rst_lines_cnt	=3D ARRAY_SIZE(am33xx_wkup_m3_resets),
+> > >  };
+> > > =20
+> > > +/*
+> > > + * 'debugss' class
+> > > + * debug and emulation sub system
+> > > + */
+> > > +static struct omap_hwmod_opt_clk am43xx_debugss_opt_clks[] =3D {
+> > > +	{ .role =3D "dbg_sysclk", .clk =3D "dbg_sysclk_ck" },
+> > > +	{ .role =3D "dbg_clka", .clk =3D "dbg_clka_ck", },
+> > > +	{ .role =3D "dbg_clkb", .clk =3D "dbg_clkb_ck", },
+> > > +	{ .role =3D "dbg_clkc", .clk =3D "dbg_clkc_ck", },
+> > > +};
+> > > +
+> > > +static struct omap_hwmod_class am43xx_debugss_hwmod_class =3D {
+> > > +	.name	=3D "debugss",
+> > > +};
+> > > +
+> > > +/* debugss */
+> > > +static struct omap_hwmod am43xx_debugss_hwmod =3D {
+> > > +	.name		=3D "debugss",
+> > > +	.class		=3D &am43xx_debugss_hwmod_class,
+> > > +	.clkdm_name	=3D "l3_aon_clkdm",
+> > > +	.main_clk	=3D "trace_clk_div_ck",
+> > > +	.prcm =3D {
+> > > +		.omap4 =3D {
+> > > +			.clkctrl_offs =3D AM43XX_CM_WKUP_DBGSS_CLKCTRL_OFFSET,
+> >=20
+> > According to Table 6-275 "PRCM_CM_WKUP_DBGSS_CLKCTRL Register Field=20
+> > Descriptions" this should have a=20
+> >=20
+> > 			.modulemode   =3D MODULEMODE_SWCTRL,
+>=20
+> hm... modulemode SWCTRL causes wait_target_ready to fail. Any hints ?
 
-> * Pali Rohár <pali.rohar@gmail.com> [150126 08:26]:
-> > On Monday 26 January 2015 17:14:55 Tony Lindgren wrote:
-> > > * Pali Rohár <pali.rohar@gmail.com> [150123 14:39]:
-> > > > On Friday 23 January 2015 22:39:55 Pali Rohár wrote:
-> > > > > Hello,
-> > > > > 
-> > > > > when I boot zImage with appended DT n900 in qemu
-> > > > > fdt_open_into() function called from file
-> > > > > arch/arm/boot/compressed/atags_to_fdt.c (in function
-> > > > > atags_to_fdt) always returns -FDT_ERR_NOSPACE.
-> > > > > 
-> > > > > It means that all ATAGS (including cmdline arguments)
-> > > > > passed by bootloader are ignored.
-> > > > > 
-> > > > > On real n900 device I see that booted DT version also
-> > > > > ignore cmdline arguments from bootloader. I cannot debug
-> > > > > decompress code on real device, but I think it is same
-> > > > > problem as in qemu.
-> > > > 
-> > > > Looks like this quick patch is fixing above problem:
-> > > > 
-> > > > diff --git a/arch/arm/boot/compressed/head.S
-> > > > b/arch/arm/boot/compressed/head.S index 68be901..4a7d75b
-> > > > 100644
-> > > > --- a/arch/arm/boot/compressed/head.S
-> > > > +++ b/arch/arm/boot/compressed/head.S
-> > > > @@ -268,7 +268,7 @@ restart:	adr	r0, LC0
-> > > > 
-> > > >  		 * area.  No GOT fixup has occurred yet, but none of 
-> > the
-> > > >  		 * code we're about to call uses any global variable.
-> > > >  		
-> > > >  		*/
-> > > > 
-> > > > -		add	sp, sp, #0x10000
-> > > > +		add	sp, sp, #0x20000
-> > > > 
-> > > >  		stmfd	sp!, {r0-r3, ip, lr}
-> > > >  		mov	r0, r8
-> > > >  		mov	r1, r6
-> > > > 
-> > > > @@ -289,7 +289,7 @@ restart:	adr	r0, LC0
-> > > > 
-> > > >  		bleq	atags_to_fdt
-> > > >  		
-> > > >  		ldmfd	sp!, {r0-r3, ip, lr}
-> > > > 
-> > > > -		sub	sp, sp, #0x10000
-> > > > +		sub	sp, sp, #0x20000
-> > > > 
-> > > >  #endif
-> > > >  
-> > > >  		mov	r8, r6			@ use the appended device tree
-> > > 
-> > > Nico, got any ideas about this one? This seems like a
-> > > regression somewhere..
-> > > 
-> > > Regards,
-> > > 
-> > > Tony
-> > 
-> > $ du -b arch/arm/boot/dts/omap3-n900.dtb 
-> > 70212   arch/arm/boot/dts/omap3-n900.dtb
-> > 
-> > $ echo $((0x10000))
-> > 65536
-> > 
-> > I would say, problem is because omap3-n900 binary DT is too large
+gets stuck in transition state. PRCM_CM_WKUP_DBGSS_CLKCTRL is always
+read as 0x 12510f00 which would translate into:
 
-I agree.
+- module disabled
+- all opt clocks are on
+- module is transitioning
+- module in standby
+- clkA as TPIU and STM trace clock
+- all dividers set to 2
 
-> OK if that's the case, then your patch makes sense to me. It also
-> seems we can have the temporary stack be larger than the initial
-> stack just for atags_to_fdt.
+--=20
+balbi
 
-The stack size isn't the issue, but rather its location.  We need to 
-position it away from the DT data.  The DT size is known and we could 
-use that, plus some room for the insertion of new data coming from the
-ATAG conversion.
+--cyV/sMl4KAhiehtf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Something like the following would be a more robust solution:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-index 68be901759..89718de9dd 100644
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -263,16 +263,37 @@ restart:	adr	r0, LC0
- 		 * OK... Let's do some funky business here.
- 		 * If we do have a DTB appended to zImage, and we do have
- 		 * an ATAG list around, we want the later to be translated
--		 * and folded into the former here.  To be on the safe side,
--		 * let's temporarily move  the stack away into the malloc
--		 * area.  No GOT fixup has occurred yet, but none of the
--		 * code we're about to call uses any global variable.
-+		 * and folded into the former here. No GOT fixup has occurred
-+		 * yet, but none of the code we're about to call uses any
-+		 * global variable.
- 		*/
--		add	sp, sp, #0x10000
-+
-+		/* Get the initial DTB size */
-+		ldr	r5, [r6, #4]
-+#ifndef __ARMEB__
-+		/* convert to little endian */
-+		eor	r1, r5, r5, ror #16
-+		bic	r1, r1, #0x00ff0000
-+		mov	r5, r5, ror #8
-+		eor	r5, r5, r1, lsr #8
-+#endif
-+		/* 50% DTB growth should be good enough */
-+		add	r5, r5, r5, lsr #1
-+		/* preserve 64-bit alignment */
-+		add	r5, r5, #7
-+		bic	r5, r5, #7
-+		/* clamp to 32KB min and 1MB max */
-+		movs	r1, r5, lsr #15
-+		moveq	r5, #(1 << 15)
-+		movs	r1, r5, lsr #20
-+		movne	r5, #(1 << 20)
-+
-+		/* Temporarily relocate the stack past the DTB work space */
-+		add	sp, sp, r5
- 		stmfd	sp!, {r0-r3, ip, lr}
- 		mov	r0, r8
- 		mov	r1, r6
--		sub	r2, sp, r6
-+		mov	r2, r5
- 		bl	atags_to_fdt
- 
- 		/*
-@@ -285,11 +306,11 @@ restart:	adr	r0, LC0
- 		bic	r0, r0, #1
- 		add	r0, r0, #0x100
- 		mov	r1, r6
--		sub	r2, sp, r6
-+		mov	r2, r5
- 		bleq	atags_to_fdt
- 
- 		ldmfd	sp!, {r0-r3, ip, lr}
--		sub	sp, sp, #0x10000
-+		sub	sp, sp, r5
- #endif
- 
- 		mov	r8, r6			@ use the appended device tree
-@@ -306,7 +327,7 @@ restart:	adr	r0, LC0
- 		subs	r1, r5, r1
- 		addhi	r9, r9, r1
- 
--		/* Get the dtb's size */
-+		/* Get the current DTB size */
- 		ldr	r5, [r6, #4]
- #ifndef __ARMEB__
- 		/* convert r5 (dtb size) to little endian */
---8323328-1818631455-1422298629=:1322--
+iQIcBAEBAgAGBQJUxppNAAoJEIaOsuA1yqRE03oP/iz4b6HWwuV/aZR99tL0+J4K
+K277SUKKsK/qaY6nNadlXMFmI4sOBGOy2o6m76tyJNUiSq0u8wMJFoGGayAULKJw
+XRUXeAElv6+OQfysBIWBNz4fbYzhMFLX90q/OIyrYlrmnYnAScoZ4e8FUhaDhoX0
+bLaA1CFZ2jiA5BziRsSaQkC7sE8z4O00Ofwv08rQqt15RbBG/IsstPcfRpelY/rR
+UdjEEydsUI+le4SRxdzzlcSxKJLP5fIsUS/zWXPoRQwC6Jmb99cAytnMGeS1SZj1
+1G4zijPyXuIcuar7L10uFFrSA6D38PjoUis2XSopky3fdLxT6tSx+Ufm2SHlt1CK
+ViWgirFxp+/sqEWnO9u2foxpfMcXNX1lXjPDgDWLoHzuc6uQw7+QH9irKUB3Apos
+mDud19Kl5xGKiANja0M0VribSIbDs2zb4DvqgFBvok++B+D2w8ONqQ/UPk94WBZc
+lRiYWS6fa3m+aDDG5pI9UKwcmI+FTK7pIKHWj8lGenuszOxrBRSPumrtuH/hrKKH
+/gDppOn33+yv3h9Ksr5VJ/53ejgZjaU4GXHHe/3JCX8Vf4ITIjHz284qmCokW9xf
+IfCGYZd9fx6J+CdN9Wp7ihk2UX6tr+3B+W7Sy3s/IH72G349rbI7Ws81gqszrgw6
+/LA+/IwWlXjnsJjc+2fV
+=XM3c
+-----END PGP SIGNATURE-----
+
+--cyV/sMl4KAhiehtf--
