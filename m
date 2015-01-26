@@ -1,15 +1,18 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap non-urgent fixes for v3.20, part 2
-Date: Mon, 26 Jan 2015 13:08:18 -0800
-Message-ID: <44252.0314398736$1422306708@news.gmane.org>
+Subject: [GIT PULL 2/2] omap changes to make dm816x usable
+Date: Mon, 26 Jan 2015 13:08:19 -0800
+Message-ID: <25162.8869715661$1422306713@news.gmane.org>
+References: <pull-1422306429-777451>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.ore.mailhop.org ([54.149.88.251]:58737 "EHLO
+Received: from smtp3.ore.mailhop.org ([54.149.88.251]:43379 "EHLO
 	smtp3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120AbbAZVLj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 16:11:39 -0500
+	with ESMTP id S1756243AbbAZVLr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 16:11:47 -0500
+In-Reply-To: <pull-1422306429-777451>
+In-Reply-To: <pull-1422306429-777451>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: arm@kernel.org
@@ -21,45 +24,41 @@ The following changes since commit 13efcb188984f69e1f97b4d9e7d3663fb782946f:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/fixes-not-urgent-pt2
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/dm816x-data
 
-for you to fetch changes up to 20d9448a59770420ead8078fb76948de32765fe6:
+for you to fetch changes up to 4d38bd1237f5bb67c3d5d183fc41db4bf4dbfb6b:
 
-  Merge tag 'for-v3.20/omap-hwmod-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.20/fixes-not-urgent (2015-01-21 16:52:17 -0800)
-
-----------------------------------------------------------------
-Non-critical fixes for omap hwmod code via Paul Walmsley <paul@pwsan.com>:
-
-First set of OMAP2+ hwmod patches for Linux v3.20.  These are mostly
-fixes for warnings, although there's one DRA7xx patch that fixes
-CONFIG_DEBUG_LL for AM572x/DRA7xx SoCs that use UART3 for console,
-such as the BeagleBoard-X15.
-
-These patches entered Linux-next starting with the next-20150121 tag.
-
-Basic build, boot, and PM test results can be found here:
-
-http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v3.20/20150121142621/
+  ARM: OMAP2+: Add dm816x hwmod support (2015-01-26 09:26:32 -0800)
 
 ----------------------------------------------------------------
-Keerthy (1):
-      ARM: OMAP: DRA7: hwmod: Make gpmc software supervised as the smart idle is broken
+Patches to add necessary SoC related clockdomain and interconnect
+data  to make dm816x boot with basic devices. This finally gets
+dm816x into a usable shape for further work to happen after a few
+years of stalled effort of making this SoC to work with the mainline
+kernel.
 
-Lokesh Vutla (2):
-      ARM: OMAP2+: hwmod: print error if wait_target_ready() failed
-      ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL enabled on UART3
+As most of the devices are similar to the other omap variants, we
+get at least serial, MMC, Ethernet, I2C, EDMA, pinctrl, SPI and GPMC
+working for these SoCs with the related device tree changes.
 
-Paul Walmsley (1):
-      MAINTAINERS: add maintainer for OMAP hwmod data
+----------------------------------------------------------------
+Aida Mynzhasova (1):
+      ARM: OMAP2+: Add clock domain support for dm816x
 
-Tomi Valkeinen (1):
-      ARM: AM43xx: hwmod: set DSS submodule parent hwmods
+Tony Lindgren (2):
+      ARM: OMAP2+: Add board-generic.c entry for ti81xx
+      ARM: OMAP2+: Add dm816x hwmod support
 
-Tony Lindgren (1):
-      Merge tag 'for-v3.20/omap-hwmod-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.20/fixes-not-urgent
-
- MAINTAINERS                                | 6 ++++++
- arch/arm/mach-omap2/omap_hwmod.c           | 4 ++--
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 2 ++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 5 +++--
- 4 files changed, 13 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/Makefile                |    4 +
+ arch/arm/mach-omap2/board-generic.c         |   36 +
+ arch/arm/mach-omap2/clockdomain.h           |    1 +
+ arch/arm/mach-omap2/clockdomains81xx_data.c |  194 +++++
+ arch/arm/mach-omap2/cm81xx.h                |   61 ++
+ arch/arm/mach-omap2/io.c                    |   82 +-
+ arch/arm/mach-omap2/omap_hwmod.c            |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.h            |    1 +
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c  | 1136 +++++++++++++++++++++++++++
+ 9 files changed, 1478 insertions(+), 39 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clockdomains81xx_data.c
+ create mode 100644 arch/arm/mach-omap2/cm81xx.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_81xx_data.c
