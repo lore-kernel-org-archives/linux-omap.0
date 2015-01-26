@@ -1,134 +1,180 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
-Date: Mon, 26 Jan 2015 17:23:10 +0100
-Message-ID: <201501261723.10505@pali>
-References: <201501232239.55801@pali> <201501232336.36187@pali>
- <20150126161454.GE28663@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
+Date: Mon, 26 Jan 2015 18:27:57 +0200
+Message-ID: <54C66B0D.9040109@ti.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>	<1422274532-9488-2-git-send-email-rogerq@ti.com> <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8686844825247582791=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150126161454.GE28663@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Russell King <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nicolas Pitre <nico@linaro.org>, Sebastian Reichel <sre@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Laura Abbott <lauraa@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: cw00.choi@samsung.com
+Cc: Felipe Balbi <balbi@ti.com>, tony@atomide.com, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, george.cherian@ti.com, nsekhar@ti.com, devicetree <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============8686844825247582791==
-Content-Type: multipart/signed;
-  boundary="nextPart1746215.nYFFRZPYm0";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Hi Chanwoo,
 
---nextPart1746215.nYFFRZPYm0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+All your comments are valid. Need some clarification on one comment.
 
-On Monday 26 January 2015 17:14:55 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150123 14:39]:
-> > On Friday 23 January 2015 22:39:55 Pali Roh=C3=A1r wrote:
-> > > Hello,
-> > >=20
-> > > when I boot zImage with appended DT n900 in qemu
-> > > fdt_open_into() function called from file
-> > > arch/arm/boot/compressed/atags_to_fdt.c (in function
-> > > atags_to_fdt) always returns -FDT_ERR_NOSPACE.
-> > >=20
-> > > It means that all ATAGS (including cmdline arguments)
-> > > passed by bootloader are ignored.
-> > >=20
-> > > On real n900 device I see that booted DT version also
-> > > ignore cmdline arguments from bootloader. I cannot debug
-> > > decompress code on real device, but I think it is same
-> > > problem as in qemu.
-> >=20
-> > Looks like this quick patch is fixing above problem:
-> >=20
-> > diff --git a/arch/arm/boot/compressed/head.S
-> > b/arch/arm/boot/compressed/head.S index 68be901..4a7d75b
-> > 100644
-> > --- a/arch/arm/boot/compressed/head.S
-> > +++ b/arch/arm/boot/compressed/head.S
-> > @@ -268,7 +268,7 @@ restart:	adr	r0, LC0
-> >=20
-> >  		 * area.  No GOT fixup has occurred yet, but none of=20
-the
-> >  		 * code we're about to call uses any global variable.
-> >  	=09
-> >  		*/
-> >=20
-> > -		add	sp, sp, #0x10000
-> > +		add	sp, sp, #0x20000
-> >=20
-> >  		stmfd	sp!, {r0-r3, ip, lr}
-> >  		mov	r0, r8
-> >  		mov	r1, r6
-> >=20
-> > @@ -289,7 +289,7 @@ restart:	adr	r0, LC0
-> >=20
-> >  		bleq	atags_to_fdt
-> >  	=09
-> >  		ldmfd	sp!, {r0-r3, ip, lr}
-> >=20
-> > -		sub	sp, sp, #0x10000
-> > +		sub	sp, sp, #0x20000
-> >=20
-> >  #endif
-> > =20
-> >  		mov	r8, r6			@ use the appended device tree
->=20
-> Nico, got any ideas about this one? This seems like a
-> regression somewhere..
->=20
-> Regards,
->=20
-> Tony
+On 26/01/15 15:56, Chanwoo Choi wrote:
+> Hi Roger,
+> 
+> This patch looks good to me. But I add some comment.
+> If you modify some comment, I'll apply this patch on 3.21 queue.
+> 
+> On Mon, Jan 26, 2015 at 9:15 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> This driver observes the USB ID pin connected over a GPIO and
+>> updates the USB cable extcon states accordingly.
+>>
+>> The existing GPIO extcon driver is not suitable for this purpose
+>> as it needs to be taught to understand USB cable states and it
+>> can't handle more than one cable per instance.
+>>
+>> For the USB case we need to handle 2 cable states.
+>> 1) USB (attach/detach)
+>> 2) USB-Host (attach/detach)
+>>
+>> This driver can be easily updated in the future to handle VBUS
+>> events in case it happens to be available on GPIO for any platform.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  20 ++
+>>  drivers/extcon/Kconfig                             |   7 +
+>>  drivers/extcon/Makefile                            |   1 +
+>>  drivers/extcon/extcon-usb-gpio.c                   | 214 +++++++++++++++++++++
+>>  4 files changed, 242 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
+>>  create mode 100644 drivers/extcon/extcon-usb-gpio.c
+>>
 
-$ du -b arch/arm/boot/dts/omap3-n900.dtb=20
-70212   arch/arm/boot/dts/omap3-n900.dtb
+<snip>
 
-$ echo $((0x10000))
-65536
+>> +
+>> +static int usb_extcon_probe(struct platform_device *pdev)
+>> +{
+>> +       struct device *dev = &pdev->dev;
+>> +       struct device_node *np = dev->of_node;
+>> +       struct usb_extcon_info *info;
+>> +       int ret;
+>> +
+>> +       if (!np)
+>> +               return -EINVAL;
+>> +
+>> +       info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+>> +       if (!info)
+>> +               return -ENOMEM;
+>> +
+>> +       info->dev = dev;
+>> +       info->id_gpiod = devm_gpiod_get(&pdev->dev, "id");
+>> +       if (IS_ERR(info->id_gpiod)) {
+>> +               dev_err(dev, "failed to get ID GPIO\n");
+>> +               return PTR_ERR(info->id_gpiod);
+>> +       }
+>> +
+>> +       ret = gpiod_set_debounce(info->id_gpiod,
+>> +                                USB_GPIO_DEBOUNCE_MS * 1000);
+>> +       if (ret < 0)
+>> +               info->debounce_jiffies = msecs_to_jiffies(USB_GPIO_DEBOUNCE_MS);
+>> +
+>> +       INIT_DELAYED_WORK(&info->wq_detcable, usb_extcon_detect_cable);
+>> +
+>> +       info->id_irq = gpiod_to_irq(info->id_gpiod);
+>> +       if (info->id_irq < 0) {
+>> +               dev_err(dev, "failed to get ID IRQ\n");
+>> +               return info->id_irq;
+>> +       }
+>> +
+>> +       ret = devm_request_threaded_irq(dev, info->id_irq, NULL,
+>> +                                       usb_irq_handler,
+>> +                                       IRQF_SHARED | IRQF_ONESHOT |
+>> +                                       IRQF_NO_SUSPEND,
+>> +                                       pdev->name, info);
 
-I would say, problem is because omap3-n900 binary DT is too large
+use of IRQF_NO_SUSPEND is not recommended to be used together with IRQF_SHARED so
+I'll remove IRQF_SHARED from here if we decide to stick with IRQF_NO_SUSPEND.
+More on this below.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+>> +       if (ret < 0) {
+>> +               dev_err(dev, "failed to request handler for ID IRQ\n");
+>> +               return ret;
+>> +       }
+>> +
+>> +       info->edev = devm_extcon_dev_allocate(dev, usb_extcon_cable);
+>> +       if (IS_ERR(info->edev)) {
+>> +               dev_err(dev, "failed to allocate extcon device\n");
+>> +               return -ENOMEM;
+>> +       }
+>> +
+>> +       ret = devm_extcon_dev_register(dev, info->edev);
+>> +       if (ret < 0) {
+>> +               dev_err(dev, "failed to register extcon device\n");
+>> +               return ret;
+>> +       }
+>> +
+>> +       platform_set_drvdata(pdev, info);
+> 
+> I prefer to execute the device_init_wakeup() function as following
+> for suspend/resume function:
+>             device_init_wakeup(&pdev->dev, 1);
+> 
+>> +
+>> +       /* Perform initial detection */
+>> +       usb_extcon_detect_cable(&info->wq_detcable.work);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int usb_extcon_remove(struct platform_device *pdev)
+>> +{
+>> +       struct usb_extcon_info *info = platform_get_drvdata(pdev);
+>> +
+>> +       cancel_delayed_work_sync(&info->wq_detcable);
+> 
+> Need to add blank line.
+> 
+>> +       return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM_SLEEP
+>> +static int usb_extcon_suspend(struct device *dev)
+>> +{
+>> +       struct usb_extcon_info *info = dev_get_drvdata(dev);
+>> +
+>> +       enable_irq_wake(info->id_irq);
+> 
+> I prefer to use device_may_wakeup() function for whether
+> executing enable_irq_wake() or not. Also, The disable_irq()
+> in the suspend function would prevent us from discarding interrupt
+> before wakeup from suspend completely.
+> 
 
---nextPart1746215.nYFFRZPYm0
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+I need more clarification here.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+If we are going to use enable_irq_wake() here then what is the point of IRQF_NO_SUSPEND?
 
-iEYEABECAAYFAlTGae4ACgkQi/DJPQPkQ1KeuwCfb7Wd+CVB+Ft/jVbF2F8rS1eA
-ajMAnjnsCQNHqH+Gqj2uoieNgESeIaPQ
-=FX6k
------END PGP SIGNATURE-----
+>From Documentation/power/suspend-and-interrupts.txt I see that interrupts marked
+as IRQF_NO_SUSPEND should not be configured for system wakeup using enable_irq_wake().
 
---nextPart1746215.nYFFRZPYm0--
+what is your preference?
 
+Is it good enough to not use IRQF_NO_SUSPEND but use enable_irq_wake() instead to
+enable system wakeup for that IRQ.
 
---===============8686844825247582791==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>             if (device_may_wakeup(dev))
+>                      enable_irq_wake(info->id_irq);
+>             disable_irq(info->id_irq);
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+why do we need to disable irq here? How will the system wakeup if IRQ is disabled?
 
---===============8686844825247582791==--
+> 
+> 
+>> +       return 0;
+>> +}
+>> +
+
+<snip>
+
+cheers,
+-roger
