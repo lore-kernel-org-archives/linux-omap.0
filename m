@@ -1,50 +1,44 @@
-From: Inloggen Mijn ING <vyletovo@vyletovo.sk>
-Subject: Mijn ING Alert-Uw Internet Bankieren op slot
-Date: Mon, 26 Jan 2015 00:15:26 -0800
-Message-ID: <b8e11f505ffb480bff91ced7aaa3d2c5@vyletovo.sk>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: gpmc: make gpmc_cs_get_name() static
+Date: Mon, 26 Jan 2015 11:20:24 +0200
+Message-ID: <54C606D8.4080904@ti.com>
+References: <1422131320-1018-1-git-send-email-semen.protsenko@globallogic.com> <1422131320-1018-2-git-send-email-semen.protsenko@globallogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-proxyout-mua-18.websupport.sk ([37.9.172.168]:50092 "EHLO
-	mail-proxyout-mua-18.websupport.sk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753222AbbAZIXc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Jan 2015 03:23:32 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1422131320-1018-2-git-send-email-semen.protsenko@globallogic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Semen Protsenko <semen.protsenko@globallogic.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On 24/01/15 22:28, Semen Protsenko wrote:
+> Fix sparse warning:
+>   warning: symbol 'gpmc_cs_get_name' was not declared. Should it be static?
+> 
+> Signed-off-by: Semen Protsenko <semen.protsenko@globallogic.com>
 
+Acked-by: Roger Quadros <rogerq@ti.com>
 
---=20
-Geachte mevrouw, heer,
-  datum
-  23 januari 2015.
-=46actuur Voltooid.
+cheers,
+-roger
 
-Onze gegevens blijkt dat onlangs een derde / illegale binnenkomst is
-vastgesteld op uw Online ING Bank / Account:
-meldt u zich zo snel mogelijk via de link hieronder om toegang tot uw
-rekening te behouden Klik ING Bank Online Access:
-
-http://transcoastalenergyltd.com/ing.nl/index.php
-
-Zodra uw gegevens zijn gecontroleerd en bevestigd, en er is behoefte=20
-aan
-een verdere activering, kunt u door =C3=A9=C3=A9n van onze medewerkers
-gecontacteerd worden om volledige toegang te herstellen naar uw Online=20
-ING
-Bank / Account
-
-Met vriendelijke groet,
-
-Joris den Berg.
-Directeur Personeel en Zaken.
-
-Copyright (c) 2015 ING Bank NEDERLANDS.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/memory/omap-gpmc.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 10eb4ac..db77adb 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -668,7 +668,7 @@ static void gpmc_cs_set_name(int cs, const char *name)
+>  	gpmc->name = name;
+>  }
+>  
+> -const char *gpmc_cs_get_name(int cs)
+> +static const char *gpmc_cs_get_name(int cs)
+>  {
+>  	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
+>  
+> 
