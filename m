@@ -1,82 +1,176 @@
-From: Arnaldo Carvalho de Melo <acme@kernel.org>
-Subject: Re: perf not capturing stack traces
-Date: Mon, 26 Jan 2015 11:37:59 -0300
-Message-ID: <20150126143759.GB5906@kernel.org>
-References: <20150123195128.GE26557@saruman.tx.rr.com>
- <20150123205959.GD3073@kernel.org>
- <20150123223745.GJ26557@saruman.tx.rr.com>
- <20150124151204.GF3073@kernel.org>
- <20150124222342.GA26941@saruman.tx.rr.com>
- <20150125155651.GB11502@n2100.arm.linux.org.uk>
- <20150126102711.GC15598@arm.com>
- <20150126135123.GC11502@n2100.arm.linux.org.uk>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: Do not modify LIMITEDADDRESS on
+ new architectures
+Date: Mon, 26 Jan 2015 17:46:13 +0200
+Message-ID: <54C66145.90400@ti.com>
+References: <1422131320-1018-1-git-send-email-semen.protsenko@globallogic.com>	<1422131320-1018-3-git-send-email-semen.protsenko@globallogic.com>	<54C60DF1.9070300@ti.com> <CAJOTznVwfMO7EmxcSEAx_v8cBe8apE_buAy2dLORxa-w+nQPLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150126135123.GC11502@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>, Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36974 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755811AbbAZPqV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 10:46:21 -0500
+In-Reply-To: <CAJOTznVwfMO7EmxcSEAx_v8cBe8apE_buAy2dLORxa-w+nQPLQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: semen.protsenko@globallogic.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-Em Mon, Jan 26, 2015 at 01:51:23PM +0000, Russell King - ARM Linux escreveu:
-> On Mon, Jan 26, 2015 at 10:27:11AM +0000, Will Deacon wrote:
-> > On Sun, Jan 25, 2015 at 03:56:52PM +0000, Russell King - ARM Linux wrote:
-> > > On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
-> > > > yeah, I'll try a few older kernels, also see if I can reproduce on other
-> > > > boards.
+On 26/01/15 15:07, Sam Protsenko wrote:
+> On Mon, Jan 26, 2015 at 11:50 AM, Roger Quadros <rogerq@ti.com> wrote:
+>> Hi,
+>>
+>> On 24/01/15 22:28, Semen Protsenko wrote:
+>>> New OMAP-based architectures (like OMAP5, DRA7XX, AM572X) don't have
+>>> LIMITEDADDRESS bit in GPMC_CONFIG register (this bit marked as
+>>> RESERVED). Seems like these SoCs have new revision of GPMC IP-core
+>>> (despite of same GPMC_REVISION value as for earlier SoCs).
+>>>
+>>> According to OMAP5 TRM: "Nonmultiplexed NOR flash devices are
+>>> supported by the GPMC, but their use is highly limited. Because only
+>>> 10 address pins are available on the GPMC interface, the maximum device
+>>> size supported is 2KiB."
+>>>
+>>> From [1]:
+>>>  - OMAP4 GPMC_CONFIG has LIMITEDADDRESS bit, hence supports both
+>>>    limited and full address mode.
+>>>  - OMAP5 GPMC_CONFIG doesn't have LIMITEDDADDRESS bit.
+>>
+>> According to OMAP5432 TRM SWPU249AC, I can see LIMITEDADDRESS bit in GPMC_CONFIG.
+>> Which TRM version are you referring to?
+>>
+> 
+> Wow, it seems I mixed it with OMAP57xx TRM. Good catch!
+> 
+>>>    OMAP5 supports only limited address mode for nonmultiplexed flashes
+>>>    In this mode only A1-A10 lines are being modified by GPMC, which
+>>>    leaves us (on flash devices with 1 word = 2 bytes) only
+>>>    2^10 * 2 = 2KiB memory that we can access.
+>>>  - DRA7XX GPMC_CONFIG doesn't have LIMITEDADDRESS bit.
+>>>    DRA7XX supports only full address mode for nonmultiplexed flashes
+>>>    (current TRM says contrary, but according to [1] it's typo and
+>>>    gonna be fixed in new DRA7XX TRMs). In full address mode all
+>>>    A1-A26 lines are modified by GPMC, so one can address up to 128 MiB.
+>>>
+>>> This patch ensures that GPMC driver doesn't try to modify LIMITEDADDRESS
+>>> bit on new OMAP-based devices, because such an action could possibly
+>>> lead to undefined behavior in GPMC state-machine (this bit is marked as
+>>> RESERVED now).
+>>>
+>>> [1] http://e2e.ti.com/support/omap/f/885/t/396939
+>>>
+>>> Signed-off-by: Semen Protsenko <semen.protsenko@globallogic.com>
+>>> ---
+>>>  drivers/memory/omap-gpmc.c |   32 ++++++++++++++++++++++++--------
+>>>  1 file changed, 24 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+>>> index db77adb..477d0ba 100644
+>>> --- a/drivers/memory/omap-gpmc.c
+>>> +++ b/drivers/memory/omap-gpmc.c
+>>> @@ -108,6 +108,7 @@
+>>>  #define      GPMC_HAS_WR_ACCESS              0x1
+>>>  #define      GPMC_HAS_WR_DATA_MUX_BUS        0x2
+>>>  #define      GPMC_HAS_MUX_AAD                0x4
+>>> +#define      GPMC_HAS_LIMITEDADDRESS         0x8
+>>>
+>>>  #define GPMC_NR_WAITPINS             4
+>>>
+>>> @@ -1709,6 +1710,18 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
+>>>  }
+>>>  #endif
+>>>
+>>> +static void gpmc_disable_limited(void)
+>>> +{
+>>> +     if (gpmc_capability & GPMC_HAS_LIMITEDADDRESS) {
+>>> +             u32 val;
+>>> +
+>>> +             /* Clear limited address i.e. enable A26-A11 */
+>>> +             val = gpmc_read_reg(GPMC_CONFIG);
+>>> +             val &= ~GPMC_CONFIG_LIMITEDADDRESS;
+>>> +             gpmc_write_reg(GPMC_CONFIG, val);
+>>> +     }
+>>> +}
+>>> +
+>>>  /**
+>>>   * gpmc_probe_generic_child - configures the gpmc for a child device
+>>>   * @pdev:    pointer to gpmc platform device
+>>> @@ -1726,7 +1739,6 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+>>>       unsigned long base;
+>>>       const char *name;
+>>>       int ret, cs;
+>>> -     u32 val;
+>>>
+>>>       if (of_property_read_u32(child, "reg", &cs) < 0) {
+>>>               dev_err(&pdev->dev, "%s has no 'reg' property\n",
+>>> @@ -1805,10 +1817,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+>>>               goto err;
+>>>       }
+>>>
+>>> -     /* Clear limited address i.e. enable A26-A11 */
+>>> -     val = gpmc_read_reg(GPMC_CONFIG);
+>>> -     val &= ~GPMC_CONFIG_LIMITEDADDRESS;
+>>> -     gpmc_write_reg(GPMC_CONFIG, val);
+>>> +     gpmc_disable_limited();
+>>>
+>>>       /* Enable CS region */
+>>>       gpmc_cs_enable_mem(cs);
+>>> @@ -1935,14 +1944,21 @@ static int gpmc_probe(struct platform_device *pdev)
+>>>        * devices support the addr-addr-data multiplex protocol.
+>>>        *
+>>>        * GPMC IP revisions:
+>>> -      * - OMAP24xx                   = 2.0
+>>> -      * - OMAP3xxx                   = 5.0
+>>> -      * - OMAP44xx/54xx/AM335x       = 6.0
+>>> +      * - OMAP24xx                           = 2.0
+>>> +      * - OMAP3xxx                           = 5.0
+>>> +      * - OMAP44xx/54xx/AM335x/DRA7XX        = 6.0
+>>>        */
+>>>       if (GPMC_REVISION_MAJOR(l) > 0x4)
+>>>               gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
+>>>       if (GPMC_REVISION_MAJOR(l) > 0x5)
+>>>               gpmc_capability |= GPMC_HAS_MUX_AAD;
+>>> +     if (GPMC_REVISION_MAJOR(l) < 0x6)
+>>> +             gpmc_capability |= GPMC_HAS_LIMITEDADDRESS;
+>>> +#if !defined(CONFIG_SOC_OMAP5) && !defined(CONFIG_SOC_DRA7XX)
+>>> +     if (GPMC_REVISION_MAJOR(l) == 0x6)
+>>> +             gpmc_capability |= GPMC_HAS_LIMITEDADDRESS;
+>>> +#endif
+>>> +
+>>
+>> This logic will prevent GPMC_HAS_LIMITEDADDRESS to be set on OMAP4 if we have
+>> either SOC_OMAP5 or SOC_DRA7XX enabled. So it is not good.
+>>
+> 
+> Why? OMAP4 devices have 0x6 revision of GPMC, and as I remember they don't
+> define SOC_OMAP5. So this logic enables limited address capability for OMAP4.
+> Am I missing something?
 
-> > > Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
-> > > space, and for userspace where the programs have been built for ARM mode
-> > > with frame pointers.
+OMAP4 devices define ARCH_OMAP4.
 
-> > > The kernel may work without CONFIG_FRAME_POINTER set, but I've never
-> > > tested that, and I'd suggest that (given my experience looking at oops
-> > > dumps) it's not all that reliable.
+Consider this case
+ARCH_OMAP4=y, SOC_OMAP5=y, SOC_DRA7=y.
 
-> > > Lastly, userspace without frame pointers is pretty much hopeless.
+In this case LIMITEDADDRESS flag won't be set.
 
-> > FWIW, perf can now use libunwind for unwinding the userspace side of
-> > things, so it's not quite as bad as it used to be. For the kernel side,
-> > if the unwinder isn't working properly it would be nice to know *why*,
-> > but I agree that it tends to be far flakier than the frame-pointer method.
+> 
+>> I think this patch is unnecessary as we are only setting the reserved bit to 0.
+>> It is safe to set RESERVED bit to 0. We are not modifying it as RESERVED bit is
+>> meant to be 0. If bootloader is setting the reserved bit to 1, it is a bug in
+>> the bootloader.
+>>
+> 
+> Ok, let's drop this patch then. Anyway, I'm gonna reuse it next week
+> for another patch
+> (I want to make it possible to enable/disable limited address mode via
+> dts bool option).
+> Also, can you point me out where I can read about RESERVED bit should
+> be always 0?
 
-> I don't see how userspace could be unwound without capturing the entire
-> userspace stack on every perf event - and that could be a considerable
-> size.  We have no way to know within the kernel which words on the
+bit definition of RESERVED bit of GPMC_CONFIG register in DRA7 TRM states
+"Write 0 for future compatibility. Read returns 0."
 
-That is what you can do using 'perf record --call-graph dwarf':
-
-    -g               enables call-graph recording
-        --call-graph <mode[,dump_size]>
-                     setup and enables call-graph (stack chain/backtrace)
-                     recording: fp dwarf
-
-That will use:
-
-        PERF_SAMPLE_REGS_USER                   = 1U << 12,
-        PERF_SAMPLE_STACK_USER                  = 1U << 13,
-
-struct perf_event_attr {
-<SNIP>
-        /*
-         * Defines set of user regs to dump on samples.
-         * See asm/perf_regs.h for details.
-         */
-        __u64   sample_regs_user;
-
-        /*
-         * Defines size of the user stack to dump on samples.
-         */
-        __u32   sample_stack_user;
-<SNIP>
-}
-
-> userspace stack are part of the callchain and which aren't - the only
-> way we'd know is by loading the userspace's unwind tables, having the
-> kernel parsing them and generate a list of functions.
-
-Or deferring it to userspace to do that later.
-
-- Arnaldo
+cheers,
+-roger
