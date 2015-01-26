@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 4/7] ARM: dts: dra72-evm: Add extcon nodes for USB
-Date: Mon, 26 Jan 2015 14:15:29 +0200
-Message-ID: <1422274532-9488-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 3/7] ARM: dts: dra7-evm: Add extcon nodes for USB
+Date: Mon, 26 Jan 2015 14:15:28 +0200
+Message-ID: <1422274532-9488-4-git-send-email-rogerq@ti.com>
 References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -24,26 +24,17 @@ Signed-off-by: Roger Quadros <rogerq@ti.com>
 Reviewed-by: Felipe Balbi <balbi@ti.com>
 Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/dra72-evm.dts | 31 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7-evm.dts | 31 +++++++++++++++++++++++++++++++
  1 file changed, 31 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 89085d0..ce8e243 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- #include "dra72x.dtsi"
-+#include <dt-bindings/gpio/gpio.h>
- 
- / {
- 	model = "TI DRA722";
-@@ -24,6 +25,16 @@
- 		regulator-min-microvolt = <3300000>;
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index ad4118f..746cddb 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -26,6 +26,16 @@
  		regulator-max-microvolt = <3300000>;
  	};
-+
+ 
 +	extcon_usb1: extcon_usb1 {
 +		compatible = "linux,extcon-usb-gpio";
 +		id-gpio = <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
@@ -53,11 +44,12 @@ index 89085d0..ce8e243 100644
 +		compatible = "linux,extcon-usb-gpio";
 +		id-gpio = <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
 +	};
- };
- 
- &dra7_pmx_core {
-@@ -243,6 +254,18 @@
- 			ti,palmas-long-press-seconds = <6>;
++
+ 	vtt_fixed: fixedregulator-vtt {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vtt_fixed";
+@@ -391,6 +401,19 @@
+ 			};
  		};
  	};
 +
@@ -72,11 +64,12 @@ index 89085d0..ce8e243 100644
 +		interrupt-controller;
 +		#interrupt-cells = <2>;
 +	};
++
  };
  
- &uart1 {
-@@ -345,6 +368,14 @@
- 	phy-supply = <&ldo4_reg>;
+ &i2c2 {
+@@ -520,6 +543,14 @@
+ 	};
  };
  
 +&omap_dwc3_1 {
