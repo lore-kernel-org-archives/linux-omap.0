@@ -1,41 +1,97 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: perf not capturing stack traces
-Date: Mon, 26 Jan 2015 10:27:11 +0000
-Message-ID: <20150126102711.GC15598@arm.com>
-References: <20150123195128.GE26557@saruman.tx.rr.com>
- <20150123205959.GD3073@kernel.org>
- <20150123223745.GJ26557@saruman.tx.rr.com>
- <20150124151204.GF3073@kernel.org>
- <20150124222342.GA26941@saruman.tx.rr.com>
- <20150125155651.GB11502@n2100.arm.linux.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 01/23] ARM: OMAP2+: clock: move clock provider infrastructure
+ to clock driver
+Date: Mon, 26 Jan 2015 12:38:48 +0200
+Message-ID: <54C61938.8000303@ti.com>
+References: <1417103514-17027-1-git-send-email-t-kristo@ti.com> <1417103514-17027-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1501242142181.5450@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150125155651.GB11502@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="dThQP6IFRFQ5PGTAVCdDVSA9OicpXNn9G"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35842 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755298AbbAZKjQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Jan 2015 05:39:16 -0500
+In-Reply-To: <alpine.DEB.2.02.1501242142181.5450@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, nm@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Sun, Jan 25, 2015 at 03:56:52PM +0000, Russell King - ARM Linux wrote:
-> On Sat, Jan 24, 2015 at 04:23:42PM -0600, Felipe Balbi wrote:
-> > yeah, I'll try a few older kernels, also see if I can reproduce on other
-> > boards.
-> 
-> Perf works for me with CONFIG_FRAME_POINTER=y, but that's only for kernel
-> space, and for userspace where the programs have been built for ARM mode
-> with frame pointers.
-> 
-> The kernel may work without CONFIG_FRAME_POINTER set, but I've never
-> tested that, and I'd suggest that (given my experience looking at oops
-> dumps) it's not all that reliable.
-> 
-> Lastly, userspace without frame pointers is pretty much hopeless.
+--dThQP6IFRFQ5PGTAVCdDVSA9OicpXNn9G
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-FWIW, perf can now use libunwind for unwinding the userspace side of
-things, so it's not quite as bad as it used to be. For the kernel side,
-if the unwinder isn't working properly it would be nice to know *why*,
-but I agree that it tends to be far flakier than the frame-pointer method.
+On 24/01/15 23:51, Paul Walmsley wrote:
+> + Tomi=20
+>=20
+> On Thu, 27 Nov 2014, Tero Kristo wrote:
+>=20
+>> Splits the clock provider init out of the PRM driver and moves it to
+>> clock driver. This is needed so that once the PRCM drivers are separat=
+ed,
+>> they can logically just access the clock driver not needing to go thro=
+ugh
+>> common PRM code. This would be wrong in the case of control module for=
 
-Will
+>> example.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>=20
+> This patch moves things in the wrong direction (ie, rather than keeping=
+=20
+> the PRM register accesses in the PRM code, it moves PRM register access=
+es=20
+> into the clock code).  But I see that a subsequent patch in this series=
+=20
+> moves them back.  So this change is temporary and that seems reasonable=
+ to=20
+> me.
+>=20
+> However, as long as the clock code wants to do low-level register acces=
+ses=20
+> to PRM/CM/SCM registers, there needs to be some way to keep register=20
+> updates originating from the clock code from racing with register updat=
+es=20
+> coming from other code (e.g. non-clock-related PRM/CM/SCM accesses). So=
+=20
+> I've changed this patch to use regmap (as below), and the followup patc=
+h=20
+> later in the series will be changed too.  Seems to work so far but let'=
+s=20
+> see how things go with the rest of the series.
+
+I'm not sure if I miss something, but regmap_write does not protect from
+problems if there are multiple users for the same registers. You need to
+use regmap_update_bits() to get a protected read/write sequence, in
+which you can change only the bits that you want to change.
+
+ Tomi
+
+
+
+--dThQP6IFRFQ5PGTAVCdDVSA9OicpXNn9G
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUxhk4AAoJEPo9qoy8lh71rC0QAJdZk1t1zRPZUiZLfzuEogh3
+RQfoKbaEiXd2BDK1pJvBFVUtC5Lby9F4y+/XNpi0BCgQmyWIo5rgoyEikXDl1kC4
+gCTAX5vz+l3cyfvaiACpBSg1A8Ii0/16qmu4WYdZVOFWwAxs2/8jkyJRUoOvPY9g
+vy7C1tyWRUmJuCQi/doek/J1s6fHf8MTQV7jWyeYqa2NWO4z/bswHf0sUGbDpjX3
+RaKsZtGlp3bJoFWkzGuqvs204trGKk3WtiNojhLptHCCU4uMDJo6yxdb6OhO1Fb8
+8X0ALDa3abn2a+I4fj02hFD1NM2w5iAn5SJnZuK7h9TjJGL5eBDfB0AboC+1My59
+ar/OOscZxoaU6+YCn3vGC3ds7RMf9LQkcLOpKBLYL7ktoxmJQrU26l4rcGcXKiF8
+F80211dUKGpSTiJN5aS//ZilxWYKEyKKBXUBJJQID0MR4XNQ0yNstfiS0N84ge6M
+HGr7fJYyZu+KmLFhDJQIBCoJ3f47KOIz1CjChoB4kgoLydH0VolkOeuzn2p/A0rq
+bjvrYezDFNSMsXb+JEXAGPpfYuNEda6aCcMgpdmukc2fXGhR/AVmqhUVx2U7aLOE
+vilcilJaGySOa72tg3BY8vLBIdbQTV7gfwAFdRZTolyE2Vq8OJfALCfxVDPKH6u9
+Nx7kWWTveF/eCoJ+qXqn
+=22iW
+-----END PGP SIGNATURE-----
+
+--dThQP6IFRFQ5PGTAVCdDVSA9OicpXNn9G--
