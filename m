@@ -1,176 +1,95 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: gpmc: Do not modify LIMITEDADDRESS on
- new architectures
-Date: Mon, 26 Jan 2015 17:46:13 +0200
-Message-ID: <54C66145.90400@ti.com>
-References: <1422131320-1018-1-git-send-email-semen.protsenko@globallogic.com>	<1422131320-1018-3-git-send-email-semen.protsenko@globallogic.com>	<54C60DF1.9070300@ti.com> <CAJOTznVwfMO7EmxcSEAx_v8cBe8apE_buAy2dLORxa-w+nQPLQ@mail.gmail.com>
+From: Benoit Parrot <bparrot@ti.com>
+Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add VPFE hwmod entries
+Date: Mon, 26 Jan 2015 09:50:32 -0600
+Message-ID: <20150126155032.GD2570@ti.com>
+References: <1422217915-24231-1-git-send-email-prabhakar.csengg@gmail.com>
+ <alpine.DEB.2.02.1501260205090.5450@utopia.booyaka.com>
+ <CA+V-a8urS2C20FDcfsGa+Gg+7wmbbQQw3U7BfXf6GBKoBGMc9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36974 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37174 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811AbbAZPqV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 10:46:21 -0500
-In-Reply-To: <CAJOTznVwfMO7EmxcSEAx_v8cBe8apE_buAy2dLORxa-w+nQPLQ@mail.gmail.com>
+	with ESMTP id S1752894AbbAZPu7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 10:50:59 -0500
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8urS2C20FDcfsGa+Gg+7wmbbQQw3U7BfXf6GBKoBGMc9w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: semen.protsenko@globallogic.com
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Darren Etheridge <detheridge@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On 26/01/15 15:07, Sam Protsenko wrote:
-> On Mon, Jan 26, 2015 at 11:50 AM, Roger Quadros <rogerq@ti.com> wrote:
->> Hi,
->>
->> On 24/01/15 22:28, Semen Protsenko wrote:
->>> New OMAP-based architectures (like OMAP5, DRA7XX, AM572X) don't have
->>> LIMITEDADDRESS bit in GPMC_CONFIG register (this bit marked as
->>> RESERVED). Seems like these SoCs have new revision of GPMC IP-core
->>> (despite of same GPMC_REVISION value as for earlier SoCs).
->>>
->>> According to OMAP5 TRM: "Nonmultiplexed NOR flash devices are
->>> supported by the GPMC, but their use is highly limited. Because only
->>> 10 address pins are available on the GPMC interface, the maximum device
->>> size supported is 2KiB."
->>>
->>> From [1]:
->>>  - OMAP4 GPMC_CONFIG has LIMITEDADDRESS bit, hence supports both
->>>    limited and full address mode.
->>>  - OMAP5 GPMC_CONFIG doesn't have LIMITEDDADDRESS bit.
->>
->> According to OMAP5432 TRM SWPU249AC, I can see LIMITEDADDRESS bit in GPMC_CONFIG.
->> Which TRM version are you referring to?
->>
+Lad, Prabhakar <prabhakar.csengg@gmail.com> wrote on Mon [2015-Jan-26 08:13:01 +0000]:
+> Hi Paul,
 > 
-> Wow, it seems I mixed it with OMAP57xx TRM. Good catch!
+> Thanks for the review.
 > 
->>>    OMAP5 supports only limited address mode for nonmultiplexed flashes
->>>    In this mode only A1-A10 lines are being modified by GPMC, which
->>>    leaves us (on flash devices with 1 word = 2 bytes) only
->>>    2^10 * 2 = 2KiB memory that we can access.
->>>  - DRA7XX GPMC_CONFIG doesn't have LIMITEDADDRESS bit.
->>>    DRA7XX supports only full address mode for nonmultiplexed flashes
->>>    (current TRM says contrary, but according to [1] it's typo and
->>>    gonna be fixed in new DRA7XX TRMs). In full address mode all
->>>    A1-A26 lines are modified by GPMC, so one can address up to 128 MiB.
->>>
->>> This patch ensures that GPMC driver doesn't try to modify LIMITEDADDRESS
->>> bit on new OMAP-based devices, because such an action could possibly
->>> lead to undefined behavior in GPMC state-machine (this bit is marked as
->>> RESERVED now).
->>>
->>> [1] http://e2e.ti.com/support/omap/f/885/t/396939
->>>
->>> Signed-off-by: Semen Protsenko <semen.protsenko@globallogic.com>
->>> ---
->>>  drivers/memory/omap-gpmc.c |   32 ++++++++++++++++++++++++--------
->>>  1 file changed, 24 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
->>> index db77adb..477d0ba 100644
->>> --- a/drivers/memory/omap-gpmc.c
->>> +++ b/drivers/memory/omap-gpmc.c
->>> @@ -108,6 +108,7 @@
->>>  #define      GPMC_HAS_WR_ACCESS              0x1
->>>  #define      GPMC_HAS_WR_DATA_MUX_BUS        0x2
->>>  #define      GPMC_HAS_MUX_AAD                0x4
->>> +#define      GPMC_HAS_LIMITEDADDRESS         0x8
->>>
->>>  #define GPMC_NR_WAITPINS             4
->>>
->>> @@ -1709,6 +1710,18 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
->>>  }
->>>  #endif
->>>
->>> +static void gpmc_disable_limited(void)
->>> +{
->>> +     if (gpmc_capability & GPMC_HAS_LIMITEDADDRESS) {
->>> +             u32 val;
->>> +
->>> +             /* Clear limited address i.e. enable A26-A11 */
->>> +             val = gpmc_read_reg(GPMC_CONFIG);
->>> +             val &= ~GPMC_CONFIG_LIMITEDADDRESS;
->>> +             gpmc_write_reg(GPMC_CONFIG, val);
->>> +     }
->>> +}
->>> +
->>>  /**
->>>   * gpmc_probe_generic_child - configures the gpmc for a child device
->>>   * @pdev:    pointer to gpmc platform device
->>> @@ -1726,7 +1739,6 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
->>>       unsigned long base;
->>>       const char *name;
->>>       int ret, cs;
->>> -     u32 val;
->>>
->>>       if (of_property_read_u32(child, "reg", &cs) < 0) {
->>>               dev_err(&pdev->dev, "%s has no 'reg' property\n",
->>> @@ -1805,10 +1817,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
->>>               goto err;
->>>       }
->>>
->>> -     /* Clear limited address i.e. enable A26-A11 */
->>> -     val = gpmc_read_reg(GPMC_CONFIG);
->>> -     val &= ~GPMC_CONFIG_LIMITEDADDRESS;
->>> -     gpmc_write_reg(GPMC_CONFIG, val);
->>> +     gpmc_disable_limited();
->>>
->>>       /* Enable CS region */
->>>       gpmc_cs_enable_mem(cs);
->>> @@ -1935,14 +1944,21 @@ static int gpmc_probe(struct platform_device *pdev)
->>>        * devices support the addr-addr-data multiplex protocol.
->>>        *
->>>        * GPMC IP revisions:
->>> -      * - OMAP24xx                   = 2.0
->>> -      * - OMAP3xxx                   = 5.0
->>> -      * - OMAP44xx/54xx/AM335x       = 6.0
->>> +      * - OMAP24xx                           = 2.0
->>> +      * - OMAP3xxx                           = 5.0
->>> +      * - OMAP44xx/54xx/AM335x/DRA7XX        = 6.0
->>>        */
->>>       if (GPMC_REVISION_MAJOR(l) > 0x4)
->>>               gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
->>>       if (GPMC_REVISION_MAJOR(l) > 0x5)
->>>               gpmc_capability |= GPMC_HAS_MUX_AAD;
->>> +     if (GPMC_REVISION_MAJOR(l) < 0x6)
->>> +             gpmc_capability |= GPMC_HAS_LIMITEDADDRESS;
->>> +#if !defined(CONFIG_SOC_OMAP5) && !defined(CONFIG_SOC_DRA7XX)
->>> +     if (GPMC_REVISION_MAJOR(l) == 0x6)
->>> +             gpmc_capability |= GPMC_HAS_LIMITEDADDRESS;
->>> +#endif
->>> +
->>
->> This logic will prevent GPMC_HAS_LIMITEDADDRESS to be set on OMAP4 if we have
->> either SOC_OMAP5 or SOC_DRA7XX enabled. So it is not good.
->>
-> 
-> Why? OMAP4 devices have 0x6 revision of GPMC, and as I remember they don't
-> define SOC_OMAP5. So this logic enables limited address capability for OMAP4.
-> Am I missing something?
+> On Mon, Jan 26, 2015 at 2:15 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > Hi
+> >
+> > On Sun, 25 Jan 2015, Lad, Prabhakar wrote:
+> >
+> >> From: Benoit Parrot <bparrot@ti.com>
+> >>
+> >> this patch adds VPFE HWMOD data for AM43xx.
+> >>
+> >> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> >> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> ---
+> >>  Hi Paul,
+> >>
+> >>  You were right, the hardware team has confirmed that, the VPFE master port is
+> >>  connected to L3 and the VPFE slave port is connected to L4. The L3 port cannot
+> >>  serve as a register target because it is initiator only.
+> >
+> > OK makes sense to me.,
+> >
+> >>
+> >>  I have created links referring to dss l3/l4 hwmod and tested it, lemme know
+> >>  if I have missed something.
+> >
+> > A few minor comments below
+> >
+> >>
+> [Snip]
+> >>  /* Interfaces */
+> >>  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+> >>       .master         = &am33xx_l3_main_hwmod,
+> >> @@ -788,6 +826,36 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
+> >>       .user           = OCP_USER_MPU | OCP_USER_SDMA,
+> >>  };
+> >>
+> >> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
+> >> +     .master         = &am43xx_vpfe0_hwmod,
+> >> +     .slave          = &am33xx_l3_main_hwmod,
+> >> +     .clk            = "l3_gclk",
+> >> +     .flags          = OCPIF_SWSUP_IDLE,
+> >
+> > OCPIF_SWSUP_IDLE probably isn't needed here.  Could you please try without
+> > it?
+> >
+> >> +     .user           = OCP_USER_MPU | OCP_USER_SDMA,
+> >> +};
+> >> +
+> >> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
+> >> +     .master         = &am43xx_vpfe1_hwmod,
+> >> +     .slave          = &am33xx_l3_main_hwmod,
+> >> +     .clk            = "l3_gclk",
+> >> +     .flags          = OCPIF_SWSUP_IDLE,
+> >
+> > Same point as the above.
+> >
+> Dropped and tested works! posting a v3.
 
-OMAP4 devices define ARCH_OMAP4.
+When you tested it without the OCPIF_SWSUP_IDLE, did you go trhough a complete suspend/resume cycle?
+This flag was added early on because otherwise the susbsytem would not go idle without it...
 
-Consider this case
-ARCH_OMAP4=y, SOC_OMAP5=y, SOC_DRA7=y.
+Can you post the console output during a suspend/resume cycle?
 
-In this case LIMITEDADDRESS flag won't be set.
+Benoit
 
 > 
->> I think this patch is unnecessary as we are only setting the reserved bit to 0.
->> It is safe to set RESERVED bit to 0. We are not modifying it as RESERVED bit is
->> meant to be 0. If bootloader is setting the reserved bit to 1, it is a bug in
->> the bootloader.
->>
-> 
-> Ok, let's drop this patch then. Anyway, I'm gonna reuse it next week
-> for another patch
-> (I want to make it possible to enable/disable limited address mode via
-> dts bool option).
-> Also, can you point me out where I can read about RESERVED bit should
-> be always 0?
-
-bit definition of RESERVED bit of GPMC_CONFIG register in DRA7 TRM states
-"Write 0 for future compatibility. Read returns 0."
-
-cheers,
--roger
+> Cheers,
+> --Prabhakar Lad
