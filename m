@@ -1,115 +1,183 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add VPFE hwmod entries
-Date: Mon, 26 Jan 2015 18:47:11 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501261846460.5450@utopia.booyaka.com>
-References: <1422217915-24231-1-git-send-email-prabhakar.csengg@gmail.com> <alpine.DEB.2.02.1501260205090.5450@utopia.booyaka.com> <CA+V-a8urS2C20FDcfsGa+Gg+7wmbbQQw3U7BfXf6GBKoBGMc9w@mail.gmail.com> <20150126155032.GD2570@ti.com>
- <CA+V-a8vuD-+cwaP_bKpB8GweT-xX4E3PHrbB+uefCW+Xre7cog@mail.gmail.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
+Date: Mon, 26 Jan 2015 13:57:08 -0500 (EST)
+Message-ID: <alpine.LFD.2.11.1501261318590.1322@knanqh.ubzr>
+References: <201501232239.55801@pali> <201501232336.36187@pali> <20150126161454.GE28663@atomide.com> <201501261723.10505@pali> <20150126170323.GF28663@atomide.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1095457462-1422298031=:5450"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+V-a8vuD-+cwaP_bKpB8GweT-xX4E3PHrbB+uefCW+Xre7cog@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Darren Etheridge <detheridge@ti.com>, Felipe Balbi <balbi@ti.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1818631455-1422298629=:1322"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qg0-f44.google.com ([209.85.192.44]:61700 "EHLO
+	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753521AbbAZS5M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 13:57:12 -0500
+Received: by mail-qg0-f44.google.com with SMTP id l89so8316414qgf.3
+        for <linux-omap@vger.kernel.org>; Mon, 26 Jan 2015 10:57:11 -0800 (PST)
+In-Reply-To: <20150126170323.GF28663@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Laura Abbott <lauraa@codeaurora.org>
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---843723315-1095457462-1422298031=:5450
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--8323328-1818631455-1422298629=:1322
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 
-Hi Prabhakar,
+On Mon, 26 Jan 2015, Tony Lindgren wrote:
 
-On Mon, 26 Jan 2015, Lad, Prabhakar wrote:
+> * Pali Rohár <pali.rohar@gmail.com> [150126 08:26]:
+> > On Monday 26 January 2015 17:14:55 Tony Lindgren wrote:
+> > > * Pali Rohár <pali.rohar@gmail.com> [150123 14:39]:
+> > > > On Friday 23 January 2015 22:39:55 Pali Rohár wrote:
+> > > > > Hello,
+> > > > > 
+> > > > > when I boot zImage with appended DT n900 in qemu
+> > > > > fdt_open_into() function called from file
+> > > > > arch/arm/boot/compressed/atags_to_fdt.c (in function
+> > > > > atags_to_fdt) always returns -FDT_ERR_NOSPACE.
+> > > > > 
+> > > > > It means that all ATAGS (including cmdline arguments)
+> > > > > passed by bootloader are ignored.
+> > > > > 
+> > > > > On real n900 device I see that booted DT version also
+> > > > > ignore cmdline arguments from bootloader. I cannot debug
+> > > > > decompress code on real device, but I think it is same
+> > > > > problem as in qemu.
+> > > > 
+> > > > Looks like this quick patch is fixing above problem:
+> > > > 
+> > > > diff --git a/arch/arm/boot/compressed/head.S
+> > > > b/arch/arm/boot/compressed/head.S index 68be901..4a7d75b
+> > > > 100644
+> > > > --- a/arch/arm/boot/compressed/head.S
+> > > > +++ b/arch/arm/boot/compressed/head.S
+> > > > @@ -268,7 +268,7 @@ restart:	adr	r0, LC0
+> > > > 
+> > > >  		 * area.  No GOT fixup has occurred yet, but none of 
+> > the
+> > > >  		 * code we're about to call uses any global variable.
+> > > >  		
+> > > >  		*/
+> > > > 
+> > > > -		add	sp, sp, #0x10000
+> > > > +		add	sp, sp, #0x20000
+> > > > 
+> > > >  		stmfd	sp!, {r0-r3, ip, lr}
+> > > >  		mov	r0, r8
+> > > >  		mov	r1, r6
+> > > > 
+> > > > @@ -289,7 +289,7 @@ restart:	adr	r0, LC0
+> > > > 
+> > > >  		bleq	atags_to_fdt
+> > > >  		
+> > > >  		ldmfd	sp!, {r0-r3, ip, lr}
+> > > > 
+> > > > -		sub	sp, sp, #0x10000
+> > > > +		sub	sp, sp, #0x20000
+> > > > 
+> > > >  #endif
+> > > >  
+> > > >  		mov	r8, r6			@ use the appended device tree
+> > > 
+> > > Nico, got any ideas about this one? This seems like a
+> > > regression somewhere..
+> > > 
+> > > Regards,
+> > > 
+> > > Tony
+> > 
+> > $ du -b arch/arm/boot/dts/omap3-n900.dtb 
+> > 70212   arch/arm/boot/dts/omap3-n900.dtb
+> > 
+> > $ echo $((0x10000))
+> > 65536
+> > 
+> > I would say, problem is because omap3-n900 binary DT is too large
 
-> Hi Benoit,
->=20
-> On Mon, Jan 26, 2015 at 3:50 PM, Benoit Parrot <bparrot@ti.com> wrote:
-> > Lad, Prabhakar <prabhakar.csengg@gmail.com> wrote on Mon [2015-Jan-26 0=
-8:13:01 +0000]:
-> >> Hi Paul,
-> >>
-> >> Thanks for the review.
-> >>
-> >> On Mon, Jan 26, 2015 at 2:15 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> >> > Hi
-> >> >
-> >> > On Sun, 25 Jan 2015, Lad, Prabhakar wrote:
-> >> >
-> >> >> From: Benoit Parrot <bparrot@ti.com>
-> >> >>
-> >> >> this patch adds VPFE HWMOD data for AM43xx.
-> >> >>
-> >> >> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> >> >> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> >> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> >> >> ---
-> >> >>  Hi Paul,
-> >> >>
-> >> >>  You were right, the hardware team has confirmed that, the VPFE mas=
-ter port is
-> >> >>  connected to L3 and the VPFE slave port is connected to L4. The L3=
- port cannot
-> >> >>  serve as a register target because it is initiator only.
-> >> >
-> >> > OK makes sense to me.,
-> >> >
-> >> >>
-> >> >>  I have created links referring to dss l3/l4 hwmod and tested it, l=
-emme know
-> >> >>  if I have missed something.
-> >> >
-> >> > A few minor comments below
-> >> >
-> >> >>
-> >> [Snip]
-> >> >>  /* Interfaces */
-> >> >>  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs =3D {
-> >> >>       .master         =3D &am33xx_l3_main_hwmod,
-> >> >> @@ -788,6 +826,36 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__=
-dss_rfbi =3D {
-> >> >>       .user           =3D OCP_USER_MPU | OCP_USER_SDMA,
-> >> >>  };
-> >> >>
-> >> >> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 =3D {
-> >> >> +     .master         =3D &am43xx_vpfe0_hwmod,
-> >> >> +     .slave          =3D &am33xx_l3_main_hwmod,
-> >> >> +     .clk            =3D "l3_gclk",
-> >> >> +     .flags          =3D OCPIF_SWSUP_IDLE,
-> >> >
-> >> > OCPIF_SWSUP_IDLE probably isn't needed here.  Could you please try w=
-ithout
-> >> > it?
-> >> >
-> >> >> +     .user           =3D OCP_USER_MPU | OCP_USER_SDMA,
-> >> >> +};
-> >> >> +
-> >> >> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 =3D {
-> >> >> +     .master         =3D &am43xx_vpfe1_hwmod,
-> >> >> +     .slave          =3D &am33xx_l3_main_hwmod,
-> >> >> +     .clk            =3D "l3_gclk",
-> >> >> +     .flags          =3D OCPIF_SWSUP_IDLE,
-> >> >
-> >> > Same point as the above.
-> >> >
-> >> Dropped and tested works! posting a v3.
-> >
-> > When you tested it without the OCPIF_SWSUP_IDLE, did you go trhough a c=
-omplete suspend/resume cycle?
-> > This flag was added early on because otherwise the susbsytem would not =
-go idle without it...
-> >
-> > Can you post the console output during a suspend/resume cycle?
-> >
-> Ah I didn=E2=80=99t test the suspend/resume will do and post the console =
-log.
+I agree.
 
-Could you also do a suspend/resume test on v2?
-=20
-thanks
+> OK if that's the case, then your patch makes sense to me. It also
+> seems we can have the temporary stack be larger than the initial
+> stack just for atags_to_fdt.
 
-- Paul
---843723315-1095457462-1422298031=:5450--
+The stack size isn't the issue, but rather its location.  We need to 
+position it away from the DT data.  The DT size is known and we could 
+use that, plus some room for the insertion of new data coming from the
+ATAG conversion.
+
+Something like the following would be a more robust solution:
+
+diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+index 68be901759..89718de9dd 100644
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -263,16 +263,37 @@ restart:	adr	r0, LC0
+ 		 * OK... Let's do some funky business here.
+ 		 * If we do have a DTB appended to zImage, and we do have
+ 		 * an ATAG list around, we want the later to be translated
+-		 * and folded into the former here.  To be on the safe side,
+-		 * let's temporarily move  the stack away into the malloc
+-		 * area.  No GOT fixup has occurred yet, but none of the
+-		 * code we're about to call uses any global variable.
++		 * and folded into the former here. No GOT fixup has occurred
++		 * yet, but none of the code we're about to call uses any
++		 * global variable.
+ 		*/
+-		add	sp, sp, #0x10000
++
++		/* Get the initial DTB size */
++		ldr	r5, [r6, #4]
++#ifndef __ARMEB__
++		/* convert to little endian */
++		eor	r1, r5, r5, ror #16
++		bic	r1, r1, #0x00ff0000
++		mov	r5, r5, ror #8
++		eor	r5, r5, r1, lsr #8
++#endif
++		/* 50% DTB growth should be good enough */
++		add	r5, r5, r5, lsr #1
++		/* preserve 64-bit alignment */
++		add	r5, r5, #7
++		bic	r5, r5, #7
++		/* clamp to 32KB min and 1MB max */
++		movs	r1, r5, lsr #15
++		moveq	r5, #(1 << 15)
++		movs	r1, r5, lsr #20
++		movne	r5, #(1 << 20)
++
++		/* Temporarily relocate the stack past the DTB work space */
++		add	sp, sp, r5
+ 		stmfd	sp!, {r0-r3, ip, lr}
+ 		mov	r0, r8
+ 		mov	r1, r6
+-		sub	r2, sp, r6
++		mov	r2, r5
+ 		bl	atags_to_fdt
+ 
+ 		/*
+@@ -285,11 +306,11 @@ restart:	adr	r0, LC0
+ 		bic	r0, r0, #1
+ 		add	r0, r0, #0x100
+ 		mov	r1, r6
+-		sub	r2, sp, r6
++		mov	r2, r5
+ 		bleq	atags_to_fdt
+ 
+ 		ldmfd	sp!, {r0-r3, ip, lr}
+-		sub	sp, sp, #0x10000
++		sub	sp, sp, r5
+ #endif
+ 
+ 		mov	r8, r6			@ use the appended device tree
+@@ -306,7 +327,7 @@ restart:	adr	r0, LC0
+ 		subs	r1, r5, r1
+ 		addhi	r9, r9, r1
+ 
+-		/* Get the dtb's size */
++		/* Get the current DTB size */
+ 		ldr	r5, [r6, #4]
+ #ifndef __ARMEB__
+ 		/* convert r5 (dtb size) to little endian */
+--8323328-1818631455-1422298629=:1322--
