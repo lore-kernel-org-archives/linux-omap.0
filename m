@@ -1,35 +1,150 @@
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: Re: [PATCH] OMAPDSS: hdmi5: remove unneeded check
-Date: Tue, 27 Jan 2015 19:00:19 +0530
-Message-ID: <20150127133019.GA25400@sudip-PC>
-References: <1421167620-17290-1-git-send-email-sudipm.mukherjee@gmail.com>
- <54C63606.30002@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ASoC: rx51: do not fail if could not get jack detection
+ gpio
+Date: Tue, 27 Jan 2015 14:32:27 +0100
+Message-ID: <20150127133227.GA25306@amd>
+References: <1422305507-10533-1-git-send-email-pali.rohar@gmail.com>
+ <54C7925E.3020303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45607 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644AbbA0Nca (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2015 08:32:30 -0500
 Content-Disposition: inline
-In-Reply-To: <54C63606.30002@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <54C7925E.3020303@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Mon, Jan 26, 2015 at 02:41:42PM +0200, Tomi Valkeinen wrote:
-> On 13/01/15 18:46, Sudip Mukherjee wrote:
-> > prior to this check we are checking for word_length_16b and if word_length_16b
-> > is false then we are returning with -EINVAL.
-> > So at this point word_length_16b can only be true.
-> 
-> True, but it looks to me the code may be extended in the future.
-> 
-> And if it would be clear that it won't be extended in the future, then
-> there's more code changes needed to reflect that (the whole
-> word_length_16b can be removed, etc).
+On Tue 2015-01-27 15:27:58, Peter Ujfalusi wrote:
+> Hi,
+>=20
+> On 01/26/2015 10:51 PM, Pali Roh=E1r wrote:
+> > qemu does not emulate it
+>=20
+> Not sure about this... How does qemu emulate tlv320aic3106, tpa6130a2=
+a, McBSP,
+> sDMA for audio to work? What about the other three GPIOs in this mach=
+ine driver?
+>=20
+> The "nokia,n900-audio" compatible mandates that the jack-detection GP=
+IO must
+> be provided (Documentation/devicetree/bindings/sound/nokia,rx51.txt) =
+since it
+> means that the driver is running on the Nokia n900 HW.
 
-you are the author of the code, so you will know if it will be extended .. :)
+=46ix the documentation, then :-). [Actually, GPIO is provided, it just
+can't be requested, AFAICT.]
 
-Sudip
-> 
->  Tomi
-> 
-> 
+It is quite important to keep qemu working, really. Debugging early
+boot on hardware is very hard, for example.
+
+And yes, some day we may need different dts for n900-qemu
+(vs. n900-hw), but lets not do it just yet.
+							Pavel
+
+>=20
+> > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+> > ---
+> >  sound/soc/omap/rx51.c |   45 +++++++++++++++++++++++++------------=
+--------
+> >  1 file changed, 25 insertions(+), 20 deletions(-)
+> >=20
+> > diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+> > index 04896d6..a689021 100644
+> > --- a/sound/soc/omap/rx51.c
+> > +++ b/sound/soc/omap/rx51.c
+> > @@ -310,25 +310,27 @@ static int rx51_aic34_init(struct snd_soc_pcm=
+_runtime *rtd)
+> >  		return err;
+> >  	}
+> > =20
+> > -	/* AV jack detection */
+> > -	err =3D snd_soc_jack_new(codec, "AV Jack",
+> > -			       SND_JACK_HEADSET | SND_JACK_VIDEOOUT,
+> > -			       &rx51_av_jack);
+> > -	if (err) {
+> > -		dev_err(card->dev, "Failed to add AV Jack\n");
+> > -		return err;
+> > -	}
+> > +	if (!IS_ERR(pdata->jack_detection_gpio)) {
+> > +		/* AV jack detection */
+> > +		err =3D snd_soc_jack_new(codec, "AV Jack",
+> > +				       SND_JACK_HEADSET | SND_JACK_VIDEOOUT,
+> > +				       &rx51_av_jack);
+> > +		if (err) {
+> > +			dev_err(card->dev, "Failed to add AV Jack\n");
+> > +			return err;
+> > +		}
+> > =20
+> > -	/* prepare gpio for snd_soc_jack_add_gpios */
+> > -	rx51_av_jack_gpios[0].gpio =3D desc_to_gpio(pdata->jack_detection=
+_gpio);
+> > -	devm_gpiod_put(card->dev, pdata->jack_detection_gpio);
+> > +		/* prepare gpio for snd_soc_jack_add_gpios */
+> > +		rx51_av_jack_gpios[0].gpio =3D desc_to_gpio(pdata->jack_detectio=
+n_gpio);
+> > +		devm_gpiod_put(card->dev, pdata->jack_detection_gpio);
+> > =20
+> > -	err =3D snd_soc_jack_add_gpios(&rx51_av_jack,
+> > -				     ARRAY_SIZE(rx51_av_jack_gpios),
+> > -				     rx51_av_jack_gpios);
+> > -	if (err) {
+> > -		dev_err(card->dev, "Failed to add GPIOs\n");
+> > -		return err;
+> > +		err =3D snd_soc_jack_add_gpios(&rx51_av_jack,
+> > +					     ARRAY_SIZE(rx51_av_jack_gpios),
+> > +					     rx51_av_jack_gpios);
+> > +		if (err) {
+> > +			dev_err(card->dev, "Failed to add GPIOs\n");
+> > +			return err;
+> > +		}
+> >  	}
+> > =20
+> >  	return err;
+> > @@ -336,8 +338,11 @@ static int rx51_aic34_init(struct snd_soc_pcm_=
+runtime *rtd)
+> > =20
+> >  static int rx51_card_remove(struct snd_soc_card *card)
+> >  {
+> > -	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gp=
+ios),
+> > -				rx51_av_jack_gpios);
+> > +	struct rx51_audio_pdata *pdata =3D snd_soc_card_get_drvdata(card)=
+;
+> > +
+> > +	if (!IS_ERR(pdata->jack_detection_gpio))
+> > +		snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_g=
+pios),
+> > +					rx51_av_jack_gpios);
+> > =20
+> >  	return 0;
+> >  }
+> > @@ -470,8 +475,8 @@ static int rx51_soc_probe(struct platform_devic=
+e *pdev)
+> >  	pdata->jack_detection_gpio =3D devm_gpiod_get(card->dev,
+> >  						    "jack-detection");
+> >  	if (IS_ERR(pdata->jack_detection_gpio)) {
+> > +		/* Do not fail, qemu does not emulate jack detection gpio */
+> >  		dev_err(card->dev, "could not get jack detection gpio\n");
+> > -		return PTR_ERR(pdata->jack_detection_gpio);
+> >  	}
+> > =20
+> >  	pdata->eci_sw_gpio =3D devm_gpiod_get(card->dev, "eci-switch");
+> >=20
+>=20
+>=20
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
