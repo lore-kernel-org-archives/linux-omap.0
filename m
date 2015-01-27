@@ -1,213 +1,138 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Tue, 27 Jan 2015 17:38:13 +0200
-Message-ID: <54C7B0E5.20101@ti.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com> <1422274532-9488-2-git-send-email-rogerq@ti.com> <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com> <54C66B0D.9040109@ti.com> <54C6EFC8.1090601@samsung.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] arm: omap: hwmod: 43xx: add DebugSS hwmod data
+Date: Tue, 27 Jan 2015 10:01:43 -0600
+Message-ID: <20150127160143.GH14623@saruman.tx.rr.com>
+References: <1422054704-14915-1-git-send-email-balbi@ti.com>
+ <1422054704-14915-2-git-send-email-balbi@ti.com>
+ <alpine.DEB.2.02.1501260142590.5450@utopia.booyaka.com>
+ <20150126165640.GA10679@saruman.tx.rr.com>
+ <20150126194933.GG6660@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54C6EFC8.1090601-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, "myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kHRd/tpU31Zn62xO"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44422 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751614AbbA0QCP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Jan 2015 11:02:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20150126194933.GG6660@saruman.tx.rr.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
 
-Chanwoo,
+--kHRd/tpU31Zn62xO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 27/01/15 03:54, Chanwoo Choi wrote:
-> Hi Roger,
-> 
-> On 01/27/2015 01:27 AM, Roger Quadros wrote:
->> Hi Chanwoo,
->>
->> All your comments are valid. Need some clarification on one comment.
->>
->> On 26/01/15 15:56, Chanwoo Choi wrote:
->>> Hi Roger,
->>>
->>> This patch looks good to me. But I add some comment.
->>> If you modify some comment, I'll apply this patch on 3.21 queue.
->>>
->>> On Mon, Jan 26, 2015 at 9:15 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->>>> This driver observes the USB ID pin connected over a GPIO and
->>>> updates the USB cable extcon states accordingly.
->>>>
->>>> The existing GPIO extcon driver is not suitable for this purpose
->>>> as it needs to be taught to understand USB cable states and it
->>>> can't handle more than one cable per instance.
->>>>
->>>> For the USB case we need to handle 2 cable states.
->>>> 1) USB (attach/detach)
->>>> 2) USB-Host (attach/detach)
->>>>
->>>> This driver can be easily updated in the future to handle VBUS
->>>> events in case it happens to be available on GPIO for any platform.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>  .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  20 ++
->>>>  drivers/extcon/Kconfig                             |   7 +
->>>>  drivers/extcon/Makefile                            |   1 +
->>>>  drivers/extcon/extcon-usb-gpio.c                   | 214 +++++++++++++++++++++
->>>>  4 files changed, 242 insertions(+)
->>>>  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
->>>>  create mode 100644 drivers/extcon/extcon-usb-gpio.c
->>>>
->>
->> <snip>
->>
->>>> +
->>>> +static int usb_extcon_probe(struct platform_device *pdev)
->>>> +{
->>>> +       struct device *dev = &pdev->dev;
->>>> +       struct device_node *np = dev->of_node;
->>>> +       struct usb_extcon_info *info;
->>>> +       int ret;
->>>> +
->>>> +       if (!np)
->>>> +               return -EINVAL;
->>>> +
->>>> +       info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
->>>> +       if (!info)
->>>> +               return -ENOMEM;
->>>> +
->>>> +       info->dev = dev;
->>>> +       info->id_gpiod = devm_gpiod_get(&pdev->dev, "id");
->>>> +       if (IS_ERR(info->id_gpiod)) {
->>>> +               dev_err(dev, "failed to get ID GPIO\n");
->>>> +               return PTR_ERR(info->id_gpiod);
->>>> +       }
->>>> +
->>>> +       ret = gpiod_set_debounce(info->id_gpiod,
->>>> +                                USB_GPIO_DEBOUNCE_MS * 1000);
->>>> +       if (ret < 0)
->>>> +               info->debounce_jiffies = msecs_to_jiffies(USB_GPIO_DEBOUNCE_MS);
->>>> +
->>>> +       INIT_DELAYED_WORK(&info->wq_detcable, usb_extcon_detect_cable);
->>>> +
->>>> +       info->id_irq = gpiod_to_irq(info->id_gpiod);
->>>> +       if (info->id_irq < 0) {
->>>> +               dev_err(dev, "failed to get ID IRQ\n");
->>>> +               return info->id_irq;
->>>> +       }
->>>> +
->>>> +       ret = devm_request_threaded_irq(dev, info->id_irq, NULL,
->>>> +                                       usb_irq_handler,
->>>> +                                       IRQF_SHARED | IRQF_ONESHOT |
->>>> +                                       IRQF_NO_SUSPEND,
->>>> +                                       pdev->name, info);
->>
->> use of IRQF_NO_SUSPEND is not recommended to be used together with IRQF_SHARED so
->> I'll remove IRQF_SHARED from here if we decide to stick with IRQF_NO_SUSPEND.
->> More on this below.
->>
->>>> +       if (ret < 0) {
->>>> +               dev_err(dev, "failed to request handler for ID IRQ\n");
->>>> +               return ret;
->>>> +       }
->>>> +
->>>> +       info->edev = devm_extcon_dev_allocate(dev, usb_extcon_cable);
->>>> +       if (IS_ERR(info->edev)) {
->>>> +               dev_err(dev, "failed to allocate extcon device\n");
->>>> +               return -ENOMEM;
->>>> +       }
->>>> +
->>>> +       ret = devm_extcon_dev_register(dev, info->edev);
->>>> +       if (ret < 0) {
->>>> +               dev_err(dev, "failed to register extcon device\n");
->>>> +               return ret;
->>>> +       }
->>>> +
->>>> +       platform_set_drvdata(pdev, info);
->>>
->>> I prefer to execute the device_init_wakeup() function as following
->>> for suspend/resume function:
->>>             device_init_wakeup(&pdev->dev, 1);
->>>
->>>> +
->>>> +       /* Perform initial detection */
->>>> +       usb_extcon_detect_cable(&info->wq_detcable.work);
->>>> +
->>>> +       return 0;
->>>> +}
->>>> +
->>>> +static int usb_extcon_remove(struct platform_device *pdev)
->>>> +{
->>>> +       struct usb_extcon_info *info = platform_get_drvdata(pdev);
->>>> +
->>>> +       cancel_delayed_work_sync(&info->wq_detcable);
->>>
->>> Need to add blank line.
->>>
->>>> +       return 0;
->>>> +}
->>>> +
->>>> +#ifdef CONFIG_PM_SLEEP
->>>> +static int usb_extcon_suspend(struct device *dev)
->>>> +{
->>>> +       struct usb_extcon_info *info = dev_get_drvdata(dev);
->>>> +
->>>> +       enable_irq_wake(info->id_irq);
->>>
->>> I prefer to use device_may_wakeup() function for whether
->>> executing enable_irq_wake() or not. Also, The disable_irq()
->>> in the suspend function would prevent us from discarding interrupt
->>> before wakeup from suspend completely.
->>>
->>
->> I need more clarification here.
->>
->> If we are going to use enable_irq_wake() here then what is the point of IRQF_NO_SUSPEND?
->>
->> >From Documentation/power/suspend-and-interrupts.txt I see that interrupts marked
->> as IRQF_NO_SUSPEND should not be configured for system wakeup using enable_irq_wake().
->>
->> what is your preference?
->>
->> Is it good enough to not use IRQF_NO_SUSPEND but use enable_irq_wake() instead to
->> enable system wakeup for that IRQ.
-> 
-> I'm sorry for confusion about usage both IRQF_NO_SUSPEND and enable_irq_wake().
-> If suspend() function in device driver executes the enable_irq_wake(),
-> IRQF_NO_SUSPEND flag is not necessary.
-> 
-> I think that we better use enable_irq_wake() instead of adding IRQF_NO_SUSPEND flag.
-> I'll expect to remove IRQF_NO_SUSPEND flag when requesting gpio interrupt.
-> 
-OK.
+On Mon, Jan 26, 2015 at 01:49:33PM -0600, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Mon, Jan 26, 2015 at 10:56:40AM -0600, Felipe Balbi wrote:
+> > > the references below are from SPRUHL7
+> > >=20
+> > > On Fri, 23 Jan 2015, Felipe Balbi wrote:
+> > >=20
+> > > > Without hwmod data for DebugSS, performance monitors
+> > > > have no chance of running on AM43xx devices.
+> > > >=20
+> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 40 ++++++++++++++++++=
+++++++++++++
+> > > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+> > > >  2 files changed, 41 insertions(+)
+> > > >=20
+> > > > diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/=
+mach-omap2/omap_hwmod_43xx_data.c
+> > > > index 5c6c8410160e..6709704dd5b5 100644
+> > > > --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> > > > +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> > > > @@ -19,6 +19,7 @@
+> > > >  #include "omap_hwmod.h"
+> > > >  #include "omap_hwmod_33xx_43xx_common_data.h"
+> > > >  #include "prcm43xx.h"
+> > > > +#include "prm44xx.h"
+> > > >  #include "omap_hwmod_common_data.h"
+> > > > =20
+> > > > =20
+> > > > @@ -60,6 +61,44 @@ static struct omap_hwmod am43xx_wkup_m3_hwmod =
+=3D {
+> > > >  	.rst_lines_cnt	=3D ARRAY_SIZE(am33xx_wkup_m3_resets),
+> > > >  };
+> > > > =20
+> > > > +/*
+> > > > + * 'debugss' class
+> > > > + * debug and emulation sub system
+> > > > + */
+> > > > +static struct omap_hwmod_opt_clk am43xx_debugss_opt_clks[] =3D {
+> > > > +	{ .role =3D "dbg_sysclk", .clk =3D "dbg_sysclk_ck" },
+> > > > +	{ .role =3D "dbg_clka", .clk =3D "dbg_clka_ck", },
+> > > > +	{ .role =3D "dbg_clkb", .clk =3D "dbg_clkb_ck", },
+> > > > +	{ .role =3D "dbg_clkc", .clk =3D "dbg_clkc_ck", },
+> > > > +};
+> > > > +
+> > > > +static struct omap_hwmod_class am43xx_debugss_hwmod_class =3D {
+> > > > +	.name	=3D "debugss",
+> > > > +};
+> > > > +
+> > > > +/* debugss */
+> > > > +static struct omap_hwmod am43xx_debugss_hwmod =3D {
+> > > > +	.name		=3D "debugss",
+> > > > +	.class		=3D &am43xx_debugss_hwmod_class,
+> > > > +	.clkdm_name	=3D "l3_aon_clkdm",
+> > > > +	.main_clk	=3D "trace_clk_div_ck",
+> > > > +	.prcm =3D {
+> > > > +		.omap4 =3D {
+> > > > +			.clkctrl_offs =3D AM43XX_CM_WKUP_DBGSS_CLKCTRL_OFFSET,
+> > >=20
+> > > According to Table 6-275 "PRCM_CM_WKUP_DBGSS_CLKCTRL Register Field=
+=20
+> > > Descriptions" this should have a=20
+> > >=20
+> > > 			.modulemode   =3D MODULEMODE_SWCTRL,
+> >=20
+> > hm... modulemode SWCTRL causes wait_target_ready to fail. Any hints ?
+>=20
+> gets stuck in transition state. PRCM_CM_WKUP_DBGSS_CLKCTRL is always
+> read as 0x 12510f00 which would translate into:
+>=20
+> - module disabled
+> - all opt clocks are on
+> - module is transitioning
+> - module in standby
+> - clkA as TPIU and STM trace clock
+> - all dividers set to 2
 
->>
->>>             if (device_may_wakeup(dev))
->>>                      enable_irq_wake(info->id_irq);
->>>             disable_irq(info->id_irq);
->>
->> why do we need to disable irq here? How will the system wakeup if IRQ is disabled?
-> 
-> The disable_irq() may make the interrupt as masking state.
-> Although interrput is masking state(disable), interrup can happen.
-> but, the interrupt may remain the pending state without discarding it.
-> 
-> And then,
-> When resume() function in extcon-usb-gpio.c executes enable_irq(info->id_irq),
-> pending interrupt will happen and executes the interrupt handler(usb_irq_handler).
-> 
-> If we don't execute disable_irq() in suspend function,
-> info->id->irq interrupt might happen before completing the resume sequence
-> of extcon-gpio-usb driver.
+just fyi, checking with HW folks, this might be a new bug, unless
+debugss needs something special.
 
-How will that cause a problem? If an interrupt happens _before_ the system enters
-SUSPEND state then kernel should abort the suspend. This should be taken care by 
-kernel PM core and not the device driver.
+--=20
+balbi
 
-I still fail to understand that we need to call disable_irq() in .suspend() and
-enable_irq() in .resume()
+--kHRd/tpU31Zn62xO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-can you point me to any other drivers doing so?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJUx7ZnAAoJEIaOsuA1yqREy58P/07F6GxEmgFcLT1+RfA21u5z
+Z9/LNNerNP79pJWStyuJc1N1++h4cimpKXr3AJoJvJoEXniWMhdoqzNSDB3XDfFw
+/ycMn7aeuPnxx1x0atBm5K8t+AW1qmTNDFFMljuPprw7w85tjJAc9VOUSm+piZHf
+CU4mHuFZafQyZKV09jwz+NITLwMRIVk4pZqmFUKkzn7KMZz4sOzq2TcS4su0GVOw
+PSIjhM/q9xPZX6Lz8vEPUxqw9+0jj3EV+Go+RFWAsEZPJ9bf6Q2r09tClmj2gooC
+qxsuREHNS6IBGqq51ZMvcg3TbVok4GcQ3K2XhQJGwEHanxW/gYkd5nLe0R0jiqxE
+4vCxhvmq79IVdzK7RDT2+IAmkA9e9oZfyzL5hl/dujHnfgVP6jYN1TQOEjkYHrqW
+ESAxMcTrYcNHWbYicVsLdU7V7ZYGAa0zyyDkNR3im9/ZZoflseL0OnKzXy8IrBqt
+s1f7Mzle86qmKIaA5QAryxiy0sgEvqSwwEC+tUwgs9x7guriOfEnZzgqJhtDTe3H
+kU+85hxSygPecBeCXFrPvbXQIrQAZmSZ0m5KKSaKZmeDZ0GRXj+5zp4G+GWvXR3q
+c+8AiE0AZY2Z81myFgf2u+Bh9P86Zsk6YyzlacbEckfFEZK+bxRvO5y7Z2egL2KQ
+ICORiXc+vKQ5//muc5Tb
+=mit0
+-----END PGP SIGNATURE-----
+
+--kHRd/tpU31Zn62xO--
