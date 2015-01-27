@@ -1,95 +1,85 @@
-From: NeilBrown <neilb@suse.de>
-Subject: How to manage SDIO interrupts with a runtime power managed host.
-Date: Tue, 27 Jan 2015 22:47:22 +1100
-Message-ID: <20150127224722.53f4ac83@notabene.brown>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: rx51: do not fail if could not get
+ jack detection gpio
+Date: Tue, 27 Jan 2015 15:27:58 +0200
+Message-ID: <54C7925E.3020303@ti.com>
+References: <1422305507-10533-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/_4sV.wlUWVgapMTP_JtdLOZ"; protocol="application/pgp-signature"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
-Cc: GTA04 owners <gta04-owner@goldelico.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1422305507-10533-1-git-send-email-pali.rohar@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@debian.org>, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/_4sV.wlUWVgapMTP_JtdLOZ
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-
-The (libertas) wifi chip in my GTA04 is connected to an OMAP3 HS_MMC port as
-an SDIO card.
-
-When I configure it (via devicetree) to respond to the SD interrupt line
-(rather than polling for SD interrupts) it doesn't work well at all.
-
-After lots of experimenting and beating my head against a brick wall I have
-finally discovered why.
-
-According to section 7.1.2 of=20
-
-http://www.sandisk.com/media/File/OEM/Manuals/SD_SDIO_specsv1.pdf
-
-    In the case where the interrupt mechanism is used to wake the host while
-    the card is in a low power state (i.e. no clocks), Both the card and the
-    host shall be placed into the 1-bit SD mode prior to stopping the clock.
-
-The omap_hsmmc driver doesn't appear to be aware of this requirement (and I
-cannot see that other host drivers are either). It will turn off the clocks
-for a 4-bit device without first switching to 1-bit.
-
-(The mmc core does switch to 1-bit mode for system suspend, but not for
-runtime suspend).
-
-This requirement exactly explains my observations.  The chip is configured
-for 4-bit mode, and once pm_runtime turns the clocks off, interrupts stop
-being delivered.  Note that the "reconfigure DAT1 as a GPIO" magic is prope=
-rly
-configured.  When something else wakes the chip, the GPIO interrupt handler
-will sometimes run in the small window between the clocks coming back and
-the DAT1 pin being configured back to the default setting.
-
-If I configure the chip as using a 1-bit wide interface, it works perfectly.
-In this configuration it is significantly faster than 4-bit polled mode, but
-somewhat slower than 4-bit interrupt mode with runtime_pm disabled.
-
-I'm open for suggestions on how best to fix this.
-I tried putting code into the pm_runtime_{suspend,resume} callbacks in
-omap_hsmmc.c to switch the bus width, but that doesn't work.  The callbacks
-aren't allowed to sleep, and telling the card to use the new bus width is a
-sleeping operation.
-
-I imagine I could possibly do something similar to MMC_CLKGATE to switch to
-1-bit mode after some idle time, and have the pm_runtime_suspend abort if it
-is still in 4-bit mode.  Would that be a good idea?
-Would it make sense to get mmc_gate_clock to switch bus width (if it is an
-SDIO card with interrupts enabled) rather than having a separate timeout
-thing?
-
-Thoughts?
-
-Thanks,
-NeilBrown
-
---Sig_/_4sV.wlUWVgapMTP_JtdLOZ
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIVAwUBVMd6yjnsnt1WYoG5AQJ71Q/6Aw7OqJWFY2vb3iGnvTLEgfBpHOPn5s+5
-PXBwxh4IO4oCiEg4/f9aitPhflvtZE5kz+Ka+iSCchFLWvafGEz+8QTNi1Cxb880
-XxQnlRzWqZJP7b9Wp3cCtvKaFqzAp5pJyvfZVVM6sIdTaqrzakxpfHfnDxL9O1jd
-gXWy7HbCFNw5TSyO9rVLod5HNfvQUvrNWvA1rae7ggg/YuYauviLv/XqIDpcIfXI
-U5pL9KhevjXSLRRm+7uxhdvkjYLMkwJrtFD+YtkpcCqUekmw1Cm5tMW7pnJ3RSLj
-dErUkLnlgatKVkY8uOgzKFMvwsVBhhdKCIm2f0HPTv1VRaKDlD3nUJ/BdY4814Yk
-+CDgDxH1XjoSGw9Jdq60xCLdZPx64xcMDpBcTp934SJE7jgUPRO8JuXgz231HXZB
-ixumJl5A/HkbVR1d91tRf/xq569oaoYav5M8I/cTfxo34O+KtZgrB17aEPGi0ffr
-xSZWLpYaAuh/5tq17vu84ps2GepFTbf5TczRmDJxhkTgJkD6VGqaaggPW7s0rM4l
-H1e0jPmqUsV439vCK8TvriR1auDX34HmixfamYznlRfLnYfqMVd0W5AAnAln6dIk
-9khKsM9epwXv5fnIt3zPJJbYgxMh52Ldi9Kf3ydRGWUdkYcAT+EnhQqQsJui1Ma3
-kGHTC3buleE=
-=fLA1
------END PGP SIGNATURE-----
-
---Sig_/_4sV.wlUWVgapMTP_JtdLOZ--
+SGksCgpPbiAwMS8yNi8yMDE1IDEwOjUxIFBNLCBQYWxpIFJvaMOhciB3cm90ZToKPiBxZW11IGRv
+ZXMgbm90IGVtdWxhdGUgaXQKCk5vdCBzdXJlIGFib3V0IHRoaXMuLi4gSG93IGRvZXMgcWVtdSBl
+bXVsYXRlIHRsdjMyMGFpYzMxMDYsIHRwYTYxMzBhMmEsIE1jQlNQLApzRE1BIGZvciBhdWRpbyB0
+byB3b3JrPyBXaGF0IGFib3V0IHRoZSBvdGhlciB0aHJlZSBHUElPcyBpbiB0aGlzIG1hY2hpbmUg
+ZHJpdmVyPwoKVGhlICJub2tpYSxuOTAwLWF1ZGlvIiBjb21wYXRpYmxlIG1hbmRhdGVzIHRoYXQg
+dGhlIGphY2stZGV0ZWN0aW9uIEdQSU8gbXVzdApiZSBwcm92aWRlZCAoRG9jdW1lbnRhdGlvbi9k
+ZXZpY2V0cmVlL2JpbmRpbmdzL3NvdW5kL25va2lhLHJ4NTEudHh0KSBzaW5jZSBpdAptZWFucyB0
+aGF0IHRoZSBkcml2ZXIgaXMgcnVubmluZyBvbiB0aGUgTm9raWEgbjkwMCBIVy4KCgo+IFNpZ25l
+ZC1vZmYtYnk6IFBhbGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4KPiAtLS0KPiAgc291
+bmQvc29jL29tYXAvcng1MS5jIHwgICA0NSArKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0t
+LS0tLS0tLS0tLS0tLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDIwIGRl
+bGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2Mvb21hcC9yeDUxLmMgYi9zb3Vu
+ZC9zb2Mvb21hcC9yeDUxLmMKPiBpbmRleCAwNDg5NmQ2Li5hNjg5MDIxIDEwMDY0NAo+IC0tLSBh
+L3NvdW5kL3NvYy9vbWFwL3J4NTEuYwo+ICsrKyBiL3NvdW5kL3NvYy9vbWFwL3J4NTEuYwo+IEBA
+IC0zMTAsMjUgKzMxMCwyNyBAQCBzdGF0aWMgaW50IHJ4NTFfYWljMzRfaW5pdChzdHJ1Y3Qgc25k
+X3NvY19wY21fcnVudGltZSAqcnRkKQo+ICAJCXJldHVybiBlcnI7Cj4gIAl9Cj4gIAo+IC0JLyog
+QVYgamFjayBkZXRlY3Rpb24gKi8KPiAtCWVyciA9IHNuZF9zb2NfamFja19uZXcoY29kZWMsICJB
+ViBKYWNrIiwKPiAtCQkJICAgICAgIFNORF9KQUNLX0hFQURTRVQgfCBTTkRfSkFDS19WSURFT09V
+VCwKPiAtCQkJICAgICAgICZyeDUxX2F2X2phY2spOwo+IC0JaWYgKGVycikgewo+IC0JCWRldl9l
+cnIoY2FyZC0+ZGV2LCAiRmFpbGVkIHRvIGFkZCBBViBKYWNrXG4iKTsKPiAtCQlyZXR1cm4gZXJy
+Owo+IC0JfQo+ICsJaWYgKCFJU19FUlIocGRhdGEtPmphY2tfZGV0ZWN0aW9uX2dwaW8pKSB7Cj4g
+KwkJLyogQVYgamFjayBkZXRlY3Rpb24gKi8KPiArCQllcnIgPSBzbmRfc29jX2phY2tfbmV3KGNv
+ZGVjLCAiQVYgSmFjayIsCj4gKwkJCQkgICAgICAgU05EX0pBQ0tfSEVBRFNFVCB8IFNORF9KQUNL
+X1ZJREVPT1VULAo+ICsJCQkJICAgICAgICZyeDUxX2F2X2phY2spOwo+ICsJCWlmIChlcnIpIHsK
+PiArCQkJZGV2X2VycihjYXJkLT5kZXYsICJGYWlsZWQgdG8gYWRkIEFWIEphY2tcbiIpOwo+ICsJ
+CQlyZXR1cm4gZXJyOwo+ICsJCX0KPiAgCj4gLQkvKiBwcmVwYXJlIGdwaW8gZm9yIHNuZF9zb2Nf
+amFja19hZGRfZ3Bpb3MgKi8KPiAtCXJ4NTFfYXZfamFja19ncGlvc1swXS5ncGlvID0gZGVzY190
+b19ncGlvKHBkYXRhLT5qYWNrX2RldGVjdGlvbl9ncGlvKTsKPiAtCWRldm1fZ3Bpb2RfcHV0KGNh
+cmQtPmRldiwgcGRhdGEtPmphY2tfZGV0ZWN0aW9uX2dwaW8pOwo+ICsJCS8qIHByZXBhcmUgZ3Bp
+byBmb3Igc25kX3NvY19qYWNrX2FkZF9ncGlvcyAqLwo+ICsJCXJ4NTFfYXZfamFja19ncGlvc1sw
+XS5ncGlvID0gZGVzY190b19ncGlvKHBkYXRhLT5qYWNrX2RldGVjdGlvbl9ncGlvKTsKPiArCQlk
+ZXZtX2dwaW9kX3B1dChjYXJkLT5kZXYsIHBkYXRhLT5qYWNrX2RldGVjdGlvbl9ncGlvKTsKPiAg
+Cj4gLQllcnIgPSBzbmRfc29jX2phY2tfYWRkX2dwaW9zKCZyeDUxX2F2X2phY2ssCj4gLQkJCQkg
+ICAgIEFSUkFZX1NJWkUocng1MV9hdl9qYWNrX2dwaW9zKSwKPiAtCQkJCSAgICAgcng1MV9hdl9q
+YWNrX2dwaW9zKTsKPiAtCWlmIChlcnIpIHsKPiAtCQlkZXZfZXJyKGNhcmQtPmRldiwgIkZhaWxl
+ZCB0byBhZGQgR1BJT3NcbiIpOwo+IC0JCXJldHVybiBlcnI7Cj4gKwkJZXJyID0gc25kX3NvY19q
+YWNrX2FkZF9ncGlvcygmcng1MV9hdl9qYWNrLAo+ICsJCQkJCSAgICAgQVJSQVlfU0laRShyeDUx
+X2F2X2phY2tfZ3Bpb3MpLAo+ICsJCQkJCSAgICAgcng1MV9hdl9qYWNrX2dwaW9zKTsKPiArCQlp
+ZiAoZXJyKSB7Cj4gKwkJCWRldl9lcnIoY2FyZC0+ZGV2LCAiRmFpbGVkIHRvIGFkZCBHUElPc1xu
+Iik7Cj4gKwkJCXJldHVybiBlcnI7Cj4gKwkJfQo+ICAJfQo+ICAKPiAgCXJldHVybiBlcnI7Cj4g
+QEAgLTMzNiw4ICszMzgsMTEgQEAgc3RhdGljIGludCByeDUxX2FpYzM0X2luaXQoc3RydWN0IHNu
+ZF9zb2NfcGNtX3J1bnRpbWUgKnJ0ZCkKPiAgCj4gIHN0YXRpYyBpbnQgcng1MV9jYXJkX3JlbW92
+ZShzdHJ1Y3Qgc25kX3NvY19jYXJkICpjYXJkKQo+ICB7Cj4gLQlzbmRfc29jX2phY2tfZnJlZV9n
+cGlvcygmcng1MV9hdl9qYWNrLCBBUlJBWV9TSVpFKHJ4NTFfYXZfamFja19ncGlvcyksCj4gLQkJ
+CQlyeDUxX2F2X2phY2tfZ3Bpb3MpOwo+ICsJc3RydWN0IHJ4NTFfYXVkaW9fcGRhdGEgKnBkYXRh
+ID0gc25kX3NvY19jYXJkX2dldF9kcnZkYXRhKGNhcmQpOwo+ICsKPiArCWlmICghSVNfRVJSKHBk
+YXRhLT5qYWNrX2RldGVjdGlvbl9ncGlvKSkKPiArCQlzbmRfc29jX2phY2tfZnJlZV9ncGlvcygm
+cng1MV9hdl9qYWNrLCBBUlJBWV9TSVpFKHJ4NTFfYXZfamFja19ncGlvcyksCj4gKwkJCQkJcng1
+MV9hdl9qYWNrX2dwaW9zKTsKPiAgCj4gIAlyZXR1cm4gMDsKPiAgfQo+IEBAIC00NzAsOCArNDc1
+LDggQEAgc3RhdGljIGludCByeDUxX3NvY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
+ZGV2KQo+ICAJcGRhdGEtPmphY2tfZGV0ZWN0aW9uX2dwaW8gPSBkZXZtX2dwaW9kX2dldChjYXJk
+LT5kZXYsCj4gIAkJCQkJCSAgICAiamFjay1kZXRlY3Rpb24iKTsKPiAgCWlmIChJU19FUlIocGRh
+dGEtPmphY2tfZGV0ZWN0aW9uX2dwaW8pKSB7Cj4gKwkJLyogRG8gbm90IGZhaWwsIHFlbXUgZG9l
+cyBub3QgZW11bGF0ZSBqYWNrIGRldGVjdGlvbiBncGlvICovCj4gIAkJZGV2X2VycihjYXJkLT5k
+ZXYsICJjb3VsZCBub3QgZ2V0IGphY2sgZGV0ZWN0aW9uIGdwaW9cbiIpOwo+IC0JCXJldHVybiBQ
+VFJfRVJSKHBkYXRhLT5qYWNrX2RldGVjdGlvbl9ncGlvKTsKPiAgCX0KPiAgCj4gIAlwZGF0YS0+
+ZWNpX3N3X2dwaW8gPSBkZXZtX2dwaW9kX2dldChjYXJkLT5kZXYsICJlY2ktc3dpdGNoIik7Cj4g
+CgoKLS0gClDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcK
+aHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2
+ZWwK
