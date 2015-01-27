@@ -1,89 +1,49 @@
-From: "Devshatwar, Nikhil" <nikhil.nd@ti.com>
-Subject: RE: [PATCH] dtc: parser: Add label while overriding nodes
-Date: Tue, 27 Jan 2015 15:11:55 +0000
-Message-ID: <E60A9E1B4132A24DB80BD56ABC92684735043E3E@DBDE04.ent.ti.com>
-References: <1420726362-22555-1-git-send-email-nikhil.nd@ti.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
+Date: Tue, 27 Jan 2015 10:16:24 -0500 (EST)
+Message-ID: <alpine.LFD.2.11.1501271014160.1322@knanqh.ubzr>
+References: <201501232239.55801@pali> <201501232336.36187@pali> <20150126161454.GE28663@atomide.com> <201501261723.10505@pali> <20150126170323.GF28663@atomide.com> <alpine.LFD.2.11.1501261318590.1322@knanqh.ubzr> <20150127133739.GB25306@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37142 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752957AbbA0PMG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2015 10:12:06 -0500
-In-Reply-To: <1420726362-22555-1-git-send-email-nikhil.nd@ti.com>
-Content-Language: en-US
+Received: from mail-qc0-f170.google.com ([209.85.216.170]:44516 "EHLO
+	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888AbbA0PQ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2015 10:16:28 -0500
+Received: by mail-qc0-f170.google.com with SMTP id p6so12388098qcv.1
+        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2015 07:16:27 -0800 (PST)
+In-Reply-To: <20150127133739.GB25306@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Devshatwar, Nikhil" <nikhil.nd@ti.com>, "devicetree-compiler@vger.kernel.org" <devicetree-compiler@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "devicetree-spec@vger.kernel.org" <devicetree-spec@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "grant.likely@linaro.org" <grant.likely@linaro.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Laura Abbott <lauraa@codeaurora.org>
 
-Hi all,
+On Tue, 27 Jan 2015, Pavel Machek wrote:
 
-Does this patch make sense?
+> 
+> > > > I would say, problem is because omap3-n900 binary DT is too large
+> > 
+> > I agree.
+> > 
+> > > OK if that's the case, then your patch makes sense to me. It also
+> > > seems we can have the temporary stack be larger than the initial
+> > > stack just for atags_to_fdt.
+> > 
+> > The stack size isn't the issue, but rather its location.  We need to 
+> > position it away from the DT data.  The DT size is known and we could 
+> > use that, plus some room for the insertion of new data coming from the
+> > ATAG conversion.
+> > 
+> > Something like the following would be a more robust solution:
+> 
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> 
+> (Note, that in 3.19 dts for n900 got too big, so we are actually
+> triggering old bugs. That means that this is a regression fix, and
+> should go in ASAP).
 
-> -----Original Message-----
-> From: Devshatwar, Nikhil
-> Sent: Thursday, January 08, 2015 7:43 PM
-> To: devicetree-compiler@vger.kernel.org; devicetree@vger.kernel.org;
-> devicetree-spec@vger.kernel.org; linux-omap@vger.kernel.org
-> Cc: Devshatwar, Nikhil
-> Subject: [PATCH] dtc: parser: Add label while overriding nodes
-> 
-> Current device tree compiler allows to define multiple labels when
-> defining the device node the first time. Typically device nodes are
-> defined in DTSI files. Now these nodes can be overriden for updating
-> some of the properties. Typically, device nodes are overridden in DTS
-> files.
-> 
-> When working with adapter boards, most of the time adapter board can
-> fit to multiple base boards. But depending on which base board it is
-> connected to, the devices on the adapter board would be children of
-> different devices.
-> 
-> e.g. On dra7-evm.dts, i2c2 is exported for expansion connector whereas
-> on dra72-evm.dts, i2c5 is exported for expansion connector.
-> This causes a problem when writing a generic device tree file for the
-> adapter board. Because, you cannot know wheather all the devices on
-> adpter board are present on i2c or i2c5.
-> 
-> The problem can be solved by adding a common label (e.g. i2cexp) in
-> both of the DTS files when overriding the device nodes for i2c2 or
-> i2c5.
-> This way, generic adapter board file would override the i2cexp. And
-> depending on which base board you use the adpter board, all the devices
-> are automatically added for correct device nodes.
-> 
-> Change-Id: I3ad7247a79baed7268a91fc691360aece73d6d1b
-> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> ---
->  scripts/dtc/dtc-parser.y |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/scripts/dtc/dtc-parser.y b/scripts/dtc/dtc-parser.y index
-> f412460..d9ed3b7 100644
-> --- a/scripts/dtc/dtc-parser.y
-> +++ b/scripts/dtc/dtc-parser.y
-> @@ -145,6 +145,18 @@ devicetree:
->  		{
->  			$$ = merge_nodes($1, $3);
->  		}
-> +
-> +	| devicetree DT_LABEL DT_REF nodedef
-> +		{
-> +			struct node *target = get_node_by_ref($1, $3);
-> +
-> +			add_label(&target->labels, $2);
-> +			if (target)
-> +				merge_nodes(target, $4);
-> +			else
-> +				print_error("label or path, '%s', not found",
-> $2);
-> +			$$ = $1;
-> +		}
->  	| devicetree DT_REF nodedef
->  		{
->  			struct node *target = get_node_by_ref($1, $2);
-> --
-> 1.7.9.5
+It is queued here:
+http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8294/1
 
+
+Nicolas
