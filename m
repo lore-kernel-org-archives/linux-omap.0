@@ -1,85 +1,91 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 v3.19-rc5 arm atags_to_fdt.c is broken
-Date: Wed, 28 Jan 2015 00:17:11 +0100
-Message-ID: <20150127231711.GB27641@amd>
-References: <201501232239.55801@pali>
- <201501232336.36187@pali>
- <20150126161454.GE28663@atomide.com>
- <201501261723.10505@pali>
- <20150126170323.GF28663@atomide.com>
- <alpine.LFD.2.11.1501261318590.1322@knanqh.ubzr>
- <20150127133739.GB25306@amd>
- <alpine.LFD.2.11.1501271014160.1322@knanqh.ubzr>
- <20150127175359.GE11502@n2100.arm.linux.org.uk>
- <alpine.LFD.2.11.1501271309450.1322@knanqh.ubzr>
+From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] dtc: parser: Add label while overriding nodes
+Date: Tue, 27 Jan 2015 17:34:31 -0600
+Message-ID: <CAL_Jsq+w7R=99qPc+YG_Bh1L-nMs1Gptjwo=KYTK5OX2HVVNpA@mail.gmail.com>
+References: <1420726362-22555-1-git-send-email-nikhil.nd@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1501271309450.1322@knanqh.ubzr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-arm-kernel@lists.infradead.org, Laura Abbott <lauraa@codeaurora.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-compiler-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1420726362-22555-1-git-send-email-nikhil.nd-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-compiler-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-compiler-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-spec-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-spec-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 2015-01-27 13:50:22, Nicolas Pitre wrote:
-> On Tue, 27 Jan 2015, Russell King - ARM Linux wrote:
-> 
-> > On Tue, Jan 27, 2015 at 10:16:24AM -0500, Nicolas Pitre wrote:
-> > > On Tue, 27 Jan 2015, Pavel Machek wrote:
-> > > > (Note, that in 3.19 dts for n900 got too big, so we are actually
-> > > > triggering old bugs. That means that this is a regression fix, and
-> > > > should go in ASAP).
-> > > 
-> > > It is queued here:
-> > > http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8294/1
-> > 
-> > Irrespective of that patch, I commented on another thread (about adding
-> > the serial number to DT):
-> > 
-> > | How about something a little more radical.
-> > | 
-> > | Rather than trying to squeeze various ATAGs into DT, why don't we add a
-> > | standard ATAG to contain the DT and pass that through into the kernel.
-> > | This is IMHO how we _should_ have done the ATAG compatibility from the
-> > | start.
-> > | 
-> > | That means we could get rid of most of the libfdt in the decompressor,
-> > | and instead resolve the differences in the kernel.
-> > 
-> > That would allow us to get rid of all the FDT compatibility code in the
-> > decompressor, and when we encounter these special ATAGs, we can deal with
-> > them in the kernel instead of having to mess around with the DT.  I'd
-> > also assume (although I haven't checked) that it would be much easier to
-> > add additional DT properties in the kernel environment, rather than in
-> > the rather restrictive decompressor environment.
-> 
-> Well...
-> 
-> I was initially against any ATAG-to-DT compatibility at all.  IMHO the 
-> "right" solution is to update the bootloader.
-> 
-> However people complained that updating the bootloader wasn't possible. 
-> I therefore suggested they go with a shim layer I termed the "impedance 
-> matcher" acting like an intermediate boot stage converting their (often 
-> unofficial and out-of-tree) ATAGs into proper DT nodes.  Some people did 
-> exactly that and it works wonderfully for them. It also works 
-> wonderfully for kernel maintenance as the platform specific tweaks are 
-> kept out of the kernel tree.
-> 
-> Still, that wasn't good enough for some cases as the move to DT 
-> regressed some platforms that just used to work before.  Concatenating a 
-> DTB to zImage was tolerable but installing an additional shim layer was 
-> too much.  Hence the ATAG-to-DT compat code in the decompressor.  This 
-> was meant to smooth things around the transition to DT, etc.  After all, 
-> those devices with non-replaceable bootloaders where shim layers are not 
-> possible should get out of commission eventually?
+On Thu, Jan 8, 2015 at 8:12 AM, Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org> wrote:
+> Current device tree compiler allows to define multiple labels when defining
+> the device node the first time. Typically device nodes are defined in
+> DTSI files. Now these nodes can be overriden for updating some of the
+> properties. Typically, device nodes are overridden in DTS files.
+>
+> When working with adapter boards, most of the time adapter board can fit to
+> multiple base boards. But depending on which base board it is connected to,
+> the devices on the adapter board would be children of different devices.
+>
+> e.g. On dra7-evm.dts, i2c2 is exported for expansion connector whereas
+> on dra72-evm.dts, i2c5 is exported for expansion connector.
+> This causes a problem when writing a generic device tree file for
+> the adapter board. Because, you cannot know wheather all the devices on
 
-N900 is still phone that is best-supported by the mainline,
-AFAICT. Yes, it is rather sad, but it means that no, it is probably
-not going out of commission anytime soon.
+s/wheather/whether/
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> adpter board are present on i2c or i2c5.
+
+s/adpter/adapter/
+
+> The problem can be solved by adding a common label (e.g. i2cexp) in both
+> of the DTS files when overriding the device nodes for i2c2 or i2c5.
+> This way, generic adapter board file would override the i2cexp. And
+> depending on which base board you use the adpter board, all the devices
+
+s/adpter/adapter/
+
+> are automatically added for correct device nodes.
+>
+> Change-Id: I3ad7247a79baed7268a91fc691360aece73d6d1b
+
+Get rid of this Gerrit nonsense.
+
+> Signed-off-by: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
+> ---
+>  scripts/dtc/dtc-parser.y |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+
+You need to send this against upstream dtc, not the copy in the kernel.
+
+Seems like a reasonable change, but I'm not too familar with dtc source.
+
+> diff --git a/scripts/dtc/dtc-parser.y b/scripts/dtc/dtc-parser.y
+> index f412460..d9ed3b7 100644
+> --- a/scripts/dtc/dtc-parser.y
+> +++ b/scripts/dtc/dtc-parser.y
+> @@ -145,6 +145,18 @@ devicetree:
+>                 {
+>                         $$ = merge_nodes($1, $3);
+>                 }
+> +
+> +       | devicetree DT_LABEL DT_REF nodedef
+> +               {
+> +                       struct node *target = get_node_by_ref($1, $3);
+> +
+> +                       add_label(&target->labels, $2);
+> +                       if (target)
+> +                               merge_nodes(target, $4);
+> +                       else
+> +                               print_error("label or path, '%s', not found", $2);
+> +                       $$ = $1;
+> +               }
+>         | devicetree DT_REF nodedef
+>                 {
+>                         struct node *target = get_node_by_ref($1, $2);
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree-compiler" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
