@@ -1,147 +1,202 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 08/14] OMAPDSS: DSS: Add DRA7xx base support
-Date: Tue, 27 Jan 2015 12:50:36 +0200
-Message-ID: <1422355842-11234-9-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 09/14] OMAPDSS: Add functions for external control of PLL
+Date: Tue, 27 Jan 2015 12:50:37 +0200
+Message-ID: <1422355842-11234-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1422355842-11234-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56824 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56825 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755987AbbA0KvG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Jan 2015 05:51:06 -0500
+	id S1757812AbbA0KvH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Jan 2015 05:51:07 -0500
 In-Reply-To: <1422355842-11234-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add base support for DRA7xx to DSS core.
+Add functions which configure the control module register
+CTRL_CORE_DSS_PLL_CONTROL found in DRA7xx SoCs. This register configures
+whether the PLL registers are accessed internally by DSS, or externally
+using OCP2SCP interface. They also configure muxes which route the PLL
+output to a particular LCD overlay manager within DSS.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dss.c               | 40 +++++++++++++++++++++++
- drivers/video/fbdev/omap2/dss/dss.h               |  2 ++
- drivers/video/fbdev/omap2/dss/dss_features.c      |  1 +
- drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |  1 +
- 4 files changed, 44 insertions(+)
+ drivers/video/fbdev/omap2/dss/dss.c | 115 ++++++++++++++++++++++++++++++++++++
+ drivers/video/fbdev/omap2/dss/dss.h |   4 ++
+ 2 files changed, 119 insertions(+)
 
 diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index 1884c29ef482..8c79839fbe87 100644
+index 8c79839fbe87..d75238f2c537 100644
 --- a/drivers/video/fbdev/omap2/dss/dss.c
 +++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -605,6 +605,26 @@ static int dss_dpi_select_source_omap5(int port, enum omap_channel channel)
- 	return 0;
- }
+@@ -34,6 +34,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/gfp.h>
+ #include <linux/sizes.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
+ #include <linux/of.h>
  
-+static int dss_dpi_select_source_dra7xx(int port, enum omap_channel channel)
+ #include <video/omapdss.h>
+@@ -78,6 +80,8 @@ struct dss_features {
+ static struct {
+ 	struct platform_device *pdev;
+ 	void __iomem    *base;
++	struct regmap	*syscon_pll_ctrl;
++	u32		syscon_pll_ctrl_offset;
+ 
+ 	struct clk	*parent_clk;
+ 	struct clk	*dss_clk;
+@@ -158,6 +162,99 @@ static void dss_restore_context(void)
+ #undef SR
+ #undef RR
+ 
++void dss_ctrl_pll_enable(enum dss_pll_id pll_id, bool enable)
 +{
-+	switch (port) {
-+	case 0:
-+		return dss_dpi_select_source_omap5(port, channel);
-+	case 1:
-+		if (channel != OMAP_DSS_CHANNEL_LCD2)
-+			return -EINVAL;
++	unsigned shift;
++	unsigned val;
++
++	if (!dss.syscon_pll_ctrl)
++		return;
++
++	val = !enable;
++
++	switch (pll_id) {
++	case DSS_PLL_VIDEO1:
++		shift = 0;
 +		break;
-+	case 2:
-+		if (channel != OMAP_DSS_CHANNEL_LCD3)
-+			return -EINVAL;
++	case DSS_PLL_VIDEO2:
++		shift = 1;
++		break;
++	case DSS_PLL_HDMI:
++		shift = 2;
 +		break;
 +	default:
-+		return -EINVAL;
++		DSSERR("illegal DSS PLL ID %d\n", pll_id);
++		return;
 +	}
 +
-+	return 0;
++	regmap_update_bits(dss.syscon_pll_ctrl, dss.syscon_pll_ctrl_offset,
++		1 << shift, val << shift);
 +}
 +
- int dss_dpi_select_source(int port, enum omap_channel channel)
- {
- 	return dss.feat->dpi_select_source(port, channel);
-@@ -686,6 +706,12 @@ static const enum omap_display_type omap34xx_ports[] = {
- 	OMAP_DISPLAY_TYPE_SDI,
- };
- 
-+static const enum omap_display_type dra7xx_ports[] = {
-+	OMAP_DISPLAY_TYPE_DPI,
-+	OMAP_DISPLAY_TYPE_DPI,
-+	OMAP_DISPLAY_TYPE_DPI,
-+};
++void dss_ctrl_pll_set_control_mux(enum dss_pll_id pll_id,
++	enum omap_channel channel)
++{
++	unsigned shift, val;
 +
- static const struct dss_features omap24xx_dss_feats __initconst = {
- 	/*
- 	 * fck div max is really 16, but the divider range has gaps. The range
-@@ -744,6 +770,15 @@ static const struct dss_features am43xx_dss_feats __initconst = {
- 	.num_ports		=	ARRAY_SIZE(omap2plus_ports),
- };
- 
-+static const struct dss_features dra7xx_dss_feats __initconst = {
-+	.fck_div_max		=	64,
-+	.dss_fck_multiplier	=	1,
-+	.parent_clk_name	=	"dpll_per_x2_ck",
-+	.dpi_select_source	=	&dss_dpi_select_source_dra7xx,
-+	.ports			=	dra7xx_ports,
-+	.num_ports		=	ARRAY_SIZE(dra7xx_ports),
-+};
++	if (!dss.syscon_pll_ctrl)
++		return;
 +
- static int __init dss_init_features(struct platform_device *pdev)
- {
- 	const struct dss_features *src;
-@@ -784,6 +819,10 @@ static int __init dss_init_features(struct platform_device *pdev)
- 		src = &am43xx_dss_feats;
- 		break;
- 
-+	case OMAPDSS_VER_DRA7xx:
-+		src = &dra7xx_dss_feats;
++	switch (channel) {
++	case OMAP_DSS_CHANNEL_LCD:
++		shift = 3;
++
++		switch (pll_id) {
++		case DSS_PLL_VIDEO1:
++			val = 0; break;
++		case DSS_PLL_HDMI:
++			val = 1; break;
++		default:
++			DSSERR("error in PLL mux config for LCD\n");
++			return;
++		}
++
 +		break;
++	case OMAP_DSS_CHANNEL_LCD2:
++		shift = 5;
 +
- 	default:
- 		return -ENODEV;
- 	}
-@@ -1003,6 +1042,7 @@ static const struct of_device_id dss_of_match[] = {
- 	{ .compatible = "ti,omap3-dss", },
- 	{ .compatible = "ti,omap4-dss", },
- 	{ .compatible = "ti,omap5-dss", },
-+	{ .compatible = "ti,dra7-dss", },
- 	{},
- };
++		switch (pll_id) {
++		case DSS_PLL_VIDEO1:
++			val = 0; break;
++		case DSS_PLL_VIDEO2:
++			val = 1; break;
++		case DSS_PLL_HDMI:
++			val = 2; break;
++		default:
++			DSSERR("error in PLL mux config for LCD2\n");
++			return;
++		}
++
++		break;
++	case OMAP_DSS_CHANNEL_LCD3:
++		shift = 7;
++
++		switch (pll_id) {
++		case DSS_PLL_VIDEO1:
++			val = 1; break;
++		case DSS_PLL_VIDEO2:
++			val = 0; break;
++		case DSS_PLL_HDMI:
++			val = 2; break;
++		default:
++			DSSERR("error in PLL mux config for LCD3\n");
++			return;
++		}
++
++		break;
++	default:
++		DSSERR("error in PLL mux config\n");
++		return;
++	}
++
++	regmap_update_bits(dss.syscon_pll_ctrl, dss.syscon_pll_ctrl_offset,
++		0x3 << shift, val << shift);
++}
++
+ void dss_sdi_init(int datapairs)
+ {
+ 	u32 l;
+@@ -923,6 +1020,7 @@ static void __exit dss_uninit_ports(struct platform_device *pdev)
+ static int __init omap_dsshw_probe(struct platform_device *pdev)
+ {
+ 	struct resource *dss_mem;
++	struct device_node *np = pdev->dev.of_node;
+ 	u32 rev;
+ 	int r;
  
+@@ -979,6 +1077,23 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
+ 
+ 	dss_init_ports(pdev);
+ 
++	if (np && of_property_read_bool(np, "syscon-pll-ctrl")) {
++		dss.syscon_pll_ctrl = syscon_regmap_lookup_by_phandle(np,
++			"syscon-pll-ctrl");
++		if (IS_ERR(dss.syscon_pll_ctrl)) {
++			dev_err(&pdev->dev,
++				"failed to get syscon-pll-ctrl regmap\n");
++			return PTR_ERR(dss.syscon_pll_ctrl);
++		}
++
++		if (of_property_read_u32_index(np, "syscon-pll-ctrl", 1,
++				&dss.syscon_pll_ctrl_offset)) {
++			dev_err(&pdev->dev,
++				"failed to get syscon-pll-ctrl offset\n");
++			return -EINVAL;
++		}
++	}
++
+ 	rev = dss_read_reg(DSS_REVISION);
+ 	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
+ 			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
 diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/omap2/dss/dss.h
-index d6c9c3d3db14..4bca36a591ca 100644
+index 4bca36a591ca..76a6eb1da090 100644
 --- a/drivers/video/fbdev/omap2/dss/dss.h
 +++ b/drivers/video/fbdev/omap2/dss/dss.h
-@@ -104,6 +104,8 @@ enum dss_pll_id {
- 	DSS_PLL_DSI1,
- 	DSS_PLL_DSI2,
- 	DSS_PLL_HDMI,
-+	DSS_PLL_VIDEO1,
-+	DSS_PLL_VIDEO2,
- };
+@@ -274,6 +274,10 @@ u32 dss_of_port_get_port_number(struct device_node *port);
+ void dss_debug_dump_clocks(struct seq_file *s);
+ #endif
  
- struct dss_pll;
-diff --git a/drivers/video/fbdev/omap2/dss/dss_features.c b/drivers/video/fbdev/omap2/dss/dss_features.c
-index 0e6f3f54749f..376270b777f8 100644
---- a/drivers/video/fbdev/omap2/dss/dss_features.c
-+++ b/drivers/video/fbdev/omap2/dss/dss_features.c
-@@ -943,6 +943,7 @@ void dss_features_init(enum omapdss_version version)
- 		break;
- 
- 	case OMAPDSS_VER_OMAP5:
-+	case OMAPDSS_VER_DRA7xx:
- 		omap_current_dss_features = &omap5_dss_features;
- 		break;
- 
-diff --git a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-index 2f0822ee3ff9..42b87f95267c 100644
---- a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-+++ b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-@@ -186,6 +186,7 @@ static const struct of_device_id omapdss_of_match[] __initconst = {
- 	{ .compatible = "ti,omap3-dss", },
- 	{ .compatible = "ti,omap4-dss", },
- 	{ .compatible = "ti,omap5-dss", },
-+	{ .compatible = "ti,dra7-dss", },
- 	{},
- };
- 
++void dss_ctrl_pll_enable(enum dss_pll_id pll_id, bool enable);
++void dss_ctrl_pll_set_control_mux(enum dss_pll_id pll_id,
++	enum omap_channel channel);
++
+ void dss_sdi_init(int datapairs);
+ int dss_sdi_enable(void);
+ void dss_sdi_disable(void);
 -- 
 2.2.2
 
