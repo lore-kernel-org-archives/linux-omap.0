@@ -1,111 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix dm816x pinctrl and syscon so they are children
- of SCM
-Date: Mon, 26 Jan 2015 18:02:55 -0800
-Message-ID: <20150127020254.GI7696@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/2] omap non-urgent fixes for v3.20, part 2
+Date: Mon, 26 Jan 2015 20:29:01 -0800
+Message-ID: <20150127042901.GJ22154@quad.lixom.net>
+References: <54c6ad8d.8182440a.13ff.15c1SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.ore.mailhop.org ([54.149.88.251]:38007 "EHLO
-	smtp3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756391AbbA0CGH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 21:06:07 -0500
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:58372 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbbA0E3A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2015 23:29:00 -0500
+Received: by mail-pa0-f54.google.com with SMTP id eu11so15919220pac.13
+        for <linux-omap@vger.kernel.org>; Mon, 26 Jan 2015 20:28:59 -0800 (PST)
 Content-Disposition: inline
+In-Reply-To: <54c6ad8d.8182440a.13ff.15c1SMTPIN_ADDED_BROKEN@mx.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 21 Jan 2015 16:21:52 -0800
-Subject: [PATCH] ARM: dts: Fix dm816x pinctrl and syscon so they are children of SCM
+On Mon, Jan 26, 2015 at 01:08:18PM -0800, Tony Lindgren wrote:
+> The following changes since commit 13efcb188984f69e1f97b4d9e7d3663fb782946f:
+> 
+>   ARM: OMAP2+: Disable omap3 PM init for ti81xx (2015-01-14 17:37:16 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/fixes-not-urgent-pt2
+> 
+> for you to fetch changes up to 20d9448a59770420ead8078fb76948de32765fe6:
+> 
+>   Merge tag 'for-v3.20/omap-hwmod-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.20/fixes-not-urgent (2015-01-21 16:52:17 -0800)
+> 
+> ----------------------------------------------------------------
+> Non-critical fixes for omap hwmod code via Paul Walmsley <paul@pwsan.com>:
+> 
+> First set of OMAP2+ hwmod patches for Linux v3.20.  These are mostly
+> fixes for warnings, although there's one DRA7xx patch that fixes
+> CONFIG_DEBUG_LL for AM572x/DRA7xx SoCs that use UART3 for console,
+> such as the BeagleBoard-X15.
+> 
+> These patches entered Linux-next starting with the next-20150121 tag.
+> 
+> Basic build, boot, and PM test results can be found here:
+> 
+> http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v3.20/20150121142621/
 
-Looks like I only got half done with moving pinctrl and syscon to
-be children of the SCM. I've set up the FAPLL clocks that way already,
-but did not complete the job as I copied the syscon values from
-am33xx.dtsi.
+Merged, thanks.
 
-To make sure the syscon mapping works, I've verfified that we can
-set up davinci_emac mac address the same way as cpsw already does
-with the syscon mapping. So let's add that too.
-
-Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -50,15 +50,6 @@
- 		};
- 	};
- 
--	dm816x_pinmux: pinmux@44e10800 {
--		compatible = "pinctrl-single";
--		reg = <0x48140800 0x50a>;
--		#address-cells = <1>;
--		#size-cells = <0>;
--		pinctrl-single,register-width = <16>;
--		pinctrl-single,function-mask = <0xf>;
--	};
--
- 	/*
- 	 * XXX: Use a flat representation of the dm816x interconnect.
- 	 * The real dm816x interconnect network is quite complex. Since
-@@ -89,12 +80,29 @@
- 		};
- 
- 		scrm: scrm@48140000 {
--			compatible = "ti,dm816-scrm";
-+			compatible = "ti,dm816-scrm", "simple-bus";
- 			reg = <0x48140000 0x21000>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0 0x48140000 0x21000>;
- 
-+			dm816x_pinmux: pinmux@800 {
-+				compatible = "pinctrl-single";
-+				reg = <0x800 0x50a>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				pinctrl-single,register-width = <16>;
-+				pinctrl-single,function-mask = <0xf>;
-+			};
-+
-+			/* Device Configuration Registers */
-+			scm_conf: syscon@600 {
-+				compatible = "syscon";
-+				reg = <0x600 0x110>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+			};
-+
- 			scrm_clocks: clocks {
- 				#address-cells = <1>;
- 				#size-cells = <0>;
-@@ -104,11 +112,6 @@
- 			};
- 		};
- 
--		cm: syscon@44e10000 {
--			compatible = "ti,am33xx-controlmodule", "syscon";
--			reg = <0x44e10000 0x800>;
--		};
--
- 		edma: edma@49000000 {
- 			compatible = "ti,edma3";
- 			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2", "tptc3";
-@@ -213,6 +216,7 @@
- 			reg = <0x4a100000 0x800
- 			       0x4a100900 0x3700>;
- 			clocks = <&sysclk24_ck>;
-+			syscon = <&scm_conf>;
- 			ti,davinci-ctrl-reg-offset = <0>;
- 			ti,davinci-ctrl-mod-reg-offset = <0x900>;
- 			ti,davinci-ctrl-ram-offset = <0x2000>;
-@@ -226,6 +230,7 @@
- 			ti,hwmods = "emac1";
- 			reg = <0x4a120000 0x4000>;
- 			clocks = <&sysclk24_ck>;
-+			syscon = <&scm_conf>;
- 			ti,davinci-ctrl-reg-offset = <0>;
- 			ti,davinci-ctrl-mod-reg-offset = <0x900>;
- 			ti,davinci-ctrl-ram-offset = <0x2000>;
+-Olof
