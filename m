@@ -1,239 +1,89 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ASoC: rx51: do not fail if could not get
-	jack detection gpio
-Date: Tue, 27 Jan 2015 15:11:08 +0100
-Message-ID: <201501271511.08933@pali>
-References: <1422305507-10533-1-git-send-email-pali.rohar@gmail.com>
- <20150127133227.GA25306@amd> <54C79597.40105@ti.com>
+From: "Devshatwar, Nikhil" <nikhil.nd@ti.com>
+Subject: RE: [PATCH] dtc: parser: Add label while overriding nodes
+Date: Tue, 27 Jan 2015 15:11:55 +0000
+Message-ID: <E60A9E1B4132A24DB80BD56ABC92684735043E3E@DBDE04.ent.ti.com>
+References: <1420726362-22555-1-git-send-email-nikhil.nd@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2117644645418045516=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <54C79597.40105@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
-List-Id: linux-omap@vger.kernel.org
-
---===============2117644645418045516==
-Content-Type: multipart/signed;
-  boundary="nextPart45888121.xkTpboom37";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-
---nextPart45888121.xkTpboom37
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tuesday 27 January 2015 14:41:43 Peter Ujfalusi wrote:
-> On 01/27/2015 03:32 PM, Pavel Machek wrote:
-> > On Tue 2015-01-27 15:27:58, Peter Ujfalusi wrote:
-> >> Hi,
-> >>=20
-> >> On 01/26/2015 10:51 PM, Pali Roh=C3=A1r wrote:
-> >>> qemu does not emulate it
-> >>=20
-> >> Not sure about this... How does qemu emulate tlv320aic3106,
-> >> tpa6130a2a, McBSP, sDMA for audio to work? What about the
-> >> other three GPIOs in this machine driver?
-> >>=20
-
-No idea, but with my patch rx51-audio loads without any problem.
-
-> >> The "nokia,n900-audio" compatible mandates that the
-> >> jack-detection GPIO must be provided
-> >> (Documentation/devicetree/bindings/sound/nokia,rx51.txt)
-> >> since it means that the driver is running on the Nokia
-> >> n900 HW.
-> >=20
-> > Fix the documentation, then :-).
->=20
-> You mean document a workaround for qemu, right? AFAIK the
-> documentation is fine ;)
->=20
-> > [Actually, GPIO is provided, it just can't be requested,
-> > AFAICT.]
->=20
-> So what about the other GPIOs in the machine driver? Why is
-> this jack-detection GPIO is special for qemu?
->=20
-
-Qemu does not detect it and cause rx51-audio driver to fail.
-
-> > It is quite important to keep qemu working, really.
-> > Debugging early boot on hardware is very hard, for example.
->=20
-> I understand, but looking at the history of the driver, if it
-> fails now with the jack-detection GPIO, it should have been
-> failing in the past as well. What triggered this sudden qemu
-> does not like jack-detection GPIO? Before the
-> devm_gpiod_get() conversion the driver should have failed in
-> snd_soc_jack_add_gpios() phase.
->=20
-
-With 3.12 kernel rx51-audio driver loads without any problem. So=20
-there is some regression. Here is dmesg log from 3.12 kernel:
-
-[    1.123779] rx51-audio rx51-audio:  tlv320aic3x-hifi <-> omap-
-mcbsp.2 mapping ok
-[    1.130737] tlv320aic3x-codec 2-0019: ASoC: mux b Right Line1L=20
-Mux has no paths
-[    1.131347] tlv320aic3x-codec 2-0019: ASoC: mux b Left Line1R=20
-Mux has no paths
-[    1.133697] tlv320aic3x-codec 2-0018: ASoC: mux Right Line1L=20
-Mux has no paths
-[    1.134307] tlv320aic3x-codec 2-0018: ASoC: mux Left Line1R=20
-Mux has no paths
-[    1.137451] input: RX-51 AV Jack as /devices/platform/rx51-
-audio/sound/card0/input2
-
-I will try to investigate where is problem...
-
-> > And yes, some day we may need different dts for n900-qemu
-> > (vs. n900-hw), but lets not do it just yet.
-> >=20
-> > 							Pavel
-> >>>=20
-> >>> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> >>> ---
-> >>>=20
-> >>>  sound/soc/omap/rx51.c |   45
-> >>>  +++++++++++++++++++++++++-------------------- 1 file
-> >>>  changed, 25 insertions(+), 20 deletions(-)
-> >>>=20
-> >>> diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-> >>> index 04896d6..a689021 100644
-> >>> --- a/sound/soc/omap/rx51.c
-> >>> +++ b/sound/soc/omap/rx51.c
-> >>> @@ -310,25 +310,27 @@ static int rx51_aic34_init(struct
-> >>> snd_soc_pcm_runtime *rtd)
-> >>>=20
-> >>>  		return err;
-> >>>  =09
-> >>>  	}
-> >>>=20
-> >>> -	/* AV jack detection */
-> >>> -	err =3D snd_soc_jack_new(codec, "AV Jack",
-> >>> -			       SND_JACK_HEADSET | SND_JACK_VIDEOOUT,
-> >>> -			       &rx51_av_jack);
-> >>> -	if (err) {
-> >>> -		dev_err(card->dev, "Failed to add AV Jack\n");
-> >>> -		return err;
-> >>> -	}
-> >>> +	if (!IS_ERR(pdata->jack_detection_gpio)) {
-> >>> +		/* AV jack detection */
-> >>> +		err =3D snd_soc_jack_new(codec, "AV Jack",
-> >>> +				       SND_JACK_HEADSET |=20
-SND_JACK_VIDEOOUT,
-> >>> +				       &rx51_av_jack);
-> >>> +		if (err) {
-> >>> +			dev_err(card->dev, "Failed to add AV Jack\n");
-> >>> +			return err;
-> >>> +		}
-> >>>=20
-> >>> -	/* prepare gpio for snd_soc_jack_add_gpios */
-> >>> -	rx51_av_jack_gpios[0].gpio =3D
-> >>> desc_to_gpio(pdata->jack_detection_gpio);
-> >>> -	devm_gpiod_put(card->dev, pdata->jack_detection_gpio);
-> >>> +		/* prepare gpio for snd_soc_jack_add_gpios */
-> >>> +		rx51_av_jack_gpios[0].gpio =3D
-> >>> desc_to_gpio(pdata->jack_detection_gpio);
-> >>> +		devm_gpiod_put(card->dev, pdata-
->jack_detection_gpio);
-> >>>=20
-> >>> -	err =3D snd_soc_jack_add_gpios(&rx51_av_jack,
-> >>> -				     ARRAY_SIZE(rx51_av_jack_gpios),
-> >>> -				     rx51_av_jack_gpios);
-> >>> -	if (err) {
-> >>> -		dev_err(card->dev, "Failed to add GPIOs\n");
-> >>> -		return err;
-> >>> +		err =3D snd_soc_jack_add_gpios(&rx51_av_jack,
-> >>> +					     ARRAY_SIZE(rx51_av_jack_gpios),
-> >>> +					     rx51_av_jack_gpios);
-> >>> +		if (err) {
-> >>> +			dev_err(card->dev, "Failed to add GPIOs\n");
-> >>> +			return err;
-> >>> +		}
-> >>>=20
-> >>>  	}
-> >>>  =09
-> >>>  	return err;
-> >>>=20
-> >>> @@ -336,8 +338,11 @@ static int rx51_aic34_init(struct
-> >>> snd_soc_pcm_runtime *rtd)
-> >>>=20
-> >>>  static int rx51_card_remove(struct snd_soc_card *card)
-> >>>  {
-> >>>=20
-> >>> -	snd_soc_jack_free_gpios(&rx51_av_jack,
-> >>> ARRAY_SIZE(rx51_av_jack_gpios), -			=09
-rx51_av_jack_gpios);
-> >>> +	struct rx51_audio_pdata *pdata =3D
-> >>> snd_soc_card_get_drvdata(card); +
-> >>> +	if (!IS_ERR(pdata->jack_detection_gpio))
-> >>> +		snd_soc_jack_free_gpios(&rx51_av_jack,
-> >>> ARRAY_SIZE(rx51_av_jack_gpios),
-> >>> +					rx51_av_jack_gpios);
-> >>>=20
-> >>>  	return 0;
-> >>> =20
-> >>>  }
-> >>>=20
-> >>> @@ -470,8 +475,8 @@ static int rx51_soc_probe(struct
-> >>> platform_device *pdev)
-> >>>=20
-> >>>  	pdata->jack_detection_gpio =3D devm_gpiod_get(card->dev,
-> >>>  =09
-> >>>  						    "jack-detection");
-> >>>  =09
-> >>>  	if (IS_ERR(pdata->jack_detection_gpio)) {
-> >>>=20
-> >>> +		/* Do not fail, qemu does not emulate jack=20
-detection
-> >>> gpio */
-> >>>=20
-> >>>  		dev_err(card->dev, "could not get jack detection
-> >>>  		gpio\n");
-> >>>=20
-> >>> -		return PTR_ERR(pdata->jack_detection_gpio);
-> >>>=20
-> >>>  	}
-> >>>  =09
-> >>>  	pdata->eci_sw_gpio =3D devm_gpiod_get(card->dev,
-> >>>  	"eci-switch");
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart45888121.xkTpboom37
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTHnHwACgkQi/DJPQPkQ1JtCwCgk1/FFqcGzgc3yP2ggkVtP7Cw
-PX4AoJ7rkEmZjxO8SODcoculYO46Ih+1
-=aJwa
------END PGP SIGNATURE-----
-
---nextPart45888121.xkTpboom37--
-
---===============2117644645418045516==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37142 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752957AbbA0PMG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2015 10:12:06 -0500
+In-Reply-To: <1420726362-22555-1-git-send-email-nikhil.nd@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: "Devshatwar, Nikhil" <nikhil.nd@ti.com>, "devicetree-compiler@vger.kernel.org" <devicetree-compiler@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "devicetree-spec@vger.kernel.org" <devicetree-spec@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "grant.likely@linaro.org" <grant.likely@linaro.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>
 
+Hi all,
 
---===============2117644645418045516==--
+Does this patch make sense?
+
+> -----Original Message-----
+> From: Devshatwar, Nikhil
+> Sent: Thursday, January 08, 2015 7:43 PM
+> To: devicetree-compiler@vger.kernel.org; devicetree@vger.kernel.org;
+> devicetree-spec@vger.kernel.org; linux-omap@vger.kernel.org
+> Cc: Devshatwar, Nikhil
+> Subject: [PATCH] dtc: parser: Add label while overriding nodes
+> 
+> Current device tree compiler allows to define multiple labels when
+> defining the device node the first time. Typically device nodes are
+> defined in DTSI files. Now these nodes can be overriden for updating
+> some of the properties. Typically, device nodes are overridden in DTS
+> files.
+> 
+> When working with adapter boards, most of the time adapter board can
+> fit to multiple base boards. But depending on which base board it is
+> connected to, the devices on the adapter board would be children of
+> different devices.
+> 
+> e.g. On dra7-evm.dts, i2c2 is exported for expansion connector whereas
+> on dra72-evm.dts, i2c5 is exported for expansion connector.
+> This causes a problem when writing a generic device tree file for the
+> adapter board. Because, you cannot know wheather all the devices on
+> adpter board are present on i2c or i2c5.
+> 
+> The problem can be solved by adding a common label (e.g. i2cexp) in
+> both of the DTS files when overriding the device nodes for i2c2 or
+> i2c5.
+> This way, generic adapter board file would override the i2cexp. And
+> depending on which base board you use the adpter board, all the devices
+> are automatically added for correct device nodes.
+> 
+> Change-Id: I3ad7247a79baed7268a91fc691360aece73d6d1b
+> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> ---
+>  scripts/dtc/dtc-parser.y |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/scripts/dtc/dtc-parser.y b/scripts/dtc/dtc-parser.y index
+> f412460..d9ed3b7 100644
+> --- a/scripts/dtc/dtc-parser.y
+> +++ b/scripts/dtc/dtc-parser.y
+> @@ -145,6 +145,18 @@ devicetree:
+>  		{
+>  			$$ = merge_nodes($1, $3);
+>  		}
+> +
+> +	| devicetree DT_LABEL DT_REF nodedef
+> +		{
+> +			struct node *target = get_node_by_ref($1, $3);
+> +
+> +			add_label(&target->labels, $2);
+> +			if (target)
+> +				merge_nodes(target, $4);
+> +			else
+> +				print_error("label or path, '%s', not found",
+> $2);
+> +			$$ = $1;
+> +		}
+>  	| devicetree DT_REF nodedef
+>  		{
+>  			struct node *target = get_node_by_ref($1, $2);
+> --
+> 1.7.9.5
+
