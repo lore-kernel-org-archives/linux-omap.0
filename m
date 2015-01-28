@@ -1,82 +1,106 @@
-From: "Devshatwar, Nikhil" <nikhil.nd-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] dtc: parser: Add label while overriding nodes
-Date: Wed, 28 Jan 2015 06:38:11 +0000
-Message-ID: <E60A9E1B4132A24DB80BD56ABC9268473504400F@DBDE04.ent.ti.com>
-References: <1420726362-22555-1-git-send-email-nikhil.nd@ti.com>
- <CAL_Jsq+w7R=99qPc+YG_Bh1L-nMs1Gptjwo=KYTK5OX2HVVNpA@mail.gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] ASoC: rx51: do not fail if could not get
+	jack detection gpio
+Date: Wed, 28 Jan 2015 15:09:17 +0100
+Message-ID: <201501281509.17333@pali>
+References: <1422305507-10533-1-git-send-email-pali.rohar@gmail.com>
+ <54C79597.40105@ti.com> <201501271511.08933@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <devicetree-spec-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL_Jsq+w7R=99qPc+YG_Bh1L-nMs1Gptjwo=KYTK5OX2HVVNpA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-spec-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "devicetree-compiler-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-compiler-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-spec-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-spec-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============8527058531110048406=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201501271511.08933@pali>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSb2IgSGVycmluZyBbbWFpbHRv
-OnJvYmhlcnJpbmcyQGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBKYW51YXJ5IDI4LCAy
-MDE1IDU6MDUgQU0NCj4gVG86IERldnNoYXR3YXIsIE5pa2hpbA0KPiBDYzogZGV2aWNldHJlZS1j
-b21waWxlckB2Z2VyLmtlcm5lbC5vcmc7IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnOw0KPiBk
-ZXZpY2V0cmVlLXNwZWNAdmdlci5rZXJuZWwub3JnOyBsaW51eC1vbWFwDQo+IFN1YmplY3Q6IFJl
-OiBbUEFUQ0hdIGR0YzogcGFyc2VyOiBBZGQgbGFiZWwgd2hpbGUgb3ZlcnJpZGluZyBub2Rlcw0K
-PiANCj4gT24gVGh1LCBKYW4gOCwgMjAxNSBhdCA4OjEyIEFNLCBOaWtoaWwgRGV2c2hhdHdhciA8
-bmlraGlsLm5kQHRpLmNvbT4NCj4gd3JvdGU6DQo+ID4gQ3VycmVudCBkZXZpY2UgdHJlZSBjb21w
-aWxlciBhbGxvd3MgdG8gZGVmaW5lIG11bHRpcGxlIGxhYmVscyB3aGVuDQo+ID4gZGVmaW5pbmcg
-dGhlIGRldmljZSBub2RlIHRoZSBmaXJzdCB0aW1lLiBUeXBpY2FsbHkgZGV2aWNlIG5vZGVzIGFy
-ZQ0KPiA+IGRlZmluZWQgaW4gRFRTSSBmaWxlcy4gTm93IHRoZXNlIG5vZGVzIGNhbiBiZSBvdmVy
-cmlkZW4gZm9yIHVwZGF0aW5nDQo+ID4gc29tZSBvZiB0aGUgcHJvcGVydGllcy4gVHlwaWNhbGx5
-LCBkZXZpY2Ugbm9kZXMgYXJlIG92ZXJyaWRkZW4gaW4gRFRTDQo+IGZpbGVzLg0KPiA+DQo+ID4g
-V2hlbiB3b3JraW5nIHdpdGggYWRhcHRlciBib2FyZHMsIG1vc3Qgb2YgdGhlIHRpbWUgYWRhcHRl
-ciBib2FyZCBjYW4NCj4gPiBmaXQgdG8gbXVsdGlwbGUgYmFzZSBib2FyZHMuIEJ1dCBkZXBlbmRp
-bmcgb24gd2hpY2ggYmFzZSBib2FyZCBpdCBpcw0KPiA+IGNvbm5lY3RlZCB0bywgdGhlIGRldmlj
-ZXMgb24gdGhlIGFkYXB0ZXIgYm9hcmQgd291bGQgYmUgY2hpbGRyZW4gb2YNCj4gZGlmZmVyZW50
-IGRldmljZXMuDQo+ID4NCj4gPiBlLmcuIE9uIGRyYTctZXZtLmR0cywgaTJjMiBpcyBleHBvcnRl
-ZCBmb3IgZXhwYW5zaW9uIGNvbm5lY3Rvcg0KPiB3aGVyZWFzDQo+ID4gb24gZHJhNzItZXZtLmR0
-cywgaTJjNSBpcyBleHBvcnRlZCBmb3IgZXhwYW5zaW9uIGNvbm5lY3Rvci4NCj4gPiBUaGlzIGNh
-dXNlcyBhIHByb2JsZW0gd2hlbiB3cml0aW5nIGEgZ2VuZXJpYyBkZXZpY2UgdHJlZSBmaWxlIGZv
-ciB0aGUNCj4gPiBhZGFwdGVyIGJvYXJkLiBCZWNhdXNlLCB5b3UgY2Fubm90IGtub3cgd2hlYXRo
-ZXIgYWxsIHRoZSBkZXZpY2VzIG9uDQo+IA0KPiBzL3doZWF0aGVyL3doZXRoZXIvDQo+IA0KPiA+
-IGFkcHRlciBib2FyZCBhcmUgcHJlc2VudCBvbiBpMmMgb3IgaTJjNS4NCj4gDQo+IHMvYWRwdGVy
-L2FkYXB0ZXIvDQo+IA0KPiA+IFRoZSBwcm9ibGVtIGNhbiBiZSBzb2x2ZWQgYnkgYWRkaW5nIGEg
-Y29tbW9uIGxhYmVsIChlLmcuIGkyY2V4cCkgaW4NCj4gPiBib3RoIG9mIHRoZSBEVFMgZmlsZXMg
-d2hlbiBvdmVycmlkaW5nIHRoZSBkZXZpY2Ugbm9kZXMgZm9yIGkyYzIgb3INCj4gaTJjNS4NCj4g
-PiBUaGlzIHdheSwgZ2VuZXJpYyBhZGFwdGVyIGJvYXJkIGZpbGUgd291bGQgb3ZlcnJpZGUgdGhl
-IGkyY2V4cC4gQW5kDQo+ID4gZGVwZW5kaW5nIG9uIHdoaWNoIGJhc2UgYm9hcmQgeW91IHVzZSB0
-aGUgYWRwdGVyIGJvYXJkLCBhbGwgdGhlDQo+ID4gZGV2aWNlcw0KPiANCj4gcy9hZHB0ZXIvYWRh
-cHRlci8NCj4gDQo+ID4gYXJlIGF1dG9tYXRpY2FsbHkgYWRkZWQgZm9yIGNvcnJlY3QgZGV2aWNl
-IG5vZGVzLg0KPiA+DQo+ID4gQ2hhbmdlLUlkOiBJM2FkNzI0N2E3OWJhZWQ3MjY4YTkxZmM2OTEz
-NjBhZWNlNzNkNmQxYg0KPiANCj4gR2V0IHJpZCBvZiB0aGlzIEdlcnJpdCBub25zZW5zZS4NCj4g
-DQo+ID4gU2lnbmVkLW9mZi1ieTogTmlraGlsIERldnNoYXR3YXIgPG5pa2hpbC5uZEB0aS5jb20+
-DQo+ID4gLS0tDQo+ID4gIHNjcmlwdHMvZHRjL2R0Yy1wYXJzZXIueSB8ICAgMTIgKysrKysrKysr
-KysrDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspDQo+IA0KPiBZb3UgbmVl
-ZCB0byBzZW5kIHRoaXMgYWdhaW5zdCB1cHN0cmVhbSBkdGMsIG5vdCB0aGUgY29weSBpbiB0aGUg
-a2VybmVsLg0KPiANCj4gU2VlbXMgbGlrZSBhIHJlYXNvbmFibGUgY2hhbmdlLCBidXQgSSdtIG5v
-dCB0b28gZmFtaWxhciB3aXRoIGR0Yw0KPiBzb3VyY2UuDQo+IA0KDQpPSywgbm8gcHJvYmxlbQ0K
-DQpUaGFua3MsDQpOaWtoaWwgRA0KDQo+ID4gZGlmZiAtLWdpdCBhL3NjcmlwdHMvZHRjL2R0Yy1w
-YXJzZXIueSBiL3NjcmlwdHMvZHRjL2R0Yy1wYXJzZXIueQ0KPiBpbmRleA0KPiA+IGY0MTI0NjAu
-LmQ5ZWQzYjcgMTAwNjQ0DQo+ID4gLS0tIGEvc2NyaXB0cy9kdGMvZHRjLXBhcnNlci55DQo+ID4g
-KysrIGIvc2NyaXB0cy9kdGMvZHRjLXBhcnNlci55DQo+ID4gQEAgLTE0NSw2ICsxNDUsMTggQEAg
-ZGV2aWNldHJlZToNCj4gPiAgICAgICAgICAgICAgICAgew0KPiA+ICAgICAgICAgICAgICAgICAg
-ICAgICAgICQkID0gbWVyZ2Vfbm9kZXMoJDEsICQzKTsNCj4gPiAgICAgICAgICAgICAgICAgfQ0K
-PiA+ICsNCj4gPiArICAgICAgIHwgZGV2aWNldHJlZSBEVF9MQUJFTCBEVF9SRUYgbm9kZWRlZg0K
-PiA+ICsgICAgICAgICAgICAgICB7DQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0
-IG5vZGUgKnRhcmdldCA9IGdldF9ub2RlX2J5X3JlZigkMSwNCj4gJDMpOw0KPiA+ICsNCj4gPiAr
-ICAgICAgICAgICAgICAgICAgICAgICBhZGRfbGFiZWwoJnRhcmdldC0+bGFiZWxzLCAkMik7DQo+
-ID4gKyAgICAgICAgICAgICAgICAgICAgICAgaWYgKHRhcmdldCkNCj4gPiArICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIG1lcmdlX25vZGVzKHRhcmdldCwgJDQpOw0KPiA+ICsgICAgICAg
-ICAgICAgICAgICAgICAgIGVsc2UNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHByaW50X2Vycm9yKCJsYWJlbCBvciBwYXRoLCAnJXMnLCBub3QNCj4gZm91bmQiLCAkMik7DQo+
-ID4gKyAgICAgICAgICAgICAgICAgICAgICAgJCQgPSAkMTsNCj4gPiArICAgICAgICAgICAgICAg
-fQ0KPiA+ICAgICAgICAgfCBkZXZpY2V0cmVlIERUX1JFRiBub2RlZGVmDQo+ID4gICAgICAgICAg
-ICAgICAgIHsNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgbm9kZSAqdGFyZ2V0
-ID0gZ2V0X25vZGVfYnlfcmVmKCQxLA0KPiAkMik7DQo+ID4gLS0NCj4gPiAxLjcuOS41DQo+ID4N
-Cj4gPiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5l
-ICJ1bnN1YnNjcmliZSBkZXZpY2V0cmVlIg0KPiA+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
-byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vDQo+ID4gaW5mbyBhdCAg
-aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
---
-To unsubscribe from this list: send the line "unsubscribe devicetree-spec" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--===============8527058531110048406==
+Content-Type: multipart/signed;
+  boundary="nextPart1989159.qfoVUJsl4f";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart1989159.qfoVUJsl4f
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+> > > It is quite important to keep qemu working, really.
+> > > Debugging early boot on hardware is very hard, for
+> > > example.
+> >=20
+> > I understand, but looking at the history of the driver, if
+> > it fails now with the jack-detection GPIO, it should have
+> > been failing in the past as well. What triggered this
+> > sudden qemu does not like jack-detection GPIO? Before the
+> > devm_gpiod_get() conversion the driver should have failed in
+> > snd_soc_jack_add_gpios() phase.
+>=20
+> With 3.12 kernel rx51-audio driver loads without any problem.
+> So there is some regression. Here is dmesg log from 3.12
+> kernel:
+>=20
+> [    1.123779] rx51-audio rx51-audio:  tlv320aic3x-hifi <->
+> omap- mcbsp.2 mapping ok
+> [    1.130737] tlv320aic3x-codec 2-0019: ASoC: mux b Right
+> Line1L Mux has no paths
+> [    1.131347] tlv320aic3x-codec 2-0019: ASoC: mux b Left
+> Line1R Mux has no paths
+> [    1.133697] tlv320aic3x-codec 2-0018: ASoC: mux Right
+> Line1L Mux has no paths
+> [    1.134307] tlv320aic3x-codec 2-0018: ASoC: mux Left Line1R
+> Mux has no paths
+> [    1.137451] input: RX-51 AV Jack as /devices/platform/rx51-
+> audio/sound/card0/input2
+>=20
+> I will try to investigate where is problem...
+>=20
+
+Ok, problem found and solved. Please drop my patch and sorry for=20
+a noise.
+
+As is visible in above lines AV Jack is working fine on non DT=20
+kernel (3.12) and fails on DT kernel.
+
+Reason is because I have another non-mainline driver which is=20
+using GPIOs and in non DT kernel is initialized *after* audio.=20
+And in DT kernel is initialized *before* audio.
+
+Once I changed my non-mainline driver to not request av jack=20
+gpio, rx51-audio driver loads fine in qemu.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1989159.qfoVUJsl4f
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlTI7Y0ACgkQi/DJPQPkQ1K5WACfcXmeUks3GiUTeE/3+sb31nrQ
+3nEAn3P9MzMyEo/b82MHnM5kGlrMjn0W
+=kDoz
+-----END PGP SIGNATURE-----
+
+--nextPart1989159.qfoVUJsl4f--
+
+--===============8527058531110048406==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============8527058531110048406==--
