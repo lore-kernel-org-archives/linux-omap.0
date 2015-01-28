@@ -1,101 +1,81 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Wed, 28 Jan 2015 23:41:44 +0100
-Message-ID: <20150128224144.GA28956@amd>
-References: <20150106170433.GA5408@amd> <20150118120139.GA1509@amd>
- <54C63F1C.6010703@ti.com> <54C92752.9000004@bitmer.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <54C92752.9000004@bitmer.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, sre@debian.org, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@ring0.de, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 2/3] net: davinci_emac: Get device dm816x MAC address using the cpsw code
+Date: Wed, 28 Jan 2015 11:33:05 -0800
+Message-ID: <1422473586-18100-3-git-send-email-tony@atomide.com>
+References: <1422473586-18100-1-git-send-email-tony@atomide.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1422473586-18100-1-git-send-email-tony@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2015-01-28 20:15:46, Jarkko Nikula wrote:
-> On 01/26/2015 03:20 PM, Peter Ujfalusi wrote:
-> > On 01/18/2015 02:01 PM, Pavel Machek wrote:
-> >> In 2.6.28-nokia, it is neccessary to set "Input select" na "digital
-> >> mic", then it works. Input select being in "playback" option makes it
-> >> easy to miss.
-> >>
-> >> In 3.18 and 3.19-rc3, all I can record are zeros.
-> >>
-> >> Does playback/recording work for you on OMAP 3430-based machines?
-> > 
-> > Same codec (tlv320aic3106) works fine on my am335x and omap-l138 boards.
-> > BeagleBoard-xM also fine with twl4030 codec.
-> > 
-> > I don't have my n900 in hacking mode (it is still in use time-to-time) but
-> > looking at the dts file: you might want to add ai3x-micbias-vg property to the
-> > aic3x nodes to select the correct mic bias voltage. I can't recall what is
-> > appropriate for n900, but 2.6.28-nokia sources might give you the answer.
-> > 
-> No need to go that far. N900 has been supported in mainline since 2.6.39
-> or so. Part A of AIC34 (which is basically dual AIC33 in a same package)
-> drives 2 V for the digital microphone bias and part B 2.5 V for the headset.
+At least on dm81xx, we can get the davinci_emac MAC address the same
+way as on am33xx cpsw.
 
-Let me try... Umm, no change here :-(
+Let's also use ether_addr_copy() for davinci_emac while at it.
 
-root@n900:/tmp# arecord delme
-Recording WAVE 'delme' : Unsigned 8 bit, Rate 8000 Hz, Mono
-^CAborted by signal Interrupt...
-root@n900:/tmp# hexdump delme
-0000000 4952 4646 987c 0000 4157 4556 6d66 2074
-0000010 0010 0000 0001 0001 1f40 0000 1f40 0000
-0000020 0001 0008 6164 6174 9858 0000 8080 8080
-0000030 8080 8080 8080 8080 8080 8080 8080 8080
-*
-0009880
-root@n900:/tmp# aplay delme
-Playing WAVE 'delme' : Unsigned 8 bit, Rate 8000 Hz, Mono
-root@n900:/tmp#
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/net/ethernet/ti/davinci_emac.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-I did this:
-
-I'm not sure which one is "main" microphone and which is headset, but
-I guess 2V should be "close enough" to 2.5V to produce something
-different from zeros..?
-
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 48b0987..f18a5b0 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -491,6 +491,8 @@
- 		DRVDD-supply = <&vmmc2>;
- 		IOVDD-supply = <&vio>;
- 		DVDD-supply = <&vio>;
-+
-+		ai3x-micbias-vg = <1>;
- 	};
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 5fae435..a716938 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -69,6 +69,7 @@
+ #include <asm/irq.h>
+ #include <asm/page.h>
  
- 	tlv320aic3x_aux: tlv320aic3x@19 {
-@@ -502,6 +504,8 @@
- 		DRVDD-supply = <&vmmc2>;
- 		IOVDD-supply = <&vio>;
- 		DVDD-supply = <&vio>;
-+
-+		ai3x-micbias-vg = <1>;
- 	};
++#include "cpsw.h"
+ #include "davinci_cpdma.h"
  
- 	tsl2563: tsl2563@29 {
-
-> Unfortunately I haven't had time recently to try what might have caused
-> that regression after 3.18.
-
-Thanks,
-									Pavel
+ static int debug_level;
+@@ -1838,7 +1839,7 @@ davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
+ 	if (!is_valid_ether_addr(pdata->mac_addr)) {
+ 		mac_addr = of_get_mac_address(np);
+ 		if (mac_addr)
+-			memcpy(pdata->mac_addr, mac_addr, ETH_ALEN);
++			ether_addr_copy(pdata->mac_addr, mac_addr);
+ 	}
+ 
+ 	of_property_read_u32(np, "ti,davinci-ctrl-reg-offset",
+@@ -1879,6 +1880,22 @@ davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
+ 	return  pdata;
+ }
+ 
++static int davinci_emac_try_get_mac(struct platform_device *pdev,
++				    int instance, u8 *mac_addr)
++{
++	int error = -EINVAL;
++
++	if (!pdev->dev.of_node)
++		return error;
++
++	if (of_device_is_compatible(pdev->dev.of_node, "ti,dm816-emac"))
++		error = cpsw_am33xx_cm_get_macid(&pdev->dev, 0x30,
++						 instance,
++						 mac_addr);
++
++	return error;
++}
++
+ /**
+  * davinci_emac_probe - EMAC device probe
+  * @pdev: The DaVinci EMAC device that we are removing
+@@ -2009,6 +2026,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 	}
+ 	ndev->irq = res->start;
+ 
++	rc = davinci_emac_try_get_mac(pdev, res_ctrl ? 0 : 1, priv->mac_addr);
++	if (!rc)
++		ether_addr_copy(ndev->dev_addr, priv->mac_addr);
++
+ 	if (!is_valid_ether_addr(priv->mac_addr)) {
+ 		/* Use random MAC if none passed */
+ 		eth_hw_addr_random(ndev);
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.4
