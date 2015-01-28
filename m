@@ -1,22 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Wed, 28 Jan 2015 09:04:48 -0800
-Message-ID: <20150128170448.GP28663@atomide.com>
-References: <1421192272-20754-1-git-send-email-tony@atomide.com>
- <1421192272-20754-5-git-send-email-tony@atomide.com>
- <20150117164709.GS18552@atomide.com>
- <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
- <20150117181404.GW18552@atomide.com>
- <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
- <20150119172914.GY18552@atomide.com>
- <CAALWOA_54qoQgyCkGy10v+7-eQ87ddeCTG-dbP-P6x493HAswA@mail.gmail.com>
- <20150123164756.GB7718@atomide.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Wed, 28 Jan 2015 20:15:46 +0200
+Message-ID: <54C92752.9000004@bitmer.com>
+References: <20150106170433.GA5408@amd> <20150118120139.GA1509@amd>
+ <54C63F1C.6010703@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20150123164756.GB7718@atomide.com>
+In-Reply-To: <54C63F1C.6010703@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,21 +18,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150123 08:54]:
+On 01/26/2015 03:20 PM, Peter Ujfalusi wrote:
+> On 01/18/2015 02:01 PM, Pavel Machek wrote:
+>> In 2.6.28-nokia, it is neccessary to set "Input select" na "digital
+>> mic", then it works. Input select being in "playback" option makes it
+>> easy to miss.
+>>
+>> In 3.18 and 3.19-rc3, all I can record are zeros.
+>>
+>> Does playback/recording work for you on OMAP 3430-based machines?
 > 
-> Should be usable for NFSroot with all the patches I've sent using the
-> ti u-boot and and appended DTB uImage. Sorry not all of it is yet in
-> Linux next though, I'll push a current testing branch at some point
-> today. The mainline u-boot was at least missing the davinci_emac
-> support the last time I tried.
+> Same codec (tlv320aic3106) works fine on my am335x and omap-l138 boards.
+> BeagleBoard-xM also fine with twl4030 codec.
+> 
+> I don't have my n900 in hacking mode (it is still in use time-to-time) but
+> looking at the dts file: you might want to add ai3x-micbias-vg property to the
+> aic3x nodes to select the correct mic bias voltage. I can't recall what is
+> appropriate for n900, but 2.6.28-nokia sources might give you the answer.
+> 
+No need to go that far. N900 has been supported in mainline since 2.6.39
+or so. Part A of AIC34 (which is basically dual AIC33 in a same package)
+drives 2 V for the digital microphone bias and part B 2.5 V for the headset.
 
-Seems to be all in today's Linux next and I just verified that
-3.19.0-rc6-next-20150128-06478-g30720bbe is booting on 8168-evm.
+Unfortunately I haven't had time recently to try what might have caused
+that regression after 3.18.
 
-Regards,
-
-Tony
+-- 
+Jarkko
