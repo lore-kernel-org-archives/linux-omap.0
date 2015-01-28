@@ -1,42 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/3] Changes to cpsw and davinci_emac for getting MAC address
-Date: Wed, 28 Jan 2015 11:33:03 -0800
-Message-ID: <1422473586-18100-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.ore.mailhop.org ([54.186.10.118]:37198 "EHLO
-	smtp5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755793AbbA1UdG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2015 15:33:06 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Wed, 28 Jan 2015 23:02:53 +0100
+Message-ID: <20150128220253.GB28275@amd>
+References: <20150106170433.GA5408@amd> <20150118120139.GA1509@amd>
+ <54C63F1C.6010703@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <54C63F1C.6010703@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, sre@debian.org, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@ring0.de, jarkko.nikula@bitmer.com, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi all,
+On Mon 2015-01-26 15:20:28, Peter Ujfalusi wrote:
+> On 01/18/2015 02:01 PM, Pavel Machek wrote:
+> > Hi!
+> > 
+> > If you have any idea about playback problems, help would be still
+> > welcome. I'll have to do bisect, otherwise, and it will not be easy.
+> > 
+> >> In 3.18, sound is nice and clear.
+> >>
+> >> In 3.19, sound is unusable. It produces nasty tone when it should be
+> >> quiet, and there's at least as much noise as is sound.
+> >>
+> >> Unfortunately, list of mixers also changed (and there's cca 120
+> >> settings), but a) it does not work with the old list and b) nothing I
+> >> could figure out did make the sound usable. Some setting resulted in
+> >> even more noise.
+> >>
+> >> Any idea what could have caused it?
+> > 
+> > I tried audio recording this time.
+> > 
+> > In 2.6.28-nokia, it is neccessary to set "Input select" na "digital
+> > mic", then it works. Input select being in "playback" option makes it
+> > easy to miss.
+> > 
+> > In 3.18 and 3.19-rc3, all I can record are zeros.
+> > 
+> > Does playback/recording work for you on OMAP 3430-based machines?
+> 
+> Same codec (tlv320aic3106) works fine on my am335x and omap-l138 boards.
+> BeagleBoard-xM also fine with twl4030 codec.
+> 
+> I don't have my n900 in hacking mode (it is still in use
+> time-to-time) but
 
-Here are a few patches to add common code for cpsw and davinci_emac for
-getting the MAC address. Looks like we can also now add code to get the
-MAC address on 3517 but in a slightly different way.
+Actually, with nfsroot / loading kernel using NOLO, it is not
+neccessary to break your n900. It is possible to boot complete
+userspace without changing single bit of flash.
 
-Regards,
+> looking at the dts file: you might want to add ai3x-micbias-vg property to the
+> aic3x nodes to select the correct mic bias voltage. I can't recall what is
+> appropriate for n900, but 2.6.28-nokia sources might give you the answer.
 
-Tony
-
-
-Tony Lindgren (3):
-  net: cpsw: Add a minimal cpsw-common module for shared code
-  net: davinci_emac: Get device dm816x MAC address using the cpsw code
-  net: davinci_emac: Get device MAC on 3517
-
- arch/arm/boot/dts/am3517.dtsi          |  1 +
- drivers/net/ethernet/ti/Makefile       |  3 ++
- drivers/net/ethernet/ti/cpsw-common.c  | 53 ++++++++++++++++++++++++++++++++
- drivers/net/ethernet/ti/cpsw.c         | 35 ++-------------------
- drivers/net/ethernet/ti/cpsw.h         |  2 ++
- drivers/net/ethernet/ti/davinci_emac.c | 56 +++++++++++++++++++++++++++++++++-
- 6 files changed, 116 insertions(+), 34 deletions(-)
- create mode 100644 drivers/net/ethernet/ti/cpsw-common.c
-
+Ok, thanks, let me try...
+									Pavel
 -- 
-2.1.4
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
