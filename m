@@ -1,96 +1,44 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Wed, 28 Jan 2015 22:43:10 +0100
-Message-ID: <CAALWOA9gSegCofYF-csg_2zdRkz=W5g8UAOqBbrA-NG0-oR1ww@mail.gmail.com>
-References: <1421192272-20754-1-git-send-email-tony@atomide.com>
- <1421192272-20754-5-git-send-email-tony@atomide.com>
- <20150117164709.GS18552@atomide.com>
- <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
- <20150117181404.GW18552@atomide.com>
- <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
- <20150119172914.GY18552@atomide.com>
- <CAALWOA_54qoQgyCkGy10v+7-eQ87ddeCTG-dbP-P6x493HAswA@mail.gmail.com>
- <20150123164756.GB7718@atomide.com>
- <CAALWOA9F7UH5ORXdjyHAyekohZdSiE-+enNg5vsxOV5RgfqEdw@mail.gmail.com>
- <20150126155850.GD28663@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
+Date: Wed, 28 Jan 2015 09:09:55 -0800
+Message-ID: <20150128170954.GQ28663@atomide.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+ <1422274532-9488-2-git-send-email-rogerq@ti.com>
+ <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
+ <54C66B0D.9040109@ti.com>
+ <54C6EFC8.1090601@samsung.com>
+ <54C7B0E5.20101@ti.com>
+ <54C8472B.6070302@samsung.com>
+ <54C8D238.4080001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150126155850.GD28663@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54C8D238.4080001@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>, Felipe Balbi <balbi@ti.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, george.cherian@ti.com, nsekhar@ti.com, devicetree <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjYgSmFudWFyeSAyMDE1IGF0IDE2OjU4LCBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
-Y29tPiB3cm90ZToKPiBTZWUgZWFybGllciBJIHdhcyBhc3N1bWluZyBjb3B5IHBhc3RlIGlzc3Vl
-cyBmcm9tIGRtODE0eCB0byBkbTgxNngKCkFoaCwgeW91IHRob3VnaHQgdGhlIDgxNnggd2FzIDgx
-NHgtZGVyaXZlZC4uLiB5ZXMgSSBjYW4gaW1hZ2luZSB0aGF0CndpbGwgaGF2ZSBsZWQgdG8gc29t
-ZSBjb25mdXNpb24uCgo+IEknbSBwcmV0dHkgc3VyZSBJIHZlcmlmaWVkIHRoZSB0aGF0IHRoZSBh
-dWRpb19wbGxfY2xrMSBpcyBoYXJkd3dpcmVkCj4gdG8gMzJLaUh6IGJ5IGxvb2tpbmcgYXQgaXQg
-d2l0aCBhIHNjb3BlIG9uIHRoZSBjbGtvdXQgcGluLgoKWWVhaCBpdCBjb21lcyBzdHJhaWdodCBm
-cm9tIHRoZSAicnRjZGl2aWRlciIgc28gaXQnbGwgcHJvZHVjZQowLjAwMTYzODQgKiBkZXZvc2Mu
-CgpUaGUgZ2xvYmFsIGNsb2NrIHN0cnVjdHVyZSBvdmVydmlldyBpbiB0aGUgVFJNIChmaWd1cmUg
-Mi02KSBhY3R1YWxseQpjb3JyZWN0bHkgbWFya3MgdGhlIGZvcm1lci1hdWRpby1mYXBsbCBjbG9j
-a3MgKGV4Y2VwdCBhdWRpbzUgOj0gb3NjMCwKeWllbGRpbmcgc3lzY2xrMjIgYWZ0ZXIgZGl2aWRl
-cikgYnV0IHlvdSBhbHJlYWR5IG5lZWQgdG8ga25vdyB3aGF0IHRoZQpoZWxsIGlzIGdvaW5nIG9u
-IHRvIHJlY29nbml6ZSB0aGF0LgoKCk9oLCBvbiB0aGUgdG9waWMgb2YgUFJDTSwgYSB3b3JkIG9m
-IGNhdXRpb246IHdoaWxlIHRoZSBjb2xkIHJlc2V0CmRlZmF1bHQgb2YgUE1fREVGQVVMVF9QV1JT
-VENUUkwgaXMgMCwgcGVyZm9ybWluZyBfYW55XyB3cml0ZSB0byBpdAoocmVnYXJkbGVzcyBvZiB2
-YWx1ZSkgc2V0cyBpdCB0byAzIChmb3JjZSBwb3dlci1vbikgdW50aWwgbmV4dCBjb2xkCnJlc2V0
-LiBBbiB1bmZvcnR1bmF0ZWx5IHNpZGUtZWZmZWN0IEkgc3R1bWJsZWQgb3ZlciBpcyB0aGF0IGEK
-cGFydGljdWxhciBidXMgbG9ja3VwIHRoYXQgY2FuIG9jY3VyIGluIGR1Y2F0aSAoZHVhbCBjb3J0
-ZXgtbTMKc3Vic3lzdGVtKSB0aGVuIGJlY29tZXMgd2FybS1yZXNldC1pbnNlbnNpdGl2ZS4KClRo
-ZSBzdGF0ZW1lbnQgSSBnb3QgZnJvbSBUSSBzdXBwb3J0IGFib3V0IHRoZSBzdHJhbmdlIGJlaGF2
-aW91ciBvZgp0aGlzIHBvd2VyIGNvbnRyb2wgcmVnaXN0ZXIgd2FzLi4gdmFndWU6CgogIEluIERN
-ODE0eCwgY29tcGxldGUgZnVuY3Rpb25hbGl0eSBvZiBQUkNNIHdhcyBub3QgdXNlZCBhbmQgdGhh
-dAogIHJlc3VsdGVkIGludG8gc3VjaCByZXF1aXJlbWVudHMuCgogIFRoaXMgcmVjb21tZW5kYXRp
-b25zIHdhcyBtYWRlIGJhc2VkIG9uIERWIHRlc3QgY2FzZXMgd2l0aCBQT1dFUk9OU1RBVEUKICA9
-PSBPTi8weDMuCgogIFdlIGRpZG7igJl0IGRvIGFueSBuZWdhdGl2ZSB0ZXN0aW5nIHRvIHNlZSB0
-aGUgYmVoYXZpb3VyIGluIGNhc2UKICBQT1dFUk9OU1RBVEUgIT0gT04vMHgzLgoKICBTbyBJIGNh
-biByZWNvbW1lbmQgeW91IHRvIHRlc3QgeW91ciBzeXN0ZW0gd2l0aG91dCB0aGlzIHJlcXVpcmVt
-ZW50CiAgYW5kIHNlZSBpZiB5b3Ugd2lsbCBoYXZlIGFueSBpc3N1ZXMuIEkgdGhpbmsgdGhpcyBy
-ZXF1aXJlbWVudCBpcyBub3QKICBuZWVkZWQgKFBPV0VST05TVEFURSA9PSBPTi8weDMpLCBhcyB0
-aGUgRE04MTR4IEVaU0RLICh1LWJvb3QsIGxpbnV4CiAga2VybmVsKSBpcyB3b3JraW5nIGZpbmUg
-d2l0aG91dCBpdC4KCgoKPiA+IFRoZSBpbnZlbnRvcnkgb2YgU2VjU1Mgb24gTmV0cmEgeWllbGRl
-ZCBleGFjdGx5IHRoZSBzYW1lIGxpc3Qgb2YKPiA+IGFjY2VsZXJhdG9ycyBhbmQgb3RoZXIgcGVy
-aXBoZXJhbHMgYXMgb24gQ2VudGF1cnVzIGJ0dy4gVGhlIG9ubHkKPiA+IGNoYW5nZXMgc2VlbSB0
-byBiZSBpbiBzdWJzeXN0ZW0gY29udHJvbCBzdHVmZi4KPgo+IFdoYXQgYXJlIHlvdSB1c2luZyB0
-byBpZGVudGlmeSB0aGUgZGV2aWNlcz8gVGhlIGRldmljZSByZXZpc2lvbgo+IHJlZ2lzdGVyPyBP
-ciBhcmUgdGhlcmUgYWN0dWFsbHkgc29tZSBwb3B1bGF0ZWQgaW50ZXJjb25uZWN0IGRhdGEKPiBh
-dmFpbGFibGUgd2l0aCBkZXZpY2UgaW5mbyB0aGF0IGNvdWxkIGJlIHVzZWQgZm9yIGEgcmVhbCBz
-Y2FubmFibGUKPiBidXM/CgpZb3UgbWVhbiB0aGUgbW9kdWxlcz8gU2VjU1MgdW5mb3J0dW5hdGVs
-eSBkb2Vzbid0IGhhdmUgYW4gaW50ZWdyYXRlZAptZW1vcnkgbWFwIGxpa2UgdGhlIG9uZSBwcmVz
-ZW50IGluIHRoZSBTb25pY3MgUzMyMjAgaW50ZXJjb25uZWN0cywgc28KSSBqdXN0IHByb2JlZCBp
-dCBtYW51YWxseSB3aGlsZSBtYWtpbmcgdXNlIG9mIHRoZSBrbm93bGVkZ2UgSSBhbHJlYWR5Cmhh
-ZCBvZiBTZWNTUyBvbiBDZW50YXVydXMuICBJdCBoZWxwcyB0aGF0IEkgYWxyZWFkeSBkaWQgcXVp
-dGUgYSBiaXQgb2YKZXhwbG9yYXRpb24gb2YgU2VjU1Mgb24gQ2VudGF1cnVzLCBhbmQgaXQgdHVy
-bnMgb3V0IHRvIGJhcmVseSBkaWZmZXIKZnJvbSB0aGUgb3JpZ2luYWwgb25lKiBvbiBOZXRyYS4g
-VGhlIGRpZmZlcmVuY2VzIHNlZW0gdG8gYmUKcGVybWlzc2lvbnMtcmVsYXRlZDogdGhlIHN1YnN5
-c3RlbSBjb250cm9sIG1vZHVsZSB3YXMgc3BsaXQgaW50byB0d28Kc2VwYXJhdGUgcGFydHMgYW5k
-IHRoZXJlIHdhcyBhIHRpbnkgYml0IG9mIHJlYXJyYW5nZW1lbnQgZm9yIHRoZQpiZW5lZml0IG9m
-IGJlaW5nIGFibGUgdG8gY292ZXIgbXVsdGlwbGUgbW9kdWxlcyB3aXRoIGEgc2luZ2xlIGZpcmV3
-YWxsCnJlZ2lvbi4KCkkndmUgdXBkYXRlZCB0aGUgU2VjU1Mgc2hlZXQgb2YgbXkgbWVtb3J5LW1h
-cCBzcHJlYWRzaGVldCB0byBoaWdobGlnaHQKdGhlIGRpZmZlcmVuY2VzLgoKSXQncyBub3QgdG90
-YWxseSBjbGVhciB3aGF0IHRoZSBpbnRlbnRpb25zIGFyZSBvZiB0aGUgdmFyaW91cyBkZWZhdWx0
-CmZpcmV3YWxsIHJlZ2lvbnMuIFJlZ2lvbiAwIHdpbGwgdW5kb3VidGVkbHkgYmUgaGlnaGx5IHJl
-c3RyaWN0ZWQgb24KYWxsIGJ1dCBHUCBkZXZpY2VzLiBPbiBjZW50YXVydXMgcmVnaW9uIDUgbG9v
-a3MgbGlrZSBpdCdsbCBiZQpleGNsdXNpdmVseSBmb3IgdGhlIGNvcnRleC1tMyBvbiBkZXZpY2Vz
-IHdoZXJlIGl0IGF1dG9tYXRpY2FsbHkgYm9vdHMKc3RhbmQtYWxvbmUgZnJvbSBST00gKEVNVS9I
-UykgaW5zdGVhZCBvZiB3YWl0aW5nIHRvIGJvb3QgaW50bwp1c2VyLXN1cHBsaWVkIGNvZGUgb24g
-cmVxdWVzdCAoVGVzdC9HUC9FTVVML0hTTCkuCgoKKlRJJ3MgbGludXggZHJpdmVyIGNhbGxzIGl0
-ICJOU1MiIChOZXRyYSBTZWN1cml0eSBTdWJzeXN0ZW0pIG9uIGJvdGgKY2hpcHMsIHNvIHByZXN1
-bWFibHkgTmV0cmEgd2FzIHRoZSBmaXJzdCB0byBoYXZlIHRoaXMga2luZCBvZgpzdWJzeXN0ZW0u
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
-cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
-cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
-a2VybmVsCg==
+* Roger Quadros <rogerq@ti.com> [150128 04:15]:
+> On 28/01/15 04:19, Chanwoo Choi wrote:
+> >>
+> >> I still fail to understand that we need to call disable_irq() in .suspend() and
+> >> enable_irq() in .resume()
+> >>
+> >> can you point me to any other drivers doing so?
+> > 
+> > You can refer the suspend function in drivers/mfd/max14577.c or drivers/mfd/max77693.c.
+> > The max14577_suspend() includes the detailed comment for why using disable_irq() in suspend function.
+> > 
+> > In max14577 case, max14577_suspend() use disable_irq() function because of i2c dependency.
+> > If max14577 device is wake-up from suspend state before completing the resume sequence
+> > of i2c, max14577 may fail to read/write i2c communication.
+> 
+> Thanks for this information. I will add disable/enable_irq() in suspend/resume().
+
+Are the .dts changes safe for me to apply already?
+
+Regards,
+
+Tony
