@@ -1,14 +1,19 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Wed, 28 Jan 2015 20:15:46 +0200
-Message-ID: <54C92752.9000004@bitmer.com>
-References: <20150106170433.GA5408@amd> <20150118120139.GA1509@amd>
- <54C63F1C.6010703@ti.com>
+From: Benoit Parrot <bparrot@ti.com>
+Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add VPFE hwmod entries
+Date: Wed, 28 Jan 2015 13:30:38 -0600
+Message-ID: <20150128193038.GG2570@ti.com>
+References: <1422217915-24231-1-git-send-email-prabhakar.csengg@gmail.com>
+ <alpine.DEB.2.02.1501260205090.5450@utopia.booyaka.com>
+ <CA+V-a8urS2C20FDcfsGa+Gg+7wmbbQQw3U7BfXf6GBKoBGMc9w@mail.gmail.com>
+ <20150126155032.GD2570@ti.com>
+ <CA+V-a8vuD-+cwaP_bKpB8GweT-xX4E3PHrbB+uefCW+Xre7cog@mail.gmail.com>
+ <alpine.DEB.2.02.1501261846460.5450@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <54C63F1C.6010703@ti.com>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1501261846460.5450@utopia.booyaka.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,33 +23,69 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Darren Etheridge <detheridge@ti.com>, "Lad,
+ Prabhakar" <prabhakar.csengg@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/26/2015 03:20 PM, Peter Ujfalusi wrote:
-> On 01/18/2015 02:01 PM, Pavel Machek wrote:
->> In 2.6.28-nokia, it is neccessary to set "Input select" na "digital
->> mic", then it works. Input select being in "playback" option makes it
->> easy to miss.
->>
->> In 3.18 and 3.19-rc3, all I can record are zeros.
->>
->> Does playback/recording work for you on OMAP 3430-based machines?
-> 
-> Same codec (tlv320aic3106) works fine on my am335x and omap-l138 boards.
-> BeagleBoard-xM also fine with twl4030 codec.
-> 
-> I don't have my n900 in hacking mode (it is still in use time-to-time) but
-> looking at the dts file: you might want to add ai3x-micbias-vg property to the
-> aic3x nodes to select the correct mic bias voltage. I can't recall what is
-> appropriate for n900, but 2.6.28-nokia sources might give you the answer.
-> 
-No need to go that far. N900 has been supported in mainline since 2.6.39
-or so. Part A of AIC34 (which is basically dual AIC33 in a same package)
-drives 2 V for the digital microphone bias and part B 2.5 V for the headset.
-
-Unfortunately I haven't had time recently to try what might have caused
-that regression after 3.18.
-
--- 
-Jarkko
+UGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+IHdyb3RlIG9uIE1vbiBbMjAxNS1KYW4tMjYg
+MTg6NDc6MTEgKzAwMDBdOgo+IEhpIFByYWJoYWthciwKPiAKPiBPbiBNb24sIDI2IEphbiAyMDE1
+LCBMYWQsIFByYWJoYWthciB3cm90ZToKPiAKPiA+IEhpIEJlbm9pdCwKPiA+IAo+ID4gT24gTW9u
+LCBKYW4gMjYsIDIwMTUgYXQgMzo1MCBQTSwgQmVub2l0IFBhcnJvdCA8YnBhcnJvdEB0aS5jb20+
+IHdyb3RlOgo+ID4gPiBMYWQsIFByYWJoYWthciA8cHJhYmhha2FyLmNzZW5nZ0BnbWFpbC5jb20+
+IHdyb3RlIG9uIE1vbiBbMjAxNS1KYW4tMjYgMDg6MTM6MDEgKzAwMDBdOgo+ID4gPj4gSGkgUGF1
+bCwKPiA+ID4+Cj4gPiA+PiBUaGFua3MgZm9yIHRoZSByZXZpZXcuCj4gPiA+Pgo+ID4gPj4gT24g
+TW9uLCBKYW4gMjYsIDIwMTUgYXQgMjoxNSBBTSwgUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5j
+b20+IHdyb3RlOgo+ID4gPj4gPiBIaQo+ID4gPj4gPgo+ID4gPj4gPiBPbiBTdW4sIDI1IEphbiAy
+MDE1LCBMYWQsIFByYWJoYWthciB3cm90ZToKPiA+ID4+ID4KPiA+ID4+ID4+IEZyb206IEJlbm9p
+dCBQYXJyb3QgPGJwYXJyb3RAdGkuY29tPgo+ID4gPj4gPj4KPiA+ID4+ID4+IHRoaXMgcGF0Y2gg
+YWRkcyBWUEZFIEhXTU9EIGRhdGEgZm9yIEFNNDN4eC4KPiA+ID4+ID4+Cj4gPiA+PiA+PiBTaWdu
+ZWQtb2ZmLWJ5OiBCZW5vaXQgUGFycm90IDxicGFycm90QHRpLmNvbT4KPiA+ID4+ID4+IFNpZ25l
+ZC1vZmYtYnk6IERhcnJlbiBFdGhlcmlkZ2UgPGRldGhlcmlkZ2VAdGkuY29tPgo+ID4gPj4gPj4g
+U2lnbmVkLW9mZi1ieTogRmVsaXBlIEJhbGJpIDxiYWxiaUB0aS5jb20+Cj4gPiA+PiA+PiBTaWdu
+ZWQtb2ZmLWJ5OiBMYWQsIFByYWJoYWthciA8cHJhYmhha2FyLmNzZW5nZ0BnbWFpbC5jb20+Cj4g
+PiA+PiA+PiAtLS0KPiA+ID4+ID4+ICBIaSBQYXVsLAo+ID4gPj4gPj4KPiA+ID4+ID4+ICBZb3Ug
+d2VyZSByaWdodCwgdGhlIGhhcmR3YXJlIHRlYW0gaGFzIGNvbmZpcm1lZCB0aGF0LCB0aGUgVlBG
+RSBtYXN0ZXIgcG9ydCBpcwo+ID4gPj4gPj4gIGNvbm5lY3RlZCB0byBMMyBhbmQgdGhlIFZQRkUg
+c2xhdmUgcG9ydCBpcyBjb25uZWN0ZWQgdG8gTDQuIFRoZSBMMyBwb3J0IGNhbm5vdAo+ID4gPj4g
+Pj4gIHNlcnZlIGFzIGEgcmVnaXN0ZXIgdGFyZ2V0IGJlY2F1c2UgaXQgaXMgaW5pdGlhdG9yIG9u
+bHkuCj4gPiA+PiA+Cj4gPiA+PiA+IE9LIG1ha2VzIHNlbnNlIHRvIG1lLiwKPiA+ID4+ID4KPiA+
+ID4+ID4+Cj4gPiA+PiA+PiAgSSBoYXZlIGNyZWF0ZWQgbGlua3MgcmVmZXJyaW5nIHRvIGRzcyBs
+My9sNCBod21vZCBhbmQgdGVzdGVkIGl0LCBsZW1tZSBrbm93Cj4gPiA+PiA+PiAgaWYgSSBoYXZl
+IG1pc3NlZCBzb21ldGhpbmcuCj4gPiA+PiA+Cj4gPiA+PiA+IEEgZmV3IG1pbm9yIGNvbW1lbnRz
+IGJlbG93Cj4gPiA+PiA+Cj4gPiA+PiA+Pgo+ID4gPj4gW1NuaXBdCj4gPiA+PiA+PiAgLyogSW50
+ZXJmYWNlcyAqLwo+ID4gPj4gPj4gIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZF9vY3BfaWYgYW00
+M3h4X2wzX21haW5fX2w0X2hzID0gewo+ID4gPj4gPj4gICAgICAgLm1hc3RlciAgICAgICAgID0g
+JmFtMzN4eF9sM19tYWluX2h3bW9kLAo+ID4gPj4gPj4gQEAgLTc4OCw2ICs4MjYsMzYgQEAgc3Rh
+dGljIHN0cnVjdCBvbWFwX2h3bW9kX29jcF9pZiBhbTQzeHhfbDRfbHNfX2Rzc19yZmJpID0gewo+
+ID4gPj4gPj4gICAgICAgLnVzZXIgICAgICAgICAgID0gT0NQX1VTRVJfTVBVIHwgT0NQX1VTRVJf
+U0RNQSwKPiA+ID4+ID4+ICB9Owo+ID4gPj4gPj4KPiA+ID4+ID4+ICtzdGF0aWMgc3RydWN0IG9t
+YXBfaHdtb2Rfb2NwX2lmIGFtNDN4eF9sM19fdnBmZTAgPSB7Cj4gPiA+PiA+PiArICAgICAubWFz
+dGVyICAgICAgICAgPSAmYW00M3h4X3ZwZmUwX2h3bW9kLAo+ID4gPj4gPj4gKyAgICAgLnNsYXZl
+ICAgICAgICAgID0gJmFtMzN4eF9sM19tYWluX2h3bW9kLAo+ID4gPj4gPj4gKyAgICAgLmNsayAg
+ICAgICAgICAgID0gImwzX2djbGsiLAo+ID4gPj4gPj4gKyAgICAgLmZsYWdzICAgICAgICAgID0g
+T0NQSUZfU1dTVVBfSURMRSwKPiA+ID4+ID4KPiA+ID4+ID4gT0NQSUZfU1dTVVBfSURMRSBwcm9i
+YWJseSBpc24ndCBuZWVkZWQgaGVyZS4gIENvdWxkIHlvdSBwbGVhc2UgdHJ5IHdpdGhvdXQKPiA+
+ID4+ID4gaXQ/Cj4gPiA+PiA+Cj4gPiA+PiA+PiArICAgICAudXNlciAgICAgICAgICAgPSBPQ1Bf
+VVNFUl9NUFUgfCBPQ1BfVVNFUl9TRE1BLAo+ID4gPj4gPj4gK307Cj4gPiA+PiA+PiArCj4gPiA+
+PiA+PiArc3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kX29jcF9pZiBhbTQzeHhfbDNfX3ZwZmUxID0g
+ewo+ID4gPj4gPj4gKyAgICAgLm1hc3RlciAgICAgICAgID0gJmFtNDN4eF92cGZlMV9od21vZCwK
+PiA+ID4+ID4+ICsgICAgIC5zbGF2ZSAgICAgICAgICA9ICZhbTMzeHhfbDNfbWFpbl9od21vZCwK
+PiA+ID4+ID4+ICsgICAgIC5jbGsgICAgICAgICAgICA9ICJsM19nY2xrIiwKPiA+ID4+ID4+ICsg
+ICAgIC5mbGFncyAgICAgICAgICA9IE9DUElGX1NXU1VQX0lETEUsCj4gPiA+PiA+Cj4gPiA+PiA+
+IFNhbWUgcG9pbnQgYXMgdGhlIGFib3ZlLgo+ID4gPj4gPgo+ID4gPj4gRHJvcHBlZCBhbmQgdGVz
+dGVkIHdvcmtzISBwb3N0aW5nIGEgdjMuCj4gPiA+Cj4gPiA+IFdoZW4geW91IHRlc3RlZCBpdCB3
+aXRob3V0IHRoZSBPQ1BJRl9TV1NVUF9JRExFLCBkaWQgeW91IGdvIHRyaG91Z2ggYSBjb21wbGV0
+ZSBzdXNwZW5kL3Jlc3VtZSBjeWNsZT8KPiA+ID4gVGhpcyBmbGFnIHdhcyBhZGRlZCBlYXJseSBv
+biBiZWNhdXNlIG90aGVyd2lzZSB0aGUgc3VzYnN5dGVtIHdvdWxkIG5vdCBnbyBpZGxlIHdpdGhv
+dXQgaXQuLi4KPiA+ID4KPiA+ID4gQ2FuIHlvdSBwb3N0IHRoZSBjb25zb2xlIG91dHB1dCBkdXJp
+bmcgYSBzdXNwZW5kL3Jlc3VtZSBjeWNsZT8KPiA+ID4KPiA+IEFoIEkgZGlkbuKAmXQgdGVzdCB0
+aGUgc3VzcGVuZC9yZXN1bWUgd2lsbCBkbyBhbmQgcG9zdCB0aGUgY29uc29sZSBsb2cuCj4gCj4g
+Q291bGQgeW91IGFsc28gZG8gYSBzdXNwZW5kL3Jlc3VtZSB0ZXN0IG9uIHYyPwoKUHJhYmJoYWth
+ciwKCkkgdGVzdGVkIGJvdGggdjIgYW5kIHYzIGFuZCBib3RoIHN1Y2Nlc3NmdWxseSB3ZW50IHRo
+cm91Z2ggYSBzdXNwZW5kL3Jlc3VtZSBjeWNsZS4KU28gSSBndWVzcyB2MyBpcyBmaW5lLCBzb3Jy
+eSBmb3IgdGhlIG5vaXNlLgoKSSdsbCBhZGQgYSB0ZXN0ZWQtYnkgb24gVjMuCgpCZW5vaXQKCj4g
+IAo+IHRoYW5rcwo+IAo+IC0gUGF1bAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
