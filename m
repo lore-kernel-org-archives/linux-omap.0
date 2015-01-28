@@ -1,155 +1,189 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [PATCH v3] ARM: AM43xx: hwmod: add VPFE hwmod entries
-Date: Wed, 28 Jan 2015 13:32:47 -0600
-Message-ID: <20150128193247.GH2570@ti.com>
-References: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: switch to 1-bit before turning off
+ clocks if interrupts expected.
+Date: Wed, 28 Jan 2015 21:18:40 +0100
+Message-ID: <CAPDyKFoe6sVi-oKGwEsoXE3U1Ct=+Swc5g+EkV5V21tvvMqE5w@mail.gmail.com>
+References: <20150127233118.32160.11899.stgit@notabene.brown>
+	<20150127233524.32160.33438.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Darren Etheridge <detheridge@ti.com>, linux-omap@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150127233524.32160.33438.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Suspend/resume is functional with this patch.
+On 28 January 2015 at 00:35, NeilBrown <neilb@suse.de> wrote:
+> According to section 7.1.2 of
+>
+> http://www.sandisk.com/media/File/OEM/Manuals/SD_SDIO_specsv1.pdf
+>
+>     In the case where the interrupt mechanism is used to wake the host while
+>     the card is in a low power state (i.e. no clocks), Both the card and the
+>     host shall be placed into the 1-bit SD mode prior to stopping the clock.
+>
+>
+> This is particularly important for the Marvell "libertas" wifi chip
+> in the GTA04.  While in 4-bit mode it will only signal an interrupt
+> when the clock is running (which is why setting CLKEXTFREE is
+> important).
+> In 1-bit mode, the interrupt is asynchronous (explained in OMAP3
+> TRM description of the CIRQ flag to MMCHS_STAT:
+>
+>   In 1-bit mode, interrupt source is asynchronous (can be a source of
+>   asynchronous wakeup).
+>   In 4-bit mode, interrupt source is sampled during the interrupt
+>   cycle.
+>
+> )
+>
+> We cannot simply set 1-bit mode in omap_hsmmc_runtime_suspend
+> as that is called under a spinlock, and setting 1-bit mode requires
+> a sleeping call to the card.
+>
+> So:
+>  - use a work_struct to schedule setting of 1-bit mode
+>  - intro a 'force_narrow' state flag which transitions:
+>      0 -> NARROW_PENDING -> NARROW_FORCED -> 0
+>  - have omap_hsmmc_runtime_suspend fail if interrupts are expected
+>    but bus is not in 1-bit mode.  When it fails it schedules
+>    the work to change the width. and sets NARROW_PENDING
+>  - when the host is claimed, if NARROW_FORCED is set, restore the
+>    4-bit bus
+>  - When the host is released (disable_fclk), if NARROW_FORCED,
+>    then suspend immediately, no autosuspend.  If NARROW_PENDING,
+>    clear that flag as the device has obviously just been used.
 
-Tested-by: Benoit Parrot <bparrot@ti.com>
+I can't give you more detailed comment about this patch(set) yet. Need
+to think a bit more first.
 
-Lad, Prabhakar <prabhakar.csengg@gmail.com> wrote on Mon [2015-Jan-26 08:21:28 +0000]:
-> From: Benoit Parrot <bparrot@ti.com>
-> 
-> this patch adds VPFE HWMOD data for AM43xx.
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Anyway, I have one concern, see comment below.
+
+>
+> This all allows a graceful and race-free switch to 1-bit mode
+> before switching off the clocks, if interrupts are enabled.
+>
+> With this, I can use my libertas wifi with a 4-bit bus, with
+> interrupts and runtime power-management enabled, and get around
+> 14Mb/sec throughput (which is the best I've seen).
+>
+> Signed-off-by: NeilBrown <neil@brown.name>
 > ---
->  Changes for v3:
->  a: Dropped OCPIF_SWSUP_IDLE flag from l3 hwmods of vpfe.
->  
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 70 ++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/prcm43xx.h             |  3 +-
->  2 files changed, 72 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> index 5c6c841..8543f9f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> @@ -514,6 +514,44 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
->  	},
->  };
->  
-> +static struct omap_hwmod_class_sysconfig am43xx_vpfe_sysc = {
-> +	.rev_offs       = 0x0,
-> +	.sysc_offs      = 0x104,
-> +	.sysc_flags     = SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE,
-> +	.idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +				MSTANDBY_FORCE | MSTANDBY_SMART | MSTANDBY_NO),
-> +	.sysc_fields    = &omap_hwmod_sysc_type2,
-> +};
+>  drivers/mmc/host/omap_hsmmc.c |   55 ++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 53 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index f84cfb01716d..91ddebbec8a3 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -214,6 +214,10 @@ struct omap_hsmmc_host {
+>         int                     reqs_blocked;
+>         int                     use_reg;
+>         int                     req_in_progress;
+> +       int                     force_narrow;
+> +#define NARROW_PENDING 1
+> +#define NARROW_FORCED  2
+> +       struct work_struct      width_work;
+>         unsigned long           clk_rate;
+>         unsigned int            flags;
+>  #define AUTO_CMD23             (1 << 0)        /* Auto CMD23 support */
+> @@ -1778,12 +1782,43 @@ static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
+>         set_sd_bus_power(host);
+>  }
+>
+> +static void omap_hsmmc_width_work(struct work_struct *work)
+> +{
+> +       struct omap_hsmmc_host *host = container_of(work,
+> +                                                   struct omap_hsmmc_host,
+> +                                                   width_work);
+> +       atomic_t noblock;
 > +
-> +static struct omap_hwmod_class am43xx_vpfe_hwmod_class = {
-> +	.name           = "vpfe",
-> +	.sysc           = &am43xx_vpfe_sysc,
-> +};
+> +       atomic_set(&noblock, 1);
+> +       if (__mmc_claim_host(host->mmc, &noblock)) {
+> +               /* Device active again */
+> +               host->force_narrow = 0;
+> +               return;
+> +       }
+> +       if (host->force_narrow != NARROW_PENDING) {
+> +               /* Someone claimed and released before we got here */
+> +               mmc_release_host(host->mmc);
+> +               return;
+> +       }
+> +       if (sdio_disable_wide(host->mmc->card) == 0)
+> +               host->force_narrow = NARROW_FORCED;
+> +       else
+> +               host->force_narrow = 0;
+> +       mmc_release_host(host->mmc);
+> +}
 > +
-> +static struct omap_hwmod am43xx_vpfe0_hwmod = {
-> +	.name           = "vpfe0",
-> +	.class          = &am43xx_vpfe_hwmod_class,
-> +	.clkdm_name     = "l3s_clkdm",
-> +	.prcm           = {
-> +		.omap4  = {
-> +			.modulemode     = MODULEMODE_SWCTRL,
-> +			.clkctrl_offs   = AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET,
-> +		},
-> +	},
-> +};
+>  static int omap_hsmmc_enable_fclk(struct mmc_host *mmc)
+>  {
+>         struct omap_hsmmc_host *host = mmc_priv(mmc);
+>
+>         pm_runtime_get_sync(host->dev);
+>
+> +       if (host->force_narrow == NARROW_FORCED) {
+> +               if (sdio_enable_4bit_bus(mmc->card) > 0)
+> +                       mmc_set_bus_width(mmc, MMC_BUS_WIDTH_4);
+> +               host->force_narrow = 0;
+> +       }
 > +
-> +static struct omap_hwmod am43xx_vpfe1_hwmod = {
-> +	.name           = "vpfe1",
-> +	.class          = &am43xx_vpfe_hwmod_class,
-> +	.clkdm_name     = "l3s_clkdm",
-> +	.prcm           = {
-> +		.omap4  = {
-> +			.modulemode     = MODULEMODE_SWCTRL,
-> +			.clkctrl_offs   = AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET,
-> +		},
-> +	},
-> +};
-> +
->  /* Interfaces */
->  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
->  	.master		= &am33xx_l3_main_hwmod,
-> @@ -788,6 +826,34 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
-> +	.master         = &am43xx_vpfe0_hwmod,
-> +	.slave          = &am33xx_l3_main_hwmod,
-> +	.clk            = "l3_gclk",
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
-> +	.master         = &am43xx_vpfe1_hwmod,
-> +	.slave          = &am33xx_l3_main_hwmod,
-> +	.clk            = "l3_gclk",
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__vpfe0 = {
-> +	.master         = &am33xx_l4_ls_hwmod,
-> +	.slave          = &am43xx_vpfe0_hwmod,
-> +	.clk            = "l4ls_gclk",
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if am43xx_l4_ls__vpfe1 = {
-> +	.master         = &am33xx_l4_ls_hwmod,
-> +	.slave          = &am43xx_vpfe1_hwmod,
-> +	.clk            = "l4ls_gclk",
-> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am33xx_l4_wkup__synctimer,
->  	&am43xx_l4_ls__timer8,
-> @@ -887,6 +953,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->  	&am43xx_l4_ls__dss,
->  	&am43xx_l4_ls__dss_dispc,
->  	&am43xx_l4_ls__dss_rfbi,
-> +	&am43xx_l3__vpfe0,
-> +	&am43xx_l3__vpfe1,
-> +	&am43xx_l4_ls__vpfe0,
-> +	&am43xx_l4_ls__vpfe1,
->  	NULL,
->  };
->  
-> diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-> index ad7b3e9..8aa4c2c 100644
-> --- a/arch/arm/mach-omap2/prcm43xx.h
-> +++ b/arch/arm/mach-omap2/prcm43xx.h
-> @@ -143,5 +143,6 @@
->  #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
->  #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
->  #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
-> -
-> +#define AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET		0x0068
-> +#define AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET		0x0070
->  #endif
-> -- 
-> 2.1.0
-> 
+>         return 0;
+>  }
+>
+> @@ -1791,8 +1826,13 @@ static int omap_hsmmc_disable_fclk(struct mmc_host *mmc)
+>  {
+>         struct omap_hsmmc_host *host = mmc_priv(mmc);
+>
+> -       pm_runtime_mark_last_busy(host->dev);
+> -       pm_runtime_put_autosuspend(host->dev);
+> +       if (host->force_narrow == NARROW_FORCED) {
+> +               pm_runtime_put_sync(host->dev);
+> +       } else {
+> +               host->force_narrow = 0;
+> +               pm_runtime_mark_last_busy(host->dev);
+> +               pm_runtime_put_autosuspend(host->dev);
+> +       }
+>
+>         return 0;
+>  }
+> @@ -2024,6 +2064,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>         host->power_mode = MMC_POWER_OFF;
+>         host->next_data.cookie = 1;
+>         host->pbias_enabled = 0;
+> +       INIT_WORK(&host->width_work, omap_hsmmc_width_work);
+>
+>         ret = omap_hsmmc_gpio_init(mmc, host, pdata);
+>         if (ret)
+> @@ -2311,6 +2352,16 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
+>         spin_lock_irqsave(&host->irq_lock, flags);
+>         if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+>             (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
+> +               if (host->mmc->ios.bus_width != MMC_BUS_WIDTH_1) {
+> +                       /* In 4-bit mode the card need the clock
+> +                        * to deliver interrupts, so it isn't safe
+> +                        * to turn it off.
+> +                        */
+> +                       host->force_narrow = NARROW_PENDING;
+> +                       schedule_work(&host->width_work);
+> +                       ret = -EBUSY;
+> +                       goto abort;
+
+>From a host driver perspective, don't you think this a bit too much to
+implement to cover this case!?
+
+I would rather see the host driver to invoke _one_ API provided by the
+mmc core, which takes care of the needed things and also tells the
+host driver whether it's safe to enter runtime PM suspend state or
+not. Could that work?
+
+> +               }
+>                 /* disable sdio irq handling to prevent race */
+>                 OMAP_HSMMC_WRITE(host->base, ISE, 0);
+>                 OMAP_HSMMC_WRITE(host->base, IE, 0);
+>
+>
+
+Kind regards
+Uffe
