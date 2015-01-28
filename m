@@ -1,19 +1,14 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add VPFE hwmod entries
-Date: Wed, 28 Jan 2015 13:30:38 -0600
-Message-ID: <20150128193038.GG2570@ti.com>
-References: <1422217915-24231-1-git-send-email-prabhakar.csengg@gmail.com>
- <alpine.DEB.2.02.1501260205090.5450@utopia.booyaka.com>
- <CA+V-a8urS2C20FDcfsGa+Gg+7wmbbQQw3U7BfXf6GBKoBGMc9w@mail.gmail.com>
- <20150126155032.GD2570@ti.com>
- <CA+V-a8vuD-+cwaP_bKpB8GweT-xX4E3PHrbB+uefCW+Xre7cog@mail.gmail.com>
- <alpine.DEB.2.02.1501261846460.5450@utopia.booyaka.com>
+Subject: Re: [PATCH v3] ARM: AM43xx: hwmod: add VPFE hwmod entries
+Date: Wed, 28 Jan 2015 13:32:47 -0600
+Message-ID: <20150128193247.GH2570@ti.com>
+References: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1501261846460.5450@utopia.booyaka.com>
+In-Reply-To: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,69 +18,138 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Darren Etheridge <detheridge@ti.com>, "Lad,
- Prabhakar" <prabhakar.csengg@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Darren Etheridge <detheridge@ti.com>, linux-omap@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-UGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+IHdyb3RlIG9uIE1vbiBbMjAxNS1KYW4tMjYg
-MTg6NDc6MTEgKzAwMDBdOgo+IEhpIFByYWJoYWthciwKPiAKPiBPbiBNb24sIDI2IEphbiAyMDE1
-LCBMYWQsIFByYWJoYWthciB3cm90ZToKPiAKPiA+IEhpIEJlbm9pdCwKPiA+IAo+ID4gT24gTW9u
-LCBKYW4gMjYsIDIwMTUgYXQgMzo1MCBQTSwgQmVub2l0IFBhcnJvdCA8YnBhcnJvdEB0aS5jb20+
-IHdyb3RlOgo+ID4gPiBMYWQsIFByYWJoYWthciA8cHJhYmhha2FyLmNzZW5nZ0BnbWFpbC5jb20+
-IHdyb3RlIG9uIE1vbiBbMjAxNS1KYW4tMjYgMDg6MTM6MDEgKzAwMDBdOgo+ID4gPj4gSGkgUGF1
-bCwKPiA+ID4+Cj4gPiA+PiBUaGFua3MgZm9yIHRoZSByZXZpZXcuCj4gPiA+Pgo+ID4gPj4gT24g
-TW9uLCBKYW4gMjYsIDIwMTUgYXQgMjoxNSBBTSwgUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5j
-b20+IHdyb3RlOgo+ID4gPj4gPiBIaQo+ID4gPj4gPgo+ID4gPj4gPiBPbiBTdW4sIDI1IEphbiAy
-MDE1LCBMYWQsIFByYWJoYWthciB3cm90ZToKPiA+ID4+ID4KPiA+ID4+ID4+IEZyb206IEJlbm9p
-dCBQYXJyb3QgPGJwYXJyb3RAdGkuY29tPgo+ID4gPj4gPj4KPiA+ID4+ID4+IHRoaXMgcGF0Y2gg
-YWRkcyBWUEZFIEhXTU9EIGRhdGEgZm9yIEFNNDN4eC4KPiA+ID4+ID4+Cj4gPiA+PiA+PiBTaWdu
-ZWQtb2ZmLWJ5OiBCZW5vaXQgUGFycm90IDxicGFycm90QHRpLmNvbT4KPiA+ID4+ID4+IFNpZ25l
-ZC1vZmYtYnk6IERhcnJlbiBFdGhlcmlkZ2UgPGRldGhlcmlkZ2VAdGkuY29tPgo+ID4gPj4gPj4g
-U2lnbmVkLW9mZi1ieTogRmVsaXBlIEJhbGJpIDxiYWxiaUB0aS5jb20+Cj4gPiA+PiA+PiBTaWdu
-ZWQtb2ZmLWJ5OiBMYWQsIFByYWJoYWthciA8cHJhYmhha2FyLmNzZW5nZ0BnbWFpbC5jb20+Cj4g
-PiA+PiA+PiAtLS0KPiA+ID4+ID4+ICBIaSBQYXVsLAo+ID4gPj4gPj4KPiA+ID4+ID4+ICBZb3Ug
-d2VyZSByaWdodCwgdGhlIGhhcmR3YXJlIHRlYW0gaGFzIGNvbmZpcm1lZCB0aGF0LCB0aGUgVlBG
-RSBtYXN0ZXIgcG9ydCBpcwo+ID4gPj4gPj4gIGNvbm5lY3RlZCB0byBMMyBhbmQgdGhlIFZQRkUg
-c2xhdmUgcG9ydCBpcyBjb25uZWN0ZWQgdG8gTDQuIFRoZSBMMyBwb3J0IGNhbm5vdAo+ID4gPj4g
-Pj4gIHNlcnZlIGFzIGEgcmVnaXN0ZXIgdGFyZ2V0IGJlY2F1c2UgaXQgaXMgaW5pdGlhdG9yIG9u
-bHkuCj4gPiA+PiA+Cj4gPiA+PiA+IE9LIG1ha2VzIHNlbnNlIHRvIG1lLiwKPiA+ID4+ID4KPiA+
-ID4+ID4+Cj4gPiA+PiA+PiAgSSBoYXZlIGNyZWF0ZWQgbGlua3MgcmVmZXJyaW5nIHRvIGRzcyBs
-My9sNCBod21vZCBhbmQgdGVzdGVkIGl0LCBsZW1tZSBrbm93Cj4gPiA+PiA+PiAgaWYgSSBoYXZl
-IG1pc3NlZCBzb21ldGhpbmcuCj4gPiA+PiA+Cj4gPiA+PiA+IEEgZmV3IG1pbm9yIGNvbW1lbnRz
-IGJlbG93Cj4gPiA+PiA+Cj4gPiA+PiA+Pgo+ID4gPj4gW1NuaXBdCj4gPiA+PiA+PiAgLyogSW50
-ZXJmYWNlcyAqLwo+ID4gPj4gPj4gIHN0YXRpYyBzdHJ1Y3Qgb21hcF9od21vZF9vY3BfaWYgYW00
-M3h4X2wzX21haW5fX2w0X2hzID0gewo+ID4gPj4gPj4gICAgICAgLm1hc3RlciAgICAgICAgID0g
-JmFtMzN4eF9sM19tYWluX2h3bW9kLAo+ID4gPj4gPj4gQEAgLTc4OCw2ICs4MjYsMzYgQEAgc3Rh
-dGljIHN0cnVjdCBvbWFwX2h3bW9kX29jcF9pZiBhbTQzeHhfbDRfbHNfX2Rzc19yZmJpID0gewo+
-ID4gPj4gPj4gICAgICAgLnVzZXIgICAgICAgICAgID0gT0NQX1VTRVJfTVBVIHwgT0NQX1VTRVJf
-U0RNQSwKPiA+ID4+ID4+ICB9Owo+ID4gPj4gPj4KPiA+ID4+ID4+ICtzdGF0aWMgc3RydWN0IG9t
-YXBfaHdtb2Rfb2NwX2lmIGFtNDN4eF9sM19fdnBmZTAgPSB7Cj4gPiA+PiA+PiArICAgICAubWFz
-dGVyICAgICAgICAgPSAmYW00M3h4X3ZwZmUwX2h3bW9kLAo+ID4gPj4gPj4gKyAgICAgLnNsYXZl
-ICAgICAgICAgID0gJmFtMzN4eF9sM19tYWluX2h3bW9kLAo+ID4gPj4gPj4gKyAgICAgLmNsayAg
-ICAgICAgICAgID0gImwzX2djbGsiLAo+ID4gPj4gPj4gKyAgICAgLmZsYWdzICAgICAgICAgID0g
-T0NQSUZfU1dTVVBfSURMRSwKPiA+ID4+ID4KPiA+ID4+ID4gT0NQSUZfU1dTVVBfSURMRSBwcm9i
-YWJseSBpc24ndCBuZWVkZWQgaGVyZS4gIENvdWxkIHlvdSBwbGVhc2UgdHJ5IHdpdGhvdXQKPiA+
-ID4+ID4gaXQ/Cj4gPiA+PiA+Cj4gPiA+PiA+PiArICAgICAudXNlciAgICAgICAgICAgPSBPQ1Bf
-VVNFUl9NUFUgfCBPQ1BfVVNFUl9TRE1BLAo+ID4gPj4gPj4gK307Cj4gPiA+PiA+PiArCj4gPiA+
-PiA+PiArc3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kX29jcF9pZiBhbTQzeHhfbDNfX3ZwZmUxID0g
-ewo+ID4gPj4gPj4gKyAgICAgLm1hc3RlciAgICAgICAgID0gJmFtNDN4eF92cGZlMV9od21vZCwK
-PiA+ID4+ID4+ICsgICAgIC5zbGF2ZSAgICAgICAgICA9ICZhbTMzeHhfbDNfbWFpbl9od21vZCwK
-PiA+ID4+ID4+ICsgICAgIC5jbGsgICAgICAgICAgICA9ICJsM19nY2xrIiwKPiA+ID4+ID4+ICsg
-ICAgIC5mbGFncyAgICAgICAgICA9IE9DUElGX1NXU1VQX0lETEUsCj4gPiA+PiA+Cj4gPiA+PiA+
-IFNhbWUgcG9pbnQgYXMgdGhlIGFib3ZlLgo+ID4gPj4gPgo+ID4gPj4gRHJvcHBlZCBhbmQgdGVz
-dGVkIHdvcmtzISBwb3N0aW5nIGEgdjMuCj4gPiA+Cj4gPiA+IFdoZW4geW91IHRlc3RlZCBpdCB3
-aXRob3V0IHRoZSBPQ1BJRl9TV1NVUF9JRExFLCBkaWQgeW91IGdvIHRyaG91Z2ggYSBjb21wbGV0
-ZSBzdXNwZW5kL3Jlc3VtZSBjeWNsZT8KPiA+ID4gVGhpcyBmbGFnIHdhcyBhZGRlZCBlYXJseSBv
-biBiZWNhdXNlIG90aGVyd2lzZSB0aGUgc3VzYnN5dGVtIHdvdWxkIG5vdCBnbyBpZGxlIHdpdGhv
-dXQgaXQuLi4KPiA+ID4KPiA+ID4gQ2FuIHlvdSBwb3N0IHRoZSBjb25zb2xlIG91dHB1dCBkdXJp
-bmcgYSBzdXNwZW5kL3Jlc3VtZSBjeWNsZT8KPiA+ID4KPiA+IEFoIEkgZGlkbuKAmXQgdGVzdCB0
-aGUgc3VzcGVuZC9yZXN1bWUgd2lsbCBkbyBhbmQgcG9zdCB0aGUgY29uc29sZSBsb2cuCj4gCj4g
-Q291bGQgeW91IGFsc28gZG8gYSBzdXNwZW5kL3Jlc3VtZSB0ZXN0IG9uIHYyPwoKUHJhYmJoYWth
-ciwKCkkgdGVzdGVkIGJvdGggdjIgYW5kIHYzIGFuZCBib3RoIHN1Y2Nlc3NmdWxseSB3ZW50IHRo
-cm91Z2ggYSBzdXNwZW5kL3Jlc3VtZSBjeWNsZS4KU28gSSBndWVzcyB2MyBpcyBmaW5lLCBzb3Jy
-eSBmb3IgdGhlIG5vaXNlLgoKSSdsbCBhZGQgYSB0ZXN0ZWQtYnkgb24gVjMuCgpCZW5vaXQKCj4g
-IAo+IHRoYW5rcwo+IAo+IC0gUGF1bAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Suspend/resume is functional with this patch.
+
+Tested-by: Benoit Parrot <bparrot@ti.com>
+
+Lad, Prabhakar <prabhakar.csengg@gmail.com> wrote on Mon [2015-Jan-26 08:21:28 +0000]:
+> From: Benoit Parrot <bparrot@ti.com>
+> 
+> this patch adds VPFE HWMOD data for AM43xx.
+> 
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  Changes for v3:
+>  a: Dropped OCPIF_SWSUP_IDLE flag from l3 hwmods of vpfe.
+>  
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 70 ++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/prcm43xx.h             |  3 +-
+>  2 files changed, 72 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> index 5c6c841..8543f9f 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> @@ -514,6 +514,44 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
+>  	},
+>  };
+>  
+> +static struct omap_hwmod_class_sysconfig am43xx_vpfe_sysc = {
+> +	.rev_offs       = 0x0,
+> +	.sysc_offs      = 0x104,
+> +	.sysc_flags     = SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE,
+> +	.idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+> +				MSTANDBY_FORCE | MSTANDBY_SMART | MSTANDBY_NO),
+> +	.sysc_fields    = &omap_hwmod_sysc_type2,
+> +};
+> +
+> +static struct omap_hwmod_class am43xx_vpfe_hwmod_class = {
+> +	.name           = "vpfe",
+> +	.sysc           = &am43xx_vpfe_sysc,
+> +};
+> +
+> +static struct omap_hwmod am43xx_vpfe0_hwmod = {
+> +	.name           = "vpfe0",
+> +	.class          = &am43xx_vpfe_hwmod_class,
+> +	.clkdm_name     = "l3s_clkdm",
+> +	.prcm           = {
+> +		.omap4  = {
+> +			.modulemode     = MODULEMODE_SWCTRL,
+> +			.clkctrl_offs   = AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET,
+> +		},
+> +	},
+> +};
+> +
+> +static struct omap_hwmod am43xx_vpfe1_hwmod = {
+> +	.name           = "vpfe1",
+> +	.class          = &am43xx_vpfe_hwmod_class,
+> +	.clkdm_name     = "l3s_clkdm",
+> +	.prcm           = {
+> +		.omap4  = {
+> +			.modulemode     = MODULEMODE_SWCTRL,
+> +			.clkctrl_offs   = AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET,
+> +		},
+> +	},
+> +};
+> +
+>  /* Interfaces */
+>  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+>  	.master		= &am33xx_l3_main_hwmod,
+> @@ -788,6 +826,34 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>  
+> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
+> +	.master         = &am43xx_vpfe0_hwmod,
+> +	.slave          = &am33xx_l3_main_hwmod,
+> +	.clk            = "l3_gclk",
+> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
+> +	.master         = &am43xx_vpfe1_hwmod,
+> +	.slave          = &am33xx_l3_main_hwmod,
+> +	.clk            = "l3_gclk",
+> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if am43xx_l4_ls__vpfe0 = {
+> +	.master         = &am33xx_l4_ls_hwmod,
+> +	.slave          = &am43xx_vpfe0_hwmod,
+> +	.clk            = "l4ls_gclk",
+> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if am43xx_l4_ls__vpfe1 = {
+> +	.master         = &am33xx_l4_ls_hwmod,
+> +	.slave          = &am43xx_vpfe1_hwmod,
+> +	.clk            = "l4ls_gclk",
+> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+>  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am33xx_l4_wkup__synctimer,
+>  	&am43xx_l4_ls__timer8,
+> @@ -887,6 +953,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am43xx_l4_ls__dss,
+>  	&am43xx_l4_ls__dss_dispc,
+>  	&am43xx_l4_ls__dss_rfbi,
+> +	&am43xx_l3__vpfe0,
+> +	&am43xx_l3__vpfe1,
+> +	&am43xx_l4_ls__vpfe0,
+> +	&am43xx_l4_ls__vpfe1,
+>  	NULL,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+> index ad7b3e9..8aa4c2c 100644
+> --- a/arch/arm/mach-omap2/prcm43xx.h
+> +++ b/arch/arm/mach-omap2/prcm43xx.h
+> @@ -143,5 +143,6 @@
+>  #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+>  #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
+>  #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
+> -
+> +#define AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET		0x0068
+> +#define AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET		0x0070
+>  #endif
+> -- 
+> 2.1.0
+> 
