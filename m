@@ -1,189 +1,182 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 3/3] mmc: omap_hsmmc: switch to 1-bit before turning off
- clocks if interrupts expected.
-Date: Wed, 28 Jan 2015 21:18:40 +0100
-Message-ID: <CAPDyKFoe6sVi-oKGwEsoXE3U1Ct=+Swc5g+EkV5V21tvvMqE5w@mail.gmail.com>
-References: <20150127233118.32160.11899.stgit@notabene.brown>
-	<20150127233524.32160.33438.stgit@notabene.brown>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150127233524.32160.33438.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/3] net: cpsw: Add a minimal cpsw-common module for shared code
+Date: Wed, 28 Jan 2015 11:33:04 -0800
+Message-ID: <1422473586-18100-2-git-send-email-tony@atomide.com>
+References: <1422473586-18100-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.ore.mailhop.org ([54.186.10.118]:45340 "EHLO
+	smtp5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757963AbbA1U1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2015 15:27:01 -0500
+In-Reply-To: <1422473586-18100-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
 
-On 28 January 2015 at 00:35, NeilBrown <neilb@suse.de> wrote:
-> According to section 7.1.2 of
->
-> http://www.sandisk.com/media/File/OEM/Manuals/SD_SDIO_specsv1.pdf
->
->     In the case where the interrupt mechanism is used to wake the host while
->     the card is in a low power state (i.e. no clocks), Both the card and the
->     host shall be placed into the 1-bit SD mode prior to stopping the clock.
->
->
-> This is particularly important for the Marvell "libertas" wifi chip
-> in the GTA04.  While in 4-bit mode it will only signal an interrupt
-> when the clock is running (which is why setting CLKEXTFREE is
-> important).
-> In 1-bit mode, the interrupt is asynchronous (explained in OMAP3
-> TRM description of the CIRQ flag to MMCHS_STAT:
->
->   In 1-bit mode, interrupt source is asynchronous (can be a source of
->   asynchronous wakeup).
->   In 4-bit mode, interrupt source is sampled during the interrupt
->   cycle.
->
-> )
->
-> We cannot simply set 1-bit mode in omap_hsmmc_runtime_suspend
-> as that is called under a spinlock, and setting 1-bit mode requires
-> a sleeping call to the card.
->
-> So:
->  - use a work_struct to schedule setting of 1-bit mode
->  - intro a 'force_narrow' state flag which transitions:
->      0 -> NARROW_PENDING -> NARROW_FORCED -> 0
->  - have omap_hsmmc_runtime_suspend fail if interrupts are expected
->    but bus is not in 1-bit mode.  When it fails it schedules
->    the work to change the width. and sets NARROW_PENDING
->  - when the host is claimed, if NARROW_FORCED is set, restore the
->    4-bit bus
->  - When the host is released (disable_fclk), if NARROW_FORCED,
->    then suspend immediately, no autosuspend.  If NARROW_PENDING,
->    clear that flag as the device has obviously just been used.
+Looks like davinci_emac and cpsw can share some code although the
+device registers have a different layout.
 
-I can't give you more detailed comment about this patch(set) yet. Need
-to think a bit more first.
+At least the code for getting the MAC address using syscon can
+be shared by passing the register offset. Let's start with that
+and set up a minimal shared cpsw-shared.c.
 
-Anyway, I have one concern, see comment below.
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/net/ethernet/ti/Makefile      |  3 ++
+ drivers/net/ethernet/ti/cpsw-common.c | 53 +++++++++++++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.c        | 35 ++---------------------
+ drivers/net/ethernet/ti/cpsw.h        |  2 ++
+ 4 files changed, 60 insertions(+), 33 deletions(-)
+ create mode 100644 drivers/net/ethernet/ti/cpsw-common.c
 
->
-> This all allows a graceful and race-free switch to 1-bit mode
-> before switching off the clocks, if interrupts are enabled.
->
-> With this, I can use my libertas wifi with a 4-bit bus, with
-> interrupts and runtime power-management enabled, and get around
-> 14Mb/sec throughput (which is the best I've seen).
->
-> Signed-off-by: NeilBrown <neil@brown.name>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   55 ++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 53 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index f84cfb01716d..91ddebbec8a3 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -214,6 +214,10 @@ struct omap_hsmmc_host {
->         int                     reqs_blocked;
->         int                     use_reg;
->         int                     req_in_progress;
-> +       int                     force_narrow;
-> +#define NARROW_PENDING 1
-> +#define NARROW_FORCED  2
-> +       struct work_struct      width_work;
->         unsigned long           clk_rate;
->         unsigned int            flags;
->  #define AUTO_CMD23             (1 << 0)        /* Auto CMD23 support */
-> @@ -1778,12 +1782,43 @@ static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->         set_sd_bus_power(host);
->  }
->
-> +static void omap_hsmmc_width_work(struct work_struct *work)
-> +{
-> +       struct omap_hsmmc_host *host = container_of(work,
-> +                                                   struct omap_hsmmc_host,
-> +                                                   width_work);
-> +       atomic_t noblock;
-> +
-> +       atomic_set(&noblock, 1);
-> +       if (__mmc_claim_host(host->mmc, &noblock)) {
-> +               /* Device active again */
-> +               host->force_narrow = 0;
-> +               return;
-> +       }
-> +       if (host->force_narrow != NARROW_PENDING) {
-> +               /* Someone claimed and released before we got here */
-> +               mmc_release_host(host->mmc);
-> +               return;
-> +       }
-> +       if (sdio_disable_wide(host->mmc->card) == 0)
-> +               host->force_narrow = NARROW_FORCED;
-> +       else
-> +               host->force_narrow = 0;
-> +       mmc_release_host(host->mmc);
-> +}
-> +
->  static int omap_hsmmc_enable_fclk(struct mmc_host *mmc)
->  {
->         struct omap_hsmmc_host *host = mmc_priv(mmc);
->
->         pm_runtime_get_sync(host->dev);
->
-> +       if (host->force_narrow == NARROW_FORCED) {
-> +               if (sdio_enable_4bit_bus(mmc->card) > 0)
-> +                       mmc_set_bus_width(mmc, MMC_BUS_WIDTH_4);
-> +               host->force_narrow = 0;
-> +       }
-> +
->         return 0;
->  }
->
-> @@ -1791,8 +1826,13 @@ static int omap_hsmmc_disable_fclk(struct mmc_host *mmc)
->  {
->         struct omap_hsmmc_host *host = mmc_priv(mmc);
->
-> -       pm_runtime_mark_last_busy(host->dev);
-> -       pm_runtime_put_autosuspend(host->dev);
-> +       if (host->force_narrow == NARROW_FORCED) {
-> +               pm_runtime_put_sync(host->dev);
-> +       } else {
-> +               host->force_narrow = 0;
-> +               pm_runtime_mark_last_busy(host->dev);
-> +               pm_runtime_put_autosuspend(host->dev);
-> +       }
->
->         return 0;
->  }
-> @@ -2024,6 +2064,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->         host->power_mode = MMC_POWER_OFF;
->         host->next_data.cookie = 1;
->         host->pbias_enabled = 0;
-> +       INIT_WORK(&host->width_work, omap_hsmmc_width_work);
->
->         ret = omap_hsmmc_gpio_init(mmc, host, pdata);
->         if (ret)
-> @@ -2311,6 +2352,16 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
->         spin_lock_irqsave(&host->irq_lock, flags);
->         if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
->             (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
-> +               if (host->mmc->ios.bus_width != MMC_BUS_WIDTH_1) {
-> +                       /* In 4-bit mode the card need the clock
-> +                        * to deliver interrupts, so it isn't safe
-> +                        * to turn it off.
-> +                        */
-> +                       host->force_narrow = NARROW_PENDING;
-> +                       schedule_work(&host->width_work);
-> +                       ret = -EBUSY;
-> +                       goto abort;
+diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
+index 465d03d..7fa47f6 100644
+--- a/drivers/net/ethernet/ti/Makefile
++++ b/drivers/net/ethernet/ti/Makefile
+@@ -2,6 +2,9 @@
+ # Makefile for the TI network device drivers.
+ #
+ 
++obj-$(CONFIG_TI_CPSW) += cpsw-common.o
++obj-$(CONFIG_TI_DAVINCI_EMAC) += cpsw-common.o
++
+ obj-$(CONFIG_TLAN) += tlan.o
+ obj-$(CONFIG_CPMAC) += cpmac.o
+ obj-$(CONFIG_TI_DAVINCI_EMAC) += davinci_emac.o
+diff --git a/drivers/net/ethernet/ti/cpsw-common.c b/drivers/net/ethernet/ti/cpsw-common.c
+new file mode 100644
+index 0000000..763ada1
+--- /dev/null
++++ b/drivers/net/ethernet/ti/cpsw-common.c
+@@ -0,0 +1,53 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
++
++#define AM33XX_CTRL_MAC_LO_REG(offset, id) ((offset) + 0x8 * (id))
++#define AM33XX_CTRL_MAC_HI_REG(offset, id) ((offset) + 0x8 * (id) + 0x4)
++
++int cpsw_am33xx_cm_get_macid(struct device *dev, u16 offset, int slave,
++			     u8 *mac_addr)
++{
++	u32 macid_lo;
++	u32 macid_hi;
++	struct regmap *syscon;
++
++	syscon = syscon_regmap_lookup_by_phandle(dev->of_node, "syscon");
++	if (IS_ERR(syscon)) {
++		if (PTR_ERR(syscon) == -ENODEV)
++			return 0;
++		return PTR_ERR(syscon);
++	}
++
++	regmap_read(syscon, AM33XX_CTRL_MAC_LO_REG(offset, slave),
++		    &macid_lo);
++	regmap_read(syscon, AM33XX_CTRL_MAC_HI_REG(offset, slave),
++		    &macid_hi);
++
++	mac_addr[5] = (macid_lo >> 8) & 0xff;
++	mac_addr[4] = macid_lo & 0xff;
++	mac_addr[3] = (macid_hi >> 24) & 0xff;
++	mac_addr[2] = (macid_hi >> 16) & 0xff;
++	mac_addr[1] = (macid_hi >> 8) & 0xff;
++	mac_addr[0] = macid_hi & 0xff;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cpsw_am33xx_cm_get_macid);
++
++MODULE_LICENSE("GPL");
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 2b9d404..7d8dd0d 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -33,8 +33,6 @@
+ #include <linux/of_net.h>
+ #include <linux/of_device.h>
+ #include <linux/if_vlan.h>
+-#include <linux/mfd/syscon.h>
+-#include <linux/regmap.h>
+ 
+ #include <linux/pinctrl/consumer.h>
+ 
+@@ -1936,36 +1934,6 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
+ 	slave->port_vlan = data->dual_emac_res_vlan;
+ }
+ 
+-#define AM33XX_CTRL_MAC_LO_REG(id) (0x630 + 0x8 * id)
+-#define AM33XX_CTRL_MAC_HI_REG(id) (0x630 + 0x8 * id + 0x4)
+-
+-static int cpsw_am33xx_cm_get_macid(struct device *dev, int slave,
+-		u8 *mac_addr)
+-{
+-	u32 macid_lo;
+-	u32 macid_hi;
+-	struct regmap *syscon;
+-
+-	syscon = syscon_regmap_lookup_by_phandle(dev->of_node, "syscon");
+-	if (IS_ERR(syscon)) {
+-		if (PTR_ERR(syscon) == -ENODEV)
+-			return 0;
+-		return PTR_ERR(syscon);
+-	}
+-
+-	regmap_read(syscon, AM33XX_CTRL_MAC_LO_REG(slave), &macid_lo);
+-	regmap_read(syscon, AM33XX_CTRL_MAC_HI_REG(slave), &macid_hi);
+-
+-	mac_addr[5] = (macid_lo >> 8) & 0xff;
+-	mac_addr[4] = macid_lo & 0xff;
+-	mac_addr[3] = (macid_hi >> 24) & 0xff;
+-	mac_addr[2] = (macid_hi >> 16) & 0xff;
+-	mac_addr[1] = (macid_hi >> 8) & 0xff;
+-	mac_addr[0] = macid_hi & 0xff;
+-
+-	return 0;
+-}
+-
+ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 			 struct platform_device *pdev)
+ {
+@@ -2090,7 +2058,8 @@ no_phy_slave:
+ 			memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
+ 		} else {
+ 			if (of_machine_is_compatible("ti,am33xx")) {
+-				ret = cpsw_am33xx_cm_get_macid(&pdev->dev, i,
++				ret = cpsw_am33xx_cm_get_macid(&pdev->dev,
++							0x630, i,
+ 							slave_data->mac_addr);
+ 				if (ret)
+ 					return ret;
+diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+index 1b71067..ca90efa 100644
+--- a/drivers/net/ethernet/ti/cpsw.h
++++ b/drivers/net/ethernet/ti/cpsw.h
+@@ -41,5 +41,7 @@ struct cpsw_platform_data {
+ };
+ 
+ void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
++int cpsw_am33xx_cm_get_macid(struct device *dev, u16 offset, int slave,
++			     u8 *mac_addr);
+ 
+ #endif /* __CPSW_H__ */
+-- 
+2.1.4
 
->From a host driver perspective, don't you think this a bit too much to
-implement to cover this case!?
-
-I would rather see the host driver to invoke _one_ API provided by the
-mmc core, which takes care of the needed things and also tells the
-host driver whether it's safe to enter runtime PM suspend state or
-not. Could that work?
-
-> +               }
->                 /* disable sdio irq handling to prevent race */
->                 OMAP_HSMMC_WRITE(host->base, ISE, 0);
->                 OMAP_HSMMC_WRITE(host->base, IE, 0);
->
->
-
-Kind regards
-Uffe
