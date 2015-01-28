@@ -1,44 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Wed, 28 Jan 2015 09:09:55 -0800
-Message-ID: <20150128170954.GQ28663@atomide.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
- <1422274532-9488-2-git-send-email-rogerq@ti.com>
- <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
- <54C66B0D.9040109@ti.com>
- <54C6EFC8.1090601@samsung.com>
- <54C7B0E5.20101@ti.com>
- <54C8472B.6070302@samsung.com>
- <54C8D238.4080001@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54C8D238.4080001@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, Felipe Balbi <balbi@ti.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, george.cherian@ti.com, nsekhar@ti.com, devicetree <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Subject: [PATCH 0/3] Changes to cpsw and davinci_emac for getting MAC address
+Date: Wed, 28 Jan 2015 11:33:03 -0800
+Message-ID: <1422473586-18100-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.ore.mailhop.org ([54.186.10.118]:37198 "EHLO
+	smtp5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755793AbbA1UdG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2015 15:33:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [150128 04:15]:
-> On 28/01/15 04:19, Chanwoo Choi wrote:
-> >>
-> >> I still fail to understand that we need to call disable_irq() in .suspend() and
-> >> enable_irq() in .resume()
-> >>
-> >> can you point me to any other drivers doing so?
-> > 
-> > You can refer the suspend function in drivers/mfd/max14577.c or drivers/mfd/max77693.c.
-> > The max14577_suspend() includes the detailed comment for why using disable_irq() in suspend function.
-> > 
-> > In max14577 case, max14577_suspend() use disable_irq() function because of i2c dependency.
-> > If max14577 device is wake-up from suspend state before completing the resume sequence
-> > of i2c, max14577 may fail to read/write i2c communication.
-> 
-> Thanks for this information. I will add disable/enable_irq() in suspend/resume().
+Hi all,
 
-Are the .dts changes safe for me to apply already?
+Here are a few patches to add common code for cpsw and davinci_emac for
+getting the MAC address. Looks like we can also now add code to get the
+MAC address on 3517 but in a slightly different way.
 
 Regards,
 
 Tony
+
+
+Tony Lindgren (3):
+  net: cpsw: Add a minimal cpsw-common module for shared code
+  net: davinci_emac: Get device dm816x MAC address using the cpsw code
+  net: davinci_emac: Get device MAC on 3517
+
+ arch/arm/boot/dts/am3517.dtsi          |  1 +
+ drivers/net/ethernet/ti/Makefile       |  3 ++
+ drivers/net/ethernet/ti/cpsw-common.c  | 53 ++++++++++++++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.c         | 35 ++-------------------
+ drivers/net/ethernet/ti/cpsw.h         |  2 ++
+ drivers/net/ethernet/ti/davinci_emac.c | 56 +++++++++++++++++++++++++++++++++-
+ 6 files changed, 116 insertions(+), 34 deletions(-)
+ create mode 100644 drivers/net/ethernet/ti/cpsw-common.c
+
+-- 
+2.1.4
+
