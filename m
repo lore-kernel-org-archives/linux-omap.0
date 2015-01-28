@@ -1,168 +1,228 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 3/3] mmc: omap_hsmmc: switch to 1-bit before turning off
- clocks if interrupts expected.
-Date: Wed, 28 Jan 2015 10:35:24 +1100
-Message-ID: <20150127233524.32160.33438.stgit@notabene.brown>
-References: <20150127233118.32160.11899.stgit@notabene.brown>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
+Date: Wed, 28 Jan 2015 11:19:23 +0900
+Message-ID: <54C8472B.6070302@samsung.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+ <1422274532-9488-2-git-send-email-rogerq@ti.com>
+ <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
+ <54C66B0D.9040109@ti.com> <54C6EFC8.1090601@samsung.com>
+ <54C7B0E5.20101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150127233118.32160.11899.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Andreas Fenkart <afenkart@gmail.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout3.samsung.com ([203.254.224.33]:45268 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756549AbbA1CT1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2015 21:19:27 -0500
+In-reply-to: <54C7B0E5.20101@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, tony@atomide.com, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, george.cherian@ti.com, nsekhar@ti.com, devicetree <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-According to section 7.1.2 of
+Hi Roger,
 
-http://www.sandisk.com/media/File/OEM/Manuals/SD_SDIO_specsv1.pdf
+On 01/28/2015 12:38 AM, Roger Quadros wrote:
+> Chanwoo,
+> 
+> On 27/01/15 03:54, Chanwoo Choi wrote:
+>> Hi Roger,
+>>
+>> On 01/27/2015 01:27 AM, Roger Quadros wrote:
+>>> Hi Chanwoo,
+>>>
+>>> All your comments are valid. Need some clarification on one comment.
+>>>
+>>> On 26/01/15 15:56, Chanwoo Choi wrote:
+>>>> Hi Roger,
+>>>>
+>>>> This patch looks good to me. But I add some comment.
+>>>> If you modify some comment, I'll apply this patch on 3.21 queue.
+>>>>
+>>>> On Mon, Jan 26, 2015 at 9:15 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>>>> This driver observes the USB ID pin connected over a GPIO and
+>>>>> updates the USB cable extcon states accordingly.
+>>>>>
+>>>>> The existing GPIO extcon driver is not suitable for this purpose
+>>>>> as it needs to be taught to understand USB cable states and it
+>>>>> can't handle more than one cable per instance.
+>>>>>
+>>>>> For the USB case we need to handle 2 cable states.
+>>>>> 1) USB (attach/detach)
+>>>>> 2) USB-Host (attach/detach)
+>>>>>
+>>>>> This driver can be easily updated in the future to handle VBUS
+>>>>> events in case it happens to be available on GPIO for any platform.
+>>>>>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> ---
+>>>>>  .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  20 ++
+>>>>>  drivers/extcon/Kconfig                             |   7 +
+>>>>>  drivers/extcon/Makefile                            |   1 +
+>>>>>  drivers/extcon/extcon-usb-gpio.c                   | 214 +++++++++++++++++++++
+>>>>>  4 files changed, 242 insertions(+)
+>>>>>  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
+>>>>>  create mode 100644 drivers/extcon/extcon-usb-gpio.c
+>>>>>
+>>>
+>>> <snip>
+>>>
+>>>>> +
+>>>>> +static int usb_extcon_probe(struct platform_device *pdev)
+>>>>> +{
+>>>>> +       struct device *dev = &pdev->dev;
+>>>>> +       struct device_node *np = dev->of_node;
+>>>>> +       struct usb_extcon_info *info;
+>>>>> +       int ret;
+>>>>> +
+>>>>> +       if (!np)
+>>>>> +               return -EINVAL;
+>>>>> +
+>>>>> +       info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+>>>>> +       if (!info)
+>>>>> +               return -ENOMEM;
+>>>>> +
+>>>>> +       info->dev = dev;
+>>>>> +       info->id_gpiod = devm_gpiod_get(&pdev->dev, "id");
+>>>>> +       if (IS_ERR(info->id_gpiod)) {
+>>>>> +               dev_err(dev, "failed to get ID GPIO\n");
+>>>>> +               return PTR_ERR(info->id_gpiod);
+>>>>> +       }
+>>>>> +
+>>>>> +       ret = gpiod_set_debounce(info->id_gpiod,
+>>>>> +                                USB_GPIO_DEBOUNCE_MS * 1000);
+>>>>> +       if (ret < 0)
+>>>>> +               info->debounce_jiffies = msecs_to_jiffies(USB_GPIO_DEBOUNCE_MS);
+>>>>> +
+>>>>> +       INIT_DELAYED_WORK(&info->wq_detcable, usb_extcon_detect_cable);
+>>>>> +
+>>>>> +       info->id_irq = gpiod_to_irq(info->id_gpiod);
+>>>>> +       if (info->id_irq < 0) {
+>>>>> +               dev_err(dev, "failed to get ID IRQ\n");
+>>>>> +               return info->id_irq;
+>>>>> +       }
+>>>>> +
+>>>>> +       ret = devm_request_threaded_irq(dev, info->id_irq, NULL,
+>>>>> +                                       usb_irq_handler,
+>>>>> +                                       IRQF_SHARED | IRQF_ONESHOT |
+>>>>> +                                       IRQF_NO_SUSPEND,
+>>>>> +                                       pdev->name, info);
+>>>
+>>> use of IRQF_NO_SUSPEND is not recommended to be used together with IRQF_SHARED so
+>>> I'll remove IRQF_SHARED from here if we decide to stick with IRQF_NO_SUSPEND.
+>>> More on this below.
+>>>
+>>>>> +       if (ret < 0) {
+>>>>> +               dev_err(dev, "failed to request handler for ID IRQ\n");
+>>>>> +               return ret;
+>>>>> +       }
+>>>>> +
+>>>>> +       info->edev = devm_extcon_dev_allocate(dev, usb_extcon_cable);
+>>>>> +       if (IS_ERR(info->edev)) {
+>>>>> +               dev_err(dev, "failed to allocate extcon device\n");
+>>>>> +               return -ENOMEM;
+>>>>> +       }
+>>>>> +
+>>>>> +       ret = devm_extcon_dev_register(dev, info->edev);
+>>>>> +       if (ret < 0) {
+>>>>> +               dev_err(dev, "failed to register extcon device\n");
+>>>>> +               return ret;
+>>>>> +       }
+>>>>> +
+>>>>> +       platform_set_drvdata(pdev, info);
+>>>>
+>>>> I prefer to execute the device_init_wakeup() function as following
+>>>> for suspend/resume function:
+>>>>             device_init_wakeup(&pdev->dev, 1);
+>>>>
+>>>>> +
+>>>>> +       /* Perform initial detection */
+>>>>> +       usb_extcon_detect_cable(&info->wq_detcable.work);
+>>>>> +
+>>>>> +       return 0;
+>>>>> +}
+>>>>> +
+>>>>> +static int usb_extcon_remove(struct platform_device *pdev)
+>>>>> +{
+>>>>> +       struct usb_extcon_info *info = platform_get_drvdata(pdev);
+>>>>> +
+>>>>> +       cancel_delayed_work_sync(&info->wq_detcable);
+>>>>
+>>>> Need to add blank line.
+>>>>
+>>>>> +       return 0;
+>>>>> +}
+>>>>> +
+>>>>> +#ifdef CONFIG_PM_SLEEP
+>>>>> +static int usb_extcon_suspend(struct device *dev)
+>>>>> +{
+>>>>> +       struct usb_extcon_info *info = dev_get_drvdata(dev);
+>>>>> +
+>>>>> +       enable_irq_wake(info->id_irq);
+>>>>
+>>>> I prefer to use device_may_wakeup() function for whether
+>>>> executing enable_irq_wake() or not. Also, The disable_irq()
+>>>> in the suspend function would prevent us from discarding interrupt
+>>>> before wakeup from suspend completely.
+>>>>
+>>>
+>>> I need more clarification here.
+>>>
+>>> If we are going to use enable_irq_wake() here then what is the point of IRQF_NO_SUSPEND?
+>>>
+>>> >From Documentation/power/suspend-and-interrupts.txt I see that interrupts marked
+>>> as IRQF_NO_SUSPEND should not be configured for system wakeup using enable_irq_wake().
+>>>
+>>> what is your preference?
+>>>
+>>> Is it good enough to not use IRQF_NO_SUSPEND but use enable_irq_wake() instead to
+>>> enable system wakeup for that IRQ.
+>>
+>> I'm sorry for confusion about usage both IRQF_NO_SUSPEND and enable_irq_wake().
+>> If suspend() function in device driver executes the enable_irq_wake(),
+>> IRQF_NO_SUSPEND flag is not necessary.
+>>
+>> I think that we better use enable_irq_wake() instead of adding IRQF_NO_SUSPEND flag.
+>> I'll expect to remove IRQF_NO_SUSPEND flag when requesting gpio interrupt.
+>>
+> OK.
+> 
+>>>
+>>>>             if (device_may_wakeup(dev))
+>>>>                      enable_irq_wake(info->id_irq);
+>>>>             disable_irq(info->id_irq);
+>>>
+>>> why do we need to disable irq here? How will the system wakeup if IRQ is disabled?
+>>
+>> The disable_irq() may make the interrupt as masking state.
+>> Although interrput is masking state(disable), interrup can happen.
+>> but, the interrupt may remain the pending state without discarding it.
+>>
+>> And then,
+>> When resume() function in extcon-usb-gpio.c executes enable_irq(info->id_irq),
+>> pending interrupt will happen and executes the interrupt handler(usb_irq_handler).
+>>
+>> If we don't execute disable_irq() in suspend function,
+>> info->id->irq interrupt might happen before completing the resume sequence
+>> of extcon-gpio-usb driver.
+> 
+> How will that cause a problem? If an interrupt happens _before_ the system enters
+> SUSPEND state then kernel should abort the suspend. This should be taken care by 
+> kernel PM core and not the device driver.
+> 
+> I still fail to understand that we need to call disable_irq() in .suspend() and
+> enable_irq() in .resume()
+> 
+> can you point me to any other drivers doing so?
 
-    In the case where the interrupt mechanism is used to wake the host while
-    the card is in a low power state (i.e. no clocks), Both the card and the
-    host shall be placed into the 1-bit SD mode prior to stopping the clock.
+You can refer the suspend function in drivers/mfd/max14577.c or drivers/mfd/max77693.c.
+The max14577_suspend() includes the detailed comment for why using disable_irq() in suspend function.
 
+In max14577 case, max14577_suspend() use disable_irq() function because of i2c dependency.
+If max14577 device is wake-up from suspend state before completing the resume sequence
+of i2c, max14577 may fail to read/write i2c communication.
 
-This is particularly important for the Marvell "libertas" wifi chip
-in the GTA04.  While in 4-bit mode it will only signal an interrupt
-when the clock is running (which is why setting CLKEXTFREE is
-important).
-In 1-bit mode, the interrupt is asynchronous (explained in OMAP3
-TRM description of the CIRQ flag to MMCHS_STAT:
+Thanks,
+Chanwoo Choi
 
-  In 1-bit mode, interrupt source is asynchronous (can be a source of
-  asynchronous wakeup).
-  In 4-bit mode, interrupt source is sampled during the interrupt
-  cycle.
-
-)
-
-We cannot simply set 1-bit mode in omap_hsmmc_runtime_suspend
-as that is called under a spinlock, and setting 1-bit mode requires
-a sleeping call to the card.
-
-So:
- - use a work_struct to schedule setting of 1-bit mode
- - intro a 'force_narrow' state flag which transitions:
-     0 -> NARROW_PENDING -> NARROW_FORCED -> 0
- - have omap_hsmmc_runtime_suspend fail if interrupts are expected
-   but bus is not in 1-bit mode.  When it fails it schedules
-   the work to change the width. and sets NARROW_PENDING
- - when the host is claimed, if NARROW_FORCED is set, restore the
-   4-bit bus
- - When the host is released (disable_fclk), if NARROW_FORCED,
-   then suspend immediately, no autosuspend.  If NARROW_PENDING,
-   clear that flag as the device has obviously just been used.
-
-This all allows a graceful and race-free switch to 1-bit mode
-before switching off the clocks, if interrupts are enabled.
-
-With this, I can use my libertas wifi with a 4-bit bus, with
-interrupts and runtime power-management enabled, and get around
-14Mb/sec throughput (which is the best I've seen).
-
-Signed-off-by: NeilBrown <neil@brown.name>
----
- drivers/mmc/host/omap_hsmmc.c |   55 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 53 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f84cfb01716d..91ddebbec8a3 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -214,6 +214,10 @@ struct omap_hsmmc_host {
- 	int			reqs_blocked;
- 	int			use_reg;
- 	int			req_in_progress;
-+	int			force_narrow;
-+#define NARROW_PENDING	1
-+#define NARROW_FORCED	2
-+	struct work_struct	width_work;
- 	unsigned long		clk_rate;
- 	unsigned int		flags;
- #define AUTO_CMD23		(1 << 0)        /* Auto CMD23 support */
-@@ -1778,12 +1782,43 @@ static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
- 	set_sd_bus_power(host);
- }
- 
-+static void omap_hsmmc_width_work(struct work_struct *work)
-+{
-+	struct omap_hsmmc_host *host = container_of(work,
-+						    struct omap_hsmmc_host,
-+						    width_work);
-+	atomic_t noblock;
-+
-+	atomic_set(&noblock, 1);
-+	if (__mmc_claim_host(host->mmc, &noblock)) {
-+		/* Device active again */
-+		host->force_narrow = 0;
-+		return;
-+	}
-+	if (host->force_narrow != NARROW_PENDING) {
-+		/* Someone claimed and released before we got here */
-+		mmc_release_host(host->mmc);
-+		return;
-+	}
-+	if (sdio_disable_wide(host->mmc->card) == 0)
-+		host->force_narrow = NARROW_FORCED;
-+	else
-+		host->force_narrow = 0;
-+	mmc_release_host(host->mmc);
-+}
-+
- static int omap_hsmmc_enable_fclk(struct mmc_host *mmc)
- {
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
- 
- 	pm_runtime_get_sync(host->dev);
- 
-+	if (host->force_narrow == NARROW_FORCED) {
-+		if (sdio_enable_4bit_bus(mmc->card) > 0)
-+			mmc_set_bus_width(mmc, MMC_BUS_WIDTH_4);
-+		host->force_narrow = 0;
-+	}
-+
- 	return 0;
- }
- 
-@@ -1791,8 +1826,13 @@ static int omap_hsmmc_disable_fclk(struct mmc_host *mmc)
- {
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
- 
--	pm_runtime_mark_last_busy(host->dev);
--	pm_runtime_put_autosuspend(host->dev);
-+	if (host->force_narrow == NARROW_FORCED) {
-+		pm_runtime_put_sync(host->dev);
-+	} else {
-+		host->force_narrow = 0;
-+		pm_runtime_mark_last_busy(host->dev);
-+		pm_runtime_put_autosuspend(host->dev);
-+	}
- 
- 	return 0;
- }
-@@ -2024,6 +2064,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	host->power_mode = MMC_POWER_OFF;
- 	host->next_data.cookie = 1;
- 	host->pbias_enabled = 0;
-+	INIT_WORK(&host->width_work, omap_hsmmc_width_work);
- 
- 	ret = omap_hsmmc_gpio_init(mmc, host, pdata);
- 	if (ret)
-@@ -2311,6 +2352,16 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
- 	spin_lock_irqsave(&host->irq_lock, flags);
- 	if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
- 	    (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
-+		if (host->mmc->ios.bus_width != MMC_BUS_WIDTH_1) {
-+			/* In 4-bit mode the card need the clock
-+			 * to deliver interrupts, so it isn't safe
-+			 * to turn it off.
-+			 */
-+			host->force_narrow = NARROW_PENDING;
-+			schedule_work(&host->width_work);
-+			ret = -EBUSY;
-+			goto abort;
-+		}
- 		/* disable sdio irq handling to prevent race */
- 		OMAP_HSMMC_WRITE(host->base, ISE, 0);
- 		OMAP_HSMMC_WRITE(host->base, IE, 0);
