@@ -1,99 +1,59 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/5] Add support for Fujitsu USB host controller
-Date: Thu, 29 Jan 2015 10:23:12 -0600
-Message-ID: <20150129162312.GH21217@saruman.tx.rr.com>
-References: <1422173608-24355-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
- <20150127152250.GB13776@saruman.tx.rr.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
+Date: Thu, 29 Jan 2015 08:56:26 -0800
+Message-ID: <20150129165625.GB16250@atomide.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+ <1422274532-9488-2-git-send-email-rogerq@ti.com>
+ <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
+ <54C66B0D.9040109@ti.com>
+ <54C6EFC8.1090601@samsung.com>
+ <54C7B0E5.20101@ti.com>
+ <54C8472B.6070302@samsung.com>
+ <54C8D238.4080001@ti.com>
+ <20150128170954.GQ28663@atomide.com>
+ <54CA1A12.5080507@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YrlhzR9YrZtruaFS"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150127152250.GB13776-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mathias Nyman <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Huang Rui <ray.huang-5C7GfCeVMHo@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sneeker Yeh <Sneeker.Yeh-l16TxrwUIHTQFUHtdCDX3A@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
---YrlhzR9YrZtruaFS
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp4.ore.mailhop.org ([54.149.240.58]:48754 "EHLO
+	smtp4.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753623AbbA2Q70 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2015 11:59:26 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <54CA1A12.5080507@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>, Felipe Balbi <balbi@ti.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, george.cherian@ti.com, nsekhar@ti.com, devicetree <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Tue, Jan 27, 2015 at 09:22:50AM -0600, Felipe Balbi wrote:
-> Hi,
->=20
-> On Sun, Jan 25, 2015 at 04:13:23PM +0800, Sneeker Yeh wrote:
-> > These patches add support for XHCI compliant Host controller found
-> > on Fujitsu Socs, and are based on http://lwn.net/Articles/629162/
-> > The first patch is to add Fujitsu glue layer of Synopsis DesignWare USB=
-3 driver
-> > and last four patch is about quirk implementation of errata in Synopsis
-> > DesignWare USB3 IP.
-> >=20
-> > Patch 1 introduces a quirk with device disconnection management necessa=
-ry
-> > Synopsys Designware USB3 IP with versions < 3.00a and hardware configur=
-ation
-> > DWC_USB3_SUSPEND_ON_DISCONNECT_EN=3D1. It solves a problem where withou=
-t the
-> > quirk, that host controller will die after a usb device is disconnected=
- from
-> > port of root hub.
-> >=20
-> > Patch 2 is to set Synopsis quirk in xhci platform driver based on xhci =
-platform
-> > data.
-> >=20
-> > Patch 3 is to add a revison number 2.90a and 3.00a of Synopsis DesignWa=
-re USB3
-> > IP core driver.
-> >=20
-> > Patch 4 introduces using a quirk based on a errata of Synopsis
-> > DesignWare USB3 IP which is versions < 3.00a and has hardware configura=
-tion
-> > DWC_USB3_SUSPEND_ON_DISCONNECT_EN=3D1, which cannot be read from softwa=
-re. As a
-> > result this quirk has to be enabled via platform data or device tree.
-> >=20
-> > Patch 5 introduces Fujitsu Specific Glue layer in Synopsis DesignWare U=
-SB3 IP
-> > driver.=20
-> >=20
->=20
-> Mathias, let me know how you want to handle this. Either I take them
-> all, or you take them all. What do you prefer ?
+* Roger Quadros <rogerq@ti.com> [150129 03:34]:
+> On 28/01/15 19:09, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [150128 04:15]:
+> >> On 28/01/15 04:19, Chanwoo Choi wrote:
+> >>>>
+> >>>> I still fail to understand that we need to call disable_irq() in .suspend() and
+> >>>> enable_irq() in .resume()
+> >>>>
+> >>>> can you point me to any other drivers doing so?
+> >>>
+> >>> You can refer the suspend function in drivers/mfd/max14577.c or drivers/mfd/max77693.c.
+> >>> The max14577_suspend() includes the detailed comment for why using disable_irq() in suspend function.
+> >>>
+> >>> In max14577 case, max14577_suspend() use disable_irq() function because of i2c dependency.
+> >>> If max14577 device is wake-up from suspend state before completing the resume sequence
+> >>> of i2c, max14577 may fail to read/write i2c communication.
+> >>
+> >> Thanks for this information. I will add disable/enable_irq() in suspend/resume().
+> > 
+> > Are the .dts changes safe for me to apply already?
+> > 
+> 
+> Yes Tony, you can pick them. Thanks.
 
-Mathias ?
+OK will apply the dts changes into omap-for-v3.20/dt thanks.
+I have also the defconfig changes tagged, will apply those
+a bit later probably as a fix after the driver is merged.
 
---=20
-balbi
+Regards,
 
---YrlhzR9YrZtruaFS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUyl5wAAoJEIaOsuA1yqREwxMP/1+9wLz81eUXf8hLOeHLtdMm
-j9a7Q4XuqNgldltRDnwTU0qWWF2uVGjGkv4Ng14DmGp4yPHV8uwOVHjGW9jJKJfU
-7Rfq2YRZ2tKV6dXs+idKYpEWCgcmuXaEsq7WEekcJevJe2u8210CP4SesJ/WuWdh
-9zGgz72XKstgDOXRCNnMKm4sMKn3N9mIidkiZLdFR8Kx0ILdKGd/DO2zVr77C0S1
-9AVgO7oqRfgbos64FWCjNZ9Nrh22nCg7kkT0O0T0OC2AhfQlFWARR0g98UVJQALr
-36OR6nw8wA4jfezdC5sAaQgGULLDQcRLmRa1ddYgLfsBp3HTGJaP+t0TokFZdwQ3
-JHDvc4eBhLRNsIRQgFxq8VEcmJ5f3DMGeeCre50ribnRhjeyO/LtKMR0cqwVOQpJ
-teoJY8yZQ/Nz4N6TctyhQ5Fa8//e5XEnY8xw2y/EU2iWziOwoulhQ3qnxCVkyeeb
-5zb2ipyuhhnQMd+w/XH4Kl3XETvdRTaVJbe4nx2Oim1r0ztCwZ5yQnY+uYvclbOn
-6Dblp6ZkCsHV5kUk+uy44AyIkLAuaHBLZK8HRp9grQw8LWyh3RSx3XcONE7O6dHy
-kEjdWxwtMkOP/lBMsSy87rPJl3YDWzbi3j+ZjmntZv7Blj+sAabigPprNc5ralh+
-p6YODD00932MyBod7WBI
-=Ls/r
------END PGP SIGNATURE-----
-
---YrlhzR9YrZtruaFS--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
