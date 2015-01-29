@@ -1,53 +1,105 @@
 From: =?windows-1252?Q?Urs_F=E4ssler?= <urs.fassler@bytesatwork.ch>
-Subject: [PATCH 1/2] davinci-mcasp: fix clockin configuration
-Date: Thu, 29 Jan 2015 16:40:20 +0100
-Message-ID: <54CA5464.7030503@bytesatwork.ch>
+Subject: [PATCH 2/2] davinci-mcasp: add option to use AHCLKX pin as clock
+ in
+Date: Thu, 29 Jan 2015 16:40:46 +0100
+Message-ID: <54CA547E.30205@bytesatwork.ch>
+References: <1422545689-9310-1-git-send-email-urs.fassler@bytesatwork.ch>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="DClN9On2RegRtlmBswhPqVN3Ctw53ouO9"
+ boundary="ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bytesatwork.ch ([91.135.72.15]:40082 "EHLO bytesatwork.ch"
+Received: from bytesatwork.ch ([91.135.72.15]:40083 "EHLO bytesatwork.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752901AbbA2PsP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Jan 2015 10:48:15 -0500
+	id S1752720AbbA2PsQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Jan 2015 10:48:16 -0500
+In-Reply-To: <1422545689-9310-1-git-send-email-urs.fassler@bytesatwork.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: urs.fassler@bytesatwork.ch, perex@perex.cz, tiwai@suse.de
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---DClN9On2RegRtlmBswhPqVN3Ctw53ouO9
+--ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-The CPU seems to be clock master independent of the configuration. Use
-bitclock-master flag to decide who is clock master.
+Add option to select AHCLKX pin as clock input source.
 
 ---
- sound/soc/davinci/davinci-mcasp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/soc/davinci/davinci-mcasp.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
 diff --git a/sound/soc/davinci/davinci-mcasp.c
 b/sound/soc/davinci/davinci-mcasp.c
-index 30b94d4..396cdec 100644
+index 396cdec..7c0d591 100644
 --- a/sound/soc/davinci/davinci-mcasp.c
 +++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -541,7 +541,7 @@ static int davinci_mcasp_set_sysclk(struct
+@@ -85,6 +85,7 @@ struct davinci_mcasp {
+  	int	sysclk_freq;
+ 	bool	bclk_master;
++	bool	ahclkx_pin;
+  	/* McASP FIFO related */
+ 	u8	txnumevt;
+@@ -429,7 +430,10 @@ static int davinci_mcasp_set_dai_fmt(struct
+snd_soc_dai *cpu_dai,
+ 		break;
+ 	case SND_SOC_DAIFMT_CBM_CFS:
+ 		/* codec is clock master and frame slave */
+-		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
++		if (mcasp->ahclkx_pin)
++			mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
++		else
++			mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+  		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
+@@ -441,7 +445,10 @@ static int davinci_mcasp_set_dai_fmt(struct
+snd_soc_dai *cpu_dai,
+ 		break;
+ 	case SND_SOC_DAIFMT_CBM_CFM:
+ 		/* codec is clock and frame master */
+-		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
++		if (mcasp->ahclkx_pin)
++			mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
++		else
++			mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+  		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
+@@ -542,7 +549,10 @@ static int davinci_mcasp_set_sysclk(struct
 snd_soc_dai *dai, int clk_id,
- {
  	struct davinci_mcasp *mcasp =3D snd_soc_dai_get_drvdata(dai);
- -	if (dir =3D=3D SND_SOC_CLOCK_OUT) {
-+	if (mcasp->bclk_master) {
- 		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
+  	if (mcasp->bclk_master) {
+-		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
++		if (mcasp->ahclkx_pin)
++			mcasp_clr_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
++		else
++			mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
  		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE);
  		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKX);
+ 	} else {
+@@ -1340,6 +1350,8 @@ static struct davinci_mcasp_pdata
+*davinci_mcasp_set_pdata_from_of(
+ 	if (ret >=3D 0)
+ 		pdata->sram_size_capture =3D val;
+ +	pdata->clk_input_pin =3D of_property_read_bool(np, "ahclkx-pin");
++
+ 	return  pdata;
+  nodata:
+@@ -1412,6 +1424,8 @@ static int davinci_mcasp_probe(struct
+platform_device *pdev)
+ 		goto err;
+ 	}
+ +	mcasp->ahclkx_pin =3D pdata->clk_input_pin;
++
+ 	mcasp->op_mode =3D pdata->op_mode;
+ 	/* sanity check for tdm slots parameter */
+ 	if (mcasp->op_mode =3D=3D DAVINCI_MCASP_IIS_MODE) {
 --=20
 2.1.4
 
 
 
---DClN9On2RegRtlmBswhPqVN3Ctw53ouO9
+--ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -55,19 +107,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUylRlAAoJEKKADLnESIBjS3sQAKqS1B/m3P2io97P0pa2K0xj
-un7ew8E/hKK26pBE5nWc5P+7fdAf4/JWBiZF9aY8c8QBWv/C5Oudyl2Lm0Ul/Qak
-8+gfNnQdtL957GeeI7cAYWUlUfthNW7jydpC7YTxOyN4Z5PLoHBa83cPJZ37sNdR
-BZv1MrhEpxwRIIOLLbrdFdzAAib4SJJ0xeycGo7xGzR43m9QnASioPTr/+WLDM42
-DTL7BjHYplRJImDXNfN8xjxjV1J2eZrTuUkQCaj05xPRJ1eo/fBTnLDWT4e+weVf
-llywZI7XDH6ggXTNP6RHnZHOdwCzqbcU6lLUeVZY4K+x2pZiO7AV1S0DCFk3ICWj
-DQ2O/uA1mCt6WB4NQi6O05c/sDBHTjjpUMX8SaOVGWacehPjn2cUF8TB4HTaSEkn
-X1iZhW9pT/h2Yb+f4rtE8GRG0HK5yT7vT/+G74mbKkmV5LKC00+zmO6SfApdCjzg
-8qiINxVj9qm+jBkmh97ABEiC0xB0isISTrjx7ga6Hqxvx44iarb0rM21I5K4ANCG
-9W5SdDPrkGY9SMDOIh+gY3fpWX5MhMgXnRMLtHoh3Rzx1DbQMJ2GE6oDTFnxYyhi
-Kls6zyFJFpRUl1Wdv6EK5woaofX/xL3uyC7JsMe2R1ABQHh1xZkJfUerzYlnKphX
-T5EWrUCr4YE6vwd4Stfi
-=K6lC
+iQIcBAEBAgAGBQJUylR+AAoJEKKADLnESIBj/8MP/2mhuH1j6nGYERHjkxBfNjsm
+H0N1wIO3RcKnQZOnaowxK4E/80UHmNMEhNCVJ9F2bBCyS5fjfhTs+wkI6QpfOik9
+VO5K5vO3x0YBwb+f901K1CSRfe+UhQC9boFpzVkl7AsP7QtPUBteoDbce+RfUlrQ
+4IOg+eiOV5yfaoBC05Pam3MGPc7BU87T6twrW1hbkzTlyHU47wYwbFLCSeIFBEAO
+79UY4sIh/aBPXBgQI+KFe03rfCggOudbm9CWpYRxtyCoXpt0lX7GyCMOsYA0fF6i
+hFqv4WMHXZqGeKsjX9qLvg8CiBGUoZ+6opjL1hITnnhfxwNvmgM9GM8S4HcyRj3R
+NNEauE8Rw7XEJou0LBaJISydybRbUa6EhC5uFiyRBmMDQVx5v4ZmpiWo/LApLUY8
+2o3vBu8qwTKxEkqwM5oudeIRYyrpWBZsR4nYihlpMZAzZilQZojgSNI70ir9WgNO
+U/vks1nCS0f6TYOo0Z0/dh+SomkqkrBTUyTuWJLvUKuHOsfeLr2uZGtPIhRyDPXC
+753t9pE6DiazSsUzwzpJqhl5bdcWRsq8ou75TbS54kg1aqrlbVhKH44ytZ/U3itK
+LB5oh8cOacYmwfl7WTsOXNipWmvY4rQprdwB4WwF6mgGCBigSREnkap4MYcPFm/K
+nwoK3XGmlAB0PIfTatBI
+=lKS1
 -----END PGP SIGNATURE-----
 
---DClN9On2RegRtlmBswhPqVN3Ctw53ouO9--
+--ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK--
