@@ -1,125 +1,52 @@
-From: =?windows-1252?Q?Urs_F=E4ssler?= <urs.fassler@bytesatwork.ch>
-Subject: [PATCH 2/2] davinci-mcasp: add option to use AHCLKX pin as clock
- in
-Date: Thu, 29 Jan 2015 16:40:46 +0100
-Message-ID: <54CA547E.30205@bytesatwork.ch>
-References: <1422545689-9310-1-git-send-email-urs.fassler@bytesatwork.ch>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Supporting two SMSC9221 interfaces on GPMC in a dts
+Date: Thu, 29 Jan 2015 08:20:20 -0800
+Message-ID: <20150129162020.GA16250@atomide.com>
+References: <CAK8F28=sANBtwDdg45MuVmrE89SBYtzBsZcPZoXo=AhOv0wpOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bytesatwork.ch ([91.135.72.15]:40083 "EHLO bytesatwork.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752720AbbA2PsQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Jan 2015 10:48:16 -0500
-In-Reply-To: <1422545689-9310-1-git-send-email-urs.fassler@bytesatwork.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAK8F28=sANBtwDdg45MuVmrE89SBYtzBsZcPZoXo=AhOv0wpOg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: urs.fassler@bytesatwork.ch, perex@perex.cz, tiwai@suse.de
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Add option to select AHCLKX pin as clock input source.
+Adding devicetree list to Cc as well if somebody has a good solution.
 
----
- sound/soc/davinci/davinci-mcasp.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+* Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150128 18:54]:
+> Hi,
+> 
+> The Gumstix Tobi-Duo board has two SMSC9221 NICs attached to the GPMC
+> interface of an OMAP3.  I'm trying to figure out how best to include
+> both interfaces in the device tree file.
+> With just one interface, I can #include "omap-gpmc-smsc9221.dtsi", add
+> the extra board specific settings in to "ethernet@gpmc" in the board
+> file as well as any settings needed for the gpmc.
+>
+> For two interfaces though, I can setup the gpmc details, configure one
+> "ethernet@gpmc" node as before but then, need to manually create (i.e.
+> copy the meat from the "omap-gpmc-smsc9221.dtsi") a second node.
+ 
+Yeah I think this is how we did it for omap3-sbc-*.dts*.
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c
-b/sound/soc/davinci/davinci-mcasp.c
-index 396cdec..7c0d591 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -85,6 +85,7 @@ struct davinci_mcasp {
-  	int	sysclk_freq;
- 	bool	bclk_master;
-+	bool	ahclkx_pin;
-  	/* McASP FIFO related */
- 	u8	txnumevt;
-@@ -429,7 +430,10 @@ static int davinci_mcasp_set_dai_fmt(struct
-snd_soc_dai *cpu_dai,
- 		break;
- 	case SND_SOC_DAIFMT_CBM_CFS:
- 		/* codec is clock master and frame slave */
--		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
-+		if (mcasp->ahclkx_pin)
-+			mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
-+		else
-+			mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
- 		mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
-  		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
-@@ -441,7 +445,10 @@ static int davinci_mcasp_set_dai_fmt(struct
-snd_soc_dai *cpu_dai,
- 		break;
- 	case SND_SOC_DAIFMT_CBM_CFM:
- 		/* codec is clock and frame master */
--		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
-+		if (mcasp->ahclkx_pin)
-+			mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
-+		else
-+			mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
- 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
-  		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
-@@ -542,7 +549,10 @@ static int davinci_mcasp_set_sysclk(struct
-snd_soc_dai *dai, int clk_id,
- 	struct davinci_mcasp *mcasp =3D snd_soc_dai_get_drvdata(dai);
-  	if (mcasp->bclk_master) {
--		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
-+		if (mcasp->ahclkx_pin)
-+			mcasp_clr_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
-+		else
-+			mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
- 		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE);
- 		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKX);
- 	} else {
-@@ -1340,6 +1350,8 @@ static struct davinci_mcasp_pdata
-*davinci_mcasp_set_pdata_from_of(
- 	if (ret >=3D 0)
- 		pdata->sram_size_capture =3D val;
- +	pdata->clk_input_pin =3D of_property_read_bool(np, "ahclkx-pin");
-+
- 	return  pdata;
-  nodata:
-@@ -1412,6 +1424,8 @@ static int davinci_mcasp_probe(struct
-platform_device *pdev)
- 		goto err;
- 	}
- +	mcasp->ahclkx_pin =3D pdata->clk_input_pin;
-+
- 	mcasp->op_mode =3D pdata->op_mode;
- 	/* sanity check for tdm slots parameter */
- 	if (mcasp->op_mode =3D=3D DAVINCI_MCASP_IIS_MODE) {
---=20
-2.1.4
+> This works but seems, well, verbose.  Is there a way to setup multiple
+> interfaces without having to duplicate the omap-gpmc-smsc9221.dtsi
+> content?
 
+Hmm I wonder if the "[PATCH] dtc: parser: Add label while overriding
+nodes" would help with this too?
 
+I agree it would be nice to be able to have device specific .dtsi
+file that can be included multiple times for the most common devices.
 
---ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUylR+AAoJEKKADLnESIBj/8MP/2mhuH1j6nGYERHjkxBfNjsm
-H0N1wIO3RcKnQZOnaowxK4E/80UHmNMEhNCVJ9F2bBCyS5fjfhTs+wkI6QpfOik9
-VO5K5vO3x0YBwb+f901K1CSRfe+UhQC9boFpzVkl7AsP7QtPUBteoDbce+RfUlrQ
-4IOg+eiOV5yfaoBC05Pam3MGPc7BU87T6twrW1hbkzTlyHU47wYwbFLCSeIFBEAO
-79UY4sIh/aBPXBgQI+KFe03rfCggOudbm9CWpYRxtyCoXpt0lX7GyCMOsYA0fF6i
-hFqv4WMHXZqGeKsjX9qLvg8CiBGUoZ+6opjL1hITnnhfxwNvmgM9GM8S4HcyRj3R
-NNEauE8Rw7XEJou0LBaJISydybRbUa6EhC5uFiyRBmMDQVx5v4ZmpiWo/LApLUY8
-2o3vBu8qwTKxEkqwM5oudeIRYyrpWBZsR4nYihlpMZAzZilQZojgSNI70ir9WgNO
-U/vks1nCS0f6TYOo0Z0/dh+SomkqkrBTUyTuWJLvUKuHOsfeLr2uZGtPIhRyDPXC
-753t9pE6DiazSsUzwzpJqhl5bdcWRsq8ou75TbS54kg1aqrlbVhKH44ytZ/U3itK
-LB5oh8cOacYmwfl7WTsOXNipWmvY4rQprdwB4WwF6mgGCBigSREnkap4MYcPFm/K
-nwoK3XGmlAB0PIfTatBI
-=lKS1
------END PGP SIGNATURE-----
-
---ovUk8ob4BxkpdMGs9OoNxT6aKXReNm6qK--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
