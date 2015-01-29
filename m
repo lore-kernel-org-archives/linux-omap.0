@@ -1,87 +1,164 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: 3.19 on Nokia n900: audio quality awful
-Date: Thu, 29 Jan 2015 09:35:29 +0200
-Message-ID: <20150129073529.GA19122@bitmer.com>
-References: <20150106170433.GA5408@amd>
- <20150118120139.GA1509@amd>
- <54C63F1C.6010703@ti.com>
- <54C92752.9000004@bitmer.com>
- <20150128224144.GA28956@amd>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.19-rc6
+Date: Thu, 29 Jan 2015 08:16:26 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1501290808440.19947@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150128224144.GA28956@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:36925 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742AbbA2IQd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2015 03:16:33 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Wed, Jan 28, 2015 at 11:41:44PM +0100, Pavel Machek wrote:
-> On Wed 2015-01-28 20:15:46, Jarkko Nikula wrote:
-> > On 01/26/2015 03:20 PM, Peter Ujfalusi wrote:
-> > > On 01/18/2015 02:01 PM, Pavel Machek wrote:
-> > No need to go that far. N900 has been supported in mainline since 2.6.39
-> > or so. Part A of AIC34 (which is basically dual AIC33 in a same package)
-> > drives 2 V for the digital microphone bias and part B 2.5 V for the headset.
-> 
-> Let me try... Umm, no change here :-(
-> 
-> root@n900:/tmp# arecord delme
-> Recording WAVE 'delme' : Unsigned 8 bit, Rate 8000 Hz, Mono
-> ^CAborted by signal Interrupt...
-> root@n900:/tmp# hexdump delme
-> 0000000 4952 4646 987c 0000 4157 4556 6d66 2074
-> 0000010 0010 0000 0001 0001 1f40 0000 1f40 0000
-> 0000020 0001 0008 6164 6174 9858 0000 8080 8080
-> 0000030 8080 8080 8080 8080 8080 8080 8080 8080
-> *
-> 0009880
-> root@n900:/tmp# aplay delme
-> Playing WAVE 'delme' : Unsigned 8 bit, Rate 8000 Hz, Mono
-> root@n900:/tmp#
-> 
-> I did this:
-> 
-> I'm not sure which one is "main" microphone and which is headset, but
-> I guess 2V should be "close enough" to 2.5V to produce something
-> different from zeros..?
-> 
-Main or integrated is digital microphone which does AD conversion itself
-and headset is analogue. If DMIC is without bias codec will sample plain
-zeros from DMIC input but analogue input should always produce some random
-LSB bits from codec's AD converter.
 
-If codec produces zeros also from analogue input then I suppose codec
-ADC is not powered up or similar. One way to hunt regression if
-bisecting is not possible due reason or another is to dump and diff codec
-registers from /sys/kernel/debug/regmap/ using both working commit and head.
+Here are some basic OMAP test results for Linux v3.19-rc6.
+Logs and other details at:
 
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index 48b0987..f18a5b0 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -491,6 +491,8 @@
->  		DRVDD-supply = <&vmmc2>;
->  		IOVDD-supply = <&vio>;
->  		DVDD-supply = <&vio>;
-> +
-> +		ai3x-micbias-vg = <1>;
->  	};
-Looks ok for digital mic.
+    http://www.pwsan.com/omap/testlogs/test_v3.19-rc6/20150128221837/
 
->  
->  	tlv320aic3x_aux: tlv320aic3x@19 {
-> @@ -502,6 +504,8 @@
->  		DRVDD-supply = <&vmmc2>;
->  		IOVDD-supply = <&vio>;
->  		DVDD-supply = <&vio>;
-> +
-> +		ai3x-micbias-vg = <1>;
->  	};
-This should be 2, i.e. 2.5 V according to
-Documentation/devicetree/bindings/sound/tlv320aic3x.txt. I think 2 V is
-too low for some headset mics and that was the reason for 2.5 V.
 
--- 
-Jarkko
+Test summary
+------------
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
+
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    FAIL ( 1/ 3): omap1_defconfig_1510innovator_only
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL ( 2/17): omap2plus_defconfig_no_pm, multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 2/17): 5912osk, 3517evm
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  5430es2sbct54, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
+    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 2/17): 4430es2panda, 4460varsomom
+
+
+vmlinux object size
+(delta in bytes from test_v3.19-rc5 (ec6f34e5b552fb0a52e6aae1a5afbbb1605cc6cc)):
+   text     data      bss    total  kernel
+   +252      +32        0     +284  omap1_defconfig
+   +252      +40        0     +292  omap1_defconfig_1510innovator_only
+   +252      +32        0     +284  omap1_defconfig_5912osk_only
+  +1445    +2440        0    +3885  multi_v7_defconfig
+  +3345    +2952        0    +6297  omap2plus_defconfig
+ +10263     +384       +8   +10655  omap2plus_defconfig_2430sdp_only
+ +10791     +768        0   +11559  omap2plus_defconfig_am33xx_only
+ +10919    +1416        0   +12335  omap2plus_defconfig_am43xx_only
+  +3281    +2944        0    +6225  omap2plus_defconfig_cpupm
+  +6887    +1344        0    +8231  omap2plus_defconfig_dra7xx_only
+ +10187     +608        0   +10795  omap2plus_defconfig_n800_multi_omap2xxx
+ +10066     +544        0   +10610  omap2plus_defconfig_n800_only_a
+  +3277    +3008        0    +6285  omap2plus_defconfig_no_pm
+  +7377    +1600        0    +8977  omap2plus_defconfig_omap2_4_only
+  +3277    +1600        0    +4877  omap2plus_defconfig_omap3_4_only
+ +10919    +1336        0   +12255  omap2plus_defconfig_omap5_only
+   +172     +324      -24     +472  rmk_omap3430_ldp_allnoconfig
+   +508     +392        0     +900  rmk_omap3430_ldp_oldconfig
+   +580    +1028      -96    +1512  rmk_omap4430_sdp_allnoconfig
+   +972    +1048        0    +2020  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.19-rc5 (ec6f34e5b552fb0a52e6aae1a5afbbb1605cc6cc))
+  avail  rsrvd   high  freed  board          kconfig
+   -12k    12k      .      .  2420n800       omap2plus_defconfig_n800_only_a
+    -4k     4k      .    -4k  3530es31beagle omap2plus_defconfig
+    -4k     4k      .    -4k  3530es3beagle  omap2plus_defconfig
+      .      .      .    -4k  3730beaglexm   omap2plus_defconfig
+      .      .      .    -4k  3730es12beaglexmomap2plus_defconfig
+    -4k     4k      .    -4k  37xxevm        omap2plus_defconfig
+    -4k     4k      .    -4k  4430es2panda   omap2plus_defconfig
+    -4k     4k      .    -4k  4460pandaes    omap2plus_defconfig
+    -4k     4k      .    -4k  4460varsomom   omap2plus_defconfig
+    -4k     4k      .    -4k  5430es2sbct54  omap2plus_defconfig
+      .      .      .    -4k  5430es2uevm    omap2plus_defconfig
+    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
+      .      .      .    -4k  am335xbonelt   omap2plus_defconfig
+
+
+Something is not right with either our kernel, or the OMAP4460 VAR-SOM-OM 
+board in the testbed.  It hit an alignment fault during the boot test:
+
+http://www.pwsan.com/omap/testlogs/test_v3.19-rc6/20150128221837/boot/4460varsomom/4460varsomom_log.txt
+
+but not the PM test:
+
+http://www.pwsan.com/omap/testlogs/test_v3.19-rc6/20150128221837/pm/4460varsomom/4460varsomom_log.txt
+
+The kernel command line options are different between the two boots.  
+Something to keep an eye on.
