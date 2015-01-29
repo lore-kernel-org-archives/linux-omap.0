@@ -1,104 +1,275 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] net: davinci_emac: Get device MAC on 3517
-Date: Wed, 28 Jan 2015 11:33:06 -0800
-Message-ID: <1422473586-18100-4-git-send-email-tony@atomide.com>
-References: <1422473586-18100-1-git-send-email-tony@atomide.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1422473586-18100-1-git-send-email-tony@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v3 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
+Date: Thu, 29 Jan 2015 10:49:11 +0900
+Message-ID: <54C99197.5070605@samsung.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+ <1422274532-9488-2-git-send-email-rogerq@ti.com> <54C8D2F4.9050404@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <54C8D2F4.9050404@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: myungjoo.ham@samsung.com, balbi@ti.com, tony@atomide.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Looks like on 3517 davinci_emac MAC address registers have a
-different layout compared to dm816x and am33xx.
+Hi Roger,
 
-Let's add a function to get the 3517 MAC address.
+We need to discuss one point about 'id_irqwake'.
+I don't recommend to use 'id_irqwake' field.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/am3517.dtsi          |  1 +
- drivers/net/ethernet/ti/davinci_emac.c | 35 +++++++++++++++++++++++++++++++++-
- 2 files changed, 35 insertions(+), 1 deletion(-)
+And I catch build warning by using "select" keywork in Kconfig.
+It is my wrong guide of "select" keyword. So, I'll change it 
+as 'depends on' keyword.
 
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index 5a452fd..c90724b 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -31,6 +31,7 @@
- 			status = "disabled";
- 			reg = <0x5c000000 0x30000>;
- 			interrupts = <67 68 69 70>;
-+			syscon = <&omap3_scm_general>;
- 			ti,davinci-ctrl-reg-offset = <0x10000>;
- 			ti,davinci-ctrl-mod-reg-offset = <0>;
- 			ti,davinci-ctrl-ram-offset = <0x20000>;
-diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index a716938..aeebc0a 100644
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -52,6 +52,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/clk.h>
- #include <linux/platform_device.h>
-+#include <linux/regmap.h>
- #include <linux/semaphore.h>
- #include <linux/phy.h>
- #include <linux/bitops.h>
-@@ -65,6 +66,7 @@
- #include <linux/of_mdio.h>
- #include <linux/of_irq.h>
- #include <linux/of_net.h>
-+#include <linux/mfd/syscon.h>
- 
- #include <asm/irq.h>
- #include <asm/page.h>
-@@ -1880,6 +1882,33 @@ davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
- 	return  pdata;
- }
- 
-+static int davinci_emac_3517_get_macid(struct device *dev, u16 offset,
-+				       int slave, u8 *mac_addr)
-+{
-+	u32 macid_lsb;
-+	u32 macid_msb;
-+	struct regmap *syscon;
-+
-+	syscon = syscon_regmap_lookup_by_phandle(dev->of_node, "syscon");
-+	if (IS_ERR(syscon)) {
-+		if (PTR_ERR(syscon) == -ENODEV)
-+			return 0;
-+		return PTR_ERR(syscon);
-+	}
-+
-+	regmap_read(syscon, offset, &macid_lsb);
-+	regmap_read(syscon, offset + 4, &macid_msb);
-+
-+	mac_addr[0] = (macid_msb >> 16) & 0xff;
-+	mac_addr[1] = (macid_msb >> 8)  & 0xff;
-+	mac_addr[2] = macid_msb & 0xff;
-+	mac_addr[3] = (macid_lsb >> 16) & 0xff;
-+	mac_addr[4] = (macid_lsb >> 8)  & 0xff;
-+	mac_addr[5] = macid_lsb & 0xff;
-+
-+	return 0;
-+}
-+
- static int davinci_emac_try_get_mac(struct platform_device *pdev,
- 				    int instance, u8 *mac_addr)
- {
-@@ -1888,7 +1917,11 @@ static int davinci_emac_try_get_mac(struct platform_device *pdev,
- 	if (!pdev->dev.of_node)
- 		return error;
- 
--	if (of_device_is_compatible(pdev->dev.of_node, "ti,dm816-emac"))
-+	if (of_device_is_compatible(pdev->dev.of_node, "ti,am3517-emac"))
-+		error = davinci_emac_3517_get_macid(&pdev->dev, 0x110,
-+						    0, mac_addr);
-+	else if (of_device_is_compatible(pdev->dev.of_node,
-+					 "ti,dm816-emac"))
- 		error = cpsw_am33xx_cm_get_macid(&pdev->dev, 0x30,
- 						 instance,
- 						 mac_addr);
--- 
-2.1.4
+Looks good to me except for 'id_irqwake'. 
+I'll apply this patch on 3.21 queue after completing this discussion.
+
+On 01/28/2015 09:15 PM, Roger Quadros wrote:
+> This driver observes the USB ID pin connected over a GPIO and
+> updates the USB cable extcon states accordingly.
+> 
+> The existing GPIO extcon driver is not suitable for this purpose
+> as it needs to be taught to understand USB cable states and it
+> can't handle more than one cable per instance.
+> 
+> For the USB case we need to handle 2 cable states.
+> 1) USB (attach/detach)
+> 2) USB-Host (attach/detach)
+> 
+> This driver can be easily updated in the future to handle VBUS
+> events in case it happens to be available on GPIO for any platform.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+> v3:
+> - removed IRQF_NO_SUSPEND flag. Added IRQF_TRIGGER_RISING and
+>   IRQF_TRIGGER_FALLING
+> - Added disable_irq() to suspend() and enable_irq() to resume()
+> 
+>  .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  18 ++
+>  drivers/extcon/Kconfig                             |   7 +
+>  drivers/extcon/Makefile                            |   1 +
+>  drivers/extcon/extcon-usb-gpio.c                   | 233 +++++++++++++++++++++
+>  4 files changed, 259 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
+>  create mode 100644 drivers/extcon/extcon-usb-gpio.c
+> 
+> diff --git a/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt b/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
+> new file mode 100644
+> index 0000000..85fe6b0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
+> @@ -0,0 +1,18 @@
+> +USB GPIO Extcon device
+> +
+> +This is a virtual device used to generate USB cable states from the USB ID pin
+> +connected to a GPIO pin.
+> +
+> +Required properties:
+> +- compatible: Should be "linux,extcon-usb-gpio"
+> +- id-gpio: gpio for USB ID pin. See gpio binding.
+> +
+> +Example:
+> +	extcon_usb1 {
+> +		compatible = "linux,extcon-usb-gpio";
+> +		id-gpio = <&gpio6 1 GPIO_ACTIVE_HIGH>;
+> +	}
+> +
+> +	&omap_dwc3_1 {
+> +		extcon = <&extcon_usb1>;
+> +	};
+> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
+> index 6a1f7de..fd11536 100644
+> --- a/drivers/extcon/Kconfig
+> +++ b/drivers/extcon/Kconfig
+> @@ -93,4 +93,11 @@ config EXTCON_SM5502
+>  	  Silicon Mitus SM5502. The SM5502 is a USB port accessory
+>  	  detector and switch.
+>  
+> +config EXTCON_USB_GPIO
+> +	tristate "USB GPIO extcon support"
+> +	select GPIOLIB
+
+I catch the build warning if using 'select' instead of 'depends on' as following:
+It is my wrong guide to you. So, I'll modify it by using "depends on" as your original patch.
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- zImage  -j 8
+scripts/kconfig/conf --silentoldconfig Kconfig
+drivers/gpio/Kconfig:34:error: recursive dependency detected!
+drivers/gpio/Kconfig:34:	symbol GPIOLIB is selected by EXTCON_USB_GPIO
+drivers/extcon/Kconfig:96:	symbol EXTCON_USB_GPIO depends on EXTCON
+drivers/extcon/Kconfig:1:	symbol EXTCON is selected by CHARGER_MANAGER
+drivers/power/Kconfig:316:	symbol CHARGER_MANAGER depends on POWER_SUPPLY
+drivers/power/Kconfig:1:	symbol POWER_SUPPLY is selected by HID_SONY
+drivers/hid/Kconfig:670:	symbol HID_SONY depends on NEW_LEDS
+drivers/leds/Kconfig:8:	symbol NEW_LEDS is selected by BCMA_DRIVER_GPIO
+drivers/bcma/Kconfig:75:	symbol BCMA_DRIVER_GPIO depends on GPIOLIB
+
+> +	help
+> +	  Say Y here to enable GPIO based USB cable detection extcon support.
+> +	  Used typically if GPIO is used for USB ID pin detection.
+> +
+>  endif # MULTISTATE_SWITCH
+> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
+> index 0370b42..6a08a98 100644
+> --- a/drivers/extcon/Makefile
+> +++ b/drivers/extcon/Makefile
+> @@ -12,3 +12,4 @@ obj-$(CONFIG_EXTCON_MAX8997)	+= extcon-max8997.o
+>  obj-$(CONFIG_EXTCON_PALMAS)	+= extcon-palmas.o
+>  obj-$(CONFIG_EXTCON_RT8973A)	+= extcon-rt8973a.o
+>  obj-$(CONFIG_EXTCON_SM5502)	+= extcon-sm5502.o
+> +obj-$(CONFIG_EXTCON_USB_GPIO)	+= extcon-usb-gpio.o
+> diff --git a/drivers/extcon/extcon-usb-gpio.c b/drivers/extcon/extcon-usb-gpio.c
+> new file mode 100644
+> index 0000000..99a58b2
+> --- /dev/null
+> +++ b/drivers/extcon/extcon-usb-gpio.c
+> @@ -0,0 +1,233 @@
+> +/**
+> + * drivers/extcon/extcon-usb-gpio.c - USB GPIO extcon driver
+> + *
+> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
+> + * Author: Roger Quadros <rogerq@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/extcon.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/irq.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/workqueue.h>
+> +
+> +#define USB_GPIO_DEBOUNCE_MS	20	/* ms */
+> +
+> +struct usb_extcon_info {
+> +	struct device *dev;
+> +	struct extcon_dev *edev;
+> +
+> +	struct gpio_desc *id_gpiod;
+> +	int id_irq;
+> +	bool id_irqwake;		/* ID wakeup enabled flag */
+
+Do you really think id_irqwake is necessary?
+I think it is not necessary.
+
+> +
+> +	unsigned long debounce_jiffies;
+> +	struct delayed_work wq_detcable;
+> +};
+> +
+> +/* List of detectable cables */
+> +enum {
+> +	EXTCON_CABLE_USB = 0,
+> +	EXTCON_CABLE_USB_HOST,
+> +
+> +	EXTCON_CABLE_END,
+> +};
+> +
+> +static const char *usb_extcon_cable[] = {
+> +	[EXTCON_CABLE_USB] = "USB",
+> +	[EXTCON_CABLE_USB_HOST] = "USB-Host",
+> +	NULL,
+> +};
+> +
+
+[snip]
+
+> +
+> +static int usb_extcon_remove(struct platform_device *pdev)
+> +{
+> +	struct usb_extcon_info *info = platform_get_drvdata(pdev);
+> +
+> +	cancel_delayed_work_sync(&info->wq_detcable);
+> +
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +static int usb_extcon_suspend(struct device *dev)
+> +{
+> +	struct usb_extcon_info *info = dev_get_drvdata(dev);
+> +
+> +	if (device_may_wakeup(dev))
+> +		if (!enable_irq_wake(info->id_irq))
+> +			info->id_irqwake = true;
+> +
+
+You can simplify this code as following without 'id_irqwake':
+
+	if (device_may_wakeup(dev))
+		enable_irq_wake(info->id_irq);
+
+> +	/*
+> +	 * We don't want to process any IRQs after this point
+> +	 * as GPIOs used behind I2C subsystem might not be
+> +	 * accessible until resume completes. So disable IRQ.
+> +	 */
+> +	disable_irq(info->id_irq);
+> +
+> +	return 0;
+> +}
+> +
+> +static int usb_extcon_resume(struct device *dev)
+> +{
+> +	struct usb_extcon_info *info = dev_get_drvdata(dev);
+> +
+> +	if (info->id_irqwake) {
+> +		disable_irq_wake(info->id_irq);
+> +		info->id_irqwake = false;
+> +	}
+
+ditto.
+
+	if (device_may_wakeup(dev))
+		disable_irq_wake(info->id_irq);
+
+> +
+> +	enable_irq(info->id_irq);
+> +
+> +	return 0;
+> +}
+> +#endif
+> +
+> +static SIMPLE_DEV_PM_OPS(usb_extcon_pm_ops,
+> +			 usb_extcon_suspend, usb_extcon_resume);
+> +
+> +static struct of_device_id usb_extcon_dt_match[] = {
+> +	{ .compatible = "linux,extcon-usb-gpio", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, usb_extcon_dt_match);
+> +
+> +static struct platform_driver usb_extcon_driver = {
+> +	.probe		= usb_extcon_probe,
+> +	.remove		= usb_extcon_remove,
+> +	.driver		= {
+> +		.name	= "extcon-usb-gpio",
+> +		.pm	= &usb_extcon_pm_ops,
+> +		.of_match_table = usb_extcon_dt_match,
+> +	},
+> +};
+> +
+> +module_platform_driver(usb_extcon_driver);
+> +
+> +MODULE_AUTHOR("Roger Quadros <rogerq@ti.com>");
+> +MODULE_DESCRIPTION("USB GPIO extcon driver");
+> +MODULE_LICENSE("GPL v2");
+> 
+
+Thanks,
+Chanwoo Choi
