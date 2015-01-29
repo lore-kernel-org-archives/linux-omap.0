@@ -1,164 +1,97 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.19-rc6
-Date: Thu, 29 Jan 2015 08:16:26 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1501290808440.19947@utopia.booyaka.com>
+From: David Gibson <david@gibson.dropbear.id.au>
+Subject: Re: [PATCH] dtc: parser: Add label while overriding nodes
+Date: Thu, 29 Jan 2015 21:07:31 +1100
+Message-ID: <20150129100731.GC10150@voom.fritz.box>
+References: <1422456611-15447-1-git-send-email-nikhil.nd@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HG+GLK89HZ1zG0kk"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36925 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742AbbA2IQd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2015 03:16:33 -0500
+Received: from ozlabs.org ([103.22.144.67]:58883 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753005AbbA2KMv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Jan 2015 05:12:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1422456611-15447-1-git-send-email-nikhil.nd@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Nikhil Devshatwar <nikhil.nd@ti.com>
+Cc: jdl@jdl.com, devicetree-compiler@vger.kernel.org, linux-omap@vger.kernel.org
 
 
-Here are some basic OMAP test results for Linux v3.19-rc6.
-Logs and other details at:
+--HG+GLK89HZ1zG0kk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-    http://www.pwsan.com/omap/testlogs/test_v3.19-rc6/20150128221837/
+On Wed, Jan 28, 2015 at 08:20:11PM +0530, Nikhil Devshatwar wrote:
+> This patch changes the dtc grammar to allow following syntax
+>=20
+> i2cexp: &i2c2 {
+>     ...
+> };
+>=20
+> Current device tree compiler allows to define multiple labels when defini=
+ng
+> the device node the first time. Typically device nodes are defined in
+> DTSI files. Now these nodes can be overwritten for updating some of the
+> properties. Typically, device nodes are overridden in DTS files.
+>=20
+> When working with adapter boards, most of the time adapter board can fit =
+to
+> multiple base boards. But depending on which base board it is connected t=
+o,
+> the devices on the adapter board would be children of different devices.
+>=20
+> e.g. On dra7-evm.dts, i2c2 is exported for expansion connector whereas
+> on dra72-evm.dts, i2c5 is exported for expansion connector.
+> This causes a problem when writing a generic device tree file for
+> the adapter board. Because, you cannot know whether all the devices on
+> adapter board are present on i2c or i2c5.
+>=20
+> The problem can be solved by adding a common label (e.g. i2cexp) in both
+> of the DTS files when overriding the device nodes for i2c2 or i2c5.
+> This way, generic adapter board file would override the i2cexp. And
+> depending on which base board you use the adapter board, all the devices
+> are automatically added for correct device nodes.
+>=20
+> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
 
+Hi, sorry I didn't get around to responding to your earlier posting of
+this.
 
-Test summary
-------------
+The concept is good, and the implementation looks fine.
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+Only 2 things before I'm ready to merge:
+  1) It wants a testcase
+  2) I need to stare at the syntax for a while and convince myself
+     it's as good as we can reasonably do.
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
+--=20
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
 
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+--HG+GLK89HZ1zG0kk
+Content-Type: application/pgp-signature
 
-Build warnings from toolchain: uImage:
-    FAIL ( 1/ 3): omap1_defconfig_1510innovator_only
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Build warnings from toolchain: uImage+dtb:
-    (none)
+iQIcBAEBAgAGBQJUygZjAAoJEGw4ysog2bOS908QAMVZ+5QQubBhYbrLGTTJx1p1
+NQudQMjXZwH6ZMibnHICWspFbukROT8m6VEgDD8pwmXdTSmLx0DKLM2bt4YU7D0L
+vpLev+uk4rwtEh0YH8r5aH6flYGkEbXktYsL2dOFKFf3iehZWc2ez1qXdW7jnv/N
+tE4bR62ZUyvdZHm3d0h3FqrnbEcMewIH/viEcbf6xoZdkIlu4RfA0CZ+HDzJJsKi
+06pvUE9d0yu5YLpZdwfKzoooCSFMW6Ny4dZfqdhSweFT5xk3WfbbRJ4jIwFfm6KN
++wvVA7hGEVS8bLYsmPdrhbSS6ZqaK/rJtOr2ZMGs6qvlINqkPWFQmIXydWVyYx9S
+aeRzdt8GxDb2EManur475PShPLT6V7coggvK0BSiBd/b5jVgL094M1CK4pjMIWOt
+asadwzP6cvZQJ6lglKaeVIfJgU7IM1xUdq9ycYwvCnR7e8SyshdPNvGkXmW0vKrS
+7LWoePtjOsigXIbgvw/ScIJtJksE9RfqWlBTvh0dQY7NYcCMRS2dhxdAVdeA4a0c
+ycFA4+S7MpChOtLvYh4GzHdDiaLnxK798FSlt/yikycaLnyeGRM9WM4PZEyM3q+d
+UL6lKlCBBwqvXMFgfd0DsnEIy9g86O8gmB2RCw8n0O2j25hs9sWuiWmzx6sDMYhb
+YFfWY03N2oPrTol3lzaj
+=dB3/
+-----END PGP SIGNATURE-----
 
-Build warnings from toolchain: zImage:
-    FAIL ( 2/17): omap2plus_defconfig_no_pm, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 2/17): 4430es2panda, 4460varsomom
-
-
-vmlinux object size
-(delta in bytes from test_v3.19-rc5 (ec6f34e5b552fb0a52e6aae1a5afbbb1605cc6cc)):
-   text     data      bss    total  kernel
-   +252      +32        0     +284  omap1_defconfig
-   +252      +40        0     +292  omap1_defconfig_1510innovator_only
-   +252      +32        0     +284  omap1_defconfig_5912osk_only
-  +1445    +2440        0    +3885  multi_v7_defconfig
-  +3345    +2952        0    +6297  omap2plus_defconfig
- +10263     +384       +8   +10655  omap2plus_defconfig_2430sdp_only
- +10791     +768        0   +11559  omap2plus_defconfig_am33xx_only
- +10919    +1416        0   +12335  omap2plus_defconfig_am43xx_only
-  +3281    +2944        0    +6225  omap2plus_defconfig_cpupm
-  +6887    +1344        0    +8231  omap2plus_defconfig_dra7xx_only
- +10187     +608        0   +10795  omap2plus_defconfig_n800_multi_omap2xxx
- +10066     +544        0   +10610  omap2plus_defconfig_n800_only_a
-  +3277    +3008        0    +6285  omap2plus_defconfig_no_pm
-  +7377    +1600        0    +8977  omap2plus_defconfig_omap2_4_only
-  +3277    +1600        0    +4877  omap2plus_defconfig_omap3_4_only
- +10919    +1336        0   +12255  omap2plus_defconfig_omap5_only
-   +172     +324      -24     +472  rmk_omap3430_ldp_allnoconfig
-   +508     +392        0     +900  rmk_omap3430_ldp_oldconfig
-   +580    +1028      -96    +1512  rmk_omap4430_sdp_allnoconfig
-   +972    +1048        0    +2020  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.19-rc5 (ec6f34e5b552fb0a52e6aae1a5afbbb1605cc6cc))
-  avail  rsrvd   high  freed  board          kconfig
-   -12k    12k      .      .  2420n800       omap2plus_defconfig_n800_only_a
-    -4k     4k      .    -4k  3530es31beagle omap2plus_defconfig
-    -4k     4k      .    -4k  3530es3beagle  omap2plus_defconfig
-      .      .      .    -4k  3730beaglexm   omap2plus_defconfig
-      .      .      .    -4k  3730es12beaglexmomap2plus_defconfig
-    -4k     4k      .    -4k  37xxevm        omap2plus_defconfig
-    -4k     4k      .    -4k  4430es2panda   omap2plus_defconfig
-    -4k     4k      .    -4k  4460pandaes    omap2plus_defconfig
-    -4k     4k      .    -4k  4460varsomom   omap2plus_defconfig
-    -4k     4k      .    -4k  5430es2sbct54  omap2plus_defconfig
-      .      .      .    -4k  5430es2uevm    omap2plus_defconfig
-    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
-      .      .      .    -4k  am335xbonelt   omap2plus_defconfig
-
-
-Something is not right with either our kernel, or the OMAP4460 VAR-SOM-OM 
-board in the testbed.  It hit an alignment fault during the boot test:
-
-http://www.pwsan.com/omap/testlogs/test_v3.19-rc6/20150128221837/boot/4460varsomom/4460varsomom_log.txt
-
-but not the PM test:
-
-http://www.pwsan.com/omap/testlogs/test_v3.19-rc6/20150128221837/pm/4460varsomom/4460varsomom_log.txt
-
-The kernel command line options are different between the two boots.  
-Something to keep an eye on.
+--HG+GLK89HZ1zG0kk--
