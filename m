@@ -1,77 +1,87 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
-Date: Wed, 28 Jan 2015 21:58:42 -0600
-Message-ID: <54C9AFF2.6000108@ti.com>
-References: <1421269101-51105-2-git-send-email-s-anna@ti.com> <20150115135201.GG16217@leverpostej> <20150115135556.GH16217@leverpostej> <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com> <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com> <20150116101746.GA21809@leverpostej> <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com> <20150120180548.GK7718@atomide.com> <CAK=WgbZGGtwmQwzWumjpYOsYHTt8vPQpTraABwJBsv5VXOmJ_Q@mail.gmail.com> <54BFE855.3090200@ti.com> <20150122185622.GE12911@leverpostej>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: 3.19 on Nokia n900: audio quality awful
+Date: Thu, 29 Jan 2015 09:35:29 +0200
+Message-ID: <20150129073529.GA19122@bitmer.com>
+References: <20150106170433.GA5408@amd>
+ <20150118120139.GA1509@amd>
+ <54C63F1C.6010703@ti.com>
+ <54C92752.9000004@bitmer.com>
+ <20150128224144.GA28956@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150122185622.GE12911@leverpostej>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150128224144.GA28956@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 01/22/2015 12:56 PM, Mark Rutland wrote:
-> On Wed, Jan 21, 2015 at 05:56:37PM +0000, Suman Anna wrote:
->> On 01/21/2015 06:41 AM, Ohad Ben-Cohen wrote:
->>> On Tue, Jan 20, 2015 at 8:05 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->>>> How about default to Linux id space and allow overriding that with
->>>> a module param option if needed?
->>>
->>> I'm not sure I'm following.
->>>
->>> If the main point of contention is the base_id field, I'm also fine
->>> with removing it entirely, as I'm not aware of any actual user for it
->>> (Suman please confirm?).
->>
->> Yeah, well the current implementations that I am aware of only have a
->> single bank, so all of them would be using a value of 0. I am yet to see
->> a platform with multiple instances where the property really makes a
->> difference. v7 has the property mandatory, so all the implementations
->> would need to define this value even if it is 0.
->>
->> regards
->> Suman
->>
->>>
->>> Mark? Rob? Will you accept Suman's patches if the base_id field is removed?
+On Wed, Jan 28, 2015 at 11:41:44PM +0100, Pavel Machek wrote:
+> On Wed 2015-01-28 20:15:46, Jarkko Nikula wrote:
+> > On 01/26/2015 03:20 PM, Peter Ujfalusi wrote:
+> > > On 01/18/2015 02:01 PM, Pavel Machek wrote:
+> > No need to go that far. N900 has been supported in mainline since 2.6.39
+> > or so. Part A of AIC34 (which is basically dual AIC33 in a same package)
+> > drives 2 V for the digital microphone bias and part B 2.5 V for the headset.
 > 
-> My concern is that the mapping of hwspinlock IDs doesn't seem to be
-> explicit in the DT on a per-context basis, which is what I'd expect.
+> Let me try... Umm, no change here :-(
 > 
-> e.g.
+> root@n900:/tmp# arecord delme
+> Recording WAVE 'delme' : Unsigned 8 bit, Rate 8000 Hz, Mono
+> ^CAborted by signal Interrupt...
+> root@n900:/tmp# hexdump delme
+> 0000000 4952 4646 987c 0000 4157 4556 6d66 2074
+> 0000010 0010 0000 0001 0001 1f40 0000 1f40 0000
+> 0000020 0001 0008 6164 6174 9858 0000 8080 8080
+> 0000030 8080 8080 8080 8080 8080 8080 8080 8080
+> *
+> 0009880
+> root@n900:/tmp# aplay delme
+> Playing WAVE 'delme' : Unsigned 8 bit, Rate 8000 Hz, Mono
+> root@n900:/tmp#
 > 
-> lck: hwspinlock-device@f00 {
-> 	...
-> 	#hwlock-cells = <1>;
-> };
+> I did this:
 > 
-> some-other-os-interface {
-> 	...
-> 	hwlocks = <&lck 0>, <&lck 1>, <&lck 2>, <&lck 3>;
-> 	hwlock-names = "glbl", "pool0", "pool1", "pool2";
-> };
+> I'm not sure which one is "main" microphone and which is headset, but
+> I guess 2V should be "close enough" to 2.5V to produce something
+> different from zeros..?
 > 
-> a-different-os-interface {
-> 	...
-> 	hwlocks = <&lck 18>, <&lck 21>, <&lck 4>, <&lck 5>;
-> 	hwlock-names = "init", "teardown", "pool0", "pool1";
-> };
-> 
-> That's the only way I would expect this to possibly remain a stable
-> over time, and it's the entire reason for #hwlock-cells, no?
-> 
-> How do you expect the other components sharing the hwspinlocks to be
-> described?
+Main or integrated is digital microphone which does AD conversion itself
+and headset is analogue. If DMIC is without bias codec will sample plain
+zeros from DMIC input but analogue input should always produce some random
+LSB bits from codec's AD converter.
 
-Yes indeed, this is what any of the clients will use on Linux. But this is not necessarily the semantics for exchanging hwlocks with the other processor(s) which is where the global id space comes into picture.
+If codec produces zeros also from analogue input then I suppose codec
+ADC is not powered up or similar. One way to hunt regression if
+bisecting is not possible due reason or another is to dump and diff codec
+registers from /sys/kernel/debug/regmap/ using both working commit and head.
 
-regards
-Suman
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 48b0987..f18a5b0 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -491,6 +491,8 @@
+>  		DRVDD-supply = <&vmmc2>;
+>  		IOVDD-supply = <&vio>;
+>  		DVDD-supply = <&vio>;
+> +
+> +		ai3x-micbias-vg = <1>;
+>  	};
+Looks ok for digital mic.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  
+>  	tlv320aic3x_aux: tlv320aic3x@19 {
+> @@ -502,6 +504,8 @@
+>  		DRVDD-supply = <&vmmc2>;
+>  		IOVDD-supply = <&vio>;
+>  		DVDD-supply = <&vio>;
+> +
+> +		ai3x-micbias-vg = <1>;
+>  	};
+This should be 2, i.e. 2.5 V according to
+Documentation/devicetree/bindings/sound/tlv320aic3x.txt. I think 2 V is
+too low for some headset mics and that was the reason for 2.5 V.
+
+-- 
+Jarkko
