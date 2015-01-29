@@ -1,59 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Thu, 29 Jan 2015 08:56:26 -0800
-Message-ID: <20150129165625.GB16250@atomide.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
- <1422274532-9488-2-git-send-email-rogerq@ti.com>
- <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com>
- <54C66B0D.9040109@ti.com>
- <54C6EFC8.1090601@samsung.com>
- <54C7B0E5.20101@ti.com>
- <54C8472B.6070302@samsung.com>
- <54C8D238.4080001@ti.com>
- <20150128170954.GQ28663@atomide.com>
- <54CA1A12.5080507@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
+Date: Thu, 29 Jan 2015 11:13:38 -0800
+Message-ID: <54CA8662.7040008@codeaurora.org>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>	<1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com> <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.ore.mailhop.org ([54.149.240.58]:48754 "EHLO
-	smtp4.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753623AbbA2Q70 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2015 11:59:26 -0500
-Content-Disposition: inline
-In-Reply-To: <54CA1A12.5080507@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Mike Turquette <mturquette@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ralf Baechle <ralf@linux-mips.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, =?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Manuel Lauss <manuel.lauss@gmail.com>, Alex Elder <elder@linaro.org>, Matt Porter <mporter@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Chao Xie <chao.xie@marvell.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, Felipe Balbi <balbi@ti.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, george.cherian@ti.com, nsekhar@ti.com, devicetree <devicetree@vger.kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-* Roger Quadros <rogerq@ti.com> [150129 03:34]:
-> On 28/01/15 19:09, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [150128 04:15]:
-> >> On 28/01/15 04:19, Chanwoo Choi wrote:
-> >>>>
-> >>>> I still fail to understand that we need to call disable_irq() in .suspend() and
-> >>>> enable_irq() in .resume()
-> >>>>
-> >>>> can you point me to any other drivers doing so?
-> >>>
-> >>> You can refer the suspend function in drivers/mfd/max14577.c or drivers/mfd/max77693.c.
-> >>> The max14577_suspend() includes the detailed comment for why using disable_irq() in suspend function.
-> >>>
-> >>> In max14577 case, max14577_suspend() use disable_irq() function because of i2c dependency.
-> >>> If max14577 device is wake-up from suspend state before completing the resume sequence
-> >>> of i2c, max14577 may fail to read/write i2c communication.
-> >>
-> >> Thanks for this information. I will add disable/enable_irq() in suspend/resume().
-> > 
-> > Are the .dts changes safe for me to apply already?
-> > 
-> 
-> Yes Tony, you can pick them. Thanks.
+On 01/29/15 05:31, Geert Uytterhoeven wrote:
+> Hi Tomeu, Mike,
+>
+> On Fri, Jan 23, 2015 at 12:03 PM, Tomeu Vizoso
+> <tomeu.vizoso@collabora.com> wrote:
+>> --- a/drivers/clk/clk.c
+>> +++ b/drivers/clk/clk.c
+>> @@ -2391,25 +2543,24 @@ int __clk_get(struct clk *clk)
+>>         return 1;
+>>  }
+>>
+>> -static void clk_core_put(struct clk_core *core)
+>> +void __clk_put(struct clk *clk)
+>>  {
+>>         struct module *owner;
+>>
+>> -       owner = core->owner;
+>> +       if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
+>> +               return;
+>>
+>>         clk_prepare_lock();
+>> -       kref_put(&core->ref, __clk_release);
+>> +
+>> +       hlist_del(&clk->child_node);
+>> +       clk_core_set_rate_nolock(clk->core, clk->core->req_rate);
+> At this point, clk->core->req_rate is still zero, causing
+> cpg_div6_clock_round_rate() to be called with a zero "rate" parameter,
+> e.g. on r8a7791:
 
-OK will apply the dts changes into omap-for-v3.20/dt thanks.
-I have also the defconfig changes tagged, will apply those
-a bit later probably as a fix after the driver is merged.
+Hmm.. I wonder if we should assign core->req_rate to be the same as
+core->rate during __clk_init()? That would make this call to
+clk_core_set_rate_nolock() a nop in this case.
 
-Regards,
+>
+> cpg_div6_clock_round_rate: clock sd2 rate 0 parent_rate 780000000 div 1
+> cpg_div6_clock_round_rate: clock sd1 rate 0 parent_rate 780000000 div 1
+> cpg_div6_clock_round_rate: clock mmc0 rate 0 parent_rate 780000000 div 1
+> cpg_div6_clock_round_rate: clock sd1 rate 0 parent_rate 780000000 div 1
+> cpg_div6_clock_round_rate: clock sd1 rate 0 parent_rate 780000000 div 1
+> cpg_div6_clock_round_rate: clock sd2 rate 0 parent_rate 780000000 div 1
+> cpg_div6_clock_round_rate: clock sd2 rate 0 parent_rate 780000000 div 1
+>
+> and cpg_div6_clock_calc_div() is called to calculate
+>
+>         div = DIV_ROUND_CLOSEST(parent_rate, rate);
+>
+> Why was this call to clk_core_set_rate_nolock() in __clk_put() added?
+> Before, there was no rate setting done at this point, and
+> cpg_div6_clock_round_rate() was not called.
 
-Tony
+We need to call clk_core_set_rate_nolock() here to drop any min/max rate
+request that this consumer has.
+
+>
+> Have the semantics changed? Should .round_rate() be ready to
+> accept a "zero" rate, and use e.g. the current rate instead?
+
+It seems like we've also exposed a bug in cpg_div6_clock_calc_div().
+Technically any driver could have called clk_round_rate() with a zero
+rate before this change and that would have caused the same division by
+zero.
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
+
