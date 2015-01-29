@@ -1,81 +1,146 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
-Date: Thu, 29 Jan 2015 11:13:38 -0800
-Message-ID: <54CA8662.7040008@codeaurora.org>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>	<1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com> <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP3: legacy clock data move under clk driver
+Date: Thu, 29 Jan 2015 22:19:29 +0200
+Message-ID: <54CA95D1.6080700@ti.com>
+References: <1418746856-17173-1-git-send-email-t-kristo@ti.com> <20150107230006.GE13010@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Mike Turquette <mturquette@linaro.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ralf Baechle <ralf@linux-mips.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, =?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Manuel Lauss <manuel.lauss@gmail.com>, Alex Elder <elder@linaro.org>, Matt Porter <mporter@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Chao Xie <chao.xie@marvell.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40668 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755855AbbA2UTu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Jan 2015 15:19:50 -0500
+In-Reply-To: <20150107230006.GE13010@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 01/29/15 05:31, Geert Uytterhoeven wrote:
-> Hi Tomeu, Mike,
->
-> On Fri, Jan 23, 2015 at 12:03 PM, Tomeu Vizoso
-> <tomeu.vizoso@collabora.com> wrote:
->> --- a/drivers/clk/clk.c
->> +++ b/drivers/clk/clk.c
->> @@ -2391,25 +2543,24 @@ int __clk_get(struct clk *clk)
->>         return 1;
->>  }
+On 01/08/2015 01:00 AM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [141216 08:22]:
+>> Hi,
 >>
->> -static void clk_core_put(struct clk_core *core)
->> +void __clk_put(struct clk *clk)
->>  {
->>         struct module *owner;
+>> These patches move the legacy clock data for omap3 under drivers/clk/ti.
+>> After these patches are applied, it should be possible to get rid of
+>> clk-private.h (long pending project for Mike.)
 >>
->> -       owner = core->owner;
->> +       if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
->> +               return;
+>> Testing done (on top of 3.18-rc1):
 >>
->>         clk_prepare_lock();
->> -       kref_put(&core->ref, __clk_release);
->> +
->> +       hlist_del(&clk->child_node);
->> +       clk_core_set_rate_nolock(clk->core, clk->core->req_rate);
-> At this point, clk->core->req_rate is still zero, causing
-> cpg_div6_clock_round_rate() to be called with a zero "rate" parameter,
-> e.g. on r8a7791:
-
-Hmm.. I wonder if we should assign core->req_rate to be the same as
-core->rate during __clk_init()? That would make this call to
-clk_core_set_rate_nolock() a nop in this case.
-
+>> omap3-beagle: boot / suspend-resume (ret/off) / cpuidle (ret/off)
+>> omap3-beagle-xm: boot upto fs mount (see note below)
+>> sdp3430: boot
+>> n900: boot
+>>
+>> Note: beagle-xm failed with FS mount on the board I have access to, but
+>>        this happens with clean 3.18-rc1 and linux-next also at the moment.
+>>        The board has probably corrupted filesystem image but I am unable
+>>        to fix this atm (remote board.)
+>>
+>> Test branch:
+>> tree: https://github.com/t-kristo/linux-pm.git
+>> branch: 3.18-rc1-omap3-clk-rework
 >
-> cpg_div6_clock_round_rate: clock sd2 rate 0 parent_rate 780000000 div 1
-> cpg_div6_clock_round_rate: clock sd1 rate 0 parent_rate 780000000 div 1
-> cpg_div6_clock_round_rate: clock mmc0 rate 0 parent_rate 780000000 div 1
-> cpg_div6_clock_round_rate: clock sd1 rate 0 parent_rate 780000000 div 1
-> cpg_div6_clock_round_rate: clock sd1 rate 0 parent_rate 780000000 div 1
-> cpg_div6_clock_round_rate: clock sd2 rate 0 parent_rate 780000000 div 1
-> cpg_div6_clock_round_rate: clock sd2 rate 0 parent_rate 780000000 div 1
+> Great, hopefully this will finally allow Mike to make the
+> generic struct clk private to drivers/clk :)
 >
-> and cpg_div6_clock_calc_div() is called to calculate
+> Seems to boot just fine based on a quick legacy booting test
+> on n900.
 >
->         div = DIV_ROUND_CLOSEST(parent_rate, rate);
+> Mike, assuming no other issues, can you please apply these into a
+> immutable branch against v3.19-rc1 that Paul and I can also merge
+> in as needed?
 >
-> Why was this call to clk_core_set_rate_nolock() in __clk_put() added?
-> Before, there was no rate setting done at this point, and
-> cpg_div6_clock_round_rate() was not called.
-
-We need to call clk_core_set_rate_nolock() here to drop any min/max rate
-request that this consumer has.
-
+> Please also feel free to add:
 >
-> Have the semantics changed? Should .round_rate() be ready to
-> accept a "zero" rate, and use e.g. the current rate instead?
+> Acked-by: Tony Lindgren <tony@atomide.com>
+>
 
-It seems like we've also exposed a bug in cpg_div6_clock_calc_div().
-Technically any driver could have called clk_round_rate() with a zero
-rate before this change and that would have caused the same division by
-zero.
+I just rebased these patches on top of 3.19-rc1, and noticed a problem 
+with dpll5 on beagle-xm (basically a divide-by-zero error + locking 
+issue during boot.) The extra diff at the end of this email fixes the 
+problems, I will also send the updated two patches as v2. Updated branch 
+available in my tree under name 3.19-rc1-omap3-clk-rework.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+- Tero
+
+---------------------
+
+diff --git a/drivers/clk/ti/clk-3xxx-legacy.c 
+b/drivers/clk/ti/clk-3xxx-legacy.c
+index 81ad510..e0732a4 100644
+--- a/drivers/clk/ti/clk-3xxx-legacy.c
++++ b/drivers/clk/ti/clk-3xxx-legacy.c
+@@ -136,6 +136,7 @@ static struct ti_clk_dpll dpll3_ck_data = {
+  	.idlest_mask = 0x1,
+  	.auto_recal_bit = 0x3,
+  	.max_divider = 0x80,
++	.min_divider = 0x1,
+  	.recal_en_bit = 0x5,
+  	.max_multiplier = 0x7ff,
+  	.enable_mask = 0x7,
+@@ -307,6 +308,7 @@ static struct ti_clk_dpll dpll4_ck_data = {
+  	.idlest_mask = 0x2,
+  	.auto_recal_bit = 0x13,
+  	.max_divider = 0x80,
++	.min_divider = 0x1,
+  	.recal_en_bit = 0x6,
+  	.max_multiplier = 0x7ff,
+  	.enable_mask = 0x70000,
+@@ -507,6 +509,7 @@ static struct ti_clk_dpll dpll5_ck_data = {
+  	.idlest_mask = 0x1,
+  	.auto_recal_bit = 0x3,
+  	.max_divider = 0x80,
++	.min_divider = 0x1,
+  	.recal_en_bit = 0x19,
+  	.max_multiplier = 0x7ff,
+  	.enable_mask = 0x7,
+@@ -1271,6 +1274,7 @@ static struct ti_clk_dpll dpll1_ck_data = {
+  	.idlest_mask = 0x1,
+  	.auto_recal_bit = 0x3,
+  	.max_divider = 0x80,
++	.min_divider = 0x1,
+  	.recal_en_bit = 0x7,
+  	.max_multiplier = 0x7ff,
+  	.enable_mask = 0x7,
+@@ -2154,6 +2158,7 @@ static struct ti_clk_dpll dpll2_ck_data = {
+  	.idlest_mask = 0x1,
+  	.auto_recal_bit = 0x3,
+  	.max_divider = 0x80,
++	.min_divider = 0x1,
+  	.recal_en_bit = 0x8,
+  	.max_multiplier = 0x7ff,
+  	.enable_mask = 0x7,
+@@ -2513,6 +2518,7 @@ static struct ti_clk_dpll dpll4_ck_omap36xx_data = {
+  	.idlest_mask = 0x2,
+  	.auto_recal_bit = 0x13,
+  	.max_divider = 0x80,
++	.min_divider = 0x1,
+  	.recal_en_bit = 0x6,
+  	.max_multiplier = 0xfff,
+  	.enable_mask = 0x70000,
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 8d9c603..404158d 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -148,6 +148,7 @@ struct ti_clk_dpll {
+  	u32 sddiv_mask;
+  	u16 max_multiplier;
+  	u16 max_divider;
++	u8 min_divider;
+  	u8 auto_recal_bit;
+  	u8 recal_en_bit;
+  	u8 recal_st_bit;
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index 7d67639..47ebff7 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -243,6 +243,7 @@ struct clk *ti_clk_register_dpll(struct ti_clk *setup)
+  	dd->sddiv_mask = dpll->sddiv_mask;
+  	dd->dco_mask = dpll->dco_mask;
+  	dd->max_divider = dpll->max_divider;
++	dd->min_divider = dpll->min_divider;
+  	dd->max_multiplier = dpll->max_multiplier;
+  	dd->auto_recal_bit = dpll->auto_recal_bit;
+  	dd->recal_en_bit = dpll->recal_en_bit;
 
