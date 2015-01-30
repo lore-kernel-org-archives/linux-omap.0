@@ -1,62 +1,116 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 4/4] mmc: omap_hsmmc: switch to 1-bit before stopping clocks.
-Date: Sat, 31 Jan 2015 06:05:38 +1100
-Message-ID: <20150130190537.20910.16604.stgit@notabene.brown>
-References: <20150130185742.20910.52715.stgit@notabene.brown>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Fri, 30 Jan 2015 15:29:44 -0800
+Message-ID: <CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+	<1421269101-51105-2-git-send-email-s-anna@ti.com>
+	<20150115135201.GG16217@leverpostej>
+	<20150115135556.GH16217@leverpostej>
+	<CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
+	<CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
+	<20150116101746.GA21809@leverpostej>
+	<CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150130185742.20910.52715.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Andreas Fenkart <afenkart@gmail.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:46690 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760531AbbA3X3q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2015 18:29:46 -0500
+Received: by mail-lb0-f176.google.com with SMTP id z12so38717411lbi.7
+        for <linux-omap@vger.kernel.org>; Fri, 30 Jan 2015 15:29:44 -0800 (PST)
+In-Reply-To: <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robherring2@gmail.com>, Suman Anna <s-anna@ti.com>, Kumar Gala <galak@codeaurora.org>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 
-Make use of the new mmc_sdio_want_no_clocks() call to avoid stopping
-clocks while SD Card interrupts are enabled and we aren't in
-1-bit mode.
+On Fri, Jan 16, 2015 at 4:46 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Mark,
+>
+> On Fri, Jan 16, 2015 at 12:17 PM, Mark Rutland <mark.rutland@arm.com> wrote:
+>>> The hwlock is a basic hardware primitive that allow synchronization
+>>> between different processors in the system, which may be running Linux
+>>> as well as other operating systems, and may have no other means of
+>>> communication.
+>>>
+>>> The hwlock id numbers are predefined, global and static across the
+>>> entire system: Linux may boot well after other operating systems are
+>>> already running and using these hwlocks to communicate, and therefore,
+>>> in order to use these hardware devices, it must not enumerate them
+>>> differently than the rest of the system.
+>>
+>> That's not true.
+>>
+>> In order to communicate it must agree with the other users as to the
+>> meaning of each instance, and the protocol for use. That doesn't
+>> necessarily mean that Linux needs to know the numerical ID from a
+>> datasheet, and regardless that ID is separate from the logical ID Linux
+>> uses internally.
+>
+> Let me describe hwspinlocks a bit more so we all get to know it better
+> and can then agree on a proper solution.
+>
+> - What makes handling of hwspinlock ID numbers convenient is the fact
+> that it's not based on random datasheet numbers. In fact, hwspinlocks
+> is just special memory: usually datasheets just define the base
+> address and the size of the hwspinlock area. So any numerical ID we
+> use to call the locks themselves are already logical and sane, similar
+> to the way we handle memory (i.e. if we have 32 locks we'll always use
+> 0..31). So hwlocks ids are very much like memory addressing, and not
+> irq numbers.
+>
 
-Also stop clocks immediately in omap_hsmmc_disable_fclk() if
-1-bit mode has been entered for this purpose.
+But that's exactly how irqs or gpios work as well. If you have 32
+gpios in a system they used to be numbered 0-31 and people would
+reference them directly by that number. Every one of the systems that
+was designed in this way is moving away from it.
 
-With this, I can use my libertas wifi with a 4-bit bus, with
-interrupts and runtime power-management enabled, and get around
-14Mb/sec throughput (which is the best I've seen).
+> - Sometimes Linux will have to dynamically allocate a hwlock, and send
+> the ID of the allocated lock to a remote processor (which may not be
+> running Linux).
 
-Signed-off-by: NeilBrown <neil@brown.name>
----
- drivers/mmc/host/omap_hsmmc.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+In a system where you have two hwlock blocks lckA and lckB, each
+consisting of 8 locks and you have dspB that can only access lckB;
+will you tell the firmware engineers to always subtract 8 from the
+numbers you pass them?
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f84cfb01716d..14fce3b92633 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1791,9 +1791,12 @@ static int omap_hsmmc_disable_fclk(struct mmc_host *mmc)
- {
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
- 
--	pm_runtime_mark_last_busy(host->dev);
--	pm_runtime_put_autosuspend(host->dev);
--
-+	if (atomic_read(&mmc->sdio_narrowed) == 2)
-+		pm_runtime_put_sync(host->dev);
-+	else {
-+		pm_runtime_mark_last_busy(host->dev);
-+		pm_runtime_put_autosuspend(host->dev);
-+	}
- 	return 0;
- }
- 
-@@ -2311,6 +2314,10 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
- 	spin_lock_irqsave(&host->irq_lock, flags);
- 	if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
- 	    (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
-+		if (mmc_sdio_want_no_clocks(host->mmc) == 0) {
-+			ret = -EBUSY;
-+			goto abort;
-+		}
- 		/* disable sdio irq handling to prevent race */
- 		OMAP_HSMMC_WRITE(host->base, ISE, 0);
- 		OMAP_HSMMC_WRITE(host->base, IE, 0);
+Wouldn't it make much more sense to have local indexes here and pass
+them e.g lckB:2?
+
+> - Sometimes a remote processor, which may not be running Linux, will
+> have to dynamically allocate a hwlock, and send the ID of the
+> allocated lock to us (another processor running Linux)
+>
+
+I'm sorry but you cannot have a system on both sides that is allowed
+to do dynamic allocation from a limited set of resources.
+
+Further more this dynamic allocation leads to interesting race
+conditions as what happens if you dynamically allocate a hwlock that
+is statically allocated by another part of the system?
+The only solution I can think of is to have a static allocation of ids
+that the dynamic allocator might use, and then we're just carrying
+extra code when the system is already statically configured...
+
+> We cannot tell in advance what kind of IPC is going to be used for
+> sending and receiving this hwlock ID. Some are handled by Linux
+> (kernel) and some by the user space. So we must be able to expose an
+> ID the system will understand as well as receive one.
+>
+
+Designing this interface to take into consideration that someone might
+send us something completely crazy isn't productive.
+
+
+The only reason for having num-locks and base-id in device tree is
+because of the current Linux implementation. base-id is not a property
+of the hardware and num-locks is not needed for anything but book
+keeping of base-id's in the hwlock framework.
+
+This is why I preferred Sumans earlier suggestion of having the
+binding consist of #hwlock-cells = <X> and the necessary accessor
+functions for resolving a hwlock based on a dt reference.
+
+Regards,
+Bjorn
