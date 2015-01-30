@@ -1,52 +1,178 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Fri, 30 Jan 2015 12:58:39 +0200
-Message-ID: <54CB63DF.6070007@ti.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com> <1422274532-9488-2-git-send-email-rogerq@ti.com> <CAGTfZH3nmpUGgFJ6RU+xH8tuDkGBFA-NbXWa0CSXZXR+DXrbkQ@mail.gmail.com> <54C66B0D.9040109@ti.com> <54C6EFC8.1090601@samsung.com> <54C7B0E5.20101@ti.com> <54C8472B.6070302@samsung.com> <54C8D238.4080001@ti.com> <20150128170954.GQ28663@atomide.com> <54CA1A12.5080507@ti.com> <20150129165625.GB16250@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 2/7] usb: extcon: Fix USB-Host cable name
+Date: Fri, 30 Jan 2015 13:04:25 +0200
+Message-ID: <54CB6539.1040703@ti.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com> <1422274532-9488-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150129165625.GB16250-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1422274532-9488-3-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, cw00.choi@samsung.com
+Cc: tony@atomide.com, myungjoo.ham@samsung.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 29/01/15 18:56, Tony Lindgren wrote:
-> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150129 03:34]:
->> On 28/01/15 19:09, Tony Lindgren wrote:
->>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150128 04:15]:
->>>> On 28/01/15 04:19, Chanwoo Choi wrote:
->>>>>>
->>>>>> I still fail to understand that we need to call disable_irq() in .suspend() and
->>>>>> enable_irq() in .resume()
->>>>>>
->>>>>> can you point me to any other drivers doing so?
->>>>>
->>>>> You can refer the suspend function in drivers/mfd/max14577.c or drivers/mfd/max77693.c.
->>>>> The max14577_suspend() includes the detailed comment for why using disable_irq() in suspend function.
->>>>>
->>>>> In max14577 case, max14577_suspend() use disable_irq() function because of i2c dependency.
->>>>> If max14577 device is wake-up from suspend state before completing the resume sequence
->>>>> of i2c, max14577 may fail to read/write i2c communication.
->>>>
->>>> Thanks for this information. I will add disable/enable_irq() in suspend/resume().
->>>
->>> Are the .dts changes safe for me to apply already?
->>>
->>
->> Yes Tony, you can pick them. Thanks.
-> 
-> OK will apply the dts changes into omap-for-v3.20/dt thanks.
-> I have also the defconfig changes tagged, will apply those
-> a bit later probably as a fix after the driver is merged.
+Felipe & Chanwoo,
 
-Sounds good to me. Thanks Tony.
+On 26/01/15 14:15, Roger Quadros wrote:
+> The recommended name for USB-Host cable state is "USB-Host" and not
+> "USB-HOST" as per drivers/extcon/extcon-class.c extcon_cable_name.
+> 
+> Change all instances of "USB-HOST" to "USB-Host".
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+
+This patch has no dependency to the rest so can be picked up as soon as possible.
+
+Do you think it is better to go via the USB tree?
+If yes then Chanwoo, can you please Ack this one? Thanks.
+
+This would mean that only the first patch needs to go through extcon tree as Tony
+will pick the rest.
 
 cheers,
 -roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> ---
+>  drivers/extcon/extcon-palmas.c | 18 +++++++++---------
+>  drivers/usb/dwc3/dwc3-omap.c   |  6 +++---
+>  drivers/usb/phy/phy-omap-otg.c |  4 ++--
+>  drivers/usb/phy/phy-tahvo.c    |  8 ++++----
+>  4 files changed, 18 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+> index 11c6757..6d002c3 100644
+> --- a/drivers/extcon/extcon-palmas.c
+> +++ b/drivers/extcon/extcon-palmas.c
+> @@ -31,7 +31,7 @@
+>  
+>  static const char *palmas_extcon_cable[] = {
+>  	[0] = "USB",
+> -	[1] = "USB-HOST",
+> +	[1] = "USB-Host",
+>  	NULL,
+>  };
+>  
+> @@ -93,26 +93,26 @@ static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
+>  			PALMAS_USB_ID_INT_LATCH_CLR,
+>  			PALMAS_USB_ID_INT_EN_HI_CLR_ID_GND);
+>  		palmas_usb->linkstat = PALMAS_USB_STATE_ID;
+> -		extcon_set_cable_state(palmas_usb->edev, "USB-HOST", true);
+> -		dev_info(palmas_usb->dev, "USB-HOST cable is attached\n");
+> +		extcon_set_cable_state(palmas_usb->edev, "USB-Host", true);
+> +		dev_info(palmas_usb->dev, "USB-Host cable is attached\n");
+>  	} else if ((set & PALMAS_USB_ID_INT_SRC_ID_FLOAT) &&
+>  				(id_src & PALMAS_USB_ID_INT_SRC_ID_FLOAT)) {
+>  		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+>  			PALMAS_USB_ID_INT_LATCH_CLR,
+>  			PALMAS_USB_ID_INT_EN_HI_CLR_ID_FLOAT);
+>  		palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
+> -		extcon_set_cable_state(palmas_usb->edev, "USB-HOST", false);
+> -		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
+> +		extcon_set_cable_state(palmas_usb->edev, "USB-Host", false);
+> +		dev_info(palmas_usb->dev, "USB-Host cable is detached\n");
+>  	} else if ((palmas_usb->linkstat == PALMAS_USB_STATE_ID) &&
+>  				(!(set & PALMAS_USB_ID_INT_SRC_ID_GND))) {
+>  		palmas_usb->linkstat = PALMAS_USB_STATE_DISCONNECT;
+> -		extcon_set_cable_state(palmas_usb->edev, "USB-HOST", false);
+> -		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
+> +		extcon_set_cable_state(palmas_usb->edev, "USB-Host", false);
+> +		dev_info(palmas_usb->dev, "USB-Host cable is detached\n");
+>  	} else if ((palmas_usb->linkstat == PALMAS_USB_STATE_DISCONNECT) &&
+>  				(id_src & PALMAS_USB_ID_INT_SRC_ID_GND)) {
+>  		palmas_usb->linkstat = PALMAS_USB_STATE_ID;
+> -		extcon_set_cable_state(palmas_usb->edev, "USB-HOST", true);
+> -		dev_info(palmas_usb->dev, " USB-HOST cable is attached\n");
+> +		extcon_set_cable_state(palmas_usb->edev, "USB-Host", true);
+> +		dev_info(palmas_usb->dev, " USB-Host cable is attached\n");
+>  	}
+>  
+>  	return IRQ_HANDLED;
+> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+> index 172d64e..6713ad9 100644
+> --- a/drivers/usb/dwc3/dwc3-omap.c
+> +++ b/drivers/usb/dwc3/dwc3-omap.c
+> @@ -445,14 +445,14 @@ static int dwc3_omap_extcon_register(struct dwc3_omap *omap)
+>  
+>  		omap->id_nb.notifier_call = dwc3_omap_id_notifier;
+>  		ret = extcon_register_interest(&omap->extcon_id_dev,
+> -					       edev->name, "USB-HOST",
+> +					       edev->name, "USB-Host",
+>  					       &omap->id_nb);
+>  		if (ret < 0)
+> -			dev_vdbg(omap->dev, "failed to register notifier for USB-HOST\n");
+> +			dev_vdbg(omap->dev, "failed to register notifier for USB-Host\n");
+>  
+>  		if (extcon_get_cable_state(edev, "USB") == true)
+>  			dwc3_omap_set_mailbox(omap, OMAP_DWC3_VBUS_VALID);
+> -		if (extcon_get_cable_state(edev, "USB-HOST") == true)
+> +		if (extcon_get_cable_state(edev, "USB-Host") == true)
+>  			dwc3_omap_set_mailbox(omap, OMAP_DWC3_ID_GROUND);
+>  	}
+>  
+> diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-omap-otg.c
+> index 56ee760..53cba3f 100644
+> --- a/drivers/usb/phy/phy-omap-otg.c
+> +++ b/drivers/usb/phy/phy-omap-otg.c
+> @@ -119,7 +119,7 @@ static int omap_otg_probe(struct platform_device *pdev)
+>  	otg_dev->vbus_nb.notifier_call = omap_otg_vbus_notifier;
+>  
+>  	ret = extcon_register_interest(&otg_dev->id_dev, config->extcon,
+> -				       "USB-HOST", &otg_dev->id_nb);
+> +				       "USB-Host", &otg_dev->id_nb);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -130,7 +130,7 @@ static int omap_otg_probe(struct platform_device *pdev)
+>  		return ret;
+>  	}
+>  
+> -	otg_dev->id = extcon_get_cable_state(extcon, "USB-HOST");
+> +	otg_dev->id = extcon_get_cable_state(extcon, "USB-Host");
+>  	otg_dev->vbus = extcon_get_cable_state(extcon, "USB");
+>  	omap_otg_set_mode(otg_dev);
+>  
+> diff --git a/drivers/usb/phy/phy-tahvo.c b/drivers/usb/phy/phy-tahvo.c
+> index 845f658..56d3704 100644
+> --- a/drivers/usb/phy/phy-tahvo.c
+> +++ b/drivers/usb/phy/phy-tahvo.c
+> @@ -61,7 +61,7 @@ struct tahvo_usb {
+>  };
+>  
+>  static const char *tahvo_cable[] = {
+> -	"USB-HOST",
+> +	"USB-Host",
+>  	"USB",
+>  	NULL,
+>  };
+> @@ -129,7 +129,7 @@ static void tahvo_usb_become_host(struct tahvo_usb *tu)
+>  {
+>  	struct retu_dev *rdev = dev_get_drvdata(tu->pt_dev->dev.parent);
+>  
+> -	extcon_set_cable_state(&tu->extcon, "USB-HOST", true);
+> +	extcon_set_cable_state(&tu->extcon, "USB-Host", true);
+>  
+>  	/* Power up the transceiver in USB host mode */
+>  	retu_write(rdev, TAHVO_REG_USBR, USBR_REGOUT | USBR_NSUSPEND |
+> @@ -148,7 +148,7 @@ static void tahvo_usb_become_peripheral(struct tahvo_usb *tu)
+>  {
+>  	struct retu_dev *rdev = dev_get_drvdata(tu->pt_dev->dev.parent);
+>  
+> -	extcon_set_cable_state(&tu->extcon, "USB-HOST", false);
+> +	extcon_set_cable_state(&tu->extcon, "USB-Host", false);
+>  
+>  	/* Power up transceiver and set it in USB peripheral mode */
+>  	retu_write(rdev, TAHVO_REG_USBR, USBR_SLAVE_CONTROL | USBR_REGOUT |
+> @@ -376,7 +376,7 @@ static int tahvo_usb_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	/* Set the initial cable state. */
+> -	extcon_set_cable_state(&tu->extcon, "USB-HOST",
+> +	extcon_set_cable_state(&tu->extcon, "USB-Host",
+>  			       tu->tahvo_mode == TAHVO_MODE_HOST);
+>  	extcon_set_cable_state(&tu->extcon, "USB", tu->vbus_state);
+>  
+> 
