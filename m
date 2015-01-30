@@ -1,165 +1,166 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v3 1/7] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Fri, 30 Jan 2015 09:11:20 +0900
-Message-ID: <54CACC28.3050306@samsung.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
- <1422274532-9488-2-git-send-email-rogerq@ti.com> <54C8D2F4.9050404@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 00/11] ARM: OMAP3: legacy clock data move under clk driver
+Date: Thu, 29 Jan 2015 16:42:24 -0800
+Message-ID: <20150130004224.22722.56051@quantum>
+References: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
+ <20150107230006.GE13010@atomide.com> <54CA95D1.6080700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <54C8D2F4.9050404@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: myungjoo.ham@samsung.com, balbi@ti.com, tony@atomide.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:57922 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753527AbbA3Amn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2015 19:42:43 -0500
+Received: by mail-ig0-f169.google.com with SMTP id hl2so1071665igb.0
+        for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2015 16:42:42 -0800 (PST)
+In-Reply-To: <54CA95D1.6080700@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Hi Roger,
+Quoting Tero Kristo (2015-01-29 12:19:29)
+> On 01/08/2015 01:00 AM, Tony Lindgren wrote:
+> > * Tero Kristo <t-kristo@ti.com> [141216 08:22]:
+> >> Hi,
+> >>
+> >> These patches move the legacy clock data for omap3 under drivers/clk/ti.
+> >> After these patches are applied, it should be possible to get rid of
+> >> clk-private.h (long pending project for Mike.)
+> >>
+> >> Testing done (on top of 3.18-rc1):
+> >>
+> >> omap3-beagle: boot / suspend-resume (ret/off) / cpuidle (ret/off)
+> >> omap3-beagle-xm: boot upto fs mount (see note below)
+> >> sdp3430: boot
+> >> n900: boot
+> >>
+> >> Note: beagle-xm failed with FS mount on the board I have access to, but
+> >>        this happens with clean 3.18-rc1 and linux-next also at the moment.
+> >>        The board has probably corrupted filesystem image but I am unable
+> >>        to fix this atm (remote board.)
+> >>
+> >> Test branch:
+> >> tree: https://github.com/t-kristo/linux-pm.git
+> >> branch: 3.18-rc1-omap3-clk-rework
+> >
+> > Great, hopefully this will finally allow Mike to make the
+> > generic struct clk private to drivers/clk :)
+> >
+> > Seems to boot just fine based on a quick legacy booting test
+> > on n900.
+> >
+> > Mike, assuming no other issues, can you please apply these into a
+> > immutable branch against v3.19-rc1 that Paul and I can also merge
+> > in as needed?
+> >
+> > Please also feel free to add:
+> >
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> >
+> 
+> I just rebased these patches on top of 3.19-rc1, and noticed a problem 
+> with dpll5 on beagle-xm (basically a divide-by-zero error + locking 
+> issue during boot.) The extra diff at the end of this email fixes the 
+> problems, I will also send the updated two patches as v2. Updated branch 
+> available in my tree under name 3.19-rc1-omap3-clk-rework.
 
-On 01/28/2015 09:15 PM, Roger Quadros wrote:
-> This driver observes the USB ID pin connected over a GPIO and
-> updates the USB cable extcon states accordingly.
-> 
-> The existing GPIO extcon driver is not suitable for this purpose
-> as it needs to be taught to understand USB cable states and it
-> can't handle more than one cable per instance.
-> 
-> For the USB case we need to handle 2 cable states.
-> 1) USB (attach/detach)
-> 2) USB-Host (attach/detach)
-> 
-> This driver can be easily updated in the future to handle VBUS
-> events in case it happens to be available on GPIO for any platform.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
-> v3:
-> - removed IRQF_NO_SUSPEND flag. Added IRQF_TRIGGER_RISING and
->   IRQF_TRIGGER_FALLING
-> - Added disable_irq() to suspend() and enable_irq() to resume()
-> 
->  .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  18 ++
->  drivers/extcon/Kconfig                             |   7 +
->  drivers/extcon/Makefile                            |   1 +
->  drivers/extcon/extcon-usb-gpio.c                   | 233 +++++++++++++++++++++
->  4 files changed, 259 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
->  create mode 100644 drivers/extcon/extcon-usb-gpio.c
-> 
-> diff --git a/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt b/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
-> new file mode 100644
-> index 0000000..85fe6b0
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
-> @@ -0,0 +1,18 @@
-> +USB GPIO Extcon device
-> +
-> +This is a virtual device used to generate USB cable states from the USB ID pin
-> +connected to a GPIO pin.
-> +
-> +Required properties:
-> +- compatible: Should be "linux,extcon-usb-gpio"
-> +- id-gpio: gpio for USB ID pin. See gpio binding.
-> +
-> +Example:
-> +	extcon_usb1 {
-> +		compatible = "linux,extcon-usb-gpio";
-> +		id-gpio = <&gpio6 1 GPIO_ACTIVE_HIGH>;
-> +	}
-> +
-> +	&omap_dwc3_1 {
-> +		extcon = <&extcon_usb1>;
-> +	};
-> diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
-> index 6a1f7de..fd11536 100644
-> --- a/drivers/extcon/Kconfig
-> +++ b/drivers/extcon/Kconfig
-> @@ -93,4 +93,11 @@ config EXTCON_SM5502
->  	  Silicon Mitus SM5502. The SM5502 is a USB port accessory
->  	  detector and switch.
->  
-> +config EXTCON_USB_GPIO
-> +	tristate "USB GPIO extcon support"
-> +	select GPIOLIB
-> +	help
-> +	  Say Y here to enable GPIO based USB cable detection extcon support.
-> +	  Used typically if GPIO is used for USB ID pin detection.
-> +
->  endif # MULTISTATE_SWITCH
-> diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
-> index 0370b42..6a08a98 100644
-> --- a/drivers/extcon/Makefile
-> +++ b/drivers/extcon/Makefile
-> @@ -12,3 +12,4 @@ obj-$(CONFIG_EXTCON_MAX8997)	+= extcon-max8997.o
->  obj-$(CONFIG_EXTCON_PALMAS)	+= extcon-palmas.o
->  obj-$(CONFIG_EXTCON_RT8973A)	+= extcon-rt8973a.o
->  obj-$(CONFIG_EXTCON_SM5502)	+= extcon-sm5502.o
-> +obj-$(CONFIG_EXTCON_USB_GPIO)	+= extcon-usb-gpio.o
-> diff --git a/drivers/extcon/extcon-usb-gpio.c b/drivers/extcon/extcon-usb-gpio.c
-> new file mode 100644
-> index 0000000..99a58b2
-> --- /dev/null
-> +++ b/drivers/extcon/extcon-usb-gpio.c
-> @@ -0,0 +1,233 @@
-> +/**
-> + * drivers/extcon/extcon-usb-gpio.c - USB GPIO extcon driver
-> + *
-> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
-> + * Author: Roger Quadros <rogerq@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/extcon.h>
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +#include <linux/workqueue.h>
-> +
-> +#define USB_GPIO_DEBOUNCE_MS	20	/* ms */
-> +
-> +struct usb_extcon_info {
-> +	struct device *dev;
-> +	struct extcon_dev *edev;
-> +
-> +	struct gpio_desc *id_gpiod;
-> +	int id_irq;
-> +	bool id_irqwake;		/* ID wakeup enabled flag */
-> +
-> +	unsigned long debounce_jiffies;
-> +	struct delayed_work wq_detcable;
-> +};
-> +
-> +/* List of detectable cables */
-> +enum {
-> +	EXTCON_CABLE_USB = 0,
-> +	EXTCON_CABLE_USB_HOST,
-> +
-> +	EXTCON_CABLE_END,
-> +};
-> +
-> +static const char *usb_extcon_cable[] = {
-> +	[EXTCON_CABLE_USB] = "USB",
-> +	[EXTCON_CABLE_USB_HOST] = "USB-Host",
+I've applied these 11 patches on top of v3.19-rc1, including the two V2
+patches for #6 and #8 to the clk-omap-legacy branch here:
 
-I'll use the defined name for extcon cable name as soon because 
-it has potential isseu about the conflict of extcon cable name between subsystems.
-So, I recommend to use a captical letter as "USB-HOST" instead of "USB-Host".
-If other extcon driver don't use the captical letter, I'll fix it.
+git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux.git clk-omap-legacy
 
-[snip]
+Let me know if I screwed anything up. I've merged this immutable branch
+into clk-next.
 
-Thanks,
-Chanwoo Choi
+In addition I've made some changes to remove clk-private.h permanently.
+I'll post those later today. Again, please let me know if I screwed
+anything up.
+
+Regards,
+Mike
+
+> 
+> - Tero
+> 
+> ---------------------
+> 
+> diff --git a/drivers/clk/ti/clk-3xxx-legacy.c 
+> b/drivers/clk/ti/clk-3xxx-legacy.c
+> index 81ad510..e0732a4 100644
+> --- a/drivers/clk/ti/clk-3xxx-legacy.c
+> +++ b/drivers/clk/ti/clk-3xxx-legacy.c
+> @@ -136,6 +136,7 @@ static struct ti_clk_dpll dpll3_ck_data = {
+>         .idlest_mask = 0x1,
+>         .auto_recal_bit = 0x3,
+>         .max_divider = 0x80,
+> +       .min_divider = 0x1,
+>         .recal_en_bit = 0x5,
+>         .max_multiplier = 0x7ff,
+>         .enable_mask = 0x7,
+> @@ -307,6 +308,7 @@ static struct ti_clk_dpll dpll4_ck_data = {
+>         .idlest_mask = 0x2,
+>         .auto_recal_bit = 0x13,
+>         .max_divider = 0x80,
+> +       .min_divider = 0x1,
+>         .recal_en_bit = 0x6,
+>         .max_multiplier = 0x7ff,
+>         .enable_mask = 0x70000,
+> @@ -507,6 +509,7 @@ static struct ti_clk_dpll dpll5_ck_data = {
+>         .idlest_mask = 0x1,
+>         .auto_recal_bit = 0x3,
+>         .max_divider = 0x80,
+> +       .min_divider = 0x1,
+>         .recal_en_bit = 0x19,
+>         .max_multiplier = 0x7ff,
+>         .enable_mask = 0x7,
+> @@ -1271,6 +1274,7 @@ static struct ti_clk_dpll dpll1_ck_data = {
+>         .idlest_mask = 0x1,
+>         .auto_recal_bit = 0x3,
+>         .max_divider = 0x80,
+> +       .min_divider = 0x1,
+>         .recal_en_bit = 0x7,
+>         .max_multiplier = 0x7ff,
+>         .enable_mask = 0x7,
+> @@ -2154,6 +2158,7 @@ static struct ti_clk_dpll dpll2_ck_data = {
+>         .idlest_mask = 0x1,
+>         .auto_recal_bit = 0x3,
+>         .max_divider = 0x80,
+> +       .min_divider = 0x1,
+>         .recal_en_bit = 0x8,
+>         .max_multiplier = 0x7ff,
+>         .enable_mask = 0x7,
+> @@ -2513,6 +2518,7 @@ static struct ti_clk_dpll dpll4_ck_omap36xx_data = {
+>         .idlest_mask = 0x2,
+>         .auto_recal_bit = 0x13,
+>         .max_divider = 0x80,
+> +       .min_divider = 0x1,
+>         .recal_en_bit = 0x6,
+>         .max_multiplier = 0xfff,
+>         .enable_mask = 0x70000,
+> diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+> index 8d9c603..404158d 100644
+> --- a/drivers/clk/ti/clock.h
+> +++ b/drivers/clk/ti/clock.h
+> @@ -148,6 +148,7 @@ struct ti_clk_dpll {
+>         u32 sddiv_mask;
+>         u16 max_multiplier;
+>         u16 max_divider;
+> +       u8 min_divider;
+>         u8 auto_recal_bit;
+>         u8 recal_en_bit;
+>         u8 recal_st_bit;
+> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+> index 7d67639..47ebff7 100644
+> --- a/drivers/clk/ti/dpll.c
+> +++ b/drivers/clk/ti/dpll.c
+> @@ -243,6 +243,7 @@ struct clk *ti_clk_register_dpll(struct ti_clk *setup)
+>         dd->sddiv_mask = dpll->sddiv_mask;
+>         dd->dco_mask = dpll->dco_mask;
+>         dd->max_divider = dpll->max_divider;
+> +       dd->min_divider = dpll->min_divider;
+>         dd->max_multiplier = dpll->max_multiplier;
+>         dd->auto_recal_bit = dpll->auto_recal_bit;
+>         dd->recal_en_bit = dpll->recal_en_bit;
+> 
