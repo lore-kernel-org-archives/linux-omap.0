@@ -1,187 +1,58 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 00/11] ARM: OMAP3: legacy clock data move under clk driver
-Date: Fri, 30 Jan 2015 10:45:58 -0800
-Message-ID: <20150130184558.22722.90397@quantum>
-References: <1418746856-17173-1-git-send-email-t-kristo@ti.com>
- <20150107230006.GE13010@atomide.com> <54CA95D1.6080700@ti.com>
- <20150130004224.22722.56051@quantum> <54CBA144.8020409@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: [PATCH] ARM: dst: OMAP3-N900: Add microphone bias voltages
+Date: Fri, 30 Jan 2015 21:23:20 +0200
+Message-ID: <1422645800-21287-1-git-send-email-jarkko.nikula@bitmer.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:42820 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382AbbA3SqO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2015 13:46:14 -0500
-Received: by mail-ig0-f176.google.com with SMTP id hl2so5389902igb.3
-        for <linux-omap@vger.kernel.org>; Fri, 30 Jan 2015 10:46:13 -0800 (PST)
-In-Reply-To: <54CBA144.8020409@ti.com>
+Received: from bitmer.com ([213.157.87.50]:51931 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753005AbbA3TXr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Jan 2015 14:23:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: devicetree@vger.kernel.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Quoting Tero Kristo (2015-01-30 07:20:36)
-> On 01/30/2015 02:42 AM, Mike Turquette wrote:
-> > Quoting Tero Kristo (2015-01-29 12:19:29)
-> >> On 01/08/2015 01:00 AM, Tony Lindgren wrote:
-> >>> * Tero Kristo <t-kristo@ti.com> [141216 08:22]:
-> >>>> Hi,
-> >>>>
-> >>>> These patches move the legacy clock data for omap3 under drivers/clk/ti.
-> >>>> After these patches are applied, it should be possible to get rid of
-> >>>> clk-private.h (long pending project for Mike.)
-> >>>>
-> >>>> Testing done (on top of 3.18-rc1):
-> >>>>
-> >>>> omap3-beagle: boot / suspend-resume (ret/off) / cpuidle (ret/off)
-> >>>> omap3-beagle-xm: boot upto fs mount (see note below)
-> >>>> sdp3430: boot
-> >>>> n900: boot
-> >>>>
-> >>>> Note: beagle-xm failed with FS mount on the board I have access to, but
-> >>>>         this happens with clean 3.18-rc1 and linux-next also at the moment.
-> >>>>         The board has probably corrupted filesystem image but I am unable
-> >>>>         to fix this atm (remote board.)
-> >>>>
-> >>>> Test branch:
-> >>>> tree: https://github.com/t-kristo/linux-pm.git
-> >>>> branch: 3.18-rc1-omap3-clk-rework
-> >>>
-> >>> Great, hopefully this will finally allow Mike to make the
-> >>> generic struct clk private to drivers/clk :)
-> >>>
-> >>> Seems to boot just fine based on a quick legacy booting test
-> >>> on n900.
-> >>>
-> >>> Mike, assuming no other issues, can you please apply these into a
-> >>> immutable branch against v3.19-rc1 that Paul and I can also merge
-> >>> in as needed?
-> >>>
-> >>> Please also feel free to add:
-> >>>
-> >>> Acked-by: Tony Lindgren <tony@atomide.com>
-> >>>
-> >>
-> >> I just rebased these patches on top of 3.19-rc1, and noticed a problem
-> >> with dpll5 on beagle-xm (basically a divide-by-zero error + locking
-> >> issue during boot.) The extra diff at the end of this email fixes the
-> >> problems, I will also send the updated two patches as v2. Updated branch
-> >> available in my tree under name 3.19-rc1-omap3-clk-rework.
-> >
-> > I've applied these 11 patches on top of v3.19-rc1, including the two V2
-> > patches for #6 and #8 to the clk-omap-legacy branch here:
-> >
-> > git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux.git clk-omap-legacy
-> >
-> > Let me know if I screwed anything up. I've merged this immutable branch
-> > into clk-next.
-> >
-> > In addition I've made some changes to remove clk-private.h permanently.
-> > I'll post those later today. Again, please let me know if I screwed
-> > anything up.
-> 
-> I can't see the clk-omap-legacy merged to clk-next so far, maybe you did 
-> not push it yet? The branch itself is identical copy of mine, so can't 
-> see any issues there so far.
+From: Pavel Machek <pavel@ucw.cz>
 
-That is correct. There are a lot of unrelated changes in clk-next right
-now so I didn't push this OMAP stuff last night. Turns out to be a good
-thing since linux-next had some breakage today. Once that is resolved
-I'll push this out, but clk-omap-legacy IS merged locally in my tree,
-just not on the public git that linux-next pulls.
+N900 audio recording needs that codec provides bias voltage for integrated
+digital microphone and headset microphone depending which one is used.
+Digital microphone uses 2 V bias and it comes from the codec A part. Codec
+B part drives the headset microphone bias and that is set to 2.5 V.
 
-Regards,
-Mike
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+[Jarkko: Headset mic bias changed to 2 (2.5 V) as it was before commit
+e2e8bfdf6157 ("ASoC: tlv320aic3x: Convert mic bias to a supply widget")]
+Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+---
+Pavel: I hope you don't mind I took your diff from
+http://marc.info/?l=linux-kernel&m=142249383224678&w=2
+and added your Signed-off-by?
+---
+ arch/arm/boot/dts/omap3-n900.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-> 
-> -Tero
-> 
-> >
-> > Regards,
-> > Mike
-> >
-> >>
-> >> - Tero
-> >>
-> >> ---------------------
-> >>
-> >> diff --git a/drivers/clk/ti/clk-3xxx-legacy.c
-> >> b/drivers/clk/ti/clk-3xxx-legacy.c
-> >> index 81ad510..e0732a4 100644
-> >> --- a/drivers/clk/ti/clk-3xxx-legacy.c
-> >> +++ b/drivers/clk/ti/clk-3xxx-legacy.c
-> >> @@ -136,6 +136,7 @@ static struct ti_clk_dpll dpll3_ck_data = {
-> >>          .idlest_mask = 0x1,
-> >>          .auto_recal_bit = 0x3,
-> >>          .max_divider = 0x80,
-> >> +       .min_divider = 0x1,
-> >>          .recal_en_bit = 0x5,
-> >>          .max_multiplier = 0x7ff,
-> >>          .enable_mask = 0x7,
-> >> @@ -307,6 +308,7 @@ static struct ti_clk_dpll dpll4_ck_data = {
-> >>          .idlest_mask = 0x2,
-> >>          .auto_recal_bit = 0x13,
-> >>          .max_divider = 0x80,
-> >> +       .min_divider = 0x1,
-> >>          .recal_en_bit = 0x6,
-> >>          .max_multiplier = 0x7ff,
-> >>          .enable_mask = 0x70000,
-> >> @@ -507,6 +509,7 @@ static struct ti_clk_dpll dpll5_ck_data = {
-> >>          .idlest_mask = 0x1,
-> >>          .auto_recal_bit = 0x3,
-> >>          .max_divider = 0x80,
-> >> +       .min_divider = 0x1,
-> >>          .recal_en_bit = 0x19,
-> >>          .max_multiplier = 0x7ff,
-> >>          .enable_mask = 0x7,
-> >> @@ -1271,6 +1274,7 @@ static struct ti_clk_dpll dpll1_ck_data = {
-> >>          .idlest_mask = 0x1,
-> >>          .auto_recal_bit = 0x3,
-> >>          .max_divider = 0x80,
-> >> +       .min_divider = 0x1,
-> >>          .recal_en_bit = 0x7,
-> >>          .max_multiplier = 0x7ff,
-> >>          .enable_mask = 0x7,
-> >> @@ -2154,6 +2158,7 @@ static struct ti_clk_dpll dpll2_ck_data = {
-> >>          .idlest_mask = 0x1,
-> >>          .auto_recal_bit = 0x3,
-> >>          .max_divider = 0x80,
-> >> +       .min_divider = 0x1,
-> >>          .recal_en_bit = 0x8,
-> >>          .max_multiplier = 0x7ff,
-> >>          .enable_mask = 0x7,
-> >> @@ -2513,6 +2518,7 @@ static struct ti_clk_dpll dpll4_ck_omap36xx_data = {
-> >>          .idlest_mask = 0x2,
-> >>          .auto_recal_bit = 0x13,
-> >>          .max_divider = 0x80,
-> >> +       .min_divider = 0x1,
-> >>          .recal_en_bit = 0x6,
-> >>          .max_multiplier = 0xfff,
-> >>          .enable_mask = 0x70000,
-> >> diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-> >> index 8d9c603..404158d 100644
-> >> --- a/drivers/clk/ti/clock.h
-> >> +++ b/drivers/clk/ti/clock.h
-> >> @@ -148,6 +148,7 @@ struct ti_clk_dpll {
-> >>          u32 sddiv_mask;
-> >>          u16 max_multiplier;
-> >>          u16 max_divider;
-> >> +       u8 min_divider;
-> >>          u8 auto_recal_bit;
-> >>          u8 recal_en_bit;
-> >>          u8 recal_st_bit;
-> >> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-> >> index 7d67639..47ebff7 100644
-> >> --- a/drivers/clk/ti/dpll.c
-> >> +++ b/drivers/clk/ti/dpll.c
-> >> @@ -243,6 +243,7 @@ struct clk *ti_clk_register_dpll(struct ti_clk *setup)
-> >>          dd->sddiv_mask = dpll->sddiv_mask;
-> >>          dd->dco_mask = dpll->dco_mask;
-> >>          dd->max_divider = dpll->max_divider;
-> >> +       dd->min_divider = dpll->min_divider;
-> >>          dd->max_multiplier = dpll->max_multiplier;
-> >>          dd->auto_recal_bit = dpll->auto_recal_bit;
-> >>          dd->recal_en_bit = dpll->recal_en_bit;
-> >>
-> 
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index b550c41b46f1..f7858f5974e3 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -478,6 +478,8 @@
+ 		DRVDD-supply = <&vmmc2>;
+ 		IOVDD-supply = <&vio>;
+ 		DVDD-supply = <&vio>;
++
++		ai3x-micbias-vg = <1>;
+ 	};
+ 
+ 	tlv320aic3x_aux: tlv320aic3x@19 {
+@@ -489,6 +491,8 @@
+ 		DRVDD-supply = <&vmmc2>;
+ 		IOVDD-supply = <&vio>;
+ 		DVDD-supply = <&vio>;
++
++		ai3x-micbias-vg = <2>;
+ 	};
+ 
+ 	tsl2563: tsl2563@29 {
+-- 
+2.1.4
+
