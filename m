@@ -1,126 +1,112 @@
-From: Ravikumar Kattekola <rk@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP5: dts: Fix the bypass clock source for dpll_iva and others
-Date: Sat, 31 Jan 2015 22:36:45 +0530
-Message-ID: <1422724005-9415-3-git-send-email-rk@ti.com>
-References: <1422724005-9415-1-git-send-email-rk@ti.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
+Date: Sat, 31 Jan 2015 19:36:22 +0100
+Message-ID: <CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com>
+ <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
+ <54CA8662.7040008@codeaurora.org> <20150131013158.GA4323@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1422724005-9415-1-git-send-email-rk@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com
-Cc: tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ravikumar Kattekola <rk@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20150131013158.GA4323@codeaurora.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Mike Turquette <mturquette@linaro.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Emilio L??pez <emilio@elopez.com.ar>, Linux-sh list <linux-sh@vger.kernel.org>, Alex Elder <elder@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Matt Porter <mporter@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>Ralf Baechle <ra>
 List-Id: linux-omap@vger.kernel.org
 
-Fixes 85dc74e9 (ARM: dts: omap5 clock data)
+On 31 January 2015 at 02:31, Stephen Boyd <sboyd@codeaurora.org> wrote:
+> On 01/29, Stephen Boyd wrote:
+>> On 01/29/15 05:31, Geert Uytterhoeven wrote:
+>> > Hi Tomeu, Mike,
+>> >
+>> > On Fri, Jan 23, 2015 at 12:03 PM, Tomeu Vizoso
+>> > <tomeu.vizoso@collabora.com> wrote:
+>> >> --- a/drivers/clk/clk.c
+>> >> +++ b/drivers/clk/clk.c
+>> >> @@ -2391,25 +2543,24 @@ int __clk_get(struct clk *clk)
+>> >>         return 1;
+>> >>  }
+>> >>
+>> >> -static void clk_core_put(struct clk_core *core)
+>> >> +void __clk_put(struct clk *clk)
+>> >>  {
+>> >>         struct module *owner;
+>> >>
+>> >> -       owner = core->owner;
+>> >> +       if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
+>> >> +               return;
+>> >>
+>> >>         clk_prepare_lock();
+>> >> -       kref_put(&core->ref, __clk_release);
+>> >> +
+>> >> +       hlist_del(&clk->child_node);
+>> >> +       clk_core_set_rate_nolock(clk->core, clk->core->req_rate);
+>> > At this point, clk->core->req_rate is still zero, causing
+>> > cpg_div6_clock_round_rate() to be called with a zero "rate" parameter,
+>> > e.g. on r8a7791:
+>>
+>> Hmm.. I wonder if we should assign core->req_rate to be the same as
+>> core->rate during __clk_init()? That would make this call to
+>> clk_core_set_rate_nolock() a nop in this case.
+>>
+>
+> Here's a patch to do this
+>
+> ---8<----
+> From: Stephen Boyd <sboyd@codeaurora.org>
+> Subject: [PATCH] clk: Assign a requested rate by default
+>
+> We need to assign a requested rate here so that we avoid
+> requesting a rate of 0 on clocks when we remove clock consumers.
 
-On OMAP54xx, For DPLL_IVA, the ref clock(CLKINP) is connected to sys_clk1 and
-    the bypass input(CLKINPULOW) is connected to iva_dpll_hs_clk_div clock.
-    But the bypass input is not directly routed to bypass clkout instead
-    both CLKINP and CLKINPULOW are connected to bypass clkout via a mux.
+Hi, this looks good to me.
 
-    This mux is controlled by the bit - CM_CLKSEL_DPLL_IVA[23]:DPLL_BYP_CLKSEL
-    and it's POR value is zero which selects the CLKINP as bypass clkout.
-    which means iva_dpll_hs_clk_div is not the bypass clock for dpll_iva_ck
+Reviewed-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-    Fix this by adding another mux clock as parent in bypass mode.
+Thanks,
 
-    This design is common to most of the PLLs and the rest have only one bypass
-    clock. Below is a list of the DPLLs that need this fix:
+Tomeu
 
-    DPLL_IVA,
-    DPLL_PER,
-    DPLL_USB and DPLL_CORE
-
-Signed-off-by: Ravikumar Kattekola <rk@ti.com>
----
- arch/arm/boot/dts/omap54xx-clocks.dtsi |   41 ++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap54xx-clocks.dtsi b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-index 58c2746..83b425f 100644
---- a/arch/arm/boot/dts/omap54xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap54xx-clocks.dtsi
-@@ -167,10 +167,18 @@
- 		ti,index-starts-at-one;
- 	};
- 
-+	dpll_core_byp_mux: dpll_core_byp_mux {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clkin>, <&dpll_abe_m3x2_ck>;
-+		ti,bit-shift = <23>;
-+		reg = <0x012c>;
-+	};
-+
- 	dpll_core_ck: dpll_core_ck {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap4-dpll-core-clock";
--		clocks = <&sys_clkin>, <&dpll_abe_m3x2_ck>;
-+		clocks = <&sys_clkin>, <&dpll_core_byp_mux>;
- 		reg = <0x0120>, <0x0124>, <0x012c>, <0x0128>;
- 	};
- 
-@@ -294,10 +302,18 @@
- 		clock-div = <1>;
- 	};
- 
-+	dpll_iva_byp_mux: dpll_iva_byp_mux {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clkin>, <&iva_dpll_hs_clk_div>;
-+		ti,bit-shift = <23>;
-+		reg = <0x01ac>;
-+	};
-+
- 	dpll_iva_ck: dpll_iva_ck {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap4-dpll-clock";
--		clocks = <&sys_clkin>, <&iva_dpll_hs_clk_div>;
-+		clocks = <&sys_clkin>, <&dpll_iva_byp_mux>;
- 		reg = <0x01a0>, <0x01a4>, <0x01ac>, <0x01a8>;
- 	};
- 
-@@ -599,10 +615,19 @@
- 	};
- };
- &cm_core_clocks {
-+
-+	dpll_per_byp_mux: dpll_per_byp_mux {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clkin>, <&per_dpll_hs_clk_div>;
-+		ti,bit-shift = <23>;
-+		reg = <0x014c>;
-+	};
-+
- 	dpll_per_ck: dpll_per_ck {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap4-dpll-clock";
--		clocks = <&sys_clkin>, <&per_dpll_hs_clk_div>;
-+		clocks = <&sys_clkin>, <&dpll_per_byp_mux>;
- 		reg = <0x0140>, <0x0144>, <0x014c>, <0x0148>;
- 	};
- 
-@@ -714,10 +739,18 @@
- 		ti,index-starts-at-one;
- 	};
- 
-+	dpll_usb_byp_mux: dpll_usb_byp_mux {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clkin>, <&usb_dpll_hs_clk_div>;
-+		ti,bit-shift = <23>;
-+		reg = <0x018c>;
-+	};
-+
- 	dpll_usb_ck: dpll_usb_ck {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap4-dpll-j-type-clock";
--		clocks = <&sys_clkin>, <&usb_dpll_hs_clk_div>;
-+		clocks = <&sys_clkin>, <&dpll_usb_byp_mux>;
- 		reg = <0x0180>, <0x0184>, <0x018c>, <0x0188>;
- 	};
- 
--- 
-1.7.9.5
+> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+> ---
+>  drivers/clk/clk.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index a29daf9edea4..8416ed1c40be 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -2142,6 +2142,7 @@ int __clk_init(struct device *dev, struct clk *clk_user)
+>         struct clk_core *orphan;
+>         struct hlist_node *tmp2;
+>         struct clk_core *clk;
+> +       unsigned long rate;
+>
+>         if (!clk_user)
+>                 return -EINVAL;
+> @@ -2266,12 +2267,13 @@ int __clk_init(struct device *dev, struct clk *clk_user)
+>          * then rate is set to zero.
+>          */
+>         if (clk->ops->recalc_rate)
+> -               clk->rate = clk->ops->recalc_rate(clk->hw,
+> +               rate = clk->ops->recalc_rate(clk->hw,
+>                                 clk_core_get_rate_nolock(clk->parent));
+>         else if (clk->parent)
+> -               clk->rate = clk->parent->rate;
+> +               rate = clk->parent->rate;
+>         else
+> -               clk->rate = 0;
+> +               rate = 0;
+> +       clk->rate = clk->req_rate = rate;
+>
+>         /*
+>          * walk the list of orphan clocks and reparent any that are children of
+> --
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+> a Linux Foundation Collaborative Project
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
