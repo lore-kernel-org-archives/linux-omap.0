@@ -1,56 +1,100 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
-Date: Sat, 31 Jan 2015 07:41:20 +0200
-Message-ID: <CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
-References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
- <1421269101-51105-2-git-send-email-s-anna@ti.com> <20150115135201.GG16217@leverpostej>
- <20150115135556.GH16217@leverpostej> <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
- <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
- <20150116101746.GA21809@leverpostej> <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
- <CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] irqchip: gic: Don't complain in gic_get_cpumask() if UP
+ system
+Date: Sat, 31 Jan 2015 01:09:39 -0600
+Message-ID: <20150131070939.GA4068@saruman.tx.rr.com>
+References: <1422665010-5854-1-git-send-email-sboyd@codeaurora.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1422665010-5854-1-git-send-email-sboyd@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, Stefan Agner <stefan@agner.ch>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Jan 31, 2015 at 1:29 AM, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org> wrote:
-> In a system where you have two hwlock blocks lckA and lckB, each
-> consisting of 8 locks and you have dspB that can only access lckB
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This is a good example - thanks. To be able to cope with such cases we
-will have to pass a hwlock block reference and its relative lock id.
++linux-omap
 
-The DT binding should definitely be prepared for such cases (just kill
-the base-id field?), but let's see what it means about the Linux
-implementation.
+On Fri, Jan 30, 2015 at 04:43:30PM -0800, Stephen Boyd wrote:
+> In a uniprocessor implementation the interrupt processor targets
+> registers are read-as-zero/write-ignored (RAZ/WI). Unfortunately
+> gic_get_cpumask() will print a critical message saying
+>=20
+>  GIC CPU mask not found - kernel will fail to boot.
+>=20
+> if these registers all read as zero, but there won't actually be
+> a problem on uniprocessor systems and the kernel will boot just
+> fine. Skip this check if we're running a UP kernel or if we
+> detect that the hardware only supports a single processor.
+>=20
 
-Since the existence of several hwblocks is still fictional (Bjorn,
-please confirm too?), we may prefer to introduce changes to support it
-only when it shows up; it all depends on the amount of changes needed.
-Suman, care to take a look please?
+Nice, I'll test this on AM437x on Monday but certainly looks promising:
 
->> - Sometimes a remote processor, which may not be running Linux, will
->> have to dynamically allocate a hwlock, and send the ID of the
->> allocated lock to us (another processor running Linux)
->>
-> I'm sorry but you cannot have a system on both sides that is allowed
-> to do dynamic allocation from a limited set of resources.
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Of course not. On such systems, Linux is not the one responsible for
-allocating the hwlocks, at least not during part of the time or from
-part of the hwlocks. There were a few different use cases, with
-different semantics, that required communicating to Linux an hwlock
-id, but since none of them have reached mainline, we should only
-remember they may show up one day, but not put too much effort to
-support them right now.
 
-Thanks,
-Ohad.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Acked-by: Nicolas Pitre <nico@linaro.org>
+> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Stefan Agner <stefan@agner.ch>
+> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+> ---
+>  drivers/irqchip/irq-gic.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index d617ee5a3d8a..1b70e0de0f6e 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -346,7 +346,7 @@ static u8 gic_get_cpumask(struct gic_chip_data *gic)
+>  			break;
+>  	}
+> =20
+> -	if (!mask)
+> +	if (!mask && num_possible_cpus() > 1)
+>  		pr_crit("GIC CPU mask not found - kernel will fail to boot.\n");
+> =20
+>  	return mask;
+> --=20
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+> a Linux Foundation Collaborative Project
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+--=20
+balbi
+
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUzH+zAAoJEIaOsuA1yqRED3QP/jc0k69M7z6I+mYMLpqe8977
+Hm0gMYRx6jQgimACNVh/2NWRcQBLxHAJR+P9SUPokLYf1pTqlO/tDGp+nF/wxJg+
+maB946brjRowIAGI5dAn14RSJqXCRvyfl1r2lqTitJ4vb4hbhRhmyyRPZCoxevxI
+5QzTXSLA7GnSXQtQR6TaNd2Ec6urOt5pE78hd184pgcHVFS9qRAjMFWbeJx/L77f
+/1xHHFztizeWWzy64ePSwSqHuZ4Pf01EbzEGJQxPV/glrxgdvaATuGZY1m+T2b85
+H0gB48ooQX7PH5I0X+iIhKRv+svdsmzKtYqyOunGX7H1F4BwN0rl0ljj38AhxrS8
+wC9TnfhOCy5f2LkXNLYxBfl6Pj08HkMojB63/Ojz9XONMPJgXBf2TU6RXhfqRyAj
+u2Yznv7QQLu/6o3gSRrG+ivTAQkF/JmFnHC/NWHjPp5HrvnW2FgkmXEAeZ0qNmN0
+dcv42gZYUBHBSoEu6U2+2bCYpAKv03KuQemrPO4Cy/0XW+SpcAdtW7pHRJPf6H13
+Fdql2q+MdpVFVwl59Dgxm0UGsLTIpTBs8RwqAhuEXVUIrCGsWMXSyD5ZAd3MwvqV
+y991z04MLkQ4ez1hCRvTHJs5BX8YkGj7beWBPzKr3XSpciaQFdowJnMSNK4LC4XT
+X0ZcmzwcpDB28zWmYikq
+=Ukqc
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
