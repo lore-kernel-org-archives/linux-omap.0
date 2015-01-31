@@ -1,44 +1,226 @@
 From: Ravikumar Kattekola <rk@ti.com>
-Subject: [PATCH 0/2] ARM: DRA7x/OMAP5: Clock: DPLL Clock fixes
-Date: Sat, 31 Jan 2015 22:36:43 +0530
-Message-ID: <1422724005-9415-1-git-send-email-rk@ti.com>
+Subject: [PATCH 1/2] ARM: DRA7x: dts: Fix the bypass clock source for dpll_iva and others
+Date: Sat, 31 Jan 2015 22:36:44 +0530
+Message-ID: <1422724005-9415-2-git-send-email-rk@ti.com>
+References: <1422724005-9415-1-git-send-email-rk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52440 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752472AbbAaRIN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 31 Jan 2015 12:08:13 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1422724005-9415-1-git-send-email-rk@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com
 Cc: tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ravikumar Kattekola <rk@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Fix bypass clock source for a few DPLLs.
+Fixes: ee6c750761 (ARM: dts: dra7 clock data)
 
-On DRA7x/OMAP5, for a few DPLLs, both CLKINP and CLKINPULOW are connected
-to a mux and the output from mux is routed to the bypass clkout.
-Add a mux-clock as bypass clock with CLKINP and CLKINPULOW as parents.
+On DRA7x, For DPLL_IVA, the ref clock(CLKINP) is connected to sys_clk1 and
+the bypass input(CLKINPULOW) is connected to iva_dpll_hs_clk_div clock.
+But the bypass input is not directly routed to bypass clkout instead
+both CLKINP and CLKINPULOW are connected to bypass clkout via a mux.
 
-Tested against: 
-	tree: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git
-	branch: master
-On:
-CPU  : OMAP5432 ES2.0
-Board: OMAP5432 uEVM
-and
-CPU  : DRA752 ES1.0
-Board: DRA7xx
+This mux is controlled by the bit - CM_CLKSEL_DPLL_IVA[23]:DPLL_BYP_CLKSEL
+and it's POR value is zero which selects the CLKINP as bypass clkout.
+which means iva_dpll_hs_clk_div is not the bypass clock for dpll_iva_ck
 
+Fix this by adding another mux clock as parent in bypass mode.
 
-Ravikumar Kattekola (2):
-  ARM: DRA7x: dts: Fix the bypass clock source for dpll_iva and others
-  ARM: OMAP5: dts: Fix the bypass clock source for dpll_iva and others
+This design is common to most of the PLLs and the rest have only one bypass
+clock. Below is a list of the DPLLs that need this fix:
 
- arch/arm/boot/dts/dra7xx-clocks.dtsi   |   90 ++++++++++++++++++++++++++++----
- arch/arm/boot/dts/omap54xx-clocks.dtsi |   41 +++++++++++++--
- 2 files changed, 118 insertions(+), 13 deletions(-)
+DPLL_IVA, DPLL_DDR,
+DPLL_DSP, DPLL_EVE,
+DPLL_GMAC, DPLL_PER,
+DPLL_USB and DPLL_CORE
 
+Signed-off-by: Ravikumar Kattekola <rk@ti.com>
+---
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |   90 ++++++++++++++++++++++++++++++----
+ 1 file changed, 81 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 4bdcbd6..99b09a4 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -243,10 +243,18 @@
+ 		ti,invert-autoidle-bit;
+ 	};
+ 
++	dpll_core_byp_mux: dpll_core_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x012c>;
++	};
++
+ 	dpll_core_ck: dpll_core_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-core-clock";
+-		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		clocks = <&sys_clkin1>, <&dpll_core_byp_mux>;
+ 		reg = <0x0120>, <0x0124>, <0x012c>, <0x0128>;
+ 	};
+ 
+@@ -309,10 +317,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_dsp_byp_mux: dpll_dsp_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&dsp_dpll_hs_clk_div>;
++		ti,bit-shift = <23>;
++		reg = <0x0240>;
++	};
++
+ 	dpll_dsp_ck: dpll_dsp_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&dsp_dpll_hs_clk_div>;
++		clocks = <&sys_clkin1>, <&dpll_dsp_byp_mux>;
+ 		reg = <0x0234>, <0x0238>, <0x0240>, <0x023c>;
+ 	};
+ 
+@@ -335,10 +351,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_iva_byp_mux: dpll_iva_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&iva_dpll_hs_clk_div>;
++		ti,bit-shift = <23>;
++		reg = <0x01ac>;
++	};
++
+ 	dpll_iva_ck: dpll_iva_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&iva_dpll_hs_clk_div>;
++		clocks = <&sys_clkin1>, <&dpll_iva_byp_mux>;
+ 		reg = <0x01a0>, <0x01a4>, <0x01ac>, <0x01a8>;
+ 	};
+ 
+@@ -361,10 +385,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_gpu_byp_mux: dpll_gpu_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x02e4>;
++	};
++
+ 	dpll_gpu_ck: dpll_gpu_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		clocks = <&sys_clkin1>, <&dpll_gpu_byp_mux>;
+ 		reg = <0x02d8>, <0x02dc>, <0x02e4>, <0x02e0>;
+ 	};
+ 
+@@ -398,10 +430,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_ddr_byp_mux: dpll_ddr_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x021c>;
++	};
++
+ 	dpll_ddr_ck: dpll_ddr_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		clocks = <&sys_clkin1>, <&dpll_ddr_byp_mux>;
+ 		reg = <0x0210>, <0x0214>, <0x021c>, <0x0218>;
+ 	};
+ 
+@@ -416,10 +456,18 @@
+ 		ti,invert-autoidle-bit;
+ 	};
+ 
++	dpll_gmac_byp_mux: dpll_gmac_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		ti,bit-shift = <23>;
++		reg = <0x02b4>;
++	};
++
+ 	dpll_gmac_ck: dpll_gmac_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&dpll_abe_m3x2_ck>;
++		clocks = <&sys_clkin1>, <&dpll_gmac_byp_mux>;
+ 		reg = <0x02a8>, <0x02ac>, <0x02b4>, <0x02b0>;
+ 	};
+ 
+@@ -482,10 +530,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_eve_byp_mux: dpll_eve_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&eve_dpll_hs_clk_div>;
++		ti,bit-shift = <23>;
++		reg = <0x0290>;
++	};
++
+ 	dpll_eve_ck: dpll_eve_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&eve_dpll_hs_clk_div>;
++		clocks = <&sys_clkin1>, <&dpll_eve_byp_mux>;
+ 		reg = <0x0284>, <0x0288>, <0x0290>, <0x028c>;
+ 	};
+ 
+@@ -1249,10 +1305,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_per_byp_mux: dpll_per_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&per_dpll_hs_clk_div>;
++		ti,bit-shift = <23>;
++		reg = <0x014c>;
++	};
++
+ 	dpll_per_ck: dpll_per_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-clock";
+-		clocks = <&sys_clkin1>, <&per_dpll_hs_clk_div>;
++		clocks = <&sys_clkin1>, <&dpll_per_byp_mux>;
+ 		reg = <0x0140>, <0x0144>, <0x014c>, <0x0148>;
+ 	};
+ 
+@@ -1275,10 +1339,18 @@
+ 		clock-div = <1>;
+ 	};
+ 
++	dpll_usb_byp_mux: dpll_usb_byp_mux {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&sys_clkin1>, <&usb_dpll_hs_clk_div>;
++		ti,bit-shift = <23>;
++		reg = <0x018c>;
++	};
++
+ 	dpll_usb_ck: dpll_usb_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,omap4-dpll-j-type-clock";
+-		clocks = <&sys_clkin1>, <&usb_dpll_hs_clk_div>;
++		clocks = <&sys_clkin1>, <&dpll_usb_byp_mux>;
+ 		reg = <0x0180>, <0x0184>, <0x018c>, <0x0188>;
+ 	};
+ 
 -- 
 1.7.9.5
-
