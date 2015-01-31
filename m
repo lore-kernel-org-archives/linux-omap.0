@@ -1,118 +1,44 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: v3.19: Nokia N900 (qemu) - omap_aes error
-Date: Sat, 31 Jan 2015 16:29:36 +0100
-Message-ID: <201501311629.36431@pali>
+From: Ravikumar Kattekola <rk@ti.com>
+Subject: [PATCH 0/2] ARM: DRA7x/OMAP5: Clock: DPLL Clock fixes
+Date: Sat, 31 Jan 2015 22:36:43 +0530
+Message-ID: <1422724005-9415-1-git-send-email-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2578306.ZUHDOlNRnp";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52440 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752472AbbAaRIN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 31 Jan 2015 12:08:13 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com
+Cc: tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ravikumar Kattekola <rk@ti.com>
 
---nextPart2578306.ZUHDOlNRnp
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Fix bypass clock source for a few DPLLs.
 
-Hello,
+On DRA7x/OMAP5, for a few DPLLs, both CLKINP and CLKINPULOW are connected
+to a mux and the output from mux is routed to the bypass clkout.
+Add a mux-clock as bypass clock with CLKINP and CLKINPULOW as parents.
 
-when I enable problematic omap_aes.ko driver (also in DT) for=20
-Nokia N900 machine in qemu (it emulates OMAP GP device, not HS) I=20
-get this error message in dmesg at modprobe time:
+Tested against: 
+	tree: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git
+	branch: master
+On:
+CPU  : OMAP5432 ES2.0
+Board: OMAP5432 uEVM
+and
+CPU  : DRA752 ES1.0
+Board: DRA7xx
 
-[   37.660339] ------------[ cut here ]------------
-[   37.663940] WARNING: CPU: 0 PID: 173 at arch/arm/mach-
-omap2/omap_hwmod.c:2182 _idle+0x28/0x64()
-[   37.668762] omap_hwmod: aes: idle state can only be entered=20
-from enabled state
-[   37.672271] Modules linked in: omap_aes(+)
-[   37.675933] CPU: 0 PID: 173 Comm: modprobe Not tainted 3.19.0-
-rc5+ #299
-[   37.679534] Hardware name: Nokia RX-51 board
-[   37.683227] [<c0012678>] (unwind_backtrace) from [<c0010d44>]=20
-(show_stack+0x10/0x14)
-[   37.686920] [<c0010d44>] (show_stack) from [<c0032194>]=20
-(warn_slowpath_common+0x84/0xac)
-[   37.690765] [<c0032194>] (warn_slowpath_common) from=20
-[<c003223c>] (warn_slowpath_fmt+0x2c/0x3c)
-[   37.694366] [<c003223c>] (warn_slowpath_fmt) from [<c0020cb0>]=20
-(_idle+0x28/0x64)
-[   37.698791] [<c0020cb0>] (_idle) from [<c0021078>]=20
-(omap_hwmod_idle+0x30/0x78)
-[   37.702636] [<c0021078>] (omap_hwmod_idle) from [<c00222c4>]=20
-(omap_device_idle+0x48/0x6c)
-[   37.707153] [<c00222c4>] (omap_device_idle) from [<c0022304>]=20
-(_od_runtime_suspend+0x1c/0x24)
-[   37.710723] [<c0022304>] (_od_runtime_suspend) from=20
-[<c0269680>] (__rpm_callback+0x8c/0xdc)
-[   37.714385] [<c0269680>] (__rpm_callback) from [<c0269740>]=20
-(rpm_callback+0x70/0x88)
-[   37.717987] [<c0269740>] (rpm_callback) from [<c0269f74>]=20
-(rpm_suspend+0x2e8/0x5a4)
-[   37.721710] [<c0269f74>] (rpm_suspend) from [<c026a6ec>]=20
-(__pm_runtime_idle+0x58/0x9c)
-[   37.725402] [<c026a6ec>] (__pm_runtime_idle) from [<bf00129c>]=20
-(omap_aes_probe+0x15c/0x448 [omap_aes])
-[   37.733489] [<bf00129c>] (omap_aes_probe [omap_aes]) from=20
-[<c0263d78>] (platform_drv_probe+0x48/0x90)
-[   37.740936] [<c0263d78>] (platform_drv_probe) from=20
-[<c02624ec>] (really_probe+0xac/0x1e0)
-[   37.745025] [<c02624ec>] (really_probe) from [<c0262718>]=20
-(driver_probe_device+0x30/0x48)
-[   37.749847] [<c0262718>] (driver_probe_device) from=20
-[<c0262790>] (__driver_attach+0x60/0x84)
-[   37.753601] [<c0262790>] (__driver_attach) from [<c0261070>]=20
-(bus_for_each_dev+0x50/0x84)
-[   37.758422] [<c0261070>] (bus_for_each_dev) from [<c0261e20>]=20
-(bus_add_driver+0xac/0x1bc)
-[   37.762207] [<c0261e20>] (bus_add_driver) from [<c02630c8>]=20
-(driver_register+0x9c/0xe0)
-[   37.765899] [<c02630c8>] (driver_register) from [<c0008798>]=20
-(do_one_initcall+0x100/0x1b0)
-[   37.769653] [<c0008798>] (do_one_initcall) from [<c0085ca4>]=20
-(do_init_module+0x34/0x158)
-[   37.773590] [<c0085ca4>] (do_init_module) from [<c00868d8>]=20
-(SyS_init_module+0x54/0x64)
-[   37.777252] [<c00868d8>] (SyS_init_module) from [<c000dbe0>]=20
-(ret_fast_syscall+0x0/0x30)
-[   37.780975] ---[ end trace 86c3e025b92e700d ]---
-[   37.784667] omap-aes 480c5000.aes: OMAP AES hw accel rev: 0.0
-[   37.789794] of_dma_request_slave_channel: dma-names property=20
-of node '/ocp/aes@480c5000' missing or empty
-[   37.797668] omap-aes 480c5000.aes: Unable to request in DMA=20
-channel
-[   37.801391]    omap_aes_dma_init: error: -12
 
-Error is not fatal, kernel does not crash and qemu emulation=20
-working fine. But error is there.
+Ravikumar Kattekola (2):
+  ARM: DRA7x: dts: Fix the bypass clock source for dpll_iva and others
+  ARM: OMAP5: dts: Fix the bypass clock source for dpll_iva and others
 
-I'm sure that qemu does not support omap aes hw emulation and so=20
-I except error message about missing hw part (or something else).=20
-But not above unwind_backtrace error message.
+ arch/arm/boot/dts/dra7xx-clocks.dtsi   |   90 ++++++++++++++++++++++++++++----
+ arch/arm/boot/dts/omap54xx-clocks.dtsi |   41 +++++++++++++--
+ 2 files changed, 118 insertions(+), 13 deletions(-)
 
-Any idea why it happens? It is probably not related to AES but to=20
-DMA. It is for OMAP GP device (but emulated), so can TI comment=20
-this problem (as this is not HS under NDA)?
+-- 
+1.7.9.5
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2578306.ZUHDOlNRnp
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTM9OAACgkQi/DJPQPkQ1Km0ACffjQuV7jUR2L46SneK7FtzNq4
-mQsAnihhppDq/FH1NhqVg9ZQBFBTJtxJ
-=K4Pj
------END PGP SIGNATURE-----
-
---nextPart2578306.ZUHDOlNRnp--
