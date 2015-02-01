@@ -1,80 +1,54 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Sun, 1 Feb 2015 09:56:28 +0100
-Message-ID: <201502010956.28662@pali>
-References: <20131206213613.GA19648@earth.universe> <201501312009.58483@pali> <CAALWOA9-wXZCY8QVZmZR7vymEQYupyOm=uJD8bJf-cC7uEfi0A@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: bq2415x_charger.c: battery is discharged (fast, 224mA) when it
+ should be charged
+Date: Sun, 1 Feb 2015 10:47:02 +0100
+Message-ID: <20150201094702.GA21628@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4700414.pSP54dPovU";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:48788 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbbBAI4b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Feb 2015 03:56:31 -0500
-Received: by mail-wi0-f174.google.com with SMTP id n3so10875592wiv.1
-        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2015 00:56:30 -0800 (PST)
-In-Reply-To: <CAALWOA9-wXZCY8QVZmZR7vymEQYupyOm=uJD8bJf-cC7uEfi0A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, linux-pm@vger.kernel.org
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@ring0.de>
 
---nextPart4700414.pSP54dPovU
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi!
 
-On Sunday 01 February 2015 02:36:06 Matthijs van Duin wrote:
-> On 31 January 2015 at 20:06, Pali Roh=C3=A1r <pali.rohar@gmail.com>=20
-> wrote:
-> > I have configured two testing N900 devices. One with signed
-> > bootloader which enable omap aes support and one device with
-> > signed bootloader which does not enable omap aes support.
->=20
-> I'm probably missing some context here, but why not just use
-> the one with aes support? Alternatively, one may argue that
-> it's the bootloader's job to provide the kernel with an
-> accurate device tree. (Though one may equally well argue that
-> it would be nice to avoid having to customize the device tree
-> for every feature-flavor of a processor, especially if this
-> depends on how it's initialized.)
->=20
+I connected N900 with full battery using USB. For some reason, charge
+limit was set to 100mA, battery was "full" and was discharging:
 
-Nokia X-Loader is closed source and signed. So we cannot modify=20
-it. And it is responsible for configuring L3/L4 firewall.
+root@n900:/my/tui/ofone# ./tefone
+Ready.
+Battery  4.017 V  4.039 V  81 %  0 %  0 / 0 / 2056 mAh  Full -242.224 / 550 / 100  mA
 
-Year ago it was possible to find on internet signed X-Loader for=20
-N900 which enable omap aes support (for testing purpose together=20
-with open source linux kernel modules), but it is unofficial and=20
-I think there only too few people who flashed it into N900 nand.=20
-If somebody needs binaries I have backup all of them.
+I adjusted the current limit, but got no change, battery is still
+discharging, fast:
 
-More info about that aes enabled X-Loader:
-http://maemo.org/community/maemo-developers/n900_aes_and_sha1-md5_hw_accele=
-ration_drivers/
+root@n900:/my/tui/ofone# echo 500 > /sys/class/power_supply/bq24150a-0/current_limit
+root@n900:/my/tui/ofone# ./tefone
+Ready.
+Battery  3.994 V  4.034 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -251.506 / 550 / 500  mA
+Battery  4.0 V  4.037 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -223.125 / 550 / 500  mA
+Battery  4.005 V  4.037 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+Battery  3.994 V  4.037 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+Battery  4.023 V  4.037 V  81 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+Battery  4.011 V  4.037 V  80 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+Battery  3.994 V  4.031 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -256.504 / 550 / 500  mA
+Battery  3.994 V  4.029 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -224.017 / 550 / 500  mA
+Battery  3.988 V  4.029 V  77 %  0 %  0 / 0 / 2056 mAh  Full   -224.731 / 550 / 500  mA
+Battery  4.005 V  4.023 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -223.66 / 550 / 500  mA
 
-Majority of users use only official X-Loader which does not=20
-enable aes support so we cannot enable kernel modules (cause=20
-crashes). And also we cannot force users to flash some unofficial=20
-binary into their device...
+I'm getting a lot of
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+[  208.037719] bq27x00-battery 2-0055: battery is not calibrated! ignoring capacity values
+[  238.038024] bq27x00-battery 2-0055: battery is not calibrated! ignoring capacity values
 
---nextPart4700414.pSP54dPovU
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+messages, that's why all the 0s in battery information dump.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Any ideas?
 
-iEYEABECAAYFAlTN6jwACgkQi/DJPQPkQ1KavACfTCUxkOxs6FTANLXnmyWpid+U
-gvAAn2+v3LOykQ5YebMwyDEy/EPyVsRl
-=yaSg
------END PGP SIGNATURE-----
-
---nextPart4700414.pSP54dPovU--
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
