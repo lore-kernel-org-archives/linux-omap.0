@@ -1,122 +1,48 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: bq2415x_charger.c: battery is discharged (fast, 224mA) when it should be charged
-Date: Sun, 1 Feb 2015 11:08:16 +0100
-Message-ID: <201502011108.16071@pali>
-References: <20150201094702.GA21628@amd>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Sun, 1 Feb 2015 13:00:13 +0200
+Message-ID: <CAK=WgbZFZXcHuZUFVg4aAwjqzTQQxpV+Hp-DUYPKg5D8AsQ4Pg@mail.gmail.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+ <1421269101-51105-2-git-send-email-s-anna@ti.com> <20150115135201.GG16217@leverpostej>
+ <20150115135556.GH16217@leverpostej> <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
+ <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
+ <20150116101746.GA21809@leverpostej> <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
+ <CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com> <CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1750516.xogtbURvkl";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150201094702.GA21628@amd>
-Sender: linux-pm-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, linux-pm@vger.kernel.org, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:53942 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752600AbbBALAf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Feb 2015 06:00:35 -0500
+Received: by mail-la0-f42.google.com with SMTP id ms9so32973816lab.1
+        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2015 03:00:33 -0800 (PST)
+In-Reply-To: <CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Bjorn Andersson <bjorn@kryo.se>
+Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robherring2@gmail.com>, Suman Anna <s-anna@ti.com>, Kumar Gala <galak@codeaurora.org>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 
---nextPart1750516.xogtbURvkl
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Sat, Jan 31, 2015 at 7:41 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Sat, Jan 31, 2015 at 1:29 AM, Bjorn Andersson <bjorn@kryo.se> wrote:
+> > In a system where you have two hwlock blocks lckA and lckB, each
+> > consisting of 8 locks and you have dspB that can only access lckB
+>
+> This is a good example - thanks. To be able to cope with such cases we
+> will have to pass a hwlock block reference and its relative lock id.
 
-Hello,
+Additionally, to support such a scenario, we can no longer retain the
+simple dynamic allocation API we have today, because it might end up
+allocating dspB an hwlock from IckA.
 
-On Sunday 01 February 2015 10:47:02 Pavel Machek wrote:
-> Hi!
->=20
-> I connected N900 with full battery using USB. For some reason,
-> charge limit was set to 100mA, battery was "full" and was
-> discharging:
->=20
+We will have to make sure hwlocks are allocated only from pools
+visible to the user, something that will change not only the
+hwspinlock API but also the way it maintains the hwlocks.
 
-Make sure you have loaded some usb gadget. Without it battery=20
-charging via dedicated wallcharger (and probably also usb host=20
-charger) does not working. g_nokia should be OK.
+I suspect we want to wait for such hardware to show up first, and only
+then add framework support for it. Regardless, we obviously do want to
+make sure our DT binding is prepared for the worse, so we'll drop the
+"base-id" field.
 
-Try also compiling kernel with CONFIG_USB_GADGET_VBUS_DRAW=3D500
-
-Also for charger autodetection you need to have loaded=20
-isp1704_charer.ko module (or compiled into kernel).
-
-And make sure that isp1704_charger is loaded before module=20
-bq2415x_charger (there is some probe defer, no idea if it works=20
-as excepted).
-
-> root@n900:/my/tui/ofone# ./tefone
-> Ready.
-> Battery  4.017 V  4.039 V  81 %  0 %  0 / 0 / 2056 mAh  Full
-> -242.224 / 550 / 100  mA
->=20
-> I adjusted the current limit, but got no change, battery is
-> still discharging, fast:
->=20
-> root@n900:/my/tui/ofone# echo 500 >
-> /sys/class/power_supply/bq24150a-0/current_limit
-
-You can try to write "host" to sysfs entry "mode". Another value=20
-is "dedicated" for wallchargers.
-
-> root@n900:/my/tui/ofone# ./tefone
-> Ready.
-> Battery  3.994 V  4.034 V  78 %  0 %  0 / 0 / 2056 mAh  Full =20
-> -251.506 / 550 / 500  mA Battery  4.0 V  4.037 V  79 %  0 %=20
-> 0 / 0 / 2056 mAh  Full   -223.125 / 550 / 500  mA Battery=20
-> 4.005 V  4.037 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -224.91
-> / 550 / 500  mA Battery  3.994 V  4.037 V  78 %  0 %  0 / 0 /
-> 2056 mAh  Full   -224.91 / 550 / 500  mA Battery  4.023 V=20
-> 4.037 V  81 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 /
-> 500  mA Battery  4.011 V  4.037 V  80 %  0 %  0 / 0 / 2056
-> mAh  Full   -224.91 / 550 / 500  mA Battery  3.994 V  4.031 V
->  78 %  0 %  0 / 0 / 2056 mAh  Full   -256.504 / 550 / 500  mA
-> Battery  3.994 V  4.029 V  78 %  0 %  0 / 0 / 2056 mAh  Full=20
->  -224.017 / 550 / 500  mA Battery  3.988 V  4.029 V  77 %  0
-> %  0 / 0 / 2056 mAh  Full   -224.731 / 550 / 500  mA Battery=20
-> 4.005 V  4.023 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -223.66
-> / 550 / 500  mA
->=20
-> I'm getting a lot of
->=20
-> [  208.037719] bq27x00-battery 2-0055: battery is not
-> calibrated! ignoring capacity values [  238.038024]
-> bq27x00-battery 2-0055: battery is not calibrated! ignoring
-> capacity values
->=20
-
-Message is print every time when somebody try to read those=20
-properties. I think that printing it only one time should be=20
-enough. Change to WARN_ONCE?
-
-Also design capacity from bq27x00_battery is incorrect (2056) on=20
-all N900 devices. It comes from some EEPROM memory stored in N900=20
-and without HW hacking it is not possible to rewrite.
-
-I would suggest to add support for bq27x00_battery module to do=20
-not report design capacity. Maybe in N900 DT file can be property=20
-which tell driver to ignore it.
-
-> messages, that's why all the 0s in battery information dump.
->=20
-> Any ideas?
->=20
-> Thanks,
-> 									Pavel
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1750516.xogtbURvkl
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTN+xAACgkQi/DJPQPkQ1K21QCcDG+g8bst0zJYQJf4ymMDh7x/
-TYsAnRAgwQAu9qDEYYo68Wm9r4gbLwtJ
-=6vIo
------END PGP SIGNATURE-----
-
---nextPart1750516.xogtbURvkl--
+Thanks,
+Ohad.
