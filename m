@@ -1,86 +1,91 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: bq2415x_charger.c: battery is discharged (fast, 224mA) when it
  should be charged
-Date: Sun, 1 Feb 2015 20:17:50 +0100
-Message-ID: <20150201191750.GA27467@amd>
+Date: Sun, 1 Feb 2015 21:56:03 +0100
+Message-ID: <20150201205603.GA23044@amd>
 References: <20150201094702.GA21628@amd>
- <201502011108.16071@pali>
- <20150201113813.GA6570@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150201113813.GA6570@amd>
+In-Reply-To: <20150201094702.GA21628@amd>
 Sender: linux-pm-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, linux-pm@vger.kernel.org, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+To: sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, linux-pm@vger.kernel.org
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sun 2015-02-01 12:38:13, Pavel Machek wrote:
+On Sun 2015-02-01 10:47:02, Pavel Machek wrote:
 > Hi!
->=20
-> On Sun 2015-02-01 11:08:16, Pali Roh=E1r wrote:
-> > On Sunday 01 February 2015 10:47:02 Pavel Machek wrote:
-> > > Hi!
-> > >=20
-> > > I connected N900 with full battery using USB. For some reason,
-> > > charge limit was set to 100mA, battery was "full" and was
-> > > discharging:
-> > >=20
-> >=20
-> > Make sure you have loaded some usb gadget. Without it battery=20
-> > charging via dedicated wallcharger (and probably also usb host=20
-> > charger) does not working. g_nokia should be OK.
->=20
-> I had that loaded (was running from root over USB at the moment.)
->=20
-> > Try also compiling kernel with CONFIG_USB_GADGET_VBUS_DRAW=3D500
-> >=20
-> > Also for charger autodetection you need to have loaded=20
-> > isp1704_charer.ko module (or compiled into kernel).
-> >=20
-> > And make sure that isp1704_charger is loaded before module=20
-> > bq2415x_charger (there is some probe defer, no idea if it works=20
-> > as excepted).
->=20
-> It seems bq2415x_charger is the problem: it all started working when =
-I
-> did echo reset > mode...=20
+> 
+> I connected N900 with full battery using USB. For some reason, charge
+> limit was set to 100mA, battery was "full" and was discharging:
+> 
+> root@n900:/my/tui/ofone# ./tefone
+> Ready.
+> Battery  4.017 V  4.039 V  81 %  0 %  0 / 0 / 2056 mAh  Full -242.224 / 550 / 100  mA
+> 
+> I adjusted the current limit, but got no change, battery is still
+> discharging, fast:
+> 
+> root@n900:/my/tui/ofone# echo 500 > /sys/class/power_supply/bq24150a-0/current_limit
+> root@n900:/my/tui/ofone# ./tefone
+> Ready.
+> Battery  3.994 V  4.034 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -251.506 / 550 / 500  mA
+> Battery  4.0 V  4.037 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -223.125 / 550 / 500  mA
+> Battery  4.005 V  4.037 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+> Battery  3.994 V  4.037 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+> Battery  4.023 V  4.037 V  81 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+> Battery  4.011 V  4.037 V  80 %  0 %  0 / 0 / 2056 mAh  Full   -224.91 / 550 / 500  mA
+> Battery  3.994 V  4.031 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -256.504 / 550 / 500  mA
+> Battery  3.994 V  4.029 V  78 %  0 %  0 / 0 / 2056 mAh  Full   -224.017 / 550 / 500  mA
+> Battery  3.988 V  4.029 V  77 %  0 %  0 / 0 / 2056 mAh  Full   -224.731 / 550 / 500  mA
+> Battery  4.005 V  4.023 V  79 %  0 %  0 / 0 / 2056 mAh  Full   -223.66 / 550 / 500  mA
+> 
+> I'm getting a lot of
+> 
+> [  208.037719] bq27x00-battery 2-0055: battery is not calibrated! ignoring capacity values
+> [  238.038024] bq27x00-battery 2-0055: battery is not calibrated! ignoring capacity values
+> 
+> messages, that's why all the 0s in battery information dump.
+> 
+> Any ideas?
 
-It does not switch from "Full" to "Charging", and it does not seem to
-switch from "Charging" to "Full", either...:
+Reset kicked the charger back into the charging mode:
 
-root@n900:/my/tui/ofone# ./tefone
-Ready.
-Battery  4.152 V  4.161 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   40.8=
-76 / 650 / 500  mA
-Battery  4.152 V  4.161 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   48.1=
-95 / 650 / 500  mA
-Battery  4.152 V  4.164 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   43.5=
-54 / 650 / 500  mA
-Battery  4.14 V  4.164 V  94 %  0 %  0 / 0 / 2056 mAh  Charging   40.16=
-2 / 650 / 500  mA
-Battery  4.158 V  4.172 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   54.6=
-21 / 650 / 500  mA
-Battery  4.158 V  4.175 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   33.7=
-36 / 650 / 500  mA
-aHello, world
-Battery  4.164 V  4.175 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   2.14=
-2 / 650 / 500  mA
-Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   19.9=
-92 / 650 / 500  mA
-Battery  4.158 V  4.177 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   18.2=
-07 / 650 / 500  mA
-Battery  4.158 V  4.177 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   17.4=
-93 / 650 / 500  mA
-Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   16.2=
-43 / 650 / 500  mA
-Battery  4.158 V  4.177 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   16.2=
-43 / 650 / 500  mA
+root@n900:/sys/class/power_supply/bq24150a-0# echo reset > mode
+root@n900:/sys/class/power_supply/bq24150a-0# cat mode
+auto (host)
+root@n900:/sys/class/power_supply/bq24150a-0#
+
+Battery  4.017 V  4.037 V  81 %  0 %  0 / 0 / 2056 mAh  Charging -109.42 / 650 / 500  mA
+Battery  4.017 V  4.039 V  81 %  0 %  0 / 0 / 2056 mAh  Charging -103.173 / 650 / 500  mA
+
+...and discharge current reduced. I tried adjusting current limit, but
+it still discharges at 100mA (with screen on).
+
+USB extension cable was probably part of a problem. It works better
+with n900 plugged in directly into the PC.
+
+(But it still will not terminate the charge:
+
+Battery  4.158 V  4.177 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   13.03 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   13.03 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   10.888 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   1.249 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   10.353 / 650 / 500  mA
+Battery  4.158 V  4.177 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   9.639 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   10.71 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   7.497 / 650 / 500  mA
+Battery  4.158 V  4.177 V  95 %  0 %  0 / 0 / 2056 mAh  Charging   9.639 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   6.247 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   5.533 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   4.284 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   4.284 / 650 / 500  mA
+Battery  4.164 V  4.177 V  96 %  0 %  0 / 0 / 2056 mAh  Charging   3.927 / 650 / 500  mA
+)
 
 
---=20
+									Pavel
+-- 
 (english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
