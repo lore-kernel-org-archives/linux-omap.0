@@ -1,123 +1,51 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
-Date: Sun, 01 Feb 2015 14:18:56 -0800
-Message-ID: <20150201221856.421.6151@quantum>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
- <1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
- <54CA8662.7040008@codeaurora.org> <20150131013158.GA4323@codeaurora.org>
- <CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
+Subject: Re: Clock Regression in next-20150130 caused by cb75a8fcd14e
+Date: Sun, 01 Feb 2015 15:26:36 -0800
+Message-ID: <20150201232636.421.58980@quantum>
+References: <20150131010443.GE16250@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Emilio L??pez <emilio@elopez.com.ar>, Linux-sh list <linux-sh@vger.kernel.org>, Alex Elder <elder@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Matt Porter <mporter@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:42811 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751698AbbBAX0k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Feb 2015 18:26:40 -0500
+Received: by mail-ie0-f180.google.com with SMTP id rl12so14156397iec.11
+        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2015 15:26:40 -0800 (PST)
+In-Reply-To: <20150131010443.GE16250@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Quoting Tomeu Vizoso (2015-01-31 10:36:22)
-> On 31 January 2015 at 02:31, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> > On 01/29, Stephen Boyd wrote:
-> >> On 01/29/15 05:31, Geert Uytterhoeven wrote:
-> >> > Hi Tomeu, Mike,
-> >> >
-> >> > On Fri, Jan 23, 2015 at 12:03 PM, Tomeu Vizoso
-> >> > <tomeu.vizoso@collabora.com> wrote:
-> >> >> --- a/drivers/clk/clk.c
-> >> >> +++ b/drivers/clk/clk.c
-> >> >> @@ -2391,25 +2543,24 @@ int __clk_get(struct clk *clk)
-> >> >>         return 1;
-> >> >>  }
-> >> >>
-> >> >> -static void clk_core_put(struct clk_core *core)
-> >> >> +void __clk_put(struct clk *clk)
-> >> >>  {
-> >> >>         struct module *owner;
-> >> >>
-> >> >> -       owner = core->owner;
-> >> >> +       if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
-> >> >> +               return;
-> >> >>
-> >> >>         clk_prepare_lock();
-> >> >> -       kref_put(&core->ref, __clk_release);
-> >> >> +
-> >> >> +       hlist_del(&clk->child_node);
-> >> >> +       clk_core_set_rate_nolock(clk->core, clk->core->req_rate);
-> >> > At this point, clk->core->req_rate is still zero, causing
-> >> > cpg_div6_clock_round_rate() to be called with a zero "rate" parameter,
-> >> > e.g. on r8a7791:
-> >>
-> >> Hmm.. I wonder if we should assign core->req_rate to be the same as
-> >> core->rate during __clk_init()? That would make this call to
-> >> clk_core_set_rate_nolock() a nop in this case.
-> >>
-> >
-> > Here's a patch to do this
-> >
-> > ---8<----
-> > From: Stephen Boyd <sboyd@codeaurora.org>
-> > Subject: [PATCH] clk: Assign a requested rate by default
-> >
-> > We need to assign a requested rate here so that we avoid
-> > requesting a rate of 0 on clocks when we remove clock consumers.
+Quoting Tony Lindgren (2015-01-30 17:04:44)
+> Hi all,
 > 
-> Hi, this looks good to me.
+> Looks like commit cb75a8fcd14e ("clk: Add rate constraints to clocks")
+> causes a regression on at least omaps where the serial console either
+> does not show anything, or just prints garbage.
 > 
-> Reviewed-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> Reverting cb75a8fcd14e makes things work again on next-20150130.
+> 
+> Any ideas?
 
-It seems to fix the total boot failure on OMAPs, and hopefully does the
-same for SH Mobile and others. I've squashed this into Tomeu's rate
-constraints patch to maintain bisect.
+Stephen posted a patch[0] to fix this. I've squashed that into Tomeu's
+commit that you reference above and my Panda board is booting fine once
+again.
+
+[0] http://lkml.kernel.org/r/<20150131013158.GA4323@codeaurora.org>
+
+Please let me know if any other issues pop up. There are new WARNs for
+OMAP3+ boards introduced by a different patch from Tomeu, but this is
+really because the OMAP DPLL and FAPLL code are dereferencing struct clk
+pointers when they should not be and is a separate issue from the
+constraints patch (with a separate email thread).
 
 Regards,
 Mike
 
 > 
-> Thanks,
+> Regards,
 > 
-> Tomeu
-> 
-> > Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-> > ---
-> >  drivers/clk/clk.c | 8 +++++---
-> >  1 file changed, 5 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> > index a29daf9edea4..8416ed1c40be 100644
-> > --- a/drivers/clk/clk.c
-> > +++ b/drivers/clk/clk.c
-> > @@ -2142,6 +2142,7 @@ int __clk_init(struct device *dev, struct clk *clk_user)
-> >         struct clk_core *orphan;
-> >         struct hlist_node *tmp2;
-> >         struct clk_core *clk;
-> > +       unsigned long rate;
-> >
-> >         if (!clk_user)
-> >                 return -EINVAL;
-> > @@ -2266,12 +2267,13 @@ int __clk_init(struct device *dev, struct clk *clk_user)
-> >          * then rate is set to zero.
-> >          */
-> >         if (clk->ops->recalc_rate)
-> > -               clk->rate = clk->ops->recalc_rate(clk->hw,
-> > +               rate = clk->ops->recalc_rate(clk->hw,
-> >                                 clk_core_get_rate_nolock(clk->parent));
-> >         else if (clk->parent)
-> > -               clk->rate = clk->parent->rate;
-> > +               rate = clk->parent->rate;
-> >         else
-> > -               clk->rate = 0;
-> > +               rate = 0;
-> > +       clk->rate = clk->req_rate = rate;
-> >
-> >         /*
-> >          * walk the list of orphan clocks and reparent any that are children of
-> > --
-> > Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-> > a Linux Foundation Collaborative Project
-> >
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> Tony
