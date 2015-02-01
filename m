@@ -1,30 +1,80 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Sun, 1 Feb 2015 02:51:22 +0100
-Message-ID: <CAALWOA-XVrC84=6Xt04m+QaBhweAcp2HVTH7v=QewtJmQLEaWA@mail.gmail.com>
-References: <1421192272-20754-1-git-send-email-tony@atomide.com>
- <1421192272-20754-5-git-send-email-tony@atomide.com> <20150117164709.GS18552@atomide.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Sun, 1 Feb 2015 09:56:28 +0100
+Message-ID: <201502010956.28662@pali>
+References: <20131206213613.GA19648@earth.universe> <201501312009.58483@pali> <CAALWOA9-wXZCY8QVZmZR7vymEQYupyOm=uJD8bJf-cC7uEfi0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed;
+  boundary="nextPart4700414.pSP54dPovU";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:58611 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752877AbbBABvo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2015 20:51:44 -0500
-Received: by mail-wi0-f181.google.com with SMTP id fb4so9037350wid.2
-        for <linux-omap@vger.kernel.org>; Sat, 31 Jan 2015 17:51:43 -0800 (PST)
-In-Reply-To: <20150117164709.GS18552@atomide.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:48788 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490AbbBAI4b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Feb 2015 03:56:31 -0500
+Received: by mail-wi0-f174.google.com with SMTP id n3so10875592wiv.1
+        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2015 00:56:30 -0800 (PST)
+In-Reply-To: <CAALWOA9-wXZCY8QVZmZR7vymEQYupyOm=uJD8bJf-cC7uEfi0A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@ring0.de>
 
-I just noticed the dm816x.dtsi says:
+--nextPart4700414.pSP54dPovU
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-ocp {
-        compatible = "ti,omap3-l3-smx", "simple-bus";
+On Sunday 01 February 2015 02:36:06 Matthijs van Duin wrote:
+> On 31 January 2015 at 20:06, Pali Roh=C3=A1r <pali.rohar@gmail.com>=20
+> wrote:
+> > I have configured two testing N900 devices. One with signed
+> > bootloader which enable omap aes support and one device with
+> > signed bootloader which does not enable omap aes support.
+>=20
+> I'm probably missing some context here, but why not just use
+> the one with aes support? Alternatively, one may argue that
+> it's the bootloader's job to provide the kernel with an
+> accurate device tree. (Though one may equally well argue that
+> it would be nice to avoid having to customize the device tree
+> for every feature-flavor of a processor, especially if this
+> depends on how it's initialized.)
+>=20
 
-This is incorrect: the DM81xx (and siblings like the AM335x) use
-Arteris FlexNOC for the L3 interconnect, same as omap4/5 and vayu, not
-SonicsMX. (In general everything on the DM81xx seems to be
-omap4-generation)
+Nokia X-Loader is closed source and signed. So we cannot modify=20
+it. And it is responsible for configuring L3/L4 firewall.
+
+Year ago it was possible to find on internet signed X-Loader for=20
+N900 which enable omap aes support (for testing purpose together=20
+with open source linux kernel modules), but it is unofficial and=20
+I think there only too few people who flashed it into N900 nand.=20
+If somebody needs binaries I have backup all of them.
+
+More info about that aes enabled X-Loader:
+http://maemo.org/community/maemo-developers/n900_aes_and_sha1-md5_hw_accele=
+ration_drivers/
+
+Majority of users use only official X-Loader which does not=20
+enable aes support so we cannot enable kernel modules (cause=20
+crashes). And also we cannot force users to flash some unofficial=20
+binary into their device...
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart4700414.pSP54dPovU
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlTN6jwACgkQi/DJPQPkQ1KavACfTCUxkOxs6FTANLXnmyWpid+U
+gvAAn2+v3LOykQ5YebMwyDEy/EPyVsRl
+=yaSg
+-----END PGP SIGNATURE-----
+
+--nextPart4700414.pSP54dPovU--
