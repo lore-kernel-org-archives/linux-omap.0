@@ -1,104 +1,72 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
- instances
-Date: Mon, 2 Feb 2015 22:31:29 +0100 (CET)
-Message-ID: <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: v3.19: Nokia N900 - usb nokia gadget crash
+Date: Mon, 2 Feb 2015 16:17:13 -0600
+Message-ID: <20150202221713.GB30753@saruman.tx.rr.com>
+References: <201501311006.11909@pali>
+ <201501311025.09553@pali>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54CFE1FE.7040404@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com, cocci@systeme.lip6.fr
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="i0/AhcQY5QxfSsSZ"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38308 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753850AbbBBWRa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Feb 2015 17:17:30 -0500
+Content-Disposition: inline
+In-Reply-To: <201501311025.09553@pali>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
+--i0/AhcQY5QxfSsSZ
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Sat, Jan 31, 2015 at 10:25:09AM +0100, Pali Roh=E1r wrote:
+> On Saturday 31 January 2015 10:06:11 Pali Roh=E1r wrote:
+> > Hello,
+> >=20
+> > when I try to modprobe g_nokia.ko gadget module on n900
+> > device, it produce tons on lines to display and then crash
+> > and reboot device. So its not working and I (without Nokia
+> > (TM) serial console I cannot debug it).
+>=20
+> When I compile g_nokia into zImage (not as external module) then=20
+> it kernel loads correctly and usb is working.
+>=20
+> Any idea why g_nokia as external kernel module cause problems,=20
+> but compiled into zImage is working??
 
-On Mon, 2 Feb 2015, Stephen Boyd wrote:
+what I got here is a WARNING from f_phonet only, I'll look into it. Keep
+in mind I don't have N900 available, testing with beagleboneblack and
+AM437x SK.
 
-> On 02/01/15 13:24, Mike Turquette wrote:
-> > Quoting Tomeu Vizoso (2015-01-23 03:03:30)
-> >> Moves clock state to struct clk_core, but takes care to change as little API as
-> >> possible.
-> >>
-> >> struct clk_hw still has a pointer to a struct clk, which is the
-> >> implementation's per-user clk instance, for backwards compatibility.
-> >>
-> >> The struct clk that clk_get_parent() returns isn't owned by the caller, but by
-> >> the clock implementation, so the former shouldn't call clk_put() on it.
-> >>
-> >> Because some boards in mach-omap2 still register clocks statically, their clock
-> >> registration had to be updated to take into account that the clock information
-> >> is stored in struct clk_core now.
-> > Tero, Paul & Tony,
-> >
-> > Tomeu's patch unveils a problem with omap3_noncore_dpll_enable and
-> > struct dpll_data, namely this snippet from
-> > arch/arm/mach-omap2/dpll3xxx.c:
-> >
-> >         parent = __clk_get_parent(hw->clk);
-> >
-> >         if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
-> >                 WARN(parent != dd->clk_bypass,
-> >                                 "here0, parent name is %s, bypass name is %s\n",
-> >                                 __clk_get_name(parent), __clk_get_name(dd->clk_bypass));
-> >                 r = _omap3_noncore_dpll_bypass(clk);
-> >         } else {
-> >                 WARN(parent != dd->clk_ref,
-> >                                 "here1, parent name is %s, ref name is %s\n",
-> >                                 __clk_get_name(parent), __clk_get_name(dd->clk_ref));
-> >                 r = _omap3_noncore_dpll_lock(clk);
-> >         }
-> >
-> > struct dpll_data has members clk_ref and clk_bypass which are struct clk
-> > pointers. This was always a bit of a violation of the clk.h contract
-> > since drivers are not supposed to deref struct clk pointers. 
-> 
-> Julia,
-> 
-> Is there a way we can write a coccinelle script to check for this? The
-> goal being to find all drivers that are comparing struct clk pointers or
-> attempting to dereference them. There are probably other frameworks that
-> could use the same type of check (regulator, gpiod, reset, pwm, etc.).
-> Probably anything that has a get/put API.
+--=20
+balbi
 
-Comparing or dereferencing pointers of a particular type should be 
-straightforward to check for.  Is there an example of how to use the 
-parent_index value to fix the problem?
+--i0/AhcQY5QxfSsSZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-julia
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iQIcBAEBAgAGBQJUz/dpAAoJEIaOsuA1yqREZYQP/RJk5xqbDk2FNzwAKAI355to
+n5GSU6gGkmQk/ybbYXhBbEr8GLaMut5dED6bhmfQeOTcsc4RJ8jQlwV5Pzw2o/Sx
+V177LW/KcdwgNxK1XWZ8pqsr7SKyasmXQ39MyMzlivXRYPGwwrtN7FtPuqL9ozE8
+RBXXrMuV+XtKqXXzQ7fSrDobTW/7EBq4Uv/rDQy7dlgujeLFPDc/cmDtB8fbhXUC
+aTA0X8ykiagUpHJd7KLSh9J6969doFGKgSZPJa2gWPYDH4xnGD/FLYWv9I3l2BAl
+huuffR1DZUDlRgXZN/x+zcGQ7CbB/0lhaQiJo6TUdgjOPtjjuxNjust1TcXWW/0y
+xdSP2DkuQmMp1GtAOIqigXthRDPLbR1umW2r9/4CzY2zL+sssfBdJqC2AlP/8aZ/
+D2Jhn/WE6GU6F7RRt3KdWR2+SKY6fWFAZwNtXRZGWS/jjKXpCntmEHo+xvCFHIEX
+uHEatn29BOevRMc96p2sFrY3gy6Urm+1ERk+BNMQDdO+il0yGMMgouLg5X5spEIT
+npBgj78eUDyjbaQmGpPCo00XuKZ/Mi6Oitv/1y743jRvQgips+OgAJS2MYdi3fsc
+CB+f+aNYDjYPl78bvU/ji0+ie9gfMzl8zW0mR1s2wGJipu3DXspQzpNAvFroybjA
+jhyjGI+dRuORq8aMVkbj
+=n51L
+-----END PGP SIGNATURE-----
 
-> 
-> -Stephen
-> 
-> > Now that we
-> > generate unique pointers for each call to clk_get (clk_ref & clk_bypass
-> > are populated by of_clk_get in ti_clk_register_dpll) then the pointer
-> > comparisons above will never be equal (even if they resolve down to the
-> > same struct clk_core). I added the verbose traces to the WARNs above to
-> > illustrate the point: the names are always the same but the pointers
-> > differ.
-> >
-> > AFAICT this doesn't break anything, but booting on OMAP3+ results in
-> > noisy WARNs.
-> >
-> > I think the correct fix is to replace clk_bypass and clk_ref pointers
-> > with a simple integer parent_index. In fact we already have this index.
-> > See how the pointers are populated in ti_clk_register_dpll:
-> >
-> >
-> >         dd->clk_ref = of_clk_get(node, 0);
-> >         dd->clk_bypass = of_clk_get(node, 1);
-> >
-> > Tony, the same problem affects the FAPLL code which copy/pastes some of
-> > the DPLL code.
-> >
-> > Thoughts?
-> >
-> -- 
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-> a Linux Foundation Collaborative Project
-> 
-> 
+--i0/AhcQY5QxfSsSZ--
