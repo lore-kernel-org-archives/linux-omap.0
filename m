@@ -1,59 +1,84 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
- instances
-Date: Mon, 02 Feb 2015 14:52:45 -0800
-Message-ID: <54CFFFBD.60601@codeaurora.org>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFD0B1.2000003@ti.com> <20150202224139.421.84094@quantum>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: v3.19: Nokia N900 - usb nokia gadget crash
+Date: Mon, 2 Feb 2015 17:13:03 -0600
+Message-ID: <20150202231303.GD30753@saruman.tx.rr.com>
+References: <201501311006.11909@pali>
+ <20150202221713.GB30753@saruman.tx.rr.com>
+ <20150202222727.GC30753@saruman.tx.rr.com>
+ <201502022347.26582@pali>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6WlEvdN9Dv0WHSBl"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150202224139.421.84094@quantum>
+Content-Disposition: inline
+In-Reply-To: <201502022347.26582@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/02/15 14:41, Mike Turquette wrote:
-> Quoting Tero Kristo (2015-02-02 11:32:01)
->> On 02/01/2015 11:24 PM, Mike Turquette wrote:
->>>
->>> AFAICT this doesn't break anything, but booting on OMAP3+ results in
->>> noisy WARNs.
->>>
->>> I think the correct fix is to replace clk_bypass and clk_ref pointers
->>> with a simple integer parent_index. In fact we already have this index.
->>> See how the pointers are populated in ti_clk_register_dpll:
->> The problem is we still need to be able to get runtime parent clock 
->> rates (the parent rate may change also), so simple index value is not 
->> sufficient. We need a handle of some sort to the bypass/ref clocks. The 
->> DPLL code generally requires knowledge of the bypass + reference clock 
->> rates to work properly, as it calculates the M/N values based on these.
-> We can maybe introduce something like of_clk_get_parent_rate, as we have
-> analogous stuff for getting parent names and indexes. Without
-> introducing a new helper you could probably just do:
->
-> 	clk_ref = clk_get_parent_by_index(dpll_clk, 0);
-> 	ref_rate = clk_get_rate(clk_ref);
->
-> 	clk_bypass = clk_get_parent_by_index(dpll_clk, 1);
-> 	bypass_rate = clk_get_rate(clk_bypass);
->
-> Currently the semantics around this call are weird. It seems like it
-> would create a new struct clk pointer but it does not. So don't call
-> clk_put on clk_ref and clk_bypass yet. That might change in the future
-> as we iron out this brave new world that we all live in. Probably best
-> to leave a FIXME in there.
->
-> Stephen & Tomeu, let me know if I got any of that wrong.
+--6WlEvdN9Dv0WHSBl
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The plan is to make clk_get_parent_by_index() return a clk_hw pointer
-instead of a clk pointer (probably with a new
-clk_get_parent_hw_by_index() API). Then drivers that are clk providers
-can deal in struct clk_hw and clk consumers can deal in struct clk,
-nicely splitting the API between consumers and providers on the
-structures they use to interact with the framework.
+On Mon, Feb 02, 2015 at 11:47:26PM +0100, Pali Roh=E1r wrote:
+> On Monday 02 February 2015 23:27:27 Felipe Balbi wrote:
+> > On Mon, Feb 02, 2015 at 04:17:13PM -0600, Felipe Balbi wrote:
+> > > On Sat, Jan 31, 2015 at 10:25:09AM +0100, Pali Roh=E1r wrote:
+> > > > On Saturday 31 January 2015 10:06:11 Pali Roh=E1r wrote:
+> > > > > Hello,
+> > > > >=20
+> > > > > when I try to modprobe g_nokia.ko gadget module on n900
+> > > > > device, it produce tons on lines to display and then
+> > > > > crash and reboot device. So its not working and I
+> > > > > (without Nokia (TM) serial console I cannot debug it).
+> > > >=20
+> > > > When I compile g_nokia into zImage (not as external
+> > > > module) then it kernel loads correctly and usb is
+> > > > working.
+> > > >=20
+> > > > Any idea why g_nokia as external kernel module cause
+> > > > problems, but compiled into zImage is working??
+> > >=20
+> > > what I got here is a WARNING from f_phonet only, I'll look
+> > > into it. Keep in mind I don't have N900 available, testing
+> > > with beagleboneblack and AM437x SK.
+> >=20
+> > looks like there's a bug with MUSB too which needs fixing for
+> > that. Did you get "inconsistent lock stae" WARN ?
+>=20
+> I cannot read any message after I modprobe g_nokia.ko
+>=20
+> I just see that kernel try to overwrite couple of lines on n900=20
+> display and after 1-3 seconds device reboot.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+alright, I guess I found both bugs. I'll send patches soon.
+
+--=20
+balbi
+
+--6WlEvdN9Dv0WHSBl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJU0AR/AAoJEIaOsuA1yqREXzcP/3bBab+XJKkgLJDyqtsvcDNn
+S/7saXYYaJbj75aS+NbEdGIvqxNI9v9SGAb0fTBtocLan7u1OMRD2gnnNgNyTjwW
+kxlVhLna6wRPPs7xtZdgBOb4hDUG/5C65D9OUOc0/98FJ/Ep8szYyUKs0i/M6aYp
+MNLEO1aBjia2QgqJHiq7y3I/0GH2mtxWE1JYgxLUozEbnC+nXQfgLE1EisY4Zv8a
+o8gm8kaEeo3SD0L3pssV8CdoFkyk8lXFg/8/QqUprRVrkET0tVBazj7owUiQQ98U
+NhhaW5P3vAacYRf+AzLcQYezOmbJT1g9CvRWuZOmo3VIgem17TS0093vGm/1+N62
+RrOa3FxKwLp/0prkO1LQlPgjMsKvslstea2YzQlaziT7rVFNG9VxedeRuou5se4e
+D78mfRg3CpFTh7iv5IKst9QdXVEEmhOguwk9YmhJsh93n+gX/HqjBqShiMmw+GTp
+vD1AMUBhERzzmZB74fjsaihQO4WAjawWL/wQyxi/FIq6njW9DWj4PxhdzoeIvHaJ
+hSHu27m7sTIMrhhDH9eWZ9KU2GeKJusiIOIeImhvQpoK1lWnmnS6QBGSTcBkk5CM
+X4vUUdwRolmg8fUFlqLtuw/Xeeuhz7pcixqtvAhzF3B3eJ7qsB/6N8LOI4ABzgKm
+6GmnCs2gyZjgnpF78IoN
+=/eow
+-----END PGP SIGNATURE-----
+
+--6WlEvdN9Dv0WHSBl--
