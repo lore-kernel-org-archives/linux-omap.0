@@ -1,89 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
-Date: Mon, 2 Feb 2015 12:47:02 -0800
-Message-ID: <20150202204702.GH9418@atomide.com>
-References: <1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
- <54CA8662.7040008@codeaurora.org>
- <20150131013158.GA4323@codeaurora.org>
- <CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
- <20150201221856.421.6151@quantum>
- <CAMuHMdU4QBVOb4WqmcfHkj2K7v8dt1hKKWXS0qAnTvsJSafdPQ@mail.gmail.com>
- <20150202161237.GG16250@atomide.com>
- <20150202174646.421.52331@quantum>
- <20150202192116.GF9418@atomide.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Mon, 2 Feb 2015 15:07:42 -0600
+Message-ID: <54CFE71E.20905@ti.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>	<1421269101-51105-2-git-send-email-s-anna@ti.com>	<20150115135201.GG16217@leverpostej>	<20150115135556.GH16217@leverpostej>	<CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>	<CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>	<20150116101746.GA21809@leverpostej>	<CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>	<CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com>	<CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com> <CAJAp7OjVULNRd113TtOEwaa6QO-XCDa0oxBm2H5NPvp_kLTSpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150202192116.GF9418@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Emilio L??pez <emilio@elopez.com.ar>, Linux-sh list <linux-sh@vger.kernel.org>, Alex Elder <elder@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Matt Porter <mporter@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ralf
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJAp7OjVULNRd113TtOEwaa6QO-XCDa0oxBm2H5NPvp_kLTSpA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150202 11:28]:
-> * Mike Turquette <mturquette@linaro.org> [150202 09:50]:
-> > Quoting Tony Lindgren (2015-02-02 08:12:37)
-> > > 
-> > > [   10.568206] ------------[ cut here ]------------
-> > > [   10.568206] WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:925 clk_disable+0x28/0x34()
-> > > [   10.568237] Modules linked in:
-> > > [   10.568237] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W       3.19.0-rc6-next-20150202 #2037
-> > > [   10.568237] Hardware name: Generic OMAP4 (Flattened Device Tree)
-> > > [   10.568267] [<c0015bdc>] (unwind_backtrace) from [<c001222c>] (show_stack+0x10/0x14)
-> > > [   10.568267] [<c001222c>] (show_stack) from [<c05d2014>] (dump_stack+0x84/0x9c)
-> > > [   10.568267] [<c05d2014>] (dump_stack) from [<c003ea90>] (warn_slowpath_common+0x7c/0xb8)
-> > > [   10.568298] [<c003ea90>] (warn_slowpath_common) from [<c003eb68>] (warn_slowpath_null+0x1c/0x24)
-> > > [   10.568298] [<c003eb68>] (warn_slowpath_null) from [<c04c1ffc>] (clk_disable+0x28/0x34)
-> > > [   10.568328] [<c04c1ffc>] (clk_disable) from [<c0025b3c>] (_disable_clocks+0x18/0x68)
-> > > [   10.568328] [<c0025b3c>] (_disable_clocks) from [<c0026f14>] (_idle+0x10c/0x214)
-> > > [   10.568328] [<c0026f14>] (_idle) from [<c0855fac>] (_setup+0x338/0x410)
-> > > [   10.568359] [<c0855fac>] (_setup) from [<c0027360>] (omap_hwmod_for_each+0x34/0x60)
-> > > [   10.568359] [<c0027360>] (omap_hwmod_for_each) from [<c08563c4>] (__omap_hwmod_setup_all+0x30/0x40)
-> > > [   10.568389] [<c08563c4>] (__omap_hwmod_setup_all) from [<c0008a04>] (do_one_initcall+0x80/0x1dc)
-> > > [   10.568389] [<c0008a04>] (do_one_initcall) from [<c0848ea0>] (kernel_init_freeable+0x204/0x2d0)
-> > > [   10.568420] [<c0848ea0>] (kernel_init_freeable) from [<c05cdab8>] (kernel_init+0x8/0xec)
-> > > [   10.568420] [<c05cdab8>] (kernel_init) from [<c000e790>] (ret_from_fork+0x14/0x24)
-> > > [   10.568420] ---[ end trace cb88537fdc8fa211 ]---
+On 02/01/2015 11:55 AM, Bjorn Andersson wrote:
+> On Fri, Jan 30, 2015 at 9:41 PM, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> wrote:
+>> On Sat, Jan 31, 2015 at 1:29 AM, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org> wrote:
+>>> In a system where you have two hwlock blocks lckA and lckB, each
+>>> consisting of 8 locks and you have dspB that can only access lckB
+>>
+>> This is a good example - thanks. To be able to cope with such cases we
+>> will have to pass a hwlock block reference and its relative lock id.
+>>
 > 
-> For reference, the above is line 992 in clk-next.
-...
- 
-> Just booting 4430-sdp with omap2plus_defconfig. And git bisect
-> points to 59cf3fcf9baf ("clk: Make clk API return per-user struct
-> clk instances") as you already guessed.
->  
-> > > [   10.568450] ------------[ cut here ]------------
-> > > [   10.568450] WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/dpll3xxx.c:436 omap3_noncore_dpll_enable+0xdc/0
-> > > x10c()
-> > > [   10.568450] Modules linked in:
-> > > [   10.568481] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W       3.19.0-rc6-next-20150202 #2037
-> > > [   10.568481] Hardware name: Generic OMAP4 (Flattened Device Tree)
-> > > [   10.568481] [<c0015bdc>] (unwind_backtrace) from [<c001222c>] (show_stack+0x10/0x14)
-> > > [   10.568511] [<c001222c>] (show_stack) from [<c05d2014>] (dump_stack+0x84/0x9c)
-> > > [   10.568511] [<c05d2014>] (dump_stack) from [<c003ea90>] (warn_slowpath_common+0x7c/0xb8)
-> > > [   10.568511] [<c003ea90>] (warn_slowpath_common) from [<c003eb68>] (warn_slowpath_null+0x1c/0x24)
-> > > [   10.568542] [<c003eb68>] (warn_slowpath_null) from [<c0035800>] (omap3_noncore_dpll_enable+0xdc/0x10c)
-> > > [   10.568542] [<c0035800>] (omap3_noncore_dpll_enable) from [<c04c0a10>] (clk_core_enable+0x60/0x9c)
-> > > [   10.568572] [<c04c0a10>] (clk_core_enable) from [<c04c09f0>] (clk_core_enable+0x40/0x9c)
-> > > [   10.568572] ---[ end trace cb88537fdc8fa212 ]---
-> > > ...
-> > 
-> > This is the same issue discussed already in this thread[0]. Feedback
-> > from Tero & Paul on how to handle it would be nice.
+> Correct, so the #hwlock-cells and hwlock part from the proposal are
+> the important one. Having an optional hwlock-names will make things
+> easier to read as well, but is not necessary.
+
+Right, if anything, it would be useful only for the clients, but the
+hwspinlock core itself would not need it. So, I would forgo adding the
+hwlock-names for now.
+
 > 
-> Yes that one is a separate issue.
->  
-> > Please let me know if anything else breaks for you.
+>> The DT binding should definitely be prepared for such cases (just kill
+>> the base-id field?), but let's see what it means about the Linux
+>> implementation.
+>>
 > 
-> Also off-idle on omap3 seems to be broken by commit 59cf3fcf9baf.
+> From the dt binding PoV, we should be able to skip num-locks as well.
+> It seems most hwlock blocks have a fixed amount of locks provided and
+> the drivers are reporting this to the core when registering.
 
-Actually the two warnigns above are all caused by the same issue.
-And the patch Tero just posted fixes both of the issue. It's the thread 
-"[PATCH v13 3/6] clk: Make clk API return per-user struct clk instances"
-for reference.
+I added this originally based on the initial MSM HW Mutex block bindings.
 
-Regards,
+> 
+> So I think we can reduce the binding to:
+> 
+> Providers:
+> #hwlock-cells
+> 
+> Consumers:
+> hwlocks
+> hwlock-names
+> 
+> For the hardware where number of locks is actually variable (e.g.
+> different variants of same block) there can be driver specific entries
+> for this.
 
-Tony
+Right, we should be able to drop this and use the driver match data. As
+it is, the field is used during registration of the block with the
+hwspinlock core.
+
+regards
+Suman
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
