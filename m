@@ -1,73 +1,43 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: v3.19: Nokia N900 - usb nokia gadget crash
-Date: Mon, 2 Feb 2015 16:27:27 -0600
-Message-ID: <20150202222727.GC30753@saruman.tx.rr.com>
-References: <201501311006.11909@pali>
- <201501311025.09553@pali>
- <20150202221713.GB30753@saruman.tx.rr.com>
-Reply-To: <balbi@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
+ instances
+Date: Mon, 02 Feb 2015 14:35:59 -0800
+Message-ID: <54CFFBCF.90706@codeaurora.org>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org> <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aT9PWwzfKXlsBJM1"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150202221713.GB30753@saruman.tx.rr.com>
+In-Reply-To: <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tony Lindgren <tony@atomide.com>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com, cocci@systeme.lip6.fr
 List-Id: linux-omap@vger.kernel.org
 
---aT9PWwzfKXlsBJM1
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 02/02/15 13:31, Julia Lawall wrote:
+>
+> On Mon, 2 Feb 2015, Stephen Boyd wrote:
+>
+>> Julia,
+>>
+>> Is there a way we can write a coccinelle script to check for this? The
+>> goal being to find all drivers that are comparing struct clk pointers or
+>> attempting to dereference them. There are probably other frameworks that
+>> could use the same type of check (regulator, gpiod, reset, pwm, etc.).
+>> Probably anything that has a get/put API.
+> Comparing or dereferencing pointers of a particular type should be 
+> straightforward to check for.  Is there an example of how to use the 
+> parent_index value to fix the problem?
+>
 
-On Mon, Feb 02, 2015 at 04:17:13PM -0600, Felipe Balbi wrote:
-> On Sat, Jan 31, 2015 at 10:25:09AM +0100, Pali Roh=E1r wrote:
-> > On Saturday 31 January 2015 10:06:11 Pali Roh=E1r wrote:
-> > > Hello,
-> > >=20
-> > > when I try to modprobe g_nokia.ko gadget module on n900
-> > > device, it produce tons on lines to display and then crash
-> > > and reboot device. So its not working and I (without Nokia
-> > > (TM) serial console I cannot debug it).
-> >=20
-> > When I compile g_nokia into zImage (not as external module) then=20
-> > it kernel loads correctly and usb is working.
-> >=20
-> > Any idea why g_nokia as external kernel module cause problems,=20
-> > but compiled into zImage is working??
->=20
-> what I got here is a WARNING from f_phonet only, I'll look into it. Keep
-> in mind I don't have N900 available, testing with beagleboneblack and
-> AM437x SK.
+I'm not sure how to fix this case with parent_index values generically.
+I imagine it would be highly specific to the surrounding code to the
+point where we couldn't fix it automatically. For example, if it's a clk
+consumer (not provider like in this case) using an index wouldn't be the
+right fix. We would need some sort of clk API that we don't currently
+have and I would wonder why clock consumers even care to compare such
+pointers in the first place.
 
-looks like there's a bug with MUSB too which needs fixing for that. Did
-you get "inconsistent lock stae" WARN ?
-
---=20
-balbi
-
---aT9PWwzfKXlsBJM1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUz/nPAAoJEIaOsuA1yqREkQMP/3EcNhUSvnTcEOTeX+ZW0kM7
-ycCOydqV3QLHB2ANNO+KDFlF0goi0ELP9c06fqwOXCb8H8vpeV2HAhu8n8CvOuRJ
-F2gY7aWzphbTj7g+Ez3y+bJdvdAWciVPyfno9m0RcwK/TVEUHJPE01+4SrcwbuHz
-YPrb6TWsHXGQfQMPQCKPwwX1LjxIKalPJpxrOrMMALkxQsuWeDImbNJKCpVq2Vfe
-DTRzYUyOUhVodCDJKAExL/e+JGVYCd5MS6MHi3lVsOzVjJ9ueo06njb0JF9rNBC7
-ONKWL7WiJTlAWnVteOm+3Bo5RCa+PVYY6w7lXx0dgOjq2cgQYuk4SbI7/dk6cxqP
-0PpyDXmmQ2FMTIbiNKuL+IBX8HDihpBzwXGuA0D3AVcpa+zYGpgVL6fpid10Ul/W
-CCs6kg4xLHv5bpO6EyMhdq5TqtO6ePHFBYyHwdtPJvGPRnp7+jw2+RnaSjbLz/Rm
-zPfHHM4efWIf0PHjxPu0t9IQYKb5O9yCfRE0f2iDicSeD726wb30I4tVegdJe8xM
-jQuVcIL1ZmjH1xVE4LzI0pW/OfEhbFaihlEI0CBvlEYSmNlqRH4OtIyGuoNZ59ZO
-gCnMZgG6Q59NfBuijqSMHiTKXgS3ctIOQzNHwvsrO9EVyVB+hwt6hmIgrqtkOUo4
-1RoNpR1l0nK2FCPpjAD3
-=dBb5
------END PGP SIGNATURE-----
-
---aT9PWwzfKXlsBJM1--
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
