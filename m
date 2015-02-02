@@ -1,89 +1,56 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
-Date: Mon, 2 Feb 2015 08:59:57 +0100
-Message-ID: <CAMuHMdU4QBVOb4WqmcfHkj2K7v8dt1hKKWXS0qAnTvsJSafdPQ@mail.gmail.com>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
-	<1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com>
-	<CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
-	<54CA8662.7040008@codeaurora.org>
-	<20150131013158.GA4323@codeaurora.org>
-	<CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
-	<20150201221856.421.6151@quantum>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 2/7] usb: extcon: Fix USB-Host cable name
+Date: Mon, 2 Feb 2015 11:09:59 +0200
+Message-ID: <54CF3EE7.2050705@ti.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com> <1422274532-9488-3-git-send-email-rogerq@ti.com> <54CB6539.1040703@ti.com> <54CB8FBD.6050701@ti.com> <54CF0555.4080004@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20150201221856.421.6151@quantum>
-Sender: linux-doc-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Emilio L??pez <emilio@elopez.com.ar>, Linux-sh list <linux-sh@vger.kernel.org>, Alex Elder <elder@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Matt Porter <mporter@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54CF0555.4080004@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: balbi@ti.com, tony@atomide.com, myungjoo.ham@samsung.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Feb 1, 2015 at 11:18 PM, Mike Turquette <mturquette@linaro.org> wrote:
-> Quoting Tomeu Vizoso (2015-01-31 10:36:22)
->> On 31 January 2015 at 02:31, Stephen Boyd <sboyd@codeaurora.org> wrote:
->> > On 01/29, Stephen Boyd wrote:
->> >> On 01/29/15 05:31, Geert Uytterhoeven wrote:
->> >> > Hi Tomeu, Mike,
->> >> >
->> >> > On Fri, Jan 23, 2015 at 12:03 PM, Tomeu Vizoso
->> >> > <tomeu.vizoso@collabora.com> wrote:
->> >> >> --- a/drivers/clk/clk.c
->> >> >> +++ b/drivers/clk/clk.c
->> >> >> @@ -2391,25 +2543,24 @@ int __clk_get(struct clk *clk)
->> >> >>         return 1;
->> >> >>  }
->> >> >>
->> >> >> -static void clk_core_put(struct clk_core *core)
->> >> >> +void __clk_put(struct clk *clk)
->> >> >>  {
->> >> >>         struct module *owner;
->> >> >>
->> >> >> -       owner = core->owner;
->> >> >> +       if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
->> >> >> +               return;
->> >> >>
->> >> >>         clk_prepare_lock();
->> >> >> -       kref_put(&core->ref, __clk_release);
->> >> >> +
->> >> >> +       hlist_del(&clk->child_node);
->> >> >> +       clk_core_set_rate_nolock(clk->core, clk->core->req_rate);
->> >> > At this point, clk->core->req_rate is still zero, causing
->> >> > cpg_div6_clock_round_rate() to be called with a zero "rate" parameter,
->> >> > e.g. on r8a7791:
->> >>
->> >> Hmm.. I wonder if we should assign core->req_rate to be the same as
->> >> core->rate during __clk_init()? That would make this call to
->> >> clk_core_set_rate_nolock() a nop in this case.
->> >>
->> >
->> > Here's a patch to do this
->> >
->> > ---8<----
->> > From: Stephen Boyd <sboyd@codeaurora.org>
->> > Subject: [PATCH] clk: Assign a requested rate by default
->> >
->> > We need to assign a requested rate here so that we avoid
->> > requesting a rate of 0 on clocks when we remove clock consumers.
+Chanwoo,
+
+On 02/02/15 07:04, Chanwoo Choi wrote:
+> Hi Roger,
+> 
+> On 01/30/2015 11:05 PM, Roger Quadros wrote:
+>> Hi,
 >>
->> Hi, this looks good to me.
+>> On 30/01/15 13:04, Roger Quadros wrote:
+>>> Felipe & Chanwoo,
+>>>
+>>> On 26/01/15 14:15, Roger Quadros wrote:
+>>>> The recommended name for USB-Host cable state is "USB-Host" and not
+>>>> "USB-HOST" as per drivers/extcon/extcon-class.c extcon_cable_name.
+>>>>
+>>>> Change all instances of "USB-HOST" to "USB-Host".
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> Reviewed-by: Felipe Balbi <balbi@ti.com>
+>>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>>
+>>> This patch has no dependency to the rest so can be picked up as soon as possible.
+>>>
+>>> Do you think it is better to go via the USB tree?
+>>> If yes then Chanwoo, can you please Ack this one? Thanks.
+>>>
+>>> This would mean that only the first patch needs to go through extcon tree as Tony
+>>> will pick the rest.
 >>
->> Reviewed-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->
-> It seems to fix the total boot failure on OMAPs, and hopefully does the
-> same for SH Mobile and others. I've squashed this into Tomeu's rate
-> constraints patch to maintain bisect.
+>> Hold on. Let's first decide what we really want to go ahead with
+>> "USB-Host" or "USB-HOST".
+> 
+> Currently, extcon driver have used the specific cable name(USB-Host or USB-HOST)
+> without any standard way. So, I have plan to define common cable name in extcon
+> header file by using capital letter.
 
-Yes, it fixes shmobile. .round_rate() is now called with a sane value of rate.
+OK. In that case, this patch is not required.
+I will resend patch 1 with cable name corrected to "USB-HOST".
 
-Thanks!
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+cheers,
+-roger
