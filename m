@@ -1,121 +1,149 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
-Date: Mon, 2 Feb 2015 11:21:17 -0800
-Message-ID: <20150202192116.GF9418@atomide.com>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
- <1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
- <54CA8662.7040008@codeaurora.org>
- <20150131013158.GA4323@codeaurora.org>
- <CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
- <20150201221856.421.6151@quantum>
- <CAMuHMdU4QBVOb4WqmcfHkj2K7v8dt1hKKWXS0qAnTvsJSafdPQ@mail.gmail.com>
- <20150202161237.GG16250@atomide.com>
- <20150202174646.421.52331@quantum>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
+ instances
+Date: Mon, 2 Feb 2015 21:32:01 +0200
+Message-ID: <54CFD0B1.2000003@ti.com>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150202174646.421.52331@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Emilio L??pez <emilio@elopez.com.ar>, Linux-sh list <linux-sh@vger.kernel.org>, Alex Elder <elder@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Matt Porter <mporter@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ralf
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50328 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932222AbbBBTcU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Feb 2015 14:32:20 -0500
+In-Reply-To: <20150201212432.22722.70917@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Mike Turquette <mturquette@linaro.org> [150202 09:50]:
-> Quoting Tony Lindgren (2015-02-02 08:12:37)
-> > 
-> > [   10.568206] ------------[ cut here ]------------
-> > [   10.568206] WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:925 clk_disable+0x28/0x34()
-> > [   10.568237] Modules linked in:
-> > [   10.568237] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W       3.19.0-rc6-next-20150202 #2037
-> > [   10.568237] Hardware name: Generic OMAP4 (Flattened Device Tree)
-> > [   10.568267] [<c0015bdc>] (unwind_backtrace) from [<c001222c>] (show_stack+0x10/0x14)
-> > [   10.568267] [<c001222c>] (show_stack) from [<c05d2014>] (dump_stack+0x84/0x9c)
-> > [   10.568267] [<c05d2014>] (dump_stack) from [<c003ea90>] (warn_slowpath_common+0x7c/0xb8)
-> > [   10.568298] [<c003ea90>] (warn_slowpath_common) from [<c003eb68>] (warn_slowpath_null+0x1c/0x24)
-> > [   10.568298] [<c003eb68>] (warn_slowpath_null) from [<c04c1ffc>] (clk_disable+0x28/0x34)
-> > [   10.568328] [<c04c1ffc>] (clk_disable) from [<c0025b3c>] (_disable_clocks+0x18/0x68)
-> > [   10.568328] [<c0025b3c>] (_disable_clocks) from [<c0026f14>] (_idle+0x10c/0x214)
-> > [   10.568328] [<c0026f14>] (_idle) from [<c0855fac>] (_setup+0x338/0x410)
-> > [   10.568359] [<c0855fac>] (_setup) from [<c0027360>] (omap_hwmod_for_each+0x34/0x60)
-> > [   10.568359] [<c0027360>] (omap_hwmod_for_each) from [<c08563c4>] (__omap_hwmod_setup_all+0x30/0x40)
-> > [   10.568389] [<c08563c4>] (__omap_hwmod_setup_all) from [<c0008a04>] (do_one_initcall+0x80/0x1dc)
-> > [   10.568389] [<c0008a04>] (do_one_initcall) from [<c0848ea0>] (kernel_init_freeable+0x204/0x2d0)
-> > [   10.568420] [<c0848ea0>] (kernel_init_freeable) from [<c05cdab8>] (kernel_init+0x8/0xec)
-> > [   10.568420] [<c05cdab8>] (kernel_init) from [<c000e790>] (ret_from_fork+0x14/0x24)
-> > [   10.568420] ---[ end trace cb88537fdc8fa211 ]---
+On 02/01/2015 11:24 PM, Mike Turquette wrote:
+> Quoting Tomeu Vizoso (2015-01-23 03:03:30)
+>> Moves clock state to struct clk_core, but takes care to change as little API as
+>> possible.
+>>
+>> struct clk_hw still has a pointer to a struct clk, which is the
+>> implementation's per-user clk instance, for backwards compatibility.
+>>
+>> The struct clk that clk_get_parent() returns isn't owned by the caller, but by
+>> the clock implementation, so the former shouldn't call clk_put() on it.
+>>
+>> Because some boards in mach-omap2 still register clocks statically, their clock
+>> registration had to be updated to take into account that the clock information
+>> is stored in struct clk_core now.
+>
+> Tero, Paul & Tony,
+>
+> Tomeu's patch unveils a problem with omap3_noncore_dpll_enable and
+> struct dpll_data, namely this snippet from
+> arch/arm/mach-omap2/dpll3xxx.c:
+>
+>          parent = __clk_get_parent(hw->clk);
+>
+>          if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
+>                  WARN(parent != dd->clk_bypass,
+>                                  "here0, parent name is %s, bypass name is %s\n",
+>                                  __clk_get_name(parent), __clk_get_name(dd->clk_bypass));
+>                  r = _omap3_noncore_dpll_bypass(clk);
+>          } else {
+>                  WARN(parent != dd->clk_ref,
+>                                  "here1, parent name is %s, ref name is %s\n",
+>                                  __clk_get_name(parent), __clk_get_name(dd->clk_ref));
+>                  r = _omap3_noncore_dpll_lock(clk);
+>          }
+>
+> struct dpll_data has members clk_ref and clk_bypass which are struct clk
+> pointers. This was always a bit of a violation of the clk.h contract
+> since drivers are not supposed to deref struct clk pointers. Now that we
+> generate unique pointers for each call to clk_get (clk_ref & clk_bypass
+> are populated by of_clk_get in ti_clk_register_dpll) then the pointer
+> comparisons above will never be equal (even if they resolve down to the
+> same struct clk_core). I added the verbose traces to the WARNs above to
+> illustrate the point: the names are always the same but the pointers
+> differ.
+>
+> AFAICT this doesn't break anything, but booting on OMAP3+ results in
+> noisy WARNs.
+>
+> I think the correct fix is to replace clk_bypass and clk_ref pointers
+> with a simple integer parent_index. In fact we already have this index.
+> See how the pointers are populated in ti_clk_register_dpll:
 
-For reference, the above is line 992 in clk-next.
+The problem is we still need to be able to get runtime parent clock 
+rates (the parent rate may change also), so simple index value is not 
+sufficient. We need a handle of some sort to the bypass/ref clocks. The 
+DPLL code generally requires knowledge of the bypass + reference clock 
+rates to work properly, as it calculates the M/N values based on these.
 
-> This looks like mis-matched enable/disable calls. We now have unique
-> struct clk pointers for every call to clk_get. I haven't yet looked
-> through the hwmod code but I have a feeling that we're doing something
-> like this:
-> 
-> 	/* enable clock */
-> 	my_clk = clk_get(...);
-> 	clk_prepare_enable(my_clk);
-> 	clk_put(my_clk);
-> 
-> 	/* do some work */
-> 	do_work();
-> 
-> 	/* disable clock */
-> 	my_clk = clk_get(...);
-> 	clk_disable_unprepare(my_clk);
-> 	clk_put(my_clk);
-> 
-> The above pattern no longer works since my_clk will be two different
-> unique pointers, but it really should be one stable pointer across the
-> whole usage of the clk. E.g:
-> 
-> 	/* enable clock */
-> 	my_clk = clk_get(...);
-> 	clk_prepare_enable(my_clk);
-> 
-> 	/* do some work */
-> 	do_work();
-> 
-> 	/* disable clock */
-> 	clk_disable_unprepare(my_clk);
-> 	clk_put(my_clk);
-> 
-> Again, I haven't looked through the code, so the above is just an
-> educated guess.
-> 
-> Anyways I am testing with an OMAP4460 Panda ES and I didn't see the
-> above. Is there a test you are running to get this?
+Shall I change the DPLL code to check against clk_hw pointers or what is 
+the preferred approach here? The patch at the end does this and fixes 
+the dpll related warnings.
 
-Just booting 4430-sdp with omap2plus_defconfig. And git bisect
-points to 59cf3fcf9baf ("clk: Make clk API return per-user struct
-clk instances") as you already guessed.
- 
-> > [   10.568450] ------------[ cut here ]------------
-> > [   10.568450] WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/dpll3xxx.c:436 omap3_noncore_dpll_enable+0xdc/0
-> > x10c()
-> > [   10.568450] Modules linked in:
-> > [   10.568481] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W       3.19.0-rc6-next-20150202 #2037
-> > [   10.568481] Hardware name: Generic OMAP4 (Flattened Device Tree)
-> > [   10.568481] [<c0015bdc>] (unwind_backtrace) from [<c001222c>] (show_stack+0x10/0x14)
-> > [   10.568511] [<c001222c>] (show_stack) from [<c05d2014>] (dump_stack+0x84/0x9c)
-> > [   10.568511] [<c05d2014>] (dump_stack) from [<c003ea90>] (warn_slowpath_common+0x7c/0xb8)
-> > [   10.568511] [<c003ea90>] (warn_slowpath_common) from [<c003eb68>] (warn_slowpath_null+0x1c/0x24)
-> > [   10.568542] [<c003eb68>] (warn_slowpath_null) from [<c0035800>] (omap3_noncore_dpll_enable+0xdc/0x10c)
-> > [   10.568542] [<c0035800>] (omap3_noncore_dpll_enable) from [<c04c0a10>] (clk_core_enable+0x60/0x9c)
-> > [   10.568572] [<c04c0a10>] (clk_core_enable) from [<c04c09f0>] (clk_core_enable+0x40/0x9c)
-> > [   10.568572] ---[ end trace cb88537fdc8fa212 ]---
-> > ...
-> 
-> This is the same issue discussed already in this thread[0]. Feedback
-> from Tero & Paul on how to handle it would be nice.
+Btw, the rate constraints patch broke boot for me completely, but sounds 
+like you reverted it already.
 
-Yes that one is a separate issue.
- 
-> Please let me know if anything else breaks for you.
+-Tero
 
-Also off-idle on omap3 seems to be broken by commit 59cf3fcf9baf.
+--------------------
 
-Regards,
+Author: Tero Kristo <t-kristo@ti.com>
+Date:   Mon Feb 2 17:19:17 2015 +0200
 
-Tony
+     ARM: OMAP3+: clock: dpll: fix logic for comparing parent clocks
+
+     DPLL code uses reference and bypass clock pointers for determining 
+runtime
+     properties for these clocks, like parent clock rates.
+
+     As clock API now returns per-user clock structs, using a global handle
+     in the clock driver code does not work properly anymore. Fix this by
+     using the clk_hw instead, and comparing this against the parents.
+
+     Signed-off-by: Tero Kristo <t-kristo@ti.com>
+     Fixes: 59cf3fcf9baf ("clk: Make clk API return per-user struct clk 
+instances")
+
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index c2da2a0..49752d7 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -410,7 +410,7 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw)
+  	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+  	int r;
+  	struct dpll_data *dd;
+-	struct clk *parent;
++	struct clk_hw *parent;
+
+  	dd = clk->dpll_data;
+  	if (!dd)
+@@ -427,13 +427,13 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw)
+  		}
+  	}
+
+-	parent = __clk_get_parent(hw->clk);
++	parent = __clk_get_hw(__clk_get_parent(hw->clk));
+
+  	if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
+-		WARN_ON(parent != dd->clk_bypass);
++		WARN_ON(parent != __clk_get_hw(dd->clk_bypass));
+  		r = _omap3_noncore_dpll_bypass(clk);
+  	} else {
+-		WARN_ON(parent != dd->clk_ref);
++		WARN_ON(parent != __clk_get_hw(dd->clk_ref));
+  		r = _omap3_noncore_dpll_lock(clk);
+  	}
+
+@@ -549,7 +549,8 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, 
+unsigned long rate,
+  	if (!dd)
+  		return -EINVAL;
+
+-	if (__clk_get_parent(hw->clk) != dd->clk_ref)
++	if (__clk_get_hw(__clk_get_parent(hw->clk)) !=
++	    __clk_get_hw(dd->clk_ref))
+  		return -EINVAL;
+
+  	if (dd->last_rounded_rate == 0)
+
+
