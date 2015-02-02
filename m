@@ -1,51 +1,52 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: Clock Regression in next-20150130 caused by cb75a8fcd14e
-Date: Sun, 01 Feb 2015 15:26:36 -0800
-Message-ID: <20150201232636.421.58980@quantum>
-References: <20150131010443.GE16250@atomide.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v2 2/7] usb: extcon: Fix USB-Host cable name
+Date: Mon, 02 Feb 2015 14:04:21 +0900
+Message-ID: <54CF0555.4080004@samsung.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+ <1422274532-9488-3-git-send-email-rogerq@ti.com> <54CB6539.1040703@ti.com>
+ <54CB8FBD.6050701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:42811 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbbBAX0k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Feb 2015 18:26:40 -0500
-Received: by mail-ie0-f180.google.com with SMTP id rl12so14156397iec.11
-        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2015 15:26:40 -0800 (PST)
-In-Reply-To: <20150131010443.GE16250@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <54CB8FBD.6050701@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, myungjoo.ham@samsung.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Quoting Tony Lindgren (2015-01-30 17:04:44)
-> Hi all,
+Hi Roger,
+
+On 01/30/2015 11:05 PM, Roger Quadros wrote:
+> Hi,
 > 
-> Looks like commit cb75a8fcd14e ("clk: Add rate constraints to clocks")
-> causes a regression on at least omaps where the serial console either
-> does not show anything, or just prints garbage.
+> On 30/01/15 13:04, Roger Quadros wrote:
+>> Felipe & Chanwoo,
+>>
+>> On 26/01/15 14:15, Roger Quadros wrote:
+>>> The recommended name for USB-Host cable state is "USB-Host" and not
+>>> "USB-HOST" as per drivers/extcon/extcon-class.c extcon_cable_name.
+>>>
+>>> Change all instances of "USB-HOST" to "USB-Host".
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> Reviewed-by: Felipe Balbi <balbi@ti.com>
+>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>
+>> This patch has no dependency to the rest so can be picked up as soon as possible.
+>>
+>> Do you think it is better to go via the USB tree?
+>> If yes then Chanwoo, can you please Ack this one? Thanks.
+>>
+>> This would mean that only the first patch needs to go through extcon tree as Tony
+>> will pick the rest.
 > 
-> Reverting cb75a8fcd14e makes things work again on next-20150130.
-> 
-> Any ideas?
+> Hold on. Let's first decide what we really want to go ahead with
+> "USB-Host" or "USB-HOST".
 
-Stephen posted a patch[0] to fix this. I've squashed that into Tomeu's
-commit that you reference above and my Panda board is booting fine once
-again.
+Currently, extcon driver have used the specific cable name(USB-Host or USB-HOST)
+without any standard way. So, I have plan to define common cable name in extcon
+header file by using capital letter.
 
-[0] http://lkml.kernel.org/r/<20150131013158.GA4323@codeaurora.org>
-
-Please let me know if any other issues pop up. There are new WARNs for
-OMAP3+ boards introduced by a different patch from Tomeu, but this is
-really because the OMAP DPLL and FAPLL code are dereferencing struct clk
-pointers when they should not be and is a separate issue from the
-constraints patch (with a separate email thread).
-
-Regards,
-Mike
-
-> 
-> Regards,
-> 
-> Tony
+Thanks,
+Chanwoo Choi
