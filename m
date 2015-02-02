@@ -1,59 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Mon, 2 Feb 2015 09:44:18 -0800
-Message-ID: <20150202174416.GE9418@atomide.com>
-References: <20150117164709.GS18552@atomide.com>
- <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
- <20150117181404.GW18552@atomide.com>
- <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
- <20150119172914.GY18552@atomide.com>
- <CAALWOA_54qoQgyCkGy10v+7-eQ87ddeCTG-dbP-P6x493HAswA@mail.gmail.com>
- <20150123164756.GB7718@atomide.com>
- <CAALWOA9F7UH5ORXdjyHAyekohZdSiE-+enNg5vsxOV5RgfqEdw@mail.gmail.com>
- <20150126155850.GD28663@atomide.com>
- <CAALWOA9gSegCofYF-csg_2zdRkz=W5g8UAOqBbrA-NG0-oR1ww@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v13 4/6] clk: Add rate constraints to clocks
+Date: Mon, 2 Feb 2015 17:49:45 +0000
+Message-ID: <20150202174945.GA8670@n2100.arm.linux.org.uk>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1422011024-32283-5-git-send-email-tomeu.vizoso@collabora.com>
+ <CAMuHMdUGgA70o2SgdJR3X6AkCcMssHU0POLfzppADT-O=BrYDw@mail.gmail.com>
+ <54CA8662.7040008@codeaurora.org>
+ <20150131013158.GA4323@codeaurora.org>
+ <CAAObsKDxhV7Vveq5FizTUp9ur2Rsq1bM+YQa4uPksh5ntMQV3Q@mail.gmail.com>
+ <20150201221856.421.6151@quantum>
+ <CAMuHMdU4QBVOb4WqmcfHkj2K7v8dt1hKKWXS0qAnTvsJSafdPQ@mail.gmail.com>
+ <20150202161237.GG16250@atomide.com>
+ <20150202174646.421.52331@quantum>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.ore.mailhop.org ([54.149.240.58]:45568 "EHLO
-	smtp4.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932689AbbBBRrM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2015 12:47:12 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAALWOA9gSegCofYF-csg_2zdRkz=W5g8UAOqBbrA-NG0-oR1ww@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150202174646.421.52331@quantum>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Boris Brezillon <boris.brezillon@free-electrons.com>, Jonathan Corbet <corbet@lwn.net>, Emilio L??pez <emilio@elopez.com.ar>, Linux-sh list <linux-sh@vger.kernel.org>, Alex Elder <elder@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Matt Porter <mporter@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ralf Baechle <ral>
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [150128 13:46]:
-> On 26 January 2015 at 16:58, Tony Lindgren <tony@atomide.com> wrote:
-> > See earlier I was assuming copy paste issues from dm814x to dm816x
+On Mon, Feb 02, 2015 at 09:46:46AM -0800, Mike Turquette wrote:
+> This looks like mis-matched enable/disable calls. We now have unique
+> struct clk pointers for every call to clk_get. I haven't yet looked
+> through the hwmod code but I have a feeling that we're doing something
+> like this:
 > 
-> Ahh, you thought the 816x was 814x-derived... yes I can imagine that
-> will have led to some confusion.
+> 	/* enable clock */
+> 	my_clk = clk_get(...);
+> 	clk_prepare_enable(my_clk);
+> 	clk_put(my_clk);
 > 
-> > I'm pretty sure I verified the that the audio_pll_clk1 is hardwwired
-> > to 32KiHz by looking at it with a scope on the clkout pin.
+> 	/* do some work */
+> 	do_work();
 > 
-> Yeah it comes straight from the "rtcdivider" so it'll produce
-> 0.0016384 * devosc.
+> 	/* disable clock */
+> 	my_clk = clk_get(...);
+> 	clk_disable_unprepare(my_clk);
+> 	clk_put(my_clk);
+> 
+> The above pattern no longer works since my_clk will be two different
+> unique pointers, but it really should be one stable pointer across the
+> whole usage of the clk. E.g:
 
-Not much about "rtcdivider" in the dm816x TRM..
- 
-> The global clock structure overview in the TRM (figure 2-6) actually
-> correctly marks the former-audio-fapll clocks (except audio5 := osc0,
-> yielding sysclk22 after divider) but you already need to know what the
-> hell is going on to recognize that.
+Yes, it has always been documented that shall be the case.  Anyone doing
+the above is basically broken.
 
-That seems to be in the dm814x TRM. OK so it looks like in
-mainline kernel drivers/clk/ti/fapll.c we can then fix the hardcoded
-value in ti_fapll_synth_recalc_rate() to return the rate of fd->clk_ref
-multiplied 0.0016384 instead of 32768.
-
-And we probably should add what you're explaining to the comments
-also to make some sense out of it :)
-
-Regards,
-
-Tony
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
