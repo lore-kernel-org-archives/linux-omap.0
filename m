@@ -1,52 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Clock Regression in next-20150130 caused by cb75a8fcd14e
-Date: Mon, 2 Feb 2015 08:18:59 -0800
-Message-ID: <20150202161858.GH16250@atomide.com>
-References: <20150131010443.GE16250@atomide.com>
- <20150201232636.421.58980@quantum>
+Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
+ instances
+Date: Mon, 2 Feb 2015 09:04:59 -0800
+Message-ID: <20150202170458.GB9418@atomide.com>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com>
+ <20150201212432.22722.70917@quantum>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp3.ore.mailhop.org ([54.149.88.251]:59353 "EHLO
+	smtp3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754539AbbBBRHu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2015 12:07:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20150201232636.421.58980@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20150201212432.22722.70917@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
 
-* Mike Turquette <mturquette@linaro.org> [150201 15:29]:
-> Quoting Tony Lindgren (2015-01-30 17:04:44)
-> > Hi all,
+* Mike Turquette <mturquette@linaro.org> [150201 13:27]:
+> Quoting Tomeu Vizoso (2015-01-23 03:03:30)
+> > Moves clock state to struct clk_core, but takes care to change as little API as
+> > possible.
 > > 
-> > Looks like commit cb75a8fcd14e ("clk: Add rate constraints to clocks")
-> > causes a regression on at least omaps where the serial console either
-> > does not show anything, or just prints garbage.
+> > struct clk_hw still has a pointer to a struct clk, which is the
+> > implementation's per-user clk instance, for backwards compatibility.
 > > 
-> > Reverting cb75a8fcd14e makes things work again on next-20150130.
+> > The struct clk that clk_get_parent() returns isn't owned by the caller, but by
+> > the clock implementation, so the former shouldn't call clk_put() on it.
 > > 
-> > Any ideas?
+> > Because some boards in mach-omap2 still register clocks statically, their clock
+> > registration had to be updated to take into account that the clock information
+> > is stored in struct clk_core now.
 > 
-> Stephen posted a patch[0] to fix this. I've squashed that into Tomeu's
-> commit that you reference above and my Panda board is booting fine once
-> again.
+> Tero, Paul & Tony,
 > 
-> [0] http://lkml.kernel.org/r/<20150131013158.GA4323@codeaurora.org>
+> Tomeu's patch unveils a problem with omap3_noncore_dpll_enable and
+> struct dpll_data, namely this snippet from
+> arch/arm/mach-omap2/dpll3xxx.c:
 > 
-> Please let me know if any other issues pop up. There are new WARNs for
-> OMAP3+ boards introduced by a different patch from Tomeu, but this is
-> really because the OMAP DPLL and FAPLL code are dereferencing struct clk
-> pointers when they should not be and is a separate issue from the
-> constraints patch (with a separate email thread).
+>         parent = __clk_get_parent(hw->clk);
+> 
+>         if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
+>                 WARN(parent != dd->clk_bypass,
+>                                 "here0, parent name is %s, bypass name is %s\n",
+>                                 __clk_get_name(parent), __clk_get_name(dd->clk_bypass));
+>                 r = _omap3_noncore_dpll_bypass(clk);
+>         } else {
+>                 WARN(parent != dd->clk_ref,
+>                                 "here1, parent name is %s, ref name is %s\n",
+>                                 __clk_get_name(parent), __clk_get_name(dd->clk_ref));
+>                 r = _omap3_noncore_dpll_lock(clk);
+>         }
+> 
+> struct dpll_data has members clk_ref and clk_bypass which are struct clk
+> pointers. This was always a bit of a violation of the clk.h contract
+> since drivers are not supposed to deref struct clk pointers. Now that we
+> generate unique pointers for each call to clk_get (clk_ref & clk_bypass
+> are populated by of_clk_get in ti_clk_register_dpll) then the pointer
+> comparisons above will never be equal (even if they resolve down to the
+> same struct clk_core). I added the verbose traces to the WARNs above to
+> illustrate the point: the names are always the same but the pointers
+> differ.
+> 
+> AFAICT this doesn't break anything, but booting on OMAP3+ results in
+> noisy WARNs.
 
-Seems Linux next is broken again. Now we omaps get tons of:
+Also on at least omap4 like I posted. So sounds like the check for
+WARN is wrong but harmless. Paul & Tero, what do you want to do
+about that?
+ 
+> I think the correct fix is to replace clk_bypass and clk_ref pointers
+> with a simple integer parent_index. In fact we already have this index.
+> See how the pointers are populated in ti_clk_register_dpll:
+> 
+> 
+>         dd->clk_ref = of_clk_get(node, 0);
+>         dd->clk_bypass = of_clk_get(node, 1);
+> 
+> Tony, the same problem affects the FAPLL code which copy/pastes some of
+> the DPLL code.
+> 
+> Thoughts?
 
-clock: dpll_abe_ck failed transition to 'locked'
-WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:925 clk_disable+0x28/0x34()
+Not seeing these warnings with dm186x as fapll.c does not use
+dpll3xxx.c. This is because of the way the PLL's child synthesizers
+need to also access the PLL registers for power and bypass mode.
 
-and 
-
-WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/dpll3xxx.c:436
-omap3_noncore_dpll_enable+0xdc/0x10c()
+Not related to the $subject bug, but to me it seems that we could
+possibly have Linux generic PLL code if we add support for
+parent_in_bypass_mode in addition to the parent_rate. This is because
+the PLL can in theory generate the same rate both in bypass mode and
+regular mode so parent_rate is not enough to tell it to the child
+synthesizers. Not sure how the PLL registers enabling and disabling
+it's children should be handled, maybe regmap would work there.
 
 Regards,
 
