@@ -1,30 +1,44 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: am335x: device tree entry for PRM_RTSTIME
-Date: Tue, 3 Feb 2015 10:07:45 +0100
-Message-ID: <CAGm1_kuxiM7TCOEj_Crv-U49+GwtF=3==VokPnW_6xBDjuCNog@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: gpmc: Fix writing in gpmc_cs_set_memconf
+Date: Tue, 3 Feb 2015 11:30:17 +0200
+Message-ID: <54D09529.2000803@ti.com>
+References: <1422131320-1018-1-git-send-email-semen.protsenko@globallogic.com> <54C60A3A.1090008@ti.com> <20150202170827.GD9418@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:42635 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbbBCJIG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2015 04:08:06 -0500
-Received: by mail-pa0-f53.google.com with SMTP id kx10so93755688pab.12
-        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2015 01:08:06 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150202170827.GD9418@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Semen Protsenko <semen.protsenko@globallogic.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I need to change the reset length. This is not a problem via "devmem
-0x44e00f04 32 0x000010ff", but I would like to specify this in DTS
-file.
+On 02/02/15 19:08, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [150126 01:38]:
+>> On 24/01/15 22:28, Semen Protsenko wrote:
+>>> Some GPMC_CONFIG7 register bits marked as "RESERVED", means they
+>>> shouldn't be overwritten. A typical approach to handle such bits called
+>>> "Read-Modify-Write". Writing procedure used in gpmc_cs_set_memconf()
+>>> utilizes RMW technique, but implemented incorrectly. Due to obvious typo
+>>> in code read register value is being rewritten by another value, which
+>>> leads to loss of read RESERVED bits. This patch fixes this.
+>>>
+>>> While at it, replace magic numbers with named constants to improve code
+>>> readability.
+>>>
+>>> Signed-off-by: Semen Protsenko <semen.protsenko@globallogic.com>
+>>
+>> This is much nicer.
+>>
+>> Acked-by: Roger Quadros <rogerq@ti.com>
+> 
+> Roger will queue this so:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+Thanks.
+Patches 1 and 2 queued for v3.21.
+https://github.com/rogerq/linux/tree/for-v3.21/gpmc-omap
 
-So far I could find these macros, but they seem not be used anywhere:
-
-arch/arm/mach-omap2/prm33xx.h:#define AM33XX_PRM_RSTTIME_OFFSET         0x0004
-arch/arm/mach-omap2/prm33xx.h:#define AM33XX_PRM_RSTTIME
-         AM33XX_PRM_REGADDR(AM33XX_PRM_DEVICE_MOD, 0x0004)
-
-What be an appropriate place to handle this register?
-
-Yegor
+cheers,
+-roger
