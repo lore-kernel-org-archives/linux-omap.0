@@ -1,104 +1,190 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Tue, 3 Feb 2015 06:51:34 +0100
-Message-ID: <CAALWOA_6Lx1_MrDFwSe0hOiub3FxzrrCburQf=VWnXabKbjtmA@mail.gmail.com>
-References: <20150117164709.GS18552@atomide.com> <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
- <20150117181404.GW18552@atomide.com> <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
- <20150119172914.GY18552@atomide.com> <CAALWOA_54qoQgyCkGy10v+7-eQ87ddeCTG-dbP-P6x493HAswA@mail.gmail.com>
- <20150123164756.GB7718@atomide.com> <CAALWOA9F7UH5ORXdjyHAyekohZdSiE-+enNg5vsxOV5RgfqEdw@mail.gmail.com>
- <20150126155850.GD28663@atomide.com> <CAALWOA9gSegCofYF-csg_2zdRkz=W5g8UAOqBbrA-NG0-oR1ww@mail.gmail.com>
- <20150202174416.GE9418@atomide.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
+ instances
+Date: Tue, 03 Feb 2015 08:03:08 +0100
+Message-ID: <54D072AC.5090206@collabora.com>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFD0B1.2000003@ti.com> <20150202224139.421.84094@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:43836 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbbBCFv5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2015 00:51:57 -0500
-Received: by mail-wg0-f50.google.com with SMTP id b13so42472273wgh.9
-        for <linux-omap@vger.kernel.org>; Mon, 02 Feb 2015 21:51:56 -0800 (PST)
-In-Reply-To: <20150202174416.GE9418@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150202224139.421.84094@quantum>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-On 2 February 2015 at 18:44, Tony Lindgren <tony@atomide.com> wrote:
-> * Matthijs van Duin <matthijsvanduin@gmail.com> [150128 13:46]:
->> On 26 January 2015 at 16:58, Tony Lindgren <tony@atomide.com> wrote:
->> > I'm pretty sure I verified the that the audio_pll_clk1 is hardwwired
->> > to 32KiHz by looking at it with a scope on the clkout pin.
+On 02/02/2015 11:41 PM, Mike Turquette wrote:
+> Quoting Tero Kristo (2015-02-02 11:32:01)
+>> On 02/01/2015 11:24 PM, Mike Turquette wrote:
+>>> Quoting Tomeu Vizoso (2015-01-23 03:03:30)
+>>>> Moves clock state to struct clk_core, but takes care to change as little API as
+>>>> possible.
+>>>>
+>>>> struct clk_hw still has a pointer to a struct clk, which is the
+>>>> implementation's per-user clk instance, for backwards compatibility.
+>>>>
+>>>> The struct clk that clk_get_parent() returns isn't owned by the caller, but by
+>>>> the clock implementation, so the former shouldn't call clk_put() on it.
+>>>>
+>>>> Because some boards in mach-omap2 still register clocks statically, their clock
+>>>> registration had to be updated to take into account that the clock information
+>>>> is stored in struct clk_core now.
+>>>
+>>> Tero, Paul & Tony,
+>>>
+>>> Tomeu's patch unveils a problem with omap3_noncore_dpll_enable and
+>>> struct dpll_data, namely this snippet from
+>>> arch/arm/mach-omap2/dpll3xxx.c:
+>>>
+>>>          parent = __clk_get_parent(hw->clk);
+>>>
+>>>          if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
+>>>                  WARN(parent != dd->clk_bypass,
+>>>                                  "here0, parent name is %s, bypass name is %s\n",
+>>>                                  __clk_get_name(parent), __clk_get_name(dd->clk_bypass));
+>>>                  r = _omap3_noncore_dpll_bypass(clk);
+>>>          } else {
+>>>                  WARN(parent != dd->clk_ref,
+>>>                                  "here1, parent name is %s, ref name is %s\n",
+>>>                                  __clk_get_name(parent), __clk_get_name(dd->clk_ref));
+>>>                  r = _omap3_noncore_dpll_lock(clk);
+>>>          }
+>>>
+>>> struct dpll_data has members clk_ref and clk_bypass which are struct clk
+>>> pointers. This was always a bit of a violation of the clk.h contract
+>>> since drivers are not supposed to deref struct clk pointers. Now that we
+>>> generate unique pointers for each call to clk_get (clk_ref & clk_bypass
+>>> are populated by of_clk_get in ti_clk_register_dpll) then the pointer
+>>> comparisons above will never be equal (even if they resolve down to the
+>>> same struct clk_core). I added the verbose traces to the WARNs above to
+>>> illustrate the point: the names are always the same but the pointers
+>>> differ.
+>>>
+>>> AFAICT this doesn't break anything, but booting on OMAP3+ results in
+>>> noisy WARNs.
+>>>
+>>> I think the correct fix is to replace clk_bypass and clk_ref pointers
+>>> with a simple integer parent_index. In fact we already have this index.
+>>> See how the pointers are populated in ti_clk_register_dpll:
 >>
->> Yeah it comes straight from the "rtcdivider" so it'll produce
->> 0.0016384 * devosc.
->
-> Not much about "rtcdivider" in the dm816x TRM..
-> [..]
-> That seems to be in the dm814x TRM. OK so it looks like in
-> mainline kernel drivers/clk/ti/fapll.c we can then fix the hardcoded
-> value in ti_fapll_synth_recalc_rate() to return the rate of fd->clk_ref
-> multiplied 0.0016384 instead of 32768.
+>> The problem is we still need to be able to get runtime parent clock 
+>> rates (the parent rate may change also), so simple index value is not 
+>> sufficient. We need a handle of some sort to the bypass/ref clocks. The 
+>> DPLL code generally requires knowledge of the bypass + reference clock 
+>> rates to work properly, as it calculates the M/N values based on these.
+> 
+> We can maybe introduce something like of_clk_get_parent_rate, as we have
+> analogous stuff for getting parent names and indexes. Without
+> introducing a new helper you could probably just do:
+> 
+> 	clk_ref = clk_get_parent_by_index(dpll_clk, 0);
+> 	ref_rate = clk_get_rate(clk_ref);
+> 
+> 	clk_bypass = clk_get_parent_by_index(dpll_clk, 1);
+> 	bypass_rate = clk_get_rate(clk_bypass);
+> 
+> Currently the semantics around this call are weird. It seems like it
+> would create a new struct clk pointer but it does not. So don't call
+> clk_put on clk_ref and clk_bypass yet. That might change in the future
+> as we iron out this brave new world that we all live in. Probably best
+> to leave a FIXME in there.
+> 
+> Stephen & Tomeu, let me know if I got any of that wrong.
 
-Ah sorry, yes, for some reason I thought you meant the dm814x one...
-(which makes no sense in retrospect)
+I think you got it right, just wanted to mention that we can and
+probably should make the clk_get_parent_* calls in the consumer API to
+return per-user clk instances but that we need to make sure first that
+callers call clk_put afterwards.
 
-It seems however the situation is actually similar on the dm816x since
-the diagram of the audio FAPLL also shows clock 1 deriving directly
-from devosc, and the associated audio frequency/divider 1 registers
-read as zero. Presumably it was produced by the audio PLL in some
-early design but replaced by a fixed synthesizer later on, later named
-"rtcdivider" in the dm814x. Note that the multiplier 0.0016384 = 32768
-/ 20e6 is for the dm814x, it'll be 32768 / 27e6 on the dm816x.
+This should also allow us to remove the reference to struct clk from
+clk_hw, which is at best awkward.
 
-I think "audio 1" should be kept out of the fapll code entirely given
-that it doesn't seem to be related to the audio FAPLL anymore in any
-way other than in name.
+Regards,
 
+Tomeu
 
-I've also been looking at the rest of Netra's 32KiHz clock tree, but
-the TRM is a real mess there, often contradicting both itself and the
-TI kernel. As far as I can tell they agree on:
-
-audio_1 = devosc * (32768 / 27e6);
-
-audio_a = audio_1 / (CM_DPLL_APA_CLKSEL + 1);
-rtc_fck = { clkin32, audio_a }[CM_DPLL_SYSCLK18_CLKSEL];
-
-but the TRM seems to suggest the mux output is the "sec_clk32k"
-specifically for the RTC while the signal I called "audio_a" here is
-sysclk18 provided for debouncing and as timer option.  In contrast the
-TI kernel considers the mux the only user of audio_a and its output
-sysclk18.  It does also define a secure 32k but without parent or any
-apparent users.
-
-(The audio FAPLL description (1.10.3.1.4) also claims mux option 0
-selects the synthesized 32k clock, but that contradicts all other
-evidence so I will ignore that.)
-
-I'm leaning more towards believing the TI kernel since on Centaurus
-(all flavors) sysclk18 definitely comes from the mux. It adds a twist
-however: PRCM's clkin32 doesn't come straight from the pin but PLLSS
-inserts another mux which by default *also* feeds it the synthesized
-32k:
-
-rtcdivider = devosc * (32768 / 20e6);  // former audio 1
-prcm_clkin32 = { rtcdivider, clkin32 }[PLLSS_SYSCLK18_CLKSRC];
-
-sysclk18_a = rtcdivider / (CM_DPLL_RTCDIVA_CLKSEL + 1);
-sysclk18 = { prcm_clkin32, sysclk18_a }[CM_DPLL_SYSCLK18_CLKSEL];
-
-I confirmed the above on our board where clkin32 is not connected, so
-I could "manually" toggle it using the internal pull up/down. This
-also revealed that mux in PLLSS, unlike the PRCM one, is not
-glitch-free but takes immediate effect. It also revealed the TRM's
-statement that  "If newly selected clock is idle, a switchover never
-occurs (previously selected clock continues to pass through the mux)"
-is false. Switching sysclk18 to the idle clkin32 stopped timers fed by
-it (including the "synctimer32k") and switching back also proved
-impossible without toggling clkin32 or having PLLSS feed it the
-rtcdivider clock. This may be the reason this (otherwise redundant)
-mux exists in the first place.
-
-Finally, Centaurus also has an internal ~32kHz RC osc as option for
-the watchdog and on the 811x (also known as Jacinto 5 Eco) the clkin32
-is upgraded from clock input to oscillator.
+>>
+>> Shall I change the DPLL code to check against clk_hw pointers or what is 
+>> the preferred approach here? The patch at the end does this and fixes 
+>> the dpll related warnings.
+> 
+> Yes, for now that is fine, but feels a bit hacky to me. I don't know
+> honestly, let me sleep on it. Anyways for 3.20 that is perfectly fine
+> but we might want to switch to something like the scheme above.
+> 
+>>
+>> Btw, the rate constraints patch broke boot for me completely, but sounds 
+>> like you reverted it already.
+> 
+> Fixed with Stephen's patch from last week. Thanks for dealing with all
+> the breakage so promptly. It has helped a lot!
+> 
+> Regards,
+> Mike
+> 
+>>
+>> -Tero
+>>
+>> --------------------
+>>
+>> Author: Tero Kristo <t-kristo@ti.com>
+>> Date:   Mon Feb 2 17:19:17 2015 +0200
+>>
+>>      ARM: OMAP3+: clock: dpll: fix logic for comparing parent clocks
+>>
+>>      DPLL code uses reference and bypass clock pointers for determining 
+>> runtime
+>>      properties for these clocks, like parent clock rates.
+>>
+>>      As clock API now returns per-user clock structs, using a global handle
+>>      in the clock driver code does not work properly anymore. Fix this by
+>>      using the clk_hw instead, and comparing this against the parents.
+>>
+>>      Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>      Fixes: 59cf3fcf9baf ("clk: Make clk API return per-user struct clk 
+>> instances")
+>>
+>> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+>> index c2da2a0..49752d7 100644
+>> --- a/arch/arm/mach-omap2/dpll3xxx.c
+>> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+>> @@ -410,7 +410,7 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw)
+>>         struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+>>         int r;
+>>         struct dpll_data *dd;
+>> -       struct clk *parent;
+>> +       struct clk_hw *parent;
+>>
+>>         dd = clk->dpll_data;
+>>         if (!dd)
+>> @@ -427,13 +427,13 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw)
+>>                 }
+>>         }
+>>
+>> -       parent = __clk_get_parent(hw->clk);
+>> +       parent = __clk_get_hw(__clk_get_parent(hw->clk));
+>>
+>>         if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
+>> -               WARN_ON(parent != dd->clk_bypass);
+>> +               WARN_ON(parent != __clk_get_hw(dd->clk_bypass));
+>>                 r = _omap3_noncore_dpll_bypass(clk);
+>>         } else {
+>> -               WARN_ON(parent != dd->clk_ref);
+>> +               WARN_ON(parent != __clk_get_hw(dd->clk_ref));
+>>                 r = _omap3_noncore_dpll_lock(clk);
+>>         }
+>>
+>> @@ -549,7 +549,8 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, 
+>> unsigned long rate,
+>>         if (!dd)
+>>                 return -EINVAL;
+>>
+>> -       if (__clk_get_parent(hw->clk) != dd->clk_ref)
+>> +       if (__clk_get_hw(__clk_get_parent(hw->clk)) !=
+>> +           __clk_get_hw(dd->clk_ref))
+>>                 return -EINVAL;
+>>
+>>         if (dd->last_rounded_rate == 0)
+>>
+>>
