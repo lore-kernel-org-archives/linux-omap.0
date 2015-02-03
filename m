@@ -1,125 +1,75 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: phy: phy-generic: No need to call
- gpiod_direction_output() twice
-Date: Tue, 3 Feb 2015 14:52:17 -0600
-Message-ID: <20150203205217.GA27736@saruman.tx.rr.com>
-References: <1422653236-7142-1-git-send-email-festevam@gmail.com>
- <20150130215939.GC30049@saruman.tx.rr.com>
- <CAOMZO5A=J7HF+AR8aB2CA+we7knoas-vDtLMbh3gVNvgb1aEAg@mail.gmail.com>
- <CAOMZO5DeyqtjDq0a4_qX2SPbaDZunQbSJimrH23gju1mmdA7vQ@mail.gmail.com>
- <20150201173750.GA16306@saruman.tx.rr.com>
- <CAOMZO5AOevmZLKNSRygeWEGzQp-MLkp8pg8Jr536Y-xXPPTKZw@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v3 0/2] couple of generic remoteproc enhancements
+Date: Tue, 3 Feb 2015 14:55:35 -0600
+Message-ID: <54D135C7.4040501@ti.com>
+References: <1420838519-15669-1-git-send-email-s-anna@ti.com> <54C17130.5060002@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5AOevmZLKNSRygeWEGzQp-MLkp8pg8Jr536Y-xXPPTKZw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Fabio Estevam <festevam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Fabio Estevam <fabio.estevam-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54851 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756160AbbBCUz7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Feb 2015 15:55:59 -0500
+In-Reply-To: <54C17130.5060002@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ohad,
 
-On Tue, Feb 03, 2015 at 06:21:24PM -0200, Fabio Estevam wrote:
-> Hi Felipe,
->=20
-> On Sun, Feb 1, 2015 at 3:37 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
->=20
-> > I like this, very much. Two comments though. We requested the gpio with
-> > _optional(), and NULL is a valid gpio_desc, this if (nop->gpiod_reset)
-> > is unnecessary. And also, since we don't have anymore the assert
->=20
-> But if the reset-gpios property is not present in the dts, then
-> nop->gpiod_reset is NULL, and it is better not to call
-> 'gpiod_direction_output(nop->gpiod_reset, 1)'  in this case, right?
+> On 01/09/2015 03:21 PM, Suman Anna wrote:
+>> Hi Ohad,
+>>
+>> The following is an updated patchset addressing the previous pending comments
+>> from v1 & v2, and are rebased onto the latest 3.19-rc3 (are rc independent
+>> actually). 
+>>
+>> The patches are mainly developed to support the WkupM3 remote processor driver
+>> on TI AM335x/AM437x SoCs, and I have verified the loading using the latest
+>> version of Dave's WkupM3 remoteproc work [1]
+>>
+>> The only change in v3 is on the second patch, it mainly leverages the
+>> memcpy_toio and memset_io functions for copying/loading code into the
+>> internal memory sections. An additional argument has to be added to the
+>> rproc_da_to_va function to make this distinction.
+> 
+> Any comments on this series, or can I assume that this will make it to
+> v3.20?
 
-it doesn't make a difference though, right ?
-gpiod_direction_output(NULL, 1) won't do anything.
+ping, want to make sure this has not fallen off your radar..
 
-/me goes look at code
+> 
+> regards
+> Suman
+> 
+>>
+>> [1] http://marc.info/?l=linux-omap&m=142022842323885&w=2
+>>
+>> v2:
+>> http://marc.info/?l=linux-omap&m=141089879412807&w=2
+>> - Add explicit setting of the .has_iommu field in each of the existing
+>>   remoteproc platform drivers
+>> - Update patch description to add the usecase details for the change
+>>   summary
+>> - Fixed a minor checkpatch warning.
+>>
+>> v1:
+>> http://marc.info/?l=linux-omap&m=140483657604924&w=2
+>>
+>> Suman Anna (2):
+>>   remoteproc: use a flag to detect the presence of IOMMU
+>>   remoteproc: add support to handle internal memories
+>>
+>>  drivers/remoteproc/da8xx_remoteproc.c      |   1 +
+>>  drivers/remoteproc/omap_remoteproc.c       |   5 ++
+>>  drivers/remoteproc/remoteproc_core.c       | 104 ++++++++++++++++++++++++-----
+>>  drivers/remoteproc/remoteproc_elf_loader.c |  23 +++++--
+>>  drivers/remoteproc/remoteproc_internal.h   |   6 +-
+>>  drivers/remoteproc/ste_modem_rproc.c       |   1 +
+>>  include/linux/remoteproc.h                 |  45 ++++++++++++-
+>>  7 files changed, 161 insertions(+), 24 deletions(-)
+>>
+> 
 
-Man this is messed up. If you follow gpiod_get_optional, you'll end up
-at gpiod_get_index_optional() which I quote below:
-
-1989 struct gpio_desc *__must_check __gpiod_get_index_optional(struct devic=
-e *dev,
-1990                                                         const char *co=
-n_id,
-1991                                                         unsigned int i=
-ndex,
-1992                                                         enum gpiod_fla=
-gs flags)
-1993 {
-1994         struct gpio_desc *desc;
-1995=20
-1996         desc =3D gpiod_get_index(dev, con_id, index, flags);
-1997         if (IS_ERR(desc)) {
-1998                 if (PTR_ERR(desc) =3D=3D -ENOENT)
-1999                         return NULL;
-2000         }
-2001=20
-2002         return desc;
-2003 }
-2004 EXPORT_SYMBOL_GPL(__gpiod_get_index_optional);
-
-So, if the error code is -ENOENT it returns NULL, that tells me NULL is
-a valid gpio descriptor. If you follow gpiod_direction_output() however,
-what you get is:
-
-1072 int gpiod_direction_output(struct gpio_desc *desc, int value)
-1073 {
-1074         if (!desc || !desc->chip) {
-1075                 pr_warn("%s: invalid GPIO\n", __func__);
-1076                 return -EINVAL;
-1077         }
-1078         if (test_bit(FLAG_ACTIVE_LOW, &desc->flags))
-1079                 value =3D !value;
-1080         return _gpiod_direction_output_raw(desc, value);
-1081 }
-1082 EXPORT_SYMBOL_GPL(gpiod_direction_output);
-
-That pr_warn() tells me NULL is *not* a valid gpio descriptor. Linus, is
-that just something that was missed until now ?
-
-> > argument, we should rename nop_reset_set() to nop_reset.
->=20
-> Agreed, will change it in v2.
-
-Thanks
-
---=20
-balbi
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU0TUBAAoJEIaOsuA1yqREtzEQAJrzlrE6/Gro18a07n7xO/Uv
-Kf9A4dttv+uKv6LDExG6ciQFOqLgPeDvkWVQARUZb3PZGL5paw1+t3yGnysRo8Uk
-i3kD/GQbKvPWuHwDCCTjkDkJI2vU/M2Scn6mkPIbdbnLgsE4Xk5nsjLCIG+I5s4a
-7juGeib/XJDmPHHnUXpslCbTPiq/HTX8NCc9w49RzVlTxk5bDupGrfGpUKPtlSbz
-vauUgmiWCC7l/aq07/U0cwSPWrbvNnwVtAMnvCYYlYn15Pflj3WAeZQvFU2C0M15
-vNMsZ+4BfilrKpJrM9dij2KkkRrzkHh5tnqQACmA3yAKW4fdWCKHB1ZnT89GqGAC
-bLe6I660suyixe4IdoYNVoF56yqhwWDSJVyky+oi3sdxqp6PdgnCpx9IjU4S4p9M
-eA806LDjzILvYLanLC5DEjvdQHtRFdpgJKSPH0s3A5VO1JGoqYTTVfsSHwzfTiPS
-TNV2hu2kJOSUju4mXOX41E4BMBubFMpY7zuvM8VtOVMYmSxV0aiL1GedxZqEx7ie
-xl54blbCaspwTX28aA9FDM2bswiCerguBCjdNGm8yptT/pTYBhPjgz1oAXuYYus2
-Op6OyiCj09GwY/lZ7+cX4RaFAgnFDS2vcL7IRuqOCZaUISv+Te6Ex59tXyvSc3Yy
-OGsMTKvrME/HnZF02Phz
-=Ohjh
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
