@@ -1,36 +1,50 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: am335x: device tree entry for PRM_RTSTIME
-Date: Tue, 3 Feb 2015 09:14:53 -0600
-Message-ID: <54D0E5ED.1060200@ti.com>
-References: <CAGm1_kuxiM7TCOEj_Crv-U49+GwtF=3==VokPnW_6xBDjuCNog@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
+ instances
+Date: Tue, 3 Feb 2015 07:22:15 -0800
+Message-ID: <20150203152214.GA25235@atomide.com>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com>
+ <20150201212432.22722.70917@quantum>
+ <54CFD0B1.2000003@ti.com>
+ <20150202224139.421.84094@quantum>
+ <54D072AC.5090206@collabora.com>
+ <54D08AFB.7040203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37512 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933946AbbBCPO4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2015 10:14:56 -0500
-In-Reply-To: <CAGm1_kuxiM7TCOEj_Crv-U49+GwtF=3==VokPnW_6xBDjuCNog@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54D08AFB.7040203@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Mike Turquette <mturquette@linaro.org>, linux-kernel@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 02/03/2015 03:07 AM, Yegor Yefremov wrote:
-> I need to change the reset length. This is not a problem via "devmem
-> 0x44e00f04 32 0x000010ff", but I would like to specify this in DTS
-> file.
+* Tero Kristo <t-kristo@ti.com> [150203 00:49]:
+> On 02/03/2015 09:03 AM, Tomeu Vizoso wrote:
+> >
+> >I think you got it right, just wanted to mention that we can and
+> >probably should make the clk_get_parent_* calls in the consumer API to
+> >return per-user clk instances but that we need to make sure first that
+> >callers call clk_put afterwards.
+> >
+> >This should also allow us to remove the reference to struct clk from
+> >clk_hw, which is at best awkward.
 > 
-> So far I could find these macros, but they seem not be used anywhere:
-> 
-> arch/arm/mach-omap2/prm33xx.h:#define AM33XX_PRM_RSTTIME_OFFSET         0x0004
-> arch/arm/mach-omap2/prm33xx.h:#define AM33XX_PRM_RSTTIME
->          AM33XX_PRM_REGADDR(AM33XX_PRM_DEVICE_MOD, 0x0004)
-> 
-> What be an appropriate place to handle this register?
+> For the DPLL code it should just be fine to be able to get the current
+> parent index (not parent clock handle), and read a parent clock rate based
+> on an arbitrary index (not just the current one.) I don't think there is any
+> other need for having the clk_ref / clk_bypass clock handles around.
 
-This ideally should come under reset framework.
+I'd like to avoid the situation where the children have know that
+certain parent index and parent rate means bypass mode for both
+parent and children. 
 
--- 
+Maybe we can hide that knowledge into some Linux generic PLL code so
+the children can get the PLL output as a mux clock. For a PLL, there
+can be three mux clock outputs: refclk*multi/div, bypass clock, or no
+output.
+
 Regards,
-Nishanth Menon
+
+Tony
