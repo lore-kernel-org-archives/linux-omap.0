@@ -1,88 +1,104 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v4 1/1] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Tue, 03 Feb 2015 10:13:55 +0900
-Message-ID: <54D020D3.2030403@samsung.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
- <1422274532-9488-2-git-send-email-rogerq@ti.com> <54C8D2F4.9050404@ti.com>
- <54CF4FC7.2050309@ti.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
+Date: Tue, 3 Feb 2015 06:51:34 +0100
+Message-ID: <CAALWOA_6Lx1_MrDFwSe0hOiub3FxzrrCburQf=VWnXabKbjtmA@mail.gmail.com>
+References: <20150117164709.GS18552@atomide.com> <CAALWOA-v=-KZ5W+Giwq9Z7rdA8JM2Q+zgqZPz-5sDrHD_b-_7A@mail.gmail.com>
+ <20150117181404.GW18552@atomide.com> <CAALWOA-cdqPbLo4JvykGFODy2xUOozWg6OjzoGPLasJA022kJg@mail.gmail.com>
+ <20150119172914.GY18552@atomide.com> <CAALWOA_54qoQgyCkGy10v+7-eQ87ddeCTG-dbP-P6x493HAswA@mail.gmail.com>
+ <20150123164756.GB7718@atomide.com> <CAALWOA9F7UH5ORXdjyHAyekohZdSiE-+enNg5vsxOV5RgfqEdw@mail.gmail.com>
+ <20150126155850.GD28663@atomide.com> <CAALWOA9gSegCofYF-csg_2zdRkz=W5g8UAOqBbrA-NG0-oR1ww@mail.gmail.com>
+ <20150202174416.GE9418@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <54CF4FC7.2050309@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: myungjoo.ham@samsung.com, balbi@ti.com, tony@atomide.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:43836 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751729AbbBCFv5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2015 00:51:57 -0500
+Received: by mail-wg0-f50.google.com with SMTP id b13so42472273wgh.9
+        for <linux-omap@vger.kernel.org>; Mon, 02 Feb 2015 21:51:56 -0800 (PST)
+In-Reply-To: <20150202174416.GE9418@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-Hi Roger,
+On 2 February 2015 at 18:44, Tony Lindgren <tony@atomide.com> wrote:
+> * Matthijs van Duin <matthijsvanduin@gmail.com> [150128 13:46]:
+>> On 26 January 2015 at 16:58, Tony Lindgren <tony@atomide.com> wrote:
+>> > I'm pretty sure I verified the that the audio_pll_clk1 is hardwwired
+>> > to 32KiHz by looking at it with a scope on the clkout pin.
+>>
+>> Yeah it comes straight from the "rtcdivider" so it'll produce
+>> 0.0016384 * devosc.
+>
+> Not much about "rtcdivider" in the dm816x TRM..
+> [..]
+> That seems to be in the dm814x TRM. OK so it looks like in
+> mainline kernel drivers/clk/ti/fapll.c we can then fix the hardcoded
+> value in ti_fapll_synth_recalc_rate() to return the rate of fd->clk_ref
+> multiplied 0.0016384 instead of 32768.
 
-Looks good to me. Applied it on v3.21 queue.
+Ah sorry, yes, for some reason I thought you meant the dm814x one...
+(which makes no sense in retrospect)
 
-Thanks,
-Chanwoo Choi
+It seems however the situation is actually similar on the dm816x since
+the diagram of the audio FAPLL also shows clock 1 deriving directly
+from devosc, and the associated audio frequency/divider 1 registers
+read as zero. Presumably it was produced by the audio PLL in some
+early design but replaced by a fixed synthesizer later on, later named
+"rtcdivider" in the dm814x. Note that the multiplier 0.0016384 = 32768
+/ 20e6 is for the dm814x, it'll be 32768 / 27e6 on the dm816x.
 
-On 02/02/2015 07:21 PM, Roger Quadros wrote:
-> This driver observes the USB ID pin connected over a GPIO and
-> updates the USB cable extcon states accordingly.
-> 
-> The existing GPIO extcon driver is not suitable for this purpose
-> as it needs to be taught to understand USB cable states and it
-> can't handle more than one cable per instance.
-> 
-> For the USB case we need to handle 2 cable states.
-> 1) USB (attach/detach)
-> 2) USB-HOST (attach/detach)
-> 
-> This driver can be easily updated in the future to handle VBUS
-> events in case it happens to be available on GPIO for any platform.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
-> v4:
-> - got rid of id_irqwake flag. Fail if enable/disable_irq_wake() fails
-> - changed host cable name to "USB-HOST"
-> - use 'depends on' instead of 'select' GPIOLIB
-> 
->  .../devicetree/bindings/extcon/extcon-usb-gpio.txt |  18 ++
->  drivers/extcon/Kconfig                             |   7 +
->  drivers/extcon/Makefile                            |   1 +
->  drivers/extcon/extcon-usb-gpio.c                   | 237 +++++++++++++++++++++
->  4 files changed, 263 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
->  create mode 100644 drivers/extcon/extcon-usb-gpio.c
-> 
-> diff --git a/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt b/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
-> new file mode 100644
-> index 0000000..85fe6b0
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/extcon/extcon-usb-gpio.txt
-> @@ -0,0 +1,18 @@
-> +USB GPIO Extcon device
-> +
-> +This is a virtual device used to generate USB cable states from the USB ID pin
-> +connected to a GPIO pin.
-> +
-> +Required properties:
-> +- compatible: Should be "linux,extcon-usb-gpio"
-> +- id-gpio: gpio for USB ID pin. See gpio binding.
-> +
-> +Example:
+I think "audio 1" should be kept out of the fapll code entirely given
+that it doesn't seem to be related to the audio FAPLL anymore in any
+way other than in name.
 
-I add some description for example as following:
 
-+Example: Examples of extcon-usb-gpio node in dra7-evm.dts as listed below:
+I've also been looking at the rest of Netra's 32KiHz clock tree, but
+the TRM is a real mess there, often contradicting both itself and the
+TI kernel. As far as I can tell they agree on:
 
-> +	extcon_usb1 {
-> +		compatible = "linux,extcon-usb-gpio";
-> +		id-gpio = <&gpio6 1 GPIO_ACTIVE_HIGH>;
-> +	}
-> +
-> +	&omap_dwc3_1 {
-> +		extcon = <&extcon_usb1>;
-> +	};
+audio_1 = devosc * (32768 / 27e6);
 
-[snip]
+audio_a = audio_1 / (CM_DPLL_APA_CLKSEL + 1);
+rtc_fck = { clkin32, audio_a }[CM_DPLL_SYSCLK18_CLKSEL];
 
-Thanks,
-Chanwoo Choi
+but the TRM seems to suggest the mux output is the "sec_clk32k"
+specifically for the RTC while the signal I called "audio_a" here is
+sysclk18 provided for debouncing and as timer option.  In contrast the
+TI kernel considers the mux the only user of audio_a and its output
+sysclk18.  It does also define a secure 32k but without parent or any
+apparent users.
+
+(The audio FAPLL description (1.10.3.1.4) also claims mux option 0
+selects the synthesized 32k clock, but that contradicts all other
+evidence so I will ignore that.)
+
+I'm leaning more towards believing the TI kernel since on Centaurus
+(all flavors) sysclk18 definitely comes from the mux. It adds a twist
+however: PRCM's clkin32 doesn't come straight from the pin but PLLSS
+inserts another mux which by default *also* feeds it the synthesized
+32k:
+
+rtcdivider = devosc * (32768 / 20e6);  // former audio 1
+prcm_clkin32 = { rtcdivider, clkin32 }[PLLSS_SYSCLK18_CLKSRC];
+
+sysclk18_a = rtcdivider / (CM_DPLL_RTCDIVA_CLKSEL + 1);
+sysclk18 = { prcm_clkin32, sysclk18_a }[CM_DPLL_SYSCLK18_CLKSEL];
+
+I confirmed the above on our board where clkin32 is not connected, so
+I could "manually" toggle it using the internal pull up/down. This
+also revealed that mux in PLLSS, unlike the PRCM one, is not
+glitch-free but takes immediate effect. It also revealed the TRM's
+statement that  "If newly selected clock is idle, a switchover never
+occurs (previously selected clock continues to pass through the mux)"
+is false. Switching sysclk18 to the idle clkin32 stopped timers fed by
+it (including the "synctimer32k") and switching back also proved
+impossible without toggling clkin32 or having PLLSS feed it the
+rtcdivider clock. This may be the reason this (otherwise redundant)
+mux exists in the first place.
+
+Finally, Centaurus also has an internal ~32kHz RC osc as option for
+the watchdog and on the 811x (also known as Jacinto 5 Eco) the clkin32
+is upgraded from clock input to oscillator.
