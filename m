@@ -1,46 +1,53 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ti-soc-thermal: Delete an unnecessary check before the function
- call "cpufreq_cooling_unregister"
-Date: Tue, 03 Feb 2015 11:21:14 +0100
-Message-ID: <54D0A11A.4070906@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2] ASoC: tlv320aic3x: Add support for tlv320aic3104
+Date: Tue, 3 Feb 2015 12:16:20 +0000
+Message-ID: <20150203121620.GI21293@sirena.org.uk>
+References: <54CF2CDA.3060607@ti.com>
+ <1422888485-13626-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="/g+HdBW4tzDpdEIu"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48775 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590AbbBCMQa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2015 07:16:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1422888485-13626-1-git-send-email-jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, benoit.thebaudeau.dev@gmail.com, wlear@appliedlogix.com
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 3 Feb 2015 11:15:14 +0100
 
-The cpufreq_cooling_unregister() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+--/g+HdBW4tzDpdEIu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This issue was detected by using the Coccinelle software.
+On Mon, Feb 02, 2015 at 04:48:05PM +0200, Jyri Sarha wrote:
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Changes since the first version of the patch
+>  - Added "ti,tlv320aic3104" to tlv320aic3x_of_match table
+>  What surprises me is how come the code worked even before this change?
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 3fb054a..a38c175 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -429,7 +429,7 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	if (data && data->cool_dev)
-+	if (data)
- 		cpufreq_cooling_unregister(data->cool_dev);
- 
- 	return 0;
--- 
-2.2.2
+Applied, thanks.  I2C has the interesting feature that it falls back to
+using regular I2C IDs if it can't match based on the DT ID table which
+masks lots of errors like this.
 
+--/g+HdBW4tzDpdEIu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJU0LwTAAoJECTWi3JdVIfQZ+0H/1wHWa6aJwQSSBYLfK22u9da
+npBM4e38gg0X86kn8BRYdcoadHOwbqseXrwfhu5Qt3bNegRK/arNfTPFcFCPQm9j
+BeRIzoe60ncthDSCN6hQivxlhrljYv4ZiYeZyJ1XlfbTmLdIRiWeJ4s+Xk4TAPKg
+g4e3L5Ltr2WNY91zv14pag82tMG1EpeLGTtenH8mOUQ6Y+uOiLnJn+iQdDHKPXdV
+eeqbTdVsUH+in+T6jTVvkqY0KpZLq3FlBiGVNWgWVUGul+L5M8n/Oi926qU++Pi3
+6D68b9ybpebJgrc7X9TG6Xa5ufz7HjFzJnRZ7OoaAljKlIs9s+3PhlSVX4Lnu9E=
+=MU6b
+-----END PGP SIGNATURE-----
+
+--/g+HdBW4tzDpdEIu--
