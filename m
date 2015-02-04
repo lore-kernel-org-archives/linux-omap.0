@@ -1,143 +1,80 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v3 2/6] power: twl4030_madc_battery: Add device tree support
-Date: Wed,  4 Feb 2015 23:14:31 +0100
-Message-ID: <1423088075-10025-3-git-send-email-marek@goldelico.com>
-References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
+ clk instances
+Date: Wed, 04 Feb 2015 15:26:19 -0800
+Message-ID: <54D2AA9B.7010800@codeaurora.org>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org> <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6> <54CFFBCF.90706@codeaurora.org> <20150202225036.421.43421@quantum> <54D0F179.1040906@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1423088075-10025-1-git-send-email-marek@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, tony@atomide.com, hns@goldelico.com, linux-kernel@vger.kernel.org, gta04-owner@goldelico.com, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54D0F179.1040906@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Quentin Lambert <lambert.quentin@gmail.com>, Mike Turquette <mturquette@linaro.org>, Julia Lawall <julia.lawall@lip6.fr>
+Cc: Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Marek Belisko <marek@goldelico.com>
----
- drivers/power/twl4030_madc_battery.c | 81 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+On 02/03/15 08:04, Quentin Lambert wrote:
+> Hello,
+> Julia asked me to have a look and see if I can help.
+>
+> I have found these three cases using Coccinnelle in the mach-omap2
+> directory.
+>
+>
+>
+> ./arch/arm/mach-omap2/clkt_clksel.c
+> @@ -67,7 +67,6 @@ static const struct clksel *_get_clksel_
+>                 return NULL;
+>
+>         for (clks = clk->clksel; clks->parent; clks++)
+>                 if (clks->parent == src_clk)
 
-diff --git a/drivers/power/twl4030_madc_battery.c b/drivers/power/twl4030_madc_battery.c
-index 6af28b5..ec14bc6 100644
---- a/drivers/power/twl4030_madc_battery.c
-+++ b/drivers/power/twl4030_madc_battery.c
-@@ -20,6 +20,7 @@
- #include <linux/i2c/twl4030-madc.h>
- #include <linux/power/twl4030_madc_battery.h>
- #include <linux/iio/consumer.h>
-+#include <linux/of.h>
- 
- struct twl4030_madc_battery {
- 	struct power_supply psy;
-@@ -183,6 +184,82 @@ static int twl4030_cmp(const void *a, const void *b)
- 		((struct twl4030_madc_bat_calibration *)a)->voltage;
- }
- 
-+#ifdef CONFIG_OF
-+static struct twl4030_madc_bat_platform_data *
-+	twl4030_madc_dt_probe(struct platform_device *pdev)
-+{
-+	struct twl4030_madc_bat_platform_data *pdata;
-+	struct device_node *np = pdev->dev.of_node;
-+	int ret;
-+	int i, proplen;
-+
-+	pdata = devm_kzalloc(&pdev->dev,
-+			sizeof(struct twl4030_madc_bat_platform_data),
-+			GFP_KERNEL);
-+	if (!pdata)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = of_property_read_u32(np, "capacity-uah", &pdata->capacity);
-+	if (ret != 0)
-+		return ERR_PTR(-EINVAL);
-+
-+	/* parse and prepare charging data */
-+	proplen = of_property_count_u32_elems(np, "volt-to-capacity-charging-map");
-+	if (proplen < 0) {
-+		dev_warn(&pdev->dev, "No 'volt-to-capacity-charging-map' property found\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	pdata->charging = devm_kzalloc(&pdev->dev,
-+		sizeof(struct twl4030_madc_bat_calibration) * (proplen / 2),
-+		GFP_KERNEL);
-+
-+	for (i = 0; i < proplen / 2; i++) {
-+		of_property_read_u32_index(np, "volt-to-capacity-charging-map",
-+					   i * 2,
-+					   (u32 *)&pdata->charging[i].voltage);
-+		of_property_read_u32_index(np, "volt-to-capacity-charging-map",
-+					  i * 2 + 1,
-+					  (u32 *)&pdata->charging[i].level);
-+	}
-+
-+	/* parse and prepare discharging data */
-+	proplen = of_property_count_u32_elems(np,
-+			"volt-to-capacity-discharging-map");
-+	if (proplen < 0) {
-+		dev_warn(&pdev->dev, "No 'volt-to-capacity-discharging-map' property found\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	pdata->discharging = devm_kzalloc(&pdev->dev,
-+		sizeof(struct twl4030_madc_bat_calibration) * (proplen / 2),
-+		GFP_KERNEL);
-+
-+	for (i = 0; i < proplen / 2; i++) {
-+		of_property_read_u32_index(np, "volt-to-capacity-discharging-map",
-+					   i * 2,
-+					   (u32 *)&pdata->discharging[i].voltage);
-+		of_property_read_u32_index(np, "volt-to-capacity-discharging-map",
-+					   i * 2 + 1,
-+					   (u32 *)&pdata->discharging[i].level);
-+	}
-+
-+	return pdata;
-+}
-+
-+static const struct of_device_id of_twl4030_madc_match[] = {
-+	{ .compatible = "ti,twl4030-madc-battery", },
-+	{},
-+};
-+
-+#else
-+static struct twl4030_madc_bat_platform_data *
-+	twl4030_madc_dt_probe(struct platform_device *pdev)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+#endif
-+
- static int twl4030_madc_battery_probe(struct platform_device *pdev)
- {
- 	struct twl4030_madc_battery *twl4030_madc_bat;
-@@ -194,6 +271,9 @@ static int twl4030_madc_battery_probe(struct platform_device *pdev)
- 	if (!twl4030_madc_bat)
- 		return -ENOMEM;
- 
-+	if (!pdata)
-+		pdata = twl4030_madc_dt_probe(pdev);
-+
- 	twl4030_madc_bat->psy.name = "twl4030_battery";
- 	twl4030_madc_bat->psy.type = POWER_SUPPLY_TYPE_BATTERY;
- 	twl4030_madc_bat->psy.properties = twl4030_madc_bat_props;
-@@ -263,6 +343,7 @@ static int twl4030_madc_battery_remove(struct platform_device *pdev)
- static struct platform_driver twl4030_madc_battery_driver = {
- 	.driver = {
- 		.name = "twl4030_madc_battery",
-+		.of_match_table = of_match_ptr(of_twl4030_madc_match),
- 	},
- 	.probe  = twl4030_madc_battery_probe,
- 	.remove = twl4030_madc_battery_remove,
+This probably needs to compare hw pointers again given that it's in the
+clk-provider code. It would be nice if we could use indices instead though.
+
+>                         break; /* Found the requested parent */
+>
+>         if (!clks->parent) {
+> ./arch/arm/mach-omap2/dpll3xxx.c
+> @@ -551,7 +549,6 @@ int omap3_noncore_dpll_set_rate(struct c
+>         if (!dd)
+>                 return -EINVAL;
+>
+>         if (__clk_get_parent(hw->clk) != dd->clk_ref)
+
+This one is what this thread has started on about. Comparing hw pointers
+is ok for now...
+
+>                 return -EINVAL;
+>
+>         if (dd->last_rounded_rate == 0)
+> ./arch/arm/mach-omap2/timer.c
+> @@ -298,7 +298,6 @@ static int __init omap_dm_timer_init_one
+>         if (IS_ERR(src))
+>                 return PTR_ERR(src);
+>
+>         if (clk_get_parent(timer->fclk) != src) {
+
+This one looks like an optimization. We can just always try to set the
+parent and if it's already the current parent then the core should bail
+out early without an error. So the fix would be to just remove the if
+condition.
+
+>                 r = clk_set_parent(timer->fclk, src);
+>                 if (r < 0) {
+>                         pr_warn("%s: %s cannot set source\n", __func__,
+>
+>
+> Are they instances of your issue?
+
+Yes these all look like instances of the problem.
+
+> If you want me to I can enlarge the search to other directories.
+
+Yes please do. And if you could share the coccinelle patch that would be
+great. Thanks.
+
 -- 
-1.9.1
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
