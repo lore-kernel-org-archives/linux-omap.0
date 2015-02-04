@@ -1,44 +1,65 @@
 From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v3 0/6] Convert twl4030_madc_battery to IIO consumer and add DT aupport
-Date: Wed,  4 Feb 2015 23:14:29 +0100
-Message-ID: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+Subject: [PATCH v3 4/6] ARM: dts: omap3-gta04: Add battery support
+Date: Wed,  4 Feb 2015 23:14:33 +0100
+Message-ID: <1423088075-10025-5-git-send-email-marek@goldelico.com>
+References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1423088075-10025-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, gta04-owner-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patches adding support for twl4030_madc_battery to use twl4030_madc iio framework + DT support.
-Patches was tested on gta04 board. twl4030_madc_battery driver is converted in
-first patch to iio consumer and in next patches is added support for devicetree
-+ some small fixes for module autoloading.
+Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-Changes from V2:
-- fix property names
-- add MODULE_DEVICE_TABLE and MODULE_ALIAS
-
-Changes from V1:
-- use iio_read_channel_processed instead iio_read_channel_processed
-- convert probe to use devm_ as part of adding error handling for iio
-- free iio channels on error and on module removal
-
-[1] - https://lkml.org/lkml/2014/2/26/482dd
-
-Marek Belisko (6):
-  power: twl4030-madc-battery: Convert to iio consumer.
-  power: twl4030_madc_battery: Add device tree support
-  Documentation: DT: Document twl4030-madc-battery bindings
-  ARM: dts: omap3-gta04: Add battery support
-  power: twl4030_madc_battery: Add of_twl4030_madc_match to
-    MODULE_DEVICE_TABLE
-  power: twl4030_madc_battery: Add missing MODULE_ALIAS
-
- .../bindings/power_supply/twl4030_madc_battery.txt |  43 +++++
- arch/arm/boot/dts/omap3-gta04.dtsi                 |  30 ++++
- drivers/power/twl4030_madc_battery.c               | 183 +++++++++++++++++----
- 3 files changed, 221 insertions(+), 35 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
-
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 655d6e9..f81ca27 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -49,6 +49,32 @@
+ 		ti,codec = <&twl_audio>;
+ 	};
+ 
++	battery {
++		compatible = "ti,twl4030-madc-battery";
++		capacity-uah = <1200000>;
++		volt-to-capacity-charging-map = <4200 100>,
++					     <4100 75>,
++					     <4000 55>,
++					     <3900 25>,
++					     <3800 5>,
++					     <3700 2>,
++					     <3600 1>,
++					     <3300 0>;
++		volt-to-capacity-discharging-map = <4200 100>,
++						<4100 95>,
++						<4000 70>,
++						<3800 50>,
++						<3700 10>,
++						<3600 5>,
++						<3300 0>;
++		io-channels = <&twl_madc 1>,
++	                      <&twl_madc 10>,
++			      <&twl_madc 12>;
++		io-channel-names = "temp",
++		                   "ichg",
++		                   "vbat";
++	};
++
+ 	spi_lcd {
+ 		compatible = "spi-gpio";
+ 		#address-cells = <0x1>;
+@@ -449,3 +475,7 @@
+ 		};
+ 	};
+ };
++
++&twl_madc {
++	ti,system-uses-second-madc-irq;
++};
 -- 
 1.9.1
 
