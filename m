@@ -1,70 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 Subject: Re: [RFC/PATCH 2/2] of: allow for boolean flags to have value
-Date: Thu, 5 Feb 2015 10:34:12 -0800
-Message-ID: <20150205183411.GC25235@atomide.com>
+Date: Thu, 5 Feb 2015 19:39:14 +0100
+Message-ID: <20150205183914.GV10842@pengutronix.de>
 References: <1423159266-25561-1-git-send-email-balbi@ti.com>
  <1423159266-25561-2-git-send-email-balbi@ti.com>
- <20150205182240.GD20735@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp6.ore.mailhop.org ([54.149.35.133]:40310 "EHLO
-	smtp6.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516AbbBESgy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2015 13:36:54 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150205182240.GD20735@leverpostej>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1423159266-25561-2-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Felipe Balbi <balbi@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Mark Rutland <mark.rutland@arm.com> [150205 10:26]:
-> On Thu, Feb 05, 2015 at 06:01:06PM +0000, Felipe Balbi wrote:
-> > allowing values to boolean flags lets us setup
-> > defaults on DTSI which can get disabled later
-> > at board DTS if, for whatever reason, board can't
-> > use that default.
-> > 
-> > One such example is DM81xx EVM where we can't use
-> > MUSB's multipoint feature even though SoC supports
-> > it. Something at the board level prevents us from
-> > using the feature.
-> > 
-> > Instead of removing "multipoint;" from DTSI and
-> > adding it to all board DTS just so we can remove
-> > it from our quirky board seems like overkill when
-> > we could just add:
-> > 
-> > 	multipoint = <0>;
-> > 
-> > to that quirky board's DTS.
-> > 
-> > Note that the description here is but one example
-> > and it's likely many others have faced something
-> > similar.
-> > 
-> 
-> While I appreciate that adding and removing properties in this way is
-> painful, I think that this must be dealt with at DTB compile-time rather
-> than kernel run-time.
-> 
-> There are codebases other than Linux which parse DTs, and not all
-> drivers call of_property_read_bool to parse boolean properties, an awful
-> lot still just check of_find_property. Additionally, some bindings
-> _explicitly_ state boolean properties are empty and have no value, which
-> this extension would break.
-> 
-> I think that this patch only adds to the inconsistency we currently
-> have, and given that, I would rather not have this extension to
-> of_property_read_bool.
-> 
-> Arguably of_proeprty_read_bool should warn if it encounters a non-empty
-> property.
+On Thu, Feb 05, 2015 at 12:01:06PM -0600, Felipe Balbi wrote:
+> allowing values to boolean flags lets us setup
+> defaults on DTSI which can get disabled later
+> at board DTS if, for whatever reason, board can't
+> use that default.
+>=20
+> One such example is DM81xx EVM where we can't use
+> MUSB's multipoint feature even though SoC supports
+> it. Something at the board level prevents us from
+> using the feature.
+>=20
+> Instead of removing "multipoint;" from DTSI and
+> adding it to all board DTS just so we can remove
+> it from our quirky board seems like overkill when
+> we could just add:
+>=20
+> 	multipoint =3D <0>;
+>=20
+> to that quirky board's DTS.
+>=20
+> Note that the description here is but one example
+> and it's likely many others have faced something
+> similar.
+And others even came up with solutions, too: The right thing to do in
+this case is
 
-How about a WARN_ON there as in that case the value will always
-be set to 1 in kernel even if specified as 0 in the .dts file?
+	/delete-property/ multipoint;
 
-Regards,
+This works since
 
-Tony
+	cd296721a964 (dtc: import latest upstream dtc)
+
+which is in 3.7-rc1. See
+
+http://permalink.gmane.org/gmane.linux.drivers.devicetree/19170
+
+for the related discussion.
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
