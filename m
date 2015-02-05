@@ -1,141 +1,91 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
- instances
-Date: Thu, 05 Feb 2015 14:14:01 -0800
-Message-ID: <54D3EB29.4090007@codeaurora.org>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <54D3C803.30706@samsung.com> <54D3CD6A.1010209@codeaurora.org>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Thu, 5 Feb 2015 15:01:06 -0800
+Message-ID: <CAJAp7OiHfaMrVqaZ1r6ZN0aMMpE4OUnvLhODHQJeb6EJMa+o8A@mail.gmail.com>
+References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
+	<1421269101-51105-2-git-send-email-s-anna@ti.com>
+	<20150115135201.GG16217@leverpostej>
+	<20150115135556.GH16217@leverpostej>
+	<CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
+	<CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
+	<20150116101746.GA21809@leverpostej>
+	<CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
+	<CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com>
+	<CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
+	<CAJAp7OjVULNRd113TtOEwaa6QO-XCDa0oxBm2H5NPvp_kLTSpA@mail.gmail.com>
+	<54CFE71E.20905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:42961 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbbBEWOD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2015 17:14:03 -0500
-In-Reply-To: <54D3CD6A.1010209@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54CFE71E.20905@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robherring2@gmail.com>, Kumar Gala <galak@codeaurora.org>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org
 
-On 02/05/15 12:07, Stephen Boyd wrote:
-> On 02/05/15 11:44, Sylwester Nawrocki wrote:
->> Hi Tomeu,
+On Mon, Feb 2, 2015 at 1:07 PM, Suman Anna <s-anna@ti.com> wrote:
+> On 02/01/2015 11:55 AM, Bjorn Andersson wrote:
+>> On Fri, Jan 30, 2015 at 9:41 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>>> On Sat, Jan 31, 2015 at 1:29 AM, Bjorn Andersson <bjorn@kryo.se> wrote:
+>>>> In a system where you have two hwlock blocks lckA and lckB, each
+>>>> consisting of 8 locks and you have dspB that can only access lckB
+>>>
+>>> This is a good example - thanks. To be able to cope with such cases we
+>>> will have to pass a hwlock block reference and its relative lock id.
+>>>
 >>
->> On 23/01/15 12:03, Tomeu Vizoso wrote:
->>>  int __clk_get(struct clk *clk)
->>>  {
->>> -	if (clk) {
->>> -		if (!try_module_get(clk->owner))
->>> +	struct clk_core *core = !clk ? NULL : clk->core;
->>> +
->>> +	if (core) {
->>> +		if (!try_module_get(core->owner))
->>>  			return 0;
->>>  
->>> -		kref_get(&clk->ref);
->>> +		kref_get(&core->ref);
->>>  	}
->>>  	return 1;
->>>  }
->>>  
->>> -void __clk_put(struct clk *clk)
->>> +static void clk_core_put(struct clk_core *core)
->>>  {
->>>  	struct module *owner;
->>>  
->>> -	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
->>> -		return;
->>> +	owner = core->owner;
->>>  
->>>  	clk_prepare_lock();
->>> -	owner = clk->owner;
->>> -	kref_put(&clk->ref, __clk_release);
->>> +	kref_put(&core->ref, __clk_release);
->>>  	clk_prepare_unlock();
->>>  
->>>  	module_put(owner);
->>>  }
->>>  
->>> +void __clk_put(struct clk *clk)
->>> +{
->>> +	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
->>> +		return;
->>> +
->>> +	clk_core_put(clk->core);
->>> +	kfree(clk);
->> Why do we have kfree() here? clk_get() doesn't allocate the data structure 
->> being freed here. What happens if we do clk_get(), clk_put(), clk_get() 
->> on same clock?
+>> Correct, so the #hwlock-cells and hwlock part from the proposal are
+>> the important one. Having an optional hwlock-names will make things
+>> easier to read as well, but is not necessary.
+>
+> Right, if anything, it would be useful only for the clients, but the
+> hwspinlock core itself would not need it. So, I would forgo adding the
+> hwlock-names for now.
+>
 >>
->> I suspect __clk_free_clk() should be called in __clk_release() callback
->> instead, but then there is an issue of safely getting reference to
->> struct clk from struct clk_core pointer.
+>>> The DT binding should definitely be prepared for such cases (just kill
+>>> the base-id field?), but let's see what it means about the Linux
+>>> implementation.
+>>>
 >>
->> I tested linux-next on Odroid U3 and booting fails with oopses as below.
->> There is no problems when the above kfree() is commented out.
->>
->>
-> Ah now I get it. You meant to say that of_clk_get_by_clkspec() doesn't
-> return an allocated clk pointer. Let's fix that.
+>> From the dt binding PoV, we should be able to skip num-locks as well.
+>> It seems most hwlock blocks have a fixed amount of locks provided and
+>> the drivers are reporting this to the core when registering.
 >
-> ----8<----
->
-> From: Stephen Boyd <sboyd@codeaurora.org>
-> Subject: [PATCH] clkdev: Always allocate a struct clk in OF functions
->
-> of_clk_get_by_clkspec() returns a struct clk pointer but it
-> doesn't create a new handle for the consumers. Instead it just
-> returns whatever the OF clk provider hands out. Let's create a
-> per-user handle here so that clk_put() can properly unlink it and
-> free it when the consumer is done.
->
-> Fixes: 035a61c314eb "clk: Make clk API return per-user struct clk instances"
-> Reported-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-> ---
->  drivers/clk/clkdev.c | 44 +++++++++++++++++++++++---------------------
->  1 file changed, 23 insertions(+), 21 deletions(-)
->
-> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-> index 29a1ab7af4b8..00d747d09b2a 100644
-> --- a/drivers/clk/clkdev.c
-> +++ b/drivers/clk/clkdev.c
-> @@ -29,15 +29,8 @@ static DEFINE_MUTEX(clocks_mutex);
->  
->  #if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
->  
-> -/**
-> - * of_clk_get_by_clkspec() - Lookup a clock form a clock provider
-> - * @clkspec: pointer to a clock specifier data structure
-> - *
-> - * This function looks up a struct clk from the registered list of clock
-> - * providers, an input is a clock specifier data structure as returned
-> - * from the of_parse_phandle_with_args() function call.
-> - */
-> -struct clk *of_clk_get_by_clkspec(struct of_phandle_args *clkspec)
-> +static struct clk *__of_clk_get_by_clkspec(struct of_phandle_args *clkspec,
-> +					 const char *dev_id, const char *con_id)
->  {
->  	struct clk *clk;
->  
-> @@ -47,6 +40,8 @@ struct clk *of_clk_get_by_clkspec(struct of_phandle_args *clkspec)
->  	of_clk_lock();
->  	clk = __of_clk_get_from_provider(clkspec);
->  
-> +	if (!IS_ERR(clk))
-> +		clk = __clk_create_clk(__clk_get_hw(clk), dev_id, con_id);
->  	if (!IS_ERR(clk) && !__clk_get(clk))
->  		clk = ERR_PTR(-ENOENT);
+> I added this originally based on the initial MSM HW Mutex block bindings.
 >
 
-Actually we can bury the __clk_create_clk() inside
-__of_clk_get_from_provider(). We should also move __clk_get() into there
-because right now we have a hole where whoever calls
-of_clk_get_from_provider() never calls __clk_get() on the clk, leading
-to possible badness. v2 coming soon.
+It's not entirely correct to have this in DT for the MSM HW, as the
+hardware has a fixed number of mutexes. As soon as we have the binding
+sorted out I will follow up with a new revision of the tcsr/sfpb-mutex
+driver.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+>>
+>> So I think we can reduce the binding to:
+>>
+>> Providers:
+>> #hwlock-cells
+>>
+>> Consumers:
+>> hwlocks
+>> hwlock-names
+>>
+>> For the hardware where number of locks is actually variable (e.g.
+>> different variants of same block) there can be driver specific entries
+>> for this.
+>
+> Right, we should be able to drop this and use the driver match data. As
+> it is, the field is used during registration of the block with the
+> hwspinlock core.
+>
 
+If we have certain systems where it actually is a property to be
+configured then they can have individual properties, extending the
+standard set. Either way, it's not a dynamic property shared by all
+hwlock drivers, so it should not be in the common binding.
+
+Will you send out a new revision of the binding? I would love to get
+this integrated so I can move on with the dependents.
+
+Regards,
+Bjorn
