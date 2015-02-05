@@ -1,88 +1,73 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [RFC/PATCH 2/2] of: allow for boolean flags to have value
-Date: Thu, 5 Feb 2015 12:01:06 -0600
-Message-ID: <1423159266-25561-2-git-send-email-balbi@ti.com>
-References: <1423159266-25561-1-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] usb: musb: Fix use for of_property_read_bool for
+ disabled multipoint
+Date: Thu, 5 Feb 2015 12:09:06 -0600
+Message-ID: <20150205180905.GE22782@saruman.tx.rr.com>
+References: <1423154113-23463-1-git-send-email-tony@atomide.com>
+ <1423154113-23463-2-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423159266-25561-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52884 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751974AbbBESJJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Feb 2015 13:09:09 -0500
+Content-Disposition: inline
+In-Reply-To: <1423154113-23463-2-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-allowing values to boolean flags lets us setup
-defaults on DTSI which can get disabled later
-at board DTS if, for whatever reason, board can't
-use that default.
+--zjcmjzIkjQU2rmur
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-One such example is DM81xx EVM where we can't use
-MUSB's multipoint feature even though SoC supports
-it. Something at the board level prevents us from
-using the feature.
+On Thu, Feb 05, 2015 at 08:35:12AM -0800, Tony Lindgren wrote:
+> The value for the multipoint dts property is ignored when parsing with
+> of_property_read_bool, so we currently have multipoint always set as 1
+> even if value 0 is specified in the dts file.
+>=20
+> Let's fix this to read the value too instead of just the property like
+> the binding documentation says as otherwise MUSB will fail to work
+> on devices with Mentor configuration that does not support multipoint.
+>=20
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Instead of removing "multipoint;" from DTSI and
-adding it to all board DTS just so we can remove
-it from our quirky board seems like overkill when
-we could just add:
+do you mind waiting a little bit to see if my boolean properties with
+value patch is accepted ?
 
-	multipoint = <0>;
+http://marc.info/?l=3Dlinux-omap&m=3D142315930232743&w=3D2
 
-to that quirky board's DTS.
+At least let's see where the discussion moves.
 
-Note that the description here is but one example
-and it's likely many others have faced something
-similar.
+--=20
+balbi
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- include/linux/of.h | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+--zjcmjzIkjQU2rmur
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 76c055b20fef..c5ee9320f237 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -792,14 +792,32 @@ static inline int of_property_read_u32(const struct device_node *np,
-  * @propname:	name of the property to be searched.
-  *
-  * Search for a property in a device node.
-- * Returns true if the property exist false otherwise.
-+ * Returns true if the property exist and has a value greater than zero,
-+ * fals otherwise.
-  */
- static inline bool of_property_read_bool(const struct device_node *np,
- 					 const char *propname)
- {
- 	struct property *prop = of_find_property(np, propname, NULL);
-+	int rc;
-+	u32 val;
- 
--	return prop ? true : false;
-+	if (!prop)
-+		return false;
-+
-+	rc = of_property_read_u32(np, propname, &val);
-+
-+	/*
-+	 * if property doesn't have a value, or prop->length == 0 and
-+	 * we overflow, treat it as simple value-less flag.
-+	 */
-+	if (rc == -ENODATA || rc == -EOVERFLOW)
-+		return true;
-+	if (WARN(rc < 0, "failed to read '%s' value -> %d\n",
-+				propname, rc))
-+		return false;
-+
-+	return !!val;
- }
- 
- static inline int of_property_read_s32(const struct device_node *np,
--- 
-2.3.0-rc1
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJU07HBAAoJEIaOsuA1yqREQRwP/2UIC6xC2oeC7T6lXDrTUwBL
+7PKljFF7XhPRBTIXWetpoNiOdophdn9Hz9Pd0lQRJvNg8gBx3DvIbbsEWSl5JyEO
+je6aQxAYnI8oG1NraeKjIs38bBO04gHBh7qe0Cstbo4mbIaBN1xskLoKfB2UCOXI
+TVUw2QC+O5bLA9kIqI5tx0YmFF8tnPBpbPIk8s0esxDnnceo0gbQw5lm38AV/ayl
+kOL8dCFaG5l+ul40RsUxXCskLI2A9xdyFjdV/FG3DcoXpSdXdmct7XkzRaV44b5p
+NkHHR6ZbO7W3F4x7nfVE9rETkKmEqNaCUhNZVJUVWumKcj3k0Z35Ol9VStmFJzf+
+GAt9dOjaAQ7khGcOg4VSclnf+P3KRWjhkW74CKV0Z9XDyQkCCeIQcYuMCTo/DG8+
+1KQqpY+WFOpT7GunfQoFtmkZGWPbW1BTNxsNy8NnqyYNfaa6tdW2EMD42OvyE4As
+2oZH2fuSWS196xCDC1/GKXqgQ1KX6ItTXYr//0SgvAYDMXFdtAJdJUL9O9vWR+dC
+/suuYRo07PxDWgqogTvVPCd5ADotmTrlH9b8KhrH8FCiMvY/1wu9N4VA/Vg5JZF0
+ViSLfBH4yFpt+s2KZUj9tDvPKbaFbQaK2Q5BLNs71+4qKzOJyTIWMQX+n+naVYdI
+HMY48Iect/NkhyaI/vKD
+=NlNo
+-----END PGP SIGNATURE-----
+
+--zjcmjzIkjQU2rmur--
