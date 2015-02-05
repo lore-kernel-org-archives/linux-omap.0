@@ -1,150 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix USB dts configuration for dm816x
-Date: Thu, 5 Feb 2015 09:12:01 -0800
-Message-ID: <20150205171201.GG25198@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [RFC/PATCH 1/2] of: move of_property_read_bool further down
+Date: Thu, 5 Feb 2015 12:01:05 -0600
+Message-ID: <1423159266-25561-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.ore.mailhop.org ([54.149.88.251]:47824 "EHLO
-	smtp3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880AbbBEROn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2015 12:14:43 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-Commit 7800064ba507 ("ARM: dts: Add basic dm816x device tree
-configuration") added basic devices for dm816x, but I was not able
-to test the USB completely because of a unconfigure USB phy, and
-I only tested it to make sure the Mentor chips are detected and
-clocked without a phy.
+A follow-up patch will make use of of_property_read_u32()
+to allow for boolean properties to have a value, this
+is just in preparation for that patch in order to make
+review easier.
 
-After testing the USB with actual devices I noticed a few issues
-that should be tested to avoid confusion:
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ include/linux/of.h | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-- The USB id pin on dm8168-evm is hardwired and can be changed
-  only by software. As there are two USB-A type connectors, let's
-  start both in host mode instead of otg.
-
-- The Mentor core is configured in such a way on dm8168-evm that
-  it's not capable for multipoint at least on revision c board
-  that I have.
-
-- We need ranges for the syscon to properly set up the phy as
-  children of the SCM syscon area.
-
-- Let's not disable the second interface, the board specific
-  dts files can do that if really needed. Most boards should
-  just keep it enabled to ensure the device is idled properly.
-
-Note that also a phy and several musb fixes are still needed to
-make the USB to work properly in addition to this fix.
-
-Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/boot/dts/dm8168-evm.dts
-+++ b/arch/arm/boot/dts/dm8168-evm.dts
-@@ -35,6 +35,18 @@
- 			DM816X_IOPAD(0x0aac, PIN_INPUT | MUX_MODE0)	/* SPI_D1 */
- 		>;
- 	};
-+
-+	usb0_pins: pinmux_usb0_pins {
-+		pinctrl-single,pins = <
-+			DM816X_IOPAD(0x0d00, MUX_MODE0)			/* USB0_DRVVBUS */
-+		>;
-+	};
-+
-+	usb1_pins: pinmux_usb0_pins {
-+		pinctrl-single,pins = <
-+			DM816X_IOPAD(0x0d04, MUX_MODE0)			/* USB1_DRVVBUS */
-+		>;
-+	};
- };
+diff --git a/include/linux/of.h b/include/linux/of.h
+index dfde07e77a63..76c055b20fef 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -765,22 +765,6 @@ static inline int of_property_read_string_index(struct device_node *np,
+ 	return rc < 0 ? rc : 0;
+ }
  
- &i2c1 {
-@@ -127,3 +139,16 @@
- &mmc1 {
- 	vmmc-supply = <&vmmcsd_fixed>;
- };
-+
-+/* At least dm8168-evm rev c won't support multipoint, later may */
-+&usb0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb0_pins>;
-+	mentor,multipoint = <0>;
-+};
-+
-+&usb1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb1_pins>;
-+	mentor,multipoint = <0>;
-+};
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -97,10 +97,31 @@
+-/**
+- * of_property_read_bool - Findfrom a property
+- * @np:		device node from which the property value is to be read.
+- * @propname:	name of the property to be searched.
+- *
+- * Search for a property in a device node.
+- * Returns true if the property exist false otherwise.
+- */
+-static inline bool of_property_read_bool(const struct device_node *np,
+-					 const char *propname)
+-{
+-	struct property *prop = of_find_property(np, propname, NULL);
+-
+-	return prop ? true : false;
+-}
+-
+ static inline int of_property_read_u8(const struct device_node *np,
+ 				       const char *propname,
+ 				       u8 *out_value)
+@@ -802,6 +786,22 @@ static inline int of_property_read_u32(const struct device_node *np,
+ 	return of_property_read_u32_array(np, propname, out_value, 1);
+ }
  
- 			/* Device Configuration Registers */
- 			scm_conf: syscon@600 {
--				compatible = "syscon";
-+				compatible = "syscon", "simple-bus";
- 				reg = <0x600 0x110>;
- 				#address-cells = <1>;
- 				#size-cells = <1>;
-+				ranges = <0 0x600 0x110>;
++/**
++ * of_property_read_bool - Findfrom a property
++ * @np:		device node from which the property value is to be read.
++ * @propname:	name of the property to be searched.
++ *
++ * Search for a property in a device node.
++ * Returns true if the property exist false otherwise.
++ */
++static inline bool of_property_read_bool(const struct device_node *np,
++					 const char *propname)
++{
++	struct property *prop = of_find_property(np, propname, NULL);
 +
-+				usb_phy0: usb-phy@20 {
-+					compatible = "ti,dm8168-usb-phy";
-+					reg = <0x20 0x8>;
-+					reg-names = "phy";
-+					clocks = <&main_fapll 6>;
-+					clock-names = "refclk";
-+					#phy-cells = <0>;
-+					syscon = <&scm_conf>;
-+				};
++	return prop ? true : false;
++}
 +
-+				usb_phy1: usb-phy@28 {
-+					compatible = "ti,dm8168-usb-phy";
-+					reg = <0x28 0x8>;
-+					reg-names = "phy";
-+					clocks = <&main_fapll 6>;
-+					clock-names = "refclk";
-+					#phy-cells = <0>;
-+					syscon = <&scm_conf>;
-+				};
- 			};
- 
- 			scrm_clocks: clocks {
-@@ -357,7 +378,10 @@
- 				reg-names = "mc", "control";
- 				interrupts = <18>;
- 				interrupt-names = "mc";
--				dr_mode = "otg";
-+				dr_mode = "host";
-+				interface-type = <0>;
-+				phys = <&usb_phy0>;
-+				phy-names = "usb2-phy";
- 				mentor,multipoint = <1>;
- 				mentor,num-eps = <16>;
- 				mentor,ram-bits = <12>;
-@@ -366,13 +390,15 @@
- 
- 			usb1: usb@47401800 {
- 				compatible = "ti,musb-am33xx";
--				status = "disabled";
- 				reg = <0x47401c00 0x400
- 				       0x47401800 0x200>;
- 				reg-names = "mc", "control";
- 				interrupts = <19>;
- 				interrupt-names = "mc";
--				dr_mode = "otg";
-+				dr_mode = "host";
-+				interface-type = <0>;
-+				phys = <&usb_phy1>;
-+				phy-names = "usb2-phy";
- 				mentor,multipoint = <1>;
- 				mentor,num-eps = <16>;
- 				mentor,ram-bits = <12>;
+ static inline int of_property_read_s32(const struct device_node *np,
+ 				       const char *propname,
+ 				       s32 *out_value)
+-- 
+2.3.0-rc1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
