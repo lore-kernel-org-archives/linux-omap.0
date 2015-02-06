@@ -1,132 +1,62 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/2] ARM: omap2+: omap_hwmod: Fix false lockdep warning
-Date: Fri, 6 Feb 2015 18:05:32 +0200
-Message-ID: <54D4E64C.7060208@ti.com>
-References: <1423226916-18804-1-git-send-email-peter.ujfalusi@ti.com> <20150206141346.GP21418@twins.programming.kicks-ass.net>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
+ clk instances
+Date: Fri, 06 Feb 2015 09:15:51 -0800
+Message-ID: <54D4F6C7.2020007@codeaurora.org>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org> <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6> <54CFFBCF.90706@codeaurora.org> <20150202225036.421.43421@quantum> <54D0F179.1040906@gmail.com> <54D2AA9B.7010800@codeaurora.org> <54D3900A.9060200@gmail.com> <54D423C3.9030105@codeaurora.org> <54D482EE.6050004@gmail.com> <alpine.DEB.2.10.1502061009320.2538@hadrien>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150206141346.GP21418@twins.programming.kicks-ass.net>
+In-Reply-To: <alpine.DEB.2.10.1502061009320.2538@hadrien>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
+To: Julia Lawall <julia.lawall@lip6.fr>, Quentin Lambert <lambert.quentin@gmail.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/06/2015 04:13 PM, Peter Zijlstra wrote:
-> On Fri, Feb 06, 2015 at 02:48:34PM +0200, Peter Ujfalusi wrote:
->> Hi,
->>
->> In case when hwmods are used in nested way the lockdep validator wil=
-l print out
->> a warning message about possible deadlock situation:
->>
->> [    4.514882] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D
->> [    4.520530] [ INFO: possible recursive locking detected ]
->> [    4.526176] 3.14.30-00289-ge44872fdca8f-dirty #198 Not tainted
->> [    4.532285] ---------------------------------------------
->> [    4.537936] kworker/u4:1/18 is trying to acquire lock:
->> [    4.543317]  (&(&oh->_lock)->rlock){......}, at: [<c002d2dc>] oma=
-p_hwmod_enable+0x2c/0x58
->> [    4.552109]=20
->> [    4.552109] but task is already holding lock:
->> [    4.558216]  (&(&oh->_lock)->rlock){......}, at: [<c002d2dc>] oma=
-p_hwmod_enable+0x2c/0x58
->> [    4.566999]=20
->> [    4.566999] other info that might help us debug this:
->> [    4.573831]  Possible unsafe locking scenario:
->> [    4.573831]=20
->> [    4.580025]        CPU0
->> [    4.582584]        ----
->> [    4.585142]   lock(&(&oh->_lock)->rlock);
->> [    4.589544]   lock(&(&oh->_lock)->rlock);
->> [    4.593945]=20
->> [    4.593945]  *** DEADLOCK ***
->> [    4.593945]=20
->> [    4.600146]  May be due to missing lock nesting notation
->>
->> What lockdep did not realizes is that the two oh is not the same hwm=
-od object
->> and we have taken different locks.
->>
->> One example of nested hwmod usage is on DRA7xx platforms, where McAS=
-P can be
->> configured to use ATL clock as it's functional clock. In this case t=
-he
->> pm_runtime_get/put_sync call will enable the mcasp hwmod and as part=
- of this
->> operation it will enable the needed clocks. Since ATL clock is neede=
-d, we will
->> have another pm_runtime operation from the ATL clock enable callback=
- which
->> will take the atl hwmod's lock. This will be seen by lockdep as poss=
-ible
->> deadlock situation.
->>
->> In order to notify lockdep about this, we need to switch using _nest=
-ed
->> version of locking function and assign different subclass to those h=
-wmods which
->> could be used in nested way.
->=20
-> IFF struct omap_hwmod is always statically allocated; as I think the
-> __init on _register() mandates, you can use the below annotation.
->=20
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c | 1 +
->  arch/arm/mach-omap2/omap_hwmod.h | 2 ++
->  2 files changed, 3 insertions(+)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
-map_hwmod.c
-> index 9025ffffd2dc..222d654ad6fd 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2698,6 +2698,7 @@ static int __init _register(struct omap_hwmod *=
-oh)
->  	INIT_LIST_HEAD(&oh->master_ports);
->  	INIT_LIST_HEAD(&oh->slave_ports);
->  	spin_lock_init(&oh->_lock);
-> +	lockdep_set_class(&oh->_lock, &oh->hwmod_key);
-> =20
->  	oh->_state =3D _HWMOD_STATE_REGISTERED;
-> =20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/o=
-map_hwmod.h
-> index 5b42fafcaf55..754bdfb3f811 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.h
-> +++ b/arch/arm/mach-omap2/omap_hwmod.h
-> @@ -689,6 +689,8 @@ struct omap_hwmod {
->  	u8				_state;
->  	u8				_postsetup_state;
->  	struct omap_hwmod		*parent_hwmod;
-> +
-> +	struct lock_class_key		hwmod_key;
->  };
-> =20
->  struct omap_hwmod *omap_hwmod_lookup(const char *name);
+On 02/06/15 01:12, Julia Lawall wrote:
+>
+> On Fri, 6 Feb 2015, Quentin Lambert wrote:
+>
+>> On 06/02/2015 03:15, Stephen Boyd wrote:
+>>> Thanks for the coccinelle patch. Thinking more about it, I don't think
+>>> we care if the pointer is dereferenced because that would require a
+>>> definition of struct clk and that is most likely not the case outside of
+>>> the clock framework. Did you scan the entire kernel?
+>> No I haven't.
+>>> I'm running it now
+>>> but it seems to be taking a while.
+>>>
+>> Yes, that's why, as a first step, I chose to limit the scan to the arm
+>> directory.
+> Are you sure to be using all of the options provided:
+>
+> // Options: --recursive-includes --relax-include-path
+> // Options: --include-headers-for-types
+>
+> And are you using 1.0.0-rc23 or 1.0.0-rc24?  Those should save parsed
+> header files so that they don't have to be parsed over and over.
+>
+> If you are using rc24, then you can use the -j option for parallelism.
+> But then you should also use an option like --chunksize 10 (I don't know
+> what number would be good), because the default is chunksize 1, and in
+> that case the saved parsed header files are not reused, because the fies
+> are all processed individually.  In general, it is only the files within a
+> chunk that will share parsed header files.
 
-Certainly looks much simpler, but it adds quite a bit of data to the
-omap_hwmod struct, and we have a _lot_ of them for omap2plus configurat=
-ion.
+Thanks for the info.
 
-ls -al vmlinux
+$ spatch --version
+spatch version 1.0.0-rc22 with Python support and with PCRE support
 
-w/o any the lockdep warning fixes:
-110109168
+so I guess I need to update. I tried throwing it into
+scripts/coccinelle/misc and then did
 
-With my series applied:
-110112031 (base + 2863)
+make O=../obj/ coccicheck
+COCCI=../kernel/scripts/coccinelle/misc/structclk.cocci
 
-With setting individual lockdep class:
-110114275 (base + 5107)
+at the toplevel but it didn't find anything.
 
-I certainly like the lockdep_set_class() way since it is cleaner, but i=
-t adds
-almost double amount of bytes to the kernel.
-I'll test the patch on my board tomorrow as first thing.
-
---=20
-P=E9ter
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
