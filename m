@@ -1,49 +1,81 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
- clk instances
-Date: Fri, 6 Feb 2015 10:12:22 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1502061009320.2538@hadrien>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org> <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6>
- <54CFFBCF.90706@codeaurora.org> <20150202225036.421.43421@quantum> <54D0F179.1040906@gmail.com> <54D2AA9B.7010800@codeaurora.org> <54D3900A.9060200@gmail.com> <54D423C3.9030105@codeaurora.org> <54D482EE.6050004@gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 1/2] usb: dwc3: ep0: preparation for implementing chained TRB
+Date: Fri, 6 Feb 2015 17:25:34 +0530
+Message-ID: <1423223735-32512-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54D482EE.6050004@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Quentin Lambert <lambert.quentin@gmail.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Mike Turquette <mturquette@linaro.org>, Julia Lawall <julia.lawall@lip6.fr>, Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+No functional change. Modified few things so that there are no
+code duplication while implementing chained TRB.
 
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/dwc3/ep0.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-On Fri, 6 Feb 2015, Quentin Lambert wrote:
-
->
-> On 06/02/2015 03:15, Stephen Boyd wrote:
-> > Thanks for the coccinelle patch. Thinking more about it, I don't think
-> > we care if the pointer is dereferenced because that would require a
-> > definition of struct clk and that is most likely not the case outside of
-> > the clock framework. Did you scan the entire kernel?
-> No I haven't.
-> > I'm running it now
-> > but it seems to be taking a while.
-> >
-> Yes, that's why, as a first step, I chose to limit the scan to the arm
-> directory.
-
-Are you sure to be using all of the options provided:
-
-// Options: --recursive-includes --relax-include-path
-// Options: --include-headers-for-types
-
-And are you using 1.0.0-rc23 or 1.0.0-rc24?  Those should save parsed
-header files so that they don't have to be parsed over and over.
-
-If you are using rc24, then you can use the -j option for parallelism.
-But then you should also use an option like --chunksize 10 (I don't know
-what number would be good), because the default is chunksize 1, and in
-that case the saved parsed header files are not reused, because the fies
-are all processed individually.  In general, it is only the files within a
-chunk that will share parsed header files.
-
-julia
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index 2ef3c8d..24b7925 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -779,7 +779,10 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
+ 	struct usb_request	*ur;
+ 	struct dwc3_trb		*trb;
+ 	struct dwc3_ep		*ep0;
+-	u32			transferred;
++	unsigned		transfer_size = 0;
++	unsigned		maxp;
++	void			*buf;
++	u32			transferred = 0;
+ 	u32			status;
+ 	u32			length;
+ 	u8			epnum;
+@@ -808,16 +811,17 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
+ 	}
+ 
+ 	ur = &r->request;
++	buf = ur->buf;
+ 
+ 	length = trb->size & DWC3_TRB_SIZE_MASK;
+ 
+-	if (dwc->ep0_bounced) {
+-		unsigned transfer_size = ur->length;
+-		unsigned maxp = ep0->endpoint.maxpacket;
++	maxp = ep0->endpoint.maxpacket;
+ 
+-		transfer_size += (maxp - (transfer_size % maxp));
+-		transferred = min_t(u32, ur->length,
+-				transfer_size - length);
++	if (dwc->ep0_bounced) {
++		transfer_size = roundup((ur->length - transfer_size),
++					maxp);
++		transferred = min_t(u32, ur->length - transferred,
++				    transfer_size - length);
+ 		memcpy(ur->buf, dwc->ep0_bounce, transferred);
+ 	} else {
+ 		transferred = ur->length - length;
+@@ -927,7 +931,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
+ 				DWC3_TRBCTL_CONTROL_DATA);
+ 	} else if (!IS_ALIGNED(req->request.length, dep->endpoint.maxpacket)
+ 			&& (dep->number == 0)) {
+-		u32	transfer_size;
++		u32	transfer_size = 0;
+ 		u32	maxpacket;
+ 
+ 		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
+@@ -940,7 +944,8 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
+ 		WARN_ON(req->request.length > DWC3_EP0_BOUNCE_SIZE);
+ 
+ 		maxpacket = dep->endpoint.maxpacket;
+-		transfer_size = roundup(req->request.length, maxpacket);
++		transfer_size = roundup((req->request.length - transfer_size),
++					maxpacket);
+ 
+ 		dwc->ep0_bounced = true;
+ 
+-- 
+1.7.9.5
