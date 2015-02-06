@@ -1,42 +1,28 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap device tree changes for v3.20, part 3
-Date: Fri, 6 Feb 2015 00:10:03 -0800
-Message-ID: <20150206081003.GD23582@quad.lixom.net>
-References: <20150130235535.GD16250@atomide.com>
+From: Quentin Lambert <lambert.quentin@gmail.com>
+Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
+ clk instances
+Date: Fri, 06 Feb 2015 10:01:34 +0100
+Message-ID: <54D482EE.6050004@gmail.com>
+References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org> <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6> <54CFFBCF.90706@codeaurora.org> <20150202225036.421.43421@quantum> <54D0F179.1040906@gmail.com> <54D2AA9B.7010800@codeaurora.org> <54D3900A.9060200@gmail.com> <54D423C3.9030105@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:46936 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850AbbBFIKF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2015 03:10:05 -0500
-Received: by pdjz10 with SMTP id z10so13281948pdj.13
-        for <linux-omap@vger.kernel.org>; Fri, 06 Feb 2015 00:10:05 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20150130235535.GD16250@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54D423C3.9030105@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>, Mike Turquette <mturquette@linaro.org>, Julia Lawall <julia.lawall@lip6.fr>
+Cc: Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Jan 30, 2015 at 03:55:35PM -0800, Tony Lindgren wrote:
-> The following changes since commit 1f43c45df7afb706470f7d81d983dd7763a9452f:
-> 
->   ARM: dts: dra72-evm: Add qspi device (2015-01-20 10:07:25 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.20/dt-pt3-v2
-> 
-> for you to fetch changes up to 726806ad9ba10f8ba8d26ba8154d98a7c9b89a12:
-> 
->   ARM: dts: am57xx-beagle-x15: Fix USB2 mode (2015-01-30 15:48:39 -0800)
-> 
-> ----------------------------------------------------------------
-> Device tree related chages for omaps to fix dm816x syscon,
-> fix various devices for gta04, and add USB nodes for am57xx
-> and dra7.
 
-Merged, thanks.
-
--Olof
+On 06/02/2015 03:15, Stephen Boyd wrote:
+> Thanks for the coccinelle patch. Thinking more about it, I don't think
+> we care if the pointer is dereferenced because that would require a
+> definition of struct clk and that is most likely not the case outside of
+> the clock framework. Did you scan the entire kernel?
+No I haven't.
+> I'm running it now
+> but it seems to be taking a while.
+>
+Yes, that's why, as a first step, I chose to limit the scan to the arm 
+directory.
