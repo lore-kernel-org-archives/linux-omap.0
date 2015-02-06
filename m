@@ -1,90 +1,91 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
- instances
-Date: Fri, 6 Feb 2015 13:39:20 +0000
-Message-ID: <20150206133920.GC8670@n2100.arm.linux.org.uk>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
- <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com>
- <54D3C803.30706@samsung.com>
- <54D3CD6A.1010209@codeaurora.org>
- <54D3EB29.4090007@codeaurora.org>
- <20150206004210.GB8670@n2100.arm.linux.org.uk>
- <54D41A60.8040702@codeaurora.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 0/2] ARM: omap2+: omap_hwmod: Fix false lockdep warning
+Date: Fri, 6 Feb 2015 15:13:46 +0100
+Message-ID: <20150206141346.GP21418@twins.programming.kicks-ass.net>
+References: <1423226916-18804-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:52500 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751789AbbBFNjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2015 08:39:44 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54D41A60.8040702@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1423226916-18804-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 05, 2015 at 05:35:28PM -0800, Stephen Boyd wrote:
-> On 02/05/15 16:42, Russell King - ARM Linux wrote:
-> > On Thu, Feb 05, 2015 at 02:14:01PM -0800, Stephen Boyd wrote:
-> >> Actually we can bury the __clk_create_clk() inside
-> >> __of_clk_get_from_provider(). We should also move __clk_get() into there
-> >> because right now we have a hole where whoever calls
-> >> of_clk_get_from_provider() never calls __clk_get() on the clk, leading
-> >> to possible badness. v2 coming soon.
-> > There's some other issues here too...
-> >
-> > sound/soc/kirkwood/kirkwood-i2s.c:
-> >
-> >         priv->clk = devm_clk_get(&pdev->dev, np ? "internal" : NULL);
-> > ...
-> >         priv->extclk = devm_clk_get(&pdev->dev, "extclk");
-> >         if (IS_ERR(priv->extclk)) {
-> > ...
-> > 	} else {
-> >                 if (priv->extclk == priv->clk) {
-> >                         devm_clk_put(&pdev->dev, priv->extclk);
-> >                         priv->extclk = ERR_PTR(-EINVAL);
-> >                 } else {
-> >                         dev_info(&pdev->dev, "found external clock\n");
-> >                         clk_prepare_enable(priv->extclk);
-> >                         soc_dai = kirkwood_i2s_dai_extclk;
-> >                 }
-> >
-> > It should be fine provided your "trick" is only done for DT clocks,
-> > but not for legacy - with legacy, a NULL in the clkdev tables will
-> > match both these requests, hence the need to compare the clk_get()
-> > return value to tell whether we get the same clock.
-> >
+On Fri, Feb 06, 2015 at 02:48:34PM +0200, Peter Ujfalusi wrote:
+> Hi,
 > 
-> Are we still talking about of_clk_get_from_provider()? Or are we talking
-> about comparing struct clk pointers?
+> In case when hwmods are used in nested way the lockdep validator will print out
+> a warning message about possible deadlock situation:
+> 
+> [    4.514882] =============================================
+> [    4.520530] [ INFO: possible recursive locking detected ]
+> [    4.526176] 3.14.30-00289-ge44872fdca8f-dirty #198 Not tainted
+> [    4.532285] ---------------------------------------------
+> [    4.537936] kworker/u4:1/18 is trying to acquire lock:
+> [    4.543317]  (&(&oh->_lock)->rlock){......}, at: [<c002d2dc>] omap_hwmod_enable+0x2c/0x58
+> [    4.552109] 
+> [    4.552109] but task is already holding lock:
+> [    4.558216]  (&(&oh->_lock)->rlock){......}, at: [<c002d2dc>] omap_hwmod_enable+0x2c/0x58
+> [    4.566999] 
+> [    4.566999] other info that might help us debug this:
+> [    4.573831]  Possible unsafe locking scenario:
+> [    4.573831] 
+> [    4.580025]        CPU0
+> [    4.582584]        ----
+> [    4.585142]   lock(&(&oh->_lock)->rlock);
+> [    4.589544]   lock(&(&oh->_lock)->rlock);
+> [    4.593945] 
+> [    4.593945]  *** DEADLOCK ***
+> [    4.593945] 
+> [    4.600146]  May be due to missing lock nesting notation
+> 
+> What lockdep did not realizes is that the two oh is not the same hwmod object
+> and we have taken different locks.
+> 
+> One example of nested hwmod usage is on DRA7xx platforms, where McASP can be
+> configured to use ATL clock as it's functional clock. In this case the
+> pm_runtime_get/put_sync call will enable the mcasp hwmod and as part of this
+> operation it will enable the needed clocks. Since ATL clock is needed, we will
+> have another pm_runtime operation from the ATL clock enable callback which
+> will take the atl hwmod's lock. This will be seen by lockdep as possible
+> deadlock situation.
+> 
+> In order to notify lockdep about this, we need to switch using _nested
+> version of locking function and assign different subclass to those hwmods which
+> could be used in nested way.
 
-Comparing struct clk pointers, and the implications of the patch changing
-the clk_get() et.al. to be unique struct clk pointers.
+IFF struct omap_hwmod is always statically allocated; as I think the
+__init on _register() mandates, you can use the below annotation.
 
-> From what I can tell this code is
-> now broken because we made all clk getting functions (there's quite a
-> few...) return unique pointers every time they're called. It seems that
-> the driver wants to know if extclk and clk are the same so it can do
-> something differently in kirkwood_set_rate(). Do we need some sort of
-> clk_equal(struct clk *a, struct clk *b) function for drivers like this?
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 1 +
+ arch/arm/mach-omap2/omap_hwmod.h | 2 ++
+ 2 files changed, 3 insertions(+)
 
-Well, the clocks in question are the SoC internal clock (which is more or
-less fixed, but has a programmable divider) and an externally supplied
-clock, and the IP has a multiplexer on its input which allows us to select
-between those two sources.
-
-If it were possible to bind both to the same clock, it wouldn't be a
-useful configuration - nothing would be gained from doing so in terms of
-available rates.
-
-What the comparison is there for is to catch the case with legacy lookups
-where a clkdev lookup entry with a NULL connection ID results in matching
-any connection ID passed to clk_get().  If the patch changes this, then
-we will have a regression - and this is something which needs fixing
-_before_ we do this "return unique clocks".
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 9025ffffd2dc..222d654ad6fd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2698,6 +2698,7 @@ static int __init _register(struct omap_hwmod *oh)
+ 	INIT_LIST_HEAD(&oh->master_ports);
+ 	INIT_LIST_HEAD(&oh->slave_ports);
+ 	spin_lock_init(&oh->_lock);
++	lockdep_set_class(&oh->_lock, &oh->hwmod_key);
+ 
+ 	oh->_state = _HWMOD_STATE_REGISTERED;
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 5b42fafcaf55..754bdfb3f811 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -689,6 +689,8 @@ struct omap_hwmod {
+ 	u8				_state;
+ 	u8				_postsetup_state;
+ 	struct omap_hwmod		*parent_hwmod;
++
++	struct lock_class_key		hwmod_key;
+ };
+ 
+ struct omap_hwmod *omap_hwmod_lookup(const char *name);
