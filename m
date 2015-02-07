@@ -1,38 +1,82 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
- instances
-Date: Fri, 06 Feb 2015 11:41:22 -0800
-Message-ID: <54D518E2.8060405@codeaurora.org>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <54D3C803.30706@samsung.com> <54D3CD6A.1010209@codeaurora.org> <54D3EB29.4090007@codeaurora.org> <20150206004210.GB8670@n2100.arm.linux.org.uk> <54D41A60.8040702@codeaurora.org> <20150206133920.GC8670@n2100.arm.linux.org.uk> <54D5164A.30503@codeaurora.org> <20150206193702.GD8670@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] thermal: ti-soc-thermal: fix compilation warnings when
+ !CONFIG_PM_SLEEP
+Date: Sat, 7 Feb 2015 00:17:47 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1502062259190.3767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150206193702.GD8670@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-178357410-1423268267=:3767"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:32915 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752114AbbBGARs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2015 19:17:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 02/06/15 11:37, Russell King - ARM Linux wrote:
-> On Fri, Feb 06, 2015 at 11:30:18AM -0800, Stephen Boyd wrote:
->> Why don't we make the legacy lookup more specific and actually indicate
->> "internal" for the con_id? Then the external clock would fail to be
->> found, but we can detect that case and figure out that it's not due to
->> probe defer, but instead due to the fact that there really isn't any
->> mapping. It looks like the code is already prepared for this anyway.
-> We _could_, and that would solve this specific issue, but I'd suggest
-> coccinelle is used to locate any other similar instances of this.
->
-> As I'm allergic to coccinelle (or coccinelle is allergic to me since
-> I never seem to be able to get it to do what I want...)
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Great. I'd like to avoid adding clk_equal() until we actually need it,
-and I hope we don't ever need it. We've already got coccinelle in the
-works to find similar issues and it seems you and I have the same
-allergies because I can't get it to work for me right now.
+--843723315-178357410-1423268267=:3767
+Content-Type: TEXT/PLAIN; charset=ISO-8859-7
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+
+When CONFIG_PM_SLEEP=3Dn, the following compilation warnings appear:
+
+drivers/thermal/ti-soc-thermal/ti-bandgap.c:1478:12: warning: =A1ti_bandgap=
+_suspend=A2 defined but not used [-Wunused-function]
+ static int ti_bandgap_suspend(struct device *dev)
+            ^
+drivers/thermal/ti-soc-thermal/ti-bandgap.c:1492:12: warning: =A1ti_bandgap=
+_resume=A2 defined but not used [-Wunused-function]
+ static int ti_bandgap_resume(struct device *dev)
+
+A few years ago, suspend/resume-related code was protected by CONFIG_PM. =
+=20
+But that was changed and now it's protected by CONFIG_PM_SLEEP.  Fix the=20
+warnings by converting the preprocessor test in the TI bandgap thermal=20
+sensor driver from testing CONFIG_PM to testing CONFIG_PM_SLEEP.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+
+Non-critical.  Targeted for either v3.20-rc1 or v3.21-rc1.
+
+Basic test reports for a series that includes this patch (and a few other=
+=20
+unrelated warning cleanups) is available here:
+
+http://www.pwsan.com/omap/testlogs/fix-omap-warnings-v3.21/20150206154619/
+
+Compare to:
+
+http://www.pwsan.com/omap/testlogs/test_v3.19-rc7/20150204213018/
+
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/=
+ti-soc-thermal/ti-bandgap.c
+index 634b6ce0e63a..62a5d449c388 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -1402,7 +1402,7 @@ int ti_bandgap_remove(struct platform_device *pdev)
+ =09return 0;
+ }
+=20
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ static int ti_bandgap_save_ctxt(struct ti_bandgap *bgp)
+ {
+ =09int i;
+--=20
+2.1.4
+
+--843723315-178357410-1423268267=:3767--
