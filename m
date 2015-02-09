@@ -1,63 +1,38 @@
-From: Nicolas Schichan <nschichan@freebox.fr>
-Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Mon, 09 Feb 2015 14:34:42 +0100
-Message-ID: <54D8B772.1010405@freebox.fr>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
- <1410377411-26656-4-git-send-email-bigeasy@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1410377411-26656-4-git-send-email-bigeasy@linutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org
-Cc: tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Rostislav Lisovy <lisovy@gmail.com>
+Subject: [PATCH 1/3] ARM: dts: Add vendor prefix for Grinn
+Date: Mon,  9 Feb 2015 15:48:03 +0100
+Message-ID: <1423493285-4231-1-git-send-email-lisovy@jablotron.cz>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:46550 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760677AbbBIOs1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2015 09:48:27 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Rostislav Lisovy <lisovy@jablotron.cz>
 
-On 09/10/2014 09:29 PM, Sebastian Andrzej Siewior wrote:
-> The serial8250_do_startup() function unconditionally clears the
-> interrupts and for that it reads from the RX-FIFO without checking if
-> there is a byte in the FIFO or not. This works fine on OMAP4+ HW like
-> AM335x or DRA7.
-> OMAP3630 ES1.1 (which means probably all OMAP3 and earlier) does not like
-> this:
+Grinn is a company located in Poland, Europe producing
+System on Modules.
+Webpage: http://www.grinn-global.com/
 
-Hello,
+Signed-off-by: Rostislav Lisovy <lisovy@jablotron.cz>
+---
+ Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-Sorry to wake up an old thread, but I'm affraid that this patch causes
-problems on Marvell 88f6282 (Kirkwood).
-
-When a caracter is received on the UART while the kernel is printing
-the boot messages, as soon as the kernel configures the UART for
-receiving (after root filesystem mount), it gets stuck printing the
-following message repeatedly:
-
-serial8250: too much work for irq29
-
-Once stuck, the reception of another character allows the boot process
-to finish.
-
->From what I can gather, when we hit that, the UART_IIR_NO_INT is 0 (so the
-interrupt is raised), but the UART_LSR_DR bit is 0 as well so the UART_RX
-register is never read to clear the interrupt.
-
-We are using the second UART multiplexed on mpps 15 and 16.
-
-Reverting this particular patch fixes the issue.
-
-We are seing the problem on a 3.18 kernel.
-
-Regards,
-
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 389ca13..f6a9f25 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -77,6 +77,7 @@ giantplus	Giantplus Technology Co., Ltd.
+ globalscale	Globalscale Technologies, Inc.
+ gmt	Global Mixed-mode Technology, Inc.
+ google	Google, Inc.
++grinn	Grinn
+ gumstix	Gumstix, Inc.
+ gw	Gateworks Corporation
+ hannstar	HannStar Display Corporation
 -- 
-Nicolas Schichan
-Freebox SAS
+2.1.0
+
