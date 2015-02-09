@@ -1,115 +1,61 @@
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: Fix getting a generic phy for musb_dsps
-Date: Mon, 9 Feb 2015 11:26:03 +0530
-Message-ID: <54D84BF3.7060801@ti.com>
-References: <1423154113-23463-1-git-send-email-tony@atomide.com> <1423154113-23463-3-git-send-email-tony@atomide.com> <54D4BA78.9030704@ti.com> <20150206172313.GF25235@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] ARM: omap2+: omap_hwmod: Fix false lockdep warning
+Date: Mon, 9 Feb 2015 10:27:32 +0200
+Message-ID: <54D86F74.7070703@ti.com>
+References: <1423226916-18804-1-git-send-email-peter.ujfalusi@ti.com> <20150206141346.GP21418@twins.programming.kicks-ass.net> <54D4E64C.7060208@ti.com> <20150206183205.GS21418@twins.programming.kicks-ass.net> <54D5154F.8080208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150206172313.GF25235-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42585 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752414AbbBII2H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Feb 2015 03:28:07 -0500
+In-Reply-To: <54D5154F.8080208@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 
-Hi Tony,
-On 02/06/2015 10:53 PM, Tony Lindgren wrote:
-> * George Cherian <george.cherian-l0cyMroinI0@public.gmane.org> [150206 05:05]:
->> Hi Tony,
->>
->> You also need to add similar things in dsps_musb_reset();
->>
->> Otherwise you might not recover from a BABBLE condition.
-> Thank I totally missed that, updated patch below.
->
-> Do you have some testcase that easily triggers BABBLE
-> on MUSB?
-On a BBB or BBW you can connect a HUB with multiple device connected on HUB.
-Then do a repeated Connect and Disconnect of the HUB, This should 
-trigger a BABBLE interrupt.
-Not all HUB's might not lead you to a BABBLE condition.
+On 02/06/2015 09:26 PM, Peter Ujfalusi wrote:
+>> Yeah, I've never really bothered with data too much, its a debug
+>> feature. So lock_class_key is 8 bytes, and strictly speaking you cou=
+ld
+>> union them over other fields, all we really need is unique addresses=
+, we
+>> don't actually use the storage.
+>=20
+> True. our omap2plus defconfig does not have LOCKDEP enabled so it sho=
+uld not
+> add anything to the data when running default kernel.
+> I'll test the lockdep_set_class() method you suggested on Monday (not
+> tomorrow), but still as first thing.
+> If it is working as expected I'll send a patch with you as author.
 
-> Regards,
->
-> Tony
->
-> 8< ----------------------
-> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Date: Wed, 4 Feb 2015 06:28:49 -0800
-> Subject: [PATCH] usb: musb: Fix getting a generic phy for musb_dsps
->
-> We still have a combination of legacy phys and generic phys in
-> use so we need to support both types of phy for musb_dsps.c.
->
-> Cc: Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -457,12 +457,27 @@ static int dsps_musb_init(struct musb *musb)
->   	if (IS_ERR(musb->xceiv))
->   		return PTR_ERR(musb->xceiv);
->   
-> +	musb->phy = devm_phy_get(dev->parent, "usb2-phy");
-> +
->   	/* Returns zero if e.g. not clocked */
->   	rev = dsps_readl(reg_base, wrp->revision);
->   	if (!rev)
->   		return -ENODEV;
->   
->   	usb_phy_init(musb->xceiv);
-> +	if (IS_ERR(musb->phy))  {
-> +		musb->phy = NULL;
-> +	} else {
-> +		ret = phy_init(musb->phy);
-> +		if (ret < 0)
-> +			return ret;
-> +		ret = phy_power_on(musb->phy);
-> +		if (ret) {
-> +			phy_exit(musb->phy);
-> +			return ret;
-> +		}
-> +	}
-> +
->   	setup_timer(&glue->timer, otg_timer, (unsigned long) musb);
->   
->   	/* Reset the musb */
-> @@ -502,6 +517,8 @@ static int dsps_musb_exit(struct musb *musb)
->   
->   	del_timer_sync(&glue->timer);
->   	usb_phy_shutdown(musb->xceiv);
-> +	phy_power_off(musb->phy);
-> +	phy_exit(musb->phy);
->   	debugfs_remove_recursive(glue->dbgfs_root);
->   
->   	return 0;
-> @@ -610,7 +627,7 @@ static int dsps_musb_reset(struct musb *musb)
->   	struct device *dev = musb->controller;
->   	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
->   	const struct dsps_musb_wrapper *wrp = glue->wrp;
-> -	int session_restart = 0;
-> +	int session_restart = 0, error;
->   
->   	if (glue->sw_babble_enabled)
->   		session_restart = sw_babble_control(musb);
-> @@ -624,8 +641,14 @@ static int dsps_musb_reset(struct musb *musb)
->   		dsps_writel(musb->ctrl_base, wrp->control, (1 << wrp->reset));
->   		usleep_range(100, 200);
->   		usb_phy_shutdown(musb->xceiv);
-> +		error = phy_power_off(musb->phy);
-> +		if (error)
-> +			dev_err(dev, "phy shutdown failed: %i\n", error);
->   		usleep_range(100, 200);
->   		usb_phy_init(musb->xceiv);
-> +		error = phy_power_on(musb->phy);
-> +		if (error)
-> +			dev_err(dev, "phy powerup failed: %i\n", error);
->   		session_restart = 1;
->   	}
->   
+With omap2plus_defconfig my build produces (vmlinux size):
+Base: 				99905522
+with my series:			99908385 (base + 2863)
+with Peter Zijlstra's patch:	99910625 (base + 5103)
 
+The reason for this is that we will only have
+struct lock_class_key { };
+in case of !CONFIG_LOCKDEP. On ARM however CONFIG_LOCKDEP is enabled by
+default, while the CONFIG_DEBUG_LOCKDEP is disabled.
+
+So it does add more data to our default omap2plus config.
+
+Tony: do you have preference on the way we fix this issue?
+
+As I recall there is a plan to remove the hwmod static database and mov=
+e it or
+generate it from DT? Not sure when and how this will be done, but will =
+it
+affect the lockdep_set_class() way?
+
+--=20
+P=E9ter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
