@@ -1,130 +1,130 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot
-Date: Mon, 9 Feb 2015 12:55:54 +0100
-Message-ID: <201502091255.54394@pali>
-References: <20131206213613.GA19648@earth.universe> <20131206222725.GM26766@atomide.com> <20131207000026.GA26921@earth.universe>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] ARM: dra7xx: hwmod: drop .modulemode from pcie1/2 hwmods
+Date: Mon, 9 Feb 2015 18:54:37 +0530
+Message-ID: <54D8B515.201@ti.com>
+References: <1422978684-4826-1-git-send-email-grygorii.strashko@linaro.org> <54D874E9.1040302@ti.com> <54D88BB3.4060104@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart10628636.Nse3KlybkJ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:56979 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759927AbbBILz5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2015 06:55:57 -0500
-In-Reply-To: <20131207000026.GA26921@earth.universe>
+Received: from bear.ext.ti.com ([192.94.94.41]:39914 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751911AbbBINZI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Feb 2015 08:25:08 -0500
+In-Reply-To: <54D88BB3.4060104@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
---nextPart10628636.Nse3KlybkJ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Saturday 07 December 2013 01:00:27 Sebastian Reichel wrote:
-> On Fri, Dec 06, 2013 at 02:27:25PM -0800, Tony Lindgren wrote:
-> > * Sebastian Reichel <sre@debian.org> [131206 13:37]:
-> > > Nokia N900 DT boot breaks for me using 3.13-rc3. You can
-> > > see the relevant kernel output below. Disabling the AES
-> > > module in the omap3-n900.dts with status =3D "disabled"
-> > > fixed the boot for me.
-> >=20
-> > OK thanks for letting me know. How about the following patch
-> > to fix it?
+On Monday 09 February 2015 03:58 PM, Grygorii.Strashko@linaro.org wrote=
+:
+> Hi Kishon,
+> On 02/09/2015 04:50 PM, Kishon Vijay Abraham I wrote:
+>> On Tuesday 03 February 2015 09:21 PM, grygorii.strashko@linaro.org w=
+rote:
+>>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>>
+>>> Now DRA7xx pcie1/2 hwmods define PRCM configuration as following:
+>>>    .clkctrl_offs =3D DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
+>>>    .rstctrl_offs =3D DRA7XX_RM_L3INIT_RSTCTRL_OFFSET,
+>>>    .modulemode   =3D MODULEMODE_SWCTRL,
+>>> which is completely wrong because DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET
+>>> is clockdomain ctrl register and NOT module ctrl register.
+>>> And they have diffrent allowed values for bits[0,1]:
+>>> CLKTRCTRL=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89MODULEMODE=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89
+>>> 0x0:=E2=80=89NO_SLEEP=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=890=
+x0:=E2=80=89Module=E2=80=89is=E2=80=89disabled=E2=80=89by=E2=80=89SW.=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89
+>>> 0x1:=E2=80=89SW_SLEEP=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=890=
+x1:=E2=80=89Module=E2=80=89is=E2=80=89managed=E2=80=89automatically=E2=80=
+=89by=E2=80=89HW=E2=80=89=E2=80=89
+>>> 0x2:=E2=80=89SW_WKUP=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=890x2:=E2=80=89Module=E2=80=89is=E2=80=89explicitly=E2=80=89enabled=
+=2E=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89
+>>> 0x3:=E2=80=89HW_AUTO=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=890x3:=E2=80=89Reserved=E2=80=89=E2=80=89
+>>>
+>>> As result, following message can be seen during suspend:
+>>>    "omap_hwmod: pcie1: _wait_target_disable failed"
+>>>
+>>> Fix it by removing .modulemode from pcie1/2 hwmods and, in that
+>>> way, prevent clockdomain ctrl register writing from HWMOD core.
+>>
+>> Looks correct except for one change.
+>>
+>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>
+>>> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>>> ---
+>>>
+>>> More over, it looks like pcie1/2 hwmods are fake and have to be dro=
+pped at all.
+>>> The real HWMODs are PCIESS1/2.
+>>
+>> Not sure I get this. You mean "dra7xx_pcie1_hwmod" should be replace=
+d with
+>> "dra7xx_pciess1_hwmod"? Or you mean an entire new hwmod is missing?
+>>
+>> Please note we still have to enable the clock domain and main clock.=
+ We've also
+>> purposefully omitted sysconfig from hwmod data since pcie reset
+>> (RM_PCIESS_RSTCTRL) should be done before accessing the syconfig reg=
+ister and
+>> the infrastructure for that is currently not present.
 >=20
-> That's basically what I did to fix the problem.
+> What I'm trying to say is that now PM control data mixed between "pci=
+eX" and "pcieX-phy" hwmods.
+> After this patch "pcieX" hwmods will actually do nothing (I assume th=
+at "pciex-phy" will be=20
+> enabled before "pcieX"), and probably can be removed if "pcie_clkdm" =
+could be attached to "pcieX-phy" hwmod
+> instead.
 >=20
-> I guess the proper fix would be a runtime check if the device
-> can be accessed (if that's possible). AFAIK it is possible to
-> use the AES module on the N900 if the bootloader is slightly
-> patched.
+> More over, now, "pcie_clkdm" is connected to "pcieX" hwmod while MODU=
+LEMODE register is controlled
+> by "pciex-phy" hwmod, so when pciess is going to be enabled the "l3in=
+it_clkdm" will be waken-up by
+> hwmode core and not "pcie_clkdm" - as I can remember this is not good=
+ (we should alway wake-up clockdomain
+>  and keep it in SWSUP mode while changing MODULEMODE and SYSC registe=
+rs).
 >=20
-> Pali, can you elaborate more about this? I've seen, that you
-> added a section about this on [0].
+> static struct omap_hwmod dra7xx_pcie1_hwmod =3D {
+> 	.name		=3D "pcie1",
+> 	.class		=3D &dra7xx_pcie_hwmod_class,
+> 	.clkdm_name	=3D "pcie_clkdm",
+> 	.main_clk	=3D "l4_root_clk_div",
 >=20
-> [0] http://elinux.org/N900#M-Shield
+> static struct omap_hwmod dra7xx_pcie1_phy_hwmod =3D {
+> 	.name		=3D "pcie1-phy",
+> 	.class		=3D &dra7xx_pcie_phy_hwmod_class,
+> 	.clkdm_name	=3D "l3init_clkdm",
+> 	.main_clk	=3D "l4_root_clk_div",
 >=20
-> -- Sebastian
->=20
-> > Unhandled fault: external abort on non-linefetch (0x1028) at
-> > 0xfa0c5048 SMP ARM
-> > Modules linked in:
-> > CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W  =20
-> > 3.13.0-rc2+ #446 task: ce057b40 ti: ce058000 task.ti:
-> > ce058000
-> > PC is at omap_aes_dma_stop+0x24/0x3c
-> > LR is at omap_aes_probe+0x1cc/0x584
-> >=20
-> >    psr: 60000113
-> >=20
-> > sp : ce059e20  ip : ce0b4ee0  fp : 00000000
-> > r10: c0573ae8  r9 : c0749508  r8 : 00000000
-> > r7 : ce0b4e00  r6 : 00000000  r5 : ce0b4e10  r4 : ce274890
-> > r3 : fa0c5048  r2 : 00000048  r1 : 0000002c  r0 : ce274890
-> > Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment
-> > kernel Control: 10c5387d  Table: 80004019  DAC: 00000015
-> > Process swapper/0 (pid: 1, stack limit =3D 0xce058248)
-> > Stack: (0xce059e20 to 0xce05a000)
-> > 9e20: c0749508 0000a1ff 00000000 c016cd8c c06b5a06 ce2a45f0
-> > ce2a4570 ce0b5fb0 9e40: 00000000 480c5000 480c504f c0abe4e4
-> > 00000200 00000000 00000000 00000000 9e60: ce0b4e10 ce0b4e10
-> > c082da3c c082da3c c02b8c70 c077c610 c0749508 00000000 9e80:
-> > 00000000 c02b9e7c c02b9e64 ce0b4e10 00000000 c02b8b20
-> > ce0b4e10 ce0b4e44 9ea0: c082da3c c02b8cd8 00000000 ce059eb8
-> > c082da3c c02b7408 ce079edc ce0b1a34 9ec0: c082da3c c082da3c
-> > ce2a0280 00000000 c08158d8 c02b8358 c0663405 c0663405 9ee0:
-> > 00000073 c082da3c c079e4e8 c07ab3bc c0844340 c02b9334
-> > 00000000 00000006 9f00: c079e4e8 c0008920 c067f6bf c0ac7c6b
-> > 00000000 c0712e28 00000000 00000000 9f20: c0712e38 ce059f38
-> > 00000093 c0ac7c82 00000000 c0058994 00000000 c07130e8 9f40:
-> > c07127b8 00000093 00000006 00000006 00000001 00000006
-> > 00000006 c079e4e8 9f60: c07ab3bc c0844340 00000093 c0749508
-> > c079e4f4 c0749c64 00000006 00000006 9f80: c0749508 00000000
-> > 00000000 c0517e2c 00000000 00000000 00000000 00000000 9fa0:
-> > 00000000 c0517e34 00000000 c000dfb8 00000000 00000000
-> > 00000000 00000000 9fc0: 00000000 00000000 00000000 00000000
-> > 00000000 00000000 00000000 00000000 9fe0: 00000000 00000000
-> > 00000000 00000000 00000013 00000000 ffffffff ffffffff
-> > (omap_aes_probe+0x1cc/0x584)
-> > (platform_drv_probe+0x18/0x48)
-> > (driver_probe_device+0xb0/0x200)
-> > (__driver_attach+0x68/0x8c)
-> > (bus_for_each_dev+0x50/0x88)
-> > (bus_add_driver+0xcc/0x1c8)
-> > (driver_register+0x9c/0xe0)
-> > (do_one_initcall+0x98/0x140)
-> > (kernel_init_freeable+0x16c/0x23c)
-> > (kernel_init+0x8/0x100)
-> > (ret_from_fork+0x14/0x3c)
-> > Code: e1811002 e5932020 e590300c e0833002 (e593c000)
+> So, in my opinion, some rework may be needed here.=20
+> Am I right?
 
-Sebastian,
+you are right. We should have a single hwmod like dra7xx_pciess1_hwmod =
+whose
+clkdm should be "pcie_clkdm" and whose clkctrl_offs should be
+DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET (for controlling MODULEMODE). P=
+CIE PHY
+shouldn't have a hwmod entry at all.
 
-can you try to add #define DEBUG into drivers/crypto/omap-aes.c,=20
-enable AES in n900 DT and provide full dmesg output (with kernel=20
-crash) which occur on your device? I think you get that previous=20
-output from serial console, right? Also your compiled omap-aes.ko=20
-module (with debug symbols) and your modified source code could=20
-help.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart10628636.Nse3KlybkJ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTYoEoACgkQi/DJPQPkQ1K2LwCgzKa2NDTb435LzK7Z6NUpdKLh
-w2MAnR5QNFw5/LKUYFCnAQy3G19u94cK
-=o8A5
------END PGP SIGNATURE-----
-
---nextPart10628636.Nse3KlybkJ--
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
