@@ -1,134 +1,130 @@
 From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: v3.19: Nokia N900 (qemu) - omap_aes error
-Date: Mon, 9 Feb 2015 12:25:00 +0100
-Message-ID: <201502091225.00497@pali>
-References: <201501311629.36431@pali>
+Subject: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot
+Date: Mon, 9 Feb 2015 12:55:54 +0100
+Message-ID: <201502091255.54394@pali>
+References: <20131206213613.GA19648@earth.universe> <20131206222725.GM26766@atomide.com> <20131207000026.GA26921@earth.universe>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart2378097.JtB1e8RGtQ";
+  boundary="nextPart10628636.Nse3KlybkJ";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:45149 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682AbbBILZE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2015 06:25:04 -0500
-In-Reply-To: <201501311629.36431@pali>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:56979 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759927AbbBILz5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2015 06:55:57 -0500
+In-Reply-To: <20131207000026.GA26921@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
---nextPart2378097.JtB1e8RGtQ
+--nextPart10628636.Nse3KlybkJ
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Saturday 31 January 2015 16:29:36 Pali Roh=C3=A1r wrote:
-> Hello,
+On Saturday 07 December 2013 01:00:27 Sebastian Reichel wrote:
+> On Fri, Dec 06, 2013 at 02:27:25PM -0800, Tony Lindgren wrote:
+> > * Sebastian Reichel <sre@debian.org> [131206 13:37]:
+> > > Nokia N900 DT boot breaks for me using 3.13-rc3. You can
+> > > see the relevant kernel output below. Disabling the AES
+> > > module in the omap3-n900.dts with status =3D "disabled"
+> > > fixed the boot for me.
+> >=20
+> > OK thanks for letting me know. How about the following patch
+> > to fix it?
 >=20
-> when I enable problematic omap_aes.ko driver (also in DT) for
-> Nokia N900 machine in qemu (it emulates OMAP GP device, not
-> HS) I get this error message in dmesg at modprobe time:
+> That's basically what I did to fix the problem.
 >=20
-> [   37.660339] ------------[ cut here ]------------
-> [   37.663940] WARNING: CPU: 0 PID: 173 at arch/arm/mach-
-> omap2/omap_hwmod.c:2182 _idle+0x28/0x64()
-> [   37.668762] omap_hwmod: aes: idle state can only be entered
-> from enabled state
-> [   37.672271] Modules linked in: omap_aes(+)
-> [   37.675933] CPU: 0 PID: 173 Comm: modprobe Not tainted
-> 3.19.0- rc5+ #299
-> [   37.679534] Hardware name: Nokia RX-51 board
-> [   37.683227] [<c0012678>] (unwind_backtrace) from
-> [<c0010d44>] (show_stack+0x10/0x14)
-> [   37.686920] [<c0010d44>] (show_stack) from [<c0032194>]
-> (warn_slowpath_common+0x84/0xac)
-> [   37.690765] [<c0032194>] (warn_slowpath_common) from
-> [<c003223c>] (warn_slowpath_fmt+0x2c/0x3c)
-> [   37.694366] [<c003223c>] (warn_slowpath_fmt) from
-> [<c0020cb0>] (_idle+0x28/0x64)
-> [   37.698791] [<c0020cb0>] (_idle) from [<c0021078>]
-> (omap_hwmod_idle+0x30/0x78)
-> [   37.702636] [<c0021078>] (omap_hwmod_idle) from
-> [<c00222c4>] (omap_device_idle+0x48/0x6c)
-> [   37.707153] [<c00222c4>] (omap_device_idle) from
-> [<c0022304>] (_od_runtime_suspend+0x1c/0x24)
-> [   37.710723] [<c0022304>] (_od_runtime_suspend) from
-> [<c0269680>] (__rpm_callback+0x8c/0xdc)
-> [   37.714385] [<c0269680>] (__rpm_callback) from [<c0269740>]
-> (rpm_callback+0x70/0x88)
-> [   37.717987] [<c0269740>] (rpm_callback) from [<c0269f74>]
-> (rpm_suspend+0x2e8/0x5a4)
-> [   37.721710] [<c0269f74>] (rpm_suspend) from [<c026a6ec>]
-> (__pm_runtime_idle+0x58/0x9c)
-> [   37.725402] [<c026a6ec>] (__pm_runtime_idle) from
-> [<bf00129c>] (omap_aes_probe+0x15c/0x448 [omap_aes])
-> [   37.733489] [<bf00129c>] (omap_aes_probe [omap_aes]) from
-> [<c0263d78>] (platform_drv_probe+0x48/0x90)
-> [   37.740936] [<c0263d78>] (platform_drv_probe) from
-> [<c02624ec>] (really_probe+0xac/0x1e0)
-> [   37.745025] [<c02624ec>] (really_probe) from [<c0262718>]
-> (driver_probe_device+0x30/0x48)
-> [   37.749847] [<c0262718>] (driver_probe_device) from
-> [<c0262790>] (__driver_attach+0x60/0x84)
-> [   37.753601] [<c0262790>] (__driver_attach) from
-> [<c0261070>] (bus_for_each_dev+0x50/0x84)
-> [   37.758422] [<c0261070>] (bus_for_each_dev) from
-> [<c0261e20>] (bus_add_driver+0xac/0x1bc)
-> [   37.762207] [<c0261e20>] (bus_add_driver) from [<c02630c8>]
-> (driver_register+0x9c/0xe0)
-> [   37.765899] [<c02630c8>] (driver_register) from
-> [<c0008798>] (do_one_initcall+0x100/0x1b0)
-> [   37.769653] [<c0008798>] (do_one_initcall) from
-> [<c0085ca4>] (do_init_module+0x34/0x158)
-> [   37.773590] [<c0085ca4>] (do_init_module) from [<c00868d8>]
-> (SyS_init_module+0x54/0x64)
-> [   37.777252] [<c00868d8>] (SyS_init_module) from
-> [<c000dbe0>] (ret_fast_syscall+0x0/0x30)
-> [   37.780975] ---[ end trace 86c3e025b92e700d ]---
-> [   37.784667] omap-aes 480c5000.aes: OMAP AES hw accel rev:
-> 0.0 [   37.789794] of_dma_request_slave_channel: dma-names
-> property of node '/ocp/aes@480c5000' missing or empty
-> [   37.797668] omap-aes 480c5000.aes: Unable to request in DMA
-> channel
-> [   37.801391]    omap_aes_dma_init: error: -12
+> I guess the proper fix would be a runtime check if the device
+> can be accessed (if that's possible). AFAIK it is possible to
+> use the AES module on the N900 if the bootloader is slightly
+> patched.
 >=20
-> Error is not fatal, kernel does not crash and qemu emulation
-> working fine. But error is there.
+> Pali, can you elaborate more about this? I've seen, that you
+> added a section about this on [0].
 >=20
-> I'm sure that qemu does not support omap aes hw emulation and
-> so I except error message about missing hw part (or something
-> else). But not above unwind_backtrace error message.
+> [0] http://elinux.org/N900#M-Shield
 >=20
-> Any idea why it happens? It is probably not related to AES but
-> to DMA. It is for OMAP GP device (but emulated), so can TI
-> comment this problem (as this is not HS under NDA)?
+> -- Sebastian
+>=20
+> > Unhandled fault: external abort on non-linefetch (0x1028) at
+> > 0xfa0c5048 SMP ARM
+> > Modules linked in:
+> > CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W  =20
+> > 3.13.0-rc2+ #446 task: ce057b40 ti: ce058000 task.ti:
+> > ce058000
+> > PC is at omap_aes_dma_stop+0x24/0x3c
+> > LR is at omap_aes_probe+0x1cc/0x584
+> >=20
+> >    psr: 60000113
+> >=20
+> > sp : ce059e20  ip : ce0b4ee0  fp : 00000000
+> > r10: c0573ae8  r9 : c0749508  r8 : 00000000
+> > r7 : ce0b4e00  r6 : 00000000  r5 : ce0b4e10  r4 : ce274890
+> > r3 : fa0c5048  r2 : 00000048  r1 : 0000002c  r0 : ce274890
+> > Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment
+> > kernel Control: 10c5387d  Table: 80004019  DAC: 00000015
+> > Process swapper/0 (pid: 1, stack limit =3D 0xce058248)
+> > Stack: (0xce059e20 to 0xce05a000)
+> > 9e20: c0749508 0000a1ff 00000000 c016cd8c c06b5a06 ce2a45f0
+> > ce2a4570 ce0b5fb0 9e40: 00000000 480c5000 480c504f c0abe4e4
+> > 00000200 00000000 00000000 00000000 9e60: ce0b4e10 ce0b4e10
+> > c082da3c c082da3c c02b8c70 c077c610 c0749508 00000000 9e80:
+> > 00000000 c02b9e7c c02b9e64 ce0b4e10 00000000 c02b8b20
+> > ce0b4e10 ce0b4e44 9ea0: c082da3c c02b8cd8 00000000 ce059eb8
+> > c082da3c c02b7408 ce079edc ce0b1a34 9ec0: c082da3c c082da3c
+> > ce2a0280 00000000 c08158d8 c02b8358 c0663405 c0663405 9ee0:
+> > 00000073 c082da3c c079e4e8 c07ab3bc c0844340 c02b9334
+> > 00000000 00000006 9f00: c079e4e8 c0008920 c067f6bf c0ac7c6b
+> > 00000000 c0712e28 00000000 00000000 9f20: c0712e38 ce059f38
+> > 00000093 c0ac7c82 00000000 c0058994 00000000 c07130e8 9f40:
+> > c07127b8 00000093 00000006 00000006 00000001 00000006
+> > 00000006 c079e4e8 9f60: c07ab3bc c0844340 00000093 c0749508
+> > c079e4f4 c0749c64 00000006 00000006 9f80: c0749508 00000000
+> > 00000000 c0517e2c 00000000 00000000 00000000 00000000 9fa0:
+> > 00000000 c0517e34 00000000 c000dfb8 00000000 00000000
+> > 00000000 00000000 9fc0: 00000000 00000000 00000000 00000000
+> > 00000000 00000000 00000000 00000000 9fe0: 00000000 00000000
+> > 00000000 00000000 00000013 00000000 ffffffff ffffffff
+> > (omap_aes_probe+0x1cc/0x584)
+> > (platform_drv_probe+0x18/0x48)
+> > (driver_probe_device+0xb0/0x200)
+> > (__driver_attach+0x68/0x8c)
+> > (bus_for_each_dev+0x50/0x88)
+> > (bus_add_driver+0xcc/0x1c8)
+> > (driver_register+0x9c/0xe0)
+> > (do_one_initcall+0x98/0x140)
+> > (kernel_init_freeable+0x16c/0x23c)
+> > (kernel_init+0x8/0x100)
+> > (ret_from_fork+0x14/0x3c)
+> > Code: e1811002 e5932020 e590300c e0833002 (e593c000)
 
-Hello,
+Sebastian,
 
-what does that error line means?
-
-[   37.668762] omap_hwmod: aes: idle state can only be entered=20
-from enabled state
-
-Is not it bug in omap_hwmod.c code?
+can you try to add #define DEBUG into drivers/crypto/omap-aes.c,=20
+enable AES in n900 DT and provide full dmesg output (with kernel=20
+crash) which occur on your device? I think you get that previous=20
+output from serial console, right? Also your compiled omap-aes.ko=20
+module (with debug symbols) and your modified source code could=20
+help.
 
 =2D-=20
 Pali Roh=C3=A1r
 pali.rohar@gmail.com
 
---nextPart2378097.JtB1e8RGtQ
+--nextPart10628636.Nse3KlybkJ
 Content-Type: application/pgp-signature; name=signature.asc 
 Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEABECAAYFAlTYmQwACgkQi/DJPQPkQ1I7NACeJR5bxdeCmlopYg6CA0GYiQ6C
-o2EAoMyWbP5fzuqisy93O+W5DQnjYzt2
-=Ef/A
+iEYEABECAAYFAlTYoEoACgkQi/DJPQPkQ1K2LwCgzKa2NDTb435LzK7Z6NUpdKLh
+w2MAnR5QNFw5/LKUYFCnAQy3G19u94cK
+=o8A5
 -----END PGP SIGNATURE-----
 
---nextPart2378097.JtB1e8RGtQ--
+--nextPart10628636.Nse3KlybkJ--
