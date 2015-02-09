@@ -1,145 +1,32 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.19
-Date: Mon, 9 Feb 2015 08:58:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1502090856390.3767@utopia.booyaka.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 0/2] ARM: omap2+: omap_hwmod: Fix false lockdep warning
+Date: Mon, 9 Feb 2015 10:23:32 +0100
+Message-ID: <20150209092332.GO5029@twins.programming.kicks-ass.net>
+References: <1423226916-18804-1-git-send-email-peter.ujfalusi@ti.com>
+ <20150206141346.GP21418@twins.programming.kicks-ass.net>
+ <54D4E64C.7060208@ti.com>
+ <20150206183205.GS21418@twins.programming.kicks-ass.net>
+ <54D5154F.8080208@ti.com>
+ <54D86F74.7070703@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43145 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760150AbbBII6c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2015 03:58:32 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54D86F74.7070703@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
+On Mon, Feb 09, 2015 at 10:27:32AM +0200, Peter Ujfalusi wrote:
+> As I recall there is a plan to remove the hwmod static database and move it or
+> generate it from DT? Not sure when and how this will be done, but will it
+> affect the lockdep_set_class() way?
 
-Here are some basic OMAP test results for Linux v3.19.
-Logs and other details at:
+Yes, struct lock_class_key wants to be in static storage.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.19/20150208213625/
+So you could still allocate a few of those statically and then use them
+where appropriate, but it'd going to be more work.
 
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    FAIL ( 1/ 3): omap1_defconfig_1510innovator_only
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL ( 2/17): omap2plus_defconfig_no_pm, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 2/17): 4430es2panda, 4460varsomom
-
-Obsolete Kconfig symbols:
-    FAIL ( 3/20): omap1_defconfig, omap2plus_defconfig,
-		  multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v3.19-rc7 (e36f014edff70fc02b3d3d79cead1d58f289332e)):
-   text     data      bss    total  kernel
-   +166     -680        0     -514  omap1_defconfig
-   +134     -648        0     -514  omap1_defconfig_1510innovator_only
-   +134     -680      -32     -578  omap1_defconfig_5912osk_only
-  +1102     -568        0     +534  multi_v7_defconfig
-  +1030     -896        0     +134  omap2plus_defconfig
-   +686     -832        0     -146  omap2plus_defconfig_2430sdp_only
-  +1030     -832        0     +198  omap2plus_defconfig_am33xx_only
-   +970     -896        0      +74  omap2plus_defconfig_am43xx_only
-  +1030     -896        0     +134  omap2plus_defconfig_cpupm
-  +1098     -896        0     +202  omap2plus_defconfig_dra7xx_only
-   +372        0        0     +372  omap2plus_defconfig_n800_multi_omap2xxx
-   +340        0        0     +340  omap2plus_defconfig_n800_only_a
-  +1034     -896        0     +138  omap2plus_defconfig_no_pm
-   +970     -896        0      +74  omap2plus_defconfig_omap2_4_only
-  +1034     -896        0     +138  omap2plus_defconfig_omap3_4_only
-  +5130     -896        0    +4234  omap2plus_defconfig_omap5_only
-   +340        0      +16     +356  rmk_omap3430_ldp_allnoconfig
-   +230     -776        0     -546  rmk_omap3430_ldp_oldconfig
-   +364        0      +24     +388  rmk_omap4430_sdp_allnoconfig
-   +402     -760        0     -358  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.19-rc7 (e36f014edff70fc02b3d3d79cead1d58f289332e))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
-
-
+The advantage of having the 1:1 relation is that any parent hierarchy
+works naturally.
