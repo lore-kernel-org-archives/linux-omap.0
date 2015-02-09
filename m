@@ -1,62 +1,115 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: DTS: omap3-n900.dts: fix i2c bus numbering
-Date: Sun, 8 Feb 2015 19:37:13 +0100
-Message-ID: <201502081937.13632@pali>
-References: <1423410536-16579-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] usb: musb: Fix getting a generic phy for musb_dsps
+Date: Mon, 9 Feb 2015 11:26:03 +0530
+Message-ID: <54D84BF3.7060801@ti.com>
+References: <1423154113-23463-1-git-send-email-tony@atomide.com> <1423154113-23463-3-git-send-email-tony@atomide.com> <54D4BA78.9030704@ti.com> <20150206172313.GF25235@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2086823.SrgNrtFezx";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:43083 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756233AbbBHShR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2015 13:37:17 -0500
-In-Reply-To: <1423410536-16579-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150206172313.GF25235-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: tony@atomide.com, pavel@ucw.cz, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
---nextPart2086823.SrgNrtFezx
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Tony,
+On 02/06/2015 10:53 PM, Tony Lindgren wrote:
+> * George Cherian <george.cherian-l0cyMroinI0@public.gmane.org> [150206 05:05]:
+>> Hi Tony,
+>>
+>> You also need to add similar things in dsps_musb_reset();
+>>
+>> Otherwise you might not recover from a BABBLE condition.
+> Thank I totally missed that, updated patch below.
+>
+> Do you have some testcase that easily triggers BABBLE
+> on MUSB?
+On a BBB or BBW you can connect a HUB with multiple device connected on HUB.
+Then do a repeated Connect and Disconnect of the HUB, This should 
+trigger a BABBLE interrupt.
+Not all HUB's might not lead you to a BABBLE condition.
 
-On Sunday 08 February 2015 16:48:56 Ivaylo Dimitrov wrote:
-> With legacy boot i2c buses on Nokia N900 are numbered i2c1,
-> i2c2 and i2c3. Commit 20b80942ef4e ("ARM: dts: OMAP3+: Add
-> i2c aliases") fixed the numbering with DT boot, but
-> introduced a regression on N900 - aliases become i2c0, i2c1
-> and i2c2. Fix that by providing the correct aliases in the
-> board dts.
->=20
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->  arch/arm/boot/dts/omap3-n900.dts | 7 +++++++
->  1 file changed, 7 insertions(+)
->=20
+> Regards,
+>
+> Tony
+>
+> 8< ----------------------
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date: Wed, 4 Feb 2015 06:28:49 -0800
+> Subject: [PATCH] usb: musb: Fix getting a generic phy for musb_dsps
+>
+> We still have a combination of legacy phys and generic phys in
+> use so we need to support both types of phy for musb_dsps.c.
+>
+> Cc: Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -457,12 +457,27 @@ static int dsps_musb_init(struct musb *musb)
+>   	if (IS_ERR(musb->xceiv))
+>   		return PTR_ERR(musb->xceiv);
+>   
+> +	musb->phy = devm_phy_get(dev->parent, "usb2-phy");
+> +
+>   	/* Returns zero if e.g. not clocked */
+>   	rev = dsps_readl(reg_base, wrp->revision);
+>   	if (!rev)
+>   		return -ENODEV;
+>   
+>   	usb_phy_init(musb->xceiv);
+> +	if (IS_ERR(musb->phy))  {
+> +		musb->phy = NULL;
+> +	} else {
+> +		ret = phy_init(musb->phy);
+> +		if (ret < 0)
+> +			return ret;
+> +		ret = phy_power_on(musb->phy);
+> +		if (ret) {
+> +			phy_exit(musb->phy);
+> +			return ret;
+> +		}
+> +	}
+> +
+>   	setup_timer(&glue->timer, otg_timer, (unsigned long) musb);
+>   
+>   	/* Reset the musb */
+> @@ -502,6 +517,8 @@ static int dsps_musb_exit(struct musb *musb)
+>   
+>   	del_timer_sync(&glue->timer);
+>   	usb_phy_shutdown(musb->xceiv);
+> +	phy_power_off(musb->phy);
+> +	phy_exit(musb->phy);
+>   	debugfs_remove_recursive(glue->dbgfs_root);
+>   
+>   	return 0;
+> @@ -610,7 +627,7 @@ static int dsps_musb_reset(struct musb *musb)
+>   	struct device *dev = musb->controller;
+>   	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+>   	const struct dsps_musb_wrapper *wrp = glue->wrp;
+> -	int session_restart = 0;
+> +	int session_restart = 0, error;
+>   
+>   	if (glue->sw_babble_enabled)
+>   		session_restart = sw_babble_control(musb);
+> @@ -624,8 +641,14 @@ static int dsps_musb_reset(struct musb *musb)
+>   		dsps_writel(musb->ctrl_base, wrp->control, (1 << wrp->reset));
+>   		usleep_range(100, 200);
+>   		usb_phy_shutdown(musb->xceiv);
+> +		error = phy_power_off(musb->phy);
+> +		if (error)
+> +			dev_err(dev, "phy shutdown failed: %i\n", error);
+>   		usleep_range(100, 200);
+>   		usb_phy_init(musb->xceiv);
+> +		error = phy_power_on(musb->phy);
+> +		if (error)
+> +			dev_err(dev, "phy powerup failed: %i\n", error);
+>   		session_restart = 1;
+>   	}
+>   
 
-Works fine,
-
-Tested-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2086823.SrgNrtFezx
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTXrNkACgkQi/DJPQPkQ1JSMACfRBrcKSxJLHfD72IqbklgB7HO
-PzcAoMaSCvmCgq+39EfqTkuhrhuexIKe
-=htY9
------END PGP SIGNATURE-----
-
---nextPart2086823.SrgNrtFezx--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
