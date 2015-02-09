@@ -1,72 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] ARM: omap2+: omap_hwmod: Fix false lockdep warning
-Date: Mon, 9 Feb 2015 18:55:49 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1502091835380.3767@utopia.booyaka.com>
-References: <1423226916-18804-1-git-send-email-peter.ujfalusi@ti.com> <20150206141346.GP21418@twins.programming.kicks-ass.net> <54D4E64C.7060208@ti.com> <20150206183205.GS21418@twins.programming.kicks-ass.net> <54D5154F.8080208@ti.com> <54D86F74.7070703@ti.com>
- <alpine.DEB.2.02.1502091557450.3767@utopia.booyaka.com> <20150209173110.GI25235@atomide.com>
+From: Bin Liu <binmlist@gmail.com>
+Subject: Re: [PATCH 2/2] usb: musb: Fix getting a generic phy for musb_dsps
+Date: Mon, 9 Feb 2015 13:02:56 -0600
+Message-ID: <CADYTM3ZqmVmnWMsx+znfnwe5AownFgPKStO7t1VhKjpXZ1gJkA@mail.gmail.com>
+References: <1423154113-23463-1-git-send-email-tony@atomide.com>
+	<1423154113-23463-3-git-send-email-tony@atomide.com>
+	<54D4BA78.9030704@ti.com>
+	<20150206172313.GF25235@atomide.com>
+	<CADYTM3brwenr4706Xqp91Vg7OVxT0CENy8aHhyzJ+vOGxxvRVw@mail.gmail.com>
+	<20150209183922.GB2531@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150209173110.GI25235@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f176.google.com ([209.85.213.176]:62606 "EHLO
+	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933756AbbBITC5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2015 14:02:57 -0500
+In-Reply-To: <20150209183922.GB2531@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>
 
-On Mon, 9 Feb 2015, Tony Lindgren wrote:
+On Mon, Feb 9, 2015 at 12:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Bin Liu <binmlist@gmail.com> [150206 10:21]:
+>> Tony,
+>>
+>> On Fri, Feb 6, 2015 at 11:23 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * George Cherian <george.cherian@ti.com> [150206 05:05]:
+>> >> Hi Tony,
+>> >>
+>> >> You also need to add similar things in dsps_musb_reset();
+>> >>
+>> >> Otherwise you might not recover from a BABBLE condition.
+>> >
+>> > Thank I totally missed that, updated patch below.
+>> >
+>> > Do you have some testcase that easily triggers BABBLE
+>> > on MUSB?
+>>
+>> I normally just shorten DP or DM to VBUS to trigger babble. No device
+>> is connected to the port, if I remembered correctly.
+>
+> Oh OK, that sounds a bit risky with 5V on the VBUS if a
+> device is detected? I think I'll wait on that :)
 
-> * Paul Walmsley <paul@pwsan.com> [150209 08:04]:
-> > On Mon, 9 Feb 2015, Peter Ujfalusi wrote:
-> > 
-> > > On 02/06/2015 09:26 PM, Peter Ujfalusi wrote:
-> > > >> Yeah, I've never really bothered with data too much, its a debug
-> > > >> feature. So lock_class_key is 8 bytes, and strictly speaking you could
-> > > >> union them over other fields, all we really need is unique addresses, we
-> > > >> don't actually use the storage.
-> > > > 
-> > > > True. our omap2plus defconfig does not have LOCKDEP enabled so it should not
-> > > > add anything to the data when running default kernel.
-> > > > I'll test the lockdep_set_class() method you suggested on Monday (not
-> > > > tomorrow), but still as first thing.
-> > > > If it is working as expected I'll send a patch with you as author.
-> > > 
-> > > With omap2plus_defconfig my build produces (vmlinux size):
-> > > Base: 				99905522
-> > > with my series:			99908385 (base + 2863)
-> > > with Peter Zijlstra's patch:	99910625 (base + 5103)
-> > > 
-> > > The reason for this is that we will only have
-> > > struct lock_class_key { };
-> > > in case of !CONFIG_LOCKDEP. On ARM however CONFIG_LOCKDEP is enabled by
-> > > default, while the CONFIG_DEBUG_LOCKDEP is disabled.
-> > > 
-> > > So it does add more data to our default omap2plus config.
-> > > 
-> > > Tony: do you have preference on the way we fix this issue?
-> > > 
-> > > As I recall there is a plan to remove the hwmod static database and move it or
-> > > generate it from DT? Not sure when and how this will be done, but will it
-> > > affect the lockdep_set_class() way?
-> > 
-> > Well I guess we could see what Tony says, but you do realize that the 
-> > difference in sizes that you posted above is about .003% of the total 
-> > binary size, right?  
-> > 
-> > If there's one thing we can say about the last few years of ARM kernel 
-> > development, it's that those kind of size increases are utterly dwarfed by 
-> > other changes in the kernel.  So I'd say, post a patch based on PeterZ's 
-> > fix and be done with it...
-> 
-> Well the thing to consider here is what Peter U is saying about
-> having struct omap_hwmod allocated based on the data from .dts
-> files. If the fix makes the dynamic allocation harder to do later on,
-> we should probably avoid it. If it's relatively easy to do later on,
-> then I don't have a problem with it.
+Sorry, 'shorten' is not a good work for what I did. Just use a wire to
+quickly touch DP or DM to VBUS, which pulls up DP/DM shortly, but long
+enough to cross SOF to generate a babble.
 
-The future destination for that code that makes the most sense to me is 
-for it to become integrated with the OMAP Sonics & Arteris bus drivers and 
-DT data.  So I wouldn't worry too much about it; I don't think the 
-lockdep fix will affect that at all.
+Regards,
+-Bin.
 
-
-- Paul
+>
+> Regards,
+>
+> Tony
