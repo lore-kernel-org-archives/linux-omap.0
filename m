@@ -1,57 +1,63 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] thermal: ti-soc-thermal: bandgap: Fix build warning if
- !CONFIG_PM_SLEEP
-Date: Mon, 9 Feb 2015 09:01:06 -0600
-Message-ID: <20150209150106.GB21362@kahuna>
-References: <1423234546-10458-1-git-send-email-grygorii.strashko@linaro.org>
+Subject: Re: [PATCH] ARM: DTS: omap3-n900.dts: fix i2c bus numbering
+Date: Mon, 9 Feb 2015 09:02:46 -0600
+Message-ID: <20150209150245.GC21362@kahuna>
+References: <1423410536-16579-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39459 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759408AbbBIPCx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Feb 2015 10:02:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1423234546-10458-1-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: grygorii.strashko@linaro.org
-Cc: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+In-Reply-To: <1423410536-16579-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: tony@atomide.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On 16:55-20150206, grygorii.strashko@linaro.org wrote:
-> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+On 17:48-20150208, Ivaylo Dimitrov wrote:
+> With legacy boot i2c buses on Nokia N900 are numbered i2c1, i2c2 and i2c3.
+> Commit 20b80942ef4e ("ARM: dts: OMAP3+: Add i2c aliases") fixed the
+> numbering with DT boot, but introduced a regression on N900 - aliases
+> become i2c0, i2c1 and i2c2. Fix that by providing the correct aliases in
+> the board dts.
 > 
-> Fix following build warning if CONFIG_PM_SLEEP is not set:
-> 
-> drivers/thermal/ti-soc-thermal/ti-bandgap.c:1478:12: warning: 'ti_bandgap_suspend' defined but not used [-Wunused-function]
->  static int ti_bandgap_suspend(struct device *dev)
->             ^
-> drivers/thermal/ti-soc-thermal/ti-bandgap.c:1492:12: warning: 'ti_bandgap_resume' defined but not used [-Wunused-function]
->  static int ti_bandgap_resume(struct device *dev)
->             ^
-> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 > ---
->  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+I suppose this is due to some legacy userspace breakage?
+if yes, we do not intend to break userspace :), So:
+Acked-by: Nishanth Menon <nm@ti.com>
+
+>  arch/arm/boot/dts/omap3-n900.dts | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> index 74c0e34..5d46660 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> @@ -1402,7 +1402,7 @@ int ti_bandgap_remove(struct platform_device *pdev)
->  	return 0;
->  }
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index b550c41..68bf3cd 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -16,6 +16,13 @@
+>  	model = "Nokia N900";
+>  	compatible = "nokia,omap3-n900", "ti,omap3430", "ti,omap3";
 >  
-> -#ifdef CONFIG_PM
-> +#ifdef CONFIG_PM_SLEEP
->  static int ti_bandgap_save_ctxt(struct ti_bandgap *bgp)
->  {
->  	int i;
+> +	aliases {
+> +		i2c0;
+> +		i2c1 = &i2c1;
+> +		i2c2 = &i2c2;
+> +		i2c3 = &i2c3;
+> +	};
+> +
+>  	cpus {
+>  		cpu@0 {
+>  			cpu0-supply = <&vcc>;
 > -- 
 > 1.9.1
 > 
-
-Suggest aligning with Paul as well:
-https://patchwork.kernel.org/patch/5795391/
-
-Otherwise:
-Acked-by: Nishanth Menon <nm@ti.com>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 Regards,
