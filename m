@@ -1,34 +1,24 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2] ARM: omap2+: omap_hwmod: Set unique lock_class_key
- per hwmod
-Date: Tue, 10 Feb 2015 20:20:36 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1502102020160.3767@utopia.booyaka.com>
-References: <1423570994-20507-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3] ARM: AM43xx: hwmod: add VPFE hwmod entries
+Date: Tue, 10 Feb 2015 23:10:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1502102310010.3767@utopia.booyaka.com>
+References: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com> <20150128193247.GH2570@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1423570994-20507-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <20150128193247.GH2570@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, peterz@infradead.org, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Parrot <bparrot@ti.com>, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Darren Etheridge <detheridge@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 10 Feb 2015, Peter Ujfalusi wrote:
+On Wed, 28 Jan 2015, Benoit Parrot wrote:
 
-> Add struct lock_class_key to omap_hwmod struct and use it to set unique
-> lockdep class per hwmod.
-> This will ensure that lockdep will know that each omap_hwmod->_lock should
-> be treated as separate class and will not give false warning about deadlock
-> or other issues due to nested use of hwmods.
-> DRA7x's ATL hwmod is one example for this since McASP can select ATL clock
-> as functional clock, which will trigger nested oh->_lock usage. This will
-> trigger false warning from lockdep validator as it is dealing with classes
-> and for it all hwmod clocks are the same class.
+> Suspend/resume is functional with this patch.
 > 
-> Suggested-by: Peter Zijlstra <peterz@infradead.org>
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Tested-by: Benoit Parrot <bparrot@ti.com>
 
-Thanks queued for v3.20-rc.
+Thanks folks, queued for v3.21.
 
 
 - Paul
