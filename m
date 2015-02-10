@@ -1,65 +1,30 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Mon, 09 Feb 2015 18:34:51 -0500
-Message-ID: <54D9441B.7070403@hurleysoftware.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-4-git-send-email-bigeasy@linutronix.de> <54D8B772.1010405@freebox.fr>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 0/2] fix ehrpwm tbclk data on am33xx and am43xx
+Date: Tue, 10 Feb 2015 11:05:40 +0530
+Message-ID: <1423546542-29664-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54D8B772.1010405@freebox.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolas Schichan <nschichan@freebox.fr>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org
-Cc: tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nicolas,
+In am33xx and am43xx, ehrpwm tbclk is derived from functional clock of
+PWMSS. The schematics and TRMs show that there is only one input clock to
+the PWMSS. But currently, tbclk is wrongly shown to be deriving from
+dpll_per_m2_ck instead of functional clock l4ls_gclk in the DT.
 
-Thanks for the report.
+Fixing ehrpwm tbclk data to reflect the right clk source.
+Tested on beaglebone and am437x-gp-evm.
 
-On 02/09/2015 08:34 AM, Nicolas Schichan wrote:
-> On 09/10/2014 09:29 PM, Sebastian Andrzej Siewior wrote:
->> The serial8250_do_startup() function unconditionally clears the
->> interrupts and for that it reads from the RX-FIFO without checking if
->> there is a byte in the FIFO or not. This works fine on OMAP4+ HW like
->> AM335x or DRA7.
->> OMAP3630 ES1.1 (which means probably all OMAP3 and earlier) does not like
->> this:
-> 
-> Hello,
-> 
-> Sorry to wake up an old thread, but I'm affraid that this patch causes
-> problems on Marvell 88f6282 (Kirkwood).
-> 
-> When a caracter is received on the UART while the kernel is printing
-> the boot messages, as soon as the kernel configures the UART for
-> receiving (after root filesystem mount), it gets stuck printing the
-> following message repeatedly:
-> 
-> serial8250: too much work for irq29
-> 
-> Once stuck, the reception of another character allows the boot process
-> to finish.
-> 
-> From what I can gather, when we hit that, the UART_IIR_NO_INT is 0 (so the
-> interrupt is raised), but the UART_LSR_DR bit is 0 as well so the UART_RX
-> register is never read to clear the interrupt.
+Vignesh R (2):
+  ARM: dts: am33xx-clocks: Fix ehrpwm tbclk data on am33xx
+  ARM: dts: am43xx-clocks: Fix ehrpwm tbclk data on am43xx
 
-The "too much work" message means serial8250_handle_irq() is returning 0,
-ie., not handled. Which in turn means IIR indicates no interrupt is pending
-(UART_IIR_NO_INT == 1).
+ arch/arm/boot/dts/am33xx-clocks.dtsi |  6 +++---
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-Can you log the register values for LSR and IIR at both patch locations
-in serial8250_do_startup()?
-
-(I can get you a debug patch, if necessary. Let me know)
-
-Regards,
-Peter Hurley
-
-> We are using the second UART multiplexed on mpps 15 and 16.
-> 
-> Reverting this particular patch fixes the issue.
-> 
-> We are seing the problem on a 3.18 kernel.
+-- 
+1.9.1
