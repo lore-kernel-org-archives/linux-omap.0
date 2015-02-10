@@ -1,151 +1,34 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Tue, 10 Feb 2015 12:46:32 -0500
-Message-ID: <54DA43F8.9090904@hurleysoftware.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-4-git-send-email-bigeasy@linutronix.de> <54D8B772.1010405@freebox.fr> <54D9441B.7070403@hurleysoftware.com> <54D9F3C7.5000809@freebox.fr>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2] ARM: omap2+: omap_hwmod: Set unique lock_class_key
+ per hwmod
+Date: Tue, 10 Feb 2015 20:20:36 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1502102020160.3767@utopia.booyaka.com>
+References: <1423570994-20507-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54D9F3C7.5000809@freebox.fr>
+In-Reply-To: <1423570994-20507-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolas Schichan <nschichan@freebox.fr>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, peterz@infradead.org, linux-omap@vger.kernel.org, mingo@redhat.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/10/2015 07:04 AM, Nicolas Schichan wrote:
-> On 02/10/2015 12:34 AM, Peter Hurley wrote:
->> Hi Nicolas,
->>
->> Thanks for the report.
->>
-> [...]
->>> When a caracter is received on the UART while the kernel is printing
->>> the boot messages, as soon as the kernel configures the UART for
->>> receiving (after root filesystem mount), it gets stuck printing the
->>> following message repeatedly:
->>>
->>> serial8250: too much work for irq29
->>>
->>> Once stuck, the reception of another character allows the boot process
->>> to finish.
->>>
->>> From what I can gather, when we hit that, the UART_IIR_NO_INT is 0 (so the
->>> interrupt is raised), but the UART_LSR_DR bit is 0 as well so the UART_RX
->>> register is never read to clear the interrupt.
->>
->> The "too much work" message means serial8250_handle_irq() is returning 0,
->> ie., not handled. Which in turn means IIR indicates no interrupt is pending
->> (UART_IIR_NO_INT == 1).
->>
->> Can you log the register values for LSR and IIR at both patch locations
->> in serial8250_do_startup()?
->>
->> (I can get you a debug patch, if necessary. Let me know)
-> 
-> Hi Peter,
-> 
-> Thanks for your reply.
-> 
-> Here is what I have when the issue is triggered:
-> 
-> [   12.154877] lsr 0x60 / iir 0x01
-> [   12.158071] lsr 0x60 / iir 0x01
-> [   12.161438] serial8250: too much work for irq29
-> [   12.165982] lsr 0x60 / iir 0x0c
-> [   12.169354] serial8250: too much work for irq29
-> [   12.173900] lsr 0x60 / iir 0x0c
-> (previous two messages are repeated and printk_ratelimited())
+On Tue, 10 Feb 2015, Peter Ujfalusi wrote:
 
-Thanks for this information; I see I was wrong about the cause of message.
+> Add struct lock_class_key to omap_hwmod struct and use it to set unique
+> lockdep class per hwmod.
+> This will ensure that lockdep will know that each omap_hwmod->_lock should
+> be treated as separate class and will not give false warning about deadlock
+> or other issues due to nested use of hwmods.
+> DRA7x's ATL hwmod is one example for this since McASP can select ATL clock
+> as functional clock, which will trigger nested oh->_lock usage. This will
+> trigger false warning from lockdep validator as it is dealing with classes
+> and for it all hwmod clocks are the same class.
+> 
+> Suggested-by: Peter Zijlstra <peterz@infradead.org>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-I think what happens during startup is that on this silicon clearing
-the rx fifo (by serial8250_clear_fifos()) clears data ready but not
-the rx timeout condition which causes a spurious rx interrupt when
-interrupts are enabled.
-
-So caught between two broken UARTs: one that underflows its rx fifo because
-of unsolicited rx reads and the other that generates spurious interrupt
-without unsolicited rx reads.
+Thanks queued for v3.20-rc.
 
 
-> When the issue is not triggered:
-> 
-> [   10.784871] lsr 0x60 / iir 0x01
-> [   10.788066] lsr 0x60 / iir 0x01
-> [   10.794734] VFS: Mounted root (nfs filesystem) readonly on device 0:13.
-> [   10.801654] devtmpfs: mounted
-> [   10.805169] Freeing unused kernel memory: 184K (807be000 - 807ec000)
-> (userland takes over after that)
-> 
-> I have also displayed the IIR and LSR registers when the "too much fork for
-> IRQ" condition is triggered.
-> 
-> In the serial8250_do_startup(), before the interrupt are unmasked at the end,
-> the IIR looks sane and UART_IIR_NO_INT bit is set. When stuck
-> serial8250_interrupt(), UART_IIR_NO_INT is cleared and the interrupt ID is set
-> to 0xc which is not handled by the kernel at this time (the Kirkwood datasheet
->  indicates that it is some kind of timeout condition from what I can gather).
-
-Yes, IIR == UART_IIR_RX_TIMEOUT is to used indicate that data is in the rx fifo
-but has not reached the rx trigger level yet.
-
-ATM, I'm not exactly sure if there is a safe way to clear the spurious interrupt
-from the interrupt handler.
-
-I'm fairly certain the only way to clear the rx timeout interrupt is to read
-the rx fifo, but I think this would race with actual data arrival. IOW, there
-might not be a way to determine if the data read is spurious or not.
-
-Regards,
-Peter Hurley
-
-> Here is the corresponding debug patch, for reference (against a 3.19 kernel
-> this time):
-> 
-> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_
-> index 11c6685..ed93741 100644
-> --- a/drivers/tty/serial/8250/8250_core.c
-> +++ b/drivers/tty/serial/8250/8250_core.c
-> @@ -1661,6 +1661,12 @@ static int exar_handle_irq(struct uart_port *port)
->         return ret;
->  }
-> 
-> +static inline void show_lsr_iir(struct uart_port *port)
-> +{
-> +       printk("lsr 0x%02x / iir 0x%02x\n", serial_port_in(port, UART_LSR),
-> +              serial_port_in(port, UART_IIR));
-> +}
-> +
->  /*
->   * This is the serial driver's interrupt routine.
->   *
-> @@ -1705,6 +1711,8 @@ static irqreturn_t serial8250_interrupt(int irq, void *dev
->                         /* If we hit this, we're dead. */
->                         printk_ratelimited(KERN_ERR
->                                 "serial8250: too much work for irq%d\n", irq);
-> +                       if (printk_ratelimit())
-> +                               show_lsr_iir(port);
->                         break;
->                 }
->         } while (l != end);
-> @@ -2107,6 +2115,7 @@ int serial8250_do_startup(struct uart_port *port)
->         /*
->          * Clear the interrupt registers.
->          */
-> +       show_lsr_iir(port);
->         if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
->                 serial_port_in(port, UART_RX);
->         serial_port_in(port, UART_IIR);
-> @@ -2269,6 +2278,7 @@ dont_test_tx_en:
->          * saved flags to avoid getting false values from polling
->          * routines or the previous session.
->          */
-> +       show_lsr_iir(port);
->         if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
->                 serial_port_in(port, UART_RX);
->         serial_port_in(port, UART_IIR);
-> 
-> Regards,
-> 
+- Paul
