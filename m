@@ -1,128 +1,125 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re:
- 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Wed, 11 Feb 2015 14:40:33 -0600
-Message-ID: <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
-References: <20131206213613.GA19648@earth.universe>
-	<201502111339.54480@pali>
-	<CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
-	<201502112128.44852@pali>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
+ something in the FIFO
+Date: Wed, 11 Feb 2015 15:42:06 -0500
+Message-ID: <54DBBE9E.90104@hurleysoftware.com>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-4-git-send-email-bigeasy@linutronix.de> <54D8B772.1010405@freebox.fr> <54D9441B.7070403@hurleysoftware.com> <54D9F3C7.5000809@freebox.fr> <54DA43F8.9090904@hurleysoftware.com> <54DBB531.2030504@hurleysoftware.com> <20150211200313.GE2531@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201502112128.44852@pali>
+In-Reply-To: <20150211200313.GE2531@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nicolas Schichan <nschichan@freebox.fr>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 11, 2015 at 2:28 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com>=
- wrote:
-> On Wednesday 11 February 2015 16:22:51 Matthijs van Duin wrote:
->> On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> wrote:
->> >> Anyhow, since checking the firewalls/APs to see if you have
->> >> permission will probably only get you yet another fault if
->> >> things are walled off, the robust way of dealing with this
->> >> sort of situation is by probing the device with a read
->> >> while trapping bus faults. This also handles modules that
->> >> are unreachable for other reasons, e.g. being disabled by
->> >> eFuse.
->> >
->> > It is possible to patch kernel code to mask or ignore that
->> > fault? Can you help me with something like that?
+On 02/11/2015 03:03 PM, Tony Lindgren wrote:
+> * Peter Hurley <peter@hurleysoftware.com> [150211 12:05]:
+>> On 02/10/2015 12:46 PM, Peter Hurley wrote:
+>>> On 02/10/2015 07:04 AM, Nicolas Schichan wrote:
+>>>> On 02/10/2015 12:34 AM, Peter Hurley wrote:
+>>>>> Hi Nicolas,
+>>>>>
+>>>>> Thanks for the report.
+>>>>>
+>>>> [...]
+>>>>>> When a caracter is received on the UART while the kernel is printing
+>>>>>> the boot messages, as soon as the kernel configures the UART for
+>>>>>> receiving (after root filesystem mount), it gets stuck printing the
+>>>>>> following message repeatedly:
+>>>>>>
+>>>>>> serial8250: too much work for irq29
+>>>>>>
+>>>>>> Once stuck, the reception of another character allows the boot process
+>>>>>> to finish.
+>>>>>>
+>>>>>> From what I can gather, when we hit that, the UART_IIR_NO_INT is 0 (so the
+>>>>>> interrupt is raised), but the UART_LSR_DR bit is 0 as well so the UART_RX
+>>>>>> register is never read to clear the interrupt.
+>>>>>
+>>>>> The "too much work" message means serial8250_handle_irq() is returning 0,
+>>>>> ie., not handled. Which in turn means IIR indicates no interrupt is pending
+>>>>> (UART_IIR_NO_INT == 1).
+>>>>>
+>>>>> Can you log the register values for LSR and IIR at both patch locations
+>>>>> in serial8250_do_startup()?
+>>>>>
+>>>>> (I can get you a debug patch, if necessary. Let me know)
+>>>>
+>>>> Hi Peter,
+>>>>
+>>>> Thanks for your reply.
+>>>>
+>>>> Here is what I have when the issue is triggered:
+>>>>
+>>>> [   12.154877] lsr 0x60 / iir 0x01
+>>>> [   12.158071] lsr 0x60 / iir 0x01
+>>>> [   12.161438] serial8250: too much work for irq29
+>>>> [   12.165982] lsr 0x60 / iir 0x0c
+>>>> [   12.169354] serial8250: too much work for irq29
+>>>> [   12.173900] lsr 0x60 / iir 0x0c
+>>>> (previous two messages are repeated and printk_ratelimited())
+>>>
+>>> Thanks for this information; I see I was wrong about the cause of message.
+>>>
+>>> I think what happens during startup is that on this silicon clearing
+>>> the rx fifo (by serial8250_clear_fifos()) clears data ready but not
+>>> the rx timeout condition which causes a spurious rx interrupt when
+>>> interrupts are enabled.
+>>>
+>>> So caught between two broken UARTs: one that underflows its rx fifo because
+>>> of unsolicited rx reads and the other that generates spurious interrupt
+>>> without unsolicited rx reads.
+>>>
+>>>
+>>>> When the issue is not triggered:
+>>>>
+>>>> [   10.784871] lsr 0x60 / iir 0x01
+>>>> [   10.788066] lsr 0x60 / iir 0x01
+>>>> [   10.794734] VFS: Mounted root (nfs filesystem) readonly on device 0:13.
+>>>> [   10.801654] devtmpfs: mounted
+>>>> [   10.805169] Freeing unused kernel memory: 184K (807be000 - 807ec000)
+>>>> (userland takes over after that)
+>>>>
+>>>> I have also displayed the IIR and LSR registers when the "too much fork for
+>>>> IRQ" condition is triggered.
+>>>>
+>>>> In the serial8250_do_startup(), before the interrupt are unmasked at the end,
+>>>> the IIR looks sane and UART_IIR_NO_INT bit is set. When stuck
+>>>> serial8250_interrupt(), UART_IIR_NO_INT is cleared and the interrupt ID is set
+>>>> to 0xc which is not handled by the kernel at this time (the Kirkwood datasheet
+>>>>  indicates that it is some kind of timeout condition from what I can gather).
+>>>
+>>> Yes, IIR == UART_IIR_RX_TIMEOUT is to used indicate that data is in the rx fifo
+>>> but has not reached the rx trigger level yet.
+>>>
+>>> ATM, I'm not exactly sure if there is a safe way to clear the spurious interrupt
+>>> from the interrupt handler.
+>>>
+>>> I'm fairly certain the only way to clear the rx timeout interrupt is to read
+>>> the rx fifo, but I think this would race with actual data arrival. IOW, there
+>>> might not be a way to determine if the data read is spurious or not.
 >>
->> As I mentioned, I'm still learning my way around the kernel,
->> so I don't feel very comfortable suggesting a concrete patch
->> just yet. I've been browsing arch/arm/mm/ however and my
->> impression is that all that would be required is editing
->> fault.c by making a copy of do_bad but containing
->>     return user_mode(regs) || !fixup_exception(regs);
->> and hook it onto the appropriate fault codes.  However, this
->> really needs the opinion of someone more familiar with this
->> code.
+>> Yep, I see no safe way to clear the spurious interrupt [1] and no idea how to
+>> keep it from happening (other than via the unsolicited RX reads in
+>> serial8250_do_startup).
 >>
->> I do have an observation to make on the issue of fault
->> decoding: the list in fsr-2level.c may be "standard ARMv3 and
->> ARMv4 aborts" but they are quite wrong for ARMv7 which has:
+>> Unfortunately, I think this means we'll have to revert Sebastian's commit:
 >>
->> [ 0] -
->> [ 1] alignment fault
->> [ 2] debug event
->> [ 3] section access flag fault
->> [ 4] instruction cache maintainance fault (reported via data
->> abort) [ 5] section translation fault
->> [ 6] page access flag fault
->> [ 7] page translation fault
->> [ 8] bus error on access
->> [ 9] section domain fault
->> [10] -
->> [11] page domain fault
->> [12] bus error on section table walk
->> [13] section permission fault
->> [14] bus error on page table walk
->> [15] page permission fault
->> [16] (TLB conflict abort)
->> [17] -
->> [18] -
->> [19] -
->> [20] (lockdown abort)
->> [21] -
->> [22] async bus error (reported via data abort)
->> [23] -
->> [24] async parity/ECC error (reported via data abort)
->> [25] parity/ECC error on access
->> [26] (coprocessor abort)
->> [27] -
->> [28] parity/ECC error on section table walk
->> [29] -
->> [30] parity/ECC error on page table walk
->> [31] -
+>> commit 0aa525d11859c1a4d5b78fdc704148e2ae03ae13
+>> Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>> Date:   Wed Sep 10 21:29:58 2014 +0200
 >>
->> Some entries are patched up near the bottom of fault.c but
->> many bogus messages remain, for example the "on linefetch" vs
->> "on non-linefetch" is misleading since no such thing can be
->> inferred from the fault status on v7.  Also, the i-cache
->> maintenance fault handling looks wrong to me: it should fetch
->> the actual fault status from IFSR (even though the address
->> still comes from DFSR) and dispatch based on that.
->>
->> Async external aborts (async bus error and async parity/ECC
->> error) give you basically no info. DFAR will contain garbage
->> hence displaying it will confuse rather than enlighten, a
->> traceback is pointless since the instruction that caused the
->> access is long retired, likewise user_mode() doesn't matter
->> since a transition to kernel space may have happened after
->> the access that cause the abort. Basically they should be
->> treated more as an IRQ than as a fault (note they can also be
->> masked just like irqs). In case of a bus error, it may be
->> appropriate to just warn about it, or perhaps send a signal
->> to the current process, although in the latter case it should
->> have some means to distinguish it from a synchronous bus
->> error.
->>
->> At least on the cortex-a8, a parity/ECC error (whether async
->> or not) is to be regarded as absolutely fatal.  Quoth the
->> TRM: "No recovery is possible. The abort handler must disable
->> the caches, communicate the fail directly with the external
->> system, request a reboot."
->>
->> Bit 10 no longer indicates an asynchronous (let alone
->> imprecise) fault.  Apart from the debug events and async
->> aborts (and possibly some implementation-defined aborts), all
->> aborts listed are synchronous, and DFAR/IFAR is valid.
->> There's no technical obstruction to make these trappable via
->> the kernel exception handling mechanism. (Though at least in
->> case of parity/ECC errors one shouldn't.)
->
-> Tony, Nishanth, or somebody else... can you help with memory
-> management? Or do you know some expert for arch/arm/mm/ code?
+>>     tty: serial: 8250_core: read only RX if there is something in the FIFO
+>>     
+>> which just means OMAP3630 will be limited to using the omap_serial driver.
+> 
+> Reverting makes sense to me if it has caused a regression. Maybe Sebastian
+> can update his patch to do this based on some quirk flag instead?
 
-=46olks in linux-arm-kernel are probably the right people, I suppose.
-Looping them in.
+That's fine with me. There's a 'bugs' field in struct 8250_uart_port and
+UART_BUG_* defines in 8250/8250.h for that purpose.
 
---=20
----
 Regards,
-Nishanth Menon
+Peter Hurley
