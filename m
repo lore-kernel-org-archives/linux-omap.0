@@ -1,67 +1,116 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Wed, 11 Feb 2015 13:39:54 +0100
-Message-ID: <201502111339.54480@pali>
-References: <20131206213613.GA19648@earth.universe> <201501311234.41001@pali> <CAALWOA9jXeUgOj=GWFVQKkaz_Goxj-NOKk5qRHUTF6=EXEu+6w@mail.gmail.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Wed, 11 Feb 2015 16:22:51 +0100
+Message-ID: <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+References: <20131206213613.GA19648@earth.universe> <201501311234.41001@pali>
+ <CAALWOA9jXeUgOj=GWFVQKkaz_Goxj-NOKk5qRHUTF6=EXEu+6w@mail.gmail.com> <201502111339.54480@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart10629115.KheislV518";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:43434 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbbBKMj5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2015 07:39:57 -0500
-Received: by mail-we0-f180.google.com with SMTP id k11so3113220wes.11
-        for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2015 04:39:56 -0800 (PST)
-In-Reply-To: <CAALWOA9jXeUgOj=GWFVQKkaz_Goxj-NOKk5qRHUTF6=EXEu+6w@mail.gmail.com>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:42892 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753084AbbBKPXN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2015 10:23:13 -0500
+Received: by mail-wg0-f48.google.com with SMTP id l18so1051104wgh.7
+        for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2015 07:23:11 -0800 (PST)
+In-Reply-To: <201502111339.54480@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 
---nextPart10629115.KheislV518
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.com> wr=
+ote:
+>> Anyhow, since checking the firewalls/APs to see if you have
+>> permission will probably only get you yet another fault if
+>> things are walled off, the robust way of dealing with this
+>> sort of situation is by probing the device with a read while
+>> trapping bus faults. This also handles modules that are
+>> unreachable for other reasons, e.g. being disabled by eFuse.
+>
+> It is possible to patch kernel code to mask or ignore that fault?
+> Can you help me with something like that?
 
-On Saturday 31 January 2015 16:13:39 Matthijs van Duin wrote:
-> On 31 January 2015 at 12:34, Pali Roh=C3=A1r <pali.rohar@gmail.com>=20
-wrote:
-> > [  172.923553] Unhandled fault: external abort on
-> > non-linefetch (0x1018) at 0xb6f87028 [  172.930664] In-band
-> > Error seen by MPU  at address 0
->=20
-> Also, why is this error so uninformative?  A synchronous abort
-> should at least mention the _physical_ address, type of
-> access, etc.
->=20
-> Anyhow, since checking the firewalls/APs to see if you have
-> permission will probably only get you yet another fault if
-> things are walled off, the robust way of dealing with this
-> sort of situation is by probing the device with a read while
-> trapping bus faults. This also handles modules that are
-> unreachable for other reasons, e.g. being disabled by eFuse.
+As I mentioned, I'm still learning my way around the kernel, so I
+don't feel very comfortable suggesting a concrete patch just yet. I've
+been browsing arch/arm/mm/ however and my impression is that all that
+would be required is editing fault.c by making a copy of do_bad but
+containing
+    return user_mode(regs) || !fixup_exception(regs);
+and hook it onto the appropriate fault codes.  However, this really
+needs the opinion of someone more familiar with this code.
 
-It is possible to patch kernel code to mask or ignore that fault?=20
-Can you help me with something like that?
+I do have an observation to make on the issue of fault decoding: the
+list in fsr-2level.c may be "standard ARMv3 and ARMv4 aborts" but they
+are quite wrong for ARMv7 which has:
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+[ 0] -
+[ 1] alignment fault
+[ 2] debug event
+[ 3] section access flag fault
+[ 4] instruction cache maintainance fault (reported via data abort)
+[ 5] section translation fault
+[ 6] page access flag fault
+[ 7] page translation fault
+[ 8] bus error on access
+[ 9] section domain fault
+[10] -
+[11] page domain fault
+[12] bus error on section table walk
+[13] section permission fault
+[14] bus error on page table walk
+[15] page permission fault
+[16] (TLB conflict abort)
+[17] -
+[18] -
+[19] -
+[20] (lockdown abort)
+[21] -
+[22] async bus error (reported via data abort)
+[23] -
+[24] async parity/ECC error (reported via data abort)
+[25] parity/ECC error on access
+[26] (coprocessor abort)
+[27] -
+[28] parity/ECC error on section table walk
+[29] -
+[30] parity/ECC error on page table walk
+[31] -
 
---nextPart10629115.KheislV518
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Some entries are patched up near the bottom of fault.c but many bogus
+messages remain, for example the "on linefetch" vs "on non-linefetch"
+is misleading since no such thing can be inferred from the fault
+status on v7.  Also, the i-cache maintenance fault handling looks
+wrong to me: it should fetch the actual fault status from IFSR (even
+though the address still comes from DFSR) and dispatch based on that.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Async external aborts (async bus error and async parity/ECC error)
+give you basically no info. DFAR will contain garbage hence displaying
+it will confuse rather than enlighten, a traceback is pointless since
+the instruction that caused the access is long retired, likewise
+user_mode() doesn't matter since a transition to kernel space may have
+happened after the access that cause the abort. Basically they should
+be treated more as an IRQ than as a fault (note they can also be
+masked just like irqs). In case of a bus error, it may be appropriate
+to just warn about it, or perhaps send a signal to the current
+process, although in the latter case it should have some means to
+distinguish it from a synchronous bus error.
 
-iEYEABECAAYFAlTbTZoACgkQi/DJPQPkQ1IKdACgp+zM9NRXF5ITapiIFkGnyzoI
-ZwwAniv0CT66KEYILW3pquLzKtaG32TU
-=RKFb
------END PGP SIGNATURE-----
+At least on the cortex-a8, a parity/ECC error (whether async or not)
+is to be regarded as absolutely fatal.  Quoth the TRM: "No recovery is
+possible. The abort handler must disable the caches, communicate the
+fail directly with the external system, request a reboot."
 
---nextPart10629115.KheislV518--
+Bit 10 no longer indicates an asynchronous (let alone imprecise)
+fault.  Apart from the debug events and async aborts (and possibly
+some implementation-defined aborts), all aborts listed are
+synchronous, and DFAR/IFAR is valid. There's no technical obstruction
+to make these trappable via the kernel exception handling mechanism.
+(Though at least in case of parity/ECC errors one shouldn't.)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
