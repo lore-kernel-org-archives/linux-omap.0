@@ -1,94 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re:
- 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Wed, 11 Feb 2015 21:43:42 +0100
-Message-ID: <20150211204342.GE29636@amd>
-References: <20131206213613.GA19648@earth.universe>
- <201501312009.58483@pali>
- <CAALWOA9-wXZCY8QVZmZR7vymEQYupyOm=uJD8bJf-cC7uEfi0A@mail.gmail.com>
- <201502010956.28662@pali>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP1: PM: fix some build warnings on 1510-only
+ Kconfigs
+Date: Wed, 11 Feb 2015 12:37:58 -0800
+Message-ID: <20150211203757.GH2531@atomide.com>
+References: <alpine.DEB.2.02.1502070020530.3767@utopia.booyaka.com>
+ <54D9CFBC.3070405@nvidia.com> <54D9E42C.7010105@gmail.com>
+ <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53344 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752452AbbBKUnp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2015 15:43:45 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <201502010956.28662@pali>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux@arm.linux.org.uk >> Russell King" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi >> Aaro Koskinen" <aaro.koskinen@iki.fi>, "khilman@deeprootsystems.com >> Kevin Hilman" <khilman@deeprootsystems.com>, Jon Hunter <jgchunter@gmail.com>, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, tuukka.tikkanen@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@ring0.de>
 
-Hi!
+* Paul Walmsley <paul@pwsan.com> [150210 18:28]:
+> On Tue, 10 Feb 2015, Jon Hunter wrote:
+> > On 07/02/2015 00:23, Paul Walmsley wrote:
+> 
+> > Unfortunately, there is not a single TRM for the omap5910 but individual 
+> > documents for each chapter in the original TRM. Check out the "OMAP5910 
+> > Dual-Core Processor Timer Reference Guide" and possibly the "OMAP5910 
+> > Dual-Core Processor Clock Generation and System Reset Management 
+> > Reference Guide"
+> > 
+> > The omap15xx/5910 did have a 32k timer but as you can see it appears it
+> > was never supported by the kernel for this device (not sure why). I do
+> > recall that there is some errata regarding the 32k timer, if you look at
+> > the omap5910 errata document and search for 32k you should find it.
+> 
+> OK thanks for the context.  I probably am not going to investigate adding 
+> support for this timer on OMAP1510/5910 - am primarily trying to avoid 
+> causing a regression on the existing platforms.
 
-On Sun 2015-02-01 09:56:28, Pali Roh=E1r wrote:
-> On Sunday 01 February 2015 02:36:06 Matthijs van Duin wrote:
-> > On 31 January 2015 at 20:06, Pali Roh=E1r <pali.rohar@gmail.com>=20
-> > wrote:
-> > > I have configured two testing N900 devices. One with signed
-> > > bootloader which enable omap aes support and one device with
-> > > signed bootloader which does not enable omap aes support.
-> >=20
-> > I'm probably missing some context here, but why not just use
-> > the one with aes support? Alternatively, one may argue that
-> > it's the bootloader's job to provide the kernel with an
-> > accurate device tree. (Though one may equally well argue that
-> > it would be nice to avoid having to customize the device tree
-> > for every feature-flavor of a processor, especially if this
-> > depends on how it's initialized.)
-> >=20
->=20
-> Nokia X-Loader is closed source and signed. So we cannot modify=20
-> it. And it is responsible for configuring L3/L4 firewall.
->=20
-> Year ago it was possible to find on internet signed X-Loader for=20
-> N900 which enable omap aes support (for testing purpose together=20
-> with open source linux kernel modules), but it is unofficial and=20
-> I think there only too few people who flashed it into N900 nand.=20
-> If somebody needs binaries I have backup all of them.
->=20
-> More info about that aes enabled X-Loader:
-> http://maemo.org/community/maemo-developers/n900_aes_and_sha1-md5_hw_=
-acceleration_drivers/
->=20
-> Majority of users use only official X-Loader which does not=20
-> enable aes support so we cannot enable kernel modules (cause=20
-> crashes). And also we cannot force users to flash some unofficial=20
-> binary into their device...
+At least I've never seen the 32KiHz timer registers in any 15xx
+documentation. Jon are you sure you're not mixing up 5910 (15xx)
+and 5912 (16xx)?
 
-BTW... it would be interesting to know... are you doing some
-heavy crypto processing on N900? Are the accelerated drivers faster
-than non-accelerated ones? Because the link above says they are
-slower...
+Regards,
 
-# Eric Wheeler
-# ...
-# Hey guys, I have omap-aes compiled for my kernel and appears to be
-# working.
-#=20
-# I do not understand why non-accelerated software-crypto is faster tha=
-n
-# the omap-aes hardware acceleration:
-#=20
-# mmcblk0 onboard 32GB: read=3D21.76MB/s write=3D12.97MB/s
-# aes_generic crypto: read=3D 8.47 write=3D 5.54
-# omap-aes hw crypto: read=3D 6.31 write=3D 5.45
-#=20
-# mmcblk1 uSD 16GB Class 10: read=3D16.05MB/s write=3D16.47MB/s
-# aes_generic crypto: read=3D 7.96 write=3D 7.43
-# omap-aes hw crypto: read=3D 6.67 write=3D 7.18
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
