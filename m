@@ -1,56 +1,128 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: PM: fix some build warnings on 1510-only
- Kconfigs
-Date: Wed, 11 Feb 2015 12:26:12 -0800
-Message-ID: <20150211202611.GF2531@atomide.com>
-References: <alpine.DEB.2.02.1502070020530.3767@utopia.booyaka.com>
- <54D9CFBC.3070405@nvidia.com> <54D9E42C.7010105@gmail.com>
- <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
- <54DB93DA.8050308@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Wed, 11 Feb 2015 14:40:33 -0600
+Message-ID: <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
+References: <20131206213613.GA19648@earth.universe>
+	<201502111339.54480@pali>
+	<CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+	<201502112128.44852@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <54DB93DA.8050308@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jon Hunter <jgchunter@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux@arm.linux.org.uk >> Russell King" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi >> Aaro Koskinen" <aaro.koskinen@iki.fi>, "khilman@deeprootsystems.com >> Kevin Hilman" <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, tuukka.tikkanen@linaro.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201502112128.44852@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jon Hunter <jgchunter@gmail.com> [150211 09:43]:
-> 
-> Thinking about this some more, I don't understand the dependency on the
-> DM_TIMER here. For an omap1 device, regardless of whether the DM_TIMERs
-> are enable or not, the device should be able to enter low power if the
-> 32K is enabled. Hence, shouldn't this have been !(CONFIG_OMAP_32K_TIMER)
-> above?
+On Wed, Feb 11, 2015 at 2:28 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com>=
+ wrote:
+> On Wednesday 11 February 2015 16:22:51 Matthijs van Duin wrote:
+>> On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> wrote:
+>> >> Anyhow, since checking the firewalls/APs to see if you have
+>> >> permission will probably only get you yet another fault if
+>> >> things are walled off, the robust way of dealing with this
+>> >> sort of situation is by probing the device with a read
+>> >> while trapping bus faults. This also handles modules that
+>> >> are unreachable for other reasons, e.g. being disabled by
+>> >> eFuse.
+>> >
+>> > It is possible to patch kernel code to mask or ignore that
+>> > fault? Can you help me with something like that?
+>>
+>> As I mentioned, I'm still learning my way around the kernel,
+>> so I don't feel very comfortable suggesting a concrete patch
+>> just yet. I've been browsing arch/arm/mm/ however and my
+>> impression is that all that would be required is editing
+>> fault.c by making a copy of do_bad but containing
+>>     return user_mode(regs) || !fixup_exception(regs);
+>> and hook it onto the appropriate fault codes.  However, this
+>> really needs the opinion of someone more familiar with this
+>> code.
+>>
+>> I do have an observation to make on the issue of fault
+>> decoding: the list in fsr-2level.c may be "standard ARMv3 and
+>> ARMv4 aborts" but they are quite wrong for ARMv7 which has:
+>>
+>> [ 0] -
+>> [ 1] alignment fault
+>> [ 2] debug event
+>> [ 3] section access flag fault
+>> [ 4] instruction cache maintainance fault (reported via data
+>> abort) [ 5] section translation fault
+>> [ 6] page access flag fault
+>> [ 7] page translation fault
+>> [ 8] bus error on access
+>> [ 9] section domain fault
+>> [10] -
+>> [11] page domain fault
+>> [12] bus error on section table walk
+>> [13] section permission fault
+>> [14] bus error on page table walk
+>> [15] page permission fault
+>> [16] (TLB conflict abort)
+>> [17] -
+>> [18] -
+>> [19] -
+>> [20] (lockdown abort)
+>> [21] -
+>> [22] async bus error (reported via data abort)
+>> [23] -
+>> [24] async parity/ECC error (reported via data abort)
+>> [25] parity/ECC error on access
+>> [26] (coprocessor abort)
+>> [27] -
+>> [28] parity/ECC error on section table walk
+>> [29] -
+>> [30] parity/ECC error on page table walk
+>> [31] -
+>>
+>> Some entries are patched up near the bottom of fault.c but
+>> many bogus messages remain, for example the "on linefetch" vs
+>> "on non-linefetch" is misleading since no such thing can be
+>> inferred from the fault status on v7.  Also, the i-cache
+>> maintenance fault handling looks wrong to me: it should fetch
+>> the actual fault status from IFSR (even though the address
+>> still comes from DFSR) and dispatch based on that.
+>>
+>> Async external aborts (async bus error and async parity/ECC
+>> error) give you basically no info. DFAR will contain garbage
+>> hence displaying it will confuse rather than enlighten, a
+>> traceback is pointless since the instruction that caused the
+>> access is long retired, likewise user_mode() doesn't matter
+>> since a transition to kernel space may have happened after
+>> the access that cause the abort. Basically they should be
+>> treated more as an IRQ than as a fault (note they can also be
+>> masked just like irqs). In case of a bus error, it may be
+>> appropriate to just warn about it, or perhaps send a signal
+>> to the current process, although in the latter case it should
+>> have some means to distinguish it from a synchronous bus
+>> error.
+>>
+>> At least on the cortex-a8, a parity/ECC error (whether async
+>> or not) is to be regarded as absolutely fatal.  Quoth the
+>> TRM: "No recovery is possible. The abort handler must disable
+>> the caches, communicate the fail directly with the external
+>> system, request a reboot."
+>>
+>> Bit 10 no longer indicates an asynchronous (let alone
+>> imprecise) fault.  Apart from the debug events and async
+>> aborts (and possibly some implementation-defined aborts), all
+>> aborts listed are synchronous, and DFAR/IFAR is valid.
+>> There's no technical obstruction to make these trappable via
+>> the kernel exception handling mechanism. (Though at least in
+>> case of parity/ECC errors one shouldn't.)
+>
+> Tony, Nishanth, or somebody else... can you help with memory
+> management? Or do you know some expert for arch/arm/mm/ code?
 
-Sounds about right, there are separate timers on omap1 and additional
-gp timers. There's no 32KiHz timer on 1510 variants, including
-720 and 730.
- 
-> Furthermore, you will get the above warning on a omap16xx only build if
-> you disable DM_TIMERs and keep MPU_TIMER enabled, which should be a
-> valid thing to do.
-> 
-> Tony, I see you added the DM_TIMER dependency in commit
-> be26a008414414c69a4ae9fe9877401c3ba62c5a. I understand your motivation,
-> but why not just use !(CONFIG_OMAP_32K_TIMER) here? Bit 9 of the idlect1
-> is only for the TIMCK clock that is used for the MPU timers and not the
-> DM_TIMERs.
+=46olks in linux-arm-kernel are probably the right people, I suppose.
+Looping them in.
 
-Hmm yes looks like you're right. That check be done based on
-!CONFIG_OMAP_32K_TIMER like you're saying.
-
+--=20
+---
 Regards,
-
-Tony
+Nishanth Menon
