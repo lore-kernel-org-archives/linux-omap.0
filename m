@@ -1,105 +1,77 @@
 From: Mark Rutland <mark.rutland@arm.com>
 Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for
  hwspinlock
-Date: Wed, 11 Feb 2015 11:29:07 +0000
-Message-ID: <20150211112907.GD9154@leverpostej>
-References: <20150115135556.GH16217@leverpostej>
- <CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
- <CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
- <20150116101746.GA21809@leverpostej>
+Date: Wed, 11 Feb 2015 11:35:53 +0000
+Message-ID: <20150211113553.GE9154@leverpostej>
+References: <20150116101746.GA21809@leverpostej>
  <CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
- <20150120180548.GK7718@atomide.com>
- <CAK=WgbZGGtwmQwzWumjpYOsYHTt8vPQpTraABwJBsv5VXOmJ_Q@mail.gmail.com>
- <54BFE855.3090200@ti.com>
- <20150122185622.GE12911@leverpostej>
- <54C9AFF2.6000108@ti.com>
+ <CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com>
+ <CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
+ <CAJAp7OjVULNRd113TtOEwaa6QO-XCDa0oxBm2H5NPvp_kLTSpA@mail.gmail.com>
+ <54CFE71E.20905@ti.com>
+ <CAJAp7OiHfaMrVqaZ1r6ZN0aMMpE4OUnvLhODHQJeb6EJMa+o8A@mail.gmail.com>
+ <54D406BA.6060403@ti.com>
+ <CAJAp7Ojud6UM97eDYdUhZxzzjNRw_47e5kqh4UxwDBMwFZpuoQ@mail.gmail.com>
+ <CAK=WgbaHEbqVVBAUL1aaO3i+pPbTZM2DRB=1kSE6A6+pPmS4yQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss-mx-na.arm.com ([217.140.108.86]:43052 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363AbbBKL3h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2015 06:29:37 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54C9AFF2.6000108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAK=WgbaHEbqVVBAUL1aaO3i+pPbTZM2DRB=1kSE6A6+pPmS4yQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Bjorn Andersson <bjorn@kryo.se>, Suman Anna <s-anna@ti.com>, Rob Herring <robherring2@gmail.com>, Kumar Gala <galak@codeaurora.org>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, Kumar Gala <galak@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 
-On Thu, Jan 29, 2015 at 03:58:42AM +0000, Suman Anna wrote:
-> On 01/22/2015 12:56 PM, Mark Rutland wrote:
-> > On Wed, Jan 21, 2015 at 05:56:37PM +0000, Suman Anna wrote:
-> >> On 01/21/2015 06:41 AM, Ohad Ben-Cohen wrote:
-> >>> On Tue, Jan 20, 2015 at 8:05 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >>>> How about default to Linux id space and allow overriding that with
-> >>>> a module param option if needed?
-> >>>
-> >>> I'm not sure I'm following.
-> >>>
-> >>> If the main point of contention is the base_id field, I'm also fine
-> >>> with removing it entirely, as I'm not aware of any actual user for it
-> >>> (Suman please confirm?).
+Hi,
+
+Sorry I've been away from this thread for a while.
+
+On Wed, Feb 11, 2015 at 10:29:37AM +0000, Ohad Ben-Cohen wrote:
+> On Fri, Feb 6, 2015 at 2:34 AM, Bjorn Andersson <bjorn@kryo.se> wrote:
+> >> Yep, will do as soon as I hear from Ohad on what to do with the patch
+> >> "hwspinlock/core: maintain a list of registered hwspinlock banks" that I
+> >> dropped from v7. Without that and dropping hwlock-base-id, I can't get
+> >> the translations done.
 > >>
-> >> Yeah, well the current implementations that I am aware of only have a
-> >> single bank, so all of them would be using a value of 0. I am yet to see
-> >> a platform with multiple instances where the property really makes a
-> >> difference. v7 has the property mandatory, so all the implementations
-> >> would need to define this value even if it is 0.
-> >>
-> >> regards
-> >> Suman
-> >>
-> >>>
-> >>> Mark? Rob? Will you accept Suman's patches if the base_id field is removed?
-> > 
-> > My concern is that the mapping of hwspinlock IDs doesn't seem to be
-> > explicit in the DT on a per-context basis, which is what I'd expect.
-> > 
-> > e.g.
-> > 
-> > lck: hwspinlock-device@f00 {
-> > 	...
-> > 	#hwlock-cells = <1>;
-> > };
-> > 
-> > some-other-os-interface {
-> > 	...
-> > 	hwlocks = <&lck 0>, <&lck 1>, <&lck 2>, <&lck 3>;
-> > 	hwlock-names = "glbl", "pool0", "pool1", "pool2";
-> > };
-> > 
-> > a-different-os-interface {
-> > 	...
-> > 	hwlocks = <&lck 18>, <&lck 21>, <&lck 4>, <&lck 5>;
-> > 	hwlock-names = "init", "teardown", "pool0", "pool1";
-> > };
-> > 
-> > That's the only way I would expect this to possibly remain a stable
-> > over time, and it's the entire reason for #hwlock-cells, no?
-> > 
-> > How do you expect the other components sharing the hwspinlocks to be
-> > described?
+> >
+> > My suggestion is to replace the global id-tree with a list of hwlocks
+> > and iterate over these if we ever get more than one driver registered.
+> > As long as #hwlock-drivers < log(#total-hwlocks) this should be
+> > faster.
+> >
+> > I would however argue that clients that would notice any kind of
+> > difference are using the API incorrectly.
+> >
+> > Unfortunately this is a somewhat larger change than just slapping DT
+> > support on the framework :/
 > 
-> Yes indeed, this is what any of the clients will use on Linux. But
-> this is not necessarily the semantics for exchanging hwlocks with the
-> other processor(s) which is where the global id space comes into
-> picture.
+> I suspect we want to wait with framework changes until there's a real
+> hardware use case justifying them.
+> 
+> With regard to DT, however, we obviously do want to be prepared for
+> multiple hwlock blocks even if they do not exist today.
+> 
+> So how about adopting an approach where:
+> - DT fully supports multi hwlock blocks (i.e. no global id field)
+> - Framework left mostly unchanged at the moment. This means issuing an
+> explicit error in case a secondary hwlock block shows up, and then
+> hwlock id could trivially be the lock index.
+> 
+> If multi hwlock hardware use case, or some new hwlock id translation
+> requirements, do show up in the future, it's always easy to add
+> framework support for it. At that point we'll know better what the
+> requirements are, and framework changes would be justifiable.
 
-I did try to consider that above. Rather than thinking about the
-numbering as "global", think of it as unique within the a given pool
-shared between processors. That's what the "poolN" names are about
-above.
+As mentioned in my other reply I think we need to be explicit now when
+defining the set of hwlocks (and their namming/numbering) shared between
+a given set of processors, as we do with other resources
+(GPIOs/regulators/whatever).
 
-That way you can dynamically allocate within the pool and know that
-Linux and the SW on the other processors will use the same ID. You can
-have pools that span multiple hwlock hardware blocks, and you can have
-multiple separate pools in operation at once.
+We also need to be explicit in describing the set of actors which use
+those locks.
 
-Surely that covers the cases you care about?
-
-If using names is clunky, we could instead have a pool-hwlocks property
-for that purpose.
+I think my previous proposal covered both of those.
 
 Thanks,
 Mark.
