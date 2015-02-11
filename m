@@ -1,53 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: PM: fix some build warnings on 1510-only
- Kconfigs
-Date: Wed, 11 Feb 2015 12:37:58 -0800
-Message-ID: <20150211203757.GH2531@atomide.com>
-References: <alpine.DEB.2.02.1502070020530.3767@utopia.booyaka.com>
- <54D9CFBC.3070405@nvidia.com> <54D9E42C.7010105@gmail.com>
- <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Voice calls working on N900 (*) (was Re: N900 modem support in
+ 3.18-rc1)
+Date: Wed, 11 Feb 2015 21:56:54 +0100
+Message-ID: <20150211205654.GA1936@amd>
+References: <20141104205117.GA17606@amd>
+ <20141106180335.GA21513@earth.universe>
+ <20141106225005.GA14002@amd>
+ <201411070001.46481@pali>
+ <545C6F14.8050303@gmail.com>
+ <20141113162420.GB8512@xo-6d-61-c0.localdomain>
+ <5465A977.4030605@gmail.com>
+ <20141114172008.GB12250@earth.universe>
+ <54665E02.8050108@gmail.com>
+ <20150211183228.GB29636@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux@arm.linux.org.uk >> Russell King" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi >> Aaro Koskinen" <aaro.koskinen@iki.fi>, "khilman@deeprootsystems.com >> Kevin Hilman" <khilman@deeprootsystems.com>, Jon Hunter <jgchunter@gmail.com>, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, tuukka.tikkanen@linaro.org
+In-Reply-To: <20150211183228.GB29636@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, ian@mnementh.co.uk
+Cc: Sebastian Reichel <sre@kernel.org>, Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, Sakari Ailus <sakari.ailus@iki.fi>, ian.molton@facebook.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [150210 18:28]:
-> On Tue, 10 Feb 2015, Jon Hunter wrote:
-> > On 07/02/2015 00:23, Paul Walmsley wrote:
+Hi!
+
+> (*) for low values of working.
 > 
-> > Unfortunately, there is not a single TRM for the omap5910 but individual 
-> > documents for each chapter in the original TRM. Check out the "OMAP5910 
-> > Dual-Core Processor Timer Reference Guide" and possibly the "OMAP5910 
-> > Dual-Core Processor Clock Generation and System Reset Management 
-> > Reference Guide"
-> > 
-> > The omap15xx/5910 did have a 32k timer but as you can see it appears it
-> > was never supported by the kernel for this device (not sure why). I do
-> > recall that there is some errata regarding the 32k timer, if you look at
-> > the omap5910 errata document and search for 32k you should find it.
+> Ok, so I got voice on n900 to work on 3.19-n900 tree.. Quality of incoming
+> voice is reasonable, quality of outgoing voice not so, I was told.
 > 
-> OK thanks for the context.  I probably am not going to investigate adding 
-> support for this timer on OMAP1510/5910 - am primarily trying to avoid 
-> causing a regression on the existing platforms.
+> So, you need patched kernel (pali's n900 tree) ofono etc, plus I'm
+> using ofone python script to control the modem, plus you need
+> libcmtspeechdata. I have this version:
 
-At least I've never seen the 32KiHz timer registers in any 15xx
-documentation. Jon are you sure you're not mixing up 5910 (15xx)
-and 5912 (16xx)?
+I put libcmtspeechdata at gitorious:
 
-Regards,
+git@gitorious.org:libcmtspeechdata/libcmtspeechdata.git
 
-Tony
+ofone control scripts are at:
+
+git@gitorious.org:tui/tui.git
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
