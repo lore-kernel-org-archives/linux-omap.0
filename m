@@ -1,125 +1,94 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Wed, 11 Feb 2015 15:42:06 -0500
-Message-ID: <54DBBE9E.90104@hurleysoftware.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-4-git-send-email-bigeasy@linutronix.de> <54D8B772.1010405@freebox.fr> <54D9441B.7070403@hurleysoftware.com> <54D9F3C7.5000809@freebox.fr> <54DA43F8.9090904@hurleysoftware.com> <54DBB531.2030504@hurleysoftware.com> <20150211200313.GE2531@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Wed, 11 Feb 2015 21:43:42 +0100
+Message-ID: <20150211204342.GE29636@amd>
+References: <20131206213613.GA19648@earth.universe>
+ <201501312009.58483@pali>
+ <CAALWOA9-wXZCY8QVZmZR7vymEQYupyOm=uJD8bJf-cC7uEfi0A@mail.gmail.com>
+ <201502010956.28662@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150211200313.GE2531@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nicolas Schichan <nschichan@freebox.fr>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53344 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452AbbBKUnp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2015 15:43:45 -0500
+Content-Disposition: inline
+In-Reply-To: <201502010956.28662@pali>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@ring0.de>
 
-On 02/11/2015 03:03 PM, Tony Lindgren wrote:
-> * Peter Hurley <peter@hurleysoftware.com> [150211 12:05]:
->> On 02/10/2015 12:46 PM, Peter Hurley wrote:
->>> On 02/10/2015 07:04 AM, Nicolas Schichan wrote:
->>>> On 02/10/2015 12:34 AM, Peter Hurley wrote:
->>>>> Hi Nicolas,
->>>>>
->>>>> Thanks for the report.
->>>>>
->>>> [...]
->>>>>> When a caracter is received on the UART while the kernel is printing
->>>>>> the boot messages, as soon as the kernel configures the UART for
->>>>>> receiving (after root filesystem mount), it gets stuck printing the
->>>>>> following message repeatedly:
->>>>>>
->>>>>> serial8250: too much work for irq29
->>>>>>
->>>>>> Once stuck, the reception of another character allows the boot process
->>>>>> to finish.
->>>>>>
->>>>>> From what I can gather, when we hit that, the UART_IIR_NO_INT is 0 (so the
->>>>>> interrupt is raised), but the UART_LSR_DR bit is 0 as well so the UART_RX
->>>>>> register is never read to clear the interrupt.
->>>>>
->>>>> The "too much work" message means serial8250_handle_irq() is returning 0,
->>>>> ie., not handled. Which in turn means IIR indicates no interrupt is pending
->>>>> (UART_IIR_NO_INT == 1).
->>>>>
->>>>> Can you log the register values for LSR and IIR at both patch locations
->>>>> in serial8250_do_startup()?
->>>>>
->>>>> (I can get you a debug patch, if necessary. Let me know)
->>>>
->>>> Hi Peter,
->>>>
->>>> Thanks for your reply.
->>>>
->>>> Here is what I have when the issue is triggered:
->>>>
->>>> [   12.154877] lsr 0x60 / iir 0x01
->>>> [   12.158071] lsr 0x60 / iir 0x01
->>>> [   12.161438] serial8250: too much work for irq29
->>>> [   12.165982] lsr 0x60 / iir 0x0c
->>>> [   12.169354] serial8250: too much work for irq29
->>>> [   12.173900] lsr 0x60 / iir 0x0c
->>>> (previous two messages are repeated and printk_ratelimited())
->>>
->>> Thanks for this information; I see I was wrong about the cause of message.
->>>
->>> I think what happens during startup is that on this silicon clearing
->>> the rx fifo (by serial8250_clear_fifos()) clears data ready but not
->>> the rx timeout condition which causes a spurious rx interrupt when
->>> interrupts are enabled.
->>>
->>> So caught between two broken UARTs: one that underflows its rx fifo because
->>> of unsolicited rx reads and the other that generates spurious interrupt
->>> without unsolicited rx reads.
->>>
->>>
->>>> When the issue is not triggered:
->>>>
->>>> [   10.784871] lsr 0x60 / iir 0x01
->>>> [   10.788066] lsr 0x60 / iir 0x01
->>>> [   10.794734] VFS: Mounted root (nfs filesystem) readonly on device 0:13.
->>>> [   10.801654] devtmpfs: mounted
->>>> [   10.805169] Freeing unused kernel memory: 184K (807be000 - 807ec000)
->>>> (userland takes over after that)
->>>>
->>>> I have also displayed the IIR and LSR registers when the "too much fork for
->>>> IRQ" condition is triggered.
->>>>
->>>> In the serial8250_do_startup(), before the interrupt are unmasked at the end,
->>>> the IIR looks sane and UART_IIR_NO_INT bit is set. When stuck
->>>> serial8250_interrupt(), UART_IIR_NO_INT is cleared and the interrupt ID is set
->>>> to 0xc which is not handled by the kernel at this time (the Kirkwood datasheet
->>>>  indicates that it is some kind of timeout condition from what I can gather).
->>>
->>> Yes, IIR == UART_IIR_RX_TIMEOUT is to used indicate that data is in the rx fifo
->>> but has not reached the rx trigger level yet.
->>>
->>> ATM, I'm not exactly sure if there is a safe way to clear the spurious interrupt
->>> from the interrupt handler.
->>>
->>> I'm fairly certain the only way to clear the rx timeout interrupt is to read
->>> the rx fifo, but I think this would race with actual data arrival. IOW, there
->>> might not be a way to determine if the data read is spurious or not.
->>
->> Yep, I see no safe way to clear the spurious interrupt [1] and no idea how to
->> keep it from happening (other than via the unsolicited RX reads in
->> serial8250_do_startup).
->>
->> Unfortunately, I think this means we'll have to revert Sebastian's commit:
->>
->> commit 0aa525d11859c1a4d5b78fdc704148e2ae03ae13
->> Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->> Date:   Wed Sep 10 21:29:58 2014 +0200
->>
->>     tty: serial: 8250_core: read only RX if there is something in the FIFO
->>     
->> which just means OMAP3630 will be limited to using the omap_serial driver.
-> 
-> Reverting makes sense to me if it has caused a regression. Maybe Sebastian
-> can update his patch to do this based on some quirk flag instead?
+Hi!
 
-That's fine with me. There's a 'bugs' field in struct 8250_uart_port and
-UART_BUG_* defines in 8250/8250.h for that purpose.
+On Sun 2015-02-01 09:56:28, Pali Roh=E1r wrote:
+> On Sunday 01 February 2015 02:36:06 Matthijs van Duin wrote:
+> > On 31 January 2015 at 20:06, Pali Roh=E1r <pali.rohar@gmail.com>=20
+> > wrote:
+> > > I have configured two testing N900 devices. One with signed
+> > > bootloader which enable omap aes support and one device with
+> > > signed bootloader which does not enable omap aes support.
+> >=20
+> > I'm probably missing some context here, but why not just use
+> > the one with aes support? Alternatively, one may argue that
+> > it's the bootloader's job to provide the kernel with an
+> > accurate device tree. (Though one may equally well argue that
+> > it would be nice to avoid having to customize the device tree
+> > for every feature-flavor of a processor, especially if this
+> > depends on how it's initialized.)
+> >=20
+>=20
+> Nokia X-Loader is closed source and signed. So we cannot modify=20
+> it. And it is responsible for configuring L3/L4 firewall.
+>=20
+> Year ago it was possible to find on internet signed X-Loader for=20
+> N900 which enable omap aes support (for testing purpose together=20
+> with open source linux kernel modules), but it is unofficial and=20
+> I think there only too few people who flashed it into N900 nand.=20
+> If somebody needs binaries I have backup all of them.
+>=20
+> More info about that aes enabled X-Loader:
+> http://maemo.org/community/maemo-developers/n900_aes_and_sha1-md5_hw_=
+acceleration_drivers/
+>=20
+> Majority of users use only official X-Loader which does not=20
+> enable aes support so we cannot enable kernel modules (cause=20
+> crashes). And also we cannot force users to flash some unofficial=20
+> binary into their device...
 
-Regards,
-Peter Hurley
+BTW... it would be interesting to know... are you doing some
+heavy crypto processing on N900? Are the accelerated drivers faster
+than non-accelerated ones? Because the link above says they are
+slower...
+
+# Eric Wheeler
+# ...
+# Hey guys, I have omap-aes compiled for my kernel and appears to be
+# working.
+#=20
+# I do not understand why non-accelerated software-crypto is faster tha=
+n
+# the omap-aes hardware acceleration:
+#=20
+# mmcblk0 onboard 32GB: read=3D21.76MB/s write=3D12.97MB/s
+# aes_generic crypto: read=3D 8.47 write=3D 5.54
+# omap-aes hw crypto: read=3D 6.31 write=3D 5.45
+#=20
+# mmcblk1 uSD 16GB Class 10: read=3D16.05MB/s write=3D16.47MB/s
+# aes_generic crypto: read=3D 7.96 write=3D 7.43
+# omap-aes hw crypto: read=3D 6.67 write=3D 7.18
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
