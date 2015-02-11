@@ -1,59 +1,96 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: -n900 (not mainline): fix compilation with 3.20-rc0
-Date: Thu, 12 Feb 2015 01:33:39 +0300
-Message-ID: <54DBD8C3.4090904@cogentembedded.com>
-References: <20150211222342.GE11313@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/2] remoteproc: add support to handle internal
+ memories
+Date: Wed, 11 Feb 2015 14:48:42 -0800
+Message-ID: <20150211224841.GK2531@atomide.com>
+References: <1420838519-15669-1-git-send-email-s-anna@ti.com>
+ <1420838519-15669-3-git-send-email-s-anna@ti.com>
+ <CAK=WgbaFoUpV315Tg1q=PGc-FkCvKBz2BmO8Fkj_FHa5UuWviw@mail.gmail.com>
+ <20150211205757.GI2531@atomide.com>
+ <54DBD7A3.9020604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150211222342.GE11313@amd>
+Content-Disposition: inline
+In-Reply-To: <54DBD7A3.9020604@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+* Suman Anna <s-anna@ti.com> [150211 14:32]:
+> On 02/11/2015 02:57 PM, Tony Lindgren wrote:
+> > * Ohad Ben-Cohen <ohad@wizery.com> [150210 02:14]:
+> >> Hi Suman,
+> >>
+> >> On Fri, Jan 9, 2015 at 11:21 PM, Suman Anna <s-anna@ti.com> wrote:
+> >>> A remote processor may need to load certain firmware sections into
+> >>> internal memories (eg: RAM at L1 or L2 levels) for performance or
+> >>> other reasons. Introduce a new resource type (RSC_INTMEM) and add
+> >>> an associated handler function to handle such memories. The handler
+> >>> creates a kernel mapping for the resource's 'pa' (physical address).
+> >> ...
+> >>> + * rproc_handle_intmem() - handle internal memory resource entry
+> >>> + * @rproc: rproc handle
+> >>> + * @rsc: the intmem resource entry
+> >>> + * @offset: offset of the resource data in resource table
+> >>> + * @avail: size of available data (for image validation)
+> >>> + *
+> >>> + * This function will handle firmware requests for mapping a memory region
+> >>> + * internal to a remote processor into kernel. It neither allocates any
+> >>> + * physical pages, nor performs any iommu mapping, as this resource entry
+> >>> + * is primarily used for representing physical internal memories. If the
+> >>> + * internal memory region can only be accessed through an iommu, please
+> >>> + * use a devmem resource entry.
+> >>> + *
+> >>> + * These resource entries should be grouped near the carveout entries in
+> >>> + * the firmware's resource table, as other firmware entries might request
+> >>> + * placing other data objects inside these memory regions (e.g. data/code
+> >>> + * segments, trace resource entries, ...).
+> >>> + */
+> >>> +static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
+> >>> +                              int offset, int avail)
+> >>> +{
+> >> ...
+> >>> +       va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
+> >>
+> >> Back in the days when we developed remoteproc there was a tremendous
+> >> effort to move away from ioremap when not strictly needed.
+> > 
+> > The use of ioremap in general is just fine for drivers as long
+> > as they access a dedicated area to the specific device. Accessing
+> > random registers and memory in the SoC is what I'm worried about.
+> >  
+> >> I'd be happy if someone intimate with the related hardware could ack
+> >> that in this specific case ioremap is indeed needed. No need to review
+> >> the entire patch, or anything remoteproc, just make sure that
+> >> generally ioremap is how we want to access this internal memory.
+> >>
+> >> Tony or Kevin any chance you could take a look and ack?
+> >>
+> >> If ioremap is indeed the way to go, I'd also expect that we wouldn't
+> >> have to use __force here, but that's probably a minor patch cleanup.
+> > 
+> > Hmm sounds like this memory should be dedicated to the accelerator?
+> > 
+> > In that case it should use memblock to reserve that area early so
+> > the kernel won't be accessing it at all.
+> 
+> The usage here is not really on regular memory, but on internal device
+> memory (eg: L2RAM within DSP which is accessible by MPU through L3 bus).
+> For the regular shared memory for vrings and vring buffers, the
+> remoteproc core does rely on CMA pools.
 
-On 02/12/2015 01:23 AM, Pavel Machek wrote:
+OK sounds like Linux needs to access it initially to load the DSP boot
+code to L2RAM to get the DSP booted.
 
-    This looked like a patch in its final form, so I decided to comment on it...
+Maybe it can be done with the API provided by drivers/misc/sram.c?
 
-> commit 02aa41563bd0f14268d2142ab69694880d3425a1
-> Author: Pavel <pavel@ucw.cz>
-> Date:   Wed Feb 11 23:22:51 2015 +0100
+You could set up the L2RAM as compatible = "mmio-sram" and then
+parse the optional phandle for that in the remoteproc code, then
+allocate some memory from it to load the DSP boot code and free
+it.
 
-    No need for this header.
+Regards,
 
->      Fix compilation of wl1251 specific parts with 3.20-rc0.
-
->      Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-    Please don't indent the change log.
-
-> diff --git a/drivers/net/wireless/ti/wl1251/netlink.c b/drivers/net/wireless/ti/wl1251/netlink.c
-> index e5f5a45..90a5486 100644
-> --- a/drivers/net/wireless/ti/wl1251/netlink.c
-> +++ b/drivers/net/wireless/ti/wl1251/netlink.c
-[...]
-> @@ -406,14 +398,10 @@ static int wl1251_nl_phy_reg_read(struct sk_buff *skb, struct genl_info *info)
->   	if (nla_put_u32(msg, WL1251_NL_ATTR_REG_VAL, *reg_value))
->   		goto nla_put_failure;
->
-> -	ret = genlmsg_end(msg, hdr);
-> -	if (ret < 0) {
-> -		wl1251_error("%s() failed", __func__);
-> -		goto nla_put_failure;
-> -	}
-> +	genlmsg_end(msg, hdr);
->
->   	kfree(reg_value);
-> -
-> +	
-
-    Remove this stray tab please.
-
->   	return genlmsg_reply(msg, info);
->
->   nla_put_failure:
-
-WBR, Sergei
+Tony
