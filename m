@@ -1,116 +1,218 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re:
- 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Wed, 11 Feb 2015 16:22:51 +0100
-Message-ID: <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
-References: <20131206213613.GA19648@earth.universe> <201501311234.41001@pali>
- <CAALWOA9jXeUgOj=GWFVQKkaz_Goxj-NOKk5qRHUTF6=EXEu+6w@mail.gmail.com> <201502111339.54480@pali>
+From: Jon Hunter <jgchunter@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP1: PM: fix some build warnings on 1510-only
+ Kconfigs
+Date: Wed, 11 Feb 2015 17:39:38 +0000
+Message-ID: <54DB93DA.8050308@gmail.com>
+References: <alpine.DEB.2.02.1502070020530.3767@utopia.booyaka.com> <54D9CFBC.3070405@nvidia.com> <54D9E42C.7010105@gmail.com> <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-7
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:42892 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084AbbBKPXN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2015 10:23:13 -0500
-Received: by mail-wg0-f48.google.com with SMTP id l18so1051104wgh.7
-        for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2015 07:23:11 -0800 (PST)
-In-Reply-To: <201502111339.54480@pali>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jon Hunter <jonathanh@nvidia.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, "aaro.koskinen@iki.fi >> Aaro Koskinen" <aaro.koskinen@iki.fi>, tuukka.tikkanen@linaro.org, "khilman@deeprootsystems.com >> Kevin Hilman" <khilman@deeprootsystems.com>, "tony@atomide.com >> Tony Lindgren" <tony@atomide.com>, "linux@arm.linux.org.uk >> Russell King" <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 
-On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.com> wr=
-ote:
->> Anyhow, since checking the firewalls/APs to see if you have
->> permission will probably only get you yet another fault if
->> things are walled off, the robust way of dealing with this
->> sort of situation is by probing the device with a read while
->> trapping bus faults. This also handles modules that are
->> unreachable for other reasons, e.g. being disabled by eFuse.
->
-> It is possible to patch kernel code to mask or ignore that fault?
-> Can you help me with something like that?
+Hi Paul,
 
-As I mentioned, I'm still learning my way around the kernel, so I
-don't feel very comfortable suggesting a concrete patch just yet. I've
-been browsing arch/arm/mm/ however and my impression is that all that
-would be required is editing fault.c by making a copy of do_bad but
-containing
-    return user_mode(regs) || !fixup_exception(regs);
-and hook it onto the appropriate fault codes.  However, this really
-needs the opinion of someone more familiar with this code.
+On 02/11/2015 02:25 AM, Paul Walmsley wrote:
+> Hi John,
+>=20
+> thanks for the review,
+>=20
+> On Tue, 10 Feb 2015, Jon Hunter wrote:
 
-I do have an observation to make on the issue of fault decoding: the
-list in fsr-2level.c may be "standard ARMv3 and ARMv4 aborts" but they
-are quite wrong for ARMv7 which has:
+[snip]
 
-[ 0] -
-[ 1] alignment fault
-[ 2] debug event
-[ 3] section access flag fault
-[ 4] instruction cache maintainance fault (reported via data abort)
-[ 5] section translation fault
-[ 6] page access flag fault
-[ 7] page translation fault
-[ 8] bus error on access
-[ 9] section domain fault
-[10] -
-[11] page domain fault
-[12] bus error on section table walk
-[13] section permission fault
-[14] bus error on page table walk
-[15] page permission fault
-[16] (TLB conflict abort)
-[17] -
-[18] -
-[19] -
-[20] (lockdown abort)
-[21] -
-[22] async bus error (reported via data abort)
-[23] -
-[24] async parity/ECC error (reported via data abort)
-[25] parity/ECC error on access
-[26] (coprocessor abort)
-[27] -
-[28] parity/ECC error on section table walk
-[29] -
-[30] parity/ECC error on page table walk
-[31] -
+> Subject: [PATCH] ARM: OMAP1: PM: fix some build warnings on 1510-only=
+ Kconfigs
+>=20
+> Building an OMAP1510-only Kconfig generates the following warnings:
+>=20
+> arch/arm/mach-omap1/pm.c: In function =A1omap1_pm_idle=A2:
+> arch/arm/mach-omap1/pm.c:123:2: warning: #warning Enable 32kHz OS tim=
+er in order to allow sleep states in idle [-Wcpp]
+>  #warning Enable 32kHz OS timer in order to allow sleep states in idl=
+e
+>   ^
+> arch/arm/mach-omap1/pm.c: At top level:
+> arch/arm/mach-omap1/pm.c:76:23: warning: =A1enable_dyn_sleep=A2 defin=
+ed but not used [-Wunused-variable]
+>  static unsigned short enable_dyn_sleep =3D 0;
+>                        ^
+>=20
+> These are not so easy to fix in an obviously correct fashion, since I
+> don't have these devices up and running in my testbed.  So, use
+> arch/arm/plat-omap/Kconfig and the existing pm.c source as a guide,
+> and posit that deep power saving states are only supported on OMAP16x=
+x
+> chips with kernels built with both CONFIG_OMAP_DM_TIMER=3Dy and
+> CONFIG_OMAP_32K_TIMER=3Dy.
+>=20
+> While here, clean up a few printk()s and unnecessary #ifdefs.
+>=20
+> This second version of the patch incorporates several suggestions fro=
+m
+> Jon Hunter <jgchunter@gmail.com>.
+>=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Jon Hunter <jonathanh@nvidia.com>
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Tuukka Tikkanen <tuukka.tikkanen@linaro.org>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Jon Hunter <jgchunter@gmail.com>
+> ---
+>  arch/arm/mach-omap1/pm.c | 51 ++++++++++++++++++++++++--------------=
+----------
+>  1 file changed, 25 insertions(+), 26 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+> index 34b4c0044961..dd94567c3628 100644
+> --- a/arch/arm/mach-omap1/pm.c
+> +++ b/arch/arm/mach-omap1/pm.c
+> @@ -71,13 +71,7 @@ static unsigned int mpui7xx_sleep_save[MPUI7XX_SLE=
+EP_SAVE_SIZE];
+>  static unsigned int mpui1510_sleep_save[MPUI1510_SLEEP_SAVE_SIZE];
+>  static unsigned int mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_SIZE];
+> =20
+> -#ifndef CONFIG_OMAP_32K_TIMER
+> -
+> -static unsigned short enable_dyn_sleep =3D 0;
+> -
+> -#else
+> -
+> -static unsigned short enable_dyn_sleep =3D 1;
+> +static unsigned short enable_dyn_sleep;
+> =20
+>  static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute=
+ *attr,
+>  			 char *buf)
+> @@ -90,8 +84,9 @@ static ssize_t idle_store(struct kobject *kobj, str=
+uct kobj_attribute *attr,
+>  {
+>  	unsigned short value;
+>  	if (sscanf(buf, "%hu", &value) !=3D 1 ||
+> -	    (value !=3D 0 && value !=3D 1)) {
+> -		printk(KERN_ERR "idle_sleep_store: Invalid value\n");
+> +	    (value !=3D 0 && value !=3D 1) ||
+> +	    (value !=3D 0 && !IS_ENABLED(CONFIG_OMAP_32K_TIMER))) {
+> +		pr_err("idle_sleep_store: Invalid value\n");
+>  		return -EINVAL;
+>  	}
+>  	enable_dyn_sleep =3D value;
+> @@ -101,7 +96,6 @@ static ssize_t idle_store(struct kobject *kobj, st=
+ruct kobj_attribute *attr,
+>  static struct kobj_attribute sleep_while_idle_attr =3D
+>  	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
+> =20
+> -#endif
+> =20
+>  static void (*omap_sram_suspend)(unsigned long r0, unsigned long r1)=
+ =3D NULL;
+> =20
+> @@ -115,16 +109,11 @@ void omap1_pm_idle(void)
+>  {
+>  	extern __u32 arm_idlect1_mask;
+>  	__u32 use_idlect1 =3D arm_idlect1_mask;
+> -	int do_sleep =3D 0;
+> =20
+>  	local_fiq_disable();
+> =20
+>  #if defined(CONFIG_OMAP_MPU_TIMER) && !defined(CONFIG_OMAP_DM_TIMER)
+> -#warning Enable 32kHz OS timer in order to allow sleep states in idl=
+e
 
-Some entries are patched up near the bottom of fault.c but many bogus
-messages remain, for example the "on linefetch" vs "on non-linefetch"
-is misleading since no such thing can be inferred from the fault
-status on v7.  Also, the i-cache maintenance fault handling looks
-wrong to me: it should fetch the actual fault status from IFSR (even
-though the address still comes from DFSR) and dispatch based on that.
+Thinking about this some more, I don't understand the dependency on the
+DM_TIMER here. For an omap1 device, regardless of whether the DM_TIMERs
+are enable or not, the device should be able to enter low power if the
+32K is enabled. Hence, shouldn't this have been !(CONFIG_OMAP_32K_TIMER=
+)
+above?
 
-Async external aborts (async bus error and async parity/ECC error)
-give you basically no info. DFAR will contain garbage hence displaying
-it will confuse rather than enlighten, a traceback is pointless since
-the instruction that caused the access is long retired, likewise
-user_mode() doesn't matter since a transition to kernel space may have
-happened after the access that cause the abort. Basically they should
-be treated more as an IRQ than as a fault (note they can also be
-masked just like irqs). In case of a bus error, it may be appropriate
-to just warn about it, or perhaps send a signal to the current
-process, although in the latter case it should have some means to
-distinguish it from a synchronous bus error.
+=46urthermore, you will get the above warning on a omap16xx only build =
+if
+you disable DM_TIMERs and keep MPU_TIMER enabled, which should be a
+valid thing to do.
 
-At least on the cortex-a8, a parity/ECC error (whether async or not)
-is to be regarded as absolutely fatal.  Quoth the TRM: "No recovery is
-possible. The abort handler must disable the caches, communicate the
-fail directly with the external system, request a reboot."
+Tony, I see you added the DM_TIMER dependency in commit
+be26a008414414c69a4ae9fe9877401c3ba62c5a. I understand your motivation,
+but why not just use !(CONFIG_OMAP_32K_TIMER) here? Bit 9 of the idlect=
+1
+is only for the TIMCK clock that is used for the MPU timers and not the
+DM_TIMERs.
 
-Bit 10 no longer indicates an asynchronous (let alone imprecise)
-fault.  Apart from the debug events and async aborts (and possibly
-some implementation-defined aborts), all aborts listed are
-synchronous, and DFAR/IFAR is valid. There's no technical obstruction
-to make these trappable via the kernel exception handling mechanism.
-(Though at least in case of parity/ECC errors one shouldn't.)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-#if defined(CONFIG_OMAP_MPU_TIMER) && !defined(CONFIG_OMAP_DM_TIMER)
+-#warning Enable 32kHz OS timer in order to allow sleep states in idle
++#if !defined(CONFIG_OMAP_32K_TIMER)
+        use_idlect1 =3D use_idlect1 & ~(1 << 9);
+-#else
+-       if (enable_dyn_sleep)
+-               do_sleep =3D 1;
+ #endif
+
+
+>  	use_idlect1 =3D use_idlect1 & ~(1 << 9);
+> -#else
+> -	if (enable_dyn_sleep)
+> -		do_sleep =3D 1;
+>  #endif
+> =20
+>  #ifdef CONFIG_OMAP_DM_TIMER
+> @@ -134,10 +123,12 @@ void omap1_pm_idle(void)
+>  	if (omap_dma_running())
+>  		use_idlect1 &=3D ~(1 << 6);
+> =20
+> -	/* We should be able to remove the do_sleep variable and multiple
+> +	/*
+> +	 * We should be able to remove the do_sleep variable and multiple
+>  	 * tests above as soon as drivers, timer and DMA code have been fix=
+ed.
+> -	 * Even the sleep block count should become obsolete. */
+> -	if ((use_idlect1 !=3D ~0) || !do_sleep) {
+> +	 * Even the sleep block count should become obsolete.
+> +	 */
+> +	if ((use_idlect1 !=3D ~0) || !enable_dyn_sleep) {
+> =20
+>  		__u32 saved_idlect1 =3D omap_readl(ARM_IDLECT1);
+>  		if (cpu_is_omap15xx())
+> @@ -635,15 +626,25 @@ static const struct platform_suspend_ops omap_p=
+m_ops =3D {
+> =20
+>  static int __init omap_pm_init(void)
+>  {
+> -
+> -#ifdef CONFIG_OMAP_32K_TIMER
+> -	int error;
+> -#endif
+> +	int error =3D 0;
+> =20
+>  	if (!cpu_class_is_omap1())
+>  		return -ENODEV;
+> =20
+> -	printk("Power Management for TI OMAP.\n");
+> +	pr_info("Power Management for TI OMAP.\n");
+> +
+> +	if (!IS_ENABLED(CONFIG_OMAP_32K_TIMER))
+> +		pr_info("OMAP1 PM: sleep states in idle disabled due to no 32KiHz =
+timer\n");
+> +
+> +	if (!IS_ENABLED(CONFIG_OMAP_DM_TIMER))
+> +		pr_info("OMAP1 PM: sleep states in idle disabled due to no DMTIMER=
+ support\n");
+
+I am not sure this print is really needed.
+
+> +	if (IS_ENABLED(CONFIG_OMAP_32K_TIMER) &&
+> +	    IS_ENABLED(CONFIG_OMAP_DM_TIMER)) {
+
+Or this dependency on DM_TIMERs either.
+
+Sorry, should have looked a bit more closely at this.
+
+Jon
