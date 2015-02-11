@@ -1,89 +1,128 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/2] remoteproc: add support to handle internal memories
-Date: Wed, 11 Feb 2015 12:57:58 -0800
-Message-ID: <20150211205757.GI2531@atomide.com>
-References: <1420838519-15669-1-git-send-email-s-anna@ti.com>
- <1420838519-15669-3-git-send-email-s-anna@ti.com>
- <CAK=WgbaFoUpV315Tg1q=PGc-FkCvKBz2BmO8Fkj_FHa5UuWviw@mail.gmail.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Wed, 11 Feb 2015 12:33:58 -0800
+Message-ID: <20150211203358.GG2531@atomide.com>
+References: <20131206213613.GA19648@earth.universe>
+ <201502111339.54480@pali>
+ <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+ <201502112128.44852@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAK=WgbaFoUpV315Tg1q=PGc-FkCvKBz2BmO8Fkj_FHa5UuWviw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Robert Tivy <rtivy@ti.com>, Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <201502112128.44852@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ohad Ben-Cohen <ohad@wizery.com> [150210 02:14]:
-> Hi Suman,
-> 
-> On Fri, Jan 9, 2015 at 11:21 PM, Suman Anna <s-anna@ti.com> wrote:
-> > A remote processor may need to load certain firmware sections into
-> > internal memories (eg: RAM at L1 or L2 levels) for performance or
-> > other reasons. Introduce a new resource type (RSC_INTMEM) and add
-> > an associated handler function to handle such memories. The handler
-> > creates a kernel mapping for the resource's 'pa' (physical address).
-> ...
-> > + * rproc_handle_intmem() - handle internal memory resource entry
-> > + * @rproc: rproc handle
-> > + * @rsc: the intmem resource entry
-> > + * @offset: offset of the resource data in resource table
-> > + * @avail: size of available data (for image validation)
-> > + *
-> > + * This function will handle firmware requests for mapping a memory region
-> > + * internal to a remote processor into kernel. It neither allocates any
-> > + * physical pages, nor performs any iommu mapping, as this resource entry
-> > + * is primarily used for representing physical internal memories. If the
-> > + * internal memory region can only be accessed through an iommu, please
-> > + * use a devmem resource entry.
-> > + *
-> > + * These resource entries should be grouped near the carveout entries in
-> > + * the firmware's resource table, as other firmware entries might request
-> > + * placing other data objects inside these memory regions (e.g. data/code
-> > + * segments, trace resource entries, ...).
-> > + */
-> > +static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
-> > +                              int offset, int avail)
-> > +{
-> ...
-> > +       va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
-> 
-> Back in the days when we developed remoteproc there was a tremendous
-> effort to move away from ioremap when not strictly needed.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150211 12:32]:
+> On Wednesday 11 February 2015 16:22:51 Matthijs van Duin wrote:
+> > On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.com=
+>=20
+> wrote:
+> > >> Anyhow, since checking the firewalls/APs to see if you have
+> > >> permission will probably only get you yet another fault if
+> > >> things are walled off, the robust way of dealing with this
+> > >> sort of situation is by probing the device with a read
+> > >> while trapping bus faults. This also handles modules that
+> > >> are unreachable for other reasons, e.g. being disabled by
+> > >> eFuse.
+> > >=20
+> > > It is possible to patch kernel code to mask or ignore that
+> > > fault? Can you help me with something like that?
+> >=20
+> > As I mentioned, I'm still learning my way around the kernel,
+> > so I don't feel very comfortable suggesting a concrete patch
+> > just yet. I've been browsing arch/arm/mm/ however and my
+> > impression is that all that would be required is editing
+> > fault.c by making a copy of do_bad but containing
+> >     return user_mode(regs) || !fixup_exception(regs);
+> > and hook it onto the appropriate fault codes.  However, this
+> > really needs the opinion of someone more familiar with this
+> > code.
+> >=20
+> > I do have an observation to make on the issue of fault
+> > decoding: the list in fsr-2level.c may be "standard ARMv3 and
+> > ARMv4 aborts" but they are quite wrong for ARMv7 which has:
+> >=20
+> > [ 0] -
+> > [ 1] alignment fault
+> > [ 2] debug event
+> > [ 3] section access flag fault
+> > [ 4] instruction cache maintainance fault (reported via data
+> > abort) [ 5] section translation fault
+> > [ 6] page access flag fault
+> > [ 7] page translation fault
+> > [ 8] bus error on access
+> > [ 9] section domain fault
+> > [10] -
+> > [11] page domain fault
+> > [12] bus error on section table walk
+> > [13] section permission fault
+> > [14] bus error on page table walk
+> > [15] page permission fault
+> > [16] (TLB conflict abort)
+> > [17] -
+> > [18] -
+> > [19] -
+> > [20] (lockdown abort)
+> > [21] -
+> > [22] async bus error (reported via data abort)
+> > [23] -
+> > [24] async parity/ECC error (reported via data abort)
+> > [25] parity/ECC error on access
+> > [26] (coprocessor abort)
+> > [27] -
+> > [28] parity/ECC error on section table walk
+> > [29] -
+> > [30] parity/ECC error on page table walk
+> > [31] -
+> >=20
+> > Some entries are patched up near the bottom of fault.c but
+> > many bogus messages remain, for example the "on linefetch" vs
+> > "on non-linefetch" is misleading since no such thing can be
+> > inferred from the fault status on v7.  Also, the i-cache
+> > maintenance fault handling looks wrong to me: it should fetch
+> > the actual fault status from IFSR (even though the address
+> > still comes from DFSR) and dispatch based on that.
+> >=20
+> > Async external aborts (async bus error and async parity/ECC
+> > error) give you basically no info. DFAR will contain garbage
+> > hence displaying it will confuse rather than enlighten, a
+> > traceback is pointless since the instruction that caused the
+> > access is long retired, likewise user_mode() doesn't matter
+> > since a transition to kernel space may have happened after
+> > the access that cause the abort. Basically they should be
+> > treated more as an IRQ than as a fault (note they can also be
+> > masked just like irqs). In case of a bus error, it may be
+> > appropriate to just warn about it, or perhaps send a signal
+> > to the current process, although in the latter case it should
+> > have some means to distinguish it from a synchronous bus
+> > error.
+> >=20
+> > At least on the cortex-a8, a parity/ECC error (whether async
+> > or not) is to be regarded as absolutely fatal.  Quoth the
+> > TRM: "No recovery is possible. The abort handler must disable
+> > the caches, communicate the fail directly with the external
+> > system, request a reboot."
+> >=20
+> > Bit 10 no longer indicates an asynchronous (let alone
+> > imprecise) fault.  Apart from the debug events and async
+> > aborts (and possibly some implementation-defined aborts), all
+> > aborts listed are synchronous, and DFAR/IFAR is valid.
+> > There's no technical obstruction to make these trappable via
+> > the kernel exception handling mechanism. (Though at least in
+> > case of parity/ECC errors one shouldn't.)
+>=20
+> Tony, Nishanth, or somebody else... can you help with memory=20
+> management? Or do you know some expert for arch/arm/mm/ code?
 
-The use of ioremap in general is just fine for drivers as long
-as they access a dedicated area to the specific device. Accessing
-random registers and memory in the SoC is what I'm worried about.
- 
-> I'd be happy if someone intimate with the related hardware could ack
-> that in this specific case ioremap is indeed needed. No need to review
-> the entire patch, or anything remoteproc, just make sure that
-> generally ioremap is how we want to access this internal memory.
-> 
-> Tony or Kevin any chance you could take a look and ack?
-> 
-> If ioremap is indeed the way to go, I'd also expect that we wouldn't
-> have to use __force here, but that's probably a minor patch cleanup.
-
-Hmm sounds like this memory should be dedicated to the accelerator?
-
-In that case it should use memblock to reserve that area early so
-the kernel won't be accessing it at all.
-
-If it needs to be shared between the kernel and the accelerator,
-then is the remoteproc or mailbox somehow needs to coordinating the
-shared access to this memory.. I think those cases should be handled
-separately and not with a single interface.
+Changing the abort handling should be discussed on the
+linux-arm-kernel list. Probably best to play with that first
+for a proof of concept patch :)
 
 Regards,
 
