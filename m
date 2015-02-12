@@ -1,63 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-hdmi-audio: Add missing error
-	check for devm_kzalloc
-Date: Thu, 12 Feb 2015 11:22:41 +0200
-Message-ID: <54DC70E1.50300@ti.com>
-References: <1423732082-23815-1-git-send-email-kiran.padwal@smartplayin.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
+ something in the FIFO
+Date: Thu, 12 Feb 2015 09:40:20 +0000
+Message-ID: <20150212094020.GE8670@n2100.arm.linux.org.uk>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+ <1410377411-26656-4-git-send-email-bigeasy@linutronix.de>
+ <54D8B772.1010405@freebox.fr>
+ <54D9441B.7070403@hurleysoftware.com>
+ <54D9F3C7.5000809@freebox.fr>
+ <54DA43F8.9090904@hurleysoftware.com>
+ <54DBB531.2030504@hurleysoftware.com>
+ <20150211200313.GE2531@atomide.com>
+ <54DBBE9E.90104@hurleysoftware.com>
+ <54DC6832.3070507@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1423732082-23815-1-git-send-email-kiran.padwal@smartplayin.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Kiran Padwal <kiran.padwal@smartplayin.com>, Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, "Sarha,
- Jyri" <jsarha@ti.com>, Kiran Padwal <kiran.padwal21@gmail.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54DC6832.3070507@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Tony Lindgren <tony@atomide.com>, Nicolas Schichan <nschichan@freebox.fr>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/12/2015 11:08 AM, Kiran Padwal wrote:
-> This patch add a missing check on the return value of devm_kzalloc,
-> which would cause a NULL pointer dereference in a OOM situation.
+On Thu, Feb 12, 2015 at 09:45:38AM +0100, Sebastian Andrzej Siewior wrote:
+> On 02/11/2015 09:42 PM, Peter Hurley wrote:
+> 
+> >> Reverting makes sense to me if it has caused a regression. Maybe Sebastian
+> >> can update his patch to do this based on some quirk flag instead?
+> > 
+> > That's fine with me. There's a 'bugs' field in struct 8250_uart_port and
+> > UART_BUG_* defines in 8250/8250.h for that purpose.
+> 
+> Makes sense. Reading an empty FIFO does not look right. Maybe we should
+> do the bug flag the other way around? But I can do what I am told to so
+> if there is more fallout than just this Marvell UART I could come
+> around with a patch to the bug field for the older OMAP.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reading the RX FIFO is something that goes back a long time in the 8250
+driver, to the time when Ted Ts'o wrote the driver.
 
-> =
+I would suggest that it remains there as the default (it was obviously
+found to be necessary for x86 all those years ago when Linux was in
+its infancy) and has survived for getting on 20 years without issue.
 
-> Signed-off-by: Kiran Padwal <kiran.padwal@smartplayin.com>
-> ---
->  sound/soc/omap/omap-hdmi-audio.c |    3 +++
->  1 file changed, 3 insertions(+)
-> =
-
-> diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-=
-audio.c
-> index ccfb41c..f7eb42a 100644
-> --- a/sound/soc/omap/omap-hdmi-audio.c
-> +++ b/sound/soc/omap/omap-hdmi-audio.c
-> @@ -352,6 +352,9 @@ static int omap_hdmi_audio_probe(struct platform_devi=
-ce *pdev)
->  		return ret;
->  =
-
->  	card =3D devm_kzalloc(dev, sizeof(*card), GFP_KERNEL);
-> +	if (!card)
-> +		return -ENOMEM;
-> +
->  	card->name =3D devm_kasprintf(dev, GFP_KERNEL,
->  				    "HDMI %s", dev_name(ad->dssdev));
->  	card->owner =3D THIS_MODULE;
-> =
-
-
-
--- =
-
-P=E9ter
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
