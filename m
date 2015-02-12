@@ -1,33 +1,34 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Thu, 12 Feb 2015 09:45:38 +0100
-Message-ID: <54DC6832.3070507@linutronix.de>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-4-git-send-email-bigeasy@linutronix.de> <54D8B772.1010405@freebox.fr> <54D9441B.7070403@hurleysoftware.com> <54D9F3C7.5000809@freebox.fr> <54DA43F8.9090904@hurleysoftware.com> <54DBB531.2030504@hurleysoftware.com> <20150211200313.GE2531@atomide.com> <54DBBE9E.90104@hurleysoftware.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Kiran Padwal <kiran.padwal@smartplayin.com>
+Subject: [PATCH] ASoC: omap-hdmi-audio: Add missing error check for devm_kzalloc
+Date: Thu, 12 Feb 2015 14:38:02 +0530
+Message-ID: <1423732082-23815-1-git-send-email-kiran.padwal@smartplayin.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54DBBE9E.90104@hurleysoftware.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Tony Lindgren <tony@atomide.com>
-Cc: Nicolas Schichan <nschichan@freebox.fr>, gregkh@linuxfoundation.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, Kiran Padwal <kiran.padwal21@gmail.com>, Kiran Padwal <kiran.padwal@smartplayin.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/11/2015 09:42 PM, Peter Hurley wrote:
+This patch add a missing check on the return value of devm_kzalloc,
+which would cause a NULL pointer dereference in a OOM situation.
 
->> Reverting makes sense to me if it has caused a regression. Maybe Sebastian
->> can update his patch to do this based on some quirk flag instead?
-> 
-> That's fine with me. There's a 'bugs' field in struct 8250_uart_port and
-> UART_BUG_* defines in 8250/8250.h for that purpose.
+Signed-off-by: Kiran Padwal <kiran.padwal@smartplayin.com>
+---
+ sound/soc/omap/omap-hdmi-audio.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Makes sense. Reading an empty FIFO does not look right. Maybe we should
-do the bug flag the other way around? But I can do what I am told to so
-if there is more fallout than just this Marvell UART I could come
-around with a patch to the bug field for the older OMAP.
-
-> Regards,
-> Peter Hurley
-
-Sebastian
+diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
+index ccfb41c..f7eb42a 100644
+--- a/sound/soc/omap/omap-hdmi-audio.c
++++ b/sound/soc/omap/omap-hdmi-audio.c
+@@ -352,6 +352,9 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
+ 		return ret;
+ 
+ 	card = devm_kzalloc(dev, sizeof(*card), GFP_KERNEL);
++	if (!card)
++		return -ENOMEM;
++
+ 	card->name = devm_kasprintf(dev, GFP_KERNEL,
+ 				    "HDMI %s", dev_name(ad->dssdev));
+ 	card->owner = THIS_MODULE;
+-- 
+1.7.9.5
