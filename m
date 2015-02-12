@@ -1,52 +1,68 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v3 2/2] remoteproc: add support to handle internal memories
-Date: Thu, 12 Feb 2015 14:54:55 -0600
-Message-ID: <54DD131F.8040704@ti.com>
-References: <1420838519-15669-1-git-send-email-s-anna@ti.com> <1420838519-15669-3-git-send-email-s-anna@ti.com> <CAK=WgbaFoUpV315Tg1q=PGc-FkCvKBz2BmO8Fkj_FHa5UuWviw@mail.gmail.com> <20150211205757.GI2531@atomide.com> <CAK=WgbbFxNfn5tUeJn-8NehFXAD+=7UW-WtBf3ZFm1xyomFAfA@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 3/4] ARM: dts: omap3-pandora: add DM3730 1 GHz version
+Date: Fri, 13 Feb 2015 01:10:12 +0200
+Message-ID: <CANOLnONUZr9iCt-ND0OvQP91dARM=P6C7WXq5OigAeZOdsX2Ug@mail.gmail.com>
+References: <1423746226-700-1-git-send-email-marek@goldelico.com>
+	<1423746226-700-4-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbbFxNfn5tUeJn-8NehFXAD+=7UW-WtBf3ZFm1xyomFAfA@mail.gmail.com>
+In-Reply-To: <1423746226-700-4-git-send-email-marek@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Marek Belisko <marek@goldelico.com>
+Cc: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, "H. Nikolaus Schaller" <hns@goldelico.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, robh+dt@kernel.org, galak@codeaurora.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+On Thu, Feb 12, 2015 at 3:03 PM, Marek Belisko <marek@goldelico.com> wr=
+ote:
+> From: "H. Nikolaus Schaller" <hns@goldelico.com>
+>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  arch/arm/boot/dts/omap3-pandora-1ghz.dts | 65 ++++++++++++++++++++++=
+++++++++++
+>  1 file changed, 65 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/omap3-pandora-1ghz.dts
+>
+> diff --git a/arch/arm/boot/dts/omap3-pandora-1ghz.dts b/arch/arm/boot=
+/dts/omap3-pandora-1ghz.dts
+> new file mode 100644
+> index 0000000..6286f41
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-pandora-1ghz.dts
+=2E..
+> +
+> +       control_pins: pinmux_control_pins {
+> +               pinctrl-single,pins =3D <
+> +                       OMAP3630_CORE2_IOPAD(0x25dc, PIN_INPUT_PULLDO=
+WN | MUX_MODE4)    /* etk_d0.gpio_14 =3D  HP_SHUTDOWN */
+> +                       OMAP3630_CORE2_IOPAD(0x25de, PIN_OUTPUT | MUX=
+_MODE4)            /* etk_d1.gpio_15 =3D  BT_SHUTDOWN */
+> +                       OMAP3630_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX=
+_MODE4)            /* etk_d2.gpio_16 =3D  RESET_USB_HOST */
+> +                       OMAP3630_CORE2_IOPAD(0x25ea, PIN_INPUT_PULLUP=
+ | MUX_MODE4)      /* etk_d7.gpio_21 =3D  WIFI IRQ */
 
-On 02/12/2015 03:09 AM, Ohad Ben-Cohen wrote:
-> On Wed, Feb 11, 2015 at 10:57 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>> +static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
->>>> +                              int offset, int avail)
->>>> +{
->>> ...
->>>> +       va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
->>>
->>> Back in the days when we developed remoteproc there was a tremendous
->>> effort to move away from ioremap when not strictly needed.
->>
->> The use of ioremap in general is just fine for drivers as long
->> as they access a dedicated area to the specific device. Accessing
->> random registers and memory in the SoC is what I'm worried about.
-> 
-> Yes, the proposed interface essentially allows exactly this random
-> access, since the parameters to ioremap would be provided from the
-> user space (specifically from the resource table contained within the
-> firmware of the remote processor).
+The WG7210 document claims that no pulldown/pullup is needed, and we
+always had it disabled. The mainline wl1251 driver also reconfigures
+that signal to be active high on wl1251 side, and uses rising edge
+interrupts (I don't know why it does that).
 
-My original motivation was that it would only need to be added on
-firmwares requiring support for loading into internal memories,
-otherwise, these are something left to be managed by the software
-running on the remote processor completely, and MPU will not even touch
-them.
+> +                       OMAP3630_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX=
+_MODE4)            /* etk_d8.gpio_22 =3D  MSECURE */
+> +                       OMAP3630_CORE2_IOPAD(0x25ee, PIN_OUTPUT | MUX=
+_MODE4)            /* etk_d9.gpio_23 =3D  WIFI_POWER */
 
-So, let me know if this is a NAK. If so, we have two options - one to go
-the sram node model where each of them have to be defined separately,
-and have a specific property in the rproc nodes to be able to get the
-gen_pool handles. The other one is simply to define these as <reg> and
-use devm_ioremap_resource() (so use DT for defining the regions instead
-of a resource table entry).
+I think we also need these here:
+  OMAP3_WKUP_IOPAD(0x2a54, PIN_INPUT | MUX_MODE4)   /*
+reserved.gpio_127 =3D MMC2_WP */
+  OMAP3_WKUP_IOPAD(0x2a56, PIN_INPUT | MUX_MODE4)   /*
+reserved.gpio_126 =3D MMC1_WP */
+  OMAP3_WKUP_IOPAD(0x2a58, PIN_OUTPUT | MUX_MODE4)   /*
+reserved.gpio_128 =3D LED_MMC1 */
+  OMAP3_WKUP_IOPAD(0x2a5a, PIN_OUTPUT | MUX_MODE4)   /*
+reserved.gpio_129 =3D LED_MMC2 */
 
-regards
-Suman
+
+Gra=C5=BEvydas
