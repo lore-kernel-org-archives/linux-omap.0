@@ -1,119 +1,273 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
-Date: Thu, 12 Feb 2015 16:41:58 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1502121641320.3767@utopia.booyaka.com>
-References: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com> <546DB513.6000104@ti.com> <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com> <5473FF68.3070805@ti.com> <alpine.DEB.2.02.1411260649330.16047@utopia.booyaka.com>
- <alpine.DEB.2.02.1501022252580.27058@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: dra7xx: hwmod: drop .modulemode from pcie1/2
+ hwmods
+Date: Thu, 12 Feb 2015 16:45:55 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1502121644570.3767@utopia.booyaka.com>
+References: <1422978684-4826-1-git-send-email-grygorii.strashko@linaro.org> <54D874E9.1040302@ti.com> <54D88BB3.4060104@linaro.org> <54D8B515.201@ti.com> <54D8C9C3.5090500@linaro.org> <54DC4B99.8070009@ti.com> <54DC65E0.7090206@linaro.org>
+ <alpine.DEB.2.02.1502121507480.3767@utopia.booyaka.com> <54DCD3C3.3010008@linaro.org> <alpine.DEB.2.02.1502121627210.3767@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.02.1501022252580.27058-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:48596 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670AbbBLQpz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2015 11:45:55 -0500
+In-Reply-To: <alpine.DEB.2.02.1502121627210.3767@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-+ Felipe, Nishanth
+On Thu, 12 Feb 2015, Paul Walmsley wrote:
 
-Hi Lokesh,
+> On Fri, 13 Feb 2015, Grygorii.Strashko@linaro.org wrote:
+> 
+> > On 02/12/2015 11:08 PM, Paul Walmsley wrote:
+> > > Thanks guys.
+> > > 
+> > > On Thu, 12 Feb 2015, Grygorii.Strashko@linaro.org wrote:
+> > > 
+> > > > Looks good for me and seems working.
+> > > 
+> > > Grygorii, can I add your Acked-by?
+> > > 
+> > > 
+> > > - Paul
+> > > 
+> > 
+> > There is my "Signed-off-by" :)
+> 
+> OK thanks, queued for v3.20-rc.
 
-what's the status here?
+Actually, could you guys test the updated patch?  It had to be changed to 
+apply on mainline and I don't have a DRA7xx board to test.
+
 
 - Paul
 
+>From 0f9a1ee083a7adbb2c867d5c8d25d7e5fcb38b07 Mon Sep 17 00:00:00 2001
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Date: Thu, 12 Feb 2015 09:29:31 -0700
+Subject: [PATCH] ARM: DRA7: hwmod_data: Fix hwmod data for pcie
 
-On Fri, 2 Jan 2015, Paul Walmsley wrote:
+Fixed hwmod data for pcie by having the correct module mode offset.
+Previously this module mode offset was part of pcie PHY which was wrong.
+Now this module mode offset was moved to pcie hwmod and removed the
+hwmod data
+for pcie phy. While at that renamed pcie_hwmod to pciess_hwmod in order
+to match with the name given in TRM.
 
-> Ping.  Are you going to redo this one?
-> 
-> - Paul
-> 
-> On Wed, 26 Nov 2014, Paul Walmsley wrote:
-> 
-> > Hi Lokesh 
-> > 
-> > On Tue, 25 Nov 2014, Lokesh Vutla wrote:
-> > 
-> > > Hi Paul,
-> > > On Thursday 20 November 2014 10:26 PM, Paul Walmsley wrote:
-> > > > On Thu, 20 Nov 2014, Lokesh Vutla wrote:
-> > > > 
-> > > >> On Monday 17 November 2014 10:13 AM, Lokesh Vutla wrote:
-> > > >>> RTC IP have kicker feature which prevents spurious writes to its registers.
-> > > >>> In order to write into any of the RTC registers, KICK values has te be
-> > > >>> written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
-> > > >>> sysconfig register without writing into any kick register which is a noop.
-> > > >>> When autoidle is allowed for rtc, interruts are not received until IDLEMODE
-> > > >>> is set to SIDLE_SMART_WKUP.
-> > > >>> Adding a reset function to unlock RTC registers so that IDLEMODE is
-> > > >>> updated.
-> > > >> Ping..!!
-> > > >> Is this patch acceptable?
-> > > > 
-> > > > Lokesh
-> > > > 
-> > > > 1. This looks like a fix.  Is this intended to go in as a v3.18-rc patch, 
-> > > > or against v3.19?  If so it would be very helpful for the maintainers if 
-> > > > you were to state that somewhere.
-> > > Yes. This is a fix, intended to go in 3.18-rc. Sorry should have
-> > > mentioned it.
-> > 
-> > A few questions.  Do you know when this problem started (in terms of 
-> > kernel versions)?
-> > 
-> > Also: the patch description states that this is only a problem when 
-> > autoidle is allowed for RTC.  What enables autoidle for RTC - the RTCSS 
-> > driver?  Or does hwmod wind up doing this after the RTCSS driver unlocks 
-> > it?
-> > 
-> > > > 2. Your patch unlocks the RTC registers, but never relocks it.  This seems 
-> > > > to defeat the point of the spurious write protection.  Shouldn't your 
-> > > > patch only unlock the RTC immediately before the hwmod code touches the 
-> > > > RTC registers, and then relock it immediately afterwards, per SPRUHZ6 
-> > > > section 23.4.3.3?  If so then the .reset function pointer is the wrong 
-> > > > place for this; I would suggest adding some .lock and .unlock function 
-> > > > pointers that are to be called before and after any register write to the 
-> > > > IP block.
-> > > Yeah I agree with you.
-> > > Currently rtc driver unlocks these kick registers in probe and leaves it unlocks for
-> > > further use.
-> > > But if hwmod does unlock and lock for every sysconfig write driver should also
-> > > implement unlock and lock for every rtc register write, which adds an extra overhead.
-> > > I am not sure if some one writes into rtc registers other than hwmod and driver.
-> > > IMO we can leave it unlocked as the driver does.
-> > 
-> > I would think that the best approach would be to set up .lock and .unlock 
-> > function pointers, then add a temporary hwmod flag that, if set, would 
-> > prevent the .lock function from ever being called.  Then once the driver 
-> > is fixed, that flag can be dropped.
-> > 
-> > > > 3. Your macros don't mention DRA7xx specifically.  Does this sequence 
-> > > > apply to some other TI chips, or just DRA7xx?  Please document this in a 
-> > > > comment above the macros, and possibly change the name of the macros to 
-> > > > refer to DRA7XX.
-> > > This sequence applies to AM43xx and AM33xx also. So made it generic.
-> > > Ill document it.
-> > 
-> > OK but it would need more than just documentation, right?  Wouldn't the 
-> > hwmod data also need to be modified for AM33xx/AM43xx to add the .reset 
-> > function pointer?  Any reason why folks wouldn't have seen this problem on 
-> > AM33xx/AM43xx?
-> > 
-> > 
-> > - Paul
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-> - Paul
-> 
+This helps to get rid of the following warning
+"omap_hwmod: pcie1: _wait_target_disable failed"
 
+[Grygorii.Strashko@linaro.org: Found the issue that actually caused
+  "omap_hwmod: pcie1: _wait_target_disable failed"]
+Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+[paul@pwsan.com: updated to apply on mainline]
+---
+ arch/arm/boot/dts/dra7.dtsi               |   2 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 111 ++++++++++--------------------
+ 2 files changed, 35 insertions(+), 78 deletions(-)
 
-- Paul
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 5827fedafd43..18a904db32bb 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1111,7 +1111,6 @@
+ 					      "wkupclk", "refclk",
+ 					      "div-clk", "phy-div";
+ 				#phy-cells = <0>;
+-				ti,hwmods = "pcie1-phy";
+ 			};
+ 
+ 			pcie2_phy: pciephy@4a095000 {
+@@ -1130,7 +1129,6 @@
+ 					      "wkupclk", "refclk",
+ 					      "div-clk", "phy-div";
+ 				#phy-cells = <0>;
+-				ti,hwmods = "pcie2-phy";
+ 				status = "disabled";
+ 			};
+ 		};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index e8692e7675b8..6a74a7ea8c95 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1466,29 +1466,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+  *
+  */
+ 
+-static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
++static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
+ 	.name	= "pcie",
+ };
+ 
+ /* pcie1 */
+-static struct omap_hwmod dra7xx_pcie1_hwmod = {
++static struct omap_hwmod_rst_info dra7xx_pciess1_resets[] = {
++	{ .name = "pcie", .rst_shift = 0 },
++};
++
++static struct omap_hwmod dra7xx_pciess1_hwmod = {
+ 	.name		= "pcie1",
+-	.class		= &dra7xx_pcie_hwmod_class,
++	.class		= &dra7xx_pciess_hwmod_class,
+ 	.clkdm_name	= "pcie_clkdm",
+ 	.main_clk	= "l4_root_clk_div",
++	.rst_lines	= dra7xx_pciess1_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_pciess1_resets),
+ 	.prcm = {
+ 		.omap4 = {
+-			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
++			.clkctrl_offs	= DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
++			.context_offs	= DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
+ 			.modulemode	= MODULEMODE_SWCTRL,
+ 		},
+ 	},
+ };
+ 
+ /* pcie2 */
+-static struct omap_hwmod dra7xx_pcie2_hwmod = {
++
++static struct omap_hwmod_rst_info dra7xx_pciess2_resets[] = {
++	{ .name = "pcie", .rst_shift = 1 },
++};
++
++static struct omap_hwmod dra7xx_pciess2_hwmod = {
+ 	.name		= "pcie2",
+-	.class		= &dra7xx_pcie_hwmod_class,
++	.class		= &dra7xx_pciess_hwmod_class,
+ 	.clkdm_name	= "pcie_clkdm",
++	.rst_lines	= dra7xx_pciess2_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_pciess2_resets),
+ 	.main_clk	= "l4_root_clk_div",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1498,44 +1512,7 @@ static struct omap_hwmod dra7xx_pcie2_hwmod = {
+ 	},
+ };
+ 
+-/*
+- * 'PCIE PHY' class
+- *
+- */
+ 
+-static struct omap_hwmod_class dra7xx_pcie_phy_hwmod_class = {
+-	.name	= "pcie-phy",
+-};
+-
+-/* pcie1 phy */
+-static struct omap_hwmod dra7xx_pcie1_phy_hwmod = {
+-	.name		= "pcie1-phy",
+-	.class		= &dra7xx_pcie_phy_hwmod_class,
+-	.clkdm_name	= "l3init_clkdm",
+-	.main_clk	= "l4_root_clk_div",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
+-			.context_offs = DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+-/* pcie2 phy */
+-static struct omap_hwmod dra7xx_pcie2_phy_hwmod = {
+-	.name		= "pcie2-phy",
+-	.class		= &dra7xx_pcie_phy_hwmod_class,
+-	.clkdm_name	= "l3init_clkdm",
+-	.main_clk	= "l4_root_clk_div",
+-	.prcm = {
+-		.omap4 = {
+-			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET,
+-			.context_offs = DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET,
+-			.modulemode   = MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+ 
+ /*
+  * 'qspi' class
+@@ -2877,50 +2854,34 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3_main_1 -> pcie1 */
+-static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie1 = {
++/* l3_main_1 -> pciess1 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pciess1 = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+-	.slave		= &dra7xx_pcie1_hwmod,
++	.slave		= &dra7xx_pciess1_hwmod,
+ 	.clk		= "l3_iclk_div",
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l4_cfg -> pcie1 */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
++/* l4_cfg -> pciess1 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pciess1 = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+-	.slave		= &dra7xx_pcie1_hwmod,
++	.slave		= &dra7xx_pciess1_hwmod,
+ 	.clk		= "l4_root_clk_div",
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3_main_1 -> pcie2 */
+-static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie2 = {
++/* l3_main_1 -> pciess2 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pciess2 = {
+ 	.master		= &dra7xx_l3_main_1_hwmod,
+-	.slave		= &dra7xx_pcie2_hwmod,
++	.slave		= &dra7xx_pciess2_hwmod,
+ 	.clk		= "l3_iclk_div",
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_cfg -> pcie2 */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
+-	.master		= &dra7xx_l4_cfg_hwmod,
+-	.slave		= &dra7xx_pcie2_hwmod,
+-	.clk		= "l4_root_clk_div",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4_cfg -> pcie1 phy */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
+-	.master		= &dra7xx_l4_cfg_hwmod,
+-	.slave		= &dra7xx_pcie1_phy_hwmod,
+-	.clk		= "l4_root_clk_div",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4_cfg -> pcie2 phy */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2_phy = {
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pciess2 = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+-	.slave		= &dra7xx_pcie2_phy_hwmod,
++	.slave		= &dra7xx_pciess2_hwmod,
+ 	.clk		= "l4_root_clk_div",
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+@@ -3327,12 +3288,10 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l4_cfg__ocp2scp1,
+ 	&dra7xx_l4_cfg__ocp2scp3,
+-	&dra7xx_l3_main_1__pcie1,
+-	&dra7xx_l4_cfg__pcie1,
+-	&dra7xx_l3_main_1__pcie2,
+-	&dra7xx_l4_cfg__pcie2,
+-	&dra7xx_l4_cfg__pcie1_phy,
+-	&dra7xx_l4_cfg__pcie2_phy,
++	&dra7xx_l3_main_1__pciess1,
++	&dra7xx_l4_cfg__pciess1,
++	&dra7xx_l3_main_1__pciess2,
++	&dra7xx_l4_cfg__pciess2,
+ 	&dra7xx_l3_main_1__qspi,
+ 	&dra7xx_l4_per3__rtcss,
+ 	&dra7xx_l4_cfg__sata,
+-- 
+2.1.4
+
