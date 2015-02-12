@@ -1,34 +1,37 @@
-From: Kiran Padwal <kiran.padwal@smartplayin.com>
-Subject: [PATCH] ASoC: omap-hdmi-audio: Add missing error check for devm_kzalloc
-Date: Thu, 12 Feb 2015 14:38:02 +0530
-Message-ID: <1423732082-23815-1-git-send-email-kiran.padwal@smartplayin.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 2/2] remoteproc: add support to handle internal memories
+Date: Thu, 12 Feb 2015 11:09:50 +0200
+Message-ID: <CAK=WgbbFxNfn5tUeJn-8NehFXAD+=7UW-WtBf3ZFm1xyomFAfA@mail.gmail.com>
+References: <1420838519-15669-1-git-send-email-s-anna@ti.com>
+ <1420838519-15669-3-git-send-email-s-anna@ti.com> <CAK=WgbaFoUpV315Tg1q=PGc-FkCvKBz2BmO8Fkj_FHa5UuWviw@mail.gmail.com>
+ <20150211205757.GI2531@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150211205757.GI2531@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, Kiran Padwal <kiran.padwal21@gmail.com>, Kiran Padwal <kiran.padwal@smartplayin.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch add a missing check on the return value of devm_kzalloc,
-which would cause a NULL pointer dereference in a OOM situation.
+On Wed, Feb 11, 2015 at 10:57 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > +static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
+>> > +                              int offset, int avail)
+>> > +{
+>> ...
+>> > +       va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
+>>
+>> Back in the days when we developed remoteproc there was a tremendous
+>> effort to move away from ioremap when not strictly needed.
+>
+> The use of ioremap in general is just fine for drivers as long
+> as they access a dedicated area to the specific device. Accessing
+> random registers and memory in the SoC is what I'm worried about.
 
-Signed-off-by: Kiran Padwal <kiran.padwal@smartplayin.com>
----
- sound/soc/omap/omap-hdmi-audio.c |    3 +++
- 1 file changed, 3 insertions(+)
+Yes, the proposed interface essentially allows exactly this random
+access, since the parameters to ioremap would be provided from the
+user space (specifically from the resource table contained within the
+firmware of the remote processor).
 
-diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
-index ccfb41c..f7eb42a 100644
---- a/sound/soc/omap/omap-hdmi-audio.c
-+++ b/sound/soc/omap/omap-hdmi-audio.c
-@@ -352,6 +352,9 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
- 		return ret;
- 
- 	card = devm_kzalloc(dev, sizeof(*card), GFP_KERNEL);
-+	if (!card)
-+		return -ENOMEM;
-+
- 	card->name = devm_kasprintf(dev, GFP_KERNEL,
- 				    "HDMI %s", dev_name(ad->dssdev));
- 	card->owner = THIS_MODULE;
--- 
-1.7.9.5
+Thanks,
+Ohad.
