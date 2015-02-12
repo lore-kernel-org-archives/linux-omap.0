@@ -1,55 +1,129 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v3 1/5] xhci: add a quirk for device disconnection errata
- for Synopsis Designware USB3 core
-Date: Thu, 12 Feb 2015 10:18:19 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1502121013390.1209-100000@iolanthe.rowland.org>
-References: <54DCAF88.4010607@intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: dts: omap3-pandora: add common device tree
+Date: Thu, 12 Feb 2015 08:03:16 -0800
+Message-ID: <20150212160316.GL2531@atomide.com>
+References: <1423746226-700-1-git-send-email-marek@goldelico.com>
+ <1423746226-700-2-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54DCAF88.4010607@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mathias Nyman <mathias.nyman@intel.com>
-Cc: Sneeker Yeh <sneeker.yeh@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta2.delivery1.ore.mailhop.org ([54.149.155.156]:58702 "EHLO
+	pmta2.delivery1.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755302AbbBLQIL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Feb 2015 11:08:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1423746226-700-2-git-send-email-marek@goldelico.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 
-On Thu, 12 Feb 2015, Mathias Nyman wrote:
+Hi,
 
-> On 25.01.2015 10:13, Sneeker Yeh wrote:
-> > This issue is defined by a three-way race at disconnect, between
-> > 1) Class driver interrupt endpoint resheduling attempts if the ISR gave an ep
-> >    error event due to device detach (it would try 3 times)
-> > 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
-> >    asynchronously
-> > 3) The hardware IP was configured in silicon with
-> >    - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1
-> >    - Synopsys IP version is < 3.00a
-> > The IP will auto-suspend itself on device detach with some phy-specific interval
-> > after CSC is cleared by 2)
-> > 
-> > If 2) and 3) complete before 1), the interrupts it expects will not be generated
-> > by the autosuspended IP, leading to a deadlock. Even later disconnection
-> > procedure would detect that corresponding urb is still in-progress and issue a
-> > ep stop command, auto-suspended IP still won't respond to that command.
+Few comments below.
 
-If the Synopsys IP provides a way to do it, it would be better to turn
-off the autosuspend feature entirely.  Doesn't autosuspend violate the
-xHCI specification?
+* Marek Belisko <marek@goldelico.com> [150212 05:07]:
+> +
+> +&omap3_pmx_core {
+> +
+> +	mmc1_pins: pinmux_mmc1_pins {
+> +		pinctrl-single,pins = <
+> +			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_clk.sdmmc1_clk */
+> +			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_cmd.sdmmc1_cmd */
+> +			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat0.sdmmc1_dat0 */
+> +			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat1.sdmmc1_dat1 */
+> +			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat2.sdmmc1_dat2 */
+> +			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat3.sdmmc1_dat3 */
+> +		>;
+...
 
-> So did I understand correctly that the class driver submits a new urb which
-> is enqueued by xhci_urb_enqueue() before the hub thread notices the device is disconnected.
-> Then hub thread clears CSC bit, controller suspends and the new urb is never given back?
-> 
-> Doesn't the CSC bit and PORT_CONNECT bit show the device is disconnected when we enter
-> xhci_enqueue_urb(), even it the hub thread doesn't know this yet?
+> +&omap3_pmx_core2 {
+> +	/* define in CPU specific file that includes this one
+> +	 * use either OMAP3430_CORE2_IOPAD() or OMAP3630_CORE2_IOPAD()
+> +	 */
+> +};
 
-What if the device disconnects _after_ the new URB is enqueued?
+OK looks like you have some SoC specific pins too.. I assume you
+guys have checked that all the pins defined in this file are at
+the same offset between 34xx and 36xx variants?
 
-> Would it make sense to check those bits in xhci_enqueue_urb, and just return error
-> in the xhci_urb_enqueue() if device is not connected? Then there wouldn't be a need for any quirk
-> at all.
+> +&i2c1 {
+> +	clock-frequency = <2600000>;
+> +
+> +	twl: twl@48 {
+> +		reg = <0x48>;
+> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +		interrupt-parent = <&intc>;
+> +
+> +		twl_power: power {
+> +			compatible = "ti,twl4030-power-reset";
+> +			ti,use_poweroff;
+> +		};
+> +
+> +		twl_audio: audio {
+> +			compatible = "ti,twl4030-audio";
+> +
+> +			codec {
+> +				ti,ramp_delay_value = <3>;
+> +			};
+> +		};
+> +	};
+> +};
 
-That wouldn't help URBs that were already enqueued when the disconnect 
-occurred.
+Can be done later naturally, but ere you probably want
+ti,twl4030-power-idle or ti,twl4030-power-idle-osc-off
+if the osicllator can be shut down during off-idle.
 
-Alan Stern
+> +&gpmc {
+> +	ranges = <0 0 0x30000000 0x04>; /* CS0: NAND */
+
+The ranges here allocate the GPMC partition, so it needs to be
+a minimum of 16MB:
+
+	ranges = <0 0 0x30000000 0x1000000>,	/* CS0: 16MB for NAND */
+
+> +	nand@0,0 {
+> +		reg = <0 0 0>; /* CS0, offset 0 */
+
+The reg is for the device driver to ioremap it's registers,
+for NAND it's just 4:
+
+		reg = <0 0 4>;	/* CS0, offset 0, IO size 4 */
+
+> +		filesystem@680000 {
+> +			label = "rootfs";
+> +			reg = <0xc80000 0>;	/* 0 = MTDPART_SIZ_FULL */
+> +		};
+> +	};
+> +};
+
+Is the NAND the same size on all of them? I don't think dts
+has a binding for MTDPART_SIZ_FULL type thing..
+
+> +	lcd: lcd@1 {
+> +		reg = <1>;	/* CS1 */
+> +		compatible =	"omapdss,tpo,td043mtea1";
+> +		spi-max-frequency = <100000>;
+> +		spi-cpol;
+> +		spi-cpha;
+> +
+> +		label = "lcd";
+> +		reset-gpios = <&gpio5 29 GPIO_ACTIVE_LOW>;	/* GPIO_157 */
+> +		vcc-supply = <&vaux1>;
+> +
+> +		port {
+> +			lcd_in: endpoint {
+> +				remote-endpoint = <&dpi_out>;
+> +			};
+> +		};
+> +	};
+
+Oh there's already a binding for the LCD too? That's great :)
+
+Nine job, good to see this happening!
+
+Regards,
+
+
+Tony
