@@ -1,76 +1,394 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] irqchip: gic: Don't complain in gic_get_cpumask() if UP
- system
-Date: Wed, 11 Feb 2015 21:51:50 -0600
-Message-ID: <20150212035150.GB29500@kahuna>
-References: <1422665010-5854-1-git-send-email-sboyd@codeaurora.org>
- <20150131070939.GA4068@saruman.tx.rr.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] ARM: dra7xx: hwmod: drop .modulemode from pcie1/2 hwmods
+Date: Thu, 12 Feb 2015 12:13:37 +0530
+Message-ID: <54DC4B99.8070009@ti.com>
+References: <1422978684-4826-1-git-send-email-grygorii.strashko@linaro.org> <54D874E9.1040302@ti.com> <54D88BB3.4060104@linaro.org> <54D8B515.201@ti.com> <54D8C9C3.5090500@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150131070939.GA4068@saruman.tx.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, Stefan Agner <stefan@agner.ch>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46607 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752593AbbBLGoI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Feb 2015 01:44:08 -0500
+In-Reply-To: <54D8C9C3.5090500@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-On 01:09-20150131, Felipe Balbi wrote:
-> +linux-omap
-> 
-> On Fri, Jan 30, 2015 at 04:43:30PM -0800, Stephen Boyd wrote:
-> > In a uniprocessor implementation the interrupt processor targets
-> > registers are read-as-zero/write-ignored (RAZ/WI). Unfortunately
-> > gic_get_cpumask() will print a critical message saying
-> > 
-> >  GIC CPU mask not found - kernel will fail to boot.
-> > 
-> > if these registers all read as zero, but there won't actually be
-> > a problem on uniprocessor systems and the kernel will boot just
-> > fine. Skip this check if we're running a UP kernel or if we
-> > detect that the hardware only supports a single processor.
-> > 
-> 
-> Nice, I'll test this on AM437x on Monday but certainly looks promising:
-> 
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> 
-> 
-> > Acked-by: Nicolas Pitre <nico@linaro.org>
-> > Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-> > Cc: Stefan Agner <stefan@agner.ch>
-> > Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-> > ---
-> >  drivers/irqchip/irq-gic.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> > index d617ee5a3d8a..1b70e0de0f6e 100644
-> > --- a/drivers/irqchip/irq-gic.c
-> > +++ b/drivers/irqchip/irq-gic.c
-> > @@ -346,7 +346,7 @@ static u8 gic_get_cpumask(struct gic_chip_data *gic)
-> >  			break;
-> >  	}
-> >  
-> > -	if (!mask)
-> > +	if (!mask && num_possible_cpus() > 1)
-> >  		pr_crit("GIC CPU mask not found - kernel will fail to boot.\n");
-> >  
-> >  	return mask;
-> > -- 
-> > The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-> > a Linux Foundation Collaborative Project
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> -- 
-> balbi
++tero
 
-Acked-by: Nishanth Menon <nm@ti.com>
--- 
-Regards,
-Nishanth Menon
+Hi,
+
+On Monday 09 February 2015 08:22 PM, Grygorii.Strashko@linaro.org wrote=
+:
+> On 02/09/2015 09:24 PM, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Monday 09 February 2015 03:58 PM, Grygorii.Strashko@linaro.org wr=
+ote:
+>>> Hi Kishon,
+>>> On 02/09/2015 04:50 PM, Kishon Vijay Abraham I wrote:
+>>>> On Tuesday 03 February 2015 09:21 PM, grygorii.strashko@linaro.org
+>>>> wrote:
+>>>>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>>>>
+>>>>> Now DRA7xx pcie1/2 hwmods define PRCM configuration as following:
+>>>>>     .clkctrl_offs =3D DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
+>>>>>     .rstctrl_offs =3D DRA7XX_RM_L3INIT_RSTCTRL_OFFSET,
+>>>>>     .modulemode   =3D MODULEMODE_SWCTRL,
+>>>>> which is completely wrong because DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET
+>>>>> is clockdomain ctrl register and NOT module ctrl register.
+>>>>> And they have diffrent allowed values for bits[0,1]:
+>>>>> CLKTRCTRL=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89MODULEMODE=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89
+>>>>> 0x0:=E2=80=89NO_SLEEP=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=
+0x0:=E2=80=89Module=E2=80=89is=E2=80=89disabled=E2=80=89by=E2=80=89SW.=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=
+=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89
+>>>>> 0x1:=E2=80=89SW_SLEEP=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=
+0x1:=E2=80=89Module=E2=80=89is=E2=80=89managed=E2=80=89automatically=E2=
+=80=89by=E2=80=89HW=E2=80=89=E2=80=89
+>>>>> 0x2:=E2=80=89SW_WKUP=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=
+=E2=80=890x2:=E2=80=89Module=E2=80=89is=E2=80=89explicitly=E2=80=89enab=
+led.=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=
+=89=E2=80=89=E2=80=89
+>>>>> 0x3:=E2=80=89HW_AUTO=E2=80=89=E2=80=89=E2=80=89=E2=80=89=E2=80=89=
+=E2=80=890x3:=E2=80=89Reserved=E2=80=89=E2=80=89
+>>>>>
+>>>>> As result, following message can be seen during suspend:
+>>>>>     "omap_hwmod: pcie1: _wait_target_disable failed"
+>>>>>
+>>>>> Fix it by removing .modulemode from pcie1/2 hwmods and, in that
+>>>>> way, prevent clockdomain ctrl register writing from HWMOD core.
+>>>>
+>>>> Looks correct except for one change.
+>>>>
+>>>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>>>
+>>>>> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>>>>> ---
+>>>>>
+>>>>> More over, it looks like pcie1/2 hwmods are fake and have to be
+>>>>> dropped at all.
+>>>>> The real HWMODs are PCIESS1/2.
+>>>>
+>>>> Not sure I get this. You mean "dra7xx_pcie1_hwmod" should be
+>>>> replaced with
+>>>> "dra7xx_pciess1_hwmod"? Or you mean an entire new hwmod is missing=
+?
+>>>>
+>>>> Please note we still have to enable the clock domain and main cloc=
+k.
+>>>> We've also
+>>>> purposefully omitted sysconfig from hwmod data since pcie reset
+>>>> (RM_PCIESS_RSTCTRL) should be done before accessing the syconfig
+>>>> register and
+>>>> the infrastructure for that is currently not present.
+>>>
+>>> What I'm trying to say is that now PM control data mixed between
+>>> "pcieX" and "pcieX-phy" hwmods.
+>>> After this patch "pcieX" hwmods will actually do nothing (I assume
+>>> that "pciex-phy" will be
+>>> enabled before "pcieX"), and probably can be removed if "pcie_clkdm=
+"
+>>> could be attached to "pcieX-phy" hwmod
+>>> instead.
+>>>
+>>> More over, now, "pcie_clkdm" is connected to "pcieX" hwmod while
+>>> MODULEMODE register is controlled
+>>> by "pciex-phy" hwmod, so when pciess is going to be enabled the
+>>> "l3init_clkdm" will be waken-up by
+>>> hwmode core and not "pcie_clkdm" - as I can remember this is not go=
+od
+>>> (we should alway wake-up clockdomain
+>>>   and keep it in SWSUP mode while changing MODULEMODE and SYSC
+>>> registers).
+>>>
+>>> static struct omap_hwmod dra7xx_pcie1_hwmod =3D {
+>>>     .name        =3D "pcie1",
+>>>     .class        =3D &dra7xx_pcie_hwmod_class,
+>>>     .clkdm_name    =3D "pcie_clkdm",
+>>>     .main_clk    =3D "l4_root_clk_div",
+>>>
+>>> static struct omap_hwmod dra7xx_pcie1_phy_hwmod =3D {
+>>>     .name        =3D "pcie1-phy",
+>>>     .class        =3D &dra7xx_pcie_phy_hwmod_class,
+>>>     .clkdm_name    =3D "l3init_clkdm",
+>>>     .main_clk    =3D "l4_root_clk_div",
+>>>
+>>> So, in my opinion, some rework may be needed here.
+>>> Am I right?
+>>
+>> you are right. We should have a single hwmod like dra7xx_pciess1_hwm=
+od
+>> whose
+>> clkdm should be "pcie_clkdm" and whose clkctrl_offs should be
+>> DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET (for controlling MODULEMODE)=
+=2E
+>> PCIE PHY
+>> shouldn't have a hwmod entry at all.
+>>
+>> Thanks
+>> Kishon
+>>
+>
+> Could this patch be applied any way? It fixes real issue for me.
+
+A proper fix should look something like below IMO
+
+Thanks
+Kishon
+
+ From 1c177d37ac46885a4dc17bacec33071ac23c56da Mon Sep 17 00:00:00 2001
+=46rom: Kishon Vijay Abraham I <kishon@ti.com>
+Date: Thu, 12 Feb 2015 11:55:08 +0530
+Subject: [RFC PATCH] ARM: DRA7: hwmod_data: Fix hwmod data for pcie
+
+=46ixed hwmod data for pcie by having the correct module mode offset.
+Previously this module mode offset was part of pcie PHY which was wrong=
+=2E
+Now this module mode offset was moved to pcie hwmod and removed the=20
+hwmod data
+for pcie phy. While at that renamed pcie_hwmod to pciess_hwmod in order
+to match with the name given in TRM.
+
+This helps to get rid of the following warning
+"omap_hwmod: pcie1: _wait_target_disable failed"
+
+[Grygorii.Strashko@linaro.org: Found the issue that actually caused
+  "omap_hwmod: pcie1: _wait_target_disable failed"]
+Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+this patch was created on 3.14 kernel after applying reset framework pa=
+tches
+required for testing PCIe. I can port this to mainline if this patch is=
+=20
+fine.
+
+  arch/arm/boot/dts/dra7.dtsi               |    2 -
+  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  107=20
++++++++----------------------
+  2 files changed, 26 insertions(+), 83 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index a4b1337..d7a1ff9 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1364,7 +1364,6 @@
+  					      "wkupclk", "refclk",
+  					      "div-clk", "phy-div";
+  				#phy-cells =3D <0>;
+-				ti,hwmods =3D "pcie1-phy";
+  			};
+
+  			pcie2_phy: pciephy@4a095000 {
+@@ -1383,7 +1382,6 @@
+  					      "wkupclk", "refclk",
+  					      "div-clk", "phy-div";
+  				#phy-cells =3D <0>;
+-				ti,hwmods =3D "pcie2-phy";
+  			};
+  		};
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c=20
+b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 5ae755c..56f2c58 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1968,25 +1968,26 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod =
+=3D {
+   *
+   */
+
+-static struct omap_hwmod_class dra7xx_pcie_hwmod_class =3D {
++static struct omap_hwmod_class dra7xx_pciess_hwmod_class =3D {
+  	.name	=3D "pcie",
+  };
+
+  /* pcie1 */
+-static struct omap_hwmod_rst_info dra7xx_pcie1_resets[] =3D {
++static struct omap_hwmod_rst_info dra7xx_pciess1_resets[] =3D {
+  	{ .name =3D "pcie", .rst_shift =3D 0 },
+  };
+
+-static struct omap_hwmod dra7xx_pcie1_hwmod =3D {
++static struct omap_hwmod dra7xx_pciess1_hwmod =3D {
+  	.name		=3D "pcie1",
+-	.class		=3D &dra7xx_pcie_hwmod_class,
++	.class		=3D &dra7xx_pciess_hwmod_class,
+  	.clkdm_name	=3D "pcie_clkdm",
+-	.rst_lines	=3D dra7xx_pcie1_resets,
+-	.rst_lines_cnt	=3D ARRAY_SIZE(dra7xx_pcie1_resets),
++	.rst_lines	=3D dra7xx_pciess1_resets,
++	.rst_lines_cnt	=3D ARRAY_SIZE(dra7xx_pciess1_resets),
+  	.main_clk	=3D "l4_root_clk_div",
+  	.prcm =3D {
+  		.omap4 =3D {
+-			.clkctrl_offs	=3D DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
++			.clkctrl_offs =3D DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
++			.context_offs =3D DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
+  			.rstctrl_offs	=3D DRA7XX_RM_L3INIT_RSTCTRL_OFFSET,
+  			.modulemode	=3D MODULEMODE_SWCTRL,
+  		},
+@@ -1994,60 +1995,22 @@ static struct omap_hwmod dra7xx_pcie1_hwmod =3D=
+ {
+  };
+
+  /* pcie2 */
+-static struct omap_hwmod_rst_info dra7xx_pcie2_resets[] =3D {
++static struct omap_hwmod_rst_info dra7xx_pciess2_resets[] =3D {
+  	{ .name =3D "pcie", .rst_shift =3D 1 },
+  };
+
+-static struct omap_hwmod dra7xx_pcie2_hwmod =3D {
++static struct omap_hwmod dra7xx_pciess2_hwmod =3D {
+  	.name		=3D "pcie2",
+-	.class		=3D &dra7xx_pcie_hwmod_class,
++	.class		=3D &dra7xx_pciess_hwmod_class,
+  	.clkdm_name	=3D "pcie_clkdm",
+-	.rst_lines	=3D dra7xx_pcie2_resets,
+-	.rst_lines_cnt	=3D ARRAY_SIZE(dra7xx_pcie2_resets),
+-	.main_clk	=3D "l4_root_clk_div",
+-	.prcm =3D {
+-		.omap4 =3D {
+-			.clkctrl_offs =3D DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
+-			.rstctrl_offs =3D DRA7XX_RM_L3INIT_RSTCTRL_OFFSET,
+-			.modulemode   =3D MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+-/*
+- * 'PCIE PHY' class
+- *
+- */
+-
+-static struct omap_hwmod_class dra7xx_pcie_phy_hwmod_class =3D {
+-	.name	=3D "pcie-phy",
+-};
+-
+-/* pcie1 phy */
+-static struct omap_hwmod dra7xx_pcie1_phy_hwmod =3D {
+-	.name		=3D "pcie1-phy",
+-	.class		=3D &dra7xx_pcie_phy_hwmod_class,
+-	.clkdm_name	=3D "l3init_clkdm",
+-	.main_clk	=3D "l4_root_clk_div",
+-	.prcm =3D {
+-		.omap4 =3D {
+-			.clkctrl_offs =3D DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
+-			.context_offs =3D DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
+-			.modulemode   =3D MODULEMODE_SWCTRL,
+-		},
+-	},
+-};
+-
+-/* pcie2 phy */
+-static struct omap_hwmod dra7xx_pcie2_phy_hwmod =3D {
+-	.name		=3D "pcie2-phy",
+-	.class		=3D &dra7xx_pcie_phy_hwmod_class,
+-	.clkdm_name	=3D "l3init_clkdm",
++	.rst_lines	=3D dra7xx_pciess2_resets,
++	.rst_lines_cnt	=3D ARRAY_SIZE(dra7xx_pciess2_resets),
+  	.main_clk	=3D "l4_root_clk_div",
+  	.prcm =3D {
+  		.omap4 =3D {
+  			.clkctrl_offs =3D DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET,
+  			.context_offs =3D DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET,
++			.rstctrl_offs =3D DRA7XX_RM_L3INIT_RSTCTRL_OFFSET,
+  			.modulemode   =3D MODULEMODE_SWCTRL,
+  		},
+  	},
+@@ -3621,49 +3584,33 @@ static struct omap_hwmod_ocp_if=20
+dra7xx_l4_cfg__ocp2scp3 =3D {
+  };
+
+  /* l3_main_1 -> pcie1 */
+-static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie1 =3D {
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pciess1 =3D {
+  	.master		=3D &dra7xx_l3_main_1_hwmod,
+-	.slave		=3D &dra7xx_pcie1_hwmod,
++	.slave		=3D &dra7xx_pciess1_hwmod,
+  	.clk		=3D "l3_iclk_div",
+  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+  };
+
+  /* l4_cfg -> pcie1 */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 =3D {
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pciess1 =3D {
+  	.master		=3D &dra7xx_l4_cfg_hwmod,
+-	.slave		=3D &dra7xx_pcie1_hwmod,
++	.slave		=3D &dra7xx_pciess1_hwmod,
+  	.clk		=3D "l4_root_clk_div",
+  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+  };
+
+  /* l3_main_1 -> pcie2 */
+-static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie2 =3D {
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pciess2 =3D {
+  	.master		=3D &dra7xx_l3_main_1_hwmod,
+-	.slave		=3D &dra7xx_pcie2_hwmod,
++	.slave		=3D &dra7xx_pciess2_hwmod,
+  	.clk		=3D "l3_iclk_div",
+  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+  };
+
+  /* l4_cfg -> pcie2 */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 =3D {
+-	.master		=3D &dra7xx_l4_cfg_hwmod,
+-	.slave		=3D &dra7xx_pcie2_hwmod,
+-	.clk		=3D "l4_root_clk_div",
+-	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4_cfg -> pcie1 phy */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy =3D {
+-	.master		=3D &dra7xx_l4_cfg_hwmod,
+-	.slave		=3D &dra7xx_pcie1_phy_hwmod,
+-	.clk		=3D "l4_root_clk_div",
+-	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4_cfg -> pcie2 phy */
+-static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2_phy =3D {
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pciess2 =3D {
+  	.master		=3D &dra7xx_l4_cfg_hwmod,
+-	.slave		=3D &dra7xx_pcie2_phy_hwmod,
++	.slave		=3D &dra7xx_pciess2_hwmod,
+  	.clk		=3D "l4_root_clk_div",
+  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+  };
+@@ -4153,12 +4100,10 @@ static struct omap_hwmod_ocp_if=20
+*dra7xx_hwmod_ocp_ifs[] __initdata =3D {
+  	&dra7xx_l4_cfg__mpu,
+  	&dra7xx_l4_cfg__ocp2scp1,
+  	&dra7xx_l4_cfg__ocp2scp3,
+-	&dra7xx_l3_main_1__pcie1,
+-	&dra7xx_l4_cfg__pcie1,
+-	&dra7xx_l3_main_1__pcie2,
+-	&dra7xx_l4_cfg__pcie2,
+-	&dra7xx_l4_cfg__pcie1_phy,
+-	&dra7xx_l4_cfg__pcie2_phy,
++	&dra7xx_l3_main_1__pciess1,
++	&dra7xx_l4_cfg__pciess1,
++	&dra7xx_l3_main_1__pciess2,
++	&dra7xx_l4_cfg__pciess2,
+  	&dra7xx_l4_cfg__pruss1, /* AM57xx only */
+  	&dra7xx_l4_cfg__pruss2, /* AM57xx only */
+  	&dra7xx_l3_main_1__qspi,
+--=20
+1.7.9.5
+
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
