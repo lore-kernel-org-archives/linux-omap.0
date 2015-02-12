@@ -1,98 +1,127 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 3/4] ARM: dts: omap3-pandora: add DM3730 1 GHz version
-Date: Thu, 12 Feb 2015 14:03:45 +0100
-Message-ID: <1423746226-700-4-git-send-email-marek@goldelico.com>
-References: <1423746226-700-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:63873 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755830AbbBLNER (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2015 08:04:17 -0500
-In-Reply-To: <1423746226-700-1-git-send-email-marek@goldelico.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] xhci: add a quirk for device disconnection errata
+ for Synopsis Designware USB3 core
+Date: Thu, 12 Feb 2015 15:50:00 +0200
+Message-ID: <54DCAF88.4010607@intel.com>
+References: <1422173608-24355-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com> <1422173608-24355-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1422173608-24355-2-git-send-email-Sneeker.Yeh-l16TxrwUIHTQFUHtdCDX3A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sneeker Yeh <sneeker.yeh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Huang Rui <ray.huang-5C7GfCeVMHo@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sneeker Yeh <Sneeker.Yeh-l16TxrwUIHTQFUHtdCDX3A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, bcousson@baylibre.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, marek@goldelico.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+On 25.01.2015 10:13, Sneeker Yeh wrote:
+> This issue is defined by a three-way race at disconnect, between
+> 1) Class driver interrupt endpoint resheduling attempts if the ISR gave an ep
+>    error event due to device detach (it would try 3 times)
+> 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
+>    asynchronously
+> 3) The hardware IP was configured in silicon with
+>    - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1
+>    - Synopsys IP version is < 3.00a
+> The IP will auto-suspend itself on device detach with some phy-specific interval
+> after CSC is cleared by 2)
+> 
+> If 2) and 3) complete before 1), the interrupts it expects will not be generated
+> by the autosuspended IP, leading to a deadlock. Even later disconnection
+> procedure would detect that corresponding urb is still in-progress and issue a
+> ep stop command, auto-suspended IP still won't respond to that command.
+> 
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap3-pandora-1ghz.dts | 65 ++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-pandora-1ghz.dts
+So did I understand correctly that the class driver submits a new urb which
+is enqueued by xhci_urb_enqueue() before the hub thread notices the device is disconnected.
+Then hub thread clears CSC bit, controller suspends and the new urb is never given back?
 
-diff --git a/arch/arm/boot/dts/omap3-pandora-1ghz.dts b/arch/arm/boot/dts/omap3-pandora-1ghz.dts
-new file mode 100644
-index 0000000..6286f41
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-pandora-1ghz.dts
-@@ -0,0 +1,65 @@
-+/*
-+ * Copyright (C) 2015
-+ *   Nikolaus Schaller <hns@goldelico.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * device tree for OpenPandora 1GHz with DM3730
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap36xx.dtsi"
-+#include "omap3-pandora-common.dtsi"
-+
-+/ {
-+	model = "Pandora Handheld Console 1GHz";
-+
-+	compatible = "ti,omap36xx", "ti,omap3";
-+};
-+
-+&omap3_pmx_core2 {
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&hsusb2_2_pins
-+		&control_pins
-+	>;
-+
-+	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+		>;
-+	};
-+
-+	mmc3_pins: pinmux_mmc3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25d8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_clk.sdmmc3_clk */
-+			OMAP3630_CORE2_IOPAD(0x25da, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_ctl.sdmmc3_cmd */
-+			OMAP3630_CORE2_IOPAD(0x25e2, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d3.sdmmc3_dat3 */
-+			OMAP3630_CORE2_IOPAD(0x25e4, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d4.sdmmc3_dat0 */
-+			OMAP3630_CORE2_IOPAD(0x25e6, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d5.sdmmc3_dat1 */
-+			OMAP3630_CORE2_IOPAD(0x25e8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d6.sdmmc3_dat2 */
-+		>;
-+	};
-+
-+	control_pins: pinmux_control_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25dc, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* etk_d0.gpio_14 =  HP_SHUTDOWN */
-+			OMAP3630_CORE2_IOPAD(0x25de, PIN_OUTPUT | MUX_MODE4)		/* etk_d1.gpio_15 =  BT_SHUTDOWN */
-+			OMAP3630_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 =  RESET_USB_HOST */
-+			OMAP3630_CORE2_IOPAD(0x25ea, PIN_INPUT_PULLUP | MUX_MODE4)	/* etk_d7.gpio_21 =  WIFI IRQ */
-+			OMAP3630_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)		/* etk_d8.gpio_22 =  MSECURE */
-+			OMAP3630_CORE2_IOPAD(0x25ee, PIN_OUTPUT | MUX_MODE4)		/* etk_d9.gpio_23 =  WIFI_POWER */
-+		>;
-+	};
-+};
--- 
-1.9.1
+Doesn't the CSC bit and PORT_CONNECT bit show the device is disconnected when we enter
+xhci_enqueue_urb(), even it the hub thread doesn't know this yet?
 
+Would it make sense to check those bits in xhci_enqueue_urb, and just return error
+in the xhci_urb_enqueue() if device is not connected? Then there wouldn't be a need for any quirk
+at all.
+
+If that doesn't work then this patch looks good in general. See comments below
+
+> this defect would result in this when device detached:
+> -------------------------------------------------------
+> [   99.603544] usb 4-1: USB disconnect, device number 2
+> [  104.615254] xhci-hcd xhci-hcd.0.auto: xHCI host not responding to stop endpoint command.
+> [  104.623362] xhci-hcd xhci-hcd.0.auto: Assuming host is dying, halting host.
+> [  104.653261] xhci-hcd xhci-hcd.0.auto: Host not halted after 16000 microseconds.
+> [  104.660584] xhci-hcd xhci-hcd.0.auto: Non-responsive xHCI host is not halting.
+> [  104.667817] xhci-hcd xhci-hcd.0.auto: Completing active URBs anyway.
+> [  104.674198] xhci-hcd xhci-hcd.0.auto: HC died; cleaning up
+> ------------------------------------------------------
+> As a result, when device detached, we desired to postpone "PORTCSC clear" behind
+> "disable slot". it's found that all executed ep command related to disconnetion,
+> are executed before "disable slot".
+> 
+> Signed-off-by: Sneeker Yeh <Sneeker.Yeh-l16TxrwUIHTQFUHtdCDX3A@public.gmane.org>
+> ---
+>  drivers/usb/host/xhci-hub.c |    4 ++++
+>  drivers/usb/host/xhci.c     |   29 +++++++++++++++++++++++++++++
+>  drivers/usb/host/xhci.h     |   24 ++++++++++++++++++++++++
+>  3 files changed, 57 insertions(+)
+> 
+> diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
+> index a7865c4..3b8f7fc 100644
+> --- a/drivers/usb/host/xhci-hub.c
+> +++ b/drivers/usb/host/xhci-hub.c
+> @@ -368,6 +368,10 @@ static void xhci_clear_port_change_bit(struct xhci_hcd *xhci, u16 wValue,
+>  		port_change_bit = "warm(BH) reset";
+>  		break;
+>  	case USB_PORT_FEAT_C_CONNECTION:
+> +		if ((xhci->quirks & XHCI_DISCONNECT_QUIRK) &&
+> +		    !(readl(addr) & PORT_CONNECT))
+> +			return;
+> +
+
+New port status event are prevented until CSC is cleared, not sure if there's any harm in that?
+
+>  		status = PORT_CSC;
+>  		port_change_bit = "connect";
+>  		break;
+> diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+> index c50d8d2..aa8e02a 100644
+> --- a/drivers/usb/host/xhci.c
+> +++ b/drivers/usb/host/xhci.c
+> @@ -3584,6 +3584,33 @@ command_cleanup:
+>  	return ret;
+>  }
+>  
+> +static void xhci_try_to_clear_csc(struct usb_hcd *hcd, int dev_port_num)
+> +{
+> +	int max_ports;
+> +	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
+> +	__le32 __iomem **port_array;
+> +	u32 status;
+> +
+> +	/* print debug info */
+> +	if (hcd->speed == HCD_USB3) {
+> +		max_ports = xhci->num_usb3_ports;
+> +		port_array = xhci->usb3_ports;
+> +	} else {
+> +		max_ports = xhci->num_usb2_ports;
+> +		port_array = xhci->usb2_ports;
+> +	}
+> +
+> +	if (dev_port_num > max_ports) {
+> +		xhci_err(xhci, "%s() port number invalid", __func__);
+> +		return;
+> +	}
+> +	status = readl(port_array[dev_port_num - 1]);
+> +
+> +	/* write 1 to clear */
+> +	if (!(status & PORT_CONNECT) && (status & PORT_CSC))
+> +		writel(status & PORT_CSC, port_array[0]);
+
+Shouldn't this be writel(...,port_array[dev_port_num - 1]) ?
+
+-Mathias
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
