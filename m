@@ -1,70 +1,107 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 9/9] RFC: ARM: DRA7: enable DSS_DESHDCP_CLKEN
-Date: Fri, 13 Feb 2015 17:42:54 +0200
-Message-ID: <54DE1B7E.10505@ti.com>
-References: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>	<1423840286-18377-10-git-send-email-tomi.valkeinen@ti.com> <CAGo_u6p89ot-eNwK65otoYsLM6NXeh929=SBG6uKAsX8Tnd_RQ@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/9] ARM: DRA7: add display support
+Date: Fri, 13 Feb 2015 10:01:29 -0600
+Message-ID: <54DE1FD9.6030801@ti.com>
+References: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43495 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44334 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753313AbbBMPnU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Feb 2015 10:43:20 -0500
-In-Reply-To: <CAGo_u6p89ot-eNwK65otoYsLM6NXeh929=SBG6uKAsX8Tnd_RQ@mail.gmail.com>
+	id S1753544AbbBMQBz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Feb 2015 11:01:55 -0500
+In-Reply-To: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Felipe Balbi <balbi@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-On 02/13/2015 05:25 PM, Nishanth Menon wrote:
-> On Fri, Feb 13, 2015 at 9:11 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> DRA7xx's CTRL_CORE_CONTROL_IO_2 register contains bits for various
->> subsystems, including PCIe, DCAN, QSPI and DSS. At the moment only DCAN
->> bits are used by the SW via syscon.
->>
->> For DSS there is DSS_DESHDCP_CLKEN bit. This (presumably) enables a
->> clock related to DSS's HDCP. If that clock is off, DSS module does not
->> start at all, causing OCP errors. This means that the HWMOD code is not
->> able to reset and initialize DSS.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> ---
->>   arch/arm/mach-omap2/io.c | 11 +++++++++++
->>   1 file changed, 11 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
->> index a1bd6affb508..2206fb13f195 100644
->> --- a/arch/arm/mach-omap2/io.c
->> +++ b/arch/arm/mach-omap2/io.c
->> @@ -700,6 +700,17 @@ void __init dra7xx_init_early(void)
->>          dra7xx_hwmod_init();
->>          omap_hwmod_init_postsetup();
->>          omap_clk_soc_init = dra7xx_dt_clk_init;
->> +
->> +       if (soc_is_dra7xx()) {
->
-> Umm.. this code will only be executed for dra7xx :)
->
->> +               u32 v;
->> +               const u16 ctrl_core_control_io_2 = 0x558;
->> +
->> +               /* set CTRL_CORE_CONTROL_IO_2:DSS_DESHDCP_CLKEN */
->> +
->> +               v = omap_ctrl_readl(ctrl_core_control_io_2);
->> +               v |= 1;
->> +               omap_ctrl_writel(v, ctrl_core_control_io_2);
->> +       }
->>   }
->>
->>   void __init dra7xx_init_late(void)
-> just my 2 cents.
-> I would probably wait for control module to become syscon and probably
-> model this as syscon clk - I thin we should be seeing a series
-> sometime soon.
+On 02/13/2015 09:11 AM, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> This series adds the arch/arm/ side of the display support for DRA7 (=
+DRA72x,
+> DRA74x, AM54xx) SoCs. Also support for HDMI output on x15 and DRA72 E=
+VM boards
+> is added.
+>=20
+> The series is based on OMAPDSS driver patches in fbdev changes for 3.=
+20, which
+> have been merged to Linus' tree.
+>=20
+> The changes are very similar to OMAP5 DSS. All the other patches look=
+ fine to
+> me except the "RFC: ARM: DRA7: enable DSS_DESHDCP_CLKEN". That's been=
+ discussed
+> earlier with Paul and Tero, but I don't think we have any good soluti=
+on for it
+> yet.
 
-Yeah, I will be posting a series in a bit, just running some final tests 
-on it.
+Is there some specific tag I can test this on (some next perhaps?), I
+get the following error:
+build fail, Error:
+arch/arm/mach-omap2/display.c: In function =E2=80=98omap_display_get_ve=
+rsion=E2=80=99:
+arch/arm/mach-omap2/display.c:285:10: error: =E2=80=98OMAPDSS_VER_DRA7x=
+x=E2=80=99
+undeclared (first use in this function)
+arch/arm/mach-omap2/display.c:285:10: note: each undeclared identifier
+is reported only once for each function it appears in
+arch/arm/mach-omap2/display.c:288:1: warning: control reaches end of
+non-void function [-Wreturn-type]
+make[1]: *** [arch/arm/mach-omap2/display.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
+make: *** Waiting for unfinished jobs....
 
--Tero
 
+=46urther are you proposing this for 3.20 or 3.21 window? 3.20, we seem
+to have already missed.
+
+
+>=20
+>  Tomi
+>=20
+> Tomi Valkeinen (9):
+>   arm/dts: dra7xx: add 'ti,set-rate-parent' for dss_dss_clk
+^^
+>   ARM: DRA7: hwmod: add DMM hwmod description
+>   ARM: DRA7: hwmod: set DSS submodule parent hwmods
+>   ARM: OMAP: display: change compat names to array
+>   ARM: OMAP2+: display: detect DRA7 DSS
+>   arm/dts: dra7.dtsi: add DSS support
+^^
+>   arm/dts: dra72-evm.dts: add HDMI
+^^
+>   arm/dts: am57xx-beagle-x15.dts: add HDMI
+
+ARM: dts: am57xx-beagle-x15: Add HDMI
+
+Would be good to follow above convention for all dts patches $subject.
+
+
+>   RFC: ARM: DRA7: enable DSS_DESHDCP_CLKEN
+>=20
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts   |  80 ++++++++++++++++++++=
++
+>  arch/arm/boot/dts/dra7.dtsi               |  38 ++++++++++
+>  arch/arm/boot/dts/dra72-evm.dts           | 111 ++++++++++++++++++++=
+++++++++++
+>  arch/arm/boot/dts/dra72x.dtsi             |  11 +++
+>  arch/arm/boot/dts/dra74x.dtsi             |  15 ++++
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi      |   1 +
+>  arch/arm/mach-omap2/display.c             |  32 +++++----
+>  arch/arm/mach-omap2/io.c                  |  11 +++
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  32 +++++++++
+>  9 files changed, 316 insertions(+), 15 deletions(-)
+>=20
+
+
+--=20
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
