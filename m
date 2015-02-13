@@ -1,57 +1,76 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 00/33] ARM: OMAP2+: PRCM/omap ctrl cleanups against 3.19-rc1
-Date: Fri, 13 Feb 2015 18:12:22 +0200
-Message-ID: <1423843973-6050-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 02/33] ARM: OMAP2+: PRCM: rename of_prcm_init to omap_prcm_init
+Date: Fri, 13 Feb 2015 18:12:24 +0200
+Message-ID: <1423843973-6050-3-git-send-email-t-kristo@ti.com>
+References: <1423843973-6050-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44866 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753025AbbBMQNk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Feb 2015 11:13:40 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:43351 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753510AbbBMQNu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2015 11:13:50 -0500
+In-Reply-To: <1423843973-6050-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, tomi.valkeinen@ti.com, nm@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
+This avoids conflicts in the global namespace, and is more descriptive
+of the purpose anyway.
 
-Updates since v1:
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/io.c         |    2 +-
+ arch/arm/mach-omap2/prm.h        |    2 +-
+ arch/arm/mach-omap2/prm_common.c |    8 +++++++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-- fixed omap2/am33xx boot issues
-- added regmap support to generic omap clock core
-- control module driver converted to use syscon
-- dropped patches for removing legacy pad muxing support (this is still
-  needed)
-
-Notes:
-
-- patches 4,5 and 8 not posted as these were already queued by Tony
-- the above patches still exist in the test branch though
-- patches 22-33 are new
-
-Testing done:
-- am335x-evm: boot
-- am335x-sk: boot
-- am3517-evm: boot
-- am43x-epos-evm: boot
-- am437x-gp-evm: boot
-- omap3-beagle-xm: boot
-- omap3-beagle: boot, suspend/resume (ret/off), cpuidle (ret/off)
-- am335x-bone: boot
-- am335x-boneblack: boot
-- dra7xx-evm: boot
-- omap5-uevm: boot
-- omap4-panda: boot
-- omap4-panda-es: boot, suspend/resume (ret)
-- omap2430-sdp: boot
-- omap3430-sdp: boot
-- omap4430-sdp-es23plus: boot
-
-Test branch location:
-
-tree: https://github.com/t-kristo/linux-pm.git
-branch: 3.19-rc1-prcm-cleanup
-
--Tero
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index a1bd6af..580356d 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -731,7 +731,7 @@ int __init omap_clk_init(void)
+ 
+ 	ti_clk_init_features();
+ 
+-	ret = of_prcm_init();
++	ret = omap_prcm_init();
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 77752e4..a38eaeb 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -19,7 +19,7 @@
+ extern void __iomem *prm_base;
+ extern u16 prm_features;
+ extern void omap2_set_globals_prm(void __iomem *prm);
+-int of_prcm_init(void);
++int omap_prcm_init(void);
+ # endif
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 9f736d2..f155aaf 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -590,7 +590,13 @@ static const struct of_device_id omap_prcm_dt_match_table[] = {
+ 	{ }
+ };
+ 
+-int __init of_prcm_init(void)
++/**
++ * omap_prcm_init - low level init for the PRCM drivers
++ *
++ * Initializes the low level clock infrastructure for PRCM drivers.
++ * Returns 0 in success, negative error value in failure.
++ */
++int __init omap_prcm_init(void)
+ {
+ 	return omap2_clk_provider_init(omap_prcm_dt_match_table);
+ }
+-- 
+1.7.9.5
 
