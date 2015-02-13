@@ -1,55 +1,45 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 7/9] arm/dts: dra72-evm.dts: add HDMI
-Date: Fri, 13 Feb 2015 17:11:24 +0200
-Message-ID: <1423840286-18377-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 8/9] arm/dts: am57xx-beagle-x15.dts: add HDMI
+Date: Fri, 13 Feb 2015 17:11:25 +0200
+Message-ID: <1423840286-18377-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51219 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43955 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753164AbbBMPMt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Feb 2015 10:12:49 -0500
+	id S1753048AbbBMPMu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Feb 2015 10:12:50 -0500
 In-Reply-To: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org
 
-DRA72 EVM has a HDMI output. This patch adds the device tree nodes
-required for HDMI.
+AM57xx Beagle X15 has a HDMI output. This patch adds the device tree
+nodes required for HDMI.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: devicetree@vger.kernel.org
 ---
- arch/arm/boot/dts/dra72-evm.dts | 111 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 111 insertions(+)
+ arch/arm/boot/dts/am57xx-beagle-x15.dts | 80 +++++++++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 89085d066c65..85f9aa4fc94f 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- #include "dra72x.dtsi"
-+#include <dt-bindings/gpio/gpio.h>
- 
- / {
- 	model = "TI DRA722";
-@@ -18,12 +19,61 @@
- 		reg = <0x80000000 0x40000000>; /* 1024 MB */
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 49edbda68cd5..0b838d34b8a1 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -19,6 +19,7 @@
+ 	aliases {
+ 		rtc0 = &mcp_rtc;
+ 		rtc1 = &tps659038_rtc;
++		display0 = &hdmi0;
  	};
  
-+	aliases {
-+		display0 = &hdmi0;
-+	};
-+
- 	evm_3v3: fixedregulator-evm_3v3 {
- 		compatible = "regulator-fixed";
- 		regulator-name = "evm_3v3";
- 		regulator-min-microvolt = <3300000>;
- 		regulator-max-microvolt = <3300000>;
+ 	memory {
+@@ -80,6 +81,51 @@
+ 			default-state = "off";
+ 		};
  	};
 +
 +	hdmi0: connector {
@@ -71,8 +61,8 @@ index 89085d066c65..85f9aa4fc94f 100644
 +		pinctrl-names = "default";
 +		pinctrl-0 = <&tpd12s015_pins>;
 +
-+		gpios = <&pcf_hdmi 4 GPIO_ACTIVE_HIGH>,	/* P4, CT CP HPD */
-+			<&pcf_hdmi 5 GPIO_ACTIVE_HIGH>,	/* P5, LS OE */
++		gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
++			<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
 +			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
 +
 +		ports {
@@ -99,77 +89,43 @@ index 89085d066c65..85f9aa4fc94f 100644
  };
  
  &dra7_pmx_core {
-@@ -34,6 +84,13 @@
+@@ -99,6 +145,13 @@
  		>;
  	};
  
-+	i2c5_pins: pinmux_i2c5_pins {
-+		pinctrl-single,pins = <
-+			0x2b4 (PIN_INPUT | MUX_MODE10) /* mcasp1_axr0.i2c5_sda */
-+			0x2b8 (PIN_INPUT | MUX_MODE10) /* mcasp1_axr1.i2c5_scl */
-+		>;
-+	};
-+
- 	nand_default: nand_default {
- 		pinctrl-single,pins = <
- 			0x0	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad0 */
-@@ -121,6 +178,19 @@
- 			0x418   (MUX_MODE15)	/* wakeup0.off */
- 		>;
- 	};
-+
 +	hdmi_pins: pinmux_hdmi_pins {
 +		pinctrl-single,pins = <
-+			0x408 (PIN_INPUT | MUX_MODE1) /* i2c2_sda.hdmi1_ddc_scl */
-+			0x40c (PIN_INPUT | MUX_MODE1) /* i2c2_scl.hdmi1_ddc_sda */
++			0x408 (PIN_INPUT | MUX_MODE1)	/* i2c2_sda.hdmi1_ddc_scl */
++			0x40c (PIN_INPUT | MUX_MODE1)	/* i2c2_scl.hdmi1_ddc_sda */
 +		>;
 +	};
 +
+ 	i2c3_pins_default: i2c3_pins_default {
+ 		pinctrl-single,pins = <
+ 			0x2a4 (PIN_INPUT| MUX_MODE10)	/* mcasp1_aclkx.i2c3_sda */
+@@ -164,6 +217,13 @@
+ 		>;
+ 	};
+ 
 +	tpd12s015_pins: pinmux_tpd12s015_pins {
 +		pinctrl-single,pins = <
-+			0x3b8 (PIN_INPUT_PULLDOWN | MUX_MODE14) /* gpio7_12 HPD */
++			0x3b0 (PIN_OUTPUT | MUX_MODE14)		/* gpio7_10 CT_CP_HPD */
++			0x3b8 (PIN_INPUT_PULLDOWN | MUX_MODE14)	/* gpio7_12 HPD */
++			0x370 (PIN_OUTPUT | MUX_MODE14)		/* gpio6_28 LS_OE */
 +		>;
 +	};
  };
  
  &i2c1 {
-@@ -245,6 +315,27 @@
- 	};
- };
- 
-+&i2c5 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c5_pins>;
-+	clock-frequency = <400000>;
-+
-+	pcf_hdmi: pcf8575@26 {
-+		compatible = "nxp,pcf8575";
-+		reg = <0x26>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		/*
-+		 * initial state is used here to keep the mdio interface
-+		 * selected on RU89 through SEL_VIN4_MUX_S0, VIN2_S1 and
-+		 * VIN2_S0 driven high otherwise Ethernet stops working
-+		 * VIN6_SEL_S0 is low, thus selecting McASP3 over VIN6
-+		 */
-+		lines-initial-states = <0x0f2b>;
-+	};
-+};
-+
- &uart1 {
- 	status = "okay";
- };
-@@ -461,3 +552,23 @@
- 	pinctrl-0 = <&dcan1_pins_default>;
- 	pinctrl-1 = <&dcan1_pins_sleep>;
+@@ -403,3 +463,23 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&usb1_pins>;
  };
 +
 +&dss {
 +	status = "ok";
 +
-+	vdda_video-supply = <&ldo5_reg>;
++	vdda_video-supply = <&ldoln_reg>;
 +};
 +
 +&hdmi {
