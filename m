@@ -1,129 +1,59 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
-Date: Fri, 13 Feb 2015 11:07:16 +0530
-Message-ID: <54DD8D8C.60203@ti.com>
-References: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com> <546DB513.6000104@ti.com> <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com> <5473FF68.3070805@ti.com> <alpine.DEB.2.02.1411260649330.16047@utopia.booyaka.com> <alpine.DEB.2.02.1501022252580.27058@utopia.booyaka.com> <alpine.DEB.2.02.1502121641320.3767@utopia.booyaka.com>
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: Re: [PATCH v3 1/5] xhci: add a quirk for device disconnection errata
+ for Synopsis Designware USB3 core
+Date: Fri, 13 Feb 2015 10:54:08 +0200
+Message-ID: <54DDBBB0.7070602@linux.intel.com>
+References: <Pine.LNX.4.44L0.1502121013390.1209-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45266 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbbBMFjn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2015 00:39:43 -0500
-In-Reply-To: <alpine.DEB.2.02.1502121641320.3767@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1502121013390.1209-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, Mathias Nyman <mathias.nyman@intel.com>, Sneeker Yeh <sneeker.yeh@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, balbi@ti.com, nm@ti.com
 
-Hi Paul,
-On Thursday 12 February 2015 10:11 PM, Paul Walmsley wrote:
-> + Felipe, Nishanth
+On 12.02.2015 17:18, Alan Stern wrote:
+> On Thu, 12 Feb 2015, Mathias Nyman wrote:
 > 
-> Hi Lokesh,
+>> On 25.01.2015 10:13, Sneeker Yeh wrote:
+>>> This issue is defined by a three-way race at disconnect, between
+>>> 1) Class driver interrupt endpoint resheduling attempts if the ISR gave an ep
+>>>    error event due to device detach (it would try 3 times)
+>>> 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
+>>>    asynchronously
+>>> 3) The hardware IP was configured in silicon with
+>>>    - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1
+>>>    - Synopsys IP version is < 3.00a
+>>> The IP will auto-suspend itself on device detach with some phy-specific interval
+>>> after CSC is cleared by 2)
+>>>
+>>> If 2) and 3) complete before 1), the interrupts it expects will not be generated
+>>> by the autosuspended IP, leading to a deadlock. Even later disconnection
+>>> procedure would detect that corresponding urb is still in-progress and issue a
+>>> ep stop command, auto-suspended IP still won't respond to that command.
 > 
-> what's the status here?
-Sorry for the delayed response.
-I am currently on a high priority issue. Once I am done with it Ill address your
-comments and repost the patch.
+> If the Synopsys IP provides a way to do it, it would be better to turn
+> off the autosuspend feature entirely.  Doesn't autosuspend violate the
+> xHCI specification?
+> 
+>> So did I understand correctly that the class driver submits a new urb which
+>> is enqueued by xhci_urb_enqueue() before the hub thread notices the device is disconnected.
+>> Then hub thread clears CSC bit, controller suspends and the new urb is never given back?
+>>
+>> Doesn't the CSC bit and PORT_CONNECT bit show the device is disconnected when we enter
+>> xhci_enqueue_urb(), even it the hub thread doesn't know this yet?
+> 
+> What if the device disconnects _after_ the new URB is enqueued?
 
-Thanks and regards,
-Lokesh
-> 
-> - Paul
-> 
-> 
-> On Fri, 2 Jan 2015, Paul Walmsley wrote:
-> 
->> Ping.  Are you going to redo this one?
->>
->> - Paul
->>
->> On Wed, 26 Nov 2014, Paul Walmsley wrote:
->>
->>> Hi Lokesh 
->>>
->>> On Tue, 25 Nov 2014, Lokesh Vutla wrote:
->>>
->>>> Hi Paul,
->>>> On Thursday 20 November 2014 10:26 PM, Paul Walmsley wrote:
->>>>> On Thu, 20 Nov 2014, Lokesh Vutla wrote:
->>>>>
->>>>>> On Monday 17 November 2014 10:13 AM, Lokesh Vutla wrote:
->>>>>>> RTC IP have kicker feature which prevents spurious writes to its registers.
->>>>>>> In order to write into any of the RTC registers, KICK values has te be
->>>>>>> written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
->>>>>>> sysconfig register without writing into any kick register which is a noop.
->>>>>>> When autoidle is allowed for rtc, interruts are not received until IDLEMODE
->>>>>>> is set to SIDLE_SMART_WKUP.
->>>>>>> Adding a reset function to unlock RTC registers so that IDLEMODE is
->>>>>>> updated.
->>>>>> Ping..!!
->>>>>> Is this patch acceptable?
->>>>>
->>>>> Lokesh
->>>>>
->>>>> 1. This looks like a fix.  Is this intended to go in as a v3.18-rc patch, 
->>>>> or against v3.19?  If so it would be very helpful for the maintainers if 
->>>>> you were to state that somewhere.
->>>> Yes. This is a fix, intended to go in 3.18-rc. Sorry should have
->>>> mentioned it.
->>>
->>> A few questions.  Do you know when this problem started (in terms of 
->>> kernel versions)?
->>>
->>> Also: the patch description states that this is only a problem when 
->>> autoidle is allowed for RTC.  What enables autoidle for RTC - the RTCSS 
->>> driver?  Or does hwmod wind up doing this after the RTCSS driver unlocks 
->>> it?
->>>
->>>>> 2. Your patch unlocks the RTC registers, but never relocks it.  This seems 
->>>>> to defeat the point of the spurious write protection.  Shouldn't your 
->>>>> patch only unlock the RTC immediately before the hwmod code touches the 
->>>>> RTC registers, and then relock it immediately afterwards, per SPRUHZ6 
->>>>> section 23.4.3.3?  If so then the .reset function pointer is the wrong 
->>>>> place for this; I would suggest adding some .lock and .unlock function 
->>>>> pointers that are to be called before and after any register write to the 
->>>>> IP block.
->>>> Yeah I agree with you.
->>>> Currently rtc driver unlocks these kick registers in probe and leaves it unlocks for
->>>> further use.
->>>> But if hwmod does unlock and lock for every sysconfig write driver should also
->>>> implement unlock and lock for every rtc register write, which adds an extra overhead.
->>>> I am not sure if some one writes into rtc registers other than hwmod and driver.
->>>> IMO we can leave it unlocked as the driver does.
->>>
->>> I would think that the best approach would be to set up .lock and .unlock 
->>> function pointers, then add a temporary hwmod flag that, if set, would 
->>> prevent the .lock function from ever being called.  Then once the driver 
->>> is fixed, that flag can be dropped.
->>>
->>>>> 3. Your macros don't mention DRA7xx specifically.  Does this sequence 
->>>>> apply to some other TI chips, or just DRA7xx?  Please document this in a 
->>>>> comment above the macros, and possibly change the name of the macros to 
->>>>> refer to DRA7XX.
->>>> This sequence applies to AM43xx and AM33xx also. So made it generic.
->>>> Ill document it.
->>>
->>> OK but it would need more than just documentation, right?  Wouldn't the 
->>> hwmod data also need to be modified for AM33xx/AM43xx to add the .reset 
->>> function pointer?  Any reason why folks wouldn't have seen this problem on 
->>> AM33xx/AM43xx?
->>>
->>>
->>> - Paul
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->> - Paul
->>
-> 
-> 
-> - Paul
-> 
+True, those URBs would be left hanging.
 
+So if possible, tweaking the Synopsis autosuspend feature would be nicer.
+
+If its not possible then I guess a quirk patch like this will do.
+
+-Mathias
+
+
+ 
