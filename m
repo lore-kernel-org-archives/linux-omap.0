@@ -1,168 +1,146 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 22/33] ARM: OMAP2+: clock: convert low-level clock APIs to use regmap
-Date: Fri, 13 Feb 2015 18:12:41 +0200
-Message-ID: <1423843973-6050-20-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 21/33] ARM: OMAP4+: PRM: get rid of cpu_is_omap44xx calls from interrupt init
+Date: Fri, 13 Feb 2015 18:12:40 +0200
+Message-ID: <1423843973-6050-19-git-send-email-t-kristo@ti.com>
 References: <1423843973-6050-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46930 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46923 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753756AbbBMQOX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Feb 2015 11:14:23 -0500
+	id S1753608AbbBMQOQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Feb 2015 11:14:16 -0500
 In-Reply-To: <1423843973-6050-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, tomi.valkeinen@ti.com, nm@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Clock driver will be converted to use regmap, this prepares the low-level
-register API to use regmap already. Individual driver inits will be
-converted to use regmap / syscon in following patches.
+The compatible DT node is now passed with the prm init, so there is no
+need to do node matching here again. Added a new flag to the init data
+also, to detect default IRQ support for OMAP4. Also, any booting omap4
+DT setup always has a PRM node, so there is no need to check against
+the special case where it would be missing.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock.c      |   26 ++++++++++++++++++++------
- arch/arm/mach-omap2/clock.h      |    4 +++-
- arch/arm/mach-omap2/cm_common.c  |    2 +-
- arch/arm/mach-omap2/control.c    |    2 +-
+ arch/arm/mach-omap2/prm.h        |    2 ++
+ arch/arm/mach-omap2/prm44xx.c    |   50 +++++++++++++++-----------------------
  arch/arm/mach-omap2/prm_common.c |    2 +-
- 5 files changed, 26 insertions(+), 10 deletions(-)
+ 3 files changed, 22 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 62d1a89..2c6281b 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -24,6 +24,7 @@
- #include <linux/io.h>
- #include <linux/bitops.h>
- #include <linux/clk-private.h>
-+#include <linux/regmap.h>
- #include <linux/of_address.h>
- #include <asm/cpu.h>
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 3936e6c..6312cc3 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -29,9 +29,11 @@ int omap2_prcm_base_init(void);
+  *
+  * PRM_HAS_IO_WAKEUP: has IO wakeup capability
+  * PRM_HAS_VOLTAGE: has voltage domains
++ * PRM_IRQ_DEFAULT: use default irq number for PRM irq
+  */
+ #define PRM_HAS_IO_WAKEUP	(1 << 0)
+ #define PRM_HAS_VOLTAGE		(1 << 1)
++#define PRM_IRQ_DEFAULT		BIT(2)
  
-@@ -74,20 +75,23 @@ struct ti_clk_features ti_clk_features;
- static bool clkdm_control = true;
- 
- static LIST_HEAD(clk_hw_omap_clocks);
--static void __iomem *clk_memmaps[CLK_MAX_MEMMAPS];
-+static struct regmap *clk_memmaps[CLK_MAX_MEMMAPS];
- 
- static void clk_memmap_writel(u32 val, void __iomem *reg)
- {
- 	struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
- 
--	writel_relaxed(val, clk_memmaps[r->index] + r->offset);
-+	regmap_write(clk_memmaps[r->index], r->offset, val);
- }
- 
- static u32 clk_memmap_readl(void __iomem *reg)
- {
-+	u32 val;
- 	struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
- 
--	return readl_relaxed(clk_memmaps[r->index] + r->offset);
-+	regmap_read(clk_memmaps[r->index], r->offset, &val);
-+
-+	return val;
- }
- 
- void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg)
-@@ -115,18 +119,25 @@ static struct ti_clk_ll_ops omap_clk_ll_ops = {
- 	.clk_writel = clk_memmap_writel,
+ /*
+  * MAX_MODULE_SOFTRESET_WAIT: Maximum microseconds to wait for OMAP
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index af12302b..ce16f2f 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -702,10 +702,14 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
+ 	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
  };
  
-+static struct regmap_config clk_regmap_config = {
-+	.reg_bits = 32,
-+	.reg_stride = 4,
-+	.val_bits = 32,
-+};
++static const struct omap_prcm_init_data *prm_init_data;
 +
- /**
-  * omap2_clk_provider_init - initialize a clock provider
-  * @np: device node for initializing the clock provider
-  * @index: memory map index for the clock provider
-- * @mem: iomem pointer for the memory map
-+ * @syscon: syscon regmap pointer
-+ * @mem: iomem pointer for the memory map, only used if @syscon is not provided
-  *
-  * Initializes a clock provider module (CM/PRM etc.), registering
-  * the iomap and initializing the low level driver infrastructure.
-  * Returns 0 in success, -EINVAL if multiple registration is attempted.
-  */
- int __init omap2_clk_provider_init(struct device_node *np, int index,
--				   void __iomem *mem)
-+				   struct regmap *syscon, void __iomem *mem)
+ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
  {
- 	ti_clk_ll_ops = &omap_clk_ll_ops;
+ 	omap_prm_base_init();
  
-@@ -136,7 +147,10 @@ int __init omap2_clk_provider_init(struct device_node *np, int index,
- 		return -EINVAL;
- 	}
- 
--	clk_memmaps[index] = mem;
-+	if (!syscon)
-+		syscon = regmap_init_mmio(NULL, mem, &clk_regmap_config);
++	prm_init_data = data;
 +
-+	clk_memmaps[index] = syscon;
- 	ti_dt_clk_init_provider(np, index);
+ 	if (data->flags & PRM_HAS_IO_WAKEUP)
+ 		prm_features |= PRM_HAS_IO_WAKEUP;
  
- 	return 0;
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index a229622..6a4dfe7 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -280,8 +280,10 @@ extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+@@ -717,16 +721,8 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
+ 	return prm_register(&omap44xx_prm_ll_data);
+ }
  
- extern void omap_clocks_register(struct omap_clk *oclks, int cnt);
+-static struct of_device_id omap_prm_dt_match_table[] = {
+-	{ .compatible = "ti,omap4-prm" },
+-	{ .compatible = "ti,omap5-prm" },
+-	{ .compatible = "ti,dra7-prm" },
+-	{ }
+-};
+-
+ static int omap44xx_prm_late_init(void)
+ {
+-	struct device_node *np;
+ 	int irq_num;
  
-+struct regmap;
+ 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
+@@ -736,31 +732,23 @@ static int omap44xx_prm_late_init(void)
+ 	if (!of_have_populated_dt())
+ 		return 0;
+ 
+-	np = of_find_matching_node(NULL, omap_prm_dt_match_table);
+-
+-	if (!np) {
+-		/* Default loaded up with OMAP4 values */
+-		if (!cpu_is_omap44xx())
+-			return 0;
+-	} else {
+-		irq_num = of_irq_get(np, 0);
+-		/*
+-		 * Already have OMAP4 IRQ num. For all other platforms, we need
+-		 * IRQ numbers from DT
+-		 */
+-		if (irq_num < 0 && !cpu_is_omap44xx()) {
+-			if (irq_num == -EPROBE_DEFER)
+-				return irq_num;
+-
+-			/* Have nothing to do */
+-			return 0;
+-		}
+-
+-		/* Once OMAP4 DT is filled as well */
+-		if (irq_num >= 0)
+-			omap4_prcm_irq_setup.irq = irq_num;
++	irq_num = of_irq_get(prm_init_data->np, 0);
++	/*
++	 * Already have OMAP4 IRQ num. For all other platforms, we need
++	 * IRQ numbers from DT
++	 */
++	if (irq_num < 0 && !(prm_init_data->flags & PRM_IRQ_DEFAULT)) {
++		if (irq_num == -EPROBE_DEFER)
++			return irq_num;
 +
- int __init omap2_clk_provider_init(struct device_node *np, int index,
--				   void __iomem *mem);
-+				   struct regmap *syscon, void __iomem *mem);
- 
- void __init ti_clk_init_features(void);
- #endif
-diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
-index 03a52ca..888ee45 100644
---- a/arch/arm/mach-omap2/cm_common.c
-+++ b/arch/arm/mach-omap2/cm_common.c
-@@ -332,7 +332,7 @@ int __init omap_cm_init(void)
- 		if (data->flags & CM_NO_CLOCKS)
- 			continue;
- 
--		ret = omap2_clk_provider_init(np, data->index, data->mem);
-+		ret = omap2_clk_provider_init(np, data->index, NULL, data->mem);
- 		if (ret)
- 			return ret;
++		/* Have nothing to do */
++		return 0;
  	}
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 2b9bced..890c739 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -675,7 +675,7 @@ int __init omap_control_init(void)
- 	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
- 		data = match->data;
  
--		ret = omap2_clk_provider_init(np, data->index, data->mem);
-+		ret = omap2_clk_provider_init(np, data->index, NULL, data->mem);
- 		if (ret)
- 			return ret;
- 	}
++	/* Once OMAP4 DT is filled as well */
++	if (irq_num >= 0)
++		omap4_prcm_irq_setup.irq = irq_num;
++
+ 	omap44xx_prm_enable_io_wakeup();
+ 
+ 	return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
 diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 3f26df6..affddb9 100644
+index d5bb649..3f26df6 100644
 --- a/arch/arm/mach-omap2/prm_common.c
 +++ b/arch/arm/mach-omap2/prm_common.c
-@@ -753,7 +753,7 @@ int __init omap_prcm_init(void)
- 	for_each_matching_node_and_match(np, omap_prcm_dt_match_table, &match) {
- 		data = match->data;
+@@ -651,7 +651,7 @@ static struct omap_prcm_init_data omap4_prm_data __initdata = {
+ 	.index = CLK_MEMMAP_INDEX_PRM,
+ 	.init = omap44xx_prm_init,
+ 	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
+-	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE,
++	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE | PRM_IRQ_DEFAULT,
+ };
  
--		ret = omap2_clk_provider_init(np, data->index, data->mem);
-+		ret = omap2_clk_provider_init(np, data->index, NULL, data->mem);
- 		if (ret)
- 			return ret;
- 	}
+ static struct omap_prcm_init_data omap5_prm_data __initdata = {
 -- 
 1.7.9.5
 
