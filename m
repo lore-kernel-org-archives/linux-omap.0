@@ -1,45 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Fri, 13 Feb 2015 23:15:19 +0000
-Message-ID: <20150213231519.GF8670@n2100.arm.linux.org.uk>
-References: <54D9F3C7.5000809@freebox.fr>
- <54DA43F8.9090904@hurleysoftware.com>
- <54DBB531.2030504@hurleysoftware.com>
- <20150211200313.GE2531@atomide.com>
- <54DBBE9E.90104@hurleysoftware.com>
- <54DC6832.3070507@linutronix.de>
- <54DCD584.3010500@hurleysoftware.com>
- <20150212192333.GA18882@linutronix.de>
- <54DD053A.8060905@hurleysoftware.com>
- <20150213185115.GF5482@linutronix.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ASoC: omap-hdmi-audio: Add missing error check for
+ devm_kzalloc
+Date: Sat, 14 Feb 2015 13:33:01 +0900
+Message-ID: <20150214043301.GD9110@finisterre.sirena.org.uk>
+References: <1423732082-23815-1-git-send-email-kiran.padwal@smartplayin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:39924 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbbBMXPh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2015 18:15:37 -0500
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="zS7rBR6csb6tI2e1"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150213185115.GF5482@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1423732082-23815-1-git-send-email-kiran.padwal@smartplayin.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kiran Padwal <kiran.padwal@smartplayin.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, Kiran Padwal <kiran.padwal21@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Nicolas Schichan <nschichan@freebox.fr>, Tony Lindgren <tony@atomide.com>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 13, 2015 at 07:51:16PM +0100, Sebastian Andrzej Siewior wrote:
-> Something like this maybe?
 
-My personal feeling is that as 0aa525d11859 was wrong, it should be
-reverted and this should be another attempt to fix the problem.  In
-other words, there should be two patches, one a revert of the previously
-known bad commit and this one having another go at it.
+--zS7rBR6csb6tI2e1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I feel that would be a better approach, since then we don't end up
-with this change building on a previously know buggy change.  It
-would also make the changes to this solution from the previous,
-known-to-work-for-decades code more obvious.
+On Thu, Feb 12, 2015 at 02:38:02PM +0530, Kiran Padwal wrote:
+> This patch add a missing check on the return value of devm_kzalloc,
+> which would cause a NULL pointer dereference in a OOM situation.
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Applied, thanks.
+
+--zS7rBR6csb6tI2e1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJU3s/8AAoJECTWi3JdVIfQXLEH/1Rp1q149VrHeeDzWwfzH9TC
+3UH+z0WLpleBdVG5sFi2DAa95Ql8QG2dRxYq/yhMWY/9e+esYfbX/nrDgFGodElg
+NlUoTDD7wncdwxXOlNFJl0vleUtICCdzrTU6iclwB/Jq6BWuRIuJNym2QKiiMX6X
+5J6alJQ5/mo1sh0K142/hj31e4bRWrl+0fhc+oCtRC0Z/W8oPqb7TIO9Ig0fI7o8
+s3I7C8GVr4cDIFQ968IS6xQUX6NkxMEAtszy9S8yULJIPNgBlFvgJikAoOm2gHq5
+ywEo1vormHeIulQVEPiPgn7SbT8MdxSjNXmPXvGCJ+8mSl1C6pitRlbED58E2Ic=
+=7KQt
+-----END PGP SIGNATURE-----
+
+--zS7rBR6csb6tI2e1--
