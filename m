@@ -1,99 +1,56 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH] serial: 8250: Revert "tty: serial: 8250_core: read only RX
- if there is something in the FIFO"
-Date: Sun, 15 Feb 2015 18:32:16 +0100
-Message-ID: <20150215173216.GA8660@linutronix.de>
-References: <54DA43F8.9090904@hurleysoftware.com>
- <54DBB531.2030504@hurleysoftware.com>
- <20150211200313.GE2531@atomide.com>
- <54DBBE9E.90104@hurleysoftware.com>
- <54DC6832.3070507@linutronix.de>
- <54DCD584.3010500@hurleysoftware.com>
- <20150212192333.GA18882@linutronix.de>
- <54DD053A.8060905@hurleysoftware.com>
- <20150213185115.GF5482@linutronix.de>
- <20150213231519.GF8670@n2100.arm.linux.org.uk>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Enabling DBGEN signal in GP OMAP3
+Date: Sun, 15 Feb 2015 23:30:25 +0200
+Message-ID: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150213231519.GF8670@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Nicolas Schichan <nschichan@freebox.fr>, Tony Lindgren <tony@atomide.com>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:52011 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755190AbbBOVa1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Feb 2015 16:30:27 -0500
+Received: by mail-lb0-f177.google.com with SMTP id z11so23981317lbi.8
+        for <linux-omap@vger.kernel.org>; Sun, 15 Feb 2015 13:30:25 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
-This reverts commit 0aa525d11859c1a4d5b78fdc704148e2ae03ae13.
+Hi,
 
-The conditional RX-FIFO read seems to cause spurious interrupts and we
-see just:
-|serial8250: too much work for irq29
+Does anyone know if there is a way to make DBGEN signal high on
+OMAP3530 and/or DM3730 without using a hardware debugger? My goal is
+to make use of hardware watchpoints in Cortex-A8, but that requires
+DBGEN to be high.
 
-The previous behaviour was "default" for decades and Marvell's 88f6282 SoC
-might not be the only that relies on it. Therefore the Omap fix is
-reverted for now.
+The TRM states:
+"The DBGEM signal on the Cortex-A8 is driven by setting bit 13 at
+address 0x5401 D030 in the DAP-APB address space."
+However regardless of how hard I try the writes to that register seem
+to be ignored. I even tried to do it from IVA/C64x with no success.
+(I assume DBGEM is a typo since Cortex-A8 manuals have no mention of
+it, and they meant DBGEN there).
 
-Fixes: 0aa525d11859 ("tty: serial: 8250_core: read only RX if there is
-something in the FIFO")
-Reported-By: Nicolas Schichan <nschichan@freebox.fr>
-Debuged-By: Peter Hurley <peter@hurleysoftware.com>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
-* Russell King - ARM Linux | 2015-02-13 23:15:19 [+0000]:
+It seems others had this problem too, and TI is as helpful as ever:
+http://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/3001=
+1/104527
 
->On Fri, Feb 13, 2015 at 07:51:16PM +0100, Sebastian Andrzej Siewior wrote:
->> Something like this maybe?
->
->My personal feeling is that as 0aa525d11859 was wrong, it should be
->reverted and this should be another attempt to fix the problem.  In
->other words, there should be two patches, one a revert of the previously
->known bad commit and this one having another go at it.
->
->I feel that would be a better approach, since then we don't end up
->with this change building on a previously know buggy change.  It
->would also make the changes to this solution from the previous,
->known-to-work-for-decades code more obvious.
+DBGEN is mentioned by Will Deacon's commit
+8954bb0da99b76c7ce5edf2f314807cff68b6ea8 , but I guess he mixed NIDEN
+with DBGEN there (DBGAUTHSTATUS returns 0x000000ae so NIDEN is indeed
+set here, and I have tried old kernel where OMAP3_EMU was still
+available).
 
-Okay. So here is the revert.
+0x5401D030 is referenced by some OpenOCD scripts, so I guess it's
+writeable over jtag, but not by the CPU(s). It's quite a mysterious
+otherwise undocumented register, I've noticed it's bit21 is some
+status bit related to Cortex-A8's low power states.
 
- drivers/tty/serial/8250/8250_core.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index e3b9570a1eff..deae122c9c4b 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -2138,8 +2138,8 @@ int serial8250_do_startup(struct uart_port *port)
- 	/*
- 	 * Clear the interrupt registers.
- 	 */
--	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
--		serial_port_in(port, UART_RX);
-+	serial_port_in(port, UART_LSR);
-+	serial_port_in(port, UART_RX);
- 	serial_port_in(port, UART_IIR);
- 	serial_port_in(port, UART_MSR);
- 
-@@ -2300,8 +2300,8 @@ int serial8250_do_startup(struct uart_port *port)
- 	 * saved flags to avoid getting false values from polling
- 	 * routines or the previous session.
- 	 */
--	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
--		serial_port_in(port, UART_RX);
-+	serial_port_in(port, UART_LSR);
-+	serial_port_in(port, UART_RX);
- 	serial_port_in(port, UART_IIR);
- 	serial_port_in(port, UART_MSR);
- 	up->lsr_saved_flags = 0;
-@@ -2394,8 +2394,7 @@ void serial8250_do_shutdown(struct uart_port *port)
- 	 * Read data port to reset things, and then unlink from
- 	 * the IRQ chain.
- 	 */
--	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
--		serial_port_in(port, UART_RX);
-+	serial_port_in(port, UART_RX);
- 	serial8250_rpm_put(up);
- 
- 	del_timer_sync(&up->timer);
--- 
-2.1.4
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
