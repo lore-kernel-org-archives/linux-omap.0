@@ -1,56 +1,57 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Enabling DBGEN signal in GP OMAP3
-Date: Sun, 15 Feb 2015 23:30:25 +0200
-Message-ID: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: n900 audio: any ideas how to get headset speaker to work?
+Date: Sun, 15 Feb 2015 23:34:41 +0100
+Message-ID: <20150215223441.GA5475@amd>
+References: <20150215102152.GA23736@amd>
+ <201502151208.03126@pali>
+ <20150215162028.GA6857@amd>
+ <201502151727.03129@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:52011 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190AbbBOVa1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Feb 2015 16:30:27 -0500
-Received: by mail-lb0-f177.google.com with SMTP id z11so23981317lbi.8
-        for <linux-omap@vger.kernel.org>; Sun, 15 Feb 2015 13:30:25 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201502151727.03129@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, joerg Reisenweber <joerg@openmoko.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
-Hi,
+On Sun 2015-02-15 17:27:03, Pali Roh=E1r wrote:
+> On Sunday 15 February 2015 17:20:29 Pavel Machek wrote:
+> > On Sun 2015-02-15 12:08:02, Pali Roh=E1r wrote:
+> > > On Sunday 15 February 2015 11:21:52 Pavel Machek wrote:
+> > > > Hi!
+> > > >=20
+> > > > By default, output goes to loudspeaker (top right relative
+> > > > to keyboard). Any ideas how to switch it to the speaker
+> > > > on the left or wired headset? Because I suspect that echo
+> > > > cancelation is not going to be simple...
+> > >=20
+> > > I do not know but maybe this file could help:
+> > >=20
+> > > https://gitorious.org/community-ssu/policy-settings-rx51/sou
+> > > rce/dcb6429c12006dc9850cc942b7143358fe3fd330:rx51/etc/alsape
+> > > d.conf
+> > >=20
+> > > There are definitions of alsa channels and settings for
+> > > different profiles.
+> >=20
+> > Thanks... it seems to be what I needed. More code to write...
+>=20
+> Will you create asoundrc file with both speakers for n900?
+>=20
+> I would like to see n900 sound setup without pulseaudio...
 
-Does anyone know if there is a way to make DBGEN signal high on
-OMAP3530 and/or DM3730 without using a hardware debugger? My goal is
-to make use of hardware watchpoints in Cortex-A8, but that requires
-DBGEN to be high.
+I actually have pulseaudio running (and plan to keep it since Debian
+has it by default).
 
-The TRM states:
-"The DBGEM signal on the Cortex-A8 is driven by setting bit 13 at
-address 0x5401 D030 in the DAP-APB address space."
-However regardless of how hard I try the writes to that register seem
-to be ignored. I even tried to do it from IVA/C64x with no success.
-(I assume DBGEM is a typo since Cortex-A8 manuals have no mention of
-it, and they meant DBGEN there).
+It seems mixer names changed a lot between Maemo kernel and 3.19. I hav=
+e
+parser for alsaped.conf, but was not able to identify matching mixers.
 
-It seems others had this problem too, and TI is as helpful as ever:
-http://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/3001=
-1/104527
-
-DBGEN is mentioned by Will Deacon's commit
-8954bb0da99b76c7ce5edf2f314807cff68b6ea8 , but I guess he mixed NIDEN
-with DBGEN there (DBGAUTHSTATUS returns 0x000000ae so NIDEN is indeed
-set here, and I have tried old kernel where OMAP3_EMU was still
-available).
-
-0x5401D030 is referenced by some OpenOCD scripts, so I guess it's
-writeable over jtag, but not by the CPU(s). It's quite a mysterious
-otherwise undocumented register, I've noticed it's bit21 is some
-status bit related to Cortex-A8's low power states.
-
-
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
