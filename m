@@ -1,71 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-Date: Mon, 16 Feb 2015 09:10:31 -0800
-Message-ID: <20150216171030.GS2531@atomide.com>
-References: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Subject: Re: Enabling DBGEN signal in GP OMAP3
+Date: Mon, 16 Feb 2015 09:58:26 -0800
+Message-ID: <20150216175826.GT2531@atomide.com>
+References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta2.delivery1.ore.mailhop.org ([54.149.155.156]:49582 "EHLO
+	pmta2.delivery1.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753490AbbBPSDC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Feb 2015 13:03:02 -0500
+Received: from smtp1.ore.mailhop.org (172.31.36.112) by pmta2.delivery1.ore.mailhop.org id hs8oe620u50c for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2015 18:03:14 +0000 (envelope-from <tony@atomide.com>)
 Content-Disposition: inline
-In-Reply-To: <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
-Cc: khilman@deeprootsystems.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Matthijs van Duin <matthijsvanduin@gmail.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
-* Robert ABEL <rabel@cit-ec.uni-bielefeld.de> [150216 07:52]:
-> GPMC uses GPMCFCLKDIVIDER during synchronous as well as asynchronous accesses
-> in conjunction with WAITMONITORINGTIME. Thus, it's wrong to only program it for
-> synchronous accesses. Remove the conditional.
+* Grazvydas Ignotas <notasas@gmail.com> [150215 13:34]:
+> Hi,
+> 
+> Does anyone know if there is a way to make DBGEN signal high on
+> OMAP3530 and/or DM3730 without using a hardware debugger? My goal is
+> to make use of hardware watchpoints in Cortex-A8, but that requires
+> DBGEN to be high.
+> 
+> The TRM states:
+> "The DBGEM signal on the Cortex-A8 is driven by setting bit 13 at
+> address 0x5401 D030 in the DAP-APB address space."
+> However regardless of how hard I try the writes to that register seem
+> to be ignored. I even tried to do it from IVA/C64x with no success.
+> (I assume DBGEM is a typo since Cortex-A8 manuals have no mention of
+> it, and they meant DBGEN there).
+> 
+> It seems others had this problem too, and TI is as helpful as ever:
+> http://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/30011/104527
+> 
+> DBGEN is mentioned by Will Deacon's commit
+> 8954bb0da99b76c7ce5edf2f314807cff68b6ea8 , but I guess he mixed NIDEN
+> with DBGEN there (DBGAUTHSTATUS returns 0x000000ae so NIDEN is indeed
+> set here, and I have tried old kernel where OMAP3_EMU was still
+> available).
 
-Do you have some test case that gets fixed by this? Or does this
-fix some regression?
+Does the perf counter still work OK? Looks like OMAP3_EMU got
+removed by commit 184901a06a36 ("ARM: removing support for etb/etm in
+"arch/arm/kernel/"").
 
-The reason why I'm asking is that AFAIK we've had async access
-working all along?
+The perf counter on omap3 used to work, but is buggy at least on
+3430 because it eventually stops producing interrupts because of
+some bug in the Cortex-A8 version being used.
 
-Reagrds,
+Looking at the commits it seems that it probably only works for
+device tree based booting nowadays.
+
+Also, it seems that having the etm@54010000, etb@540000000
+and etb@5401b000 entries only in the omap3-beagle*.dts files
+is wrong. To me it seems they should be in the omap3.dtsi and
+omap36xx.dtsi instead. Looks like those got added by commit
+9d31620268a7 ("coresight: adding support for beagle and beagleXM").
+
+So maybe moving  the etb and etm entries to omap3.dtsi and
+omap36xx.dtsi is all you need with the current mainline kernel?
+ 
+> 0x5401D030 is referenced by some OpenOCD scripts, so I guess it's
+> writeable over jtag, but not by the CPU(s). It's quite a mysterious
+> otherwise undocumented register, I've noticed it's bit21 is some
+> status bit related to Cortex-A8's low power states.
+
+Have you checked the Cortex-A8 documentation for the debugger?
+It seems that's where they should be documented.
+
+Regards,
 
 Tony
-
-
- 
-> Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
-> ---
->  arch/arm/mach-omap2/gpmc.c | 15 +++++----------
->  1 file changed, 5 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 5c3639c..bae4a20 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -382,19 +382,14 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
->  	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
->  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
->  
-> -	/* caller is expected to have initialized CONFIG1 to cover
-> -	 * at least sync vs async
-> -	 */
->  	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-> -	if (l & (GPMC_CONFIG1_READTYPE_SYNC | GPMC_CONFIG1_WRITETYPE_SYNC)) {
->  #ifdef DEBUG
-> -		printk(KERN_INFO "GPMC CS%d CLK period is %lu ns (div %d)\n",
-> -				cs, (div * gpmc_get_fclk_period()) / 1000, div);
-> +	printk(KERN_INFO "GPMC CS%d CLK period is %lu ns (div %d)\n",
-> +	       cs, (div * gpmc_get_fclk_period()) / 1000, div);
->  #endif
-> -		l &= ~0x03;
-> -		l |= (div - 1);
-> -		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
-> -	}
-> +	l &= ~0x03;
-> +	l |= (div - 1);
-> +	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
->  
->  	gpmc_cs_bool_timings(cs, &t->bool_timings);
->  
-> -- 
-> 2.3.0
-> 
