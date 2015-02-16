@@ -1,36 +1,44 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: Enabling DBGEN signal in GP OMAP3
-Date: Mon, 16 Feb 2015 19:43:24 +0100
-Message-ID: <CAALWOA86U3+FTauR+RhGc=sr5TQcdM-UnPsZp+hTWB+Y3Q=eYg@mail.gmail.com>
-References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
+Subject: Re: [PATCH 2/4] ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
+Date: Mon, 16 Feb 2015 21:09:11 +0100
+Message-ID: <54E24E67.9060806@cit-ec.uni-bielefeld.de>
+References: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <20150216171030.GS2531@atomide.com>
+Reply-To: rabel@cit-ec.uni-bielefeld.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:53835 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933AbbBPSnp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2015 13:43:45 -0500
-Received: by mail-wg0-f47.google.com with SMTP id x12so17351769wgg.6
-        for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2015 10:43:44 -0800 (PST)
-In-Reply-To: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150216171030.GS2531@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: khilman@deeprootsystems.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
-I don't have an OMAP3 to play with, but I wouldn't be surprised if a
-debug-enable bit also needs to be set in an ICEPick control register.
-On omap4-generation targets with ICEPick-D (e.g. dm81xx and am335x)
-the DBGEN signal is in fact fully controlled via ICEPick.
+Hi Tony,
 
-This really sucks since without it you can't use debug monitor
-functionality such as hardware breakpoints and watchpoints, or have an
-aux core (e.g. a cortex-m3) perform halting debug on the main core.
-I've actually considered asking for a hardware patch on our board to
-allow it to self-jtag via gpio just to enable that stupid bit
-(basically everything else is memory-mapped).
+On 16 Feb 2015 18:10, Tony Lindgren wrote:
+> * Robert ABEL <rabel@cit-ec.uni-bielefeld.de> [150216 07:52]:
+>> GPMC uses GPMCFCLKDIVIDER during synchronous as well as asynchronous accesses
+>> in conjunction with WAITMONITORINGTIME. Thus, it's wrong to only program it for
+>> synchronous accesses. Remove the conditional.
+> Do you have some test case that gets fixed by this? Or does this
+> fix some regression?
+>
+> The reason why I'm asking is that AFAIK we've had async access
+> working all along?
+Maybe to clarify: This is only affects asynchronous accesses with 
+WAITREADMONITORING and/or WAITWRITEMONITORING enabled. Regular 
+asynchronous accesses without WAIT pin monitoring were never affected to 
+begin with and are not affected by this change.
 
-(As a random note, on the am335x the JTAG pins have pinconf registers,
-in that case it may suffice to externally pull/drive all pins up and
-then toggle the RXEN bit in software, given that even the (warm) reset
-pin responds to such manipulation.)
+I don't have an off-hand test case and seeing as the current 
+implementation is faulty, it's probable nobody actively uses this 
+feature. Cf. OMAP35xx TRM (SPRUF98X) pp. 1103. Basically, 
+WAITMONITORINGTIME extends the number of cycles from the end of WAIT 
+asserted to when the data is provided/sampled and the read/write access 
+(should) take place. While this behavior is esoteric, it's not a reason 
+not to fix this oversight.
+
+Regards,
+
+Robert
