@@ -1,86 +1,181 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: n900 audio: any ideas how to get headset speaker to work?
-Date: Mon, 16 Feb 2015 10:57:48 +0100
-Message-ID: <20150216095748.GA25918@amd>
-References: <20150215102152.GA23736@amd>
- <CAK7bGn+NH9BOB25+dhNZXFxY_fD8TeoWvuSpTD-4cg-zU5dOmA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+Subject: [PATCH 3/4] ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
+Date: Mon, 16 Feb 2015 16:49:00 +0100
+Message-ID: <1424101741-24152-4-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+References: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK7bGn+NH9BOB25+dhNZXFxY_fD8TeoWvuSpTD-4cg-zU5dOmA@mail.gmail.com>
+In-Reply-To: <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Patrik Bachan aka DiGGiT <patrikbachan@gmail.com>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+To: khilman@deeprootsystems.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 List-Id: linux-omap@vger.kernel.org
 
-Ahoj!
+WAITMONITORINGTIME is expressed in GPMC_CLK cycles (even for asynchronous accesses).
+However the driver currently converts them to GPMC_FCLK cycles, thus waitmonitoringtime in dt
+had to be predivided by divider as a workaround. This patch fixes the issue by reading the
+current GPMCFCLKDIVIDER and adjusting the divisor for WAITMONITORINGTIME accordingly.
 
-> > By default, output goes to loudspeaker (top right relative to
-> > keyboard). Any ideas how to switch it to the speaker on the left or
-> > wired headset? Because I suspect that echo cancelation is not going to
-> > be simple...
-> >                                                                         Pavel
-> > --
-> > (english) http://www.livejournal.com/~pavelmachek
-> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
-> 
-> Hi,
-> in case of direct alsa output (not PA), setup is pretty complex.
-> Headphones referenced as line. All audio outputs are differential.
-> Here are controls that affects volumes...
+Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+---
+ arch/arm/mach-omap2/gpmc.c | 78 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 64 insertions(+), 14 deletions(-)
 
-Aha, thanks for nice explanation. Now it starts to make sense... I got
-headset connected to 3.5" jack to work.
-
-Now, I guess I'd like the internal speaker on the left to work,
-too... Aha, so n900 has two stereo "loud" speakers on the keyboard
-part, plus extra speaker on the left display part for communication?
-
-I got the two stereo ones to work now.
-
-Any idea what is the last speaker on display is called? HPCOM? Mono?
-
-> global:
->  PCM (volume)
->  left/right DAC mux (below)
->       -- DAC_L1/R1 passes sound to loudspeakers, line, (maybe others)
->       -- DAC_L2/R2 passes sound to loudspeakers, NOT line, (maybe others)
->       -- DAC_L3/R3 passes sound to NOT loudspeakers, line, (maybe others)
->       if DAC_L1/R1 is chosen, you can hear lower volume on both
-> outputs in compare to dedicated outputs (DAC_L2/R2, DAC_L3/R3),
-> probabbly due to higher load of ADC
-> 
-> 
-> loudspeakers:
->  Speaker function (on)
->  HP (unmute)
->  HP DAC (volume)
->  left HP Mixer DACL1 (below)
->  right HP Mixer DACR1 (below)
->    --unmute theese two,  this will pass left channel sound to left
-> channel output and vice versa
->  left HP Mixer DACR1 (below)
->  right HP Mixer DACL1 (below)
->   --mute these two, this controls channel crosstalk ( amount of left
-> channel sound going to right channel output and vice versa)
-> 
-> line:
->  line (unmute)
->  line DAC (volume)
->  jack function (headphone)
->  TPA6130A2 Headphone (volume)
->  left Line Mixer DACL1 (below)
->  right Line Mixer DACR1 (below)
->    --unmute theese two,  this will pass left channel sound to left
-> channel output and vice versa
->  left Line Mixer DACR1 (below)
->  right Line Mixer DACL1 (below)
->   --mute these two, this controls channel crosstalk ( amount of left
-> channel sound going to right channel output and vice versa)
-
-Thanks a lot!
-									Pavel
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index bae4a20..4fa5ff1 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -113,6 +113,9 @@
+  */
+ #define	GPMC_NR_IRQ		2
+ 
++#define GPMC_FCLK       0
++#define GPMC_CLK        1
++
+ struct gpmc_client_irq	{
+ 	unsigned		irq;
+ 	u32			bitmask;
+@@ -208,16 +211,55 @@ static unsigned long gpmc_get_fclk_period(void)
+ 	return rate;
+ }
+ 
+-static unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
++/**
++ * gpmc_get_clk_period - get period of selected clk in ps
++ * @cs     : affected chip select
++ * @clk_sel: either one of GPMC_CLK or GPMC_FCLK
++ *
++ * GPMC_CS_CONFIG1 GPMCFCLKDIVIDER for cs has to be setup
++ * prior to calling this function with GPMC_CLK.
++ * 
++ */
++static unsigned long gpmc_get_clk_period(int cs, unsigned int clk_sel)
++{
++
++	unsigned long tick_ps = gpmc_get_fclk_period();
++	u32 l;
++	int div;
++
++	switch (clk_sel) {
++	case GPMC_CLK:
++		/* get current clk divider */
++		l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++		div = (l & 0x03) + 1;
++		/* get GPMC_CLK period */
++		tick_ps *= div;
++		break;
++	case GPMC_FCLK:
++		/* FALL-THROUGH */
++	default:
++		break;
++	}
++
++	return tick_ps;
++
++}
++
++static unsigned int gpmc_ns_to_clk_ticks(unsigned int time_ns, int cs, unsigned int clk_sel)
+ {
+ 	unsigned long tick_ps;
+ 
+ 	/* Calculate in picosecs to yield more exact results */
+-	tick_ps = gpmc_get_fclk_period();
++	tick_ps = gpmc_get_clk_period(cs, clk_sel);
+ 
+ 	return (time_ns * 1000 + tick_ps - 1) / tick_ps;
+ }
+ 
++static unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
++{
++	return gpmc_ns_to_clk_ticks(time_ns, 0, GPMC_FCLK);
++}
++
+ static unsigned int gpmc_ps_to_ticks(unsigned int time_ps)
+ {
+ 	unsigned long tick_ps;
+@@ -280,10 +322,10 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+ 
+ #ifdef DEBUG
+ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+-			       int time, const char *name)
++			       int time, unsigned int clk_sel, const char *name)
+ #else
+ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+-			       int time)
++			       int time, unsigned int clk_sel)
+ #endif
+ {
+ 	u32 l;
+@@ -292,7 +334,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 	if (time == 0)
+ 		ticks = 0;
+ 	else
+-		ticks = gpmc_ns_to_ticks(time);
++		ticks = gpmc_ns_to_clk_ticks(time, cs, clk_sel);
+ 	nr_bits = end_bit - st_bit + 1;
+ 	if (ticks >= 1 << nr_bits) {
+ #ifdef DEBUG
+@@ -307,7 +349,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ #ifdef DEBUG
+ 	printk(KERN_INFO
+ 		"GPMC CS%d: %-17s: %3d ticks, %3lu ns (was %3i ticks) %3d ns\n",
+-	       cs, name, ticks, gpmc_get_fclk_period() * ticks / 1000,
++	       cs, name, ticks, gpmc_get_clk_period(cs, clk_sel) * ticks / 1000,
+ 			(l >> st_bit) & mask, time);
+ #endif
+ 	l &= ~(mask << st_bit);
+@@ -320,12 +362,19 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ #ifdef DEBUG
+ #define GPMC_SET_ONE(reg, st, end, field) \
+ 	if (set_gpmc_timing_reg(cs, (reg), (st), (end),		\
+-			t->field, #field) < 0)			\
++			t->field, GPMC_FCLK, #field) < 0)			\
+ 		return -1
++#define GPMC_SET_ONE_C(reg, st, end, field, clk_sel) \
++	if (set_gpmc_timing_reg(cs, (reg), (st), (end),     \
++            t->field, clk_sel, #field) < 0)             \
++        return -1
+ #else
+ #define GPMC_SET_ONE(reg, st, end, field) \
+-	if (set_gpmc_timing_reg(cs, (reg), (st), (end), t->field) < 0) \
++	if (set_gpmc_timing_reg(cs, (reg), (st), (end), t->field, GPMC_FCLK) < 0) \
+ 		return -1
++#define GPMC_SET_ONE_C(reg, st, end, field, clk_sel) \
++	if (set_gpmc_timing_reg(cs, (reg), (st), (end), t->field, clk_sel) < 0)   \
++        return -1
+ #endif
+ 
+ int gpmc_calc_divider(unsigned int sync_clk)
+@@ -374,22 +423,23 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ 	GPMC_SET_ONE(GPMC_CS_CONFIG6, 0, 3, bus_turnaround);
+ 	GPMC_SET_ONE(GPMC_CS_CONFIG6, 8, 11, cycle2cycle_delay);
+ 
+-	GPMC_SET_ONE(GPMC_CS_CONFIG1, 18, 19, wait_monitoring);
+-	GPMC_SET_ONE(GPMC_CS_CONFIG1, 25, 26, clk_activation);
+-
+ 	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
+ 		GPMC_SET_ONE(GPMC_CS_CONFIG6, 16, 19, wr_data_mux_bus);
+ 	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
+ 		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
+ 
+ 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++	l &= ~0x03;
++	l |= (div - 1);
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
++
++	GPMC_SET_ONE_C(GPMC_CS_CONFIG1, 18, 19, wait_monitoring, GPMC_CLK);
++	GPMC_SET_ONE(GPMC_CS_CONFIG1, 25, 26, clk_activation);
++
+ #ifdef DEBUG
+ 	printk(KERN_INFO "GPMC CS%d CLK period is %lu ns (div %d)\n",
+ 	       cs, (div * gpmc_get_fclk_period()) / 1000, div);
+ #endif
+-	l &= ~0x03;
+-	l |= (div - 1);
+-	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
+ 
+ 	gpmc_cs_bool_timings(cs, &t->bool_timings);
+ 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.3.0
