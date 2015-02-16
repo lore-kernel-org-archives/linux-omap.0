@@ -1,45 +1,58 @@
 From: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
-Subject: [PATCH 1/4] ARM OMAP2+ GPMC: fix debug output alignment
-Date: Mon, 16 Feb 2015 16:48:58 +0100
-Message-ID: <1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Subject: [PATCH 4/4] ARM OMAP2+ GPMC: add bus children
+Date: Mon, 16 Feb 2015 16:49:01 +0100
+Message-ID: <1424101741-24152-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 References: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <1424101741-24152-4-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+In-Reply-To: <1424101741-24152-4-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: khilman@deeprootsystems.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 List-Id: linux-omap@vger.kernel.org
 
-GPMC debug output is aligned to 10 characters for field names.
-However, some fields have bigger names, screwing up the alignment.
-Consequently, alignment was changed to longest field name (17 chars) for now.
+This patch adds support for spawning busses as children of the GPMC.
 
 Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 ---
- arch/arm/mach-omap2/gpmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 1ab6bc0..5c3639c 100644
+index 4fa5ff1..c6c8543 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -296,7 +296,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
- 	nr_bits = end_bit - st_bit + 1;
- 	if (ticks >= 1 << nr_bits) {
- #ifdef DEBUG
--		printk(KERN_INFO "GPMC CS%d: %-10s* %3d ns, %3d ticks >= %d\n",
-+		printk(KERN_INFO "GPMC CS%d: %-17s* %3d ns, %3d ticks >= %d\n",
- 				cs, name, time, ticks, 1 << nr_bits);
- #endif
- 		return -1;
-@@ -306,7 +306,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
- 	l = gpmc_cs_read_reg(cs, reg);
- #ifdef DEBUG
- 	printk(KERN_INFO
--		"GPMC CS%d: %-10s: %3d ticks, %3lu ns (was %3i ticks) %3d ns\n",
-+		"GPMC CS%d: %-17s: %3d ticks, %3lu ns (was %3i ticks) %3d ns\n",
- 	       cs, name, ticks, gpmc_get_fclk_period() * ticks / 1000,
- 			(l >> st_bit) & mask, time);
- #endif
+@@ -27,6 +27,7 @@
+ #include <linux/of_address.h>
+ #include <linux/of_mtd.h>
+ #include <linux/of_device.h>
++#include <linux/of_platform.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/pm_runtime.h>
+ 
+@@ -1589,9 +1590,20 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	gpmc_cs_set_timings(cs, &gpmc_t);
+ 
+ no_timings:
+-	if (of_platform_device_create(child, NULL, &pdev->dev))
++
++	if (of_match_node(of_default_bus_match_table, child)) {
++
++		/* ignore return code, because 0 is ambiguous */
++		of_platform_populate(child, of_default_bus_match_table, NULL, &pdev->dev);
+ 		return 0;
+ 
++	} else {
++
++		if (of_platform_device_create(child, NULL, &pdev->dev))
++			return 0;
++
++	}
++
+ 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
+ 	ret = -ENODEV;
+ 
 -- 
 2.3.0
