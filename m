@@ -1,46 +1,95 @@
-From: Bjorn Andersson <bjorn@kryo.se>
-Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
-Date: Mon, 16 Feb 2015 12:30:37 -0800
-Message-ID: <CAJAp7OjvFj6RL=Z=SQ6XYzo4qd-Bhe3SYV9-JAGS5SzjJ6R5xg@mail.gmail.com>
-References: <1421269101-51105-1-git-send-email-s-anna@ti.com>
-	<1421269101-51105-2-git-send-email-s-anna@ti.com>
-	<20150115135201.GG16217@leverpostej>
-	<20150115135556.GH16217@leverpostej>
-	<CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
-	<CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
-	<20150116101746.GA21809@leverpostej>
-	<CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
-	<CAJAp7Og+-KQd7bygWQjTS72Kye3fkp3s3ry+2bw7Gcv7aPF5AQ@mail.gmail.com>
-	<CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
+From: Patrik Bachan aka DiGGiT <patrikbachan@gmail.com>
+Subject: Re: n900 audio: any ideas how to get headset speaker to work?
+Date: Mon, 16 Feb 2015 23:38:49 +0100
+Message-ID: <CAK7bGn+SUXCk+ydMmCPeP18dMdwj85zeHte2zdGdNLGX-YBRdw@mail.gmail.com>
+References: <20150215102152.GA23736@amd>
+	<CAK7bGn+NH9BOB25+dhNZXFxY_fD8TeoWvuSpTD-4cg-zU5dOmA@mail.gmail.com>
+	<20150216095748.GA25918@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbZ2986xxuAFvMSoyQLaPAxdUpZ8e5g-mSjyETfvd4KKHw@mail.gmail.com>
+In-Reply-To: <20150216095748.GA25918@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robherring2@gmail.com>, Suman Anna <s-anna@ti.com>, Kumar Gala <galak@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 30, 2015 at 9:41 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-[..]
-> Since the existence of several hwblocks is still fictional (Bjorn,
-> please confirm too?), we may prefer to introduce changes to support it
-> only when it shows up; it all depends on the amount of changes needed.
-> Suman, care to take a look please?
+2015-02-16 10:57 GMT+01:00 Pavel Machek <pavel@ucw.cz>:
+> Ahoj!
+>
+>> > By default, output goes to loudspeaker (top right relative to
+>> > keyboard). Any ideas how to switch it to the speaker on the left or
+>> > wired headset? Because I suspect that echo cancelation is not going to
+>> > be simple...
+>> >                                                                         Pavel
+>> > --
+>> > (english) http://www.livejournal.com/~pavelmachek
+>> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>>
+>> Hi,
+>> in case of direct alsa output (not PA), setup is pretty complex.
+>> Headphones referenced as line. All audio outputs are differential.
+>> Here are controls that affects volumes...
+>
+> Aha, thanks for nice explanation. Now it starts to make sense... I got
+> headset connected to 3.5" jack to work.
+>
+> Now, I guess I'd like the internal speaker on the left to work,
+> too... Aha, so n900 has two stereo "loud" speakers on the keyboard
+> part, plus extra speaker on the left display part for communication?
 >
 
-It turns out that the Qualcomm platforms have two additional "remote
-spinlock" mechanisms - both using shared memory.
+Yes, exactly.
 
-On most platforms only 1 (out of these 3) is actually consumed, but
-e.g. the older msm7x30 uses 2 of them (SMEM and DAL). Due to its age I
-don't think it's on anyones todo list to actually support this
-platform as of today; but it's out there.
+> I got the two stereo ones to work now.
+>
+> Any idea what is the last speaker on display is called? HPCOM? Mono?
 
+In schematics, earphone is connected to Left HP, channel B
+(loudspeakers are channel A). But even after enabling all its
+controls, earphone stays muted. My N900 may have broken flex causing
+my touchscreen problems too. Better try it yourself.
 
-None of these hwlocks are allocated dynamically, so if needed a
-dynamic base_id (-1 like other frameworks) would be a acceptable
-solution - and can easily be implemented when we need it.
-
-Regards,
-Bjorn
+>> global:
+>>  PCM (volume)
+>>  left/right DAC mux (below)
+>>       -- DAC_L1/R1 passes sound to loudspeakers, line, (maybe others)
+>>       -- DAC_L2/R2 passes sound to loudspeakers, NOT line, (maybe others)
+>>       -- DAC_L3/R3 passes sound to NOT loudspeakers, line, (maybe others)
+>>       if DAC_L1/R1 is chosen, you can hear lower volume on both
+>> outputs in compare to dedicated outputs (DAC_L2/R2, DAC_L3/R3),
+>> probabbly due to higher load of ADC
+>>
+>>
+>> loudspeakers:
+>>  Speaker function (on)
+>>  HP (unmute)
+>>  HP DAC (volume)
+>>  left HP Mixer DACL1 (below)
+>>  right HP Mixer DACR1 (below)
+>>    --unmute theese two,  this will pass left channel sound to left
+>> channel output and vice versa
+>>  left HP Mixer DACR1 (below)
+>>  right HP Mixer DACL1 (below)
+>>   --mute these two, this controls channel crosstalk ( amount of left
+>> channel sound going to right channel output and vice versa)
+>>
+>> line:
+>>  line (unmute)
+>>  line DAC (volume)
+>>  jack function (headphone)
+>>  TPA6130A2 Headphone (volume)
+>>  left Line Mixer DACL1 (below)
+>>  right Line Mixer DACR1 (below)
+>>    --unmute theese two,  this will pass left channel sound to left
+>> channel output and vice versa
+>>  left Line Mixer DACR1 (below)
+>>  right Line Mixer DACL1 (below)
+>>   --mute these two, this controls channel crosstalk ( amount of left
+>> channel sound going to right channel output and vice versa)
+>
+> Thanks a lot!
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
