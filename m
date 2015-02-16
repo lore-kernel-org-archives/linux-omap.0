@@ -1,77 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Enabling DBGEN signal in GP OMAP3
-Date: Mon, 16 Feb 2015 09:58:26 -0800
-Message-ID: <20150216175826.GT2531@atomide.com>
-References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCH v7 1/4] Documentation: dt: add common bindings for hwspinlock
+Date: Mon, 16 Feb 2015 10:06:26 -0800
+Message-ID: <CAJAp7OgCs2kyF+ZdSzbf02qNHDdd_g=Nyf54akiAjAd1uK6cEA@mail.gmail.com>
+References: <20150115135556.GH16217@leverpostej>
+	<CAL_JsqL2LZAooMk-V8+xeF2g6acZE21M+-OBRw8aEVa-5wVHuQ@mail.gmail.com>
+	<CAK=WgbYQ=BbinqJ5fsw2Y+FKdy=nasLsw9mX8pw6S_o3owy9-g@mail.gmail.com>
+	<20150116101746.GA21809@leverpostej>
+	<CAK=WgbYBqPoUm9byx0du_g5ZmHdYaUVLpSPZYHoCVzNoatNKpw@mail.gmail.com>
+	<20150120180548.GK7718@atomide.com>
+	<CAK=WgbZGGtwmQwzWumjpYOsYHTt8vPQpTraABwJBsv5VXOmJ_Q@mail.gmail.com>
+	<54BFE855.3090200@ti.com>
+	<20150122185622.GE12911@leverpostej>
+	<54C9AFF2.6000108@ti.com>
+	<20150211112907.GD9154@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery1.ore.mailhop.org ([54.149.155.156]:49582 "EHLO
-	pmta2.delivery1.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753490AbbBPSDC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Feb 2015 13:03:02 -0500
-Received: from smtp1.ore.mailhop.org (172.31.36.112) by pmta2.delivery1.ore.mailhop.org id hs8oe620u50c for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2015 18:03:14 +0000 (envelope-from <tony@atomide.com>)
-Content-Disposition: inline
-In-Reply-To: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:40637 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753678AbbBPSG2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2015 13:06:28 -0500
+Received: by lbdu10 with SMTP id u10so86271lbd.7
+        for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2015 10:06:26 -0800 (PST)
+In-Reply-To: <20150211112907.GD9154@leverpostej>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Matthijs van Duin <matthijsvanduin@gmail.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Suman Anna <s-anna@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, Kumar Gala <galak@codeaurora.org>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>
 
-* Grazvydas Ignotas <notasas@gmail.com> [150215 13:34]:
-> Hi,
-> 
-> Does anyone know if there is a way to make DBGEN signal high on
-> OMAP3530 and/or DM3730 without using a hardware debugger? My goal is
-> to make use of hardware watchpoints in Cortex-A8, but that requires
-> DBGEN to be high.
-> 
-> The TRM states:
-> "The DBGEM signal on the Cortex-A8 is driven by setting bit 13 at
-> address 0x5401 D030 in the DAP-APB address space."
-> However regardless of how hard I try the writes to that register seem
-> to be ignored. I even tried to do it from IVA/C64x with no success.
-> (I assume DBGEM is a typo since Cortex-A8 manuals have no mention of
-> it, and they meant DBGEN there).
-> 
-> It seems others had this problem too, and TI is as helpful as ever:
-> http://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/30011/104527
-> 
-> DBGEN is mentioned by Will Deacon's commit
-> 8954bb0da99b76c7ce5edf2f314807cff68b6ea8 , but I guess he mixed NIDEN
-> with DBGEN there (DBGAUTHSTATUS returns 0x000000ae so NIDEN is indeed
-> set here, and I have tried old kernel where OMAP3_EMU was still
-> available).
+On Wed, Feb 11, 2015 at 3:29 AM, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Thu, Jan 29, 2015 at 03:58:42AM +0000, Suman Anna wrote:
+>> On 01/22/2015 12:56 PM, Mark Rutland wrote:
+[..]
+>> > That's the only way I would expect this to possibly remain a stable
+>> > over time, and it's the entire reason for #hwlock-cells, no?
+>> >
+>> > How do you expect the other components sharing the hwspinlocks to be
+>> > described?
+>>
+>> Yes indeed, this is what any of the clients will use on Linux. But
+>> this is not necessarily the semantics for exchanging hwlocks with the
+>> other processor(s) which is where the global id space comes into
+>> picture.
+>
+> I did try to consider that above. Rather than thinking about the
+> numbering as "global", think of it as unique within the a given pool
+> shared between processors. That's what the "poolN" names are about
+> above.
+>
+> That way you can dynamically allocate within the pool and know that
+> Linux and the SW on the other processors will use the same ID. You can
+> have pools that span multiple hwlock hardware blocks, and you can have
+> multiple separate pools in operation at once.
+>
+> Surely that covers the cases you care about?
+>
+> If using names is clunky, we could instead have a pool-hwlocks property
+> for that purpose.
+>
 
-Does the perf counter still work OK? Looks like OMAP3_EMU got
-removed by commit 184901a06a36 ("ARM: removing support for etb/etm in
-"arch/arm/kernel/"").
+Just to make I understand your suggestion.
 
-The perf counter on omap3 used to work, but is buggy at least on
-3430 because it eventually stops producing interrupts because of
-some bug in the Cortex-A8 version being used.
+We would have the communication entity list all the potential hwlocks
+(and gpios etc) that it can share and the key to be communicated would
+then basically be the index in that list?
 
-Looking at the commits it seems that it probably only works for
-device tree based booting nowadays.
+Like:
+awesome-hub {
+    pool-hwlocks = <&a 1>, <&a 3>, <&b 5>;
+};
 
-Also, it seems that having the etm@54010000, etb@540000000
-and etb@5401b000 entries only in the omap3-beagle*.dts files
-is wrong. To me it seems they should be in the omap3.dtsi and
-omap36xx.dtsi instead. Looks like those got added by commit
-9d31620268a7 ("coresight: adding support for beagle and beagleXM").
+And a communicated "lock 2" would mean lock 3 from block a?
 
-So maybe moving  the etb and etm entries to omap3.dtsi and
-omap36xx.dtsi is all you need with the current mainline kernel?
- 
-> 0x5401D030 is referenced by some OpenOCD scripts, so I guess it's
-> writeable over jtag, but not by the CPU(s). It's quite a mysterious
-> otherwise undocumented register, I've noticed it's bit21 is some
-> status bit related to Cortex-A8's low power states.
 
-Have you checked the Cortex-A8 documentation for the debugger?
-It seems that's where they should be documented.
+This would make it possible to describe what locks are available in
+this "allocation pool" and would keep such allocation logic out from
+the hwlock core - as the awesome-hub driver could simply trial and
+error (with some logic) through the list.
+
+Is this understanding correct?
 
 Regards,
-
-Tony
+Bjorn
