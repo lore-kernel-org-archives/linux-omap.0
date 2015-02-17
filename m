@@ -1,95 +1,90 @@
-From: Patrik Bachan aka DiGGiT <patrikbachan@gmail.com>
-Subject: Re: n900 audio: any ideas how to get headset speaker to work?
-Date: Mon, 16 Feb 2015 23:38:49 +0100
-Message-ID: <CAK7bGn+SUXCk+ydMmCPeP18dMdwj85zeHte2zdGdNLGX-YBRdw@mail.gmail.com>
-References: <20150215102152.GA23736@amd>
-	<CAK7bGn+NH9BOB25+dhNZXFxY_fD8TeoWvuSpTD-4cg-zU5dOmA@mail.gmail.com>
-	<20150216095748.GA25918@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Sneeker Yeh <sneeker.yeh@gmail.com>
+Subject: [PATCH v4 0/5] Add support for Fujitsu USB host controller
+Date: Tue, 17 Feb 2015 13:41:32 +0800
+Message-ID: <1424151697-2084-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150216095748.GA25918@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 List-Id: linux-omap@vger.kernel.org
 
-2015-02-16 10:57 GMT+01:00 Pavel Machek <pavel@ucw.cz>:
-> Ahoj!
->
->> > By default, output goes to loudspeaker (top right relative to
->> > keyboard). Any ideas how to switch it to the speaker on the left or
->> > wired headset? Because I suspect that echo cancelation is not going to
->> > be simple...
->> >                                                                         Pavel
->> > --
->> > (english) http://www.livejournal.com/~pavelmachek
->> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
->>
->> Hi,
->> in case of direct alsa output (not PA), setup is pretty complex.
->> Headphones referenced as line. All audio outputs are differential.
->> Here are controls that affects volumes...
->
-> Aha, thanks for nice explanation. Now it starts to make sense... I got
-> headset connected to 3.5" jack to work.
->
-> Now, I guess I'd like the internal speaker on the left to work,
-> too... Aha, so n900 has two stereo "loud" speakers on the keyboard
-> part, plus extra speaker on the left display part for communication?
->
+These patches add support for XHCI compliant Host controller found
+on Fujitsu Socs, and are based on http://lwn.net/Articles/629162/
+The first patch is to add Fujitsu glue layer of Synopsis DesignWare USB3 driver
+and last four patch is about quirk implementation of errata in Synopsis
+DesignWare USB3 IP.
 
-Yes, exactly.
+Patch 1 introduces a quirk with device disconnection management necessary
+Synopsys Designware USB3 IP with versions < 3.00a and hardware configuration
+DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1. It solves a problem where without the
+quirk, that host controller will die after a usb device is disconnected from
+port of root hub.
 
-> I got the two stereo ones to work now.
->
-> Any idea what is the last speaker on display is called? HPCOM? Mono?
+Patch 2 is to set Synopsis quirk in xhci platform driver based on xhci platform
+data.
 
-In schematics, earphone is connected to Left HP, channel B
-(loudspeakers are channel A). But even after enabling all its
-controls, earphone stays muted. My N900 may have broken flex causing
-my touchscreen problems too. Better try it yourself.
+Patch 3 is to add a revison number 2.90a and 3.00a of Synopsis DesignWare USB3
+IP core driver.
 
->> global:
->>  PCM (volume)
->>  left/right DAC mux (below)
->>       -- DAC_L1/R1 passes sound to loudspeakers, line, (maybe others)
->>       -- DAC_L2/R2 passes sound to loudspeakers, NOT line, (maybe others)
->>       -- DAC_L3/R3 passes sound to NOT loudspeakers, line, (maybe others)
->>       if DAC_L1/R1 is chosen, you can hear lower volume on both
->> outputs in compare to dedicated outputs (DAC_L2/R2, DAC_L3/R3),
->> probabbly due to higher load of ADC
->>
->>
->> loudspeakers:
->>  Speaker function (on)
->>  HP (unmute)
->>  HP DAC (volume)
->>  left HP Mixer DACL1 (below)
->>  right HP Mixer DACR1 (below)
->>    --unmute theese two,  this will pass left channel sound to left
->> channel output and vice versa
->>  left HP Mixer DACR1 (below)
->>  right HP Mixer DACL1 (below)
->>   --mute these two, this controls channel crosstalk ( amount of left
->> channel sound going to right channel output and vice versa)
->>
->> line:
->>  line (unmute)
->>  line DAC (volume)
->>  jack function (headphone)
->>  TPA6130A2 Headphone (volume)
->>  left Line Mixer DACL1 (below)
->>  right Line Mixer DACR1 (below)
->>    --unmute theese two,  this will pass left channel sound to left
->> channel output and vice versa
->>  left Line Mixer DACR1 (below)
->>  right Line Mixer DACL1 (below)
->>   --mute these two, this controls channel crosstalk ( amount of left
->> channel sound going to right channel output and vice versa)
->
-> Thanks a lot!
->                                                                         Pavel
-> --
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Patch 4 introduces using a quirk based on a errata of Synopsis
+DesignWare USB3 IP which is versions < 3.00a and has hardware configuration
+DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1, which cannot be read from software. As a
+result this quirk has to be enabled via platform data or device tree.
+
+Patch 5 introduces Fujitsu Specific Glue layer in Synopsis DesignWare USB3 IP
+driver. 
+
+Successfully tested on Fujitsu mb86s7x board.
+
+Changes since v3 (RFC):
+[https://lkml.org/lkml/2014/12/15/929]
+ - based on Mathias's comment, fix bug and using xhci_port_state_to_neutral()
+   helper function to mask out some RW1C bits, prevent writing back all the
+   bits read from the PORTSC register.
+
+Changes since v2 (RFC):
+[https://lkml.org/lkml/2014/12/15/929]
+ - based on Felipe's comment, re-order patches to avoid breaking bisectability,
+ - based on Felipe's comment, add comment to structure's member, and sort it
+   alphabetically,
+ - based on Felipe's comment, add another v2.90 revision number in dwc3 IP.
+
+Changes since v1 (RFC):
+[https://lkml.org/lkml/2014/12/15/929]
+ - based on Arnd's comment, remove entire unnecessary Fujitsu EHCI/OHCI glue,
+ - based on Felipe's comment, fix mis-using of runtime-pm API and setting dma
+   mask, remove unnecessary comment, and refactor suspend/resume handler in
+   Fujitsu Specific Glue layer in dwc3,
+ - based on Felipe's comment, add more commit log and comments in Synopsis
+   quirk implementation, and separate it into four patches.
+
+Sneeker Yeh (5):
+  xhci: add a quirk for device disconnection errata for Synopsis
+    Designware USB3     core
+  xhci: Platform: Set Synopsis device disconnection quirk based on
+    platform data
+  usb: dwc3: add revision number DWC3_REVISION_290A and
+    DWC3_REVISION_300A
+  usb: dwc3: Add quirk for Synopsis device disconnection errata
+  usb: dwc3: add Fujitsu Specific Glue layer
+
+ Documentation/devicetree/bindings/usb/dwc3.txt     |   17 ++
+ .../devicetree/bindings/usb/fujitsu-dwc3.txt       |   33 ++++
+ drivers/usb/dwc3/Kconfig                           |   11 ++
+ drivers/usb/dwc3/Makefile                          |    1 +
+ drivers/usb/dwc3/core.c                            |    6 +
+ drivers/usb/dwc3/core.h                            |    6 +
+ drivers/usb/dwc3/dwc3-mb86s70.c                    |  206 ++++++++++++++++++++
+ drivers/usb/dwc3/host.c                            |    4 +
+ drivers/usb/dwc3/platform_data.h                   |    8 +
+ drivers/usb/host/xhci-hub.c                        |    4 +
+ drivers/usb/host/xhci-plat.c                       |    3 +
+ drivers/usb/host/xhci.c                            |   31 +++
+ drivers/usb/host/xhci.h                            |   24 +++
+ include/linux/usb/xhci_pdriver.h                   |    4 +
+ 14 files changed, 358 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt
+ create mode 100644 drivers/usb/dwc3/dwc3-mb86s70.c
+
+-- 
+1.7.9.5
