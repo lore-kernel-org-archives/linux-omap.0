@@ -1,138 +1,154 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
- clk instances
-Date: Tue, 17 Feb 2015 14:01:04 -0800
-Message-ID: <54E3BA20.3080205@codeaurora.org>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com> <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com> <20150201212432.22722.70917@quantum> <54CFE1FE.7040404@codeaurora.org> <alpine.DEB.2.02.1502022230110.2045@localhost6.localdomain6> <54CFFBCF.90706@codeaurora.org> <20150202225036.421.43421@quantum> <54D0F179.1040906@gmail.com> <54D2AA9B.7010800@codeaurora.org> <54D3900A.9060200@gmail.com> <54D423C3.9030105@codeaurora.org>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: Enabling DBGEN signal in GP OMAP3
+Date: Wed, 18 Feb 2015 01:37:55 +0200
+Message-ID: <CANOLnOO6HWtptks+TXbJEim9fhk5mp5q94gg1wva77x4H7c3pg@mail.gmail.com>
+References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+	<20150216175826.GT2531@atomide.com>
+	<CAALWOA_JZgWWKvFnDmzZRTSqFVJPZOEar1L0D7KR5VoU_7FqCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54D423C3.9030105@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Quentin Lambert <lambert.quentin@gmail.com>, Mike Turquette <mturquette@linaro.org>, Julia Lawall <julia.lawall@lip6.fr>
-Cc: Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary=001a1133ae122f97dd050f5131b6
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:40201 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134AbbBQXh5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2015 18:37:57 -0500
+Received: by lbdu10 with SMTP id u10so7603133lbd.7
+        for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2015 15:37:55 -0800 (PST)
+In-Reply-To: <CAALWOA_JZgWWKvFnDmzZRTSqFVJPZOEar1L0D7KR5VoU_7FqCg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
-On 02/05/15 18:15, Stephen Boyd wrote:
-> On 02/05/15 07:45, Quentin Lambert wrote:
->> On 05/02/2015 00:26, Stephen Boyd wrote:
->>>> If you want me to I can enlarge the search to other directories.
->>> Yes please do. And if you could share the coccinelle patch that would be
->>> great. Thanks.
->>>
->> structclk.cocci is the coccinelle patch
->> structclk-arm.patch is the result I got when applying it to the
->> arch/arm directory
->>
->> Is there anything else I can do to help?
->>
->>
-> Thanks for the coccinelle patch. Thinking more about it, I don't think
-> we care if the pointer is dereferenced because that would require a
-> definition of struct clk and that is most likely not the case outside of
-> the clock framework. Did you scan the entire kernel? I'm running it now
-> but it seems to be taking a while.
+--001a1133ae122f97dd050f5131b6
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Feb 16, 2015 at 8:43 PM, Matthijs van Duin
+<matthijsvanduin@gmail.com> wrote:
 >
+> This really sucks since without it you can't use debug monitor
+> functionality such as hardware breakpoints and watchpoints, or have an
+> aux core (e.g. a cortex-m3) perform halting debug on the main core.
+> I've actually considered asking for a hardware patch on our board to
+> allow it to self-jtag via gpio just to enable that stupid bit
+> (basically everything else is memory-mapped).
 
-I ran the script on all files that include <linux/clk.h>. I've also
-trimmed out mips and unicore32 because they're not using the common
-clock framework.
+I absolutely agree.
 
-diff = 
---- arch/arm/mach-imx/mach-imx6q.c
-+++ /tmp/cocci-output-11792-b62223-mach-imx6q.c
-@@ -211,7 +211,6 @@ static void __init imx6q_1588_init(void)
- 	 * set bit IOMUXC_GPR1[21].  Or the PTP clock must be from pad
- 	 * (external OSC), and we need to clear the bit.
- 	 */
--	clksel = ptp_clk == enet_ref ? IMX6Q_GPR1_ENET_CLK_SEL_ANATOP :
- 				       IMX6Q_GPR1_ENET_CLK_SEL_PAD;
- 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx6q-iomuxc-gpr");
- 	if (!IS_ERR(gpr))
-diff = 
---- drivers/gpu/drm/armada/armada_510.c
-+++ /tmp/cocci-output-12321-a5f298-armada_510.c
-@@ -53,7 +53,6 @@ static int armada510_crtc_compute_clock(
- 	if (IS_ERR(clk))
- 		return PTR_ERR(clk);
- 
--	if (dcrtc->clk != clk) {
- 		ret = clk_prepare_enable(clk);
- 		if (ret)
- 			return ret;
-drivers/gpu/drm/armada/armada_510.c:56:5-15: WARNING trying to compare or dereference struct clk pointers.
-diff = 
---- drivers/pwm/pwm-atmel-hlcdc.c
-+++ /tmp/cocci-output-12679-3c5195-pwm-atmel-hlcdc.c
-@@ -91,7 +91,6 @@ static int atmel_hlcdc_pwm_config(struct
- 
- 	pwmcfg = ATMEL_HLCDC_PWMPS(pres);
- 
--	if (new_clk != chip->cur_clk) {
- 		u32 gencfg = 0;
- 		int ret;
- 
-drivers/pwm/pwm-atmel-hlcdc.c:94:5-12: WARNING trying to compare or dereference struct clk pointers.
-diff = 
---- drivers/tty/serial/samsung.c
-+++ /tmp/cocci-output-12827-715e72-samsung.c
-@@ -750,7 +750,6 @@ static void s3c24xx_serial_set_termios(s
- 
- 	/* check to see if we need  to change clock source */
- 
--	if (ourport->baudclk != clk) {
- 		s3c24xx_serial_setsource(port, clk_sel);
- 
- 		if (!IS_ERR(ourport->baudclk)) {
-drivers/tty/serial/samsung.c:753:5-21: WARNING trying to compare or dereference struct clk pointers.
-diff = 
---- sound/soc/fsl/fsl_esai.c
-+++ /tmp/cocci-output-13020-d518c3-fsl_esai.c
-@@ -269,7 +269,6 @@ static int fsl_esai_set_dai_sysclk(struc
- 	}
- 
- 	/* Only EXTAL source can be output directly without using PSR and PM */
--	if (ratio == 1 && clksrc == esai_priv->extalclk) {
- 		/* Bypass all the dividers if not being needed */
- 		ecr |= tx ? ESAI_ECR_ETO : ESAI_ECR_ERO;
- 		goto out;
-sound/soc/fsl/fsl_esai.c:272:19-25: WARNING trying to compare or dereference struct clk pointers.
-diff = 
---- sound/soc/fsl/fsl_spdif.c
-+++ /tmp/cocci-output-13024-7acb1d-fsl_spdif.c
-@@ -1054,7 +1054,6 @@ static u32 fsl_spdif_txclk_caldiv(struct
- 				enum spdif_txrate index, bool round)
- {
- 	const u32 rate[] = { 32000, 44100, 48000, 96000, 192000 };
--	bool is_sysclk = clk == spdif_priv->sysclk;
- 	u64 rate_ideal, rate_actual, sub;
- 	u32 sysclk_dfmin, sysclk_dfmax;
- 	u32 txclk_df, sysclk_df, arate;
-@@ -1148,7 +1147,6 @@ static int fsl_spdif_probe_txclk(struct
- 			spdif_priv->txclk_src[index], rate[index]);
- 	dev_dbg(&pdev->dev, "use txclk df %d for %dHz sample rate\n",
- 			spdif_priv->txclk_df[index], rate[index]);
--	if (spdif_priv->txclk[index] == spdif_priv->sysclk)
- 		dev_dbg(&pdev->dev, "use sysclk df %d for %dHz sample rate\n",
- 				spdif_priv->sysclk_df[index], rate[index]);
- 	dev_dbg(&pdev->dev, "the best rate for %dHz sample rate is %dHz\n",
-sound/soc/fsl/fsl_spdif.c:1151:5-29: WARNING trying to compare or dereference struct clk pointers.
-sound/soc/fsl/fsl_spdif.c:1057:18-21: WARNING trying to compare or dereference struct clk pointers.
-diff = 
---- sound/soc/kirkwood/kirkwood-i2s.c
-+++ /tmp/cocci-output-13041-3200a6-kirkwood-i2s.c
-@@ -579,7 +579,6 @@ static int kirkwood_i2s_dev_probe(struct
- 		if (PTR_ERR(priv->extclk) == -EPROBE_DEFER)
- 			return -EPROBE_DEFER;
- 	} else {
--		if (priv->extclk == priv->clk) {
- 			devm_clk_put(&pdev->dev, priv->extclk);
- 			priv->extclk = ERR_PTR(-EINVAL);
- 		} else {
-sound/soc/kirkwood/kirkwood-i2s.c:582:6-18: WARNING trying to compare or dereference struct clk pointers.
+> (As a random note, on the am335x the JTAG pins have pinconf registers,
+> in that case it may suffice to externally pull/drive all pins up and
+> then toggle the RXEN bit in software, given that even the (warm) reset
+> pin responds to such manipulation.)
+
+DM3730 (equivalent to OMAP3630) that I'm using also has pinconf
+registers on all JTAG pins, and there are external pullups on my
+board. So I guess you mean performing I/O by quickly
+enabling/disabling the pulldowns? Would that satisfy any timing
+requirements? I doubt pinmux register access would be fast from the
+CPU (OMAP3 is known not to be a good GPIO bitbanger even).
+
+And what is RXEN bit? I can't find it referenced anywhere (and I'll
+admit I don't have experience with hardware debuggers).
+
+On Mon, Feb 16, 2015 at 10:09 PM, Matthijs van Duin
+<matthijsvanduin@gmail.com> wrote:
+> On 15 February 2015 at 22:30, Grazvydas Ignotas <notasas@gmail.com> wrote=
+:
+>> "The DBGEM signal on the Cortex-A8 is driven by setting bit 13 at
+>> address 0x5401 D030 in the DAP-APB address space."
+>
+> The register is apparently, for some reason, called DAP_PC_FER
+> according to some notes of mine (I have no idea anymore where I got
+> these from) listing a few DAPCTL registers:
+>
+> //      dap_pc_fer      APB     0xd401d030      ;DAP_PC for Cortex-A8
+> //      dap_pc_ime      APB     0xd401d034      ;DAP_PC for IME
+> //      dap_pc_ilf      APB     0xd401d038      ;DAP_PC for ILF
+> //      dap_pc_vlc      APB     0xd401d03c      ;DAP_PC for VLC
+> //      dap_pc_core     APB     0xd401d040      ;DAP_PC for Core
+
+Interesting.
+
+>> However regardless of how hard I try the writes to that register seem
+>> to be ignored.
+>
+> Just checking... it's possible of course that DAPCTL tries to be
+> coresight-compatible and has a lock_access register at 0x5401dfb0 to
+> which you need to write 0xc5acces5. To be safe you can first check
+> whether 0x5401dfb4 (lock_status) reads 3 before doing so (and it
+> should then become 1).
+
+It doesn't seem to be, trying to access these registers (tried reading
+and writing) results in data abort..
+
+> Debuggers generally don't need to worry about
+> it since access via APB-AP (with bit 31 / MReqDebug set) bypasses such
+> locks.
+>
+> A dump of all non-zero registers in DAPCTL (the 4KB block at
+> 0x5401d000) might be interesting.
+
+Attached, fault means external data abort (or at least that's what
+Linux kernel calls it).
+Note that it was done with Linux kernel running, with chip low power
+states enabled and everything.
+
+>> It seems others had this problem too, and TI is as helpful as ever:
+>> http://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/30011=
+/104527
+>
+> (The reply post is weird though, since you don't need DBGEN for
+> performance counters, but I'm not gonna bump a thread from 2009)
+
+Yes, the performance counters are working fine already.
+
+>> 0x5401D030 is referenced by some OpenOCD scripts, so I guess it's
+>> writeable over jtag, but not by the CPU(s).
+>
+> If a write is done to that address as-is (via either AHB-AP or
+> APB-AP), rather than an APB-AP write with bit 31 set, then I think you
+> should be able to write it from the processor too.  If so, it means
+> access is unlocked by some previous step such as my main worry, bit 13
+> (DEBUGENABLE) of ICEPick debug tap 3 control.
+>
+> You can try writing it from the cortex-a8 while a debugger is
+> connected (if using CCS you can connect to DAP without connecting to
+> the Cortex-A8, in which case it shouldn't get confused if you mess
+> with DBGEN. OpenOCD doesn't support this afaik so it'll probably get
+> confused... well so be it)
+>
+> If you have an FTDI-based debugger (preferably an XDS100v2) I can
+> provide a little test tool to directly manipulate ICEPick registers to
+> futher test this theory. (Alternatively, driving nTRST high and
+> bit-banging TMS and TDI can do the job too, the sequence isn't very
+> long I think)
+
+Unfortunately I don't have any hardware debuggers.
+I could try the bitbang method if you think it can work, although my
+board (openpandora) has a 10K pulldown resistor on nTRST that I'm not
+sure OMAP's internal pullup would win over. Is there any way to check
+if anytihng works from the CPU?
+Maybe I could modify my board, I could connect some spare GPIO pads to
+jtag pads, but I don't know if it's even worth trying.
 
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Gra=C5=BEvydas
+
+--001a1133ae122f97dd050f5131b6
+Content-Type: text/plain; charset=US-ASCII; name="dm3730_5401d000.txt"
+Content-Disposition: attachment; filename="dm3730_5401d000.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i69wwzvj0
+
+NTQwMWQwMDAgMDAwMDAwMTAKNTQwMWQwMDQgZmF1bHQKNTQwMWQwMDggZmF1bHQKNTQwMWQwMGMg
+ZmF1bHQKNTQwMWQwMTAgMDAwMDAwMDAKNTQwMWQwMTQgZmF1bHQKLi4uCjU0MDFkMDJjIGZhdWx0
+CjU0MDFkMDMwIDAwMjAwMDI2CjU0MDFkMDM0IDAwMjIwMDAyCjU0MDFkMDM4IDAwMjIwMDAyCjU0
+MDFkMDNjIDAwMjIwMDAyCjU0MDFkMDQwIDAwMjAwMDI0CjU0MDFkMDQ0IGZhdWx0CjU0MDFkMDQ4
+IGZhdWx0CjU0MDFkMDRjIGZhdWx0CjU0MDFkMDUwIDAwMDAwMDAwCjU0MDFkMDU0IDAwMDAwMDAw
+CjU0MDFkMDU4IDIwMDAwMDAwCjU0MDFkMDVjIGZhdWx0Ci4uLgo1NDAxZGZjYyBmYXVsdAo1NDAx
+ZGZkMCAwMDAwMDAwMAo1NDAxZGZkNCAwMDAwMDAwMAo1NDAxZGZkOCAwMDAwMDAwMAo1NDAxZGZk
+YyAwMDAwMDAwMAo1NDAxZGZlMCAwMDAwMDA0Mwo1NDAxZGZlNCAwMDAwMDA3Mwo1NDAxZGZlOCAw
+MDAwMDAwOQo1NDAxZGZlYyAwMDAwMDAwMAo1NDAxZGZmMCAwMDAwMDAwZAo1NDAxZGZmNCAwMDAw
+MDBmMAo1NDAxZGZmOCAwMDAwMDAwNQo1NDAxZGZmYyAwMDAwMDBiMQo=
+--001a1133ae122f97dd050f5131b6--
