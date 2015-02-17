@@ -1,15 +1,16 @@
 From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
-Subject: Re: [PATCH 2/4] ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-Date: Tue, 17 Feb 2015 14:47:30 +0100
-Message-ID: <CAMdRc4GuJKnr1Kp=2V_S4NJq09TqxF7Cb-HWmXmzkgr6ynh27Q@mail.gmail.com>
+Subject: Re: [PATCH 3/4] ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
+Date: Tue, 17 Feb 2015 14:48:26 +0100
+Message-ID: <CAMdRc4GkmqqbrBQHWvYTySWLvdz0wROfhGBsBe5iqnq2QdhQRg@mail.gmail.com>
 References: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 	<1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 	<1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
-	<54E2F803.3070901@ti.com>
+	<1424101741-24152-4-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+	<54E30972.4020107@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54E2F803.3070901@ti.com>
+In-Reply-To: <54E30972.4020107@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: khilman@deeprootsystems.com, Tony Lindgren <tony@atomide.com>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, Linux Kernel Maling List <linux-kernel@vger.kernel.org>
@@ -17,49 +18,63 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Roger,
 
-On Tue, Feb 17, 2015 at 9:12 AM, Roger Quadros <rogerq@ti.com> wrote:
+On Tue, Feb 17, 2015 at 10:27 AM, Roger Quadros <rogerq@ti.com> wrote:
 >
-> Can you use the following wording from TRM instead?
->
-> as per am335x TRM (spruh73i.pdf), section 7.1.3.3.8.3.2
->
-> The WAITMONITORINGTIME is expressed as a number of GPMC_CLK clock cycles,
-> even though the access is defined as asynchronous, and no GPMC_CLK clock
-> is provided to the external device. Still, GPMCFCLKDIVIDER is used as a divider
-> for the GPMC clock, so it must be programmed to define the
-> correct WAITMONITORINGTIME delay.
+> Can you please point out which DT had used this pre-divided workaround? We will have to
+> fix those then.
 
-
-Verbatim? Sure can. Gonna do that with a rebase to 3.19, I guess.
+I didn't check. A cursory glance reveals all DTS in arch/arm/boot/dts
+to use a value of 0.
 
 >
-> Instead of this can we explicitly set the GPMC_CLK divider to 1 and hence
-> corresponding divider bits to 0 in the asynchronous case?
-> This is because the previously calculated "div" depends on synchronous clock which
-> might not be properly initialized for asynchronous devices.
+> Can you please rebase your patches on top of v3.19?
+> gpmc.c has been moved to drivers/memory/omap-gpmc.c
 
 
-No, we shouldn't. If WAITREADMONITORING and/or WAITWRITEMONITORING is
-enabled, sync_clk must be set in order to use WAITMONITORINGTIME
-correctly. If it's not explicitly set, it's set to 0, which yields div
-1 anyways.
-The reason being that a fixed divider of 1 will limit a user's ability
-to prolong the #WAIT-deassert --> *access delay for no good reason. If
-working with a slow device, this will inconvenience users.
+Will do.
 
 >
-> AFAIK t->sync_clk is always 0 for asynchronous devices and gpmc_calc_divider(0)
-> will return 1 and your patch will work but still we shouldn't depend on sync_clk for
-> asynchronous devices so let's set this explicitly.
+> So all the below occurrences of "unsigned int clk_sel" become "enum gpmc_clksel".
+
+Yes, I should have opted for a cleaner solution from the start.
+
+> > +static unsigned int gpmc_ns_to_clk_ticks(unsigned int time_ns, int cs, unsigned int clk_sel)
+> >  {
+> >       unsigned long tick_ps;
+> >
+> >       /* Calculate in picosecs to yield more exact results */
+> > -     tick_ps = gpmc_get_fclk_period();
+> > +     tick_ps = gpmc_get_clk_period(cs, clk_sel);
+> >
+> >       return (time_ns * 1000 + tick_ps - 1) / tick_ps;
+> >  }
+> >
+> > +static unsigned int gpmc_ns_to_ticks(unsigned int time_ns)
+> > +{
+> > +     return gpmc_ns_to_clk_ticks(time_ns, 0, GPMC_FCLK);
+>
+> This function should have been unchanged since we're dealing with GPMC_FCLK
+> and it was using gpmc_get_fclk_period().
 
 
-See above. Hardware depends on divider, divider is set by sync_clk, so
-we shouldn't limit what a user can program in DT.
-Having said that, I'm not aware that sync_clk is always 0 for async
-devices. The code always parses it and sets the appropriate field in
-gpmc_t, which is passed to gpmc_cs_set_timings.
-Now, there is generally a lack of checking for optional/required DT
-properties, so I didn't add extra checking.
+Which function? gpmc_ns_to_ticks? It still uses FCLK. I merely did not
+want to have the picosecond formula in two places. I don't see a good
+reason to do so now either...
+
+>
+> Let's call this GPMC_SET_ONE_CLKSEL()
+
+
+Will do.
+
+
+>
+> You will also need to correct gpmc_cs_show_timings() to show the
+> correct timing for "wait-monitoring-ns" based on GPMC_CLK.
+
+
+I was working off 3.14, checked if it worked for 3.17, so both didn't
+have gpmc_cs_show_timings. I'll take a look.
 
 Regards,
 
