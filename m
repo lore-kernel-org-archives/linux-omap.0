@@ -1,168 +1,124 @@
 From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Wed, 18 Feb 2015 22:14:59 +0100
-Message-ID: <201502182214.59888@pali>
-References: <20131206213613.GA19648@earth.universe> <201502112128.44852@pali> <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
+Subject: Re: Nokia N900: omap aes is broken
+Date: Wed, 18 Feb 2015 22:27:55 +0100
+Message-ID: <201502182227.55488@pali>
+References: <201502181321.03774@pali> <201502182202.30272@pali>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart15000533.yA9aAdqIEO";
+  boundary="nextPart5040808.K7SYyACmmY";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
+In-Reply-To: <201502182202.30272@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart15000533.yA9aAdqIEO
+--nextPart5040808.K7SYyACmmY
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 11 February 2015 21:40:33 Nishanth Menon wrote:
-> On Wed, Feb 11, 2015 at 2:28 PM, Pali Roh=C3=A1r=20
-<pali.rohar@gmail.com> wrote:
-> > On Wednesday 11 February 2015 16:22:51 Matthijs van Duin=20
-wrote:
-> >> On 11 February 2015 at 13:39, Pali Roh=C3=A1r
-> >> <pali.rohar@gmail.com>
+On Wednesday 18 February 2015 22:02:30 Pali Roh=C3=A1r wrote:
+> On Wednesday 18 February 2015 13:21:03 Pali Roh=C3=A1r wrote:
+> > Hello,
 > >=20
-> > wrote:
-> >> >> Anyhow, since checking the firewalls/APs to see if you
-> >> >> have permission will probably only get you yet another
-> >> >> fault if things are walled off, the robust way of
-> >> >> dealing with this sort of situation is by probing the
-> >> >> device with a read while trapping bus faults. This also
-> >> >> handles modules that are unreachable for other reasons,
-> >> >> e.g. being disabled by eFuse.
-> >> >=20
-> >> > It is possible to patch kernel code to mask or ignore
-> >> > that fault? Can you help me with something like that?
-> >>=20
-> >> As I mentioned, I'm still learning my way around the
-> >> kernel, so I don't feel very comfortable suggesting a
-> >> concrete patch just yet. I've been browsing arch/arm/mm/
-> >> however and my impression is that all that would be
-> >> required is editing fault.c by making a copy of do_bad but
-> >> containing
-> >>=20
-> >>     return user_mode(regs) || !fixup_exception(regs);
-> >>=20
-> >> and hook it onto the appropriate fault codes.  However,
-> >> this really needs the opinion of someone more familiar
-> >> with this code.
-> >>=20
-> >> I do have an observation to make on the issue of fault
-> >> decoding: the list in fsr-2level.c may be "standard ARMv3
-> >> and ARMv4 aborts" but they are quite wrong for ARMv7 which
-> >> has:
-> >>=20
-> >> [ 0] -
-> >> [ 1] alignment fault
-> >> [ 2] debug event
-> >> [ 3] section access flag fault
-> >> [ 4] instruction cache maintainance fault (reported via
-> >> data abort) [ 5] section translation fault
-> >> [ 6] page access flag fault
-> >> [ 7] page translation fault
-> >> [ 8] bus error on access
-> >> [ 9] section domain fault
-> >> [10] -
-> >> [11] page domain fault
-> >> [12] bus error on section table walk
-> >> [13] section permission fault
-> >> [14] bus error on page table walk
-> >> [15] page permission fault
-> >> [16] (TLB conflict abort)
-> >> [17] -
-> >> [18] -
-> >> [19] -
-> >> [20] (lockdown abort)
-> >> [21] -
-> >> [22] async bus error (reported via data abort)
-> >> [23] -
-> >> [24] async parity/ECC error (reported via data abort)
-> >> [25] parity/ECC error on access
-> >> [26] (coprocessor abort)
-> >> [27] -
-> >> [28] parity/ECC error on section table walk
-> >> [29] -
-> >> [30] parity/ECC error on page table walk
-> >> [31] -
-> >>=20
-> >> Some entries are patched up near the bottom of fault.c but
-> >> many bogus messages remain, for example the "on linefetch"
-> >> vs "on non-linefetch" is misleading since no such thing
-> >> can be inferred from the fault status on v7.  Also, the
-> >> i-cache maintenance fault handling looks wrong to me: it
-> >> should fetch the actual fault status from IFSR (even
-> >> though the address still comes from DFSR) and dispatch
-> >> based on that.
-> >>=20
-> >> Async external aborts (async bus error and async parity/ECC
-> >> error) give you basically no info. DFAR will contain
-> >> garbage hence displaying it will confuse rather than
-> >> enlighten, a traceback is pointless since the instruction
-> >> that caused the access is long retired, likewise
-> >> user_mode() doesn't matter since a transition to kernel
-> >> space may have happened after the access that cause the
-> >> abort. Basically they should be treated more as an IRQ
-> >> than as a fault (note they can also be masked just like
-> >> irqs). In case of a bus error, it may be appropriate to
-> >> just warn about it, or perhaps send a signal to the
-> >> current process, although in the latter case it should
-> >> have some means to distinguish it from a synchronous bus
-> >> error.
-> >>=20
-> >> At least on the cortex-a8, a parity/ECC error (whether
-> >> async or not) is to be regarded as absolutely fatal.=20
-> >> Quoth the TRM: "No recovery is possible. The abort handler
-> >> must disable the caches, communicate the fail directly
-> >> with the external system, request a reboot."
-> >>=20
-> >> Bit 10 no longer indicates an asynchronous (let alone
-> >> imprecise) fault.  Apart from the debug events and async
-> >> aborts (and possibly some implementation-defined aborts),
-> >> all aborts listed are synchronous, and DFAR/IFAR is valid.
-> >> There's no technical obstruction to make these trappable
-> >> via the kernel exception handling mechanism. (Though at
-> >> least in case of parity/ECC errors one shouldn't.)
+> > I tried to test OMAP AES driver on Nokia N900 with special
+> > Nokia bootloader which enable L3 firewall for OMAP AES HW
+> > support.
 > >=20
-> > Tony, Nishanth, or somebody else... can you help with memory
-> > management? Or do you know some expert for arch/arm/mm/
-> > code?
+> > I modified arch/arm/boot/dts/omap34xx-hs.dtsi file and
+> > commented aes line which disable aes support in DT.
+> >=20
+> > Then I booted kernel and loaded omap-aes.ko module. And I
+> > got this output in dmesg:
+> >=20
+> > [    0.222930] platform 480c5000.aes: Cannot lookup hwmod
+> > 'aes' [   27.758148] omap-aes 480c5000.aes:
+> > _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
+> > [   27.765960] omap-aes 480c5000.aes: omap_aes_probe: failed
+> > to get_sync(-19)
+> > [   29.257690] omap-aes 480c5000.aes: initialization failed.
+> >=20
+> > So it looks like some initialization data are missing for
+> > Nokia N900 (omap3430 device).
+> >=20
+> > Can somebody look at it? I have patched 2.6.28 kernel were
+> > omap aes support on this N900 device (with special
+> > bootloader) is working.
+> >=20
+> > Maybe some other data are missing in DT or in hwmod?
 >=20
-> Folks in linux-arm-kernel are probably the right people, I
-> suppose. Looping them in.
+> dma channels are missing in DT. I applied this patch:
+>=20
+> diff --git a/arch/arm/boot/dts/omap3.dtsi
+> b/arch/arm/boot/dts/omap3.dtsi index 01b7111..473d460 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -92,6 +92,8 @@
+>  			ti,hwmods =3D "aes";
+>  			reg =3D <0x480c5000 0x50>;
+>  			interrupts =3D <0>;
+> +			dmas =3D <&sdma 65 &sdma 66>;
+> +			dma-names =3D "tx", "rx";
+>  		};
+>=20
+>  		prm: prm@48306000 {
+> @@ -550,6 +552,8 @@
+>  			ti,hwmods =3D "sham";
+>  			reg =3D <0x480c3000 0x64>;
+>  			interrupts =3D <49>;
+> +			dmas =3D <&sdma 96>;
+> +			dma-names =3D "rx";
+>  		};
+>=20
+>  		smartreflex_core: smartreflex@480cb000 {
+>=20
+>=20
+> and omap-aes driver was successfully loaded. now it is in
+> /proc/crypto
+>=20
+> I copied dma names and numbers from file
+> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
 
-Hi folks in linux-arm-kernel!
+And I also needed to apply this patch:
 
-Can you help us with above problem? How to catch external abort=20
-on non-linefetch in kernel driver and prevent kernel panic?
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_3xxx_data.c
+index 11468ee..3281f30 100644
+=2D-- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3938,8 +3938,9 @@ int __init omap3xxx_hwmod_init(void)
+ 	if (r < 0)
+ 		return r;
+=20
+=2D	/* Register GP-only hwmod links. */
+=2D	if (h_gp && omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) {
++//	/* Register GP-only hwmod links. */
++//	if (h_gp && omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) {
++	if (h_gp) {
+ 		r =3D omap_hwmod_register_links(h_gp);
+ 		if (r < 0)
+ 			return r;
 
-Here is that kernel panic log:=20
-http://thread.gmane.org/gmane.linux.ports.arm.omap/108397/
-
-We want to check for "Unhandled fault: external abort on non-
-linefetch" and if it happens disable some functionality in kernel=20
-driver omap-aes.ko
+aes hwmod is defined in GP-only hwmod...
 
 =2D-=20
 Pali Roh=C3=A1r
 pali.rohar@gmail.com
 
---nextPart15000533.yA9aAdqIEO
+--nextPart5040808.K7SYyACmmY
 Content-Type: application/pgp-signature; name=signature.asc 
 Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEABECAAYFAlTlANMACgkQi/DJPQPkQ1KJ9gCfWH0MnXd4Wty3GqPfu+LahzRV
-pEEAn0RXM0pGhqcx4Iw2UGVF1JIBdWkb
-=uwwu
+iEYEABECAAYFAlTlA9sACgkQi/DJPQPkQ1JMtgCgipcsgU4UkbgWfVx1z0ZvelGu
+ZkwAn00AaVHhIjCeGJEOyt4uMcOCGwAt
+=GQ2c
 -----END PGP SIGNATURE-----
 
---nextPart15000533.yA9aAdqIEO--
+--nextPart5040808.K7SYyACmmY--
