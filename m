@@ -1,94 +1,58 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Wed, 18 Feb 2015 23:52:16 +0100
-Message-ID: <201502182352.16203@pali>
-References: <20150105230228.GO4081@atomide.com> <201502182004.03195@pali> <20150218224206.GC32521@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Enabling DBGEN signal in GP OMAP3
+Date: Wed, 18 Feb 2015 14:56:40 -0800
+Message-ID: <20150218225639.GD32521@atomide.com>
+References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+ <20150216175826.GT2531@atomide.com>
+ <CAALWOA_JZgWWKvFnDmzZRTSqFVJPZOEar1L0D7KR5VoU_7FqCg@mail.gmail.com>
+ <20150218145446.GA32521@atomide.com>
+ <CAALWOA-P0vov1HHR3Wh-B_xz_X1WNgVQGOHD_gvaf3NPWsNu_w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3351391.SYuHa1zyD5";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150218224206.GC32521@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta2.delivery7.ore.mailhop.org ([54.149.205.143]:52028 "EHLO
+	pmta2.delivery7.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750955AbbBRXGj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Feb 2015 18:06:39 -0500
+Received: from smtp5.ore.mailhop.org (172.31.36.112) by pmta2.delivery1.ore.mailhop.org id hskdh020u50s for <linux-omap@vger.kernel.org>; Wed, 18 Feb 2015 23:01:30 +0000 (envelope-from <tony@atomide.com>)
+Content-Disposition: inline
+In-Reply-To: <CAALWOA-P0vov1HHR3Wh-B_xz_X1WNgVQGOHD_gvaf3NPWsNu_w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
---nextPart3351391.SYuHa1zyD5
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Matthijs van Duin <matthijsvanduin@gmail.com> [150218 10:32]:
+> On 18 February 2015 at 15:54, Tony Lindgren <tony@atomide.com> wrote:
+> > From memory.. I believe the issue was that for anything needing to
+> > set the counter and rely on the counter interrupt things would fail
+> > as the counter interrupts would not always happen.
+> 
+> Correct, but the interrupt is just used to indicate when counters
+> overflow, intended to be used to correctly keep track of the counters
+> when they exceed 2^32 (which can happen easily when measuring across a
+> timespan of more than a few seconds).
+> 
+> However, no performance counter can increment more than twice per cpu
+> cycle, which means it takes at least 2^31 cpu cycles to completely
+> wrap a counter around.  If you make sure you update local copies
+> (untested code below) more often than once per 2^31 cycles they should
+> therefore keep accurate track.
+> 
+> void update_perf_counters( u64 ctr[4] )
+> {
+>         for( int i = 0; i < 4; i++ ) {
+>                 u32 val;
+>                 asm volatile( "mcr p15, 0, %0, c9, c12, 5" :: "r"(i) );
+>                 asm volatile( "mrc p15, 0, %0, c9, c13, 2" : "=r"(val) );
+>                 ctr[i] += (u32)( val - ctr[i] );
+>         }
+> }
 
-On Wednesday 18 February 2015 23:42:06 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150218 11:07]:
-> > On Wednesday 18 February 2015 17:33:53 Tony Lindgren wrote:
-> > > > */ +//		reg =3D <1 0x300 0xf>;		/* 16 byte IO range=20
-at
-> >=20
-> > offset
-> >=20
-> > > > 0x300 */ +		reg =3D <1 0x0 0xf>;		/* 16 byte IO=20
-range
-> >=20
-> > at
-> >=20
-> > > > offset 0x300 */
-> > > >=20
-> > > >  		bank-width =3D <2>;
-> > > >  		pinctrl-names =3D "default";
-> > > >  		pinctrl-0 =3D <&ethernet_pins>;
-> > >=20
-> > > Oh cool, the 0x300 offset is there mostly to suppress
-> > > warnings about non-standard location.
->=20
-> ...
->=20
-> > > OK that's good news. Care to do a patch to set the offset
-> > > 0x0 with added comment that qemu needs it? I'll test to
-> > > make sure it works on the real hardware as well.
-> >=20
-> > Yes, I can send proper git format-patch, but first let me
-> > know if that change does not break your HW...
->=20
-> Yes using reg =3D <1 0 0xf> works, it just adds this extra
-> warning:
->=20
-> smc91x 2000000.ethernet (unnamed net_device) (uninitialized):
-> smc91x: IOADDR d09d6000 doesn't match configuration (300).
->=20
-> And I'm pretty sure that can be fixed by setting the EEPROM
-> offset to 0 instead of the default 0x300. People with smc91x
-> most likely want to write at least the MAC address to the
-> EEPROM, so might as well set the offset to zero then too.
->=20
-> Of course it's always possible to do do a omap3-n900-qemu.dts
-> if larger changes are needed :)
->=20
-> Regards,
->=20
-> Tony
+Hmm yeah maybe oprofile/perf whatever has maximum value that can be
+specified for the counter length that allows working around it.
 
-I would like to avoid using separate DTS for qemu. When we have=20
-only one DTS file (for both qemu and real HW), we can test for=20
-regression in qemu and we are sure that we have same software=20
-configuration...
+Regards,
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart3351391.SYuHa1zyD5
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTlF6AACgkQi/DJPQPkQ1Ig9wCgyaMmjA2a0RmY6ubyFG5xPHNr
-j2wAoJqi40AF4as9opya915r8039kAbb
-=qlqC
------END PGP SIGNATURE-----
-
---nextPart3351391.SYuHa1zyD5--
+Tony
