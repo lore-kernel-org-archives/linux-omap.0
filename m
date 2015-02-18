@@ -1,70 +1,42 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH v3 0/6] Convert twl4030_madc_battery to IIO consumer and
- add DT aupport
-Date: Wed, 18 Feb 2015 08:46:34 +0100
-Message-ID: <CAAfyv36i0e4h7LTeuzxJFjFG9uXqUn+Gi2kmBtmHoo=f_Gj3Fg@mail.gmail.com>
-References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 0/4] phy: ti-pipe3: fixes for 3.19-rc
+Date: Wed, 18 Feb 2015 10:00:20 +0200
+Message-ID: <54E44694.4070801@ti.com>
+References: <1421151802-7396-1-git-send-email-rogerq@ti.com> <20150113155409.GA2419@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:47887 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbbBRHqg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Feb 2015 02:46:36 -0500
-In-Reply-To: <1423088075-10025-1-git-send-email-marek@goldelico.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150113155409.GA2419@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, kishon@ti.com
+Cc: nm@ti.com, balbi@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux PM mailing list <linux-pm@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, GTA04 owners <gta04-owner@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-Ping.
+On 13/01/15 17:54, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [150113 04:26]:
+>> Hi,
+>>
+>> During system suspend L3INIT_960M_GFCLK and L3INIT_480M_GFCLK clocks remain
+>> active on the DRA7 platform. This is because the pipe3 driver doesn't shut
+>> them off as part of .suspend(). Patch 1 addresses this issue.
+>>
+>> SATA on both OMAP5 and DRA7 breaks when SATA drive is plugged in after a
+>> system suspend/resume or if AHCI_PLATFORM driver is used as module.
+>> Patches 2,3,4 fix it.
+>>
+>> Hope to get these patches in through the 3.19-rc cycle.
+>>
+>> Tony,
+>>
+>> Do you wish to take the DTS patches or let them go in through PHY tree?
+> 
+> Those look ok to me to merge along with the fixes, will ack those two.
+> 
 
-On Wed, Feb 4, 2015 at 11:14 PM, Marek Belisko <marek@goldelico.com> wrote:
-> This patches adding support for twl4030_madc_battery to use twl4030_madc iio framework + DT support.
-> Patches was tested on gta04 board. twl4030_madc_battery driver is converted in
-> first patch to iio consumer and in next patches is added support for devicetree
-> + some small fixes for module autoloading.
->
-> Changes from V2:
-> - fix property names
-> - add MODULE_DEVICE_TABLE and MODULE_ALIAS
->
-> Changes from V1:
-> - use iio_read_channel_processed instead iio_read_channel_processed
-> - convert probe to use devm_ as part of adding error handling for iio
-> - free iio channels on error and on module removal
->
-> [1] - https://lkml.org/lkml/2014/2/26/482dd
->
-> Marek Belisko (6):
->   power: twl4030-madc-battery: Convert to iio consumer.
->   power: twl4030_madc_battery: Add device tree support
->   Documentation: DT: Document twl4030-madc-battery bindings
->   ARM: dts: omap3-gta04: Add battery support
->   power: twl4030_madc_battery: Add of_twl4030_madc_match to
->     MODULE_DEVICE_TABLE
->   power: twl4030_madc_battery: Add missing MODULE_ALIAS
->
->  .../bindings/power_supply/twl4030_madc_battery.txt |  43 +++++
->  arch/arm/boot/dts/omap3-gta04.dtsi                 |  30 ++++
->  drivers/power/twl4030_madc_battery.c               | 183 +++++++++++++++++----
->  3 files changed, 221 insertions(+), 35 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
->
-> --
-> 1.9.1
->
+Looks like this missed 3.19-rc. My bad for not following up.
 
+Kishon, can you please queue these for 3.20-rc? Thanks.
 
-
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+cheers,
+-roger
