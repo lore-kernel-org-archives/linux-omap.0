@@ -1,65 +1,49 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Nokia N900: omap aes is broken
-Date: Wed, 18 Feb 2015 13:21:03 +0100
-Message-ID: <201502181321.03774@pali>
+From: Sneeker Yeh <sneeker.yeh@gmail.com>
+Subject: Re: [PATCH v4 5/5] usb: dwc3: add Fujitsu Specific Glue layer
+Date: Wed, 18 Feb 2015 21:55:27 +0800
+Message-ID: <CAJ1gpc1D_siNXPjfGrE2OJVzYaEz19TcAqCwjxMXPt7g6VFncQ@mail.gmail.com>
+References: <1424151697-2084-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+	<1424151697-2084-6-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+	<20150217192612.GH31167@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1470245.kTVVyj3tAD";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150217192612.GH31167@saruman.tx.rr.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1470245.kTVVyj3tAD
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+hi Felipe:
 
-Hello,
+thanks for the suggestion,
 
-I tried to test OMAP AES driver on Nokia N900 with special Nokia=20
-bootloader which enable L3 firewall for OMAP AES HW support.
+2015-02-18 3:26 GMT+08:00 Felipe Balbi <balbi@ti.com>:
+> On Tue, Feb 17, 2015 at 01:41:37PM +0800, Sneeker Yeh wrote:
+>> This patch adds support for Synopsis DesignWare USB3 IP Core found
+>> on Fujitsu Socs.
+>>
+>> Signed-off-by: Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
+>> ---
+>>  .../devicetree/bindings/usb/fujitsu-dwc3.txt       |   33 ++++
+>>  drivers/usb/dwc3/Kconfig                           |   11 ++
+>>  drivers/usb/dwc3/Makefile                          |    1 +
+>>  drivers/usb/dwc3/dwc3-mb86s70.c                    |  206 ++++++++++++++++++++
+>>  4 files changed, 251 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt
+>>  create mode 100644 drivers/usb/dwc3/dwc3-mb86s70.c
+>
+> what's the possibility that fujitsu will make another SoC with dwc3 in
+> it ? I wonder if we should use a slightly more generic name here:
+>
+> dwc3-fujitsu.c ?
 
-I modified arch/arm/boot/dts/omap34xx-hs.dtsi file and commented=20
-aes line which disable aes support in DT.
+We did have several SoC that has dwc3 in it,
+"dwc3-fujitsu.c" looks fine, and I would like to take this to next patchset.
 
-Then I booted kernel and loaded omap-aes.ko module. And I got=20
-this output in dmesg:
+Much appreciate,
+Sneeker
 
-[    0.222930] platform 480c5000.aes: Cannot lookup hwmod 'aes'
-[   27.758148] omap-aes 480c5000.aes: _od_fail_runtime_resume:=20
-=46IXME: missing hwmod/omap_dev info
-[   27.765960] omap-aes 480c5000.aes: omap_aes_probe: failed to=20
-get_sync(-19)
-[   29.257690] omap-aes 480c5000.aes: initialization failed.
-
-So it looks like some initialization data are missing for Nokia=20
-N900 (omap3430 device).
-
-Can somebody look at it? I have patched 2.6.28 kernel were omap=20
-aes support on this N900 device (with special bootloader) is=20
-working.
-
-Maybe some other data are missing in DT or in hwmod?
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1470245.kTVVyj3tAD
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTkg68ACgkQi/DJPQPkQ1KHcgCff71oZYJ5CTGEzlePbftNV0ZI
-FZAAn279Bf+NFEoic5UFb+RihjOtPJhM
-=jV0S
------END PGP SIGNATURE-----
-
---nextPart1470245.kTVVyj3tAD--
+>
+> --
+> balbi
