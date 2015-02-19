@@ -1,66 +1,151 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: runtime check for omap-aes bus access permission (was: Re:
- 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
-Date: Thu, 19 Feb 2015 21:25:49 +0100
-Message-ID: <CAALWOA_XkYmHx_uLo9MgX7Eec2Yrx1eooe=QE2=8whV=woP-Zw@mail.gmail.com>
-References: <20131206213613.GA19648@earth.universe> <201502111339.54480@pali>
- <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com> <201502191920.41284@pali>
+From: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2] dtc: parser: Add label while overriding nodes
+Date: Fri, 20 Feb 2015 02:11:02 +0530
+Message-ID: <1424378462-22105-1-git-send-email-nikhil.nd@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:47018 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbbBSU0K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2015 15:26:10 -0500
-Received: by mail-wi0-f174.google.com with SMTP id em10so50827637wid.1
-        for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2015 12:26:09 -0800 (PST)
-In-Reply-To: <201502191920.41284@pali>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-compiler-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-compiler-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org, jdl-CYoMK+44s/E@public.gmane.org
+Cc: devicetree-compiler-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@ring0.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 18 February 2015 at 22:14, Pali Roh=C3=A1r <pali.rohar@gmail.com> wr=
-ote:
-> Can you help us with above problem? How to catch external abort
-> on non-linefetch in kernel driver and prevent kernel panic?
+This patch changes the dtc grammar to allow following syntax
 
-Actually it's a synchronous bus error that you want to catch, which
-however is misreported by linux as "external abort on non-linefetch"
-(... but a bus error on a linefetch would produce exactly the same
-error).  Also, ARM apparently uses the term "external abort" as
-umbrella term for aborts triggered outside the MMU, which includes not
-just bus errors but also (uncorrectable) parity/ECC errors.
+i2cexp: &i2c2 {
+    ...
+};
 
-Anyhow, the core question you mean to ask is: can the "exception"
-mechanism current already in place to trap MMU faults in e.g.
-put_user() easily be extended to allow drivers to trap synchronous bus
-errors?  My impression is that this would in fact be quite easy and I
-even outlined a suggested patch, but I'm still a kernel newbie so I
-may be way off course.
+Current device tree compiler allows to define multiple labels when defining
+the device node the first time. Typically device nodes are defined in
+DTSI files. Now these nodes can be overwritten for updating some of the
+properties. Typically, device nodes are overridden in DTS files.
 
-Although its main use would be for auto-probing, it's maybe worth
-mentioning I've met at least one peripheral which also reports bus
-errors when writing inappropriate/unsupported *values* to a register.
-(Of course when using posted writes you won't get an abort anyhow in
-that case, it's only reported via interconnect error logs.)
+When working with adapter boards, most of the time adapter board can fit to
+multiple base boards. But depending on which base board it is connected to,
+the devices on the adapter board would be children of different devices.
 
+e.g. On dra7-evm.dts, i2c2 is exported for expansion connector whereas
+on dra72-evm.dts, i2c5 is exported for expansion connector.
+This causes a problem when writing a generic device tree file for
+the adapter board. Because, you cannot know whether all the devices on
+adapter board are present on i2c or i2c5.
 
-On 19 February 2015 at 19:20, Pali Roh=C3=A1r <pali.rohar@gmail.com> wr=
-ote:
-> Anyway, in Nokia Harmattan N9/N950 2.6.32 kernel is this patch
+The problem can be solved by adding a common label (e.g. i2cexp) in both
+of the DTS files when overriding the device nodes for i2c2 or i2c5.
+This way, generic adapter board file would override the i2cexp. And
+depending on which base board you use the adapter board, all the devices
+are automatically added for correct device nodes.
 
-In mainline linux the same fix-up is done at runtime rather than
-compile time (in exceptions_init() at the bottom of fault.c). Either
-way, in my post of the 11th I also mentioned that it looks wrong to
-me. I-cache maintenance fault is really a special case in the fault
-decoding logic since it means "although you got here via DAbort and
-the relevant address is in DFAR, the exception happened on the
-instruction side so you need to fetch the fault status from IFSR
-instead."
+Signed-off-by: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
+---
+ dtc-parser.y                       |   12 ++++++++
+ tests/run_tests.sh                 |    2 ++
+ tests/test_tree1_label_noderef.dts |   55 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+)
+ create mode 100644 tests/test_tree1_label_noderef.dts
+
+diff --git a/dtc-parser.y b/dtc-parser.y
+index ea57e0a..5a897e3 100644
+--- a/dtc-parser.y
++++ b/dtc-parser.y
+@@ -140,6 +140,18 @@ devicetree:
+ 		{
+ 			$$ = merge_nodes($1, $3);
+ 		}
++
++	| devicetree DT_LABEL DT_REF nodedef
++		{
++			struct node *target = get_node_by_ref($1, $3);
++
++			add_label(&target->labels, $2);
++			if (target)
++				merge_nodes(target, $4);
++			else
++				ERROR(&@3, "Label or path %s not found", $3);
++			$$ = $1;
++		}
+ 	| devicetree DT_REF nodedef
+ 		{
+ 			struct node *target = get_node_by_ref($1, $2);
+diff --git a/tests/run_tests.sh b/tests/run_tests.sh
+index c5856d9..7c5f6ac 100755
+--- a/tests/run_tests.sh
++++ b/tests/run_tests.sh
+@@ -399,6 +399,8 @@ dtc_tests () {
+     tree1_tests dtc_tree1_merge.test.dtb test_tree1.dtb
+     run_dtc_test -I dts -O dtb -o dtc_tree1_merge_labelled.test.dtb test_tree1_merge_labelled.dts
+     tree1_tests dtc_tree1_merge_labelled.test.dtb test_tree1.dtb
++    run_dtc_test -I dts -O dtb -o dtc_tree1_label_noderef.test.dtb test_tree1_label_noderef.dts
++    tree1_tests dtc_tree1_label_noderef.test.dtb test_tree1.dtb
+     run_dtc_test -I dts -O dtb -o multilabel_merge.test.dtb multilabel_merge.dts
+     run_test references multilabel.test.dtb
+     run_test dtbs_equal_ordered multilabel.test.dtb multilabel_merge.test.dtb
+diff --git a/tests/test_tree1_label_noderef.dts b/tests/test_tree1_label_noderef.dts
+new file mode 100644
+index 0000000..b2b194c
+--- /dev/null
++++ b/tests/test_tree1_label_noderef.dts
+@@ -0,0 +1,55 @@
++/dts-v1/;
++
++/memreserve/ 0xdeadbeef00000000 0x100000;
++/memreserve/ 123456789 010000;
++
++/ {
++	compatible = "test_tree1";
++	prop-int = <0xdeadbeef>;
++	prop-int64 = /bits/ 64 <0xdeadbeef01abcdef>;
++	prop-str = "hello world";
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	subnode@1 {
++		compatible = "subnode1";
++		reg = <1>;
++		prop-int = [deadbeef];
++
++		subsubnode {
++			compatible = "subsubnode1", "subsubnode";
++			prop-int = <0xdeadbeef>;
++		};
++
++		ss1 {
++		};
++	};
++
++	subnode@2 {
++		reg = <2>;
++		linux,phandle = <0x2000>;
++		prop-int = <123456789>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ssn0: subsubnode@0 {
++			phandle = <0x2001>;
++			prop-int = <0xbad>;
++		};
++
++		ss2 {
++		};
++	};
++};
++
++/* Add label to a noderef */
++ssn1: &ssn0 {
++	reg = <0>;
++	prop-int = <123456789>;
++};
++
++/* Use the new label for merging */
++&ssn1 {
++	prop-int = <0726746425>;
++	compatible = "subsubnode2", "subsubnode";
++};
+-- 
+1.7.9.5
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree-compiler" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
