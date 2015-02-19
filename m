@@ -1,129 +1,167 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: implement bus recovery
-Date: Thu, 19 Feb 2015 12:09:06 -0600
-Message-ID: <20150219180906.GE13603@saruman.tx.rr.com>
-References: <1424369209-26735-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Thu, 19 Feb 2015 19:20:41 +0100
+Message-ID: <201502191920.41284@pali>
+References: <20131206213613.GA19648@earth.universe> <201502111339.54480@pali> <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eNMatiwYGLtwo1cJ"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1424369209-26735-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed;
+  boundary="nextPart1506586.9ZVXXx7XJm";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:40058 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210AbbBSSUp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2015 13:20:45 -0500
+Received: by wesx3 with SMTP id x3so1368512wes.7
+        for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2015 10:20:44 -0800 (PST)
+In-Reply-To: <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---eNMatiwYGLtwo1cJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--nextPart1506586.9ZVXXx7XJm
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 19, 2015 at 12:06:49PM -0600, Felipe Balbi wrote:
-> If either SCL or SDA are stuck low, we need to
-> recover the bus using the procedure described
-> on section 3.1.16 of the I2C specification.
+On Wednesday 11 February 2015 16:22:51 Matthijs van Duin wrote:
+> On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.com> wrot=
+e:
+> >> Anyhow, since checking the firewalls/APs to see if you have
+> >> permission will probably only get you yet another fault if
+> >> things are walled off, the robust way of dealing with this
+> >> sort of situation is by probing the device with a read
+> >> while trapping bus faults. This also handles modules that
+> >> are unreachable for other reasons, e.g. being disabled by
+> >> eFuse.
+> >=20
+> > It is possible to patch kernel code to mask or ignore that
+> > fault? Can you help me with something like that?
 >=20
-> Note that we're trying to implement the procedure
-> exactly as described by that section. First we
-> check which line is stuck low, then implement
-> one or the other procedure. If SDA recovery procedure
-> fails, we reset our IP in an attempt to make it work.
+> As I mentioned, I'm still learning my way around the kernel,
+> so I don't feel very comfortable suggesting a concrete patch
+> just yet. I've been browsing arch/arm/mm/ however and my
+> impression is that all that would be required is editing
+> fault.c by making a copy of do_bad but containing
+>     return user_mode(regs) || !fixup_exception(regs);
+> and hook it onto the appropriate fault codes.  However, this
+> really needs the opinion of someone more familiar with this
+> code.
 >=20
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> ---
+> I do have an observation to make on the issue of fault
+> decoding: the list in fsr-2level.c may be "standard ARMv3 and
+> ARMv4 aborts" but they are quite wrong for ARMv7 which has:
 >=20
-> Tested with AM437x IDK, AM437x SK, BeagleBoneBlack and Beagle X15 with
-> 1000 iterations of i2cdetect on all available buses.
+> [ 0] -
+> [ 1] alignment fault
+> [ 2] debug event
+> [ 3] section access flag fault
+> [ 4] instruction cache maintainance fault (reported via data
+> abort) [ 5] section translation fault
+> [ 6] page access flag fault
+> [ 7] page translation fault
+> [ 8] bus error on access
+> [ 9] section domain fault
+> [10] -
+> [11] page domain fault
+> [12] bus error on section table walk
+> [13] section permission fault
+> [14] bus error on page table walk
+> [15] page permission fault
+> [16] (TLB conflict abort)
+> [17] -
+> [18] -
+> [19] -
+> [20] (lockdown abort)
+> [21] -
+> [22] async bus error (reported via data abort)
+> [23] -
+> [24] async parity/ECC error (reported via data abort)
+> [25] parity/ECC error on access
+> [26] (coprocessor abort)
+> [27] -
+> [28] parity/ECC error on section table walk
+> [29] -
+> [30] parity/ECC error on page table walk
+> [31] -
 >=20
-> That said, I couldn't get any device to hold the bus busy so I could
-> see this working. If anybody has any good way of forcing a condition
-> so that we need bus recovery, I'd be glad to look at.
+> Some entries are patched up near the bottom of fault.c but
+> many bogus messages remain, for example the "on linefetch" vs
+> "on non-linefetch" is misleading since no such thing can be
+> inferred from the fault status on v7.  Also, the i-cache
+> maintenance fault handling looks wrong to me: it should fetch
+> the actual fault status from IFSR (even though the address
+> still comes from DFSR) and dispatch based on that.
 >=20
-> cheers
+> Async external aborts (async bus error and async parity/ECC
+> error) give you basically no info. DFAR will contain garbage
+> hence displaying it will confuse rather than enlighten, a
+> traceback is pointless since the instruction that caused the
+> access is long retired, likewise user_mode() doesn't matter
+> since a transition to kernel space may have happened after
+> the access that cause the abort. Basically they should be
+> treated more as an IRQ than as a fault (note they can also be
+> masked just like irqs). In case of a bus error, it may be
+> appropriate to just warn about it, or perhaps send a signal
+> to the current process, although in the latter case it should
+> have some means to distinguish it from a synchronous bus
+> error.
 >=20
->  drivers/i2c/busses/i2c-omap.c | 71 +++++++++++++++++++++++++++++++++++++=
-++++--
->  1 file changed, 69 insertions(+), 2 deletions(-)
+> At least on the cortex-a8, a parity/ECC error (whether async
+> or not) is to be regarded as absolutely fatal.  Quoth the
+> TRM: "No recovery is possible. The abort handler must disable
+> the caches, communicate the fail directly with the external
+> system, request a reboot."
 >=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 0e894193accf..c3e4da751adf 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -472,6 +472,73 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  	return 0;
->  }
-> =20
-> +static void omap_i2c_clock_pulse(struct omap_i2c_dev *dev)
-> +{
-> +	u32 reg;
-> +	int i;
-> +
-> +	/* Enable testmode */
-> +	reg =3D omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-> +	reg |=3D OMAP_I2C_SYSTEST_ST_EN;
-> +	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
-> +
-> +	for (i =3D 0; i < 9; i++) {
-> +		reg |=3D OMAP_I2C_SYSTEST_SCL_O;
-> +		omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
-> +		mdelay(100);
-> +		reg &=3D ~OMAP_I2C_SYSTEST_SCL_O;
-> +		omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
-> +		mdelay(100);
-> +	}
-> +
-> +	/* Disable testmode */
-> +	reg &=3D ~OMAP_I2C_SYSTEST_ST_EN;
-> +	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
-> +}
-> +
-> +static void omap_i2c_bus_recover(struct omap_i2c_dev *dev)
-> +{
-> +	u32 reg1;
-> +	u32 reg2;
-> +
-> +	/*
-> +	 * First differentiate SCL stuck low from SDA stuck low using our
-> +	 * SYSTEST register. Depending on which line is stuck low, we will
-> +	 * either Reset our I2C IP (SCL stuck low) or drive 9 clock pulses on
-> +	 * SCL (SDA stuck low) to tell the device to release the bus.
-> +	 *
-> +	 * If, after 9 clock pulses on SCL device still doesn't release the
-> +	 * bus, there's nothing more we can do; we will still try to Reset
-> +	 * our I2C IP anyway.
-> +	 */
-> +
-> +	reg1 =3D omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-> +	msleep(1);
+> Bit 10 no longer indicates an asynchronous (let alone
+> imprecise) fault.  Apart from the debug events and async
+> aborts (and possibly some implementation-defined aborts), all
+> aborts listed are synchronous, and DFAR/IFAR is valid.
+> There's no technical obstruction to make these trappable via
+> the kernel exception handling mechanism. (Though at least in
+> case of parity/ECC errors one shouldn't.)
 
-Hmm... I wonder if this msleep() should be scaled based on i2c bus
-frequency.
+Anyway, in Nokia Harmattan N9/N950 2.6.32 kernel is this patch:
 
---=20
-balbi
+diff --git a/arch/arm/mm/fsr-2level.c b/arch/arm/mm/fsr-2level.c
+index 18ca74c..d530d55 100644
+=2D-- a/arch/arm/mm/fsr-2level.c
++++ b/arch/arm/mm/fsr-2level.c
+@@ -7,7 +7,12 @@ static struct fsr_info fsr_info[] =3D {
+ 	{ do_bad,		SIGBUS,	 BUS_ADRALN,	"alignment exception"		   },
+ 	{ do_bad,		SIGKILL, 0,		"terminal exception"		   },
+ 	{ do_bad,		SIGBUS,	 BUS_ADRALN,	"alignment exception"		   },
++/* Do we need runtime check ? */
++#if __LINUX_ARM_ARCH__ < 6
+ 	{ do_bad,		SIGBUS,	 0,		"external abort on linefetch"	   },
++#else
++	{ do_translation_fault,	SIGSEGV, SEGV_MAPERR,	"I-cache maintenance fault"=
+	   },
++#endif
+ 	{ do_translation_fault,	SIGSEGV, SEGV_MAPERR,	"section translation fault"=
+	   },
+ 	{ do_bad,		SIGBUS,	 0,		"external abort on linefetch"	   },
+ 	{ do_page_fault,	SIGSEGV, SEGV_MAPERR,	"page translation fault"	   },
 
---eNMatiwYGLtwo1cJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Maybe it is related?
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1506586.9ZVXXx7XJm
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJU5ibCAAoJEIaOsuA1yqREIDIP+gIfV/unwo8He+ejU7bI5OFU
-d5lW2IGKHk45wPybY2NY4waZJJyt1pY6DRjd0mIb74/uU6mix7R+I4A5pV3E1R4d
-UrXFgNQaEyPOb1zHa1LuB5LhSy2+qPAkJBEEQwNhCtADHUzth8c8jepctOCPe02o
-FPMHRG7QvFoCfFO1XKW+FfDgiJocRptdv5juxTjjhHU0OiCwL1uTEpPKJjNJxd3n
-F50CBocUFjghLG5S9C9JHQ7oAvTn+qNcP0Pzqqo0Atl0pKL0OetiONnyuKbE7Dqb
-9Qct/y/Ix5CiXr1g2+wH7arF7LGPgKhDNsasMJyHFmXGDpMiEBFlSOTlePiQEDYd
-+t63Widgmtttl82a5NnTzERMnk0OkcOjzJzPwjKmAGn/xQ8MFPyxYwgklz6qiP/M
-9RT+lDZENJ9wvI/9D4P1t767Doy88Zp+0tsx5BjMtinhhLLe+IE0EW4aTZTzgVF7
-jRWfyyZ+2bVN9ITF5mmU0/orIdMeMmaMa2eHcVXee5gPiuhyB06Zhw/GMSHT39BL
-A+8RTClwvYoy8MigFTTVqEHzfZx1B1NHDi1hHoh7EPeS/mLvLMRkVkoaWuk4f/iH
-FLbd784wUeoZrkJeAFWQ+GvxMG/w3cpMfYziWO7a8hmSwAxGQbT1/wwKbuTvfKeF
-KJ8UqyX7gw2CAhKMuEdl
-=RYtQ
+iEYEABECAAYFAlTmKXkACgkQi/DJPQPkQ1K9rwCeMzAnHuTpccYVJFiRRWvLnwwD
+2hUAoLIQs+UnShL+azLvut2OQkvxydaV
+=+mJv
 -----END PGP SIGNATURE-----
 
---eNMatiwYGLtwo1cJ--
+--nextPart1506586.9ZVXXx7XJm--
