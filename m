@@ -1,38 +1,200 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] ARM: dts: add openpandora device support
-Date: Fri, 20 Feb 2015 00:55:14 +0200
-Message-ID: <CANOLnOOMLxDV6vQagfRaS7_YY6at91BbL0jPKkNQn-tYDnJEuw@mail.gmail.com>
-References: <1424202743-26387-1-git-send-email-marek@goldelico.com>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH] ARM: OMAP2+: Return correct error values from device and hwmod
+Date: Fri, 20 Feb 2015 00:41:41 +0100
+Message-ID: <1424389302-24380-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1424202743-26387-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 17, 2015 at 9:52 PM, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
-> changes from v1:
-> - add new boards to makefile in patch 2,3 (don't add them
-> in separate commit together), fix gpmc issues (reported by Tony Lindgren)
->
-> - fix various issues reported by Grazvydas Ignotas
-> (drop internal pullups from pinmux as external are in place,
-> fix gpio buttons active state ...)
->
-> This series of patches adds initial device tree support for the
-> OpenPandora. The most important parts are working (display, keyboard,
-> touch, charging, fuel gauge, musb port, sd/mmc ports, leds, buttons).
+Without this patch function pm_runtime_get_sync() returns 0 even when s=
+ome
+omap subfunction fails. This patch properly propagate error codes from =
+omap
+functions back to caller.
 
-All of these have been tested to be working, after adding missing
-input flag for touchscreen. Well except musb, but I often have trouble
-with that in mainline, probably not a problem with this dts.
-Tested-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+This patch fix problem, when loading omap-aes driver in qemu cause kern=
+el oops.
 
-And FWIW, the patches have been
-Reviewed-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+ arch/arm/mach-omap2/omap_device.c |   30 +++++++++++++++++------------=
+-
+ arch/arm/mach-omap2/omap_hwmod.c  |   20 ++++++++++++--------
+ 2 files changed, 29 insertions(+), 21 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/om=
+ap_device.c
+index be9541e..9fd47a9 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -224,13 +224,13 @@ static int _omap_device_notifier_call(struct noti=
+fier_block *nb,
+  */
+ static int _omap_device_enable_hwmods(struct omap_device *od)
+ {
++	int ret =3D 0;
+ 	int i;
+=20
+ 	for (i =3D 0; i < od->hwmods_cnt; i++)
+-		omap_hwmod_enable(od->hwmods[i]);
++		ret |=3D omap_hwmod_enable(od->hwmods[i]);
+=20
+-	/* XXX pass along return value here? */
+-	return 0;
++	return ret;
+ }
+=20
+ /**
+@@ -241,13 +241,13 @@ static int _omap_device_enable_hwmods(struct omap=
+_device *od)
+  */
+ static int _omap_device_idle_hwmods(struct omap_device *od)
+ {
++	int ret =3D 0;
+ 	int i;
+=20
+ 	for (i =3D 0; i < od->hwmods_cnt; i++)
+-		omap_hwmod_idle(od->hwmods[i]);
++		ret |=3D omap_hwmod_idle(od->hwmods[i]);
+=20
+-	/* XXX pass along return value here? */
+-	return 0;
++	return ret;
+ }
+=20
+ /* Public functions for use by core code */
+@@ -595,18 +595,20 @@ static int _od_runtime_suspend(struct device *dev=
+)
+ 	int ret;
+=20
+ 	ret =3D pm_generic_runtime_suspend(dev);
++	if (ret)
++		return ret;
+=20
+-	if (!ret)
+-		omap_device_idle(pdev);
+-
+-	return ret;
++	return omap_device_idle(pdev);
+ }
+=20
+ static int _od_runtime_resume(struct device *dev)
+ {
+ 	struct platform_device *pdev =3D to_platform_device(dev);
++	int ret;
+=20
+-	omap_device_enable(pdev);
++	ret =3D omap_device_enable(pdev);
++	if (ret)
++		return ret;
+=20
+ 	return pm_generic_runtime_resume(dev);
+ }
+@@ -740,7 +742,8 @@ int omap_device_enable(struct platform_device *pdev=
+)
+=20
+ 	ret =3D _omap_device_enable_hwmods(od);
+=20
+-	od->_state =3D OMAP_DEVICE_STATE_ENABLED;
++	if (ret =3D=3D 0)
++		od->_state =3D OMAP_DEVICE_STATE_ENABLED;
+=20
+ 	return ret;
+ }
+@@ -770,7 +773,8 @@ int omap_device_idle(struct platform_device *pdev)
+=20
+ 	ret =3D _omap_device_idle_hwmods(od);
+=20
+-	od->_state =3D OMAP_DEVICE_STATE_IDLE;
++	if (ret =3D=3D 0)
++		od->_state =3D OMAP_DEVICE_STATE_IDLE;
+=20
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index cbb908d..2ce4f39 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -3350,16 +3350,17 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
+  */
+ int omap_hwmod_idle(struct omap_hwmod *oh)
+ {
++	int r;
+ 	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+ 	spin_lock_irqsave(&oh->_lock, flags);
+-	_idle(oh);
++	r =3D _idle(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+-	return 0;
++	return r;
+ }
+=20
+ /**
+@@ -3372,16 +3373,17 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
+  */
+ int omap_hwmod_shutdown(struct omap_hwmod *oh)
+ {
++	int r;
+ 	unsigned long flags;
+=20
+ 	if (!oh)
+ 		return -EINVAL;
+=20
+ 	spin_lock_irqsave(&oh->_lock, flags);
+-	_shutdown(oh);
++	r =3D _shutdown(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+-	return 0;
++	return r;
+ }
+=20
+ /**
+@@ -3392,13 +3394,14 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
+  */
+ int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
+ {
++	int r;
+ 	unsigned long flags;
+=20
+ 	spin_lock_irqsave(&oh->_lock, flags);
+-	_enable_clocks(oh);
++	r =3D _enable_clocks(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+-	return 0;
++	return r;
+ }
+=20
+ /**
+@@ -3409,13 +3412,14 @@ int omap_hwmod_enable_clocks(struct omap_hwmod =
+*oh)
+  */
+ int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
+ {
++	int r;
+ 	unsigned long flags;
+=20
+ 	spin_lock_irqsave(&oh->_lock, flags);
+-	_disable_clocks(oh);
++	r =3D _disable_clocks(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+=20
+-	return 0;
++	return r;
+ }
+=20
+ /**
+--=20
+1.7.9.5
