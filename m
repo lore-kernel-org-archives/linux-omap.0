@@ -1,200 +1,148 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] ARM: OMAP2+: Return correct error values from device and hwmod
-Date: Fri, 20 Feb 2015 00:41:41 +0100
-Message-ID: <1424389302-24380-1-git-send-email-pali.rohar@gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: v3.19: Nokia N900 (qemu) - omap_aes error
+Date: Fri, 20 Feb 2015 00:45:35 +0100
+Message-ID: <201502200045.35283@pali>
+References: <201501311629.36431@pali> <201502091225.00497@pali> <201502182236.41771@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed;
+  boundary="nextPart1432914.oiQAVQKjei";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201502182236.41771@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Without this patch function pm_runtime_get_sync() returns 0 even when s=
-ome
-omap subfunction fails. This patch properly propagate error codes from =
-omap
-functions back to caller.
+--nextPart1432914.oiQAVQKjei
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-This patch fix problem, when loading omap-aes driver in qemu cause kern=
-el oops.
+On Wednesday 18 February 2015 22:36:41 Pali Roh=C3=A1r wrote:
+> On Monday 09 February 2015 12:25:00 Pali Roh=C3=A1r wrote:
+> > On Saturday 31 January 2015 16:29:36 Pali Roh=C3=A1r wrote:
+> > > Hello,
+> > >=20
+> > > when I enable problematic omap_aes.ko driver (also in DT)
+> > > for Nokia N900 machine in qemu (it emulates OMAP GP
+> > > device, not HS) I get this error message in dmesg at
+> > > modprobe time:
+> > >=20
+> > > [   37.660339] ------------[ cut here ]------------
+> > > [   37.663940] WARNING: CPU: 0 PID: 173 at arch/arm/mach-
+> > > omap2/omap_hwmod.c:2182 _idle+0x28/0x64()
+> > > [   37.668762] omap_hwmod: aes: idle state can only be
+> > > entered from enabled state
+> > > [   37.672271] Modules linked in: omap_aes(+)
+> > > [   37.675933] CPU: 0 PID: 173 Comm: modprobe Not tainted
+> > > 3.19.0- rc5+ #299
+> > > [   37.679534] Hardware name: Nokia RX-51 board
+> > > [   37.683227] [<c0012678>] (unwind_backtrace) from
+> > > [<c0010d44>] (show_stack+0x10/0x14)
+> > > [   37.686920] [<c0010d44>] (show_stack) from [<c0032194>]
+> > > (warn_slowpath_common+0x84/0xac)
+> > > [   37.690765] [<c0032194>] (warn_slowpath_common) from
+> > > [<c003223c>] (warn_slowpath_fmt+0x2c/0x3c)
+> > > [   37.694366] [<c003223c>] (warn_slowpath_fmt) from
+> > > [<c0020cb0>] (_idle+0x28/0x64)
+> > > [   37.698791] [<c0020cb0>] (_idle) from [<c0021078>]
+> > > (omap_hwmod_idle+0x30/0x78)
+> > > [   37.702636] [<c0021078>] (omap_hwmod_idle) from
+> > > [<c00222c4>] (omap_device_idle+0x48/0x6c)
+> > > [   37.707153] [<c00222c4>] (omap_device_idle) from
+> > > [<c0022304>] (_od_runtime_suspend+0x1c/0x24)
+> > > [   37.710723] [<c0022304>] (_od_runtime_suspend) from
+> > > [<c0269680>] (__rpm_callback+0x8c/0xdc)
+> > > [   37.714385] [<c0269680>] (__rpm_callback) from
+> > > [<c0269740>] (rpm_callback+0x70/0x88)
+> > > [   37.717987] [<c0269740>] (rpm_callback) from
+> > > [<c0269f74>] (rpm_suspend+0x2e8/0x5a4)
+> > > [   37.721710] [<c0269f74>] (rpm_suspend) from
+> > > [<c026a6ec>] (__pm_runtime_idle+0x58/0x9c)
+> > > [   37.725402] [<c026a6ec>] (__pm_runtime_idle) from
+> > > [<bf00129c>] (omap_aes_probe+0x15c/0x448 [omap_aes])
+> > > [   37.733489] [<bf00129c>] (omap_aes_probe [omap_aes])
+> > > from [<c0263d78>] (platform_drv_probe+0x48/0x90)
+> > > [   37.740936] [<c0263d78>] (platform_drv_probe) from
+> > > [<c02624ec>] (really_probe+0xac/0x1e0)
+> > > [   37.745025] [<c02624ec>] (really_probe) from
+> > > [<c0262718>] (driver_probe_device+0x30/0x48)
+> > > [   37.749847] [<c0262718>] (driver_probe_device) from
+> > > [<c0262790>] (__driver_attach+0x60/0x84)
+> > > [   37.753601] [<c0262790>] (__driver_attach) from
+> > > [<c0261070>] (bus_for_each_dev+0x50/0x84)
+> > > [   37.758422] [<c0261070>] (bus_for_each_dev) from
+> > > [<c0261e20>] (bus_add_driver+0xac/0x1bc)
+> > > [   37.762207] [<c0261e20>] (bus_add_driver) from
+> > > [<c02630c8>] (driver_register+0x9c/0xe0)
+> > > [   37.765899] [<c02630c8>] (driver_register) from
+> > > [<c0008798>] (do_one_initcall+0x100/0x1b0)
+> > > [   37.769653] [<c0008798>] (do_one_initcall) from
+> > > [<c0085ca4>] (do_init_module+0x34/0x158)
+> > > [   37.773590] [<c0085ca4>] (do_init_module) from
+> > > [<c00868d8>] (SyS_init_module+0x54/0x64)
+> > > [   37.777252] [<c00868d8>] (SyS_init_module) from
+> > > [<c000dbe0>] (ret_fast_syscall+0x0/0x30)
+> > > [   37.780975] ---[ end trace 86c3e025b92e700d ]---
+> > > [   37.784667] omap-aes 480c5000.aes: OMAP AES hw accel
+> > > rev: 0.0 [   37.789794] of_dma_request_slave_channel:
+> > > dma-names property of node '/ocp/aes@480c5000' missing or
+> > > empty [   37.797668] omap-aes 480c5000.aes: Unable to
+> > > request in DMA channel
+> > > [   37.801391]    omap_aes_dma_init: error: -12
+> > >=20
+> > > Error is not fatal, kernel does not crash and qemu
+> > > emulation working fine. But error is there.
+> > >=20
+> > > I'm sure that qemu does not support omap aes hw emulation
+> > > and so I except error message about missing hw part (or
+> > > something else). But not above unwind_backtrace error
+> > > message.
+> > >=20
+> > > Any idea why it happens? It is probably not related to AES
+> > > but to DMA. It is for OMAP GP device (but emulated), so
+> > > can TI comment this problem (as this is not HS under
+> > > NDA)?
+> >=20
+> > Hello,
+> >=20
+> > what does that error line means?
+> >=20
+> > [   37.668762] omap_hwmod: aes: idle state can only be
+> > entered from enabled state
+> >=20
+> > Is not it bug in omap_hwmod.c code?
+>=20
+> In qemu dmesg log I see this debug line:
+>=20
+> [    0.297851] omap_hwmod: aes: cannot be enabled for reset
+> (3)
+>=20
+> So aes is in disabled state.
+>=20
+> Should not omap-aes driver check for aes state if is enabled?
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
----
- arch/arm/mach-omap2/omap_device.c |   30 +++++++++++++++++------------=
--
- arch/arm/mach-omap2/omap_hwmod.c  |   20 ++++++++++++--------
- 2 files changed, 29 insertions(+), 21 deletions(-)
+Above dmesg error should be fixed by my patch sent to ML:
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/om=
-ap_device.c
-index be9541e..9fd47a9 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -224,13 +224,13 @@ static int _omap_device_notifier_call(struct noti=
-fier_block *nb,
-  */
- static int _omap_device_enable_hwmods(struct omap_device *od)
- {
-+	int ret =3D 0;
- 	int i;
-=20
- 	for (i =3D 0; i < od->hwmods_cnt; i++)
--		omap_hwmod_enable(od->hwmods[i]);
-+		ret |=3D omap_hwmod_enable(od->hwmods[i]);
-=20
--	/* XXX pass along return value here? */
--	return 0;
-+	return ret;
- }
-=20
- /**
-@@ -241,13 +241,13 @@ static int _omap_device_enable_hwmods(struct omap=
-_device *od)
-  */
- static int _omap_device_idle_hwmods(struct omap_device *od)
- {
-+	int ret =3D 0;
- 	int i;
-=20
- 	for (i =3D 0; i < od->hwmods_cnt; i++)
--		omap_hwmod_idle(od->hwmods[i]);
-+		ret |=3D omap_hwmod_idle(od->hwmods[i]);
-=20
--	/* XXX pass along return value here? */
--	return 0;
-+	return ret;
- }
-=20
- /* Public functions for use by core code */
-@@ -595,18 +595,20 @@ static int _od_runtime_suspend(struct device *dev=
-)
- 	int ret;
-=20
- 	ret =3D pm_generic_runtime_suspend(dev);
-+	if (ret)
-+		return ret;
-=20
--	if (!ret)
--		omap_device_idle(pdev);
--
--	return ret;
-+	return omap_device_idle(pdev);
- }
-=20
- static int _od_runtime_resume(struct device *dev)
- {
- 	struct platform_device *pdev =3D to_platform_device(dev);
-+	int ret;
-=20
--	omap_device_enable(pdev);
-+	ret =3D omap_device_enable(pdev);
-+	if (ret)
-+		return ret;
-=20
- 	return pm_generic_runtime_resume(dev);
- }
-@@ -740,7 +742,8 @@ int omap_device_enable(struct platform_device *pdev=
-)
-=20
- 	ret =3D _omap_device_enable_hwmods(od);
-=20
--	od->_state =3D OMAP_DEVICE_STATE_ENABLED;
-+	if (ret =3D=3D 0)
-+		od->_state =3D OMAP_DEVICE_STATE_ENABLED;
-=20
- 	return ret;
- }
-@@ -770,7 +773,8 @@ int omap_device_idle(struct platform_device *pdev)
-=20
- 	ret =3D _omap_device_idle_hwmods(od);
-=20
--	od->_state =3D OMAP_DEVICE_STATE_IDLE;
-+	if (ret =3D=3D 0)
-+		od->_state =3D OMAP_DEVICE_STATE_IDLE;
-=20
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index cbb908d..2ce4f39 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3350,16 +3350,17 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
-  */
- int omap_hwmod_idle(struct omap_hwmod *oh)
- {
-+	int r;
- 	unsigned long flags;
-=20
- 	if (!oh)
- 		return -EINVAL;
-=20
- 	spin_lock_irqsave(&oh->_lock, flags);
--	_idle(oh);
-+	r =3D _idle(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
-=20
--	return 0;
-+	return r;
- }
-=20
- /**
-@@ -3372,16 +3373,17 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
-  */
- int omap_hwmod_shutdown(struct omap_hwmod *oh)
- {
-+	int r;
- 	unsigned long flags;
-=20
- 	if (!oh)
- 		return -EINVAL;
-=20
- 	spin_lock_irqsave(&oh->_lock, flags);
--	_shutdown(oh);
-+	r =3D _shutdown(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
-=20
--	return 0;
-+	return r;
- }
-=20
- /**
-@@ -3392,13 +3394,14 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
-  */
- int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
- {
-+	int r;
- 	unsigned long flags;
-=20
- 	spin_lock_irqsave(&oh->_lock, flags);
--	_enable_clocks(oh);
-+	r =3D _enable_clocks(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
-=20
--	return 0;
-+	return r;
- }
-=20
- /**
-@@ -3409,13 +3412,14 @@ int omap_hwmod_enable_clocks(struct omap_hwmod =
-*oh)
-  */
- int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
- {
-+	int r;
- 	unsigned long flags;
-=20
- 	spin_lock_irqsave(&oh->_lock, flags);
--	_disable_clocks(oh);
-+	r =3D _disable_clocks(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
-=20
--	return 0;
-+	return r;
- }
-=20
- /**
---=20
-1.7.9.5
+ARM: OMAP2+: Return correct error values from device and hwmod
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1432914.oiQAVQKjei
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlTmdZ8ACgkQi/DJPQPkQ1JiOgCfbhv7aBVfvxTMJlaWrNfQXRar
+nGwAoIgsAJ4BgrpYaDtX3ORqeKqX32TA
+=r8wX
+-----END PGP SIGNATURE-----
+
+--nextPart1432914.oiQAVQKjei--
