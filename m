@@ -1,68 +1,46 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: dts: Revert disabling of smc91x for n900
-Date: Thu, 19 Feb 2015 11:59:57 +0100
-Message-ID: <201502191159.57981@pali>
-References: <20150105230228.GO4081@atomide.com> <201502182352.16203@pali> <20150219045047.GE32521@atomide.com>
+From: Ravikumar Kattekola <rk@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DRA7x/OMAP5: Clock: DPLL Clock fixes
+Date: Thu, 19 Feb 2015 20:38:29 +0530
+Message-ID: <54E5FC6D.7040701@ti.com>
+References: <1422724005-9415-1-git-send-email-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4334981.PnggV7RlPR";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:47026 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752883AbbBSLAB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2015 06:00:01 -0500
-In-Reply-To: <20150219045047.GE32521@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1422724005-9415-1-git-send-email-rk@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com
+Cc: tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>
 
---nextPart4334981.PnggV7RlPR
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 1/31/2015 10:36 PM, Ravikumar Kattekola wrote:
+> Fix bypass clock source for a few DPLLs.
+>
+> On DRA7x/OMAP5, for a few DPLLs, both CLKINP and CLKINPULOW are connected
+> to a mux and the output from mux is routed to the bypass clkout.
+> Add a mux-clock as bypass clock with CLKINP and CLKINPULOW as parents.
+>
+> Tested against:
+> 	tree: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git
+> 	branch: master
+> On:
+> CPU  : OMAP5432 ES2.0
+> Board: OMAP5432 uEVM
+> and
+> CPU  : DRA752 ES1.0
+> Board: DRA7xx
+>
+>
+> Ravikumar Kattekola (2):
+>    ARM: DRA7x: dts: Fix the bypass clock source for dpll_iva and others
+>    ARM: OMAP5: dts: Fix the bypass clock source for dpll_iva and others
+>
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi   |   90 ++++++++++++++++++++++++++++----
+>   arch/arm/boot/dts/omap54xx-clocks.dtsi |   41 +++++++++++++--
+>   2 files changed, 118 insertions(+), 13 deletions(-)
+>
+Hi Benoit,
+     Can these fixes be looked into for 3.20-rc?
 
-On Thursday 19 February 2015 05:50:48 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150218 15:58]:
-> > On Wednesday 18 February 2015 23:42:06 Tony Lindgren wrote:
-> > > Of course it's always possible to do do a
-> > > omap3-n900-qemu.dts if larger changes are needed :)
-> >=20
-> > I would like to avoid using separate DTS for qemu. When we
-> > have only one DTS file (for both qemu and real HW), we can
-> > test for regression in qemu and we are sure that we have
-> > same software configuration...
->=20
-> Agreed, and I'd rather take the extra warning on rare to find
-> hardware to avoid an etra .dts file.
->=20
-> Are there any reasons whey the n900 qemu support could not
-> be in the mainline qemu btw?
->=20
-> Regards,
->=20
-> Tony
-
-Missing lot of omap stuff (in mainline qemu) which linaro have=20
-not sent to mainline yet...
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart4334981.PnggV7RlPR
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTlwi0ACgkQi/DJPQPkQ1LjJACghAEOrWM2jhBAp3Gsngkfd9HW
-aVAAn2OMvVJNASGoMKik0iYj4u2N3Pg2
-=wEtP
------END PGP SIGNATURE-----
-
---nextPart4334981.PnggV7RlPR--
+Regards,
+RK
