@@ -1,78 +1,69 @@
-From: Andre Wolokita <andre.wolokita@analog.com>
-Subject: [PATCH v3] omap-rng: Change RNG_CONFIG_REG to RNG_CONTROL_REG when,
- checking and disabling TRNG
-Date: Fri, 20 Feb 2015 15:37:21 +1100
-Message-ID: <54E6BA01.7090904@analog.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ARM: OMAP2+: Return correct error values from device and
+ hwmod
+Date: Fri, 20 Feb 2015 09:22:26 +0100
+Message-ID: <20150220082226.GB14057@amd>
+References: <1424389302-24380-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: lokeshvutla@ti.com, dsaxena@plexity.net
-Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60654 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890AbbBTIW3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2015 03:22:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1424389302-24380-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
 
-In omap4_rng_init(), a check of bit 10 of the RNG_CONFIG_REG is done to determine
-whether the RNG is running. This is suspicious firstly due to the use of
-RNG_CONTROL_ENABLE_TRNG_MASK and secondly because the same mask is written to
-RNG_CONTROL_REG after configuration of the FROs. Similar suspicious logic is
-repeated in omap4_rng_cleanup() when RNG_CONTROL_REG masked with
-RNG_CONTROL_ENABLE_TRNG_MASK is read, the same mask bit is cleared, and then
-written to RNG_CONFIG_REG. Unless the TRNG is enabled with one bit in RNG_CONTROL
-and disabled with another in RNG_CONFIG and these bits are mirrored in some way,
-I believe that the TRNG is not really shutting off, leaving the FROs running
-indefinitely which, in an extreme case, could lead to degredation of the
-hardware and potentially reduce the level of entropy generated.
+On Fri 2015-02-20 00:41:41, Pali Roh=E1r wrote:
+> Without this patch function pm_runtime_get_sync() returns 0 even when=
+ some
+> omap subfunction fails. This patch properly propagate error codes fro=
+m omap
+> functions back to caller.
+>=20
+> This patch fix problem, when loading omap-aes driver in qemu cause ke=
+rnel oops.
 
-Apart from the strange logic, I have reason to suspect that the OMAP4 related
-code in this driver is driving an Inside Secure IP hardware RNG and strongly
-suspect that bit 10 of RNG_CONFIG_REG is one of the bits configuring the
-sampling rate of the FROs. This option is by default set to 0 and is not being
-set anywhere in omap-rng.c. Reading this bit during omap4_rng_init() will
-always return 0. It will remain 0 because ~(value of TRNG_MASK in control) will
-always be 0, because the TRNG is never shut off. This is of course presuming
-that the OMAP4 features the Inside Secure IP, which I strongly suspect.
+"fixes"
 
-I'm interested in knowing what the guys at TI think about this, as only they
-can confirm or deny the detailed structure of these registers.
+> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
 
-Signed-off-by: Andre Wolokita <Andre.Wolokita@analog.com>
----
- drivers/char/hw_random/omap-rng.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index d14dcf7..67151cb 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -236,7 +236,7 @@ static int omap4_rng_init(struct omap_rng_dev *priv)
-        u32 val;
+> @@ -3350,16 +3350,17 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
+>   */
+>  int omap_hwmod_idle(struct omap_hwmod *oh)
+>  {
+> +	int r;
+>  	unsigned long flags;
+> =20
+>  	if (!oh)
+>  		return -EINVAL;
+> =20
+>  	spin_lock_irqsave(&oh->_lock, flags);
+> -	_idle(oh);
+> +	r =3D _idle(oh);
+>  	spin_unlock_irqrestore(&oh->_lock, flags);
+> =20
+> -	return 0;
+> +	return r;
+>  }
 
-        /* Return if RNG is already running. */
--       if (omap_rng_read(priv, RNG_CONFIG_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
-+       if (omap_rng_read(priv, RNG_CONTROL_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
-                return 0;
+Normally, such variable is called ret or res...
 
-        val = RNG_CONFIG_MIN_REFIL_CYCLES << RNG_CONFIG_MIN_REFIL_CYCLES_SHIFT;
-@@ -262,7 +262,7 @@ static void omap4_rng_cleanup(struct omap_rng_dev *priv)
+									Pavel
 
-        val = omap_rng_read(priv, RNG_CONTROL_REG);
-        val &= ~RNG_CONTROL_ENABLE_TRNG_MASK;
--       omap_rng_write(priv, RNG_CONFIG_REG, val);
-+       omap_rng_write(priv, RNG_CONTROL_REG, val);
- }
-
- static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
--- 
-1.7.9.5
-
--- 
-Andre Wolokita (andre.wolokita@analog.com)
-Design Engineer, Analog Devices Australia Pty Ltd
-Unit 3, 97 Lewis Road, Wantirna, Victoria, 3152, AUSTRALIA
-Direct: +61 3 9881 9933   Main: +61 3 9881 9999
-Fax: +61 3 9881 9988      Web: www.analog.com/au
-
-Embedded DSP software for multimedia & telecommunications.
-
-This communication is proprietary and confidential. 
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
