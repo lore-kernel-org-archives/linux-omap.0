@@ -1,53 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: OMAP3-N900: Fix offset for smc91x ethernet
-Date: Fri, 20 Feb 2015 07:28:56 -0800
-Message-ID: <20150220152856.GH32521@atomide.com>
-References: <1424364590-14603-1-git-send-email-pali.rohar@gmail.com>
- <7411731.0J5JRAOyMm@wuerfel>
- <201502201052.47515@pali>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 9/9] RFC: ARM: DRA7: enable DSS_DESHDCP_CLKEN
+Date: Fri, 20 Feb 2015 18:59:52 +0200
+Message-ID: <54E76808.2030405@ti.com>
+References: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>	<1423840286-18377-10-git-send-email-tomi.valkeinen@ti.com> <CAGo_u6p89ot-eNwK65otoYsLM6NXeh929=SBG6uKAsX8Tnd_RQ@mail.gmail.com> <54DE1B7E.10505@ti.com> <54E71EA2.3030803@ti.com> <54E72FB0.6000604@ti.com> <54E73B1D.3050908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201502201052.47515@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43401 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754665AbbBTRAC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Feb 2015 12:00:02 -0500
+In-Reply-To: <54E73B1D.3050908@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150220 01:56]:
-> On Friday 20 February 2015 10:24:35 Arnd Bergmann wrote:
-> > On Thursday 19 February 2015 17:49:50 Pali Roh=C3=A1r wrote:
-> > > Offset for smc91x must be zero otherwise smc91x linux kernel
-> > > driver does not detect smc91x ethernet hardware in qemu
-> > > N900 machine.
-> > >=20
-> > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> >=20
-> > Is that the same offset on real hardware, or could this be a
-> > mistake in the qemu model?
-> >=20
-> > 	Arnd
->=20
-> In original Nokia 2.6.28 kernel is offset also set to 0, see:
->=20
-> https://gitorious.org/linux-n900/linux-n900/source/629fc5ab00cafb3127=
-2c478efa2c2b35fabd4c70:arch/arm/mach-omap2/board-rx51-peripherals.c#L42
->=20
-> https://gitorious.org/linux-n900/linux-n900/source/629fc5ab00cafb3127=
-2c478efa2c2b35fabd4c70:arch/arm/mach-omap2/board-rx51-peripherals.c#L27=
-4
->=20
-> Tony already tested offset 0 on real HW and wrote that it is
-> working too, just show some warning. But qemu with offset 0x300
-> does not work.
+On 02/20/2015 03:48 PM, Tomi Valkeinen wrote:
+> On 20/02/15 14:59, Tero Kristo wrote:
+>> On 02/20/2015 01:46 PM, Tomi Valkeinen wrote:
+>>> On 13/02/15 17:42, Tero Kristo wrote:
+>>>> On 02/13/2015 05:25 PM, Nishanth Menon wrote:
+>>>
+>>>>> I would probably wait for control module to become syscon and probably
+>>>>> model this as syscon clk - I thin we should be seeing a series
+>>>>> sometime soon.
+>>>>
+>>>> Yeah, I will be posting a series in a bit, just running some final tests
+>>>> on it.
+>>>
+>>> I did the above with Tero's series. Adding the DES HDCP clock works ok.
+>>>
+>>> However, I'm not able to do this in HWMOD framework. To enable the DSS
+>>> IP block I need to enable both the DSS func clock and the DES HDCP
+>>> clock, but the HWMOD framework only allows one mainclock.
+>>>
+>>> I added the HDCP clock as an opt clock, but those are not enabled
+>>> intially by the HWMOD framework, and the call in omap_hwmod.c:_enable()
+>>> to soc_ops.wait_target_ready(oh) calls fails.
+>>>
+>>> So... Any ideas how to proceed?
+>>
+>> Add the clock enable at the end of dra7xx_dt_clk_init()?
+>>
+>> You need to disable the clock at some point though.
+>
+> Where would I disable it? And if the clock is disabled, doesn't this
+> again fail when the dss driver tries to enable the IP block? The driver
+> can enable the HDCP opt clock only later, when the IP block should be up
+> already.
 
-Yes it works with offset 0, except the smc91x warns about not
-using the default offset 0x300 based on the EEPROM. As only
-three address lines seem to be connected, we can use offset
-0 just fine, and update the EEPROM configuration as needed.
+I guess in the display driver itself.
 
-Regards,
-
-Tony
+-Tero
