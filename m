@@ -1,148 +1,78 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: v3.19: Nokia N900 (qemu) - omap_aes error
-Date: Fri, 20 Feb 2015 00:45:35 +0100
-Message-ID: <201502200045.35283@pali>
-References: <201501311629.36431@pali> <201502091225.00497@pali> <201502182236.41771@pali>
+From: Andre Wolokita <andre.wolokita@analog.com>
+Subject: [PATCH v3] omap-rng: Change RNG_CONFIG_REG to RNG_CONTROL_REG when,
+ checking and disabling TRNG
+Date: Fri, 20 Feb 2015 15:37:21 +1100
+Message-ID: <54E6BA01.7090904@analog.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1432914.oiQAVQKjei";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201502182236.41771@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Sender: linux-crypto-owner@vger.kernel.org
+To: lokeshvutla@ti.com, dsaxena@plexity.net
+Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1432914.oiQAVQKjei
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+In omap4_rng_init(), a check of bit 10 of the RNG_CONFIG_REG is done to determine
+whether the RNG is running. This is suspicious firstly due to the use of
+RNG_CONTROL_ENABLE_TRNG_MASK and secondly because the same mask is written to
+RNG_CONTROL_REG after configuration of the FROs. Similar suspicious logic is
+repeated in omap4_rng_cleanup() when RNG_CONTROL_REG masked with
+RNG_CONTROL_ENABLE_TRNG_MASK is read, the same mask bit is cleared, and then
+written to RNG_CONFIG_REG. Unless the TRNG is enabled with one bit in RNG_CONTROL
+and disabled with another in RNG_CONFIG and these bits are mirrored in some way,
+I believe that the TRNG is not really shutting off, leaving the FROs running
+indefinitely which, in an extreme case, could lead to degredation of the
+hardware and potentially reduce the level of entropy generated.
 
-On Wednesday 18 February 2015 22:36:41 Pali Roh=C3=A1r wrote:
-> On Monday 09 February 2015 12:25:00 Pali Roh=C3=A1r wrote:
-> > On Saturday 31 January 2015 16:29:36 Pali Roh=C3=A1r wrote:
-> > > Hello,
-> > >=20
-> > > when I enable problematic omap_aes.ko driver (also in DT)
-> > > for Nokia N900 machine in qemu (it emulates OMAP GP
-> > > device, not HS) I get this error message in dmesg at
-> > > modprobe time:
-> > >=20
-> > > [   37.660339] ------------[ cut here ]------------
-> > > [   37.663940] WARNING: CPU: 0 PID: 173 at arch/arm/mach-
-> > > omap2/omap_hwmod.c:2182 _idle+0x28/0x64()
-> > > [   37.668762] omap_hwmod: aes: idle state can only be
-> > > entered from enabled state
-> > > [   37.672271] Modules linked in: omap_aes(+)
-> > > [   37.675933] CPU: 0 PID: 173 Comm: modprobe Not tainted
-> > > 3.19.0- rc5+ #299
-> > > [   37.679534] Hardware name: Nokia RX-51 board
-> > > [   37.683227] [<c0012678>] (unwind_backtrace) from
-> > > [<c0010d44>] (show_stack+0x10/0x14)
-> > > [   37.686920] [<c0010d44>] (show_stack) from [<c0032194>]
-> > > (warn_slowpath_common+0x84/0xac)
-> > > [   37.690765] [<c0032194>] (warn_slowpath_common) from
-> > > [<c003223c>] (warn_slowpath_fmt+0x2c/0x3c)
-> > > [   37.694366] [<c003223c>] (warn_slowpath_fmt) from
-> > > [<c0020cb0>] (_idle+0x28/0x64)
-> > > [   37.698791] [<c0020cb0>] (_idle) from [<c0021078>]
-> > > (omap_hwmod_idle+0x30/0x78)
-> > > [   37.702636] [<c0021078>] (omap_hwmod_idle) from
-> > > [<c00222c4>] (omap_device_idle+0x48/0x6c)
-> > > [   37.707153] [<c00222c4>] (omap_device_idle) from
-> > > [<c0022304>] (_od_runtime_suspend+0x1c/0x24)
-> > > [   37.710723] [<c0022304>] (_od_runtime_suspend) from
-> > > [<c0269680>] (__rpm_callback+0x8c/0xdc)
-> > > [   37.714385] [<c0269680>] (__rpm_callback) from
-> > > [<c0269740>] (rpm_callback+0x70/0x88)
-> > > [   37.717987] [<c0269740>] (rpm_callback) from
-> > > [<c0269f74>] (rpm_suspend+0x2e8/0x5a4)
-> > > [   37.721710] [<c0269f74>] (rpm_suspend) from
-> > > [<c026a6ec>] (__pm_runtime_idle+0x58/0x9c)
-> > > [   37.725402] [<c026a6ec>] (__pm_runtime_idle) from
-> > > [<bf00129c>] (omap_aes_probe+0x15c/0x448 [omap_aes])
-> > > [   37.733489] [<bf00129c>] (omap_aes_probe [omap_aes])
-> > > from [<c0263d78>] (platform_drv_probe+0x48/0x90)
-> > > [   37.740936] [<c0263d78>] (platform_drv_probe) from
-> > > [<c02624ec>] (really_probe+0xac/0x1e0)
-> > > [   37.745025] [<c02624ec>] (really_probe) from
-> > > [<c0262718>] (driver_probe_device+0x30/0x48)
-> > > [   37.749847] [<c0262718>] (driver_probe_device) from
-> > > [<c0262790>] (__driver_attach+0x60/0x84)
-> > > [   37.753601] [<c0262790>] (__driver_attach) from
-> > > [<c0261070>] (bus_for_each_dev+0x50/0x84)
-> > > [   37.758422] [<c0261070>] (bus_for_each_dev) from
-> > > [<c0261e20>] (bus_add_driver+0xac/0x1bc)
-> > > [   37.762207] [<c0261e20>] (bus_add_driver) from
-> > > [<c02630c8>] (driver_register+0x9c/0xe0)
-> > > [   37.765899] [<c02630c8>] (driver_register) from
-> > > [<c0008798>] (do_one_initcall+0x100/0x1b0)
-> > > [   37.769653] [<c0008798>] (do_one_initcall) from
-> > > [<c0085ca4>] (do_init_module+0x34/0x158)
-> > > [   37.773590] [<c0085ca4>] (do_init_module) from
-> > > [<c00868d8>] (SyS_init_module+0x54/0x64)
-> > > [   37.777252] [<c00868d8>] (SyS_init_module) from
-> > > [<c000dbe0>] (ret_fast_syscall+0x0/0x30)
-> > > [   37.780975] ---[ end trace 86c3e025b92e700d ]---
-> > > [   37.784667] omap-aes 480c5000.aes: OMAP AES hw accel
-> > > rev: 0.0 [   37.789794] of_dma_request_slave_channel:
-> > > dma-names property of node '/ocp/aes@480c5000' missing or
-> > > empty [   37.797668] omap-aes 480c5000.aes: Unable to
-> > > request in DMA channel
-> > > [   37.801391]    omap_aes_dma_init: error: -12
-> > >=20
-> > > Error is not fatal, kernel does not crash and qemu
-> > > emulation working fine. But error is there.
-> > >=20
-> > > I'm sure that qemu does not support omap aes hw emulation
-> > > and so I except error message about missing hw part (or
-> > > something else). But not above unwind_backtrace error
-> > > message.
-> > >=20
-> > > Any idea why it happens? It is probably not related to AES
-> > > but to DMA. It is for OMAP GP device (but emulated), so
-> > > can TI comment this problem (as this is not HS under
-> > > NDA)?
-> >=20
-> > Hello,
-> >=20
-> > what does that error line means?
-> >=20
-> > [   37.668762] omap_hwmod: aes: idle state can only be
-> > entered from enabled state
-> >=20
-> > Is not it bug in omap_hwmod.c code?
->=20
-> In qemu dmesg log I see this debug line:
->=20
-> [    0.297851] omap_hwmod: aes: cannot be enabled for reset
-> (3)
->=20
-> So aes is in disabled state.
->=20
-> Should not omap-aes driver check for aes state if is enabled?
+Apart from the strange logic, I have reason to suspect that the OMAP4 related
+code in this driver is driving an Inside Secure IP hardware RNG and strongly
+suspect that bit 10 of RNG_CONFIG_REG is one of the bits configuring the
+sampling rate of the FROs. This option is by default set to 0 and is not being
+set anywhere in omap-rng.c. Reading this bit during omap4_rng_init() will
+always return 0. It will remain 0 because ~(value of TRNG_MASK in control) will
+always be 0, because the TRNG is never shut off. This is of course presuming
+that the OMAP4 features the Inside Secure IP, which I strongly suspect.
 
-Above dmesg error should be fixed by my patch sent to ML:
+I'm interested in knowing what the guys at TI think about this, as only they
+can confirm or deny the detailed structure of these registers.
 
-ARM: OMAP2+: Return correct error values from device and hwmod
+Signed-off-by: Andre Wolokita <Andre.Wolokita@analog.com>
+---
+ drivers/char/hw_random/omap-rng.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
+index d14dcf7..67151cb 100644
+--- a/drivers/char/hw_random/omap-rng.c
++++ b/drivers/char/hw_random/omap-rng.c
+@@ -236,7 +236,7 @@ static int omap4_rng_init(struct omap_rng_dev *priv)
+        u32 val;
 
---nextPart1432914.oiQAVQKjei
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+        /* Return if RNG is already running. */
+-       if (omap_rng_read(priv, RNG_CONFIG_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
++       if (omap_rng_read(priv, RNG_CONTROL_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
+                return 0;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+        val = RNG_CONFIG_MIN_REFIL_CYCLES << RNG_CONFIG_MIN_REFIL_CYCLES_SHIFT;
+@@ -262,7 +262,7 @@ static void omap4_rng_cleanup(struct omap_rng_dev *priv)
 
-iEYEABECAAYFAlTmdZ8ACgkQi/DJPQPkQ1JiOgCfbhv7aBVfvxTMJlaWrNfQXRar
-nGwAoIgsAJ4BgrpYaDtX3ORqeKqX32TA
-=r8wX
------END PGP SIGNATURE-----
+        val = omap_rng_read(priv, RNG_CONTROL_REG);
+        val &= ~RNG_CONTROL_ENABLE_TRNG_MASK;
+-       omap_rng_write(priv, RNG_CONFIG_REG, val);
++       omap_rng_write(priv, RNG_CONTROL_REG, val);
+ }
 
---nextPart1432914.oiQAVQKjei--
+ static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
+-- 
+1.7.9.5
+
+-- 
+Andre Wolokita (andre.wolokita@analog.com)
+Design Engineer, Analog Devices Australia Pty Ltd
+Unit 3, 97 Lewis Road, Wantirna, Victoria, 3152, AUSTRALIA
+Direct: +61 3 9881 9933   Main: +61 3 9881 9999
+Fax: +61 3 9881 9988      Web: www.analog.com/au
+
+Embedded DSP software for multimedia & telecommunications.
+
+This communication is proprietary and confidential. 
