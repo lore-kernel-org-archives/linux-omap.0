@@ -1,56 +1,675 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 9/9] RFC: ARM: DRA7: enable DSS_DESHDCP_CLKEN
-Date: Fri, 20 Feb 2015 18:59:52 +0200
-Message-ID: <54E76808.2030405@ti.com>
-References: <1423840286-18377-1-git-send-email-tomi.valkeinen@ti.com>	<1423840286-18377-10-git-send-email-tomi.valkeinen@ti.com> <CAGo_u6p89ot-eNwK65otoYsLM6NXeh929=SBG6uKAsX8Tnd_RQ@mail.gmail.com> <54DE1B7E.10505@ti.com> <54E71EA2.3030803@ti.com> <54E72FB0.6000604@ti.com> <54E73B1D.3050908@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43401 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754665AbbBTRAC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Feb 2015 12:00:02 -0500
-In-Reply-To: <54E73B1D.3050908@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH v2 1/3] ARM: dts: omap3-pandora: add common device tree
+Date: Fri, 20 Feb 2015 21:04:10 +0100
+Message-ID: <1424462650-7770-1-git-send-email-marek@goldelico.com>
+References: <1424202743-26387-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424202743-26387-1-git-send-email-marek@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, marek@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-On 02/20/2015 03:48 PM, Tomi Valkeinen wrote:
-> On 20/02/15 14:59, Tero Kristo wrote:
->> On 02/20/2015 01:46 PM, Tomi Valkeinen wrote:
->>> On 13/02/15 17:42, Tero Kristo wrote:
->>>> On 02/13/2015 05:25 PM, Nishanth Menon wrote:
->>>
->>>>> I would probably wait for control module to become syscon and probably
->>>>> model this as syscon clk - I thin we should be seeing a series
->>>>> sometime soon.
->>>>
->>>> Yeah, I will be posting a series in a bit, just running some final tests
->>>> on it.
->>>
->>> I did the above with Tero's series. Adding the DES HDCP clock works ok.
->>>
->>> However, I'm not able to do this in HWMOD framework. To enable the DSS
->>> IP block I need to enable both the DSS func clock and the DES HDCP
->>> clock, but the HWMOD framework only allows one mainclock.
->>>
->>> I added the HDCP clock as an opt clock, but those are not enabled
->>> intially by the HWMOD framework, and the call in omap_hwmod.c:_enable()
->>> to soc_ops.wait_target_ready(oh) calls fails.
->>>
->>> So... Any ideas how to proceed?
->>
->> Add the clock enable at the end of dra7xx_dt_clk_init()?
->>
->> You need to disable the clock at some point though.
->
-> Where would I disable it? And if the clock is disabled, doesn't this
-> again fail when the dss driver tries to enable the IP block? The driver
-> can enable the HDCP opt clock only later, when the IP block should be up
-> already.
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-I guess in the display driver itself.
+This device tree allows to boot, supports the panel,
+framebuffer, touch screen, as well as some more peripherals.
+Since there is a OMAP3530 based 600 MHz variant and a DM3730 based
+1 GHz variant we must include this common device tree code
+in one of two CPU specific device trees.
 
--Tero
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Marek Belisko <marek@goldelico.com>
+---
+ arch/arm/boot/dts/omap3-pandora-common.dtsi | 640 ++++++++++++++++++++++++++++
+ 1 file changed, 640 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-pandora-common.dtsi
+
+diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi b/arch/arm/boot/dts/omap3-pandora-common.dtsi
+new file mode 100644
+index 0000000..78ef1ee
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
+@@ -0,0 +1,640 @@
++/*
++ * Copyright (C) 2015
++ *   Nikolaus Schaller <hns@goldelico.com>
++ *
++ * Common device tree include for OpenPandora devices.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <dt-bindings/input/input.h>
++
++/ {
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	aliases {
++		display0 = &lcd;
++	};
++
++	tv: connector@1 {
++		compatible = "connector-analog-tv";
++		label = "tv";
++
++		port {
++			tv_connector_in: endpoint {
++				remote-endpoint = <&venc_out>;
++			};
++		};
++	};
++
++	gpio-leds {
++
++		compatible = "gpio-leds";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&led_pins>;
++
++		led@1 {
++			label = "pandora::sd1";
++			gpios = <&gpio5 0 GPIO_ACTIVE_HIGH>;	/* GPIO_128 */
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++
++		led@2 {
++			label = "pandora::sd2";
++			gpios = <&gpio5 1 GPIO_ACTIVE_HIGH>;	/* GPIO_129 */
++			linux,default-trigger = "mmc1";
++			default-state = "off";
++		};
++
++		led@3 {
++			label = "pandora::bluetooth";
++			gpios = <&gpio5 30 GPIO_ACTIVE_HIGH>;	/* GPIO_158 */
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		led@4 {
++			label = "pandora::wifi";
++			gpios = <&gpio5 31 GPIO_ACTIVE_HIGH>;	/* GPIO_159 */
++			linux,default-trigger = "mmc2";
++			default-state = "off";
++		};
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&button_pins>;
++
++		up-button {
++			label = "up";
++			linux,code = <KEY_UP>;
++			gpios = <&gpio4 14 GPIO_ACTIVE_LOW>;	/* GPIO_110 */
++			gpio-key,wakeup;
++		};
++
++		down-button {
++			label = "down";
++			linux,code = <KEY_DOWN>;
++			gpios = <&gpio4 7 GPIO_ACTIVE_LOW>;	/* GPIO_103 */
++			gpio-key,wakeup;
++		};
++
++		left-button {
++			label = "left";
++			linux,code = <KEY_LEFT>;
++			gpios = <&gpio4 0 GPIO_ACTIVE_LOW>;	/* GPIO_96 */
++			gpio-key,wakeup;
++		};
++
++		right-button {
++			label = "right";
++			linux,code = <KEY_RIGHT>;
++			gpios = <&gpio4 2 GPIO_ACTIVE_LOW>;	/* GPIO_98 */
++			gpio-key,wakeup;
++		};
++
++		pageup-button {
++			label = "game 1";
++			linux,code = <KEY_PAGEUP>;
++			gpios = <&gpio4 13 GPIO_ACTIVE_LOW>;	/* GPIO_109 */
++			gpio-key,wakeup;
++		};
++
++		pagedown-button {
++			label = "game 3";
++			linux,code = <KEY_PAGEDOWN>;
++			gpios = <&gpio4 10 GPIO_ACTIVE_LOW>;	/* GPIO_106 */
++			gpio-key,wakeup;
++		};
++
++		home-button {
++			label = "game 4";
++			linux,code = <KEY_HOME>;
++			gpios = <&gpio4 5 GPIO_ACTIVE_LOW>;	/* GPIO_101 */
++			gpio-key,wakeup;
++		};
++
++		end-button {
++			label = "game 2";
++			linux,code = <KEY_END>;
++			gpios = <&gpio4 15 GPIO_ACTIVE_LOW>;	/* GPIO_111 */
++			gpio-key,wakeup;
++		};
++
++		right-shift {
++			label = "l";
++			linux,code = <KEY_RIGHTSHIFT>;
++			gpios = <&gpio4 6 GPIO_ACTIVE_LOW>;	/* GPIO_102 */
++			gpio-key,wakeup;
++		};
++
++		kp-plus {
++			label = "l2";
++			linux,code = <KEY_KPPLUS>;
++			gpios = <&gpio4 1 GPIO_ACTIVE_LOW>;	/* GPIO_97 */
++			gpio-key,wakeup;
++		};
++
++		right-ctrl {
++			label = "r";
++			linux,code = <KEY_RIGHTCTRL>;
++			gpios = <&gpio4 9 GPIO_ACTIVE_LOW>;	/* GPIO_105 */
++			gpio-key,wakeup;
++		};
++
++		kp-minus {
++			label = "r2";
++			linux,code = <KEY_KPMINUS>;
++			gpios = <&gpio4 11 GPIO_ACTIVE_LOW>;	/* GPIO_107 */
++			gpio-key,wakeup;
++		};
++
++		left-ctrl {
++			label = "ctrl";
++			linux,code = <KEY_LEFTCTRL>;
++			gpios = <&gpio4 8 GPIO_ACTIVE_LOW>;	/* GPIO_104 */
++			gpio-key,wakeup;
++		};
++
++		menu {
++			label = "menu";
++			linux,code = <KEY_MENU>;
++			gpios = <&gpio4 3 GPIO_ACTIVE_LOW>;	/* GPIO_99 */
++			gpio-key,wakeup;
++		};
++
++		hold {
++			label = "hold";
++			linux,code = <KEY_COFFEE>;
++			gpios = <&gpio6 16 GPIO_ACTIVE_LOW>;	/* GPIO_176 */
++			gpio-key,wakeup;
++		};
++
++		left-alt {
++			label = "alt";
++			linux,code = <KEY_LEFTALT>;
++			gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;	/* GPIO_100 */
++			gpio-key,wakeup;
++		};
++
++		lid {
++			label = "lid";
++			linux,code = <0x00>;    /* SW_LID lid shut */
++			linux,input-type = <0x05>;    /* EV_SW */
++			gpios = <&gpio4 12 GPIO_ACTIVE_HIGH>;   /* GPIO_108 */
++		};
++	};
++};
++
++&omap3_pmx_core {
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_clk.sdmmc1_clk */
++			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_cmd.sdmmc1_cmd */
++			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat0.sdmmc1_dat0 */
++			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat1.sdmmc1_dat1 */
++			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat2.sdmmc1_dat2 */
++			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_dat3.sdmmc1_dat3 */
++		>;
++	};
++
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_clk.sdmmc2_clk */
++			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_cmd.sdmmc2_cmd */
++			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat0.sdmmc2_dat0 */
++			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat1.sdmmc2_dat1 */
++			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat2.sdmmc2_dat2 */
++			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc2_dat3.sdmmc2_dat3 */
++			OMAP3_CORE1_IOPAD(0x2164, PIN_OUTPUT_PULLUP | MUX_MODE1)	/* sdmmc2_dat4.sdmmc2_dirdat0 */
++			OMAP3_CORE1_IOPAD(0x2166, PIN_OUTPUT_PULLUP | MUX_MODE1)	/* sdmmc2_dat5.sdmmc2_dirdat1 */
++			OMAP3_CORE1_IOPAD(0x2168, PIN_OUTPUT_PULLUP | MUX_MODE1)	/* sdmmc2_dat6.sdmmc2_dircmd */
++			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT_PULLUP | MUX_MODE1)		/* sdmmc2_dat7.sdmmc2_clkin */
++		>;
++	};
++
++	dss_dpi_pins: pinmux_dss_dpi_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)	/* dss_pclk.dss_pclk */
++			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)	/* dss_hsync.dss_hsync */
++			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)	/* dss_vsync.dss_vsync */
++			OMAP3_CORE1_IOPAD(0x20da, PIN_OUTPUT | MUX_MODE0)	/* dss_acbias.dss_acbias */
++			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE0)	/* dss_data0.dss_data0 */
++			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE0)	/* dss_data1.dss_data1 */
++			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE0)	/* dss_data2.dss_data2 */
++			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE0)	/* dss_data3.dss_data3 */
++			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE0)	/* dss_data4.dss_data4 */
++			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE0)	/* dss_data5.dss_data5 */
++			OMAP3_CORE1_IOPAD(0x20e8, PIN_OUTPUT | MUX_MODE0)	/* dss_data6.dss_data6 */
++			OMAP3_CORE1_IOPAD(0x20ea, PIN_OUTPUT | MUX_MODE0)	/* dss_data7.dss_data7 */
++			OMAP3_CORE1_IOPAD(0x20ec, PIN_OUTPUT | MUX_MODE0)	/* dss_data8.dss_data8 */
++			OMAP3_CORE1_IOPAD(0x20ee, PIN_OUTPUT | MUX_MODE0)	/* dss_data9.dss_data9 */
++			OMAP3_CORE1_IOPAD(0x20f0, PIN_OUTPUT | MUX_MODE0)	/* dss_data10.dss_data10 */
++			OMAP3_CORE1_IOPAD(0x20f2, PIN_OUTPUT | MUX_MODE0)	/* dss_data11.dss_data11 */
++			OMAP3_CORE1_IOPAD(0x20f4, PIN_OUTPUT | MUX_MODE0)	/* dss_data12.dss_data12 */
++			OMAP3_CORE1_IOPAD(0x20f6, PIN_OUTPUT | MUX_MODE0)	/* dss_data13.dss_data13 */
++			OMAP3_CORE1_IOPAD(0x20f8, PIN_OUTPUT | MUX_MODE0)	/* dss_data14.dss_data14 */
++			OMAP3_CORE1_IOPAD(0x20fa, PIN_OUTPUT | MUX_MODE0)	/* dss_data15.dss_data15 */
++			OMAP3_CORE1_IOPAD(0x20fc, PIN_OUTPUT | MUX_MODE0)	/* dss_data16.dss_data16 */
++			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE0)	/* dss_data17.dss_data17 */
++			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE0)	/* dss_data18.dss_data18 */
++			OMAP3_CORE1_IOPAD(0x2102, PIN_OUTPUT | MUX_MODE0)	/* dss_data19.dss_data19 */
++			OMAP3_CORE1_IOPAD(0x2104, PIN_OUTPUT | MUX_MODE0)	/* dss_data20.dss_data20 */
++			OMAP3_CORE1_IOPAD(0x2106, PIN_OUTPUT | MUX_MODE0)	/* dss_data21.dss_data21 */
++			OMAP3_CORE1_IOPAD(0x2108, PIN_OUTPUT | MUX_MODE0)	/* dss_data22.dss_data22 */
++			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE0)	/* dss_data23.dss_data23 */
++			OMAP3_CORE1_IOPAD(0x218e, PIN_OUTPUT | MUX_MODE4)	/* GPIO_157 = lcd reset */
++		>;
++	};
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0)	/* uart3_rx_irrx.uart3_rx_irrx */
++			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx */
++		>;
++	};
++
++	led_pins: pinmux_leds_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2154, PIN_OUTPUT | MUX_MODE4)	/* GPIO_128 */
++			OMAP3_CORE1_IOPAD(0x2156, PIN_OUTPUT | MUX_MODE4)	/* GPIO_129 */
++			OMAP3_CORE1_IOPAD(0x2190, PIN_OUTPUT | MUX_MODE4)	/* GPIO_158 */
++			OMAP3_CORE1_IOPAD(0x2192, PIN_OUTPUT | MUX_MODE4)	/* GPIO_159 */
++		>;
++	};
++
++	button_pins: pinmux_button_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2110, PIN_INPUT | MUX_MODE4)	/* GPIO_96 */
++			OMAP3_CORE1_IOPAD(0x2112, PIN_INPUT | MUX_MODE4)	/* GPIO_97 */
++			OMAP3_CORE1_IOPAD(0x2114, PIN_INPUT | MUX_MODE4)	/* GPIO_98 */
++			OMAP3_CORE1_IOPAD(0x2116, PIN_INPUT | MUX_MODE4)	/* GPIO_99 */
++			OMAP3_CORE1_IOPAD(0x2118, PIN_INPUT | MUX_MODE4)	/* GPIO_100 */
++			OMAP3_CORE1_IOPAD(0x211a, PIN_INPUT | MUX_MODE4)	/* GPIO_101 */
++			OMAP3_CORE1_IOPAD(0x211c, PIN_INPUT | MUX_MODE4)	/* GPIO_102 */
++			OMAP3_CORE1_IOPAD(0x211e, PIN_INPUT | MUX_MODE4)	/* GPIO_103 */
++			OMAP3_CORE1_IOPAD(0x2120, PIN_INPUT | MUX_MODE4)	/* GPIO_104 */
++			OMAP3_CORE1_IOPAD(0x2122, PIN_INPUT | MUX_MODE4)	/* GPIO_105 */
++			OMAP3_CORE1_IOPAD(0x2124, PIN_INPUT | MUX_MODE4)	/* GPIO_106 */
++			OMAP3_CORE1_IOPAD(0x2126, PIN_INPUT | MUX_MODE4)	/* GPIO_107 */
++			OMAP3_CORE1_IOPAD(0x2128, PIN_INPUT | MUX_MODE4)	/* GPIO_108 */
++			OMAP3_CORE1_IOPAD(0x212a, PIN_INPUT | MUX_MODE4)	/* GPIO_109 */
++			OMAP3_CORE1_IOPAD(0x212c, PIN_INPUT | MUX_MODE4)	/* GPIO_110 */
++			OMAP3_CORE1_IOPAD(0x212e, PIN_INPUT | MUX_MODE4)	/* GPIO_111 */
++			OMAP3_CORE1_IOPAD(0x21d2, PIN_INPUT | MUX_MODE4)	/* GPIO_176 */
++		>;
++	};
++
++	penirq_pins: pinmux_penirq_pins {
++		pinctrl-single,pins = <
++			/* here we could enable to wakeup the cpu from suspend by a pen touch */
++			OMAP3_CORE1_IOPAD(0x210c, PIN_INPUT | MUX_MODE4)	/* GPIO_94 */
++		>;
++	};
++
++};
++
++&omap3_pmx_core2 {
++	/* define in CPU specific file that includes this one
++	 * use either OMAP3430_CORE2_IOPAD() or OMAP3630_CORE2_IOPAD()
++	 */
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++
++		twl_power: power {
++			compatible = "ti,twl4030-power-reset";
++			ti,use_poweroff;
++		};
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++
++			codec {
++				ti,ramp_delay_value = <3>;
++			};
++		};
++	};
++};
++
++#include "twl4030.dtsi"
++#include "twl4030_omap3.dtsi"
++
++&twl_keypad {
++	keypad,num-rows = <8>;
++	keypad,num-columns = <6>;
++	linux,keymap = <
++		MATRIX_KEY(0, 0, KEY_9)
++		MATRIX_KEY(0, 1, KEY_8)
++		MATRIX_KEY(0, 2, KEY_I)
++		MATRIX_KEY(0, 3, KEY_J)
++		MATRIX_KEY(0, 4, KEY_N)
++		MATRIX_KEY(0, 5, KEY_M)
++		MATRIX_KEY(1, 0, KEY_0)
++		MATRIX_KEY(1, 1, KEY_7)
++		MATRIX_KEY(1, 2, KEY_U)
++		MATRIX_KEY(1, 3, KEY_H)
++		MATRIX_KEY(1, 4, KEY_B)
++		MATRIX_KEY(1, 5, KEY_SPACE)
++		MATRIX_KEY(2, 0, KEY_BACKSPACE)
++		MATRIX_KEY(2, 1, KEY_6)
++		MATRIX_KEY(2, 2, KEY_Y)
++		MATRIX_KEY(2, 3, KEY_G)
++		MATRIX_KEY(2, 4, KEY_V)
++		MATRIX_KEY(2, 5, KEY_FN)
++		MATRIX_KEY(3, 0, KEY_O)
++		MATRIX_KEY(3, 1, KEY_5)
++		MATRIX_KEY(3, 2, KEY_T)
++		MATRIX_KEY(3, 3, KEY_F)
++		MATRIX_KEY(3, 4, KEY_C)
++		MATRIX_KEY(4, 0, KEY_P)
++		MATRIX_KEY(4, 1, KEY_4)
++		MATRIX_KEY(4, 2, KEY_R)
++		MATRIX_KEY(4, 3, KEY_D)
++		MATRIX_KEY(4, 4, KEY_X)
++		MATRIX_KEY(5, 0, KEY_K)
++		MATRIX_KEY(5, 1, KEY_3)
++		MATRIX_KEY(5, 2, KEY_E)
++		MATRIX_KEY(5, 3, KEY_S)
++		MATRIX_KEY(5, 4, KEY_Z)
++		MATRIX_KEY(6, 0, KEY_L)
++		MATRIX_KEY(6, 1, KEY_2)
++		MATRIX_KEY(6, 2, KEY_W)
++		MATRIX_KEY(6, 3, KEY_A)
++		MATRIX_KEY(6, 4, KEY_RIGHTBRACE)
++		MATRIX_KEY(7, 0, KEY_ENTER)
++		MATRIX_KEY(7, 1, KEY_1)
++		MATRIX_KEY(7, 2, KEY_Q)
++		MATRIX_KEY(7, 3, KEY_LEFTSHIFT)
++		MATRIX_KEY(7, 4, KEY_LEFTBRACE )
++	 >;
++};
++
++/* backup battery charger */
++&charger {
++	ti,bb-uvolt = <3200000>;
++	ti,bb-uamp = <150>;
++};
++
++/* MMC2 */
++&vmmc2 {
++	regulator-min-microvolt = <1850000>;
++	regulator-max-microvolt = <3150000>;
++};
++
++/* LCD */
++&vaux1 {
++	regulator-min-microvolt = <3000000>;
++	regulator-max-microvolt = <3000000>;
++};
++
++/* USB Host PHY */
++&vaux2 {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++/* available on expansion connector */
++&vaux3 {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++};
++
++/* ADS7846 and nubs */
++&vaux4 {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++};
++
++/* power audio DAC and LID sensor */
++&vsim {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++	regulator-always-on;
++};
++
++&i2c2 {
++	clock-frequency = <100000>;
++	/* no clients so we should disable clock */
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++
++	bq27500@55 {
++		compatible = "ti,bq27500";
++		reg = <0x55>;
++	};
++
++};
++
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	phys = <&usb2_phy>;
++	phy-names = "usb2-phy";
++	mode = <3>;
++	power = <50>;
++};
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	vmmc-supply = <&vmmc1>;
++	bus-width = <4>;
++	cd-gpios = <&twl_gpio 0 GPIO_ACTIVE_LOW>;
++	wp-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;	/* GPIO_126 */
++};
++
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++	vmmc-supply = <&vmmc2>;
++	bus-width = <4>;
++	cd-gpios = <&twl_gpio 1 GPIO_ACTIVE_HIGH>;
++	wp-gpios = <&gpio4 31 GPIO_ACTIVE_LOW>;	/* GPIO_127 */
++};
++
++/* bluetooth*/
++&uart1 {
++};
++
++/* spare (expansion connector) */
++&uart2 {
++};
++
++/* console (expansion connector) */
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins>;
++	interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
++};
++
++&usbhshost {
++	port2-mode = "ehci-phy";
++};
++
++&gpmc {
++	ranges = <0 0 0x30000000 0x1000000>; /* CS0: 16MB for NAND */
++
++	nand@0,0 {
++		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
++		nand-bus-width = <16>;
++		ti,nand-ecc-opt = "sw";
++
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		gpmc,device-width = <2>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		/* u-boot uses mtdparts=nand:512k(xloader),1920k(uboot),128k(uboot-env),10m(boot),-(rootfs) */
++
++		x-loader@0 {
++			label = "xloader";
++			reg = <0 0x80000>;
++		};
++
++		bootloaders@80000 {
++			label = "uboot";
++			reg = <0x80000 0x1e0000>;
++		};
++
++		bootloaders_env@260000 {
++			label = "uboot-env";
++			reg = <0x260000 0x20000>;
++		};
++
++		kernel@280000 {
++			label = "boot";
++			reg = <0x280000 0xa00000>;
++		};
++
++		filesystem@680000 {
++			label = "rootfs";
++			reg = <0xc80000 0>;	/* 0 = MTDPART_SIZ_FULL */
++		};
++	};
++};
++
++&mcspi1 {
++	tsc2046@0 {
++		reg = <0>;	/* CS0 */
++		compatible = "ti,tsc2046";
++		spi-max-frequency = <1000000>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&penirq_pins>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <30 0>;	/* GPIO_94 */
++		pendown-gpio = <&gpio3 30 0>;
++		vcc-supply = <&vaux4>;
++
++		ti,x-min = /bits/ 16 <0>;
++		ti,x-max = /bits/ 16 <8000>;
++		ti,y-min = /bits/ 16 <0>;
++		ti,y-max = /bits/ 16 <4800>;
++		ti,x-plate-ohms = /bits/ 16 <40>;
++		ti,pressure-max = /bits/ 16 <255>;
++
++		linux,wakeup;
++	};
++
++	lcd: lcd@1 {
++		reg = <1>;	/* CS1 */
++		compatible =	"omapdss,tpo,td043mtea1";
++		spi-max-frequency = <100000>;
++		spi-cpol;
++		spi-cpha;
++
++		label = "lcd";
++		reset-gpios = <&gpio5 29 GPIO_ACTIVE_LOW>;	/* GPIO_157 */
++		vcc-supply = <&vaux1>;
++
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dpi_out>;
++			};
++		};
++	};
++
++
++};
++
++/* n/a - used as GPIOs */
++&mcbsp1 {
++};
++
++/* audio DAC */
++&mcbsp2 {
++};
++
++/* bluetooth */
++&mcbsp3 {
++};
++
++/* to twl4030*/
++&mcbsp4 {
++};
++
++&venc {
++	status = "ok";
++
++	vdda-supply = <&vdac>;
++
++	port {
++		venc_out: endpoint {
++			remote-endpoint = <&tv_connector_in>;
++			ti,channels = <2>;
++		};
++	};
++};
++
++&dss {
++	pinctrl-names = "default";
++	pinctrl-0 = < &dss_dpi_pins >;
++
++	status = "ok";
++	vdds_dsi-supply = <&vpll2>;
++
++	port {
++		dpi_out: endpoint {
++			remote-endpoint = <&lcd_in>;
++			data-lines = <24>;
++		};
++	};
++};
+-- 
+1.9.1
