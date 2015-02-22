@@ -1,7 +1,7 @@
 From: Sneeker Yeh <sneeker.yeh@gmail.com>
-Subject: [PATCH v5 1/5] xhci: add a quirk for device disconnection errata for Synopsis Designware USB3 core
-Date: Sun, 22 Feb 2015 12:25:36 +0800
-Message-ID: <1424579140-30567-2-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
+Subject: [PATCH v5 5/5] usb: dwc3: add Fujitsu Specific Glue layer
+Date: Sun, 22 Feb 2015 12:25:40 +0800
+Message-ID: <1424579140-30567-6-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 References: <1424579140-30567-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1424579140-30567-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
@@ -10,143 +10,299 @@ To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutl
 Cc: Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 List-Id: linux-omap@vger.kernel.org
 
-This issue is defined by a three-way race at disconnect, between
-1) Class driver interrupt endpoint resheduling attempts if the ISR gave an ep
-   error event due to device detach (it would try 3 times)
-2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
-   asynchronously
-3) The hardware IP was configured in silicon with
-   - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1
-   - Synopsys IP version is < 3.00a
-The IP will auto-suspend itself on device detach with some phy-specific interval
-after CSC is cleared by 2)
-
-If 2) and 3) complete before 1), the interrupts it expects will not be generated
-by the autosuspended IP, leading to a deadlock. Even later disconnection
-procedure would detect that corresponding urb is still in-progress and issue a
-ep stop command, auto-suspended IP still won't respond to that command.
-
-this defect would result in this when device detached:
--------------------------------------------------------
-[   99.603544] usb 4-1: USB disconnect, device number 2
-[  104.615254] xhci-hcd xhci-hcd.0.auto: xHCI host not responding to stop endpoint command.
-[  104.623362] xhci-hcd xhci-hcd.0.auto: Assuming host is dying, halting host.
-[  104.653261] xhci-hcd xhci-hcd.0.auto: Host not halted after 16000 microseconds.
-[  104.660584] xhci-hcd xhci-hcd.0.auto: Non-responsive xHCI host is not halting.
-[  104.667817] xhci-hcd xhci-hcd.0.auto: Completing active URBs anyway.
-[  104.674198] xhci-hcd xhci-hcd.0.auto: HC died; cleaning up
-------------------------------------------------------
-As a result, when device detached, we desired to postpone "PORTCSC clear" behind
-"disable slot". it's found that all executed ep command related to disconnetion,
-are executed before "disable slot".
+This patch adds support for Synopsis DesignWare USB3 IP Core found
+on Fujitsu Socs.
 
 Signed-off-by: Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 ---
- drivers/usb/host/xhci-hub.c |    4 ++++
- drivers/usb/host/xhci.c     |   33 +++++++++++++++++++++++++++++++++
- drivers/usb/host/xhci.h     |   24 ++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ .../devicetree/bindings/usb/fujitsu-dwc3.txt       |   33 ++++
+ drivers/usb/dwc3/Kconfig                           |   10 +
+ drivers/usb/dwc3/Makefile                          |    1 +
+ drivers/usb/dwc3/dwc3-fujitsu.c                    |  206 ++++++++++++++++++++
+ 4 files changed, 250 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt
+ create mode 100644 drivers/usb/dwc3/dwc3-fujitsu.c
 
-diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
-index a7865c4..3b8f7fc 100644
---- a/drivers/usb/host/xhci-hub.c
-+++ b/drivers/usb/host/xhci-hub.c
-@@ -368,6 +368,10 @@ static void xhci_clear_port_change_bit(struct xhci_hcd *xhci, u16 wValue,
- 		port_change_bit = "warm(BH) reset";
- 		break;
- 	case USB_PORT_FEAT_C_CONNECTION:
-+		if ((xhci->quirks & XHCI_DISCONNECT_QUIRK) &&
-+		    !(readl(addr) & PORT_CONNECT))
-+			return;
+diff --git a/Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt b/Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt
+new file mode 100644
+index 0000000..fd16fe9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt
+@@ -0,0 +1,33 @@
++FUJITSU GLUE COMPONENTS
 +
- 		status = PORT_CSC;
- 		port_change_bit = "connect";
- 		break;
-diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index ec8ac16..df0125d 100644
---- a/drivers/usb/host/xhci.c
-+++ b/drivers/usb/host/xhci.c
-@@ -3580,6 +3580,37 @@ command_cleanup:
- 	return ret;
- }
++MB86S7x DWC3 GLUE
++- compatible:	Should be "fujitsu,mb86s7x-dwc3"
++- clocks:	from common clock binding, handle to usb clock.
++- clock-names:	Should contain the following:
++  "core"	Master/Core clock needs to run at a minimum of 125 MHz to
++		support a 4 Gbps IN or 4 Gbps OUT
++		transfer at a given time.
++
++Sub-nodes:
++The dwc3 core should be added as subnode to MB86S7x dwc3 glue.
++- dwc3 :
++   The binding details of dwc3 can be found in:
++   Documentation/devicetree/bindings/usb/dwc3.txt
++
++Example device nodes:
++
++	usb3host: mb86s7x_usb3host {
++		compatible = "fujitsu,mb86s7x-dwc3";
++		clocks = <&clk_alw_1_1>;
++		clock-names = "core";
++		#address-cells = <2>;
++		#size-cells = <1>;
++		ranges;
++
++		dwc3@32200000 {
++			compatible = "synopsys,dwc3";
++			reg = <0 0x32300000 0x100000>;
++			interrupts = <0 412 0x4>,
++				<0 414 0x4>;
++		};
++	};
+diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+index edbf9c8..2e145ca 100644
+--- a/drivers/usb/dwc3/Kconfig
++++ b/drivers/usb/dwc3/Kconfig
+@@ -97,6 +97,16 @@ config USB_DWC3_QCOM
+ 	  Recent Qualcomm SoCs ship with one DesignWare Core USB3 IP inside,
+ 	  say 'Y' or 'M' if you have one such device.
  
-+static void xhci_late_csc_clear_quirk(struct usb_hcd *hcd, int port_num)
++config USB_DWC3_FUJITSU
++	tristate "Fujitsu MB86S7x Designware USB3 Platform code"
++	default USB_DWC3
++	help
++	  MB86S7X SOC ship with DesignWare Core USB3 IP inside,
++	  this implementation also integrated Fujitsu USB PHY inside
++	  this Core USB3 IP.
++
++	  say 'Y' or 'M' if you have one such device.
++
+ comment "Debugging features"
+ 
+ config USB_DWC3_DEBUG
+diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
+index 46172f4..a92c747 100644
+--- a/drivers/usb/dwc3/Makefile
++++ b/drivers/usb/dwc3/Makefile
+@@ -37,3 +37,4 @@ obj-$(CONFIG_USB_DWC3_PCI)		+= dwc3-pci.o
+ obj-$(CONFIG_USB_DWC3_KEYSTONE)		+= dwc3-keystone.o
+ obj-$(CONFIG_USB_DWC3_QCOM)		+= dwc3-qcom.o
+ obj-$(CONFIG_USB_DWC3_ST)		+= dwc3-st.o
++obj-$(CONFIG_USB_DWC3_FUJITSU)		+= dwc3-fujitsu.o
+diff --git a/drivers/usb/dwc3/dwc3-fujitsu.c b/drivers/usb/dwc3/dwc3-fujitsu.c
+new file mode 100644
+index 0000000..307a44c
+--- /dev/null
++++ b/drivers/usb/dwc3/dwc3-fujitsu.c
+@@ -0,0 +1,206 @@
++/**
++ * dwc3-fujitsu.c - Fujitsu mb86s7x DWC3 Specific Glue layer
++ *
++ * Copyright (c) 2013 - 2015 FUJITSU SEMICONDUCTOR LIMITED
++ *		http://jp.fujitsu.com/group/fsl
++ *
++ * Authors: Alice Chan <Alice.Chan@tw.fujitsu.com>
++ *	    Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
++ * based on dwc3-exynos.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/interrupt.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/pm_runtime.h>
++#include <linux/clk.h>
++
++struct dwc3_mb86s7x {
++	struct device	*dev;
++	struct clk	*clks[5];
++	u8		clk_cnt;
++};
++
++static int dwc3_mb86s7x_clk_control(struct device *dev, bool on)
 +{
-+	int max_ports;
-+	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
-+	__le32 __iomem **port_array;
-+	u32 status;
++	struct dwc3_mb86s7x *priv = dev_get_drvdata(dev);
++	int ret, i = priv->clk_cnt;
 +
-+	if (hcd->speed == HCD_USB3) {
-+		max_ports = xhci->num_usb3_ports;
-+		port_array = xhci->usb3_ports;
-+	} else {
-+		max_ports = xhci->num_usb2_ports;
-+		port_array = xhci->usb2_ports;
++	if (!on)
++		goto clock_off;
++
++	for (i = 0; i < priv->clk_cnt; i++) {
++		ret = clk_prepare_enable(priv->clks[i]);
++		if (ret) {
++			dev_err(dev, "failed to enable clock[%d]\n", i);
++			on = ret;
++			goto clock_off;
++		}
 +	}
 +
-+	if (port_num > max_ports) {
-+		xhci_err(xhci, "%s() port number invalid", __func__);
-+		return;
-+	}
-+	status = readl(port_array[port_num - 1]);
++	return 0;
 +
-+	/*
-+	 * clearing the connect status bit will now immediately suspend these
-+	 * quirky controllers.
-+	 */
-+	if (!(status & PORT_CONNECT) && (status & PORT_CSC)) {
-+		status = xhci_port_state_to_neutral(status);
-+		writel(status | PORT_CSC, port_array[port_num - 1]);
-+	}
++clock_off:
++	for (; i > 0;)
++		clk_disable_unprepare(priv->clks[--i]);
++
++	return on;
 +}
 +
- /*
-  * At this point, the struct usb_device is about to go away, the device has
-  * disconnected, and all traffic has been stopped and the endpoints have been
-@@ -3645,6 +3676,8 @@ void xhci_free_dev(struct usb_hcd *hcd, struct usb_device *udev)
- 	xhci_ring_cmd_db(xhci);
- 	spin_unlock_irqrestore(&xhci->lock, flags);
- 
-+	if (xhci->quirks & XHCI_DISCONNECT_QUIRK)
-+		xhci_late_csc_clear_quirk(hcd, udev->portnum);
- 	/*
- 	 * Event command completion handler will free any data structures
- 	 * associated with the slot.  XXX Can free sleep?
-diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
-index 9745147..cb74706 100644
---- a/drivers/usb/host/xhci.h
-+++ b/drivers/usb/host/xhci.h
-@@ -1560,6 +1560,30 @@ struct xhci_hcd {
- #define XHCI_SPURIOUS_WAKEUP	(1 << 18)
- /* For controllers with a broken beyond repair streams implementation */
- #define XHCI_BROKEN_STREAMS	(1 << 19)
-+/*
-+ * This issue is defined by a three-way race at disconnect in Synopsis USB3 IP,
-+ * between
-+ * 1) Class driver interrupt endpoint resheduling attempts if the ISR gave an ep
-+ *    error event due to device detach (it would try 3 times)
-+ * 2) Disconnect interrupt on PORTSC_CSC, which is cleared by hub thread
-+ *    asynchronously
-+ * 3) The hardware IP was configured in silicon with
-+ *    - DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1
-+ *    - Synopsys IP version is < 3.00a
-+ *    The IP will auto-suspend itself on device detach with some phy-specific
-+ *    interval after CSC is cleared by 2)
-+ *
-+ * If 2) and 3) complete before 1), the interrupts it expects will not be
-+ * generated by the autosuspended IP, leading to a deadlock. Even later
-+ * disconnection procedure would detect that corresponding urb is still
-+ * in-progress and issue a ep stop command, auto-suspended IP still won't
-+ * respond to that command.
-+ *
-+ * As a result, when device detached, it's needed to postpone "PORTCSC clear"
-+ * behind "disable slot". it's found that all executed ep command related to
-+ * disconnetion, are executed before "disable slot".
-+ */
-+#define XHCI_DISCONNECT_QUIRK	(1 << 20)
- 	unsigned int		num_active_eps;
- 	unsigned int		limit_active_eps;
- 	/* There are two roothubs to keep track of bus suspend info for */
++static int dwc3_mb86s7x_remove_child(struct device *dev, void *unused)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++
++	of_device_unregister(pdev);
++
++	return 0;
++}
++
++static int dwc3_mb86s7x_probe(struct platform_device *pdev)
++{
++	struct dwc3_mb86s7x	*priv;
++	struct device		*dev = &pdev->dev;
++	struct device_node	*node = dev->of_node;
++	int			ret, i;
++	struct clk		*clk;
++
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	platform_set_drvdata(pdev, priv);
++	priv->dev = dev;
++
++	dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
++
++	for (i = 0; i < ARRAY_SIZE(priv->clks); i++) {
++		clk = of_clk_get(dev->of_node, i);
++		if (IS_ERR(clk))
++			break;
++		priv->clks[i] = clk;
++	}
++	priv->clk_cnt = i;
++	if (!i) {
++		dev_err(dev, "clock not found\n");
++		ret = PTR_ERR(clk);
++		goto err;
++	}
++
++	ret = dwc3_mb86s7x_clk_control(dev, true);
++	if (ret)
++		goto err_clk;
++
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get(dev);
++	if (ret < 0) {
++		dev_err(dev, "get_sync failed with err %d\n", ret);
++		ret = -ENODEV;
++		goto err_pm;
++	}
++
++	if (node) {
++		ret = of_platform_populate(node, NULL, NULL, dev);
++		if (!ret)
++			return 0;
++		dev_err(dev, "failed to add dwc3 core\n");
++	}
++	dev_err(dev, "no device node, failed to add dwc3 core\n");
++	ret = -ENODEV;
++
++	pm_runtime_put_sync(dev);
++err_pm:
++	pm_runtime_disable(dev);
++err_clk:
++	for (i = 0; i < priv->clk_cnt; i++)
++		clk_put(priv->clks[i]);
++err:
++
++	return ret;
++}
++
++static int dwc3_mb86s7x_remove(struct platform_device *pdev)
++{
++	struct dwc3_mb86s7x *priv = dev_get_drvdata(&pdev->dev);
++	int i;
++
++	device_for_each_child(&pdev->dev, NULL, dwc3_mb86s7x_remove_child);
++
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
++	dwc3_mb86s7x_clk_control(&pdev->dev, false);
++
++	for (i = 0; i < priv->clk_cnt ; i++)
++		clk_put(priv->clks[i]);
++
++	return 0;
++}
++
++static const struct of_device_id mb86s7x_dwc3_match[] = {
++	{ .compatible = "fujitsu,mb86s7x-dwc3" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, mb86s7x_dwc3_match);
++
++#ifdef CONFIG_PM_SLEEP
++static int dwc3_mb86s7x_suspend(struct device *dev)
++{
++	dwc3_mb86s7x_clk_control(dev, false);
++
++	return 0;
++}
++
++static int dwc3_mb86s7x_resume(struct device *dev)
++{
++	int ret;
++
++	ret = dwc3_mb86s7x_clk_control(dev, true);
++	if (ret)
++		return ret;
++
++	/* runtime set active to reflect active state. */
++	pm_runtime_disable(dev);
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++
++	return 0;
++}
++
++static const struct dev_pm_ops dwc3_mb86s7x_dev_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(dwc3_mb86s7x_suspend, dwc3_mb86s7x_resume)
++};
++
++#define DEV_PM_OPS	(&dwc3_mb86s7x_dev_pm_ops)
++#else
++#define DEV_PM_OPS	NULL
++#endif /* CONFIG_PM_SLEEP */
++
++static struct platform_driver dwc3_mb86s7x_driver = {
++	.probe		= dwc3_mb86s7x_probe,
++	.remove		= dwc3_mb86s7x_remove,
++	.driver		= {
++		.name	= "mb86s7x-dwc3",
++		.of_match_table = of_match_ptr(mb86s7x_dwc3_match),
++		.pm	= DEV_PM_OPS,
++	},
++};
++
++module_platform_driver(dwc3_mb86s7x_driver);
++
++MODULE_ALIAS("platform:mb86s7x-dwc3");
++MODULE_AUTHOR("Alice Chan <Alice.Chan@tw.fujitsu.com>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("DesignWare USB3 mb86s7x Glue Layer");
 -- 
 1.7.9.5
