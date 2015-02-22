@@ -1,79 +1,103 @@
-From: =?UTF-8?q?Thomas=20Niederpr=C3=BCm?= <niederp@physik.uni-kl.de>
-Subject: [PATCH v2 RESEND] ASoC: OMAP: mcbsp: ensure that CLKX and CLKR are not used as ouput pins when they are used as input clock for the SRG.
-Date: Sat, 21 Feb 2015 18:11:29 +0100
-Message-ID: <1424538689-6330-1-git-send-email-niederp@physik.uni-kl.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Sneeker Yeh <sneeker.yeh@gmail.com>
+Subject: [PATCH v5 0/5] Add support for Fujitsu USB host controller
+Date: Sun, 22 Feb 2015 12:25:35 +0800
+Message-ID: <1424579140-30567-1-git-send-email-Sneeker.Yeh@tw.fujitsu.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailgw1.uni-kl.de ([131.246.120.220]:44192 "EHLO
-	mailgw1.uni-kl.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbbBURJD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Feb 2015 12:09:03 -0500
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:36873 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751726AbbBVEZ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Feb 2015 23:25:56 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@kernel.org, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, =?UTF-8?q?Thomas=20Niederpr=C3=BCm?= <niederp@physik.uni-kl.de>
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mathias Nyman <mathias.nyman@intel.com>, Grant Likely <grant.likely@linaro.org>, Huang Rui <ray.huang@amd.com>, Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Andy Green <andy.green@linaro.org>, Jassi Brar <jaswinder.singh@linaro.org>, Sneeker Yeh <Sneeker.Yeh@tw.fujitsu.com>
 
-This patch fixes faulty behaviour in a setup where the input clock for =
-the
-SRG is fed through the CLKR/CLKX pin but the McBSP is configured to be
-master (SND_SOC_DAIFMT_CBS_CFS). In that case of course CLKR/CLKX must
-not be configured as output pin. Otherwise the input clock is messed up
-horribly.
+These patches add support for XHCI compliant Host controller found
+on Fujitsu Socs, and are based on http://lwn.net/Articles/629162/
+The first patch is to add Fujitsu glue layer of Synopsis DesignWare USB3 driver
+and last four patch is about quirk implementation of errata in Synopsis
+DesignWare USB3 IP.
 
-This patch makes it possible to use the CLKR/CLKX pin rather than CLKS =
-to
-inject a reference clock in setups where McBSP is master and not both
-rx and tx are used. However for this to work it has to be ensured that
-set_dai_sysclk() is called after set_dai_fmt().
+Patch 1 introduces a quirk with device disconnection management necessary
+Synopsys Designware USB3 IP with versions < 3.00a and hardware configuration
+DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1. It solves a problem where without the
+quirk, that host controller will die after a usb device is disconnected from
+port of root hub.
 
-This was tested on a beagleboard-xm using McBSP1 to drive a i2s DAC thr=
-ough
-the tx lines (CLKX,FSX,DX). Using this patch the CLKR pin is used to in=
-ject
-an external reference clock.
+Patch 2 is to set Synopsis quirk in xhci platform driver based on xhci platform
+data.
 
-Signed-off-by: Thomas Niederpr=C3=BCm <niederp@physik.uni-kl.de>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-changes since v1:
-- added comments explaining the bit masking to disable output on CLKR/C=
-LKX
+Patch 3 is to add a revison number 2.90a and 3.00a of Synopsis DesignWare USB3
+IP core driver.
 
- sound/soc/omap/omap-mcbsp.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Patch 4 introduces using a quirk based on a errata of Synopsis
+DesignWare USB3 IP which is versions < 3.00a and has hardware configuration
+DWC_USB3_SUSPEND_ON_DISCONNECT_EN=1, which cannot be read from software. As a
+result this quirk has to be enabled via platform data or device tree.
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index bd3ef2a..662269c 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -530,8 +530,19 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct sn=
-d_soc_dai *cpu_dai,
-=20
- 	case OMAP_MCBSP_SYSCLK_CLKX_EXT:
- 		regs->srgr2	|=3D CLKSM;
-+		regs->pcr0	|=3D SCLKME;
-+		/*
-+		 * If McBSP is master but yet the CLKX/CLKR pin drives the SRG,
-+		 * disable output on those pins. This enables to inject the
-+		 * reference clock through CLKX/CLKR. For this to work
-+		 * set_dai_sysclk() _needs_ to be called after set_dai_fmt().
-+		 */
-+		regs->pcr0	&=3D ~CLKXM;
-+		break;
- 	case OMAP_MCBSP_SYSCLK_CLKR_EXT:
- 		regs->pcr0	|=3D SCLKME;
-+		/* Disable ouput on CLKR pin in master mode */
-+		regs->pcr0	&=3D ~CLKRM;
- 		break;
- 	default:
- 		err =3D -ENODEV;
---=20
-2.1.1
+Patch 5 introduces Fujitsu Specific Glue layer in Synopsis DesignWare USB3 IP
+driver. 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Successfully tested on Fujitsu mb86s7x board.
+
+Changes since v4 (RFC):
+[https://lkml.org/lkml/2015/2/17/13]
+ - based on Felipe's comment, rename dwc3-mb86s70.c to dwc3-fujitsu.c which is
+   more generic.
+ - based on Mathias's comment, remove unhelpful comment, and change the
+   function name of xhci_try_to_clear_csc() to xhci_late_csc_clear_quirk()
+   which is more appropriate.  
+
+Changes since v3 (RFC):
+[https://lkml.org/lkml/2015/1/25/8]
+ - based on Mathias's comment, fix bug and using xhci_port_state_to_neutral()
+   helper function to mask out some RW1C bits, prevent writing back all the
+   bits read from the PORTSC register.
+
+Changes since v2 (RFC):
+[https://lkml.org/lkml/2015/1/19/55]
+ - based on Felipe's comment, re-order patches to avoid breaking bisectability,
+ - based on Felipe's comment, add comment to structure's member, and sort it
+   alphabetically,
+ - based on Felipe's comment, add another v2.90 revision number in dwc3 IP.
+
+Changes since v1 (RFC):
+[https://lkml.org/lkml/2014/12/15/929]
+ - based on Arnd's comment, remove entire unnecessary Fujitsu EHCI/OHCI glue,
+ - based on Felipe's comment, fix mis-using of runtime-pm API and setting dma
+   mask, remove unnecessary comment, and refactor suspend/resume handler in
+   Fujitsu Specific Glue layer in dwc3,
+ - based on Felipe's comment, add more commit log and comments in Synopsis
+   quirk implementation, and separate it into four patches.
+
+Sneeker Yeh (5):
+  xhci: add a quirk for device disconnection errata for Synopsis
+    Designware USB3     core
+  xhci: Platform: Set Synopsis device disconnection quirk based on
+    platform data
+  usb: dwc3: add revision number DWC3_REVISION_290A and
+    DWC3_REVISION_300A
+  usb: dwc3: Add quirk for Synopsis device disconnection errata
+  usb: dwc3: add Fujitsu Specific Glue layer
+
+ Documentation/devicetree/bindings/usb/dwc3.txt     |   17 ++
+ .../devicetree/bindings/usb/fujitsu-dwc3.txt       |   33 ++++
+ drivers/usb/dwc3/Kconfig                           |   10 +
+ drivers/usb/dwc3/Makefile                          |    1 +
+ drivers/usb/dwc3/core.c                            |    6 +
+ drivers/usb/dwc3/core.h                            |    6 +
+ drivers/usb/dwc3/dwc3-fujitsu.c                    |  206 ++++++++++++++++++++
+ drivers/usb/dwc3/host.c                            |    4 +
+ drivers/usb/dwc3/platform_data.h                   |    8 +
+ drivers/usb/host/xhci-hub.c                        |    4 +
+ drivers/usb/host/xhci-plat.c                       |    3 +
+ drivers/usb/host/xhci.c                            |   33 ++++
+ drivers/usb/host/xhci.h                            |   24 +++
+ include/linux/usb/xhci_pdriver.h                   |    4 +
+ 14 files changed, 359 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/fujitsu-dwc3.txt
+ create mode 100644 drivers/usb/dwc3/dwc3-fujitsu.c
+
+-- 
+1.7.9.5
+
