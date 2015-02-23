@@ -1,79 +1,106 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v5 3/7] DT: update ti,irq-crossbar binding
-Date: Mon, 23 Feb 2015 17:44:15 +0000
-Message-ID: <1424713459-6824-4-git-send-email-marc.zyngier@arm.com>
-References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked domains
+Date: Mon, 23 Feb 2015 17:44:12 +0000
+Message-ID: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60568 "EHLO
+Received: from foss.arm.com ([217.140.101.70]:60542 "EHLO
 	usa-sjc-mx-foss1.foss.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752489AbbBWRoi (ORCPT
+	by vger.kernel.org with ESMTP id S1752580AbbBWRoa (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2015 12:44:38 -0500
-In-Reply-To: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
+	Mon, 23 Feb 2015 12:44:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Make it look like a real interrupt controller.
+This series is extracted from [4], which is trying to remove all
+traces of gic_arch_extn from the tree. As some maintainers are more
+responsive than others (understatement of the year...), I've decided
+to split it per sub-arch, and get it moving, at least partially.
 
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- .../devicetree/bindings/arm/omap/crossbar.txt          | 18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+This series addresses OMAP{4,5} by converting the WUGEN to stacked
+domains. The DRA7 crossbar gets the same treatment.
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-index 4139db3..a9b28d7 100644
---- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-@@ -9,7 +9,9 @@ inputs.
- Required properties:
- - compatible : Should be "ti,irq-crossbar"
- - reg: Base address and the size of the crossbar registers.
--- ti,max-irqs: Total number of irqs available at the interrupt controller.
-+- interrupt-controller: indicates that this block is an interrupt controller.
-+- interrupt-parent: the interrupt controller this block is connected to.
-+- ti,max-irqs: Total number of irqs available at the parent interrupt controller.
- - ti,max-crossbar-sources: Maximum number of crossbar sources that can be routed.
- - ti,reg-size: Size of a individual register in bytes. Every individual
- 	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
-@@ -27,13 +29,13 @@ Optional properties:
-   when the interrupt controller irq is unused (when not provided, default is 0)
- 
- Examples:
--		crossbar_mpu: @4a020000 {
-+		crossbar_mpu: crossbar@4a002a48 {
- 			compatible = "ti,irq-crossbar";
- 			reg = <0x4a002a48 0x130>;
- 			ti,max-irqs = <160>;
- 			ti,max-crossbar-sources = <400>;
- 			ti,reg-size = <2>;
--			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
-+			ti,irqs-reserved = <0 1 2 3 5 6 131 132>;
- 			ti,irqs-skip = <10 133 139 140>;
- 		};
- 
-@@ -44,10 +46,6 @@ Documentation/devicetree/bindings/arm/gic.txt for further details.
- 
- An interrupt consumer on an SoC using crossbar will use:
- 	interrupts = <GIC_SPI request_number interrupt_level>
--When the request number is between 0 to that described by
--"ti,max-crossbar-sources", it is assumed to be a crossbar mapping. If the
--request_number is greater than "ti,max-crossbar-sources", then it is mapped as a
--quirky hardware mapping direct to GIC.
- 
- Example:
- 	device_x@0x4a023000 {
-@@ -55,9 +53,3 @@ Example:
- 		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
- 		...
- 	};
--
--	device_y@0x4a033000 {
--		/* Direct mapped GIC SPI 1 used */
--		interrupts = <GIC_SPI DIRECT_IRQ(1) IRQ_TYPE_LEVEL_HIGH>;
--		...
--	};
+It is worth realizing that:
+
+- I haven't been able to test this as much as I would have wanted to
+  (it's only been tested on omap4 and omap5).
+
+- This actively *breaks* existing setups. Once you boot a new kernel
+  with an old DT, suspend/resume *will* be broken. Old kernels on a
+  new DT won't even boot! You've been warned. This really outline the
+  necessity of actually describing the HW in device trees...
+
+Based on 4.0-rc1.
+
+* From v4: [4]
+- Extracted from the full series
+- Rebased on 4.0-rc1
+
+* From v3 [3]:
+- Rebased on top of the patch working around hardcoded IRQ on OMAP4/5 [4]
+- Fixed more iMX6 DTs (Stephan)
+- Fixed Exynos4/5 DTs
+
+* From v2 [2]:
+- Addressed numerous comments from Thierry
+- Merged bug fixes from Nishanth
+- Merged bug fix from Stefan
+
+* From v1 [1]:
+- Rebased on 3.19-rc3
+- Fixed a number of additional platforms
+- Added crossbar conversion to stacked domains
+- Merged bug fixes from Nishanth
+
+[4]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/317531.html
+[3]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/315385.html
+[2]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/314041.html
+[1]: http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/307338.html
+
+Marc Zyngier (7):
+  genirq: Add irqchip_set_wake_parent
+  irqchip: crossbar: convert dra7 crossbar to stacked domains
+  DT: update ti,irq-crossbar binding
+  irqchip: GIC: get rid of routable domain
+  DT: arm,gic: kill arm,routable-irqs
+  DT: omap4/5: add binding for the wake-up generator
+  ARM: omap: convert wakeupgen to stacked domains
+
+ Documentation/devicetree/bindings/arm/gic.txt      |   6 -
+ .../devicetree/bindings/arm/omap/crossbar.txt      |  18 +-
+ .../interrupt-controller/ti,omap4-wugen-mpu        |  33 ++++
+ arch/arm/boot/dts/am4372.dtsi                      |  11 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   1 -
+ arch/arm/boot/dts/am437x-sk-evm.dts                |   1 -
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   1 -
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            |   3 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |   2 +-
+ arch/arm/boot/dts/dra7.dtsi                        |  43 +++--
+ arch/arm/boot/dts/dra72-evm.dts                    |   1 -
+ arch/arm/boot/dts/dra72x.dtsi                      |   3 +-
+ arch/arm/boot/dts/dra74x.dtsi                      |   5 +-
+ arch/arm/boot/dts/omap4-duovero.dtsi               |   2 -
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
+ arch/arm/boot/dts/omap4-sdp.dts                    |   8 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi          |   2 -
+ arch/arm/boot/dts/omap4.dtsi                       |  18 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |   1 -
+ arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
+ arch/arm/boot/dts/omap5.dtsi                       |  26 ++-
+ arch/arm/mach-omap2/omap-wakeupgen.c               | 125 ++++++++++---
+ arch/arm/mach-omap2/omap-wakeupgen.h               |   1 -
+ arch/arm/mach-omap2/omap4-common.c                 |  21 +--
+ drivers/irqchip/irq-crossbar.c                     | 207 ++++++++++++---------
+ drivers/irqchip/irq-gic.c                          |  59 +-----
+ include/linux/irq.h                                |   1 +
+ include/linux/irqchip/arm-gic.h                    |   6 -
+ include/linux/irqchip/irq-crossbar.h               |  11 --
+ kernel/irq/chip.c                                  |  16 ++
+ 30 files changed, 364 insertions(+), 278 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+ delete mode 100644 include/linux/irqchip/irq-crossbar.h
+
 -- 
 2.1.4
 
