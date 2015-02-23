@@ -1,43 +1,68 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/2] ARM: omap2plus_defconfig: Fix SATA boot
-Date: Mon, 23 Feb 2015 17:18:37 +0200
-Message-ID: <1424704717-29728-3-git-send-email-rogerq@ti.com>
-References: <1424704717-29728-1-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v5 1/7] genirq: Add irqchip_set_wake_parent
+Date: Mon, 23 Feb 2015 17:44:13 +0000
+Message-ID: <1424713459-6824-2-git-send-email-marc.zyngier@arm.com>
+References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53133 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082AbbBWPTa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2015 10:19:30 -0500
-In-Reply-To: <1424704717-29728-1-git-send-email-rogerq@ti.com>
+Received: from foss.arm.com ([217.140.101.70]:60552 "EHLO
+	usa-sjc-mx-foss1.foss.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752611AbbBWRod (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Feb 2015 12:44:33 -0500
+In-Reply-To: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, grinberg@compulab.co.il, grygorii.strashko@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-SATA operation depends on PIPE3 PHY and if we want
-to boot from SATA drives, we have to have the PIPE3 PHY
-driver built-in.
+This proves to be useful with stacked domains, when the current
+domain doesn't implement wake-up, but expect the parent to do so.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/irq.h |  1 +
+ kernel/irq/chip.c   | 16 ++++++++++++++++
+ 2 files changed, 17 insertions(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index b674245..088096f 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -375,7 +375,7 @@ CONFIG_PWM_TIEHRPWM=m
- CONFIG_PWM_TWL=m
- CONFIG_PWM_TWL_LED=m
- CONFIG_OMAP_USB2=m
--CONFIG_TI_PIPE3=m
-+CONFIG_TI_PIPE3=y
- CONFIG_EXT2_FS=y
- CONFIG_EXT3_FS=y
- # CONFIG_EXT3_FS_XATTR is not set
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index d09ec7a..3057c48 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -460,6 +460,7 @@ extern void irq_chip_eoi_parent(struct irq_data *data);
+ extern int irq_chip_set_affinity_parent(struct irq_data *data,
+ 					const struct cpumask *dest,
+ 					bool force);
++extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on);
+ #endif
+ 
+ /* Handling of unhandled and spurious interrupts: */
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 6f1c7a5..eb9a4ea 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -948,6 +948,22 @@ int irq_chip_retrigger_hierarchy(struct irq_data *data)
+ 
+ 	return -ENOSYS;
+ }
++
++/**
++ * irq_chip_set_wake_parent - Set/reset wake-up on the parent interrupt
++ * @data:	Pointer to interrupt specific data
++ * @on:		Whether to set or reset the wake-up capability of this irq
++ *
++ * Conditional, as the underlying parent chip might not implement it.
++ */
++int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
++{
++	data = data->parent_data;
++	if (data->chip->irq_set_wake)
++		return data->chip->irq_set_wake(data, on);
++
++	return -ENOSYS;
++}
+ #endif
+ 
+ /**
 -- 
-2.1.0
+2.1.4
 
