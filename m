@@ -1,101 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-Date: Mon, 23 Feb 2015 14:03:23 -0800
-Message-ID: <20150223220322.GI32521@atomide.com>
-References: <1424101741-24152-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <1424101741-24152-2-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <1424101741-24152-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <54E2F803.3070901@ti.com>
- <CAMdRc4F9B0ft-ExgQ1vHqwXMiONwWKn3FPCRDyHsjgGe1Dn_1w@mail.gmail.com>
- <54E34786.1010102@ti.com>
- <CAMdRc4F1Ja2Y96W_VESuS=tueYE8Q+iWmoiJW2dj+6-HeDzNqQ@mail.gmail.com>
- <54E34F73.2080108@ti.com>
- <CAMdRc4Gj5MM9TdjiQtCqHcy4b3wAKB2Sx4MfncUNnsrntWRz1Q@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: "advanced" LED controllers
+Date: Mon, 23 Feb 2015 23:34:57 +0100
+Message-ID: <20150223223457.GA4073@amd>
+References: <20150219211424.GN13603@saruman.tx.rr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-leds-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMdRc4Gj5MM9TdjiQtCqHcy4b3wAKB2Sx4MfncUNnsrntWRz1Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
-Cc: Roger Quadros <rogerq@ti.com>, khilman@deeprootsystems.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, Linux Kernel Maling List <linux-kernel@vger.kernel.org>
+In-Reply-To: <20150219211424.GN13603@saruman.tx.rr.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Robert Abel <rabel@cit-ec.uni-bielefeld.de> [150223 13:42]:
-> On Tue, Feb 17, 2015 at 3:25 PM, Roger Quadros <rogerq@ti.com> wrote:
-> > one more thing to note is that just specifying sync-clk-ps in DT is not enough for
-> > asynchronous devices.
-> >
-> > The driver doesn't set gpmc_t->sync_clk if "gpmc,sync-read" or "gpmc,sync-write"
-> > was not set in the DT, which would be the case for asynchronous devices.
+On Thu 2015-02-19 15:14:24, Felipe Balbi wrote:
+> Hi,
 > 
-> You're mistaken. It's always parsed, no matter what. See [1]. But I
-> did implement your suggestion of computing the divider in the mean
-> time. I'm going to send the patches rebased to 3.19 tomorrow, after I
-> tested them.
+> Do we have support for LED controllers which can handle patterns of
+> different kinds ? I mean, currently, if we have an LED controller such
+> as TPIC2810 [1] which can control 8 different leds and each LED
+> corresponds to one bit on register 0x44, we could control leds by just
+> "playing" a wave file on the controller and create easy patterns with
+> that.
 > 
-> > What is your proposal to make things better? And what is your use case that doesn't
-> > work with existing setup?
+> AFAICT, in linux today we would have to register each of the 8 LEDs as a
+> different LED and have driver magic to write the proper bits on register
+> 0x44, that seems a bit overkill, specially when we want to make
+> patterns: instead of writing 0xff we would have to write 0x80, 0x40,
+> 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 separately and have the driver cache
+> the previous results so we don't end up switching off other LEDs.
 > 
-> Well, the current setup was obviously inspired by an asynchronous-only
-> use-case, where all the timings are in seconds and get converted
-> on-the-fly. Of course, currently, there is no support to re-compute
-> them once the gpmc_fclk changes frequency, but I guess that's what the
-> TODO about the clock framework is about?
+> IOW, what could be handled with a single write, currently needs 8.
 > 
-> Anyway, my synchronous use-case is inherently... synchronous.
-> Synchronous protocols shouldn't be specified in ns at all. They should
-> directly be specified in clock ticks. This is also advantageous, as
-> changes in gpmc_fclk don't need to propagate to the registers.
+> I wonder if there's any work happening to support these slightly more
+> inteligent LED engines.
 > 
-> My main grief with the current setup is its dependency on the
-> *unknown* gpmc_fclk period at startup when the DT is processed and
-> GPMC code is called. For instance, my private DT currently operates on
-> the assumption of 166 Mhz L3 clk (and therefore gpmc_fclk), so all my
-> timings are in multiples of 6 ns. Should now a colleague of mine think
-> it would be a splendid idea to change this frequency by means of
-> bootloader options [to save power, to process data even faster, etc],
-> everything would break, because the L3 might have to be clocked at 100
-> MHz (due to divider limits along the clock tree for example) thus
-> making my gpmc_fclk period 10ns. Now all my synchronous timings are
-> wrong, because all DT values round to different clock ticks.
+> regards
 > 
-> One solution would obviously be very verbose: Split synchronous and
-> asynchronous timings completely. Have a time-ns and a time-tck (where
-> time is waitmonitoring, or readaccess etc) setting for different use
-> cases. This would work for truly asynchronous (read _and_ write
-> asynchronous) as well as truly synchronous (read _and_ write
-> synchronous) setups.
+> [1] http://www.ti.com/product/tpic2810
 > 
-> This 'simple' model breaks for parts where one form of access is
-> synchronous while the other is asynchronous, e.g. Spansion WS/NS/VS
-> parts, see [2] pg. 10. There's no easy solution for mixed timings,
-> because some timing parameters are shared between synchronous and
-> asynchronous accesses (WAITMONITORINGTIME, CSONTIME, ADVONTIME,
-> WRDATAONADMUXBUS etc.). One obvious solution is to try to slow the
-> synchronous side down until asynchronous timings can be met, but that
-> would make for very slow accesses in most cases.
-> 
-> For instance, I originally started out thinking the GPMC would run at
-> 100 MHz externally -- because it's the max frequency rating -- only to
-> be surprised when the clock looked weird on the GPMC_CLK pin, because
-> it was at 166 MHz. I'm not sure how to completely remedy this, but
-> specifying timings in ns in DT and then depending on the correct board
-> frequency is kind of shady... :(
+> ps: tpic2810 is probably the simplest example, lp551, lp5523 and others
+> have even more advanced pattern engines which can even handle RGB leds.
 
-There have been few gpmc devices that were configured to work with
-changing L3 frequencies. For the related retime function, maybe take
-a look at the code removed for tusb_set_sync_mode() in commit
-47acde167260. Just specifying the ticks is not enough there either..
+Well... some more advanced pattern engines can actually run code, up
+to and including prime number computation. So yes, this is complex,
+and how to handle it nicely is a question...
 
-Sorry I don't have a solution to how the timings should be specified,
-but both timings and ticks are needed it seems.
+I have "notcc" to compile for that.
 
-Regards,
+#!/usr/bin/python3
+#
+# NOTification Compiler
+#
+# for LP5523 chip.
+#
+# Copyright 2014 Pavel Machek <pavel@ucw.cz>, GPLv3
+#
+# http://wiki.maemo.org/LED_patterns#Lysti_Format_Engine_Patterns_and_Commands
+# http://www.ti.com/general/docs/lit/getliterature.tsp?genericPartNumber=lp5523&fileType=pdf
+#
+# Seems to have A,B local variables, C global variable,
+#
+# 2.6.28-omap1 seems to cut execution after 16 steps.
 
-Tony
- 
-> [1]: http://lxr.free-electrons.com/source/drivers/memory/omap-gpmc.c#L1509
-> [2]: http://processors.wiki.ti.com/images/5/56/SpansionNOR-AM35x.pdf ;
-> ("WS/NS/VS can be used for synchronous burst read / asynchronous
-> single write")
+import sys
+
+
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
