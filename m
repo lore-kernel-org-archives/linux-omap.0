@@ -1,106 +1,149 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked domains
-Date: Mon, 23 Feb 2015 17:44:12 +0000
-Message-ID: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v5 4/7] irqchip: GIC: get rid of routable domain
+Date: Mon, 23 Feb 2015 17:44:16 +0000
+Message-ID: <1424713459-6824-5-git-send-email-marc.zyngier@arm.com>
+References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60542 "EHLO
+Received: from foss.arm.com ([217.140.101.70]:60580 "EHLO
 	usa-sjc-mx-foss1.foss.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752580AbbBWRoa (ORCPT
+	by vger.kernel.org with ESMTP id S1751845AbbBWRok (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2015 12:44:30 -0500
+	Mon, 23 Feb 2015 12:44:40 -0500
+In-Reply-To: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This series is extracted from [4], which is trying to remove all
-traces of gic_arch_extn from the tree. As some maintainers are more
-responsive than others (understatement of the year...), I've decided
-to split it per sub-arch, and get it moving, at least partially.
+The only user of the so called "routable domain" functionality
+now being fixed, let's clean up the GIC.
 
-This series addresses OMAP{4,5} by converting the WUGEN to stacked
-domains. The DRA7 crossbar gets the same treatment.
+Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+---
+ drivers/irqchip/irq-gic.c       | 59 ++++-------------------------------------
+ include/linux/irqchip/arm-gic.h |  6 -----
+ 2 files changed, 5 insertions(+), 60 deletions(-)
 
-It is worth realizing that:
-
-- I haven't been able to test this as much as I would have wanted to
-  (it's only been tested on omap4 and omap5).
-
-- This actively *breaks* existing setups. Once you boot a new kernel
-  with an old DT, suspend/resume *will* be broken. Old kernels on a
-  new DT won't even boot! You've been warned. This really outline the
-  necessity of actually describing the HW in device trees...
-
-Based on 4.0-rc1.
-
-* From v4: [4]
-- Extracted from the full series
-- Rebased on 4.0-rc1
-
-* From v3 [3]:
-- Rebased on top of the patch working around hardcoded IRQ on OMAP4/5 [4]
-- Fixed more iMX6 DTs (Stephan)
-- Fixed Exynos4/5 DTs
-
-* From v2 [2]:
-- Addressed numerous comments from Thierry
-- Merged bug fixes from Nishanth
-- Merged bug fix from Stefan
-
-* From v1 [1]:
-- Rebased on 3.19-rc3
-- Fixed a number of additional platforms
-- Added crossbar conversion to stacked domains
-- Merged bug fixes from Nishanth
-
-[4]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/317531.html
-[3]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/315385.html
-[2]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/314041.html
-[1]: http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/307338.html
-
-Marc Zyngier (7):
-  genirq: Add irqchip_set_wake_parent
-  irqchip: crossbar: convert dra7 crossbar to stacked domains
-  DT: update ti,irq-crossbar binding
-  irqchip: GIC: get rid of routable domain
-  DT: arm,gic: kill arm,routable-irqs
-  DT: omap4/5: add binding for the wake-up generator
-  ARM: omap: convert wakeupgen to stacked domains
-
- Documentation/devicetree/bindings/arm/gic.txt      |   6 -
- .../devicetree/bindings/arm/omap/crossbar.txt      |  18 +-
- .../interrupt-controller/ti,omap4-wugen-mpu        |  33 ++++
- arch/arm/boot/dts/am4372.dtsi                      |  11 +-
- arch/arm/boot/dts/am437x-gp-evm.dts                |   1 -
- arch/arm/boot/dts/am437x-sk-evm.dts                |   1 -
- arch/arm/boot/dts/am43x-epos-evm.dts               |   1 -
- arch/arm/boot/dts/am57xx-beagle-x15.dts            |   3 +-
- arch/arm/boot/dts/dra7-evm.dts                     |   2 +-
- arch/arm/boot/dts/dra7.dtsi                        |  43 +++--
- arch/arm/boot/dts/dra72-evm.dts                    |   1 -
- arch/arm/boot/dts/dra72x.dtsi                      |   3 +-
- arch/arm/boot/dts/dra74x.dtsi                      |   5 +-
- arch/arm/boot/dts/omap4-duovero.dtsi               |   2 -
- arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
- arch/arm/boot/dts/omap4-sdp.dts                    |   8 +-
- arch/arm/boot/dts/omap4-var-som-om44.dtsi          |   2 -
- arch/arm/boot/dts/omap4.dtsi                       |  18 +-
- arch/arm/boot/dts/omap5-cm-t54.dts                 |   1 -
- arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
- arch/arm/boot/dts/omap5.dtsi                       |  26 ++-
- arch/arm/mach-omap2/omap-wakeupgen.c               | 125 ++++++++++---
- arch/arm/mach-omap2/omap-wakeupgen.h               |   1 -
- arch/arm/mach-omap2/omap4-common.c                 |  21 +--
- drivers/irqchip/irq-crossbar.c                     | 207 ++++++++++++---------
- drivers/irqchip/irq-gic.c                          |  59 +-----
- include/linux/irq.h                                |   1 +
- include/linux/irqchip/arm-gic.h                    |   6 -
- include/linux/irqchip/irq-crossbar.h               |  11 --
- kernel/irq/chip.c                                  |  16 ++
- 30 files changed, 364 insertions(+), 278 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
- delete mode 100644 include/linux/irqchip/irq-crossbar.h
-
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 4634cf7..e3ca6da 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -798,15 +798,12 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
+ 		irq_domain_set_info(d, irq, hw, &gic_chip, d->host_data,
+ 				    handle_fasteoi_irq, NULL, NULL);
+ 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
+-
+-		gic_routable_irq_domain_ops->map(d, irq, hw);
+ 	}
+ 	return 0;
+ }
+ 
+ static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
+ {
+-	gic_routable_irq_domain_ops->unmap(d, irq);
+ }
+ 
+ static int gic_irq_domain_xlate(struct irq_domain *d,
+@@ -825,16 +822,8 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+ 	*out_hwirq = intspec[1] + 16;
+ 
+ 	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
+-	if (!intspec[0]) {
+-		ret = gic_routable_irq_domain_ops->xlate(d, controller,
+-							 intspec,
+-							 intsize,
+-							 out_hwirq,
+-							 out_type);
+-
+-		if (IS_ERR_VALUE(ret))
+-			return ret;
+-	}
++	if (!intspec[0])
++		*out_hwirq += 16;
+ 
+ 	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
+ 
+@@ -891,37 +880,6 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.xlate = gic_irq_domain_xlate,
+ };
+ 
+-/* Default functions for routable irq domain */
+-static int gic_routable_irq_domain_map(struct irq_domain *d, unsigned int irq,
+-			      irq_hw_number_t hw)
+-{
+-	return 0;
+-}
+-
+-static void gic_routable_irq_domain_unmap(struct irq_domain *d,
+-					  unsigned int irq)
+-{
+-}
+-
+-static int gic_routable_irq_domain_xlate(struct irq_domain *d,
+-				struct device_node *controller,
+-				const u32 *intspec, unsigned int intsize,
+-				unsigned long *out_hwirq,
+-				unsigned int *out_type)
+-{
+-	*out_hwirq += 16;
+-	return 0;
+-}
+-
+-static const struct irq_domain_ops gic_default_routable_irq_domain_ops = {
+-	.map = gic_routable_irq_domain_map,
+-	.unmap = gic_routable_irq_domain_unmap,
+-	.xlate = gic_routable_irq_domain_xlate,
+-};
+-
+-const struct irq_domain_ops *gic_routable_irq_domain_ops =
+-					&gic_default_routable_irq_domain_ops;
+-
+ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			   void __iomem *dist_base, void __iomem *cpu_base,
+ 			   u32 percpu_offset, struct device_node *node)
+@@ -929,7 +887,6 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	irq_hw_number_t hwirq_base;
+ 	struct gic_chip_data *gic;
+ 	int gic_irqs, irq_base, i;
+-	int nr_routable_irqs;
+ 
+ 	BUG_ON(gic_nr >= MAX_GIC_NR);
+ 
+@@ -985,15 +942,9 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	gic->gic_irqs = gic_irqs;
+ 
+ 	if (node) {		/* DT case */
+-		const struct irq_domain_ops *ops = &gic_irq_domain_hierarchy_ops;
+-
+-		if (!of_property_read_u32(node, "arm,routable-irqs",
+-					  &nr_routable_irqs)) {
+-			ops = &gic_irq_domain_ops;
+-			gic_irqs = nr_routable_irqs;
+-		}
+-
+-		gic->domain = irq_domain_add_linear(node, gic_irqs, ops, gic);
++		gic->domain = irq_domain_add_linear(node, gic_irqs,
++						    &gic_irq_domain_hierarchy_ops,
++						    gic);
+ 	} else {		/* Non-DT case */
+ 		/*
+ 		 * For primary GICs, skip over SGIs.
+diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+index 71d706d..3978c5b 100644
+--- a/include/linux/irqchip/arm-gic.h
++++ b/include/linux/irqchip/arm-gic.h
+@@ -115,11 +115,5 @@ int gic_get_cpu_id(unsigned int cpu);
+ void gic_migrate_target(unsigned int new_cpu_id);
+ unsigned long gic_get_sgir_physaddr(void);
+ 
+-extern const struct irq_domain_ops *gic_routable_irq_domain_ops;
+-static inline void __init register_routable_domain_ops
+-					(const struct irq_domain_ops *ops)
+-{
+-	gic_routable_irq_domain_ops = ops;
+-}
+ #endif /* __ASSEMBLY */
+ #endif
 -- 
 2.1.4
 
