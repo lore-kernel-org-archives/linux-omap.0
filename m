@@ -1,61 +1,54 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/6] dmaengine/dra7x: DMA router (crossbar support)
-Date: Tue, 24 Feb 2015 16:21:17 +0200
-Message-ID: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 4/6] dmaengine: omap-dma: Take DMA request number from DT if it is available
+Date: Tue, 24 Feb 2015 16:21:21 +0200
+Message-ID: <1424787683-19151-5-git-send-email-peter.ujfalusi@ti.com>
+References: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Use the dma-requests property from DT to get the number of DMA requests.
+In case of legacy boot or failure to find the property, use the default
+127 as number of requests.
 
-The series adds support for DMA router type of devices. They are used in SoCs
-which has more peripherals with DMA request lines than the DMA controller can
-handle.
-The router itself is not part of the DMA controller and it's operation should be
-transparent (as it is in the HW) for the SW stack.
-
-This series takes into accound the comments Sricharan received for his version
-of the crossbar driver:
-https://lkml.org/lkml/2014/3/7/199
-
-This implementation is not tied to any DMA driver so it is possible to use the
-framework by other vendors, also ACPI version of binding can be easy enough to
-be added.
-
-The omap-dma part of changes are based on the dma property name change series:
-https://lkml.org/lkml/2015/2/20/182
-
-but the code has fallback so it is working w/o the changes in that series.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (6):
-  dmaengine: of_dma: Support for DMA routers
-  dmaengine: Add driver for TI DMA crossbar on DRA7x
-  dmaengine: omap-dma: Use defines for dma channels and request count
-  dmaengine: omap-dma: Take DMA request number from DT if it is
-    available
-  dmaengine: omap-dma: Remove mapping between virtual channels and
-    requests
-  ARM: DTS: dra7x: Integrate sDMA crossbar
+ drivers/dma/omap-dma.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
- Documentation/devicetree/bindings/dma/dma.txt |  27 ++++
- arch/arm/boot/dts/dra7.dtsi                   |  57 ++++----
- drivers/dma/Kconfig                           |   4 +
- drivers/dma/Makefile                          |   1 +
- drivers/dma/dmaengine.c                       |   7 +
- drivers/dma/of-dma.c                          |  92 +++++++++++++
- drivers/dma/omap-dma.c                        |  24 +++-
- drivers/dma/ti-dma-crossbar.c                 | 191 ++++++++++++++++++++++++++
- include/linux/dmaengine.h                     |  17 +++
- include/linux/of_dma.h                        |  21 +++
- 10 files changed, 413 insertions(+), 28 deletions(-)
- create mode 100644 drivers/dma/ti-dma-crossbar.c
-
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 56c33e93dd24..7def31c919f4 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -34,6 +34,7 @@ struct omap_dmadev {
+ 	const struct omap_dma_reg *reg_map;
+ 	struct omap_system_dma_plat_info *plat;
+ 	bool legacy;
++	unsigned dma_requests;
+ 	spinlock_t irq_lock;
+ 	uint32_t irq_enable_mask;
+ 	struct omap_chan *lch_map[OMAP_SDMA_CHANNELS];
+@@ -1118,7 +1119,15 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 
+ 	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
+ 
+-	for (i = 0; i < OMAP_SDMA_REQUESTS; i++) {
++	if (!pdev->dev.of_node || of_property_read_u32(pdev->dev.of_node,
++						       "dma-requests",
++						       &od->dma_requests)) {
++		dev_info(&pdev->dev,
++			 "DMA request lines not specified, using 127\n");
++		od->dma_requests = 127;
++	}
++
++	for (i = 0; i < od->dma_requests; i++) {
+ 		rc = omap_dma_chan_init(od, i);
+ 		if (rc) {
+ 			omap_dma_free(od);
 -- 
 2.3.0
