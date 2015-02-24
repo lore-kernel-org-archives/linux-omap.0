@@ -1,87 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked
- domains
-Date: Tue, 24 Feb 2015 07:03:08 -0800
-Message-ID: <20150224150308.GU32521@atomide.com>
-References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
- <20150223230205.GJ32521@atomide.com>
- <54EC3E9A.5010807@arm.com>
+From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: bandgap: Fix build warning if
+ !CONFIG_PM_SLEEP
+Date: Tue, 24 Feb 2015 18:01:23 +0200
+Message-ID: <54ECA053.8000809@linaro.org>
+References: <1423234546-10458-1-git-send-email-grygorii.strashko@linaro.org> <20150209150106.GB21362@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery3.ore.mailhop.org ([54.213.22.21]:52579 "EHLO
-	pmta2.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750925AbbBXPHX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Feb 2015 10:07:23 -0500
-Received: from smtp2.ore.mailhop.org (172.31.18.134) by pmta2.delivery1.ore.mailhop.org id hti9r420u50h for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2015 15:07:29 +0000 (envelope-from <tony@atomide.com>)
-Content-Disposition: inline
-In-Reply-To: <54EC3E9A.5010807@arm.com>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:43879 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436AbbBXQB1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2015 11:01:27 -0500
+Received: by labhv19 with SMTP id hv19so4014016lab.10
+        for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2015 08:01:26 -0800 (PST)
+In-Reply-To: <20150209150106.GB21362@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 
-* Marc Zyngier <marc.zyngier@arm.com> [150224 01:08]:
-> On 23/02/15 23:02, Tony Lindgren wrote:
-> > * Marc Zyngier <marc.zyngier@arm.com> [150223 09:48]:
-> >> This series is extracted from [4], which is trying to remove all
-> >> traces of gic_arch_extn from the tree. As some maintainers are more
-> >> responsive than others (understatement of the year...), I've decided
-> >> to split it per sub-arch, and get it moving, at least partially.
-> >>
-> >> This series addresses OMAP{4,5} by converting the WUGEN to stacked
-> >> domains. The DRA7 crossbar gets the same treatment.
-> >>
-> >> It is worth realizing that:
-> >>
-> >> - I haven't been able to test this as much as I would have wanted to
-> >>   (it's only been tested on omap4 and omap5).
-> >>
-> >> - This actively *breaks* existing setups. Once you boot a new kernel
-> >>   with an old DT, suspend/resume *will* be broken. Old kernels on a
-> >>   new DT won't even boot! You've been warned. This really outline the
-> >>   necessity of actually describing the HW in device trees...
-> > 
-> > Could we parse still the old binding and produce warning for the
-> > case when a new kernel is booted with the old DT? That would make
-> > it easier for people to debug what's going on.
-> 
-> There's a number of strategies:
-> - Looking up the default, top-level interrupt controller:
->   if that's the GIC, scream.
-> - Lookup the crossbar:
->   if it exists, but is not an interrupt controller, scream as well.
-> - Lookup the WUGEN:
->   if it doesn't exist, scream again.
-> 
-> The last one is pretty easy to implement:
-> 
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index fba1ba7..7bb116a 100644
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -277,6 +277,12 @@ void __init omap_gic_of_init(void)
->  {
->  	struct device_node *np;
->  
-> +	intc_node = of_find_matching_node(NULL, intc_match);
-> +	if (WARN_ON(!intc_node)) {
-> +		pr_err("No WUGEN found in DT, system will misbehave.\n");
-> +		pr_err("UPDATE YOUR DEVICE TREE!\n");
-> +	}
-> +
->  	/* Extract GIC distributor and TWD bases for OMAP4460 ROM Errata WA */
->  	if (!cpu_is_omap446x())
->  		goto skip_errata_init;
-> 
-> This should cover both OMAP4, OMAP5 and DRA7.
-> 
-> What do you think?
+Hi Rui,
 
-This should do the job for the case of old dtb and people trying to
-suspend the device.
+On 02/09/2015 05:01 PM, Nishanth Menon wrote:
+> On 16:55-20150206, grygorii.strashko@linaro.org wrote:
+>> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>>
+>> Fix following build warning if CONFIG_PM_SLEEP is not set:
+>>
+>> drivers/thermal/ti-soc-thermal/ti-bandgap.c:1478:12: warning: 'ti_bandgap_suspend' defined but not used [-Wunused-function]
+>>   static int ti_bandgap_suspend(struct device *dev)
+>>              ^
+>> drivers/thermal/ti-soc-thermal/ti-bandgap.c:1492:12: warning: 'ti_bandgap_resume' defined but not used [-Wunused-function]
+>>   static int ti_bandgap_resume(struct device *dev)
+>>              ^
+>> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>> ---
+>>   drivers/thermal/ti-soc-thermal/ti-bandgap.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>> index 74c0e34..5d46660 100644
+>> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>> @@ -1402,7 +1402,7 @@ int ti_bandgap_remove(struct platform_device *pdev)
+>>   	return 0;
+>>   }
+>>   
+>> -#ifdef CONFIG_PM
+>> +#ifdef CONFIG_PM_SLEEP
+>>   static int ti_bandgap_save_ctxt(struct ti_bandgap *bgp)
+>>   {
+>>   	int i;
+>> -- 
+>> 1.9.1
+>>
+> 
+> Suggest aligning with Paul as well:
+> https://patchwork.kernel.org/patch/5795391/
 
-Thanks,
+^Paul Walmsley wrote: Oh, nothing to be confused by, I just missed the
+ earlier patch. I withdraw mine.
 
-Tony
+> 
+> Otherwise:
+> Acked-by: Nishanth Menon <nm@ti.com>
+> 
+
+It looks like this patch is missed in 4.0-rc1, so could it be merged
+during rc cycle or you'd like me to resend it?
+(I've rechecked - it can be applied on top of Linux 4.0-rc1 without any issues)
+
+
+-- 
+regards,
+-grygorii
