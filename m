@@ -1,109 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: New l3-noc error with CPUFREQ_DT built-in with v4.0-rc1
-Date: Tue, 24 Feb 2015 08:46:39 -0600
-Message-ID: <20150224144639.GE29829@saruman.tx.rr.com>
-References: <20150223235947.GC25954@atomide.com>
- <20150224015903.GP32521@atomide.com>
- <20150224022433.GB5198@saruman.tx.rr.com>
- <20150224023505.GQ32521@atomide.com>
- <20150224030141.GR32521@atomide.com>
- <20150224031547.GB15941@saruman.tx.rr.com>
- <20150224032107.GS32521@atomide.com>
- <20150224032450.GT32521@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked
+ domains
+Date: Tue, 24 Feb 2015 07:03:08 -0800
+Message-ID: <20150224150308.GU32521@atomide.com>
+References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com>
+ <20150223230205.GJ32521@atomide.com>
+ <54EC3E9A.5010807@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lIrNkN/7tmsD/ALM"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46090 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbbBXOrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2015 09:47:33 -0500
+Received: from pmta2.delivery3.ore.mailhop.org ([54.213.22.21]:52579 "EHLO
+	pmta2.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750925AbbBXPHX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Feb 2015 10:07:23 -0500
+Received: from smtp2.ore.mailhop.org (172.31.18.134) by pmta2.delivery1.ore.mailhop.org id hti9r420u50h for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2015 15:07:29 +0000 (envelope-from <tony@atomide.com>)
 Content-Disposition: inline
-In-Reply-To: <20150224032450.GT32521@atomide.com>
+In-Reply-To: <54EC3E9A.5010807@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---lIrNkN/7tmsD/ALM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Marc Zyngier <marc.zyngier@arm.com> [150224 01:08]:
+> On 23/02/15 23:02, Tony Lindgren wrote:
+> > * Marc Zyngier <marc.zyngier@arm.com> [150223 09:48]:
+> >> This series is extracted from [4], which is trying to remove all
+> >> traces of gic_arch_extn from the tree. As some maintainers are more
+> >> responsive than others (understatement of the year...), I've decided
+> >> to split it per sub-arch, and get it moving, at least partially.
+> >>
+> >> This series addresses OMAP{4,5} by converting the WUGEN to stacked
+> >> domains. The DRA7 crossbar gets the same treatment.
+> >>
+> >> It is worth realizing that:
+> >>
+> >> - I haven't been able to test this as much as I would have wanted to
+> >>   (it's only been tested on omap4 and omap5).
+> >>
+> >> - This actively *breaks* existing setups. Once you boot a new kernel
+> >>   with an old DT, suspend/resume *will* be broken. Old kernels on a
+> >>   new DT won't even boot! You've been warned. This really outline the
+> >>   necessity of actually describing the HW in device trees...
+> > 
+> > Could we parse still the old binding and produce warning for the
+> > case when a new kernel is booted with the old DT? That would make
+> > it easier for people to debug what's going on.
+> 
+> There's a number of strategies:
+> - Looking up the default, top-level interrupt controller:
+>   if that's the GIC, scream.
+> - Lookup the crossbar:
+>   if it exists, but is not an interrupt controller, scream as well.
+> - Lookup the WUGEN:
+>   if it doesn't exist, scream again.
+> 
+> The last one is pretty easy to implement:
+> 
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> index fba1ba7..7bb116a 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -277,6 +277,12 @@ void __init omap_gic_of_init(void)
+>  {
+>  	struct device_node *np;
+>  
+> +	intc_node = of_find_matching_node(NULL, intc_match);
+> +	if (WARN_ON(!intc_node)) {
+> +		pr_err("No WUGEN found in DT, system will misbehave.\n");
+> +		pr_err("UPDATE YOUR DEVICE TREE!\n");
+> +	}
+> +
+>  	/* Extract GIC distributor and TWD bases for OMAP4460 ROM Errata WA */
+>  	if (!cpu_is_omap446x())
+>  		goto skip_errata_init;
+> 
+> This should cover both OMAP4, OMAP5 and DRA7.
+> 
+> What do you think?
 
-Hi,
+This should do the job for the case of old dtb and people trying to
+suspend the device.
 
-On Mon, Feb 23, 2015 at 07:24:50PM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150223 19:29]:
-> > * Felipe Balbi <balbi@ti.com> [150223 19:19]:
-> > > On Mon, Feb 23, 2015 at 07:01:42PM -0800, Tony Lindgren wrote:
-> > > > * Tony Lindgren <tony@atomide.com> [150223 18:43]:
-> > > >=20
-> > > > Looks like the address is 0 for "Custom Error". Anyways, reverting
-> > >=20
-> > > yeah, that's because the error comes from l4per2, not l3 :-)
-> >=20
-> > Right so it seems :)
-> > =20
-> > > > a fix for similar issue found on omap3 so far seems to help, that's
-> > > > 3d009c8c61f9 ("gpio: omap: Fix bad device access with setup_irq()").
-> > >=20
-> > > if we revert that, we regress omap3, right ?
-> >=20
-> > Yes we saw that getting triggered on omap3/4 before 3d009c8c61f9.
-> >=20
-> > Now looking at the stack trace again, it actually has something:
-> >=20
-> > ...
-> > [<c05999a4>] (__irq_svc) from [<c0599164>] (_raw_spin_unlock_irqrestore=
-+0x34/0x44)
-> > [<c0599164>] (_raw_spin_unlock_irqrestore) from [<c0027120>] (omap_hwmo=
-d_idle+0x34/0x44)
-> > [<c0027120>] (omap_hwmod_idle) from [<c00283f8>] (omap_device_idle+0x38=
-/0x78)
-> > [<c00283f8>] (omap_device_idle) from [<c0028454>] (_od_runtime_suspend+=
-0x1c/0x24)
-> > [<c0028454>] (_od_runtime_suspend) from [<c03b5214>] (__rpm_callback+0x=
-2c/0x60)
-> > [<c03b5214>] (__rpm_callback) from [<c03b5268>] (rpm_callback+0x20/0x80)
-> > [<c03b5268>] (rpm_callback) from [<c03b56b8>] (rpm_suspend+0xe8/0x55c)
-> > [<c03b56b8>] (rpm_suspend) from [<c03b6bdc>] (pm_runtime_work+0x74/0xa8)
-> > [<c03b6bdc>] (pm_runtime_work) from [<c0054608>] (process_one_work+0x1b=
-0/0x4a0)
-> > ...
-> >=20
-> > If it's the gpio-omap, there's probably some confusion still in
-> > the driver regarding the GPIO bank idle status. Anyways, will look
-> > more into it tomorrow.
->=20
-> And now I'm seeing the error with 3d009c8c61f9 reverted, so it
-> does not seem to be that either..
+Thanks,
 
-well, that's good :-)
-
---=20
-balbi
-
---lIrNkN/7tmsD/ALM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU7I7PAAoJEIaOsuA1yqREZvMQAJOds+fvTdEKmHBt+p9djjX0
-hP3kgHw+PyU4MtZM13PDyXmd5421QDqJtUvyNULbMJviJjK6ouye2/ar68l+ycYo
-dtmkhwEX5XJsUn1jCS3r60IYWBi19dH7Up28A9Ds1NTEPwUw1amcCD1Qav/F5Os1
-47i0FkZaA2C77RBvgL3J/ya/XH/stnrxjbwn0HQmyTqMxn1Ar4IVst05s4EX53Xw
-lvym7Nmv3DyyBAIXifPLq3BNBS7vrqRdxBlAfKgPC9ZjdXZaXcWGae8WQlY9puQF
-NCayiD7Y88RJ7gxvHb2g6JcMemFvOd0av34tlvYajxZcXD+Kp+wW0csCArMO1ahK
-yOF8CgwW5cpHzAFjUxMMBzTUVvcm+ESO1R3XnYpqrmCF0lLpcdO/7IYpdLx6iyJC
-Vq6K0N9PxHpmFjhyMuUxVVWZGgmuXbIwrvQqID+lo4woRtGW4LyOndY0Y22zigDF
-EOvRf3C8b2UW45auPodhA3yJSKLTFZeP2jTv3+pzmXs5htxALUroKNlwxp08AAwf
-tGcgumy3VBL7kVyS4gBlXqgzFHCbOLjKiBJfqhkHxAiCwFhcuepFcti4QCfjtN02
-RQdGdI5GOZWGDg2QeBIp0Z8MW2BkXwWshvrr41J5AARozxelxGCTqsFZ6EA2xcLX
-SwXcGScLD/DBCARThp1K
-=nBRR
------END PGP SIGNATURE-----
-
---lIrNkN/7tmsD/ALM--
+Tony
