@@ -1,106 +1,265 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v13 3/6] clk: Make clk API return per-user struct clk
- instances
-Date: Tue, 24 Feb 2015 14:08:08 +0000
-Message-ID: <20150224140808.GG8670@n2100.arm.linux.org.uk>
-References: <1422011024-32283-1-git-send-email-tomeu.vizoso@collabora.com>
- <1422011024-32283-4-git-send-email-tomeu.vizoso@collabora.com>
- <54D3C803.30706@samsung.com>
- <54D3CD6A.1010209@codeaurora.org>
- <54D3EB29.4090007@codeaurora.org>
- <20150206004210.GB8670@n2100.arm.linux.org.uk>
- <54D41A60.8040702@codeaurora.org>
- <20150206133920.GC8670@n2100.arm.linux.org.uk>
- <54D5164A.30503@codeaurora.org>
- <20150219213233.421.11915@quantum>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 2/6] dmaengine: Add driver for TI DMA crossbar on DRA7x
+Date: Tue, 24 Feb 2015 16:21:19 +0200
+Message-ID: <1424787683-19151-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150219213233.421.11915@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45232 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135AbbBXOWN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2015 09:22:13 -0500
+In-Reply-To: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: vinod.koul@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
 
-On Thu, Feb 19, 2015 at 01:32:33PM -0800, Mike Turquette wrote:
-> Quoting Stephen Boyd (2015-02-06 11:30:18)
-> > On 02/06/15 05:39, Russell King - ARM Linux wrote:
-> > > On Thu, Feb 05, 2015 at 05:35:28PM -0800, Stephen Boyd wrote:
-> > >
-> > >> From what I can tell this code is
-> > >> now broken because we made all clk getting functions (there's quite a
-> > >> few...) return unique pointers every time they're called. It seems that
-> > >> the driver wants to know if extclk and clk are the same so it can do
-> > >> something differently in kirkwood_set_rate(). Do we need some sort of
-> > >> clk_equal(struct clk *a, struct clk *b) function for drivers like this?
-> > > Well, the clocks in question are the SoC internal clock (which is more or
-> > > less fixed, but has a programmable divider) and an externally supplied
-> > > clock, and the IP has a multiplexer on its input which allows us to select
-> > > between those two sources.
-> > >
-> > > If it were possible to bind both to the same clock, it wouldn't be a
-> > > useful configuration - nothing would be gained from doing so in terms of
-> > > available rates.
-> > >
-> > > What the comparison is there for is to catch the case with legacy lookups
-> > > where a clkdev lookup entry with a NULL connection ID results in matching
-> > > any connection ID passed to clk_get().  If the patch changes this, then
-> > > we will have a regression - and this is something which needs fixing
-> > > _before_ we do this "return unique clocks".
-> > >
-> > 
-> > Ok. It seems that we might need a clk_equal() or similar API after all.
-> > My understanding is that this driver is calling clk_get() twice with
-> > NULL for the con_id and then "extclk" in attempts to get the SoC
-> > internal clock and the externally supplied clock. If we're using legacy
-> > lookups then both clk_get() calls may map to the same clk_lookup entry
-> > and before Tomeu's patch that returns unique clocks the driver could
-> > detect this case and know that there isn't an external clock. Looking at
-> > arch/arm/mach-dove/common.c it seems that there is only one lookup per
-> > device and it has a wildcard NULL for con_id so both clk_get() calls
-> > here are going to find the same lookup and get a unique struct clk pointer.
-> > 
-> > Why don't we make the legacy lookup more specific and actually indicate
-> > "internal" for the con_id? Then the external clock would fail to be
-> > found, but we can detect that case and figure out that it's not due to
-> > probe defer, but instead due to the fact that there really isn't any
-> > mapping. It looks like the code is already prepared for this anyway.
-> > 
-> > ----8<----
-> > 
-> > From: Stephen Boyd <sboyd@codeaurora.org>
-> > Subject: [PATCH] ARM: dove: Remove wildcard from mvebu-audio device clk lookup
-> > 
-> > This i2s driver is using the wildcard nature of clkdev lookups to
-> > figure out if there's an external clock or not. It does this by
-> > calling clk_get() twice with NULL for the con_id first and then
-> > "external" for the con_id the second time around and then
-> > compares the two pointers. With DT the wildcard feature of
-> > clk_get() is gone and so the driver has to handle an error from
-> > the second clk_get() call as meaning "no external clock
-> > specified". Let's use that logic even with clk lookups to
-> > simplify the code and remove the struct clk pointer comparisons
-> > which may not work in the future when clk_get() returns unique
-> > pointers.
-> > 
-> > Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-> 
-> Russell et al,
-> 
-> I'm happy to take this patch through the clock tree (where the problem
-> shows up) with an ack.
+The DRA7x has more peripherals with DMA requests than the sDMA can handle:
+205 vs 127. All DMA requests are routed through the DMA crossbar, which can
+be configured to route selected incoming DMA requests to specific sDMA
+request.
 
-It's not up to me - I don't maintain this driver.  I'm just an interested
-party.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/Kconfig           |   4 +
+ drivers/dma/Makefile          |   1 +
+ drivers/dma/ti-dma-crossbar.c | 191 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 196 insertions(+)
+ create mode 100644 drivers/dma/ti-dma-crossbar.c
 
-Note that much more than just this has now broken.  The iMX6 code has
-broken as well, and it's not going to take such a simple fix there to
-fix it either.
-
-Please either revert the patches creating this breakage (and have another
-attempt at the next merge window) or supply fixes for these places.
-
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index a874b6ec6650..dfe72a0f46dc 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -245,6 +245,9 @@ config TI_EDMA
+ 	  Enable support for the TI EDMA controller. This DMA
+ 	  engine is found on TI DaVinci and AM33xx parts.
+ 
++config TI_DMA_CROSSBAR
++	bool
++
+ config ARCH_HAS_ASYNC_TX_FIND_CHANNEL
+ 	bool
+ 
+@@ -330,6 +333,7 @@ config DMA_OMAP
+ 	depends on ARCH_OMAP
+ 	select DMA_ENGINE
+ 	select DMA_VIRTUAL_CHANNELS
++	select TI_DMA_CROSSBAR if SOC_DRA7XX
+ 
+ config DMA_BCM2835
+ 	tristate "BCM2835 DMA engine support"
+diff --git a/drivers/dma/Makefile b/drivers/dma/Makefile
+index f915f61ec574..bc12f9a4e62b 100644
+--- a/drivers/dma/Makefile
++++ b/drivers/dma/Makefile
+@@ -38,6 +38,7 @@ obj-$(CONFIG_EP93XX_DMA) += ep93xx_dma.o
+ obj-$(CONFIG_DMA_SA11X0) += sa11x0-dma.o
+ obj-$(CONFIG_MMP_TDMA) += mmp_tdma.o
+ obj-$(CONFIG_DMA_OMAP) += omap-dma.o
++obj-$(CONFIG_TI_DMA_CROSSBAR) += ti-dma-crossbar.o
+ obj-$(CONFIG_DMA_BCM2835) += bcm2835-dma.o
+ obj-$(CONFIG_MMP_PDMA) += mmp_pdma.o
+ obj-$(CONFIG_DMA_JZ4740) += dma-jz4740.o
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+new file mode 100644
+index 000000000000..bf01434df46a
+--- /dev/null
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -0,0 +1,191 @@
++/*
++ *  Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
++ *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/list.h>
++#include <linux/io.h>
++#include <linux/regmap.h>
++#include <linux/idr.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/of_dma.h>
++#include <linux/module.h>
++
++static DEFINE_IDR(map_idr);
++
++struct ti_dma_xbar_data {
++	struct dma_router dmarouter;
++	struct regmap *regmap;
++
++	uint safe_val; /* Value to rest the crossbar lines */
++	uint xbar_requests; /* number of DMA requests connected to XBAR */
++	uint dma_requests; /* number of DMA requests forwarded to DMA */
++
++	void __iomem *iomem;
++};
++
++struct ti_dma_xbar_map {
++	int xbar_in;
++	int xbar_out;
++};
++
++static void ti_dma_xbar_free(struct device *dev, void *route_data)
++{
++	struct ti_dma_xbar_data *xbar = dev_get_drvdata(dev);
++	struct ti_dma_xbar_map *map = route_data;
++
++	dev_dbg(dev, "Unmapping XBAR%d (was routed to %d)\n",
++		map->xbar_in, map->xbar_out);
++
++	regmap_write(xbar->regmap, map->xbar_out * 2, 0);
++	idr_remove(&map_idr, map->xbar_out);
++	kfree(map);
++}
++
++static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
++					struct of_dma *ofdma)
++{
++	struct platform_device *pdev = of_find_device_by_node(ofdma->of_node);
++	struct ti_dma_xbar_data *xbar = platform_get_drvdata(pdev);
++	struct ti_dma_xbar_map *map;
++
++	if (dma_spec->args[0] >= xbar->xbar_requests) {
++		dev_err(&pdev->dev, "Invalid XBAR request number: %d\n",
++			dma_spec->args[0]);
++		return NULL;
++	}
++
++	map = kzalloc(sizeof(*map), GFP_KERNEL);
++	if (!map)
++		return NULL;
++
++	map->xbar_out = idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
++				  GFP_KERNEL);
++	map->xbar_in = dma_spec->args[0];
++
++	/* The DMA request is 1 based in sDMA */
++	dma_spec->args[0] = map->xbar_out + 1;
++
++	dev_dbg(&pdev->dev, "Mapping XBAR%d to DMA%d\n",
++		map->xbar_in, map->xbar_out);
++
++	regmap_write(xbar->regmap, map->xbar_out * 2, map->xbar_in);
++
++	return map;
++}
++
++static const struct regmap_config ti_dma_xbar_regmap_config = {
++	.reg_bits = 32,
++	.reg_stride = 2,
++	.val_bits = 16,
++	.max_register = 0xfc,
++	.cache_type = REGCACHE_FLAT,
++};
++
++static int ti_dma_xbar_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *dma_node;
++	struct ti_dma_xbar_data *xbar;
++	struct resource *res;
++	void __iomem *iomem;
++	int i, ret;
++
++	if (!node)
++		return -ENODEV;
++
++	dma_node = of_parse_phandle(node, "dma-device", 0);
++	if (!dma_node) {
++		dev_err(&pdev->dev, "Can't get target DMA node\n");
++		return -ENODEV;
++	}
++
++	xbar = devm_kzalloc(&pdev->dev, sizeof(*xbar), GFP_KERNEL);
++	if (!xbar)
++		return -ENOMEM;
++
++	if (of_property_read_u32(dma_node, "dma-requests",
++				 &xbar->dma_requests)) {
++		dev_warn(&pdev->dev,
++			 "DMA request lines not specified, using 127\n");
++		xbar->dma_requests = 127;
++	}
++	of_node_put(dma_node);
++
++	if (of_property_read_u32(node, "dma-requests", &xbar->xbar_requests)) {
++		dev_warn(&pdev->dev,
++			 "XBAR request lines not specified, using 255\n");
++		xbar->xbar_requests = 256;
++	}
++
++	if (of_property_read_u32(node, "ti,dma-safe-map", &xbar->safe_val))
++		xbar->safe_val = 0;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
++				     dev_name(&pdev->dev)))
++		return -ENODEV;
++
++	iomem = devm_ioremap(&pdev->dev, res->start, resource_size(res));
++	if (!iomem)
++		return -ENOMEM;
++
++	xbar->regmap = devm_regmap_init_mmio(&pdev->dev, iomem,
++					    &ti_dma_xbar_regmap_config);
++	if (IS_ERR(xbar->regmap)) {
++		dev_err(&pdev->dev, "regmap init failed\n");
++		return PTR_ERR(xbar->regmap);
++	}
++	xbar->iomem = iomem;
++
++	xbar->dmarouter.dev = &pdev->dev;
++	xbar->dmarouter.route_free = ti_dma_xbar_free;
++
++	platform_set_drvdata(pdev, xbar);
++
++	ret = of_dma_router_register(node, ti_dma_xbar_route_allocate,
++				     &xbar->dmarouter);
++	if (ret)
++		return -ENODEV;
++
++	/* Reset the crossbar */
++	for (i = 0; i < xbar->dma_requests; i++)
++		regmap_write(xbar->regmap, i * 2, xbar->safe_val);
++
++	return 0;
++}
++
++static const struct of_device_id ti_dma_xbar_match[] = {
++	{ .compatible = "ti,dra7-dma-crossbar" },
++	{},
++};
++
++static struct platform_driver ti_dma_xbar_driver = {
++	.probe	= ti_dma_xbar_probe,
++	.driver = {
++		.name = "ti-dma-crossbar",
++		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(ti_dma_xbar_match),
++	},
++};
++
++int omap_dmaxbar_init(void)
++{
++	return platform_driver_register(&ti_dma_xbar_driver);
++}
++arch_initcall(omap_dmaxbar_init);
++
++MODULE_DESCRIPTION("TI DMA Crossbar");
++MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
++MODULE_LICENSE("GPL");
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+2.3.0
+
