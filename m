@@ -1,98 +1,96 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 1/4] mmc: core: fold mmc_set_bus_width calls into
- sdio_enable_4bit_bus.
-Date: Tue, 24 Feb 2015 13:42:23 +1100
-Message-ID: <20150224024223.22719.90256.stgit@notabene.brown>
-References: <20150224024023.22719.32436.stgit@notabene.brown>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: New l3-noc error with CPUFREQ_DT built-in with v4.0-rc1
+Date: Mon, 23 Feb 2015 19:01:42 -0800
+Message-ID: <20150224030141.GR32521@atomide.com>
+References: <20150223235947.GC25954@atomide.com>
+ <20150224015903.GP32521@atomide.com>
+ <20150224022433.GB5198@saruman.tx.rr.com>
+ <20150224023505.GQ32521@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150224024023.22719.32436.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150224023505.GQ32521@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Every call to sdio_enable_4bit_bus is followed (on success) but a call
-to mmc_set_bus_width().
+* Tony Lindgren <tony@atomide.com> [150223 18:43]:
+> * Felipe Balbi <balbi@ti.com> [150223 18:28]:
+> > Hi,
+> > 
+> > On Mon, Feb 23, 2015 at 05:59:04PM -0800, Tony Lindgren wrote:
+> > > * Tony Lindgren <tony@atomide.com> [150223 16:09]:
+> > > > Hi Nishanth,
+> > > > 
+> > > > Olof told me about a new L3 error happening on omap5-uevm with
+> > > > v4.0-rc1:
+> > > > 
+> > > > WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x214/0x340()
+> > > > 4000000.ocp:L3 Custom Error: MASTER MPU TARGET L4PER2 (Idle): Data Access in Supervisor mode during Functional access
+> > > > ...
+> > > > 
+> > > > I tried bisecting this with no luck, but narrowed it down to
+> > > > having CONFIG_CPUFREQ_DT=y causing it, while =m wont' trigger
+> > > > it. This got changed by commit 40d1746d2eee ("ARM:
+> > > > omap2plus_defconfig: use CONFIG_CPUFREQ_DT").
+> > > > 
+> > > > Any ideas?
+> > > 
+> > > Hmm so setting CONFIG_CPUFREQ_DT=m in arch/arm/configs/omap2plus_defconfig
+> > > produces the same output with make omap2plus_defconfig as with =y.. So
+> > > CPUFREQ_DT can't be the real cause of the problem.
+> > > 
+> > > It's now looking like the l3-noc warning does not get triggered on
+> > > every boot.
+> > > 
+> > > It also seems the zImage triggering the error does not trigger the
+> > > error on every boot. To trigger the error, it seems the device needs to
+> > > be powered down for at least 10 or so seconds between the boots.
+> > > So far no luck reproducing the error on v3.19.
+> > > 
+> > > The easy way to reproduce is to power down omap5 for at least 10 seconds,
+> > > make omap2lus_defconfig on v4.0-rc1 and boot it.
+> > > 
+> > > And so far it looks like next-20150204 works and next-20150209
+> > > failed at once so far. But of course I would not trust anything
+> > > at this point :)
+> > 
+> > got a log of the failure ? Is it pointing to a device or one of the L4s?
+> 
+> Well mostly the MASTER MPU TARGET L4PER2, the following stack dump is
+> really the stack dump of the l3_interrupt_handler.
+>  
+> > Might be worth to boot with just the bare minimum (UART & timers) and
+> > disable everything else. You might need to build busybox and append that
+> > to the kernel so you don't need to rely on MMC/USB/etc for rootfs.
+> > 
+> > After that, you could start enabling modules one by one (as modules, not
+> > built-in) and loading them one by one to see which one causes the
+> > failure. Big PITA, I know, but I can't think of any other way to go
+> > about this.
+> 
+> It seems the best way to deal with this is to make the l3_handle_target
+> actually show the address where the error happened to limit it down
+> to a single device..
 
-To simplify the code, include those calls directly in
-sdio_enable_4bit_bus().
+Looks like the address is 0 for "Custom Error". Anyways, reverting
+a fix for similar issue found on omap3 so far seems to help, that's
+3d009c8c61f9 ("gpio: omap: Fix bad device access with setup_irq()").
 
-Signed-off-by: NeilBrown <neil@brown.name>
----
- drivers/mmc/core/sdio.c |   32 ++++++++++++--------------------
- 1 file changed, 12 insertions(+), 20 deletions(-)
+That got merged very late for v3.19, so it certainly explains why
+it was not noticed until now.
 
-diff --git a/drivers/mmc/core/sdio.c b/drivers/mmc/core/sdio.c
-index ce6cc47206b0..5bc6c7dbbd60 100644
---- a/drivers/mmc/core/sdio.c
-+++ b/drivers/mmc/core/sdio.c
-@@ -293,19 +293,22 @@ static int sdio_enable_4bit_bus(struct mmc_card *card)
- 	int err;
- 
- 	if (card->type == MMC_TYPE_SDIO)
--		return sdio_enable_wide(card);
--
--	if ((card->host->caps & MMC_CAP_4_BIT_DATA) &&
--		(card->scr.bus_widths & SD_SCR_BUS_WIDTH_4)) {
-+		err = sdio_enable_wide(card);
-+	else if ((card->host->caps & MMC_CAP_4_BIT_DATA) &&
-+		 (card->scr.bus_widths & SD_SCR_BUS_WIDTH_4)) {
- 		err = mmc_app_set_bus_width(card, MMC_BUS_WIDTH_4);
- 		if (err)
- 			return err;
-+		err = sdio_enable_wide(card);
-+		if (err <= 0)
-+			mmc_app_set_bus_width(card, MMC_BUS_WIDTH_1);
- 	} else
- 		return 0;
- 
--	err = sdio_enable_wide(card);
--	if (err <= 0)
--		mmc_app_set_bus_width(card, MMC_BUS_WIDTH_1);
-+	if (err > 0) {
-+		mmc_set_bus_width(card->host, MMC_BUS_WIDTH_4);
-+		err = 0;
-+	}
- 
- 	return err;
- }
-@@ -547,13 +550,8 @@ static int mmc_sdio_init_uhs_card(struct mmc_card *card)
- 	/*
- 	 * Switch to wider bus (if supported).
- 	 */
--	if (card->host->caps & MMC_CAP_4_BIT_DATA) {
-+	if (card->host->caps & MMC_CAP_4_BIT_DATA)
- 		err = sdio_enable_4bit_bus(card);
--		if (err > 0) {
--			mmc_set_bus_width(card->host, MMC_BUS_WIDTH_4);
--			err = 0;
--		}
--	}
- 
- 	/* Set the driver strength for the card */
- 	sdio_select_driver_type(card);
-@@ -803,9 +801,7 @@ try_again:
- 		 * Switch to wider bus (if supported).
- 		 */
- 		err = sdio_enable_4bit_bus(card);
--		if (err > 0)
--			mmc_set_bus_width(card->host, MMC_BUS_WIDTH_4);
--		else if (err)
-+		if (err)
- 			goto remove;
- 	}
- finish:
-@@ -983,10 +979,6 @@ static int mmc_sdio_resume(struct mmc_host *host)
- 	} else if (mmc_card_keep_power(host) && mmc_card_wake_sdio_irq(host)) {
- 		/* We may have switched to 1-bit mode during suspend */
- 		err = sdio_enable_4bit_bus(host->card);
--		if (err > 0) {
--			mmc_set_bus_width(host, MMC_BUS_WIDTH_4);
--			err = 0;
--		}
- 	}
- 
- 	if (!err && host->sdio_irqs) {
+Regards,
+
+Tony
