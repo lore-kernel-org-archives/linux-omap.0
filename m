@@ -1,69 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: New l3-noc error with CPUFREQ_DT built-in with v4.0-rc1
-Date: Mon, 23 Feb 2015 19:24:50 -0800
-Message-ID: <20150224032450.GT32521@atomide.com>
-References: <20150223235947.GC25954@atomide.com>
- <20150224015903.GP32521@atomide.com>
- <20150224022433.GB5198@saruman.tx.rr.com>
- <20150224023505.GQ32521@atomide.com>
- <20150224030141.GR32521@atomide.com>
- <20150224031547.GB15941@saruman.tx.rr.com>
- <20150224032107.GS32521@atomide.com>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH 1/4] usb: phy: twl4030: make runtime pm more reliable.
+Date: Tue, 24 Feb 2015 14:40:37 +1100
+Message-ID: <20150224034036.31400.6133.stgit@notabene.brown>
+References: <20150224033730.31400.78200.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta1.delivery3.ore.mailhop.org ([54.191.214.36]:52279 "EHLO
-	pmta1.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751812AbbBXD3H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2015 22:29:07 -0500
-Received: from smtp5.ore.mailhop.org (172.31.18.134) by pmta1.delivery1.ore.mailhop.org id htfo0620r848 for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2015 03:29:06 +0000 (envelope-from <tony@atomide.com>)
-Content-Disposition: inline
-In-Reply-To: <20150224032107.GS32521@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150224033730.31400.78200.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [150223 19:29]:
-> * Felipe Balbi <balbi@ti.com> [150223 19:19]:
-> > On Mon, Feb 23, 2015 at 07:01:42PM -0800, Tony Lindgren wrote:
-> > > * Tony Lindgren <tony@atomide.com> [150223 18:43]:
-> > > 
-> > > Looks like the address is 0 for "Custom Error". Anyways, reverting
-> > 
-> > yeah, that's because the error comes from l4per2, not l3 :-)
-> 
-> Right so it seems :)
->  
-> > > a fix for similar issue found on omap3 so far seems to help, that's
-> > > 3d009c8c61f9 ("gpio: omap: Fix bad device access with setup_irq()").
-> > 
-> > if we revert that, we regress omap3, right ?
-> 
-> Yes we saw that getting triggered on omap3/4 before 3d009c8c61f9.
-> 
-> Now looking at the stack trace again, it actually has something:
-> 
-> ...
-> [<c05999a4>] (__irq_svc) from [<c0599164>] (_raw_spin_unlock_irqrestore+0x34/0x44)
-> [<c0599164>] (_raw_spin_unlock_irqrestore) from [<c0027120>] (omap_hwmod_idle+0x34/0x44)
-> [<c0027120>] (omap_hwmod_idle) from [<c00283f8>] (omap_device_idle+0x38/0x78)
-> [<c00283f8>] (omap_device_idle) from [<c0028454>] (_od_runtime_suspend+0x1c/0x24)
-> [<c0028454>] (_od_runtime_suspend) from [<c03b5214>] (__rpm_callback+0x2c/0x60)
-> [<c03b5214>] (__rpm_callback) from [<c03b5268>] (rpm_callback+0x20/0x80)
-> [<c03b5268>] (rpm_callback) from [<c03b56b8>] (rpm_suspend+0xe8/0x55c)
-> [<c03b56b8>] (rpm_suspend) from [<c03b6bdc>] (pm_runtime_work+0x74/0xa8)
-> [<c03b6bdc>] (pm_runtime_work) from [<c0054608>] (process_one_work+0x1b0/0x4a0)
-> ...
-> 
-> If it's the gpio-omap, there's probably some confusion still in
-> the driver regarding the GPIO bank idle status. Anyways, will look
-> more into it tomorrow.
+A construct like:
 
-And now I'm seeing the error with 3d009c8c61f9 reverted, so it
-does not seem to be that either..
+        if (pm_runtime_suspended(twl->dev))
+               pm_runtime_get_sync(twl->dev);
 
-Regards,
+is against the spirit of the runtime_pm interface as it
+makes the internal refcounting useless.
 
-Tony
+In this case it is also racy, particularly as 'put_autosuspend'
+is use to drop a reference.
+When that happens a timer is started and the device is
+runtime-suspended after the timeout.
+If the above code runs in this window, the device will not be
+found to be suspended so no pm_runtime reference is taken.
+When the timer expires the device will be suspended, which is
+against the intention of the code.
+
+So be more direct is taking and dropping references.
+If twl->linkstat is VBUS_VALID or ID_GROUND, then hold a
+pm_runtime reference, otherwise don't.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+---
+ drivers/phy/phy-twl4030-usb.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+index 8e87f54671f3..97c59074233f 100644
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -536,8 +536,13 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 
+ 	mutex_lock(&twl->lock);
+ 	if (status >= 0 && status != twl->linkstat) {
++		status_changed =
++			(twl->linkstat == OMAP_MUSB_VBUS_VALID ||
++			 twl->linkstat == OMAP_MUSB_ID_GROUND)
++			!=
++			(status == OMAP_MUSB_VBUS_VALID ||
++			 status == OMAP_MUSB_ID_GROUND);
+ 		twl->linkstat = status;
+-		status_changed = true;
+ 	}
+ 	mutex_unlock(&twl->lock);
+ 
+@@ -555,13 +560,10 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 		 */
+ 		if ((status == OMAP_MUSB_VBUS_VALID) ||
+ 		    (status == OMAP_MUSB_ID_GROUND)) {
+-			if (pm_runtime_suspended(twl->dev))
+-				pm_runtime_get_sync(twl->dev);
++			pm_runtime_get_sync(twl->dev);
+ 		} else {
+-			if (pm_runtime_active(twl->dev)) {
+-				pm_runtime_mark_last_busy(twl->dev);
+-				pm_runtime_put_autosuspend(twl->dev);
+-			}
++			pm_runtime_mark_last_busy(twl->dev);
++			pm_runtime_put_autosuspend(twl->dev);
+ 		}
+ 		omap_musb_mailbox(status);
+ 	}
+@@ -768,6 +770,10 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+ 
+ 	/* disable complete OTG block */
+ 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
++
++	if (twl->linkstat == OMAP_MUSB_VBUS_VALID ||
++	    twl->linkstat == OMAP_MUSB_ID_GROUND)
++		pm_runtime_put_noidle(twl->dev);
+ 	pm_runtime_mark_last_busy(twl->dev);
+ 	pm_runtime_put(twl->dev);
+ 
