@@ -1,39 +1,81 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 15/15] twl4030_charger: assume a 'charger' can supply
- maximum current.
-Date: Tue, 24 Feb 2015 15:33:53 +1100
-Message-ID: <20150224043353.4243.7374.stgit@notabene.brown>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v4.0-rc1
+Date: Tue, 24 Feb 2015 12:52:20 -0800
+Message-ID: <20150224205219.GM11056@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150224043341.4243.23291.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
-Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-If it cannot, we will stop pulling more current when voltage drops.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
----
- drivers/power/twl4030_charger.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-index 7ad6b4b531d7..89e2c121dd22 100644
---- a/drivers/power/twl4030_charger.c
-+++ b/drivers/power/twl4030_charger.c
-@@ -691,8 +691,10 @@ static void twl4030_bci_usb_work(struct work_struct *data)
- 	struct twl4030_bci *bci = container_of(data, struct twl4030_bci, work);
- 
- 	switch (bci->event) {
--	case USB_EVENT_VBUS:
- 	case USB_EVENT_CHARGER:
-+		bci->usb_cur = USB_MAX_CURRENT;
-+		/* FALL THROUGH */
-+	case USB_EVENT_VBUS:
- 	case USB_EVENT_ENUMERATED:
- 		twl4030_charger_enable_usb(bci, true);
- 		break;
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCBjNTE3ZDgzOGViN2QwN2JiZTk1MDc4
+NzFmYWIzOTMxZGVjY2ZmNTM5OgoKICBMaW51eCA0LjAtcmMxICgyMDE1LTAyLTIyIDE4OjIxOjE0
+IC0wODAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21h
+cCB0YWdzL2ZpeGVzLXY0LjAtcmMxCgpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gNjdm
+ZDE0YjNlY2E2M2IxNDQyOTM1MGU5ZWFkYzVmYWI3MDlhODgyMToKCiAgQVJNOiBkdHM6IGFtMzM1
+eC1ib25lKjogdXNiMCBpcyBoYXJkd2lyZWQgZm9yIHBlcmlwaGVyYWwgKDIwMTUtMDItMjQgMTA6
+MzU6NDQgLTA4MDApCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tCkZpeGVzIGZvciB2YXJpb3VzIG9tYXAgZGV2aWNlcy4gSXQn
+cyBhbGwgZHRzIGFuZCBkZWZjb25maWcKY2hhbmdlcyBmb3IgdGhpcyBzZXQ6CgotIEZpeCB3cm9u
+ZyBETUEgcHJvcGVydGllcyBmb3IgZG1hIHRvIGF2b2lkIHRoZW0gZ2V0dGluZwogIGNvcGllZCB3
+cm9uZyBhZ2FpbiBiZWZvcmUgd2Ugc3RhcnQgYWN0dWFsbHkgdXNpbmcgdGhlbQoKLSBVU0IgZml4
+ZXMgdG8gcmV2ZXJ0IHRoZSBleHRjb24gY2hhbmdlcyBhcyB0aGUgZHJpdmVyIGRpZCBub3QKICBn
+ZXQgbWVyZ2VkIHlldCBhbmQgY2F1c2UgaXNzdWVzCgotIE9tYXA1IGFuZCBkcmE3IGZpeGVzIHRv
+IGJvb3QgZnJvbSBzYXRhCgotIEZpeCBmZXcgYW00Mzd4IGlzc3VlcyBmb3IgaTJjIGFuZCBwaW5j
+dHJsCgotIEZpeCBiZWFnbGVib25lIGZvciBoYXJkd2FyZWQgVVNCIGNvbmZpZ3VyYXRpb24KCi0g
+RGVmY29uZmlnIGNoYW5nZXMgZm9yIE5BTkQsIFNBVEEgYW5kIFRQUzYyMzYyCgotIEZpeCBuOTAw
+IGkyYyBudW1iZXJpbmcgZm9yIGxlZ2FjeSB1c2VyIHNwYWNlIGFuZCBzbWM5MXgKICByZWdpc3Rl
+ciBvZmZzZXQgc28gaXQgd29ya3MgYWxzbyBmb3IgcWVtdQoKLSBGaXggaW5jb21wbGV0ZSBVU0Ig
+Y29uZmlndXJhdGlvbiBmb3IgZG04MTZ4CgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkZlbGlwZSBCYWxiaSAoMyk6CiAgICAg
+IEFSTTogZHRzOiBhbTQzN3gtaWRrOiBmaXggVFBTNjIzNjIgaTJjIGJ1cwogICAgICBBUk06IG9t
+YXAycGx1c19kZWZjb25maWc6IGVuYWJsZSBUUFM2MjM2MiByZWd1bGF0b3IKICAgICAgQVJNOiBk
+dHM6IGFtNDM3eC1pZGs6IGZpeCBzbGVlcCBwaW5jdHJsIHN0YXRlCgpJdmF5bG8gRGltaXRyb3Yg
+KDEpOgogICAgICBBUk06IGR0czogbjkwMDogZml4IGkyYyBidXMgbnVtYmVyaW5nCgpQYWxpIFJv
+aMOhciAoMSk6CiAgICAgIEFSTTogZHRzOiBuOTAwOiBGaXggb2Zmc2V0IGZvciBzbWM5MXggZXRo
+ZXJuZXQKClBldGVyIFVqZmFsdXNpICg1KToKICAgICAgQVJNOiBkdHM6IG9tYXAyOiBDb3JyZWN0
+IHRoZSBkbWEgY29udHJvbGxlcidzIHByb3BlcnR5IG5hbWVzCiAgICAgIEFSTTogZHRzOiBvbWFw
+MzogQ29ycmVjdCB0aGUgZG1hIGNvbnRyb2xsZXIncyBwcm9wZXJ0eSBuYW1lcwogICAgICBBUk06
+IGR0czogb21hcDQ6IENvcnJlY3QgdGhlIGRtYSBjb250cm9sbGVyJ3MgcHJvcGVydHkgbmFtZXMK
+ICAgICAgQVJNOiBkdHM6IG9tYXA1OiBDb3JyZWN0IHRoZSBkbWEgY29udHJvbGxlcidzIHByb3Bl
+cnR5IG5hbWVzCiAgICAgIEFSTTogZHRzOiBkcmE3OiBDb3JyZWN0IHRoZSBkbWEgY29udHJvbGxl
+cidzIHByb3BlcnR5IG5hbWVzCgpSb2JlcnQgTmVsc29uICgxKToKICAgICAgQVJNOiBkdHM6IGFt
+MzM1eC1ib25lKjogdXNiMCBpcyBoYXJkd2lyZWQgZm9yIHBlcmlwaGVyYWwKClJvZ2VyIFF1YWRy
+b3MgKDUpOgogICAgICBBUk06IGR0czogRFJBNzogRml4IFNBVEEgUEhZIG5vZGUKICAgICAgQVJN
+OiBkdHM6IE9NQVA1OiBGaXggU0FUQSBQSFkgbm9kZQogICAgICBBUk06IG9tYXAycGx1c19kZWZj
+b25maWc6IEVuYWJsZSBPTUFQIE5BTkQgQkNIIGRyaXZlcgogICAgICBBUk06IG9tYXAycGx1c19k
+ZWZjb25maWc6IEZpeCBTQVRBIGJvb3QKICAgICAgQVJNOiBkdHM6IGRyYTd4LWV2bTogYmVhZ2xl
+LXgxNTogRml4IFVTQiBIb3N0CgpUb255IExpbmRncmVuICgxKToKICAgICAgQVJNOiBkdHM6IEZp
+eCBVU0IgZHRzIGNvbmZpZ3VyYXRpb24gZm9yIGRtODE2eAoKIGFyY2gvYXJtL2Jvb3QvZHRzL2Ft
+MzM1eC1ib25lLWNvbW1vbi5kdHNpIHwgIDEgKwogYXJjaC9hcm0vYm9vdC9kdHMvYW00Mzd4LWlk
+ay1ldm0uZHRzICAgICAgfCAyNSArKy0tLS0tLS0tLS0tLS0tLS0tLS0tLQogYXJjaC9hcm0vYm9v
+dC9kdHMvYW01N3h4LWJlYWdsZS14MTUuZHRzICAgfCAgOCAtLS0tLS0tLQogYXJjaC9hcm0vYm9v
+dC9kdHMvZG04MTY4LWV2bS5kdHMgICAgICAgICAgfCAyNSArKysrKysrKysrKysrKysrKysrKysr
+KwogYXJjaC9hcm0vYm9vdC9kdHMvZG04MTZ4LmR0c2kgICAgICAgICAgICAgfCAzNCArKysrKysr
+KysrKysrKysrKysrKysrKysrKystLS0tCiBhcmNoL2FybS9ib290L2R0cy9kcmE3LWV2bS5kdHMg
+ICAgICAgICAgICB8ICA4IC0tLS0tLS0tCiBhcmNoL2FybS9ib290L2R0cy9kcmE3LmR0c2kgICAg
+ICAgICAgICAgICB8ICA4ICsrKystLS0tCiBhcmNoL2FybS9ib290L2R0cy9kcmE3Mi1ldm0uZHRz
+ICAgICAgICAgICB8ICA4IC0tLS0tLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwMi5kdHNpICAg
+ICAgICAgICAgICB8ICA0ICsrLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45MDAuZHRzICAg
+ICAgICAgIHwgIDkgKysrKysrKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLmR0c2kgICAgICAg
+ICAgICAgIHwgIDQgKystLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQuZHRzaSAgICAgICAgICAg
+ICAgfCAgNCArKy0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpICAgICAgICAgICAgICB8
+ICA4ICsrKystLS0tCiBhcmNoL2FybS9jb25maWdzL29tYXAycGx1c19kZWZjb25maWcgICAgICB8
+ICA0ICsrKy0KIDE0IGZpbGVzIGNoYW5nZWQsIDgzIGluc2VydGlvbnMoKyksIDY3IGRlbGV0aW9u
+cygtKQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
+YWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+YXJtLWtlcm5lbAo=
