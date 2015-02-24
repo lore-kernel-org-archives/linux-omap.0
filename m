@@ -1,135 +1,79 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 08/15] twl4030_charger: distinguish between USB current and
- 'AC' current
-Date: Tue, 24 Feb 2015 15:33:51 +1100
-Message-ID: <20150224043351.4243.50342.stgit@notabene.brown>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked domains
+Date: Tue, 24 Feb 2015 09:04:26 +0000
+Message-ID: <54EC3E9A.5010807@arm.com>
+References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com> <20150223230205.GJ32521@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150224043341.4243.23291.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
-Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:33486 "EHLO
+	usa-sjc-mx-foss1.foss.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751253AbbBXJEa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Feb 2015 04:04:30 -0500
+In-Reply-To: <20150223230205.GJ32521@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The twl4030 charger has two current sources, 'USB' and 'AC' (which is
-really DC of course...).
+On 23/02/15 23:02, Tony Lindgren wrote:
+> * Marc Zyngier <marc.zyngier@arm.com> [150223 09:48]:
+>> This series is extracted from [4], which is trying to remove all
+>> traces of gic_arch_extn from the tree. As some maintainers are more
+>> responsive than others (understatement of the year...), I've decided
+>> to split it per sub-arch, and get it moving, at least partially.
+>>
+>> This series addresses OMAP{4,5} by converting the WUGEN to stacked
+>> domains. The DRA7 crossbar gets the same treatment.
+>>
+>> It is worth realizing that:
+>>
+>> - I haven't been able to test this as much as I would have wanted to
+>>   (it's only been tested on omap4 and omap5).
+>>
+>> - This actively *breaks* existing setups. Once you boot a new kernel
+>>   with an old DT, suspend/resume *will* be broken. Old kernels on a
+>>   new DT won't even boot! You've been warned. This really outline the
+>>   necessity of actually describing the HW in device trees...
+> 
+> Could we parse still the old binding and produce warning for the
+> case when a new kernel is booted with the old DT? That would make
+> it easier for people to debug what's going on.
 
-If 'AC' is providing current, we should set the current limit
-differently to when it isn't (and so USB is used).
-So split 'cur' into 'usb_cur' and 'ac_cur' and use accordingly.
+There's a number of strategies:
+- Looking up the default, top-level interrupt controller:
+  if that's the GIC, scream.
+- Lookup the crossbar:
+  if it exists, but is not an interrupt controller, scream as well.
+- Lookup the WUGEN:
+  if it doesn't exist, scream again.
 
-Now we must review the current setting on any interrupt or USB
-event which might indicate that the charger-source has changed.
+The last one is pretty easy to implement:
 
-Signed-off-by: NeilBrown <neilb@suse.de>
----
- drivers/power/twl4030_charger.c |   30 +++++++++++++++++++++++++-----
- 1 file changed, 25 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-index 7c35cd9ba171..bfc9b808301e 100644
---- a/drivers/power/twl4030_charger.c
-+++ b/drivers/power/twl4030_charger.c
-@@ -22,6 +22,7 @@
- #include <linux/power_supply.h>
- #include <linux/notifier.h>
- #include <linux/usb/otg.h>
-+#include <linux/i2c/twl4030-madc.h>
- 
- #define TWL4030_BCIMSTATEC	0x02
- #define TWL4030_BCIICHG		0x08
-@@ -103,7 +104,9 @@ struct twl4030_bci {
- 	/* ichg values in uA. If any are 'large', we set CGAIN to
- 	 * '1' which doubles the range for half the precision.
- 	 */
--	int			ichg_eoc, ichg_lo, ichg_hi, cur;
-+	int			ichg_eoc, ichg_lo, ichg_hi;
-+	int			usb_cur, ac_cur;
-+	bool			ac_is_active;
- 
- 	unsigned long		event;
- };
-@@ -224,11 +227,23 @@ static int ua2regval(int ua, bool cgain)
- static int twl4030_charger_update_current(struct twl4030_bci *bci)
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index fba1ba7..7bb116a 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -277,6 +277,12 @@ void __init omap_gic_of_init(void)
  {
- 	int status;
-+	int cur;
- 	unsigned reg, cur_reg;
- 	u8 bcictl1, oldreg, fullreg;
- 	int cgain = 0;
- 	u8 boot_bci;
+ 	struct device_node *np;
  
-+	/* If VAC exceeds 4.5V (MADC 11) and ac is enabled, set current
-+	 * for 'ac'
-+	 */
-+	if (twl4030_get_madc_conversion(11) > 4500) {
-+		cur = bci->ac_cur;
-+		bci->ac_is_active = 1;
-+	} else {
-+		cur = bci->usb_cur;
-+		bci->ac_is_active = 0;
++	intc_node = of_find_matching_node(NULL, intc_match);
++	if (WARN_ON(!intc_node)) {
++		pr_err("No WUGEN found in DT, system will misbehave.\n");
++		pr_err("UPDATE YOUR DEVICE TREE!\n");
 +	}
 +
- 	/* First, check thresholds and see if cgain is needed */
- 	if (bci->ichg_eoc >= 200000)
- 		cgain = 1;
-@@ -236,7 +251,7 @@ static int twl4030_charger_update_current(struct twl4030_bci *bci)
- 		cgain = 1;
- 	if (bci->ichg_hi >= 820000)
- 		cgain = 1;
--	if (bci->cur > 852000)
-+	if (cur > 852000)
- 		cgain = 1;
- 
- 	status = twl4030_bci_read(TWL4030_BCICTL1, &bcictl1);
-@@ -311,7 +326,7 @@ static int twl4030_charger_update_current(struct twl4030_bci *bci)
- 
- 	/* And finally, set the current.  This is stored in
- 	 * two registers. */
--	reg = ua2regval(bci->cur, cgain);
-+	reg = ua2regval(cur, cgain);
- 	/* we have only 10 bit */
- 	if (reg > 0x3ff)
- 		reg = 0x3ff;
-@@ -364,6 +379,8 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
- 
- 	if (enable && !IS_ERR_OR_NULL(bci->transceiver)) {
- 
-+		twl4030_charger_update_current(bci);
-+
- 		/* Need to keep phy powered */
- 		if (!bci->usb_enabled) {
- 			pm_runtime_get_sync(bci->transceiver->dev);
-@@ -456,6 +473,7 @@ static irqreturn_t twl4030_charger_interrupt(int irq, void *arg)
- 	struct twl4030_bci *bci = arg;
- 
- 	dev_dbg(bci->dev, "CHG_PRES irq\n");
-+	twl4030_charger_update_current(bci);
- 	power_supply_changed(&bci->ac);
- 	power_supply_changed(&bci->usb);
- 
-@@ -488,6 +506,7 @@ static irqreturn_t twl4030_bci_interrupt(int irq, void *arg)
- 		power_supply_changed(&bci->ac);
- 		power_supply_changed(&bci->usb);
- 	}
-+	twl4030_charger_update_current(bci);
- 
- 	/* various monitoring events, for now we just log them here */
- 	if (irqs1 & (TWL4030_TBATOR2 | TWL4030_TBATOR1))
-@@ -701,10 +720,11 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
- 	bci->ichg_eoc = 80100; /* Stop charging when current drops to here */
- 	bci->ichg_lo = 241000; /* low threshold */
- 	bci->ichg_hi = 500000; /* High threshold */
-+	bci->ac_cur = 500000; /* 500mA */
- 	if (allow_usb)
--		bci->cur = 500000;  /* 500mA */
-+		bci->usb_cur = 500000;  /* 500mA */
- 	else
--		bci->cur = 100000;  /* 100mA */
-+		bci->usb_cur = 100000;  /* 100mA */
- 
- 	bci->dev = &pdev->dev;
- 	bci->irq_chg = platform_get_irq(pdev, 0);
+ 	/* Extract GIC distributor and TWD bases for OMAP4460 ROM Errata WA */
+ 	if (!cpu_is_omap446x())
+ 		goto skip_errata_init;
+
+This should cover both OMAP4, OMAP5 and DRA7.
+
+What do you think?
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
