@@ -1,155 +1,136 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 12/15] twl4030_charger: add software controlled linear
- charging mode.
+Subject: [PATCH 11/15] twl4030_charger: enable manual enable/disable of usb
+ charging.
 Date: Tue, 24 Feb 2015 15:33:52 +1100
-Message-ID: <20150224043352.4243.11227.stgit@notabene.brown>
+Message-ID: <20150224043352.4243.543.stgit@notabene.brown>
 References: <20150224043341.4243.23291.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20150224043341.4243.23291.stgit@notabene.brown>
-Sender: linux-pm-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
 Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add a 'continuous' option for usb charging which enabled
-the "linear" charging mode of the twl4030.
+'off' or 'auto' to
 
-Linear charging does a good job with not so reliable power sources, since
-several voltage controlling is then often too intelligent.
-It was used with a bike hub dynamo since a year or so. In that case there
-are automatically charging stops when the cyclist needs a break.
+ /sys/class/power/twl4030_usb/mode
 
-Orignal-by: Andreas Kemnade <andreas@kemnade.info>
+will now enable or disable charging from USB port.  Normally this is
+enabled on 'plug' and disabled on 'unplug'.
+Unplug will still disable charging.  'plug' will only enable it if
+'auto' if selected.
+
 Signed-off-by: NeilBrown <neilb@suse.de>
+
+Conflicts:
+	drivers/power/twl4030_charger.c
 ---
- drivers/power/twl4030_charger.c |   57 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 52 insertions(+), 5 deletions(-)
+ drivers/power/twl4030_charger.c |   57 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
 diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-index 19e8dbb1303e..6c53f0b601a4 100644
+index 01090a440583..19e8dbb1303e 100644
 --- a/drivers/power/twl4030_charger.c
 +++ b/drivers/power/twl4030_charger.c
-@@ -24,6 +24,8 @@
- #include <linux/usb/otg.h>
- #include <linux/i2c/twl4030-madc.h>
- 
-+#define TWL4030_BCIMDEN		0x00
-+#define TWL4030_BCIMDKEY	0x01
- #define TWL4030_BCIMSTATEC	0x02
- #define TWL4030_BCIICHG		0x08
- #define TWL4030_BCIVAC		0x0a
-@@ -35,13 +37,16 @@
- #define TWL4030_BCIIREF1	0x27
- #define TWL4030_BCIIREF2	0x28
- #define TWL4030_BCIMFKEY	0x11
-+#define TWL4030_BCIMFEN3	0x14
- #define TWL4030_BCIMFTH8	0x1d
- #define TWL4030_BCIMFTH9	0x1e
-+#define TWL4030_BCIWDKEY	0x21
- 
- #define TWL4030_BCIMFSTS1	0x01
- 
- #define TWL4030_BCIAUTOWEN	BIT(5)
- #define TWL4030_CONFIG_DONE	BIT(4)
-+#define TWL4030_CVENAC		BIT(2)
- #define TWL4030_BCIAUTOUSB	BIT(1)
- #define TWL4030_BCIAUTOAC	BIT(0)
- #define TWL4030_CGAIN		BIT(5)
-@@ -110,6 +115,7 @@ struct twl4030_bci {
- 	int			usb_mode; /* charging mode requested */
- #define	CHARGE_OFF	0
- #define	CHARGE_AUTO	1
-+#define	CHARGE_LINEAR	2
+@@ -107,6 +107,9 @@ struct twl4030_bci {
+ 	int			ichg_eoc, ichg_lo, ichg_hi;
+ 	int			usb_cur, ac_cur;
+ 	bool			ac_is_active;
++	int			usb_mode; /* charging mode requested */
++#define	CHARGE_OFF	0
++#define	CHARGE_AUTO	1
  
  	unsigned long		event;
  };
-@@ -392,16 +398,44 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
- 			bci->usb_enabled = 1;
- 		}
+@@ -377,6 +380,8 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
+ {
+ 	int ret;
  
--		/* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
--		ret = twl4030_clear_set_boot_bci(0, TWL4030_BCIAUTOUSB);
--		if (ret < 0)
--			return ret;
-+		if (bci->usb_mode == CHARGE_AUTO) {
-+			/* forcing the field BCIAUTOUSB (BOOT_BCI[1]) to 1 */
-+			ret = twl4030_clear_set_boot_bci(0, TWL4030_BCIAUTOUSB);
-+			twl4030_clear_set_boot_bci(0, TWL4030_BCIAUTOAC|TWL4030_CVENAC);
-+		}
++	if (bci->usb_mode == CHARGE_OFF)
++		enable = false;
+ 	if (enable && !IS_ERR_OR_NULL(bci->transceiver)) {
  
- 		/* forcing USBFASTMCHG(BCIMFSTS4[2]) to 1 */
- 		ret = twl4030_clear_set(TWL_MODULE_MAIN_CHARGE, 0,
- 			TWL4030_USBFASTMCHG, TWL4030_BCIMFSTS4);
-+		if (bci->usb_mode == CHARGE_LINEAR) {
-+			twl4030_clear_set_boot_bci(TWL4030_BCIAUTOAC|TWL4030_CVENAC, 0);
-+			/* Watch dog key: WOVF acknowledge */
-+			ret = twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0x33,
-+					       TWL4030_BCIWDKEY);
-+			/* 0x24 + EKEY6:  off mode */
-+			ret = twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0x2a,
-+					       TWL4030_BCIMDKEY);
-+			/* EKEY2: Linear charge: usb path */
-+			ret = twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0x26,
-+					       TWL4030_BCIMDKEY);
-+			/* WDKEY5: stop watchdog count */
-+			ret = twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0xf3,
-+					       TWL4030_BCIWDKEY);
-+			/* enable MFEN3 access */
-+			ret = twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0x9c,
-+					       TWL4030_BCIMFKEY);
-+			 /* ICHGEOCEN - end-of-charge monitor (current < 80mA)
-+			  *                      (charging continues)
-+			  * ICHGLOWEN - current level monitor (charge continues)
-+			  * don't monitor over-current or heat save
-+			  */
-+			ret = twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0xf0,
-+					       TWL4030_BCIMFEN3);
-+		}
- 	} else {
- 		ret = twl4030_clear_set_boot_bci(TWL4030_BCIAUTOUSB, 0);
-+		ret |= twl_i2c_write_u8(TWL_MODULE_MAIN_CHARGE, 0x2a,
-+					TWL4030_BCIMDKEY);
- 		if (bci->usb_enabled) {
- 			pm_runtime_mark_last_busy(bci->transceiver->dev);
- 			pm_runtime_put_autosuspend(bci->transceiver->dev);
-@@ -637,7 +671,7 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
- /*
-  * sysfs charger enabled store
-  */
--static char *modes[] = { "off", "auto" };
-+static char *modes[] = { "off", "auto", "continuous" };
- static ssize_t
- twl4030_bci_mode_store(struct device *dev, struct device_attribute *attr,
- 			  const char *buf, size_t n)
-@@ -650,6 +684,8 @@ twl4030_bci_mode_store(struct device *dev, struct device_attribute *attr,
- 		mode = 0;
- 	else if (sysfs_streq(buf, modes[1]))
- 		mode = 1;
-+	else if (sysfs_streq(buf, modes[2]))
-+		mode = 2;
- 	else
- 		return -EINVAL;
- 	twl4030_charger_enable_usb(bci, false);
-@@ -748,6 +784,17 @@ static int twl4030_bci_get_property(struct power_supply *psy,
- 		is_charging = state & TWL4030_MSTATEC_USB;
- 	else
- 		is_charging = state & TWL4030_MSTATEC_AC;
-+	if (!is_charging) {
-+		u8 s;
-+		twl4030_bci_read(TWL4030_BCIMDEN, &s);
-+		if (psy->type == POWER_SUPPLY_TYPE_USB)
-+			is_charging = s & 1;
+ 		twl4030_charger_update_current(bci);
+@@ -629,6 +634,54 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
+ 	return NOTIFY_OK;
+ }
+ 
++/*
++ * sysfs charger enabled store
++ */
++static char *modes[] = { "off", "auto" };
++static ssize_t
++twl4030_bci_mode_store(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t n)
++{
++	struct twl4030_bci *bci = dev_get_drvdata(dev->parent);
++	int mode;
++	int status;
++
++	if (sysfs_streq(buf, modes[0]))
++		mode = 0;
++	else if (sysfs_streq(buf, modes[1]))
++		mode = 1;
++	else
++		return -EINVAL;
++	twl4030_charger_enable_usb(bci, false);
++	bci->usb_mode = mode;
++	status = twl4030_charger_enable_usb(bci, true);
++	return (status == 0) ? n : status;
++}
++
++/*
++ * sysfs charger enabled show
++ */
++static ssize_t
++twl4030_bci_mode_show(struct device *dev,
++			     struct device_attribute *attr, char *buf)
++{
++	struct twl4030_bci *bci = dev_get_drvdata(dev->parent);
++	int len = 0;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(modes); i++)
++		if (bci->usb_mode == i)
++			len += snprintf(buf+len, PAGE_SIZE-len,
++					"[%s] ", modes[i]);
 +		else
-+			is_charging = s & 2;
-+		if (is_charging)
-+			/* A little white lie */
-+			state = TWL4030_MSTATEC_QUICK1;
-+	}
++			len += snprintf(buf+len, PAGE_SIZE-len,
++					"%s ", modes[i]);
++	buf[len-1] = '\n';
++	return len;
++}
++static DEVICE_ATTR(mode, 0644, twl4030_bci_mode_show,
++		   twl4030_bci_mode_store);
++
+ static int twl4030_charger_get_current(void)
+ {
+ 	int curr;
+@@ -799,6 +852,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 		bci->usb_cur = 500000;  /* 500mA */
+ 	else
+ 		bci->usb_cur = 100000;  /* 100mA */
++	bci->usb_mode = CHARGE_AUTO;
  
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
-
-
+ 	bci->dev = &pdev->dev;
+ 	bci->irq_chg = platform_get_irq(pdev, 0);
+@@ -885,6 +939,8 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 	twl4030_charger_update_current(bci);
+ 	if (device_create_file(bci->usb.dev, &dev_attr_max_current))
+ 		dev_warn(&pdev->dev, "could not create sysfs file\n");
++	if (device_create_file(bci->usb.dev, &dev_attr_mode))
++		dev_warn(&pdev->dev, "could not create sysfs file\n");
+ 	if (device_create_file(bci->ac.dev, &dev_attr_max_current))
+ 		dev_warn(&pdev->dev, "could not create sysfs file\n");
+ 
+@@ -917,6 +973,7 @@ static int __exit twl4030_bci_remove(struct platform_device *pdev)
+ 
+ 	device_remove_file(bci->usb.dev, &dev_attr_max_current);
+ 	device_remove_file(bci->ac.dev, &dev_attr_max_current);
++	device_remove_file(bci->usb.dev, &dev_attr_mode);
+ 	/* mask interrupts */
+ 	twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xff,
+ 			 TWL4030_INTERRUPTS_BCIIMR1A);
