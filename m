@@ -1,8 +1,8 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 01/15] power_supply core: support use of devres to
- register/unregister a power supply.
+Subject: [PATCH 03/15] twl4030_charger: use devres for power_supply_register
+ and kzalloc.
 Date: Tue, 24 Feb 2015 15:33:50 +1100
-Message-ID: <20150224043350.4243.92949.stgit@notabene.brown>
+Message-ID: <20150224043350.4243.6164.stgit@notabene.brown>
 References: <20150224043341.4243.23291.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,83 +14,83 @@ To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee 
 Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Using devm_power_supply_register allows the unregister to happen
-automatically on error or final put.
+Final allocations/registrations are now managed by devres.
 
 Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- drivers/power/power_supply_core.c |   45 +++++++++++++++++++++++++++++++++++++
- include/linux/power_supply.h      |    4 +++
- 2 files changed, 49 insertions(+)
+ drivers/power/twl4030_charger.c |   23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 694e8cddd5c1..44c810456212 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -617,6 +617,51 @@ int power_supply_register_no_ws(struct device *parent, struct power_supply *psy)
- }
- EXPORT_SYMBOL_GPL(power_supply_register_no_ws);
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index 300dd7a34e80..51321f0c5548 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -565,7 +565,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 	int ret;
+ 	u32 reg;
  
-+static void devm_power_supply_release(struct device *dev, void *res)
-+{
-+	struct power_supply **psy = res;
-+
-+	power_supply_unregister(*psy);
-+}
-+
-+int devm_power_supply_register(struct device *parent, struct power_supply *psy)
-+{
-+	struct power_supply **ptr = devres_alloc(devm_power_supply_release,
-+						 sizeof(*ptr), GFP_KERNEL);
-+	int ret;
-+
-+	if (!ptr)
-+		return -ENOMEM;
-+	ret = __power_supply_register(parent, psy, true);
-+	if (ret < 0)
-+		devres_free(ptr);
-+	else {
-+		*ptr = psy;
-+		devres_add(parent, ptr);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(devm_power_supply_register);
-+
-+int devm_power_supply_register_no_ws(struct device *parent, struct power_supply *psy)
-+{
-+	struct power_supply **ptr = devres_alloc(devm_power_supply_release,
-+						 sizeof(*ptr), GFP_KERNEL);
-+	int ret;
-+
-+	if (!ptr)
-+		return -ENOMEM;
-+	ret = __power_supply_register(parent, psy, false);
-+	if (ret < 0)
-+		devres_free(ptr);
-+	else {
-+		*ptr = psy;
-+		devres_add(parent, ptr);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(devm_power_supply_register_no_ws);
-+
- void power_supply_unregister(struct power_supply *psy)
- {
- 	cancel_work_sync(&psy->changed_work);
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 096dbced02ac..f606d6b4bd56 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -278,6 +278,10 @@ extern int power_supply_register(struct device *parent,
- 				 struct power_supply *psy);
- extern int power_supply_register_no_ws(struct device *parent,
- 				 struct power_supply *psy);
-+extern int devm_power_supply_register(struct device *parent,
-+				 struct power_supply *psy);
-+extern int devm_power_supply_register_no_ws(struct device *parent,
-+				 struct power_supply *psy);
- extern void power_supply_unregister(struct power_supply *psy);
- extern int power_supply_powers(struct power_supply *psy, struct device *dev);
+-	bci = kzalloc(sizeof(*bci), GFP_KERNEL);
++	bci = devm_kzalloc(&pdev->dev, sizeof(*bci), GFP_KERNEL);
+ 	if (bci == NULL)
+ 		return -ENOMEM;
+ 
+@@ -580,7 +580,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 	ret = twl4030_is_battery_present(bci);
+ 	if  (ret) {
+ 		dev_crit(&pdev->dev, "Battery was not detected:%d\n", ret);
+-		goto fail_no_battery;
++		goto fail;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, bci);
+@@ -590,10 +590,10 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 	bci->ac.num_properties = ARRAY_SIZE(twl4030_charger_props);
+ 	bci->ac.get_property = twl4030_bci_get_property;
+ 
+-	ret = power_supply_register(&pdev->dev, &bci->ac);
++	ret = devm_power_supply_register(&pdev->dev, &bci->ac);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register ac: %d\n", ret);
+-		goto fail_register_ac;
++		goto fail;
+ 	}
+ 
+ 	bci->usb.name = "twl4030_usb";
+@@ -604,10 +604,10 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 
+ 	bci->usb_reg = regulator_get(bci->dev, "bci3v1");
+ 
+-	ret = power_supply_register(&pdev->dev, &bci->usb);
++	ret = devm_power_supply_register(&pdev->dev, &bci->usb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register usb: %d\n", ret);
+-		goto fail_register_usb;
++		goto fail;
+ 	}
+ 
+ 	ret = devm_request_threaded_irq(&pdev->dev, bci->irq_chg, NULL,
+@@ -667,13 +667,6 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ fail:
+-	power_supply_unregister(&bci->usb);
+-fail_register_usb:
+-	power_supply_unregister(&bci->ac);
+-fail_register_ac:
+-fail_no_battery:
+-	kfree(bci);
+-
+ 	return ret;
+ }
+ 
+@@ -691,10 +684,6 @@ static int __exit twl4030_bci_remove(struct platform_device *pdev)
+ 	twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xff,
+ 			 TWL4030_INTERRUPTS_BCIIMR2A);
+ 
+-	power_supply_unregister(&bci->usb);
+-	power_supply_unregister(&bci->ac);
+-	kfree(bci);
+-
+ 	return 0;
+ }
  
