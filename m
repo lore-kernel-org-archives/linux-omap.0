@@ -1,36 +1,74 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked domains
-Date: Tue, 24 Feb 2015 09:57:25 +0000
-Message-ID: <54EC4B05.6020000@arm.com>
-References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com> <20150223230205.GJ32521@atomide.com> <20150224001145.GK32521@atomide.com> <CAJydem=O0S0dKL6pOvm79bNYinDcFVhQE0qUW43Qhvfo7voqtA@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: restore "name" sysfs entry.
+Date: Tue, 24 Feb 2015 12:40:32 +0200
+Message-ID: <54EC5520.1020105@ti.com>
+References: <20150224203706.1eafa129@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="LuqB6ELf0qC6l4VTV5lTMQE5nx79wTjeu"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33574 "EHLO
-	usa-sjc-mx-foss1.foss.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752321AbbBXJ5a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Feb 2015 04:57:30 -0500
-In-Reply-To: <CAJydem=O0S0dKL6pOvm79bNYinDcFVhQE0qUW43Qhvfo7voqtA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39032 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752600AbbBXKkr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2015 05:40:47 -0500
+In-Reply-To: <20150224203706.1eafa129@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Subramaniam Chanderashekarapuram <c.a.subramaniam@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Mark Rutland <Mark.Rutland@arm.com>, Jason Cooper <jason@lakedaemon.net>, Rob Herring <robh+dt@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-On 24/02/15 03:45, Subramaniam Chanderashekarapuram wrote:
-> 
-> Tested this on  DRA7 for smp_affinity. Needs these minor fixes attached.
-> 
-> Note: I do not have a OMAP4/5 with me now. Hope to test that tomorrow.
-> 
-> Log for DRA7 are here:
-> http://pastebin.ubuntu.com/10382176/
+--LuqB6ELf0qC6l4VTV5lTMQE5nx79wTjeu
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Looks good to me. I've folded that into the existing series.
+Hi,
 
-Thanks,
+On 24/02/15 11:37, NeilBrown wrote:
+>=20
+>=20
+> commit 303e4697e762dc92a40405f4e4b8aac02cd0d70b
+>     OMAPDSS: rename display-sysfs 'name' entry
+>=20
+> broke the xorg X server on my device as it couldn't find the display
+> any more.  It needs the 'name' file and now there isn't one.
+>=20
+> That commit claims that 'name' is not compatible with i2c or spi.
+> i2c does register it own 'name' file, but spi does not, hence my
+> problem - I have an spi display.
+>=20
+> So create a special case for i2c: add the name attribute for non-i2c
+> devices.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+What X driver is that? What's it doing with the display name? Is it just
+using the display name to show something for the user, and the returned
+value can be essentially any string?
+
+ Tomi
+
+
+
+--LuqB6ELf0qC6l4VTV5lTMQE5nx79wTjeu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJU7FUgAAoJEPo9qoy8lh71pPgQAKv/B5ahAlSN916J/jDT8GpP
+fjgCEzIJ7V2HYMl2wO5PLE50Lo3lYDlK7+NOtjREctKzERQwMnmCzcrVg9VXKe2X
+9gBINHFWgEqhqFXOtFB2WRwWIwauko0U1pAgwmpo2sBxQfLgQvpGpr8quPekZUWH
+8/Cgplbc/lhdSVhAOIMNZ6cKEHeDpBdzB4CwyjtB/dy9cQe7Vm1sReDz6SXcmLr5
+5pXl8vcOARfGmqn7jRMYXNi+C0Ib71+QZXXF8h4Kb81W516NVcuuhZoXh+hsL2lQ
+Vi+FCj2mRGyLGqv8U2LLZmD4GUlDaR7KuG432C2LuVsXCAWzTGbsYvXvx2XNbe19
+U7MfbNh6ija0ZG51C7gpMPQa3QSyxnoXuK/kkKXiP0qtYxKPr919yKmlobRy9avU
+ArS+XHJYafkQriU09hzvv2CdJGG/gN7IZLIaVOH1jCWtWnkfa1vsqPdDNofIv+vB
+LNfZqRFY0r09FZuD/ELJ0DD9fcbncst40rEBB40nPrw/opEvd9+UwUZtmPmwcvZG
+sDF99S/SUhhYq6IGrPP5wZ+gLxal/uGe2PVfdreEYWr4vce62f0z3oumSlabxiYl
+yukLjes0t1Jq+njctV1rRLwstnjDmpKAc3PRPdIAkHU2JYShgnDXutQC+Kan2h76
+wrSAjoVQQhe4y/sgpgda
+=lkZB
+-----END PGP SIGNATURE-----
+
+--LuqB6ELf0qC6l4VTV5lTMQE5nx79wTjeu--
