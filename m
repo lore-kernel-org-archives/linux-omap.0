@@ -1,124 +1,87 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 3/4] usb: phy: twl4030: add support for reading restore on
- ID pin.
+Subject: [PATCH 4/4] usb: phy: twl4030: test ID resistance to see if charger
+ is present.
 Date: Tue, 24 Feb 2015 14:40:37 +1100
-Message-ID: <20150224034037.31400.52748.stgit@notabene.brown>
+Message-ID: <20150224034037.31400.48003.stgit@notabene.brown>
 References: <20150224033730.31400.78200.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:60629 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752504AbbBXDmb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Feb 2015 22:42:31 -0500
 In-Reply-To: <20150224033730.31400.78200.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
-List-Id: linux-omap@vger.kernel.org
 
-The twl4030 phy can measure, with low precision, the
-resistance-to-ground of the ID pin.
+If an 'A' plug is inserted, ID should be pulled to ground.
+If a 'B' plug, then ID should be floating.
 
-Add a function to read the value, and export the result
-via sysfs.
+If an Accessory Charger Adapter is inserted, then ID will
+be neither grounded nor floating.  In this case tell the
+USB subsystem that it is an A plug, and the battery
+charging subsystem that it is a charger.
 
-If the read fails, which it does sometimes, try again in 50msec.
+Fortunately, this will treat the Openmoko charger (and
+other similar chargers) as a charger.
 
 Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- drivers/phy/phy-twl4030-usb.c |   63 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+ drivers/phy/phy-twl4030-usb.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
 diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 023fe150c7a1..759950898df9 100644
+index 759950898df9..8a43080cdbd7 100644
 --- a/drivers/phy/phy-twl4030-usb.c
 +++ b/drivers/phy/phy-twl4030-usb.c
-@@ -374,6 +374,56 @@ static void twl4030_i2c_access(struct twl4030_usb *twl, int on)
- 	}
- }
- 
-+enum twl4030_id_status {
-+	TWL4030_GROUND,
-+	TWL4030_102K,
-+	TWL4030_200K,
-+	TWL4030_440K,
-+	TWL4030_FLOATING,
-+	TWL4030_ID_UNKNOWN,
-+};
-+static char *twl4030_id_names[] = {
-+	"ground",
-+	"102k",
-+	"200k",
-+	"440k",
-+	"floating",
-+	"unknown"
-+};
-+
-+enum twl4030_id_status twl4030_get_id(struct twl4030_usb *twl)
-+{
-+	int ret;
-+
-+	pm_runtime_get_sync(twl->dev);
-+	if (twl->usb_mode == T2_USB_MODE_ULPI)
-+		twl4030_i2c_access(twl, 1);
-+	ret = twl4030_usb_read(twl, ULPI_OTG_CTRL);
-+	if (ret < 0 || !(ret & ULPI_OTG_ID_PULLUP)) {
-+		/* Need pull-up to read ID */
-+		twl4030_usb_set_bits(twl, ULPI_OTG_CTRL,
-+				     ULPI_OTG_ID_PULLUP);
-+		mdelay(50);
-+	}
-+	ret = twl4030_usb_read(twl, ID_STATUS);
-+	if (ret < 0 || (ret & 0x1f) == 0) {
-+		mdelay(50);
-+		ret = twl4030_usb_read(twl, ID_STATUS);
-+	}
-+
-+	if (twl->usb_mode == T2_USB_MODE_ULPI)
-+		twl4030_i2c_access(twl, 0);
-+	pm_runtime_put_autosuspend(twl->dev);
-+
-+	if (ret < 0)
-+		return TWL4030_ID_UNKNOWN;
-+	ret = ffs(ret) - 1;
-+	if (ret < TWL4030_GROUND || ret > TWL4030_FLOATING)
-+		return TWL4030_ID_UNKNOWN;
-+
-+	return ret;
-+}
-+
- static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
- {
- 	u8 pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
-@@ -531,6 +581,16 @@ static ssize_t twl4030_usb_vbus_show(struct device *dev,
- }
- static DEVICE_ATTR(vbus, 0444, twl4030_usb_vbus_show, NULL);
- 
-+static ssize_t twl4030_usb_id_show(struct device *dev,
-+				   struct device_attribute *attr,
-+				   char *buf)
-+{
-+	struct twl4030_usb *twl = dev_get_drvdata(dev);
-+	return scnprintf(buf, PAGE_SIZE, "%s\n",
-+			 twl4030_id_names[twl4030_get_id(twl)]);
-+}
-+static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
-+
- static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- {
+@@ -596,9 +596,31 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
  	struct twl4030_usb *twl = _twl;
-@@ -723,6 +783,8 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, twl);
- 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
- 		dev_warn(&pdev->dev, "could not create sysfs file\n");
-+	if (device_create_file(&pdev->dev, &dev_attr_id))
-+		dev_warn(&pdev->dev, "could not create sysfs file\n");
+ 	enum omap_musb_vbus_id_status status;
+ 	bool status_changed = false;
++	bool found_charger = false;
  
- 	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+ 	status = twl4030_usb_linkstat(twl);
  
-@@ -768,6 +830,7 @@ static int twl4030_usb_remove(struct platform_device *pdev)
- 	pm_runtime_get_sync(twl->dev);
- 	cancel_delayed_work(&twl->id_workaround_work);
- 	device_remove_file(twl->dev, &dev_attr_vbus);
-+	device_remove_file(twl->dev, &dev_attr_id);
++	if (status == OMAP_MUSB_ID_GROUND ||
++	    status == OMAP_MUSB_VBUS_VALID) {
++		/* We should check the resistance on the ID pin.
++		 * If not a Ground or Floating, then this is
++		 * likely a charger
++		 */
++		enum twl4030_id_status sts = twl4030_get_id(twl);
++		if (sts > TWL4030_GROUND &&
++		    sts < TWL4030_FLOATING) {
++			/*
++			 * This might be a charger, or an
++			 * Accessory Charger Adapter.
++			 * In either case we can charge, and it
++			 * makes sense to tell the USB system
++			 * that we might be acting as a HOST.
++			 */
++			status = OMAP_MUSB_ID_GROUND;
++			found_charger = true;
++		}
++	}
++
+ 	mutex_lock(&twl->lock);
+ 	if (status >= 0 && status != twl->linkstat) {
+ 		status_changed =
+@@ -627,6 +649,12 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 		}
+ 		omap_musb_mailbox(status);
+ 	}
++	if (found_charger && twl->phy.last_event != USB_EVENT_CHARGER) {
++		twl->phy.last_event = USB_EVENT_CHARGER;
++		atomic_notifier_call_chain(&twl->phy.notifier,
++					   USB_EVENT_CHARGER,
++					   NULL);
++	}
  
- 	/* set transceiver mode to power on defaults */
- 	twl4030_usb_set_mode(twl, -1);
+ 	/* don't schedule during sleep - irq works right then */
+ 	if (status == OMAP_MUSB_ID_GROUND && pm_runtime_active(twl->dev)) {
+
+
