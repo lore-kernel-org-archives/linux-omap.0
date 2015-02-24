@@ -1,66 +1,83 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 00/15]  Enhance twl4030_charger functionality.
+Subject: [PATCH 02/15] twl4030_charger: use devm_request_threaded_irq
 Date: Tue, 24 Feb 2015 15:33:50 +1100
-Message-ID: <20150224043341.4243.23291.stgit@notabene.brown>
+Message-ID: <20150224043350.4243.93223.stgit@notabene.brown>
+References: <20150224043341.4243.23291.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34315 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848AbbBXEfL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2015 23:35:11 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150224043341.4243.23291.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
 Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-These patches make a number of improvements to twl4030_charger.
+This simplifies the error paths.
 
-So are just internal cleanups (e.g. use of devres).  Others allow
-better control of charging through both manual and automatic means.
-
-- the maximum current can be configured via sysfs.
-- the charger will only draw that current if it can do so without
-  the voltage dropping too much
-- a 'continuous' mode is available which ignores voltage and just
-  takes what it can (to be used with caution, but very useful in
-  some circumstances).
-- 'ac' and 'usb' power sources can be configured separately.
-
-Some of this functionality requires patch to phy-twl4030-usb.c which
-have been sent separately.
-
-Thanks,
-NeilBrown
-
-
+Signed-off-by: NeilBrown <neilb@suse.de>
 ---
+ drivers/power/twl4030_charger.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-NeilBrown (15):
-      power_supply core: support use of devres to register/unregister a power supply.
-      twl4030_charger: use devm_request_threaded_irq
-      twl4030_charger: use devres for power_supply_register and kzalloc.
-      twl4030_charger: use runtime_pm to keep usb phy active while charging.
-      twl4030_charger: trust phy to determine when USB power is available.
-      twl4030_charger: split uA calculation into a function.
-      twl4030_charger: allow fine control of charger current.
-      twl4030_charger: distinguish between USB current and 'AC' current
-      twl4030_charger: allow max_current to be managed via sysfs.
-      twl4030_charger: only draw USB current as negotiated with host.
-      twl4030_charger: enable manual enable/disable of usb charging.
-      twl4030_charger: add software controlled linear charging mode.
-      twl4030_charger: add ac/mode to match usb/mode
-      twl4030_charger: Increase current carefully while watching voltage.
-      twl4030_charger: assume a 'charger' can supply maximum current.
-
-
- drivers/mfd/twl-core.c            |    9 -
- drivers/power/power_supply_core.c |   45 +++
- drivers/power/twl4030_charger.c   |  572 +++++++++++++++++++++++++++++++------
- include/linux/power_supply.h      |    4 
- 4 files changed, 539 insertions(+), 91 deletions(-)
-
---
-Signature
-
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index 4cf5ffbc904a..300dd7a34e80 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -610,21 +610,21 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 		goto fail_register_usb;
+ 	}
+ 
+-	ret = request_threaded_irq(bci->irq_chg, NULL,
++	ret = devm_request_threaded_irq(&pdev->dev, bci->irq_chg, NULL,
+ 			twl4030_charger_interrupt, IRQF_ONESHOT, pdev->name,
+ 			bci);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "could not request irq %d, status %d\n",
+ 			bci->irq_chg, ret);
+-		goto fail_chg_irq;
++		goto fail;
+ 	}
+ 
+-	ret = request_threaded_irq(bci->irq_bci, NULL,
++	ret = devm_request_threaded_irq(&pdev->dev, bci->irq_bci, NULL,
+ 			twl4030_bci_interrupt, IRQF_ONESHOT, pdev->name, bci);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "could not request irq %d, status %d\n",
+ 			bci->irq_bci, ret);
+-		goto fail_bci_irq;
++		goto fail;
+ 	}
+ 
+ 	INIT_WORK(&bci->work, twl4030_bci_usb_work);
+@@ -647,7 +647,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 			       TWL4030_INTERRUPTS_BCIIMR1A);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "failed to unmask interrupts: %d\n", ret);
+-		goto fail_unmask_interrupts;
++		goto fail;
+ 	}
+ 
+ 	reg = ~(u32)(TWL4030_VBATOV | TWL4030_VBUSOV | TWL4030_ACCHGOV);
+@@ -666,11 +666,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-fail_unmask_interrupts:
+-	free_irq(bci->irq_bci, bci);
+-fail_bci_irq:
+-	free_irq(bci->irq_chg, bci);
+-fail_chg_irq:
++fail:
+ 	power_supply_unregister(&bci->usb);
+ fail_register_usb:
+ 	power_supply_unregister(&bci->ac);
+@@ -695,8 +691,6 @@ static int __exit twl4030_bci_remove(struct platform_device *pdev)
+ 	twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xff,
+ 			 TWL4030_INTERRUPTS_BCIIMR2A);
+ 
+-	free_irq(bci->irq_bci, bci);
+-	free_irq(bci->irq_chg, bci);
+ 	power_supply_unregister(&bci->usb);
+ 	power_supply_unregister(&bci->ac);
+ 	kfree(bci);
