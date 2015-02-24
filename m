@@ -1,42 +1,118 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] fix ehrpwm tbclk data on am33xx and am43xx
-Date: Tue, 24 Feb 2015 09:15:46 -0800
-Message-ID: <20150224171546.GB28244@atomide.com>
-References: <1423546542-29664-1-git-send-email-vigneshr@ti.com>
+Subject: Re: Nokia N900: omap aes is broken
+Date: Tue, 24 Feb 2015 09:25:12 -0800
+Message-ID: <20150224172512.GC28244@atomide.com>
+References: <201502181321.03774@pali>
+ <201502182202.30272@pali>
+ <201502182227.55488@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery6.ore.mailhop.org ([54.200.129.228]:45990 "EHLO
-	pmta2.delivery6.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752339AbbBXRUH (ORCPT
+Received: from pmta1.delivery3.ore.mailhop.org ([54.191.214.36]:42545 "EHLO
+	pmta1.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753247AbbBXR32 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Feb 2015 12:20:07 -0500
+	Tue, 24 Feb 2015 12:29:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1423546542-29664-1-git-send-email-vigneshr@ti.com>
+In-Reply-To: <201502182227.55488@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
 
-* Vignesh R <vigneshr@ti.com> [150209 22:43]:
-> In am33xx and am43xx, ehrpwm tbclk is derived from functional clock of
-> PWMSS. The schematics and TRMs show that there is only one input clock to
-> the PWMSS. But currently, tbclk is wrongly shown to be deriving from
-> dpll_per_m2_ck instead of functional clock l4ls_gclk in the DT.
-> 
-> Fixing ehrpwm tbclk data to reflect the right clk source.
-> Tested on beaglebone and am437x-gp-evm.
-> 
-> Vignesh R (2):
->   ARM: dts: am33xx-clocks: Fix ehrpwm tbclk data on am33xx
->   ARM: dts: am43xx-clocks: Fix ehrpwm tbclk data on am43xx
-> 
->  arch/arm/boot/dts/am33xx-clocks.dtsi |  6 +++---
->  arch/arm/boot/dts/am43xx-clocks.dtsi | 12 ++++++------
->  2 files changed, 9 insertions(+), 9 deletions(-)
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150218 16:03]:
+> On Wednesday 18 February 2015 22:02:30 Pali Roh=C3=A1r wrote:
+> > On Wednesday 18 February 2015 13:21:03 Pali Roh=C3=A1r wrote:
+> > > Hello,
+> > >=20
+> > > I tried to test OMAP AES driver on Nokia N900 with special
+> > > Nokia bootloader which enable L3 firewall for OMAP AES HW
+> > > support.
+> > >=20
+> > > I modified arch/arm/boot/dts/omap34xx-hs.dtsi file and
+> > > commented aes line which disable aes support in DT.
+> > >=20
+> > > Then I booted kernel and loaded omap-aes.ko module. And I
+> > > got this output in dmesg:
+> > >=20
+> > > [    0.222930] platform 480c5000.aes: Cannot lookup hwmod
+> > > 'aes' [   27.758148] omap-aes 480c5000.aes:
+> > > _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
+> > > [   27.765960] omap-aes 480c5000.aes: omap_aes_probe: failed
+> > > to get_sync(-19)
+> > > [   29.257690] omap-aes 480c5000.aes: initialization failed.
+> > >=20
+> > > So it looks like some initialization data are missing for
+> > > Nokia N900 (omap3430 device).
+> > >=20
+> > > Can somebody look at it? I have patched 2.6.28 kernel were
+> > > omap aes support on this N900 device (with special
+> > > bootloader) is working.
+> > >=20
+> > > Maybe some other data are missing in DT or in hwmod?
+> >=20
+> > dma channels are missing in DT. I applied this patch:
+> >=20
+> > diff --git a/arch/arm/boot/dts/omap3.dtsi
+> > b/arch/arm/boot/dts/omap3.dtsi index 01b7111..473d460 100644
+> > --- a/arch/arm/boot/dts/omap3.dtsi
+> > +++ b/arch/arm/boot/dts/omap3.dtsi
+> > @@ -92,6 +92,8 @@
+> >  			ti,hwmods =3D "aes";
+> >  			reg =3D <0x480c5000 0x50>;
+> >  			interrupts =3D <0>;
+> > +			dmas =3D <&sdma 65 &sdma 66>;
+> > +			dma-names =3D "tx", "rx";
+> >  		};
+> >=20
+> >  		prm: prm@48306000 {
+> > @@ -550,6 +552,8 @@
+> >  			ti,hwmods =3D "sham";
+> >  			reg =3D <0x480c3000 0x64>;
+> >  			interrupts =3D <49>;
+> > +			dmas =3D <&sdma 96>;
+> > +			dma-names =3D "rx";
+> >  		};
+> >=20
+> >  		smartreflex_core: smartreflex@480cb000 {
+> >=20
+> >=20
+> > and omap-aes driver was successfully loaded. now it is in
+> > /proc/crypto
+> >=20
+> > I copied dma names and numbers from file
+> > arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>=20
+> And I also needed to apply this patch:
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/ma=
+ch-omap2/omap_hwmod_3xxx_data.c
+> index 11468ee..3281f30 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -3938,8 +3938,9 @@ int __init omap3xxx_hwmod_init(void)
+>  	if (r < 0)
+>  		return r;
+> =20
+> -	/* Register GP-only hwmod links. */
+> -	if (h_gp && omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) {
+> +//	/* Register GP-only hwmod links. */
+> +//	if (h_gp && omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) {
+> +	if (h_gp) {
+>  		r =3D omap_hwmod_register_links(h_gp);
+>  		if (r < 0)
+>  			return r;
+>=20
+> aes hwmod is defined in GP-only hwmod...
 
-Tero, care to check this one too and ack if OK?
+Doesn't this depend on the bootloader version of n900 to work?
 
-Thanks,
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
