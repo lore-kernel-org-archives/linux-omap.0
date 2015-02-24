@@ -1,87 +1,66 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 4/4] usb: phy: twl4030: test ID resistance to see if charger
- is present.
-Date: Tue, 24 Feb 2015 14:40:37 +1100
-Message-ID: <20150224034037.31400.48003.stgit@notabene.brown>
-References: <20150224033730.31400.78200.stgit@notabene.brown>
+Subject: [PATCH 00/15]  Enhance twl4030_charger functionality.
+Date: Tue, 24 Feb 2015 15:33:50 +1100
+Message-ID: <20150224043341.4243.23291.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60629 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:34315 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752504AbbBXDmb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2015 22:42:31 -0500
-In-Reply-To: <20150224033730.31400.78200.stgit@notabene.brown>
+	id S1751848AbbBXEfL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Feb 2015 23:35:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-If an 'A' plug is inserted, ID should be pulled to ground.
-If a 'B' plug, then ID should be floating.
+These patches make a number of improvements to twl4030_charger.
 
-If an Accessory Charger Adapter is inserted, then ID will
-be neither grounded nor floating.  In this case tell the
-USB subsystem that it is an A plug, and the battery
-charging subsystem that it is a charger.
+So are just internal cleanups (e.g. use of devres).  Others allow
+better control of charging through both manual and automatic means.
 
-Fortunately, this will treat the Openmoko charger (and
-other similar chargers) as a charger.
+- the maximum current can be configured via sysfs.
+- the charger will only draw that current if it can do so without
+  the voltage dropping too much
+- a 'continuous' mode is available which ignores voltage and just
+  takes what it can (to be used with caution, but very useful in
+  some circumstances).
+- 'ac' and 'usb' power sources can be configured separately.
 
-Signed-off-by: NeilBrown <neilb@suse.de>
+Some of this functionality requires patch to phy-twl4030-usb.c which
+have been sent separately.
+
+Thanks,
+NeilBrown
+
+
 ---
- drivers/phy/phy-twl4030-usb.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
 
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 759950898df9..8a43080cdbd7 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -596,9 +596,31 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 	struct twl4030_usb *twl = _twl;
- 	enum omap_musb_vbus_id_status status;
- 	bool status_changed = false;
-+	bool found_charger = false;
- 
- 	status = twl4030_usb_linkstat(twl);
- 
-+	if (status == OMAP_MUSB_ID_GROUND ||
-+	    status == OMAP_MUSB_VBUS_VALID) {
-+		/* We should check the resistance on the ID pin.
-+		 * If not a Ground or Floating, then this is
-+		 * likely a charger
-+		 */
-+		enum twl4030_id_status sts = twl4030_get_id(twl);
-+		if (sts > TWL4030_GROUND &&
-+		    sts < TWL4030_FLOATING) {
-+			/*
-+			 * This might be a charger, or an
-+			 * Accessory Charger Adapter.
-+			 * In either case we can charge, and it
-+			 * makes sense to tell the USB system
-+			 * that we might be acting as a HOST.
-+			 */
-+			status = OMAP_MUSB_ID_GROUND;
-+			found_charger = true;
-+		}
-+	}
-+
- 	mutex_lock(&twl->lock);
- 	if (status >= 0 && status != twl->linkstat) {
- 		status_changed =
-@@ -627,6 +649,12 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 		}
- 		omap_musb_mailbox(status);
- 	}
-+	if (found_charger && twl->phy.last_event != USB_EVENT_CHARGER) {
-+		twl->phy.last_event = USB_EVENT_CHARGER;
-+		atomic_notifier_call_chain(&twl->phy.notifier,
-+					   USB_EVENT_CHARGER,
-+					   NULL);
-+	}
- 
- 	/* don't schedule during sleep - irq works right then */
- 	if (status == OMAP_MUSB_ID_GROUND && pm_runtime_active(twl->dev)) {
+NeilBrown (15):
+      power_supply core: support use of devres to register/unregister a power supply.
+      twl4030_charger: use devm_request_threaded_irq
+      twl4030_charger: use devres for power_supply_register and kzalloc.
+      twl4030_charger: use runtime_pm to keep usb phy active while charging.
+      twl4030_charger: trust phy to determine when USB power is available.
+      twl4030_charger: split uA calculation into a function.
+      twl4030_charger: allow fine control of charger current.
+      twl4030_charger: distinguish between USB current and 'AC' current
+      twl4030_charger: allow max_current to be managed via sysfs.
+      twl4030_charger: only draw USB current as negotiated with host.
+      twl4030_charger: enable manual enable/disable of usb charging.
+      twl4030_charger: add software controlled linear charging mode.
+      twl4030_charger: add ac/mode to match usb/mode
+      twl4030_charger: Increase current carefully while watching voltage.
+      twl4030_charger: assume a 'charger' can supply maximum current.
 
+
+ drivers/mfd/twl-core.c            |    9 -
+ drivers/power/power_supply_core.c |   45 +++
+ drivers/power/twl4030_charger.c   |  572 +++++++++++++++++++++++++++++++------
+ include/linux/power_supply.h      |    4 
+ 4 files changed, 539 insertions(+), 91 deletions(-)
+
+--
+Signature
 
