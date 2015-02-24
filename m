@@ -1,52 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/4] phy: ti-pipe3: fixes for 3.19-rc
-Date: Tue, 24 Feb 2015 10:02:06 -0800
-Message-ID: <20150224180206.GA11056@atomide.com>
-References: <1421151802-7396-1-git-send-email-rogerq@ti.com>
- <20150113155409.GA2419@atomide.com>
- <54E44694.4070801@ti.com>
- <54E448B2.80103@ti.com>
+Subject: Re: [PATCH][v4.0-rc] ARM: dts: dra7x-evm: beagle-x15: Fix USB Host
+Date: Tue, 24 Feb 2015 10:03:04 -0800
+Message-ID: <20150224180303.GG11056@atomide.com>
+References: <1424781427-15356-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta2.delivery7.ore.mailhop.org ([54.149.205.143]:33728 "EHLO
+	pmta2.delivery7.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753619AbbBXSL7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Feb 2015 13:11:59 -0500
 Content-Disposition: inline
-In-Reply-To: <54E448B2.80103@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, nm@ti.com, balbi@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+In-Reply-To: <1424781427-15356-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, nsekhar@ti.com, nm@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [150218 00:13]:
-> On 18/02/15 10:00, Roger Quadros wrote:
-> > On 13/01/15 17:54, Tony Lindgren wrote:
-> >> * Roger Quadros <rogerq@ti.com> [150113 04:26]:
-> >>> Hi,
-> >>>
-> >>> During system suspend L3INIT_960M_GFCLK and L3INIT_480M_GFCLK clocks remain
-> >>> active on the DRA7 platform. This is because the pipe3 driver doesn't shut
-> >>> them off as part of .suspend(). Patch 1 addresses this issue.
-> >>>
-> >>> SATA on both OMAP5 and DRA7 breaks when SATA drive is plugged in after a
-> >>> system suspend/resume or if AHCI_PLATFORM driver is used as module.
-> >>> Patches 2,3,4 fix it.
-> >>>
-> >>> Hope to get these patches in through the 3.19-rc cycle.
-> >>>
-> >>> Tony,
-> >>>
-> >>> Do you wish to take the DTS patches or let them go in through PHY tree?
-> >>
-> >> Those look ok to me to merge along with the fixes, will ack those two.
-> >>
-> > 
-> > Looks like this missed 3.19-rc. My bad for not following up.
-> > 
-> > Kishon, can you please queue these for 3.20-rc? Thanks.
+* Roger Quadros <rogerq@ti.com> [150224 04:40]:
+> In commit 87517d26d888 ("ARM: dts: dra7-evm: Add extcon nodes for USB")
+> we enabled Extcon USB gpio to tackle the USB ID pin and get
+> peripheral mode to work.
 > 
-> Well the PHY patches (1 and 2) are already queued for v3.20-rc1 via Greg's usb-next tree.
-> Tony can you please queue the DT side patches for v3.20? Thanks.
+> But the extcon-gpio-usb driver [1] didn't make it into v4.0
+> and this makes the USB driver defer probe indefinitely breaking
+> USB Host functionality.
+> 
+> As a temporary fix we remove the extcon handle from the
+> USB controller and add it back when the extcon driver
+> merges in v4.1.
 
-Applying these into omap-for-v4.0/fixes. Lookse like we're a few
-kernel releases behind with these :)
+Uhh OK, If there are dependencies, can you please start splitting
+your patches so the dts changes that cause issues are sent only
+after the related driver changes are in Linux next?
+
+Anyways, applying into omap-for-v4.0/fixes.
 
 Tony
+ 
+> [1] - https://lkml.org/lkml/2015/2/2/187
