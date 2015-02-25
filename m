@@ -1,43 +1,44 @@
-From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
-Subject: Re: [PATCH 3/8 v2] ARM OMAP2+ GPMC: add bus children
-Date: Wed, 25 Feb 2015 16:06:25 +0100
-Message-ID: <54EDE4F1.10000@cit-ec.uni-bielefeld.de>
-References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDB9F0.9030701@ti.com>
-Reply-To: rabel@cit-ec.uni-bielefeld.de
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ASoC: omap: fix up SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency
+Date: Wed, 25 Feb 2015 16:05:05 +0100
+Message-ID: <22890811.0MuvZ4MxOU@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54EDB9F0.9030701@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.130]:58572 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751848AbbBYPHB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 10:07:01 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@kernel.org
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, lgirdwood@gmail.com
 
-Hi Roger,
+The change to enable OMAP5 support on this platform was a little too
+eager in adding a 'select' for a particular clock driver that might
+not be enabled in all configurations, which in turn leads to a build
+error:
 
-On 25 Feb 2015 13:02, Roger Quadros wrote:
-> This creates platform devices for the children of child, but what 
-> about platform device for the child itself?
-It seems my first try in the other patch set wasn't so wrong after all. 
-Maybe unconditionally call
+warning: (SND_OMAP_SOC_OMAP_ABE_TWL6040) selects COMMON_CLK_PALMAS which has unmet direct dependencies (COMMON_CLK && MFD_PALMAS)
+drivers/built-in.o: In function `palmas_clks_probe':
+drivers/clk/clk-palmas.c:228: undefined reference to `palmas_ext_control_req_config'
 
-of_platform_device_create(child,...) and
-of_platform_populate(child, ...)?
+I do not see a strong dependency here, so it's probably better to
+drop this select and to avoid adding more complexity here.
 
-> Shouldn't the bus driver for that bus be responsible for spawning children of its bus?
-Well, a bus driver doesn't actually do much work here. The standard buses are just there for offset and so on.
-And that's my use case. Have one CS region with fixed settings and multiple devices in it.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 5163c1eede8e9 ("ASoC: omap: Kconfig: Support for omap5-uevm analog audio")
 
-Creating code that in effect replicates what simple-bus does isn't worthwhile. Basically, it would replicate half the code that
-of_platform_populate goes through anyway without good reason.
-
-If complex bus-behavior is needed -- more than single-bus offset shifts --, a complex bus driver can always be written.
-Since it wouldn't match of_default_match_table, it itself would be responsible for creating children.
-
-I think I'll go with my first patch for this one, maybe call of_platform_decide_create unconditionally to check whether buses are
-available.
-
-Regards,
-
-Robert
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index e7c78b0406b5..e74d8db4619d 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -105,7 +105,6 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+ 	select SND_OMAP_SOC_MCPDM
+ 	select SND_SOC_TWL6040
+ 	select SND_SOC_DMIC
+-	select COMMON_CLK_PALMAS if SOC_OMAP5
+ 	help
+ 	  Say Y if you want to add support for SoC audio on OMAP boards using
+ 	  ABE and twl6040 codec. This driver currently supports:
