@@ -1,113 +1,143 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 29/35] ARM: dts: am4372: merge control module features under scrm node
-Date: Wed, 25 Feb 2015 21:04:39 +0200
-Message-ID: <1424891085-10392-30-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 34/35] ARM: dts: dra7: add system control module node
+Date: Wed, 25 Feb 2015 21:04:44 +0200
+Message-ID: <1424891085-10392-35-git-send-email-t-kristo@ti.com>
 References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49529 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51350 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753585AbbBYTFh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:05:37 -0500
+	id S1753591AbbBYTFp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 14:05:45 -0500
 In-Reply-To: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-This patch moves all the control module related features under scrm
-node. scm_conf area is provided to support syscon, and also the clocks
-are moved under scm_conf area.
+Add node for system control module, and move all the existing system
+control IO space users under this new node as its children. A new node
+for scm_conf area is also added.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi |   48 +++++++++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 21 deletions(-)
+ .../devicetree/bindings/arm/omap/ctrl.txt          |    1 +
+ arch/arm/boot/dts/dra7.dtsi                        |   60 ++++++++++++--------
+ 2 files changed, 36 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 1943fc3..f41b82a 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -57,22 +57,6 @@
- 		cache-level = <2>;
- 	};
+diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
+index 3574d67..f84f4ea 100644
+--- a/Documentation/devicetree/bindings/arm/omap/ctrl.txt
++++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
+@@ -21,6 +21,7 @@ Required properties:
+ 		"ti,omap3-scrm"
+ 		"ti,omap4-ctrl"
+ 		"ti,omap5-ctrl"
++		"ti,dra7-ctrl"
+ - reg:		Contains Control Module register address range
+ 		(base address and length)
  
--	am43xx_control_module: control_module@4a002000 {
--		compatible = "syscon";
--		reg = <0x44e10000 0x7f4>;
--	};
--
--	am43xx_pinmux: pinmux@44e10800 {
--		compatible = "ti,am437-padconf", "pinctrl-single";
--		reg = <0x44e10800 0x31c>;
--		#address-cells = <1>;
--		#size-cells = <0>;
--		#interrupt-cells = <1>;
--		interrupt-controller;
--		pinctrl-single,register-width = <32>;
--		pinctrl-single,function-mask = <0xffffffff>;
--	};
--
- 	ocp {
- 		compatible = "ti,am4372-l3-noc", "simple-bus";
- 		#address-cells = <1>;
-@@ -98,12 +82,34 @@
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 5827fed..230d22d 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -203,26 +203,47 @@
+ 			};
  		};
  
- 		scrm: scrm@44e10000 {
--			compatible = "ti,am4-scrm";
--			reg = <0x44e10000 0x2000>;
-+			compatible = "ti,am4-scrm", "simple-bus";
-+			reg = <0x44e10000 0x1000>;
-+			#address-cells = <1>;
++		scm: scm@4a002000 {
++			compatible = "ti,dra7-ctrl", "simple-bus";
++			reg = <0x4a002000 0x1400>,
++			      <0x4a003400 0x600>,
++			      <0x4ae0c000 0x600>;
++			#address-cells = <2>;
 +			#size-cells = <1>;
-+			ranges = <0 0x44e10000 0x1000>;
- 
--			scrm_clocks: clocks {
-+			am43xx_pinmux: pinmux@800 {
-+				compatible = "ti,am437-padconf",
++			ranges = <0 0 0x4a002000 0x1400>,
++				 <1 0 0x4a003400 0x600>,
++				 <2 0 0x4ae0c000 0x600>;
++
++			scm_conf: tisyscon@0,0 {
++				compatible = "syscon";
++				reg = <0 0x0 0x1400>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++			};
++
++			dra7_pmx_core: pinmux@1,0 {
++				compatible = "ti,dra7-padconf",
 +					     "pinctrl-single";
-+				reg = <0x800 0x31c>;
- 				#address-cells = <1>;
- 				#size-cells = <0>;
++				reg = <1 0x0 0x0464>;
++				#address-cells = <1>;
++				#size-cells = <0>;
 +				#interrupt-cells = <1>;
 +				interrupt-controller;
 +				pinctrl-single,register-width = <32>;
-+				pinctrl-single,function-mask = <0xffffffff>;
++				pinctrl-single,function-mask = <0x3fffffff>;
 +			};
++		};
 +
-+			scm_conf: tisyscon@0 {
-+				compatible = "syscon";
-+				reg = <0x0 0x7fc>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+
-+				scrm_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
- 			};
+ 		counter32k: counter@4ae04000 {
+ 			compatible = "ti,omap-counter32k";
+ 			reg = <0x4ae04000 0x40>;
+ 			ti,hwmods = "counter_32k";
+ 		};
  
- 			scrm_clockdomains: clockdomains {
-@@ -933,7 +939,7 @@
- 			clocks = <&dcan0_fck>;
- 			clock-names = "fck";
- 			reg = <0x481cc000 0x2000>;
--			syscon-raminit = <&am43xx_control_module 0x644 0>;
-+			syscon-raminit = <&scm_conf 0x644 0>;
- 			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
+-		dra7_ctrl_core: ctrl_core@4a002000 {
+-			compatible = "syscon";
+-			reg = <0x4a002000 0x6d0>;
+-		};
+-
+-		dra7_ctrl_general: tisyscon@4a002e00 {
+-			compatible = "syscon";
+-			reg = <0x4a002e00 0x7c>;
+-		};
+-
+ 		pbias_regulator: pbias_regulator {
+ 			compatible = "ti,pbias-omap";
+-			reg = <0 0x4>;
+-			syscon = <&dra7_ctrl_general>;
++			reg = <0xe00 0x4>;
++			syscon = <&scm_conf>;
+ 			pbias_mmc_reg: pbias_mmc_omap5 {
+ 				regulator-name = "pbias_mmc_omap5";
+ 				regulator-min-microvolt = <1800000>;
+@@ -230,17 +251,6 @@
+ 			};
  		};
-@@ -944,7 +950,7 @@
- 			clocks = <&dcan1_fck>;
- 			clock-names = "fck";
- 			reg = <0x481d0000 0x2000>;
--			syscon-raminit = <&am43xx_control_module 0x644 1>;
-+			syscon-raminit = <&scm_conf 0x644 1>;
- 			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
+ 
+-		dra7_pmx_core: pinmux@4a003400 {
+-			compatible = "ti,dra7-padconf", "pinctrl-single";
+-			reg = <0x4a003400 0x0464>;
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			#interrupt-cells = <1>;
+-			interrupt-controller;
+-			pinctrl-single,register-width = <32>;
+-			pinctrl-single,function-mask = <0x3fffffff>;
+-		};
+-
+ 		sdma: dma-controller@4a056000 {
+ 			compatible = "ti,omap4430-sdma";
+ 			reg = <0x4a056000 0x1000>;
+@@ -1410,7 +1420,7 @@
+ 			compatible = "ti,dra7-d_can";
+ 			ti,hwmods = "dcan1";
+ 			reg = <0x4ae3c000 0x2000>;
+-			syscon-raminit = <&dra7_ctrl_core 0x558 0>;
++			syscon-raminit = <&scm_conf 0x558 0>;
+ 			interrupts = <GIC_SPI 222 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&dcan1_sys_clk_mux>;
  			status = "disabled";
- 		};
+@@ -1420,7 +1430,7 @@
+ 			compatible = "ti,dra7-d_can";
+ 			ti,hwmods = "dcan2";
+ 			reg = <0x48480000 0x2000>;
+-			syscon-raminit = <&dra7_ctrl_core 0x558 1>;
++			syscon-raminit = <&scm_conf 0x558 1>;
+ 			interrupts = <GIC_SPI 225 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&sys_clkin1>;
+ 			status = "disabled";
 -- 
 1.7.9.5
 
