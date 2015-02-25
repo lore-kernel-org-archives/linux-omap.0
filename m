@@ -1,104 +1,112 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: restore "name" sysfs entry.
-Date: Wed, 25 Feb 2015 09:04:09 +0200
-Message-ID: <54ED73E9.1020804@ti.com>
-References: <20150224203706.1eafa129@notabene.brown>	<54EC5520.1020105@ti.com> <20150225073131.7fbff605@notabene.brown>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v6 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Wed, 25 Feb 2015 07:17:25 +0000
+Message-ID: <20150225071725.GE21323@x1>
+References: <1420609779-11156-1-git-send-email-vigneshr@ti.com>
+ <1420609779-11156-4-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55399 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864AbbBYHE1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 02:04:27 -0500
-In-Reply-To: <20150225073131.7fbff605@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1420609779-11156-4-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Brad Griffis <bgriffis@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Jan Kardell <jan.kardell@telliq.com>, Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
---77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Wed, 07 Jan 2015, Vignesh R wrote:
 
-On 24/02/15 22:31, NeilBrown wrote:
-> On Tue, 24 Feb 2015 12:40:32 +0200 Tomi Valkeinen <tomi.valkeinen@ti.co=
-m>
-> wrote:
+> In one shot mode, sequencer automatically disables all enabled steps =
+at
+> the end of each cycle. (both ADC steps and TSC steps) Hence these ste=
+ps
+> need not be saved in reg_se_cache for clearing these steps at a later
+> stage.
+> Also, when ADC wakes up Sequencer should not be busy executing any of=
+ the
+> config steps except for the charge step. Previously charge step was 1=
+ ADC
+> clock cycle and hence it was ignored.
+> TSC steps are always disabled at the end of each conversion cycle, he=
+nce
+> there is no need to explicitly disable TSC steps by writing 0 to REG_=
+SE.
 >=20
->> Hi,
->>
->> On 24/02/15 11:37, NeilBrown wrote:
->>>
->>>
->>> commit 303e4697e762dc92a40405f4e4b8aac02cd0d70b
->>>     OMAPDSS: rename display-sysfs 'name' entry
->>>
->>> broke the xorg X server on my device as it couldn't find the display
->>> any more.  It needs the 'name' file and now there isn't one.
->>>
->>> That commit claims that 'name' is not compatible with i2c or spi.
->>> i2c does register it own 'name' file, but spi does not, hence my
->>> problem - I have an spi display.
->>>
->>> So create a special case for i2c: add the name attribute for non-i2c
->>> devices.
->>
->> What X driver is that? What's it doing with the display name? Is it ju=
-st
->> using the display name to show something for the user, and the returne=
-d
->> value can be essentially any string?
->>
->>  Tomi
->>
->>
-> /usr/lib/xorg/modules/drivers/omapfb_drv.so
-> from package xserver-xorg-video-omap3 in Debian.
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
 >=20
-> I don't know where the main upstream source is, but here:
+> v5:
+>  - Remove unnecessary clearing of REG_SE
 >=20
-> https://gitorious.org/gnutoo-s-programs-for-shr/xf86-video-omapfb/sourc=
-e/28c006c94e57ea71df11ec4fff79d7ffcfc4860f:src/omapfb-output-dss.c#L258
->=20
-> is the code which reads
->    /sys/devices/platform/omapdss/display0/name
-> and fails if that file cannot be opened.
+>  drivers/mfd/ti_am335x_tscadc.c       | 13 +++++--------
+>  include/linux/mfd/ti_am335x_tscadc.h |  1 +
+>  2 files changed, 6 insertions(+), 8 deletions(-)
 
-Thanks. Unfortunately it looks to me that the omapfb_drv uses the
-display name to configure things, and as in i2c's case the 'name' is not
-the correct dss name, X will probably fail in interesting ways.
+Applied, thanks.
 
-Of course, it's already broken in that way, so this fix improves the
-situation for non-i2c displays. I'll have a look if I can figure out how
-to fix this for all displays.
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_t=
+scadc.c
+> index 467c80e1c4ae..e4e4b22eebc9 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -68,12 +68,6 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  	DEFINE_WAIT(wait);
+>  	u32 reg;
+> =20
+> -	/*
+> -	 * disable TSC steps so it does not run while the ADC is using it. =
+If
+> -	 * write 0 while it is running (it just started or was already runn=
+ing)
+> -	 * then it completes all steps that were enabled and stops then.
+> -	 */
+> -	tscadc_writel(tsadc, REG_SE, 0);
+>  	reg =3D tscadc_readl(tsadc, REG_ADCFSM);
+>  	if (reg & SEQ_STATUS) {
+>  		tsadc->adc_waiting =3D true;
+> @@ -86,8 +80,12 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  		spin_lock_irq(&tsadc->reg_lock);
+>  		finish_wait(&tsadc->reg_se_wait, &wait);
+> =20
+> +		/*
+> +		 * Sequencer should either be idle or
+> +		 * busy applying the charge step.
+> +		 */
+>  		reg =3D tscadc_readl(tsadc, REG_ADCFSM);
+> -		WARN_ON(reg & SEQ_STATUS);
+> +		WARN_ON((reg & SEQ_STATUS) && !(reg & CHARGE_STEP));
+>  		tsadc->adc_waiting =3D false;
+>  	}
+>  	tsadc->adc_in_use =3D true;
+> @@ -96,7 +94,6 @@ static void am335x_tscadc_need_adc(struct ti_tscadc=
+_dev *tsadc)
+>  void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
+>  {
+>  	spin_lock_irq(&tsadc->reg_lock);
+> -	tsadc->reg_se_cache |=3D val;
+>  	am335x_tscadc_need_adc(tsadc);
+> =20
+>  	tscadc_writel(tsadc, REG_SE, val);
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd=
+/ti_am335x_tscadc.h
+> index 3f4e994ace2b..1fd50dcfe47c 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -128,6 +128,7 @@
+> =20
+>  /* Sequencer Status */
+>  #define SEQ_STATUS BIT(5)
+> +#define CHARGE_STEP		0x11
+> =20
+>  #define ADC_CLK			3000000
+>  #define TOTAL_STEPS		16
 
- Tomi
-
-
-
---77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU7XPsAAoJEPo9qoy8lh7194EP/3F5qktH5sNALdEUxItPW/T2
-ItHAxu5GbLD5owb48oe2UiV4+rkk34F9AFOXuGSyvZNbYLBAuNnjQDa/dH2MHCWk
-fiSTAR1ACDWOnXORlaRFI9LUnDniuQt0F+qTLyqLVpKxemxP5wAYCqzZAao2x5Cm
-wDG1bhL2AQxne7dJXum9w6qPI34wflpzzDf1lEKWhq8Koo5EfD4HEhX8hEaLDZ62
-pExH87nlzNUlJ0clLl0IrP/WiWW2VK2O6meWf8cSFwvJdvqzKts0AJFOcmtVsbod
-5wKLoYDDr/sFE/ecJWzEqer7riPXO/6pHtAosoBQwm3UhQaO4Hxf3dh0pMDLjMgd
-ju9T9/e3awH+w1AuOLbERiihu0kXb7JvyLj2v3FvkYQnHJMTz1eq+yNdiCX1LZOY
-rnE8NWlEWJXa4zphyqXZUyr9G43dyJiZIMCHRCY//5C6SbcBEeUkFKPy76nmY61+
-Dkn2HSnlkNc/rYBvZRKAu6zhoOCFb9XIb3rfmj7pJAR3OOVLb6NuBIyvNcZ0ly6q
-ZZ8+HO739cc4G9+pEHjO5965FgscxvyvIJ+jHTxTRU6wsN9hO4BUY+B0HWF6EWmk
-qnmg74ee2ykpBYYekauuQKjT15HUdm0+LAFH0bC5GZIyzYWGb2N9+UcDxi5PP/Pa
-0Bkqcnr3sSkHinGOYN82
-=ZZWN
------END PGP SIGNATURE-----
-
---77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0--
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
