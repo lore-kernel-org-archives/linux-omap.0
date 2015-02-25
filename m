@@ -1,256 +1,121 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 04/35] ARM: OMAP3+: PRM: add common APIs for prm_vp_check/clear_txdone
-Date: Wed, 25 Feb 2015 21:04:14 +0200
-Message-ID: <1424891085-10392-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 02/35] ARM: OMAP3: PRM: invert the wkst_mask for the prm_clear_mod_irqs
+Date: Wed, 25 Feb 2015 21:04:12 +0200
+Message-ID: <1424891085-10392-3-git-send-email-t-kristo@ti.com>
 References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49472 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51284 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753472AbbBYTEx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:04:53 -0500
+	id S1753184AbbBYTEu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 14:04:50 -0500
 In-Reply-To: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-PRM driver now only exports a generic API for clearing / checking
-VP txdone status.
+This makes the API the same as used with OMAP2, and makes it possible
+to implement a generic driver API for the functionality.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm.h          |   14 ++++++++++++++
- arch/arm/mach-omap2/prm3xxx.c      |    6 ++++--
- arch/arm/mach-omap2/prm3xxx.h      |    4 ----
- arch/arm/mach-omap2/prm44xx.c      |    6 ++++--
- arch/arm/mach-omap2/prm44xx_54xx.h |    4 ----
- arch/arm/mach-omap2/prm_common.c   |   34 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/vp.h           |    9 ---------
- arch/arm/mach-omap2/vp3xxx_data.c  |    4 ++--
- arch/arm/mach-omap2/vp44xx_data.c  |    4 ++--
- 9 files changed, 60 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c  |   18 +++++++++---------
+ arch/arm/mach-omap2/prm3xxx.c |    8 ++++----
+ arch/arm/mach-omap2/prm3xxx.h |    2 +-
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 2a01a58..4e390ec 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -147,6 +147,8 @@ struct prm_ll_data {
- 				     u16 offset);
- 	void (*reset_system)(void);
- 	int (*clear_mod_irqs)(s16 module, u8 regs, u32 wkst_mask);
-+	u32 (*vp_check_txdone)(u8 vp_id);
-+	void (*vp_clear_txdone)(u8 vp_id);
- };
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 88721df..2581329 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -137,9 +137,8 @@ static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
+ {
+ 	int c;
  
- extern int prm_register(struct prm_ll_data *pld);
-@@ -164,6 +166,18 @@ void omap_prm_reset_system(void);
- void omap_prm_reconfigure_io_chain(void);
- int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+-	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
+-					~(OMAP3430_ST_IO_MASK |
+-					  OMAP3430_ST_IO_CHAIN_MASK));
++	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
++					OMAP3430_ST_IO_CHAIN_MASK);
  
-+/*
-+ * Voltage Processor (VP) identifiers
-+ */
-+#define OMAP3_VP_VDD_MPU_ID	0
-+#define OMAP3_VP_VDD_CORE_ID	1
-+#define OMAP4_VP_VDD_CORE_ID	0
-+#define OMAP4_VP_VDD_IVA_ID	1
-+#define OMAP4_VP_VDD_MPU_ID	2
-+
-+u32 omap_prm_vp_check_txdone(u8 vp_id);
-+void omap_prm_vp_clear_txdone(u8 vp_id);
-+
- #endif
+ 	return c ? IRQ_HANDLED : IRQ_NONE;
+ }
+@@ -154,13 +153,14 @@ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
+ 	 * IO events before parsing in mux code
+ 	 */
+ 	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
+-					OMAP3430_ST_IO_MASK |
+-					OMAP3430_ST_IO_CHAIN_MASK);
+-	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, 0);
+-	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, 0);
++					~(OMAP3430_ST_IO_MASK |
++					  OMAP3430_ST_IO_CHAIN_MASK));
++	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
++	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
+-		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, 0);
+-		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, 0);
++		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
++		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1,
++						 ~0);
+ 	}
  
- 
+ 	return c ? IRQ_HANDLED : IRQ_NONE;
 diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index a444334..2b478adc 100644
+index 5713bbd..4cc72e8 100644
 --- a/arch/arm/mach-omap2/prm3xxx.c
 +++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -96,7 +96,7 @@ static struct omap3_vp omap3_vp[] = {
- 
- #define MAX_VP_ID ARRAY_SIZE(omap3_vp);
- 
--u32 omap3_prm_vp_check_txdone(u8 vp_id)
-+static u32 omap3_prm_vp_check_txdone(u8 vp_id)
+@@ -217,7 +217,7 @@ static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
+  * omap3xxx_prm_clear_mod_irqs - clear wake-up events from PRCM interrupt
+  * @module: PRM module to clear wakeups from
+  * @regs: register set to clear, 1 or 3
+- * @ignore_bits: wakeup status bits to ignore
++ * @wkst_mask: wkst bits to clear
+  *
+  * The purpose of this function is to clear any wake-up events latched
+  * in the PRCM PM_WKST_x registers. It is possible that a wake-up event
+@@ -226,7 +226,7 @@ static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
+  * that any peripheral wake-up events occurring while attempting to
+  * clear the PM_WKST_x are detected and cleared.
+  */
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
++int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
  {
- 	struct omap3_vp *vp = &omap3_vp[vp_id];
- 	u32 irqstatus;
-@@ -106,7 +106,7 @@ u32 omap3_prm_vp_check_txdone(u8 vp_id)
- 	return irqstatus & vp->tranxdone_status;
- }
+ 	u32 wkst, fclk, iclk, clken;
+ 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
+@@ -238,7 +238,7 @@ int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
  
--void omap3_prm_vp_clear_txdone(u8 vp_id)
-+static void omap3_prm_vp_clear_txdone(u8 vp_id)
- {
- 	struct omap3_vp *vp = &omap3_vp[vp_id];
- 
-@@ -665,6 +665,8 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
- 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
- 	.reset_system = &omap3xxx_prm_dpll3_reset,
- 	.clear_mod_irqs = &omap3xxx_prm_clear_mod_irqs,
-+	.vp_check_txdone = &omap3_prm_vp_check_txdone,
-+	.vp_clear_txdone = &omap3_prm_vp_clear_txdone,
- };
- 
- int __init omap3xxx_prm_init(void)
+ 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
+ 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
+-	wkst &= ~ignore_bits;
++	wkst &= wkst_mask;
+ 	if (wkst) {
+ 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
+ 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
+@@ -254,7 +254,7 @@ int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
+ 			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
+ 			omap2_prm_write_mod_reg(wkst, module, wkst_off);
+ 			wkst = omap2_prm_read_mod_reg(module, wkst_off);
+-			wkst &= ~ignore_bits;
++			wkst &= wkst_mask;
+ 			c++;
+ 		}
+ 		omap2_cm_write_mod_reg(iclk, module, iclk_off);
 diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index 5a09a74..55e4c89 100644
+index ed8a3d8..856f3c5 100644
 --- a/arch/arm/mach-omap2/prm3xxx.h
 +++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -132,10 +132,6 @@
+@@ -145,7 +145,7 @@ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
  
- #ifndef __ASSEMBLER__
- 
--/* OMAP3-specific VP functions */
--u32 omap3_prm_vp_check_txdone(u8 vp_id);
--void omap3_prm_vp_clear_txdone(u8 vp_id);
--
- /*
-  * OMAP3 access functions for voltage controller (VC) and
-  * voltage proccessor (VP) in the PRM.
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index a08a617..1af0137 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -138,7 +138,7 @@ static struct omap4_vp omap4_vp[] = {
- 	},
- };
- 
--u32 omap4_prm_vp_check_txdone(u8 vp_id)
-+static u32 omap4_prm_vp_check_txdone(u8 vp_id)
- {
- 	struct omap4_vp *vp = &omap4_vp[vp_id];
- 	u32 irqstatus;
-@@ -149,7 +149,7 @@ u32 omap4_prm_vp_check_txdone(u8 vp_id)
- 	return irqstatus & vp->tranxdone_status;
- }
- 
--void omap4_prm_vp_clear_txdone(u8 vp_id)
-+static void omap4_prm_vp_clear_txdone(u8 vp_id)
- {
- 	struct omap4_vp *vp = &omap4_vp[vp_id];
- 
-@@ -699,6 +699,8 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 	.deassert_hardreset	= omap4_prminst_deassert_hardreset,
- 	.is_hardreset_asserted	= omap4_prminst_is_hardreset_asserted,
- 	.reset_system		= omap4_prminst_global_warm_sw_reset,
-+	.vp_check_txdone	= omap4_prm_vp_check_txdone,
-+	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
- };
- 
- int __init omap44xx_prm_init(void)
-diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
-index 7143295..a470185 100644
---- a/arch/arm/mach-omap2/prm44xx_54xx.h
-+++ b/arch/arm/mach-omap2/prm44xx_54xx.h
-@@ -26,10 +26,6 @@
- /* Function prototypes */
- #ifndef __ASSEMBLER__
- 
--/* OMAP4/OMAP5-specific VP functions */
--u32 omap4_prm_vp_check_txdone(u8 vp_id);
--void omap4_prm_vp_clear_txdone(u8 vp_id);
--
- /*
-  * OMAP4/OMAP5 access functions for voltage controller (VC) and
-  * voltage proccessor (VP) in the PRM.
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 2c2e7ed..79cee11 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -555,6 +555,40 @@ int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
- }
- 
- /**
-+ * omap_prm_vp_check_txdone - check voltage processor TX done status
-+ *
-+ * Checks if voltage processor transmission has been completed.
-+ * Returns non-zero if a transmission has completed, 0 otherwise.
-+ */
-+u32 omap_prm_vp_check_txdone(u8 vp_id)
-+{
-+	if (!prm_ll_data->vp_check_txdone) {
-+		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
-+			  __func__);
-+		return 0;
-+	}
-+
-+	return prm_ll_data->vp_check_txdone(vp_id);
-+}
-+
-+/**
-+ * omap_prm_vp_clear_txdone - clears voltage processor TX done status
-+ *
-+ * Clears the status bit for completed voltage processor transmission
-+ * returned by prm_vp_check_txdone.
-+ */
-+void omap_prm_vp_clear_txdone(u8 vp_id)
-+{
-+	if (!prm_ll_data->vp_clear_txdone) {
-+		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
-+			  __func__);
-+		return;
-+	}
-+
-+	prm_ll_data->vp_clear_txdone(vp_id);
-+}
-+
-+/**
-  * prm_register - register per-SoC low-level data with the PRM
-  * @pld: low-level per-SoC OMAP PRM data & function pointers to register
-  *
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index 0fdf7080..7e08296 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -21,15 +21,6 @@
- 
- struct voltagedomain;
- 
--/*
-- * Voltage Processor (VP) identifiers
-- */
--#define OMAP3_VP_VDD_MPU_ID 0
--#define OMAP3_VP_VDD_CORE_ID 1
--#define OMAP4_VP_VDD_CORE_ID 0
--#define OMAP4_VP_VDD_IVA_ID 1
--#define OMAP4_VP_VDD_MPU_ID 2
--
- /* XXX document */
- #define VP_IDLE_TIMEOUT		200
- #define VP_TRANXDONE_TIMEOUT	300
-diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
-index 1914e02..b0590fe 100644
---- a/arch/arm/mach-omap2/vp3xxx_data.c
-+++ b/arch/arm/mach-omap2/vp3xxx_data.c
-@@ -28,8 +28,8 @@
- #include "prm2xxx_3xxx.h"
- 
- static const struct omap_vp_ops omap3_vp_ops = {
--	.check_txdone = omap3_prm_vp_check_txdone,
--	.clear_txdone = omap3_prm_vp_clear_txdone,
-+	.check_txdone = omap_prm_vp_check_txdone,
-+	.clear_txdone = omap_prm_vp_clear_txdone,
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
-index e62f6b0..2448bb9 100644
---- a/arch/arm/mach-omap2/vp44xx_data.c
-+++ b/arch/arm/mach-omap2/vp44xx_data.c
-@@ -28,8 +28,8 @@
- #include "vp.h"
- 
- static const struct omap_vp_ops omap4_vp_ops = {
--	.check_txdone = omap4_prm_vp_check_txdone,
--	.clear_txdone = omap4_prm_vp_clear_txdone,
-+	.check_txdone = omap_prm_vp_check_txdone,
-+	.clear_txdone = omap_prm_vp_clear_txdone,
- };
- 
- /*
+ extern int __init omap3xxx_prm_init(void);
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
++int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+ void omap3xxx_prm_iva_idle(void);
+ void omap3_prm_reset_modem(void);
+ int omap3xxx_prm_clear_global_cold_reset(void);
 -- 
 1.7.9.5
 
