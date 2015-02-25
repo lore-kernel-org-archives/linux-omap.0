@@ -1,60 +1,31 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 7/8 v2] ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based
- on WAITMONITORINGTIME
-Date: Wed, 25 Feb 2015 19:20:40 +0200
-Message-ID: <54EE0468.3090000@ti.com>
-References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDF969.1070902@ti.com>
+From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
+Subject: Re: [PATCH 8/8 v2] ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider
+ bug
+Date: Wed, 25 Feb 2015 18:22:51 +0100
+Message-ID: <54EE04EB.6000401@cit-ec.uni-bielefeld.de>
+References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-8-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDFF20.6030103@ti.com> <54EE0138.7020300@cit-ec.uni-bielefeld.de> <54EE03C5.2090306@ti.com>
+Reply-To: rabel@cit-ec.uni-bielefeld.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54EDF969.1070902@ti.com>
+In-Reply-To: <54EE03C5.2090306@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Robert,
+Hi Roger,
 
-On 25/02/15 18:33, Roger Quadros wrote:
-> On 24/02/15 22:05, Robert ABEL wrote:
->> The WAITMONITORINGTIME is expressed as a number of GPMC_CLK clock cy=
-cles,
->> even though the access is defined as asynchronous, and no GPMC_CLK c=
-lock
->> is provided to the external device. Still, GPMCFCLKDIVIDER is used a=
-s a divider
->> for the GPMC clock, so it must be programmed to define the
->> correct WAITMONITORINGTIME delay.
->>
->> Calculate GPMCFCLKDIVIDER independent of gpmc,sync-clk-ps in DT for
->> truly asynchronous accesses, i.e. both read and write asynchronous.
->>
->> Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
->> ---
->>  arch/arm/mach-omap2/gpmc-nand.c    | 17 ++++-----
->>  arch/arm/mach-omap2/gpmc-onenand.c |  4 +--
->>  drivers/memory/omap-gpmc.c         | 74 +++++++++++++++++++++++++++=
-+++++++----
->>  include/linux/omap-gpmc.h          |  2 +-
->>  4 files changed, 80 insertions(+), 17 deletions(-)
+On 25 Feb 2015 18:17, Roger Quadros wrote:
+> How will the user know by looking at the kernel log that it was really an error?
+> We don't fail probe if set_gpmc_timing_reg() fails so I feel it is necessary to
+> clearly show an Error message.
+>
+> You can probably reword it like "%s: Error!! GPMC CS %d..."
 
-Need to patch mach-omap2/usb-tusb6010.c as well. else we get
+I'll put "error" in there. But just for the record, it's this messaged 
+followed by a WARN that explains "failed to add child %s".
+So I'd expect the user to put A and B together ;)
 
-arch/arm/mach-omap2/usb-tusb6010.c: In function =91tusb_set_async_mode=92=
-:
-arch/arm/mach-omap2/usb-tusb6010.c:74:2: error: too few arguments to fu=
-nction =91gpmc_cs_set_timings=92
-In file included from arch/arm/mach-omap2/gpmc.h:14:0,
-                 from arch/arm/mach-omap2/usb-tusb6010.c:23:
-include/linux/omap-gpmc.h:166:12: note: declared here
-arch/arm/mach-omap2/usb-tusb6010.c: In function =91tusb_set_sync_mode=92=
-:
-arch/arm/mach-omap2/usb-tusb6010.c:101:2: error: too few arguments to f=
-unction =91gpmc_cs_set_timings=92
-In file included from arch/arm/mach-omap2/gpmc.h:14:0,
-                 from arch/arm/mach-omap2/usb-tusb6010.c:23:
-include/linux/omap-gpmc.h:166:12: note: declared here
-
-cheers,
--roger
+Robert
