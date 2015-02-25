@@ -1,125 +1,132 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 27/35] ARM: dts: am33xx: merge control module features under scrm node
-Date: Wed, 25 Feb 2015 21:04:37 +0200
-Message-ID: <1424891085-10392-28-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 28/35] ARM: dts: am43xx-epos-evm: fix pinmux node layout
+Date: Wed, 25 Feb 2015 21:04:38 +0200
+Message-ID: <1424891085-10392-29-git-send-email-t-kristo@ti.com>
 References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49519 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49525 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753568AbbBYTFd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:05:33 -0500
+	id S1753325AbbBYTFf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 14:05:35 -0500
 In-Reply-To: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-This patch moves all the control module related features under scrm
-node. scm_conf area is changed to use syscon, and also the clocks
-are moved under scm_conf area.
+Pinmux node should be a reference to the base one, not a complete re-write
+of it. Having the node like this also prevents modifying the node layout
+in the base am4372.dtsi file, which is needed for control module changes.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   48 ++++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+ arch/arm/boot/dts/am43x-epos-evm.dts |   84 +++++++++++++++++-----------------
+ 1 file changed, 42 insertions(+), 42 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index acd3705..bc8bbcd 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -83,20 +83,6 @@
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 257c099..72f01bb 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -69,7 +69,48 @@
  		};
  	};
  
--	am33xx_control_module: control_module@4a002000 {
--		compatible = "syscon";
--		reg = <0x44e10000 0x7fc>;
--	};
--
--	am33xx_pinmux: pinmux@44e10800 {
--		compatible = "pinctrl-single";
--		reg = <0x44e10800 0x0238>;
--		#address-cells = <1>;
--		#size-cells = <0>;
--		pinctrl-single,register-width = <32>;
--		pinctrl-single,function-mask = <0x7f>;
--	};
--
- 	/*
- 	 * XXX: Use a flat representation of the AM33XX interconnect.
- 	 * The real AM33XX interconnect network is quite complex. Since
-@@ -125,21 +111,35 @@
- 		};
- 
- 		scrm: scrm@44e10000 {
--			compatible = "ti,am3-scrm";
-+			compatible = "ti,am3-scrm", "simple-bus";
- 			reg = <0x44e10000 0x2000>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0 0x44e10000 0x2000>;
- 
--			scrm_clocks: clocks {
-+			am33xx_pinmux: pinmux@800 {
-+				compatible = "pinctrl-single";
-+				reg = <0x800 0x238>;
- 				#address-cells = <1>;
- 				#size-cells = <0>;
-+				pinctrl-single,register-width = <32>;
-+				pinctrl-single,function-mask = <0x7f>;
- 			};
- 
--			scrm_clockdomains: clockdomains {
-+			scm_conf: tisyscon@0 {
-+				compatible = "syscon";
-+				reg = <0x0 0x7fc>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
+-	am43xx_pinmux: pinmux@44e10800 {
++	matrix_keypad: matrix_keypad@0 {
++		compatible = "gpio-matrix-keypad";
++		debounce-delay-ms = <5>;
++		col-scan-delay-us = <2>;
 +
-+				scrm_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
- 			};
++		row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
++			     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
++			     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
++			     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
++
++		col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
++			     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
++			     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
++			     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
++
++		linux,keymap = <0x00000201	/* P1 */
++			0x01000204	/* P4 */
++			0x02000207	/* P7 */
++			0x0300020a	/* NUMERIC_STAR */
++			0x00010202	/* P2 */
++			0x01010205	/* P5 */
++			0x02010208	/* P8 */
++			0x03010200	/* P0 */
++			0x00020203	/* P3 */
++			0x01020206	/* P6 */
++			0x02020209	/* P9 */
++			0x0302020b	/* NUMERIC_POUND */
++			0x00030067	/* UP */
++			0x0103006a	/* RIGHT */
++			0x0203006c	/* DOWN */
++			0x03030069>;	/* LEFT */
++	};
++
++	backlight {
++		compatible = "pwm-backlight";
++		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
++		default-brightness-level = <8>;
++	};
++};
++
++&am43xx_pinmux {
+ 		cpsw_default: cpsw_default {
+ 			pinctrl-single,pins = <
+ 				/* Slave 1 */
+@@ -279,47 +320,6 @@
+ 				0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
+ 			>;
+ 		};
+-	};
+-
+-	matrix_keypad: matrix_keypad@0 {
+-			compatible = "gpio-matrix-keypad";
+-			debounce-delay-ms = <5>;
+-			col-scan-delay-us = <2>;
+-
+-			row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
+-				     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
+-				     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
+-				     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
+-
+-			col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
+-				     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
+-				     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
+-				     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
+-
+-			linux,keymap = <0x00000201	/* P1 */
+-				0x01000204	/* P4 */
+-				0x02000207	/* P7 */
+-				0x0300020a	/* NUMERIC_STAR */
+-				0x00010202	/* P2 */
+-				0x01010205	/* P5 */
+-				0x02010208	/* P8 */
+-				0x03010200	/* P0 */
+-				0x00020203	/* P3 */
+-				0x01020206	/* P6 */
+-				0x02020209	/* P9 */
+-				0x0302020b	/* NUMERIC_POUND */
+-				0x00030067	/* UP */
+-				0x0103006a	/* RIGHT */
+-				0x0203006c	/* DOWN */
+-				0x03030069>;	/* LEFT */
 -		};
+-
+-	backlight {
+-		compatible = "pwm-backlight";
+-		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
+-		brightness-levels = <0 51 53 56 62 75 101 152 255>;
+-		default-brightness-level = <8>;
+-	};
+ };
  
--		cm: syscon@44e10000 {
--			compatible = "ti,am33xx-controlmodule", "syscon";
--			reg = <0x44e10000 0x800>;
-+			scrm_clockdomains: clockdomains {
-+			};
- 		};
- 
- 		intc: interrupt-controller@48200000 {
-@@ -350,7 +350,7 @@
- 			reg = <0x481cc000 0x2000>;
- 			clocks = <&dcan0_fck>;
- 			clock-names = "fck";
--			syscon-raminit = <&am33xx_control_module 0x644 0>;
-+			syscon-raminit = <&scm_conf 0x644 0>;
- 			interrupts = <52>;
- 			status = "disabled";
- 		};
-@@ -361,7 +361,7 @@
- 			reg = <0x481d0000 0x2000>;
- 			clocks = <&dcan1_fck>;
- 			clock-names = "fck";
--			syscon-raminit = <&am33xx_control_module 0x644 1>;
-+			syscon-raminit = <&scm_conf 0x644 1>;
- 			interrupts = <55>;
- 			status = "disabled";
- 		};
-@@ -720,7 +720,7 @@
- 			 */
- 			interrupts = <40 41 42 43>;
- 			ranges;
--			syscon = <&cm>;
-+			syscon = <&scm_conf>;
- 			status = "disabled";
- 
- 			davinci_mdio: mdio@4a101000 {
+ &mmc1 {
 -- 
 1.7.9.5
 
