@@ -1,72 +1,104 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 3/6] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache
- save
-Date: Wed, 25 Feb 2015 09:37:25 +0530
-Message-ID: <54ED4A7D.4060609@ti.com>
-References: <1420609779-11156-1-git-send-email-vigneshr@ti.com> <1420609779-11156-4-git-send-email-vigneshr@ti.com> <20150120115325.GK13701@x1> <54BE4CD1.1020709@ti.com> <20150120160410.GL13701@x1> <54BF7C14.1080907@ti.com> <54D30BE5.4070906@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: restore "name" sysfs entry.
+Date: Wed, 25 Feb 2015 09:04:09 +0200
+Message-ID: <54ED73E9.1020804@ti.com>
+References: <20150224203706.1eafa129@notabene.brown>	<54EC5520.1020105@ti.com> <20150225073131.7fbff605@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54D30BE5.4070906-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap@
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55399 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751864AbbBYHE1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 02:04:27 -0500
+In-Reply-To: <20150225073131.7fbff605@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-Hi,
+--77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 05 February 2015 11:51 AM, Vignesh R wrote:
-> 
-> 
-> On Wednesday 21 January 2015 03:44 PM, Vignesh R wrote:
->> On Tuesday 20 January 2015 09:34 PM, Lee Jones wrote:
->>> On Tue, 20 Jan 2015, R, Vignesh wrote:
->>>> On 1/20/2015 5:23 PM, Lee Jones wrote:
->>>>> On Wed, 07 Jan 2015, Vignesh R wrote:
->>>>>
->>>>>> In one shot mode, sequencer automatically disables all enabled steps at
->>>>>> the end of each cycle. (both ADC steps and TSC steps) Hence these steps
->>>>>> need not be saved in reg_se_cache for clearing these steps at a later
->>>>>> stage.
->>>>>> Also, when ADC wakes up Sequencer should not be busy executing any of the
->>>>>> config steps except for the charge step. Previously charge step was 1 ADC
->>>>>> clock cycle and hence it was ignored.
->>>>>> TSC steps are always disabled at the end of each conversion cycle, hence
->>>>>> there is no need to explicitly disable TSC steps by writing 0 to REG_SE.
->>>>>>
->>>>>> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
->>>>>> ---
->>>>>>
->>>>>> v5:
->>>>>>  - Remove unnecessary clearing of REG_SE
->>>>>>
->>>>>>  drivers/mfd/ti_am335x_tscadc.c       | 13 +++++--------
->>>>>>  include/linux/mfd/ti_am335x_tscadc.h |  1 +
->>>>>>  2 files changed, 6 insertions(+), 8 deletions(-)
->>>>>
->>>>> Looks fine.
->>>>>
->>>>> For my own reference:
->>>>>   Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>>>>
->>>>> Can this patch be applied on its own?
->>>>>
->>>>
->>>> I prefer to wait until input patches are picked up.
->>>
->>> I have no problem with that, but is there a technical reason why?
->>>
+On 24/02/15 22:31, NeilBrown wrote:
+> On Tue, 24 Feb 2015 12:40:32 +0200 Tomi Valkeinen <tomi.valkeinen@ti.co=
+m>
+> wrote:
+>=20
+>> Hi,
 >>
->> Nothing, in particular. This patch alone has no impact on the
->> performance of TSC/ADC unit. Patch 2/6 is necessary to observe the
->> changes caused by this series. Hence, please wait until those patches
->> are picked up.
-> 
-> Input maintainer has applied other patches. You can pick this one.
+>> On 24/02/15 11:37, NeilBrown wrote:
+>>>
+>>>
+>>> commit 303e4697e762dc92a40405f4e4b8aac02cd0d70b
+>>>     OMAPDSS: rename display-sysfs 'name' entry
+>>>
+>>> broke the xorg X server on my device as it couldn't find the display
+>>> any more.  It needs the 'name' file and now there isn't one.
+>>>
+>>> That commit claims that 'name' is not compatible with i2c or spi.
+>>> i2c does register it own 'name' file, but spi does not, hence my
+>>> problem - I have an spi display.
+>>>
+>>> So create a special case for i2c: add the name attribute for non-i2c
+>>> devices.
+>>
+>> What X driver is that? What's it doing with the display name? Is it ju=
+st
+>> using the display name to show something for the user, and the returne=
+d
+>> value can be essentially any string?
+>>
+>>  Tomi
+>>
+>>
+> /usr/lib/xorg/modules/drivers/omapfb_drv.so
+> from package xserver-xorg-video-omap3 in Debian.
+>=20
+> I don't know where the main upstream source is, but here:
+>=20
+> https://gitorious.org/gnutoo-s-programs-for-shr/xf86-video-omapfb/sourc=
+e/28c006c94e57ea71df11ec4fff79d7ffcfc4860f:src/omapfb-output-dss.c#L258
+>=20
+> is the code which reads
+>    /sys/devices/platform/omapdss/display0/name
+> and fails if that file cannot be opened.
 
-Gentle ping... Can you pull this patch into 4.0-rc? Other patches of
-this series are already in mainline.
+Thanks. Unfortunately it looks to me that the omapfb_drv uses the
+display name to configure things, and as in i2c's case the 'name' is not
+the correct dss name, X will probably fail in interesting ways.
 
-Regards
-Vignesh
+Of course, it's already broken in that way, so this fix improves the
+situation for non-i2c displays. I'll have a look if I can figure out how
+to fix this for all displays.
+
+ Tomi
+
+
+
+--77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJU7XPsAAoJEPo9qoy8lh7194EP/3F5qktH5sNALdEUxItPW/T2
+ItHAxu5GbLD5owb48oe2UiV4+rkk34F9AFOXuGSyvZNbYLBAuNnjQDa/dH2MHCWk
+fiSTAR1ACDWOnXORlaRFI9LUnDniuQt0F+qTLyqLVpKxemxP5wAYCqzZAao2x5Cm
+wDG1bhL2AQxne7dJXum9w6qPI34wflpzzDf1lEKWhq8Koo5EfD4HEhX8hEaLDZ62
+pExH87nlzNUlJ0clLl0IrP/WiWW2VK2O6meWf8cSFwvJdvqzKts0AJFOcmtVsbod
+5wKLoYDDr/sFE/ecJWzEqer7riPXO/6pHtAosoBQwm3UhQaO4Hxf3dh0pMDLjMgd
+ju9T9/e3awH+w1AuOLbERiihu0kXb7JvyLj2v3FvkYQnHJMTz1eq+yNdiCX1LZOY
+rnE8NWlEWJXa4zphyqXZUyr9G43dyJiZIMCHRCY//5C6SbcBEeUkFKPy76nmY61+
+Dkn2HSnlkNc/rYBvZRKAu6zhoOCFb9XIb3rfmj7pJAR3OOVLb6NuBIyvNcZ0ly6q
+ZZ8+HO739cc4G9+pEHjO5965FgscxvyvIJ+jHTxTRU6wsN9hO4BUY+B0HWF6EWmk
+qnmg74ee2ykpBYYekauuQKjT15HUdm0+LAFH0bC5GZIyzYWGb2N9+UcDxi5PP/Pa
+0Bkqcnr3sSkHinGOYN82
+=ZZWN
+-----END PGP SIGNATURE-----
+
+--77PGJemNsOlvpjH0J9KSiP6U2CJlU59n0--
