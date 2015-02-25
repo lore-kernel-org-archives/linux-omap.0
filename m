@@ -1,106 +1,84 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: restore "name" sysfs entry.
-Date: Wed, 25 Feb 2015 11:32:18 +0200
-Message-ID: <54ED96A2.6080300@ti.com>
-References: <20150224203706.1eafa129@notabene.brown>	<54EC5520.1020105@ti.com>	<20150225073131.7fbff605@notabene.brown>	<54ED8CB6.4010308@ti.com> <20150225202042.2adaea4f@notabene.brown>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] OMAP: DSS: DPI: disable vt-switch on suspend/resume.
+Date: Wed, 25 Feb 2015 20:37:08 +1100
+Message-ID: <20150225203708.0eb2fa96@notabene.brown>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="uUOeSx5lXhOC7aPLBOdUfUhD8FUtHRjQS"
+ boundary="Sig_/gBHHyJuWbq6.K2o/BMsTJV/"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150225202042.2adaea4f@notabene.brown>
 Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
---uUOeSx5lXhOC7aPLBOdUfUhD8FUtHRjQS
-Content-Type: text/plain; charset=windows-1252
+--Sig_/gBHHyJuWbq6.K2o/BMsTJV/
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On 25/02/15 11:20, NeilBrown wrote:
 
-> Tested-by: NeilBrown <neilb@suse.de>
->=20
-> Before the patch:
->=20
-> # ls -l /sys/devices/platform/omapdss/display0=20
-> lrwxrwxrwx 1 root root 0 Feb  8 12:57 /sys/devices/platform/omapdss/dis=
-play0 -> ../spi_lcd/spi_master/spi32766/spi32766.0
->=20
-> After the patch:
->=20
-> # ls -l /sys/devices/platform/omapdss/display0=20
-> total 0
-> -r--r--r-- 1 root root 4096 Feb  8 13:37 display_name
-> -rw-r--r-- 1 root root 4096 Feb  8 13:37 enabled
-> -rw-r--r-- 1 root root 4096 Feb  8 13:37 mirror
-> -r--r--r-- 1 root root 4096 Feb  8 13:37 name
-> -rw-r--r-- 1 root root 4096 Feb  8 13:37 rotate
-> -rw-r--r-- 1 root root 4096 Feb  8 13:37 tear_elim
-> -rw-r--r-- 1 root root 4096 Feb  8 13:37 timings
-> -rw-r--r-- 1 root root 4096 Feb  8 13:37 wss
->=20
->=20
-> So as you say it creates a directory just for the display0 device, and =
-that
-> has the 'name' that we want.
-
-I think this was something similar than how the sysfs files were set up
-originally for omapdss. If I remember right, we didn't have proper
-devices for the displays then. Things have evolved quite a bit since then=
-=2E
-
-There's a small chance of this patch breaking things, of course... If
-someone accessed those display sysfs files via the display device
-(../spi_lcd/spi_master/spi32766/spi32766.0), the files are now gone.
-
-But I think (hope...) they are always accessed via the omapdss's
-displayX directories.
-
-> This works for me, and it seems to me to be a better fit to the general=
-
-> structure of /sys/devices - symlinks within /sys/devices are a substant=
-ial
-> minority, other than 'subsystem', 'device', 'driver' and 'bdi' which ha=
-ve
-> very generic meanings.
->=20
-> I guess I'm a little surprised that there doesn't seem to be any linkag=
-e from
-> the display0 to the spi device.  Maybe that isn't important.
-
-Yep, I don't think so. In any case, all this is to be deprecated, and as
-soon as omapdrm driver works reliably that should be the driver to use.
-
-So of course we need to keep omapfb working for the years to come, but
-I'd rather not add any new sysfs files for a soon deprecated driver.
-
- Tomi
+These devices do not need to return to non-graphic console
+for suspend, so disable that option.
+This means there is less work to do in the suspend/resume cycle,
+making it smoother and cheaper.
 
 
+Signed-off-by: NeilBrown <neil@brown.name>
 
---uUOeSx5lXhOC7aPLBOdUfUhD8FUtHRjQS
-Content-Type: application/pgp-signature; name="signature.asc"
+--
+Hi Tomi,
+ I wonder if you would consider this patch too.  It works for me and
+removes pointless vt switching.  I assume no-one would need or want that
+switching on suspend/resume but I guess I cannot be certain.
+
+Maybe a module-parameter could be used if there was any uncertainty.
+
+thanks,
+NeilBrown
+
+
+diff --git a/drivers/video/fbdev/omap2/dss/dpi.c b/drivers/video/fbdev/omap=
+2/dss/dpi.c
+index f83e7b030249..4a29bab4ade3 100644
+--- a/drivers/video/fbdev/omap2/dss/dpi.c
++++ b/drivers/video/fbdev/omap2/dss/dpi.c
+@@ -32,6 +32,7 @@
+ #include <linux/string.h>
+ #include <linux/of.h>
+ #include <linux/clk.h>
++#include <linux/suspend.h>
+=20
+ #include <video/omapdss.h>
+=20
+@@ -798,6 +799,8 @@ static int omap_dpi_probe(struct platform_device *pdev)
+ 	mutex_init(&dpi->lock);
+=20
+ 	dpi_init_output(pdev);
++	/* No need to vt_switch in suspend/resume */
++	pm_set_vt_switch(0);
+=20
+ 	return 0;
+ }
+
+--Sig_/gBHHyJuWbq6.K2o/BMsTJV/
+Content-Type: application/pgp-signature
 Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJU7ZaiAAoJEPo9qoy8lh71PhQP/iIhMQudjwBGHDenF8MzWf9D
-Gst1IJCKnRploS5G4vq356TbQLeqRRVuCGGI052KMseNGc2M71v3KNPrnwoCXqNH
-yzcsFk2dxaItuBfIBsrmtr3YdaE162j4b6j2z2TzGpK7Pf8kX+sLc6YhbNh02nI9
-fUu9mtE1gb/9sqG8ufG4eUBLhaPoHN2Jg2TTNQSK7mqnn8psuwb6A90rp838PCJq
-Ua+Jus83IEIKth5HfydULu3QWWq89kSUGzjxfWu8pJA9YOfv7Gth8VFjPdOq5ZMs
-zgmYFNbJl1aYjNVpN3zU+9k1ZG8/dBgwEdRLsqU9pFZCHJ2YX5EKzCAtstJEPkB+
-MNW8VMIduNJdAPTZwTTte5nIO0t4+Z4jkIjHFSkhwT4GPaQzivHHljlENNWLqnnz
-Q4wBVJ144FkDzG7OOrm4dYQT3Df4ZKa540JaQaS+Y8JvdkMssXQQTa7jyFo7uzlt
-m5C7lubAx1LRAo7RrQC31bHfUoVh3itCmOopJYsS4ZcE1e1BF9xhYIQOa5YQwFh5
-jngBr75a1eW6ywgX32d4o0Dmg4VkSBQlCJhvicbrko72u8YGW4craYOWcYr0g/+1
-6onywjQxdC9eW8JAjZ378scpJ3BTCuaK6QSKP/M2dYaWYprAiGV/RxdA7iHYT7uq
-w6Rj+20RqI2AwWjzyDfL
-=PzDB
+iQIVAwUBVO2XxDnsnt1WYoG5AQJnSA/9FuVfxMQ0MInknzRd07Ws4pVaOsy4OwLC
+33XAOFeVRbchprt8Kpl0H1O9U4HTwKANoWPMiWXk5RJ2vDtara5T3UDZgNhXKUoH
+hAnXleBFm39G8U6aolnm3zWBVQmVTBVBM9HMad0zjgXzaF+DC1o5PTQZhW85IqS6
+OBhtsmMolZwqPEREc4vforYyqlchbPXGQCEcTL6seAk9anP/64qtwHiBYio0ejg8
+x3u0WT8kHocehC0zwYERfSslCv+TkhMeySXL5etQtz5735c2VYqxnQRwOQXZhhFB
+D31EmTridLdoyWNJz2e68UUxYsz7AgBxZ9yGAF7XAGK7rxsnhWjxzMNlirridBJA
+kICc4FaH88gW9j0GSzIptvCEo2k9+7TZ0IiG6Z8QAN/j1Ro1ah/IKaYNkkZJ48rh
+8IME811N4gjdaqIJCjdPt7RmBAPrXKZ8MxD3TcW6Lj7E5kFGpJd+JBA11OttEkYP
+QIVeVBmz4J2aPbp53+/LaUZI23LIswMYQWzL8GBmvjmByQf2cysT8dgRv26++kW2
+u4dOC53fFt1xWgL05bjiMWzYV1VzhuTz2wJxkiZLkTTqgjaMEVmcAnxeDYpLG5Rp
+Q1cIN+KIlxBLhxiEi3AFF1u7hcMSG3x01gKcxvm/IUkzJR30CG/+zXs3VLM0afvb
+pSl0V2wod2o=
+=+SqM
 -----END PGP SIGNATURE-----
 
---uUOeSx5lXhOC7aPLBOdUfUhD8FUtHRjQS--
+--Sig_/gBHHyJuWbq6.K2o/BMsTJV/--
