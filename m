@@ -1,71 +1,55 @@
-From: <grygorii.strashko@linaro.org>
-Subject: [PATCH] drm/omap: tiler: add hibernation callback
-Date: Wed, 25 Feb 2015 20:08:20 +0200
-Message-ID: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:36465 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752358AbbBYSIZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 13:08:25 -0500
-Received: by labgq15 with SMTP id gq15so5755927lab.3
-        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2015 10:08:24 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH] ARM: dts: am335x-boneblack: enable aes and sham
+Date: Wed, 25 Feb 2015 12:36:11 -0600
+Message-ID: <CAOCHtYju0ZPV-BZS=L5S+JUX4gcRkJwqUZQBuURgGMo_Nmqt7g@mail.gmail.com>
+References: <1424884070-25891-1-git-send-email-mporter@konsulko.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424884070-25891-1-git-send-email-mporter@konsulko.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@konsulko.com>
+Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>
-Cc: nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Grygorii Strashko <grygorii.strashko@linaro.org>
 
-From: Grygorii Strashko <grygorii.strashko@linaro.org>
+On Wed, Feb 25, 2015 at 11:07 AM, Matt Porter <mporter@konsulko.com> wrote:
+> Beaglebone Black doesn't have AES and SHAM enabled like the
+> original Beaglebone White dts. This breaks applications that
+> leverage the crypto blocks so fix this by enabling these nodes.
+>
+> Signed-off-by: Matt Porter <mporter@konsulko.com>
+> ---
+>  arch/arm/boot/dts/am335x-boneblack.dts | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+> index 5c42d25..00853ff 100644
+> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+> @@ -33,6 +33,14 @@
+>         status = "okay";
+>  };
+>
+> +&sham {
+> +       status = "okay";
+> +};
+> +
+> +&aes {
+> +       status = "okay";
+> +};
+> +
+>  &am33xx_pinmux {
+>         nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+>                 pinctrl-single,pins = <
+> --
+> 1.8.4
 
-Setting a dev_pm_ops resume callback but not a set of
-hibernation handler means that pm function will not be
-called upon hibernation.
-Fix this by using SIMPLE_DEV_PM_OPS, which appropriately
-assigns the suspend and hibernation handlers and move
-omap_dmm_resume under CONFIG_PM_SLEEP to avoid build warnings.
+Shouldn't we just move these to: "am335x-bone-common.dtsi" ?
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
----
- drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+(and then nuke the 6 lines in the am335x-bone.dts )
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-index 56c6055..afb8cfc 100644
---- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-+++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-@@ -941,7 +941,7 @@ error:
- }
- #endif
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int omap_dmm_resume(struct device *dev)
- {
- 	struct tcm_area area;
-@@ -965,12 +965,10 @@ static int omap_dmm_resume(struct device *dev)
- 
- 	return 0;
- }
--
--static const struct dev_pm_ops omap_dmm_pm_ops = {
--	.resume = omap_dmm_resume,
--};
- #endif
- 
-+SIMPLE_DEV_PM_OPS(omap_dmm_pm_ops, NULL, omap_dmm_resume);
-+
- #if defined(CONFIG_OF)
- static const struct of_device_id dmm_of_match[] = {
- 	{ .compatible = "ti,omap4-dmm", },
-@@ -986,9 +984,7 @@ struct platform_driver omap_dmm_driver = {
- 		.owner = THIS_MODULE,
- 		.name = DMM_DRIVER_NAME,
- 		.of_match_table = of_match_ptr(dmm_of_match),
--#ifdef CONFIG_PM
- 		.pm = &omap_dmm_pm_ops,
--#endif
- 	},
- };
- 
+Regards,
+
 -- 
-1.9.1
-
+Robert Nelson
+http://www.rcn-ee.com/
