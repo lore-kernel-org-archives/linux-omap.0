@@ -1,83 +1,98 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 8/8 v2] ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider
- bug
-Date: Wed, 25 Feb 2015 19:17:57 +0200
-Message-ID: <54EE03C5.2090306@ti.com>
-References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-8-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDFF20.6030103@ti.com> <54EE0138.7020300@cit-ec.uni-bielefeld.de>
+From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
+Subject: Re: [PATCH 7/8 v2] ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based
+ on WAITMONITORINGTIME
+Date: Wed, 25 Feb 2015 18:20:40 +0100
+Message-ID: <54EE0468.6000105@cit-ec.uni-bielefeld.de>
+References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDF969.1070902@ti.com>
+Reply-To: rabel@cit-ec.uni-bielefeld.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54EE0138.7020300@cit-ec.uni-bielefeld.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rabel@cit-ec.uni-bielefeld.de, linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:44637 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739AbbBYRUl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 12:20:41 -0500
+In-Reply-To: <54EDF969.1070902@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 
-Robert,
+Hi Roger,
 
-On 25/02/15 19:07, Robert Abel wrote:
-> Hi Roger,
-> 
-> On 25 Feb 2015 17:58, Roger Quadros wrote:
->>> static unsigned int gpmc_ticks_to_ps(unsigned int ticks)
->>> @@ -346,16 +395,22 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
->>>    * @st_bit  Start Bit
->>>    * @end_bit End Bit. Must be >= @st_bit.
->>>    * @name    DTS node name, w/o "gpmc,"
->>> + * @cd      Clock Domain of timing parameter.
->>> + * @shift   Parameter value left shifts @shift, which is then printed instead of value.
->>>    * @raw     Raw Format Option.
->>>    *          raw format:  gpmc,name = <value>
->>>    *          tick format: gpmc,name = <value> /&zwj;* x ticks *&zwj;/
->>>    * @noval   Parameter values equal to 0 are not printed.
->>> - * @shift   Parameter value left shifts @shift, which is then printed instead of value.
->>>    *
->>>    */
->>> -static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
->>> -                   bool raw, bool noval, int shift,
->>> -                   const char *name)
->>> +static int get_gpmc_timing_reg(
->>> +    /* timing specifiers */
->>> +    int cs, int reg, int st_bit, int end_bit,
->>> +    const char *name, const enum gpmc_clk_domain cd,
->>> +    /* value transform */
->>> +    int shift,
->>> +    /* format specifiers */
->>> +    bool raw, bool noval)
->> now that you are rearranging the parameters, "name" parameter should probably be
->> at the same position (or last) in get_gpmc_timing_reg() and set_gpmc_timing_reg()?
->> Also clock domain (cd) position could be matched if possible.
-> I rearranged them primarily, because I wanted to group the specifiers according to function, because I found it unnatural to add clock domain to the end, when it's "more important" than the format specifiers.
-> set_gpmc_timing_reg are fine in that regard as it doesn't have format specifiers.
+On 25 Feb 2015 17:33, Roger Quadros wrote:
+> ./scripts/checkpatch.pl detects some styling errors.
+Well, there's like a million lines over 80 characters. I'm also a 
+heathen and don't use an 80 character terminal either.
+I'll fix the more serious issues checkpatch finds, but some styling 
+errors are even from code already in the driver.
 
-OK.
+>>   #define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
+> Not caused by your patch but we can fix the typo
+>
+> GPMC_CONFIG1_WAIT_MON_IIME -> GPMC_CONFIG1_WAIT_MON_TIME
+I'd rather remove than fix. None of these defines is in active use anymore.
+>> +/**
+>> + * gpmc_calc_waitmonitoring_divider - calculate proper GPMCFCLKDIVIDER based on WAITMONITORINGTIME
+>> + * @wait_monitoring WAITMONITORINGTIME in ns.
+>> + * @return          -1 on failure to scale, else proper divider > 0.
+>> + * @note            WAITMONITORINGTIME will be _at least_ as long as desired.
+>> + *                  i.e. read timings should be kept            -> don't sample bus too early
+>> + *                  while write timings should work out as well -> data is longer on bus
+>> + */
+>> +static int gpmc_calc_waitmonitoring_divider(unsigned int wait_monitoring)
+>> +{
+>> +
+>> +	int div = gpmc_ns_to_ticks(wait_monitoring);
+>> +
+>> +	div += GPMC_CONFIG1_WAIT_MON_TIME_MAX - 1;
+>> +	div /= GPMC_CONFIG1_WAIT_MON_TIME_MAX;
+> Sorry I didn't understand how this works. :P
+>  From the TRM,
+>
+> waitmonitoringtime_ns = waitmonitoring_ticks x (gpmc_clk_div + 1) x gpmc_fclk_ns
+Using that formula:
+gpmc_clk_div + 1 = ceil(ceil(waitmonitoringtime_ns / gpmc_fclk_ns) / 
+waitmonitoring_ticks).
 
->>> +/**
->>> + * set_gpmc_timing_reg - set a single timing parameter for Chip Select Region.
->>> + * @cs      Chip Select Region.
->>> + * @reg     GPMC_CS_CONFIGn register offset.
->>> + * @st_bit  Start Bit
->>> + * @end_bit End Bit. Must be >= @st_bit.
->>> + * @time    Timing parameter in ns.
->>> + * @cd      Timing parameter clock domain.
->>> + * @name    Timing parameter name.
->>> + * @note    Caller is expected to have initialized CONFIG1 GPMCFCLKDIVIDER
->> @note is not a parameter.
-> Well no, note's a note. This is a doxygen-style comment, so tools should put a note in the created documentation. Doxygen will put a box with yellow background, for instance.
+The reason I use GPMC_CONFIG1_WAIT_MON_TIME_MAX directly, is because 
+every other pair is identical:
 
-Oh ok.
+We have the following cases:
+a) WAITMONITORINGTIME = 0, so div doesn't matter (we set div to 1) or
+b) WAITMONITORINGTIME = 1, with div = 1 or
+c) WAITMONITORINGTIME = 2, with div = n
 
->>> -        pr_err("%s: GPMC error! CS%d: %s: %d ns, %d ticks > %d\n",
->>> +        pr_err("%s: GPMC CS%d: %s %d ns, %d ticks > %d ticks\n",
->> any reason for removing the "error!" string?
-> It's already pr_err, the "error!" in-between "GPMC CS%d" made it hard to read and there's a WARN after that statement in all cases, because a child _must_ fail if a timing parameter constraint is broken.
+WAITMONITORINGTIME is never 1 with div = n and div /= 1, because that's 
+the same as WAITMONITORINGTIME = 2 with div = n - 1.
+Cases a) and b) are caught using the fact that div = 0 after the division.
+Case c) is handled by assuming that WAITMONITORINGTIME will always be 2 
+(i.e. GPMC_CONFIG1_WAIT_MON_TIME_MAX) for all divs /= 0 at that point.
 
-How will the user know by looking at the kernel log that it was really an error?
-We don't fail probe if set_gpmc_timing_reg() fails so I feel it is necessary to
-clearly show an Error message.
+Took me a while to realize that this works, too.
 
-You can probably reword it like "%s: Error!! GPMC CS %d..."
+>> +	/*
+>> +	 * See if we need to change the divider for waitmonitoringtime.
+>> +	 *
+>> +	 * If DT contains sync-clk-ps for truly asynchronous accesses,
+>> +	 * ignore it as long as waitmonitoringtime is used.
+>> +	 *
+> The comment in the $subject was more easier to understand for me than the above
+>
+> "Calculate GPMCFCLKDIVIDER independent of gpmc,sync-clk-ps in DT for
+> truly asynchronous accesses, i.e. both read and write asynchronous."
+Well, the comment in $subject was a general description. Here, we don't 
+touch div when
+a) any access is synchronous
+b) all accesses are asynchronous, but WAITMONITORINGTIME is not used, 
+i.e. WAITREADMONITORING and WAITWRITEMONITORING are both not set.
 
-cheers,
--roger
+So, if WAITMONITORINGTIME is not used, or any access is synchronous, we 
+program the sync-clk-ps anyways, because the GPMC won't rely on it for 
+any timing.
+So the comment is OK, IMHO.
+
+Regards,
+
+Robert
