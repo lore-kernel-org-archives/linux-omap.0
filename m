@@ -1,44 +1,32 @@
-From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
-Subject: Re: [PATCH 5/8 v2] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output
- for DTS
-Date: Wed, 25 Feb 2015 17:26:03 +0100
-Message-ID: <54EDF79B.80805@cit-ec.uni-bielefeld.de>
-References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDCD29.3010404@ti.com> <20150225152324.GN11056@atomide.com>
-Reply-To: rabel@cit-ec.uni-bielefeld.de
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 3/8 v2] ARM OMAP2+ GPMC: add bus children
+Date: Wed, 25 Feb 2015 18:26:06 +0200
+Message-ID: <54EDF79E.4010104@ti.com>
+References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDB9F0.9030701@ti.com> <54EDE4F1.10000@cit-ec.uni-bielefeld.de> <54EDF5DE.9010607@ti.com> <54EDF6E5.9070405@cit-ec.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:43967 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752401AbbBYQ0F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 11:26:05 -0500
-In-Reply-To: <20150225152324.GN11056@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54EDF6E5.9070405@cit-ec.uni-bielefeld.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rabel@cit-ec.uni-bielefeld.de, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
 
-Hi Tony,
+On 25/02/15 18:23, Robert Abel wrote:
+> Hi Roger,
+> 
+> On 25 Feb 2015 17:18, Roger Quadros wrote:
+>> OK. Would be interesting to see how unconditional call to of_platform_decide_create() behaves
+>> for your case.
+> I'm not able to test today, so results will be in tomorrow. If that doesn't work, I'll just resubmit my first patch with the conditional.
 
-On 25 Feb 2015 16:23, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [150225 05:28]:
->> On 24/02/15 22:05, Robert ABEL wrote:
->>> DTS output was formatted to require additional work when copy-pasting into DTS.
->>> Nano-second timings were removed, because they were not a confidence interval nor
->>> an indication what timing values would result in the same #ticks
->> If they were not is it possible to dump min,max timings that will result in
->> the same ticks?
-> Yeah my plan was o display the nanosecond range resulting in the
-> same tick value. That makes it a bit easier to compare the timings
-> to the data sheet. So maybe show both tick and ns range?
-Ah, so my hunch was right. I reimplemented that correctly now.
-Basically, your code just went [ticks-1, ticks+1] in ns. But times are 
-always ceiling(ns / gpmc_[f]clk), i.e. (ticks - 1, ticks] in ns.
+Tomorrow is fine.
 
-Some other patches change as well because of this change, so a v3 is in 
-order =].
+> 
+> I'll be posting a v3 of this entire patch series tomorrow after testing. I think I should leave your ACKs out for you to re-ACK?
 
-Regards,
+If you are not changing the patches I've acked you can keep my ACK.
 
-Robert
+cheers,
+-roger
