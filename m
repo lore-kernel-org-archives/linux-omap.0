@@ -1,42 +1,55 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ASoC: omap: fix up
-	SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency
-Date: Wed, 25 Feb 2015 16:44:15 +0100
-Message-ID: <2482424.WOd0SW5Oav@wuerfel>
-References: <22890811.0MuvZ4MxOU@wuerfel> <54EDEAE3.6080605@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap-device: add missed callback for suspend-to-disk
+Date: Wed, 25 Feb 2015 07:44:46 -0800
+Message-ID: <20150225154445.GO11056@atomide.com>
+References: <1424873630-6054-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <54EDEAE3.6080605@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, broonie@kernel.org, lgirdwood@gmail.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta1.delivery5.ore.mailhop.org ([54.148.219.64]:60344 "EHLO
+	pmta1.delivery5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752625AbbBYPsz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 10:48:55 -0500
+Received: from smtp4.ore.mailhop.org (172.31.18.134) by pmta1.delivery1.ore.mailhop.org id htnne820r84v for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2015 15:48:51 +0000 (envelope-from <tony@atomide.com>)
+Content-Disposition: inline
+In-Reply-To: <1424873630-6054-1-git-send-email-grygorii.strashko@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: grygorii.strashko@linaro.org
+Cc: nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, kishon@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 25 February 2015 17:31:47 Peter Ujfalusi wrote:
-> Would it be better to have this changed to:
->         select COMMON_CLK_PALMAS if MFD_PALMAS
-> instead of removing.
+* grygorii.strashko@linaro.org <grygorii.strashko@linaro.org> [150225 06:17]:
+> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 > 
-> All OMAP5 boards uses Palmas as PMIC and the boards where twl6040 audio is in
-> use the 32K clock for the codec is coming from Palmas.
-> Without this clock the twl6040 will not boot up causing errors during probe time.
+> Add missed callback needed for supporting suspend-to-disk (hibernation) mode.
 
-It's possible to build a kernel with omap5 support and this driver but
-no palmas support, which makes the dependency it a bit strange, but I'll
-let Mark decide.
+Is this needed as a fix for the -rc series or are there still
+other missing dependencies?
 
-Unfortunately, I've sent the changed v2 patch without fixing up the commit
-message. Instead of sending another v3 right away, I'll wait for Mark
-to comment.
+Regards,
 
-	Arnd
+Tony
+ 
+> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+> ---
+>  arch/arm/mach-omap2/omap_device.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index fcd2c9e..345e18e 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -739,6 +739,9 @@ struct dev_pm_domain omap_device_pm_domain = {
+>  		USE_PLATFORM_PM_SLEEP_OPS
+>  		.suspend_noirq = _od_suspend_noirq,
+>  		.resume_noirq = _od_resume_noirq,
+> +		.freeze_noirq = _od_suspend_noirq,
+> +		.thaw_noirq = _od_resume_noirq,
+> +		.restore_noirq = _od_resume_noirq,
+>  	}
+>  };
+>  
+> -- 
+> 1.9.1
+> 
