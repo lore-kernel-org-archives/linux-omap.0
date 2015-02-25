@@ -1,44 +1,72 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] ASoC: omap: fix up SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency
-Date: Wed, 25 Feb 2015 16:05:05 +0100
-Message-ID: <22890811.0MuvZ4MxOU@wuerfel>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v5 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked domains
+Date: Wed, 25 Feb 2015 09:16:11 -0600
+Message-ID: <54EDE73B.7020503@ti.com>
+References: <1424713459-6824-1-git-send-email-marc.zyngier@arm.com> <20150223203237.GA30588@kahuna> <54EB9006.70000@ti.com> <54EC555A.9050903@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:58572 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751848AbbBYPHB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 10:07:01 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42540 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752634AbbBYPQ5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 10:16:57 -0500
+In-Reply-To: <54EC555A.9050903@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@kernel.org
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, lgirdwood@gmail.com
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The change to enable OMAP5 support on this platform was a little too
-eager in adding a 'select' for a particular clock driver that might
-not be enabled in all configurations, which in turn leads to a build
-error:
+On 02/24/2015 04:41 AM, Marc Zyngier wrote:
+> On 23/02/15 20:39, Nishanth Menon wrote:
+>> On 02/23/2015 02:32 PM, Nishanth Menon wrote:
+>>> On 17:44-20150223, Marc Zyngier wrote:
+[...]
+>>>>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+>>>>  delete mode 100644 include/linux/irqchip/irq-crossbar.h
+>>>
+>>> marc-test-irq (Applied the series to v4.0-rc1) - boot logs:
+>>>  1:                     am335x-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2469913
+>>>  2:                      am335x-sk: BOOT: PASS: http://paste.ubuntu.org.cn/2469914
+>>>  3:                     am3517-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2469915
+>>>  4:                      am37x-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2469916
+>>>  5:                      am437x-sk: BOOT: PASS: http://paste.ubuntu.org.cn/2469917
+>>>  6:                    am43xx-epos: BOOT: PASS: http://paste.ubuntu.org.cn/2469918
+>>>  7:                   am43xx-gpevm: BOOT: PASS: http://paste.ubuntu.org.cn/2469919
+>>>  8:                 BeagleBoard-XM: BOOT: PASS: http://paste.ubuntu.org.cn/2469920
+>>>  9:            beagleboard-vanilla: BOOT: PASS: http://paste.ubuntu.org.cn/2469928
+>>> 10:               beaglebone-black: BOOT: PASS: http://paste.ubuntu.org.cn/2469932
+>>> 11:                     beaglebone: BOOT: PASS: http://paste.ubuntu.org.cn/2469936
+>>> 12:                     craneboard: BOOT: PASS: http://paste.ubuntu.org.cn/2469941
+>>> 13:                     dra72x-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2469945
+>>> 14:                     dra7xx-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2469946
+>>> 15:         OMAP3430-Labrador(LDP): BOOT: PASS: http://paste.ubuntu.org.cn/2469947
+>>> 16:                           n900: BOOT: PASS: http://paste.ubuntu.org.cn/2469948
+>>> 17:                      omap5-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2469949
+>>> 18:                  pandaboard-es: BOOT: PASS: http://paste.ubuntu.org.cn/2469950
+>>> 19:             pandaboard-vanilla: BOOT: PASS: http://paste.ubuntu.org.cn/2469951
+>>> 20:                        sdp2430: BOOT: PASS: http://paste.ubuntu.org.cn/2469952
+>>> 21:                        sdp3430: BOOT: PASS: http://paste.ubuntu.org.cn/2469953
+>>> 22:                        sdp4430: BOOT: PASS: http://paste.ubuntu.org.cn/2469954
+>>> TOTAL = 22 boards, Booted Boards = 22, No Boot boards = 0
+>>>
+>>> (also tested beagleboard-x15 which was not on farm: http://paste.ubuntu.org.cn/2470017  - looks good as well).
+>> Noticed that I missed proper info about x15 here.. anyways..
+>>
+>> http://paste.ubuntu.org.cn/2470017 was vanilla v4.0-rc1
+>> http://pastebin.ubuntu.com/10377375/ is with this series applied on top.
+>>
+>>>
+>>> Comparative boot logs for v4.0-rc1:
+>>> https://github.com/nmenon/kernel-test-logs/tree/v4.0-rc1
+>>>
+>>> Will dig in detail a little later.. but nothing major stuck out to me.
+> 
+> Excellent. Let me know if you spot anything. Can I otherwise add your
+> "Tested-by:"?
 
-warning: (SND_OMAP_SOC_OMAP_ABE_TWL6040) selects COMMON_CLK_PALMAS which has unmet direct dependencies (COMMON_CLK && MFD_PALMAS)
-drivers/built-in.o: In function `palmas_clks_probe':
-drivers/clk/clk-palmas.c:228: undefined reference to `palmas_ext_control_req_config'
+Yes please. Sorry that I did not respond earlier.
 
-I do not see a strong dependency here, so it's probably better to
-drop this select and to avoid adding more complexity here.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 5163c1eede8e9 ("ASoC: omap: Kconfig: Support for omap5-uevm analog audio")
-
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index e7c78b0406b5..e74d8db4619d 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -105,7 +105,6 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	select SND_OMAP_SOC_MCPDM
- 	select SND_SOC_TWL6040
- 	select SND_SOC_DMIC
--	select COMMON_CLK_PALMAS if SOC_OMAP5
- 	help
- 	  Say Y if you want to add support for SoC audio on OMAP boards using
- 	  ABE and twl6040 codec. This driver currently supports:
+-- 
+Regards,
+Nishanth Menon
