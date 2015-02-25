@@ -1,57 +1,81 @@
-From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
-Subject: Re: [PATCH 9/8 v2] ARM OMAP2+ GPMC: fix programming/showing reserved
- timing parameters
-Date: Wed, 25 Feb 2015 16:17:17 +0100
-Message-ID: <54EDE77D.6020604@cit-ec.uni-bielefeld.de>
-References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-8-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-9-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDA77F.4030008@ti.com>
-Reply-To: rabel@cit-ec.uni-bielefeld.de
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: omap: fix up
+	SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency
+Date: Wed, 25 Feb 2015 17:31:47 +0200
+Message-ID: <54EDEAE3.6080605@ti.com>
+References: <22890811.0MuvZ4MxOU@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54EDA77F.4030008@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <22890811.0MuvZ4MxOU@wuerfel>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>, broonie@kernel.org
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lgirdwood@gmail.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+On 02/25/2015 05:05 PM, Arnd Bergmann wrote:
+> The change to enable OMAP5 support on this platform was a little too
+> eager in adding a 'select' for a particular clock driver that might
+> not be enabled in all configurations, which in turn leads to a build
+> error:
+> =
 
-On 25 Feb 2015 11:44, Roger Quadros wrote:
-> typo ATTCHEDDEVICEPAGELENGTH->ATTACHEDDEVICEPAGELENGTH 
-Yep.
->> +/** DEVICESIZE Max Value */
->> +#define GPMC_CONFIG1_DEVICESIZE_MAX     GPMC_CONFIG1_DEVICESIZE_16
-> Shouldn't this be 1 instead? I'm hoping max value is without the shift
-> based on GPMC_CONFIG1_CLKACTIVATIONTIME_MAX.
-Yes, it should. It's a remnant from the change below...
->> + * @max     Maximum parameter value (after optional @shift).
-> max should be absolute value, without the shift.
-Yes, forgot to change that.
->> +#define GPMC_GET_RAW_SHIFT(reg, st, end, shift, max, field) \
->> +	get_gpmc_timing_reg(cs, (reg), (st), (end), (max), field, GPMC_CD_FCLK, (shift), 1, 1)
-> Is it better to rename this to GPMC_GET_RAW_SHIFT_MAX() as it takes the max parameter.
-Ok.
->> +	GPMC_GET_RAW_SHIFT(GPMC_CS_CONFIG1, 23, 24, 4, 2, "burst-length");
-> want to define GPMC_CONFIG1_BURSTLENGTH_MAX?
-Yes, for consistency. Originally, i was not going to create defines for 
-limits used only in one place, as opposed to WAITMONITORINGTIME and 
-CLKACTIVATIONTIME.
->> -	GPMC_GET_TICKS_CD(GPMC_CS_CONFIG1, 18, 19, "wait-monitoring-ns", GPMC_CD_CLK);
->> -	GPMC_GET_TICKS(GPMC_CS_CONFIG1, 25, 26, "clk-activation-ns");
->> +	GPMC_GET_TICKS_CD_MAX(GPMC_CS_CONFIG1, 18, 19, GPMC_CONFIG1_WAIT_MON_TIME_MAX, "wait-monitoring-ns", GPMC_CD_CLK);
-> use GPMC_CONFIG1_WAITMONTIME_MAX to have consistent naming.
-I used the naming the other define had. Saw no point in changing them. 
-They go mostly unused anyway.
-Might as well change it.
+> warning: (SND_OMAP_SOC_OMAP_ABE_TWL6040) selects COMMON_CLK_PALMAS which =
+has unmet direct dependencies (COMMON_CLK && MFD_PALMAS)
+> drivers/built-in.o: In function `palmas_clks_probe':
+> drivers/clk/clk-palmas.c:228: undefined reference to `palmas_ext_control_=
+req_config'
+> =
 
->> +#define GPMC_SET_ONE_CD(reg, st, end, field, cd) \
->> +	GPMC_SET_ONE_CD_MAX(reg, st, end, 0, field, GPMC_CD_FCLK)
-> last parameter should be (cd) instead of GPMC_CD_FCLK.
-Ah, copy-paste, there you are again. Luckily this define goes unused, 
-because all GPMC_SET_ONE_CD became GPMC_SET_ONE_CD_MAX anyway.
-So I'll delete that. Quite a keen eye, though ;)
+> I do not see a strong dependency here, so it's probably better to
+> drop this select and to avoid adding more complexity here.
+> =
 
-Regards,
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 5163c1eede8e9 ("ASoC: omap: Kconfig: Support for omap5-uevm analog=
+ audio")
+> =
 
-Robert
+> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+> index e7c78b0406b5..e74d8db4619d 100644
+> --- a/sound/soc/omap/Kconfig
+> +++ b/sound/soc/omap/Kconfig
+> @@ -105,7 +105,6 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+>  	select SND_OMAP_SOC_MCPDM
+>  	select SND_SOC_TWL6040
+>  	select SND_SOC_DMIC
+> -	select COMMON_CLK_PALMAS if SOC_OMAP5
+
+Would it be better to have this changed to:
+	select COMMON_CLK_PALMAS if MFD_PALMAS
+instead of removing.
+
+All OMAP5 boards uses Palmas as PMIC and the boards where twl6040 audio is =
+in
+use the 32K clock for the codec is coming from Palmas.
+Without this clock the twl6040 will not boot up causing errors during probe=
+ time.
+
+>  	help
+>  	  Say Y if you want to add support for SoC audio on OMAP boards using
+>  	  ABE and twl6040 codec. This driver currently supports:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> =
+
+
+
+-- =
+
+P=E9ter
