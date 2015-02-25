@@ -1,39 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 0/2] fix ehrpwm tbclk data on am33xx and am43xx
-Date: Wed, 25 Feb 2015 09:35:38 +0200
-Message-ID: <54ED7B4A.2030201@ti.com>
-References: <1423546542-29664-1-git-send-email-vigneshr@ti.com> <20150224171546.GB28244@atomide.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: "advanced" LED controllers
+Date: Wed, 25 Feb 2015 09:25:24 +0100
+Message-ID: <CAMuHMdUUNzFYHzSR3yLCJuz11vuO3Z4yVWVxRQfutGY1KxZLPQ@mail.gmail.com>
+References: <20150219211424.GN13603@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150224171546.GB28244@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <20150219211424.GN13603@saruman.tx.rr.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/24/2015 07:15 PM, Tony Lindgren wrote:
-> * Vignesh R <vigneshr@ti.com> [150209 22:43]:
->> In am33xx and am43xx, ehrpwm tbclk is derived from functional clock of
->> PWMSS. The schematics and TRMs show that there is only one input clock to
->> the PWMSS. But currently, tbclk is wrongly shown to be deriving from
->> dpll_per_m2_ck instead of functional clock l4ls_gclk in the DT.
->>
->> Fixing ehrpwm tbclk data to reflect the right clk source.
->> Tested on beaglebone and am437x-gp-evm.
->>
->> Vignesh R (2):
->>    ARM: dts: am33xx-clocks: Fix ehrpwm tbclk data on am33xx
->>    ARM: dts: am43xx-clocks: Fix ehrpwm tbclk data on am43xx
->>
->>   arch/arm/boot/dts/am33xx-clocks.dtsi |  6 +++---
->>   arch/arm/boot/dts/am43xx-clocks.dtsi | 12 ++++++------
->>   2 files changed, 9 insertions(+), 9 deletions(-)
+CC linux-gpio, as this looks like the LED equivalent of bulk gpio?
+
+On Thu, Feb 19, 2015 at 10:14 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Do we have support for LED controllers which can handle patterns of
+> different kinds ? I mean, currently, if we have an LED controller such
+> as TPIC2810 [1] which can control 8 different leds and each LED
+> corresponds to one bit on register 0x44, we could control leds by just
+> "playing" a wave file on the controller and create easy patterns with
+> that.
 >
-> Tero, care to check this one too and ack if OK?
-
-These look fine also, just verified from TRM. These two were actually 
-buried in my mailbox, sorry about that.
-
-Acked-by: Tero Kristo <t-kristo@ti.com>
+> AFAICT, in linux today we would have to register each of the 8 LEDs as a
+> different LED and have driver magic to write the proper bits on register
+> 0x44, that seems a bit overkill, specially when we want to make
+> patterns: instead of writing 0xff we would have to write 0x80, 0x40,
+> 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 separately and have the driver cache
+> the previous results so we don't end up switching off other LEDs.
+>
+> IOW, what could be handled with a single write, currently needs 8.
+>
+> I wonder if there's any work happening to support these slightly more
+> inteligent LED engines.
+>
+> regards
+>
+> [1] http://www.ti.com/product/tpic2810
+>
+> ps: tpic2810 is probably the simplest example, lp551, lp5523 and others
+> have even more advanced pattern engines which can even handle RGB leds.
+>
+> Currently the driver loads patterns as if it was a firmware blob and
+> registers each of R, G and B components as separate LEDs. Each component
+> also has its own brightness controls (something tpic2810 doesn't have,
+> it's either on or off).
