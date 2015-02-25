@@ -1,152 +1,125 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 32/35] ARM: OMAP4+: control: remove support for legacy pad read/write
-Date: Wed, 25 Feb 2015 21:04:42 +0200
-Message-ID: <1424891085-10392-33-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 27/35] ARM: dts: am33xx: merge control module features under scrm node
+Date: Wed, 25 Feb 2015 21:04:37 +0200
+Message-ID: <1424891085-10392-28-git-send-email-t-kristo@ti.com>
 References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54408 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753568AbbBYTFp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 14:05:45 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:49519 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753568AbbBYTFd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Feb 2015 14:05:33 -0500
 In-Reply-To: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-omap4_ctrl_pad_readl/writel are no longer used by anybody, so remove
-these. Syscon / pinctrl should be used to access the padconf area
-instead.
+This patch moves all the control module related features under scrm
+node. scm_conf area is changed to use syscon, and also the clocks
+are moved under scm_conf area.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/control.c |   24 +-----------------------
- arch/arm/mach-omap2/control.h |    5 +----
- arch/arm/mach-omap2/io.c      |   11 ++++-------
- 3 files changed, 6 insertions(+), 34 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   48 ++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index a072f071..570bb07 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -36,7 +36,6 @@
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index acd3705..bc8bbcd 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -83,20 +83,6 @@
+ 		};
+ 	};
  
- static void __iomem *omap2_ctrl_base;
- static s16 omap2_ctrl_offset;
--static void __iomem *omap4_ctrl_pad_base;
- static struct regmap *omap2_ctrl_syscon;
- 
- #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
-@@ -139,13 +138,9 @@ struct omap3_control_regs {
- static struct omap3_control_regs control_context;
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
- 
--#define OMAP4_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
+-	am33xx_control_module: control_module@4a002000 {
+-		compatible = "syscon";
+-		reg = <0x44e10000 0x7fc>;
+-	};
 -
--void __init omap2_set_globals_control(void __iomem *ctrl,
--				      void __iomem *ctrl_pad)
-+void __init omap2_set_globals_control(void __iomem *ctrl)
- {
- 	omap2_ctrl_base = ctrl;
--	omap4_ctrl_pad_base = ctrl_pad;
- }
- 
- u8 omap_ctrl_readb(u16 offset)
-@@ -218,23 +213,6 @@ void omap_ctrl_writel(u32 val, u16 offset)
- 			     val);
- }
- 
--/*
-- * On OMAP4 control pad are not addressable from control
-- * core base. So the common omap_ctrl_read/write APIs breaks
-- * Hence export separate APIs to manage the omap4 pad control
-- * registers. This APIs will work only for OMAP4
-- */
+-	am33xx_pinmux: pinmux@44e10800 {
+-		compatible = "pinctrl-single";
+-		reg = <0x44e10800 0x0238>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		pinctrl-single,register-width = <32>;
+-		pinctrl-single,function-mask = <0x7f>;
+-	};
 -
--u32 omap4_ctrl_pad_readl(u16 offset)
--{
--	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
--}
--
--void omap4_ctrl_pad_writel(u32 val, u16 offset)
--{
--	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
--}
--
- #ifdef CONFIG_ARCH_OMAP3
+ 	/*
+ 	 * XXX: Use a flat representation of the AM33XX interconnect.
+ 	 * The real AM33XX interconnect network is quite complex. Since
+@@ -125,21 +111,35 @@
+ 		};
  
- /**
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 5353ff4..80d2b7d 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -443,11 +443,9 @@
- extern u8 omap_ctrl_readb(u16 offset);
- extern u16 omap_ctrl_readw(u16 offset);
- extern u32 omap_ctrl_readl(u16 offset);
--extern u32 omap4_ctrl_pad_readl(u16 offset);
- extern void omap_ctrl_writeb(u8 val, u16 offset);
- extern void omap_ctrl_writew(u16 val, u16 offset);
- extern void omap_ctrl_writel(u32 val, u16 offset);
--extern void omap4_ctrl_pad_writel(u32 val, u16 offset);
+ 		scrm: scrm@44e10000 {
+-			compatible = "ti,am3-scrm";
++			compatible = "ti,am3-scrm", "simple-bus";
+ 			reg = <0x44e10000 0x2000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x44e10000 0x2000>;
  
- extern void omap3_save_scratchpad_contents(void);
- extern void omap3_clear_scratchpad_contents(void);
-@@ -465,8 +463,7 @@ extern int omap3_ctrl_save_padconf(void);
- void omap3_ctrl_init(void);
- int omap2_control_base_init(void);
- int omap_control_init(void);
--extern void omap2_set_globals_control(void __iomem *ctrl,
--				      void __iomem *ctrl_pad);
-+void omap2_set_globals_control(void __iomem *ctrl);
- void __init omap3_control_legacy_iomap_init(void);
- #else
- #define omap_ctrl_readb(x)		0
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index c3fa739..6c39cc0 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -443,7 +443,7 @@ void __init omap3_init_early(void)
- 	/* XXX: remove these once OMAP3 is DT only */
- 	if (!of_have_populated_dt()) {
- 		omap2_set_globals_control(
--			OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE), NULL);
-+			OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE));
- 		omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE));
- 		omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
- 				     NULL);
-@@ -631,8 +631,7 @@ void __init omap4430_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP443X_CLASS,
- 			      OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
--				  OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
- 	omap4xxx_check_revision();
- 	omap4xxx_check_features();
-@@ -660,8 +659,7 @@ void __init omap5_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP54XX_CLASS,
- 			      OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
--				  OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
- 	omap2_prcm_base_init();
-@@ -686,8 +684,7 @@ void __init omap5_init_late(void)
- void __init dra7xx_init_early(void)
- {
- 	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
--				  OMAP2_L4_IO_ADDRESS(DRA7XX_CTRL_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
- 	omap2_prcm_base_init();
+-			scrm_clocks: clocks {
++			am33xx_pinmux: pinmux@800 {
++				compatible = "pinctrl-single";
++				reg = <0x800 0x238>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				pinctrl-single,register-width = <32>;
++				pinctrl-single,function-mask = <0x7f>;
+ 			};
+ 
+-			scrm_clockdomains: clockdomains {
++			scm_conf: tisyscon@0 {
++				compatible = "syscon";
++				reg = <0x0 0x7fc>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++
++				scrm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 			};
+-		};
+ 
+-		cm: syscon@44e10000 {
+-			compatible = "ti,am33xx-controlmodule", "syscon";
+-			reg = <0x44e10000 0x800>;
++			scrm_clockdomains: clockdomains {
++			};
+ 		};
+ 
+ 		intc: interrupt-controller@48200000 {
+@@ -350,7 +350,7 @@
+ 			reg = <0x481cc000 0x2000>;
+ 			clocks = <&dcan0_fck>;
+ 			clock-names = "fck";
+-			syscon-raminit = <&am33xx_control_module 0x644 0>;
++			syscon-raminit = <&scm_conf 0x644 0>;
+ 			interrupts = <52>;
+ 			status = "disabled";
+ 		};
+@@ -361,7 +361,7 @@
+ 			reg = <0x481d0000 0x2000>;
+ 			clocks = <&dcan1_fck>;
+ 			clock-names = "fck";
+-			syscon-raminit = <&am33xx_control_module 0x644 1>;
++			syscon-raminit = <&scm_conf 0x644 1>;
+ 			interrupts = <55>;
+ 			status = "disabled";
+ 		};
+@@ -720,7 +720,7 @@
+ 			 */
+ 			interrupts = <40 41 42 43>;
+ 			ranges;
+-			syscon = <&cm>;
++			syscon = <&scm_conf>;
+ 			status = "disabled";
+ 
+ 			davinci_mdio: mdio@4a101000 {
 -- 
 1.7.9.5
 
