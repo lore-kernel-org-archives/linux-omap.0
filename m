@@ -1,50 +1,90 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH][v4.0-rc] ARM: dts: dra7x-evm: beagle-x15: Fix USB Host
-Date: Wed, 25 Feb 2015 11:51:19 +0200
-Message-ID: <54ED9B17.4060906@ti.com>
-References: <1424781427-15356-1-git-send-email-rogerq@ti.com> <20150224180303.GG11056@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS: DPI: disable vt-switch on suspend/resume.
+Date: Wed, 25 Feb 2015 12:03:36 +0200
+Message-ID: <54ED9DF8.8030105@ti.com>
+References: <20150225203708.0eb2fa96@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60892 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771AbbBYJvZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 04:51:25 -0500
-In-Reply-To: <20150224180303.GG11056@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="218FneOctmcdOI37OVu0GfBUDHV9FjKr9"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150225203708.0eb2fa96@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, nsekhar@ti.com, nm@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 24/02/15 20:03, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [150224 04:40]:
->> In commit 87517d26d888 ("ARM: dts: dra7-evm: Add extcon nodes for USB")
->> we enabled Extcon USB gpio to tackle the USB ID pin and get
->> peripheral mode to work.
->>
->> But the extcon-gpio-usb driver [1] didn't make it into v4.0
->> and this makes the USB driver defer probe indefinitely breaking
->> USB Host functionality.
->>
->> As a temporary fix we remove the extcon handle from the
->> USB controller and add it back when the extcon driver
->> merges in v4.1.
-> 
-> Uhh OK, If there are dependencies, can you please start splitting
-> your patches so the dts changes that cause issues are sent only
-> after the related driver changes are in Linux next?
+--218FneOctmcdOI37OVu0GfBUDHV9FjKr9
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Sure. Will be more careful next time.
+On 25/02/15 11:37, NeilBrown wrote:
+>=20
+> These devices do not need to return to non-graphic console
+> for suspend, so disable that option.
+> This means there is less work to do in the suspend/resume cycle,
+> making it smoother and cheaper.
+>=20
+>=20
+> Signed-off-by: NeilBrown <neil@brown.name>
+>=20
+> --
+> Hi Tomi,
+>  I wonder if you would consider this patch too.  It works for me and
+> removes pointless vt switching.  I assume no-one would need or want tha=
+t
+> switching on suspend/resume but I guess I cannot be certain.
+>=20
+> Maybe a module-parameter could be used if there was any uncertainty.
 
-> 
-> Anyways, applying into omap-for-v4.0/fixes.
+I was just yesterday picking patches from TI's kernel on top of
+mainline, and there's a similar one for omapfb and for omapdrm. Here's
+for omapfb:
 
-Thanks.
+http://git.ti.com/android-sdk/kernel-video/commit/5915d8744c927307987b12b=
+14bc6aa37b3bac05c?format=3Dpatch
 
-cheers,
--roger
+The patch in TI's kernel claims it's needed to make resume work. You're
+saying it just optimizes suspend/resume. I hadn't picked this up
+earlier, because I didn't understand why pm_set_vt_switch() would be
+needed to make resume work. And never had time to study it, so I still
+don't know what it's about...
 
->  
->> [1] - https://lkml.org/lkml/2015/2/2/187
+Looking at the drivers/tty/vt/vt_ioctl.c, it sounds to me that we should
+always do pm_set_vt_switch(0), as omapdss restores everything just fine
+on resume. Although it makes me wonder how it works if there are two
+display controllers, one needing the switch and the other not...
 
+Your patch does the call in a bit odd place, so I'll be queuing the
+patches for omapfb and omapdrm. Or actually, maybe the call could be
+done in one place in omapdss driver, as you do, but in omap_dsshw_probe()=
+=2E
+
+ Tomi
+
+
+
+--218FneOctmcdOI37OVu0GfBUDHV9FjKr9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJU7Z34AAoJEPo9qoy8lh71O40P/2fV8fVL0GlWMoToM07phck+
+XT7WjYmG9zwVQXBnkdrzpYQAusS1Ladr17GMZvXFikX7FQkG3y9ojtVhFdnwBKq4
+io4+XpzR9gZAPe8D7GZl2M16wtty9SBlNnz9neczxn4K2PQmM/dfdDUqtcxw9hNz
+hHgszjuxWovhAq/fC4md6PL56sCGJ3Y5UTYtwZK6HkfdC8CmfBagR+B585YNeDKG
+W/sG/+lrsR/yTeK2P+CoYyH2N/29FdVmk71Q9XMdXq40h6/RmWtYMhsagD/VWjeC
+OdCkyCVO1RWx1y5IeeVlFnVH/guDCHTmhILSolHke21pG3gC8AkhYMC+SobJC09y
+UDbbfETX9jGm4MwAveMGjJ5xQi8jH9u+wMOx+6LzDj3dpGzBmOKZvkVCTeZa+gDa
+XTINxXmCfUMxbR+16NxBzweBXOg6YCeAcANgu4CPbXoAINz37oxDS43M9DYYTIRs
+lFpNOVe/iX42HeftsJu80N18xGI5MOu6nMc0OBIr+HY4wegluAZm0XefGf//ycvK
+qrDLn/ez6A2UUssUyobUZrwFetYrHBZ2EBj5cs4T4qBh0nGBXFFGLPesRxRnK7FF
+RnGE27tyZZbsHdQipgazezYiy47u13mRGGZraTOXdQHJp6XfdLWJUzW8As0KaUWh
+7tqG7uUwIHLH/o7kMDTe
+=2xqh
+-----END PGP SIGNATURE-----
+
+--218FneOctmcdOI37OVu0GfBUDHV9FjKr9--
