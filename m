@@ -1,148 +1,84 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 20/35] ARM: OMAP4+: PRM: get rid of cpu_is_omap44xx calls from interrupt init
-Date: Wed, 25 Feb 2015 21:04:30 +0200
-Message-ID: <1424891085-10392-21-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 31/35] ARM: OMAP4: display: convert display to use syscon for dsi muxing
+Date: Wed, 25 Feb 2015 21:04:41 +0200
+Message-ID: <1424891085-10392-32-git-send-email-t-kristo@ti.com>
 References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54388 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:54406 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753537AbbBYTF0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 14:05:26 -0500
+	with ESMTP id S1753610AbbBYTFo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 14:05:44 -0500
 In-Reply-To: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The compatible DT node is now passed with the prm init, so there is no
-need to do node matching here again. Added a new flag to the init data
-also, to detect default IRQ support for OMAP4. Also, any booting omap4
-DT setup always has a PRM node, so there is no need to check against
-the special case where it would be missing.
+The legacy control module APIs will be gone, thus convert the display
+driver to use syscon. This change should eventually be moved to
+display driver from the board directory.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/prm.h        |    2 ++
- arch/arm/mach-omap2/prm44xx.c    |   54 +++++++++++++++-----------------------
- arch/arm/mach-omap2/prm_common.c |    2 +-
- 3 files changed, 24 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/display.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 3936e6c..6312cc3 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -29,9 +29,11 @@ int omap2_prcm_base_init(void);
-  *
-  * PRM_HAS_IO_WAKEUP: has IO wakeup capability
-  * PRM_HAS_VOLTAGE: has voltage domains
-+ * PRM_IRQ_DEFAULT: use default irq number for PRM irq
-  */
- #define PRM_HAS_IO_WAKEUP	(1 << 0)
- #define PRM_HAS_VOLTAGE		(1 << 1)
-+#define PRM_IRQ_DEFAULT		BIT(2)
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 7a050f9..f492ae1 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -26,6 +26,8 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/slab.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
  
- /*
-  * MAX_MODULE_SOFTRESET_WAIT: Maximum microseconds to wait for OMAP
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 243133c..c35ad0b 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -703,10 +703,14 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
+ #include <video/omapdss.h>
+ #include "omap_hwmod.h"
+@@ -104,6 +106,10 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initconst = {
+ 	{ "dss_hdmi", "omapdss_hdmi", -1 },
  };
  
-+static const struct omap_prcm_init_data *prm_init_data;
++#define OMAP4_DSIPHY_SYSCON_OFFSET		0x78
 +
- int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
++static struct regmap *omap4_dsi_mux_syscon;
++
+ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
  {
- 	omap_prm_base_init();
- 
-+	prm_init_data = data;
-+
- 	if (data->flags & PRM_HAS_IO_WAKEUP)
- 		prm_features |= PRM_HAS_IO_WAKEUP;
- 
-@@ -718,16 +722,8 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
- 	return prm_register(&omap44xx_prm_ll_data);
- }
- 
--static const struct of_device_id omap_prm_dt_match_table[] = {
--	{ .compatible = "ti,omap4-prm" },
--	{ .compatible = "ti,omap5-prm" },
--	{ .compatible = "ti,dra7-prm" },
--	{ }
--};
--
- static int omap44xx_prm_late_init(void)
- {
--	struct device_node *np;
- 	int irq_num;
- 
- 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
-@@ -737,31 +733,23 @@ static int omap44xx_prm_late_init(void)
- 	if (!of_have_populated_dt())
- 		return 0;
- 
--	np = of_find_matching_node(NULL, omap_prm_dt_match_table);
--
--	if (!np) {
--		/* Default loaded up with OMAP4 values */
--		if (!cpu_is_omap44xx())
--			return 0;
--	} else {
--		irq_num = of_irq_get(np, 0);
--		/*
--		 * Already have OMAP4 IRQ num. For all other platforms, we need
--		 * IRQ numbers from DT
--		 */
--		if (irq_num < 0 && !cpu_is_omap44xx()) {
--			if (irq_num == -EPROBE_DEFER)
--				return irq_num;
--
--			/* Have nothing to do */
--			return 0;
--		}
--
--		/* Once OMAP4 DT is filled as well */
--		if (irq_num >= 0) {
--			omap4_prcm_irq_setup.irq = irq_num;
--			omap4_prcm_irq_setup.xlate_irq = NULL;
--		}
-+	irq_num = of_irq_get(prm_init_data->np, 0);
-+	/*
-+	 * Already have OMAP4 IRQ num. For all other platforms, we need
-+	 * IRQ numbers from DT
-+	 */
-+	if (irq_num < 0 && !(prm_init_data->flags & PRM_IRQ_DEFAULT)) {
-+		if (irq_num == -EPROBE_DEFER)
-+			return irq_num;
-+
-+		/* Have nothing to do */
-+		return 0;
-+	}
-+
-+	/* Once OMAP4 DT is filled as well */
-+	if (irq_num >= 0) {
-+		omap4_prcm_irq_setup.irq = irq_num;
-+		omap4_prcm_irq_setup.xlate_irq = NULL;
+ 	u32 enable_mask, enable_shift;
+@@ -124,7 +130,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 		return -ENODEV;
  	}
  
- 	omap44xx_prm_enable_io_wakeup();
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index d964e41..44221fe 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -662,7 +662,7 @@ static struct omap_prcm_init_data omap4_prm_data __initdata = {
- 	.index = TI_CLKM_PRM,
- 	.init = omap44xx_prm_init,
- 	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
--	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE,
-+	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE | PRM_IRQ_DEFAULT,
- };
+-	reg = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
++	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
  
- static struct omap_prcm_init_data omap5_prm_data __initdata = {
+ 	reg &= ~enable_mask;
+ 	reg &= ~pipd_mask;
+@@ -132,7 +138,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 	reg |= (lanes << enable_shift) & enable_mask;
+ 	reg |= (lanes << pipd_shift) & pipd_mask;
+ 
+-	omap4_ctrl_pad_writel(reg, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
++	regmap_write(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, reg);
+ 
+ 	return 0;
+ }
+@@ -665,5 +671,10 @@ int __init omapdss_init_of(void)
+ 		return r;
+ 	}
+ 
++	/* add DSI info for omap4 */
++	node = of_find_node_by_name(NULL, "omap4_padconf_global");
++	if (node)
++		omap4_dsi_mux_syscon = syscon_node_to_regmap(node);
++
+ 	return 0;
+ }
 -- 
 1.7.9.5
 
