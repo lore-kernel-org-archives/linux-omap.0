@@ -1,55 +1,71 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 04/35] ARM: OMAP3+: PRM: add common APIs for prm_vp_check/clear_txdone
-Date: Wed, 25 Feb 2015 21:44:32 +0200
-Message-ID: <54EE2620.8080106@ti.com>
-References: <1424891085-10392-1-git-send-email-t-kristo@ti.com> <1424891085-10392-5-git-send-email-t-kristo@ti.com> <20150225190930.GN11136@saruman.tx.rr.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] clk: ti: Fix FAPLL parent enable bit handling
+Date: Wed, 25 Feb 2015 12:07:52 -0800
+Message-ID: <20150225200752.421.26748@quantum>
+References: <20150128170048.GO28663@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38927 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752897AbbBYToc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:44:32 -0500
-In-Reply-To: <20150225190930.GN11136@saruman.tx.rr.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150128170048.GO28663@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 02/25/2015 09:09 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Wed, Feb 25, 2015 at 09:04:14PM +0200, Tero Kristo wrote:
->> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
->> index 2c2e7ed..79cee11 100644
->> --- a/arch/arm/mach-omap2/prm_common.c
->> +++ b/arch/arm/mach-omap2/prm_common.c
->> @@ -555,6 +555,40 @@ int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
->>   }
->>
->>   /**
->> + * omap_prm_vp_check_txdone - check voltage processor TX done status
->> + *
->> + * Checks if voltage processor transmission has been completed.
->> + * Returns non-zero if a transmission has completed, 0 otherwise.
->> + */
->> +u32 omap_prm_vp_check_txdone(u8 vp_id)
->> +{
->> +	if (!prm_ll_data->vp_check_txdone) {
->> +		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
->> +			  __func__);
->
-> same here:
->
-> 	if (WARN_ONCE(!prm_ll_data->vp_check_txdone,
-> 		"prm: %s: no mapping function defined\n", __func__))
->
-> same for all others below
->
+Quoting Tony Lindgren (2015-01-28 09:00:49)
+> Commit 163152cbbe32 ("clk: ti: Add support for FAPLL on dm816x")
+> added basic support for the FAPLL on dm818x, but has a bug for the
+> parent PLL enable bit. The FAPLL_MAIN_PLLEN is defined as BIT(3)
+> but the code is doing a shift on it.
+> 
+> This means the parent PLL won't get disabled even if all it's child
+> synthesizers are disabled.
+> 
+> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Similar convention (the one I used) is already used all over the place 
-in the same file, would probably be better to convert them all at the 
-same time if needed.
+Missed this one for 3.20. Applied to clk-fixes.
 
--Tero
+Regards,
+Mike
+
+> 
+> --- a/drivers/clk/ti/fapll.c
+> +++ b/drivers/clk/ti/fapll.c
+> @@ -84,7 +84,7 @@ static int ti_fapll_enable(struct clk_hw *hw)
+>         struct fapll_data *fd = to_fapll(hw);
+>         u32 v = readl_relaxed(fd->base);
+>  
+> -       v |= (1 << FAPLL_MAIN_PLLEN);
+> +       v |= FAPLL_MAIN_PLLEN;
+>         writel_relaxed(v, fd->base);
+>  
+>         return 0;
+> @@ -95,7 +95,7 @@ static void ti_fapll_disable(struct clk_hw *hw)
+>         struct fapll_data *fd = to_fapll(hw);
+>         u32 v = readl_relaxed(fd->base);
+>  
+> -       v &= ~(1 << FAPLL_MAIN_PLLEN);
+> +       v &= ~FAPLL_MAIN_PLLEN;
+>         writel_relaxed(v, fd->base);
+>  }
+>  
+> @@ -104,7 +104,7 @@ static int ti_fapll_is_enabled(struct clk_hw *hw)
+>         struct fapll_data *fd = to_fapll(hw);
+>         u32 v = readl_relaxed(fd->base);
+>  
+> -       return v & (1 << FAPLL_MAIN_PLLEN);
+> +       return v & FAPLL_MAIN_PLLEN;
+>  }
+>  
+>  static unsigned long ti_fapll_recalc_rate(struct clk_hw *hw,
