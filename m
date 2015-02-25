@@ -1,238 +1,148 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 30/35] ARM: dts: omap4: add system control module node
-Date: Wed, 25 Feb 2015 21:04:40 +0200
-Message-ID: <1424891085-10392-31-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 20/35] ARM: OMAP4+: PRM: get rid of cpu_is_omap44xx calls from interrupt init
+Date: Wed, 25 Feb 2015 21:04:30 +0200
+Message-ID: <1424891085-10392-21-git-send-email-t-kristo@ti.com>
 References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51346 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753596AbbBYTFk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:05:40 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:54388 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537AbbBYTF0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 14:05:26 -0500
 In-Reply-To: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Add node for system control module, and move all the existing system
-control IO space users under this new node as its children. A new node
-for scm_conf area is also added. DT documentation is also updated by
-this patch to reflect the existence of system control module nodes,
-separately of PRCM module.
+The compatible DT node is now passed with the prm init, so there is no
+need to do node matching here again. Added a new flag to the init data
+also, to detect default IRQ support for OMAP4. Also, any booting omap4
+DT setup always has a PRM node, so there is no need to check against
+the special case where it would be missing.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/arm/omap/ctrl.txt          |   75 +++++++++++++++++++
- .../devicetree/bindings/arm/omap/prcm.txt          |    6 --
- arch/arm/boot/dts/omap4.dtsi                       |   76 +++++++++++++-------
- 3 files changed, 125 insertions(+), 32 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/ctrl.txt
+ arch/arm/mach-omap2/prm.h        |    2 ++
+ arch/arm/mach-omap2/prm44xx.c    |   54 +++++++++++++++-----------------------
+ arch/arm/mach-omap2/prm_common.c |    2 +-
+ 3 files changed, 24 insertions(+), 34 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-new file mode 100644
-index 0000000..88b12b5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-@@ -0,0 +1,75 @@
-+OMAP Control Module bindings
-+
-+Control Module contains miscellaneous features under it based on SoC type.
-+Pincontrol is one common feature, and it has a specialized support
-+described in [1]. Typically some clock nodes are also under control module.
-+Syscon is used to share register level access to drivers external to
-+control module driver itself.
-+
-+See [2] for documentation about clock/clockdomain nodes.
-+
-+[1] Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-+[2] Documentation/devicetree/bindings/clock/ti/*
-+
-+Required properties:
-+- compatible:	Must be one of:
-+		"ti,am3-scrm"
-+		"ti,am4-scrm"
-+		"ti,dm814-scrm"
-+		"ti,dm816-scrm"
-+		"ti,omap2-scrm"
-+		"ti,omap3-scrm"
-+		"ti,omap4-ctrl"
-+- reg:		Contains Control Module register address range
-+		(base address and length)
-+
-+Optional properties:
-+- clocks:	clocks for this module
-+- clockdomains:	clockdomains for this module
-+
-+Examples:
-+
-+scrm: scrm@48002000 {
-+	compatible = "ti,omap3-scrm", "simple-bus";
-+	reg = <0x48002000 0x2000>;
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges = <0 0x48002000 0x2000>;
-+
-+	omap3_pmx_core: pinmux@30 {
-+		compatible = "ti,omap3-padconf",
-+			     "pinctrl-single";
-+		reg = <0x30 0x230>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		#interrupt-cells = <1>;
-+		interrupt-controller;
-+		pinctrl-single,register-width = <16>;
-+		pinctrl-single,function-mask = <0xff1f>;
-+	};
-+
-+	scm_conf: tisyscon@270 {
-+		compatible = "syscon";
-+		reg = <0x270 0x330>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+
-+		scrm_clocks: clocks {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+		};
-+	};
-+
-+	scrm_clockdomains: clockdomains {
-+	};
-+}
-+
-+&scrm_clocks {
-+	mcbsp5_mux_fck: mcbsp5_mux_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,composite-mux-clock";
-+		clocks = <&core_96m_fck>, <&mcbsp_clks>;
-+		ti,bit-shift = <4>;
-+		reg = <0x02d8>;
-+	};
-+};
-diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt b/Documentation/devicetree/bindings/arm/omap/prcm.txt
-index 68f96f8..3eb6d7a 100644
---- a/Documentation/devicetree/bindings/arm/omap/prcm.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
-@@ -10,14 +10,10 @@ documentation about the individual clock/clockdomain nodes.
- Required properties:
- - compatible:	Must be one of:
- 		"ti,am3-prcm"
--		"ti,am3-scrm"
- 		"ti,am4-prcm"
--		"ti,am4-scrm"
- 		"ti,omap2-prcm"
--		"ti,omap2-scrm"
- 		"ti,omap3-prm"
- 		"ti,omap3-cm"
--		"ti,omap3-scrm"
- 		"ti,omap4-cm1"
- 		"ti,omap4-prm"
- 		"ti,omap4-cm2"
-@@ -30,9 +26,7 @@ Required properties:
- 		"ti,dra7-cm-core-aon"
- 		"ti,dra7-cm-core"
- 		"ti,dm814-prcm"
--		"ti,dm814-scrm"
- 		"ti,dm816-prcm"
--		"ti,dm816-scrm"
- - reg:		Contains PRCM module register address range
- 		(base address and length)
- - clocks:	clocks for this module
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 074147c..0bab7ce 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -167,38 +167,62 @@
- 			};
- 		};
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 3936e6c..6312cc3 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -29,9 +29,11 @@ int omap2_prcm_base_init(void);
+  *
+  * PRM_HAS_IO_WAKEUP: has IO wakeup capability
+  * PRM_HAS_VOLTAGE: has voltage domains
++ * PRM_IRQ_DEFAULT: use default irq number for PRM irq
+  */
+ #define PRM_HAS_IO_WAKEUP	(1 << 0)
+ #define PRM_HAS_VOLTAGE		(1 << 1)
++#define PRM_IRQ_DEFAULT		BIT(2)
  
-+		scm: scm@4a002000 {
-+			compatible = "ti,omap4-ctrl", "simple-bus";
-+			reg = <0x4a002000 0x1000>,
-+			      <0x4a30a000 0x1000>,
-+			      <0x4a100000 0x1000>,
-+			      <0x4a31e000 0x1000>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			ranges = <0 0 0x4a002000 0x1000>,
-+				 <1 0 0x4a30a000 0x1000>,
-+				 <2 0 0x4a100000 0x1000>,
-+				 <3 0 0x4a31e000 0x1000>;
-+
-+			scm_conf: tisyscon@0,0 {
-+				compatible = "syscon";
-+				reg = <0 0x0 0x800>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+			};
-+
-+			omap4_pmx_core: pinmux@2,40 {
-+				compatible = "ti,omap4-padconf",
-+					     "pinctrl-single";
-+				reg = <2 0x40 0x0196>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				pinctrl-single,register-width = <16>;
-+				pinctrl-single,function-mask = <0x7fff>;
-+			};
-+
-+			omap4_pmx_wkup: pinmux@3,40 {
-+				compatible = "ti,omap4-padconf",
-+					     "pinctrl-single";
-+				reg = <3 0x40 0x0038>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				pinctrl-single,register-width = <16>;
-+				pinctrl-single,function-mask = <0x7fff>;
-+			};
-+
-+			omap4_padconf_global: omap4_padconf_global@2,5a0 {
-+				compatible = "syscon";
-+				reg = <2 0x5a0 0x170>;
-+			};
-+		};
-+
- 		counter32k: counter@4a304000 {
- 			compatible = "ti,omap-counter32k";
- 			reg = <0x4a304000 0x20>;
- 			ti,hwmods = "counter_32k";
- 		};
+ /*
+  * MAX_MODULE_SOFTRESET_WAIT: Maximum microseconds to wait for OMAP
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 243133c..c35ad0b 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -703,10 +703,14 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
+ 	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
+ };
  
--		omap4_pmx_core: pinmux@4a100040 {
--			compatible = "ti,omap4-padconf", "pinctrl-single";
--			reg = <0x4a100040 0x0196>;
--			#address-cells = <1>;
--			#size-cells = <0>;
--			#interrupt-cells = <1>;
--			interrupt-controller;
--			pinctrl-single,register-width = <16>;
--			pinctrl-single,function-mask = <0x7fff>;
--		};
--		omap4_pmx_wkup: pinmux@4a31e040 {
--			compatible = "ti,omap4-padconf", "pinctrl-single";
--			reg = <0x4a31e040 0x0038>;
--			#address-cells = <1>;
--			#size-cells = <0>;
--			#interrupt-cells = <1>;
--			interrupt-controller;
--			pinctrl-single,register-width = <16>;
--			pinctrl-single,function-mask = <0x7fff>;
--		};
++static const struct omap_prcm_init_data *prm_init_data;
++
+ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
+ {
+ 	omap_prm_base_init();
+ 
++	prm_init_data = data;
++
+ 	if (data->flags & PRM_HAS_IO_WAKEUP)
+ 		prm_features |= PRM_HAS_IO_WAKEUP;
+ 
+@@ -718,16 +722,8 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
+ 	return prm_register(&omap44xx_prm_ll_data);
+ }
+ 
+-static const struct of_device_id omap_prm_dt_match_table[] = {
+-	{ .compatible = "ti,omap4-prm" },
+-	{ .compatible = "ti,omap5-prm" },
+-	{ .compatible = "ti,dra7-prm" },
+-	{ }
+-};
 -
--		omap4_padconf_global: tisyscon@4a1005a0 {
--			compatible = "syscon";
--			reg = <0x4a1005a0 0x170>;
--		};
+ static int omap44xx_prm_late_init(void)
+ {
+-	struct device_node *np;
+ 	int irq_num;
+ 
+ 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
+@@ -737,31 +733,23 @@ static int omap44xx_prm_late_init(void)
+ 	if (!of_have_populated_dt())
+ 		return 0;
+ 
+-	np = of_find_matching_node(NULL, omap_prm_dt_match_table);
 -
- 		pbias_regulator: pbias_regulator {
- 			compatible = "ti,pbias-omap";
- 			reg = <0x60 0x4>;
+-	if (!np) {
+-		/* Default loaded up with OMAP4 values */
+-		if (!cpu_is_omap44xx())
+-			return 0;
+-	} else {
+-		irq_num = of_irq_get(np, 0);
+-		/*
+-		 * Already have OMAP4 IRQ num. For all other platforms, we need
+-		 * IRQ numbers from DT
+-		 */
+-		if (irq_num < 0 && !cpu_is_omap44xx()) {
+-			if (irq_num == -EPROBE_DEFER)
+-				return irq_num;
+-
+-			/* Have nothing to do */
+-			return 0;
+-		}
+-
+-		/* Once OMAP4 DT is filled as well */
+-		if (irq_num >= 0) {
+-			omap4_prcm_irq_setup.irq = irq_num;
+-			omap4_prcm_irq_setup.xlate_irq = NULL;
+-		}
++	irq_num = of_irq_get(prm_init_data->np, 0);
++	/*
++	 * Already have OMAP4 IRQ num. For all other platforms, we need
++	 * IRQ numbers from DT
++	 */
++	if (irq_num < 0 && !(prm_init_data->flags & PRM_IRQ_DEFAULT)) {
++		if (irq_num == -EPROBE_DEFER)
++			return irq_num;
++
++		/* Have nothing to do */
++		return 0;
++	}
++
++	/* Once OMAP4 DT is filled as well */
++	if (irq_num >= 0) {
++		omap4_prcm_irq_setup.irq = irq_num;
++		omap4_prcm_irq_setup.xlate_irq = NULL;
+ 	}
+ 
+ 	omap44xx_prm_enable_io_wakeup();
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index d964e41..44221fe 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -662,7 +662,7 @@ static struct omap_prcm_init_data omap4_prm_data __initdata = {
+ 	.index = TI_CLKM_PRM,
+ 	.init = omap44xx_prm_init,
+ 	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
+-	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE,
++	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE | PRM_IRQ_DEFAULT,
+ };
+ 
+ static struct omap_prcm_init_data omap5_prm_data __initdata = {
 -- 
 1.7.9.5
 
