@@ -1,49 +1,82 @@
-From: <grygorii.strashko@linaro.org>
-Subject: [PATCH] omapdss: extend pm notifier to handle hibernation
-Date: Wed, 25 Feb 2015 19:03:56 +0200
-Message-ID: <1424883836-9119-1-git-send-email-grygorii.strashko@linaro.org>
+From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
+Subject: Re: [PATCH 8/8 v2] ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider
+ bug
+Date: Wed, 25 Feb 2015 18:07:04 +0100
+Message-ID: <54EE0138.7020300@cit-ec.uni-bielefeld.de>
+References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-8-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDFF20.6030103@ti.com>
+Reply-To: rabel@cit-ec.uni-bielefeld.de
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:38791 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866AbbBYREB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 12:04:01 -0500
-Received: by lbiz11 with SMTP id z11so5245413lbi.5
-        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2015 09:04:00 -0800 (PST)
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:35921 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752583AbbBYRHG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 12:07:06 -0500
+In-Reply-To: <54EDFF20.6030103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, kishon@ti.com, linux-fbdev@vger.kernel.org, Grygorii Strashko <Grygorii.Strashko@linaro.org>
+To: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 
-From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+Hi Roger,
 
-Add handling of missed events in omap_dss_pm_notif which are
-needed to support hibernation (suspend to disk).
+On 25 Feb 2015 17:58, Roger Quadros wrote:
+>> static unsigned int gpmc_ticks_to_ps(unsigned int ticks)
+>> @@ -346,16 +395,22 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+>>    * @st_bit  Start Bit
+>>    * @end_bit End Bit. Must be >= @st_bit.
+>>    * @name    DTS node name, w/o "gpmc,"
+>> + * @cd      Clock Domain of timing parameter.
+>> + * @shift   Parameter value left shifts @shift, which is then printed instead of value.
+>>    * @raw     Raw Format Option.
+>>    *          raw format:  gpmc,name = <value>
+>>    *          tick format: gpmc,name = <value> /&zwj;* x ticks *&zwj;/
+>>    * @noval   Parameter values equal to 0 are not printed.
+>> - * @shift   Parameter value left shifts @shift, which is then printed instead of value.
+>>    *
+>>    */
+>> -static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+>> -			       bool raw, bool noval, int shift,
+>> -			       const char *name)
+>> +static int get_gpmc_timing_reg(
+>> +	/* timing specifiers */
+>> +	int cs, int reg, int st_bit, int end_bit,
+>> +	const char *name, const enum gpmc_clk_domain cd,
+>> +	/* value transform */
+>> +	int shift,
+>> +	/* format specifiers */
+>> +	bool raw, bool noval)
+> now that you are rearranging the parameters, "name" parameter should probably be
+> at the same position (or last) in get_gpmc_timing_reg() and set_gpmc_timing_reg()?
+> Also clock domain (cd) position could be matched if possible.
+I rearranged them primarily, because I wanted to group the specifiers 
+according to function, because I found it unnatural to add clock domain 
+to the end, when it's "more important" than the format specifiers.
+set_gpmc_timing_reg are fine in that regard as it doesn't have format 
+specifiers.
+>> +/**
+>> + * set_gpmc_timing_reg - set a single timing parameter for Chip Select Region.
+>> + * @cs      Chip Select Region.
+>> + * @reg     GPMC_CS_CONFIGn register offset.
+>> + * @st_bit  Start Bit
+>> + * @end_bit End Bit. Must be >= @st_bit.
+>> + * @time    Timing parameter in ns.
+>> + * @cd      Timing parameter clock domain.
+>> + * @name    Timing parameter name.
+>> + * @note    Caller is expected to have initialized CONFIG1 GPMCFCLKDIVIDER
+> @note is not a parameter.
+Well no, note's a note. This is a doxygen-style comment, so tools should 
+put a note in the created documentation. Doxygen will put a box with 
+yellow background, for instance.
+>> -		pr_err("%s: GPMC error! CS%d: %s: %d ns, %d ticks > %d\n",
+>> +		pr_err("%s: GPMC CS%d: %s %d ns, %d ticks > %d ticks\n",
+> any reason for removing the "error!" string?
+It's already pr_err, the "error!" in-between "GPMC CS%d" made it hard to 
+read and there's a WARN after that statement in all cases, because a 
+child _must_ fail if a timing parameter constraint is broken.
 
-Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
----
- drivers/video/fbdev/omap2/dss/core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Regards,
 
-diff --git a/drivers/video/fbdev/omap2/dss/core.c b/drivers/video/fbdev/omap2/dss/core.c
-index 6b74f73..e60976a 100644
---- a/drivers/video/fbdev/omap2/dss/core.c
-+++ b/drivers/video/fbdev/omap2/dss/core.c
-@@ -178,11 +178,15 @@ static int omap_dss_pm_notif(struct notifier_block *b, unsigned long v, void *d)
- 	DSSDBG("pm notif %lu\n", v);
- 
- 	switch (v) {
-+	case PM_HIBERNATION_PREPARE:
- 	case PM_SUSPEND_PREPARE:
-+	case PM_RESTORE_PREPARE:
- 		DSSDBG("suspending displays\n");
- 		return dss_suspend_all_devices();
- 
- 	case PM_POST_SUSPEND:
-+	case PM_POST_HIBERNATION:
-+	case PM_POST_RESTORE:
- 		DSSDBG("resuming displays\n");
- 		return dss_resume_all_devices();
- 
--- 
-1.9.1
+Robert
 
