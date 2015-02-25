@@ -1,69 +1,32 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv3 03/35] ARM: OMAP2+: PRM: add generic API for
- clear_mod_irqs
-Date: Wed, 25 Feb 2015 13:08:04 -0600
-Message-ID: <20150225190804.GM11136@saruman.tx.rr.com>
-References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
- <1424891085-10392-4-git-send-email-t-kristo@ti.com>
-Reply-To: <balbi@ti.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH v2] ARM: dts: am335x-bone-common: enable aes and sham
+Date: Wed, 25 Feb 2015 13:09:11 -0600
+Message-ID: <CAOCHtYisxjpQM4zvotNxhj3KaYrqb3cgCbTXPXphB1ZV2jCZ8w@mail.gmail.com>
+References: <1424890361-31848-1-git-send-email-mporter@konsulko.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yaap9KN+GmBP785v"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51446 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752713AbbBYTIv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2015 14:08:51 -0500
-Content-Disposition: inline
-In-Reply-To: <1424891085-10392-4-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424890361-31848-1-git-send-email-mporter@konsulko.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@konsulko.com>
+Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---yaap9KN+GmBP785v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Feb 25, 2015 at 12:52 PM, Matt Porter <mporter@konsulko.com> wrote:
+> Beaglebone Black doesn't have AES and SHAM enabled like the
+> original Beaglebone White dts. This breaks applications that
+> leverage the crypto blocks so fix this by enabling these nodes
+> in the am335x-bone-common.dtsi. With this change, enabling the
+> nodes in am335x-bone.dts is no longer required so remove them.
+>
+> Signed-off-by: Matt Porter <mporter@konsulko.com>
 
-Hi,
+Looks good! Wonder why didn't we do this sooner! ;)
 
-On Wed, Feb 25, 2015 at 09:04:13PM +0200, Tero Kristo wrote:
-> +int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
-> +{
-> +	if (!prm_ll_data->clear_mod_irqs) {
-> +		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
-> +			  __func__);
+Acked-by: Robert Nelson <robertcnelson@gmail.com>
 
-you can combine these:
+Regards,
 
-	if (WARN_ONCE(!prm_ll_data->clear_mod_irqs,
-		"prm: %s: no mapping function defined\n",
-		__func__))
-
---=20
-balbi
-
---yaap9KN+GmBP785v
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU7h2UAAoJEIaOsuA1yqRETlUP/itI+03uW2GerNlt4eEmSYL0
-qmoMle+5xrWV8yfjVFYSoAH7By6AtxJjI6IqjvEWnJxQKL4umxDVXrvrXN41FQLS
-iDf+lURaM7TNWwYT+brHxXOv8N1AG9ZBLBp2WO7hM5CsC1lYWSStnn/A+3fYTUeU
-l1oR6oHOZTIMjAXzkVDpfKMQdiZ77tEdrKAQXzPoo9mmR6Uvl71r/L819FFngVjG
-KI1KS3VUS9wz+fHosQMoFf+BxsmetT6HHWPbey9NHwq0Z1LupP3o4ad8ZHbwJ/eX
-XpNXOgnkunncFctb9oCoIv/YQRSOSwYBhPzdvW+8sleBGlYSBmvQeJhScz3dq1ZX
-75rPC1sHPSn8Sa6rgUX2R5RK2d0S/5E9ltDNBKhwfYxMdsT9njsya9mV8tNpbTFj
-TDtAfjjEnLctiFHxR0LmDUVWnGRizIDH5guXuW/rQQtTe3yR31z2hgcgInNSs0k5
-2o1ZeJPKB02nRa/CjvuRS1y18vlo2BYN9R+DP/YalhyqwkzgQ+mZsKrolkq+83wV
-dQayee/amJwV+Gycd2UkfZRXlpWdA/slspkI4ZHtbrEAU5C377VvMNkGQ5ZqK1KI
-n44lHaLn5cJkArCrfK191c2aiaENhGOrrv6TUsyr6rKFEyM4W8xP8ktUCBmdL7Bf
-6UmYzvDyYEKFNDL1ZvLz
-=aqih
------END PGP SIGNATURE-----
-
---yaap9KN+GmBP785v--
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
