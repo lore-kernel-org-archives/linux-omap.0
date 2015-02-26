@@ -1,7 +1,7 @@
 From: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
-Subject: [PATCH 5/8] ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-Date: Thu, 26 Feb 2015 15:45:53 +0100
-Message-ID: <1424961956-29353-6-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Subject: [PATCH 4/8] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
+Date: Thu, 26 Feb 2015 15:45:52 +0100
+Message-ID: <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
@@ -10,54 +10,77 @@ To: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org
 Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 List-Id: linux-omap@vger.kernel.org
 
-The WAITMONITORINGTIME is expressed as a number of GPMC_CLK clock cycles,
-even though the access is defined as asynchronous, and no GPMC_CLK clock
-is provided to the external device. Still, GPMCFCLKDIVIDER is used as a divider
-for the GPMC clock, so it must be programmed to define the
-correct WAITMONITORINGTIME delay.
+DTS output was formatted to require additional work when copy-pasting into DTS.
+Nano-second timings were replaced with interval of values that produce the same
+number of clock ticks.
 
 Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 ---
- drivers/memory/omap-gpmc.c | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/memory/omap-gpmc.c | 35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 9340e7a..4139f0d 100644
+index dbb6753..9340e7a 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -498,7 +498,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+@@ -337,32 +337,49 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+ }
+ 
+ #ifdef DEBUG
++/**
++ * get_gpmc_timing_reg - read a timing parameter and print DTS settings for it.
++ * @cs      Chip Select Region
++ * @reg     GPMC_CS_CONFIGn register offset.
++ * @st_bit  Start Bit
++ * @end_bit End Bit. Must be >= @st_bit.
++ * @name    DTS node name, w/o "gpmc,"
++ * @raw     Raw Format Option.
++ *          raw format:  gpmc,name = <value>
++ *          tick format: gpmc,name = <value> /&zwj;*(x ns -- y ns]; x ticks *&zwj;/
++ *          Where (x ns -- y ns] is the half-open interval from x ns to y ns that
++ *          result in the same tick value.
++ * @noval   Parameter values equal to 0 are not printed.
++ * @shift   Parameter value left shifts @shift, which is then printed instead of value.
++ *
++ */
+ static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 			       bool raw, bool noval, int shift,
+ 			       const char *name)
+ {
+ 	u32 l;
+-	int nr_bits, max_value, mask;
++	int nr_bits;
++	int mask;
  
  	l = gpmc_cs_read_reg(cs, reg);
- #ifdef DEBUG
--	printk(KERN_INFO
-+	pr_info(
- 		"GPMC CS%d: %-17s: %3d ticks, %3lu ns (was %3i ticks) %3d ns\n",
- 	       cs, name, ticks, gpmc_get_fclk_period() * ticks / 1000,
- 			(l >> st_bit) & mask, time);
-@@ -570,19 +570,14 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
- 	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
- 		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
+ 	nr_bits = end_bit - st_bit + 1;
+-	max_value = (1 << nr_bits) - 1;
+-	mask = max_value << st_bit;
+-	l = (l & mask) >> st_bit;
++	mask = (1 << nr_bits) - 1;
++	l = (l >> st_bit) & mask;
+ 	if (shift)
+ 		l = (shift << l);
+ 	if (noval && (l == 0))
+ 		return 0;
+ 	if (!raw) {
+-		unsigned int time_ns_min, time_ns, time_ns_max;
++		/* DTS tick format for timings in ns */
++		unsigned int time_ns;
++		unsigned int time_ns_min;
  
--	/* caller is expected to have initialized CONFIG1 to cover
--	 * at least sync vs async
--	 */
- 	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--	if (l & (GPMC_CONFIG1_READTYPE_SYNC | GPMC_CONFIG1_WRITETYPE_SYNC)) {
- #ifdef DEBUG
--		printk(KERN_INFO "GPMC CS%d CLK period is %lu ns (div %d)\n",
--				cs, (div * gpmc_get_fclk_period()) / 1000, div);
-+	pr_info("GPMC CS%d CLK period is %lu ns (div %d)\n",
-+			cs, (div * gpmc_get_fclk_period()) / 1000, div);
- #endif
--		l &= ~0x03;
--		l |= (div - 1);
--		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
--	}
-+	l &= ~0x03;
-+	l |= (div - 1);
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
+ 		time_ns_min = gpmc_ticks_to_ns(l ? l - 1 : 0);
+ 		time_ns = gpmc_ticks_to_ns(l);
+-		time_ns_max = gpmc_ticks_to_ns(l + 1 > max_value ?
+-					       max_value : l + 1);
+-		pr_info("gpmc,%s = <%u> (%u - %u ns, %i ticks)\n",
+-			name, time_ns, time_ns_min, time_ns_max, l);
++		pr_info("gpmc,%s = <%u> /* (%u ns - %u ns]; %i ticks */\n",
++			name, time_ns, time_ns_min, time_ns, l);
+ 	} else {
++		/* raw format */
+ 		pr_info("gpmc,%s = <%u>\n", name, l);
+ 	}
  
- 	gpmc_cs_bool_timings(cs, &t->bool_timings);
- 	gpmc_cs_show_timings(cs, "after gpmc_cs_set_timings");
 -- 
 2.3.0
