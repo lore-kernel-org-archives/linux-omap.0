@@ -1,78 +1,54 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2] ASoC: omap: fix up
-	SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency
-Date: Thu, 26 Feb 2015 17:08:11 +0200
-Message-ID: <54EF36DB.5040206@ti.com>
-References: <22890811.0MuvZ4MxOU@wuerfel> <54EDEAE3.6080605@ti.com>
- <2707228.SKhEXovzW4@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <2707228.SKhEXovzW4@wuerfel>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Arnd Bergmann <arnd@arndb.de>, broonie@kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lgirdwood@gmail.com
+From: Matt Porter <mporter@konsulko.com>
+Subject: [PATCH] Documentation: DT: omap_serial: document missing properties and add an example
+Date: Thu, 26 Feb 2015 10:38:45 -0500
+Message-ID: <1424965125-31714-1-git-send-email-mporter@konsulko.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Devicetree List <devicetree@vger.kernel.org>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/25/2015 05:42 PM, Arnd Bergmann wrote:
-> The change to enable OMAP5 support on this platform was a little too
-> eager in adding a 'select' for a particular clock driver that might
-> not be enabled in all configurations, which in turn leads to a build
-> error:
-> =
+The omap_serial.txt binding documentation lacks a number of properties
+that are used in DTS files for platforms incorporating this peripheral.
+Fix this by documenting the missing required and optional fields and
+add an example.
 
-> warning: (SND_OMAP_SOC_OMAP_ABE_TWL6040) selects COMMON_CLK_PALMAS which =
-has unmet direct dependencies (COMMON_CLK && MFD_PALMAS)
-> drivers/built-in.o: In function `palmas_clks_probe':
-> drivers/clk/clk-palmas.c:228: undefined reference to `palmas_ext_control_=
-req_config'
-> =
+Signed-off-by: Matt Porter <mporter@konsulko.com>
+---
+ .../devicetree/bindings/serial/omap_serial.txt       | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-> I do not see a strong dependency here, so it's probably better to
-> drop this select and to avoid adding more complexity here.
-> =
-
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 5163c1eede8e9 ("ASoC: omap: Kconfig: Support for omap5-uevm analog=
- audio")
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> ---
-> v2: change the dependency as suggested by Peter
-> =
-
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index e7c78b0406b5..6768e4f7d7d0 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -105,7 +105,7 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
->  	select SND_OMAP_SOC_MCPDM
->  	select SND_SOC_TWL6040
->  	select SND_SOC_DMIC
-> -	select COMMON_CLK_PALMAS if SOC_OMAP5
-> +	select COMMON_CLK_PALMAS if MFD_PALMAS
->  	help
->  	  Say Y if you want to add support for SoC audio on OMAP boards using
->  	  ABE and twl6040 codec. This driver currently supports:
-> =
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> =
-
-
-
--- =
-
-P=E9ter
+diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
+index 342eedd..54c2a15 100644
+--- a/Documentation/devicetree/bindings/serial/omap_serial.txt
++++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
+@@ -4,7 +4,27 @@ Required properties:
+ - compatible : should be "ti,omap2-uart" for OMAP2 controllers
+ - compatible : should be "ti,omap3-uart" for OMAP3 controllers
+ - compatible : should be "ti,omap4-uart" for OMAP4 controllers
++- reg : address and length of the register space
++- interrupts or interrupts-extended : Should contain the uart interrupt
++                                      specifier or both the interrupt
++                                      controller phandle and interrupt
++                                      specifier.
+ - ti,hwmods : Must be "uart<n>", n being the instance number (1-based)
+ 
+ Optional properties:
+ - clock-frequency : frequency of the clock input to the UART
++- dmas : DMA specifier, consisting of a phandle to the DMA controller
++         node and a DMA channel number.
++- dma-names : "rx" for receive channel, "tx" for transmit channel.
++
++Example:
++
++                uart4: serial@49042000 {
++                        compatible = "ti,omap3-uart";
++                        reg = <0x49042000 0x400>;
++                        interrupts = <80>;
++                        dmas = <&sdma 81 &sdma 82>;
++                        dma-names = "tx", "rx";
++                        ti,hwmods = "uart4";
++                        clock-frequency = <48000000>;
++                };
+-- 
+1.8.4
