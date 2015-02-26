@@ -1,177 +1,138 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH 02/10] ARM: OMAP3: Fix crypto support for HS devices
-Date: Thu, 26 Feb 2015 14:49:52 +0100
-Message-ID: <1424958600-18881-3-git-send-email-pali.rohar@gmail.com>
-References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Subject: Re: [PATCH 14/21] drm/omap: stop connector polling during suspend
+Date: Thu, 26 Feb 2015 15:57:17 +0200
+Message-ID: <54EF263D.5050904@linaro.org>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com> <1424956829-22892-15-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:45400 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216AbbBZN5W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 08:57:22 -0500
+Received: by lbjb6 with SMTP id b6so10882185lbj.12
+        for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2015 05:57:21 -0800 (PST)
+In-Reply-To: <1424956829-22892-15-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>
 
-Register crypto hwmod links only if they are not disabled in DT.
-If DT information is missing, enable them only for GP devices.
+Hi Tomi,
 
-Before this patch crypto hwmod links were always disabled for all HS de=
-vices
-and it was not possible to use omap-aes and omap-sham linux drivers.
+On 02/26/2015 03:20 PM, Tomi Valkeinen wrote:
+> When not using proper hotplug detection, DRM polls periodically the
+> connectors to find out if a cable is connected. This polling can happen
+> at any time, even very late in the suspend process.
+> 
+> This causes a problem with omapdrm, when the poll happens during the
+> suspend process after GPIOs have been disabled, leading to a crash in
+> gpio_get().
+> 
+> This patch fixes the issue by adding suspend and resume hooks to
+> omapdrm, in which we disable and enable, respectively, the polling.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/gpu/drm/omapdrm/omap_drv.c | 21 ++++++++++++++++++++-
+>   1 file changed, 20 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+> index 0ebd1315fff8..d0b1aece8cc5 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+> @@ -694,9 +694,28 @@ static int pdev_remove(struct platform_device *device)
+>   	return 0;
+>   }
+>   
+> +static int omap_drm_suspend(struct device *dev)
+> +{
+> +	struct drm_device *drm_dev = dev_get_drvdata(dev);
+> +
+> +	drm_kms_helper_poll_disable(drm_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_drm_resume(struct device *dev)
+> +{
+> +	struct drm_device *drm_dev = dev_get_drvdata(dev);
+> +
+> +	drm_kms_helper_poll_enable(drm_dev);
+> +
+> +	return omap_gem_resume(dev);
+> +}
+> +
+>   #ifdef CONFIG_PM
+>   static const struct dev_pm_ops omapdrm_pm_ops = {
+> -	.resume = omap_gem_resume,
+> +	.suspend = omap_drm_suspend,
+> +	.resume = omap_drm_resume,
+>   };
+>   #endif
+>   
+> 
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+Could I ask you to update this patch as below, pls?
+
+Regards,
+-grygorii
+
+===
+drm/omap: add hibernation callbacks
+
+Setting a dev_pm_ops suspend/resume pair but not a set of
+hibernation functions means those pm functions will not be
+called upon hibernation.
+Fix this by using SET_SYSTEM_SLEEP_PM_OPS, which appropriately
+assigns the suspend and hibernation handlers and move
+omap_drm_suspend/omap_drm_resume under CONFIG_PM_SLEEP
+to avoid build warnings.
+
+Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   79 ++++++++++++++++++++=
-+++-----
- 1 file changed, 66 insertions(+), 13 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_drv.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_3xxx_data.c
-index 4e8e93c..de13a06 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3744,29 +3744,54 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod=
-_ocp_ifs[] __initdata =3D {
- /* GP-only hwmod links */
- static struct omap_hwmod_ocp_if *omap34xx_gp_hwmod_ocp_ifs[] __initdat=
-a =3D {
- 	&omap3xxx_l4_sec__timer12,
--	&omap3xxx_l4_core__sham,
--	&omap3xxx_l4_core__aes,
- 	NULL
- };
-=20
- static struct omap_hwmod_ocp_if *omap36xx_gp_hwmod_ocp_ifs[] __initdat=
-a =3D {
- 	&omap3xxx_l4_sec__timer12,
--	&omap3xxx_l4_core__sham,
--	&omap3xxx_l4_core__aes,
- 	NULL
- };
-=20
- static struct omap_hwmod_ocp_if *am35xx_gp_hwmod_ocp_ifs[] __initdata =
-=3D {
- 	&omap3xxx_l4_sec__timer12,
--	/*
--	 * Apparently the SHA/MD5 and AES accelerator IP blocks are
--	 * only present on some AM35xx chips, and no one knows which
--	 * ones.  See
--	 * http://www.spinics.net/lists/arm-kernel/msg215466.html So
--	 * if you need these IP blocks on an AM35xx, try uncommenting
--	 * the following lines.
--	 */
-+	NULL
-+};
-+
-+/* crypto hwmod links */
-+static struct omap_hwmod_ocp_if *omap34xx_sham_hwmod_ocp_ifs[] __initd=
-ata =3D {
-+	&omap3xxx_l4_core__sham,
-+	NULL
-+};
-+
-+static struct omap_hwmod_ocp_if *omap34xx_aes_hwmod_ocp_ifs[] __initda=
-ta =3D {
-+	&omap3xxx_l4_core__aes,
-+	NULL
-+};
-+
-+static struct omap_hwmod_ocp_if *omap36xx_sham_hwmod_ocp_ifs[] __initd=
-ata =3D {
-+	&omap3xxx_l4_core__sham,
-+	NULL
-+};
-+
-+static struct omap_hwmod_ocp_if *omap36xx_aes_hwmod_ocp_ifs[] __initda=
-ta =3D {
-+	&omap3xxx_l4_core__aes,
-+	NULL
-+};
-+
-+/*
-+ * Apparently the SHA/MD5 and AES accelerator IP blocks are
-+ * only present on some AM35xx chips, and no one knows which
-+ * ones.  See
-+ * http://www.spinics.net/lists/arm-kernel/msg215466.html So
-+ * if you need these IP blocks on an AM35xx, try uncommenting
-+ * the following lines.
-+ */
-+static struct omap_hwmod_ocp_if *am35xx_sham_hwmod_ocp_ifs[] __initdat=
-a =3D {
- 	/* &omap3xxx_l4_core__sham, */
-+	NULL
-+};
-+
-+static struct omap_hwmod_ocp_if *am35xx_aes_hwmod_ocp_ifs[] __initdata=
- =3D {
- 	/* &omap3xxx_l4_core__aes, */
- 	NULL
- };
-@@ -3871,7 +3896,8 @@ static struct omap_hwmod_ocp_if *omap3xxx_dss_hwm=
-od_ocp_ifs[] __initdata =3D {
- int __init omap3xxx_hwmod_init(void)
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index 7cb1c8f..4a544e4 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -715,6 +715,7 @@ static int pdev_remove(struct platform_device *device)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
+ static int omap_drm_suspend(struct device *dev)
  {
- 	int r;
--	struct omap_hwmod_ocp_if **h =3D NULL, **h_gp =3D NULL;
-+	struct omap_hwmod_ocp_if **h =3D NULL, **h_gp =3D NULL, **h_sham =3D =
-NULL, **h_aes =3D NULL;
-+	struct device_node *bus =3D NULL;
- 	unsigned int rev;
-=20
- 	omap_hwmod_init();
-@@ -3893,13 +3919,19 @@ int __init omap3xxx_hwmod_init(void)
- 	    rev =3D=3D OMAP3430_REV_ES3_1 || rev =3D=3D OMAP3430_REV_ES3_1_2)=
- {
- 		h =3D omap34xx_hwmod_ocp_ifs;
- 		h_gp =3D omap34xx_gp_hwmod_ocp_ifs;
-+		h_sham =3D omap34xx_sham_hwmod_ocp_ifs;
-+		h_aes =3D omap34xx_aes_hwmod_ocp_ifs;
- 	} else if (rev =3D=3D AM35XX_REV_ES1_0 || rev =3D=3D AM35XX_REV_ES1_1=
-) {
- 		h =3D am35xx_hwmod_ocp_ifs;
- 		h_gp =3D am35xx_gp_hwmod_ocp_ifs;
-+		h_sham =3D am35xx_sham_hwmod_ocp_ifs;
-+		h_aes =3D am35xx_aes_hwmod_ocp_ifs;
- 	} else if (rev =3D=3D OMAP3630_REV_ES1_0 || rev =3D=3D OMAP3630_REV_E=
-S1_1 ||
- 		   rev =3D=3D OMAP3630_REV_ES1_2) {
- 		h =3D omap36xx_hwmod_ocp_ifs;
- 		h_gp =3D omap36xx_gp_hwmod_ocp_ifs;
-+		h_sham =3D omap36xx_sham_hwmod_ocp_ifs;
-+		h_aes =3D omap36xx_aes_hwmod_ocp_ifs;
- 	} else {
- 		WARN(1, "OMAP3 hwmod family init: unknown chip type\n");
- 		return -EINVAL;
-@@ -3916,6 +3948,27 @@ int __init omap3xxx_hwmod_init(void)
- 			return r;
- 	}
-=20
-+	/*
-+	 * Register crypto hwmod links only if they are not disabled in DT.
-+	 * If DT information is missing, enable them only for GP devices.
-+	 */
+ 	struct drm_device *drm_dev = dev_get_drvdata(dev);
+@@ -732,21 +733,15 @@ static int omap_drm_resume(struct device *dev)
+ 
+ 	return omap_gem_resume(dev);
+ }
+-
+-#ifdef CONFIG_PM
+-static const struct dev_pm_ops omapdrm_pm_ops = {
+-	.suspend = omap_drm_suspend,
+-	.resume = omap_drm_resume,
+-};
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(omapdrm_pm_ops, omap_drm_suspend, omap_drm_resume);
 +
-+	if (of_have_populated_dt())
-+		bus =3D of_find_node_by_name(NULL, "ocp");
-+
-+	if (h_sham && ((!bus && omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) ||
-+	    (bus && of_device_is_available(of_find_node_by_name(bus, "sham"))=
-))) {
-+		r =3D omap_hwmod_register_links(h_sham);
-+		if (r < 0)
-+			return r;
-+	}
-+
-+	if (h_aes && ((!bus && omap_type() =3D=3D OMAP2_DEVICE_TYPE_GP) ||
-+	    (bus && of_device_is_available(of_find_node_by_name(bus, "aes")))=
-)) {
-+		r =3D omap_hwmod_register_links(h_aes);
-+		if (r < 0)
-+			return r;
-+	}
-=20
- 	/*
- 	 * Register hwmod links specific to certain ES levels of a
---=20
-1.7.9.5
+ static struct platform_driver pdev = {
+ 		.driver = {
+ 			.name = DRIVER_NAME,
+ 			.owner = THIS_MODULE,
+-#ifdef CONFIG_PM
+ 			.pm = &omapdrm_pm_ops,
+-#endif
+ 		},
+ 		.probe = pdev_probe,
+ 		.remove = pdev_remove,
+-- 1.9.1 
+
+-- 
+regards,
+-grygorii
