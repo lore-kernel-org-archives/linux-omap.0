@@ -1,62 +1,64 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/21] drm/omap: misc fixes/improvements
-Date: Thu, 26 Feb 2015 15:20:08 +0200
-Message-ID: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/21] drm/omap: fix encoder-crtc mapping
+Date: Thu, 26 Feb 2015 15:20:09 +0200
+Message-ID: <1424956829-22892-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50936 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932078AbbBZNU7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2015 08:20:59 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:38297 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078AbbBZNVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 08:21:00 -0500
+In-Reply-To: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Various small(ish) fixes and improvements for omapdrm.
+OMAP DSS hardware supports changing the output port to which an overlay
+manager's video stream goes. For example, DPI video stream can come from
+any of the four overlay managers on OMAP5.
 
-Laurent, some of these may conflict with your work. I'm fine with dropping the
-conflicting ones from this series, as long as the issue has been fixed in your
-WIP branch. Or maybe some of these should be rebased on top of your work.
+However, as it's difficult to manage the change in the driver, the
+omapdss driver does not support that at the moment, and has a hardcoded
+overlay manager per output.
 
- Tomi
+omapdrm, on the other hand, uses the hardware features to find out which
+overlay manager to use for an output, which causes problems. For
+example, on OMAP5, omapdrm tries to use DIGIT overlay manager for DPI
+output, instead of the LCD3 required by the omapdss driver.
 
-Tomi Valkeinen (21):
-  drm/omap: fix encoder-crtc mapping
-  drm/omap: page_flip: return -EBUSY if flip pending
-  drm/omap: clear omap_obj->paddr in omap_gem_put_paddr()
-  drm/omap: add pin refcounting to omap_framebuffer
-  drm/omap: add a comment why locking is missing
-  drm/omap: check CRTC color format earlier
-  drm/omap: fix operation without fbdev
-  drm/omap: fix error handling in omap_framebuffer_create()
-  drm/omap: handle mismatching color format and buffer width
-  drm/omap: fix TILER on OMAP5
-  drm/omap: fix plane's channel selection
-  drm/omap: tiler: fix race condition with engine->async
-  drm/omap: remove dummy PM functions
-  drm/omap: stop connector polling during suspend
-  drm/omap: use DRM_ERROR_RATELIMITED() for error irqs
-  drm/omap: fix race with error_irq
-  drm/omap: only ignore DIGIT SYNC LOST for TV output
-  drm/omap: do not use BUG_ON(!spin_is_locked(x))
-  drm/omap: fix race condition with dev->obj_list
-  drm/omap: fix race conditon in DMM
-  drm/omap: keep ref to old_fb
+This patch changes the omapdrm to use the omapdss driver's hardcoded
+overlay managers, which fixes the issue.
 
- drivers/gpu/drm/omapdrm/omap_crtc.c      | 44 +++++++++++++++--------
- drivers/gpu/drm/omapdrm/omap_dmm_priv.h  |  8 ++++-
- drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 54 +++++++++++++++++++++++-----
- drivers/gpu/drm/omapdrm/omap_dmm_tiler.h |  1 +
- drivers/gpu/drm/omapdrm/omap_drv.c       | 60 +++++++++++++++++---------------
- drivers/gpu/drm/omapdrm/omap_drv.h       |  3 ++
- drivers/gpu/drm/omapdrm/omap_fb.c        | 26 ++++++++++++--
- drivers/gpu/drm/omapdrm/omap_gem.c       | 10 ++++--
- drivers/gpu/drm/omapdrm/omap_irq.c       |  2 +-
- drivers/gpu/drm/omapdrm/omap_plane.c     | 28 +++++++++++++--
- 10 files changed, 176 insertions(+), 60 deletions(-)
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/gpu/drm/omapdrm/omap_drv.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index 8241ed9b353c..95e0356bf047 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -286,14 +286,13 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		for (id = 0; id < priv->num_crtcs; id++) {
+ 			struct drm_crtc *crtc = priv->crtcs[id];
+ 			enum omap_channel crtc_channel;
+-			enum omap_dss_output_id supported_outputs;
+ 
+ 			crtc_channel = omap_crtc_channel(crtc);
+-			supported_outputs =
+-				dss_feat_get_supported_outputs(crtc_channel);
+ 
+-			if (supported_outputs & output->id)
++			if (output->dispc_channel == crtc_channel) {
+ 				encoder->possible_crtcs |= (1 << id);
++				break;
++			}
+ 		}
+ 
+ 		omap_dss_put_device(output);
 -- 
 2.3.0
 
