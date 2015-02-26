@@ -1,430 +1,591 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC 3/6] drm/tilcdc: Add support for external compontised DRM encoder
-Date: Thu, 26 Feb 2015 16:55:32 +0200
-Message-ID: <92792bb4f64fb1b7f26e687ec159d870d0e7a81a.1424961754.git.jsarha@ti.com>
+Subject: [PATCH RFC 2/6] drm/tilcdc: Remove tilcdc slave support for tda998x driver
+Date: Thu, 26 Feb 2015 16:55:31 +0200
+Message-ID: <429ffce117abc9304b619e0588a594dfe342fc53.1424961754.git.jsarha@ti.com>
 References: <cover.1424961754.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41750 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:41752 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753872AbbBZO4L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 09:56:11 -0500
+	with ESMTP id S1753874AbbBZO4N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 09:56:13 -0500
 In-Reply-To: <cover.1424961754.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
 Cc: tomi.valkeinen@ti.com, detheridge@ti.com, moinejf@free.fr, linux@arm.linux.org.uk, Jyri Sarha <jsarha@ti.com>
 
-Add support for an external compontised DRM encoder. The external
-encoder can be connected to tilcdc trough device tree graph binding.
-The binding document for tilcdc has been updated. The support has only
-been tested with tda998x encoder, but other encoders should work too
-with a little tweaking.
-
-I got the idea and some lines of code from Jean-Francois Moine's
-"drm/tilcdc: Change the interface with the tda998x driver"-patch.
+Remove tilcdc slave support for tda998x driver. The tilcdc slave
+support would conflicts with componentized use of tda998x.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- .../devicetree/bindings/drm/tilcdc/tilcdc.txt      |  27 ++++++
- drivers/gpu/drm/tilcdc/Makefile                    |   1 +
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c               |  33 +++++++
- drivers/gpu/drm/tilcdc/tilcdc_drv.c                |  56 ++++++++---
- drivers/gpu/drm/tilcdc/tilcdc_drv.h                |   2 +
- drivers/gpu/drm/tilcdc/tilcdc_external.c           | 105 +++++++++++++++++++++
- drivers/gpu/drm/tilcdc/tilcdc_external.h           |  24 +++++
- 7 files changed, 235 insertions(+), 13 deletions(-)
- create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_external.c
- create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_external.h
+ .../devicetree/bindings/drm/tilcdc/slave.txt       |  18 -
+ drivers/gpu/drm/tilcdc/Makefile                    |   1 -
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c                |  13 -
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h                |   1 -
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              | 411 ---------------------
+ drivers/gpu/drm/tilcdc/tilcdc_slave.h              |  26 --
+ 6 files changed, 470 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+ delete mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.c
+ delete mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.h
 
-diff --git a/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt b/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
-index fff10da..2136ee8 100644
---- a/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
-+++ b/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
-@@ -18,6 +18,12 @@ Optional properties:
-  - max-pixelclock: The maximum pixel clock that can be supported
-    by the lcd controller in KHz.
- 
-+Optional nodes:
-+
-+ - port/ports: to describe a connection to an external encoder. The
-+   binding follows Documentation/devicetree/bindings/graph.txt and
-+   suppors a single port with a single endpoint.
-+
- Example:
- 
- 	fb: fb@4830e000 {
-@@ -26,4 +32,25 @@ Example:
- 		interrupt-parent = <&intc>;
- 		interrupts = <36>;
- 		ti,hwmods = "lcdc";
-+
-+		port {
-+			lcdc_0: endpoint@0 {
-+				remote-endpoint = <&hdmi_0>;
-+			};
-+		};
-+	};
-+
-+	tda19988: tda19988 {
-+		compatible = "nxp,tda998x";
-+		reg = <0x70>;
-+
-+		pinctrl-names = "default", "off";
-+		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
-+		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
-+
-+		port {
-+			hdmi_0: endpoint@0 {
-+				remote-endpoint = <&lcdc_0>;
-+			};
-+		};
- 	};
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/slave.txt b/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+deleted file mode 100644
+index 3d2c524..0000000
+--- a/Documentation/devicetree/bindings/drm/tilcdc/slave.txt
++++ /dev/null
+@@ -1,18 +0,0 @@
+-Device-Tree bindings for tilcdc DRM encoder slave output driver
+-
+-Required properties:
+- - compatible: value should be "ti,tilcdc,slave".
+- - i2c: the phandle for the i2c device the encoder slave is connected to
+-
+-Recommended properties:
+- - pinctrl-names, pinctrl-0: the pincontrol settings to configure
+-   muxing properly for pins that connect to TFP410 device
+-
+-Example:
+-
+-	hdmi {
+-		compatible = "ti,tilcdc,slave";
+-		i2c = <&i2c0>;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+-	};
 diff --git a/drivers/gpu/drm/tilcdc/Makefile b/drivers/gpu/drm/tilcdc/Makefile
-index 44485f9..e1f738b 100644
+index 7d2eefe..44485f9 100644
 --- a/drivers/gpu/drm/tilcdc/Makefile
 +++ b/drivers/gpu/drm/tilcdc/Makefile
-@@ -7,6 +7,7 @@ tilcdc-y := \
+@@ -6,7 +6,6 @@ endif
+ tilcdc-y := \
  	tilcdc_crtc.o \
  	tilcdc_tfp410.o \
+-	tilcdc_slave.o \
  	tilcdc_panel.o \
-+	tilcdc_external.o \
  	tilcdc_drv.o
  
- obj-$(CONFIG_DRM_TILCDC)	+= tilcdc.o
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-index c2d5980..7d07733 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
-@@ -37,6 +37,9 @@ struct tilcdc_crtc {
- 
- 	/* for deferred fb unref's: */
- 	struct drm_flip_work unref_work;
-+
-+	/* Only set if an external encoder is connected */
-+	bool simulate_vesa_sync;
- };
- #define to_tilcdc_crtc(x) container_of(x, struct tilcdc_crtc, base)
- 
-@@ -214,6 +217,28 @@ static bool tilcdc_crtc_mode_fixup(struct drm_crtc *crtc,
- 		const struct drm_display_mode *mode,
- 		struct drm_display_mode *adjusted_mode)
- {
-+	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
-+
-+	if (!tilcdc_crtc->simulate_vesa_sync)
-+		return true;
-+
-+	/*
-+	 * tilcdc does not generate VESA-compliant sync but aligns
-+	 * VS on the second edge of HS instead of first edge.
-+	 * We use adjusted_mode, to fixup sync by aligning both rising
-+	 * edges and add HSKEW offset to fix the sync.
-+	 */
-+	adjusted_mode->hskew = mode->hsync_end - mode->hsync_start;
-+	adjusted_mode->flags |= DRM_MODE_FLAG_HSKEW;
-+
-+	if (mode->flags & DRM_MODE_FLAG_NHSYNC) {
-+		adjusted_mode->flags |= DRM_MODE_FLAG_PHSYNC;
-+		adjusted_mode->flags &= ~DRM_MODE_FLAG_NHSYNC;
-+	} else {
-+		adjusted_mode->flags |= DRM_MODE_FLAG_NHSYNC;
-+		adjusted_mode->flags &= ~DRM_MODE_FLAG_PHSYNC;
-+	}
-+
- 	return true;
- }
- 
-@@ -534,6 +559,14 @@ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
- 	tilcdc_crtc->info = info;
- }
- 
-+void tilcdc_crtc_set_simulate_vesa_sync(struct drm_crtc *crtc,
-+					bool simulate_vesa_sync)
-+{
-+	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
-+
-+	tilcdc_crtc->simulate_vesa_sync = simulate_vesa_sync;
-+}
-+
- void tilcdc_crtc_update_clk(struct drm_crtc *crtc)
- {
- 	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-index 0f1e099..50e1be1 100644
+index 095fca9..0f1e099 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-@@ -17,10 +17,13 @@
- 
- /* LCDC DRM driver, based on da8xx-fb */
- 
-+#include <linux/component.h>
-+
+@@ -20,13 +20,11 @@
  #include "tilcdc_drv.h"
  #include "tilcdc_regs.h"
  #include "tilcdc_tfp410.h"
+-#include "tilcdc_slave.h"
  #include "tilcdc_panel.h"
-+#include "tilcdc_external.h"
  
  #include "drm_fb_helper.h"
  
-@@ -73,13 +76,6 @@ static int modeset_init(struct drm_device *dev)
- 		mod->funcs->modeset_init(mod, dev);
- 	}
+ static LIST_HEAD(module_list);
+-static bool slave_probing;
  
--	if ((priv->num_encoders == 0) || (priv->num_connectors == 0)) {
--		/* oh nos! */
--		dev_err(dev->dev, "no encoders/connectors found\n");
--		drm_mode_config_cleanup(dev);
--		return -ENXIO;
--	}
+ void tilcdc_module_init(struct tilcdc_module *mod, const char *name,
+ 		const struct tilcdc_module_ops *funcs)
+@@ -42,11 +40,6 @@ void tilcdc_module_cleanup(struct tilcdc_module *mod)
+ 	list_del(&mod->list);
+ }
+ 
+-void tilcdc_slave_probedefer(bool defered)
+-{
+-	slave_probing = defered;
+-}
 -
- 	dev->mode_config.min_width = 0;
- 	dev->mode_config.min_height = 0;
- 	dev->mode_config.max_width = tilcdc_crtc_max_width(priv->crtc);
-@@ -253,10 +249,28 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
- 		goto fail_cpufreq_unregister;
- 	}
+ static struct of_device_id tilcdc_of_match[];
  
-+	platform_set_drvdata(pdev, dev);
-+
-+	ret = component_bind_all(dev->dev, dev);
-+	if (ret < 0) {
-+		dev_err(dev->dev, "Binding subcomponents failed: %d\n", ret);
-+		goto fail_mode_config_cleanup;
-+	}
-+
-+	ret = tilcdc_add_external_encoders(dev, &bpp);
-+	if (ret < 0)
-+		goto fail_component_cleanup;
-+
-+	if ((priv->num_encoders == 0) || (priv->num_connectors == 0)) {
-+		dev_err(dev->dev, "no encoders/connectors found\n");
-+		ret = -ENXIO;
-+		goto fail_component_cleanup;
-+	}
-+
- 	ret = drm_vblank_init(dev, 1);
- 	if (ret < 0) {
- 		dev_err(dev->dev, "failed to initialize vblank\n");
--		goto fail_mode_config_cleanup;
-+		goto fail_component_cleanup;
- 	}
- 
- 	pm_runtime_get_sync(dev->dev);
-@@ -267,9 +281,6 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
- 		goto fail_vblank_cleanup;
- 	}
- 
--	platform_set_drvdata(pdev, dev);
--
--
- 	list_for_each_entry(mod, &module_list, list) {
- 		DBG("%s: preferred_bpp: %d", mod->name, mod->preferred_bpp);
- 		bpp = mod->preferred_bpp;
-@@ -300,6 +311,9 @@ fail_vblank_cleanup:
- fail_mode_config_cleanup:
- 	drm_mode_config_cleanup(dev);
- 
-+fail_component_cleanup:
-+	component_unbind_all(dev->dev, dev);
-+
- fail_cpufreq_unregister:
- 	pm_runtime_disable(dev->dev);
- #ifdef CONFIG_CPU_FREQ
-@@ -605,6 +619,22 @@ static const struct dev_pm_ops tilcdc_pm_ops = {
-  * Platform driver:
-  */
- 
-+static int tilcdc_bind(struct device *dev)
-+{
-+	return drm_platform_init(&tilcdc_driver, to_platform_device(dev));
-+}
-+
-+static void tilcdc_unbind(struct device *dev)
-+{
-+	drm_put_dev(dev_get_drvdata(dev));
-+}
-+
-+static const struct component_master_ops tilcdc_comp_ops = {
-+	.add_components = tilcdc_add_external_components,
-+	.bind = tilcdc_bind,
-+	.unbind = tilcdc_unbind,
-+};
-+
- static int tilcdc_pdev_probe(struct platform_device *pdev)
- {
- 	/* bail out early if no DT data: */
-@@ -613,12 +643,12 @@ static int tilcdc_pdev_probe(struct platform_device *pdev)
+ static struct drm_framebuffer *tilcdc_fb_create(struct drm_device *dev,
+@@ -620,10 +613,6 @@ static int tilcdc_pdev_probe(struct platform_device *pdev)
  		return -ENXIO;
  	}
  
--	return drm_platform_init(&tilcdc_driver, pdev);
-+	return component_master_add(&pdev->dev, &tilcdc_comp_ops);
+-	/* defer probing if slave is in deferred probing */
+-	if (slave_probing == true)
+-		return -EPROBE_DEFER;
+-
+ 	return drm_platform_init(&tilcdc_driver, pdev);
  }
  
- static int tilcdc_pdev_remove(struct platform_device *pdev)
+@@ -654,7 +643,6 @@ static int __init tilcdc_drm_init(void)
  {
--	drm_put_dev(platform_get_drvdata(pdev));
-+	component_master_del(&pdev->dev, &tilcdc_comp_ops);
- 
- 	return 0;
+ 	DBG("init");
+ 	tilcdc_tfp410_init();
+-	tilcdc_slave_init();
+ 	tilcdc_panel_init();
+ 	return platform_driver_register(&tilcdc_platform_driver);
  }
+@@ -664,7 +652,6 @@ static void __exit tilcdc_drm_fini(void)
+ 	DBG("fini");
+ 	platform_driver_unregister(&tilcdc_platform_driver);
+ 	tilcdc_panel_fini();
+-	tilcdc_slave_fini();
+ 	tilcdc_tfp410_fini();
+ }
+ 
 diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
-index 6336512..70a06c7 100644
+index 7596c14..6336512 100644
 --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
 +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
-@@ -165,6 +165,8 @@ irqreturn_t tilcdc_crtc_irq(struct drm_crtc *crtc);
- void tilcdc_crtc_update_clk(struct drm_crtc *crtc);
- void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
- 		const struct tilcdc_panel_info *info);
-+void tilcdc_crtc_set_simulate_vesa_sync(struct drm_crtc *crtc,
-+					bool simulate_vesa_sync);
- int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode);
- int tilcdc_crtc_max_width(struct drm_crtc *crtc);
+@@ -116,7 +116,6 @@ struct tilcdc_module {
+ void tilcdc_module_init(struct tilcdc_module *mod, const char *name,
+ 		const struct tilcdc_module_ops *funcs);
+ void tilcdc_module_cleanup(struct tilcdc_module *mod);
+-void tilcdc_slave_probedefer(bool defered);
  
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.c b/drivers/gpu/drm/tilcdc/tilcdc_external.c
-new file mode 100644
-index 0000000..7254151
---- /dev/null
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_external.c
-@@ -0,0 +1,105 @@
-+/*
-+ * Copyright (C) 2015 Texas Instruments
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ */
-+#define DEBUG 1
-+
-+#include <linux/component.h>
-+#include <linux/of_graph.h>
-+
-+#include "tilcdc_drv.h"
-+#include "tilcdc_external.h"
-+
-+static const struct tilcdc_panel_info panel_info_defaults = {
-+		.ac_bias                = 255,
-+		.ac_bias_intrpt         = 0,
-+		.dma_burst_sz           = 16,
-+		.bpp                    = 16,
-+		.fdd                    = 0x80,
-+		.tft_alt_mode           = 0,
-+		.invert_pxl_clk		= 1,
-+		.sync_edge              = 1,
-+		.sync_ctrl              = 1,
-+		.raster_order           = 0,
-+};
-+
-+static int tilcdc_add_external_encoder(struct drm_device *dev, int *bpp,
-+				       struct drm_connector *connector)
-+{
-+	struct tilcdc_drm_private *priv = dev->dev_private;
-+
-+	priv->connectors[priv->num_connectors++] = connector;
-+	priv->encoders[priv->num_encoders++] = connector->encoder;
-+
-+	tilcdc_crtc_set_simulate_vesa_sync(priv->crtc, true);
-+	tilcdc_crtc_set_panel_info(priv->crtc, &panel_info_defaults);
-+	*bpp = panel_info_defaults.bpp;
-+
-+	dev_info(dev->dev, "External encoder '%s' connected\n",
-+		 connector->encoder->name);
-+
-+	return 0;
-+}
-+
-+
-+int tilcdc_add_external_encoders(struct drm_device *dev, int *bpp)
-+{
-+	struct tilcdc_drm_private *priv = dev->dev_private;
-+	struct drm_connector *connector;
-+	int num_internal_connectors = priv->num_connectors;
-+
-+	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
-+		bool found = false;
-+		int i, ret;
-+
-+		for (i = 0; i < num_internal_connectors; i++)
-+			if (connector == priv->connectors[i])
-+				found = true;
-+		if (!found) {
-+			ret = tilcdc_add_external_encoder(dev, bpp, connector);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+	if (priv->num_connectors - num_internal_connectors > 1) {
-+		dev_err(dev->dev, "Only one external encoder is supported.");
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int of_dev_node_match(struct device *dev, void *data)
-+{
-+	return dev->of_node == data;
-+}
-+
-+int tilcdc_add_external_components(struct device *master,
-+				   struct master *m)
-+{
-+	struct device_node *ep = NULL;
-+
-+	while ((ep = of_graph_get_next_endpoint(master->of_node, ep))) {
-+		struct device_node *node;
-+		int ret;
-+
-+		node = of_graph_get_remote_port_parent(ep);
-+		of_node_put(ep);
-+		if (!node || !of_device_is_available(node))
-+			continue;
-+
-+		dev_info(master, "Subdevice node '%s' found\n", node->name);
-+		ret = component_master_add_child(m, of_dev_node_match, node);
-+		of_node_put(node);
-+		if (ret) {
-+			dev_err(master, "Adding component failed: %d\n", ret);
-+			of_node_put(ep);
-+			return ret;
-+		}
-+	}
-+	return 0;
-+}
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.h b/drivers/gpu/drm/tilcdc/tilcdc_external.h
-new file mode 100644
-index 0000000..8acf3a1
---- /dev/null
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_external.h
-@@ -0,0 +1,24 @@
-+/*
-+ * Copyright (C) 2015 Texas Instruments
-+ * Author: Jyri Sarha <jsarha@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __TILCDC_EXTERNAL_H__
-+#define __TILCDC_EXTERNAL_H__
-+
-+int tilcdc_add_external_encoders(struct drm_device *dev, int *bpp);
-+int tilcdc_add_external_components(struct device *master, struct master *m);
-+
-+#endif /* __TILCDC_SLAVE_H__ */
+ /* Panel config that needs to be set in the crtc, but is not coming from
+  * the mode timings.  The display module is expected to call
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+deleted file mode 100644
+index 3775fd4..0000000
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ /dev/null
+@@ -1,411 +0,0 @@
+-/*
+- * Copyright (C) 2012 Texas Instruments
+- * Author: Rob Clark <robdclark@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License version 2 as published by
+- * the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License along with
+- * this program.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-#include <linux/i2c.h>
+-#include <linux/pinctrl/pinmux.h>
+-#include <linux/pinctrl/consumer.h>
+-#include <drm/drm_encoder_slave.h>
+-
+-#include "tilcdc_drv.h"
+-
+-struct slave_module {
+-	struct tilcdc_module base;
+-	struct i2c_adapter *i2c;
+-};
+-#define to_slave_module(x) container_of(x, struct slave_module, base)
+-
+-static const struct tilcdc_panel_info slave_info = {
+-		.bpp                    = 16,
+-		.ac_bias                = 255,
+-		.ac_bias_intrpt         = 0,
+-		.dma_burst_sz           = 16,
+-		.fdd                    = 0x80,
+-		.tft_alt_mode           = 0,
+-		.sync_edge              = 0,
+-		.sync_ctrl              = 1,
+-		.raster_order           = 0,
+-};
+-
+-
+-/*
+- * Encoder:
+- */
+-
+-struct slave_encoder {
+-	struct drm_encoder_slave base;
+-	struct slave_module *mod;
+-};
+-#define to_slave_encoder(x) container_of(to_encoder_slave(x), struct slave_encoder, base)
+-
+-static inline struct drm_encoder_slave_funcs *
+-get_slave_funcs(struct drm_encoder *enc)
+-{
+-	return to_encoder_slave(enc)->slave_funcs;
+-}
+-
+-static void slave_encoder_destroy(struct drm_encoder *encoder)
+-{
+-	struct slave_encoder *slave_encoder = to_slave_encoder(encoder);
+-	if (get_slave_funcs(encoder))
+-		get_slave_funcs(encoder)->destroy(encoder);
+-	drm_encoder_cleanup(encoder);
+-	kfree(slave_encoder);
+-}
+-
+-static void slave_encoder_prepare(struct drm_encoder *encoder)
+-{
+-	drm_i2c_encoder_prepare(encoder);
+-	tilcdc_crtc_set_panel_info(encoder->crtc, &slave_info);
+-}
+-
+-static bool slave_encoder_fixup(struct drm_encoder *encoder,
+-		const struct drm_display_mode *mode,
+-		struct drm_display_mode *adjusted_mode)
+-{
+-	/*
+-	 * tilcdc does not generate VESA-complient sync but aligns
+-	 * VS on the second edge of HS instead of first edge.
+-	 * We use adjusted_mode, to fixup sync by aligning both rising
+-	 * edges and add HSKEW offset to let the slave encoder fix it up.
+-	 */
+-	adjusted_mode->hskew = mode->hsync_end - mode->hsync_start;
+-	adjusted_mode->flags |= DRM_MODE_FLAG_HSKEW;
+-
+-	if (mode->flags & DRM_MODE_FLAG_NHSYNC) {
+-		adjusted_mode->flags |= DRM_MODE_FLAG_PHSYNC;
+-		adjusted_mode->flags &= ~DRM_MODE_FLAG_NHSYNC;
+-	} else {
+-		adjusted_mode->flags |= DRM_MODE_FLAG_NHSYNC;
+-		adjusted_mode->flags &= ~DRM_MODE_FLAG_PHSYNC;
+-	}
+-
+-	return drm_i2c_encoder_mode_fixup(encoder, mode, adjusted_mode);
+-}
+-
+-
+-static const struct drm_encoder_funcs slave_encoder_funcs = {
+-		.destroy        = slave_encoder_destroy,
+-};
+-
+-static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
+-		.dpms           = drm_i2c_encoder_dpms,
+-		.mode_fixup     = slave_encoder_fixup,
+-		.prepare        = slave_encoder_prepare,
+-		.commit         = drm_i2c_encoder_commit,
+-		.mode_set       = drm_i2c_encoder_mode_set,
+-		.save           = drm_i2c_encoder_save,
+-		.restore        = drm_i2c_encoder_restore,
+-};
+-
+-static const struct i2c_board_info info = {
+-		I2C_BOARD_INFO("tda998x", 0x70)
+-};
+-
+-static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
+-		struct slave_module *mod)
+-{
+-	struct slave_encoder *slave_encoder;
+-	struct drm_encoder *encoder;
+-	int ret;
+-
+-	slave_encoder = kzalloc(sizeof(*slave_encoder), GFP_KERNEL);
+-	if (!slave_encoder) {
+-		dev_err(dev->dev, "allocation failed\n");
+-		return NULL;
+-	}
+-
+-	slave_encoder->mod = mod;
+-
+-	encoder = &slave_encoder->base.base;
+-	encoder->possible_crtcs = 1;
+-
+-	ret = drm_encoder_init(dev, encoder, &slave_encoder_funcs,
+-			DRM_MODE_ENCODER_TMDS);
+-	if (ret)
+-		goto fail;
+-
+-	drm_encoder_helper_add(encoder, &slave_encoder_helper_funcs);
+-
+-	ret = drm_i2c_encoder_init(dev, to_encoder_slave(encoder), mod->i2c, &info);
+-	if (ret)
+-		goto fail;
+-
+-	return encoder;
+-
+-fail:
+-	slave_encoder_destroy(encoder);
+-	return NULL;
+-}
+-
+-/*
+- * Connector:
+- */
+-
+-struct slave_connector {
+-	struct drm_connector base;
+-
+-	struct drm_encoder *encoder;  /* our connected encoder */
+-	struct slave_module *mod;
+-};
+-#define to_slave_connector(x) container_of(x, struct slave_connector, base)
+-
+-static void slave_connector_destroy(struct drm_connector *connector)
+-{
+-	struct slave_connector *slave_connector = to_slave_connector(connector);
+-	drm_connector_unregister(connector);
+-	drm_connector_cleanup(connector);
+-	kfree(slave_connector);
+-}
+-
+-static enum drm_connector_status slave_connector_detect(
+-		struct drm_connector *connector,
+-		bool force)
+-{
+-	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
+-	return get_slave_funcs(encoder)->detect(encoder, connector);
+-}
+-
+-static int slave_connector_get_modes(struct drm_connector *connector)
+-{
+-	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
+-	return get_slave_funcs(encoder)->get_modes(encoder, connector);
+-}
+-
+-static int slave_connector_mode_valid(struct drm_connector *connector,
+-		  struct drm_display_mode *mode)
+-{
+-	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
+-	struct tilcdc_drm_private *priv = connector->dev->dev_private;
+-	int ret;
+-
+-	ret = tilcdc_crtc_mode_valid(priv->crtc, mode);
+-	if (ret != MODE_OK)
+-		return ret;
+-
+-	return get_slave_funcs(encoder)->mode_valid(encoder, mode);
+-}
+-
+-static struct drm_encoder *slave_connector_best_encoder(
+-		struct drm_connector *connector)
+-{
+-	struct slave_connector *slave_connector = to_slave_connector(connector);
+-	return slave_connector->encoder;
+-}
+-
+-static int slave_connector_set_property(struct drm_connector *connector,
+-		struct drm_property *property, uint64_t value)
+-{
+-	struct drm_encoder *encoder = to_slave_connector(connector)->encoder;
+-	return get_slave_funcs(encoder)->set_property(encoder,
+-			connector, property, value);
+-}
+-
+-static const struct drm_connector_funcs slave_connector_funcs = {
+-	.destroy            = slave_connector_destroy,
+-	.dpms               = drm_helper_connector_dpms,
+-	.detect             = slave_connector_detect,
+-	.fill_modes         = drm_helper_probe_single_connector_modes,
+-	.set_property       = slave_connector_set_property,
+-};
+-
+-static const struct drm_connector_helper_funcs slave_connector_helper_funcs = {
+-	.get_modes          = slave_connector_get_modes,
+-	.mode_valid         = slave_connector_mode_valid,
+-	.best_encoder       = slave_connector_best_encoder,
+-};
+-
+-static struct drm_connector *slave_connector_create(struct drm_device *dev,
+-		struct slave_module *mod, struct drm_encoder *encoder)
+-{
+-	struct slave_connector *slave_connector;
+-	struct drm_connector *connector;
+-	int ret;
+-
+-	slave_connector = kzalloc(sizeof(*slave_connector), GFP_KERNEL);
+-	if (!slave_connector) {
+-		dev_err(dev->dev, "allocation failed\n");
+-		return NULL;
+-	}
+-
+-	slave_connector->encoder = encoder;
+-	slave_connector->mod = mod;
+-
+-	connector = &slave_connector->base;
+-
+-	drm_connector_init(dev, connector, &slave_connector_funcs,
+-			DRM_MODE_CONNECTOR_HDMIA);
+-	drm_connector_helper_add(connector, &slave_connector_helper_funcs);
+-
+-	connector->polled = DRM_CONNECTOR_POLL_CONNECT |
+-			DRM_CONNECTOR_POLL_DISCONNECT;
+-
+-	connector->interlace_allowed = 0;
+-	connector->doublescan_allowed = 0;
+-
+-	get_slave_funcs(encoder)->create_resources(encoder, connector);
+-
+-	ret = drm_mode_connector_attach_encoder(connector, encoder);
+-	if (ret)
+-		goto fail;
+-
+-	drm_connector_register(connector);
+-
+-	return connector;
+-
+-fail:
+-	slave_connector_destroy(connector);
+-	return NULL;
+-}
+-
+-/*
+- * Module:
+- */
+-
+-static int slave_modeset_init(struct tilcdc_module *mod, struct drm_device *dev)
+-{
+-	struct slave_module *slave_mod = to_slave_module(mod);
+-	struct tilcdc_drm_private *priv = dev->dev_private;
+-	struct drm_encoder *encoder;
+-	struct drm_connector *connector;
+-
+-	encoder = slave_encoder_create(dev, slave_mod);
+-	if (!encoder)
+-		return -ENOMEM;
+-
+-	connector = slave_connector_create(dev, slave_mod, encoder);
+-	if (!connector)
+-		return -ENOMEM;
+-
+-	priv->encoders[priv->num_encoders++] = encoder;
+-	priv->connectors[priv->num_connectors++] = connector;
+-
+-	return 0;
+-}
+-
+-static const struct tilcdc_module_ops slave_module_ops = {
+-		.modeset_init = slave_modeset_init,
+-};
+-
+-/*
+- * Device:
+- */
+-
+-static struct of_device_id slave_of_match[];
+-
+-static int slave_probe(struct platform_device *pdev)
+-{
+-	struct device_node *node = pdev->dev.of_node;
+-	struct device_node *i2c_node;
+-	struct slave_module *slave_mod;
+-	struct tilcdc_module *mod;
+-	struct pinctrl *pinctrl;
+-	uint32_t i2c_phandle;
+-	struct i2c_adapter *slavei2c;
+-	int ret = -EINVAL;
+-
+-	/* bail out early if no DT data: */
+-	if (!node) {
+-		dev_err(&pdev->dev, "device-tree data is missing\n");
+-		return -ENXIO;
+-	}
+-
+-	/* Bail out early if i2c not specified */
+-	if (of_property_read_u32(node, "i2c", &i2c_phandle)) {
+-		dev_err(&pdev->dev, "could not get i2c bus phandle\n");
+-		return ret;
+-	}
+-
+-	i2c_node = of_find_node_by_phandle(i2c_phandle);
+-	if (!i2c_node) {
+-		dev_err(&pdev->dev, "could not get i2c bus node\n");
+-		return ret;
+-	}
+-
+-	/* but defer the probe if it can't be initialized it might come later */
+-	slavei2c = of_find_i2c_adapter_by_node(i2c_node);
+-	of_node_put(i2c_node);
+-
+-	if (!slavei2c) {
+-		ret = -EPROBE_DEFER;
+-		tilcdc_slave_probedefer(true);
+-		dev_err(&pdev->dev, "could not get i2c\n");
+-		return ret;
+-	}
+-
+-	slave_mod = kzalloc(sizeof(*slave_mod), GFP_KERNEL);
+-	if (!slave_mod) {
+-		ret = -ENOMEM;
+-		goto fail_adapter;
+-	}
+-
+-	mod = &slave_mod->base;
+-	pdev->dev.platform_data = mod;
+-
+-	mod->preferred_bpp = slave_info.bpp;
+-
+-	slave_mod->i2c = slavei2c;
+-
+-	tilcdc_module_init(mod, "slave", &slave_module_ops);
+-
+-	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+-	if (IS_ERR(pinctrl))
+-		dev_warn(&pdev->dev, "pins are not configured\n");
+-
+-	tilcdc_slave_probedefer(false);
+-
+-	return 0;
+-
+-fail_adapter:
+-	i2c_put_adapter(slavei2c);
+-	return ret;
+-}
+-
+-static int slave_remove(struct platform_device *pdev)
+-{
+-	struct tilcdc_module *mod = dev_get_platdata(&pdev->dev);
+-	struct slave_module *slave_mod = to_slave_module(mod);
+-
+-	tilcdc_module_cleanup(mod);
+-	kfree(slave_mod);
+-
+-	return 0;
+-}
+-
+-static struct of_device_id slave_of_match[] = {
+-		{ .compatible = "ti,tilcdc,slave", },
+-		{ },
+-};
+-
+-struct platform_driver slave_driver = {
+-	.probe = slave_probe,
+-	.remove = slave_remove,
+-	.driver = {
+-		.owner = THIS_MODULE,
+-		.name = "slave",
+-		.of_match_table = slave_of_match,
+-	},
+-};
+-
+-int __init tilcdc_slave_init(void)
+-{
+-	return platform_driver_register(&slave_driver);
+-}
+-
+-void __exit tilcdc_slave_fini(void)
+-{
+-	platform_driver_unregister(&slave_driver);
+-}
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.h b/drivers/gpu/drm/tilcdc/tilcdc_slave.h
+deleted file mode 100644
+index 2f85048..0000000
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/*
+- * Copyright (C) 2012 Texas Instruments
+- * Author: Rob Clark <robdclark@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License version 2 as published by
+- * the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License along with
+- * this program.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-#ifndef __TILCDC_SLAVE_H__
+-#define __TILCDC_SLAVE_H__
+-
+-/* sub-module for i2c slave encoder output */
+-
+-int tilcdc_slave_init(void);
+-void tilcdc_slave_fini(void);
+-
+-#endif /* __TILCDC_SLAVE_H__ */
 -- 
 1.9.1
 
