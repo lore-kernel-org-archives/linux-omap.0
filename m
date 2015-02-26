@@ -1,57 +1,66 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 08/15] OMAPDSS: DISPC: change sync_pclk_edge default value
-Date: Thu, 26 Feb 2015 14:49:02 +0200
-Message-ID: <1424954949-12801-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 13/15] OMAPDSS: workaround for MFLAG + NV12 issue
+Date: Thu, 26 Feb 2015 14:49:07 +0200
+Message-ID: <1424954949-12801-13-git-send-email-tomi.valkeinen@ti.com>
 References: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37397 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753303AbbBZMtn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 07:49:43 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60619 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932239AbbBZMtt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 07:49:49 -0500
 In-Reply-To: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The common 'struct videomode' does not have a flag to select when the
-sync signals should be driven.
+It was found that having two displays enabled and having an NV12 overlay
+on one of the displays will cause underflows/synclosts. Debugging this
+pointed to some issue with MFLAG.
 
-The default behavior of DISPC HW is to drive the sync signal on the
-opposite pixel clock edge from data signal, which is also what the
-videomode_to_omap_video_timings() uses.
+It is unclear why this issue is happening, but it looks like there is a
+HW bug related to MFLAG and FIFO management. Disabling MFLAG makes this
+issue go away, but then we lose the benefit of MFLAG. Also forcing MFLAG
+always on makes the issue go away.
 
-However, it looks like what panels usually expect is that the data and
-sync signals are driven on the same edge, so let's change
-videomode_to_omap_video_timings() to set the sync_pclk_edge accordingly.
+Also, using certain values for MFLAG_START, MFLAG thresholds and PRELOAD
+makes the issue go away, but there was no obvious logic to which values
+work and which don't.
 
-Note that this only affect panels drivers that use
-videomode_to_omap_video_timings(), probably when getting the video
-timings directly from DT data. The drivers can still configure the
-sync_pclk_edge independently if they so wish.
+As a workaround until more information about this is found, force MFLAG
+always on to make NV12 usable.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/display.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/fbdev/omap2/dss/dispc.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/display.c b/drivers/video/fbdev/omap2/dss/display.c
-index a6fd2d35ad60..ef5b9027985d 100644
---- a/drivers/video/fbdev/omap2/dss/display.c
-+++ b/drivers/video/fbdev/omap2/dss/display.c
-@@ -295,9 +295,7 @@ void videomode_to_omap_video_timings(const struct videomode *vm,
- 		OMAPDSS_DRIVE_SIG_RISING_EDGE :
- 		OMAPDSS_DRIVE_SIG_FALLING_EDGE;
+diff --git a/drivers/video/fbdev/omap2/dss/dispc.c b/drivers/video/fbdev/omap2/dss/dispc.c
+index 6b056d0ce187..f4fc77d9d3bf 100644
+--- a/drivers/video/fbdev/omap2/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/dss/dispc.c
+@@ -1328,8 +1328,18 @@ static void dispc_init_mflag(void)
+ {
+ 	int i;
  
--	ovt->sync_pclk_edge = vm->flags & DISPLAY_FLAGS_PIXDATA_POSEDGE ?
--		OMAPDSS_DRIVE_SIG_FALLING_EDGE :
--		OMAPDSS_DRIVE_SIG_RISING_EDGE;
-+	ovt->sync_pclk_edge = ovt->data_pclk_edge;
- }
- EXPORT_SYMBOL(videomode_to_omap_video_timings);
++	/*
++	 * HACK: NV12 color format and MFLAG seem to have problems working
++	 * together: using two displays, and having an NV12 overlay on one of
++	 * the displays will cause underflows/synclosts when MFLAG_CTRL=2.
++	 * Changing MFLAG thresholds and PRELOAD to certain values seem to
++	 * remove the errors, but there doesn't seem to be a clear logic on
++	 * which values work and which not.
++	 *
++	 * As a work-around, set force MFLAG to always on.
++	 */
+ 	dispc_write_reg(DISPC_GLOBAL_MFLAG_ATTRIBUTE,
+-		(2 << 0) |	/* MFLAG_CTRL = enable */
++		(1 << 0) |	/* MFLAG_CTRL = force always on */
+ 		(0 << 2));	/* MFLAG_START = disable */
  
+ 	for (i = 0; i < dss_feat_get_num_ovls(); ++i) {
 -- 
 2.3.0
 
