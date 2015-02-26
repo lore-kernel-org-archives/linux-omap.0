@@ -1,138 +1,224 @@
-From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Subject: Re: [PATCH 14/21] drm/omap: stop connector polling during suspend
-Date: Thu, 26 Feb 2015 15:57:17 +0200
-Message-ID: <54EF263D.5050904@linaro.org>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com> <1424956829-22892-15-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:45400 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216AbbBZN5W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 08:57:22 -0500
-Received: by lbjb6 with SMTP id b6so10882185lbj.12
-        for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2015 05:57:21 -0800 (PST)
-In-Reply-To: <1424956829-22892-15-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+Subject: [PATCH 8/8] ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
+Date: Thu, 26 Feb 2015 15:45:56 +0100
+Message-ID: <1424961956-29353-9-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>
 
-Hi Tomi,
+GPMC_CONFIG1_i parameters CLKACTIVATIONTIME and WAITMONITORINGTIME
+have reserved values.
+Raise an error if calculated timings try to program reserved values.
 
-On 02/26/2015 03:20 PM, Tomi Valkeinen wrote:
-> When not using proper hotplug detection, DRM polls periodically the
-> connectors to find out if a cable is connected. This polling can happen
-> at any time, even very late in the suspend process.
-> 
-> This causes a problem with omapdrm, when the poll happens during the
-> suspend process after GPIOs have been disabled, leading to a crash in
-> gpio_get().
-> 
-> This patch fixes the issue by adding suspend and resume hooks to
-> omapdrm, in which we disable and enable, respectively, the polling.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/gpu/drm/omapdrm/omap_drv.c | 21 ++++++++++++++++++++-
->   1 file changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-> index 0ebd1315fff8..d0b1aece8cc5 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-> @@ -694,9 +694,28 @@ static int pdev_remove(struct platform_device *device)
->   	return 0;
->   }
->   
-> +static int omap_drm_suspend(struct device *dev)
-> +{
-> +	struct drm_device *drm_dev = dev_get_drvdata(dev);
-> +
-> +	drm_kms_helper_poll_disable(drm_dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap_drm_resume(struct device *dev)
-> +{
-> +	struct drm_device *drm_dev = dev_get_drvdata(dev);
-> +
-> +	drm_kms_helper_poll_enable(drm_dev);
-> +
-> +	return omap_gem_resume(dev);
-> +}
-> +
->   #ifdef CONFIG_PM
->   static const struct dev_pm_ops omapdrm_pm_ops = {
-> -	.resume = omap_gem_resume,
-> +	.suspend = omap_drm_suspend,
-> +	.resume = omap_drm_resume,
->   };
->   #endif
->   
-> 
+GPMC_CONFIG1_i ATTACHEDDEVICEPAGELENGTH and DEVICESIZE were already checked
+when parsing the DT.
 
-Could I ask you to update this patch as below, pls?
+Explicitly comment invalid values on gpmc_cs_show_timings for
+-CLKACTIVATIONTIME
+-WAITMONITORINGTIME
+-DEVICESIZE
+-ATTACHEDDEVICEPAGELENGTH
 
-Regards,
--grygorii
-
-===
-drm/omap: add hibernation callbacks
-
-Setting a dev_pm_ops suspend/resume pair but not a set of
-hibernation functions means those pm functions will not be
-called upon hibernation.
-Fix this by using SET_SYSTEM_SLEEP_PM_OPS, which appropriately
-assigns the suspend and hibernation handlers and move
-omap_drm_suspend/omap_drm_resume under CONFIG_PM_SLEEP
-to avoid build warnings.
-
-Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/memory/omap-gpmc.c | 68 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 45 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index 7cb1c8f..4a544e4 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -715,6 +715,7 @@ static int pdev_remove(struct platform_device *device)
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index 400b0a6..7e5300d 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -135,7 +135,11 @@
+ #define GPMC_CONFIG1_WRITETYPE_ASYNC    (0 << 27)
+ #define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
+ #define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
++/** CLKACTIVATIONTIME Max Ticks */
++#define GPMC_CONFIG1_CLKACTIVATIONTIME_MAX 2
+ #define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
++/** ATTACHEDDEVICEPAGELENGTH Max Value */
++#define GPMC_CONFIG1_ATTACHEDDEVICEPAGELENGTH_MAX 2
+ #define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
+ #define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
+ #define GPMC_CONFIG1_WAIT_MON_TIME(val) ((val & 3) << 18)
+@@ -144,6 +148,8 @@
+ #define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
+ #define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
+ #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
++/** DEVICESIZE Max Value */
++#define GPMC_CONFIG1_DEVICESIZE_MAX     1
+ #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+ #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+ #define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
+@@ -393,6 +399,8 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+  * @reg     GPMC_CS_CONFIGn register offset.
+  * @st_bit  Start Bit
+  * @end_bit End Bit. Must be >= @st_bit.
++ * @max     Maximum parameter value (before optional @shift).
++ *          If 0, maximum is as high as @st_bit and @end_bit allow.
+  * @name    DTS node name, w/o "gpmc,"
+  * @cd      Clock Domain of timing parameter.
+  * @shift   Parameter value left shifts @shift, which is then printed instead of value.
+@@ -401,12 +409,13 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+  *          tick format: gpmc,name = <value> /&zwj;*(x ns -- y ns]; x ticks *&zwj;/
+  *          Where (x ns -- y ns] is the half-open interval from x ns to y ns that
+  *          result in the same tick value.
++ *          When @max is exceeded, "invalid" is printed inside comment.
+  * @noval   Parameter values equal to 0 are not printed.
+  *
+  */
+ static int get_gpmc_timing_reg(
+ 	/* timing specifiers */
+-	int cs, int reg, int st_bit, int end_bit,
++	int cs, int reg, int st_bit, int end_bit, int max,
+ 	const char *name, const enum gpmc_clk_domain cd,
+ 	/* value transform */
+ 	int shift,
+@@ -416,11 +425,15 @@ static int get_gpmc_timing_reg(
+ 	u32 l;
+ 	int nr_bits;
+ 	int mask;
++	bool invalid;
+ 
+ 	l = gpmc_cs_read_reg(cs, reg);
+ 	nr_bits = end_bit - st_bit + 1;
+ 	mask = (1 << nr_bits) - 1;
+ 	l = (l >> st_bit) & mask;
++	if (!max)
++		max = mask;
++	invalid = l > max;
+ 	if (shift)
+ 		l = (shift << l);
+ 	if (noval && (l == 0))
+@@ -432,11 +445,11 @@ static int get_gpmc_timing_reg(
+ 
+ 		time_ns_min = gpmc_clk_ticks_to_ns(l ? l - 1 : 0, cs, cd);
+ 		time_ns = gpmc_clk_ticks_to_ns(l, cs, cd);
+-		pr_info("gpmc,%s = <%u> /* (%u ns - %u ns]; %i ticks */\n",
+-			name, time_ns, time_ns_min, time_ns, l);
++		pr_info("gpmc,%s = <%u> /* (%u ns - %u ns]; %i ticks %s*/\n",
++			name, time_ns, time_ns_min, time_ns, l, invalid ? "; invalid " : "");
+ 	} else {
+ 		/* raw format */
+-		pr_info("gpmc,%s = <%u>\n", name, l);
++		pr_info("gpmc,%s = <%u>%s\n", name, l, invalid ? " /* invalid */" : "");
+ 	}
+ 
+ 	return l;
+@@ -446,15 +459,19 @@ static int get_gpmc_timing_reg(
+ 	pr_info("cs%i %s: 0x%08x\n", cs, #config, \
+ 		gpmc_cs_read_reg(cs, config))
+ #define GPMC_GET_RAW(reg, st, end, field) \
+-	get_gpmc_timing_reg(cs, (reg), (st), (end), field, GPMC_CD_FCLK, 0, 1, 0)
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 0, field, GPMC_CD_FCLK, 0, 1, 0)
++#define GPMC_GET_RAW_MAX(reg, st, end, max, field) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), (max), field, GPMC_CD_FCLK, 0, 1, 0)
+ #define GPMC_GET_RAW_BOOL(reg, st, end, field) \
+-	get_gpmc_timing_reg(cs, (reg), (st), (end), field, GPMC_CD_FCLK, 0, 1, 1)
+-#define GPMC_GET_RAW_SHIFT(reg, st, end, shift, field) \
+-	get_gpmc_timing_reg(cs, (reg), (st), (end), field, GPMC_CD_FCLK, (shift), 1, 1)
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 0, field, GPMC_CD_FCLK, 0, 1, 1)
++#define GPMC_GET_RAW_SHIFT_MAX(reg, st, end, shift, max, field) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), (max), field, GPMC_CD_FCLK, (shift), 1, 1)
+ #define GPMC_GET_TICKS(reg, st, end, field) \
+-	get_gpmc_timing_reg(cs, (reg), (st), (end), field, GPMC_CD_FCLK, 0, 0, 0)
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 0, field, GPMC_CD_FCLK, 0, 0, 0)
+ #define GPMC_GET_TICKS_CD(reg, st, end, field, cd) \
+-	get_gpmc_timing_reg(cs, (reg), (st), (end), field, (cd), 0, 0, 0)
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 0, field, (cd), 0, 0, 0)
++#define GPMC_GET_TICKS_CD_MAX(reg, st, end, max, field, cd) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), (max), field, (cd), 0, 0, 0)
+ 
+ static void gpmc_show_regs(int cs, const char *desc)
+ {
+@@ -478,11 +495,11 @@ static void gpmc_cs_show_timings(int cs, const char *desc)
+ 	pr_info("gpmc cs%i access configuration:\n", cs);
+ 	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1,  4,  4, "time-para-granularity");
+ 	GPMC_GET_RAW(GPMC_CS_CONFIG1,  8,  9, "mux-add-data");
+-	GPMC_GET_RAW(GPMC_CS_CONFIG1, 12, 13, "device-width");
++	GPMC_GET_RAW_MAX(GPMC_CS_CONFIG1, 12, 13, GPMC_CONFIG1_DEVICESIZE_MAX, "device-width");
+ 	GPMC_GET_RAW(GPMC_CS_CONFIG1, 16, 17, "wait-pin");
+ 	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 21, 21, "wait-on-write");
+ 	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 22, 22, "wait-on-read");
+-	GPMC_GET_RAW_SHIFT(GPMC_CS_CONFIG1, 23, 24, 4, "burst-length");
++	GPMC_GET_RAW_SHIFT_MAX(GPMC_CS_CONFIG1, 23, 24, 4, GPMC_CONFIG1_ATTACHEDDEVICEPAGELENGTH_MAX, "burst-length");
+ 	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 27, 27, "sync-write");
+ 	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 28, 28, "burst-write");
+ 	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 29, 29, "gpmc,sync-read");
+@@ -522,8 +539,8 @@ static void gpmc_cs_show_timings(int cs, const char *desc)
+ 	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 0, 3, "bus-turnaround-ns");
+ 	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 8, 11, "cycle2cycle-delay-ns");
+ 
+-	GPMC_GET_TICKS_CD(GPMC_CS_CONFIG1, 18, 19, "wait-monitoring-ns", GPMC_CD_CLK);
+-	GPMC_GET_TICKS(GPMC_CS_CONFIG1, 25, 26, "clk-activation-ns");
++	GPMC_GET_TICKS_CD_MAX(GPMC_CS_CONFIG1, 18, 19, GPMC_CONFIG1_WAITMONITORINGTIME_MAX, "wait-monitoring-ns", GPMC_CD_CLK);
++	GPMC_GET_TICKS_CD_MAX(GPMC_CS_CONFIG1, 25, 26, GPMC_CONFIG1_CLKACTIVATIONTIME_MAX, "clk-activation-ns", GPMC_CD_FCLK);
+ 
+ 	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 16, 19, "wr-data-mux-bus-ns");
+ 	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 24, 28, "wr-access-ns");
+@@ -540,13 +557,15 @@ static inline void gpmc_cs_show_timings(int cs, const char *desc)
+  * @reg     GPMC_CS_CONFIGn register offset.
+  * @st_bit  Start Bit
+  * @end_bit End Bit. Must be >= @st_bit.
++ * @max     Maximum parameter value.
++ *          If 0, maximum is as high as @st_bit and @end_bit allow.
+  * @time    Timing parameter in ns.
+  * @cd      Timing parameter clock domain.
+  * @name    Timing parameter name.
+  * @note    Caller is expected to have initialized CONFIG1 GPMCFCLKDIVIDER
+  *          prior to calling this function with @cd equal to GPMC_CD_CLK.
+  */
+-static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
++static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit, int max,
+ 			       int time, enum gpmc_clk_domain cd, const char *name)
+ {
+ 	u32 l;
+@@ -559,9 +578,12 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 	nr_bits = end_bit - st_bit + 1;
+ 	mask = (1 << nr_bits) - 1;
+ 
+-	if (ticks > mask) {
++	if (!max)
++		max = mask;
++
++	if (ticks > max) {
+ 		pr_err("%s: GPMC CS%d: %s %d ns, %d ticks > %d ticks\n",
+-		       __func__, cs, name, time, ticks, mask);
++		       __func__, cs, name, time, ticks, max);
+ 
+ 		return -1;
+ 	}
+@@ -580,13 +602,13 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
  	return 0;
  }
  
-+#ifdef CONFIG_PM_SLEEP
- static int omap_drm_suspend(struct device *dev)
- {
- 	struct drm_device *drm_dev = dev_get_drvdata(dev);
-@@ -732,21 +733,15 @@ static int omap_drm_resume(struct device *dev)
+-#define GPMC_SET_ONE_CD(reg, st, end, field, cd) \
+-	if (set_gpmc_timing_reg(cs, (reg), (st), (end), \
+-	    t->field, (cd), #field) < 0)                \
++#define GPMC_SET_ONE_CD_MAX(reg, st, end, max, field, cd)  \
++	if (set_gpmc_timing_reg(cs, (reg), (st), (end), (max), \
++	    t->field, (cd), #field) < 0)                       \
+ 		return -1
  
- 	return omap_gem_resume(dev);
- }
--
--#ifdef CONFIG_PM
--static const struct dev_pm_ops omapdrm_pm_ops = {
--	.suspend = omap_drm_suspend,
--	.resume = omap_drm_resume,
--};
- #endif
+ #define GPMC_SET_ONE(reg, st, end, field) \
+-	GPMC_SET_ONE_CD(reg, st, end, field, GPMC_CD_FCLK)
++	GPMC_SET_ONE_CD_MAX(reg, st, end, 0, field, GPMC_CD_FCLK)
  
-+static SIMPLE_DEV_PM_OPS(omapdrm_pm_ops, omap_drm_suspend, omap_drm_resume);
-+
- static struct platform_driver pdev = {
- 		.driver = {
- 			.name = DRIVER_NAME,
- 			.owner = THIS_MODULE,
--#ifdef CONFIG_PM
- 			.pm = &omapdrm_pm_ops,
--#endif
- 		},
- 		.probe = pdev_probe,
- 		.remove = pdev_remove,
--- 1.9.1 
-
+ /**
+  * gpmc_calc_waitmonitoring_divider - calculate proper GPMCFCLKDIVIDER based on WAITMONITORINGTIME
+@@ -711,8 +733,8 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t, const struct gpmc_
+ 	l |= (div - 1);
+ 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
+ 
+-	GPMC_SET_ONE_CD(GPMC_CS_CONFIG1, 18, 19, wait_monitoring, GPMC_CD_CLK);
+-	GPMC_SET_ONE(GPMC_CS_CONFIG1, 25, 26, clk_activation);
++	GPMC_SET_ONE_CD_MAX(GPMC_CS_CONFIG1, 18, 19, GPMC_CONFIG1_WAITMONITORINGTIME_MAX, wait_monitoring, GPMC_CD_CLK);
++	GPMC_SET_ONE_CD_MAX(GPMC_CS_CONFIG1, 25, 26, GPMC_CONFIG1_CLKACTIVATIONTIME_MAX, clk_activation, GPMC_CD_FCLK);
+ 
+ #ifdef DEBUG
+ 	pr_info("GPMC CS%d CLK period is %lu ns (div %d)\n",
 -- 
-regards,
--grygorii
+2.3.0
