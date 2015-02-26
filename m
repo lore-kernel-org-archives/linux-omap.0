@@ -1,80 +1,78 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 4/8] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output
- for DTS
-Date: Thu, 26 Feb 2015 18:06:18 +0300
-Message-ID: <54EF366A.2050108@cogentembedded.com>
-References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2] ASoC: omap: fix up
+	SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency
+Date: Thu, 26 Feb 2015 17:08:11 +0200
+Message-ID: <54EF36DB.5040206@ti.com>
+References: <22890811.0MuvZ4MxOU@wuerfel> <54EDEAE3.6080605@ti.com>
+ <2707228.SKhEXovzW4@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <2707228.SKhEXovzW4@wuerfel>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>, broonie@kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lgirdwood@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+On 02/25/2015 05:42 PM, Arnd Bergmann wrote:
+> The change to enable OMAP5 support on this platform was a little too
+> eager in adding a 'select' for a particular clock driver that might
+> not be enabled in all configurations, which in turn leads to a build
+> error:
+> =
 
-On 02/26/2015 05:45 PM, Robert ABEL wrote:
+> warning: (SND_OMAP_SOC_OMAP_ABE_TWL6040) selects COMMON_CLK_PALMAS which =
+has unmet direct dependencies (COMMON_CLK && MFD_PALMAS)
+> drivers/built-in.o: In function `palmas_clks_probe':
+> drivers/clk/clk-palmas.c:228: undefined reference to `palmas_ext_control_=
+req_config'
+> =
 
-> DTS output was formatted to require additional work when copy-pasting into DTS.
-> Nano-second timings were replaced with interval of values that produce the same
-> number of clock ticks.
+> I do not see a strong dependency here, so it's probably better to
+> drop this select and to avoid adding more complexity here.
+> =
 
-> Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 5163c1eede8e9 ("ASoC: omap: Kconfig: Support for omap5-uevm analog=
+ audio")
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
 > ---
->   drivers/memory/omap-gpmc.c | 35 ++++++++++++++++++++++++++---------
->   1 file changed, 26 insertions(+), 9 deletions(-)
+> v2: change the dependency as suggested by Peter
+> =
 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index dbb6753..9340e7a 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -337,32 +337,49 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
->   }
->
->   #ifdef DEBUG
-> +/**
-> + * get_gpmc_timing_reg - read a timing parameter and print DTS settings for it.
-> + * @cs      Chip Select Region
+> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+> index e7c78b0406b5..6768e4f7d7d0 100644
+> --- a/sound/soc/omap/Kconfig
+> +++ b/sound/soc/omap/Kconfig
+> @@ -105,7 +105,7 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+>  	select SND_OMAP_SOC_MCPDM
+>  	select SND_SOC_TWL6040
+>  	select SND_SOC_DMIC
+> -	select COMMON_CLK_PALMAS if SOC_OMAP5
+> +	select COMMON_CLK_PALMAS if MFD_PALMAS
+>  	help
+>  	  Say Y if you want to add support for SoC audio on OMAP boards using
+>  	  ABE and twl6040 codec. This driver currently supports:
+> =
 
-    Documentation/kernel-doc-nano-HOWTO.txt requires colons after the 
-parameter names, doesn't it?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> =
 
-> + * @reg     GPMC_CS_CONFIGn register offset.
-> + * @st_bit  Start Bit
-> + * @end_bit End Bit. Must be >= @st_bit.
-> + * @name    DTS node name, w/o "gpmc,"
-> + * @raw     Raw Format Option.
-> + *          raw format:  gpmc,name = <value>
-> + *          tick format: gpmc,name = <value> /&zwj;*(x ns -- y ns]; x ticks *&zwj;/
-> + *          Where (x ns -- y ns] is the half-open interval from x ns to y ns that
-> + *          result in the same tick value.
-> + * @noval   Parameter values equal to 0 are not printed.
-> + * @shift   Parameter value left shifts @shift, which is then printed instead of value.
-> + *
 
-    You should also describe the meaning of the function's result in a 
-"Return:" section.
 
-> + */
->   static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
->   			       bool raw, bool noval, int shift,
->   			       const char *name)
->   {
->   	u32 l;
-> -	int nr_bits, max_value, mask;
-> +	int nr_bits;
-> +	int mask;
->
->   	l = gpmc_cs_read_reg(cs, reg);
->   	nr_bits = end_bit - st_bit + 1;
-> -	max_value = (1 << nr_bits) - 1;
-> -	mask = max_value << st_bit;
-> -	l = (l & mask) >> st_bit;
-> +	mask = (1 << nr_bits) - 1;
+-- =
 
-    BIT(nr_bits) - 1, perhaps?
-
-WBR, Sergei
+P=E9ter
