@@ -1,80 +1,62 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 04/21] drm/omap: add pin refcounting to omap_framebuffer
-Date: Thu, 26 Feb 2015 15:20:12 +0200
-Message-ID: <1424956829-22892-5-git-send-email-tomi.valkeinen@ti.com>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 00/21] drm/omap: misc fixes/improvements
+Date: Thu, 26 Feb 2015 15:20:08 +0200
+Message-ID: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33261 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50936 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753796AbbBZNVE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2015 08:21:04 -0500
-In-Reply-To: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+	id S932078AbbBZNU7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 08:20:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omap_framebuffer_pin() and omap_framebuffer_unpin() are currently
-broken, as they cannot be called multiple times (i.e. pin, pin, unpin,
-unpin), which is what happens in certain cases. This issue causes the
-driver to possibly use 0 as an address for a displayed buffer, leading
-to OCP error from DSS.
+Various small(ish) fixes and improvements for omapdrm.
 
-This patch fixes the issue by adding a simple pin_count, used to track
-the number of pins.
+Laurent, some of these may conflict with your work. I'm fine with dropping the
+conflicting ones from this series, as long as the issue has been fixed in your
+WIP branch. Or maybe some of these should be rebased on top of your work.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/gpu/drm/omapdrm/omap_fb.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ Tomi
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
-index 2a5cacdc344b..58f2af32ede8 100644
---- a/drivers/gpu/drm/omapdrm/omap_fb.c
-+++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-@@ -86,6 +86,7 @@ struct plane {
- 
- struct omap_framebuffer {
- 	struct drm_framebuffer base;
-+	int pin_count;
- 	const struct format *format;
- 	struct plane planes[4];
- };
-@@ -261,6 +262,11 @@ int omap_framebuffer_pin(struct drm_framebuffer *fb)
- 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
- 	int ret, i, n = drm_format_num_planes(fb->pixel_format);
- 
-+	if (omap_fb->pin_count > 0) {
-+		omap_fb->pin_count++;
-+		return 0;
-+	}
-+
- 	for (i = 0; i < n; i++) {
- 		struct plane *plane = &omap_fb->planes[i];
- 		ret = omap_gem_get_paddr(plane->bo, &plane->paddr, true);
-@@ -269,6 +275,8 @@ int omap_framebuffer_pin(struct drm_framebuffer *fb)
- 		omap_gem_dma_sync(plane->bo, DMA_TO_DEVICE);
- 	}
- 
-+	omap_fb->pin_count++;
-+
- 	return 0;
- 
- fail:
-@@ -287,6 +295,11 @@ int omap_framebuffer_unpin(struct drm_framebuffer *fb)
- 	struct omap_framebuffer *omap_fb = to_omap_framebuffer(fb);
- 	int ret, i, n = drm_format_num_planes(fb->pixel_format);
- 
-+	omap_fb->pin_count--;
-+
-+	if (omap_fb->pin_count > 0)
-+		return 0;
-+
- 	for (i = 0; i < n; i++) {
- 		struct plane *plane = &omap_fb->planes[i];
- 		ret = omap_gem_put_paddr(plane->bo);
+Tomi Valkeinen (21):
+  drm/omap: fix encoder-crtc mapping
+  drm/omap: page_flip: return -EBUSY if flip pending
+  drm/omap: clear omap_obj->paddr in omap_gem_put_paddr()
+  drm/omap: add pin refcounting to omap_framebuffer
+  drm/omap: add a comment why locking is missing
+  drm/omap: check CRTC color format earlier
+  drm/omap: fix operation without fbdev
+  drm/omap: fix error handling in omap_framebuffer_create()
+  drm/omap: handle mismatching color format and buffer width
+  drm/omap: fix TILER on OMAP5
+  drm/omap: fix plane's channel selection
+  drm/omap: tiler: fix race condition with engine->async
+  drm/omap: remove dummy PM functions
+  drm/omap: stop connector polling during suspend
+  drm/omap: use DRM_ERROR_RATELIMITED() for error irqs
+  drm/omap: fix race with error_irq
+  drm/omap: only ignore DIGIT SYNC LOST for TV output
+  drm/omap: do not use BUG_ON(!spin_is_locked(x))
+  drm/omap: fix race condition with dev->obj_list
+  drm/omap: fix race conditon in DMM
+  drm/omap: keep ref to old_fb
+
+ drivers/gpu/drm/omapdrm/omap_crtc.c      | 44 +++++++++++++++--------
+ drivers/gpu/drm/omapdrm/omap_dmm_priv.h  |  8 ++++-
+ drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 54 +++++++++++++++++++++++-----
+ drivers/gpu/drm/omapdrm/omap_dmm_tiler.h |  1 +
+ drivers/gpu/drm/omapdrm/omap_drv.c       | 60 +++++++++++++++++---------------
+ drivers/gpu/drm/omapdrm/omap_drv.h       |  3 ++
+ drivers/gpu/drm/omapdrm/omap_fb.c        | 26 ++++++++++++--
+ drivers/gpu/drm/omapdrm/omap_gem.c       | 10 ++++--
+ drivers/gpu/drm/omapdrm/omap_irq.c       |  2 +-
+ drivers/gpu/drm/omapdrm/omap_plane.c     | 28 +++++++++++++--
+ 10 files changed, 176 insertions(+), 60 deletions(-)
+
 -- 
 2.3.0
 
