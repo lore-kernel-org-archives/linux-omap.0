@@ -1,48 +1,36 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 00/10] omap3 crypto fixes
-Date: Fri, 27 Feb 2015 00:46:05 +0200
-Message-ID: <20150226224605.GC14117@fuloong-minipc.musicnaut.iki.fi>
-References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+Subject: Re: 3.20-rc0 breaks nfsroot over usb
+Date: Fri, 27 Feb 2015 01:03:07 +0200
+Message-ID: <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
+References: <20150217185518.GA3825@amd>
+ <20150226221950.GC10204@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <20150226221950.GC10204@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>, Arnd Bergmann <arnd@arndb.de>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Thu, Feb 26, 2015 at 02:49:50PM +0100, Pali Roh=E1r wrote:
-> This patch series fix crypto support for omap3 devices which use DT.
->=20
-> It enables AES and SHAM on N9/N950 and SHAM on N900. AES is still dis=
-abled for N900.
+On Thu, Feb 26, 2015 at 11:19:50PM +0100, Pavel Machek wrote:
+> Ok, it seems that new config dependencies broke my kconfig. These will
+> not be enabled if you just to make oldconfig; you want to make sure
+> they are on.
+> 
+>  OMAP2430 and onwards (USB_MUSB_OMAP2PLUS) [N/m/y] (NEW)
+> TWL4030 USB Transceiver Driver (TWL4030_USB) [N/m/y/?] (NEW)
 
-(Please format your lines somewhere near < 76 chars, especially in
-commit logs, otherwise "git log" looks ugly on 80 char terminals.)
+Yes, also other users have reported "USB breakage" with 4.0-rc1 on N900
+etc caused by this.
 
-I tested these with stock bootloaders, and devices boot normally
-and I can now modprobe omap-aes (on N9 and N950) and omap-sham
-(on all three):
-
-	omap-aes 480c5000.aes: OMAP AES hw accel rev: 2.6
-	omap-sham 480c3000.sham: hw accel on OMAP rev 0.9
-
-However I get these when CONFIG_CRYPTO_MANAGER_DISABLE_TESTS is not set=
-:
-
-	alg: hash: Chunking test 1 failed for omap-sha1
-	alg: hash: Chunking test 1 failed for omap-md5
-	alg: hash: Chunking test 1 failed for omap-hmac-sha1
-	alg: hash: Chunking test 1 failed for omap-hmac-md5
-
-But that's probably unrelated to this series. For patches 1-8,
-feel free to add:
-
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Commit fbba7db3990cb707ff91cd6507d53a0a730afe97 (usb: musb:
+add omap-control dependency) changed USB_MUSB_OMAP2PLUS to depend
+on OMAP_CONTROL_PHY but that seems to be wrong at least for OMAP3.
+omap_control_phy.h provides dummy functions when it's not enabled.
+So there should be no dependency.
 
 A.
