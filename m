@@ -1,122 +1,168 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: "advanced" LED controllers
-Date: Thu, 26 Feb 2015 10:55:52 +1100
-Message-ID: <20150226105552.367fc141@notabene.brown>
-References: <20150219211424.GN13603@saruman.tx.rr.com>
-	<20150223223457.GA4073@amd>
-	<20150223225836.GB4355@saruman.tx.rr.com>
-	<20150225214940.GA29527@amd>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: Enabling DBGEN signal in GP OMAP3
+Date: Thu, 26 Feb 2015 03:09:56 +0200
+Message-ID: <CANOLnOOBHmHjydhtH3_gL9D+ZPWywxsXHtn9RRaNWCSJb50Cnw@mail.gmail.com>
+References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+	<20150216175826.GT2531@atomide.com>
+	<CAALWOA_JZgWWKvFnDmzZRTSqFVJPZOEar1L0D7KR5VoU_7FqCg@mail.gmail.com>
+	<CANOLnOO6HWtptks+TXbJEim9fhk5mp5q94gg1wva77x4H7c3pg@mail.gmail.com>
+	<CAALWOA_DWjDkmnTj1h0EaSKPeJB_Xd+8YAa6Yv=_HgH9W+ijWA@mail.gmail.com>
+	<CANOLnOOgTtTeg_OBvJSGy9OOwdA65omwN=_8Webt8M5E6DoJbg@mail.gmail.com>
+	<CAALWOA_Hj4bNHX2LX8w_vBBaThpnwQ+=JxScF710vc_itEfV4Q@mail.gmail.com>
+	<CAALWOA_Vw=1xC=yUYJBUhp4QqZWvk+EsiLSB=J7+EQmBMTgEkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/zMyO/wKCo8cm5ZvSfL26Pv."; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150225214940.GA29527@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Felipe Balbi <balbi@ti.com>, cooloney@gmail.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=001a1133a5b4072585050ff369fb
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:46932 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752907AbbBZBJ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 20:09:58 -0500
+Received: by lams18 with SMTP id s18so7776309lam.13
+        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2015 17:09:57 -0800 (PST)
+In-Reply-To: <CAALWOA_Vw=1xC=yUYJBUhp4QqZWvk+EsiLSB=J7+EQmBMTgEkQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
---Sig_/zMyO/wKCo8cm5ZvSfL26Pv.
-Content-Type: text/plain; charset=US-ASCII
+--001a1133a5b4072585050ff369fb
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 25 Feb 2015 22:49:41 +0100 Pavel Machek <pavel@ucw.cz> wrote:
+On Mon, Feb 23, 2015 at 1:52 PM, Matthijs van Duin
+<matthijsvanduin@gmail.com> wrote:
+> At least on the am335x, the trick actually works!  I have a working
+> demo which configures ICEPick registers and even performs transactions
+> on the debug interconnect.
 
-> On Mon 2015-02-23 16:58:36, Felipe Balbi wrote:
-> > On Mon, Feb 23, 2015 at 11:34:57PM +0100, Pavel Machek wrote:
-> > > On Thu 2015-02-19 15:14:24, Felipe Balbi wrote:
-> > > > Hi,
-> > > >=20
-> > > > Do we have support for LED controllers which can handle patterns of
-> > > > different kinds ? I mean, currently, if we have an LED controller s=
-uch
-> > > > as TPIC2810 [1] which can control 8 different leds and each LED
-> > > > corresponds to one bit on register 0x44, we could control leds by j=
-ust
-> > > > "playing" a wave file on the controller and create easy patterns wi=
-th
-> > > > that.
->=20
-> > > > [1] http://www.ti.com/product/tpic2810
-> > > >=20
-> > > > ps: tpic2810 is probably the simplest example, lp551, lp5523 and ot=
-hers
-> > > > have even more advanced pattern engines which can even handle RGB l=
-eds.
-> > >=20
-> > > Well... some more advanced pattern engines can actually run code, up
-> > > to and including prime number computation. So yes, this is complex,
-> > > and how to handle it nicely is a question...
-> > >=20
-> > > I have "notcc" to compile for that.
-> >=20
-> > right, the point is that this is a solution which only works with lp5523
-> > and IMO linux led subsystem should do a little more for such devices.
->=20
-> Well, question is what we want. Possibilities I see:
->=20
-> 1) We won't support all the features, just some common subset. Kernel
-> will get commands for LED controller and translate them. Question is
-> what reasonable subset is, then.
->=20
-> I guess "delay", "set led brightness to X", "jump" would be minimal
-> shared command set. lp5523 can do also "slowly increase/decrease
-> brightness to X" (I believe we should support that one), arithmetics,
-> conditional jumps, and communications between 3 threads.
->=20
-> 2) We want to support all the features. I guess that would mean doing
-> compilation in userspace, and having "compiler" for each led
-> controller. Having common source code would still be nice.
->=20
-> 									Pavel
+Nice!
 
-All (most) current options for controlling LEDs are based on what a user
-might want, rather than what the hardware can provide.
+> I've been lazy and imported a bunch of files from my baremetal
+> projects so I could easily mess with the hardware, rudely bypassing
+> the kernel.  The whole implementation is hideous in all sorts of ways,
+> but it gets the job done: https://github.com/dutchanddutch/jbang
+>
+> The key part, how to bitbang JTAG, is reasonably isolated from all
+> this in src/jbang.cc and glues onto the device-specific part via
+> hw-subarctic.h.  You could probably also turn jbang.cc into plain C
+> without too much effort and discard the rest... I accept that my code
+> style is probably a bit of an acquired taste ;-)
+>
+> For the omap3, apart from the differences in padconf details, you'll
+> want to change icepick_init_regs[] to just { 0x23002100 } I think and
+> hopefully you can then write the DAPCTL regs using ap_write().
 
-I think it would be good to keep that approach, but add more "interesting"
-functions which each hardware can support in whichever way suits it best.
+I've finally got rid of nTRST pulldown (haven't connected TDO though),
+created hw-omap3.{h,cc}, but couldn't get it to do anything, until it
+came to my mind that you may be running ARM on your BBB slower that
+1GHz that I'm using on my DM3730. So lowered the clock to 500MHz and
+voila, it worked!
 
-So "ramp_blink" which allow a ramp on/off time to be specified would be
-useful.
+I guess I'll still connect TDO as it's not so much fun without it,
+going to try connecting to EMU0 too, hopefully it doesn't mess up the
+boot modes.
 
-"audio_meter" which allows a particular sound card (or output or something)
-to be specified would also be useful.  You could also specify a what volume
-the LED saturates.
-Then if you set each led on a given controller to saturate at different lev=
-el
-and to use the same sound  source, then you could get the "graphic equalise=
-r"
-effect.
+Before I could get it all to work a coworker lent me an Altera USB
+Blaster, which I've connected to a pandora prototype board I still
+have from a long time ago and wasn't that afraid to kill with bad
+soldering job. And hey, it worked too with your code modified to use
+USB Blaster in it's bitbang mode over libftdi. This setup also works
+with openocd, but somewhat unreliably (only occasionally gets through
+init, often gets register values it doesn't like).
 
-Maybe 'blinking' should have a 'synchronise' setting to that a bunch of LEDs
-can be synchonised so you can create a "cylon eye" effect.
+My main goal is to have hardware watchpoints on the cased production
+unit without extra hardware, and it looks like I can finally have
+that, thanks!
 
-i.e. don't focus on the low-level 'what can we provide' but on the high lev=
-el
-"what might users want".
+> I hope this example is of any help.
 
-NeilBrown
+It sure is! The only thing I do not understand is why are you using
+that process_vm_readv() call, mmap() already makes unprivileged user
+mode writable mappings.
 
---Sig_/zMyO/wKCo8cm5ZvSfL26Pv.
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Anyway I'm attaching my code too, feel free to incorporate it too
+and/or ultra-modernize to your c++ dialect.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Gra=C5=BEvydas
 
-iQIVAwUBVO5hCDnsnt1WYoG5AQKShA/9GGRUQbZW9pY2v4LFeUVOLSmvKBxBR/9m
-EqaJne7E7BDISVsHqHuy5H9CxqzW0irPh2sMFioL0gdMZFDdkLFV+hSr6CGqPXkA
-bnGJGBaveiQKwp3VoEnY5UdyDRle4ly3rhFkGUX2ltlG1n0G217S1vpbSsLEj5fk
-NkM1sXuC9NV0K9UTaSymoimfyXh/ai8L9qRxFulucuBaFhEn6jnWFPp2BHN/jTqV
-4yrVNa9oMn10grFhzT41L3dYPNMgxg5XPqkjR9wdTtZQi+OO3CLUHyI+5mjwUOjn
-dgAO6QxVrgA8yEuXD1wjB6X5E5MeUPiGKPgP00EYuJ18InQWOkD3UWe9kGh8jo3+
-Ct40ioK68BZRhEeaxRP1z7FFxIYb/FGwSn3q1CLRIq7MLEdSHkl0A00OzLJ1TZnZ
-l4yiuq/sHb+6CxbDQnyydUPRK5Dem4gGlMHG9EsAeqMOfCO6Z5DwrQMWWY+PqM2n
-EOs70FXujCBo9RXayHLV4j2tdOaHRW/LCkiwM924h2S8FSQwL9EbPbffI0fEtiDd
-yws0V9QfAytAaAPiisk8B8E9xbt0PTH1m1B0pDFUg4bi0+89wfU/L7rAYuJWpXWa
-4KsKuvBJmYtP4zXCx7JDZYbFCUUv817ORJX8KJmpbYFNedH2Qb2pZd+Zq0am04jM
-RQQgSHJ83MI=
-=x2Oy
------END PGP SIGNATURE-----
+--001a1133a5b4072585050ff369fb
+Content-Type: text/x-c++src; charset=US-ASCII; name="hw-omap3.cc"
+Content-Disposition: attachment; filename="hw-omap3.cc"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i6lg0dmd0
 
---Sig_/zMyO/wKCo8cm5ZvSfL26Pv.--
+I2luY2x1ZGUgImRlZnMuaCIKI2luY2x1ZGUgIm1hcC1waHlzLmgiCiNpbmNsdWRlICJody1vbWFw
+My5oIgoKc3RhdGljIHUxNiAqcGFkY29uZl9yZWdzOwoKLy8tLS0tLS0tLS0tLS0tLSBKVEFHIHBp
+biBpL28gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLy8K
+Ci8vIEpUQUcgaW5wdXRzIGNvbnRyb2xsZWQgYnkgdG9nZ2xpbmcgcmVjZWl2ZXItZW5hYmxlIChw
+aW5zIG11c3QgYmUgcHVsbGVkIGhpZ2gKLy8gZXh0ZXJuYWxseSBvciBsZWZ0IGZsb2F0aW5nIHRv
+IGFsbG93IGludGVybmFsIHB1bGwtdXAgdG8gd29yaykuCi8vCmxldCBzdGF0aWMgc2ltX2lucHV0
+KCB1aW50IG9mZnNldCwgYm9vbCBsZXZlbCApCnsKCXBhZGNvbmZfcmVnc1tvZmZzZXQgPj4gMV0g
+PSAweDAwMTggfCAobGV2ZWwgPyAweDAxMDAgOiAweDAwMDApOwp9CgovLyBKVEFHIGlucHV0cyBj
+b250cm9sbGVkIHZpYSBwYWRjb25mCmxldCB0cnN0KCBib29sIGxldmVsICkgLT4gdm9pZCB7ICBz
+aW1faW5wdXQoIDB4MGExYywgbGV2ZWwgKTsgIH0KbGV0IHRjayggIGJvb2wgbGV2ZWwgKSAtPiB2
+b2lkIHsgIHNpbV9pbnB1dCggMHgwYTFlLCBsZXZlbCApOyAgfQpsZXQgdG1zKCAgYm9vbCBsZXZl
+bCApIC0+IHZvaWQgeyAgc2ltX2lucHV0KCAweDBhMjAsIGxldmVsICk7ICB9CmxldCB0ZGkoICBi
+b29sIGxldmVsICkgLT4gdm9pZCB7ICBzaW1faW5wdXQoIDB4MGEyMiwgbGV2ZWwgKTsgIH0KCi8v
+IEpUQUcgb3V0cHV0IChURE8pIG1vbml0b3JlZCB2aWEgZ3BpbwpsZXQgdGRvKCkgLT4gYm9vbCB7
+CglyZXR1cm4gMDsKfQoKLy8gVERPIHVuYXZhaWxhYmxlCmxldCBzdGF0aWMgdGRvX2luaXQoKQp7
+Cn0KCi8vIFJUQ0sgdW5hdmFpbGFibGUKbGV0IHJ0Y2soKSAtPiBib29sIHsgIHJldHVybiBmYWxz
+ZTsgIH0KCmxldCBod19pbml0KCkgLT4gdm9pZAp7CglwYWRjb25mX3JlZ3MgPSAodTE2ICopbWFw
+X3BoeXMoIDB4NDgwMCcyMDAwLCAweDEwMDAgKTsKCglpZiggaGFzX3RkbyApCgkJdGRvX2luaXQo
+KTsKfQo=
+--001a1133a5b4072585050ff369fb
+Content-Type: text/x-chdr; charset=US-ASCII; name="hw-omap3.h"
+Content-Disposition: attachment; filename="hw-omap3.h"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i6lg0dmv1
+
+I3ByYWdtYSBvbmNlCiNpbmNsdWRlICJkZWZzLmgiCgoKbGV0IGh3X2luaXQoKSAtPiB2b2lkOwoK
+Ci8vLS0tLS0tLS0tLS0tLS0gSlRBRyBwaW4gaS9vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS8vCgovLyBjb250cm9sIEpUQUcgaW5wdXRzCmxldCB0cnN0
+KCBib29sIG91dCApIC0+IHZvaWQ7CmxldCB0Y2soICBib29sIG91dCApIC0+IHZvaWQ7CmxldCB0
+bXMoICBib29sIG91dCApIC0+IHZvaWQ7CmxldCB0ZGkoICBib29sIG91dCApIC0+IHZvaWQ7Cgov
+LyBtb25pdG9yIEpUQUcgb3V0cHV0CmxldCB0ZG8oKSAtPiBib29sOwpsZXQgcnRjaygpIC0+IGJv
+b2w7CgpsZXQgY29uc3RleHByIGhhc190ZG8gPSBmYWxzZTsKbGV0IGNvbnN0ZXhwciBoYXNfcnRj
+ayA9IGZhbHNlOwoKCi8vLS0tLS0tLS0tLS0tLS0gRGVidWcgaHcgY29uZmlnIC0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS8vCgpjb25zdGV4cHIgdTMyIGlkY29k
+ZV9tYXNrICA9IDB4MCdmZmZmJ2ZmZjsKY29uc3RleHByIHUzMiBpZGNvZGVfbWF0Y2ggPSAweDAn
+YjdhZScwMmY7CgovLyBpbml0aWFsaXphdGlvbiBvZiBpY2VwaWNrIHJlZ2lzdGVycwpjb25zdGV4
+cHIgdTMyIGljZXBpY2tfaW5pdF9yZWdzW10gPSB7CgkweDIzJzAwMjEwMCwgIC8vIGFzc2VydCBj
+b3J0ZXgtYTggREJHRU4KfTsKCi8vIGFkZHJlc3Mgb2YgY29ydGV4LWE4IGRlYnVnIHJlZ3Mgb24g
+ZGVidWcgQVBCCmNvbnN0ZXhwciB1MzIgYThfZGVidWcgPSAweDU0MDExJzAwMDsK
+--001a1133a5b4072585050ff369fb
+Content-Type: text/x-c++src; charset=US-ASCII; name="hw-usbblaster.cc"
+Content-Disposition: attachment; filename="hw-usbblaster.cc"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i6lg0dn02
+
+I2luY2x1ZGUgImRlZnMuaCIKI2luY2x1ZGUgImh3LW9tYXAzLmgiCiNpbmNsdWRlICJkaWUuaCIK
+CiNpbmNsdWRlIDxmdGRpLmg+CgovKiBzZWUgdXNiLWJsYXN0ZXItcHJvdG9jb2wudHh0ICovCiNk
+ZWZpbmUgQkxBU1RFUl9UQ0sJKDEgPDwgMCkKI2RlZmluZSBCTEFTVEVSX1RNUwkoMSA8PCAxKQoj
+ZGVmaW5lIEJMQVNURVJfTkNFCSgxIDw8IDIpCiNkZWZpbmUgQkxBU1RFUl9UREkJKDEgPDwgNCkK
+I2RlZmluZSBCTEFTVEVSX0xFRAkoMSA8PCA1KQojZGVmaW5lIEJMQVNURVJfUkVBRAkoMSA8PCA2
+KQoKc3RhdGljIHN0cnVjdCBmdGRpX2NvbnRleHQgZnRkaWM7CnN0YXRpYyB1OCBibGFzdGVyX2J5
+dGU7CgovLy0tLS0tLS0tLS0tLS0tIEpUQUcgcGluIGkvbyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0vLwoKbGV0IHN0YXRpYyBzaW1faW5wdXQoIHU4IG1h
+c2ssIGJvb2wgbGV2ZWwgKQp7CglpbnQgcmV0OwoKCWlmIChsZXZlbCkKCQlibGFzdGVyX2J5dGUg
+fD0gbWFzazsKCWVsc2UKCQlibGFzdGVyX2J5dGUgJj0gfm1hc2s7CgoJcmV0ID0gZnRkaV93cml0
+ZV9kYXRhKCZmdGRpYywgJmJsYXN0ZXJfYnl0ZSwgMSk7CglpZiAocmV0ICE9IDEpCgkJZGllKCJm
+dGRpX3dyaXRlX2RhdGEgJWRcbiIsIHJldCk7Cn0KCi8vIEpUQUcgaW5wdXRzCmxldCB0cnN0KCBi
+b29sIGxldmVsICkgLT4gdm9pZCB7ICBzaW1faW5wdXQoIEJMQVNURVJfTkNFLCBsZXZlbCApOyAg
+fQpsZXQgdGNrKCAgYm9vbCBsZXZlbCApIC0+IHZvaWQgeyAgc2ltX2lucHV0KCBCTEFTVEVSX1RD
+SywgbGV2ZWwgKTsgIH0KbGV0IHRtcyggIGJvb2wgbGV2ZWwgKSAtPiB2b2lkIHsgIHNpbV9pbnB1
+dCggQkxBU1RFUl9UTVMsIGxldmVsICk7ICB9CmxldCB0ZGkoICBib29sIGxldmVsICkgLT4gdm9p
+ZCB7ICBzaW1faW5wdXQoIEJMQVNURVJfVERJLCBsZXZlbCApOyAgfQoKLy8gSlRBRyBvdXRwdXQg
+KFRETykKbGV0IHRkbygpIC0+IGJvb2wgewoJc3RhdGljIHU4IGJ5dGU7CglpbnQgcmV0OwoKCWRv
+IHsKCQlyZXQgPSBmdGRpX3JlYWRfZGF0YSgmZnRkaWMsICZieXRlLCAxKTsKCX0KCXdoaWxlIChy
+ZXQgPT0gMSk7CgoJaWYgKHJldCAhPSAwICYmIHJldCAhPSAxKQoJCWRpZSgiZnRkaV9yZWFkX2Rh
+dGEgJWRcbiIsIHJldCk7CgoJcmV0dXJuIGJ5dGUgJiAxOwp9CgovLyBSVENLIHVuYXZhaWxhYmxl
+CmxldCBydGNrKCkgLT4gYm9vbCB7ICByZXR1cm4gZmFsc2U7ICB9CgpsZXQgaHdfaW5pdCgpIC0+
+IHZvaWQKewoJaWYgKGZ0ZGlfaW5pdCgmZnRkaWMpIDwgMCkKCQlkaWUoImZ0ZGlfaW5pdFxuIik7
+CgoJaWYgKGZ0ZGlfdXNiX29wZW4oJmZ0ZGljLCAweDA5ZmIsIDB4NjAwMSkgPCAwKQoJCWRpZSgi
+ZnRkaV91c2Jfb3BlblxuIik7CgoJaWYgKGZ0ZGlfdXNiX3Jlc2V0KCZmdGRpYykgPCAwKQoJCWRp
+ZSgiZnRkaV91c2JfcmVzZXRcbiIpOwoKCWlmIChmdGRpX3NldF9sYXRlbmN5X3RpbWVyKCZmdGRp
+YywgMikgPCAwKQoJCWRpZSgiZnRkaV9zZXRfbGF0ZW5jeV90aW1lclxuIik7CgoJZnRkaV9kaXNh
+YmxlX2JpdGJhbmcoJmZ0ZGljKTsKCglibGFzdGVyX2J5dGUgPSBCTEFTVEVSX0xFRCB8IEJMQVNU
+RVJfUkVBRDsKfQo=
+--001a1133a5b4072585050ff369fb--
