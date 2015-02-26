@@ -1,40 +1,52 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 01/15] OMAPDSS: fix AM43xx minimum pixel clock divider
-Date: Thu, 26 Feb 2015 14:48:55 +0200
-Message-ID: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 09/15] OMAPDSS: DISPC: fix div by zero issue in overlay scaling
+Date: Thu, 26 Feb 2015 14:49:03 +0200
+Message-ID: <1424954949-12801-9-git-send-email-tomi.valkeinen@ti.com>
+References: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60612 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60617 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932075AbbBZMtf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2015 07:49:35 -0500
+	id S1753439AbbBZMto (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 07:49:44 -0500
+In-Reply-To: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-AM43xx supports pixel clock divider of 1, just like all OMAP3+ SoCs. Fix
-the minimum divider value.
+omapdrm doesn't always configure the overlays correctly, causing the
+overlay setup functions to be called with zero timings. This leads to
+division by zero error.
+
+This happens, for example, when a HDMI cable is not connected, but a
+user tries to setup a plane with scaling.
+
+Fixing omapdrm is a big job, so for now let's check for the bad timings
+in DISPC and return an error.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dss_features.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/fbdev/omap2/dss/dispc.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dss_features.c b/drivers/video/fbdev/omap2/dss/dss_features.c
-index 376270b777f8..b0b6dfd657bf 100644
---- a/drivers/video/fbdev/omap2/dss/dss_features.c
-+++ b/drivers/video/fbdev/omap2/dss/dss_features.c
-@@ -440,7 +440,7 @@ static const struct dss_param_range omap3_dss_param_range[] = {
+diff --git a/drivers/video/fbdev/omap2/dss/dispc.c b/drivers/video/fbdev/omap2/dss/dispc.c
+index 8805266a52f4..1123111d3940 100644
+--- a/drivers/video/fbdev/omap2/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/dss/dispc.c
+@@ -2322,6 +2322,11 @@ static int dispc_ovl_calc_scaling(unsigned long pclk, unsigned long lclk,
+ 	if (width == out_width && height == out_height)
+ 		return 0;
  
- static const struct dss_param_range am43xx_dss_param_range[] = {
- 	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
--	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
-+	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
- 	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
- 	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
- };
++	if (pclk == 0 || mgr_timings->pixelclock == 0) {
++		DSSERR("cannot calculate scaling settings: pclk is zero\n");
++		return -EINVAL;
++	}
++
+ 	if ((caps & OMAP_DSS_OVL_CAP_SCALE) == 0)
+ 		return -EINVAL;
+ 
 -- 
 2.3.0
 
