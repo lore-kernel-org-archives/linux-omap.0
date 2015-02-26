@@ -1,68 +1,57 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 13/21] drm/omap: remove dummy PM functions
-Date: Thu, 26 Feb 2015 15:20:21 +0200
-Message-ID: <1424956829-22892-14-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 09/21] drm/omap: handle mismatching color format and buffer width
+Date: Thu, 26 Feb 2015 15:20:17 +0200
+Message-ID: <1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34691 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33276 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932076AbbBZNVU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2015 08:21:20 -0500
+	id S932076AbbBZNVN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 08:21:13 -0500
 In-Reply-To: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omapdrm has dummy functions for platform_device's
-suspend/resume/shutdown. The functions don't do anything, and those
-platform device functions are deprecated, so remove them from omapdrm.
+omapdrm doesn't check if the width of the framebuffer and the color
+format's bits-per-pixel match.
+
+For example, using a display with a width of 1280, and a buffer
+allocated with using 32 bits per pixel (i.e. 1280*4 = 5120 bytes), with
+a 24 bits per pixel color format, leads to the following mismatch:
+5120/3 = 1706.666... bytes. This causes bad colors and a tilt on the
+screen.
+
+Add a check into omapdrm to return an error if the user tries to use
+such a combination.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_fb.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index 87724fa818d0..0ebd1315fff8 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -663,23 +663,6 @@ static struct drm_driver omap_drm_driver = {
- 		.patchlevel = DRIVER_PATCHLEVEL,
- };
+diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
+index 2975096abdf5..bf98580223d0 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fb.c
++++ b/drivers/gpu/drm/omapdrm/omap_fb.c
+@@ -463,6 +463,14 @@ struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
+ 			goto fail;
+ 		}
  
--static int pdev_suspend(struct platform_device *pDevice, pm_message_t state)
--{
--	DBG("");
--	return 0;
--}
--
--static int pdev_resume(struct platform_device *device)
--{
--	DBG("");
--	return 0;
--}
--
--static void pdev_shutdown(struct platform_device *device)
--{
--	DBG("");
--}
--
- static int pdev_probe(struct platform_device *device)
- {
- 	int r;
-@@ -726,9 +709,6 @@ static struct platform_driver pdev = {
- 		},
- 		.probe = pdev_probe,
- 		.remove = pdev_remove,
--		.suspend = pdev_suspend,
--		.resume = pdev_resume,
--		.shutdown = pdev_shutdown,
- };
++		if (mode_cmd->width % format->planes[i].stride_bpp != 0) {
++			dev_err(dev->dev,
++				"buffer width (%d) is not a multiple of pixel width (%d)\n",
++				mode_cmd->width, format->planes[i].stride_bpp);
++			ret = -EINVAL;
++			goto fail;
++		}
++
+ 		size = pitch * mode_cmd->height / format->planes[i].sub_y;
  
- static int __init omap_drm_init(void)
+ 		if (size > (omap_gem_mmap_size(bos[i]) - mode_cmd->offsets[i])) {
 -- 
 2.3.0
 
