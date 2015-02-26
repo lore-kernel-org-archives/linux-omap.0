@@ -1,38 +1,47 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: DTS: am57xx-beagle-x15: Do not include the atl header
-Date: Thu, 26 Feb 2015 15:40:39 +0200
-Message-ID: <1424958039-15523-1-git-send-email-peter.ujfalusi@ti.com>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH 00/10] omap3 crypto fixes
+Date: Thu, 26 Feb 2015 14:49:50 +0100
+Message-ID: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35362 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753554AbbBZNlH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2015 08:41:07 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-AM57xx does not have ATL block integrated.
+This patch series fix crypto support for omap3 devices which use DT.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 1 -
- 1 file changed, 1 deletion(-)
+It enables AES and SHAM on N9/N950 and SHAM on N900. AES is still disab=
+led for N900.
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 6463f9ef2b54..c1d82e830a96 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -8,7 +8,6 @@
- /dts-v1/;
- 
- #include "dra74x.dtsi"
--#include <dt-bindings/clk/ti-dra7-atl.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/irq.h>
- 
--- 
-2.3.0
+Pali Roh=C3=A1r (10):
+  ARM: OMAP2+: Return correct error values from device and hwmod
+  ARM: OMAP3: Fix crypto support for HS devices
+  crypto: omap-sham: Add support for omap3 devices
+  crypto: omap-sham: Check for return value from pm_runtime_get_sync
+  ARM: dts: omap3 hs: Remove timer12
+  ARM: dts: omap3: Add missing dmas for crypto
+  ARM: dts: n9/n950: Enable omap crypto support
+  ARM: dts: n900: Enable omap sham and include directly omap34xx.dtsi
+  ARM: dts: omap3-tao3530: Include directly omap34xx.dtsi
+  ARM: dts: Remove files omap34xx-hs.dtsi and omap36xx-hs.dtsi
 
+ arch/arm/boot/dts/omap3-n900.dts           |   16 +++++-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi       |    2 +-
+ arch/arm/boot/dts/omap3-tao3530.dtsi       |   11 +++-
+ arch/arm/boot/dts/omap3.dtsi               |    4 ++
+ arch/arm/boot/dts/omap34xx-hs.dtsi         |   16 ------
+ arch/arm/boot/dts/omap36xx-hs.dtsi         |   16 ------
+ arch/arm/mach-omap2/omap_device.c          |   30 ++++++-----
+ arch/arm/mach-omap2/omap_hwmod.c           |   10 ++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   79 ++++++++++++++++++++=
++++-----
+ drivers/crypto/omap-sham.c                 |   13 ++++-
+ 10 files changed, 131 insertions(+), 66 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/omap34xx-hs.dtsi
+ delete mode 100644 arch/arm/boot/dts/omap36xx-hs.dtsi
+
+--=20
+1.7.9.5
