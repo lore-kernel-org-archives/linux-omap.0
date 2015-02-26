@@ -1,54 +1,58 @@
-From: Matt Porter <mporter@konsulko.com>
-Subject: [PATCH] Documentation: DT: omap_serial: document missing properties and add an example
-Date: Thu, 26 Feb 2015 10:38:45 -0500
-Message-ID: <1424965125-31714-1-git-send-email-mporter@konsulko.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Devicetree List <devicetree@vger.kernel.org>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: fix deassert hardreset clkdm usecounting
+Date: Thu, 26 Feb 2015 18:06:00 +0200
+Message-ID: <1424966760-30917-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57480 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753156AbbBZQF6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 11:05:58 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-The omap_serial.txt binding documentation lacks a number of properties
-that are used in DTS files for platforms incorporating this peripheral.
-Fix this by documenting the missing required and optional fields and
-add an example.
+Deasserting hardreset increases the usecount for the hwmod parent clockdomain
+always, however usecount is only decreased at end in certain error cases.
+This causes software supervised clockdomains to remain always on, preventing
+idle. Fixed by always releasing the hwmods clockdomain parent when exiting
+the function.
 
-Signed-off-by: Matt Porter <mporter@konsulko.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Tested-by: Carlos Hernandez <ceh@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- .../devicetree/bindings/serial/omap_serial.txt       | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-index 342eedd..54c2a15 100644
---- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-+++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-@@ -4,7 +4,27 @@ Required properties:
- - compatible : should be "ti,omap2-uart" for OMAP2 controllers
- - compatible : should be "ti,omap3-uart" for OMAP3 controllers
- - compatible : should be "ti,omap4-uart" for OMAP4 controllers
-+- reg : address and length of the register space
-+- interrupts or interrupts-extended : Should contain the uart interrupt
-+                                      specifier or both the interrupt
-+                                      controller phandle and interrupt
-+                                      specifier.
- - ti,hwmods : Must be "uart<n>", n being the instance number (1-based)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 92afb72..3be4783 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1692,16 +1692,15 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
+ 	if (ret == -EBUSY)
+ 		pr_warn("omap_hwmod: %s: failed to hardreset\n", oh->name);
  
- Optional properties:
- - clock-frequency : frequency of the clock input to the UART
-+- dmas : DMA specifier, consisting of a phandle to the DMA controller
-+         node and a DMA channel number.
-+- dma-names : "rx" for receive channel, "tx" for transmit channel.
+-	if (!ret) {
++	if (oh->clkdm) {
+ 		/*
+ 		 * Set the clockdomain to HW_AUTO, assuming that the
+ 		 * previous state was HW_AUTO.
+ 		 */
+-		if (oh->clkdm && hwsup)
++		if (hwsup)
+ 			clkdm_allow_idle(oh->clkdm);
+-	} else {
+-		if (oh->clkdm)
+-			clkdm_hwmod_disable(oh->clkdm, oh);
 +
-+Example:
-+
-+                uart4: serial@49042000 {
-+                        compatible = "ti,omap3-uart";
-+                        reg = <0x49042000 0x400>;
-+                        interrupts = <80>;
-+                        dmas = <&sdma 81 &sdma 82>;
-+                        dma-names = "tx", "rx";
-+                        ti,hwmods = "uart4";
-+                        clock-frequency = <48000000>;
-+                };
++		clkdm_hwmod_disable(oh->clkdm, oh);
+ 	}
+ 
+ 	return ret;
 -- 
-1.8.4
+1.7.9.5
+
