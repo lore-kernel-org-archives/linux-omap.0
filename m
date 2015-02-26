@@ -1,43 +1,64 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC 5/6] drm/tilcdc: Force building of DRM_TILCDC_INIT
-Date: Thu, 26 Feb 2015 16:55:34 +0200
-Message-ID: <2f0e612a87ad97ff9a0b512456a2fe0880d99d54.1424961754.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC 6/6] ARM: dts: am335x-boneblack: Use new binding for HDMI
+Date: Thu, 26 Feb 2015 16:55:35 +0200
+Message-ID: <6d6653416fd87c678a80df1d422420877261c4a5.1424961754.git.jsarha@ti.com>
 References: <cover.1424961754.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1424961754.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36545 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753874AbbBZO4V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 09:56:21 -0500
+In-Reply-To: <cover.1424961754.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
+Cc: tomi.valkeinen@ti.com, detheridge@ti.com, moinejf@free.fr, linux@arm.linux.org.uk, Jyri Sarha <jsarha@ti.com>
 
-If I read Documentation/kbuild/makefiles.txt section 3.6 right, this
-patch should not be needed. However, without this patch the objects
-needed for DRM_TILCDC_INIT are not linked, if DRM_TILCDC is built as
-module.
+Use new binding for the external tda19988 HDMI encoder.
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/gpu/drm/Makefile | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/am335x-boneblack.dts | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
-index 2c239b9..62c6158 100644
---- a/drivers/gpu/drm/Makefile
-+++ b/drivers/gpu/drm/Makefile
-@@ -60,6 +60,7 @@ obj-$(CONFIG_DRM_RCAR_DU) += rcar-du/
- obj-$(CONFIG_DRM_SHMOBILE) +=shmobile/
- obj-$(CONFIG_DRM_OMAP)	+= omapdrm/
- obj-$(CONFIG_DRM_TILCDC)	+= tilcdc/
-+obj-$(CONFIG_DRM_TILCDC_INIT)	+= tilcdc/
- obj-$(CONFIG_DRM_QXL) += qxl/
- obj-$(CONFIG_DRM_BOCHS) += bochs/
- obj-$(CONFIG_DRM_MSM) += msm/
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 5c42d25..eadbba3 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -68,16 +68,26 @@
+ 
+ &lcdc {
+ 	status = "okay";
++	port {
++		lcdc_0: endpoint@0 {
++			remote-endpoint = <&hdmi_0>;
++		};
++	};
+ };
+ 
+-/ {
+-	hdmi {
+-		compatible = "ti,tilcdc,slave";
+-		i2c = <&i2c0>;
++&i2c0 {
++	tda19988 {
++		compatible = "nxp,tda998x";
++		reg = <0x70>;
+ 		pinctrl-names = "default", "off";
+ 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+-		status = "okay";
++
++		port {
++			hdmi_0: endpoint@0 {
++				remote-endpoint = <&lcdc_0>;
++			};
++		};
+ 	};
+ };
+ 
 -- 
 1.9.1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
