@@ -1,80 +1,76 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 10/15] OMAPDSS: DISPC: lock access to DISPC_CONTROL & DISPC_CONFIG
-Date: Thu, 26 Feb 2015 14:49:04 +0200
-Message-ID: <1424954949-12801-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 11/15] OMAPDSS: setup default fifo thresholds
+Date: Thu, 26 Feb 2015 14:49:05 +0200
+Message-ID: <1424954949-12801-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60618 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932211AbbBZMtp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2015 07:49:45 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:37398 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932213AbbBZMtr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 07:49:47 -0500
 In-Reply-To: <1424954949-12801-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Dispc driver presumes that the callers handle locking for all normal
-functions. However, omapdrm doesn't handle this, and presumes that all
-overlay manager registers are private to that overlay manager, and thus
-presumes that configurations for overlay managers can be written via
-different threads freely.
+At the moment we don't setup FIFO thresholds by default in omapdss. It's
+supposed to be done by the user of omapdss. And that is missing from
+omapdrm, causing unoptimal thresholds to be used when using omapdrm.
 
-For many registers the above is true. The exceptions are DISPC_CONTROL
-and DISPC_CONFIG registers, which contain bits for both LCD and TV
-overlay managers.
+While I believe it's in theory better to allow the user of omapdss to
+setup the fifo thresholds, in practice we always use the same values,
+and we could as well setup the thresholds in omapdss.
 
-Fixing this properly in omapdrm means a big omapdrm rewrite. So, for
-now, add locking to dispc for the problematic registers.
+Furthermore, in omapdss init we always swap the FIFO used for GFX and WB
+overlays, but we don't swap the FIFO thresholds for those overlays
+(which is the reason for omapdrm using unoptimal HW reset values). So
+it would make sense to setup the thresholds to account for the swapping
+of the FIFOs.
+
+So, this patch adds code to setup default FIFO tresholds at omapdss
+init.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reported-by: Somnath Mukherjee <somnath@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dispc.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/video/fbdev/omap2/dss/dispc.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/drivers/video/fbdev/omap2/dss/dispc.c b/drivers/video/fbdev/omap2/dss/dispc.c
-index 1123111d3940..766c985cbfa7 100644
+index 766c985cbfa7..6296a3e5124f 100644
 --- a/drivers/video/fbdev/omap2/dss/dispc.c
 +++ b/drivers/video/fbdev/omap2/dss/dispc.c
-@@ -123,6 +123,9 @@ static struct {
+@@ -1138,6 +1138,7 @@ static void dispc_init_fifos(void)
+ 	int fifo;
+ 	u8 start, end;
+ 	u32 unit;
++	int i;
  
- 	struct regmap *syscon_pol;
- 	u32 syscon_pol_offset;
-+
-+	/* DISPC_CONTROL & DISPC_CONFIG lock*/
-+	spinlock_t control_lock;
- } dispc;
+ 	unit = dss_feat_get_buffer_size_unit();
  
- enum omap_color_component {
-@@ -261,7 +264,16 @@ static u32 mgr_fld_read(enum omap_channel channel, enum mgr_reg_fields regfld)
- static void mgr_fld_write(enum omap_channel channel,
- 					enum mgr_reg_fields regfld, int val) {
- 	const struct dispc_reg_field rfld = mgr_desc[channel].reg_desc[regfld];
-+	const bool need_lock = rfld.reg == DISPC_CONTROL || rfld.reg == DISPC_CONFIG;
-+	unsigned long flags;
+@@ -1177,6 +1178,20 @@ static void dispc_init_fifos(void)
+ 		dispc.fifo_assignment[OMAP_DSS_GFX] = OMAP_DSS_WB;
+ 		dispc.fifo_assignment[OMAP_DSS_WB] = OMAP_DSS_GFX;
+ 	}
 +
-+	if (need_lock)
-+		spin_lock_irqsave(&dispc.control_lock, flags);
++	/*
++	 * Setup default fifo thresholds.
++	 */
++	for (i = 0; i < dss_feat_get_num_ovls(); ++i) {
++		u32 low, high;
++		const bool use_fifomerge = false;
++		const bool manual_update = false;
 +
- 	REG_FLD_MOD(rfld.reg, val, rfld.high, rfld.low);
++		dispc_ovl_compute_fifo_thresholds(i, &low, &high,
++			use_fifomerge, manual_update);
 +
-+	if (need_lock)
-+		spin_unlock_irqrestore(&dispc.control_lock, flags);
++		dispc_ovl_set_fifo_threshold(i, low, high);
++	}
  }
  
- #define SR(reg) \
-@@ -3804,6 +3816,8 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
- 
- 	dispc.pdev = pdev;
- 
-+	spin_lock_init(&dispc.control_lock);
-+
- 	r = dispc_init_features(dispc.pdev);
- 	if (r)
- 		return r;
+ static u32 dispc_ovl_get_fifo_size(enum omap_plane plane)
 -- 
 2.3.0
 
