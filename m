@@ -1,66 +1,105 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: Enabling DBGEN signal in GP OMAP3
-Date: Thu, 26 Feb 2015 05:01:50 +0100
-Message-ID: <CAALWOA8k44uQvQK18qvGRgOYDY3n5xKow4t94c+FyH8u79_BBw@mail.gmail.com>
-References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
- <20150216175826.GT2531@atomide.com> <CAALWOA_JZgWWKvFnDmzZRTSqFVJPZOEar1L0D7KR5VoU_7FqCg@mail.gmail.com>
- <CANOLnOO6HWtptks+TXbJEim9fhk5mp5q94gg1wva77x4H7c3pg@mail.gmail.com>
- <CAALWOA_DWjDkmnTj1h0EaSKPeJB_Xd+8YAa6Yv=_HgH9W+ijWA@mail.gmail.com>
- <CANOLnOOgTtTeg_OBvJSGy9OOwdA65omwN=_8Webt8M5E6DoJbg@mail.gmail.com>
- <CAALWOA_Hj4bNHX2LX8w_vBBaThpnwQ+=JxScF710vc_itEfV4Q@mail.gmail.com>
- <CAALWOA_Vw=1xC=yUYJBUhp4QqZWvk+EsiLSB=J7+EQmBMTgEkQ@mail.gmail.com> <CANOLnOOBHmHjydhtH3_gL9D+ZPWywxsXHtn9RRaNWCSJb50Cnw@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 7/8 v2] ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based
+ on WAITMONITORINGTIME
+Date: Thu, 26 Feb 2015 13:34:36 +0200
+Message-ID: <54EF04CC.2060804@ti.com>
+References: <1424808331-17592-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-2-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-3-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-4-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-5-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-6-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424808331-17592-7-git-send-email-rabel@cit-ec.uni-bielefeld.de> <54EDF969.1070902@ti.com> <54EE0468.6000105@cit-ec.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:42306 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851AbbBZECM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2015 23:02:12 -0500
-Received: by wghl2 with SMTP id l2so7579186wgh.9
-        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2015 20:02:10 -0800 (PST)
-In-Reply-To: <CANOLnOOBHmHjydhtH3_gL9D+ZPWywxsXHtn9RRaNWCSJb50Cnw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54EE0468.6000105@cit-ec.uni-bielefeld.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rabel@cit-ec.uni-bielefeld.de, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
-On 26 February 2015 at 02:09, Grazvydas Ignotas <notasas@gmail.com> wrote:
-> And hey, it worked too with your code modified to use
-> USB Blaster in it's bitbang mode over libftdi. This setup also works
-> with openocd, but somewhat unreliably (only occasionally gets through
-> init, often gets register values it doesn't like).
+Robert,
 
-I've never had much luck with OpenOCD either... it doesn't handle
-ICEPick very well, nor DAP for that matter: e.g. you can't connect to
-DAP without also connecting to a processor, and it can't deal with
-WAIT responses so you need to configure it to worst-case timings
-(nearly impossible to estimate) or hope AP responses never get delayed
-due to interconnect congestion or clock speed changes.
+On 25/02/15 19:20, Robert Abel wrote:
+> Hi Roger,
+> 
+> On 25 Feb 2015 17:33, Roger Quadros wrote:
+>> ./scripts/checkpatch.pl detects some styling errors.
+> Well, there's like a million lines over 80 characters. I'm also a heathen and don't use an 80 character terminal either.
+> I'll fix the more serious issues checkpatch finds, but some styling errors are even from code already in the driver.
 
-> Anyway I'm attaching my code too
+neither do I but let's fix whatever is possible to fix
+in the new code.
 
-Ah, if this works then apparently the omap3 control module doesn't
-check privilege.
+> 
+>>>   #define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
+>> Not caused by your patch but we can fix the typo
+>>
+>> GPMC_CONFIG1_WAIT_MON_IIME -> GPMC_CONFIG1_WAIT_MON_TIME
+> I'd rather remove than fix. None of these defines is in active use anymore.
 
-BTW, is this comment in hw-omap3.h true?
+OK with me.
 
-> 0x23'002100, // assert cortex-a8 DBGEN
+>>> +/**
+>>> + * gpmc_calc_waitmonitoring_divider - calculate proper GPMCFCLKDIVIDER based on WAITMONITORINGTIME
+>>> + * @wait_monitoring WAITMONITORINGTIME in ns.
+>>> + * @return          -1 on failure to scale, else proper divider > 0.
+>>> + * @note            WAITMONITORINGTIME will be _at least_ as long as desired.
+>>> + *                  i.e. read timings should be kept            -> don't sample bus too early
+>>> + *                  while write timings should work out as well -> data is longer on bus
+>>> + */
+>>> +static int gpmc_calc_waitmonitoring_divider(unsigned int wait_monitoring)
+>>> +{
+>>> +
+>>> +    int div = gpmc_ns_to_ticks(wait_monitoring);
+>>> +
+>>> +    div += GPMC_CONFIG1_WAIT_MON_TIME_MAX - 1;
+>>> +    div /= GPMC_CONFIG1_WAIT_MON_TIME_MAX;
+>> Sorry I didn't understand how this works. :P
+>>  From the TRM,
+>>
+>> waitmonitoringtime_ns = waitmonitoring_ticks x (gpmc_clk_div + 1) x gpmc_fclk_ns
+> Using that formula:
+> gpmc_clk_div + 1 = ceil(ceil(waitmonitoringtime_ns / gpmc_fclk_ns) / waitmonitoring_ticks).
 
-My impression was that bit 13 of DAP's tap control register either
-does nothing or at most enables the DAPCTL registers to be written,
-but that setting bit 13 of the DAP_PC_FER register would still be
-needed to assert DBGEN.
+Right, we need to return div = gpmc_div + 1 to take care of the (div - 1) done by the caller before
+programming div.
+I wouldn't mind if we update gpmc_calc_divider() and this function to return the actual div value
+that needs to be programmed in the register. It is upto you.
 
-Also,
+How about mentioning the above formula in a comment for benefit of future readers?
+you could also mention that reducing the formula to ticks we get.
 
-> // address of cortex-a8 debug regs on debug APB
-> constexpr u32 a8_debug = 0x54011'000;
+gpmc_div + 1 = ceil(wanted_waitmonitoring_ticks/waitmonitoring_ticks)
 
-If bit 31 isn't set, then these writes should (afaik) be equivalent to
-just performing them directly through the interconnect instead of
-using JTAG.
+> 
+> The reason I use GPMC_CONFIG1_WAIT_MON_TIME_MAX directly, is because every other pair is identical:
+> 
+> We have the following cases:
+> a) WAITMONITORINGTIME = 0, so div doesn't matter (we set div to 1) or
+> b) WAITMONITORINGTIME = 1, with div = 1 or
+> c) WAITMONITORINGTIME = 2, with div = n
+> 
+> WAITMONITORINGTIME is never 1 with div = n and div /= 1, because that's the same as WAITMONITORINGTIME = 2 with div = n - 1.
+> Cases a) and b) are caught using the fact that div = 0 after the division.
+> Case c) is handled by assuming that WAITMONITORINGTIME will always be 2 (i.e. GPMC_CONFIG1_WAIT_MON_TIME_MAX) for all divs /= 0 at that point.
+> 
+> Took me a while to realize that this works, too.
+> 
+>>> +    /*
+>>> +     * See if we need to change the divider for waitmonitoringtime.
+>>> +     *
+>>> +     * If DT contains sync-clk-ps for truly asynchronous accesses,
+>>> +     * ignore it as long as waitmonitoringtime is used.
+>>> +     *
+>> The comment in the $subject was more easier to understand for me than the above
+>>
+>> "Calculate GPMCFCLKDIVIDER independent of gpmc,sync-clk-ps in DT for
+>> truly asynchronous accesses, i.e. both read and write asynchronous."
+> Well, the comment in $subject was a general description. Here, we don't touch div when
+> a) any access is synchronous
+> b) all accesses are asynchronous, but WAITMONITORINGTIME is not used, i.e. WAITREADMONITORING and WAITWRITEMONITORING are both not set.
+> 
+> So, if WAITMONITORINGTIME is not used, or any access is synchronous, we program the sync-clk-ps anyways, because the GPMC won't rely on it for any timing.
+> So the comment is OK, IMHO.
 
-I should maybe have mentioned that without TDO, my example doesn't
-actually verify debug authentication status. It does perform a test
-that debug APB writes are working by using the debug communications
-channel, but I don't think this requires DBGEN to be asserted.
+OK with me.
+
+cheers,
+-roger
