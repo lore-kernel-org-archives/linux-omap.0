@@ -1,94 +1,123 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 19/21] drm/omap: fix race condition with dev->obj_list
-Date: Thu, 26 Feb 2015 15:20:27 +0200
-Message-ID: <1424956829-22892-20-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 20/21] drm/omap: fix race conditon in DMM
+Date: Thu, 26 Feb 2015 15:20:28 +0200
+Message-ID: <1424956829-22892-21-git-send-email-tomi.valkeinen@ti.com>
 References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38351 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932386AbbBZNVa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 08:21:30 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:50968 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753479AbbBZNVc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 08:21:32 -0500
 In-Reply-To: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omap_gem_objects are added to dev->obj_list in omap_gem_new, and removed
-in omap_gem_free_object. Unfortunately there's no locking for
-dev->obj_list, which eventually leads to a crash:
+The omapdrm DMM code sometimes crashes with:
 
-WARNING: CPU: 1 PID: 1123 at lib/list_debug.c:59 __list_del_entry+0xa4/0xe0()
-list_del corruption. prev->next should be e9281344, but was ea722b84
+WARNING: CPU: 0 PID: 1235 at lib/list_debug.c:36 __list_add+0x8c/0xbc()
+list_add double add: new=e9265368, prev=e90139c4, next=e9265368.
 
-Add a spinlock to protect dev->obj_list.
+This is caused by the code calling release_engine() twice for the same
+engine.
+
+dmm_txn_commit(wait=true) call is supposed to wait until the DMM
+transaction has been finished. And it does that, but it does not wait
+for the irq handler to finish.
+
+What happens is that the irq handler is triggered, and it either wakes
+up the thread that called dmm_txn_commit(), or that thread never even
+slept because the transaction was finished in the HW very quickly. That
+thread then continues executing, even if the irq handler is not yet
+finished, and a new transaction may be initiated. If that transaction is
+async (i.e. wait=false), a 'async' flag is set to true. The original irq
+handler, which has yet not finished, then sees the transaction as
+'async', even if it was supposed to be 'sync'.
+
+When that happens, the irq handler does an extra release_engine() call
+because it thinks it need to release the engine, leading to the crash.
+
+This patch fixes the issue by using completion to ensure that the irq
+handler has finished before a dmm_txn_commit(wait=true) may continue.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.c | 1 +
- drivers/gpu/drm/omapdrm/omap_drv.h | 3 +++
- drivers/gpu/drm/omapdrm/omap_gem.c | 5 +++++
- 3 files changed, 9 insertions(+)
+ drivers/gpu/drm/omapdrm/omap_dmm_priv.h  |  2 +-
+ drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 15 ++++++++-------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index d0b1aece8cc5..2a85221e0604 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -479,6 +479,7 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
+diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_priv.h b/drivers/gpu/drm/omapdrm/omap_dmm_priv.h
+index d96660573076..9f32a83ca507 100644
+--- a/drivers/gpu/drm/omapdrm/omap_dmm_priv.h
++++ b/drivers/gpu/drm/omapdrm/omap_dmm_priv.h
+@@ -148,7 +148,7 @@ struct refill_engine {
  
- 	priv->wq = alloc_ordered_workqueue("omapdrm", 0);
+ 	bool async;
  
-+	spin_lock_init(&priv->list_lock);
- 	INIT_LIST_HEAD(&priv->obj_list);
+-	wait_queue_head_t wait_for_refill;
++	struct completion compl;
  
- 	omap_gem_init(dev);
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index 60e47b33c801..dac9f8ef3b15 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.h
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -105,6 +105,9 @@ struct omap_drm_private {
+ 	struct list_head idle_node;
+ };
+diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+index c4563af55a82..ccf1bf06ceb7 100644
+--- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
++++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+@@ -29,6 +29,7 @@
+ #include <linux/mm.h>
+ #include <linux/time.h>
+ #include <linux/list.h>
++#include <linux/completion.h>
  
- 	struct workqueue_struct *wq;
+ #include "omap_dmm_tiler.h"
+ #include "omap_dmm_priv.h"
+@@ -146,10 +147,10 @@ static irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
  
-+	/* lock for obj_list below */
-+	spinlock_t list_lock;
+ 	for (i = 0; i < dmm->num_engines; i++) {
+ 		if (status & DMM_IRQSTAT_LST) {
+-			wake_up_interruptible(&dmm->engines[i].wait_for_refill);
+-
+ 			if (dmm->engines[i].async)
+ 				release_engine(&dmm->engines[i]);
 +
- 	/* list of GEM objects: */
- 	struct list_head obj_list;
++			complete(&dmm->engines[i].compl);
+ 		}
  
-diff --git a/drivers/gpu/drm/omapdrm/omap_gem.c b/drivers/gpu/drm/omapdrm/omap_gem.c
-index d37ee756a0b1..e9718b99a8a9 100644
---- a/drivers/gpu/drm/omapdrm/omap_gem.c
-+++ b/drivers/gpu/drm/omapdrm/omap_gem.c
-@@ -1273,13 +1273,16 @@ unlock:
- void omap_gem_free_object(struct drm_gem_object *obj)
- {
- 	struct drm_device *dev = obj->dev;
-+	struct omap_drm_private *priv = dev->dev_private;
- 	struct omap_gem_object *omap_obj = to_omap_bo(obj);
+ 		status >>= 8;
+@@ -273,7 +274,8 @@ static int dmm_txn_commit(struct dmm_txn *txn, bool wait)
  
- 	evict(obj);
+ 	/* mark whether it is async to denote list management in IRQ handler */
+ 	engine->async = wait ? false : true;
+-	/* verify that the irq handler sees the 'async' value */
++	reinit_completion(&engine->compl);
++	/* verify that the irq handler sees the 'async' and completion value */
+ 	smp_mb();
  
- 	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
+ 	/* kick reload */
+@@ -281,9 +283,8 @@ static int dmm_txn_commit(struct dmm_txn *txn, bool wait)
+ 		dmm->base + reg[PAT_DESCR][engine->id]);
  
-+	spin_lock(&priv->list_lock);
- 	list_del(&omap_obj->mm_list);
-+	spin_unlock(&priv->list_lock);
+ 	if (wait) {
+-		if (wait_event_interruptible_timeout(engine->wait_for_refill,
+-				wait_status(engine, DMM_PATSTATUS_READY) == 0,
+-				msecs_to_jiffies(1)) <= 0) {
++		if (!wait_for_completion_timeout(&engine->compl,
++				msecs_to_jiffies(1))) {
+ 			dev_err(dmm->dev, "timed out waiting for done\n");
+ 			ret = -ETIMEDOUT;
+ 		}
+@@ -719,7 +720,7 @@ static int omap_dmm_probe(struct platform_device *dev)
+ 						(REFILL_BUFFER_SIZE * i);
+ 		omap_dmm->engines[i].refill_pa = omap_dmm->refill_pa +
+ 						(REFILL_BUFFER_SIZE * i);
+-		init_waitqueue_head(&omap_dmm->engines[i].wait_for_refill);
++		init_completion(&omap_dmm->engines[i].compl);
  
- 	drm_gem_free_mmap_offset(obj);
- 
-@@ -1377,7 +1380,9 @@ struct drm_gem_object *omap_gem_new(struct drm_device *dev,
- 	if (!omap_obj)
- 		goto fail;
- 
-+	spin_lock(&priv->list_lock);
- 	list_add(&omap_obj->mm_list, &priv->obj_list);
-+	spin_unlock(&priv->list_lock);
- 
- 	obj = &omap_obj->base;
- 
+ 		list_add(&omap_dmm->engines[i].idle_node, &omap_dmm->idle_head);
+ 	}
 -- 
 2.3.0
 
