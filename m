@@ -1,58 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 08/21] drm/omap: fix error handling in omap_framebuffer_create()
-Date: Thu, 26 Feb 2015 15:20:16 +0200
-Message-ID: <1424956829-22892-9-git-send-email-tomi.valkeinen@ti.com>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: DTS: dra7xx-clocks: Add gate clock for CLKOUT2
+Date: Thu, 26 Feb 2015 15:39:23 +0200
+Message-ID: <1424957963-15418-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38320 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932314AbbBZNVL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2015 08:21:11 -0500
-In-Reply-To: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35323 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932120AbbBZNjw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2015 08:39:52 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: tony@atomide.com, t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-When an error happens in omap_framebuffer_create(),
-omap_framebuffer_create() calls omap_framebuffer_destroy() if the fb
-struct has been allocated. However, that crashes, as
-omap_framebuffer_destroy(), which calls drm_framebuffer_cleanup(),
-should only be called after drm_framebuffer_init()
+To be able to control the gate for the clkout2 clock output.
 
-Fix this by just calling kfree() for the allocated fb when an error
-happens.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/gpu/drm/omapdrm/omap_fb.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
-index 58f2af32ede8..2975096abdf5 100644
---- a/drivers/gpu/drm/omapdrm/omap_fb.c
-+++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-@@ -420,7 +420,7 @@ struct drm_framebuffer *omap_framebuffer_create(struct drm_device *dev,
- struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
- 		struct drm_mode_fb_cmd2 *mode_cmd, struct drm_gem_object **bos)
- {
--	struct omap_framebuffer *omap_fb;
-+	struct omap_framebuffer *omap_fb = NULL;
- 	struct drm_framebuffer *fb = NULL;
- 	const struct format *format = NULL;
- 	int ret, i, n = drm_format_num_planes(mode_cmd->pixel_format);
-@@ -491,8 +491,7 @@ struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
- 	return fb;
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 4bdcbd61ce47..2a9994f73974 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1421,6 +1421,14 @@
+ 		ti,dividers = <1>, <8>;
+ 	};
  
- fail:
--	if (fb)
--		omap_framebuffer_destroy(fb);
-+	kfree(omap_fb);
- 
- 	return ERR_PTR(ret);
- }
++	clkout2_clk: clkout2_clk {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&clkoutmux2_clk_mux>;
++		ti,bit-shift = <8>;
++		reg = <0x06b0>;
++	};
++
+ 	l3init_960m_gfclk: l3init_960m_gfclk {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,gate-clock";
 -- 
 2.3.0
 
