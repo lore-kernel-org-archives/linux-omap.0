@@ -1,80 +1,79 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH 09/21] drm/omap: handle mismatching color format and
- buffer width
-Date: Fri, 27 Feb 2015 14:01:58 +0100
-Message-ID: <20150227130158.GX24485@phenom.ffwll.local>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
- <1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: dts: OMAP5: fix polling intervals for thermal zones
+Date: Fri, 27 Feb 2015 15:59:03 +0200
+Message-ID: <1425045543-19540-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:41891 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386AbbB0NAv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2015 08:00:51 -0500
-Received: by wghl18 with SMTP id l18so20287627wgh.8
-        for <linux-omap@vger.kernel.org>; Fri, 27 Feb 2015 05:00:50 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49389 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752348AbbB0N66 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Feb 2015 08:58:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, Feb 26, 2015 at 03:20:17PM +0200, Tomi Valkeinen wrote:
-> omapdrm doesn't check if the width of the framebuffer and the color
-> format's bits-per-pixel match.
-> 
-> For example, using a display with a width of 1280, and a buffer
-> allocated with using 32 bits per pixel (i.e. 1280*4 = 5120 bytes), with
-> a 24 bits per pixel color format, leads to the following mismatch:
-> 5120/3 = 1706.666... bytes. This causes bad colors and a tilt on the
-> screen.
-> 
-> Add a check into omapdrm to return an error if the user tries to use
-> such a combination.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/gpu/drm/omapdrm/omap_fb.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/omap_fb.c
-> index 2975096abdf5..bf98580223d0 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_fb.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-> @@ -463,6 +463,14 @@ struct drm_framebuffer *omap_framebuffer_init(struct drm_device *dev,
->  			goto fail;
->  		}
->  
-> +		if (mode_cmd->width % format->planes[i].stride_bpp != 0) {
+OMAP4 has a finer counter granularity, which allows for a delay of 1000ms
+in the thermal zone polling intervals. OMAP5 has a different counter
+mechanism, which allows at maximum a 500ms timer. Adjust the cpu thermal
+zone polling interval accordingly.
 
-width is in pixels. No idea what you're trying to check here, but this
-probably isn't it.
+Without this patch, the polling interval information is simply ignored,
+and the following thermal warnings are printed during boot (assuming
+thermal is enabled);
 
-Also drm checks that things fit into the specified pitch (which is in
-bytes), see the pichtes[i] < width * cpp check in framebuffer_check.
+[    1.545343] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supported
+[    1.552691] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supported
+[    1.560029] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supported
 
-Cheers, Daniel
-> +			dev_err(dev->dev,
-> +				"buffer width (%d) is not a multiple of pixel width (%d)\n",
-> +				mode_cmd->width, format->planes[i].stride_bpp);
-> +			ret = -EINVAL;
-> +			goto fail;
-> +		}
-> +
->  		size = pitch * mode_cmd->height / format->planes[i].sub_y;
->  
->  		if (size > (omap_gem_mmap_size(bos[i]) - mode_cmd->offsets[i])) {
-> -- 
-> 2.3.0
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap5-core-thermal.dtsi |    2 +-
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi  |    2 +-
+ arch/arm/boot/dts/omap5.dtsi              |    4 ++++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/boot/dts/omap5-core-thermal.dtsi b/arch/arm/boot/dts/omap5-core-thermal.dtsi
+index 19212ac..de8a3d4 100644
+--- a/arch/arm/boot/dts/omap5-core-thermal.dtsi
++++ b/arch/arm/boot/dts/omap5-core-thermal.dtsi
+@@ -13,7 +13,7 @@
+ 
+ core_thermal: core_thermal {
+ 	polling-delay-passive = <250>; /* milliseconds */
+-	polling-delay = <1000>; /* milliseconds */
++	polling-delay = <500>; /* milliseconds */
+ 
+ 			/* sensor       ID */
+ 	thermal-sensors = <&bandgap     2>;
+diff --git a/arch/arm/boot/dts/omap5-gpu-thermal.dtsi b/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+index 1b87aca..bc3090f 100644
+--- a/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
++++ b/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+@@ -13,7 +13,7 @@
+ 
+ gpu_thermal: gpu_thermal {
+ 	polling-delay-passive = <250>; /* milliseconds */
+-	polling-delay = <1000>; /* milliseconds */
++	polling-delay = <500>; /* milliseconds */
+ 
+ 			/* sensor       ID */
+ 	thermal-sensors = <&bandgap     1>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index b321fdf..fee1580 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -1079,4 +1079,8 @@
+ 	};
+ };
+ 
++&cpu_thermal {
++	polling-delay = <500>; /* milliseconds */
++};
++
+ /include/ "omap54xx-clocks.dtsi"
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.9.5
+
