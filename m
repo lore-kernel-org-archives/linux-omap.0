@@ -1,44 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.20-rc0 breaks nfsroot over usb
-Date: Fri, 27 Feb 2015 20:14:39 +0100
-Message-ID: <20150227191439.GC10971@amd>
-References: <20150217185518.GA3825@amd>
- <20150226221950.GC10204@amd>
- <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: bluetooth on n900 -- working patch
+Date: Fri, 27 Feb 2015 20:15:00 +0100
+Message-ID: <201502272015.00226@pali>
+References: <20150211104136.GA1788@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart3980229.CxZXKoCU27";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
+In-Reply-To: <20150211104136.GA1788@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Arnd Bergmann <arnd@arndb.de>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri 2015-02-27 01:03:07, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Thu, Feb 26, 2015 at 11:19:50PM +0100, Pavel Machek wrote:
-> > Ok, it seems that new config dependencies broke my kconfig. These will
-> > not be enabled if you just to make oldconfig; you want to make sure
-> > they are on.
-> > 
-> >  OMAP2430 and onwards (USB_MUSB_OMAP2PLUS) [N/m/y] (NEW)
-> > TWL4030 USB Transceiver Driver (TWL4030_USB) [N/m/y/?] (NEW)
-> 
-> Yes, also other users have reported "USB breakage" with 4.0-rc1 on N900
-> etc caused by this.
-> 
-> Commit fbba7db3990cb707ff91cd6507d53a0a730afe97 (usb: musb:
-> add omap-control dependency) changed USB_MUSB_OMAP2PLUS to depend
+--nextPart3980229.CxZXKoCU27
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Too bad noone told me. I had a lot of fun trying to bisect config
-problem. I have yet to try the nfsroot, but I guess it should be ok
-now.
+On Wednesday 11 February 2015 11:41:36 Pavel Machek wrote:
+> Hi!
+>=20
+> Here's current version of the bluetooth patch, I hope I did
+> not miss anything. This time including dts changes, so that
+> driver is active.
+>=20
+> I have firmware in /lib/firmware/nokia/bcmfw.bin
+>=20
+> Best regards,
+> 								Pavel
+>=20
 
-Thanks,
+Do you have userspace application for initializing mac address?
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3980229.CxZXKoCU27
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlTwwjQACgkQi/DJPQPkQ1JeDQCgwfk1mm4ZI87MTVfjA4EZn53T
+YEQAn2PS0+B8vcjkuiMNqTiGPlmUFg5z
+=o/v/
+-----END PGP SIGNATURE-----
+
+--nextPart3980229.CxZXKoCU27--
