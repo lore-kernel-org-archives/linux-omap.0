@@ -1,36 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] ARM: dts: add openpandora device support
-Date: Fri, 27 Feb 2015 08:04:02 -0800
-Message-ID: <20150227160402.GV11056@atomide.com>
-References: <1424202743-26387-1-git-send-email-marek@goldelico.com>
- <CANOLnOOMLxDV6vQagfRaS7_YY6at91BbL0jPKkNQn-tYDnJEuw@mail.gmail.com>
- <CAAfyv376B4CmzN7gtqdwdOE_URo0ksKDE6GXiiRjqNg0FX6WTw@mail.gmail.com>
+Subject: Re: [PATCH 07/10] ARM: dts: n9/n950: Enable omap crypto support
+Date: Fri, 27 Feb 2015 08:10:04 -0800
+Message-ID: <20150227161004.GW11056@atomide.com>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+ <1424958600-18881-8-git-send-email-pali.rohar@gmail.com>
+ <20150227154319.GT11056@atomide.com>
+ <201502271701.56059@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery3.ore.mailhop.org ([54.213.22.21]:56093 "EHLO
-	pmta2.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753025AbbB0QIG (ORCPT
+Received: from pmta2.delivery5.ore.mailhop.org ([54.186.218.12]:48058 "EHLO
+	pmta2.delivery5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751776AbbB0QsL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Feb 2015 11:08:06 -0500
+	Fri, 27 Feb 2015 11:48:11 -0500
 Content-Disposition: inline
-In-Reply-To: <CAAfyv376B4CmzN7gtqdwdOE_URo0ksKDE6GXiiRjqNg0FX6WTw@mail.gmail.com>
+In-Reply-To: <201502271701.56059@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Mark Rutland <mark.rutland@arm.com>, Grazvydas Ignotas <notasas@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, robh+dt@kernel.org, Kumar Gala <galak@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
 
-* Belisko Marek <marek.belisko@gmail.com> [150227 00:37]:
-> Tony,
-> 
-> should I send v3 (with updates) or can you apply current version? Thanks.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150227 08:05]:
+> On Friday 27 February 2015 16:43:20 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150226 05:54]:
+> > > Harmattan system on Nokia N9 and N950 devices uses omap
+> > > crypto support. Bootloader on those devices is known that
+> > > it enables HW crypto support. This patch just include
+> > > omap36xx.dtsi directly, so aes and sham is enabled.
+> >=20
+> > Let's also remove omap36xx-hs.dtsi with this patch if no other
+> > users.
+> >=20
+>=20
+> Removing both -hs files is done by last patch in this series.
 
-Well if you trust me a) to rembember to apply the patches b) remember to
-apply the ack c) remember to fix the pin d) actually get it done right
-when I do it, then sure I can apply them. Seriously, it's usually best
-to repost if changes are needed because otherwise things can go wrong
-and things can get a bit overwhelming for me here and there :)
+Yes just noticed thanks, no need to change.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
