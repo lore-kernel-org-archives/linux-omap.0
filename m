@@ -1,35 +1,101 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/2] w1: masters: omap_hdq: Add support for 1-wire mode
-Date: Fri, 27 Feb 2015 11:34:22 +0100
-Message-ID: <4111301.XAv3eRBo5S@wuerfel>
-References: <1425029057-5075-1-git-send-email-vigneshr@ti.com> <10805905.OnX7kRTk9d@wuerfel> <54F04767.5070001@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 4/8] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output
+ for DTS
+Date: Fri, 27 Feb 2015 12:43:54 +0200
+Message-ID: <54F04A6A.7040305@ti.com>
+References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <54F04767.5070001@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Evgeniy Polyakov <zbr@ioremap.net>, Jonathan Corbet <corbet@lwn.net>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, NeilBrown <neilb@suse.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, balbi@ti.com, linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 27 February 2015 16:01:03 Vignesh R wrote:
-> On Friday 27 February 2015 03:25 PM, Arnd Bergmann wrote:
-> > On Friday 27 February 2015 14:54:17 Vignesh R wrote:
-> >> +- compatible : should be "ti,omap3-1w" or "ti,am43xx-hdq"
-> >>
-> > 
-> > Do not use wildcards in the compatible string, use real part numbers
-> > if you don't know the actual name of the device.
-> 
-> 
-> The DT node for hdq on AM437x is already present in mainline
-> (commit: 741cac5f00beb) and it declares compatibility as
-> "ti,am43xx-hdq". Hence, I cannot change into anything different.
-> 
+Robert,
 
-No, there is no driver using this device, and the binding was
-not documented, so there is no problem in changing it: nobody
-will notice a regression when it was never working before.
+On 26/02/15 16:45, Robert ABEL wrote:
+> DTS output was formatted to require additional work when copy-pasting into DTS.
+> Nano-second timings were replaced with interval of values that produce the same
+> number of clock ticks.
+> 
+> Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+> ---
+>  drivers/memory/omap-gpmc.c | 35 ++++++++++++++++++++++++++---------
+>  1 file changed, 26 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index dbb6753..9340e7a 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -337,32 +337,49 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+>  }
+>  
+>  #ifdef DEBUG
+> +/**
+> + * get_gpmc_timing_reg - read a timing parameter and print DTS settings for it.
+> + * @cs      Chip Select Region
+> + * @reg     GPMC_CS_CONFIGn register offset.
+> + * @st_bit  Start Bit
+> + * @end_bit End Bit. Must be >= @st_bit.
+> + * @name    DTS node name, w/o "gpmc,"
+> + * @raw     Raw Format Option.
+> + *          raw format:  gpmc,name = <value>
+> + *          tick format: gpmc,name = <value> /&zwj;*(x ns -- y ns]; x ticks *&zwj;/
+> + *          Where (x ns -- y ns] is the half-open interval from x ns to y ns that
+> + *          result in the same tick value.
+> + * @noval   Parameter values equal to 0 are not printed.
+> + * @shift   Parameter value left shifts @shift, which is then printed instead of value.
+> + *
+> + */
+>  static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+>  			       bool raw, bool noval, int shift,
+>  			       const char *name)
+>  {
+>  	u32 l;
+> -	int nr_bits, max_value, mask;
+> +	int nr_bits;
+> +	int mask;
+>  
+>  	l = gpmc_cs_read_reg(cs, reg);
+>  	nr_bits = end_bit - st_bit + 1;
+> -	max_value = (1 << nr_bits) - 1;
+> -	mask = max_value << st_bit;
+> -	l = (l & mask) >> st_bit;
+> +	mask = (1 << nr_bits) - 1;
+> +	l = (l >> st_bit) & mask;
+>  	if (shift)
+>  		l = (shift << l);
+>  	if (noval && (l == 0))
+>  		return 0;
+>  	if (!raw) {
+> -		unsigned int time_ns_min, time_ns, time_ns_max;
+> +		/* DTS tick format for timings in ns */
+> +		unsigned int time_ns;
+> +		unsigned int time_ns_min;
+>  
+>  		time_ns_min = gpmc_ticks_to_ns(l ? l - 1 : 0);
 
-	Arnd
+should be
+		time_ns_min = l ? gpmc_ticks_to_ns(l - 1) + 1 : 0;
+
+		+ 1ns since we don't want to fall into the previous tick bracket.
+		for l == 0 we have t_min as 0. no need to pass it through gpmc_ticks_to_ns() or add 1 ns.
+
+>  		time_ns = gpmc_ticks_to_ns(l);
+> -		time_ns_max = gpmc_ticks_to_ns(l + 1 > max_value ?
+> -					       max_value : l + 1);
+> -		pr_info("gpmc,%s = <%u> (%u - %u ns, %i ticks)\n",
+> -			name, time_ns, time_ns_min, time_ns_max, l);
+> +		pr_info("gpmc,%s = <%u> /* (%u ns - %u ns]; %i ticks */\n",
+> +			name, time_ns, time_ns_min, time_ns, l);
+>  	} else {
+> +		/* raw format */
+>  		pr_info("gpmc,%s = <%u>\n", name, l);
+>  	}
+>  
+> 
+cheers,
+-roger
