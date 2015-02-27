@@ -1,55 +1,88 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH 09/21] drm/omap: handle mismatching color format and
- buffer width
-Date: Fri, 27 Feb 2015 16:47:22 +0100
-Message-ID: <20150227154722.GQ24485@phenom.ffwll.local>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
- <1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>
- <20150227130158.GX24485@phenom.ffwll.local>
- <CAPj87rP4675D9WY8eGUPCePcx7Oi+faYs5K4B_BGtyh1H4RmJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAPj87rP4675D9WY8eGUPCePcx7Oi+faYs5K4B_BGtyh1H4RmJA@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Daniel Stone <daniel@fooishbar.org>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+Subject: [PATCH 4/8 v4] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
+Date: Fri, 27 Feb 2015 16:56:51 +0100
+Message-ID: <1425052615-29093-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+References: <1425052615-29093-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425052615-29093-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBGZWIgMjcsIDIwMTUgYXQgMDI6NDA6MjBQTSArMDAwMCwgRGFuaWVsIFN0b25lIHdy
-b3RlOgo+IE9uIDI3IEZlYnJ1YXJ5IDIwMTUgYXQgMTM6MDEsIERhbmllbCBWZXR0ZXIgPGRhbmll
-bEBmZndsbC5jaD4gd3JvdGU6Cj4gPiBPbiBUaHUsIEZlYiAyNiwgMjAxNSBhdCAwMzoyMDoxN1BN
-ICswMjAwLCBUb21pIFZhbGtlaW5lbiB3cm90ZToKPiA+PiBvbWFwZHJtIGRvZXNuJ3QgY2hlY2sg
-aWYgdGhlIHdpZHRoIG9mIHRoZSBmcmFtZWJ1ZmZlciBhbmQgdGhlIGNvbG9yCj4gPj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZmIuYyBiL2RyaXZlcnMvZ3B1L2Ry
-bS9vbWFwZHJtL29tYXBfZmIuYwo+ID4+IGluZGV4IDI5NzUwOTZhYmRmNS4uYmY5ODU4MDIyM2Qw
-IDEwMDY0NAo+ID4+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZmIuYwo+ID4+
-ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZmIuYwo+ID4+IEBAIC00NjMsNiAr
-NDYzLDE0IEBAIHN0cnVjdCBkcm1fZnJhbWVidWZmZXIgKm9tYXBfZnJhbWVidWZmZXJfaW5pdChz
-dHJ1Y3QgZHJtX2RldmljZSAqZGV2LAo+ID4+ICAgICAgICAgICAgICAgICAgICAgICBnb3RvIGZh
-aWw7Cj4gPj4gICAgICAgICAgICAgICB9Cj4gPj4KPiA+PiArICAgICAgICAgICAgIGlmIChtb2Rl
-X2NtZC0+d2lkdGggJSBmb3JtYXQtPnBsYW5lc1tpXS5zdHJpZGVfYnBwICE9IDApIHsKPiA+Cj4g
-PiB3aWR0aCBpcyBpbiBwaXhlbHMuIE5vIGlkZWEgd2hhdCB5b3UncmUgdHJ5aW5nIHRvIGNoZWNr
-IGhlcmUsIGJ1dCB0aGlzCj4gPiBwcm9iYWJseSBpc24ndCBpdC4KPiAKPiBzdHJpZGVfYnBwIGlz
-IHZlcnkgbWlzbmFtZWQ6IGl0IGlzIHRoZSBiaXRzIHBlciBwaXhlbCBmb3IgdGhhdCBwbGFuZSwK
-PiBhbmQgbm90IHN0cmlkZSBhdCBhbGwuIEkgdGhpbmsgdGhlIGNoZWNrIHNob3VsZCBpbiBmYWN0
-IGJlIGJlIChwaXRjaCAlCj4gZm9ybWF0LT5wbGFuZXNbaV0uc3RyaWRlX2JwcCksIHdoaWNoIHdv
-dWxkIGFjaGlldmUgdGhlIGRlc2lyZWQgcmVzdWx0LAo+IGkuZS4gdGhhdCB0aGUgc3RyaWRlIGNh
-biBiZSBleHByZXNzZWQgYXMgYW4gaW50ZWdlciBudW1iZXIgb2YgcGl4ZWxzLgoKSSBtZWFudCB0
-aGF0IG1vZGVfY21kLT53aWR0aCBpcyBpbiBwaXhlbHMgYW5kIHNvIHRvdGFsbHkgbm90IHdoYXQg
-eW91IHdhbnQKdG8gY2hlY2sgaGVyZS4gSXQgcHJvYmFibHkgc2hvdWxkIGJlIG1vZGVfY21kLT5w
-aXRjaGVzW2ldLgotRGFuaWVsCi0tIApEYW5pZWwgVmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJ
-bnRlbCBDb3Jwb3JhdGlvbgorNDEgKDApIDc5IDM2NSA1NyA0OCAtIGh0dHA6Ly9ibG9nLmZmd2xs
-LmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+DTS output was formatted to require additional work when copy-pasting into DTS.
+Nano-second timings were replaced with interval of values that produce the same
+number of clock ticks.
+
+Signed-off-by: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+---
+ drivers/memory/omap-gpmc.c | 38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index dbb6753..432e638 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -337,32 +337,50 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+ }
+ 
+ #ifdef DEBUG
++/**
++ * get_gpmc_timing_reg - read a timing parameter and print DTS settings for it.
++ * @cs:      Chip Select Region
++ * @reg:     GPMC_CS_CONFIGn register offset.
++ * @st_bit:  Start Bit
++ * @end_bit: End Bit. Must be >= @st_bit.
++ * @name:    DTS node name, w/o "gpmc,"
++ * @raw:     Raw Format Option.
++ *           raw format:  gpmc,name = <value>
++ *           tick format: gpmc,name = <value> /&zwj;* x ns -- y ns; x ticks *&zwj;/
++ *           Where x ns -- y ns result in the same tick value.
++ * @noval:   Parameter values equal to 0 are not printed.
++ * @shift:   Parameter value left shifts @shift, which is then printed instead of value.
++ * @return:  Specified timing parameter (after optional @shift).
++ *
++ */
+ static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 			       bool raw, bool noval, int shift,
+ 			       const char *name)
+ {
+ 	u32 l;
+-	int nr_bits, max_value, mask;
++	int nr_bits;
++	int mask;
+ 
+ 	l = gpmc_cs_read_reg(cs, reg);
+ 	nr_bits = end_bit - st_bit + 1;
+-	max_value = (1 << nr_bits) - 1;
+-	mask = max_value << st_bit;
+-	l = (l & mask) >> st_bit;
++	mask = (1 << nr_bits) - 1;
++	l = (l >> st_bit) & mask;
+ 	if (shift)
+ 		l = (shift << l);
+ 	if (noval && (l == 0))
+ 		return 0;
+ 	if (!raw) {
+-		unsigned int time_ns_min, time_ns, time_ns_max;
++		/* DTS tick format for timings in ns */
++		unsigned int time_ns;
++		unsigned int time_ns_min = 0;
+ 
+-		time_ns_min = gpmc_ticks_to_ns(l ? l - 1 : 0);
++		if (l)
++			time_ns_min = gpmc_ticks_to_ns(l - 1) + 1;
+ 		time_ns = gpmc_ticks_to_ns(l);
+-		time_ns_max = gpmc_ticks_to_ns(l + 1 > max_value ?
+-					       max_value : l + 1);
+-		pr_info("gpmc,%s = <%u> (%u - %u ns, %i ticks)\n",
+-			name, time_ns, time_ns_min, time_ns_max, l);
++		pr_info("gpmc,%s = <%u> /* %u ns - %u ns; %i ticks */\n",
++		        name, time_ns, time_ns_min, time_ns, l);
+ 	} else {
++		/* raw format */
+ 		pr_info("gpmc,%s = <%u>\n", name, l);
+ 	}
+ 
+-- 
+2.3.0
