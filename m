@@ -1,59 +1,53 @@
-From: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
-Subject: [PATCH 0/8 v4] ARM OMAP2+ GPMC: fixes and bus children
-Date: Fri, 27 Feb 2015 16:56:47 +0100
-Message-ID: <1425052615-29093-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 07/10] ARM: dts: n9/n950: Enable omap crypto support
+Date: Fri, 27 Feb 2015 17:01:55 +0100
+Message-ID: <201502271701.56059@pali>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com> <1424958600-18881-8-git-send-email-pali.rohar@gmail.com> <20150227154319.GT11056@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart3567900.KJ299vtNQS";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150227154319.GT11056@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, rogerq@ti.com, linux-omap@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-These are the changes I proposed in these patch series: [1], [2], [3], [4]
-rebased to 3.19 as well as new changes for little bugs I noticed while
-preparing this patch series as well as changes introduced via comments.
+--nextPart3567900.KJ299vtNQS
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-1. DEBUG was undefined in source code --> remove offending lines
-2. add capability to have busses as children of the GPMC and multiple
-   devices on a bus. See [2] for an example DTS syntax.
-3. debug output was unaligned --> align it
-4. output for copy-pasting to DTS had erroneous timing outputs and
-   made it hard to copy-paste --> correct timing values, add comments
-   as DTS comments.
-5. WAITMONITORINGTIME is expressed as GPMC_CLK cycles for all accesses.
-   GPMCFCLKDIVIDER is used as a divider, so it must always be programmed.
-6. GPMCFCLKDIVIDER is calculated according to WAITMONITORINGTIME for
-   asynchronous accesses inside the driver --> asynchronous accesses now
-   completely decoupled from gpmc,sync-clk-ps.
-7. WAITMONITORINGTIME was being programmed/shown in GPMC_FCLK cycles instead
-   of GPMC_CLK cycles --> add clock domain information where necessary.
-8. Calculated values for WAITMONITORINGTIME and CLKACTIVATIONTIME that were
-   outside the defined range would not raise an error.
-   DEVICESIZE, ATTACHEDDEVICEPAGELENGTH, WAITMONITORINGTIME and
-   CLKACTIVATIONTIME would not be marked as incorrect on DTS output.
-   --> Fix all of these.
+On Friday 27 February 2015 16:43:20 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150226 05:54]:
+> > Harmattan system on Nokia N9 and N950 devices uses omap
+> > crypto support. Bootloader on those devices is known that
+> > it enables HW crypto support. This patch just include
+> > omap36xx.dtsi directly, so aes and sham is enabled.
+>=20
+> Let's also remove omap36xx-hs.dtsi with this patch if no other
+> users.
+>=20
 
-[1]: https://lkml.org/lkml/2015/2/12/495
-[2]: https://lkml.org/lkml/2015/2/16/337
-[3]: https://lkml.org/lkml/2015/2/24/609
-[4]: https://lkml.org/lkml/2015/2/26/387
+Removing both -hs files is done by last patch in this series.
 
-Robert ABEL (9):
-  ARM OMAP2+ GPMC: don't undef DEBUG
-  ARM OMAP2+ GPMC: add bus children
-  ARM OMAP2+ GPMC: fix debug output alignment
-  ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
-  ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-  ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based on WAITMONITORINGTIME
-  ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
-  ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
- arch/arm/mach-omap2/gpmc-nand.c    |  17 +-
- arch/arm/mach-omap2/gpmc-onenand.c |   4 +-
- arch/arm/mach-omap2/usb-tusb6010.c |   4 +-
- drivers/memory/Makefile            |   2 +
- drivers/memory/omap-gpmc.c         | 313 +++++++++++++++++++++++++++++--------
- include/linux/omap-gpmc.h          |   2 +-
- 6 files changed, 265 insertions(+), 77 deletions(-)
+--nextPart3567900.KJ299vtNQS
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
--- 
-2.3.0
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlTwlPQACgkQi/DJPQPkQ1L9WwCgi5bGveyREntli9FX/OZjUauZ
+oDoAniRo/mlDpyOwfiptTJuL96NX/kFR
+=TnWn
+-----END PGP SIGNATURE-----
+
+--nextPart3567900.KJ299vtNQS--
