@@ -1,48 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.20-rc0 breaks nfsroot over usb
-Date: Fri, 27 Feb 2015 07:38:09 -0800
-Message-ID: <20150227153809.GS11056@atomide.com>
-References: <20150217185518.GA3825@amd>
- <20150226221950.GC10204@amd>
- <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 09/21] drm/omap: handle mismatching color format and
+ buffer width
+Date: Fri, 27 Feb 2015 16:47:22 +0100
+Message-ID: <20150227154722.GQ24485@phenom.ffwll.local>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+ <1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>
+ <20150227130158.GX24485@phenom.ffwll.local>
+ <CAPj87rP4675D9WY8eGUPCePcx7Oi+faYs5K4B_BGtyh1H4RmJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta1.delivery8.ore.mailhop.org ([54.191.158.99]:41964 "EHLO
-	pmta1.delivery8.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751270AbbB0PmN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Feb 2015 10:42:13 -0500
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAPj87rP4675D9WY8eGUPCePcx7Oi+faYs5K4B_BGtyh1H4RmJA@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Daniel Stone <daniel@fooishbar.org>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, Arnd Bergmann <arnd@arndb.de>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [150226 15:06]:
-> Hi,
-> 
-> On Thu, Feb 26, 2015 at 11:19:50PM +0100, Pavel Machek wrote:
-> > Ok, it seems that new config dependencies broke my kconfig. These will
-> > not be enabled if you just to make oldconfig; you want to make sure
-> > they are on.
-> > 
-> >  OMAP2430 and onwards (USB_MUSB_OMAP2PLUS) [N/m/y] (NEW)
-> > TWL4030 USB Transceiver Driver (TWL4030_USB) [N/m/y/?] (NEW)
-> 
-> Yes, also other users have reported "USB breakage" with 4.0-rc1 on N900
-> etc caused by this.
-> 
-> Commit fbba7db3990cb707ff91cd6507d53a0a730afe97 (usb: musb:
-> add omap-control dependency) changed USB_MUSB_OMAP2PLUS to depend
-> on OMAP_CONTROL_PHY but that seems to be wrong at least for OMAP3.
-> omap_control_phy.h provides dummy functions when it's not enabled.
-> So there should be no dependency.
-
-I guess the solution would be to make drivers/phy handle whatever
-omap_control_usb_set_mode is doing in a generic way.
-
-Regards,
-
-Tony
+T24gRnJpLCBGZWIgMjcsIDIwMTUgYXQgMDI6NDA6MjBQTSArMDAwMCwgRGFuaWVsIFN0b25lIHdy
+b3RlOgo+IE9uIDI3IEZlYnJ1YXJ5IDIwMTUgYXQgMTM6MDEsIERhbmllbCBWZXR0ZXIgPGRhbmll
+bEBmZndsbC5jaD4gd3JvdGU6Cj4gPiBPbiBUaHUsIEZlYiAyNiwgMjAxNSBhdCAwMzoyMDoxN1BN
+ICswMjAwLCBUb21pIFZhbGtlaW5lbiB3cm90ZToKPiA+PiBvbWFwZHJtIGRvZXNuJ3QgY2hlY2sg
+aWYgdGhlIHdpZHRoIG9mIHRoZSBmcmFtZWJ1ZmZlciBhbmQgdGhlIGNvbG9yCj4gPj4gZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZmIuYyBiL2RyaXZlcnMvZ3B1L2Ry
+bS9vbWFwZHJtL29tYXBfZmIuYwo+ID4+IGluZGV4IDI5NzUwOTZhYmRmNS4uYmY5ODU4MDIyM2Qw
+IDEwMDY0NAo+ID4+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZmIuYwo+ID4+
+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfZmIuYwo+ID4+IEBAIC00NjMsNiAr
+NDYzLDE0IEBAIHN0cnVjdCBkcm1fZnJhbWVidWZmZXIgKm9tYXBfZnJhbWVidWZmZXJfaW5pdChz
+dHJ1Y3QgZHJtX2RldmljZSAqZGV2LAo+ID4+ICAgICAgICAgICAgICAgICAgICAgICBnb3RvIGZh
+aWw7Cj4gPj4gICAgICAgICAgICAgICB9Cj4gPj4KPiA+PiArICAgICAgICAgICAgIGlmIChtb2Rl
+X2NtZC0+d2lkdGggJSBmb3JtYXQtPnBsYW5lc1tpXS5zdHJpZGVfYnBwICE9IDApIHsKPiA+Cj4g
+PiB3aWR0aCBpcyBpbiBwaXhlbHMuIE5vIGlkZWEgd2hhdCB5b3UncmUgdHJ5aW5nIHRvIGNoZWNr
+IGhlcmUsIGJ1dCB0aGlzCj4gPiBwcm9iYWJseSBpc24ndCBpdC4KPiAKPiBzdHJpZGVfYnBwIGlz
+IHZlcnkgbWlzbmFtZWQ6IGl0IGlzIHRoZSBiaXRzIHBlciBwaXhlbCBmb3IgdGhhdCBwbGFuZSwK
+PiBhbmQgbm90IHN0cmlkZSBhdCBhbGwuIEkgdGhpbmsgdGhlIGNoZWNrIHNob3VsZCBpbiBmYWN0
+IGJlIGJlIChwaXRjaCAlCj4gZm9ybWF0LT5wbGFuZXNbaV0uc3RyaWRlX2JwcCksIHdoaWNoIHdv
+dWxkIGFjaGlldmUgdGhlIGRlc2lyZWQgcmVzdWx0LAo+IGkuZS4gdGhhdCB0aGUgc3RyaWRlIGNh
+biBiZSBleHByZXNzZWQgYXMgYW4gaW50ZWdlciBudW1iZXIgb2YgcGl4ZWxzLgoKSSBtZWFudCB0
+aGF0IG1vZGVfY21kLT53aWR0aCBpcyBpbiBwaXhlbHMgYW5kIHNvIHRvdGFsbHkgbm90IHdoYXQg
+eW91IHdhbnQKdG8gY2hlY2sgaGVyZS4gSXQgcHJvYmFibHkgc2hvdWxkIGJlIG1vZGVfY21kLT5w
+aXRjaGVzW2ldLgotRGFuaWVsCi0tIApEYW5pZWwgVmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJ
+bnRlbCBDb3Jwb3JhdGlvbgorNDEgKDApIDc5IDM2NSA1NyA0OCAtIGh0dHA6Ly9ibG9nLmZmd2xs
+LmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
