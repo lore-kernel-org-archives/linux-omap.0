@@ -1,66 +1,77 @@
-From: <grygorii.strashko@linaro.org>
-Subject: [PATCH] mmc: omap_hsmmc: add hibernation support
-Date: Fri, 27 Feb 2015 13:24:34 +0200
-Message-ID: <1425036274-9017-1-git-send-email-grygorii.strashko@linaro.org>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <chris@printf.net>, Ulf Hansson <ulf.hansson@linaro.org>, Felipe Balbi <balbi@ti.com>
-Cc: nm@ti.com, sumit.semwal@linaro.org, NeilBrown <neilb@suse.de>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>, Grygorii Strashko <grygorii.strashko@linaro.org>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 06/21] drm/omap: check CRTC color format earlier
+Date: Fri, 27 Feb 2015 13:07:57 +0100
+Message-ID: <20150227120757.GW24485@phenom.ffwll.local>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+ <1424956829-22892-7-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1424956829-22892-7-git-send-email-tomi.valkeinen@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <Russ.Dill@ti.com>
-
-Setting a dev_pm_ops suspend/resume pair but not a set of
-hibernation functions means those pm functions will not be
-called upon hibernation.
-Fix this by using SET_SYSTEM_SLEEP_PM_OPS, which appropriately
-assigns the suspend and hibernation handlers and move
-omap_hsmmc_x callbacks under CONFIG_PM_SLEEP to avoid build warnings.
-
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-[Grygorii.Strashko@linaro.org: rebased on top of K4.0]
-Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
----
-
-original patch: https://github.com/russdill/linux/commit/2ea98def0717f0918426c2004122c63d52cff1b4
-
- drivers/mmc/host/omap_hsmmc.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f84cfb0..9cc1ea3 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2236,7 +2236,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int omap_hsmmc_suspend(struct device *dev)
- {
- 	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-@@ -2292,10 +2292,6 @@ static int omap_hsmmc_resume(struct device *dev)
- 	pm_runtime_put_autosuspend(host->dev);
- 	return 0;
- }
--
--#else
--#define omap_hsmmc_suspend	NULL
--#define omap_hsmmc_resume	NULL
- #endif
- 
- static int omap_hsmmc_runtime_suspend(struct device *dev)
-@@ -2376,8 +2372,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- }
- 
- static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
--	.suspend	= omap_hsmmc_suspend,
--	.resume		= omap_hsmmc_resume,
-+	SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
- 	.runtime_suspend = omap_hsmmc_runtime_suspend,
- 	.runtime_resume = omap_hsmmc_runtime_resume,
- };
--- 
-1.9.1
-
+T24gVGh1LCBGZWIgMjYsIDIwMTUgYXQgMDM6MjA6MTRQTSArMDIwMCwgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gV2hlbiBzZXR0aW5nIGEgY29sb3IgZm9ybWF0IHRvIGEgRFJNIHBsYW5lLCB0aGUg
+RFJNIGNvcmUgY2hlY2tzIHdoZXRoZXIKPiB0aGUgZm9ybWF0IGlzIHN1cHBvcnRlZCBieSB0aGUg
+SFcuIEhvd2V2ZXIsIGl0IHNlZW1zIHRoYXQgd2hlbiBzZXR0aW5nCj4gdGhlIGNvbG9yIGZvcm1h
+dCBvZiBhIENSVEMgKGkuZS4gYSByb290IHBsYW5lKSwgdGhlcmUncyBubyBjaGVja2luZwo+IGRv
+bmUuIFRoaXMgY2F1c2VzIG9tYXBkcm0gdG8gY29uZmlndXJlIG9tYXBkc3Mgd2l0aCB0aGUgYmFk
+IGNvbG9yCj4gZm9ybWF0LCB3aGljaCBvbWFwZHNzIHRoZW4gcmVqZWN0cy4KPiAKPiBXaGlsZSB0
+aGUgYWJvdmUgaXMgb2ssIHRoZSBlcnJvciBtZXNzYWdlIGlzIGEgYml0IGNvbmZ1c2luZywgYW5k
+IHRoZQo+IGNvbmZpZ3VyaW5nIG9mIG9tYXBkc3MgaGFwcGVucyBhc3luY2hyb25vdXNseSBmcm9t
+IHRoZSBpb2N0bCB0aGF0IGRvZXMKPiB0aGUgY29sb3IgZm9ybWF0IGNoYW5nZS4KPiAKPiBUaGlz
+IHBhdGNoIGFkZHMgYSBjb2xvciBmb3JtYXQgY2hlY2sgdG8gb21hcF9wbGFuZV9tb2RlX3NldCgp
+IHdoaWNoCj4gY2F1c2VzIHRoZSBpb2N0bCB0byByZXR1cm4gYW4gZXJyb3IgZm9yIGludmFsaWQg
+Y29sb3IgZm9ybWF0LiBUaGlzIG1lYW5zCj4gdGhhdCB0aGUgdXNlcnNwYWNlIHdpbGwgZ2V0IHRv
+IGtub3cgb2YgdGhlIHdyb25nIHNldHRpbmcsIGluc3RlYWQgb2YgdGhlCj4gY3VycmVudCBiZWhh
+dmlvciB3aGVyZSB0aGUgZXJyb3IgaXMgbm90IHNlZW4gYnkgdGhlIHVzZXJzcGFjZS4KPiAKPiBT
+aWduZWQtb2ZmLWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPgo+IC0t
+LQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMgfCAxOCArKysrKysrKysr
+KysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDE4IGluc2VydGlvbnMoKykKPiAKPiBkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jIGIvZHJpdmVycy9ncHUv
+ZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jCj4gaW5kZXggMWY0ZjJiODY2Mzc5Li5iZWRkNmY3YWYw
+ZjEgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jCj4g
+KysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jCj4gQEAgLTIwNyw2ICsy
+MDcsMjQgQEAgaW50IG9tYXBfcGxhbmVfbW9kZV9zZXQoc3RydWN0IGRybV9wbGFuZSAqcGxhbmUs
+Cj4gIHsKPiAgCXN0cnVjdCBvbWFwX3BsYW5lICpvbWFwX3BsYW5lID0gdG9fb21hcF9wbGFuZShw
+bGFuZSk7Cj4gIAlzdHJ1Y3Qgb21hcF9kcm1fd2luZG93ICp3aW4gPSAmb21hcF9wbGFuZS0+d2lu
+Owo+ICsJaW50IGk7Cj4gKwo+ICsJLyoKPiArCSAqIENoZWNrIHdoZXRoZXIgdGhpcyBwbGFuZSBz
+dXBwb3J0cyB0aGUgZmIgcGl4ZWwgZm9ybWF0Lgo+ICsJICogSSBkb24ndCB0aGluayB0aGlzIHNo
+b3VsZCByZWFsbHkgYmUgbmVlZGVkLCBidXQgaXQgbG9va3MgbGlrZSB0aGUKPiArCSAqIGRybSBj
+b3JlIG9ubHkgY2hlY2tzIHRoZSBmb3JtYXQgZm9yIHBsYW5lcywgbm90IGZvciB0aGUgY3J0Yy4g
+U28KPiArCSAqIHdoZW4gc2V0dGluZyB0aGUgZm9ybWF0IGZvciBjcnRjLCB3aXRob3V0IHRoaXMg
+Y2hlY2sgd2Ugd291bGQKPiArCSAqIGdldCBhbiBlcnJvciBsYXRlciB3aGVuIHRyeWluZyB0byBw
+cm9ncmFtIHRoZSBjb2xvciBmb3JtYXQgaW50byB0aGUKPiArCSAqIEhXLgo+ICsJICovCgpJIHRo
+aW5rIHdlIHNob3VsZCBhZGQgYSBmb3JtYXQgY2hlY2sgdG8gdGhlIHNldGNydGMgaW9jdGwgaWYg
+Y3J0Yy0+cHJpbWFyeQppcyBzZXQuIEF0bSB0aGUgY29kZSBpcyBpbiBfX3NldHBsYW5lX2ludGVy
+bmFsIGJ1dCBjb3VsZCBlYXNpbHkgYmUgc2hhcmVkCi0gdGhlcmUncyBhbHJlYWR5IGEgY29weSBp
+biBkcm1fYXRvbWkuYy4KCk9tYXBkcm0gd291bGRuJ3QgYmVuZWZpdCBmcm9tIHRoaXMgeWV0IHNp
+bmNlIGl0IGRvZXNuJ3Qgc3VwcG9ydCB1bml2ZXJzYWwKcGxhbmVzLiBCdXQgYWRkaW5nIHVuaXZl
+cnNhbCBwbGFuZXMgc2hvdWxkIGJlIG9uIHlvdXIgdG9kbyBhbnl3YXkgOy0pCi1EYW5pZWwKCj4g
+Kwlmb3IgKGkgPSAwOyBpIDwgcGxhbmUtPmZvcm1hdF9jb3VudDsgaSsrKQo+ICsJCWlmIChmYi0+
+cGl4ZWxfZm9ybWF0ID09IHBsYW5lLT5mb3JtYXRfdHlwZXNbaV0pCj4gKwkJCWJyZWFrOwo+ICsJ
+aWYgKGkgPT0gcGxhbmUtPmZvcm1hdF9jb3VudCkgewo+ICsJCURCRygiSW52YWxpZCBwaXhlbCBm
+b3JtYXQgJXMiLAo+ICsJCQkgICAgICBkcm1fZ2V0X2Zvcm1hdF9uYW1lKGZiLT5waXhlbF9mb3Jt
+YXQpKTsKPiArCQlyZXR1cm4gLUVJTlZBTDsKPiArCX0KPiAgCj4gIAl3aW4tPmNydGNfeCA9IGNy
+dGNfeDsKPiAgCXdpbi0+Y3J0Y195ID0gY3J0Y195Owo+IC0tIAo+IDIuMy4wCj4gCj4gX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBkcmktZGV2ZWwgbWFp
+bGluZyBsaXN0Cj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+IGh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwKCi0tIApEYW5pZWwg
+VmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJbnRlbCBDb3Jwb3JhdGlvbgorNDEgKDApIDc5IDM2
+NSA1NyA0OCAtIGh0dHA6Ly9ibG9nLmZmd2xsLmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxp
+c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vZHJpLWRldmVsCg==
