@@ -1,111 +1,123 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v3 2/3] ARM: dts: omap3-pandora: add OMAP3530 600 MHz version
-Date: Fri, 27 Feb 2015 22:26:38 +0100
-Message-ID: <1425072399-23152-3-git-send-email-marek@goldelico.com>
-References: <1425072399-23152-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425072399-23152-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, marek@goldelico.com
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH] ARM: dts: OMAP5: fix polling intervals for thermal zones
+Date: Fri, 27 Feb 2015 17:35:37 -0400
+Message-ID: <20150227213535.GA5633@developer.amazonguestwifi.org>
+References: <1425045543-19540-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:45364 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340AbbB0Vfm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2015 16:35:42 -0500
+Received: by pablf10 with SMTP id lf10so25669626pab.12
+        for <linux-omap@vger.kernel.org>; Fri, 27 Feb 2015 13:35:42 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1425045543-19540-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
 
-Added Pandora Rebirth model which is based on Pandora
-Classic with 512 MiB DDR-333 SDRAM memory.
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
-Reviewed-by: Grazvydas Ignotas <notasas@gmail.com>
----
- arch/arm/boot/dts/Makefile                 |  1 +
- arch/arm/boot/dts/omap3-pandora-600mhz.dts | 65 ++++++++++++++++++++++++++++++
- 2 files changed, 66 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-pandora-600mhz.dts
+On Fri, Feb 27, 2015 at 03:59:03PM +0200, Tero Kristo wrote:
+> OMAP4 has a finer counter granularity, which allows for a delay of 1000ms
+> in the thermal zone polling intervals. OMAP5 has a different counter
+> mechanism, which allows at maximum a 500ms timer. Adjust the cpu thermal
+> zone polling interval accordingly.
+>=20
+> Without this patch, the polling interval information is simply ignored,
+> and the following thermal warnings are printed during boot (assuming
+> thermal is enabled);
+>=20
+> [    1.545343] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supp=
+orted
+> [    1.552691] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supp=
+orted
+> [    1.560029] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supp=
+orted
+>=20
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 91bd5bd..eddbeee 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -343,6 +343,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
- 	omap3-overo-storm-tobi.dtb \
- 	omap3-overo-summit.dtb \
- 	omap3-overo-tobi.dtb \
-+	omap3-pandora-600mhz.dtb \
- 	omap3-sbc-t3517.dtb \
- 	omap3-sbc-t3530.dtb \
- 	omap3-sbc-t3730.dtb \
-diff --git a/arch/arm/boot/dts/omap3-pandora-600mhz.dts b/arch/arm/boot/dts/omap3-pandora-600mhz.dts
-new file mode 100644
-index 0000000..fb803a7
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-pandora-600mhz.dts
-@@ -0,0 +1,65 @@
-+/*
-+ * Copyright (C) 2015
-+ *   Nikolaus Schaller <hns@goldelico.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * device tree for OpenPandora with OMAP3530
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap34xx.dtsi"
-+#include "omap3-pandora-common.dtsi"
-+
-+/ {
-+	model = "Pandora Handheld Console";
-+
-+	compatible = "ti,omap3";
-+};
-+
-+&omap3_pmx_core2 {
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&hsusb2_2_pins
-+		&control_pins
-+	>;
-+
-+	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+		>;
-+	};
-+
-+	mmc3_pins: pinmux_mmc3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3430_CORE2_IOPAD(0x25d8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_clk.sdmmc3_clk */
-+			OMAP3430_CORE2_IOPAD(0x25da, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_ctl.sdmmc3_cmd */
-+			OMAP3430_CORE2_IOPAD(0x25e2, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d3.sdmmc3_dat3 */
-+			OMAP3430_CORE2_IOPAD(0x25e4, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d4.sdmmc3_dat0 */
-+			OMAP3430_CORE2_IOPAD(0x25e6, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d5.sdmmc3_dat1 */
-+			OMAP3430_CORE2_IOPAD(0x25e8, PIN_INPUT_PULLUP | MUX_MODE2)	/* etk_d6.sdmmc3_dat2 */
-+		>;
-+	};
-+
-+	control_pins: pinmux_control_pins {
-+		pinctrl-single,pins = <
-+			OMAP3430_CORE2_IOPAD(0x25dc, PIN_INPUT_PULLDOWN | MUX_MODE4)	/* etk_d0.gpio_14 =  HP_SHUTDOWN */
-+			OMAP3430_CORE2_IOPAD(0x25de, PIN_OUTPUT | MUX_MODE4)		/* etk_d1.gpio_15 =  BT_SHUTDOWN */
-+			OMAP3430_CORE2_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE4)		/* etk_d2.gpio_16 =  RESET_USB_HOST */
-+			OMAP3430_CORE2_IOPAD(0x25ea, PIN_INPUT | MUX_MODE4)		/* etk_d7.gpio_21 =  WIFI IRQ */
-+			OMAP3430_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)		/* etk_d8.gpio_22 =  MSECURE */
-+			OMAP3430_CORE2_IOPAD(0x25ee, PIN_OUTPUT | MUX_MODE4)		/* etk_d9.gpio_23 =  WIFI_POWER */
-+		>;
-+	};
-+};
--- 
-1.9.1
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
+
+
+> ---
+>  arch/arm/boot/dts/omap5-core-thermal.dtsi |    2 +-
+>  arch/arm/boot/dts/omap5-gpu-thermal.dtsi  |    2 +-
+>  arch/arm/boot/dts/omap5.dtsi              |    4 ++++
+>  3 files changed, 6 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/omap5-core-thermal.dtsi b/arch/arm/boot/dt=
+s/omap5-core-thermal.dtsi
+> index 19212ac..de8a3d4 100644
+> --- a/arch/arm/boot/dts/omap5-core-thermal.dtsi
+> +++ b/arch/arm/boot/dts/omap5-core-thermal.dtsi
+> @@ -13,7 +13,7 @@
+> =20
+>  core_thermal: core_thermal {
+>  	polling-delay-passive =3D <250>; /* milliseconds */
+> -	polling-delay =3D <1000>; /* milliseconds */
+> +	polling-delay =3D <500>; /* milliseconds */
+> =20
+>  			/* sensor       ID */
+>  	thermal-sensors =3D <&bandgap     2>;
+> diff --git a/arch/arm/boot/dts/omap5-gpu-thermal.dtsi b/arch/arm/boot/dts=
+/omap5-gpu-thermal.dtsi
+> index 1b87aca..bc3090f 100644
+> --- a/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+> +++ b/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
+> @@ -13,7 +13,7 @@
+> =20
+>  gpu_thermal: gpu_thermal {
+>  	polling-delay-passive =3D <250>; /* milliseconds */
+> -	polling-delay =3D <1000>; /* milliseconds */
+> +	polling-delay =3D <500>; /* milliseconds */
+> =20
+>  			/* sensor       ID */
+>  	thermal-sensors =3D <&bandgap     1>;
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index b321fdf..fee1580 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -1079,4 +1079,8 @@
+>  	};
+>  };
+> =20
+> +&cpu_thermal {
+> +	polling-delay =3D <500>; /* milliseconds */
+> +};
+> +
+>  /include/ "omap54xx-clocks.dtsi"
+> --=20
+> 1.7.9.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--vtzGhvizbBRQ85DL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJU8OLMAAoJEMLUO4d9pOJW2LkH/0l8lpDAI1tEnHNxxyWUzolc
+Jqg7/Otdl1nr723tu+dlPBmA7PcDlK3pizzafCZYWVFVwUdj8GEh01sA5GyI2RJZ
+sr49KWLmp47WoLJ+eV30YxPK3gJhB6C/3XqbLiqcb8tITfLaOULBfossAgJWf12L
+wRz1NsO9K8B9xjf8ykbAMEkeJnADfTIRDfPPcPbbp7+FZ47PKNNa5YpEwilUpLMO
+Z90Qw5ujcBkzQT8per9j/cbBR5dF2z8+g47oBWunbTI0su1taJxbSrDGRJ2nl6zI
++Wek+wdWso7E6ht8mt0AfkNQup47gi+ZN34I2AtEfhHu+zDXKZUxFbdnsEXN550=
+=PlcD
+-----END PGP SIGNATURE-----
+
+--vtzGhvizbBRQ85DL--
