@@ -1,114 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] soc: ti: Add wkup_m3_ipc driver
-Date: Fri, 27 Feb 2015 09:09:29 -0800
-Message-ID: <20150227170928.GZ11056@atomide.com>
-References: <1420228817-41310-1-git-send-email-d-gerlach@ti.com>
- <1420228817-41310-3-git-send-email-d-gerlach@ti.com>
- <20150102201643.GE4920@saruman> <54AB14E4.2010607@ti.com>
- <20150105225134.GN4081@atomide.com> <54EF7B90.3050702@ti.com>
- <20150226220817.GR11056@atomide.com> <54F0A2C4.1060401@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 3.20-rc0 breaks nfsroot over usb
+Date: Fri, 27 Feb 2015 20:14:39 +0100
+Message-ID: <20150227191439.GC10971@amd>
+References: <20150217185518.GA3825@amd>
+ <20150226221950.GC10204@amd>
+ <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54F0A2C4.1060401@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, balbi@ti.com, Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20150226230307.GA27809@fuloong-minipc.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Arnd Bergmann <arnd@arndb.de>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [150227 09:04]:
-> Tony,
-> On 02/26/2015 04:08 PM, Tony Lindgren wrote:
-> > * Dave Gerlach <d-gerlach@ti.com> [150226 12:05]:
-> >> Tony,
-> >> On 01/05/2015 04:51 PM, Tony Lindgren wrote:
-> >>> * Dave Gerlach <d-gerlach@ti.com> [150105 14:51]:
-> >>>> Felipe,
-> >>>> On 01/02/2015 02:16 PM, Felipe Balbi wrote:
-> >>>>> On Fri, Jan 02, 2015 at 02:00:16PM -0600, Dave Gerlach wrote:
-> >>>>>> Introduce a wkup_m3_ipc driver to handle communication between the MPU
-> >>>>>> and Cortex M3 wkup_m3 present on am335x.
-> >>>>>>
-> >>>>>> This driver is responsible for actually booting the wkup_m3_rproc and
-> >>>>>> also handling all IPC which is done using the IPC registers in the control
-> >>>>>> module, a mailbox, and a separate interrupt back from the wkup_m3. A small
-> >>>>>> API is exposed for executing specific power commands, which include
-> >>>>>> configuring for low power mode, request a transition to a low power mode,
-> >>>>>> and status info on a previous transition.
-> >>>>>>
-> >>>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> >>>>>> ---
-> >>>>>>  drivers/soc/ti/Kconfig       |  11 ++
-> >>>>>>  drivers/soc/ti/Makefile      |   1 +
-> >>>>>>  drivers/soc/ti/wkup_m3_ipc.c | 451 +++++++++++++++++++++++++++++++++++++++++++
-> >>>>>>  include/linux/wkup_m3_ipc.h  |  33 ++++
-> >>>>>>  4 files changed, 496 insertions(+)
-> >>>>>>  create mode 100644 drivers/soc/ti/wkup_m3_ipc.c
-> >>>>>>  create mode 100644 include/linux/wkup_m3_ipc.h
-> >>>>>>
-> >>>>>> diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
-> >>>>>> index 7266b21..61cda85 100644
-> >>>>>> --- a/drivers/soc/ti/Kconfig
-> >>>>>> +++ b/drivers/soc/ti/Kconfig
-> >>>>>> @@ -28,4 +28,15 @@ config KEYSTONE_NAVIGATOR_DMA
-> >>>>>>  
-> >>>>>>  	  If unsure, say N.
-> >>>>>>  
-> >>>>>> +config WKUP_M3_IPC
-> >>>>>> +	bool "TI AM33XX Wkup-M3 IPC Driver"
-> >>>>>
-> >>>>> tristate ?
-> >>>>
-> >>>> If we want to allow this and the rproc driver to be built as modules than we can
-> >>>> change this.
-> >>>
-> >>> Yes please, the PM is never needed early, and should be optional.
-> >>> And doing that will make it a lot easier for you to do further work
-> >>> on your driver ;)
-> >>>
-> >>> And it will also make it easier to add support for other SoCs as
-> >>> it seems the same M3 is used at least on am437x.
-> >>>  
-> >>
-> >> I can not build the PM code as a module at this time due to many mach-omap
-> >> function calls it uses which are not exported, so I need handles to all five
-> >> functions in this driver used in pm33xx to call from built-in PM code. Do you
-> >> have a preference on how these function handles get passed?
+On Fri 2015-02-27 01:03:07, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Thu, Feb 26, 2015 at 11:19:50PM +0100, Pavel Machek wrote:
+> > Ok, it seems that new config dependencies broke my kconfig. These will
+> > not be enabled if you just to make oldconfig; you want to make sure
+> > they are on.
 > > 
-> > OK, you can pass the function pointers in platform_data. Care to
-> > list those functions? That might allow us to make other omap PM
-> > code into loadable modules in drivers/* :)
+> >  OMAP2430 and onwards (USB_MUSB_OMAP2PLUS) [N/m/y] (NEW)
+> > TWL4030 USB Transceiver Driver (TWL4030_USB) [N/m/y/?] (NEW)
 > 
-> Sure, apart from the dependencies I create for myself in other modules that I
-> introduce I see:
+> Yes, also other users have reported "USB breakage" with 4.0-rc1 on N900
+> etc caused by this.
 > 
-> ERROR: "omap_pm_clkdms_setup" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "clkdm_for_each" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "clkdm_lookup" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "pwrdm_lookup" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "pwrdm_post_transition" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "clkdm_sleep" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "clkdm_wakeup" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "pwrdm_read_pwrst" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "cpu_suspend" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> ERROR: "omap_set_pwrdm_state" [arch/arm/mach-omap2/pm33xx.ko] undefined!
-> 
-> So the mach-omap2 clockdomain and power domain functions along with arch arm
-> cpu_suspend code. I see similar dependencies in the other mach-omap2/pmxxxx.c
-> code also.
+> Commit fbba7db3990cb707ff91cd6507d53a0a730afe97 (usb: musb:
+> add omap-control dependency) changed USB_MUSB_OMAP2PLUS to depend
 
-OK thanks for the list.
+Too bad noone told me. I had a lot of fun trying to bisect config
+problem. I have yet to try the nfsroot, but I guess it should be ok
+now.
 
-Regards,
+Thanks,
 
-Tony
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
