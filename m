@@ -1,53 +1,40 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 07/10] ARM: dts: n9/n950: Enable omap crypto support
-Date: Fri, 27 Feb 2015 17:01:55 +0100
-Message-ID: <201502271701.56059@pali>
-References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com> <1424958600-18881-8-git-send-email-pali.rohar@gmail.com> <20150227154319.GT11056@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/8] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output
+ for DTS
+Date: Fri, 27 Feb 2015 07:51:52 -0800
+Message-ID: <20150227155152.GU11056@atomide.com>
+References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
+ <54EF366A.2050108@cogentembedded.com>
+ <CAMdRc4GO=FyELKkPgkL5W77MBh+CHWJ7GbEJdWU2LONLMrLTCA@mail.gmail.com>
+ <54F07DEC.8000802@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3567900.KJ299vtNQS";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150227154319.GT11056@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <54F07DEC.8000802@cogentembedded.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Robert Abel <rabel@cit-ec.uni-bielefeld.de>, balbi@ti.com, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Linux Kernel Maling List <linux-kernel@vger.kernel.org>, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
---nextPart3567900.KJ299vtNQS
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [150227 06:27]:
+> Hello.
+> 
+> On 2/27/2015 5:17 PM, Robert Abel wrote:
+> 
+> >>    Documentation/kernel-doc-nano-HOWTO.txt requires colons after the
+> >>parameter names, doesn't it?
+> 
+> >Jesus Christ, you guys are killing me...
+> >I've already spent way more time on this patch series than I intended
+> >to anyway...
+> 
+>    That's what you get when pushing your stuff upstream. You're not alone
+> here. :-)
 
-On Friday 27 February 2015 16:43:20 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150226 05:54]:
-> > Harmattan system on Nokia N9 and N950 devices uses omap
-> > crypto support. Bootloader on those devices is known that
-> > it enables HW crypto support. This patch just include
-> > omap36xx.dtsi directly, so aes and sham is enabled.
->=20
-> Let's also remove omap36xx-hs.dtsi with this patch if no other
-> users.
->=20
+And thanks for the effort. Best to fix up things for good, that will
+save headaches later on for everybody. Hmm did you file all the forms
+for a change request in the kernel?  Just kidding :)
 
-Removing both -hs files is done by last patch in this series.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart3567900.KJ299vtNQS
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlTwlPQACgkQi/DJPQPkQ1L9WwCgi5bGveyREntli9FX/OZjUauZ
-oDoAniRo/mlDpyOwfiptTJuL96NX/kFR
-=TnWn
------END PGP SIGNATURE-----
-
---nextPart3567900.KJ299vtNQS--
+Tony
