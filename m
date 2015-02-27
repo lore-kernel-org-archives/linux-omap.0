@@ -1,40 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/8] ARM OMAP2+ GPMC: change get_gpmc_timing_reg output
- for DTS
-Date: Fri, 27 Feb 2015 07:51:52 -0800
-Message-ID: <20150227155152.GU11056@atomide.com>
-References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <1424961956-29353-5-git-send-email-rabel@cit-ec.uni-bielefeld.de>
- <54EF366A.2050108@cogentembedded.com>
- <CAMdRc4GO=FyELKkPgkL5W77MBh+CHWJ7GbEJdWU2LONLMrLTCA@mail.gmail.com>
- <54F07DEC.8000802@cogentembedded.com>
+Subject: Re: [PATCH 07/10] ARM: dts: n9/n950: Enable omap crypto support
+Date: Fri, 27 Feb 2015 07:43:20 -0800
+Message-ID: <20150227154319.GT11056@atomide.com>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+ <1424958600-18881-8-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54F07DEC.8000802@cogentembedded.com>
+In-Reply-To: <1424958600-18881-8-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Robert Abel <rabel@cit-ec.uni-bielefeld.de>, balbi@ti.com, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Linux Kernel Maling List <linux-kernel@vger.kernel.org>, linux@arm.linux.org.uk
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [150227 06:27]:
-> Hello.
-> 
-> On 2/27/2015 5:17 PM, Robert Abel wrote:
-> 
-> >>    Documentation/kernel-doc-nano-HOWTO.txt requires colons after the
-> >>parameter names, doesn't it?
-> 
-> >Jesus Christ, you guys are killing me...
-> >I've already spent way more time on this patch series than I intended
-> >to anyway...
-> 
->    That's what you get when pushing your stuff upstream. You're not alone
-> here. :-)
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150226 05:54]:
+> Harmattan system on Nokia N9 and N950 devices uses omap crypto suppor=
+t.
+> Bootloader on those devices is known that it enables HW crypto suppor=
+t.
+> This patch just include omap36xx.dtsi directly, so aes and sham is en=
+abled.
 
-And thanks for the effort. Best to fix up things for good, that will
-save headaches later on for everybody. Hmm did you file all the forms
-for a change request in the kernel?  Just kidding :)
+Let's also remove omap36xx-hs.dtsi with this patch if no other users.
+
+Regards,
 
 Tony
+=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> ---
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts=
+/omap3-n950-n9.dtsi
+> index c41db94..800b379 100644
+> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -8,7 +8,7 @@
+>   * published by the Free Software Foundation.
+>   */
+> =20
+> -#include "omap36xx-hs.dtsi"
+> +#include "omap36xx.dtsi"
+> =20
+>  / {
+>  	cpus {
+> --=20
+> 1.7.9.5
+>=20
