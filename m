@@ -1,40 +1,42 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH, RESEND] usb: musb: fix Kconfig regression
-Date: Sat, 28 Feb 2015 01:51:03 +0200
-Message-ID: <20150227235103.GB590@fuloong-minipc.musicnaut.iki.fi>
-References: <2671702.mSdaGStNT3@wuerfel>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 0/2] pinctrl: dt-bindings: Fix amx3 SLEWCTRL_FAST binding
+Date: Fri, 27 Feb 2015 19:10:25 -0600
+Message-ID: <1425085827-4514-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2671702.mSdaGStNT3@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, sre@debian.org, kernel list <linux-kernel@vger.kernel.org>, sre@ring0.de, Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59189 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750752AbbB1BLF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2015 20:11:05 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Dave Gerlach <d-gerlach@ti.com>
 
-Hi,
+Currently both am33xx and am43xx have the macro for SLEWCTRL_FAST
+in pinctrl dt-bindings reversed so that selecting the macro actually
+sets SLEWCTRL_SLOW in the pad control registers. These patches
+correct the bindings but leave the pinctrl states that use the binding
+*UNMODIFIED*. Previously i2c and mdio on am33xx and i2c, mdio, and
+uart on am43xx had been using this macro and selecting SLEWCTRL_FAST
+while actually programming SLEWCTRL_SLOW in the pad config registers.
 
-On Sat, Feb 28, 2015 at 12:19:41AM +0100, Arnd Bergmann wrote:
-> A recent bug fix I did that was marked for stable backports
-> introduced a slightly wrong dependency on CONFIG_OMAP_CONTROL_PHY.
-> 
-> I was missing the fact that the PHY driver already stubs out the
-> omap_control_usb_set_mode, and we only need to add a dependency
-> to prevent the musb-omap2430 driver from being built-in when
-> the phy driver is a loadable module, but we should not prevent it
-> from being built altogether when the phy driver is disabled.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: ca784be36cc725 ("usb: start using the control module driver")
-> Acked-by: Acked-by: Pavel Machek <pavel@ucw.cz>
-> Cc: <stable@vger.kernel.org> # v3.9+
+Because the intended selection was SLEWCTRL_FAST the macros are
+unchanged. I tested on am335x-gp-evm and am437x-gp-evm with no
+difference in functionality seen.
 
-This patch allows me to disable redundant CONFIG_OMAP_CONTROL_PHY
-from 4.0-rc1 .config and still get a working USB on Nokia N9. So:
+Regards,
+Dave
 
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Dave Gerlach (2):
+  pinctrl: am33xx: dt-bindings: fix SLEWCTRL_FAST binding
+  pinctrl: am43xx: dt-bindings: fix SLEWCTRL_FAST binding
 
-Thanks,
+ include/dt-bindings/pinctrl/am33xx.h | 3 ++-
+ include/dt-bindings/pinctrl/am43xx.h | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-A.
+-- 
+2.3.0
+
