@@ -1,28 +1,43 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 04/10] crypto: omap-sham: Check for return value from
- pm_runtime_get_sync
-Date: Sat, 28 Feb 2015 17:39:38 +0100
-Message-ID: <20150228163938.GD4978@amd>
+Subject: Re: [PATCH 07/10] ARM: dts: n9/n950: Enable omap crypto support
+Date: Sat, 28 Feb 2015 17:41:48 +0100
+Message-ID: <20150228164148.GE4978@amd>
 References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
- <1424958600-18881-5-git-send-email-pali.rohar@gmail.com>
+ <1424958600-18881-8-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1424958600-18881-5-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <1424958600-18881-8-git-send-email-pali.rohar@gmail.com>
 Sender: linux-crypto-owner@vger.kernel.org
 To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu 2015-02-26 14:49:54, Pali Roh=E1r wrote:
-> Function pm_runtime_get_sync could fail and we need to check return
-> value to prevent kernel crash.
+On Thu 2015-02-26 14:49:57, Pali Roh=E1r wrote:
+> Harmattan system on Nokia N9 and N950 devices uses omap crypto suppor=
+t.
+> Bootloader on those devices is known that it enables HW crypto suppor=
+t.
+> This patch just include omap36xx.dtsi directly, so aes and sham is en=
+abled.
 >=20
 > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
 
 Acked-by: Pavel Machek <pavel@ucw.cz>
+
+> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -8,7 +8,7 @@
+>   * published by the Free Software Foundation.
+>   */
+> =20
+> -#include "omap36xx-hs.dtsi"
+> +#include "omap36xx.dtsi"
+> =20
+>  / {
+>  	cpus {
 
 --=20
 (english) http://www.livejournal.com/~pavelmachek
