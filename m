@@ -1,120 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: am335x: USB DMA IRQ issue
-Date: Sat, 28 Feb 2015 15:57:46 -0600
-Message-ID: <20150228215746.GA10010@saruman.tx.rr.com>
-References: <CAGm1_ktamp-L8nb7UzGvha6EkEfAnDtv3unPE1th9RjK7RkG1g@mail.gmail.com>
- <20150224163612.GA25042@saruman.tx.rr.com>
- <CAGm1_kubHLEA=wbJ81iHeJ9shnUSjdE4H7L=VYORyMiUH2sLsQ@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: Enabling DBGEN signal in GP OMAP3
+Date: Sun, 1 Mar 2015 02:03:57 +0200
+Message-ID: <CANOLnOMSbAM1bnAPFQt4Pk-rzZMS=q8Uu62F_x=hxBCLqCu2rg@mail.gmail.com>
+References: <CANOLnOOpzK9BvaOk+bgREPBEKs+OErf_1DfXmefSDweb4XjNxg@mail.gmail.com>
+	<20150216175826.GT2531@atomide.com>
+	<CAALWOA_JZgWWKvFnDmzZRTSqFVJPZOEar1L0D7KR5VoU_7FqCg@mail.gmail.com>
+	<CANOLnOO6HWtptks+TXbJEim9fhk5mp5q94gg1wva77x4H7c3pg@mail.gmail.com>
+	<CAALWOA_DWjDkmnTj1h0EaSKPeJB_Xd+8YAa6Yv=_HgH9W+ijWA@mail.gmail.com>
+	<CANOLnOOgTtTeg_OBvJSGy9OOwdA65omwN=_8Webt8M5E6DoJbg@mail.gmail.com>
+	<CAALWOA_Hj4bNHX2LX8w_vBBaThpnwQ+=JxScF710vc_itEfV4Q@mail.gmail.com>
+	<CAALWOA_Vw=1xC=yUYJBUhp4QqZWvk+EsiLSB=J7+EQmBMTgEkQ@mail.gmail.com>
+	<CANOLnOOBHmHjydhtH3_gL9D+ZPWywxsXHtn9RRaNWCSJb50Cnw@mail.gmail.com>
+	<CAALWOA8k44uQvQK18qvGRgOYDY3n5xKow4t94c+FyH8u79_BBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54023 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751975AbbB1V6N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 28 Feb 2015 16:58:13 -0500
-Content-Disposition: inline
-In-Reply-To: <CAGm1_kubHLEA=wbJ81iHeJ9shnUSjdE4H7L=VYORyMiUH2sLsQ@mail.gmail.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:42984 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305AbbCAAD7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Feb 2015 19:03:59 -0500
+Received: by lbiw7 with SMTP id w7so23706033lbi.9
+        for <linux-omap@vger.kernel.org>; Sat, 28 Feb 2015 16:03:58 -0800 (PST)
+In-Reply-To: <CAALWOA8k44uQvQK18qvGRgOYDY3n5xKow4t94c+FyH8u79_BBw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegorslists@googlemail.com>
-Cc: Felipe Balbi <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Will Deacon <will.deacon@arm.com>
 
---envbJBWh7q8WU6mo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Feb 26, 2015 at 5:14 AM, Matthijs van Duin
+<matthijsvanduin@gmail.com> wrote:
+> Thinking of it... unless the control module and relevant GPIO module
+> are connected to the same L4 interconnect (which they aren't in my
+> test case) I should actually perform at least a dummy read (aka "OCP
+> barrier") from the control module before accessing GPIO since
+> otherwise it's not even guaranteed that all writes to the control
+> module have completed. Joy.
+>
+> If you want guaranteed reliability, modify tck_pulse() to insert
+> aforementioned barrier + an actual delay at all three points where I
+> put comments about them.  usleep(50) or so should do the job.
 
-Hi,
+Adding just the barrier works reliably for me, even at 1GHz.
 
-On Sat, Feb 28, 2015 at 10:39:49PM +0100, Yegor Yefremov wrote:
-> On Tue, Feb 24, 2015 at 5:36 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Thu, Feb 05, 2015 at 12:19:23PM +0100, Yegor Yefremov wrote:
-> >> I have a problem with my am335x based board and USB.
-> >>
-> >> Kernel: Linux version 3.18.1 (YegorYefremov@development1) (gcc version
-> >> 4.9.2 (Buildroot 2015.02-git-00797-gf1b07c0) ) #1 SMP Thu Jan 15
-> >> 15:31:27 CET 2015
-> >>
-> >> I took two devices and equipped them with USB WLAN cards: Bus 001
-> >> Device 003: ID 148f:5370 Ralink Technology, Corp. RT5370 Wireless
-> >> Adapter. One device as AP and another as client. Client makes
-> >> permanent ping to AP. And from time to time I start nuttcp session.
-> >> After 2-3 days I get following errors:
-> >
-> > 2-3 days ? oh man... :-)
-> >
-> > Here's one thing to try. Can you do some variable size pingtest ?
-> > Something like below should do ?
-> >
-> > random()
-> > {
-> >         size=3D$(dd if=3D/dev/urandom count=3D1 2>/dev/null|cksum|
-> >         cut -f1 -d" "|tr '-' '\0')
-> >         size=3D$(expr $size % 60000)
-> > }
-> >
-> > num=3D$1
-> >
-> > if [ -z $num ]
-> > then
-> >         num=3D10000
-> > fi
-> >
-> > while ! ifconfig usb0 >/dev/null 2>&1; do
-> >         printf "waiting for usb0\n"
-> >         sleep 1;
-> > done
-> >
-> > ifconfig usb0 192.168.2.14
-> >
-> > for i in $(seq 1 $num); do
-> >         random
-> >         printf "%d: \t pinging with size %-27d" $i $size
-> >         if ! ping -c 6 192.168.2.15 -s $size -q -i 0 >/dev/null 2>&1; t=
-hen
-> >                 printf "FAILED\n"
-> >                 break
-> >         fi
-> >         printf "PASSED\n"
-> > done
->=20
-> Still haven't tried your test, but have seen this interesting
-> patch/proposal http://e2e.ti.com/support/arm/sitara_arm/f/791/t/404743.
-> Seems to be somehow related.
+>> I guess I'll still connect TDO as it's not so much fun without it,
+>> going to try connecting to EMU0 too, hopefully it doesn't mess up th=
+e
+>> boot modes.
+>
+> Note that you can use *any* gpio. I just used one of the EMU pins
+> because the am335x lets you reconfigure those to GPIO and it was
+> conveniently nearby.
 
-patch makes sense. If you can make sure it really solves your problem
-then send it as a proper patch on top of my testing/next, I'd be glad.
+Same here for me, this allowed to avoid adding a long wire which could
+interfere with case parts, etc.
+I've already performed the mod (just a solder bridge) and it works fine=
+=2E
 
-At some point, I'll just split dma callback into dedicated rx and tx
-callbacks to avoid confusion in the future.
+On Thu, Feb 26, 2015 at 6:01 AM, Matthijs van Duin
+<matthijsvanduin@gmail.com> wrote:
+> On 26 February 2015 at 02:09, Grazvydas Ignotas <notasas@gmail.com> w=
+rote:
+>
+>> Anyway I'm attaching my code too
+>
+> Ah, if this works then apparently the omap3 control module doesn't
+> check privilege.
 
---=20
-balbi
+Yeah, even OMAP5 doesn't do it for me.
 
---envbJBWh7q8WU6mo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> BTW, is this comment in hw-omap3.h true?
+>
+>> 0x23'002100, // assert cortex-a8 DBGEN
+>
+> My impression was that bit 13 of DAP's tap control register either
+> does nothing or at most enables the DAPCTL registers to be written,
+> but that setting bit 13 of the DAP_PC_FER register would still be
+> needed to assert DBGEN.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Yes you're right, I've cleared bit 13 and everything works same way as
+before, and in all cases additional ap_write() is needed to actually
+set DBGEN.
 
-iQIcBAEBAgAGBQJU8jnZAAoJEIaOsuA1yqREDP0QAJi5ZSGwxSPaFDdm9jN2P570
-9nHP8O/f1/mPKhZ1zLgKfLlafREV6XkMe8vHBkw01f/irGsWCoDF6HdBdRlhs/z8
-ifGCgfpQdcX/5EFMurGP5gUv9vbyi4hYrapjBtQBu2j8XQfaNZIaaTNzhx3Bo9Xp
-cvFaHC+KTeW4ehkg6sA6iRl8+Ygo55YtbG1ZwV9Xsj47OOHcvQbiCRbZfiyG+wgi
-HiARcjDksW4nVqvvCFoLFabdJoNxry3g8s+C5a0KIHEm0mfMfk2GFxWBPdKTIc0m
-8cys3vHpI7OrAZfj+blsXsMXntDwnoTa2N1WY/ubVd1WqCBqc8v4efQe0+Wo+35E
-33vii8WHLezVP7jMzCDzNVhlwOVDVQKMaDC1US5fltVGx70Ka+L99NOYxERwDZ+p
-17KDJT97KIJTEmECWMpawy4FRfZzqwNVFwlz+J2MRq1cxdLH4/tOslKJJ/k2Xgj7
-Rr9R+5Kv+FHvTU6JCAnWMIIGgMW5sWxTCdkwUjEWbLB5sCnKLBeETYSOdPm3TYjj
-PYM2sDs/8ChMv1hib/gkfQ1WmPtrrYB8d/skYIHjlc6bRMlKqSRU6t4qbC+tbMiQ
-3kjx1cR2Z+C1ocgoV43OJmLCULhzfDuxPVLA0mGZnLO2qYZQhxQsO8gpbaljGQ94
-iD7mgc9M6JUGGMN23KCP
-=R6Rs
------END PGP SIGNATURE-----
+>
+> Also,
+>
+>> // address of cortex-a8 debug regs on debug APB
+>> constexpr u32 a8_debug =3D 0x54011'000;
+>
+> If bit 31 isn't set, then these writes should (afaik) be equivalent t=
+o
+> just performing them directly through the interconnect instead of
+> using JTAG.
 
---envbJBWh7q8WU6mo--
+I don't know about that... To enable DBGEN, I just do:
+ap_write( 0x5401d030, 0x00002000 );
+and it works. Using 0xd401d030 seems to work too.
+
+
+Thanks again,
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
