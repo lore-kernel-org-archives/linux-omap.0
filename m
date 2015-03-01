@@ -1,54 +1,119 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH RESEND] ARM: dts: OMAP3-N900: Add microphone bias voltages
-Date: Sun,  1 Mar 2015 21:07:08 +0200
-Message-ID: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:52272 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794AbbCATHZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 1 Mar 2015 14:07:25 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2: hwmod: AM43XX: Add hwmod support for
+ HDQ-1W
+Date: Sun, 1 Mar 2015 23:09:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1503012305550.9987@utopia.booyaka.com>
+References: <1425029057-5075-1-git-send-email-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425029057-5075-1-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, sourav.poddar@ti.com
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Evgeniy Polyakov <zbr@ioremap.net>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, NeilBrown <neilb@suse.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-From: Pavel Machek <pavel@ucw.cz>
+Hi
 
-N900 audio recording needs that codec provides bias voltage for integrated
-digital microphone and headset microphone depending which one is used.
-Digital microphone uses 2 V bias and it comes from the codec A part. Codec
-B part drives the headset microphone bias and that is set to 2.5 V.
+On Fri, 27 Feb 2015, Vignesh R wrote:
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-[Jarkko: Headset mic bias changed to 2 (2.5 V) as it was before commit
-e2e8bfdf6157 ("ASoC: tlv320aic3x: Convert mic bias to a supply widget")]
-Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
----
- arch/arm/boot/dts/omap3-n900.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+> From: "Poddar, Sourav" <sourav.poddar@ti.com>
+> 
+> This patch adds hwmod data for hdq/1w driver on AM43xx.
+> 
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> [vigneshr@ti.com: Ported patch to v4.0-rc1]
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 36 ++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+>  2 files changed, 37 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> index 8eb85925e444..d4f1df28475c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> @@ -20,6 +20,7 @@
+>  #include "omap_hwmod_33xx_43xx_common_data.h"
+>  #include "prcm43xx.h"
+>  #include "omap_hwmod_common_data.h"
+> +#include "hdq1w.h"
+>  
+>  
+>  /* IP blocks */
+> @@ -516,6 +517,33 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
+>  	.parent_hwmod	= &am43xx_dss_core_hwmod,
+>  };
+>  
+> +/* HDQ1W */
+> +static struct omap_hwmod_class_sysconfig am43xx_hdq1w_sysc = {
+> +	.rev_offs       = 0x0000,
+> +	.sysc_offs      = 0x0014,
+> +	.syss_offs      = 0x0018,
+> +	.sysc_flags     = (SYSC_HAS_SOFTRESET),
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index db80f9d376fa..9c8bdf2c93a1 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -484,6 +484,8 @@
- 		DRVDD-supply = <&vmmc2>;
- 		IOVDD-supply = <&vio>;
- 		DVDD-supply = <&vio>;
-+
-+		ai3x-micbias-vg = <1>;
- 	};
- 
- 	tlv320aic3x_aux: tlv320aic3x@19 {
-@@ -495,6 +497,8 @@
- 		DRVDD-supply = <&vmmc2>;
- 		IOVDD-supply = <&vio>;
- 		DVDD-supply = <&vio>;
-+
-+		ai3x-micbias-vg = <2>;
- 	};
- 
- 	tsl2563: tsl2563@29 {
--- 
-2.1.4
+This is missing the SYSC_HAS_AUTOIDLE bit.  Is this intentional?
 
+> +	.sysc_fields    = &omap_hwmod_sysc_type1,
+> +};
+> +
+> +static struct omap_hwmod_class am43xx_hdq1w_hwmod_class = {
+> +	.name   = "hdq1w",
+> +	.sysc   = &am43xx_hdq1w_sysc,
+> +	.reset	= &omap_hdq1w_reset,
+> +};
+> +
+> +static struct omap_hwmod am43xx_hdq1w_hwmod = {
+> +	.name           = "hdq1w",
+> +	.class          = &am43xx_hdq1w_hwmod_class,
+> +	.clkdm_name     = "l4ls_clkdm",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_offs = AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET,
+> +			.modulemode   = MODULEMODE_SWCTRL,
+> +		},
+> +	},
+> +};
+> +
+>  /* Interfaces */
+>  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+>  	.master		= &am33xx_l3_main_hwmod,
+> @@ -790,6 +818,13 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>  
+> +static struct omap_hwmod_ocp_if am43xx_l4_ls__hdq1w = {
+> +	.master         = &am33xx_l4_ls_hwmod,
+> +	.slave          = &am43xx_hdq1w_hwmod,
+> +	.clk            = "l4ls_gclk",
+> +	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+>  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am33xx_l4_wkup__synctimer,
+>  	&am43xx_l4_ls__timer8,
+> @@ -889,6 +924,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am43xx_l4_ls__dss,
+>  	&am43xx_l4_ls__dss_dispc,
+>  	&am43xx_l4_ls__dss_rfbi,
+> +	&am43xx_l4_ls__hdq1w,
+>  	NULL,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+> index ad7b3e9977f8..48df3b55057e 100644
+> --- a/arch/arm/mach-omap2/prcm43xx.h
+> +++ b/arch/arm/mach-omap2/prcm43xx.h
+> @@ -143,5 +143,6 @@
+>  #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+>  #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
+>  #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
+> +#define AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET		0x04a0
+>  
+>  #endif
+> -- 
+> 1.9.1
+> 
+
+
+- Paul
