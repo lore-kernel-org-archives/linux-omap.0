@@ -1,74 +1,56 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
-Date: Mon, 02 Mar 2015 11:07:58 -0800
-Message-ID: <54F4B50E.4070104@codeaurora.org>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+Date: Mon, 2 Mar 2015 21:36:29 +0100
+Message-ID: <CAMuHMdX-20DnSmgMbCEikysCNFH5rSHhBF_vcq39QdPjfhyejA@mail.gmail.com>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+	<E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+	<CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
+	<20150302174619.GD29584@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:52876 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870AbbCBTIA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 14:08:00 -0500
-In-Reply-To: <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:33232 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835AbbCBUga (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 15:36:30 -0500
+In-Reply-To: <20150302174619.GD29584@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
 
-On 03/02/15 09:06, Russell King wrote:
-> Add a helper to allocate and add a clk_lookup structure.  This can not
-> only be used in several places in clkdev.c to simplify the code, but
-> more importantly, can be used by callers of the clkdev code to simplify
-> their clkdev creation and registration.
+On Mon, Mar 2, 2015 at 6:46 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Mon, Mar 02, 2015 at 06:22:31PM +0100, Geert Uytterhoeven wrote:
+>> On Mon, Mar 2, 2015 at 6:06 PM, Russell King
+>> <rmk+kernel@arm.linux.org.uk> wrote:
+>> > --- a/include/linux/clkdev.h
+>> > +++ b/include/linux/clkdev.h
+>> > @@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
+>> >  void clkdev_add(struct clk_lookup *cl);
+>> >  void clkdev_drop(struct clk_lookup *cl);
+>> >
+>> > +struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
+>> > +       const char *dev_fmt, ...);
+>>
+>> __printf(3, 4)
+>>
+>> While you're at it, can you please also add the __printf attribute to
+>> clkdev_alloc() and clk_register_clkdev()?
 >
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
->  include/linux/clkdev.h |  3 +++
->  2 files changed, 43 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-> index 043fd3633373..611b9acbad78 100644
-> --- a/drivers/clk/clkdev.c
-> +++ b/drivers/clk/clkdev.c
-> @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
->  	return &cla->cl;
->  }
->  
-> +static struct clk_lookup *
-> +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
-> +	va_list ap)
-> +{
-> +	struct clk_lookup *cl;
-> +
-> +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
-> +	if (cl)
-> +		clkdev_add(cl);
-> +
-> +	return cl;
-> +}
-> +
->  struct clk_lookup * __init_refok
->  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
->  {
-> @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
->  }
->  EXPORT_SYMBOL(clkdev_alloc);
->  
-> +/**
-> + * clkdev_create - allocate and add a clkdev lookup structure
-> + * @clk: struct clk to associate with all clk_lookups
-> + * @con_id: connection ID string on device
-> + * @dev_fmt: format string describing device name
-> + *
-> + * Returns a clk_lookup structure, which can be later unregistered and
-> + * freed.
+> What's the behaviour of __printf() with a NULL format string?  The
+> clkdev interfaces permit that, normal printf() doesn't.
 
-And returns NULL on failure? Any reason why we don't return an error
-pointer on failure?
+As expected: no warning.
+Verified with gcc 4.1.2 and 4.8.2.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Gr{oetje,eeting}s,
 
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
