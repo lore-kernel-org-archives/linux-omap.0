@@ -1,87 +1,55 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH RFC 5/6] drm/tilcdc: Force building of DRM_TILCDC_INIT
-Date: Mon, 2 Mar 2015 14:59:52 +0200
-Message-ID: <54F45EC8.4080202@ti.com>
-References: <cover.1424961754.git.jsarha@ti.com> <2f0e612a87ad97ff9a0b512456a2fe0880d99d54.1424961754.git.jsarha@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RFC 4/6] drm/tilcdc: Add DRM_TILCDC_INIT for "ti,tilcdc,slave"
+ binding support
+Date: Mon, 2 Mar 2015 15:04:27 +0200
+Message-ID: <54F45FDB.3010408@ti.com>
+References: <cover.1424961754.git.jsarha@ti.com> <6cf3243f87975ef349dead7af136870fa406ad6b.1424961754.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="asMBVcd9eN067Re5UPjvI7Kqi5jokOxAM"
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <2f0e612a87ad97ff9a0b512456a2fe0880d99d54.1424961754.git.jsarha@ti.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, linux-kbuild@vger.kernel.org, Michal Marek <mmarek@suse.cz>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, detheridge@ti.com, moinejf@free.fr, linux@arm.linux.org.uk
+	boundary="lFAukBA62WarVqfD1QEcToaV1JWkN4qNg"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6cf3243f87975ef349dead7af136870fa406ad6b.1424961754.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---asMBVcd9eN067Re5UPjvI7Kqi5jokOxAM
+--lFAukBA62WarVqfD1QEcToaV1JWkN4qNg
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 26/02/15 16:55, Jyri Sarha wrote:
-> If I read Documentation/kbuild/makefiles.txt section 3.6 right, this
-> patch should not be needed. However, without this patch the objects
-> needed for DRM_TILCDC_INIT are not linked, if DRM_TILCDC is built as
-> module.
-
-I also think there's something funny either with the documentation or
-the kernel build system.
-
-To summarize (Jyri correct me if I'm wrong):
-
-We enter tilcdc directory using "obj-$(CONFIG_DRM_TILCDC)", and
-CONFIG_DRM_TILCDC is either y or m. Inside the directory we have the
-necessary makefile and code to build the driver as module or built-in.
-And this works fine.
-
-But now Jyri added new piece of code to tilcdc directory, which is
-always built-in, even if the tilcdc driver itself is a module. So now if
-we enter the directory with "obj-m", and inside the tilcdc/Makefile we
-do "obj-y +=3D foo.o" line, the result is that foo.o is compiled, but it
-is not linked either to the kernel image nor to the tilcdc.ko.
-
-The doc says:
-
-"Kbuild only uses this information to decide that it needs to visit
-the directory, it is the Makefile in the subdirectory that
-specifies what is modular and what is built-in."
-
-which doesn't seem to work for us.
-
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  drivers/gpu/drm/Makefile | 1 +
->  1 file changed, 1 insertion(+)
+> Adds a DRM_TILCDC_INIT module for "ti,tilcdc,slave" node
+> conversion. The implementation is in tilcdc_boot_init.c and it uses
+> tilcdc_slave_convert.dts as a basis for creating a DTS overlay. The
+> DTS overlay adds an external tda998x encoder to tilcdc that
+> corresponds to the old tda998x based slave encoder.
 >=20
-> diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
-> index 2c239b9..62c6158 100644
-> --- a/drivers/gpu/drm/Makefile
-> +++ b/drivers/gpu/drm/Makefile
-> @@ -60,6 +60,7 @@ obj-$(CONFIG_DRM_RCAR_DU) +=3D rcar-du/
->  obj-$(CONFIG_DRM_SHMOBILE) +=3Dshmobile/
->  obj-$(CONFIG_DRM_OMAP)	+=3D omapdrm/
->  obj-$(CONFIG_DRM_TILCDC)	+=3D tilcdc/
-> +obj-$(CONFIG_DRM_TILCDC_INIT)	+=3D tilcdc/
->  obj-$(CONFIG_DRM_QXL) +=3D qxl/
->  obj-$(CONFIG_DRM_BOCHS) +=3D bochs/
->  obj-$(CONFIG_DRM_MSM) +=3D msm/
+> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/gpu/drm/tilcdc/Kconfig                  |   6 +
+>  drivers/gpu/drm/tilcdc/Makefile                 |   2 +
+>  drivers/gpu/drm/tilcdc/tilcdc_boot_init.c       | 270 ++++++++++++++++=
+++++++++
+>  drivers/gpu/drm/tilcdc/tilcdc_slave_convert.dts |  70 ++++++
+>  4 files changed, 348 insertions(+)
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_boot_init.c
+>  create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave_convert.dts
 
-I don't think the above is right. You add two rules for tilcdc
-directory. I presume you meant to replace the current tilcdc line with
-the new one?
+All this is needed to support the old bindings, right? So I would
+suggest scratching "DRM_TILCDC_INIT", and create
+"DRM_TILCDC_COMPAT_SLAVE" or whatever, which would be a user visible
+option, enabled by default.
 
-But I don't think the new line makes sense. Using
-obj-$(CONFIG_DRM_TILCDC) above makes sense, and also obj-y makes sense,
-but obj-$(CONFIG_DRM_TILCDC_INIT) doesn't.
-
-So I think it should be just obj-y, if obj-$(CONFIG_DRM_TILCDC) does not
-work.
+This way one can just disable all this compatibility stuff if it's not
+needed.
 
  Tomi
 
 
 
---asMBVcd9eN067Re5UPjvI7Kqi5jokOxAM
+--lFAukBA62WarVqfD1QEcToaV1JWkN4qNg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -89,19 +57,23 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJU9F7IAAoJEPo9qoy8lh71NngP/0CsyvlUrIdh+qv04D/Tt/qC
-qssWL32MeJLa+2WD4M7r+R9CmeX+ncyTpMIIqA9gb1RgnOf5Vb+AGuHbKOklcIus
-r2vqYDkEkTp1w/EOg1UofWDcpkBJduZkddkNes1pMWbHp113pl//bM9cOViJzxkS
-zQFTW5YefidFxzHLMkgpjEkKLLbDix3QAqLGyEE5X7IEj9QC3Ikscf8W4vBKe3OB
-H3gpYNQ5dnh/Lhq2qGGz7wKPgzJXlHitmzbSBKP+9ytrOpuZv+1zhjgz0UOlwTTb
-lVOJRZ2w+SskFydMaDrsqH9R7w7+G8EMcCeZjsPEwaw8N7kIuwzV5aWt3179YDle
-20iyyM3uBdoxSl6gyvdQWt1J7LYzdt9W1JZ1TBXf2lx2MnZgzY4L/6jgn9pLXNjx
-65d4ZYcH4k++qz5bGwz71OThvuBOF7HaSzHx4lH+KrxZNs75TNHlQNxdjpku9XS7
-dR73tIiUh380Ga8AhIxWIB2GQbE0QncZ4ADi3nsuw51eoBfXjK9FlKTOBq5SQxEA
-dM5xKySyHYF0SKsHR5gTpdSOKJmz3Or8Dk/pG5cLGLTgPIwmuz9nRjQ3zn0YBppx
-llqSZ4n+XQ5ZLxY7nfjGGZeAGQQXiLiN99ElDT/G4yK6xNDTfAHEsayZfmFxeBV/
-eH6pkRSMo8oB/ANI2j/D
-=4SMJ
+iQIcBAEBAgAGBQJU9F/bAAoJEPo9qoy8lh71VM4P/inrU3CQ72H4iMe8d4vGZM65
+S6T/UbIxxbO0JLehtWPww0U8ORKTCEMh1JCMJsNqqJjElKbcJ+MvZmsJPaMpwTJ+
+jJTzeQv8IBliOsxQxxU2t9E65UN8JaKaKNLq8+uBSE+h+ARcx+udyJnnuNWVU0JT
+OHfN7UL6GtFGf1pBWtM3nNJAqBXUPPU1BIhG97mPCSqiDIxlrIyokLH93NW6PNY1
+SPyam4M2B5YMBoUht9EUUk+h2n/WiD4ElHFNA7+Iqjt7JKDWxLm2gAHs/08Hcf6B
+pVk1Qyi/sSOt8yhYiTwnAtbTV5aUqPWXJNyEjEsx8zlfox7U6weusj7ljY4giuMM
+l86QnWBtWMlVIVBMM6wGZTLKq/i/X1dw2tq2BsOTm/4ro9aAWEoHwM9cnIMPhqDi
+r4o0jLMQxcrk2Vk7eGVkftpL5dPmEQtzwnjewlJtGlGYAcVbYunxQfQAw/LR7V+l
+WZJr+1ZUn4ZtIUxJKp6djgZR1Uig88kvGTZEJEWoC/ilmgSYY3K0PvcyVpjLNky8
+j1i86V3BKIdGO+zjVhbj8uay5W/u2+N9Gc/D5Vqn0MHJyvZZE57ElCR8BmyNF+Qe
+M4c9rb1Jk648W/b67mgRCYKQkkMLCiWP2T296TplLZUeBRkaHFFnAkGqugKA70Rr
+6qpvgTkmvw22JwrfB73j
+=aaYL
 -----END PGP SIGNATURE-----
 
---asMBVcd9eN067Re5UPjvI7Kqi5jokOxAM--
+--lFAukBA62WarVqfD1QEcToaV1JWkN4qNg--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
