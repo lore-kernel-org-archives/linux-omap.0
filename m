@@ -1,85 +1,122 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
-Date: Mon, 02 Mar 2015 13:54:55 -0800
-Message-ID: <54F4DC2F.1030904@codeaurora.org>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk> <54F4B50E.4070104@codeaurora.org> <20150302210121.GE29584@n2100.arm.linux.org.uk>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
+Date: Tue, 03 Mar 2015 00:33:44 +0200
+Message-ID: <118780170.u6ZO5zJrEk@avalon>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20150302210121.GE29584@n2100.arm.linux.org.uk>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/02/15 13:01, Russell King - ARM Linux wrote:
-> On Mon, Mar 02, 2015 at 11:07:58AM -0800, Stephen Boyd wrote:
->> On 03/02/15 09:06, Russell King wrote:
->>> Add a helper to allocate and add a clk_lookup structure.  This can not
->>> only be used in several places in clkdev.c to simplify the code, but
->>> more importantly, can be used by callers of the clkdev code to simplify
->>> their clkdev creation and registration.
->>>
->>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->>> ---
->>>  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
->>>  include/linux/clkdev.h |  3 +++
->>>  2 files changed, 43 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
->>> index 043fd3633373..611b9acbad78 100644
->>> --- a/drivers/clk/clkdev.c
->>> +++ b/drivers/clk/clkdev.c
->>> @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
->>>  	return &cla->cl;
->>>  }
->>>  
->>> +static struct clk_lookup *
->>> +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
->>> +	va_list ap)
->>> +{
->>> +	struct clk_lookup *cl;
->>> +
->>> +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
->>> +	if (cl)
->>> +		clkdev_add(cl);
->>> +
->>> +	return cl;
->>> +}
->>> +
->>>  struct clk_lookup * __init_refok
->>>  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
->>>  {
->>> @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
->>>  }
->>>  EXPORT_SYMBOL(clkdev_alloc);
->>>  
->>> +/**
->>> + * clkdev_create - allocate and add a clkdev lookup structure
->>> + * @clk: struct clk to associate with all clk_lookups
->>> + * @con_id: connection ID string on device
->>> + * @dev_fmt: format string describing device name
->>> + *
->>> + * Returns a clk_lookup structure, which can be later unregistered and
->>> + * freed.
->> And returns NULL on failure? Any reason why we don't return an error
->> pointer on failure?
-> Why should it when it's only error is "no memory" ?  It follows the
-> clkdev_alloc() and memory allocator pattern.
->
-> It'd also make the error handling in places like clk_add_alias() more
-> difficult (how that happened, I don't know...) though that could probably
-> be fixed as no one seems to bother checking the return value... maybe
-> that's a reason to make it return void ;)
->
+Hi Russell,
 
-Ok, fair enough. Right now clk_add_alias() leaks if a driver decides to
-add an alias and then fail probe for something like probe deferral. We
-should probably make that return the clk_lookup structure too so that
-drivers can clean up.
+On Monday 02 March 2015 17:06:06 Russell King wrote:
+> No merged platform supplies xclks via platform data.  As we want to
+> slightly change the clkdev interface, rather than fixing this unused
+> code, remove it instead.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+
+There are quite a few out of tree users that I know of that might be impacted. 
+On the other hand, out of tree isn't an excuse, and OMAP3 platforms should 
+move to DT. The good news is that DT support for the omap3isp driver is about 
+to get submitted, and hopefully merged in v4.1. I thus have no objection to 
+this patch.
+
+Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
+prefer to resolve the conflict ? Russell, would it be fine to merge this 
+through Mauro's tree ?
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 18 ------------------
+>  drivers/media/platform/omap3isp/isp.h |  1 -
+>  include/media/omap3isp.h              |  6 ------
+>  3 files changed, 25 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index deca80903c3a..4d8078b9d010
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -281,7 +281,6 @@ static const struct clk_init_data isp_xclk_init_data = {
+> 
+>  static int isp_xclk_init(struct isp_device *isp)
+>  {
+> -	struct isp_platform_data *pdata = isp->pdata;
+>  	struct clk_init_data init;
+>  	unsigned int i;
+> 
+> @@ -311,20 +310,6 @@ static int isp_xclk_init(struct isp_device *isp)
+>  		xclk->clk = clk_register(NULL, &xclk->hw);
+>  		if (IS_ERR(xclk->clk))
+>  			return PTR_ERR(xclk->clk);
+> -
+> -		if (pdata->xclks[i].con_id == NULL &&
+> -		    pdata->xclks[i].dev_id == NULL)
+> -			continue;
+> -
+> -		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+> -		if (xclk->lookup == NULL)
+> -			return -ENOMEM;
+> -
+> -		xclk->lookup->con_id = pdata->xclks[i].con_id;
+> -		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+> -		xclk->lookup->clk = xclk->clk;
+> -
+> -		clkdev_add(xclk->lookup);
+>  	}
+> 
+>  	return 0;
+> @@ -339,9 +324,6 @@ static void isp_xclk_cleanup(struct isp_device *isp)
+> 
+>  		if (!IS_ERR(xclk->clk))
+>  			clk_unregister(xclk->clk);
+> -
+> -		if (xclk->lookup)
+> -			clkdev_drop(xclk->lookup);
+>  	}
+>  }
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index cfdfc8714b6b..d41c98bbdfe7
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -122,7 +122,6 @@ enum isp_xclk_id {
+>  struct isp_xclk {
+>  	struct isp_device *isp;
+>  	struct clk_hw hw;
+> -	struct clk_lookup *lookup;
+>  	struct clk *clk;
+>  	enum isp_xclk_id id;
+> 
+> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+> index 398279dd1922..a9798525d01e 100644
+> --- a/include/media/omap3isp.h
+> +++ b/include/media/omap3isp.h
+> @@ -152,13 +152,7 @@ struct isp_v4l2_subdevs_group {
+>  	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+>  };
+> 
+> -struct isp_platform_xclk {
+> -	const char *dev_id;
+> -	const char *con_id;
+> -};
+> -
+>  struct isp_platform_data {
+> -	struct isp_platform_xclk xclks[2];
+>  	struct isp_v4l2_subdevs_group *subdevs;
+>  	void (*set_constraints)(struct isp_device *isp, bool enable);
+>  };
 
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Regards,
 
+Laurent Pinchart
