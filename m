@@ -1,39 +1,52 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 10/15] twl4030_charger: only draw USB current as
- negotiated with host.
-Date: Mon, 2 Mar 2015 22:05:33 +0100
-Message-ID: <20150302210532.GO13270@amd>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
- <20150224043352.4243.84042.stgit@notabene.brown>
+Subject: Re: [PATCH 2/4] usb: phy: twl4030: allow charger to see usb current
+ draw limits.
+Date: Mon, 2 Mar 2015 22:03:55 +0100
+Message-ID: <20150302210355.GF13270@amd>
+References: <20150224033730.31400.78200.stgit@notabene.brown>
+ <20150224034037.31400.26595.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150224043352.4243.84042.stgit@notabene.brown>
+In-Reply-To: <20150224034037.31400.26595.stgit@notabene.brown>
 Sender: linux-kernel-owner@vger.kernel.org
 To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 2015-02-24 15:33:52, NeilBrown wrote:
-> If the phy has been told what current it can draw, it tells us
-> and now we use that number.
+On Tue 2015-02-24 14:40:37, NeilBrown wrote:
+> The charger needs to know when a USB gadget has been enumerated
+> and what the agreed maximum current was so that it can adjust
+> charging accordingly.
 > 
-> Note that 'vbus_draw' is in mA, while usb_cur is in uA.
+> So define a "set_power()" function to record the permitted
+> draw, and pass a pointer to that when sending USB_EVENT_ENUMERATED
+> notification.
 > 
 > Signed-off-by: NeilBrown <neilb@suse.de>
+> ---
+>  drivers/phy/phy-twl4030-usb.c |   27 +++++++++++++++++++++------
+>  1 file changed, 21 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+> index 97c59074233f..023fe150c7a1 100644
+> --- a/drivers/phy/phy-twl4030-usb.c
+> +++ b/drivers/phy/phy-twl4030-usb.c
+> @@ -163,6 +163,11 @@ struct twl4030_usb {
+>  	enum omap_musb_vbus_id_status linkstat;
+>  	bool			vbus_supplied;
+>  
+> +	/* Permitted vbus draw - only meaningful after
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+add "in mA"?
 
-> @@ -609,6 +610,7 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
->  			       void *priv)
->  {
->  	struct twl4030_bci *bci = container_of(nb, struct twl4030_bci, usb_nb);
-> +	unsigned *vbus_draw = priv;
+> +	 * USB_EVENT_ENUMERATED
+> +	 */
+> +	unsigned		vbus_draw;
+> +
+>  	struct delayed_work	id_workaround_work;
 
-unsigned int? [Or better mA_t *? :-)]
-
-									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
