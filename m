@@ -1,105 +1,39 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 11/15] twl4030_charger: enable manual enable/disable of
- usb charging.
-Date: Mon, 2 Mar 2015 22:03:42 +0100
-Message-ID: <20150302210342.GD13270@amd>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
- <20150224043352.4243.543.stgit@notabene.brown>
+Subject: Re: [PATCH] OMAP: DSS: DPI: disable vt-switch on suspend/resume.
+Date: Mon, 2 Mar 2015 22:03:49 +0100
+Message-ID: <20150302210349.GE13270@amd>
+References: <20150225203708.0eb2fa96@notabene.brown>
+ <54ED9DF8.8030105@ti.com>
+ <20150226092646.7e20df30@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150224043352.4243.543.stgit@notabene.brown>
+In-Reply-To: <20150226092646.7e20df30@notabene.brown>
 Sender: linux-kernel-owner@vger.kernel.org
 To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 2015-02-24 15:33:52, NeilBrown wrote:
-> 'off' or 'auto' to
+Hi!
+
+> > Looking at the drivers/tty/vt/vt_ioctl.c, it sounds to me that we should
+> > always do pm_set_vt_switch(0), as omapdss restores everything just fine
+> > on resume. Although it makes me wonder how it works if there are two
+> > display controllers, one needing the switch and the other not...
 > 
->  /sys/class/power/twl4030_usb/mode
-> 
-> will now enable or disable charging from USB port.  Normally this is
-> enabled on 'plug' and disabled on 'unplug'.
-> Unplug will still disable charging.  'plug' will only enable it if
-> 'auto' if selected.
+> I wondered that too.  It would seem to make more sense for
+> pm_set_vt_switch(0) to be the default, that drivers which need the textmode
+> switch should call (1).  But I suspect there are "historical reasons" for the
+> current situation.
 
-This should go to Documentation/
+Well... historically, we did not have drivers for graphics cards --
+kernel did not know how to handle it, only X knew. For cards that do
+not have kernel driver, only X one, we need to switch vts.
 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> 
-> Conflicts:
-> 	drivers/power/twl4030_charger.c
-
-Is it supposed to be here?
-
-> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-> index 01090a440583..19e8dbb1303e 100644
-> --- a/drivers/power/twl4030_charger.c
-> +++ b/drivers/power/twl4030_charger.c
-> @@ -107,6 +107,9 @@ struct twl4030_bci {
->  	int			ichg_eoc, ichg_lo, ichg_hi;
->  	int			usb_cur, ac_cur;
->  	bool			ac_is_active;
-> +	int			usb_mode; /* charging mode requested */
-> +#define	CHARGE_OFF	0
-> +#define	CHARGE_AUTO	1
->  
->  	unsigned long		event;
->  };
-> @@ -377,6 +380,8 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
->  {
->  	int ret;
->  
-n> +	if (bci->usb_mode == CHARGE_OFF)
-> +		enable = false;
-
-Sometimes, you use = false and sometimes = 0 when assigning to bools...
-
-> @@ -629,6 +634,54 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
->  	return NOTIFY_OK;
->  }
->  
-> +/*
-> + * sysfs charger enabled store
-> + */
-> +static char *modes[] = { "off", "auto" };
-
-I'd move this before the comment. Or better near struct twl4030_bci.
-
-> +static DEVICE_ATTR(mode, 0644, twl4030_bci_mode_show,
-> +		   twl4030_bci_mode_store);
-> +
->  static int twl4030_charger_get_current(void)
->  {
->  	int curr;
-> @@ -799,6 +852,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
->  		bci->usb_cur = 500000;  /* 500mA */
->  	else
->  		bci->usb_cur = 100000;  /* 100mA */
-> +	bci->usb_mode = CHARGE_AUTO;
->  
->  	bci->dev = &pdev->dev;
->  	bci->irq_chg = platform_get_irq(pdev, 0);
-> @@ -885,6 +939,8 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
->  	twl4030_charger_update_current(bci);
->  	if (device_create_file(bci->usb.dev, &dev_attr_max_current))
->  		dev_warn(&pdev->dev, "could not create sysfs file\n");
-> +	if (device_create_file(bci->usb.dev, &dev_attr_mode))
-> +		dev_warn(&pdev->dev, "could not create sysfs file\n");
->  	if (device_create_file(bci->ac.dev, &dev_attr_max_current))
->  		dev_warn(&pdev->dev, "could not create sysfs file\n");
->  
-> @@ -917,6 +973,7 @@ static int __exit twl4030_bci_remove(struct platform_device *pdev)
->  
->  	device_remove_file(bci->usb.dev, &dev_attr_max_current);
->  	device_remove_file(bci->ac.dev, &dev_attr_max_current);
-> +	device_remove_file(bci->usb.dev, &dev_attr_mode);
-
-move the line above for consistency with create?
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
+For cards that have proper driver, we should be able to survive
+without VT switch.
+									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
