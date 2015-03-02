@@ -1,109 +1,129 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 14/15] twl4030_charger: Increase current carefully while
- watching voltage.
-Date: Mon, 2 Mar 2015 22:29:45 +0100
-Message-ID: <20150302212945.GT13270@amd>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
- <20150224043353.4243.32335.stgit@notabene.brown>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150224043353.4243.32335.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+From: Adam YH Lee <adam.yh.lee@gmail.com>
+Subject: [PATCH] rtc-twl: add DT support for RTC battery recharge
+Date: Mon,  2 Mar 2015 13:32:15 -0800
+Message-ID: <1425331935-8849-1-git-send-email-adam.yh.lee@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:41189 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755946AbbCBVdG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 16:33:06 -0500
+Received: by pablj1 with SMTP id lj1so11467739pab.8
+        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2015 13:33:06 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: ash@gumstix.com, arun@gumstix.com, Adam YH Lee <adam.yh.lee@gmail.com>
 
-On Tue 2015-02-24 15:33:53, NeilBrown wrote:
-> The USB Battery Charging spec (BC1.2) suggests a dedicated
-> charging port can deliver from 0.5 to 5.0A at between 4.75 and 5.25
-> volts.
-> 
-> To choose the "correct" current voltage setting requires a trial
-> and error approach: try to draw current and see if the voltage drops
-> too low.
-> 
-> Even with a configure Standard Downstream Port, it may not be possible
-> to reliably pull 500mA - depending on cable quality and source
+This patch introduces device tree binding for the RTC backup battery charger
+on TWL4030.
 
-"configured"?
+Tested on Gumstix Overo (OMAP3) Tobi.
 
-> quality I have reports of charging failure due to the voltage dropping
-> too low.
-> 
-> To address both these concern, this patch introduce incremental
+Signed-off-by: Adam YH Lee <adam.yh.lee@gmail.com>
+---
+ Documentation/devicetree/bindings/rtc/twl-rtc.txt | 20 ++++++++++++
+ drivers/rtc/rtc-twl.c                             | 39 +++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
-concerns.
-
-> current setting.
-> The current pull from VBUS is increased in steps of 20mA every 100ms
-> until the target is reached or until the measure voltage drops below
-> 4.75V.  If the voltage does go too long, the target current is reduced
-
-"too low"?
-
-> by 20mA and kept there.
-> 
-> This applies to currents selected automatically, or to values
-> set via sysfs.  So setting a large value will cause the maximum
-> available to be used - up to the limit of 1.7mA imposed by the
-> hardware.
-
-1.7A?
-
-
-> @@ -249,8 +261,14 @@ static int twl4030_charger_update_current(struct twl4030_bci *bci)
->  		cur = bci->ac_cur;
->  		bci->ac_is_active = 1;
->  	} else {
-> -		cur = bci->usb_cur;
-> +		cur = bci->usb_cur_actual;
-
-usb_cur_actual is not a really great variable name...
-
->  		bci->ac_is_active = 0;
-> +		if (cur > bci->usb_cur) {
-> +			cur = bci->usb_cur;
-> +			bci->usb_cur_actual = cur;
-> +		}
-> +		if (cur < bci->usb_cur)
-> +			schedule_delayed_work(&bci->current_worker, USB_CUR_DELAY);
->  	}
->  
->  	/* First, check thresholds and see if cgain is needed */
-> @@ -379,6 +397,38 @@ static int twl4030_charger_update_current(struct twl4030_bci *bci)
->  	return 0;
->  }
->  
-> +static void twl4030_current_worker(struct work_struct *data)
-> +{
-> +	int v;
-> +	int res;
-> +	struct twl4030_bci *bci = container_of(data, struct twl4030_bci,
-> +					       current_worker.work);
-> +
-> +	res = twl4030bci_read_adc_val(TWL4030_BCIVBUS);
-> +	if (res < 0)
-> +		v = 0;
-> +	else
-> +		/* BCIVBUS uses ADCIN8, 7/1023 V/step */
-> +		v = res * 6843;
-> +
-> +	printk("v=%d cur=%d target=%d\n", v, bci->usb_cur_actual,
-> +	       bci->usb_cur);
-> +
-> +	if (v < USB_MIN_VOLT) {
-> +		/* Back up and stop adjusting. */
-> +		bci->usb_cur_actual -= USB_CUR_STEP;
-> +		bci->usb_cur = bci->usb_cur_actual;
-> +	} else if (bci->usb_cur_actual >= bci->usb_cur ||
-> +		   bci->usb_cur_actual + USB_CUR_STEP > USB_MAX_CURRENT) {
-> +		/* Reach target and volts are OK - stop */
-
-Reached ... and the voltage is OK - stop.
-
-
+diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+index 596e0c9..fcb0c4d 100644
+--- a/Documentation/devicetree/bindings/rtc/twl-rtc.txt
++++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+@@ -5,8 +5,28 @@ The TWL family (twl4030/6030) contains a RTC.
+ Required properties:
+ - compatible : Should be twl4030-rtc
+ 
++Optional properties:
++- enable-battery-charge: Boolean, enable RTC battery charge
++
++- charge-rate : should contain trickle charge rate:
++
++     25uA - <0x0>
++    150uA - <0x1>
++    500uA - <0x2>
++      1mA - <0x3>
++
++- charge-voltage : should contain charge voltage:
++
++     2.5v - <0x0>
++     3.0v - <0x4>
++     3.1v - <0x8>
++     3.2v - <0xc>
++
+ Examples:
+ 
+ rtc@0 {
+     compatible = "ti,twl4030-rtc";
++    enable-battery-charge;
++    charge-rate = <0x1>;
++    charge-voltage = <0x8>;
+ };
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index 1915464..0c3e855 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -31,6 +31,13 @@
+ 
+ #include <linux/i2c/twl.h>
+ 
++/*
++ * PM_RECEIVER block register offsets (use TWL4030_MODULE_PM_RECEIVER)
++ */
++#define REG_BB_CFG	0x12
++
++/* PM_RECEIVER  BB_CFG bitfield */
++#define BIT_PM_RECEIVER_BB_CFG_BBCHEN           0x10
+ 
+ /*
+  * RTC block register offsets (use TWL_MODULE_RTC)
+@@ -474,8 +481,11 @@ static struct rtc_class_ops twl_rtc_ops = {
+ static int twl_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc;
++	struct device_node *node = pdev->dev.of_node;
+ 	int ret = -EINVAL;
+ 	int irq = platform_get_irq(pdev, 0);
++	const __be32 *charge_volt = NULL;
++	const __be32 *charge_rate = NULL;
+ 	u8 rd_reg;
+ 
+ 	if (irq <= 0)
+@@ -543,6 +553,35 @@ static int twl_rtc_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++#ifdef CONFIG_OF
++	if (of_property_read_bool(node, "enable-battery-charge")  == true) {
++		charge_rate = of_get_property(node, "charge-rate", NULL);
++		if (charge_rate == NULL) {
++			dev_err(&pdev->dev, "Backup battery charge rate is missing\n");
++			return ret;
++		}
++		charge_volt = of_get_property(node, "charge-voltage", NULL);
++		if (charge_volt == NULL) {
++			dev_err(&pdev->dev, "Backup battery charge voltage is missing\n");
++			return ret;
++		}
++		ret = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
++				BIT_PM_RECEIVER_BB_CFG_BBCHEN |
++				be32_to_cpup(charge_volt) |
++				be32_to_cpup(charge_rate),
++				REG_BB_CFG);
++		if (ret < 0) {
++			dev_err(&pdev->dev, "Failed to enable backup battery charging\n");
++			return ret;
++		}
++
++		dev_info(&pdev->dev, "RTC backup charge enabled\n");
++	} else {
++		twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0x0, REG_BB_CFG);
++		dev_info(&pdev->dev, "RTC backup charge disabled\n");
++	}
++#endif
++
+ 	platform_set_drvdata(pdev, rtc);
+ 	return 0;
+ }
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.9.1
+
