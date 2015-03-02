@@ -1,81 +1,196 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH RFC 6/6] ARM: dts: am335x-boneblack: Use new binding for
- HDMI
-Date: Mon, 2 Mar 2015 14:28:40 +0200
-Message-ID: <54F45778.6050406@ti.com>
-References: <cover.1424961754.git.jsarha@ti.com> <6d6653416fd87c678a80df1d422420877261c4a5.1424961754.git.jsarha@ti.com>
+Subject: Re: [PATCH RFC 3/6] drm/tilcdc: Add support for external compontised
+ DRM encoder
+Date: Mon, 2 Mar 2015 14:44:29 +0200
+Message-ID: <54F45B2D.8060907@ti.com>
+References: <cover.1424961754.git.jsarha@ti.com> <92792bb4f64fb1b7f26e687ec159d870d0e7a81a.1424961754.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="0qWfa5kxeXnk54xaclR0Nar0scnPTXHh0"
+	boundary="L4AEX6WVi4vue3dwkInmREOI8tqEGXiim"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49566 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60463 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864AbbCBM3C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Mar 2015 07:29:02 -0500
-In-Reply-To: <6d6653416fd87c678a80df1d422420877261c4a5.1424961754.git.jsarha@ti.com>
+	id S1754157AbbCBMox (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Mar 2015 07:44:53 -0500
+In-Reply-To: <92792bb4f64fb1b7f26e687ec159d870d0e7a81a.1424961754.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jyri Sarha <jsarha@ti.com>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, detheridge@ti.com, moinejf@free.fr, linux@arm.linux.org.uk
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, detheridge@ti.com, moinejf@free.fr, linux@arm.linux.org.uk, Philipp Zabel <p.zabel@pengutronix.de>
 
---0qWfa5kxeXnk54xaclR0Nar0scnPTXHh0
+--L4AEX6WVi4vue3dwkInmREOI8tqEGXiim
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 26/02/15 16:55, Jyri Sarha wrote:
-> Use new binding for the external tda19988 HDMI encoder.
+> Add support for an external compontised DRM encoder. The external
+> encoder can be connected to tilcdc trough device tree graph binding.
+> The binding document for tilcdc has been updated. The support has only
+> been tested with tda998x encoder, but other encoders should work too
+> with a little tweaking.
+>=20
+> I got the idea and some lines of code from Jean-Francois Moine's
+> "drm/tilcdc: Change the interface with the tda998x driver"-patch.
 >=20
 > Signed-off-by: Jyri Sarha <jsarha@ti.com>
 > ---
->  arch/arm/boot/dts/am335x-boneblack.dts | 20 +++++++++++++++-----
->  1 file changed, 15 insertions(+), 5 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts=
-/am335x-boneblack.dts
-> index 5c42d25..eadbba3 100644
-> --- a/arch/arm/boot/dts/am335x-boneblack.dts
-> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-> @@ -68,16 +68,26 @@
-> =20
->  &lcdc {
->  	status =3D "okay";
-> +	port {
-> +		lcdc_0: endpoint@0 {
-> +			remote-endpoint =3D <&hdmi_0>;
-> +		};
-> +	};
->  };
-> =20
-> -/ {
-> -	hdmi {
-> -		compatible =3D "ti,tilcdc,slave";
-> -		i2c =3D <&i2c0>;
-> +&i2c0 {
-> +	tda19988 {
-> +		compatible =3D "nxp,tda998x";
-> +		reg =3D <0x70>;
->  		pinctrl-names =3D "default", "off";
->  		pinctrl-0 =3D <&nxp_hdmi_bonelt_pins>;
->  		pinctrl-1 =3D <&nxp_hdmi_bonelt_off_pins>;
-> -		status =3D "okay";
-> +
-> +		port {
-> +			hdmi_0: endpoint@0 {
-> +				remote-endpoint =3D <&lcdc_0>;
-> +			};
-> +		};
->  	};
->  };
 
-This is missing the output of tda998x. It should have two ports, input
-and output, output going to hdmi-connector.
+<snip>
+
+> diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.c b/drivers/gpu/drm=
+/tilcdc/tilcdc_external.c
+> new file mode 100644
+> index 0000000..7254151
+> --- /dev/null
+> +++ b/drivers/gpu/drm/tilcdc/tilcdc_external.c
+> @@ -0,0 +1,105 @@
+> +/*
+> + * Copyright (C) 2015 Texas Instruments
+> + * Author: Jyri Sarha <jsarha@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modif=
+y it
+> + * under the terms of the GNU General Public License version 2 as publ=
+ished by
+> + * the Free Software Foundation.
+> + *
+> + */
+> +#define DEBUG 1
+
+You probably didn't mean to include this.
+
+> +
+> +#include <linux/component.h>
+> +#include <linux/of_graph.h>
+> +
+> +#include "tilcdc_drv.h"
+> +#include "tilcdc_external.h"
+> +
+> +static const struct tilcdc_panel_info panel_info_defaults =3D {
+> +		.ac_bias                =3D 255,
+> +		.ac_bias_intrpt         =3D 0,
+> +		.dma_burst_sz           =3D 16,
+> +		.bpp                    =3D 16,
+> +		.fdd                    =3D 0x80,
+> +		.tft_alt_mode           =3D 0,
+> +		.invert_pxl_clk		=3D 1,
+> +		.sync_edge              =3D 1,
+> +		.sync_ctrl              =3D 1,
+> +		.raster_order           =3D 0,
+> +};
+> +
+> +static int tilcdc_add_external_encoder(struct drm_device *dev, int *bp=
+p,
+> +				       struct drm_connector *connector)
+> +{
+> +	struct tilcdc_drm_private *priv =3D dev->dev_private;
+> +
+> +	priv->connectors[priv->num_connectors++] =3D connector;
+> +	priv->encoders[priv->num_encoders++] =3D connector->encoder;
+> +
+> +	tilcdc_crtc_set_simulate_vesa_sync(priv->crtc, true);
+> +	tilcdc_crtc_set_panel_info(priv->crtc, &panel_info_defaults);
+
+Setting of the simulate vesa sync and the panel info here look a bit
+like a hack to me. Both of them are for tda998x, not "defaults".
+
+So... I don't know. You could state that at the moment tilcdc only
+supports tda998x as an external encoder. Then the above would be ok, but
+still it would be good to clearly state this in the desc, comments and
+variable names.
+
+Doing this properly may be more difficult. Some parameters should be
+defined in the .dts, some should probably come from tda998x driver, and
+some should be deduced by tilcdc driver internally.
+
+> +	*bpp =3D panel_info_defaults.bpp;
+> +
+> +	dev_info(dev->dev, "External encoder '%s' connected\n",
+> +		 connector->encoder->name);
+
+This and the other dev_info in this patch look more like dev_dbg to me.
+
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +int tilcdc_add_external_encoders(struct drm_device *dev, int *bpp)
+> +{
+> +	struct tilcdc_drm_private *priv =3D dev->dev_private;
+> +	struct drm_connector *connector;
+> +	int num_internal_connectors =3D priv->num_connectors;
+> +
+> +	list_for_each_entry(connector, &dev->mode_config.connector_list, head=
+) {
+> +		bool found =3D false;
+> +		int i, ret;
+> +
+> +		for (i =3D 0; i < num_internal_connectors; i++)
+> +			if (connector =3D=3D priv->connectors[i])
+> +				found =3D true;
+> +		if (!found) {
+> +			ret =3D tilcdc_add_external_encoder(dev, bpp, connector);
+> +			if (ret)
+> +				return ret;
+> +		}
+> +	}
+> +	if (priv->num_connectors - num_internal_connectors > 1) {
+> +		dev_err(dev->dev, "Only one external encoder is supported.");
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int of_dev_node_match(struct device *dev, void *data)
+> +{
+> +	return dev->of_node =3D=3D data;
+> +}
+> +
+> +int tilcdc_add_external_components(struct device *master,
+> +				   struct master *m)
+> +{
+> +	struct device_node *ep =3D NULL;
+> +
+> +	while ((ep =3D of_graph_get_next_endpoint(master->of_node, ep))) {
+> +		struct device_node *node;
+> +		int ret;
+> +
+> +		node =3D of_graph_get_remote_port_parent(ep);
+> +		of_node_put(ep);
+
+Note that there's an unmerged series "Add of-graph helpers to loop over
+endpoints and find ports by id" from Philipp which changes the behavior
+of of_graph_get_next_endpoint.
+
+> +		if (!node || !of_device_is_available(node))
+> +			continue;
+
+Should you of_node_put(node) if node !=3D NULL above?
+
+> +
+> +		dev_info(master, "Subdevice node '%s' found\n", node->name);
+> +		ret =3D component_master_add_child(m, of_dev_node_match, node);
+> +		of_node_put(node);
+> +		if (ret) {
+> +			dev_err(master, "Adding component failed: %d\n", ret);
+> +			of_node_put(ep);
+> +			return ret;
+> +		}
+> +	}
+> +	return 0;
+> +}
+
+I don't know if it matters, but as tilcdc only supports a single
+endpoint, and I think this is the earliest place where it can be
+detected, you could fail above if there are more than one endpoint.
 
  Tomi
 
 
 
---0qWfa5kxeXnk54xaclR0Nar0scnPTXHh0
+--L4AEX6WVi4vue3dwkInmREOI8tqEGXiim
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -83,19 +198,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJU9Fd4AAoJEPo9qoy8lh71/HgQAJO/M5J/UOm47rX7CMTx6OkX
-AoFo/cJtMXCxi2Sx1VDTTrW5zSeIp54B8zmvgVuRdPY/hG/wIU/1MNtIBPqTVTHq
-t8NIR2mtS3ClXtl9lg4xtAMKpIYthr76mnuzXUldHAxXfapb6BbHaYj8eflO+y6K
-4BkPvdTTBt+sipulmZ8vpIko1IKgdmM7zOaWGUUGHZzdVdgczSX7OgrEPLAKkoCH
-2pkAaDWNXU1NVK8pVMR1HiB2EpzB0mK59L2q06DoalJf18213rOSDlqmBxMmhnF/
-DVVnPfxaapl91I05h9cJ/jloYXUff24H+kAA7Vf7YCOThd9BiIS2ZHRF25M5EW6c
-+CkVryEh660ce3xS84ePHtqz9pUN6he8LQf8VEzHB6VKouw7L2T8kohCa1iXvmyn
-IJ/5aF/bfmAIoszv3iYPLCD6wLG/59mAVxQn2BX2Q8oWpT+pocj9NBOXYUoC8Rcy
-KfibYEmW/tb2JTBpucibyj8Aub3NAGOEy5vU021Oe7nZIo0lbkv1Q3cVSInMf4J8
-AmKLtbe4Bu6KK3Zby4xdW67DQBsOLcSZ1Zj+8fulj5qWHmxUBDK05zLnMk8G3rbL
-jSFTL71ishcTcbk7g2cGXYKAzOuQ5GUJLbasP3Z2JcGalOVpbv+9dTEdaGG0BXrp
-64AE6q6OFCZ2+SXJddpJ
-=UTR6
+iQIcBAEBAgAGBQJU9FstAAoJEPo9qoy8lh71vaQP/iuK+gUxyArd9vow1ljGSWzJ
+i14qL25jxf3L6yyv05HDhrABDxJ4tLoETwnT+v1TP5J+izXVglW6r/zR2hQhmpXV
+zI5VhbiKISnVrtpz0OiRDPD+LLL+QOiCKMAauXsf7tOsAd0FEGJzCx5qSiyO5ybs
+l3x6YPWCFGgcqyNagv/druZ+iAL95LuuVKY/Yl5gPt5tTml4Oe1itxnr6pRtohMd
+30/CUPWvOMgAl53pgbz+1uaXd5j3mlvjo4Q77s6ncDheD+ABrjX0MwdwjYDGzCMj
+cd2Z+ojgjENirxrKAz0B7DSOSPGLW2ougzxbGRQ7aDEVxZSnKPanOUR3VNH+W/RS
+BJ/EiRbGRfZl3T9ccFWmnfg0Tq34znSYlFNj5PmJoutRz9z4+8VfzRQzdsBsy8+d
+b0mVymSUcUL5zL1bOJDYXCmZEEn/KxMnhbagBo7IArk5FWu+KC8hxBRyJrrXVyOn
+4KKkgH5Qjqo7OibdcL/YlbO5uIDjKkVmx5sObxy9shZHXPd878PCQe6t/6hDtOWB
+8gklOArPL2Ex7Rj3zxgjS4VV8dP+B/7O39sjEka9TccnQIsm0FFid/sPxLtVHdDa
+kamf6qXeIgv//nkxBfiO6RsmSMSVwixR9+bF3uaL1B5feMOTUDo8cRYnSc2gUtNt
+L3aaws4N7jyKwWEaXQjK
+=bcrs
 -----END PGP SIGNATURE-----
 
---0qWfa5kxeXnk54xaclR0Nar0scnPTXHh0--
+--L4AEX6WVi4vue3dwkInmREOI8tqEGXiim--
