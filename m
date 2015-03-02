@@ -1,39 +1,81 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 1/9] HSI: cmt_speech: Add cmt-speech driver
-Date: Mon, 2 Mar 2015 22:56:04 +0200
-Message-ID: <20150302205604.GA7438@fuloong-minipc.musicnaut.iki.fi>
-References: <1425271139-24715-1-git-send-email-sre@kernel.org>
- <1425271139-24715-2-git-send-email-sre@kernel.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+Date: Mon, 2 Mar 2015 21:01:21 +0000
+Message-ID: <20150302210121.GE29584@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+ <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+ <54F4B50E.4070104@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-sh-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1425271139-24715-2-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, Kai Vehmanen <kai.vehmanen@nokia.com>, Carlos Chinea <carlos.chinea@nokia.com>, Joni Lapilainen <joni.lapilainen@gmail.com>
+In-Reply-To: <54F4B50E.4070104@codeaurora.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Mon, Mar 02, 2015 at 05:38:51AM +0100, Sebastian Reichel wrote:
-> From: Kai Vehmanen <kai.vehmanen@nokia.com>
+On Mon, Mar 02, 2015 at 11:07:58AM -0800, Stephen Boyd wrote:
+> On 03/02/15 09:06, Russell King wrote:
+> > Add a helper to allocate and add a clk_lookup structure.  This can not
+> > only be used in several places in clkdev.c to simplify the code, but
+> > more importantly, can be used by callers of the clkdev code to simplify
+> > their clkdev creation and registration.
+> >
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > ---
+> >  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
+> >  include/linux/clkdev.h |  3 +++
+> >  2 files changed, 43 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+> > index 043fd3633373..611b9acbad78 100644
+> > --- a/drivers/clk/clkdev.c
+> > +++ b/drivers/clk/clkdev.c
+> > @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+> >  	return &cla->cl;
+> >  }
+> >  
+> > +static struct clk_lookup *
+> > +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
+> > +	va_list ap)
+> > +{
+> > +	struct clk_lookup *cl;
+> > +
+> > +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
+> > +	if (cl)
+> > +		clkdev_add(cl);
+> > +
+> > +	return cl;
+> > +}
+> > +
+> >  struct clk_lookup * __init_refok
+> >  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+> >  {
+> > @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+> >  }
+> >  EXPORT_SYMBOL(clkdev_alloc);
+> >  
+> > +/**
+> > + * clkdev_create - allocate and add a clkdev lookup structure
+> > + * @clk: struct clk to associate with all clk_lookups
+> > + * @con_id: connection ID string on device
+> > + * @dev_fmt: format string describing device name
+> > + *
+> > + * Returns a clk_lookup structure, which can be later unregistered and
+> > + * freed.
 > 
-> Introduces the cmt-speech driver, which implements
-> a character device interface for transferring speech
-> data frames over HSI/SSI.
-> 
-> The driver is used to exchange voice/speech data between
-> the Nokia N900/N950/N9's modem and its cpu.
-> 
-> Signed-off-by: Kai Vehmanen <kai.vehmanen@nokia.com>
-> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-> Signed-off-by: Joni Lapilainen <joni.lapilainen@gmail.com>
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> And returns NULL on failure? Any reason why we don't return an error
+> pointer on failure?
 
-I think the initial mainline kernel submission for this driver should be
-a single patch, so just squash all the cleanups and fixes into this one.
-You can document the changes you have made by describing the changes
-before your own Signed-off-by line.
+Why should it when it's only error is "no memory" ?  It follows the
+clkdev_alloc() and memory allocator pattern.
 
-A.
+It'd also make the error handling in places like clk_add_alias() more
+difficult (how that happened, I don't know...) though that could probably
+be fixed as no one seems to bother checking the return value... maybe
+that's a reason to make it return void ;)
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
