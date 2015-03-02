@@ -1,202 +1,120 @@
-From: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/9] HSI: cmt_speech: Add cmt-speech driver
-Date: Mon, 02 Mar 2015 11:22:33 +0100
-Message-ID: <1425291753.2014.5.camel@neukum.org>
-References: <1425271139-24715-1-git-send-email-sre@kernel.org>
-	 <1425271139-24715-2-git-send-email-sre@kernel.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 09/21] drm/omap: handle mismatching color format and buffer
+ width
+Date: Mon, 2 Mar 2015 12:32:40 +0200
+Message-ID: <54F43C48.3080806@ti.com>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>	<1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>	<20150227130158.GX24485@phenom.ffwll.local>	<CAPj87rP4675D9WY8eGUPCePcx7Oi+faYs5K4B_BGtyh1H4RmJA@mail.gmail.com>	<54F4326B.6040209@ti.com> <CAPj87rOranF8WA=cPiHv=XwLSRscBLfNi+BemUhObys2nb8YKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1425271139-24715-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kai Vehmanen <kai.vehmanen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Carlos Chinea <carlos.chinea-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Joni Lapilainen <joni.lapilainen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50510 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754052AbbCBKct (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Mar 2015 05:32:49 -0500
+In-Reply-To: <CAPj87rOranF8WA=cPiHv=XwLSRscBLfNi+BemUhObys2nb8YKQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Stone <daniel@fooishbar.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel <dri-devel@lists.freedesktop.org>, Rob Clark <robdclark@gmail.com>
+
+--aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 02/03/15 12:22, Daniel Stone wrote:
+
+>> I don't know why Rob named it like that. "The bpp of the stride"? Shru=
+g.
+>=20
+> It's just the bpp of the pixel format; it's not at all associated with
+> the stride?
+
+The comment says "this times width is stride", so I thought the naming co=
+mes
+from that train of thought. But I agree, it's just bpp.
+
+Here's updated patch:
+
+=46rom af0db526ae274d47488ec49577365909eb8f629d Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Thu, 25 Sep 2014 19:24:28 +0000
+Subject: [PATCH] drm/omap: handle incompatible buffer stride and pixel si=
+ze
+
+omapdrm doesn't check if the pitch of the framebuffer and the color
+format's bits-per-pixel are compatible. omapdss requires that the stride
+of a buffer is an integer number of pixels
+
+For example, when using modetest with a display that has x resolution of
+1280, and using packed 24 RGB mode (3 bytes per pixel), modetest
+allocates a buffer with a byte stride of 4 * 1280 =3D 5120. But 5120 / 3 =
+=3D
+1706.666... pixels, which causes wrong colors and a tilt on the screen.
+
+Add a check into omapdrm to return an error if the user tries to use
+such a combination.
+
+Note: this is not a HW requirement at least for non-rotation use cases,
+but a SW driver requirement. In the future we should study if also
+rotation use cases are fine with any stride size, and if so, change the
+driver to allow these strides.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/gpu/drm/omapdrm/omap_fb.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/=
+omap_fb.c
+index 2975096abdf5..e123b4dee670 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fb.c
++++ b/drivers/gpu/drm/omapdrm/omap_fb.c
+@@ -463,6 +463,14 @@ struct drm_framebuffer *omap_framebuffer_init(struct=
+ drm_device *dev,
+ 			goto fail;
+ 		}
+=20
++		if (pitch % format->planes[i].stride_bpp !=3D 0) {
++			dev_err(dev->dev,
++				"buffer pitch (%d bytes) is not a multiple of pixel size (%d bytes)\=
+n",
++				pitch, format->planes[i].stride_bpp);
++			ret =3D -EINVAL;
++			goto fail;
++		}
++
+ 		size =3D pitch * mode_cmd->height / format->planes[i].sub_y;
+=20
+ 		if (size > (omap_gem_mmap_size(bos[i]) - mode_cmd->offsets[i])) {
+--=20
+2.3.1
 
 
-> +static ssize_t cs_char_read(struct file *file, char __user *buf, size_t count,
-> +								loff_t *unused)
-> +{
-> +	struct cs_char *csdata = file->private_data;
-> +	u32 data;
-> +	ssize_t retval;
-> +
-> +	if (count < sizeof(data))
-> +		return -EINVAL;
-> +
-> +	for ( ; ; ) {
-> +		DEFINE_WAIT(wait);
-> +
-> +		spin_lock_bh(&csdata->lock);
-> +		if (!list_empty(&csdata->chardev_queue)) {
-> +			data = cs_pop_entry(&csdata->chardev_queue);
-> +		} else if (!list_empty(&csdata->dataind_queue)) {
-> +			data = cs_pop_entry(&csdata->dataind_queue);
-> +			--csdata->dataind_pending;
-> +
-> +		} else {
-> +			data = 0;
-> +		}
-> +		spin_unlock_bh(&csdata->lock);
-> +
-> +		if (data)
-> +			break;
-> +		if (file->f_flags & O_NONBLOCK) {
-> +			retval = -EAGAIN;
-> +			goto out;
-> +		} else if (signal_pending(current)) {
-> +			retval = -ERESTARTSYS;
-> +			goto out;
-> +		}
-> +		prepare_to_wait_exclusive(&csdata->wait, &wait,
-> +						TASK_INTERRUPTIBLE);
-> +		schedule();
-> +		finish_wait(&csdata->wait, &wait);
-> +	}
-> +
-> +	retval = put_user(data, (u32 __user *)buf);
-> +	if (!retval)
-> +		retval = sizeof(data);
-> +
-> +out:
-> +	return retval;
-> +}
-> +
-> +static ssize_t cs_char_write(struct file *file, const char __user *buf,
-> +						size_t count, loff_t *unused)
-> +{
-> +	struct cs_char *csdata = file->private_data;
-> +	u32 data;
-> +	int err;
-> +	ssize_t	retval;
-> +
-> +	if (count < sizeof(data))
-> +		return -EINVAL;
-> +
-> +	if (get_user(data, (u32 __user *)buf))
-> +		retval = -EFAULT;
-> +	else
-> +		retval = count;
 
-You want to execute the command even if you got -EFAULT?
-That is highly unusual.
 
-> +
-> +	err = cs_hsi_command(csdata->hi, data);
-> +	if (err < 0)
-> +		retval = err;
-> +
-> +	return retval;
-> +}
-> +
-> +static long cs_char_ioctl(struct file *file, unsigned int cmd,
-> +				unsigned long arg)
-> +{
-> +	struct cs_char *csdata = file->private_data;
-> +	int r = 0;
-> +
-> +	switch (cmd) {
-> +	case CS_GET_STATE: {
-> +		unsigned int state;
-> +
-> +		state = cs_hsi_get_state(csdata->hi);
-> +		if (copy_to_user((void __user *)arg, &state, sizeof(state)))
-> +			r = -EFAULT;
-> +	}
-> +		break;
-> +	case CS_SET_WAKELINE: {
-> +		unsigned int state;
-> +
-> +		if (copy_from_user(&state, (void __user *)arg, sizeof(state)))
-> +			r = -EFAULT;
-> +		else
-> +			cs_hsi_set_wakeline(csdata->hi, state);
+--aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-No sanity checking for state?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> +	}
-> +		break;
-> +	case CS_GET_IF_VERSION: {
-> +		unsigned int ifver = CS_IF_VERSION;
-> +
-> +		if (copy_to_user((void __user *)arg, &ifver, sizeof(ifver)))
-> +			r = -EFAULT;
-> +		break;
-> +	}
-> +	case CS_CONFIG_BUFS: {
-> +		struct cs_buffer_config buf_cfg;
-> +
-> +		if (copy_from_user(&buf_cfg, (void __user *)arg,
-> +							sizeof(buf_cfg)))
-> +			r = -EFAULT;
-> +		else
-> +			r = cs_hsi_buf_config(csdata->hi, &buf_cfg);
+iQIcBAEBAgAGBQJU9DxIAAoJEPo9qoy8lh71ph0P/0yXQvrt4cMNkOoEHcnlqSX6
+tF6wXuv/iU80NXTvPU1RX6oj94hDu3Bc8cK0kP4LTATdfcVgEHrcSee7kkzk/prU
+ideWv6eWJkRhYZM48aVILtrY4vshKPjpYwTc4s+TtOVhI4ARn3Tua5NX1zUT83Ra
+T7LODkHK0XnQxyghFZeKXm/vMEzeHX10vjuLa8NsgS3nM+d6DZu6DHztYEfzp+/u
+1/B119YzEyq22WJuK7+BV6S12YLY7jfXXsC5f214uprpZMoNfbvKnx0dekKGlPwR
+Q7tAUoj2UauxnSpVIrKntXCoAYQ/EBf6/ogzoc3lUQ+wBLpeRkozL32tq3hDKWqb
+zrFnJH+wrhwts0nn2jkKYiqB5WNq06Zp+2CU2toZ3pU240V5Thw4+MUvmZYdTP7w
+P+xzC+/aYhy22mC/w5JIKuiGV2TdlHuJUZtd1rmYmWYPGHg809dG2yryNGcXEaTN
+of4JepJwFB/+PiM8MikzO2qCTSsgLlwvv/btxTSlvH9HmoPQ8RiOsQwQGx5f36Io
+hCeLGg6ddbL2e0KXLJM2CTFH6VWz6E7t/u9YzkxVrHc4nx8ltSmMSangaI1ullrx
+4UgmA3EL4gJgv8z50/NoGW6IQymp5kGHUjKl4xbeWdgeW/hJ3Fo5RRIimuesULsn
+DEh0rfqb8MJiogIWy/wh
+=FbLt
+-----END PGP SIGNATURE-----
 
-Sanity checking?
-
-> +		break;
-> +	}
-> +	default:
-> +		r = -ENOTTY;
-> +		break;
-> +	}
-> +
-> +	return r;
-> +}
-> +
-> +static int cs_char_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	if (vma->vm_end < vma->vm_start)
-> +		return -EINVAL;
-> +
-> +	if (((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) != 1)
-> +		return -EINVAL;
-> +
-> +	vma->vm_flags |= VM_RESERVED;
-> +	vma->vm_ops = &cs_char_vm_ops;
-> +	vma->vm_private_data = file->private_data;
-> +
-> +	return 0;
-> +}
-> +
-> +static int cs_char_open(struct inode *unused, struct file *file)
-> +{
-> +	int ret = 0;
-> +
-> +	spin_lock_bh(&cs_char_data.lock);
-> +	if (cs_char_data.opened) {
-> +		ret = -EBUSY;
-> +		spin_unlock_bh(&cs_char_data.lock);
-> +		goto out;
-> +	}
-> +	cs_char_data.mmap_base = get_zeroed_page(GFP_ATOMIC);
-
-This could be moved outside the locked sectionand use GFP_KERNEL.
-
-> +	if (!cs_char_data.mmap_base) {
-> +		dev_err(&cs_char_data.cl->device,
-> +					"Shared memory allocation failed.\n");
-> +		ret = -ENOMEM;
-> +		spin_unlock_bh(&cs_char_data.lock);
-> +		goto out;
-> +	}
-> +	cs_char_data.mmap_size = CS_MMAP_SIZE;
-> +	cs_char_data.dataind_pending = 0;
-> +	cs_char_data.opened = 1;
-> +	file->private_data = &cs_char_data;
-> +	spin_unlock_bh(&cs_char_data.lock);
-> +
-> +	BUG_ON(cs_char_data.hi);
-> +
-> +	ret = cs_hsi_start(&cs_char_data.hi, cs_char_data.cl,
-> +				cs_char_data.mmap_base, cs_char_data.mmap_size);
-> +	if (ret) {
-> +		dev_err(&cs_char_data.cl->device, "Unable to initialize HSI\n");
-> +		free_page(cs_char_data.mmap_base);
-> +		goto out;
-> +	}
-> +
-> +out:
-> +	return ret;
-> +}
+--aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW--
