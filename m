@@ -1,81 +1,105 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
-Date: Mon, 2 Mar 2015 21:01:21 +0000
-Message-ID: <20150302210121.GE29584@n2100.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
- <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
- <54F4B50E.4070104@codeaurora.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 11/15] twl4030_charger: enable manual enable/disable of
+ usb charging.
+Date: Mon, 2 Mar 2015 22:03:42 +0100
+Message-ID: <20150302210342.GD13270@amd>
+References: <20150224043341.4243.23291.stgit@notabene.brown>
+ <20150224043352.4243.543.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54F4B50E.4070104@codeaurora.org>
-Sender: linux-sh-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+In-Reply-To: <20150224043352.4243.543.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 02, 2015 at 11:07:58AM -0800, Stephen Boyd wrote:
-> On 03/02/15 09:06, Russell King wrote:
-> > Add a helper to allocate and add a clk_lookup structure.  This can not
-> > only be used in several places in clkdev.c to simplify the code, but
-> > more importantly, can be used by callers of the clkdev code to simplify
-> > their clkdev creation and registration.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > ---
-> >  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
-> >  include/linux/clkdev.h |  3 +++
-> >  2 files changed, 43 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-> > index 043fd3633373..611b9acbad78 100644
-> > --- a/drivers/clk/clkdev.c
-> > +++ b/drivers/clk/clkdev.c
-> > @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
-> >  	return &cla->cl;
-> >  }
-> >  
-> > +static struct clk_lookup *
-> > +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
-> > +	va_list ap)
-> > +{
-> > +	struct clk_lookup *cl;
-> > +
-> > +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
-> > +	if (cl)
-> > +		clkdev_add(cl);
-> > +
-> > +	return cl;
-> > +}
-> > +
-> >  struct clk_lookup * __init_refok
-> >  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
-> >  {
-> > @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
-> >  }
-> >  EXPORT_SYMBOL(clkdev_alloc);
-> >  
-> > +/**
-> > + * clkdev_create - allocate and add a clkdev lookup structure
-> > + * @clk: struct clk to associate with all clk_lookups
-> > + * @con_id: connection ID string on device
-> > + * @dev_fmt: format string describing device name
-> > + *
-> > + * Returns a clk_lookup structure, which can be later unregistered and
-> > + * freed.
+On Tue 2015-02-24 15:33:52, NeilBrown wrote:
+> 'off' or 'auto' to
 > 
-> And returns NULL on failure? Any reason why we don't return an error
-> pointer on failure?
+>  /sys/class/power/twl4030_usb/mode
+> 
+> will now enable or disable charging from USB port.  Normally this is
+> enabled on 'plug' and disabled on 'unplug'.
+> Unplug will still disable charging.  'plug' will only enable it if
+> 'auto' if selected.
 
-Why should it when it's only error is "no memory" ?  It follows the
-clkdev_alloc() and memory allocator pattern.
+This should go to Documentation/
 
-It'd also make the error handling in places like clk_add_alias() more
-difficult (how that happened, I don't know...) though that could probably
-be fixed as no one seems to bother checking the return value... maybe
-that's a reason to make it return void ;)
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> 
+> Conflicts:
+> 	drivers/power/twl4030_charger.c
 
+Is it supposed to be here?
+
+> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+> index 01090a440583..19e8dbb1303e 100644
+> --- a/drivers/power/twl4030_charger.c
+> +++ b/drivers/power/twl4030_charger.c
+> @@ -107,6 +107,9 @@ struct twl4030_bci {
+>  	int			ichg_eoc, ichg_lo, ichg_hi;
+>  	int			usb_cur, ac_cur;
+>  	bool			ac_is_active;
+> +	int			usb_mode; /* charging mode requested */
+> +#define	CHARGE_OFF	0
+> +#define	CHARGE_AUTO	1
+>  
+>  	unsigned long		event;
+>  };
+> @@ -377,6 +380,8 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
+>  {
+>  	int ret;
+>  
+n> +	if (bci->usb_mode == CHARGE_OFF)
+> +		enable = false;
+
+Sometimes, you use = false and sometimes = 0 when assigning to bools...
+
+> @@ -629,6 +634,54 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
+>  	return NOTIFY_OK;
+>  }
+>  
+> +/*
+> + * sysfs charger enabled store
+> + */
+> +static char *modes[] = { "off", "auto" };
+
+I'd move this before the comment. Or better near struct twl4030_bci.
+
+> +static DEVICE_ATTR(mode, 0644, twl4030_bci_mode_show,
+> +		   twl4030_bci_mode_store);
+> +
+>  static int twl4030_charger_get_current(void)
+>  {
+>  	int curr;
+> @@ -799,6 +852,7 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+>  		bci->usb_cur = 500000;  /* 500mA */
+>  	else
+>  		bci->usb_cur = 100000;  /* 100mA */
+> +	bci->usb_mode = CHARGE_AUTO;
+>  
+>  	bci->dev = &pdev->dev;
+>  	bci->irq_chg = platform_get_irq(pdev, 0);
+> @@ -885,6 +939,8 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
+>  	twl4030_charger_update_current(bci);
+>  	if (device_create_file(bci->usb.dev, &dev_attr_max_current))
+>  		dev_warn(&pdev->dev, "could not create sysfs file\n");
+> +	if (device_create_file(bci->usb.dev, &dev_attr_mode))
+> +		dev_warn(&pdev->dev, "could not create sysfs file\n");
+>  	if (device_create_file(bci->ac.dev, &dev_attr_max_current))
+>  		dev_warn(&pdev->dev, "could not create sysfs file\n");
+>  
+> @@ -917,6 +973,7 @@ static int __exit twl4030_bci_remove(struct platform_device *pdev)
+>  
+>  	device_remove_file(bci->usb.dev, &dev_attr_max_current);
+>  	device_remove_file(bci->ac.dev, &dev_attr_max_current);
+> +	device_remove_file(bci->usb.dev, &dev_attr_mode);
+
+move the line above for consistency with create?
+
+Acked-by: Pavel Machek <pavel@ucw.cz>
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
