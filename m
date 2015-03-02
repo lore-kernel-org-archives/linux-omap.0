@@ -1,120 +1,114 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 09/21] drm/omap: handle mismatching color format and buffer
- width
-Date: Mon, 2 Mar 2015 12:32:40 +0200
-Message-ID: <54F43C48.3080806@ti.com>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>	<1424956829-22892-10-git-send-email-tomi.valkeinen@ti.com>	<20150227130158.GX24485@phenom.ffwll.local>	<CAPj87rP4675D9WY8eGUPCePcx7Oi+faYs5K4B_BGtyh1H4RmJA@mail.gmail.com>	<54F4326B.6040209@ti.com> <CAPj87rOranF8WA=cPiHv=XwLSRscBLfNi+BemUhObys2nb8YKQ@mail.gmail.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v2 1/3] ARM: OMAP2: hwmod: AM43XX: Add hwmod support for HDQ-1W
+Date: Mon, 2 Mar 2015 16:19:32 +0530
+Message-ID: <1425293374-30878-2-git-send-email-vigneshr@ti.com>
+References: <1425293374-30878-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50510 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57017 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754052AbbCBKct (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Mar 2015 05:32:49 -0500
-In-Reply-To: <CAPj87rOranF8WA=cPiHv=XwLSRscBLfNi+BemUhObys2nb8YKQ@mail.gmail.com>
+	id S1751868AbbCBKuh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Mar 2015 05:50:37 -0500
+In-Reply-To: <1425293374-30878-1-git-send-email-vigneshr@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Stone <daniel@fooishbar.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel <dri-devel@lists.freedesktop.org>, Rob Clark <robdclark@gmail.com>
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Evgeniy Polyakov <zbr@ioremap.net>, Jonathan Corbet <corbet@lwn.net>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, NeilBrown <neilb@suse.de>, Benoit Cousson <bcousson@baylibre.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
 
-On 02/03/15 12:22, Daniel Stone wrote:
+These adds hwmod data for hdq/1w driver on AM43xx.
 
->> I don't know why Rob named it like that. "The bpp of the stride"? Shru=
-g.
->=20
-> It's just the bpp of the pixel format; it's not at all associated with
-> the stride?
-
-The comment says "this times width is stride", so I thought the naming co=
-mes
-from that train of thought. But I agree, it's just bpp.
-
-Here's updated patch:
-
-=46rom af0db526ae274d47488ec49577365909eb8f629d Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Thu, 25 Sep 2014 19:24:28 +0000
-Subject: [PATCH] drm/omap: handle incompatible buffer stride and pixel si=
-ze
-
-omapdrm doesn't check if the pitch of the framebuffer and the color
-format's bits-per-pixel are compatible. omapdss requires that the stride
-of a buffer is an integer number of pixels
-
-For example, when using modetest with a display that has x resolution of
-1280, and using packed 24 RGB mode (3 bytes per pixel), modetest
-allocates a buffer with a byte stride of 4 * 1280 =3D 5120. But 5120 / 3 =
-=3D
-1706.666... pixels, which causes wrong colors and a tilt on the screen.
-
-Add a check into omapdrm to return an error if the user tries to use
-such a combination.
-
-Note: this is not a HW requirement at least for non-rotation use cases,
-but a SW driver requirement. In the future we should study if also
-rotation use cases are fine with any stride size, and if so, change the
-driver to allow these strides.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- drivers/gpu/drm/omapdrm/omap_fb.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Change log:
+v2:
+ * Add SYSC_HAS_AUTOIDLE flag.
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_fb.c b/drivers/gpu/drm/omapdrm/=
-omap_fb.c
-index 2975096abdf5..e123b4dee670 100644
---- a/drivers/gpu/drm/omapdrm/omap_fb.c
-+++ b/drivers/gpu/drm/omapdrm/omap_fb.c
-@@ -463,6 +463,14 @@ struct drm_framebuffer *omap_framebuffer_init(struct=
- drm_device *dev,
- 			goto fail;
- 		}
-=20
-+		if (pitch % format->planes[i].stride_bpp !=3D 0) {
-+			dev_err(dev->dev,
-+				"buffer pitch (%d bytes) is not a multiple of pixel size (%d bytes)\=
-n",
-+				pitch, format->planes[i].stride_bpp);
-+			ret =3D -EINVAL;
-+			goto fail;
-+		}
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 36 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |  1 +
+ 2 files changed, 37 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 8eb85925e444..e2223148ba4d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -20,6 +20,7 @@
+ #include "omap_hwmod_33xx_43xx_common_data.h"
+ #include "prcm43xx.h"
+ #include "omap_hwmod_common_data.h"
++#include "hdq1w.h"
+ 
+ 
+ /* IP blocks */
+@@ -516,6 +517,33 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
+ 	.parent_hwmod	= &am43xx_dss_core_hwmod,
+ };
+ 
++/* HDQ1W */
++static struct omap_hwmod_class_sysconfig am43xx_hdq1w_sysc = {
++	.rev_offs       = 0x0000,
++	.sysc_offs      = 0x0014,
++	.syss_offs      = 0x0018,
++	.sysc_flags     = (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
 +
- 		size =3D pitch * mode_cmd->height / format->planes[i].sub_y;
-=20
- 		if (size > (omap_gem_mmap_size(bos[i]) - mode_cmd->offsets[i])) {
---=20
-2.3.1
++static struct omap_hwmod_class am43xx_hdq1w_hwmod_class = {
++	.name   = "hdq1w",
++	.sysc   = &am43xx_hdq1w_sysc,
++	.reset	= &omap_hdq1w_reset,
++};
++
++static struct omap_hwmod am43xx_hdq1w_hwmod = {
++	.name           = "hdq1w",
++	.class          = &am43xx_hdq1w_hwmod_class,
++	.clkdm_name     = "l4ls_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
+ /* Interfaces */
+ static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -790,6 +818,13 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++static struct omap_hwmod_ocp_if am43xx_l4_ls__hdq1w = {
++	.master         = &am33xx_l4_ls_hwmod,
++	.slave          = &am43xx_hdq1w_hwmod,
++	.clk            = "l4ls_gclk",
++	.user           = OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_wkup__synctimer,
+ 	&am43xx_l4_ls__timer8,
+@@ -889,6 +924,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am43xx_l4_ls__dss,
+ 	&am43xx_l4_ls__dss_dispc,
+ 	&am43xx_l4_ls__dss_rfbi,
++	&am43xx_l4_ls__hdq1w,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index ad7b3e9977f8..48df3b55057e 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -143,5 +143,6 @@
+ #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+ #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
+ #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
++#define AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET		0x04a0
+ 
+ #endif
+-- 
+1.9.1
 
-
-
-
---aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU9DxIAAoJEPo9qoy8lh71ph0P/0yXQvrt4cMNkOoEHcnlqSX6
-tF6wXuv/iU80NXTvPU1RX6oj94hDu3Bc8cK0kP4LTATdfcVgEHrcSee7kkzk/prU
-ideWv6eWJkRhYZM48aVILtrY4vshKPjpYwTc4s+TtOVhI4ARn3Tua5NX1zUT83Ra
-T7LODkHK0XnQxyghFZeKXm/vMEzeHX10vjuLa8NsgS3nM+d6DZu6DHztYEfzp+/u
-1/B119YzEyq22WJuK7+BV6S12YLY7jfXXsC5f214uprpZMoNfbvKnx0dekKGlPwR
-Q7tAUoj2UauxnSpVIrKntXCoAYQ/EBf6/ogzoc3lUQ+wBLpeRkozL32tq3hDKWqb
-zrFnJH+wrhwts0nn2jkKYiqB5WNq06Zp+2CU2toZ3pU240V5Thw4+MUvmZYdTP7w
-P+xzC+/aYhy22mC/w5JIKuiGV2TdlHuJUZtd1rmYmWYPGHg809dG2yryNGcXEaTN
-of4JepJwFB/+PiM8MikzO2qCTSsgLlwvv/btxTSlvH9HmoPQ8RiOsQwQGx5f36Io
-hCeLGg6ddbL2e0KXLJM2CTFH6VWz6E7t/u9YzkxVrHc4nx8ltSmMSangaI1ullrx
-4UgmA3EL4gJgv8z50/NoGW6IQymp5kGHUjKl4xbeWdgeW/hJ3Fo5RRIimuesULsn
-DEh0rfqb8MJiogIWy/wh
-=FbLt
------END PGP SIGNATURE-----
-
---aMUt4b5hiMrejc7HJeocu4RLOL5AD72jW--
