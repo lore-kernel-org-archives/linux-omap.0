@@ -1,45 +1,69 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 06/10] ASOC: migor: use clkdev_create()
-Date: Mon, 2 Mar 2015 17:29:07 +0000
-Message-ID: <20150302172907.GY21293@sirena.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
- <E1YSTnc-0001Jo-1U@rmk-PC.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC 6/6] ARM: dts: am335x-boneblack: Use new binding for
+ HDMI
+Date: Mon, 2 Mar 2015 17:42:27 +0000
+Message-ID: <20150302174227.GC29584@n2100.arm.linux.org.uk>
+References: <cover.1424961754.git.jsarha@ti.com>
+ <6d6653416fd87c678a80df1d422420877261c4a5.1424961754.git.jsarha@ti.com>
+ <54F45778.6050406@ti.com>
+ <20150302160629.GB29584@n2100.arm.linux.org.uk>
+ <54F49917.6070608@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="dGUfJcSsJTvAEs5v"
-Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <E1YSTnc-0001Jo-1U@rmk-PC.arm.linux.org.uk>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+In-Reply-To: <54F49917.6070608@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, detheridge@ti.com, tony@atomide.com, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---dGUfJcSsJTvAEs5v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Mar 02, 2015 at 05:06:32PM +0000, Russell King wrote:
-> clkdev_create() is a shorter way to write clkdev_alloc() followed by
-> clkdev_add().  Use this instead.
-
-Acked-by: Mark Brown <broonie@kernel.org>
-
---dGUfJcSsJTvAEs5v
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJU9J3iAAoJECTWi3JdVIfQ7BoH/R5IM/IP7qrjaa1F2hR+Sbe2
-ONWg9C8xFm9DDPGnc5ZN9U785DvRVyrTXcC+08+nm0E1eTfEGzPR7lLs5T/QxmBx
-1MEu/RYlNId1kegXtSOhzlq3p/QHaysXIJMsfguCRfWhBdtFDbHgkQ0t0rZ/o1MU
-IqrP4m2RIFa8C9WARqD03mlEG19jlxLQ888+BJGD38yjbDTQX0qm2wokWfAfAti6
-QWPjI/GhqxlVUN6Yig3xo7xNXvW/cqopxEW9rVbgT0dYbA53AmQFYkGQUWSi+fFp
-9xRMVl5pYvfp2H3X16rQQk7v0N6inmvecqfNf6sRjfjpW2b6XbxFbKNzaxFZWds=
-=m9hq
------END PGP SIGNATURE-----
-
---dGUfJcSsJTvAEs5v--
+T24gTW9uLCBNYXIgMDIsIDIwMTUgYXQgMDc6MDg6MzlQTSArMDIwMCwgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gT24gMDIvMDMvMTUgMTg6MDYsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3cm90
+ZToKPiAKPiA+PiBUaGlzIGlzIG1pc3NpbmcgdGhlIG91dHB1dCBvZiB0ZGE5OTh4LiBJdCBzaG91
+bGQgaGF2ZSB0d28gcG9ydHMsIGlucHV0Cj4gPj4gYW5kIG91dHB1dCwgb3V0cHV0IGdvaW5nIHRv
+IGhkbWktY29ubmVjdG9yLgo+ID4gCj4gPiBXZSBkb24ndCBoYXZlIHRoYXQga2luZCBvZiBsZXZl
+bCBvZiBtb2RlbGxpbmcgaW4gRFJNIHJpZ2h0IG5vdyAtIGFzIGZhcgo+ID4gYXMgRFJNIGlzIGNv
+bmNlcm5lZCwgdGhlIHRkYTk5OHggaXMgYm90aCB0aGUgZW5jb2RlciBfYW5kXyB0aGUgY29ubmVj
+dG9yCj4gPiBzaW5jZSBpdCBzdXBwbGllcyBib3RoIGZ1bmN0aW9uYWxpdGllcy4KPiAKPiBUaGF0
+J3MgZmluZSwgYnV0IHRoZXNlIGFyZSBEVCBiaW5kaW5ncyB3aGljaCBzaG91bGQgcmVmbGVjdCB0
+aGUKPiBoYXJkd2FyZSwgbm90IHRoZSBTVyBzdGFjay4KCkkgc3RpbGwgZG9uJ3QgYnV5IHlvdXIg
+YXJndW1lbnQuICBUaGUgcHJpbmNpcGxlIGlzIHJpZ2h0LCBidXQgSSB0aGluawp5b3UncmUgdGFr
+aW5nIGl0IHRvbyBmYXIuCgpMb29rIGF0IGVQQVBSIGZvciBhIG1vbWVudCwgYW5kIGNvbnNpZGVy
+IGEgc2VyaWFsIHBvcnQuICBBIHNlcmlhbCBVQVJUCmNhbiBiZSBwaHlzaWNhbGx5IGNvbm5lY3Rl
+ZCB0byBhIDktcGluIG9yIGEgMjUtcGluIGNvbm5lY3Rvciwgd2hpY2gKbWF5IGJlIG1hbGUgb3Ig
+ZmVtYWxlLiAgVGhlc2UgZGV0YWlscyBhcmUgbm90IGluY2x1ZGVkIGluIHRoZSBEVApkZXNjcmlw
+dGlvbi4gIEV2ZW4gd2hlbiB0aGUgc2VyaWFsIHBvcnQgY29udHJvbCBzaWduYWxzIGFyZSBwcm92
+aWRlZApieSBHUElPcyByYXRoZXIgdGhhbiB0aGUgVUFSVCwgd2UgZG9uJ3QgbW9kZWwgdGhlIGNv
+bm5lY3RvciAtIHdlCndyYXAgdGhlIEdQSU9zIGRpcmVjdGx5IGludG8gdGhlIFVBUlQgZHJpdmVy
+LgoKQXJndWFibHksIHRoYXQncyBub3QgZm9sbG93aW5nIHRoZSBoYXJkd2FyZSwgaXQncyBmb2xs
+b3dpbmcgdGhlIHNvZnR3YXJlCnJlcHJlc2VudGF0aW9uIC0gaXQncyBmb2xsb3dpbmcgdGhlIHNv
+ZnR3YXJlIHJlcHJlc2VudGF0aW9uIG9mIHdoYXQgYQpzZXJpYWwgcG9ydCBfc2hvdWxkXyBsb29r
+IGxpa2UgdG8gYSBub24tc3BlY2lmaWMgT1MuCgpDb25zaWRlciBhbiBldGhlcm5ldCBwb3J0LiAg
+WW91J2xsIGZpbmQgdGhlIHNhbWUgdGhpbmcgYXBwbGllcyAtIHRoZQpwaHlzaWNhbCBjb25uZWN0
+b3IgaXRzZWxmIGlzIG5vdCBzcGVjaWZpZWQuCgpZZXQsIHNvbWVob3csIHdlJ3JlIHdhbnRpbmcg
+dG8gc3BlY2lmeSB0aGUgcGh5c2ljYWwgY29ubmVjdG9yIGZvciBfYWxsXwp2aWRlbyBkZXZpY2Vz
+PyAgSSBkb24ndCBzZWUgd2h5IHRoYXQgc2hvdWxkIGJlIG1hbmRhdG9yeSB3aGVuIGl0J3Mgbm90
+Cm1hbmRhdG9yeSBmb3Igb3RoZXIgc3Vic3lzdGVtcy4KCklmIHdlIHdhbnQgdG8gdGFrZSB0aGlz
+IHRvIHRoZSBleHRyZW1lLCB3ZSBzaG91bGQgYmUgc3BlY2lmeWluZyB0aGUKcG93ZXIgY29ubmVj
+dG9ycyBpbiBEVCBhbmQgaG93IHRoZXkncmUgd2lyZWQgdXAgYWxvbmcgd2l0aCB0aGVpcgpjb250
+cm9scy4gIFdlIGRvbid0IHRob3VnaCwgd2Ugc3BlY2lmeSB0aGUgY29udHJvbCBkZXZpY2VzIGFu
+ZAp0aGUgZnVuY3Rpb24gb2YgdGhvc2UgKGVnLCB2aWEgYSBjaGFyZ2VyIGNoaXAuKQoKVG8gdGFr
+ZSB0aGlzIHRvIHRoZSBleHRyZW1lLCB3aGF0IGFib3V0IGEgZGV2aWNlIHBvd2VyZWQgdmlhIFBv
+RT8KU2hvdWxkIHRoZSBQb0UgY29ubmVjdG9yIGJlIG1vZGVsbGVkIGluIERUPwoKV2hlbiB3ZSBz
+YXkgIkRUIHNob3VsZCBmb2xsb3cgdGhlIGhhcmR3YXJlIiB3ZSdyZSBub3QgdGFsa2luZyBhYm91
+dAptYWtpbmcgRFQgYmUgYW4gYWx0ZXJuYXRpdmUgdG8gdGhlIGhhcmR3YXJlJ3Mgc2NoZW1hdGlj
+LgoKLS0gCkZUVEMgYnJvYWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCAxMC41
+TWJwcyBkb3duIDQwMGticHMgdXAKYWNjb3JkaW5nIHRvIHNwZWVkdGVzdC5uZXQuCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
+IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
