@@ -1,83 +1,34 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL v2] ARM: OMAP2+: first set of hwmod and PRCM fixes for
- v4.0-rc
-Date: Mon, 2 Mar 2015 04:13:51 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503020413320.9987@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1503020402460.9987@utopia.booyaka.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 1/2] net: davinci_mdio: add hibernation callbacks
+Date: Sun, 01 Mar 2015 23:27:14 -0500 (EST)
+Message-ID: <20150301.232714.1468134019624934794.davem@davemloft.net>
+References: <1425035985-8875-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42074 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235AbbCBENw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Mar 2015 23:13:52 -0500
-In-Reply-To: <alpine.DEB.2.02.1503020402460.9987@utopia.booyaka.com>
+Received: from shards.monkeyblade.net ([149.20.54.216]:46435 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148AbbCBE1Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Mar 2015 23:27:16 -0500
+In-Reply-To: <1425035985-8875-1-git-send-email-grygorii.strashko@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: grygorii.strashko@linaro.org
+Cc: balbi@ti.com, nm@ti.com, sumit.semwal@linaro.org, mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+From: <grygorii.strashko@linaro.org>
+Date: Fri, 27 Feb 2015 13:19:44 +0200
 
-The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
+> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+> 
+> Setting a dev_pm_ops suspend_late/resume_early pair but not a
+> set of hibernation functions means those pm functions will
+> not be called upon hibernation.
+> Fix this by using SET_LATE_SYSTEM_SLEEP_PM_OPS, which appropriately
+> assigns the suspend and hibernation handlers and move
+> davinci_mdio_x callbacks under CONFIG_PM_SLEEP to avoid build warnings.
+> 
+> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.0-rc/omap-fixes-a
-
-for you to fetch changes up to 50f59d07e9822274a2e6034777eb4e90cfb30cfc:
-
-  ARM: OMAP4+: PRM: fix omap4 version of prm_save_and_clear_irqen (2015-03-01 16:58:25 -0700)
-
-- ----------------------------------------------------------------
-ARM: OMAP2+: first set of hwmod and PRCM fixes for v4.0-rc
-
-This series fixes the following bugs:
-
-- - a lockdep problem with the OMAP hwmod code;
-- - incorrect PCIe hwmod data for the DRA7xx chips;
-- - the clockdomain handling in the hardreset deassertion code,
-  preventing idle;
-- - the use of an IRQ status register rather than an IRQ enable register
-  in the OMAP4 PRM code.
-
-Basic build, boot, and PM test results are available here:
-
-http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v4.0-rc/20150301165949/
-
-- ----------------------------------------------------------------
-Kishon Vijay Abraham I (1):
-      ARM: DRA7: hwmod_data: Fix hwmod data for pcie
-
-Peter Ujfalusi (1):
-      ARM: omap2+: omap_hwmod: Set unique lock_class_key per hwmod
-
-Tero Kristo (2):
-      ARM: OMAP2+: hwmod: fix deassert hardreset clkdm usecounting
-      ARM: OMAP4+: PRM: fix omap4 version of prm_save_and_clear_irqen
-
- arch/arm/mach-omap2/omap_hwmod.c          |  10 +--
- arch/arm/mach-omap2/omap_hwmod.h          |   1 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 103 +++++++-----------------------
- arch/arm/mach-omap2/prm44xx.c             |   4 +-
- 4 files changed, 32 insertions(+), 86 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU8+NdAAoJEMePsQ0LvSpLWAsQAIFPj9Ha4r8T78q1s/Q57HZI
-uygJxhWN2j1//z4F17Ya+Ig1MAJryBILDUitvC4IhkeWgKS5Y3TNLfYmnYiSxuJT
-pzpgnmnuF7AY2tUtQkxuxbg2JDjNFB4EAWolbEDRYlYl5dzCy+UP4uJfXl5UBRRO
-D461ZhgBzTuLcQADePMDld2o62BDZ4GQT9ItGmcnlN+oujasLbRR68EAoLLHpo1i
-sGYVlMSzduaZe+dN1SNty4QKJoI1BI9PTQ5jVCpHZGuJ0JkS94Y7ir34yDQ6Er5G
-bjan1Qv5oA2v6TmwxNAD5gcH/D+TIsemlp5uF4PANJdwLyDMNsVxI6FLxonfaCTD
-+f5rn0u8C+xAiX8X71XonYBWvglfn5csXuPD8O8RgoohnuXNF2y957sHANp6PwWT
-KLd9YCKpNzQJsy/TswlbNrOHUrkMXbO9fbA/XAsYgH7wXPmDr+55EhB5jSJZwhmU
-A0Ab4BMJqPQQwQIgzWn4Mz6ZVaDgxBRD9DIiOl+41ZiOYFS/URC0Mnx1ofMjvY5H
-pBakVSQc9IF2OmGWRjO2eEygzL2EpHGwUEaIjIWg8oy7fkZ4eZfKZ2yRfW/kshp9
-McYUngoNtYInVLULIsQ148HCWel7jpSCJO/kLq9L7cMcW/e6GjddbRyMEiAP19CF
-j1ePWtyWAWZrtwMbyOai
-=92Qe
------END PGP SIGNATURE-----
+Applied.
