@@ -1,50 +1,83 @@
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 00/10] initial clkdev cleanups
-Date: Mon, 02 Mar 2015 13:50:44 -0800
-Message-ID: <54F4DB34.9000507@codeaurora.org>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+Date: Mon, 02 Mar 2015 13:54:55 -0800
+Message-ID: <54F4DC2F.1030904@codeaurora.org>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk> <54F4B50E.4070104@codeaurora.org> <20150302210121.GE29584@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39846 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755306AbbCBVur (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 16:50:47 -0500
-In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20150302210121.GE29584@n2100.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Roland Stigge <stigge@antcom.de>, Andrew Lunn <andrew@lunn.ch>, Mike Turquette <mturquette@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 
-On 03/02/15 09:05, Russell King - ARM Linux wrote:
-> Here's some initial clkdev cleanups.  These are targetted for the next
-> merge window, and while the initial patches can be merged independently,
-> I'd prefer to keep the series together as further work on solving the
-> problems which unique struct clk's has introduced is needed.
+On 03/02/15 13:01, Russell King - ARM Linux wrote:
+> On Mon, Mar 02, 2015 at 11:07:58AM -0800, Stephen Boyd wrote:
+>> On 03/02/15 09:06, Russell King wrote:
+>>> Add a helper to allocate and add a clk_lookup structure.  This can not
+>>> only be used in several places in clkdev.c to simplify the code, but
+>>> more importantly, can be used by callers of the clkdev code to simplify
+>>> their clkdev creation and registration.
+>>>
+>>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>>> ---
+>>>  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
+>>>  include/linux/clkdev.h |  3 +++
+>>>  2 files changed, 43 insertions(+), 12 deletions(-)
+>>>
+>>> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+>>> index 043fd3633373..611b9acbad78 100644
+>>> --- a/drivers/clk/clkdev.c
+>>> +++ b/drivers/clk/clkdev.c
+>>> @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+>>>  	return &cla->cl;
+>>>  }
+>>>  
+>>> +static struct clk_lookup *
+>>> +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
+>>> +	va_list ap)
+>>> +{
+>>> +	struct clk_lookup *cl;
+>>> +
+>>> +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
+>>> +	if (cl)
+>>> +		clkdev_add(cl);
+>>> +
+>>> +	return cl;
+>>> +}
+>>> +
+>>>  struct clk_lookup * __init_refok
+>>>  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+>>>  {
+>>> @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+>>>  }
+>>>  EXPORT_SYMBOL(clkdev_alloc);
+>>>  
+>>> +/**
+>>> + * clkdev_create - allocate and add a clkdev lookup structure
+>>> + * @clk: struct clk to associate with all clk_lookups
+>>> + * @con_id: connection ID string on device
+>>> + * @dev_fmt: format string describing device name
+>>> + *
+>>> + * Returns a clk_lookup structure, which can be later unregistered and
+>>> + * freed.
+>> And returns NULL on failure? Any reason why we don't return an error
+>> pointer on failure?
+> Why should it when it's only error is "no memory" ?  It follows the
+> clkdev_alloc() and memory allocator pattern.
 >
-> The initial cleanups are more about using the correct clkdev function
-> than anything else: there's no point interating over a array of
-> clk_lookup structs, adding each one in turn when we have had a function
-> which does this since forever.
-
-The clkdev_add_table() conversions look good.
-
->
-> I'm also killing a chunk of seemingly unused code in the omap3isp driver.
->
-> Lastly, I'm introducing a clkdev_create() helper, which combines the
-> clkdev_alloc() + clkdev_add() pattern which keeps cropping up.
+> It'd also make the error handling in places like clk_add_alias() more
+> difficult (how that happened, I don't know...) though that could probably
+> be fixed as no one seems to bother checking the return value... maybe
+> that's a reason to make it return void ;)
 >
 
-We already have a solution to that problem with clk_register_clkdev().
-Andy has done some work to make clk_register_clkdev() return a struct
-clk_lookup pointer[1]. Maybe we can do that instead of introducing a new
-clkdev_create() function. There is some benefit to having a new function
-though so that we can avoid a flag day, although it looks like the flag
-day is small in this case so it might not actually matter.
-
-[1] https://www.marc.info/?l=linux-kernel&m=142469226512289
+Ok, fair enough. Right now clk_add_alias() leaks if a driver decides to
+add an alias and then fail probe for something like probe deferral. We
+should probably make that return the clk_lookup structure too so that
+drivers can clean up.
 
 -- 
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
