@@ -1,51 +1,59 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v2 0/3] Add support for HDQ-1W on AM43XX
-Date: Mon, 2 Mar 2015 16:19:31 +0530
-Message-ID: <1425293374-30878-1-git-send-email-vigneshr@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 14/21] drm/omap: stop connector polling during suspend
+Date: Mon, 2 Mar 2015 13:03:04 +0200
+Message-ID: <54F44368.2010902@ti.com>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com> <1424956829-22892-15-git-send-email-tomi.valkeinen@ti.com> <54EF263D.5050904@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Evgeniy Polyakov <zbr@ioremap.net>, Jonathan Corbet <corbet@lwn.net>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, NeilBrown <neilb@suse.de>, Benoit Cousson <bcousson@baylibre.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="1hw5toPjvtwxpATgc2tFEQw9uNJ2ot2xw"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57382 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751117AbbCBLDM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Mar 2015 06:03:12 -0500
+In-Reply-To: <54EF263D.5050904@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, Rob Clark <robdclark@gmail.com>
 
-Hi,
+--1hw5toPjvtwxpATgc2tFEQw9uNJ2ot2xw
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-This patch series adds support for HDQ-1W interface on AM43XX.
-The first patch adds hwmod entries for HDQ-1W on AM43xx.
+On 26/02/15 15:57, Grygorii.Strashko@linaro.org wrote:
 
-The existing omap_hdq driver does not support 1-wire operations.
-The second patch enables 1-wire support in the omap_hdq driver. Support
-to Search ROM addresses and automatically load slave drivers is added
-for 1-wire mode.
+> Could I ask you to update this patch as below, pls?
 
-I have tested this on am437x-gp-evm using DS18B20 as 1-wire slave.
+Your changes look ok to me, but they are not related to my patch so I
+don't see any reason to merge them. I'll pick your patch to my series.
+
+ Tomi
 
 
-Poddar, Sourav (1):
-  ARM: OMAP2: hwmod: AM43XX: Add hwmod support for HDQ-1W
 
-Vignesh R (2):
-  w1: masters: omap_hdq: Add support for 1-wire mode
-  ARM: dts: AM4372: update hdq compatible property
+--1hw5toPjvtwxpATgc2tFEQw9uNJ2ot2xw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
- Documentation/devicetree/bindings/w1/omap-hdq.txt |   7 +-
- Documentation/w1/masters/omap-hdq                 |   6 +
- arch/arm/boot/dts/am4372.dtsi                     |   2 +-
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c        |  36 ++++
- arch/arm/mach-omap2/prcm43xx.h                    |   1 +
- drivers/w1/masters/omap_hdq.c                     | 209 ++++++++++++++++++----
- 6 files changed, 226 insertions(+), 35 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
--- 
-1.9.1
+iQIcBAEBAgAGBQJU9ENoAAoJEPo9qoy8lh71xf0P/2wTN0o6dB3SAchWjbAE20gA
+0X4D/rnbp1kgD+Sh8S8kESr7LYQs7GsH/V2g7amSpegc9xtS/4MAn990nMapD3xl
+dsEYpDSvCZkEMjhDp/sH5t2EfXbJVpI10msaeSWeTgGZ4v0PUFkzMycpDfWwqVQX
+qIo4ZXRmY9vxoIetU76PDRmQz1oKXx43+dZ3dgXk2R4ui0XvVxx9+Zca5pMz0HNR
+T/PI6TFKWsP17ltaKm3xahNIQauv14QkBAvH3UDu+0vROJJtGLkocfMV/PMwssRj
+M6s0Ll/lPm4SFS8pR6ILpM1uk1rSu0FvNMS1OL+8KP6o/TdVkve906KDPXRMgz3P
+Zfl+xpnn5kB0zBLcIvE5mQH3Y4LilUD2jl3TuBbtqNO9gcBOGAWeGxcs5a2vcshZ
+1F1s0CTH2berBZOzPAKO/S67jVjivce2V922RjsknGIpttsby+mR/uSTopUkDy2s
+/uooNkwABDRzhApyRhoUC+nf5MiVnqSTMDpMM5pjYcagZiosfBs+hG1QbuSieLap
+6Bzt8GMMYEXKtTBxQCYDHBJmUHvQjX1AFqg6ua1Iw5am8zl9shLuA2Bgd94Wb+PH
+HhO9XHfSA3sROiQZMVxszwFPFu5+nqj5Uc+kWSMKp1vZilkL/1lq9jlVegQpl3lK
+F4QVNbFwacdgQjNh3SAA
+=bDcF
+-----END PGP SIGNATURE-----
+
+--1hw5toPjvtwxpATgc2tFEQw9uNJ2ot2xw--
