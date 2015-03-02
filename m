@@ -1,35 +1,57 @@
-From: "Mr. Juan Sebastian Morato" <noreply@popfax.com>
-Subject: Confidential Letter
-Date: Mon, 02 Mar 2015 01:34:43 +0100
-Message-ID: <20150302003450.E9C083EE0FF@mail.quartzbg.ro>
-Reply-To: juan_morato@yahoo.es
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 00/10] initial clkdev cleanups
+Date: Mon, 2 Mar 2015 17:05:38 +0000
+Message-ID: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.quartzbg.ro ([82.79.64.94]:43864 "EHLO mail.quartzbg.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752896AbbCBQJ7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 11:09:59 -0500
-Content-Description: Mail message body
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45345 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754081AbbCBRF4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 12:05:56 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <noreply@popfax.com>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Jaroslav Kysela <perex@perex.cz>, Jason Cooper <jason@lakedaemon.net>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Mike Turquette <mturquette@linaro.org>, Roland Stigge <stigge@antcom.de>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Stephen Boyd <sboyd@codeaurora.org>, Takashi Iwai <tiwai@suse.de>, Tony Lindgren <tony@atomide.com>
 
-Dear Friend, 
+Here's some initial clkdev cleanups.  These are targetted for the next
+merge window, and while the initial patches can be merged independently,
+I'd prefer to keep the series together as further work on solving the
+problems which unique struct clk's has introduced is needed.
 
-I am Mr. Juan Sebastian Morato, the Auditor General of Unicaja Bank Madrid. In the course of my auditing, I discovered a floating fund in an account, which was opened in 1990 at Cam Bank before it was bought over by Unicaja Group which I am the auditor belonging to a dead foreigner Mr. Kenny who died in 2004. Every effort made to track any member of his family or next of kin has since failed; hence I got in contact with you to stand as his next of kin since you bear the same last name. He died leaving no heir or a will.
+The initial cleanups are more about using the correct clkdev function
+than anything else: there's no point interating over a array of
+clk_lookup structs, adding each one in turn when we have had a function
+which does this since forever.
 
-My intention is to transfer this sum of 5.5M in the aforementioned account to a safe account. I am therefore proposing that you quietly partner with me and provide an account or set up a new one that will serve the purpose of receiving this fund. For your assistance in this venture, I am ready to part with a good percentage of the entire funds. After going through the deceased person's records and files, I discovered that:
+I'm also killing a chunk of seemingly unused code in the omap3isp driver.
 
-(1) No one has operated this account since 2004
-(2) He died without an heir; hence the money has been floating.
-(3) No other person knows about this account and there was no known beneficiary.
+Lastly, I'm introducing a clkdev_create() helper, which combines the
+clkdev_alloc() + clkdev_add() pattern which keeps cropping up.
 
-If I do not remit this money urgently, it would be forfeited and subsequently converted to company's funds, which will benefit only the directors of my firm. This money can be approved to you legally as with all the necessary documentary approvals in your name. However, you would be required to show some proof of claim, which I will provide you with and also guide you on how to make your applications.
+Individual patches copied to appropriate people, but they will all appear
+on the mailing lists.
 
-Please do give me a reply on my private e-mail juan.morato1@1email.eu or fax 00 34 917 692 656 so that I can send you detailed information on the modalities of my proposition. I completely trust you to keep this proposition absolutely confidential. Kindly forward your telephone number where I can reach you easily. I look forward to your prompt response.
+ arch/arm/mach-lpc32xx/clock.c                |  5 +--
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c | 12 ++-----
+ arch/arm/mach-omap2/omap_device.c            | 24 +++++--------
+ arch/arm/plat-orion/common.c                 |  6 +---
+ arch/sh/kernel/cpu/sh4a/clock-sh7734.c       |  3 +-
+ arch/sh/kernel/cpu/sh4a/clock-sh7757.c       |  4 +--
+ arch/sh/kernel/cpu/sh4a/clock-sh7785.c       |  4 +--
+ arch/sh/kernel/cpu/sh4a/clock-sh7786.c       |  4 +--
+ arch/sh/kernel/cpu/sh4a/clock-shx3.c         |  4 +--
+ drivers/clk/clk-s2mps11.c                    |  4 +--
+ drivers/clk/clkdev.c                         | 52 +++++++++++++++++++++-------
+ drivers/clk/versatile/clk-impd1.c            |  4 +--
+ drivers/media/platform/omap3isp/isp.c        | 18 ----------
+ drivers/media/platform/omap3isp/isp.h        |  1 -
+ include/linux/clkdev.h                       |  3 ++
+ include/media/omap3isp.h                     |  6 ----
+ sound/soc/sh/migor.c                         |  3 +-
+ 17 files changed, 68 insertions(+), 89 deletions(-)
 
-Best Regards,
-Mr. Juan Sebastian Morato
-Fax: 00 34 917 692 656
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
