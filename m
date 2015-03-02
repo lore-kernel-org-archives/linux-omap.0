@@ -1,98 +1,74 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 0/9] N900 Modem Speech Support
-Date: Mon, 2 Mar 2015 20:05:31 +0100
-Message-ID: <201503022005.31729@pali>
-References: <1425271139-24715-1-git-send-email-sre@kernel.org>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+Date: Mon, 02 Mar 2015 11:07:58 -0800
+Message-ID: <54F4B50E.4070104@codeaurora.org>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2018451.B1vUd1Vyav";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425271139-24715-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:52876 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753870AbbCBTIA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 14:08:00 -0500
+In-Reply-To: <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 
---nextPart2018451.B1vUd1Vyav
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 03/02/15 09:06, Russell King wrote:
+> Add a helper to allocate and add a clk_lookup structure.  This can not
+> only be used in several places in clkdev.c to simplify the code, but
+> more importantly, can be used by callers of the clkdev code to simplify
+> their clkdev creation and registration.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  drivers/clk/clkdev.c   | 52 ++++++++++++++++++++++++++++++++++++++------------
+>  include/linux/clkdev.h |  3 +++
+>  2 files changed, 43 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
+> index 043fd3633373..611b9acbad78 100644
+> --- a/drivers/clk/clkdev.c
+> +++ b/drivers/clk/clkdev.c
+> @@ -294,6 +294,19 @@ vclkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt,
+>  	return &cla->cl;
+>  }
+>  
+> +static struct clk_lookup *
+> +vclkdev_create((struct clk *clk, const char *con_id, const char *dev_fmt,
+> +	va_list ap)
+> +{
+> +	struct clk_lookup *cl;
+> +
+> +	cl = vclkdev_alloc(clk, con_id, dev_fmt, ap);
+> +	if (cl)
+> +		clkdev_add(cl);
+> +
+> +	return cl;
+> +}
+> +
+>  struct clk_lookup * __init_refok
+>  clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+>  {
+> @@ -308,6 +321,28 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
+>  }
+>  EXPORT_SYMBOL(clkdev_alloc);
+>  
+> +/**
+> + * clkdev_create - allocate and add a clkdev lookup structure
+> + * @clk: struct clk to associate with all clk_lookups
+> + * @con_id: connection ID string on device
+> + * @dev_fmt: format string describing device name
+> + *
+> + * Returns a clk_lookup structure, which can be later unregistered and
+> + * freed.
 
-On Monday 02 March 2015 05:38:50 Sebastian Reichel wrote:
-> Hi,
->=20
-> This patchset contains the missing speech data support for the
-> Nokia N900 modem.
->=20
-> Userland access goes via /dev/cmt_speech. The API is
-> implemented in libcmtspeechdata, which is used by ofono and
-> the freesmartphone.org project. Apart from that the device is
-> also used by the phone binaries distributed with Maemo. So
-> while this is a new userland ABI for the mainline kernel it
-> has been tested in the wild for some years.
->=20
-> Simple Testing of the API can be done by checking out
-> libcmtspeechdata [0], building the test tool and executing
-> it. The tool will loop back audio data received from the
-> caller.
->=20
-> I have prepared a kernel branch, which includes these changes
-> at [1].
->=20
-> [0] https://lkml.org/lkml/2015/2/11/526
-> [1]
-> git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.g
-> it branch/cmt-speech
->=20
-> -- Sebastian
->=20
-> Kai Vehmanen (3):
->   HSI: cmt_speech: Add cmt-speech driver
->   HSI: cmt_speech: Avoid GFP_ATOMIC in cs_char_open
->   HSI: cmt_speech: Return error if HSI port not configured
->=20
-> Sebastian Reichel (6):
->   HSI: cmt_speech: Fix build for 4.0 kernel
->   HSI: cmt_speech: Cleanup initialisation
->   HSI: cmt_speech: Rename driver to cmt-speech
->   HSI: cmt_speech: Move cs-protocol.h to
-> include/uapi/linux/hsi HSI: cmt_speech: Remove hardcoded
-> channel numbers
->   HSI: nokia-modem: Add cmt_speech support
->=20
->  drivers/hsi/clients/Kconfig          |   11 +-
->  drivers/hsi/clients/Makefile         |    1 +
->  drivers/hsi/clients/cmt_speech.c     | 1451
-> ++++++++++++++++++++++++++++++++++
-> drivers/hsi/clients/nokia-modem.c    |   31 +-
->  include/uapi/linux/hsi/Kbuild        |    2 +-
->  include/uapi/linux/hsi/cs-protocol.h |  113 +++
->  6 files changed, 1606 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/hsi/clients/cmt_speech.c
->  create mode 100644 include/uapi/linux/hsi/cs-protocol.h
+And returns NULL on failure? Any reason why we don't return an error
+pointer on failure?
 
-Hello, do you have also DT patches? Or no DT changes are needed?
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
-Is this cmt_speech version one from linux-n900 git tree? or it is=20
-new or modified?
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2018451.B1vUd1Vyav
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlT0tHsACgkQi/DJPQPkQ1KoswCeId01KEN2jOQVoyaaetjcFOVb
-ZrMAn3kuKPow0Y4KpK88y1HI8AKc5qlz
-=qG+E
------END PGP SIGNATURE-----
-
---nextPart2018451.B1vUd1Vyav--
