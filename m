@@ -1,35 +1,33 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 02/10] SH: use clkdev_add_table()
-Date: Mon, 2 Mar 2015 18:18:20 +0100
-Message-ID: <CAMuHMdWJbLhVgWTqM8mC9AkqUKYYEh2Zv85mWizbHqoZNTxUMg@mail.gmail.com>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+Date: Mon, 2 Mar 2015 18:22:31 +0100
+Message-ID: <CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
 References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-	<E1YSTnH-0001JY-GT@rmk-PC.arm.linux.org.uk>
+	<E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:62405 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755687AbbCBRSV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 12:18:21 -0500
-In-Reply-To: <E1YSTnH-0001JY-GT@rmk-PC.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
 To: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
 On Mon, Mar 2, 2015 at 6:06 PM, Russell King
 <rmk+kernel@arm.linux.org.uk> wrote:
-> We have always had an efficient way of registering a table of clock
-> lookups - it's called clkdev_add_table().  However, some people seem
-> to really love writing inefficient and unnecessary code.
+> --- a/include/linux/clkdev.h
+> +++ b/include/linux/clkdev.h
+> @@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
+>  void clkdev_add(struct clk_lookup *cl);
+>  void clkdev_drop(struct clk_lookup *cl);
 >
-> Convert SH to use the correct interface.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> +struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
+> +       const char *dev_fmt, ...);
 
-Thanks, looks good.
+__printf(3, 4)
 
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+While you're at it, can you please also add the __printf attribute to
+clkdev_alloc() and clk_register_clkdev()?
 
 Gr{oetje,eeting}s,
 
