@@ -1,68 +1,69 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 09/10] ARM: omap2: use clkdev_create()
-Date: Mon, 02 Mar 2015 17:06:47 +0000
-Message-ID: <E1YSTnr-0001K1-Do@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 10/10] ARM: omap2: use clkdev_add_alias()
+Date: Mon, 02 Mar 2015 17:06:52 +0000
+Message-ID: <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
 References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45402 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756198AbbCBRG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2015 12:06:56 -0500
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>
+List-Id: linux-omap@vger.kernel.org
 
-Rather than open coding the clkdev allocation, initialisation and
-addition, use the clkdev_create() helper.
+When creating aliases of existing clkdev clocks, use clkdev_add_alias()
+isntead of open coding the lookup and clk_lookup creation.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/omap_device.c | 24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 85e0b0c06718..b64d717bfab6 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -232,14 +232,12 @@ void omap2xxx_clkt_vps_init(void)
- 	struct clk_hw_omap *hw = NULL;
- 	struct clk *clk;
- 	const char *parent_name = "mpu_ck";
--	struct clk_lookup *lookup = NULL;
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index be9541e18650..521c32e7778e 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -47,7 +47,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		       const char *clk_name)
+ {
+ 	struct clk *r;
+-	struct clk_lookup *l;
++	int rc;
  
- 	omap2xxx_clkt_vps_late_init();
- 	omap2xxx_clkt_vps_check_bootloader_rates();
+ 	if (!clk_alias || !clk_name)
+ 		return;
+@@ -62,21 +62,15 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		return;
+ 	}
  
- 	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
--	lookup = kzalloc(sizeof(*lookup), GFP_KERNEL);
--	if (!hw || !lookup)
-+	if (!hw)
- 		goto cleanup;
- 	init.name = "virt_prcm_set";
- 	init.ops = &virt_prcm_set_ops;
-@@ -249,15 +247,9 @@ void omap2xxx_clkt_vps_init(void)
- 	hw->hw.init = &init;
- 
- 	clk = clk_register(NULL, &hw->hw);
+-	r = clk_get(NULL, clk_name);
+-	if (IS_ERR(r)) {
+-		dev_err(&od->pdev->dev,
+-			"clk_get for %s failed\n", clk_name);
+-		return;
++	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
++	if (rc) {
++		if (rc == -ENODEV || rc == -ENOMEM)
++			dev_err(&od->pdev->dev,
++				"clkdev_alloc for %s failed\n", clk_alias);
++		else
++			dev_err(&od->pdev->dev,
++				"clk_get for %s failed\n", clk_name);
+ 	}
 -
--	lookup->dev_id = NULL;
--	lookup->con_id = "cpufreq_ck";
--	lookup->clk = clk;
+-	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev->dev));
+-	if (!l) {
+-		dev_err(&od->pdev->dev,
+-			"clkdev_alloc for %s failed\n", clk_alias);
+-		return;
+-	}
 -
--	clkdev_add(lookup);
-+	clkdev_create(clk, "cpufreq_ck", NULL);
- 	return;
- cleanup:
- 	kfree(hw);
--	kfree(lookup);
+-	clkdev_add(l);
  }
- #endif
+ 
+ /**
 -- 
 1.8.3.1
-
