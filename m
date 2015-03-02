@@ -1,69 +1,40 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC 6/6] ARM: dts: am335x-boneblack: Use new binding for
- HDMI
-Date: Mon, 2 Mar 2015 17:42:27 +0000
-Message-ID: <20150302174227.GC29584@n2100.arm.linux.org.uk>
-References: <cover.1424961754.git.jsarha@ti.com>
- <6d6653416fd87c678a80df1d422420877261c4a5.1424961754.git.jsarha@ti.com>
- <54F45778.6050406@ti.com>
- <20150302160629.GB29584@n2100.arm.linux.org.uk>
- <54F49917.6070608@ti.com>
+Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
+Date: Mon, 2 Mar 2015 17:46:20 +0000
+Message-ID: <20150302174619.GD29584@n2100.arm.linux.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+ <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
+ <CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54F49917.6070608@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, detheridge@ti.com, tony@atomide.com, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
+In-Reply-To: <CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBNYXIgMDIsIDIwMTUgYXQgMDc6MDg6MzlQTSArMDIwMCwgVG9taSBWYWxrZWluZW4g
-d3JvdGU6Cj4gT24gMDIvMDMvMTUgMTg6MDYsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3cm90
-ZToKPiAKPiA+PiBUaGlzIGlzIG1pc3NpbmcgdGhlIG91dHB1dCBvZiB0ZGE5OTh4LiBJdCBzaG91
-bGQgaGF2ZSB0d28gcG9ydHMsIGlucHV0Cj4gPj4gYW5kIG91dHB1dCwgb3V0cHV0IGdvaW5nIHRv
-IGhkbWktY29ubmVjdG9yLgo+ID4gCj4gPiBXZSBkb24ndCBoYXZlIHRoYXQga2luZCBvZiBsZXZl
-bCBvZiBtb2RlbGxpbmcgaW4gRFJNIHJpZ2h0IG5vdyAtIGFzIGZhcgo+ID4gYXMgRFJNIGlzIGNv
-bmNlcm5lZCwgdGhlIHRkYTk5OHggaXMgYm90aCB0aGUgZW5jb2RlciBfYW5kXyB0aGUgY29ubmVj
-dG9yCj4gPiBzaW5jZSBpdCBzdXBwbGllcyBib3RoIGZ1bmN0aW9uYWxpdGllcy4KPiAKPiBUaGF0
-J3MgZmluZSwgYnV0IHRoZXNlIGFyZSBEVCBiaW5kaW5ncyB3aGljaCBzaG91bGQgcmVmbGVjdCB0
-aGUKPiBoYXJkd2FyZSwgbm90IHRoZSBTVyBzdGFjay4KCkkgc3RpbGwgZG9uJ3QgYnV5IHlvdXIg
-YXJndW1lbnQuICBUaGUgcHJpbmNpcGxlIGlzIHJpZ2h0LCBidXQgSSB0aGluawp5b3UncmUgdGFr
-aW5nIGl0IHRvbyBmYXIuCgpMb29rIGF0IGVQQVBSIGZvciBhIG1vbWVudCwgYW5kIGNvbnNpZGVy
-IGEgc2VyaWFsIHBvcnQuICBBIHNlcmlhbCBVQVJUCmNhbiBiZSBwaHlzaWNhbGx5IGNvbm5lY3Rl
-ZCB0byBhIDktcGluIG9yIGEgMjUtcGluIGNvbm5lY3Rvciwgd2hpY2gKbWF5IGJlIG1hbGUgb3Ig
-ZmVtYWxlLiAgVGhlc2UgZGV0YWlscyBhcmUgbm90IGluY2x1ZGVkIGluIHRoZSBEVApkZXNjcmlw
-dGlvbi4gIEV2ZW4gd2hlbiB0aGUgc2VyaWFsIHBvcnQgY29udHJvbCBzaWduYWxzIGFyZSBwcm92
-aWRlZApieSBHUElPcyByYXRoZXIgdGhhbiB0aGUgVUFSVCwgd2UgZG9uJ3QgbW9kZWwgdGhlIGNv
-bm5lY3RvciAtIHdlCndyYXAgdGhlIEdQSU9zIGRpcmVjdGx5IGludG8gdGhlIFVBUlQgZHJpdmVy
-LgoKQXJndWFibHksIHRoYXQncyBub3QgZm9sbG93aW5nIHRoZSBoYXJkd2FyZSwgaXQncyBmb2xs
-b3dpbmcgdGhlIHNvZnR3YXJlCnJlcHJlc2VudGF0aW9uIC0gaXQncyBmb2xsb3dpbmcgdGhlIHNv
-ZnR3YXJlIHJlcHJlc2VudGF0aW9uIG9mIHdoYXQgYQpzZXJpYWwgcG9ydCBfc2hvdWxkXyBsb29r
-IGxpa2UgdG8gYSBub24tc3BlY2lmaWMgT1MuCgpDb25zaWRlciBhbiBldGhlcm5ldCBwb3J0LiAg
-WW91J2xsIGZpbmQgdGhlIHNhbWUgdGhpbmcgYXBwbGllcyAtIHRoZQpwaHlzaWNhbCBjb25uZWN0
-b3IgaXRzZWxmIGlzIG5vdCBzcGVjaWZpZWQuCgpZZXQsIHNvbWVob3csIHdlJ3JlIHdhbnRpbmcg
-dG8gc3BlY2lmeSB0aGUgcGh5c2ljYWwgY29ubmVjdG9yIGZvciBfYWxsXwp2aWRlbyBkZXZpY2Vz
-PyAgSSBkb24ndCBzZWUgd2h5IHRoYXQgc2hvdWxkIGJlIG1hbmRhdG9yeSB3aGVuIGl0J3Mgbm90
-Cm1hbmRhdG9yeSBmb3Igb3RoZXIgc3Vic3lzdGVtcy4KCklmIHdlIHdhbnQgdG8gdGFrZSB0aGlz
-IHRvIHRoZSBleHRyZW1lLCB3ZSBzaG91bGQgYmUgc3BlY2lmeWluZyB0aGUKcG93ZXIgY29ubmVj
-dG9ycyBpbiBEVCBhbmQgaG93IHRoZXkncmUgd2lyZWQgdXAgYWxvbmcgd2l0aCB0aGVpcgpjb250
-cm9scy4gIFdlIGRvbid0IHRob3VnaCwgd2Ugc3BlY2lmeSB0aGUgY29udHJvbCBkZXZpY2VzIGFu
-ZAp0aGUgZnVuY3Rpb24gb2YgdGhvc2UgKGVnLCB2aWEgYSBjaGFyZ2VyIGNoaXAuKQoKVG8gdGFr
-ZSB0aGlzIHRvIHRoZSBleHRyZW1lLCB3aGF0IGFib3V0IGEgZGV2aWNlIHBvd2VyZWQgdmlhIFBv
-RT8KU2hvdWxkIHRoZSBQb0UgY29ubmVjdG9yIGJlIG1vZGVsbGVkIGluIERUPwoKV2hlbiB3ZSBz
-YXkgIkRUIHNob3VsZCBmb2xsb3cgdGhlIGhhcmR3YXJlIiB3ZSdyZSBub3QgdGFsa2luZyBhYm91
-dAptYWtpbmcgRFQgYmUgYW4gYWx0ZXJuYXRpdmUgdG8gdGhlIGhhcmR3YXJlJ3Mgc2NoZW1hdGlj
-LgoKLS0gCkZUVEMgYnJvYWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCAxMC41
-TWJwcyBkb3duIDQwMGticHMgdXAKYWNjb3JkaW5nIHRvIHNwZWVkdGVzdC5uZXQuCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
-IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Mon, Mar 02, 2015 at 06:22:31PM +0100, Geert Uytterhoeven wrote:
+> On Mon, Mar 2, 2015 at 6:06 PM, Russell King
+> <rmk+kernel@arm.linux.org.uk> wrote:
+> > --- a/include/linux/clkdev.h
+> > +++ b/include/linux/clkdev.h
+> > @@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
+> >  void clkdev_add(struct clk_lookup *cl);
+> >  void clkdev_drop(struct clk_lookup *cl);
+> >
+> > +struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
+> > +       const char *dev_fmt, ...);
+> 
+> __printf(3, 4)
+> 
+> While you're at it, can you please also add the __printf attribute to
+> clkdev_alloc() and clk_register_clkdev()?
+
+What's the behaviour of __printf() with a NULL format string?  The
+clkdev interfaces permit that, normal printf() doesn't.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
