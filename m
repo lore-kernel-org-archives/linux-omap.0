@@ -1,48 +1,56 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
-Date: Tue, 03 Mar 2015 02:39:14 +0200
-Message-ID: <8241179.DTounjB2Ur@avalon>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <20150302225336.GV6539@valkosipuli.retiisi.org.uk> <20150302235435.GF29584@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20150302235435.GF29584@n2100.arm.linux.org.uk>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv2 0/2] N900 Modem Speech Support
+Date: Tue,  3 Mar 2015 01:44:12 +0100
+Message-ID: <1425343454-6551-1-git-send-email-sre@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Russell,
+Hi,
 
-On Monday 02 March 2015 23:54:35 Russell King - ARM Linux wrote:
-> (Combining replies...)
-> 
-> On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
-> > Hi Laurent and Russell,
-> > 
-> > On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
-> > > Sakari, does it conflict with the omap3isp DT support ? If so, how would
-> > > you prefer to resolve the conflict ? Russell, would it be fine to merge
-> > > this through Mauro's tree ?
-> 
-> As other changes will depend on this, I'd prefer not to.  The whole
-> "make clk_get() return a unique struct clk" wasn't well tested, and
-> several places broke - and currently clk_add_alias() is broken as a
-> result of that.
-> 
-> I'm trying to get to the longer term solution, where clkdev internally
-> uses a struct clk_hw pointer rather than a struct clk pointer, and I
-> want to clean stuff up first.
-> 
-> If omap3isp needs to keep this code, then so be it - I'll come up with
-> a different patch improving its use of clkdev instead.
+This patchset contains the missing speech data support for the
+Nokia N900 modem.
 
-I'm totally fine with removing clkdev from the omap3isp driver if that's 
-easier for you, I'm just concerned about the merge conflict that will result.
+Userland access goes via /dev/cmt_speech. The API is implemented in
+libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
+Apart from that the device is also used by the phone binaries distributed
+with Maemo. So while this is a new userland ABI for the mainline kernel it
+has been tested in the wild for some years.
+
+Simple Testing of the API can be done by checking out libcmtspeechdata [0],
+building the test tool and executing it. The tool will loop back audio data
+received from the caller.
+
+I have prepared a kernel branch for this patchset, which can be found at [1].
+
+Changes since PATCHv1 [2]:
+ * Squash cmt-speech patches together
+ * cs_alloc_cmds(): GFP_ATOMIC -> GFP_KERNEL
+ * CS_SET_WAKELINE ioctl: Add sanity check
+
+[0] https://lkml.org/lkml/2015/2/11/526
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git branch/cmt-speech-2
+[2] https://lkml.org/lkml/2015/3/1/282
+
+-- Sebastian
+
+Kai Vehmanen (1):
+  HSI: cmt_speech: Add cmt-speech driver
+
+Sebastian Reichel (1):
+  HSI: nokia-modem: Add cmt-speech support
+
+ drivers/hsi/clients/Kconfig          |   11 +-
+ drivers/hsi/clients/Makefile         |    1 +
+ drivers/hsi/clients/cmt_speech.c     | 1457 ++++++++++++++++++++++++++++++++++
+ drivers/hsi/clients/nokia-modem.c    |   31 +-
+ include/uapi/linux/hsi/Kbuild        |    2 +-
+ include/uapi/linux/hsi/cs-protocol.h |  113 +++
+ 6 files changed, 1612 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/hsi/clients/cmt_speech.c
+ create mode 100644 include/uapi/linux/hsi/cs-protocol.h
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+2.1.4
