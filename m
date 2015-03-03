@@ -1,72 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 10/10] ARM: omap2: use clkdev_add_alias()
-Date: Mon, 2 Mar 2015 16:13:42 -0800
-Message-ID: <20150303001341.GD3756@atomide.com>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
- <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
+Date: Tue, 03 Mar 2015 02:39:14 +0200
+Message-ID: <8241179.DTounjB2Ur@avalon>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <20150302225336.GV6539@valkosipuli.retiisi.org.uk> <20150302235435.GF29584@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-sh@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20150302235435.GF29584@n2100.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-KiBSdXNzZWxsIEtpbmcgPHJtaytrZXJuZWxAYXJtLmxpbnV4Lm9yZy51az4gWzE1MDMwMiAwOTox
-MF06Cj4gV2hlbiBjcmVhdGluZyBhbGlhc2VzIG9mIGV4aXN0aW5nIGNsa2RldiBjbG9ja3MsIHVz
-ZSBjbGtkZXZfYWRkX2FsaWFzKCkKPiBpc250ZWFkIG9mIG9wZW4gY29kaW5nIHRoZSBsb29rdXAg
-YW5kIGNsa19sb29rdXAgY3JlYXRpb24uCgpHYXZlIHRoaXMgc2VyaWVzIGEgcXVpY2sgdHJ5IGJ1
-dCBJIGdldCB0aGVzZSBidWlsZCBlcnJvcnM6CgphcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfZGV2
-aWNlLmM6IEluIGZ1bmN0aW9uIOKAmF9hZGRfY2xrZGV24oCZOgphcmNoL2FybS9tYWNoLW9tYXAy
-L29tYXBfZGV2aWNlLmM6NjU6NTg6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQgMyBvZiDigJhj
-bGtfYWRkX2FsaWFz4oCZIGRpc2NhcmRzIOKAmGNvbnN04oCZIHF1YWxpZmllciBmcm9tIHBvaW50
-ZXIgdGFyZ2V0IHR5cGUKICByYyA9IGNsa19hZGRfYWxpYXMoY2xrX2FsaWFzLCBkZXZfbmFtZSgm
-b2QtPnBkZXYtPmRldiksIGNsa19uYW1lLCBOVUxMKTsKICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KSW4gZmlsZSBpbmNsdWRlZCBmcm9t
-IGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9kZXZpY2UuYzozNDowOgppbmNsdWRlL2xpbnV4L2Ns
-a2Rldi5oOjQ0OjU6IG5vdGU6IGV4cGVjdGVkIOKAmGNoYXIgKuKAmSBidXQgYXJndW1lbnQgaXMg
-b2YgdHlwZSDigJhjb25zdCBjaGFyICrigJkKIGludCBjbGtfYWRkX2FsaWFzKGNvbnN0IGNoYXIg
-KiwgY29uc3QgY2hhciAqLCBjaGFyICosIHN0cnVjdCBkZXZpY2UgKik7CiAgICAgXgpkcml2ZXJz
-L2Nsay9jbGtkZXYuYzoyOTg6MTY6IGVycm9yOiBleHBlY3RlZCBkZWNsYXJhdGlvbiBzcGVjaWZp
-ZXJzIG9yIOKAmC4uLuKAmSBiZWZvcmUg4oCYKOKAmSB0b2tlbgogdmNsa2Rldl9jcmVhdGUoKHN0
-cnVjdCBjbGsgKmNsaywgY29uc3QgY2hhciAqY29uX2lkLCBjb25zdCBjaGFyICpkZXZfZm10LAog
-ICAgICAgICAgICAgICAgXgpkcml2ZXJzL2Nsay9jbGtkZXYuYzozMjI6OTI6IGVycm9yOiBzdG9y
-YWdlIGNsYXNzIHNwZWNpZmllZCBmb3IgcGFyYW1ldGVyIOKAmF9fY3JjX2Nsa2Rldl9hbGxvY+KA
-mQogRVhQT1JUX1NZTUJPTChjbGtkZXZfYWxsb2MpOwogICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIF4KZHJpdmVycy9jbGsvY2xrZGV2LmM6MzIyOjE6IHdhcm5pbmc6IOKAmHdlYWvi
-gJkgYXR0cmlidXRlIGlnbm9yZWQgWy1XYXR0cmlidXRlc10KIEVYUE9SVF9TWU1CT0woY2xrZGV2
-X2FsbG9jKTsKIF4KZHJpdmVycy9jbGsvY2xrZGV2LmM6MzIyOjE6IHdhcm5pbmc6IOKAmGV4dGVy
-bmFsbHlfdmlzaWJsZeKAmSBhdHRyaWJ1dGUgaWdub3JlZCBbLVdhdHRyaWJ1dGVzXQpkcml2ZXJz
-L2Nsay9jbGtkZXYuYzozMjI6MTYxOiBlcnJvcjogc3RvcmFnZSBjbGFzcyBzcGVjaWZpZWQgZm9y
-IHBhcmFtZXRlciDigJhfX2tjcmN0YWJfY2xrZGV2X2FsbG9j4oCZCiBFWFBPUlRfU1lNQk9MKGNs
-a2Rldl9hbGxvYyk7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgXgpkcml2ZXJzL2Nsay9jbGtkZXYuYzozMjI6MTogd2FybmluZzog4oCYX191c2VkX1/igJkg
-YXR0cmlidXRlIGlnbm9yZWQgWy1XYXR0cmlidXRlc10KIEVYUE9SVF9TWU1CT0woY2xrZGV2X2Fs
-bG9jKTsKIF4KZHJpdmVycy9jbGsvY2xrZGV2LmM6MzIyOjE2MTogZXJyb3I6IHNlY3Rpb24gYXR0
-cmlidXRlIG5vdCBhbGxvd2VkIGZvciDigJhfX2tjcmN0YWJfY2xrZGV2X2FsbG9j4oCZCiBFWFBP
-UlRfU1lNQk9MKGNsa2Rldl9hbGxvYyk7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgXgpkcml2ZXJzL2Nsay9jbGtkZXYuYzozMjI6Mjc5OiBlcnJvcjogZXhw
-ZWN0ZWQg4oCYO+KAmSwg4oCYLOKAmSBvciDigJgp4oCZIGJlZm9yZSDigJg94oCZIHRva2VuCiBF
-WFBPUlRfU1lNQk9MKGNsa2Rldl9hbGxvYyk7Cgpkcml2ZXJzL2Nsay9jbGtkZXYuYzoyNzQ6MTog
-d2FybmluZzog4oCYdmNsa2Rldl9hbGxvY+KAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZCBbLVd1bnVz
-ZWQtZnVuY3Rpb25dCiB2Y2xrZGV2X2FsbG9jKHN0cnVjdCBjbGsgKmNsaywgY29uc3QgY2hhciAq
-Y29uX2lkLCBjb25zdCBjaGFyICpkZXZfZm10LAoKUmVnYXJkcywKClRvbnkKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxp
-c3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVj
-dC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
+Hi Russell,
+
+On Monday 02 March 2015 23:54:35 Russell King - ARM Linux wrote:
+> (Combining replies...)
+> 
+> On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
+> > Hi Laurent and Russell,
+> > 
+> > On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
+> > > Sakari, does it conflict with the omap3isp DT support ? If so, how would
+> > > you prefer to resolve the conflict ? Russell, would it be fine to merge
+> > > this through Mauro's tree ?
+> 
+> As other changes will depend on this, I'd prefer not to.  The whole
+> "make clk_get() return a unique struct clk" wasn't well tested, and
+> several places broke - and currently clk_add_alias() is broken as a
+> result of that.
+> 
+> I'm trying to get to the longer term solution, where clkdev internally
+> uses a struct clk_hw pointer rather than a struct clk pointer, and I
+> want to clean stuff up first.
+> 
+> If omap3isp needs to keep this code, then so be it - I'll come up with
+> a different patch improving its use of clkdev instead.
+
+I'm totally fine with removing clkdev from the omap3isp driver if that's 
+easier for you, I'm just concerned about the merge conflict that will result.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
