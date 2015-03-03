@@ -1,81 +1,74 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] ASoC: omap-pcm: Allow only formats with 1,
- 2, and 4 byte physical size
-Date: Tue, 3 Mar 2015 14:22:08 +0200
-Message-ID: <20150303122208.GA28158@bitmer.com>
-References: <1425382133-17120-1-git-send-email-jsarha@ti.com>
- <54F59DE1.2010406@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <54F59DE1.2010406@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH 0/6] mmc: omap_hsmmc: simplify cover/card detect logic
+Date: Tue,  3 Mar 2015 13:28:12 +0100
+Message-ID: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, NeilBrown <neilb@suse.de>, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andreas Fenkart <afenkart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 03, 2015 at 01:41:21PM +0200, Peter Ujfalusi wrote:
-> On 03/03/2015 01:28 PM, Jyri Sarha wrote:
-> > sDMA support only transfer elements with 1, 2, and 4 byte physical
-> > size. Initialize the pcm driver accordingly.
-> 
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> 
-> > 
-> > Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> > ---
-> >  sound/soc/omap/omap-pcm.c | 21 ++++++++++++++++++++-
-> >  1 file changed, 20 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-> > index f4b05bc..e49ee23 100644
-> > --- a/sound/soc/omap/omap-pcm.c
-> > +++ b/sound/soc/omap/omap-pcm.c
-> > @@ -39,7 +39,7 @@
-> >  #define pcm_omap1510()	0
-> >  #endif
-> >  
-> > -static const struct snd_pcm_hardware omap_pcm_hardware = {
-> > +static struct snd_pcm_hardware omap_pcm_hardware = {
-> >  	.info			= SNDRV_PCM_INFO_MMAP |
-> >  				  SNDRV_PCM_INFO_MMAP_VALID |
-> >  				  SNDRV_PCM_INFO_INTERLEAVED |
-> > @@ -53,6 +53,24 @@ static const struct snd_pcm_hardware omap_pcm_hardware = {
-> >  	.buffer_bytes_max	= 128 * 1024,
-> >  };
-> >  
-> > +/* sDMA supports only 1, 2, and 4 byte transfer elements. */
-> > +static void omap_pcm_limit_supported_formats(void)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < SNDRV_PCM_FORMAT_LAST; i++) {
-> > +		switch (snd_pcm_format_physical_width(i)) {
-> > +		case 8:
-> > +		case 16:
-> > +		case 32:
-> > +			omap_pcm_hardware.formats |= (1LL << i);
-> > +			break;
-> > +		default:
-> > +			break;
-> > +		}
-> > +	}
-> > +}
-> > +
+These patches are trying to clean up the cover/card detect logic.
 
-I wonder why these are set in a loop instead of setting formats statically
-and why this is needed after commit 60e21d287344 ("ASoC: omap: Don't set
-unused struct snd_pcm_hardware fields")?
+  Mobile phones (some) have no card detect pin, but
+  can detect if the cover is removed. The purpose is the
+  same; detect if card is being added/removed, but the
+  details differ.
+  When the cover is removed, it does not mean the card is
+  gone. But it might, since it is accessible now. It's like
+  a warning. All the driver does is to limit write access to
+  the card, see protect_card flag. In contrast, card detect
+  notifies us after the fact, e.g. card is gone, card is
+  inserted.
+
+While cover detect is only used by one platform (rx51), it
+complicates the card detect logic. By separating the code
+paths they both become easier to understand and maintain 
+
+Patches have been tested by reverting: 95bebb5696ab
+'mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration'
+otherwise gpio detection is handled by mmc_of_parse
+
+compile tested
+OMAP2:
+CONFIG_MACH_OMAP2_TUSB6010=y
+CONFIG_MACH_OMAP3_BEAGLE=y
+CONFIG_MACH_DEVKIT8000=y
+CONFIG_MACH_OMAP_LDP=y
+CONFIG_MACH_OMAP3530_LV_SOM=y
+CONFIG_MACH_OMAP3_TORPEDO=y
+CONFIG_MACH_OVERO=y
+CONFIG_MACH_OMAP3517EVM=y
+CONFIG_MACH_CRANEBOARD=y
+CONFIG_MACH_OMAP3_PANDORA=y
+CONFIG_MACH_TOUCHBOOK=y
+CONFIG_MACH_OMAP_3430SDP=y
+CONFIG_MACH_NOKIA_N810=y
+CONFIG_MACH_NOKIA_N810_WIMAX=y
+CONFIG_MACH_NOKIA_N8X0=y
+CONFIG_MACH_NOKIA_RX51=y
+CONFIG_MACH_CM_T35=y
+CONFIG_MACH_CM_T3517=y
+CONFIG_MACH_CM_T3730=y
+CONFIG_MACH_SBC3530=y
+CONFIG_MACH_TI8168EVM=y
+CONFIG_MACH_TI8148EVM=y
+
+Andreas Fenkart (6):
+  mmc: omap_hsmmc: remove unused fields from struct omap_hsmmc_host
+  mmc: omap_hsmmc: use slot-gpio functions to manage read-only pin
+    directly
+  mmc: omap_hsmmc: use distinctive code paths for cover / card detect
+    logic
+  ARM: OMAP2: HSMMC: platform_data: explicit gpio_cover / gpio_cd fields
+  mmc: omap_hsmmc: simplify card/cover detect isr
+  mmc: omap_hsmmc: use generic slot-gpio isr to manage card detect pin
+
+ arch/arm/mach-omap2/hsmmc.c              | 33 +++++++++----
+ drivers/mmc/host/omap_hsmmc.c            | 80 +++++++++-----------------------
+ include/linux/platform_data/hsmmc-omap.h |  6 +--
+ 3 files changed, 48 insertions(+), 71 deletions(-)
 
 -- 
-Jarkko
+2.1.4
+
