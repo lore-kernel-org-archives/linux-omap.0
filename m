@@ -1,57 +1,46 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
-Date: Wed, 4 Mar 2015 01:09:13 +0200
-Message-ID: <20150303230913.GZ6539@valkosipuli.retiisi.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
- <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
- <118780170.u6ZO5zJrEk@avalon>
- <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
- <20150302235435.GF29584@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: rmk's taking it easy for a while
+Date: Tue, 3 Mar 2015 23:41:12 +0000
+Message-ID: <20150303234111.GA8656@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:48599 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756006AbbCCXlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2015 18:41:22 -0500
+Received: from n2100.arm.linux.org.uk ([2001:4d48:ad52:3201:214:fdff:fe10:4f86]:46441)
+	by pandora.arm.linux.org.uk with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
+	(Exim 4.82_1-5b7a7c0-XX)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1YSwRE-0007EQ-6L
+	for linux-omap@vger.kernel.org; Tue, 03 Mar 2015 23:41:20 +0000
 Content-Disposition: inline
-In-Reply-To: <20150302235435.GF29584@n2100.arm.linux.org.uk>
-Sender: linux-media-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi Russell,
+For those who haven't read my post on google+, here's the news.
 
-On Mon, Mar 02, 2015 at 11:54:35PM +0000, Russell King - ARM Linux wrote:
-> (Combining replies...)
-> 
-> On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
-> > Hi Laurent and Russell,
-> > 
-> > On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
-> > > Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
-> > > prefer to resolve the conflict ? Russell, would it be fine to merge this 
-> > > through Mauro's tree ?
-> 
-> As other changes will depend on this, I'd prefer not to.  The whole
-> "make clk_get() return a unique struct clk" wasn't well tested, and
-> several places broke - and currently clk_add_alias() is broken as a
-> result of that.
-> 
-> I'm trying to get to the longer term solution, where clkdev internally
-> uses a struct clk_hw pointer rather than a struct clk pointer, and I
-> want to clean stuff up first.
-> 
-> If omap3isp needs to keep this code, then so be it - I'll come up with
-> a different patch improving its use of clkdev instead.
+Today, I had my impacted wisdom teeth out under a general anaesthetic.
+This means that I'm not going to be feeling right for a while, and I'm
+going to be taking things easy probably for the rest of this week.
 
-I discussed this with Laurent and the two options we thought are
+I'm on quite a high dosage of painkillers and anti-inflamatories, so
+whether I'm going to be doing anything kernel related is going to depend
+very much on how I feel day to day.
 
-- You provide a stable branch on which I can rebase the patches, in order
-  to avoid a merge conflict or
+Not only that, but eating a decent diet is going to be a problem for a
+while.
 
-- We ignore the conflict and let Stephen Rothwell handle it. The conflict
-  itself is relatively simple to resolve.
+What does this mean?  Don't expect me to be responsive or coherent for
+a while as I struggle to get back to something resembling normality.
+I might tinker with a few patches, I might post some series, and if I
+do, do /not/ take that as a sign I'm back to normal - that'll probably
+be an attempt to relieve some of the boredom.
+
+Thanks.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
