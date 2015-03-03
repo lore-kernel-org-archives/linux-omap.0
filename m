@@ -1,73 +1,54 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] rtc: OMAP: Add external 32k clock feature
-Date: Tue, 3 Mar 2015 15:12:02 +0530
-Message-ID: <1425375722-13412-1-git-send-email-j-keerthy@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/8] ARM OMAP2+ GPMC: add bus children
+Date: Tue, 3 Mar 2015 12:09:59 +0200
+Message-ID: <54F58877.2090608@ti.com>
+References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>	<1424961956-29353-3-git-send-email-rabel@cit-ec.uni-bielefeld.de>	<54F045F2.7010005@ti.com> <CAMdRc4F2EaDxrBAMUQ3NGvBt4sMnYX3FQXZttFzcPZJdKkOMLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMdRc4F2EaDxrBAMUQ3NGvBt4sMnYX3FQXZttFzcPZJdKkOMLw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: a.zummo@towertech.it
-Cc: rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, j-keerthy@ti.com
+To: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Linux Kernel Maling List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Add external 32k clock feature. The internal clock will be gated during suspend.
-Hence make use of the external 32k clock so that rtc is functional accross
-suspend/resume.
+Hi Robert,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+On 27/02/15 17:08, Robert Abel wrote:
+> Hi Roger,
+> 
+> On Fri, Feb 27, 2015 at 11:24 AM, Roger Quadros <rogerq@ti.com> wrote:
+>>> +     /* is child a common bus? */
+>>> +     if (of_match_node(of_default_bus_match_table, child))
+>>> +             /* create children and other common bus children */
+>>> +             if (of_platform_populate(child, of_default_bus_match_table, NULL, &pdev->dev))
+>>> +                     goto err_child_fail;
+>>
+>> this would print "failed to create gpmc child" but we have already created
+>> the gpmc child in the first of_platform_device_create() call.
+>> A more appropriate message would be "failed to populate all children of child->name"
+>>
+>> Also do you want to return failure?
+>> it will result in of_node_put() of the child and another print message
+>> about "probing gpmc child %s failed" in gpmc_probe_dt().
+>>
+>> IMO if the GPMC node's child was created fine then we shouldn't return error.
+> 
+> As of_platform_populate _always_ return 0 no matter what, the only way
+> to reach that message is if probing the child failed.
 
-Tested on DRA7-EVM.
+GPMCs child is already probed. It is the child's child we are talking about
+in of_platform_populate.
 
- drivers/rtc/rtc-omap.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+> As I cannot see into the future when of_platform_populate might
+> actually be changed to return meaningful codes, we shouldn't try to
+> foresee what the actual problem might be today either. This is a
+> battle for another day.
+> 
 
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 8e5851a..4f803ca 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -107,6 +107,8 @@
- 
- /* OMAP_RTC_OSC_REG bit fields: */
- #define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
-+#define OMAP_RTC_OSC_OSC32K_GZ		BIT(4)
-+#define OMAP_RTC_OSC_EXT_32K		BIT(3)
- 
- /* OMAP_RTC_IRQWAKEEN bit fields: */
- #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
-@@ -120,6 +122,7 @@
- 
- struct omap_rtc_device_type {
- 	bool has_32kclk_en;
-+	bool has_osc_ext_32k;
- 	bool has_kicker;
- 	bool has_irqwakeen;
- 	bool has_pmic_mode;
-@@ -446,6 +449,7 @@ static const struct omap_rtc_device_type omap_rtc_default_type = {
- 
- static const struct omap_rtc_device_type omap_rtc_am3352_type = {
- 	.has_32kclk_en	= true,
-+	.has_osc_ext_32k = true,
- 	.has_kicker	= true,
- 	.has_irqwakeen	= true,
- 	.has_pmic_mode	= true,
-@@ -543,7 +547,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	if (rtc->type->has_32kclk_en) {
- 		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
- 		rtc_writel(rtc, OMAP_RTC_OSC_REG,
--				reg | OMAP_RTC_OSC_32KCLK_EN);
-+			   reg | OMAP_RTC_OSC_32KCLK_EN);
-+	}
-+
-+	/* Enable External clock as the source */
-+
-+	if (rtc->type->has_osc_ext_32k) {
-+		rtc_writel(rtc, OMAP_RTC_OSC_REG,
-+			   (OMAP_RTC_OSC_EXT_32K |
-+			   rtc_read(rtc, OMAP_RTC_OSC_REG)) &
-+			   (~OMAP_RTC_OSC_OSC32K_GZ));
- 	}
- 
- 	/* clear old status */
--- 
-1.9.1
+If that is the case then I'd rather not check for return value of of_platform_populate().
+Failure in populating GPMC child's children is already out of scope of GPMC driver.
+
+cheers,
+-roger
