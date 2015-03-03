@@ -1,38 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 0/9] N900 Modem Speech Support
-Date: Tue, 3 Mar 2015 14:33:24 +0100
-Message-ID: <20150303133324.GA12360@amd>
-References: <1425271139-24715-1-git-send-email-sre@kernel.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 00/10] initial clkdev cleanups
+Date: Tue, 03 Mar 2015 17:56:47 +0200
+Message-ID: <1425398207.14897.152.camel@linux.intel.com>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+	 <54F4DB34.9000507@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1425271139-24715-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:27680 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750960AbbCCP44 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Mar 2015 10:56:56 -0500
+In-Reply-To: <54F4DB34.9000507@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Roland Stigge <stigge@antcom.de>, Andrew Lunn <andrew@lunn.ch>, Mike Turquette <mturquette@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 
-Hi!
+On Mon, 2015-03-02 at 13:50 -0800, Stephen Boyd wrote:
+> On 03/02/15 09:05, Russell King - ARM Linux wrote:
+> > Here's some initial clkdev cleanups.  These are targetted for the next
+> > merge window, and while the initial patches can be merged independently,
+> > I'd prefer to keep the series together as further work on solving the
+> > problems which unique struct clk's has introduced is needed.
 
-> This patchset contains the missing speech data support for the
-> Nokia N900 modem.
+
+> > I'm also killing a chunk of seemingly unused code in the omap3isp driver.
+> >
+> > Lastly, I'm introducing a clkdev_create() helper, which combines the
+> > clkdev_alloc() + clkdev_add() pattern which keeps cropping up.
+> >
 > 
-> Userland access goes via /dev/cmt_speech. The API is implemented in
-> libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
-> Apart from that the device is also used by the phone binaries distributed
-> with Maemo. So while this is a new userland ABI for the mainline kernel it
-> has been tested in the wild for some years.
-> 
-> Simple Testing of the API can be done by checking out libcmtspeechdata [0],
-> building the test tool and executing it. The tool will loop back audio data
-> received from the caller.
+> We already have a solution to that problem with clk_register_clkdev().
+> Andy has done some work to make clk_register_clkdev() return a struct
+> clk_lookup pointer[1]. Maybe we can do that instead of introducing a new
+> clkdev_create() function. There is some benefit to having a new function
+> though so that we can avoid a flag day, although it looks like the flag
+> day is small in this case so it might not actually matter.
 
-Tested-by: Pavel Machek <pavel@ucw.cz>
+> [1] https://www.marc.info/?l=linux-kernel&m=142469226512289
 
-Audio is borken on 4.0-rc1 on n900 mainline, so I used pulseaudio remote for a
-test.
-									Pavel
+Agree with Stephen, why should we have the second function doing the
+same? Just name changing?
+
+I think you may just incorporate that patch into your series.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
+
