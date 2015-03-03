@@ -1,28 +1,38 @@
-From: Robert Abel <rabel@cit-ec.uni-bielefeld.de>
-Subject: Re: [PATCH 0/8] ARM OMAP2+ GPMC: fixes and bus children
-Date: Tue, 3 Mar 2015 13:59:40 +0100
-Message-ID: <CAMdRc4GdQj7Y15dQEgFugKRu4jkeTnvXE7J8Zm0p6YcMwysWFQ@mail.gmail.com>
-References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
-	<54F5AF49.301@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/9] N900 Modem Speech Support
+Date: Tue, 3 Mar 2015 14:33:24 +0100
+Message-ID: <20150303133324.GA12360@amd>
+References: <1425271139-24715-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54F5AF49.301@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1425271139-24715-1-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, balbi@ti.com, linux-usb@vger.kernel.org, Linux Kernel Maling List <linux-kernel@vger.kernel.org>, linux@arm.linux.org.uk
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+Hi!
 
-On Tue, Mar 3, 2015 at 1:55 PM, Roger Quadros <rogerq@ti.com> wrote:
-> I'm OK with this version.
->
-> Tony, after you ACK these I will queue them for v4.1.
+> This patchset contains the missing speech data support for the
+> Nokia N900 modem.
+> 
+> Userland access goes via /dev/cmt_speech. The API is implemented in
+> libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
+> Apart from that the device is also used by the phone binaries distributed
+> with Maemo. So while this is a new userland ABI for the mainline kernel it
+> has been tested in the wild for some years.
+> 
+> Simple Testing of the API can be done by checking out libcmtspeechdata [0],
+> building the test tool and executing it. The tool will loop back audio data
+> received from the caller.
 
-Please use v4 of my patches. The DTS output has been changed and the
-comments have their colon.
+Tested-by: Pavel Machek <pavel@ucw.cz>
 
-Regards,
-
-Robert
+Audio is borken on 4.0-rc1 on n900 mainline, so I used pulseaudio remote for a
+test.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
