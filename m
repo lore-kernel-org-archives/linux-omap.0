@@ -1,17 +1,21 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH 0/8] ARM OMAP2+ GPMC: fixes and bus children
-Date: Tue, 3 Mar 2015 14:53:35 +0200
-Message-ID: <54F5AECF.5090006@ti.com>
+Date: Tue, 3 Mar 2015 14:55:37 +0200
+Message-ID: <54F5AF49.301@ti.com>
 References: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42018 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160AbbCCMzr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2015 07:55:47 -0500
 In-Reply-To: <1424961956-29353-1-git-send-email-rabel@cit-ec.uni-bielefeld.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, linux-omap@vger.kernel.org, tony@atomide.com
 Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
-List-Id: linux-omap@vger.kernel.org
 
 Robert,
 
@@ -70,3 +74,4 @@ cheers,
 >  include/linux/omap-gpmc.h          |   2 +-
 >  6 files changed, 265 insertions(+), 77 deletions(-)
 > 
+
