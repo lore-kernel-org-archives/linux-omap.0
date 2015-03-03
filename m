@@ -1,119 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] mmc: sdio: support switching to 1-bit before turning
- off clocks
-Date: Tue, 3 Mar 2015 14:53:55 -0800
-Message-ID: <20150303225355.GE3756@atomide.com>
-References: <20150224024023.22719.32436.stgit@notabene.brown>
- <20150224024223.22719.91536.stgit@notabene.brown>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
+Date: Wed, 4 Mar 2015 01:09:13 +0200
+Message-ID: <20150303230913.GZ6539@valkosipuli.retiisi.org.uk>
+References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
+ <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
+ <118780170.u6ZO5zJrEk@avalon>
+ <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
+ <20150302235435.GF29584@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery10.ore.mailhop.org ([54.69.62.154]:38763 "EHLO
-	pmta2.delivery10.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756540AbbCCW7Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2015 17:59:24 -0500
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150224024223.22719.91536.stgit@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150302235435.GF29584@n2100.arm.linux.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Ash Charles <ash@gumstix.com>
 
-* NeilBrown <neilb@suse.de> [150223 18:47]:
-> According to section 7.1.2 of
-> 
-> http://www.sandisk.com/media/File/OEM/Manuals/SD_SDIO_specsv1.pdf
-> 
->     In the case where the interrupt mechanism is used to wake the host while
->     the card is in a low power state (i.e. no clocks), Both the card and the
->     host shall be placed into the 1-bit SD mode prior to stopping the clock.
-> 
-> This is particularly important for the Marvell "libertas" wifi chip
-> in the GTA04.  While in 4-bit mode it will only signal an interrupt
-> when the clock is running (which is why setting CLKEXTFREE is
-> important).
-> In 1-bit mode, the interrupt is asynchronous (explained in OMAP3
-> TRM description of the CIRQ flag to MMCHS_STAT:
-> 
->   In 1-bit mode, interrupt source is asynchronous (can be a source of
->   asynchronous wakeup).
->   In 4-bit mode, interrupt source is sampled during the interrupt
->   cycle.
-> 
-> )
-> 
-> It is awkward to simply set 1-bit mode in ->runtime_suspend
-> as that will call mmc_set_ios which calls ops->set_ios(),
-> which will likely call pm_runtime_get_sync(), on the device that
-> is currently suspending.  This deadlocks.
-> 
-> So:
->  - create a work_struct to schedule setting of 1-bit mode
->  - introduce an 'sdio_narrowed' state flag which transitions:
->      0 (normal) -> 1 (convert to 1-bit pending) ->
->          2 (have switch to 1-bit mode) -> 0 (normal)
->  - create a function mmc_sdio_want_no_clocks() which can be called
->    when the driver wants to turn off clocks (presumably after an
->    idle timeout).  This either succeeds (in 1-bit mode) or fails
->    and schedules the work to switch to 1-bit mode.
->  - when the host is claimed, if sdio_narrowed is 2, restore the
->    4-bit bus
->  - When the host is released, if sdio_narrowed is 1, then some
->    caller other  than our worker claimed the host first, so
->    clear sdio_narrowed.
-> 
-> This all allows a graceful and race-free switch to 1-bit mode
-> before switching off the clocks, if SDIO interrupts are enabled.
-> 
-> A host should call mmc_sdio_want_no_clocks() when about to turn off
-> clocks if sdio interrupts are enabled, and the ->disable() function
-> should not use a timeout (pm_runtime_put_autosuspend) if
-> ->sdio_narrowed is 2.
+Hi Russell,
 
-Wow! A mystery finally solved for why libertas_sdio using devices
-like overo won't work for the wakeirqs.. The interface has to be
-in 1-bit mode for libertas to produce any SDIO interrupts..
+On Mon, Mar 02, 2015 at 11:54:35PM +0000, Russell King - ARM Linux wrote:
+> (Combining replies...)
+> 
+> On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
+> > Hi Laurent and Russell,
+> > 
+> > On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
+> > > Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
+> > > prefer to resolve the conflict ? Russell, would it be fine to merge this 
+> > > through Mauro's tree ?
+> 
+> As other changes will depend on this, I'd prefer not to.  The whole
+> "make clk_get() return a unique struct clk" wasn't well tested, and
+> several places broke - and currently clk_add_alias() is broken as a
+> result of that.
+> 
+> I'm trying to get to the longer term solution, where clkdev internally
+> uses a struct clk_hw pointer rather than a struct clk pointer, and I
+> want to clean stuff up first.
+> 
+> If omap3isp needs to keep this code, then so be it - I'll come up with
+> a different patch improving its use of clkdev instead.
 
-Below is a patch enabling some more SDIO wakeirqs. Seems to work
-on overo now too :) So tor the whole series, please feel free to
-add:
+I discussed this with Laurent and the two options we thought are
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+- You provide a stable branch on which I can rebase the patches, in order
+  to avoid a merge conflict or
 
-8< -------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 26 Feb 2015 16:16:03 -0800
-Subject: [PATCH] ARM: dts: Fix omap3 SDIO wakeirqs for devices using sdio_libertas
+- We ignore the conflict and let Stephen Rothwell handle it. The conflict
+  itself is relatively simple to resolve.
 
-Turns out the the MMC interface needs to be in 1-bit mode for the
-libertas card to send any SDIO interrupts as pointed out by
-NeilBrown <neilb@suse.de>. Now that the MMC framework is getting
-fixed for setting 1-bit mode for idle, we can enable SDIO wakeirqs
-for libertas using devices too.
+-- 
+Kind regards,
 
-Cc: Andreas Fenkart <afenkart@gmail.com>
-Cc: Ash Charles <ash@gumstix.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: NeilBrown <neil@brown.name>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -367,6 +367,7 @@
- };
- 
- &mmc2 {
-+	interrupts-extended = <&intc 86 &omap3_pmx_core 0x12e>;
- 	vmmc-supply = <&vaux4>;
- 	bus-width = <4>;
- 	ti,non-removable;
---- a/arch/arm/boot/dts/omap3-overo-base.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
-@@ -185,6 +185,7 @@
- &mmc2 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc2_pins>;
-+	interrupts-extended = <&intc 86 &omap3_pmx_core 0x12e>;
- 	vmmc-supply = <&w3cbw003c_npoweron>;
- 	vqmmc-supply = <&w3cbw003c_bt_nreset>;
- 	vmmc_aux-supply = <&w3cbw003c_wifi_nreset>;
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
