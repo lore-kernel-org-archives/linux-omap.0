@@ -1,87 +1,118 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 08/15] twl4030_charger: distinguish between USB current
- and 'AC' current
-Date: Wed, 4 Mar 2015 17:53:02 +1100
-Message-ID: <20150304175302.02fa96d5@notabene.brown>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
-	<20150224043351.4243.50342.stgit@notabene.brown>
-	<20150302210509.GK13270@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/QDCV.JVArNhK93UDuLQZfZg"; protocol="application/pgp-signature"
+From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [Gta04-owner] [PATCH 3/4] usb: phy: twl4030: add support for reading restore on ID pin.
+Date: Wed, 4 Mar 2015 07:54:41 +0100
+Message-ID: <BF76BA84-5DD6-499D-8A00-E787C843BF7F@goldelico.com>
+References: <20150224033730.31400.78200.stgit@notabene.brown> <20150224034037.31400.52748.stgit@notabene.brown> <20150302210431.GH13270@amd> <20150304173551.7cb93917@notabene.brown>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150302210509.GK13270@amd>
+In-Reply-To: <20150304173551.7cb93917@notabene.brown>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: List for communicating with real GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neilb@suse.de>
+Cc: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/QDCV.JVArNhK93UDuLQZfZg
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2 Mar 2015 22:05:10 +0100 Pavel Machek <pavel@ucw.cz> wrote:
+Am 04.03.2015 um 07:35 schrieb NeilBrown <neilb@suse.de>:
 
-> Hi!
+> On Mon, 2 Mar 2015 22:04:31 +0100 Pavel Machek <pavel@ucw.cz> wrote:
 >=20
-> > The twl4030 charger has two current sources, 'USB' and 'AC' (which is
-> > really DC of course...).
-> >=20
-> > If 'AC' is providing current, we should set the current limit
-> > differently to when it isn't (and so USB is used).
-> > So split 'cur' into 'usb_cur' and 'ac_cur' and use accordingly.
-> >=20
-> > Now we must review the current setting on any interrupt or USB
-> > event which might indicate that the charger-source has changed.
-> >=20
-> > Signed-off-by: NeilBrown <neilb@suse.de>
+>> Hi!
+>>=20
+>>> The twl4030 phy can measure, with low precision, the
+>>> resistance-to-ground of the ID pin.
+>>>=20
+>>> Add a function to read the value, and export the result
+>>> via sysfs.
+>>>=20
+>>> If the read fails, which it does sometimes, try again in 50msec.
+>>>=20
+>>> Signed-off-by: NeilBrown <neilb@suse.de>
+>>> ---
+>>> drivers/phy/phy-twl4030-usb.c |   63 ++++++++++++++++++++++++++++++=
++++++++++++
+>>> 1 file changed, 63 insertions(+)
+>>>=20
+>>> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl403=
+0-usb.c
+>>> index 023fe150c7a1..759950898df9 100644
+>>> --- a/drivers/phy/phy-twl4030-usb.c
+>>> +++ b/drivers/phy/phy-twl4030-usb.c
+>>> @@ -374,6 +374,56 @@ static void twl4030_i2c_access(struct twl4030_=
+usb *twl, int on)
+>>> 	}
+>>> }
+>>>=20
+>>> +enum twl4030_id_status {
+>>> +	TWL4030_GROUND,
+>>> +	TWL4030_102K,
+>>> +	TWL4030_200K,
+>>> +	TWL4030_440K,
+>>> +	TWL4030_FLOATING,
+>>> +	TWL4030_ID_UNKNOWN,
+>>> +};
+>>> +static char *twl4030_id_names[] =3D {
+>>> +	"ground",
+>>> +	"102k",
+>>> +	"200k",
+>>> +	"440k",
+>>=20
+>> New /sys files should be documented somewhere...?
 >=20
-> > @@ -103,7 +104,9 @@ struct twl4030_bci {
-> >  	/* ichg values in uA. If any are 'large', we set CGAIN to
+> Preferably with the code...
 >=20
-> ichg/_cur values
+>>=20
+>> Does it make sense to change "440k" -> "440KOhm"?
 >=20
-> >  	 * '1' which doubles the range for half the precision.
-> >  	 */
-> > -	int			ichg_eoc, ichg_lo, ichg_hi, cur;
-> > +	int			ichg_eoc, ichg_lo, ichg_hi;
-> > +	int			usb_cur, ac_cur;
+> Interesting question.  I prefer to avoid including units in files - b=
+are
+> numbers is better.  But there is no number to match "floating" unless=
+ I spell
+> it out as "infinity", and wouldn't be helpful.
 >=20
-> > +	/* If VAC exceeds 4.5V (MADC 11) and ac is enabled, set current
-> > +	 * for 'ac'
->=20
-> 	/*
-> 	 * If AC voltage exceeds 4.5V (MADC 11) and AC is enabled, set current
-> 	 * for 'ac'.
->=20
->=20
-> Acked-by: Pavel Machek <pavel@ucw.cz>
->=20
+> Certainly "K" would be preferred over "k=93,
 
-Thanks - I made those changes, or something much like them.
+The international standard for kilo =3D 1000 is a lower case k.
+While it is (non-standard) to use K for 1024:
 
-NeilBrown
+http://en.wikipedia.org/wiki/Kilobyte
 
---Sig_/QDCV.JVArNhK93UDuLQZfZg
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+So I would keep the string constants lower case to avoid this potential=
+ confusion.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIVAwUBVParzjnsnt1WYoG5AQJyDxAAg6Vm2b8yoX+jeCyvweO0J3dp7FM7F9HD
-RyTCdFXkgOJP2XXUqUqGJ6MB1gSyqcS27Y36S2wR2iIiweLAJFZ4VKy0BcQPjF4U
-G6rMy398Q4ivKLl373D90LRBheNU4g8rJNkF+5ASpEEJMQImamxZEI1ww/sU45fF
-Xl1m3YZcTwSbvfJ/K1rwakD05LPfLwHYwgqhQUbld8kjMoJZCz1uJvWVtjqK1HDn
-CbKvYplEOuupO9tclxis48sndtRp3YpSunG05tugLp7CEKvfo7loIXM0WDf+pQsC
-Wo6rdE8uUnFkFCQ1ij9r6z9zdRMbk2olMOH7FFo7h07SnFkwVO0GCSvWfmd9lSf0
-53T6qR+tc6M36I9sIj0r09wxsrYLXouF0xPCcfJCSlb89QrsGfgBdiJiV7Wi78L+
-Zn9vaqk7PoKonAyU3tG12cXiibnSk0FASEk9kQOG5/InIOWHu7rprd2eR3nv8G84
-HA9kpGD+ooml1wywABU/ocvydgPeehYmS1OCFDEkFeVwKZmg+iHKq6QxxNI6UDNH
-ew9Yr4fsiL2RNVYY8E3hFYQuhjWg4BH5yrXkJ2dskMsez12+BLklxmREOIfkfihW
-mGTZP5ySgHSTHSrxeMNlps89qCQkVDvWGMu9yWdUp+deUObaku7Erxl+41s1pvP0
-O++kyflZBuM=
-=UGHb
------END PGP SIGNATURE-----
-
---Sig_/QDCV.JVArNhK93UDuLQZfZg--
+> and given that I have "ground"
+> and  "floating", it is more consistent to include the "Ohm"....
+>=20
+> These are really names, not measures of resistance.  The data sheet c=
+alls
+> them:
+> ID_RES_FLOAT  (or sometimes ID_FLOAT)
+> ID_RES_440K
+> ID_RES_200K
+> ID_RES_102K
+> ID_GND        (or sometimes ID_RES_GND)
+>=20
+> So using those names is defensible.
+>=20
+> I think I'll change them all to upper case, but leave out the "Ohm".
+> My justification is consistency with the data sheet.
+>=20
+>=20
+>=20
+>=20
+>>=20
+>> Plus I guess you need to update Documentation/
+>=20
+> I guess I'll need to give in to this eventually :-)
+>=20
+>>=20
+>> Acked-by: Pavel Machek <pavel@ucw.cz>
+>>=20
+>=20
+> Thanks,
+> NeilBrown
+> _______________________________________________
+> Gta04-owner mailing list
+> Gta04-owner@goldelico.com
+> http://lists.goldelico.com/mailman/listinfo.cgi/gta04-owner
