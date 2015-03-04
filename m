@@ -1,108 +1,87 @@
 From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 07/15] twl4030_charger: allow fine control of charger
- current.
-Date: Wed, 4 Mar 2015 17:47:41 +1100
-Message-ID: <20150304174741.4b3af1ac@notabene.brown>
+Subject: Re: [PATCH 08/15] twl4030_charger: distinguish between USB current
+ and 'AC' current
+Date: Wed, 4 Mar 2015 17:53:02 +1100
+Message-ID: <20150304175302.02fa96d5@notabene.brown>
 References: <20150224043341.4243.23291.stgit@notabene.brown>
-	<20150224043351.4243.88962.stgit@notabene.brown>
-	<20150302210501.GJ13270@amd>
+	<20150224043351.4243.50342.stgit@notabene.brown>
+	<20150302210509.GK13270@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/uPqXHqnPbh+Mw_s1EM2vjBU"; protocol="application/pgp-signature"
+ boundary="Sig_/QDCV.JVArNhK93UDuLQZfZg"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150302210501.GJ13270@amd>
+In-Reply-To: <20150302210509.GK13270@amd>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
 Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/uPqXHqnPbh+Mw_s1EM2vjBU
+--Sig_/QDCV.JVArNhK93UDuLQZfZg
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2 Mar 2015 22:05:01 +0100 Pavel Machek <pavel@ucw.cz> wrote:
+On Mon, 2 Mar 2015 22:05:10 +0100 Pavel Machek <pavel@ucw.cz> wrote:
 
 > Hi!
 >=20
-> > +	/* ichg values in uA. If any are 'large', we set CGAIN to
-> > +	 * '1' which doubles the range for half the precision.
-> > +	 */
-> > +	int			ichg_eoc, ichg_lo, ichg_hi, cur;
+> > The twl4030 charger has two current sources, 'USB' and 'AC' (which is
+> > really DC of course...).
+> >=20
+> > If 'AC' is providing current, we should set the current limit
+> > differently to when it isn't (and so USB is used).
+> > So split 'cur' into 'usb_cur' and 'ac_cur' and use accordingly.
+> >=20
+> > Now we must review the current setting on any interrupt or USB
+> > event which might indicate that the charger-source has changed.
+> >=20
+> > Signed-off-by: NeilBrown <neilb@suse.de>
 >=20
-> We should really get uA_t.
-
-Maybe. 32bits allows for  4000A, which should be plenty...
-I made it unsigned int.
-
+> > @@ -103,7 +104,9 @@ struct twl4030_bci {
+> >  	/* ichg values in uA. If any are 'large', we set CGAIN to
 >=20
-> [Plus, this is not kernel comment style, but...]
-
-Fixed
-
+> ichg/_cur values
 >=20
-> > +	/* For ichg_eoc, reg value must be 100XXXX000, we only
-> > +	 * set the XXXX in high nibble.
-> > +	 */
+> >  	 * '1' which doubles the range for half the precision.
+> >  	 */
+> > -	int			ichg_eoc, ichg_lo, ichg_hi, cur;
+> > +	int			ichg_eoc, ichg_lo, ichg_hi;
+> > +	int			usb_cur, ac_cur;
 >=20
-> Confused. High nibble is 0xf0, right?
-
-does this help?
-
-	/*
-	 * For ichg_eoc, the hardware only supports reg values matching
-	 * 100XXXX000, and requires the XXXX be stored in the high nibble
-	 * of TWL4030_BCIMFTH8
-	 */
-
-
+> > +	/* If VAC exceeds 4.5V (MADC 11) and ac is enabled, set current
+> > +	 * for 'ac'
 >=20
-> > +	/* And finally, set the current.  This is stored in
-> > +	 * two registers. */
-> > +	reg =3D ua2regval(bci->cur, cgain);
-> > +	/* we have only 10 bit */
+> 	/*
+> 	 * If AC voltage exceeds 4.5V (MADC 11) and AC is enabled, set current
+> 	 * for 'ac'.
 >=20
-> bits
->=20
-> > @@ -562,6 +698,14 @@ static int __init twl4030_bci_probe(struct platfor=
-m_device *pdev)
-> >  	if (!pdata)
-> >  		pdata =3D twl4030_bci_parse_dt(&pdev->dev);
-> > =20
-> > +	bci->ichg_eoc =3D 80100; /* Stop charging when current drops to here =
-*/
-> > +	bci->ichg_lo =3D 241000; /* low threshold */
->=20
-> Low
->=20
-> > +	bci->ichg_hi =3D 500000; /* High threshold */
 >=20
 > Acked-by: Pavel Machek <pavel@ucw.cz>
 >=20
 
-Thanks again!
+Thanks - I made those changes, or something much like them.
 
 NeilBrown
 
---Sig_/uPqXHqnPbh+Mw_s1EM2vjBU
+--Sig_/QDCV.JVArNhK93UDuLQZfZg
 Content-Type: application/pgp-signature
 Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIVAwUBVPaqjTnsnt1WYoG5AQIMQQ/9EvdT1SYfUsQC5j4DjydKNmnqGJlsA5s5
-aFjA3MbP7pd08l7BS5FWeRIZVaZJMV5tZHuIE36rwHGG5lHOwjH6CI4gwzJ0HBLb
-oJz93BCdmEleqDx88p1kkoMpE/1d126ode8uTvkwfsHWgovfjpNagL4qUx/lSsSM
-E6XCb6Z01KxddSaYS3rRFmhvQcPYyzvp1Z/lHw6xq5XcJdp7SXLsOt9SffUKTjUC
-fnvDIJvPwmg13xGKUtl2vpx+29OQNC6Eccf4s6aWGZA8RZmvTIfwapdhF+1cJH+5
-lFoJgtk2JtcR61jowWwVW/ekdDK7NQkSXHk69TnsPvjZKWMQIT9xANcPbznzn9ps
-6zUq07UxR53cQ6yD7ZjQT1u6tejFj2rr7nQhLZ05DuWlWmDzI6OoBbo1cehlmNkg
-bKsawDZbzSrq89kcpoPB6lGDZgOe/M0GrI4ozJJcE6K5bRpg7IPbVhTjtQhwupWd
-iUnqRHD6m7C1UUuevvJ/E6rr4OuY48buyKl8R4XLHNa+f3z37lV48TpKB6gaafUy
-Bw/tLiHdq4JTK87AKyX4lET7fhKxj0Ovjk7DqDwc960JhfRudUWafc/hdq/gDIgk
-j1MgFc7mJIRNBH47Whtuk7vgEjf9TRrh6qukjayzCm0lzuy9/MWUdouHGF3xZCiY
-k5S8pBTYuJk=
-=Dqh7
+iQIVAwUBVParzjnsnt1WYoG5AQJyDxAAg6Vm2b8yoX+jeCyvweO0J3dp7FM7F9HD
+RyTCdFXkgOJP2XXUqUqGJ6MB1gSyqcS27Y36S2wR2iIiweLAJFZ4VKy0BcQPjF4U
+G6rMy398Q4ivKLl373D90LRBheNU4g8rJNkF+5ASpEEJMQImamxZEI1ww/sU45fF
+Xl1m3YZcTwSbvfJ/K1rwakD05LPfLwHYwgqhQUbld8kjMoJZCz1uJvWVtjqK1HDn
+CbKvYplEOuupO9tclxis48sndtRp3YpSunG05tugLp7CEKvfo7loIXM0WDf+pQsC
+Wo6rdE8uUnFkFCQ1ij9r6z9zdRMbk2olMOH7FFo7h07SnFkwVO0GCSvWfmd9lSf0
+53T6qR+tc6M36I9sIj0r09wxsrYLXouF0xPCcfJCSlb89QrsGfgBdiJiV7Wi78L+
+Zn9vaqk7PoKonAyU3tG12cXiibnSk0FASEk9kQOG5/InIOWHu7rprd2eR3nv8G84
+HA9kpGD+ooml1wywABU/ocvydgPeehYmS1OCFDEkFeVwKZmg+iHKq6QxxNI6UDNH
+ew9Yr4fsiL2RNVYY8E3hFYQuhjWg4BH5yrXkJ2dskMsez12+BLklxmREOIfkfihW
+mGTZP5ySgHSTHSrxeMNlps89qCQkVDvWGMu9yWdUp+deUObaku7Erxl+41s1pvP0
+O++kyflZBuM=
+=UGHb
 -----END PGP SIGNATURE-----
 
---Sig_/uPqXHqnPbh+Mw_s1EM2vjBU--
+--Sig_/QDCV.JVArNhK93UDuLQZfZg--
