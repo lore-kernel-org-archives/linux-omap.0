@@ -1,135 +1,170 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/2] pinctrl: bindings: pinctrl: Add support for TI's IODelay configuration
-Date: Tue, 3 Mar 2015 18:00:36 -0600
-Message-ID: <1425427237-11511-2-git-send-email-nm@ti.com>
-References: <1425427237-11511-1-git-send-email-nm@ti.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 3/4] mmc: sdio: support switching to 1-bit before
+ turning off clocks
+Date: Wed, 4 Mar 2015 16:28:48 +1100
+Message-ID: <20150304162848.2d33914d@notabene.brown>
+References: <20150224024023.22719.32436.stgit@notabene.brown>
+	<20150224024223.22719.91536.stgit@notabene.brown>
+	<20150303225355.GE3756@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425427237-11511-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lokesh Vutla <lokeshvutla@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/WYiWpQUCu08iIOm07gIIA4B"; protocol="application/pgp-signature"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20150303225355.GE3756@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Ash Charles <ash@gumstix.com>
 List-Id: linux-omap@vger.kernel.org
 
-SoCs such as DRA7 family from Texas Instruments also include a highly
-configurable hardware block called the IOdelay block. This block
-allows very specific custom fine tuning for electrical characteristics
-of IO pins.
+--Sig_/WYiWpQUCu08iIOm07gIIA4B
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-In addition to the regular pin muxing modes supported by the
-pinctrl-single, additional configuration for this block for specific
-pins may also be mandatory in certain cases.
+On Tue, 3 Mar 2015 14:53:55 -0800 Tony Lindgren <tony@atomide.com> wrote:
 
-It is advocated strongly in TI's official documentation considering
-the existing design of the DRA7 family of processors, which during mux
-or IODelay reconfiguration, has a potential for a significant glitch
-which may cause functional impairment to certain hardware. It is hence
-recommended to do as little of muxing as absolutely necessary without
-IO isolation (which can only be done in initial stages of bootloader).
+> * NeilBrown <neilb@suse.de> [150223 18:47]:
+> > According to section 7.1.2 of
+> >=20
+> > http://www.sandisk.com/media/File/OEM/Manuals/SD_SDIO_specsv1.pdf
+> >=20
+> >     In the case where the interrupt mechanism is used to wake the host =
+while
+> >     the card is in a low power state (i.e. no clocks), Both the card an=
+d the
+> >     host shall be placed into the 1-bit SD mode prior to stopping the c=
+lock.
+> >=20
+> > This is particularly important for the Marvell "libertas" wifi chip
+> > in the GTA04.  While in 4-bit mode it will only signal an interrupt
+> > when the clock is running (which is why setting CLKEXTFREE is
+> > important).
+> > In 1-bit mode, the interrupt is asynchronous (explained in OMAP3
+> > TRM description of the CIRQ flag to MMCHS_STAT:
+> >=20
+> >   In 1-bit mode, interrupt source is asynchronous (can be a source of
+> >   asynchronous wakeup).
+> >   In 4-bit mode, interrupt source is sampled during the interrupt
+> >   cycle.
+> >=20
+> > )
+> >=20
+> > It is awkward to simply set 1-bit mode in ->runtime_suspend
+> > as that will call mmc_set_ios which calls ops->set_ios(),
+> > which will likely call pm_runtime_get_sync(), on the device that
+> > is currently suspending.  This deadlocks.
+> >=20
+> > So:
+> >  - create a work_struct to schedule setting of 1-bit mode
+> >  - introduce an 'sdio_narrowed' state flag which transitions:
+> >      0 (normal) -> 1 (convert to 1-bit pending) ->
+> >          2 (have switch to 1-bit mode) -> 0 (normal)
+> >  - create a function mmc_sdio_want_no_clocks() which can be called
+> >    when the driver wants to turn off clocks (presumably after an
+> >    idle timeout).  This either succeeds (in 1-bit mode) or fails
+> >    and schedules the work to switch to 1-bit mode.
+> >  - when the host is claimed, if sdio_narrowed is 2, restore the
+> >    4-bit bus
+> >  - When the host is released, if sdio_narrowed is 1, then some
+> >    caller other  than our worker claimed the host first, so
+> >    clear sdio_narrowed.
+> >=20
+> > This all allows a graceful and race-free switch to 1-bit mode
+> > before switching off the clocks, if SDIO interrupts are enabled.
+> >=20
+> > A host should call mmc_sdio_want_no_clocks() when about to turn off
+> > clocks if sdio interrupts are enabled, and the ->disable() function
+> > should not use a timeout (pm_runtime_put_autosuspend) if
+> > ->sdio_narrowed is 2.
+>=20
+> Wow! A mystery finally solved for why libertas_sdio using devices
+> like overo won't work for the wakeirqs.. The interface has to be
+> in 1-bit mode for libertas to produce any SDIO interrupts..
+>=20
+> Below is a patch enabling some more SDIO wakeirqs. Seems to work
+> on overo now too :) So tor the whole series, please feel free to
+> add:
+>=20
+> Tested-by: Tony Lindgren <tony@atomide.com>
 
-Even with the above limitation, certain functionality such as MMC may
-mandate the need of IODelay reconfiguration depending on speed of
-transfer. Hence, introduce a new binding to facilitate programming the
-same.
+Thanks a lot!
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- .../bindings/pinctrl/ti,iodelay-pinctrl.txt        |   86 ++++++++++++++++++++
- 1 file changed, 86 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,iodelay-pinctrl.txt
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/ti,iodelay-pinctrl.txt b/Documentation/devicetree/bindings/pinctrl/ti,iodelay-pinctrl.txt
-new file mode 100644
-index 000000000000..e12f4e5a3f25
---- /dev/null
-+++ b/Documentation/devicetree/bindings/pinctrl/ti,iodelay-pinctrl.txt
-@@ -0,0 +1,86 @@
-+Texas Instruments I/O Delay module configuration pinctrl definition
+>=20
+> 8< -------------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Thu, 26 Feb 2015 16:16:03 -0800
+> Subject: [PATCH] ARM: dts: Fix omap3 SDIO wakeirqs for devices using sdio=
+_libertas
+>=20
+> Turns out the the MMC interface needs to be in 1-bit mode for the
+> libertas card to send any SDIO interrupts as pointed out by
+> NeilBrown <neilb@suse.de>. Now that the MMC framework is getting
+> fixed for setting 1-bit mode for idle, we can enable SDIO wakeirqs
+> for libertas using devices too.
+>=20
+> Cc: Andreas Fenkart <afenkart@gmail.com>
+> Cc: Ash Charles <ash@gumstix.com>
+> Cc: Florian Vaussard <florian.vaussard@epfl.ch>
+> Cc: NeilBrown <neil@brown.name>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>=20
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -367,6 +367,7 @@
+>  };
+> =20
+>  &mmc2 {
+> +	interrupts-extended =3D <&intc 86 &omap3_pmx_core 0x12e>;
+>  	vmmc-supply =3D <&vaux4>;
+>  	bus-width =3D <4>;
+>  	ti,non-removable;
+
+I had=20
+
++       interrupts-extended =3D <&intc 86 &gpio5 5 0>; /* GPIO_133 */
++       pinctrl-names =3D "default", "idle";
++       pinctrl-0 =3D <&mmc2_pins>;
++       pinctrl-1 =3D <&mmc2_cirq_pin>;
+
+together with
+
++       mmc2_cirq_pin: pinmux_cirq_pin {
++               pinctrl-single,pins =3D <
++                       OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MO=
+DE4)=20
++               >;
++       };
 +
-+Used in conjunction with Documentation/devicetree/bindings/pinctrl/ti,omap-pinctrl.txt
-+
-+Required Properties:
-+- compatible: Should be:
-+  "ti,dra7-iodelay" - I/O delay configuration for DRA7
-+- reg	- must be the register address range of IODelay module
-+- #address-cells = <1>;
-+- #size-cells = <0>;
-+
-+Important note: Use of "ti,dra7-iodelay" compatible definition need to be
-+carefully evaluated due to the expectation of glitch during configuration.
-+
-+Example:
-+
-+dra7_iodelay_core: padconf@4844a000 {
-+	compatible = "ti,dra7-iodelay";
-+	reg = <0x4844a000 0x0d1c>;
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+};
-+
-+Configuration definition follows similar model as the pinctrl-single:
-+The groups of pin configuration are defined under "pinctrl-single,pins"
-+
-+&dra7_iodelay_core {
-+	mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
-+		pinctrl-single,pins = <
-+			0x18c (A_DELAY(0) | G_DELAY(120))	/* CFG_GPMC_A19_IN */
-+			0x1a4 (A_DELAY(265) | G_DELAY(360))	/* CFG_GPMC_A20_IN */
-+			0x1b0 (A_DELAY(0) | G_DELAY(120))	/* CFG_GPMC_A21_IN */
-+			0x1bc (A_DELAY(0) | G_DELAY(120))	/* CFG_GPMC_A22_IN */
-+			0x1c8 (A_DELAY(287) | G_DELAY(420))	/* CFG_GPMC_A23_IN */
-+			0x1d4 (A_DELAY(144) | G_DELAY(240))	/* CFG_GPMC_A24_IN */
-+			0x1e0 (A_DELAY(0) | G_DELAY(0))		/* CFG_GPMC_A25_IN */
-+			0x1ec (A_DELAY(120) | G_DELAY(0))	/* CFG_GPMC_A26_IN */
-+			0x1f8 (A_DELAY(120) | G_DELAY(180))	/* CFG_GPMC_A27_IN */
-+			0x360 (A_DELAY(0) | G_DELAY(0))		/* CFG_GPMC_CS1_IN */
-+		>;
-+	};
-+};
-+
-+Usage in conjunction with pinctrl single:
-+
-+For a complete description of the pins both the regular muxing as well as the
-+iodelay configuration is necessary. For example:
-+
-+&dra7_pmx_core {
-+	mmc2_pins_default: mmc2_pins_default {
-+		pinctrl-single,pins = <
-+			0x9c (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a23.mmc2_clk */
-+			0xb0 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
-+			0xa0 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
-+			0xa4 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
-+			0xa8 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
-+			0xac (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
-+			0x8c (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
-+			0x90 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
-+			0x94 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
-+			0x98 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
-+		>;
-+	};
-+};
-+
-+&dra7_iodelay_core {
-+	mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
-+		pinctrl-single,pins = <
-+			0x18c (A_DELAY(0) | G_DELAY(120))	/* CFG_GPMC_A19_IN */
-+			0x1a4 (A_DELAY(265) | G_DELAY(360))	/* CFG_GPMC_A20_IN */
-+			0x1b0 (A_DELAY(0) | G_DELAY(120))	/* CFG_GPMC_A21_IN */
-+			0x1bc (A_DELAY(0) | G_DELAY(120))	/* CFG_GPMC_A22_IN */
-+			0x1c8 (A_DELAY(287) | G_DELAY(420))	/* CFG_GPMC_A23_IN */
-+			0x1d4 (A_DELAY(144) | G_DELAY(240))	/* CFG_GPMC_A24_IN */
-+			0x1e0 (A_DELAY(0) | G_DELAY(0))		/* CFG_GPMC_A25_IN */
-+			0x1ec (A_DELAY(120) | G_DELAY(0))	/* CFG_GPMC_A26_IN */
-+			0x1f8 (A_DELAY(120) | G_DELAY(180))	/* CFG_GPMC_A27_IN */
-+			0x360 (A_DELAY(0) | G_DELAY(0))		/* CFG_GPMC_CS1_IN */
-+		>;
-+	};
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins_default &mmc2_iodelay_3v3_conf>;
-+};
--- 
-1.7.9.5
+
+
+and a longer definition for mmc2_pins.
+
+Is that one line reconfigure the pin on demand?  How does that work?
+
+
+Thanks,
+NeilBrown
+
+--Sig_/WYiWpQUCu08iIOm07gIIA4B
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIVAwUBVPaYEDnsnt1WYoG5AQI/2A/+Id5QeI9puU7XrLLNaWj86QXtOU/mfPuI
+0lF1rTIhqiXABqP0SI65McGAOuEWaU8bqsjcTnFL5aZ8gNop7kjbm8ElQxFw+zjx
+8wKJNmrwxHamG5jhaS3hw69N/2aHC5p6g2jSn5MthqLogMhBnXNp7q8vgFCgDsmG
+iVMlS5ks2K7Olu5W4yWXj/Bv+Vmc1DoD0E02FN3ek089mU7S5zjgEoWvERACn3WG
+6Gss4cMLY0CfDLhQlEIVJmBTLbQG2wTQhMy0GG/BPwl2UhqjAp8avquSwK/1yIFy
+1XlpULp2/4t3TYU6und883k2KgItknpwLAxA3K+9P1U2SSDADj3H0G/9n7YHXOQM
+R4gouuMQH3UmVquhSLlVHFNbh+DPeYEhrPtKXz+kqazbPWjA7TiN8j7wrgE41byx
+chEhxxQMI4OOusCniKsPEtmWMLxVGaZUNd3XklZQkBCpVQOQ3NPY8hbk9NoQ793D
+e6DU8O7kRZPXHDSL8cZoBxvPB3qFcLF8/HmXcns1ErHmhiWHKCEaRzvO9JjcKBD2
+FVZ6itRgAG0OZPz+46bBTn9quZzAhkR6VAP9M5b2T+j4DCfZmJgpeCpdz1t4hY8G
+LrMEwgXYRcYnQf4B43Q0ukV6R57etwMZD+7zJPTXrD7LeMkU32kG/8tqQhij/YWC
+VyoksgyYomc=
+=Id+Q
+-----END PGP SIGNATURE-----
+
+--Sig_/WYiWpQUCu08iIOm07gIIA4B--
