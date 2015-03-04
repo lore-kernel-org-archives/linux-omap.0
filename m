@@ -1,41 +1,56 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 07/15] twl4030_charger: allow fine control of charger
- current.
-Date: Wed, 4 Mar 2015 11:24:15 +0100
-Message-ID: <20150304102415.GC30887@amd>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
- <20150224043351.4243.88962.stgit@notabene.brown>
- <20150302210501.GJ13270@amd>
- <20150304174741.4b3af1ac@notabene.brown>
+From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+Subject: Re: [PATCHv2 1/2] HSI: cmt_speech: Add cmt-speech driver
+Date: Wed, 04 Mar 2015 12:09:16 +0100
+Message-ID: <1425467356.2798.8.camel@tiscali.nl>
+References: <1425343454-6551-1-git-send-email-sre@kernel.org>
+	 <1425343454-6551-2-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150304174741.4b3af1ac@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1425343454-6551-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kai Vehmanen <kai.vehmanen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+A license nit only.
 
-> does this help?
-> 
-> 	/*
-> 	 * For ichg_eoc, the hardware only supports reg values matching
-> 	 * 100XXXX000, and requires the XXXX be stored in the high nibble
-> 	 * of TWL4030_BCIMFTH8
-> 	 */
+Sebastian Reichel schreef op di 03-03-2015 om 01:44 [+0100]:
+> --- /dev/null
+> +++ b/drivers/hsi/clients/cmt_speech.c
+> @@ -0,0 +1,1457 @@
+> +/*
+> + * cmt_speech.c - HSI CMT speech driver
+> + *
+> + * Copyright (C) 2008,2009,2010 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Kai Vehmanen <kai.vehmanen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> + * Original author: Peter Ujfalusi <peter.ujfalusi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
 
-A bit, yes. Add "." at the end of sentence ;-).
+This states the license is GPL v2.
 
-(Now I'd need to study the datasheets... and figure out how to enable
-this on N900).
+> +MODULE_LICENSE("GPL");
 
-Thanks,
-									Pavel
-									
+So you probably want 
+    MODULE_LICENSE("GPL v2");
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+here.
+
+
+Paul Bolle
