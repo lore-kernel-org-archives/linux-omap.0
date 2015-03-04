@@ -1,46 +1,60 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: rmk's taking it easy for a while
-Date: Tue, 3 Mar 2015 23:41:12 +0000
-Message-ID: <20150303234111.GA8656@n2100.arm.linux.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/2] pinctrl: Introduce support for iodelay module in TI SoCs
+Date: Tue, 3 Mar 2015 18:00:35 -0600
+Message-ID: <1425427237-11511-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:48599 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756006AbbCCXlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2015 18:41:22 -0500
-Received: from n2100.arm.linux.org.uk ([2001:4d48:ad52:3201:214:fdff:fe10:4f86]:46441)
-	by pandora.arm.linux.org.uk with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
-	(Exim 4.82_1-5b7a7c0-XX)
-	(envelope-from <linux@arm.linux.org.uk>)
-	id 1YSwRE-0007EQ-6L
-	for linux-omap@vger.kernel.org; Tue, 03 Mar 2015 23:41:20 +0000
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:40860 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757216AbbCDABH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2015 19:01:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lokesh Vutla <lokeshvutla@ti.com>, Nishanth Menon <nm@ti.com>
 
-For those who haven't read my post on google+, here's the news.
+Hi,
 
-Today, I had my impacted wisdom teeth out under a general anaesthetic.
-This means that I'm not going to be feeling right for a while, and I'm
-going to be taking things easy probably for the rest of this week.
+SoCs such as DRA7 family from Texas Instruments also include a highly
+configurable hardware block called the IOdelay block. This block
+allows very specific custom fine tuning for electrical characteristics
+of IO pins that are necessary for functionality and device lifetime
+requirements.
 
-I'm on quite a high dosage of painkillers and anti-inflamatories, so
-whether I'm going to be doing anything kernel related is going to depend
-very much on how I feel day to day.
+IODelay module exists on it's own register space with registers
+allocated for various pins. A set of values (derived from either
+automated tools OR from device datasheet) is then computed on a
+per-chip basis(to account for die specific variations) to generate a
+set of delay parameters that are programmed to one or more registers
+for the delay path of the io line. This is used in specific instances
+such as MMC to achieve high-throughput modes, and most pins dont
+usually need tweaking functionality provided by this driver.
 
-Not only that, but eating a decent diet is going to be a problem for a
-while.
+Even though this kind of operates similar to a pinctrl model,
+functionally, it is a characteristics tuning which does not completely
+fit the standard pinconf model either.
 
-What does this mean?  Don't expect me to be responsive or coherent for
-a while as I struggle to get back to something resembling normality.
-I might tinker with a few patches, I might post some series, and if I
-do, do /not/ take that as a sign I'm back to normal - that'll probably
-be an attempt to relieve some of the boredom.
+In addition to the regular pin muxing modes supported by the
+pinctrl-single, additional configuration for this block for specific
+pins may also be mandatory in certain cases.
 
-Thanks.
+Series based on v4.0-rc1
+
+Nishanth Menon (2):
+  pinctrl: bindings: pinctrl: Add support for TI's IODelay
+    configuration
+  pinctrl: Introduce TI IOdelay configuration driver
+
+ .../bindings/pinctrl/ti,iodelay-pinctrl.txt        |   86 ++
+ drivers/pinctrl/Kconfig                            |   11 +
+ drivers/pinctrl/Makefile                           |    1 +
+ drivers/pinctrl/pinctrl-ti-iodelay.c               |  963 ++++++++++++++++++++
+ include/dt-bindings/pinctrl/dra.h                  |    6 +
+ 5 files changed, 1067 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,iodelay-pinctrl.txt
+ create mode 100644 drivers/pinctrl/pinctrl-ti-iodelay.c
 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+1.7.9.5
+
