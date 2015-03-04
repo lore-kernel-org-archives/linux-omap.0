@@ -1,66 +1,168 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ASoC: omap-pcm: Allow only formats with 1,
- 2, and 4 byte physical size
-Date: Wed, 4 Mar 2015 17:29:01 +0000
-Message-ID: <20150304172901.GT21293@sirena.org.uk>
-References: <1425382133-17120-1-git-send-email-jsarha@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv2 0/2] N900 Modem Speech Support
+Date: Wed, 4 Mar 2015 20:24:19 +0100
+Message-ID: <20150304192419.GA8981@amd>
+References: <1425343454-6551-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7812084302802810725=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1425382133-17120-1-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1425343454-6551-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi!
 
---===============7812084302802810725==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="ePL2GmOEVZCdDbf3"
-Content-Disposition: inline
+> This patchset contains the missing speech data support for the
+> Nokia N900 modem.
+> 
+> Userland access goes via /dev/cmt_speech. The API is implemented in
+> libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
+> Apart from that the device is also used by the phone binaries distributed
+> with Maemo. So while this is a new userland ABI for the mainline kernel it
+> has been tested in the wild for some years.
+> 
+> Simple Testing of the API can be done by checking out libcmtspeechdata [0],
+> building the test tool and executing it. The tool will loop back audio data
+> received from the caller.
+> 
+> I have prepared a kernel branch for this patchset, which can be found at [1].
+> 
+> Changes since PATCHv1 [2]:
+>  * Squash cmt-speech patches together
+>  * cs_alloc_cmds(): GFP_ATOMIC -> GFP_KERNEL
+>  * CS_SET_WAKELINE ioctl: Add sanity check
+
+commit fd3492869b9387f7bd97821badb491e9c0be463f
+Author: Pavel <pavel@ucw.cz>
+Date:   Wed Mar 4 20:22:32 2015 +0100
+
+Simple cleanups, improve consistency.
+    
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/drivers/hsi/clients/cmt_speech.c b/drivers/hsi/clients/cmt_speech.c
+index a017292..9609766 100644
+--- a/drivers/hsi/clients/cmt_speech.c
++++ b/drivers/hsi/clients/cmt_speech.c
+@@ -115,6 +115,7 @@ struct cs_hsi_iface {
+ 	unsigned int			rx_ptr_boundary;
+ 	unsigned int			rx_offsets[CS_MAX_BUFFERS];
+ 	unsigned int			tx_offsets[CS_MAX_BUFFERS];
++
+ 	/* size of aligned memory blocks */
+ 	unsigned int			slot_size;
+ 	unsigned int			flags;
+@@ -194,32 +195,27 @@ static void cs_notify_data(u32 message, int maxlength)
+ 	cs_notify(message, &cs_char_data.dataind_queue);
+ 
+ 	spin_lock(&cs_char_data.lock);
+-	++cs_char_data.dataind_pending;
++	cs_char_data.dataind_pending++;
+ 	while (cs_char_data.dataind_pending > maxlength &&
+ 				!list_empty(&cs_char_data.dataind_queue)) {
+ 		dev_dbg(&cs_char_data.cl->device, "data notification "
+ 		"queue overrun (%u entries)\n", cs_char_data.dataind_pending);
+ 
+ 		cs_pop_entry(&cs_char_data.dataind_queue);
+-		--cs_char_data.dataind_pending;
++		cs_char_data.dataind_pending--;
+ 	}
+ 	spin_unlock(&cs_char_data.lock);
+ }
+ 
+ static inline void cs_set_cmd(struct hsi_msg *msg, u32 cmd)
+ {
+-	u32 *data;
+-
+-	data = sg_virt(msg->sgt.sgl);
++	u32 *data = sg_virt(msg->sgt.sgl);
+ 	*data = cmd;
+ }
+ 
+ static inline u32 cs_get_cmd(struct hsi_msg *msg)
+ {
+-	u32 *data;
+-
+-	data = sg_virt(msg->sgt.sgl);
+-
++	u32 *data = sg_virt(msg->sgt.sgl);
+ 	return *data;
+ }
+ 
+@@ -641,7 +637,7 @@ static void cs_hsi_peek_on_data_complete(struct hsi_msg *msg)
+ 		cs_hsi_data_read_error(hi, msg);
+ }
+ 
+-/**
++/*
+  * Read/write transaction is ongoing. Returns false if in
+  * SSI_CHANNEL_STATE_POLL state.
+  */
+@@ -651,7 +647,7 @@ static inline int cs_state_xfer_active(unsigned int state)
+ 		(state & SSI_CHANNEL_STATE_READING);
+ }
+ 
+-/**
++/*
+  * No pending read/writes
+  */
+ static inline int cs_state_idle(unsigned int state)
+@@ -1117,10 +1113,9 @@ static int cs_char_fasync(int fd, struct file *file, int on)
+ {
+ 	struct cs_char *csdata = file->private_data;
+ 
+-	if (fasync_helper(fd, file, on, &csdata->async_queue) >= 0)
+-		return 0;
+-	else
++	if (fasync_helper(fd, file, on, &csdata->async_queue) < 0)
+ 		return -EIO;
++	return 0;
+ }
+ 
+ static unsigned int cs_char_poll(struct file *file, poll_table *wait)
+@@ -1149,7 +1144,7 @@ static ssize_t cs_char_read(struct file *file, char __user *buf, size_t count,
+ 	if (count < sizeof(data))
+ 		return -EINVAL;
+ 
+-	for ( ; ; ) {
++	for (;;) {
+ 		DEFINE_WAIT(wait);
+ 
+ 		spin_lock_bh(&csdata->lock);
+@@ -1157,7 +1152,7 @@ static ssize_t cs_char_read(struct file *file, char __user *buf, size_t count,
+ 			data = cs_pop_entry(&csdata->chardev_queue);
+ 		} else if (!list_empty(&csdata->dataind_queue)) {
+ 			data = cs_pop_entry(&csdata->dataind_queue);
+-			--csdata->dataind_pending;
++			csdata->dataind_pending--;
+ 
+ 		} else {
+ 			data = 0;
+@@ -1239,8 +1234,8 @@ static long cs_char_ioctl(struct file *file, unsigned int cmd,
+ 
+ 		if (copy_to_user((void __user *)arg, &ifver, sizeof(ifver)))
+ 			r = -EFAULT;
+-		break;
+ 	}
++		break;
+ 	case CS_CONFIG_BUFS: {
+ 		struct cs_buffer_config buf_cfg;
+ 
+@@ -1249,8 +1244,8 @@ static long cs_char_ioctl(struct file *file, unsigned int cmd,
+ 			r = -EFAULT;
+ 		else
+ 			r = cs_hsi_buf_config(csdata->hi, &buf_cfg);
+-		break;
+ 	}
++		break;
+ 	default:
+ 		r = -ENOTTY;
+ 		break;
 
 
---ePL2GmOEVZCdDbf3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Mar 03, 2015 at 01:28:53PM +0200, Jyri Sarha wrote:
-> sDMA support only transfer elements with 1, 2, and 4 byte physical
-> size. Initialize the pcm driver accordingly.
-
-Applied, thanks.
-
---ePL2GmOEVZCdDbf3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJU90DcAAoJECTWi3JdVIfQ3dgH/iotieW8R+SEERVNDQqkxIUe
-hXsyWcraIcpuHednQ6qA3j8IqV8Bl8CrQqVoyWQpgiMKlDZ5ioUHFfhhgH1lnSAF
-XR2ijRTCHsme3IdWs3F6BKLh7CAkNLKImZr71v7E/LWEPWegeAc7p4gpi2c4ypSA
-wvFtvyduePsGyH+yZLO6z+Ayt8uHq840Rutb9F8a+E38GmndUc2ZmNroqJqoylri
-4a10ayCS30l+d+0fEQVYDrnVtUkdHluH7FT3UAyiBlnWWxJMwPvxToleapNkxs8L
-4eYOLP/VbkjSrpcx6ln1IrkDovTM1IRqwHg2LfqynohclPWUv6iXDf7SrvzDuf4=
-=ktDt
------END PGP SIGNATURE-----
-
---ePL2GmOEVZCdDbf3--
-
---===============7812084302802810725==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============7812084302802810725==--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
