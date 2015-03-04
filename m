@@ -1,121 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
-Date: Wed, 4 Mar 2015 14:58:58 -0800
-Message-ID: <20150304225857.GC13520@atomide.com>
-References: <1425427237-11511-1-git-send-email-nm@ti.com>
- <1425427237-11511-3-git-send-email-nm@ti.com>
- <1425509926.2090.56.camel@tiscali.nl>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 06/21] drm/omap: check CRTC color format earlier
+Date: Thu, 05 Mar 2015 01:41:52 +0200
+Message-ID: <4801838.aaTqeHiXe3@avalon>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com> <20150227120757.GW24485@phenom.ffwll.local> <54F433A4.5050303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1425509926.2090.56.camel@tiscali.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Nishanth Menon <nm@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lokesh Vutla <lokeshvutla@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60025 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752998AbbCDXlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2015 18:41:50 -0500
+In-Reply-To: <54F433A4.5050303@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
-* Paul Bolle <pebolle@tiscali.nl> [150304 14:58]:
-> Nishanth Menon schreef op di 03-03-2015 om 18:00 [-0600]:
-> > diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
-> > index ee9f44ad7f02..8e463d75fbb2 100644
-> > --- a/drivers/pinctrl/Kconfig
-> > +++ b/drivers/pinctrl/Kconfig
-> > @@ -160,6 +160,17 @@ config PINCTRL_TEGRA_XUSB
-> >  	select PINCONF
-> >  	select PINMUX
-> >  
-> > +config PINCTRL_TI_IODELAY
-> > +	bool "TI IODelay Module pinconf driver"
-> 
-> This adds a boolean Kconfig symbol.
-> 
-> > +	depends on OF
-> > +	select PINCONF
-> > +	select GENERIC_PINCONF
-> > +	select REGMAP_MMIO
-> > +	help
-> > +	  Say Y here to support Texas Instruments' IODelay pinconf driver.
-> > +	  IODelay module is used for the DRA7 SoC family. This driver is in
-> > +	  addition to PINCTRL_SINGLE which controls the mux.
-> > +
-> >  config PINCTRL_TZ1090
-> >  	bool "Toumaz Xenif TZ1090 pin control driver"
-> >  	depends on SOC_TZ1090
-> > diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
-> > index 0475206dd600..e441cd71aedf 100644
-> > --- a/drivers/pinctrl/Makefile
-> > +++ b/drivers/pinctrl/Makefile
-> > @@ -28,6 +28,7 @@ obj-$(CONFIG_PINCTRL_TEGRA30)	+= pinctrl-tegra30.o
-> >  obj-$(CONFIG_PINCTRL_TEGRA114)	+= pinctrl-tegra114.o
-> >  obj-$(CONFIG_PINCTRL_TEGRA124)	+= pinctrl-tegra124.o
-> >  obj-$(CONFIG_PINCTRL_TEGRA_XUSB)	+= pinctrl-tegra-xusb.o
-> > +obj-$(CONFIG_PINCTRL_TI_IODELAY)	+= pinctrl-ti-iodelay.o
-> 
-> So this objectfile will either be built-in or not be built at all.
-> 
-> >  obj-$(CONFIG_PINCTRL_TZ1090)	+= pinctrl-tz1090.o
-> >  obj-$(CONFIG_PINCTRL_TZ1090_PDC)	+= pinctrl-tz1090-pdc.o
-> >  obj-$(CONFIG_PINCTRL_U300)	+= pinctrl-u300.o
-> > diff --git a/drivers/pinctrl/pinctrl-ti-iodelay.c b/drivers/pinctrl/pinctrl-ti-iodelay.c
-> > new file mode 100644
-> > index 000000000000..e4c6e25a781c
-> > --- /dev/null
-> > +++ b/drivers/pinctrl/pinctrl-ti-iodelay.c
-> > @@ -0,0 +1,963 @@
-> >[...]
-> > +#include <linux/err.h>
-> > +#include <linux/init.h>
-> > +#include <linux/io.h>
-> > +#include <linux/list.h>
-> > +#include <linux/module.h>
-> 
-> This is, I think, a bit of a red flag.
-> 
-> > +#include <linux/of_device.h>
-> > +#include <linux/of.h>
-> > +#include <linux/pinctrl/pinconf-generic.h>
-> > +#include <linux/pinctrl/pinconf.h>
-> > +#include <linux/pinctrl/pinctrl.h>
-> > +#include <linux/regmap.h>
-> > +#include <linux/slab.h>
-> 
-> [...]
-> 
-> > +static const struct of_device_id ti_iodelay_of_match[] = {
-> > +	{.compatible = "ti,dra7-iodelay", .data = &dra7_iodelay_data},
-> > +	{ /* Hopefully no more.. */ },
-> > +};
-> > +MODULE_DEVICE_TABLE(of, ti_iodelay_of_match);
-> > +
-> > +static struct platform_driver ti_iodelay_driver = {
-> > +	.probe = ti_iodelay_probe,
-> > +	.remove = ti_iodelay_remove,
-> > +	.driver = {
-> > +		   .owner = THIS_MODULE,
-> 
-> So THIS_MODULE will, basically, be NULL.
-> 
-> > +		   .name = DRIVER_NAME,
-> > +		   .of_match_table = ti_iodelay_of_match,
-> > +		   },
-> > +};
-> > +module_platform_driver(ti_iodelay_driver);
-> > +
-> > +MODULE_AUTHOR("Texas Instruments, Inc.");
-> > +MODULE_DESCRIPTION("Pinconf driver for TI's IO Delay module");
-> > +MODULE_LICENSE("GPL v2");
-> 
-> And these three macros will be preprocessed away.
-> 
-> (Perhaps there are non-modular alternatives to MODULE_DEVICE_TABLE and
-> module_platform_driver, but I'm not sure how those two macros actually
-> work.)
+Hi Tomi,
 
-This should be just made to work as a regular loadable module.
-We already have pinctrl-single for the same platforms working
-as a loadable module.
+On Monday 02 March 2015 11:55:48 Tomi Valkeinen wrote:
+> On 27/02/15 14:07, Daniel Vetter wrote:
+> > On Thu, Feb 26, 2015 at 03:20:14PM +0200, Tomi Valkeinen wrote:
+> >> When setting a color format to a DRM plane, the DRM core checks whether
+> >> the format is supported by the HW. However, it seems that when setting
+> >> the color format of a CRTC (i.e. a root plane), there's no checking
+> >> done. This causes omapdrm to configure omapdss with the bad color
+> >> format, which omapdss then rejects.
+> >> 
+> >> While the above is ok, the error message is a bit confusing, and the
+> >> configuring of omapdss happens asynchronously from the ioctl that does
+> >> the color format change.
+> >> 
+> >> This patch adds a color format check to omap_plane_mode_set() which
+> >> causes the ioctl to return an error for invalid color format. This means
+> >> that the userspace will get to know of the wrong setting, instead of the
+> >> current behavior where the error is not seen by the userspace.
+> >> 
+> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >> ---
+> >> 
+> >>  drivers/gpu/drm/omapdrm/omap_plane.c | 18 ++++++++++++++++++
+> >>  1 file changed, 18 insertions(+)
+> >> 
+> >> diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c
+> >> b/drivers/gpu/drm/omapdrm/omap_plane.c index 1f4f2b866379..bedd6f7af0f1
+> >> 100644
+> >> --- a/drivers/gpu/drm/omapdrm/omap_plane.c
+> >> +++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+> >> @@ -207,6 +207,24 @@ int omap_plane_mode_set(struct drm_plane *plane,
+> >> 
+> >>  {
+> >>  
+> >>  	struct omap_plane *omap_plane = to_omap_plane(plane);
+> >>  	struct omap_drm_window *win = &omap_plane->win;
+> >> 
+> >> +	int i;
+> >> +
+> >> +	/*
+> >> +	 * Check whether this plane supports the fb pixel format.
+> >> +	 * I don't think this should really be needed, but it looks like the
+> >> +	 * drm core only checks the format for planes, not for the crtc. So
+> >> +	 * when setting the format for crtc, without this check we would
+> >> +	 * get an error later when trying to program the color format into
+> >> the
+> >> +	 * HW.
+> >> +	 */
+> > 
+> > I think we should add a format check to the setcrtc ioctl if crtc->primary
+> > is set. Atm the code is in __setplane_internal but could easily be shared
+> > - there's already a copy in drm_atomi.c.
+> > 
+> > Omapdrm wouldn't benefit from this yet since it doesn't support universal
+> > planes. But adding universal planes should be on your todo anyway ;-)
+> 
+> Laurent is working on universal planes and atomic modesetting for
+> omapdrm. In fact, I think universal planes is already done in his WIP
+> branch.
+> 
+> So, if this check is already done with universal planes (if I understood
+> correctly), I'm fine with dropping this patch.
 
+Yes, I've implemented universal plane support. I'm currently rebasing your 
+patches on top of my bug fixes (excluding the more intrusive atomic update 
+rework). I'll push the resulting branch shortly and will send the patches for 
+review.
+
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
+
