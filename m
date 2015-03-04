@@ -1,56 +1,46 @@
-From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Subject: Re: [PATCHv2 1/2] HSI: cmt_speech: Add cmt-speech driver
-Date: Wed, 04 Mar 2015 12:09:16 +0100
-Message-ID: <1425467356.2798.8.camel@tiscali.nl>
-References: <1425343454-6551-1-git-send-email-sre@kernel.org>
-	 <1425343454-6551-2-git-send-email-sre@kernel.org>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH] dma: cppi41: add missing directions bitfield
+Date: Wed, 4 Mar 2015 18:13:23 +0530
+Message-ID: <20150304124323.GR2613@intel.com>
+References: <1424904842-27902-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1425343454-6551-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kai Vehmanen <kai.vehmanen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:10601 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753962AbbCDMqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Mar 2015 07:46:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1424904842-27902-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: dmaengine@vger.kernel.org, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>
 
-A license nit only.
+On Wed, Feb 25, 2015 at 04:54:02PM -0600, Felipe Balbi wrote:
+> Without those we will see a kernel WARN()
+> when loading musb on am335x devices.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/dma/cppi41.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+> index 512cb8e2805e..4e9cc8e8100c 100644
+> --- a/drivers/dma/cppi41.c
+> +++ b/drivers/dma/cppi41.c
+> @@ -926,6 +926,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+>  	cdd->ddev.device_issue_pending = cppi41_dma_issue_pending;
+>  	cdd->ddev.device_prep_slave_sg = cppi41_dma_prep_slave_sg;
+>  	cdd->ddev.device_terminate_all = cppi41_stop_chan;
+> +	cdd->ddev.directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
+>  	cdd->ddev.dev = dev;
+>  	INIT_LIST_HEAD(&cdd->ddev.channels);
+>  	cpp41_dma_info.dma_cap = cdd->ddev.cap_mask;
+Along with this please set src/dstn_addr_widths and residue_granularity
+please
 
-Sebastian Reichel schreef op di 03-03-2015 om 01:44 [+0100]:
-> --- /dev/null
-> +++ b/drivers/hsi/clients/cmt_speech.c
-> @@ -0,0 +1,1457 @@
-> +/*
-> + * cmt_speech.c - HSI CMT speech driver
-> + *
-> + * Copyright (C) 2008,2009,2010 Nokia Corporation. All rights reserved.
-> + *
-> + * Contact: Kai Vehmanen <kai.vehmanen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> + * Original author: Peter Ujfalusi <peter.ujfalusi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
+-- 
+~Vinod
 
-This states the license is GPL v2.
-
-> +MODULE_LICENSE("GPL");
-
-So you probably want 
-    MODULE_LICENSE("GPL v2");
-
-here.
-
-
-Paul Bolle
