@@ -1,73 +1,90 @@
 From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: simplify cover/card detect logic
-Date: Wed, 4 Mar 2015 16:31:08 +1100
-Message-ID: <20150304163108.7b0902c8@notabene.brown>
-References: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
+Subject: Re: [PATCH 2/4] usb: phy: twl4030: allow charger to see usb current
+ draw limits.
+Date: Wed, 4 Mar 2015 17:17:47 +1100
+Message-ID: <20150304171747.5b5586b0@notabene.brown>
+References: <20150224033730.31400.78200.stgit@notabene.brown>
+	<20150224034037.31400.26595.stgit@notabene.brown>
+	<20150302210355.GF13270@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/8oK3Xg8WulB+OicfDHQ_lDg"; protocol="application/pgp-signature"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
+ boundary="Sig_/qg6FkBLo2EuoAgnbI8w.GJs"; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:39040 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932885AbbCDGR5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Mar 2015 01:17:57 -0500
+In-Reply-To: <20150302210355.GF13270@amd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
 
---Sig_/8oK3Xg8WulB+OicfDHQ_lDg
+--Sig_/qg6FkBLo2EuoAgnbI8w.GJs
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Tue,  3 Mar 2015 13:28:12 +0100 Andreas Fenkart <afenkart@gmail.com> wro=
-te:
+On Mon, 2 Mar 2015 22:03:55 +0100 Pavel Machek <pavel@ucw.cz> wrote:
 
-> These patches are trying to clean up the cover/card detect logic.
+> On Tue 2015-02-24 14:40:37, NeilBrown wrote:
+> > The charger needs to know when a USB gadget has been enumerated
+> > and what the agreed maximum current was so that it can adjust
+> > charging accordingly.
+> >=20
+> > So define a "set_power()" function to record the permitted
+> > draw, and pass a pointer to that when sending USB_EVENT_ENUMERATED
+> > notification.
+> >=20
+> > Signed-off-by: NeilBrown <neilb@suse.de>
+> > ---
+> >  drivers/phy/phy-twl4030-usb.c |   27 +++++++++++++++++++++------
+> >  1 file changed, 21 insertions(+), 6 deletions(-)
+> >=20
+> > diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-us=
+b.c
+> > index 97c59074233f..023fe150c7a1 100644
+> > --- a/drivers/phy/phy-twl4030-usb.c
+> > +++ b/drivers/phy/phy-twl4030-usb.c
+> > @@ -163,6 +163,11 @@ struct twl4030_usb {
+> >  	enum omap_musb_vbus_id_status linkstat;
+> >  	bool			vbus_supplied;
+> > =20
+> > +	/* Permitted vbus draw - only meaningful after
 >=20
->   Mobile phones (some) have no card detect pin, but
->   can detect if the cover is removed. The purpose is the
->   same; detect if card is being added/removed, but the
->   details differ.
->   When the cover is removed, it does not mean the card is
->   gone. But it might, since it is accessible now. It's like
->   a warning. All the driver does is to limit write access to
->   the card, see protect_card flag. In contrast, card detect
->   notifies us after the fact, e.g. card is gone, card is
->   inserted.
+> add "in mA"?
 >=20
-> While cover detect is only used by one platform (rx51), it
-> complicates the card detect logic. By separating the code
-> paths they both become easier to understand and maintain=20
+> > +	 * USB_EVENT_ENUMERATED
+> > +	 */
+> > +	unsigned		vbus_draw;
+> > +
+> >  	struct delayed_work	id_workaround_work;
 >=20
-> Patches have been tested by reverting: 95bebb5696ab
-> 'mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration'
-> otherwise gpio detection is handled by mmc_of_parse
 
-Wouldn't it make more sense to put this core  in mmc/core rather than in ju=
-st
-one host controller?  That way it would be available to all hosts, and you
-wouldn't need to revert that patch.
+Yes.  I make it 'unsigned int' too.
 
+Thanks,
 NeilBrown
 
---Sig_/8oK3Xg8WulB+OicfDHQ_lDg
+--Sig_/qg6FkBLo2EuoAgnbI8w.GJs
 Content-Type: application/pgp-signature
 Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIVAwUBVPaYnDnsnt1WYoG5AQJc7RAAnBUsmCaBGGQ1ThaHuqmv+nB/j12MlTTL
-zz2QQ1FGv9HgTu0rcRxlSYzyUmErlGTxehf7wR+QzNgXGx9VKXsI0mhu7Uq+AKfp
-lRNgjYhD+C7PiJdT6Bv3HhpYVu7k8w9DeU/A0Y0wxhj1Wgr+cLNVV9tIb/ToXJ4P
-ZmW7GfhfpX/jTkVpDKpy5FyhSQX6yJSfx7r4dUhsJm3Z8KQDMyvA/R56QjZUlim2
-kkb04AbVUe7bsLq3K8R3s0JbSj2Pe7rURdAnN2FLVu3VLDO0ydG706bbIV5HQjK3
-8VAd3XNUo1VFFAz0Z858WXPWMtjAC0eYizG7qccaM+TXXUul1QPwEC/zGFN9hTJa
-7Dp2spPZiKYvxMUUnOmcFPFFDLI5Cr3Fjjze5bjsj+SYru//wydwq5rSr7md3R6f
-Z3YseLVYBPrvkqzMt2Z46TyW2rqjLA1M4E59LeWiC2eTL8X1dv+gxGKZN092joZU
-shBMZLwtZePrXdsKoL/yar9q6jPaz7qw1XeYJNzw7Cz1KkmjapB2M+BeEhnrLd9o
-sgpbBAG8Gqr69CAYqch8+6duTPuN7cRcae4J3DvRjnLVuZVCrUWKvTNckj/CNnWl
-Cb1AFHV2j1UMl+wLPDWEhT7Aqd3maPomYBhsrCCAjg3pQPos++1qRaFUqVKDzvXb
-HMFMRqDKdDY=
-=X/73
+iQIVAwUBVPajiznsnt1WYoG5AQIt7Q//bs9bnytuPb0rS4BVF5L1oRcLbnkFIxGr
+TTrsSK6zz3LYQ7KukSd/mfRSL29fIbWVL0oxg8qECTnqBL7vGvzQsuAcNbwsEshl
+yeq4PJuxBued/EpYukApxjpZhvGiEYVPcRO1QKIOGJkJxZlHem4HDWsgUp1iV96T
+FQ+Nlfx86lCNp5KR49Bm0z5YWHIA1Rnrp3m/aGAZ7jZ420KCi8gAqLJtLbX2PQxY
+4T6HV+NB/QxI9KiFjwwIz+qVouB6sGITStavzjnHBHZE2Brbosb93gt7UG+Y+PBg
+hUkyp1H41w5ouc9lrMjuMI5EyFJKdpF24Ai9/TXBZUd8eEJR6b6SCGjBbOf+jdo7
+D+x3UzJnQ7ZrPsVtIEzRjJ1+nK+aihTbIvZbJ2j5NHZp/uvvquC1aNRxlmvq4sRl
+gDJTlROoxACV4128pSLJQEQNYwNNraYQLZaMT4+1jnifLKGvv2PPQz+EoPr9mk1G
+wo7vDSpCztvy+fCEsLiZTXDJtBLjHap75E+QNa/9azJWcfXVjMs/SGWV9MLvwgS4
+dPMT0GGyFUZo2aKX6cJRkIslxlhUwLSleJnLwnmO8UNwGz3KfDnG3J3PS9e65dh3
+sRpMLOi5UC5NL9uOPpRb4HbHitgBdtcSQaM76Ln0QWfTBdv51mrk4pUM3mwt40oz
+DNK225NSBx4=
+=NBjb
 -----END PGP SIGNATURE-----
 
---Sig_/8oK3Xg8WulB+OicfDHQ_lDg--
+--Sig_/qg6FkBLo2EuoAgnbI8w.GJs--
