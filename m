@@ -1,93 +1,77 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [PATCH 06/21] drm/omap: check CRTC color format earlier
-Date: Thu, 05 Mar 2015 01:41:52 +0200
-Message-ID: <4801838.aaTqeHiXe3@avalon>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com> <20150227120757.GW24485@phenom.ffwll.local> <54F433A4.5050303@ti.com>
+Date: Thu, 05 Mar 2015 01:53:18 +0200
+Message-ID: <4900803.cErxPF9b3H@avalon>
+References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
+ <1424956829-22892-7-git-send-email-tomi.valkeinen@ti.com>
+ <20150227120757.GW24485@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60025 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752998AbbCDXlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2015 18:41:50 -0500
-In-Reply-To: <54F433A4.5050303@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20150227120757.GW24485@phenom.ffwll.local>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
-Hi Tomi,
-
-On Monday 02 March 2015 11:55:48 Tomi Valkeinen wrote:
-> On 27/02/15 14:07, Daniel Vetter wrote:
-> > On Thu, Feb 26, 2015 at 03:20:14PM +0200, Tomi Valkeinen wrote:
-> >> When setting a color format to a DRM plane, the DRM core checks whether
-> >> the format is supported by the HW. However, it seems that when setting
-> >> the color format of a CRTC (i.e. a root plane), there's no checking
-> >> done. This causes omapdrm to configure omapdss with the bad color
-> >> format, which omapdss then rejects.
-> >> 
-> >> While the above is ok, the error message is a bit confusing, and the
-> >> configuring of omapdss happens asynchronously from the ioctl that does
-> >> the color format change.
-> >> 
-> >> This patch adds a color format check to omap_plane_mode_set() which
-> >> causes the ioctl to return an error for invalid color format. This means
-> >> that the userspace will get to know of the wrong setting, instead of the
-> >> current behavior where the error is not seen by the userspace.
-> >> 
-> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >> ---
-> >> 
-> >>  drivers/gpu/drm/omapdrm/omap_plane.c | 18 ++++++++++++++++++
-> >>  1 file changed, 18 insertions(+)
-> >> 
-> >> diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c
-> >> b/drivers/gpu/drm/omapdrm/omap_plane.c index 1f4f2b866379..bedd6f7af0f1
-> >> 100644
-> >> --- a/drivers/gpu/drm/omapdrm/omap_plane.c
-> >> +++ b/drivers/gpu/drm/omapdrm/omap_plane.c
-> >> @@ -207,6 +207,24 @@ int omap_plane_mode_set(struct drm_plane *plane,
-> >> 
-> >>  {
-> >>  
-> >>  	struct omap_plane *omap_plane = to_omap_plane(plane);
-> >>  	struct omap_drm_window *win = &omap_plane->win;
-> >> 
-> >> +	int i;
-> >> +
-> >> +	/*
-> >> +	 * Check whether this plane supports the fb pixel format.
-> >> +	 * I don't think this should really be needed, but it looks like the
-> >> +	 * drm core only checks the format for planes, not for the crtc. So
-> >> +	 * when setting the format for crtc, without this check we would
-> >> +	 * get an error later when trying to program the color format into
-> >> the
-> >> +	 * HW.
-> >> +	 */
-> > 
-> > I think we should add a format check to the setcrtc ioctl if crtc->primary
-> > is set. Atm the code is in __setplane_internal but could easily be shared
-> > - there's already a copy in drm_atomi.c.
-> > 
-> > Omapdrm wouldn't benefit from this yet since it doesn't support universal
-> > planes. But adding universal planes should be on your todo anyway ;-)
-> 
-> Laurent is working on universal planes and atomic modesetting for
-> omapdrm. In fact, I think universal planes is already done in his WIP
-> branch.
-> 
-> So, if this check is already done with universal planes (if I understood
-> correctly), I'm fine with dropping this patch.
-
-Yes, I've implemented universal plane support. I'm currently rebasing your 
-patches on top of my bug fixes (excluding the more intrusive atomic update 
-rework). I'll push the resulting branch shortly and will send the patches for 
-review.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+SGkgRGFuaWVsLAoKT24gRnJpZGF5IDI3IEZlYnJ1YXJ5IDIwMTUgMTM6MDc6NTcgRGFuaWVsIFZl
+dHRlciB3cm90ZToKPiBPbiBUaHUsIEZlYiAyNiwgMjAxNSBhdCAwMzoyMDoxNFBNICswMjAwLCBU
+b21pIFZhbGtlaW5lbiB3cm90ZToKPiA+IFdoZW4gc2V0dGluZyBhIGNvbG9yIGZvcm1hdCB0byBh
+IERSTSBwbGFuZSwgdGhlIERSTSBjb3JlIGNoZWNrcyB3aGV0aGVyCj4gPiB0aGUgZm9ybWF0IGlz
+IHN1cHBvcnRlZCBieSB0aGUgSFcuIEhvd2V2ZXIsIGl0IHNlZW1zIHRoYXQgd2hlbiBzZXR0aW5n
+Cj4gPiB0aGUgY29sb3IgZm9ybWF0IG9mIGEgQ1JUQyAoaS5lLiBhIHJvb3QgcGxhbmUpLCB0aGVy
+ZSdzIG5vIGNoZWNraW5nCj4gPiBkb25lLiBUaGlzIGNhdXNlcyBvbWFwZHJtIHRvIGNvbmZpZ3Vy
+ZSBvbWFwZHNzIHdpdGggdGhlIGJhZCBjb2xvcgo+ID4gZm9ybWF0LCB3aGljaCBvbWFwZHNzIHRo
+ZW4gcmVqZWN0cy4KPiA+IAo+ID4gV2hpbGUgdGhlIGFib3ZlIGlzIG9rLCB0aGUgZXJyb3IgbWVz
+c2FnZSBpcyBhIGJpdCBjb25mdXNpbmcsIGFuZCB0aGUKPiA+IGNvbmZpZ3VyaW5nIG9mIG9tYXBk
+c3MgaGFwcGVucyBhc3luY2hyb25vdXNseSBmcm9tIHRoZSBpb2N0bCB0aGF0IGRvZXMKPiA+IHRo
+ZSBjb2xvciBmb3JtYXQgY2hhbmdlLgo+ID4gCj4gPiBUaGlzIHBhdGNoIGFkZHMgYSBjb2xvciBm
+b3JtYXQgY2hlY2sgdG8gb21hcF9wbGFuZV9tb2RlX3NldCgpIHdoaWNoCj4gPiBjYXVzZXMgdGhl
+IGlvY3RsIHRvIHJldHVybiBhbiBlcnJvciBmb3IgaW52YWxpZCBjb2xvciBmb3JtYXQuIFRoaXMg
+bWVhbnMKPiA+IHRoYXQgdGhlIHVzZXJzcGFjZSB3aWxsIGdldCB0byBrbm93IG9mIHRoZSB3cm9u
+ZyBzZXR0aW5nLCBpbnN0ZWFkIG9mIHRoZQo+ID4gY3VycmVudCBiZWhhdmlvciB3aGVyZSB0aGUg
+ZXJyb3IgaXMgbm90IHNlZW4gYnkgdGhlIHVzZXJzcGFjZS4KPiA+IAo+ID4gU2lnbmVkLW9mZi1i
+eTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KPiA+IC0tLQo+ID4gCj4g
+PiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jIHwgMTggKysrKysrKysrKysr
+KysrKysrCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDE4IGluc2VydGlvbnMoKykKPiA+IAo+ID4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfcGxhbmUuYwo+ID4gYi9kcml2
+ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMgaW5kZXggMWY0ZjJiODY2Mzc5Li5iZWRk
+NmY3YWYwZjEKPiA+IDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21h
+cF9wbGFuZS5jCj4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMK
+PiA+IEBAIC0yMDcsNiArMjA3LDI0IEBAIGludCBvbWFwX3BsYW5lX21vZGVfc2V0KHN0cnVjdCBk
+cm1fcGxhbmUgKnBsYW5lLAo+ID4gCj4gPiAgewo+ID4gIAo+ID4gIAlzdHJ1Y3Qgb21hcF9wbGFu
+ZSAqb21hcF9wbGFuZSA9IHRvX29tYXBfcGxhbmUocGxhbmUpOwo+ID4gIAlzdHJ1Y3Qgb21hcF9k
+cm1fd2luZG93ICp3aW4gPSAmb21hcF9wbGFuZS0+d2luOwo+ID4gCj4gPiArCWludCBpOwo+ID4g
+Kwo+ID4gKwkvKgo+ID4gKwkgKiBDaGVjayB3aGV0aGVyIHRoaXMgcGxhbmUgc3VwcG9ydHMgdGhl
+IGZiIHBpeGVsIGZvcm1hdC4KPiA+ICsJICogSSBkb24ndCB0aGluayB0aGlzIHNob3VsZCByZWFs
+bHkgYmUgbmVlZGVkLCBidXQgaXQgbG9va3MgbGlrZSB0aGUKPiA+ICsJICogZHJtIGNvcmUgb25s
+eSBjaGVja3MgdGhlIGZvcm1hdCBmb3IgcGxhbmVzLCBub3QgZm9yIHRoZSBjcnRjLiBTbwo+ID4g
+KwkgKiB3aGVuIHNldHRpbmcgdGhlIGZvcm1hdCBmb3IgY3J0Yywgd2l0aG91dCB0aGlzIGNoZWNr
+IHdlIHdvdWxkCj4gPiArCSAqIGdldCBhbiBlcnJvciBsYXRlciB3aGVuIHRyeWluZyB0byBwcm9n
+cmFtIHRoZSBjb2xvciBmb3JtYXQgaW50byAKdGhlCj4gPiArCSAqIEhXLgo+ID4gKwkgKi8KPiAK
+PiBJIHRoaW5rIHdlIHNob3VsZCBhZGQgYSBmb3JtYXQgY2hlY2sgdG8gdGhlIHNldGNydGMgaW9j
+dGwgaWYgY3J0Yy0+cHJpbWFyeQo+IGlzIHNldC4gQXRtIHRoZSBjb2RlIGlzIGluIF9fc2V0cGxh
+bmVfaW50ZXJuYWwgYnV0IGNvdWxkIGVhc2lseSBiZSBzaGFyZWQKPiAtIHRoZXJlJ3MgYWxyZWFk
+eSBhIGNvcHkgaW4gZHJtX2F0b21pLmMuCgpJJ2xsIHN1Ym1pdCBhIHBhdGNoLgoKPiBPbWFwZHJt
+IHdvdWxkbid0IGJlbmVmaXQgZnJvbSB0aGlzIHlldCBzaW5jZSBpdCBkb2Vzbid0IHN1cHBvcnQg
+dW5pdmVyc2FsCj4gcGxhbmVzLiBCdXQgYWRkaW5nIHVuaXZlcnNhbCBwbGFuZXMgc2hvdWxkIGJl
+IG9uIHlvdXIgdG9kbyBhbnl3YXkgOy0pCgpTb29uLCBzb29uIDotKQoKPiA+ICsJZm9yIChpID0g
+MDsgaSA8IHBsYW5lLT5mb3JtYXRfY291bnQ7IGkrKykKPiA+ICsJCWlmIChmYi0+cGl4ZWxfZm9y
+bWF0ID09IHBsYW5lLT5mb3JtYXRfdHlwZXNbaV0pCj4gPiArCQkJYnJlYWs7Cj4gPiArCWlmIChp
+ID09IHBsYW5lLT5mb3JtYXRfY291bnQpIHsKPiA+ICsJCURCRygiSW52YWxpZCBwaXhlbCBmb3Jt
+YXQgJXMiLAo+ID4gKwkJCSAgICAgIGRybV9nZXRfZm9ybWF0X25hbWUoZmItPnBpeGVsX2Zvcm1h
+dCkpOwo+ID4gKwkJcmV0dXJuIC1FSU5WQUw7Cj4gPiArCX0KPiA+IAo+ID4gIAl3aW4tPmNydGNf
+eCA9IGNydGNfeDsKPiA+ICAJd2luLT5jcnRjX3kgPSBjcnRjX3k7CgotLSAKUmVnYXJkcywKCkxh
+dXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9w
+Lm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
+dmVsCg==
