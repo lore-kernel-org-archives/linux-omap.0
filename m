@@ -1,173 +1,119 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.0-rc2
-Date: Wed, 4 Mar 2015 22:55:29 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503042153400.5613@utopia.booyaka.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
+Date: Wed, 04 Mar 2015 23:58:46 +0100
+Message-ID: <1425509926.2090.56.camel@tiscali.nl>
+References: <1425427237-11511-1-git-send-email-nm@ti.com>
+	 <1425427237-11511-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56318 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988AbbCDWza (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2015 17:55:30 -0500
+Received: from cpsmtpb-ews03.kpnxchange.com ([213.75.39.6]:63191 "EHLO
+	cpsmtpb-ews03.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750785AbbCDW6u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2015 17:58:50 -0500
+In-Reply-To: <1425427237-11511-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lokesh Vutla <lokeshvutla@ti.com>
 
-Here are some basic OMAP test results for Linux v4.0-rc2.
-Logs and other details at:
+Nishanth Menon schreef op di 03-03-2015 om 18:00 [-0600]:
+> diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
+> index ee9f44ad7f02..8e463d75fbb2 100644
+> --- a/drivers/pinctrl/Kconfig
+> +++ b/drivers/pinctrl/Kconfig
+> @@ -160,6 +160,17 @@ config PINCTRL_TEGRA_XUSB
+>  	select PINCONF
+>  	select PINMUX
+>  
+> +config PINCTRL_TI_IODELAY
+> +	bool "TI IODelay Module pinconf driver"
 
-    http://www.pwsan.com/omap/testlogs/test_v4.0-rc2/20150303123351/
+This adds a boolean Kconfig symbol.
 
+> +	depends on OF
+> +	select PINCONF
+> +	select GENERIC_PINCONF
+> +	select REGMAP_MMIO
+> +	help
+> +	  Say Y here to support Texas Instruments' IODelay pinconf driver.
+> +	  IODelay module is used for the DRA7 SoC family. This driver is in
+> +	  addition to PINCTRL_SINGLE which controls the mux.
+> +
+>  config PINCTRL_TZ1090
+>  	bool "Toumaz Xenif TZ1090 pin control driver"
+>  	depends on SOC_TZ1090
+> diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
+> index 0475206dd600..e441cd71aedf 100644
+> --- a/drivers/pinctrl/Makefile
+> +++ b/drivers/pinctrl/Makefile
+> @@ -28,6 +28,7 @@ obj-$(CONFIG_PINCTRL_TEGRA30)	+= pinctrl-tegra30.o
+>  obj-$(CONFIG_PINCTRL_TEGRA114)	+= pinctrl-tegra114.o
+>  obj-$(CONFIG_PINCTRL_TEGRA124)	+= pinctrl-tegra124.o
+>  obj-$(CONFIG_PINCTRL_TEGRA_XUSB)	+= pinctrl-tegra-xusb.o
+> +obj-$(CONFIG_PINCTRL_TI_IODELAY)	+= pinctrl-ti-iodelay.o
 
-Test summary
-------------
+So this objectfile will either be built-in or not be built at all.
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+>  obj-$(CONFIG_PINCTRL_TZ1090)	+= pinctrl-tz1090.o
+>  obj-$(CONFIG_PINCTRL_TZ1090_PDC)	+= pinctrl-tz1090-pdc.o
+>  obj-$(CONFIG_PINCTRL_U300)	+= pinctrl-u300.o
+> diff --git a/drivers/pinctrl/pinctrl-ti-iodelay.c b/drivers/pinctrl/pinctrl-ti-iodelay.c
+> new file mode 100644
+> index 000000000000..e4c6e25a781c
+> --- /dev/null
+> +++ b/drivers/pinctrl/pinctrl-ti-iodelay.c
+> @@ -0,0 +1,963 @@
+>[...]
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +#include <linux/io.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
+This is, I think, a bit of a red flag.
 
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+> +#include <linux/of_device.h>
+> +#include <linux/of.h>
+> +#include <linux/pinctrl/pinconf-generic.h>
+> +#include <linux/pinctrl/pinconf.h>
+> +#include <linux/pinctrl/pinctrl.h>
+> +#include <linux/regmap.h>
+> +#include <linux/slab.h>
 
-Build warnings from toolchain: uImage:
-    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+[...]
 
-Build warnings from toolchain: uImage+dtb:
-    (none)
+> +static const struct of_device_id ti_iodelay_of_match[] = {
+> +	{.compatible = "ti,dra7-iodelay", .data = &dra7_iodelay_data},
+> +	{ /* Hopefully no more.. */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, ti_iodelay_of_match);
+> +
+> +static struct platform_driver ti_iodelay_driver = {
+> +	.probe = ti_iodelay_probe,
+> +	.remove = ti_iodelay_remove,
+> +	.driver = {
+> +		   .owner = THIS_MODULE,
 
-Build warnings from toolchain: zImage:
-    FAIL (15/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig, multi_v7_defconfig
+So THIS_MODULE will, basically, be NULL.
 
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
+> +		   .name = DRIVER_NAME,
+> +		   .of_match_table = ti_iodelay_of_match,
+> +		   },
+> +};
+> +module_platform_driver(ti_iodelay_driver);
+> +
+> +MODULE_AUTHOR("Texas Instruments, Inc.");
+> +MODULE_DESCRIPTION("Pinconf driver for TI's IO Delay module");
+> +MODULE_LICENSE("GPL v2");
 
-Kernel warnings during boot to userspace:
-    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
+And these three macros will be preprocessed away.
 
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 2/17): 4430es2panda, 4460varsomom
-
-Obsolete Kconfig symbols:
-    FAIL ( 2/20): omap1_defconfig, multi_v7_defconfig
+(Perhaps there are non-modular alternatives to MODULE_DEVICE_TABLE and
+module_platform_driver, but I'm not sure how those two macros actually
+work.)
 
 
-vmlinux object size
-(delta in bytes from test_v4.0-rc1 
-(c517d838eb7d07bbe9507871fab3931deccff539)):
-   text     data      bss    total  kernel
-     +4       -8        0       -4  omap1_defconfig
-    +68        0        0      +68  omap1_defconfig_1510innovator_only
-    +36        0        0      +36  omap1_defconfig_5912osk_only
-+490589  +100104    +7232  +597925  multi_v7_defconfig
- +15824     +528        0   +16352  omap2plus_defconfig
-    +68        0        0      +68  omap2plus_defconfig_2430sdp_only
- +11728     +560        0   +12288  omap2plus_defconfig_am33xx_only
- +15824     +504        0   +16328  omap2plus_defconfig_am43xx_only
- +15824     +536        0   +16360  omap2plus_defconfig_cpupm
- +15824     +528        0   +16352  omap2plus_defconfig_dra7xx_only
- +10448     +536       +8   +10992  omap2plus_defconfig_n800_multi_omap2xxx
- +10480     +528       +8   +11016  omap2plus_defconfig_n800_only_a
- +10440     +504        0   +10944  omap2plus_defconfig_no_pm
- +15824     +528      +64   +16416  omap2plus_defconfig_omap2_4_only
- +15824     +528        0   +16352  omap2plus_defconfig_omap3_4_only
- +15824     +528        0   +16352  omap2plus_defconfig_omap5_only
-    +96        0      -32      +64  rmk_omap3430_ldp_allnoconfig
-    +64        0        0      +64  rmk_omap3430_ldp_oldconfig
-    +96        0      -32      +64  rmk_omap4430_sdp_allnoconfig
-      0        0        0        0  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.0-rc1 
-(c517d838eb7d07bbe9507871fab3931deccff539))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .    -4k  2420n800       omap2plus_defconfig_n800_only_a
-   -16k    16k      .      .  2430sdp        omap2plus_defconfig
-   -16k    16k      .     4k  3530es31beagle omap2plus_defconfig
-   -16k    16k      .     4k  3530es3beagle  omap2plus_defconfig
-   -16k    16k      .     4k  3730beaglexm   omap2plus_defconfig
-   -16k    16k      .     4k  3730es12beaglexmomap2plus_defconfig
-   -20k    20k      .     4k  37xxevm        omap2plus_defconfig
-   -16k    16k      .     4k  4430es2panda   omap2plus_defconfig
-   -20k    20k      .     4k  4460pandaes    omap2plus_defconfig
-   -16k    16k      .     4k  4460varsomom   omap2plus_defconfig
-   -20k    20k      .     4k  5430es2sbct54  omap2plus_defconfig
-   -16k    16k      .     4k  5430es2uevm    omap2plus_defconfig
-    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
-   -16k    16k      .     4k  am335xbonelt   omap2plus_defconfig
-
-
-multi_v7_defconfig builds just increased in size from -rc1 to -rc2 by 
-600KB - quite unusual and the cause of that should be tracked down.
+Paul Bolle
 
