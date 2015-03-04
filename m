@@ -1,68 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] mmc: sdio: support switching to 1-bit before turning
- off clocks
-Date: Wed, 4 Mar 2015 07:08:27 -0800
-Message-ID: <20150304150827.GA13520@atomide.com>
-References: <20150224024023.22719.32436.stgit@notabene.brown>
- <20150224024223.22719.91536.stgit@notabene.brown>
- <20150303225355.GE3756@atomide.com>
- <20150304162848.2d33914d@notabene.brown>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ASoC: omap-pcm: Allow only formats with 1,
+ 2, and 4 byte physical size
+Date: Wed, 4 Mar 2015 17:29:01 +0000
+Message-ID: <20150304172901.GT21293@sirena.org.uk>
+References: <1425382133-17120-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150304162848.2d33914d@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, Ash Charles <ash@gumstix.com>
+Content-Type: multipart/mixed; boundary="===============7812084302802810725=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1425382133-17120-1-git-send-email-jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, jarkko.nikula@bitmer.com
 List-Id: linux-omap@vger.kernel.org
 
-* NeilBrown <neilb@suse.de> [150303 21:29]:
-> On Tue, 3 Mar 2015 14:53:55 -0800 Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> > --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> > +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> > @@ -367,6 +367,7 @@
-> >  };
-> >  
-> >  &mmc2 {
-> > +	interrupts-extended = <&intc 86 &omap3_pmx_core 0x12e>;
-> >  	vmmc-supply = <&vaux4>;
-> >  	bus-width = <4>;
-> >  	ti,non-removable;
-> 
-> I had 
-> 
-> +       interrupts-extended = <&intc 86 &gpio5 5 0>; /* GPIO_133 */
-> +       pinctrl-names = "default", "idle";
-> +       pinctrl-0 = <&mmc2_pins>;
-> +       pinctrl-1 = <&mmc2_cirq_pin>;
-> 
-> together with
-> 
-> +       mmc2_cirq_pin: pinmux_cirq_pin {
-> +               pinctrl-single,pins = <
-> +                       OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE4) 
-> +               >;
-> +       };
-> +
-> 
-> 
-> and a longer definition for mmc2_pins.
-> 
-> Is that one line reconfigure the pin on demand?  How does that work?
 
-Well the remuxing of the mmc2 dat1 pin is not needed on omap3/4/5.
-These SoCs have the iochain wake-up events.
+--===============7812084302802810725==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="ePL2GmOEVZCdDbf3"
+Content-Disposition: inline
 
-Remuxing is needed on SoCs with no iochain wake-up events, such as
-am355x, am437x and dra7 variants.
 
-Not sure if we actually have the gpio5 bank wake-up the system
-properly currently from off-idle. It could be that only gpio1 bank
-is currently capable of wake-up from off-idle without needing
-to use the iochain wake-up also for GPIO lines.
+--ePL2GmOEVZCdDbf3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+On Tue, Mar 03, 2015 at 01:28:53PM +0200, Jyri Sarha wrote:
+> sDMA support only transfer elements with 1, 2, and 4 byte physical
+> size. Initialize the pcm driver accordingly.
 
-Tony
+Applied, thanks.
+
+--ePL2GmOEVZCdDbf3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJU90DcAAoJECTWi3JdVIfQ3dgH/iotieW8R+SEERVNDQqkxIUe
+hXsyWcraIcpuHednQ6qA3j8IqV8Bl8CrQqVoyWQpgiMKlDZ5ioUHFfhhgH1lnSAF
+XR2ijRTCHsme3IdWs3F6BKLh7CAkNLKImZr71v7E/LWEPWegeAc7p4gpi2c4ypSA
+wvFtvyduePsGyH+yZLO6z+Ayt8uHq840Rutb9F8a+E38GmndUc2ZmNroqJqoylri
+4a10ayCS30l+d+0fEQVYDrnVtUkdHluH7FT3UAyiBlnWWxJMwPvxToleapNkxs8L
+4eYOLP/VbkjSrpcx6ln1IrkDovTM1IRqwHg2LfqynohclPWUv6iXDf7SrvzDuf4=
+=ktDt
+-----END PGP SIGNATURE-----
+
+--ePL2GmOEVZCdDbf3--
+
+--===============7812084302802810725==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============7812084302802810725==--
