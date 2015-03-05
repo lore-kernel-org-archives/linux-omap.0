@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2 1/3] remoteproc: add a rproc ops for performing address translation
-Date: Wed, 4 Mar 2015 21:53:58 -0600
-Message-ID: <1425527640-2690-2-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v2 2/3] Documentation: dt: add ti,am3353-wkup-m3 bindings
+Date: Wed, 4 Mar 2015 21:53:59 -0600
+Message-ID: <1425527640-2690-3-git-send-email-d-gerlach@ti.com>
 References: <1425527640-2690-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,121 +12,66 @@ To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-om
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+Add the device tree bindings document for ti,am3353-wkup-m3 which is
+used by the wkup_m3_rproc driver.
 
-The rproc_da_to_va API is currently used to perform any device to
-kernel address translations to meet the different needs of the remoteproc
-core/drivers (eg: loading). The functionality is achieved within the
-remoteproc core, and is limited only for carveouts allocated within the
-core.
-
-A new rproc ops, da_to_va, is added to provide flexibility to platform
-implementations to perform the address translation themselves when the
-above conditions cannot be met by the implementations. The rproc_da_to_va()
-API is extended to invoke this ops if present, and fallback to regular
-processing if the platform implementation cannot provide the translation.
-This will allow any remoteproc implementations to translate addresses for
-dedicated memories like internal memories, and facilitate the remoteproc
-core to also load certain firmware sections into internal memories (eg:
-RAM at L1 or L2 levels) for performance or other reasons.
-
-While at this, also update the rproc_da_to_va() documentation since it
-is an exported function.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
-This patch is a replacement for the patch ("remoteproc: add support to
-handle internal memories") @ https://patchwork.kernel.org/patch/5602981/
-The representation of internal memory regions is left to the individual
-platform implementations, as this might vary from one to another.
+ .../bindings/remoteproc/wkup_m3_rproc.txt          | 46 ++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
 
- drivers/remoteproc/remoteproc_core.c | 31 +++++++++++++++++++++++++------
- include/linux/remoteproc.h           |  2 ++
- 2 files changed, 27 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 3cd85a63..e9825bd 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -147,28 +147,46 @@ static void rproc_disable_iommu(struct rproc *rproc)
- 	return;
- }
- 
--/*
-+/**
-+ * rproc_da_to_va() - lookup the kernel virtual address for a remoteproc address
-+ * @rproc: handle of a remote processor
-+ * @da: remoteproc device address to translate
-+ * @len: length of the memory region @da is pointing to
-+ *
-  * Some remote processors will ask us to allocate them physically contiguous
-  * memory regions (which we call "carveouts"), and map them to specific
-- * device addresses (which are hardcoded in the firmware).
-+ * device addresses (which are hardcoded in the firmware). They may also have
-+ * dedicated memory regions internal to the processors, and use them either
-+ * exclusively or alongside carveouts.
-  *
-  * They may then ask us to copy objects into specific device addresses (e.g.
-  * code/data sections) or expose us certain symbols in other device address
-  * (e.g. their trace buffer).
-  *
-- * This function is an internal helper with which we can go over the allocated
-- * carveouts and translate specific device address to kernel virtual addresses
-- * so we can access the referenced memory.
-+ * This function is a helper function with which we can go over the allocated
-+ * carveouts and translate specific device addresses to kernel virtual addresses
-+ * so we can access the referenced memory. This function also allows to perform
-+ * translations on the internal remoteproc memory regions through a platform
-+ * implementation specific da_to_va ops, if present.
-+ *
-+ * The function returns a valid kernel address on success or NULL on failure.
-  *
-  * Note: phys_to_virt(iommu_iova_to_phys(rproc->domain, da)) will work too,
-  * but only on kernel direct mapped RAM memory. Instead, we're just using
-- * here the output of the DMA API, which should be more correct.
-+ * here the output of the DMA API for the carveouts, which should be more
-+ * correct.
-  */
- void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
- {
- 	struct rproc_mem_entry *carveout;
- 	void *ptr = NULL;
- 
-+	if (rproc->ops->da_to_va) {
-+		ptr = rproc->ops->da_to_va(rproc, da, len);
-+		if (ptr)
-+			goto out;
-+	}
+diff --git a/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+new file mode 100644
+index 0000000..995af3d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+@@ -0,0 +1,46 @@
++Wakeup M3 Remoteproc Driver
++===========================
 +
- 	list_for_each_entry(carveout, &rproc->carveouts, node) {
- 		int offset = da - carveout->da;
- 
-@@ -185,6 +203,7 @@ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
- 		break;
- 	}
- 
-+out:
- 	return ptr;
- }
- EXPORT_SYMBOL(rproc_da_to_va);
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 9e7e745..e0c0715 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -330,11 +330,13 @@ struct rproc;
-  * @start:	power on the device and boot it
-  * @stop:	power off the device
-  * @kick:	kick a virtqueue (virtqueue id given as a parameter)
-+ * @da_to_va:	optional platform hook to perform address translations
-  */
- struct rproc_ops {
- 	int (*start)(struct rproc *rproc);
- 	int (*stop)(struct rproc *rproc);
- 	void (*kick)(struct rproc *rproc, int vqid);
-+	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
- };
- 
- /**
++TI AMx3 family of devices use a Cortex M3 co-processor to help with various
++low power tasks that cannot be controlled from the MPU. The CM3 requires
++a firmware binary to accomplish this. The wkup_m3 remoteproc driver handles
++the loading of the firmware and booting of the CM3.
++
++Wkup M3 Device Node:
++====================
++A wkup_m3 device node is used to represent a wakeup M3 IP instance within
++a SoC.
++
++Required properties:
++--------------------
++- compatible:		Should be:
++				"ti,am3353-wkup-m3" for AM33xx SoCs
++				"ti,am4372-wkup-m3" for AM43xx SoCs
++- reg:			Contains the wkup_m3 register address ranges for
++			umem and dmem, from the devices address space.
++			NOTE: Parent node must contains ranges specifying
++			      mapping from bus address space to device
++			      address space.
++- ti,hwmods:		Name of the hwmod associated with the mailbox
++- ti,pm-firmware:	Name of firmware file to load for remoteproc.
++
++Example:
++--------
++/* AM33xx */
++soc {
++        compatible = "ti,omap-infra";
++        #address-cells = <1>;
++        #size-cells = <1>;
++        ranges = <0x0     0x44d00000 0x4000>,
++                 <0x80000 0x44d80000 0x2000>;
++
++	...
++
++	wkup_m3: wkup_m3@44d00000 {
++		compatible = "ti,am3353-wkup-m3";
++		reg = <0x0     0x4000	/* M3 UMEM */
++		       0x80000 0x2000>;	/* M3 DMEM */
++		ti,hwmods = "wkup_m3";
++		ti,pm-firmware = "am335x-pm-firmware.elf";
++	};
++};
 -- 
 2.3.0
