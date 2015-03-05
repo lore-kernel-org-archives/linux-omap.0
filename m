@@ -1,92 +1,84 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: simplify cover/card detect logic
-Date: Thu, 5 Mar 2015 14:43:48 +0100
-Message-ID: <CAPDyKFoepEcJsW16zry9tNsyXx8=GMk8SfjwkTbw+ySHTVg7+g@mail.gmail.com>
-References: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: add hibernation support
+Date: Thu, 5 Mar 2015 14:46:40 +0100
+Message-ID: <CAPDyKFoTBXNtGe1R3Kw3q8O28FgwxnfqSF2BkOYZqNxk4EpRsQ@mail.gmail.com>
+References: <1425036274-9017-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f43.google.com ([209.85.216.43]:33644 "EHLO
-	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932748AbbCENnt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 08:43:49 -0500
-Received: by mail-qa0-f43.google.com with SMTP id bm13so38948391qab.2
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2015 05:43:48 -0800 (PST)
-In-Reply-To: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:51925 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322AbbCENqk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 08:46:40 -0500
+Received: by mail-qa0-f53.google.com with SMTP id j7so1720654qaq.12
+        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2015 05:46:40 -0800 (PST)
+In-Reply-To: <1425036274-9017-1-git-send-email-grygorii.strashko@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Tony Lindgren <tony@atomide.com>
+To: Grygorii Strashko <grygorii.strashko@linaro.org>
+Cc: Chris Ball <chris@printf.net>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, sumit.semwal@linaro.org, NeilBrown <neilb@suse.de>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Russ Dill <Russ.Dill@ti.com>
 
-On 3 March 2015 at 13:28, Andreas Fenkart <afenkart@gmail.com> wrote:
-> These patches are trying to clean up the cover/card detect logic.
+On 27 February 2015 at 12:24,  <grygorii.strashko@linaro.org> wrote:
+> From: Russ Dill <Russ.Dill@ti.com>
 >
->   Mobile phones (some) have no card detect pin, but
->   can detect if the cover is removed. The purpose is the
->   same; detect if card is being added/removed, but the
->   details differ.
->   When the cover is removed, it does not mean the card is
->   gone. But it might, since it is accessible now. It's like
->   a warning. All the driver does is to limit write access to
->   the card, see protect_card flag. In contrast, card detect
->   notifies us after the fact, e.g. card is gone, card is
->   inserted.
+> Setting a dev_pm_ops suspend/resume pair but not a set of
+> hibernation functions means those pm functions will not be
+> called upon hibernation.
+> Fix this by using SET_SYSTEM_SLEEP_PM_OPS, which appropriately
+> assigns the suspend and hibernation handlers and move
+> omap_hsmmc_x callbacks under CONFIG_PM_SLEEP to avoid build warnings.
 >
-> While cover detect is only used by one platform (rx51), it
-> complicates the card detect logic. By separating the code
-> paths they both become easier to understand and maintain
->
-> Patches have been tested by reverting: 95bebb5696ab
-> 'mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration'
-> otherwise gpio detection is handled by mmc_of_parse
->
-> compile tested
-> OMAP2:
-> CONFIG_MACH_OMAP2_TUSB6010=y
-> CONFIG_MACH_OMAP3_BEAGLE=y
-> CONFIG_MACH_DEVKIT8000=y
-> CONFIG_MACH_OMAP_LDP=y
-> CONFIG_MACH_OMAP3530_LV_SOM=y
-> CONFIG_MACH_OMAP3_TORPEDO=y
-> CONFIG_MACH_OVERO=y
-> CONFIG_MACH_OMAP3517EVM=y
-> CONFIG_MACH_CRANEBOARD=y
-> CONFIG_MACH_OMAP3_PANDORA=y
-> CONFIG_MACH_TOUCHBOOK=y
-> CONFIG_MACH_OMAP_3430SDP=y
-> CONFIG_MACH_NOKIA_N810=y
-> CONFIG_MACH_NOKIA_N810_WIMAX=y
-> CONFIG_MACH_NOKIA_N8X0=y
-> CONFIG_MACH_NOKIA_RX51=y
-> CONFIG_MACH_CM_T35=y
-> CONFIG_MACH_CM_T3517=y
-> CONFIG_MACH_CM_T3730=y
-> CONFIG_MACH_SBC3530=y
-> CONFIG_MACH_TI8168EVM=y
-> CONFIG_MACH_TI8148EVM=y
->
-> Andreas Fenkart (6):
->   mmc: omap_hsmmc: remove unused fields from struct omap_hsmmc_host
->   mmc: omap_hsmmc: use slot-gpio functions to manage read-only pin
->     directly
->   mmc: omap_hsmmc: use distinctive code paths for cover / card detect
->     logic
->   ARM: OMAP2: HSMMC: platform_data: explicit gpio_cover / gpio_cd fields
->   mmc: omap_hsmmc: simplify card/cover detect isr
->   mmc: omap_hsmmc: use generic slot-gpio isr to manage card detect pin
->
->  arch/arm/mach-omap2/hsmmc.c              | 33 +++++++++----
->  drivers/mmc/host/omap_hsmmc.c            | 80 +++++++++-----------------------
->  include/linux/platform_data/hsmmc-omap.h |  6 +--
->  3 files changed, 48 insertions(+), 71 deletions(-)
->
-> --
-> 2.1.4
->
+> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+> [Grygorii.Strashko@linaro.org: rebased on top of K4.0]
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
 
-Applied patch 1->3, thanks!
-
-If I get an ack for patch 4 (ARM) and can take them all through my tree.
+Applied, thanks!
 
 Kind regards
 Uffe
+
+
+> ---
+>
+> original patch: https://github.com/russdill/linux/commit/2ea98def0717f0918426c2004122c63d52cff1b4
+>
+>  drivers/mmc/host/omap_hsmmc.c | 9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index f84cfb0..9cc1ea3 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2236,7 +2236,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+>         return 0;
+>  }
+>
+> -#ifdef CONFIG_PM
+> +#ifdef CONFIG_PM_SLEEP
+>  static int omap_hsmmc_suspend(struct device *dev)
+>  {
+>         struct omap_hsmmc_host *host = dev_get_drvdata(dev);
+> @@ -2292,10 +2292,6 @@ static int omap_hsmmc_resume(struct device *dev)
+>         pm_runtime_put_autosuspend(host->dev);
+>         return 0;
+>  }
+> -
+> -#else
+> -#define omap_hsmmc_suspend     NULL
+> -#define omap_hsmmc_resume      NULL
+>  #endif
+>
+>  static int omap_hsmmc_runtime_suspend(struct device *dev)
+> @@ -2376,8 +2372,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+>  }
+>
+>  static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+> -       .suspend        = omap_hsmmc_suspend,
+> -       .resume         = omap_hsmmc_resume,
+> +       SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
+>         .runtime_suspend = omap_hsmmc_runtime_suspend,
+>         .runtime_resume = omap_hsmmc_runtime_resume,
+>  };
+> --
+> 1.9.1
+>
