@@ -1,70 +1,92 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 1/2] ARM: dts: dra7x-evm: Don't use dcan1_rx.gpio1_15 in DCAN pinctrl
-Date: Thu, 5 Mar 2015 15:32:42 +0200
-Message-ID: <1425562363-19338-2-git-send-email-rogerq@ti.com>
-References: <1425562363-19338-1-git-send-email-rogerq@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: simplify cover/card detect logic
+Date: Thu, 5 Mar 2015 14:43:48 +0100
+Message-ID: <CAPDyKFoepEcJsW16zry9tNsyXx8=GMk8SfjwkTbw+ySHTVg7+g@mail.gmail.com>
+References: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36634 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932324AbbCENcu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Mar 2015 08:32:50 -0500
-In-Reply-To: <1425562363-19338-1-git-send-email-rogerq@ti.com>
+Received: from mail-qa0-f43.google.com ([209.85.216.43]:33644 "EHLO
+	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932748AbbCENnt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 08:43:49 -0500
+Received: by mail-qa0-f43.google.com with SMTP id bm13so38948391qab.2
+        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2015 05:43:48 -0800 (PST)
+In-Reply-To: <1425385698-6588-1-git-send-email-afenkart@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Tony Lindgren <tony@atomide.com>
 
-Rev.F onwards ball G19 (dcan1_rx) is used as a GPIO for some other
-function so don't include it in DCAN pinctrl node.
+On 3 March 2015 at 13:28, Andreas Fenkart <afenkart@gmail.com> wrote:
+> These patches are trying to clean up the cover/card detect logic.
+>
+>   Mobile phones (some) have no card detect pin, but
+>   can detect if the cover is removed. The purpose is the
+>   same; detect if card is being added/removed, but the
+>   details differ.
+>   When the cover is removed, it does not mean the card is
+>   gone. But it might, since it is accessible now. It's like
+>   a warning. All the driver does is to limit write access to
+>   the card, see protect_card flag. In contrast, card detect
+>   notifies us after the fact, e.g. card is gone, card is
+>   inserted.
+>
+> While cover detect is only used by one platform (rx51), it
+> complicates the card detect logic. By separating the code
+> paths they both become easier to understand and maintain
+>
+> Patches have been tested by reverting: 95bebb5696ab
+> 'mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration'
+> otherwise gpio detection is handled by mmc_of_parse
+>
+> compile tested
+> OMAP2:
+> CONFIG_MACH_OMAP2_TUSB6010=y
+> CONFIG_MACH_OMAP3_BEAGLE=y
+> CONFIG_MACH_DEVKIT8000=y
+> CONFIG_MACH_OMAP_LDP=y
+> CONFIG_MACH_OMAP3530_LV_SOM=y
+> CONFIG_MACH_OMAP3_TORPEDO=y
+> CONFIG_MACH_OVERO=y
+> CONFIG_MACH_OMAP3517EVM=y
+> CONFIG_MACH_CRANEBOARD=y
+> CONFIG_MACH_OMAP3_PANDORA=y
+> CONFIG_MACH_TOUCHBOOK=y
+> CONFIG_MACH_OMAP_3430SDP=y
+> CONFIG_MACH_NOKIA_N810=y
+> CONFIG_MACH_NOKIA_N810_WIMAX=y
+> CONFIG_MACH_NOKIA_N8X0=y
+> CONFIG_MACH_NOKIA_RX51=y
+> CONFIG_MACH_CM_T35=y
+> CONFIG_MACH_CM_T3517=y
+> CONFIG_MACH_CM_T3730=y
+> CONFIG_MACH_SBC3530=y
+> CONFIG_MACH_TI8168EVM=y
+> CONFIG_MACH_TI8148EVM=y
+>
+> Andreas Fenkart (6):
+>   mmc: omap_hsmmc: remove unused fields from struct omap_hsmmc_host
+>   mmc: omap_hsmmc: use slot-gpio functions to manage read-only pin
+>     directly
+>   mmc: omap_hsmmc: use distinctive code paths for cover / card detect
+>     logic
+>   ARM: OMAP2: HSMMC: platform_data: explicit gpio_cover / gpio_cd fields
+>   mmc: omap_hsmmc: simplify card/cover detect isr
+>   mmc: omap_hsmmc: use generic slot-gpio isr to manage card detect pin
+>
+>  arch/arm/mach-omap2/hsmmc.c              | 33 +++++++++----
+>  drivers/mmc/host/omap_hsmmc.c            | 80 +++++++++-----------------------
+>  include/linux/platform_data/hsmmc-omap.h |  6 +--
+>  3 files changed, 48 insertions(+), 71 deletions(-)
+>
+> --
+> 2.1.4
+>
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts  | 2 --
- arch/arm/boot/dts/dra72-evm.dts | 2 --
- 2 files changed, 4 deletions(-)
+Applied patch 1->3, thanks!
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 3290a96..ddef593 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -264,7 +264,6 @@
- 	dcan1_pins_default: dcan1_pins_default {
- 		pinctrl-single,pins = <
- 			0x3d0   (PIN_OUTPUT | MUX_MODE0) /* dcan1_tx */
--			0x3d4   (MUX_MODE15)		/* dcan1_rx.off */
- 			0x418   (PULL_DIS | MUX_MODE1) /* wakeup0.dcan1_rx */
- 		>;
- 	};
-@@ -272,7 +271,6 @@
- 	dcan1_pins_sleep: dcan1_pins_sleep {
- 		pinctrl-single,pins = <
- 			0x3d0   (MUX_MODE15)	/* dcan1_tx.off */
--			0x3d4   (MUX_MODE15)	/* dcan1_rx.off */
- 			0x418   (MUX_MODE15)	/* wakeup0.off */
- 		>;
- 	};
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index e0264d0..42ee09a 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -120,7 +120,6 @@
- 	dcan1_pins_default: dcan1_pins_default {
- 		pinctrl-single,pins = <
- 			0x3d0   (PIN_OUTPUT | MUX_MODE0) /* dcan1_tx */
--			0x3d4   (MUX_MODE15)		/* dcan1_rx.off */
- 			0x418   (PULL_DIS | MUX_MODE1) /* wakeup0.dcan1_rx */
- 		>;
- 	};
-@@ -128,7 +127,6 @@
- 	dcan1_pins_sleep: dcan1_pins_sleep {
- 		pinctrl-single,pins = <
- 			0x3d0   (MUX_MODE15)	/* dcan1_tx.off */
--			0x3d4   (MUX_MODE15)	/* dcan1_rx.off */
- 			0x418   (MUX_MODE15)	/* wakeup0.off */
- 		>;
- 	};
--- 
-2.1.0
+If I get an ack for patch 4 (ARM) and can take them all through my tree.
 
+Kind regards
+Uffe
