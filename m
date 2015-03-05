@@ -1,43 +1,35 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 4/4] ARM: dts: am437x-gp-evm: Enable RTC
-Date: Thu, 5 Mar 2015 07:13:31 -0600
-Message-ID: <1425561211-31003-5-git-send-email-d-gerlach@ti.com>
-References: <1425561211-31003-1-git-send-email-d-gerlach@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/2] ARM: dts: dra7x-evm: DCAN pinmux fixes
+Date: Thu, 5 Mar 2015 15:32:41 +0200
+Message-ID: <1425562363-19338-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39745 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40329 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932579AbbCENOT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Mar 2015 08:14:19 -0500
-In-Reply-To: <1425561211-31003-1-git-send-email-d-gerlach@ti.com>
+	id S932324AbbCENcs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Mar 2015 08:32:48 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, KEERTHY <j-keerthy@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+To: tony@atomide.com
+Cc: nm@ti.com, nsekhar@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-From: Keerthy <j-keerthy@ti.com>
+Hi Tony,
 
-Enable RTC on am437x-gp-evm.
+These are some fixes to the DCAN pinmux.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/boot/dts/am437x-gp-evm.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+cheers,
+-roger
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index f84d971..b2a16c2 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -651,3 +651,7 @@
- 		};
- 	};
- };
-+
-+&rtc {
-+	status = "okay";
-+};
+Roger Quadros (2):
+  ARM: dts: dra7x-evm: Don't use dcan1_rx.gpio1_15 in DCAN pinctrl
+  ARM: dts: dra7x-evm: avoid possible contention while muxing on CAN
+    lines
+
+ arch/arm/boot/dts/dra7-evm.dts  | 10 ++++------
+ arch/arm/boot/dts/dra72-evm.dts | 10 ++++------
+ 2 files changed, 8 insertions(+), 12 deletions(-)
+
 -- 
-2.3.0
+2.1.0
 
