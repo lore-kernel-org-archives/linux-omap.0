@@ -1,147 +1,133 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v8 0/4] hwspinlock core & omap dt support
-Date: Wed, 4 Mar 2015 20:01:12 -0600
-Message-ID: <1425520876-37826-1-git-send-email-s-anna@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
+Date: Wed, 4 Mar 2015 20:22:04 -0600
+Message-ID: <54F7BDCC.8030602@ti.com>
+References: <1425427237-11511-1-git-send-email-nm@ti.com> <1425427237-11511-3-git-send-email-nm@ti.com> <1425509926.2090.56.camel@tiscali.nl> <20150304225857.GC13520@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
-Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20150304225857.GC13520@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Bolle <pebolle@tiscali.nl>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+On 03/04/2015 04:58 PM, Tony Lindgren wrote:
+> * Paul Bolle <pebolle@tiscali.nl> [150304 14:58]:
+>> Nishanth Menon schreef op di 03-03-2015 om 18:00 [-0600]:
+>>> diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
+>>> index ee9f44ad7f02..8e463d75fbb2 100644
+>>> --- a/drivers/pinctrl/Kconfig
+>>> +++ b/drivers/pinctrl/Kconfig
+>>> @@ -160,6 +160,17 @@ config PINCTRL_TEGRA_XUSB
+>>>  	select PINCONF
+>>>  	select PINMUX
+>>>  
+>>> +config PINCTRL_TI_IODELAY
+>>> +	bool "TI IODelay Module pinconf driver"
+>>
+>> This adds a boolean Kconfig symbol.
 
-This is the latest version of the hwspinlock dt support series,
-rebased onto v4.0-rc1 and addressing the long discussion on the
-bindings in v7 [1]. I really hope that this series can make it 
-into 4.1. 
+Uggh.. thanks for the review and catching this..
 
-Mark,
-Can you please provide your Acked-by for the binding documents
-so that Ohad can pick up the patches for the next merge window?
+>>
+>>> +	depends on OF
+>>> +	select PINCONF
+>>> +	select GENERIC_PINCONF
+>>> +	select REGMAP_MMIO
+>>> +	help
+>>> +	  Say Y here to support Texas Instruments' IODelay pinconf driver.
+>>> +	  IODelay module is used for the DRA7 SoC family. This driver is in
+>>> +	  addition to PINCTRL_SINGLE which controls the mux.
+>>> +
+>>>  config PINCTRL_TZ1090
+>>>  	bool "Toumaz Xenif TZ1090 pin control driver"
+>>>  	depends on SOC_TZ1090
+>>> diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
+>>> index 0475206dd600..e441cd71aedf 100644
+>>> --- a/drivers/pinctrl/Makefile
+>>> +++ b/drivers/pinctrl/Makefile
+>>> @@ -28,6 +28,7 @@ obj-$(CONFIG_PINCTRL_TEGRA30)	+= pinctrl-tegra30.o
+>>>  obj-$(CONFIG_PINCTRL_TEGRA114)	+= pinctrl-tegra114.o
+>>>  obj-$(CONFIG_PINCTRL_TEGRA124)	+= pinctrl-tegra124.o
+>>>  obj-$(CONFIG_PINCTRL_TEGRA_XUSB)	+= pinctrl-tegra-xusb.o
+>>> +obj-$(CONFIG_PINCTRL_TI_IODELAY)	+= pinctrl-ti-iodelay.o
+>>
+>> So this objectfile will either be built-in or not be built at all.
+>>
+>>>  obj-$(CONFIG_PINCTRL_TZ1090)	+= pinctrl-tz1090.o
+>>>  obj-$(CONFIG_PINCTRL_TZ1090_PDC)	+= pinctrl-tz1090-pdc.o
+>>>  obj-$(CONFIG_PINCTRL_U300)	+= pinctrl-u300.o
+>>> diff --git a/drivers/pinctrl/pinctrl-ti-iodelay.c b/drivers/pinctrl/pinctrl-ti-iodelay.c
+>>> new file mode 100644
+>>> index 000000000000..e4c6e25a781c
+>>> --- /dev/null
+>>> +++ b/drivers/pinctrl/pinctrl-ti-iodelay.c
+>>> @@ -0,0 +1,963 @@
+>>> [...]
+>>> +#include <linux/err.h>
+>>> +#include <linux/init.h>
+>>> +#include <linux/io.h>
+>>> +#include <linux/list.h>
+>>> +#include <linux/module.h>
+>>
+>> This is, I think, a bit of a red flag.
+>>
+>>> +#include <linux/of_device.h>
+>>> +#include <linux/of.h>
+>>> +#include <linux/pinctrl/pinconf-generic.h>
+>>> +#include <linux/pinctrl/pinconf.h>
+>>> +#include <linux/pinctrl/pinctrl.h>
+>>> +#include <linux/regmap.h>
+>>> +#include <linux/slab.h>
+>>
+>> [...]
+>>
+>>> +static const struct of_device_id ti_iodelay_of_match[] = {
+>>> +	{.compatible = "ti,dra7-iodelay", .data = &dra7_iodelay_data},
+>>> +	{ /* Hopefully no more.. */ },
+>>> +};
+>>> +MODULE_DEVICE_TABLE(of, ti_iodelay_of_match);
+>>> +
+>>> +static struct platform_driver ti_iodelay_driver = {
+>>> +	.probe = ti_iodelay_probe,
+>>> +	.remove = ti_iodelay_remove,
+>>> +	.driver = {
+>>> +		   .owner = THIS_MODULE,
+>>
+>> So THIS_MODULE will, basically, be NULL.
+>>
+>>> +		   .name = DRIVER_NAME,
+>>> +		   .of_match_table = ti_iodelay_of_match,
+>>> +		   },
+>>> +};
+>>> +module_platform_driver(ti_iodelay_driver);
+>>> +
+>>> +MODULE_AUTHOR("Texas Instruments, Inc.");
+>>> +MODULE_DESCRIPTION("Pinconf driver for TI's IO Delay module");
+>>> +MODULE_LICENSE("GPL v2");
+>>
+>> And these three macros will be preprocessed away.
+>>
+>> (Perhaps there are non-modular alternatives to MODULE_DEVICE_TABLE and
+>> module_platform_driver, but I'm not sure how those two macros actually
+>> work.)
+> 
+> This should be just made to work as a regular loadable module.
+> We already have pinctrl-single for the same platforms working
+> as a loadable module.
+> 
+Yes, indeed. this can easily be fixed. my bad. will convert this to a
+module in the next rev.
 
-Following are the main changes in v8 w.r.t v7:
-- Revised the generic hwspinlock bindings to remove hwlock-base-id and
-  hwlock-num-locks properties, and added the optional hwlock-names
-  property.
-- Updated the core device tree patch to remove of_hwspin_lock_get_base_id()
-  and of_hwspin_lock_get_num_locks() functions. Reworked the
-  of_hwspin_lock_get_id() API to not use the list of registered hwspinlock
-  banks, but rely on the hwspinlock radix tree itself to perform deferred
-  probing and pargs lock specifier validation. The last of the two were
-  added in v6, but dropped in v7, and are now restored.
-- Updated the OMAP hwspinlock binding and DT support patches for the
-  absence of the v7's mandatory hwlock-base-id property.
-- Changed the order of patches slightly to lump the core changes together
-  and the OMAP hwspinlock changes together.
+I will wait a week before reposting next rev to see if there are
+improvements necessary in other areas - specifically in the way
+pinconf is being used and if there are any binding related comments.
 
-The validation logs on all the applicable OMAP SoCs are at:
-  OMAP4	     : http://pastebin.ubuntu.com/10533448/
-  OMAP5      : http://pastebin.ubuntu.com/10533710/
-  DRA7 (X15) : http://pastebin.ubuntu.com/10533486/
-  AM33xx     : http://pastebin.ubuntu.com/10533623/
-  AM43xx     : http://pastebin.ubuntu.com/10533538/
+Will be great to hear any feedback on the same as well.
 
-The above logs are generated with some additional test patches staged
-here for reference,
-https://github.com/sumananna/omap-kernel/commits/hwspinlock/test/4.0-rc1-dt-v8
-
-regards
-Suman
-
-[1] https://patchwork.kernel.org/patch/5635201/
-
----
-v7:
-http://marc.info/?l=linux-omap&m=142126914027417&w=2
-- Dropped the patch "hwspinlock/core: maintain a list of registered
-  hwspinlock banks"
-- Updated generic hwspinlock bindings to make hwlock-base-id property
-  mandatory.
-- Updated the OMAP hwspinlock binding and DT support patches to correct
-  for the mandatory hwlock-base-id property.
-- Updated the common OF helpers patch to move the of_hwspin_lock_get_base_id()
-  and of_hwspin_lock_get_num_locks() functions into the internal header,
-  these are no longer exported, but available for platform implementations.
-  of_hwspin_lock_get_id() is also simplified now.
-
-v6:
-http://marc.info/?l=linux-omap&m=141055365213895&w=2
-- of_hwspin_lock_request_specific() is replaced
-  with of_hwspin_lock_get_id(). of_hwspin_lock_simple_xlate() is
-  made internal, and of_hwspin_lock_get_base_id() is added.
-- Updated the OMAP hwspinlock DT support patch to assign base-id
-  from DT if present
-- RFC patches adding the concept of reserved locks and return code
-  change convention dropped.
-
-v5:
-http://marc.info/?l=linux-omap&m=139890478402807&w=2
-- Rebased v4 patches plus additional RFC patches.
-- Added back the patch to support DT-based hwlock-base-id property,
-  for registration purposes.
-- RFC patches introducing the concept of reserved locks.
-- Staged patches for converting return convention to better support
-  deferred probing of client drivers.
-
-v4:
-- The DT bindings are split into separate patches, and updated to
-  add comments about #hwlock-cells
-- Fixed a registration issue with repeated module installation and
-  removal.
-- Added a new OF helper to support #hwlock-cells in addition to the
-  previous OF functions. The OMAP adaptation patch is updated to use
-  the default translate function
-- Updated hwspinlock documentation to adjust for the structure
-  changes and the new api additions.
-- Added build support for AM335x, AM43xx and DRA7xx
-http://marc.info/?l=linux-omap&m=138965904015225&w=2
-
-v3:
-- Removed the DT property hwlock-base-id and associated OF helper
-- Added changes in core to support requesting a specific hwlock using
-  phandle + args approach
-- Revised both the common and OMAP DT bindings document
-http://marc.info/?l=linux-omap&m=138143992932197&w=2
-
-v2:
-- Added a new common DT binding documentation and OF helpers.
-- Revised OMAP DT parse support to use the new OF helper (Patch2)
-- OMAP5 hwspinlock support including the hwmod entry and DT node
-- Add AM335x support to OMAP hwspinlock driver, including a fix
-  needed in driver given that AM335 spinlock module requires s/w wakeup
-- AM335 DT node for spinlock, and a hwmod change to enable smart-idle
-  for AM335.
-- OMAP4 DT node patch is unchanged
-http://marc.info/?l=linux-omap&m=137944644112727&w=2
-
-v1:
-- Add DT parse support to OMAP hwspinlock driver
-- Add OMAP4 DT node and bindings information
-http://marc.info/?l=linux-omap&m=137823082308009&w=2
-
----
-
-Suman Anna (4):
-  Documentation: dt: add common bindings for hwspinlock
-  hwspinlock/core: add device tree support
-  Documentation: dt: add the omap hwspinlock bindings document
-  hwspinlock/omap: add support for dt nodes
-
- .../devicetree/bindings/hwlock/hwlock.txt          | 59 ++++++++++++++++
- .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 26 +++++++
- Documentation/hwspinlock.txt                       | 10 +++
- MAINTAINERS                                        |  1 -
- arch/arm/mach-omap2/Makefile                       |  3 -
- arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------
- drivers/hwspinlock/hwspinlock_core.c               | 79 ++++++++++++++++++++++
- drivers/hwspinlock/omap_hwspinlock.c               | 17 +++--
- include/linux/hwspinlock.h                         |  7 ++
- 9 files changed, 194 insertions(+), 68 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
- create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
- delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
 
 -- 
-2.3.0
+Regards,
+Nishanth Menon
