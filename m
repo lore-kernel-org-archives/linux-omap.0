@@ -1,26 +1,47 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: Re: reboot command fails with low frequency
-Date: Thu, 5 Mar 2015 14:29:09 +0200
-Message-ID: <CAJ2oMhKOXaKJfsC1E4Fs47Ura2FMrWsBt0UAHjZH2VHywZz7PA@mail.gmail.com>
-References: <CAJ2oMhLDbA_BVsZPnbNq460mYbUw6Z7QpB=YmSCjX65NL1BaFg@mail.gmail.com>
-	<CAOf5uwkWvd_gH08t-AacU8Jp4gFmr4X42bMv4eT43Uhaaa5GMQ@mail.gmail.com>
-	<CAJ2oMh+HC7wuZ6+F7jXe9hGe68=WWsu5=H1h0OZanEUs6HqxzQ@mail.gmail.com>
-	<CAOf5uwmyOZOTMBGnQU38-D=Emo6Rdrd8fDW9Hk+_r4RG4=+nrA@mail.gmail.com>
-	<CAJ2oMhJk9_Hdov4ue-8WWNbEaDh862GhbYWwBtaUZTdbbFkWbQ@mail.gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 0/4] Add AM437x RTC
+Date: Thu, 5 Mar 2015 07:13:27 -0600
+Message-ID: <1425561211-31003-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:44966 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755329AbbCEM3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 07:29:11 -0500
-In-Reply-To: <CAJ2oMhJk9_Hdov4ue-8WWNbEaDh862GhbYWwBtaUZTdbbFkWbQ@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36005 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754686AbbCENOK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Mar 2015 08:14:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, KEERTHY <j-keerthy@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
-I think I can also do some workaround if I set the frequency to the
-highest level just before doing reset. The thing is that I mustn't use
-sysfs in my system. Is there some way to set frequency without using
-sysfs ?
+Hi,
+This series adds support for the rtc on am437x, as previously the hwmod
+and dt entries were missing. The am43x-epos-evm requires special treatment
+because the RTC gets disabled in hardware with no way to tell through
+software so we add a ti,no-init dt flag for the hwmod layer so we can
+avoid writing to the SYSCONFIG register and triggering an external abort.
+If we use this flag for the am43x-epos-evm we can add the rtc as normal
+to am437x-gp-evm. am437x-sk-evm already has the required dt entry in place. 
+
+Regards,
+Dave
+
+Dave Gerlach (3):
+  ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt property
+  ARM: OMAP2+: AM43xx hwmod: Add RTC hwmod for AM43xx
+  ARM: dts: am43x-epos-evm: Add rtc node with ti,no-init property
+
+Keerthy (1):
+  ARM: dts: am437x-gp-evm: Enable RTC
+
+ Documentation/devicetree/bindings/arm/omap/omap.txt | 2 ++
+ arch/arm/boot/dts/am437x-gp-evm.dts                 | 4 ++++
+ arch/arm/boot/dts/am43x-epos-evm.dts                | 4 ++++
+ arch/arm/mach-omap2/omap_hwmod.c                    | 7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod.h                    | 4 ++++
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c          | 1 +
+ 6 files changed, 21 insertions(+), 1 deletion(-)
+
+-- 
+2.3.0
+
