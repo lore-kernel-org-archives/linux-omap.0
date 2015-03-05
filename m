@@ -1,45 +1,26 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 09/15] twl4030_charger: allow max_current to be managed
- via sysfs.
-Date: Thu, 5 Mar 2015 09:17:51 +0100
-Message-ID: <20150305081751.GA9093@amd>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
- <20150224043351.4243.46323.stgit@notabene.brown>
- <20150302210525.GN13270@amd>
- <20150305172600.30951e70@notabene.brown>
+From: Ran Shalit <ranshalit@gmail.com>
+Subject: Re: reboot command fails with low frequency
+Date: Thu, 5 Mar 2015 10:46:51 +0200
+Message-ID: <CAJ2oMhLDbA_BVsZPnbNq460mYbUw6Z7QpB=YmSCjX65NL1BaFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150305172600.30951e70@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:46919 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170AbbCEIqx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 03:46:53 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 
+> I added power support to kernel menuconfig, such as cpuidle, and it
+> seems to work fine. I also validated in counter that cpu gets into
+> retention.
 
-> > Is this in uA or mA? uA. Ok.
-> 
-> uA, now described in Documentation/ABI/testing/sysfs-class-power-twl4030
-> 
-> +What: /sys/class/power_supply/twl4030_ac/max_current
-> +      /sys/class/power_supply/twl4030_usb/max_current
-> +Description:
-> +       Read/Write limit on current which which may
-> +       be drawn from the ac (Accessory Charger) or
-> +       USB port.
-> +
-> +       Value is in micro-Amps.
-> +
-> +       Value is set automatically to an appropriate
-> +       value when a cable is plugged on unplugged.
-> +
-> +       Value can the set by writing to the attribute.
-> +       The change will only persist until the next
-> +       plug event.  These event are reported via udev.
+We observer that with highest available frequency (600000) reboot
+command is OK, but when frequency is changed to lower value, the
+reboot command fails.
+Has anyone observed such behaviour ?
 
-Thanks!
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+Ran
