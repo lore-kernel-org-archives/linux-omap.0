@@ -1,58 +1,187 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v3 3/6] Documentation: DT: Document twl4030-madc-battery
- bindings
-Date: Thu, 5 Mar 2015 01:48:01 +0100
-Message-ID: <20150305004801.GC1033@earth>
-References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
- <1423088075-10025-4-git-send-email-marek@goldelico.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v8 2/4] hwspinlock/core: add device tree support
+Date: Wed, 4 Mar 2015 20:01:14 -0600
+Message-ID: <1425520876-37826-3-git-send-email-s-anna@ti.com>
+References: <1425520876-37826-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1423088075-10025-4-git-send-email-marek@goldelico.com>
+In-Reply-To: <1425520876-37826-1-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: dbaryshkov@gmail.com, dwmw2@infradead.org, mark.rutland@arm.com, tony@atomide.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com, gta04-owner@goldelico.com
+To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+This patch adds a new OF-friendly API of_hwspin_lock_get_id()
+for hwspinlock clients to use/request locks from a hwspinlock
+device instantiated through a device-tree blob. This new API
+can be used by hwspinlock clients to get the id for a specific
+lock using the phandle + args specifier, so that it can be
+requested using the available hwspin_lock_request_specific()
+API.
 
---R+My9LyyhiUvIEro
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+v8: Removed the previous OF helpers of_hwspin_lock_get_num_locks()
+    & of_hwspin_lock_get_base_id() due to the revised generic
+    bindings. Added back the support for deferred probing and
+    pargs specifier validation like in v6, but without using an
+    added list for storing registered hwspinlock devices.
 
-Hi,
+ Documentation/hwspinlock.txt         | 10 +++++
+ drivers/hwspinlock/hwspinlock_core.c | 79 ++++++++++++++++++++++++++++++++++++
+ include/linux/hwspinlock.h           |  7 ++++
+ 3 files changed, 96 insertions(+)
 
-On Wed, Feb 04, 2015 at 11:14:32PM +0100, Marek Belisko wrote:
-> + - volt-to-capacity-charging-map : list of voltage(mV):level(%) values
-> +	for charging calibration (see example)
-> + - volt-to-capacity-discharging-map : list of voltage(mV):level(%) values
-> +	for discharging calibration (see example)
-
-Please prefix these properties with "ti,"
-
--- Sebastian
-
---R+My9LyyhiUvIEro
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJU96e+AAoJENju1/PIO/qaVcUP/1ABHAiQQ7/5dAaiV2wOUZUp
-tNfNGY13wHRn+4O2agQyhob0kh2qsjMA0uRODduUiQmYdxqlC1TbyVh98i44xTfY
-4ynGggHrzM4RlvOnqorbCa7AW75UDDPHmOlzwuwbjLayes4Qw5PB1JHYChE47PhX
-4tOBjTgb8DMpWr3YYbL2uyEm4jmPSxaicPkzaM54ZOKtQJ4xuIc/v2vRzQ8k5Lv1
-xA1zfyCFmSvBiGJVzcAunerjfYw8UbgAOoMj16hu25BxH+HorQX/dEhyBDj8RDAj
-JVUTPP4w+Ry3KjAmKoomxOPLzlLrspJWUQ2yDQVhGExQShr374t9c17n2mcUp7Fk
-9JYWNJIksNeb81Al8ZPOpFuHlgPN6mBIHLU2SQ32kOyOBIZs4Xiovbkdj0OAo+H0
-Kdl9hzdsFD10UGtcgwywxVUXyiJ0QT3U+i4+NGBTztId5XoZVRi2fD8REcrn0tqS
-Umr9U7q6vpxx+RTGX0PFgFK5Pozld610mFieb5RKnK1wjkKaVwEWHwY2HhQCfdY0
-CscPRCaEjG1Q2e3Qt57Ai/VOW+bdSB9aF5AM2ra5vmwl9URbhO+1O+rt6ShSOISS
-XoDB13GkTAqp/ECPzyfJQQm8rrS2/rINcoMwkF136X5uXo73KfKkwNBGc7EWdGqm
-zvIYiVGRAmBpT/X2Vh+Z
-=fw4b
------END PGP SIGNATURE-----
-
---R+My9LyyhiUvIEro--
+diff --git a/Documentation/hwspinlock.txt b/Documentation/hwspinlock.txt
+index 62f7d4ea6e26..61c1ee98e59f 100644
+--- a/Documentation/hwspinlock.txt
++++ b/Documentation/hwspinlock.txt
+@@ -48,6 +48,16 @@ independent, drivers.
+      ids for predefined purposes.
+      Should be called from a process context (might sleep).
+ 
++  int of_hwspin_lock_get_id(struct device_node *np, int index);
++   - retrieve the global lock id for an OF phandle-based specific lock.
++     This function provides a means for DT users of a hwspinlock module
++     to get the global lock id of a specific hwspinlock, so that it can
++     be requested using the normal hwspin_lock_request_specific() API.
++     The function returns a lock id number on success, -EPROBE_DEFER if
++     the hwspinlock device is not yet registered with the core, or other
++     error values.
++     Should be called from a process context (might sleep).
++
+   int hwspin_lock_free(struct hwspinlock *hwlock);
+    - free a previously-assigned hwspinlock; returns 0 on success, or an
+      appropriate error code on failure (e.g. -EINVAL if the hwspinlock
+diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
+index 461a0d739d75..f8539f624e3d 100644
+--- a/drivers/hwspinlock/hwspinlock_core.c
++++ b/drivers/hwspinlock/hwspinlock_core.c
+@@ -27,6 +27,7 @@
+ #include <linux/hwspinlock.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ 
+ #include "hwspinlock_internal.h"
+ 
+@@ -257,6 +258,84 @@ void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
+ }
+ EXPORT_SYMBOL_GPL(__hwspin_unlock);
+ 
++/**
++ * of_hwspin_lock_simple_xlate - translate hwlock_spec to return a lock id
++ * @bank: the hwspinlock device bank
++ * @hwlock_spec: hwlock specifier as found in the device tree
++ *
++ * This is a simple translation function, suitable for hwspinlock platform
++ * drivers that only has a lock specifier length of 1.
++ *
++ * Returns a relative index of the lock within a specified bank on success,
++ * or -EINVAL on invalid specifier cell count.
++ */
++static inline int
++of_hwspin_lock_simple_xlate(const struct of_phandle_args *hwlock_spec)
++{
++	if (WARN_ON(hwlock_spec->args_count != 1))
++		return -EINVAL;
++
++	return hwlock_spec->args[0];
++}
++
++/**
++ * of_hwspin_lock_get_id() - get lock id for an OF phandle-based specific lock
++ * @np: device node from which to request the specific hwlock
++ * @index: index of the hwlock in the list of values
++ *
++ * This function provides a means for DT users of the hwspinlock module to
++ * get the global lock id of a specific hwspinlock using the phandle of the
++ * hwspinlock device, so that it can be requested using the normal
++ * hwspin_lock_request_specific() API.
++ *
++ * Returns the global lock id number on success, -EPROBE_DEFER if the hwspinlock
++ * device is not yet registered, -EINVAL on invalid args specifier value or an
++ * appropriate error as returned from the OF parsing of the DT client node.
++ */
++int of_hwspin_lock_get_id(struct device_node *np, int index)
++{
++	struct of_phandle_args args;
++	struct hwspinlock *hwlock;
++	struct radix_tree_iter iter;
++	void **slot;
++	int id;
++	int ret;
++
++	ret = of_parse_phandle_with_args(np, "hwlocks", "#hwlock-cells", index,
++					 &args);
++	if (ret)
++		return ret;
++
++	/* perform a sanity check of the hwspinlock device */
++	ret = -EPROBE_DEFER;
++	rcu_read_lock();
++	radix_tree_for_each_slot(slot, &hwspinlock_tree, &iter, 0) {
++		hwlock = radix_tree_deref_slot(slot);
++		if (unlikely(!hwlock))
++			continue;
++
++		if (hwlock->bank->dev->of_node == args.np) {
++			ret = 0;
++			break;
++		}
++	}
++	rcu_read_unlock();
++	if (ret < 0)
++		goto out;
++
++	id = of_hwspin_lock_simple_xlate(&args);
++	if (id < 0 || id >= hwlock->bank->num_locks) {
++		ret = -EINVAL;
++		goto out;
++	}
++	id += hwlock->bank->base_id;
++
++out:
++	of_node_put(args.np);
++	return ret ? ret : id;
++}
++EXPORT_SYMBOL_GPL(of_hwspin_lock_get_id);
++
+ static int hwspin_lock_register_single(struct hwspinlock *hwlock, int id)
+ {
+ 	struct hwspinlock *tmp;
+diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+index 3343298e40e8..859d673d98c8 100644
+--- a/include/linux/hwspinlock.h
++++ b/include/linux/hwspinlock.h
+@@ -26,6 +26,7 @@
+ #define HWLOCK_IRQ	0x02	/* Disable interrupts, don't save state */
+ 
+ struct device;
++struct device_node;
+ struct hwspinlock;
+ struct hwspinlock_device;
+ struct hwspinlock_ops;
+@@ -66,6 +67,7 @@ int hwspin_lock_unregister(struct hwspinlock_device *bank);
+ struct hwspinlock *hwspin_lock_request(void);
+ struct hwspinlock *hwspin_lock_request_specific(unsigned int id);
+ int hwspin_lock_free(struct hwspinlock *hwlock);
++int of_hwspin_lock_get_id(struct device_node *np, int index);
+ int hwspin_lock_get_id(struct hwspinlock *hwlock);
+ int __hwspin_lock_timeout(struct hwspinlock *, unsigned int, int,
+ 							unsigned long *);
+@@ -120,6 +122,11 @@ void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
+ {
+ }
+ 
++static inline int of_hwspin_lock_get_id(struct device_node *np, int index)
++{
++	return 0;
++}
++
+ static inline int hwspin_lock_get_id(struct hwspinlock *hwlock)
+ {
+ 	return 0;
+-- 
+2.3.0
