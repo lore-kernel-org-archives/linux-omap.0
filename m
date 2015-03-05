@@ -1,77 +1,58 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 06/21] drm/omap: check CRTC color format earlier
-Date: Thu, 05 Mar 2015 01:53:18 +0200
-Message-ID: <4900803.cErxPF9b3H@avalon>
-References: <1424956829-22892-1-git-send-email-tomi.valkeinen@ti.com>
- <1424956829-22892-7-git-send-email-tomi.valkeinen@ti.com>
- <20150227120757.GW24485@phenom.ffwll.local>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v3 4/6] ARM: dts: omap3-gta04: Add battery support
+Date: Thu, 5 Mar 2015 01:37:35 +0100
+Message-ID: <20150305003651.GB1033@earth>
+References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+ <1423088075-10025-5-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20150227120757.GW24485@phenom.ffwll.local>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1423088075-10025-5-git-send-email-marek@goldelico.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: dbaryshkov@gmail.com, dwmw2@infradead.org, mark.rutland@arm.com, tony@atomide.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com, gta04-owner@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgRGFuaWVsLAoKT24gRnJpZGF5IDI3IEZlYnJ1YXJ5IDIwMTUgMTM6MDc6NTcgRGFuaWVsIFZl
-dHRlciB3cm90ZToKPiBPbiBUaHUsIEZlYiAyNiwgMjAxNSBhdCAwMzoyMDoxNFBNICswMjAwLCBU
-b21pIFZhbGtlaW5lbiB3cm90ZToKPiA+IFdoZW4gc2V0dGluZyBhIGNvbG9yIGZvcm1hdCB0byBh
-IERSTSBwbGFuZSwgdGhlIERSTSBjb3JlIGNoZWNrcyB3aGV0aGVyCj4gPiB0aGUgZm9ybWF0IGlz
-IHN1cHBvcnRlZCBieSB0aGUgSFcuIEhvd2V2ZXIsIGl0IHNlZW1zIHRoYXQgd2hlbiBzZXR0aW5n
-Cj4gPiB0aGUgY29sb3IgZm9ybWF0IG9mIGEgQ1JUQyAoaS5lLiBhIHJvb3QgcGxhbmUpLCB0aGVy
-ZSdzIG5vIGNoZWNraW5nCj4gPiBkb25lLiBUaGlzIGNhdXNlcyBvbWFwZHJtIHRvIGNvbmZpZ3Vy
-ZSBvbWFwZHNzIHdpdGggdGhlIGJhZCBjb2xvcgo+ID4gZm9ybWF0LCB3aGljaCBvbWFwZHNzIHRo
-ZW4gcmVqZWN0cy4KPiA+IAo+ID4gV2hpbGUgdGhlIGFib3ZlIGlzIG9rLCB0aGUgZXJyb3IgbWVz
-c2FnZSBpcyBhIGJpdCBjb25mdXNpbmcsIGFuZCB0aGUKPiA+IGNvbmZpZ3VyaW5nIG9mIG9tYXBk
-c3MgaGFwcGVucyBhc3luY2hyb25vdXNseSBmcm9tIHRoZSBpb2N0bCB0aGF0IGRvZXMKPiA+IHRo
-ZSBjb2xvciBmb3JtYXQgY2hhbmdlLgo+ID4gCj4gPiBUaGlzIHBhdGNoIGFkZHMgYSBjb2xvciBm
-b3JtYXQgY2hlY2sgdG8gb21hcF9wbGFuZV9tb2RlX3NldCgpIHdoaWNoCj4gPiBjYXVzZXMgdGhl
-IGlvY3RsIHRvIHJldHVybiBhbiBlcnJvciBmb3IgaW52YWxpZCBjb2xvciBmb3JtYXQuIFRoaXMg
-bWVhbnMKPiA+IHRoYXQgdGhlIHVzZXJzcGFjZSB3aWxsIGdldCB0byBrbm93IG9mIHRoZSB3cm9u
-ZyBzZXR0aW5nLCBpbnN0ZWFkIG9mIHRoZQo+ID4gY3VycmVudCBiZWhhdmlvciB3aGVyZSB0aGUg
-ZXJyb3IgaXMgbm90IHNlZW4gYnkgdGhlIHVzZXJzcGFjZS4KPiA+IAo+ID4gU2lnbmVkLW9mZi1i
-eTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KPiA+IC0tLQo+ID4gCj4g
-PiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9wbGFuZS5jIHwgMTggKysrKysrKysrKysr
-KysrKysrCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDE4IGluc2VydGlvbnMoKykKPiA+IAo+ID4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfcGxhbmUuYwo+ID4gYi9kcml2
-ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMgaW5kZXggMWY0ZjJiODY2Mzc5Li5iZWRk
-NmY3YWYwZjEKPiA+IDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21h
-cF9wbGFuZS5jCj4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX3BsYW5lLmMK
-PiA+IEBAIC0yMDcsNiArMjA3LDI0IEBAIGludCBvbWFwX3BsYW5lX21vZGVfc2V0KHN0cnVjdCBk
-cm1fcGxhbmUgKnBsYW5lLAo+ID4gCj4gPiAgewo+ID4gIAo+ID4gIAlzdHJ1Y3Qgb21hcF9wbGFu
-ZSAqb21hcF9wbGFuZSA9IHRvX29tYXBfcGxhbmUocGxhbmUpOwo+ID4gIAlzdHJ1Y3Qgb21hcF9k
-cm1fd2luZG93ICp3aW4gPSAmb21hcF9wbGFuZS0+d2luOwo+ID4gCj4gPiArCWludCBpOwo+ID4g
-Kwo+ID4gKwkvKgo+ID4gKwkgKiBDaGVjayB3aGV0aGVyIHRoaXMgcGxhbmUgc3VwcG9ydHMgdGhl
-IGZiIHBpeGVsIGZvcm1hdC4KPiA+ICsJICogSSBkb24ndCB0aGluayB0aGlzIHNob3VsZCByZWFs
-bHkgYmUgbmVlZGVkLCBidXQgaXQgbG9va3MgbGlrZSB0aGUKPiA+ICsJICogZHJtIGNvcmUgb25s
-eSBjaGVja3MgdGhlIGZvcm1hdCBmb3IgcGxhbmVzLCBub3QgZm9yIHRoZSBjcnRjLiBTbwo+ID4g
-KwkgKiB3aGVuIHNldHRpbmcgdGhlIGZvcm1hdCBmb3IgY3J0Yywgd2l0aG91dCB0aGlzIGNoZWNr
-IHdlIHdvdWxkCj4gPiArCSAqIGdldCBhbiBlcnJvciBsYXRlciB3aGVuIHRyeWluZyB0byBwcm9n
-cmFtIHRoZSBjb2xvciBmb3JtYXQgaW50byAKdGhlCj4gPiArCSAqIEhXLgo+ID4gKwkgKi8KPiAK
-PiBJIHRoaW5rIHdlIHNob3VsZCBhZGQgYSBmb3JtYXQgY2hlY2sgdG8gdGhlIHNldGNydGMgaW9j
-dGwgaWYgY3J0Yy0+cHJpbWFyeQo+IGlzIHNldC4gQXRtIHRoZSBjb2RlIGlzIGluIF9fc2V0cGxh
-bmVfaW50ZXJuYWwgYnV0IGNvdWxkIGVhc2lseSBiZSBzaGFyZWQKPiAtIHRoZXJlJ3MgYWxyZWFk
-eSBhIGNvcHkgaW4gZHJtX2F0b21pLmMuCgpJJ2xsIHN1Ym1pdCBhIHBhdGNoLgoKPiBPbWFwZHJt
-IHdvdWxkbid0IGJlbmVmaXQgZnJvbSB0aGlzIHlldCBzaW5jZSBpdCBkb2Vzbid0IHN1cHBvcnQg
-dW5pdmVyc2FsCj4gcGxhbmVzLiBCdXQgYWRkaW5nIHVuaXZlcnNhbCBwbGFuZXMgc2hvdWxkIGJl
-IG9uIHlvdXIgdG9kbyBhbnl3YXkgOy0pCgpTb29uLCBzb29uIDotKQoKPiA+ICsJZm9yIChpID0g
-MDsgaSA8IHBsYW5lLT5mb3JtYXRfY291bnQ7IGkrKykKPiA+ICsJCWlmIChmYi0+cGl4ZWxfZm9y
-bWF0ID09IHBsYW5lLT5mb3JtYXRfdHlwZXNbaV0pCj4gPiArCQkJYnJlYWs7Cj4gPiArCWlmIChp
-ID09IHBsYW5lLT5mb3JtYXRfY291bnQpIHsKPiA+ICsJCURCRygiSW52YWxpZCBwaXhlbCBmb3Jt
-YXQgJXMiLAo+ID4gKwkJCSAgICAgIGRybV9nZXRfZm9ybWF0X25hbWUoZmItPnBpeGVsX2Zvcm1h
-dCkpOwo+ID4gKwkJcmV0dXJuIC1FSU5WQUw7Cj4gPiArCX0KPiA+IAo+ID4gIAl3aW4tPmNydGNf
-eCA9IGNydGNfeDsKPiA+ICAJd2luLT5jcnRjX3kgPSBjcnRjX3k7CgotLSAKUmVnYXJkcywKCkxh
-dXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
-dmVsCg==
+
+--ZfOjI3PrQbgiZnxM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+On Wed, Feb 04, 2015 at 11:14:33PM +0100, Marek Belisko wrote:
+> Signed-off-by: Marek Belisko <marek@goldelico.com>
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+
+DTS changes must go via omap-dt tree once the driver changes have been
+merged.
+
+-- Sebastian
+
+--ZfOjI3PrQbgiZnxM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJU96UjAAoJENju1/PIO/qaHOsP+walypxazwunZrSFM74+iIHR
+TGbAtv9QhXSzHsKL8b6XHJYFwwlUPFaD1qFIOLq5ytolOH/7ZYSCLeTCBYeHg9Y1
+DCU819HQ1w75UaSNRLEgQlMVmQiJhbO0QZNs0sEOAXn0wpuYTsX95Dn3vohHTQZ1
+B6woIoLi6kJmKDyKA5nE759KFrcjj/d4e/fUpIUojjWQgTEVTk/To78bytBxLinH
+3n+E3+ZTW7yiQvlog5+PJd0kPkPxtLf21II2vZ8RDKxMCYnZQl2fEHcI4frK/u90
+AyMiQp5iTVU4D7gOODSquCws4eXgF6AT1+/fNJNxSuI539aVj0Qb2KUqZE36B+sA
+PkJl9wfGaA2mM+9qvykzJROFb7FLEvU2oIgYM1wrF/L/GiNTpklnPx3yJG0tKLr5
+hlgrc/p0gagTrEQgdwTeWcthPPXJp/56UESF2ulu6NhxmhE0oj8E9GFTPK4Jd9xg
+HlkWojkwPTLIFXk5k2C716LalI1r1k5I0SsV+mLWcl80LjCMaCyNHudrLD+GayAo
+TVVA4BGfb/UGMOU7GexY0Wi+gh2dhYEWLCiTZKRV5eDm3f3GLxKygw96ctf0/Wfa
+LCV25pehBLqCZURjjPNAV5uJAkr2jcZcDPVZtLN5RTx1cnl01Dx/bhhcUoHDCn5b
+5AFP52lmgzKllpG2ALFr
+=RMtn
+-----END PGP SIGNATURE-----
+
+--ZfOjI3PrQbgiZnxM--
