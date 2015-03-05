@@ -1,58 +1,58 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v3 4/6] ARM: dts: omap3-gta04: Add battery support
-Date: Thu, 5 Mar 2015 01:37:35 +0100
-Message-ID: <20150305003651.GB1033@earth>
+Subject: Re: [PATCH v3 3/6] Documentation: DT: Document twl4030-madc-battery
+ bindings
+Date: Thu, 5 Mar 2015 01:48:01 +0100
+Message-ID: <20150305004801.GC1033@earth>
 References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
- <1423088075-10025-5-git-send-email-marek@goldelico.com>
+ <1423088075-10025-4-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
-Return-path: <linux-pm-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1423088075-10025-5-git-send-email-marek@goldelico.com>
-Sender: linux-pm-owner@vger.kernel.org
+In-Reply-To: <1423088075-10025-4-git-send-email-marek@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Marek Belisko <marek@goldelico.com>
 Cc: dbaryshkov@gmail.com, dwmw2@infradead.org, mark.rutland@arm.com, tony@atomide.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com, gta04-owner@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
 
---ZfOjI3PrQbgiZnxM
+--R+My9LyyhiUvIEro
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi,
 
-On Wed, Feb 04, 2015 at 11:14:33PM +0100, Marek Belisko wrote:
-> Signed-off-by: Marek Belisko <marek@goldelico.com>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dtsi | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
+On Wed, Feb 04, 2015 at 11:14:32PM +0100, Marek Belisko wrote:
+> + - volt-to-capacity-charging-map : list of voltage(mV):level(%) values
+> +	for charging calibration (see example)
+> + - volt-to-capacity-discharging-map : list of voltage(mV):level(%) values
+> +	for discharging calibration (see example)
 
-DTS changes must go via omap-dt tree once the driver changes have been
-merged.
+Please prefix these properties with "ti,"
 
 -- Sebastian
 
---ZfOjI3PrQbgiZnxM
+--R+My9LyyhiUvIEro
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJU96UjAAoJENju1/PIO/qaHOsP+walypxazwunZrSFM74+iIHR
-TGbAtv9QhXSzHsKL8b6XHJYFwwlUPFaD1qFIOLq5ytolOH/7ZYSCLeTCBYeHg9Y1
-DCU819HQ1w75UaSNRLEgQlMVmQiJhbO0QZNs0sEOAXn0wpuYTsX95Dn3vohHTQZ1
-B6woIoLi6kJmKDyKA5nE759KFrcjj/d4e/fUpIUojjWQgTEVTk/To78bytBxLinH
-3n+E3+ZTW7yiQvlog5+PJd0kPkPxtLf21II2vZ8RDKxMCYnZQl2fEHcI4frK/u90
-AyMiQp5iTVU4D7gOODSquCws4eXgF6AT1+/fNJNxSuI539aVj0Qb2KUqZE36B+sA
-PkJl9wfGaA2mM+9qvykzJROFb7FLEvU2oIgYM1wrF/L/GiNTpklnPx3yJG0tKLr5
-hlgrc/p0gagTrEQgdwTeWcthPPXJp/56UESF2ulu6NhxmhE0oj8E9GFTPK4Jd9xg
-HlkWojkwPTLIFXk5k2C716LalI1r1k5I0SsV+mLWcl80LjCMaCyNHudrLD+GayAo
-TVVA4BGfb/UGMOU7GexY0Wi+gh2dhYEWLCiTZKRV5eDm3f3GLxKygw96ctf0/Wfa
-LCV25pehBLqCZURjjPNAV5uJAkr2jcZcDPVZtLN5RTx1cnl01Dx/bhhcUoHDCn5b
-5AFP52lmgzKllpG2ALFr
-=RMtn
+iQIcBAEBCgAGBQJU96e+AAoJENju1/PIO/qaVcUP/1ABHAiQQ7/5dAaiV2wOUZUp
+tNfNGY13wHRn+4O2agQyhob0kh2qsjMA0uRODduUiQmYdxqlC1TbyVh98i44xTfY
+4ynGggHrzM4RlvOnqorbCa7AW75UDDPHmOlzwuwbjLayes4Qw5PB1JHYChE47PhX
+4tOBjTgb8DMpWr3YYbL2uyEm4jmPSxaicPkzaM54ZOKtQJ4xuIc/v2vRzQ8k5Lv1
+xA1zfyCFmSvBiGJVzcAunerjfYw8UbgAOoMj16hu25BxH+HorQX/dEhyBDj8RDAj
+JVUTPP4w+Ry3KjAmKoomxOPLzlLrspJWUQ2yDQVhGExQShr374t9c17n2mcUp7Fk
+9JYWNJIksNeb81Al8ZPOpFuHlgPN6mBIHLU2SQ32kOyOBIZs4Xiovbkdj0OAo+H0
+Kdl9hzdsFD10UGtcgwywxVUXyiJ0QT3U+i4+NGBTztId5XoZVRi2fD8REcrn0tqS
+Umr9U7q6vpxx+RTGX0PFgFK5Pozld610mFieb5RKnK1wjkKaVwEWHwY2HhQCfdY0
+CscPRCaEjG1Q2e3Qt57Ai/VOW+bdSB9aF5AM2ra5vmwl9URbhO+1O+rt6ShSOISS
+XoDB13GkTAqp/ECPzyfJQQm8rrS2/rINcoMwkF136X5uXo73KfKkwNBGc7EWdGqm
+zvIYiVGRAmBpT/X2Vh+Z
+=fw4b
 -----END PGP SIGNATURE-----
 
---ZfOjI3PrQbgiZnxM--
+--R+My9LyyhiUvIEro--
