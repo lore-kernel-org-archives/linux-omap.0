@@ -1,133 +1,132 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
-Date: Wed, 4 Mar 2015 20:22:04 -0600
-Message-ID: <54F7BDCC.8030602@ti.com>
-References: <1425427237-11511-1-git-send-email-nm@ti.com> <1425427237-11511-3-git-send-email-nm@ti.com> <1425509926.2090.56.camel@tiscali.nl> <20150304225857.GC13520@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v2 1/3] remoteproc: add a rproc ops for performing address translation
+Date: Wed, 4 Mar 2015 21:53:58 -0600
+Message-ID: <1425527640-2690-2-git-send-email-d-gerlach@ti.com>
+References: <1425527640-2690-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150304225857.GC13520@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Bolle <pebolle@tiscali.nl>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lokesh Vutla <lokeshvutla@ti.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425527640-2690-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/04/2015 04:58 PM, Tony Lindgren wrote:
-> * Paul Bolle <pebolle@tiscali.nl> [150304 14:58]:
->> Nishanth Menon schreef op di 03-03-2015 om 18:00 [-0600]:
->>> diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
->>> index ee9f44ad7f02..8e463d75fbb2 100644
->>> --- a/drivers/pinctrl/Kconfig
->>> +++ b/drivers/pinctrl/Kconfig
->>> @@ -160,6 +160,17 @@ config PINCTRL_TEGRA_XUSB
->>>  	select PINCONF
->>>  	select PINMUX
->>>  
->>> +config PINCTRL_TI_IODELAY
->>> +	bool "TI IODelay Module pinconf driver"
->>
->> This adds a boolean Kconfig symbol.
+From: Suman Anna <s-anna@ti.com>
 
-Uggh.. thanks for the review and catching this..
+The rproc_da_to_va API is currently used to perform any device to
+kernel address translations to meet the different needs of the remoteproc
+core/drivers (eg: loading). The functionality is achieved within the
+remoteproc core, and is limited only for carveouts allocated within the
+core.
 
->>
->>> +	depends on OF
->>> +	select PINCONF
->>> +	select GENERIC_PINCONF
->>> +	select REGMAP_MMIO
->>> +	help
->>> +	  Say Y here to support Texas Instruments' IODelay pinconf driver.
->>> +	  IODelay module is used for the DRA7 SoC family. This driver is in
->>> +	  addition to PINCTRL_SINGLE which controls the mux.
->>> +
->>>  config PINCTRL_TZ1090
->>>  	bool "Toumaz Xenif TZ1090 pin control driver"
->>>  	depends on SOC_TZ1090
->>> diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
->>> index 0475206dd600..e441cd71aedf 100644
->>> --- a/drivers/pinctrl/Makefile
->>> +++ b/drivers/pinctrl/Makefile
->>> @@ -28,6 +28,7 @@ obj-$(CONFIG_PINCTRL_TEGRA30)	+= pinctrl-tegra30.o
->>>  obj-$(CONFIG_PINCTRL_TEGRA114)	+= pinctrl-tegra114.o
->>>  obj-$(CONFIG_PINCTRL_TEGRA124)	+= pinctrl-tegra124.o
->>>  obj-$(CONFIG_PINCTRL_TEGRA_XUSB)	+= pinctrl-tegra-xusb.o
->>> +obj-$(CONFIG_PINCTRL_TI_IODELAY)	+= pinctrl-ti-iodelay.o
->>
->> So this objectfile will either be built-in or not be built at all.
->>
->>>  obj-$(CONFIG_PINCTRL_TZ1090)	+= pinctrl-tz1090.o
->>>  obj-$(CONFIG_PINCTRL_TZ1090_PDC)	+= pinctrl-tz1090-pdc.o
->>>  obj-$(CONFIG_PINCTRL_U300)	+= pinctrl-u300.o
->>> diff --git a/drivers/pinctrl/pinctrl-ti-iodelay.c b/drivers/pinctrl/pinctrl-ti-iodelay.c
->>> new file mode 100644
->>> index 000000000000..e4c6e25a781c
->>> --- /dev/null
->>> +++ b/drivers/pinctrl/pinctrl-ti-iodelay.c
->>> @@ -0,0 +1,963 @@
->>> [...]
->>> +#include <linux/err.h>
->>> +#include <linux/init.h>
->>> +#include <linux/io.h>
->>> +#include <linux/list.h>
->>> +#include <linux/module.h>
->>
->> This is, I think, a bit of a red flag.
->>
->>> +#include <linux/of_device.h>
->>> +#include <linux/of.h>
->>> +#include <linux/pinctrl/pinconf-generic.h>
->>> +#include <linux/pinctrl/pinconf.h>
->>> +#include <linux/pinctrl/pinctrl.h>
->>> +#include <linux/regmap.h>
->>> +#include <linux/slab.h>
->>
->> [...]
->>
->>> +static const struct of_device_id ti_iodelay_of_match[] = {
->>> +	{.compatible = "ti,dra7-iodelay", .data = &dra7_iodelay_data},
->>> +	{ /* Hopefully no more.. */ },
->>> +};
->>> +MODULE_DEVICE_TABLE(of, ti_iodelay_of_match);
->>> +
->>> +static struct platform_driver ti_iodelay_driver = {
->>> +	.probe = ti_iodelay_probe,
->>> +	.remove = ti_iodelay_remove,
->>> +	.driver = {
->>> +		   .owner = THIS_MODULE,
->>
->> So THIS_MODULE will, basically, be NULL.
->>
->>> +		   .name = DRIVER_NAME,
->>> +		   .of_match_table = ti_iodelay_of_match,
->>> +		   },
->>> +};
->>> +module_platform_driver(ti_iodelay_driver);
->>> +
->>> +MODULE_AUTHOR("Texas Instruments, Inc.");
->>> +MODULE_DESCRIPTION("Pinconf driver for TI's IO Delay module");
->>> +MODULE_LICENSE("GPL v2");
->>
->> And these three macros will be preprocessed away.
->>
->> (Perhaps there are non-modular alternatives to MODULE_DEVICE_TABLE and
->> module_platform_driver, but I'm not sure how those two macros actually
->> work.)
-> 
-> This should be just made to work as a regular loadable module.
-> We already have pinctrl-single for the same platforms working
-> as a loadable module.
-> 
-Yes, indeed. this can easily be fixed. my bad. will convert this to a
-module in the next rev.
+A new rproc ops, da_to_va, is added to provide flexibility to platform
+implementations to perform the address translation themselves when the
+above conditions cannot be met by the implementations. The rproc_da_to_va()
+API is extended to invoke this ops if present, and fallback to regular
+processing if the platform implementation cannot provide the translation.
+This will allow any remoteproc implementations to translate addresses for
+dedicated memories like internal memories, and facilitate the remoteproc
+core to also load certain firmware sections into internal memories (eg:
+RAM at L1 or L2 levels) for performance or other reasons.
 
-I will wait a week before reposting next rev to see if there are
-improvements necessary in other areas - specifically in the way
-pinconf is being used and if there are any binding related comments.
+While at this, also update the rproc_da_to_va() documentation since it
+is an exported function.
 
-Will be great to hear any feedback on the same as well.
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+This patch is a replacement for the patch ("remoteproc: add support to
+handle internal memories") @ https://patchwork.kernel.org/patch/5602981/
+The representation of internal memory regions is left to the individual
+platform implementations, as this might vary from one to another.
 
+ drivers/remoteproc/remoteproc_core.c | 31 +++++++++++++++++++++++++------
+ include/linux/remoteproc.h           |  2 ++
+ 2 files changed, 27 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 3cd85a63..e9825bd 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -147,28 +147,46 @@ static void rproc_disable_iommu(struct rproc *rproc)
+ 	return;
+ }
+ 
+-/*
++/**
++ * rproc_da_to_va() - lookup the kernel virtual address for a remoteproc address
++ * @rproc: handle of a remote processor
++ * @da: remoteproc device address to translate
++ * @len: length of the memory region @da is pointing to
++ *
+  * Some remote processors will ask us to allocate them physically contiguous
+  * memory regions (which we call "carveouts"), and map them to specific
+- * device addresses (which are hardcoded in the firmware).
++ * device addresses (which are hardcoded in the firmware). They may also have
++ * dedicated memory regions internal to the processors, and use them either
++ * exclusively or alongside carveouts.
+  *
+  * They may then ask us to copy objects into specific device addresses (e.g.
+  * code/data sections) or expose us certain symbols in other device address
+  * (e.g. their trace buffer).
+  *
+- * This function is an internal helper with which we can go over the allocated
+- * carveouts and translate specific device address to kernel virtual addresses
+- * so we can access the referenced memory.
++ * This function is a helper function with which we can go over the allocated
++ * carveouts and translate specific device addresses to kernel virtual addresses
++ * so we can access the referenced memory. This function also allows to perform
++ * translations on the internal remoteproc memory regions through a platform
++ * implementation specific da_to_va ops, if present.
++ *
++ * The function returns a valid kernel address on success or NULL on failure.
+  *
+  * Note: phys_to_virt(iommu_iova_to_phys(rproc->domain, da)) will work too,
+  * but only on kernel direct mapped RAM memory. Instead, we're just using
+- * here the output of the DMA API, which should be more correct.
++ * here the output of the DMA API for the carveouts, which should be more
++ * correct.
+  */
+ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
+ {
+ 	struct rproc_mem_entry *carveout;
+ 	void *ptr = NULL;
+ 
++	if (rproc->ops->da_to_va) {
++		ptr = rproc->ops->da_to_va(rproc, da, len);
++		if (ptr)
++			goto out;
++	}
++
+ 	list_for_each_entry(carveout, &rproc->carveouts, node) {
+ 		int offset = da - carveout->da;
+ 
+@@ -185,6 +203,7 @@ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
+ 		break;
+ 	}
+ 
++out:
+ 	return ptr;
+ }
+ EXPORT_SYMBOL(rproc_da_to_va);
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index 9e7e745..e0c0715 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -330,11 +330,13 @@ struct rproc;
+  * @start:	power on the device and boot it
+  * @stop:	power off the device
+  * @kick:	kick a virtqueue (virtqueue id given as a parameter)
++ * @da_to_va:	optional platform hook to perform address translations
+  */
+ struct rproc_ops {
+ 	int (*start)(struct rproc *rproc);
+ 	int (*stop)(struct rproc *rproc);
+ 	void (*kick)(struct rproc *rproc, int vqid);
++	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
+ };
+ 
+ /**
 -- 
-Regards,
-Nishanth Menon
+2.3.0
