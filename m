@@ -1,27 +1,92 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: Ethernet WOL (wake on lan)
-Date: Thu, 5 Mar 2015 18:53:56 +0200
-Message-ID: <CAJ2oMhKuDQXnJb795PeqsiOrBNEburB1AayRkGVQM9Tu92n=wA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
+ and add ranges
+Date: Thu, 5 Mar 2015 08:57:27 -0800
+Message-ID: <20150305165727.GE13520@atomide.com>
+References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
+ <1425528742-3087-3-git-send-email-d-gerlach@ti.com>
+ <20150305154039.GD13520@atomide.com>
+ <54F88849.1090708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:43511 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757896AbbCEQx6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 11:53:58 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54F88849.1090708@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hello,
+* Suman Anna <s-anna@ti.com> [150305 08:47]:
+> On 03/05/2015 09:40 AM, Tony Lindgren wrote:
+> > * Dave Gerlach <d-gerlach@ti.com> [150304 20:14]:
+> Dave,
+> 
+> Looks like the commit message disappeared during your patch preparation.
+> 
+> >> Signed-off-by: Suman Anna <s-anna@ti.com>
+> >> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> >> ---
+> >>  arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
+> >>  1 file changed, 13 insertions(+), 8 deletions(-)
+> >>
+> >> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> >> index acd3705..086415c 100644
+> >> --- a/arch/arm/boot/dts/am33xx.dtsi
+> >> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> >> @@ -77,10 +77,23 @@
+> >>  	 */
+> >>  	soc {
+> >>  		compatible = "ti,omap-infra";
+> >> +		#address-cells = <1>;
+> >> +		#size-cells = <1>;
+> >> +		ranges = <0x0     0x44d00000 0x4000>,
+> >> +			 <0x80000 0x44d80000 0x2000>;
+> >> +
+> > 
+> > I think putting the ranges here will cause issues for adding
+> > ranges for anything else.
+> > 
+> > How about do something like this instead (untested):
+> > 
+> > ocp {
+> > 	l4_wkup: l4_wkup@44c00000 {
+> > 		compatible = "am335-l4-wkup", "simple-bus";
+> > 		ranges = <0 0x44c00000 0x3fffff>;
+> > 
+> > 		wkup_m3: wkup_m3@44d00000 {
+> > 			compatible = "ti,am3353-wkup-m3";
+> > 			reg = <0x1000000     0x4000>,	/* M3 UMEM */
+> > 			      <0x180000	     0x2000>;	/* M3 DMEM */
+> > 			ti,hwmods = "wkup_m3";
+> > 			ti,pm-firmware = "am335x-pm-firmware.elf";
+> > 		};
+> > 
+> > 		...
+> > 	};
+> > };
+> > 
+> > That way we can start moving also the other l4_wkup components there
+> > eventuallly without having to redo the ranges again for wkup_m3.
+> > 
+> > You can also look at how the scm_conf was done for dm816x.dtsi for an
+> > example, and the recent large set of patches posted by Tero.
+> > 
+> Tony,
+> 
+> Thanks, I will take a look at this. I initially tried adding to ocp node
+> directly, but obviously it had issues.
+> 
+> But in general, you are ok with the ranges approach right, rather than
+> having to define another property with virtual addresses. These devices
+> are not on a separate bus like PCI, so I placed them in the soc node,
+> and expect only special devices like processors to kinda go under that node.
 
-I would please like to ask how I should use therenet WOL (wake on lan) ?
-I am using device smsc911x, and I can see in code that there is
-reference to WOL.
-But I don't understand how this should function.
-Should I call smsc911x_suspend() smsc911x_resume() or does it
-automatically suspend/resume ?
-Generally speaking I rather is to stop/start automatically.
+Yes ranges + simple-bus will allow using standard Linux modules no
+matter where the components move. And then getting the IO resources
+will behave properly for the drivers without any extra code to
+deal with the children.
 
-Thanks,
-Ran
+Regards,
+
+Tony
