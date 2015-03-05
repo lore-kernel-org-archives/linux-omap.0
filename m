@@ -1,79 +1,65 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2 0/3] remoteproc: Introduce wkup_m3_rproc driver
-Date: Wed, 4 Mar 2015 21:53:57 -0600
-Message-ID: <1425527640-2690-1-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v2 1/2] ARM: OMAP2+: Use pdata-quirks for wkup_m3 deassert_hardreset
+Date: Wed, 4 Mar 2015 22:12:21 -0600
+Message-ID: <1425528742-3087-2-git-send-email-d-gerlach@ti.com>
+References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This patch series is version two of the series to add a
-wkup_m3_rproc driver for TI AM335x SoCs. This family of SoCs
-contains an ARM Cortex M3 coprocessor that is responsible for
-low-level power tasks that cannot be handled by the main ARM
-Cortex A8 so firmware running from the CM3 can be used instead.
-This driver handles loading of the firmware and reset of the CM3
-once it is booted.
+Use pdata-quirks to provide platform data required for reset
+of the wkup_m3 during boot.
 
-The previous version of this series can be found here [1].
-I have pushed a branch based on v4.0-rc1 containing the entire 
-am335x suspend series here for a higher level view of the entire
-series of patch sets here [2].
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+This patch requires the pdata introduced in this patch:
+https://www.mail-archive.com/linux-omap@vger.kernel.org/msg114622.html
 
-This patch set contains a new patch from Suman Anna that replaces
-the RSC_INTMEM patch that this series used to depend on based on
-comments on that series. More info is included in the patch.
-Additional changes are:
+ arch/arm/mach-omap2/pdata-quirks.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-v1 -> v2:
--firmware loaded has changed, new code added by Suman Anna
--wkup_m3_rproc can now be built and loaded as a module
--added binding info and docs for am437x support
--dts and pdata-quirks patch split to separate mach-omap2 series
--remove ti,no-reset-on-init from required dt binding as it asserts
- hardreset which is default state of wkup_m3 anyway
-
-The driver expects to load firmware am335x-pm-firmware.elf from
-/lib/firmware which is found here [3].
-
-Regards,
-Dave
-
-[1] http://www.spinics.net/lists/arm-kernel/msg387984.html
-[2] https://github.com/dgerlach/linux-pm/tree/pm-v4.0-rc1-am335x-suspend
-[3] https://git.ti.com/ti-cm3-pm-firmware/amx3-cm3/commits/next-upstream
-
-Dave Gerlach (2):
-  Documentation: dt: add ti,am3353-wkup-m3 bindings
-  remoteproc: wkup_m3: Add wkup_m3 remoteproc driver
-
-Suman Anna (1):
-  remoteproc: add a rproc ops for performing address translation
-
- .../bindings/remoteproc/wkup_m3_rproc.txt          |  46 +++++
- drivers/remoteproc/Kconfig                         |  13 ++
- drivers/remoteproc/Makefile                        |   1 +
- drivers/remoteproc/remoteproc_core.c               |  31 ++-
- drivers/remoteproc/wkup_m3_rproc.c                 | 229 +++++++++++++++++++++
- include/linux/platform_data/wkup_m3.h              |  25 +++
- include/linux/remoteproc.h                         |   2 +
- 7 files changed, 341 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
- create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
- create mode 100644 include/linux/platform_data/wkup_m3.h
-
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 190fa43..7a09513 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/platform_data/pinctrl-single.h>
+ #include <linux/platform_data/iommu-omap.h>
++#include <linux/platform_data/wkup_m3.h>
+ 
+ #include "common.h"
+ #include "common-board-devices.h"
+@@ -287,6 +288,14 @@ static void __init omap3_tao3530_legacy_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
++#ifdef CONFIG_SOC_AM33XX
++static struct wkup_m3_platform_data wkup_m3_data = {
++	.reset_name = "wkup_m3",
++	.assert_reset = omap_device_assert_hardreset,
++	.deassert_reset = omap_device_deassert_hardreset,
++};
++#endif
++
+ #ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_sdp_legacy_init(void)
+ {
+@@ -382,6 +391,10 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
+ 		       &am35xx_emac_pdata),
+ #endif
++#ifdef CONFIG_SOC_AM33XX
++	OF_DEV_AUXDATA("ti,am3353-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
++		       &wkup_m3_data),
++#endif
+ #ifdef CONFIG_ARCH_OMAP4
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
 -- 
 2.3.0
