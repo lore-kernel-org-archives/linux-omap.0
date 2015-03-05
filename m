@@ -1,92 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
- and add ranges
-Date: Thu, 5 Mar 2015 08:57:27 -0800
-Message-ID: <20150305165727.GE13520@atomide.com>
-References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
- <1425528742-3087-3-git-send-email-d-gerlach@ti.com>
- <20150305154039.GD13520@atomide.com>
- <54F88849.1090708@ti.com>
+From: Kai Vehmanen <kvehmanen@nosignal.fi>
+Subject: Re: [PATCHv2 0/2] N900 Modem Speech Support
+Date: Thu, 5 Mar 2015 19:32:35 +0200 (EET)
+Message-ID: <alpine.DEB.2.00.1503051844420.2610@ecabase.localdomain>
+References: <1425343454-6551-1-git-send-email-sre@kernel.org> <20150305113013.GA3867@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54F88849.1090708@ti.com>
+In-Reply-To: <20150305113013.GA3867@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [150305 08:47]:
-> On 03/05/2015 09:40 AM, Tony Lindgren wrote:
-> > * Dave Gerlach <d-gerlach@ti.com> [150304 20:14]:
-> Dave,
-> 
-> Looks like the commit message disappeared during your patch preparation.
-> 
-> >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> >> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> >> ---
-> >>  arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
-> >>  1 file changed, 13 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> >> index acd3705..086415c 100644
-> >> --- a/arch/arm/boot/dts/am33xx.dtsi
-> >> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> >> @@ -77,10 +77,23 @@
-> >>  	 */
-> >>  	soc {
-> >>  		compatible = "ti,omap-infra";
-> >> +		#address-cells = <1>;
-> >> +		#size-cells = <1>;
-> >> +		ranges = <0x0     0x44d00000 0x4000>,
-> >> +			 <0x80000 0x44d80000 0x2000>;
-> >> +
-> > 
-> > I think putting the ranges here will cause issues for adding
-> > ranges for anything else.
-> > 
-> > How about do something like this instead (untested):
-> > 
-> > ocp {
-> > 	l4_wkup: l4_wkup@44c00000 {
-> > 		compatible = "am335-l4-wkup", "simple-bus";
-> > 		ranges = <0 0x44c00000 0x3fffff>;
-> > 
-> > 		wkup_m3: wkup_m3@44d00000 {
-> > 			compatible = "ti,am3353-wkup-m3";
-> > 			reg = <0x1000000     0x4000>,	/* M3 UMEM */
-> > 			      <0x180000	     0x2000>;	/* M3 DMEM */
-> > 			ti,hwmods = "wkup_m3";
-> > 			ti,pm-firmware = "am335x-pm-firmware.elf";
-> > 		};
-> > 
-> > 		...
-> > 	};
-> > };
-> > 
-> > That way we can start moving also the other l4_wkup components there
-> > eventuallly without having to redo the ranges again for wkup_m3.
-> > 
-> > You can also look at how the scm_conf was done for dm816x.dtsi for an
-> > example, and the recent large set of patches posted by Tero.
-> > 
-> Tony,
-> 
-> Thanks, I will take a look at this. I initially tried adding to ocp node
-> directly, but obviously it had issues.
-> 
-> But in general, you are ok with the ranges approach right, rather than
-> having to define another property with virtual addresses. These devices
-> are not on a separate bus like PCI, so I placed them in the soc node,
-> and expect only special devices like processors to kinda go under that node.
+Hi,
 
-Yes ranges + simple-bus will allow using standard Linux modules no
-matter where the components move. And then getting the IO resources
-will behave properly for the drivers without any extra code to
-deal with the children.
+On Thu, 5 Mar 2015, Pavel Machek wrote:
 
-Regards,
+>> Userland access goes via /dev/cmt_speech. The API is implemented in
+>> libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
+> Yes, the ABI is "tested" for some years, but it is not documented, and
+> it is very wrong ABI.
+>
+> I'm not sure what they do with the "read()". I was assuming it is
+> meant for passing voice data, but it can return at most 4 bytes,
+> AFAICT.
+>
+> We already have perfectly good ABI for passing voice data around. It
+> is called "ALSA". libcmtspeech will then become unneccessary, and the
+> daemon routing voice data will be as simple as "read sample from
 
-Tony
+I'm no longer involved with cmt_speech (with this driver nor modems in 
+general), but let me clarify some bits about the design.
+
+First, the team that designed the driver and the stack above had a lot of 
+folks working also with ALSA (and the ALSA drivers have been merged to 
+mainline long ago) and we considered ALSA on multiple occasions as the 
+interface for this as well.
+
+Our take was that ALSA is not the right interface for cmt_speech. The 
+cmt_speech interface in the modem is _not_ a PCM interface as modelled by 
+ALSA. Specifically:
+
+- the interface is lossy in both directions
+- data is sent in packets, not a stream of samples (could be other things
+   than PCM samples), with timing and meta-data
+- timing of uplink is of utmost importance
+
+Some definite similarities:
+  - the mmap interface to manage the PCM buffers (that is on purpose
+    similar to that of ALSA)
+
+The interface was designed so that the audio mixer (e.g. Pulseaudio) is 
+run with a soft real-time SCHED_FIFO/RR user-space thread that has full 
+control over _when_ voice _packets_ are sent, and can receive packets with 
+meta-data (see libcmtspeechdata interface, cmtspeech.h), and can 
+detect and handle gaps in the received packets.
+
+This is very different from modems that offer an actual PCM voice link for 
+example over I2S to the application processor (there are lots of these on 
+the market). When you walk out of coverage during a call with these 
+modems, you'll still get samples over I2S, but not so with cmt_speech, so 
+ALSA is not the right interface.
+
+Now, I'm not saying the interface is perfect, but just to give a bit of 
+background, why a custom char-device interface was chosen.
+
+PS Not saying it's enough for mainline inclusion, but libcmtspeechdata [1]
+    was released and documented to enable the driver to be used by
+    other software than the closed pulseaudio modules. You Pavel of course
+    know this as you've been maintaining the library, but FYI for others.
+
+[1] https://www.gitorious.org/libcmtspeechdata
+
+Br, Kai
