@@ -1,84 +1,73 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: add hibernation support
-Date: Thu, 5 Mar 2015 14:46:40 +0100
-Message-ID: <CAPDyKFoTBXNtGe1R3Kw3q8O28FgwxnfqSF2BkOYZqNxk4EpRsQ@mail.gmail.com>
-References: <1425036274-9017-1-git-send-email-grygorii.strashko@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
+ and add ranges
+Date: Thu, 5 Mar 2015 07:40:39 -0800
+Message-ID: <20150305154039.GD13520@atomide.com>
+References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
+ <1425528742-3087-3-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:51925 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753322AbbCENqk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 08:46:40 -0500
-Received: by mail-qa0-f53.google.com with SMTP id j7so1720654qaq.12
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2015 05:46:40 -0800 (PST)
-In-Reply-To: <1425036274-9017-1-git-send-email-grygorii.strashko@linaro.org>
+Received: from pmta1.delivery5.ore.mailhop.org ([54.148.219.64]:43663 "EHLO
+	pmta1.delivery5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756982AbbCEPqD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 10:46:03 -0500
+Content-Disposition: inline
+In-Reply-To: <1425528742-3087-3-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@linaro.org>
-Cc: Chris Ball <chris@printf.net>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, sumit.semwal@linaro.org, NeilBrown <neilb@suse.de>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Russ Dill <Russ.Dill@ti.com>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 
-On 27 February 2015 at 12:24,  <grygorii.strashko@linaro.org> wrote:
-> From: Russ Dill <Russ.Dill@ti.com>
->
-> Setting a dev_pm_ops suspend/resume pair but not a set of
-> hibernation functions means those pm functions will not be
-> called upon hibernation.
-> Fix this by using SET_SYSTEM_SLEEP_PM_OPS, which appropriately
-> assigns the suspend and hibernation handlers and move
-> omap_hsmmc_x callbacks under CONFIG_PM_SLEEP to avoid build warnings.
->
-> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-> [Grygorii.Strashko@linaro.org: rebased on top of K4.0]
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
-
-Applied, thanks!
-
-Kind regards
-Uffe
-
-
+* Dave Gerlach <d-gerlach@ti.com> [150304 20:14]:
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 > ---
->
-> original patch: https://github.com/russdill/linux/commit/2ea98def0717f0918426c2004122c63d52cff1b4
->
->  drivers/mmc/host/omap_hsmmc.c | 9 ++-------
->  1 file changed, 2 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index f84cfb0..9cc1ea3 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2236,7 +2236,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
->         return 0;
->  }
->
-> -#ifdef CONFIG_PM
-> +#ifdef CONFIG_PM_SLEEP
->  static int omap_hsmmc_suspend(struct device *dev)
->  {
->         struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-> @@ -2292,10 +2292,6 @@ static int omap_hsmmc_resume(struct device *dev)
->         pm_runtime_put_autosuspend(host->dev);
->         return 0;
->  }
-> -
-> -#else
-> -#define omap_hsmmc_suspend     NULL
-> -#define omap_hsmmc_resume      NULL
->  #endif
->
->  static int omap_hsmmc_runtime_suspend(struct device *dev)
-> @@ -2376,8 +2372,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
->  }
->
->  static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
-> -       .suspend        = omap_hsmmc_suspend,
-> -       .resume         = omap_hsmmc_resume,
-> +       SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
->         .runtime_suspend = omap_hsmmc_runtime_suspend,
->         .runtime_resume = omap_hsmmc_runtime_resume,
->  };
-> --
-> 1.9.1
->
+>  arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
+>  1 file changed, 13 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index acd3705..086415c 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -77,10 +77,23 @@
+>  	 */
+>  	soc {
+>  		compatible = "ti,omap-infra";
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges = <0x0     0x44d00000 0x4000>,
+> +			 <0x80000 0x44d80000 0x2000>;
+> +
+
+I think putting the ranges here will cause issues for adding
+ranges for anything else.
+
+How about do something like this instead (untested):
+
+ocp {
+	l4_wkup: l4_wkup@44c00000 {
+		compatible = "am335-l4-wkup", "simple-bus";
+		ranges = <0 0x44c00000 0x3fffff>;
+
+		wkup_m3: wkup_m3@44d00000 {
+			compatible = "ti,am3353-wkup-m3";
+			reg = <0x1000000     0x4000>,	/* M3 UMEM */
+			      <0x180000	     0x2000>;	/* M3 DMEM */
+			ti,hwmods = "wkup_m3";
+			ti,pm-firmware = "am335x-pm-firmware.elf";
+		};
+
+		...
+	};
+};
+
+That way we can start moving also the other l4_wkup components there
+eventuallly without having to redo the ranges again for wkup_m3.
+
+You can also look at how the scm_conf was done for dm816x.dtsi for an
+example, and the recent large set of patches posted by Tero.
+
+Regards,
+
+Tony
