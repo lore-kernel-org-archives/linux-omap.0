@@ -1,65 +1,70 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2 1/2] ARM: OMAP2+: Use pdata-quirks for wkup_m3 deassert_hardreset
-Date: Wed, 4 Mar 2015 22:12:21 -0600
-Message-ID: <1425528742-3087-2-git-send-email-d-gerlach@ti.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node and add ranges
+Date: Wed, 4 Mar 2015 22:12:22 -0600
+Message-ID: <1425528742-3087-3-git-send-email-d-gerlach@ti.com>
 References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1425528742-3087-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use pdata-quirks to provide platform data required for reset
-of the wkup_m3 during boot.
-
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
-This patch requires the pdata introduced in this patch:
-https://www.mail-archive.com/linux-omap@vger.kernel.org/msg114622.html
+ arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
- arch/arm/mach-omap2/pdata-quirks.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 190fa43..7a09513 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -18,6 +18,7 @@
- 
- #include <linux/platform_data/pinctrl-single.h>
- #include <linux/platform_data/iommu-omap.h>
-+#include <linux/platform_data/wkup_m3.h>
- 
- #include "common.h"
- #include "common-board-devices.h"
-@@ -287,6 +288,14 @@ static void __init omap3_tao3530_legacy_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
-+#ifdef CONFIG_SOC_AM33XX
-+static struct wkup_m3_platform_data wkup_m3_data = {
-+	.reset_name = "wkup_m3",
-+	.assert_reset = omap_device_assert_hardreset,
-+	.deassert_reset = omap_device_deassert_hardreset,
-+};
-+#endif
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index acd3705..086415c 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -77,10 +77,23 @@
+ 	 */
+ 	soc {
+ 		compatible = "ti,omap-infra";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0x0     0x44d00000 0x4000>,
++			 <0x80000 0x44d80000 0x2000>;
 +
- #ifdef CONFIG_ARCH_OMAP4
- static void __init omap4_sdp_legacy_init(void)
- {
-@@ -382,6 +391,10 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
- 		       &am35xx_emac_pdata),
- #endif
-+#ifdef CONFIG_SOC_AM33XX
-+	OF_DEV_AUXDATA("ti,am3353-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
-+		       &wkup_m3_data),
-+#endif
- #ifdef CONFIG_ARCH_OMAP4
- 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
- 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
+ 		mpu {
+ 			compatible = "ti,omap3-mpu";
+ 			ti,hwmods = "mpu";
+ 		};
++
++		wkup_m3: wkup_m3@44d00000 {
++			compatible = "ti,am3353-wkup-m3";
++			reg = <0x0     0x4000>,	/* M3 UMEM */
++			      <0x80000 0x2000>;	/* M3 DMEM */
++			ti,hwmods = "wkup_m3";
++			ti,pm-firmware = "am335x-pm-firmware.elf";
++		};
+ 	};
+ 
+ 	am33xx_control_module: control_module@4a002000 {
+@@ -755,14 +768,6 @@
+ 			reg = <0x40300000 0x10000>; /* 64k */
+ 		};
+ 
+-		wkup_m3: wkup_m3@44d00000 {
+-			compatible = "ti,am3353-wkup-m3";
+-			reg = <0x44d00000 0x4000	/* M3 UMEM */
+-			       0x44d80000 0x2000>;	/* M3 DMEM */
+-			ti,hwmods = "wkup_m3";
+-			ti,no-reset-on-init;
+-		};
+-
+ 		elm: elm@48080000 {
+ 			compatible = "ti,am3352-elm";
+ 			reg = <0x48080000 0x2000>;
 -- 
 2.3.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
