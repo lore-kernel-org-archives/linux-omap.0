@@ -1,90 +1,68 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: ARM: OMPA4+: is it expected dma_coerce_mask_and_coherent(dev,
- DMA_BIT_MASK(64)); to fail?
-Date: Thu, 5 Mar 2015 20:17:53 +0000
-Message-ID: <20150305201753.GG29584@n2100.arm.linux.org.uk>
-References: <54F8A68B.3080709@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt
+ property
+Date: Thu, 5 Mar 2015 12:17:14 -0800
+Message-ID: <20150305201713.GH13520@atomide.com>
+References: <1425561211-31003-1-git-send-email-d-gerlach@ti.com>
+ <1425561211-31003-2-git-send-email-d-gerlach@ti.com>
+ <alpine.DEB.2.02.1503051815590.5613@utopia.booyaka.com>
+ <20150305184952.GF13520@atomide.com> <54F8B2C7.7060202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <54F8A68B.3080709@linaro.org>
-Sender: owner-linux-mm@kvack.org
-To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tejun Heo <tj@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Laura Abbott <lauraa@codeaurora.org>, open list <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+In-Reply-To: <54F8B2C7.7060202@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, KEERTHY <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 05, 2015 at 08:55:07PM +0200, Grygorii.Strashko@linaro.org wrote:
-> Now I can see very interesting behavior related to dma_coerce_mask_and_coherent()
-> and friends which I'd like to explain and clarify.
+* Dave Gerlach <d-gerlach@ti.com> [150305 11:53]:
+> On 03/05/2015 12:49 PM, Tony Lindgren wrote:
+> > * Paul Walmsley <paul@pwsan.com> [150305 10:16]:
+> >> On Thu, 5 Mar 2015, Dave Gerlach wrote:
+> >>
+> >>> Introduce a dt property, ti,no-init, that prevents hwmod initialization.
+> >>> Even if a dt node is marked as disabled, hwmod still at least enables
+> >>> the hwmod and programs the sysconfig before attempting to idle it at
+> >>> boot. If an IP has been disabled by the hardware configuration on a
+> >>> platform, this will cause a hang due to writing to inactive registers.
+> >>> This property prevents that from happening by marking the hwmod as
+> >>> _HWMOD_STATE_DISABLED during init.
+> >>
+> >> I'm kind of wondering if hwmod should even touch a device if it's marked 
+> >> as disabled in the DT.  Tony, what do you think?
+> > 
+> > Well nothing happens if a device is status = "disabled". No dev entry
+> > gets created for it at all and hwmod won't have any data for the device
+> > populated. The only way hwmod code could see that device if the device
+> > gets it's data from the legacy omap_hwmod_*_data.c instead of DT.
+> > 
 > 
-> Below is set of questions I have (why - I explained below):
-> - Is expected dma_coerce_mask_and_coherent(DMA_BIT_MASK(64)) and friends to fail on 32 bits HW?
+> We still need this for the sysconfig programming, correct? hwmod programs that
+> regardless of dt status and then idles the IP,
 
-Not really.
+Well hwmod does not even know about the IP IO addresses if it's marked
+with status = "disabled".. Which IP are you having problems with?
 
-> - What is expected value for max_pfn: max_phys_pfn or max_phys_pfn + 1?
+> which is why I needed the ti,no-init for the epos evm. It isn't just a
+> matter of we shouldnt write to it because we don't want to use it; we
+> can't write to it because the module is held off so it causes an
+> external abort if we do.
 
-mm/page_owner.c:
-        /* Find an allocated page */
-        for (; pfn < max_pfn; pfn++) {
+Well hard to say not knowing which module this is.. Pretty much all
+the modules have drivers and the driver just does pm_runtime_get()
+on it?
 
-drivers/base/platform.c:    u32 low_totalram = ((max_pfn - 1) << PAGE_SHIFT);
-drivers/base/platform.c:    u32 high_totalram = ((max_pfn - 1) >> (32 - PAGE_SHIFT));
+Regards,
 
-So, there's ample evidence that max_pfn is one more than the greatest pfn
-which may be used in the system.
-
-> - What is expected value for struct memblock_region->size: mem_range_size or mem_range_size - 1?
-
-A size is a size - it's a number of bytes contained within the region.
-If it is value 1, then there is exactly one byte in the region.  If
-there are 0x7fffffff, then there are 2G-1 bytes in the region, not 2G.
-
-> - What is expected value to be returned by memblock_end_of_DRAM():
->   @base + @size(max_phys_addr + 1) or @base + @size - 1(max_phys_addr)?
-
-The last address plus one in the system.  However, there's a problem here.
-On a 32-bit system, phys_addr_t may be 32-bit.  If it is 32-bit, then
-"last address plus one" could be zero, which makes no sense.  Hence, it
-is artificially reduced to 0xfffff000, thereby omitting the final page.
-
-> Example 3 CONFIG_ARM_LPAE=y (but system really works with 32 bit address space):
-> 	memory {
-> 		device_type = "memory";
-> 		reg = <0x80000000 0x80000000>;
-> 	};
-> 
->   memblock will be configured as:
-> 	memory.cnt  = 0x1
-> 	memory[0x0]     [0x00000080000000-0x000000ffffffff], 0x80000000 bytes flags: 0x0
-> 							     ^^^^^^^^^^
->   max_pfn = 0x00100000
-> 
-> The dma_coerce_mask_and_coherent() will fail in case 'Example 3' and succeed in cases 1,2.
-> dma-mapping.c --> __dma_supported()
-> 	if (sizeof(mask) != sizeof(dma_addr_t) && <== true for all OMAP4+
-> 	    mask > (dma_addr_t)~0 &&		<== true for DMA_BIT_MASK(64)
-> 	    dma_to_pfn(dev, ~0) < max_pfn) {  <== true only for Example 3
-
-Hmm, I think this may make more sense to be "< max_pfn - 1" here, as
-that would be better suited to our intention.
-
-The result of dma_to_pfn(dev, ~0) is the maximum PFN which we could
-address via DMA, but we're comparing it with the maximum PFN in the
-system plus 1 - so we need to subtract one from it.
-
-Please think about this and test this out; I'm not back to normal yet
-(post-op) so I could very well not be thinking straight yet.
-
-Thanks.
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Tony
