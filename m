@@ -1,68 +1,92 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper
- functions
-Date: Fri, 6 Mar 2015 14:05:43 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1503061358260.1407-100000@iolanthe.rowland.org>
-References: <20150306161920.GM13520@atomide.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/10] omap3 crypto fixes
+Date: Fri, 6 Mar 2015 20:16:05 +0100
+Message-ID: <201503062016.05608@pali>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com> <20150306183631.GA13520@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150306161920.GM13520@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: multipart/signed;
+  boundary="nextPart4273937.UzHOZsBag1";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150306183631.GA13520-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 6 Mar 2015, Tony Lindgren wrote:
+--nextPart4273937.UzHOZsBag1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> > > +	struct wakeirq_source *wirq = _wirq;
-> > > +	irqreturn_t ret = IRQ_NONE;
-> > > +
-> > > +	/* We don't want RPM_ASYNC or RPM_NOWAIT here */
-> > > +	if (pm_runtime_suspended(wirq->dev)) {
-> > 
-> > What if the device is resumed on a different CPU right here?
-> 
-> Good point, sounds like we need to do this in some pm_runtime
-> function directly for the locking.
->  
-> > > +		pm_runtime_mark_last_busy(wirq->dev);
-> > > +		pm_runtime_resume(wirq->dev);
-> > 
-> > Calling this with disabled interrupts is a bad idea in general.
-> > Is the device guaranteed to have power.irq_safe set?
-> 
-> Well right now it's using threaded irq, and I'd like to get rid of
-> the pm_runtime calls in the regular driver interrupts completely.
-> We need to ensure the device runtime_resume is completed before
-> returning IRQ_HANDLED here.
+On Friday 06 March 2015 19:36:32 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150226 05:54]:
+> > This patch series fix crypto support for omap3 devices which
+> > use DT.
+> >=20
+> > It enables AES and SHAM on N9/N950 and SHAM on N900. AES is
+> > still disabled for N900.
+> >=20
+> > Pali Roh=C3=A1r (10):
+> >   ARM: OMAP2+: Return correct error values from device and
+> >   hwmod ARM: OMAP3: Fix crypto support for HS devices
+> >   crypto: omap-sham: Add support for omap3 devices
+> >   crypto: omap-sham: Check for return value from
+> >   pm_runtime_get_sync ARM: dts: omap3 hs: Remove timer12
+> >   ARM: dts: omap3: Add missing dmas for crypto
+> >   ARM: dts: n9/n950: Enable omap crypto support
+> >   ARM: dts: n900: Enable omap sham and include directly
+> >   omap34xx.dtsi ARM: dts: omap3-tao3530: Include directly
+> >   omap34xx.dtsi ARM: dts: Remove files omap34xx-hs.dtsi and
+> >   omap36xx-hs.dtsi
+> > =20
+> >  arch/arm/boot/dts/omap3-n900.dts           |   16 +++++-
+> >  arch/arm/boot/dts/omap3-n950-n9.dtsi       |    2 +-
+> >  arch/arm/boot/dts/omap3-tao3530.dtsi       |   11 +++-
+> >  arch/arm/boot/dts/omap3.dtsi               |    4 ++
+> >  arch/arm/boot/dts/omap34xx-hs.dtsi         |   16 ------
+> >  arch/arm/boot/dts/omap36xx-hs.dtsi         |   16 ------
+> >  arch/arm/mach-omap2/omap_device.c          |   30
+> >  ++++++----- arch/arm/mach-omap2/omap_hwmod.c           | =20
+> >  10 ++-- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   79
+> >  +++++++++++++++++++++++----- drivers/crypto/omap-sham.c  =20
+> >               |   13 ++++- 10 files changed, 131
+> >  insertions(+), 66 deletions(-) delete mode 100644
+> >  arch/arm/boot/dts/omap34xx-hs.dtsi delete mode 100644
+> >  arch/arm/boot/dts/omap36xx-hs.dtsi
+>=20
+> Are there any fixes in this series that should go into
+> v4.0-rc series, or can it all wait for v4.1?
+>=20
+> Regards,
+>=20
+> Tony
 
-In general, runtime_resume methods are allowed to sleep.  They can't be
-used in an interrupt handler top half unless the driver has
-specifically promised they are IRQ-safe.  That's what Rafael was
-getting at.
+I do not know which patches are you sending to 4.0-rc series, but=20
+omap crypto is totally broken in linus tree for both GP & HS=20
+omap3 devices when DT booting is used. This patch series fix that=20
+problem.
 
-Of course, if this routine is a threaded-irq bottom half then there's 
-no problem.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
-> > I guess what you want to call here is pm_request_resume() and
-> > I wouldn't say that calling pm_runtime_mark_last_busy() on a
-> > suspended device was valid.
-> 
-> I'll verify again, but I believe the issue was that without doing
-> mark_last_busy here the device falls back asleep right away.
-> That probably should be fixed in pm_runtime in general if that's
-> the case.
+--nextPart4273937.UzHOZsBag1
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-It's up to the subsystem to handle this.  For example, the USB 
-subsystem's runtime-resume routine calls pm_runtime_mark_last_busy.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-> Considering the above, should we add a new function something like
-> pm_resume_complete() that does not need irq_safe set but does
-> not return until the device has completed resume?
+iEYEABECAAYFAlT5/PUACgkQi/DJPQPkQ1JmWwCdHik8a25hVfqosZiBMBazhiTi
+XfwAoKPvyyHF9andlc8NXXaYTTY1p653
+=Gn3R
+-----END PGP SIGNATURE-----
 
-That doesn't make sense.  You're asking for a routine that is allowed
-to sleep but can safely be called in interrupt context.
-
-Alan Stern
-
+--nextPart4273937.UzHOZsBag1--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
