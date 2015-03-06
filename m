@@ -1,34 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/24] ARM: OMAP2+: clock: remove support for legacy
- mpurate command line param
-Date: Fri, 6 Mar 2015 07:32:55 -0800
-Message-ID: <20150306153254.GK13520@atomide.com>
-References: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
- <1425644939-3232-12-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH v2 7/7] ARM: dts: am335x-boneblack: Use new binding for
+ HDMI
+Date: Fri, 6 Mar 2015 07:36:32 -0800
+Message-ID: <20150306153632.GL13520@atomide.com>
+References: <cover.1425656120.git.jsarha@ti.com>
+ <e68f9647bff12fda5c70b3f068d3feb3911bca91.1425656120.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta1.delivery1.ore.mailhop.org ([54.191.214.3]:41587 "EHLO
-	pmta1.delivery1.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754387AbbCFPiT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 10:38:19 -0500
-Received: from smtp4.ore.mailhop.org (172.31.18.134) by pmta1.delivery1.ore.mailhop.org id hv74te20r84b for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 15:37:58 +0000 (envelope-from <tony@atomide.com>)
+Received: from pmta1.delivery8.ore.mailhop.org ([54.191.158.99]:46090 "EHLO
+	pmta1.delivery8.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754456AbbCFPnG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 10:43:06 -0500
 Content-Disposition: inline
-In-Reply-To: <1425644939-3232-12-git-send-email-t-kristo@ti.com>
+In-Reply-To: <e68f9647bff12fda5c70b3f068d3feb3911bca91.1425656120.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr
 
-* Tero Kristo <t-kristo@ti.com> [150306 04:29]:
-> The legacy support is wrong and dangerous, as it doesn't take any
-> OPPs into account and does not scale voltages. Switching mpurate should
-> be handled through cpufreq.
+* Jyri Sarha <jsarha@ti.com> [150306 07:37]:
+> Use new binding for the external tda19988 HDMI encoder.
 
-Hmm I wonder if some systems actually rely on the mpurate cmdline
-parameter. If this cannot be fixed properly, you should at least
-print an error here.
+Can this be merged separately after the driver code is
+merged with things still working?
+
+Otherwise we can have glitches with the output working and
+have dependencies between kernel branches.
 
 Regards,
 
 Tony
+
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-boneblack.dts | 20 +++++++++++++++-----
+>  1 file changed, 15 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+> index 5c42d25..eadbba3 100644
+> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+> @@ -68,16 +68,26 @@
+>  
+>  &lcdc {
+>  	status = "okay";
+> +	port {
+> +		lcdc_0: endpoint@0 {
+> +			remote-endpoint = <&hdmi_0>;
+> +		};
+> +	};
+>  };
+>  
+> -/ {
+> -	hdmi {
+> -		compatible = "ti,tilcdc,slave";
+> -		i2c = <&i2c0>;
+> +&i2c0 {
+> +	tda19988 {
+> +		compatible = "nxp,tda998x";
+> +		reg = <0x70>;
+>  		pinctrl-names = "default", "off";
+>  		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+>  		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+> -		status = "okay";
+> +
+> +		port {
+> +			hdmi_0: endpoint@0 {
+> +				remote-endpoint = <&lcdc_0>;
+> +			};
+> +		};
+>  	};
+>  };
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
