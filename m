@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] serial: omap: Switch wake-up interrupt to generic wakeirq
-Date: Thu,  5 Mar 2015 16:34:08 -0800
-Message-ID: <1425602049-2674-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 2/4] serial: 8250_omap: Move wake-up interrupt to generic wakeirq
+Date: Thu,  5 Mar 2015 16:34:07 -0800
+Message-ID: <1425602049-2674-3-git-send-email-tony@atomide.com>
 References: <1425602049-2674-1-git-send-email-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1425602049-2674-1-git-send-email-tony@atomide.com>
@@ -15,121 +15,158 @@ for the wake-up interrupts.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/tty/serial/omap-serial.c | 38 ++++++++++++++------------------------
- 1 file changed, 14 insertions(+), 24 deletions(-)
+ drivers/tty/serial/8250/8250_omap.c | 67 ++++++++-----------------------------
+ 1 file changed, 14 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 10256fa..1e82365 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -38,6 +38,7 @@
- #include <linux/serial_core.h>
- #include <linux/irq.h>
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index fe6d2e51..e3e7851 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -23,6 +23,7 @@
  #include <linux/pm_runtime.h>
+ #include <linux/console.h>
+ #include <linux/pm_qos.h>
 +#include <linux/pm_wakeirq.h>
- #include <linux/of.h>
- #include <linux/of_irq.h>
- #include <linux/gpio.h>
-@@ -135,6 +136,7 @@ struct uart_omap_port {
- 	struct uart_port	port;
- 	struct uart_omap_dma	uart_dma;
- 	struct device		*dev;
-+	struct wakeirq_source	*wirq;
- 	int			wakeirq;
+ #include <linux/dma-mapping.h>
  
- 	unsigned char		ier;
-@@ -160,7 +162,6 @@ struct uart_omap_port {
- 	unsigned long		port_activity;
- 	int			context_loss_cnt;
- 	u32			errata;
--	u8			wakeups_enabled;
- 	u32			features;
+ #include "8250.h"
+@@ -99,6 +100,7 @@ struct omap8250_priv {
+ 	struct pm_qos_request pm_qos_request;
+ 	struct work_struct qos_work;
+ 	struct uart_8250_dma omap8250_dma;
++	struct wakeirq_source *wirq;
+ };
  
- 	int			rts_gpio;
-@@ -209,28 +210,11 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
- 	return pdata->get_context_loss_count(up->dev);
+ static u32 uart_read(struct uart_8250_port *up, u32 reg)
+@@ -552,17 +554,6 @@ static void omap8250_uart_qos_work(struct work_struct *work)
+ 	pm_qos_update_request(&priv->pm_qos_request, priv->latency);
  }
  
--static inline void serial_omap_enable_wakeirq(struct uart_omap_port *up,
--				       bool enable)
+-static irqreturn_t omap_wake_irq(int irq, void *dev_id)
 -{
--	if (!up->wakeirq)
--		return;
+-	struct uart_port *port = dev_id;
+-	int ret;
 -
--	if (enable)
--		enable_irq(up->wakeirq);
--	else
--		disable_irq_nosync(up->wakeirq);
+-	ret = port->handle_irq(port);
+-	if (ret)
+-		return IRQ_HANDLED;
+-	return IRQ_NONE;
 -}
 -
-+/* REVISIT: Remove this when omap3 boots in device tree only mode */
- static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ static int omap_8250_startup(struct uart_port *port)
  {
- 	struct omap_uart_port_info *pdata = dev_get_platdata(up->dev);
+ 	struct uart_8250_port *up =
+@@ -572,11 +563,15 @@ static int omap_8250_startup(struct uart_port *port)
+ 	int ret;
  
--	if (enable == up->wakeups_enabled)
--		return;
--
--	serial_omap_enable_wakeirq(up, enable);
--	up->wakeups_enabled = enable;
--
- 	if (!pdata || !pdata->enable_wakeup)
- 		return;
- 
-@@ -750,13 +734,16 @@ static int serial_omap_startup(struct uart_port *port)
- 
- 	/* Optional wake-up IRQ */
- 	if (up->wakeirq) {
--		retval = request_irq(up->wakeirq, serial_omap_irq,
--				     up->port.irqflags, up->name, up);
-+		up->wirq = devm_kzalloc(up->dev, sizeof(*up->wirq),
-+					GFP_KERNEL);
-+		if (!up->wirq)
+ 	if (priv->wakeirq) {
+-		ret = request_irq(priv->wakeirq, omap_wake_irq,
+-				  port->irqflags, "uart wakeup irq", port);
++		priv->wirq = devm_kzalloc(port->dev,
++					  sizeof(*priv->wirq),
++					  GFP_KERNEL);
++		if (!priv->wirq)
 +			return -ENOMEM;
-+		retval = dev_pm_wakeirq_request(up->dev, up->wakeirq,
-+						NULL, 0, NULL, up->wirq);
- 		if (retval) {
- 			free_irq(up->port.irq, up);
- 			return retval;
- 		}
--		disable_irq(up->wakeirq);
++		ret = dev_pm_wakeirq_request(port->dev, priv->wakeirq,
++					     NULL, 0, NULL, priv->wirq);
+ 		if (ret)
+ 			return ret;
+-		disable_irq(priv->wakeirq);
  	}
  
- 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
-@@ -845,8 +832,7 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- 	free_irq(up->port.irq, up);
--	if (up->wakeirq)
--		free_irq(up->wakeirq, up);
-+	dev_pm_wakeirq_free(up->wirq);
+ 	pm_runtime_get_sync(port->dev);
+@@ -604,8 +599,7 @@ static int omap_8250_startup(struct uart_port *port)
+ err:
+ 	pm_runtime_mark_last_busy(port->dev);
+ 	pm_runtime_put_autosuspend(port->dev);
+-	if (priv->wakeirq)
+-		free_irq(priv->wakeirq, port);
++	dev_pm_wakeirq_free(priv->wirq);
+ 	return ret;
  }
  
- static void serial_omap_uart_qos_work(struct work_struct *work)
-@@ -1479,6 +1465,8 @@ static int serial_omap_suspend(struct device *dev)
- 	else
- 		serial_omap_enable_wakeup(up, false);
+@@ -627,8 +621,7 @@ static void omap_8250_shutdown(struct uart_port *port)
+ 	pm_runtime_mark_last_busy(port->dev);
+ 	pm_runtime_put_autosuspend(port->dev);
  
-+	dev_pm_wakeirq_arm_for_suspend(up->wirq);
-+
+-	if (priv->wakeirq)
+-		free_irq(priv->wakeirq, port);
++	dev_pm_wakeirq_free(priv->wirq);
+ }
+ 
+ static void omap_8250_throttle(struct uart_port *port)
+@@ -1130,31 +1123,6 @@ static int omap8250_remove(struct platform_device *pdev)
  	return 0;
  }
  
-@@ -1838,6 +1826,7 @@ static int serial_omap_runtime_suspend(struct device *dev)
- 	up->context_loss_cnt = serial_omap_get_context_loss_count(up);
+-#ifdef CONFIG_PM
+-
+-static inline void omap8250_enable_wakeirq(struct omap8250_priv *priv,
+-					   bool enable)
+-{
+-	if (!priv->wakeirq)
+-		return;
+-
+-	if (enable)
+-		enable_irq(priv->wakeirq);
+-	else
+-		disable_irq_nosync(priv->wakeirq);
+-}
+-
+-static void omap8250_enable_wakeup(struct omap8250_priv *priv,
+-				   bool enable)
+-{
+-	if (enable == priv->wakeups_enabled)
+-		return;
+-
+-	omap8250_enable_wakeirq(priv, enable);
+-	priv->wakeups_enabled = enable;
+-}
+-#endif
+-
+ #ifdef CONFIG_PM_SLEEP
+ static int omap8250_prepare(struct device *dev)
+ {
+@@ -1181,11 +1149,7 @@ static int omap8250_suspend(struct device *dev)
  
- 	serial_omap_enable_wakeup(up, true);
-+	dev_pm_wakeirq_enable(up->wirq);
+ 	serial8250_suspend_port(priv->line);
+ 	flush_work(&priv->qos_work);
+-
+-	if (device_may_wakeup(dev))
+-		omap8250_enable_wakeup(priv, true);
+-	else
+-		omap8250_enable_wakeup(priv, false);
++	dev_pm_wakeirq_arm_for_suspend(priv->wirq);
+ 	return 0;
+ }
  
- 	up->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
- 	schedule_work(&up->qos_work);
-@@ -1852,6 +1841,7 @@ static int serial_omap_runtime_resume(struct device *dev)
- 	int loss_cnt = serial_omap_get_context_loss_count(up);
+@@ -1193,9 +1157,6 @@ static int omap8250_resume(struct device *dev)
+ {
+ 	struct omap8250_priv *priv = dev_get_drvdata(dev);
  
- 	serial_omap_enable_wakeup(up, false);
-+	dev_pm_wakeirq_disable(up->wirq);
+-	if (device_may_wakeup(dev))
+-		omap8250_enable_wakeup(priv, false);
+-
+ 	serial8250_resume_port(priv->line);
+ 	return 0;
+ }
+@@ -1237,7 +1198,7 @@ static int omap8250_runtime_suspend(struct device *dev)
+ 			return -EBUSY;
+ 	}
  
- 	if (loss_cnt < 0) {
- 		dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
+-	omap8250_enable_wakeup(priv, true);
++	dev_pm_wakeirq_enable(priv->wirq);
+ 	if (up->dma)
+ 		omap_8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
+ 
+@@ -1258,7 +1219,7 @@ static int omap8250_runtime_resume(struct device *dev)
+ 		return 0;
+ 
+ 	up = serial8250_get_port(priv->line);
+-	omap8250_enable_wakeup(priv, false);
++	dev_pm_wakeirq_disable(priv->wirq);
+ 	loss_cntx = omap8250_lost_context(up);
+ 
+ 	if (loss_cntx)
 -- 
 2.1.4
