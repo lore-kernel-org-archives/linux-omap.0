@@ -1,83 +1,69 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: twl4030_charger: need changes to get probed?
-Date: Fri, 6 Mar 2015 23:56:06 +0100
-Message-ID: <201503062356.06110@pali>
-References: <20150224043341.4243.23291.stgit@notabene.brown> <CANOLnONUtfF1UwgW3O5fkAX30UMznZXwbtPkqPFDLR4jFdNqow@mail.gmail.com> <20150306224034.GA20559@amd>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper functions
+Date: Sat, 07 Mar 2015 00:30:25 +0100
+Message-ID: <1638656.aLmbYYvRI6@vostro.rjw.lan>
+References: <Pine.LNX.4.44L0.1503061358260.1407-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1632230.Lj8Be8I94Y";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150306224034.GA20559@amd>
+In-Reply-To: <Pine.LNX.4.44L0.1503061358260.1407-100000@iolanthe.rowland.org>
 Sender: linux-pm-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, ivo.g.dimitrov.75@gmail.com, Samuel Ortiz <sameo@linux.intel.com>, khilman@kernel.org, NeilBrown <neilb@suse.de>, sre@debian.org, linux-pm@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, sre@ring0.de, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1632230.Lj8Be8I94Y
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Friday, March 06, 2015 02:05:43 PM Alan Stern wrote:
+> On Fri, 6 Mar 2015, Tony Lindgren wrote:
+> 
+> > > > +	struct wakeirq_source *wirq = _wirq;
+> > > > +	irqreturn_t ret = IRQ_NONE;
+> > > > +
+> > > > +	/* We don't want RPM_ASYNC or RPM_NOWAIT here */
+> > > > +	if (pm_runtime_suspended(wirq->dev)) {
+> > > 
+> > > What if the device is resumed on a different CPU right here?
+> > 
+> > Good point, sounds like we need to do this in some pm_runtime
+> > function directly for the locking.
+> >  
+> > > > +		pm_runtime_mark_last_busy(wirq->dev);
+> > > > +		pm_runtime_resume(wirq->dev);
+> > > 
+> > > Calling this with disabled interrupts is a bad idea in general.
+> > > Is the device guaranteed to have power.irq_safe set?
+> > 
+> > Well right now it's using threaded irq, and I'd like to get rid of
+> > the pm_runtime calls in the regular driver interrupts completely.
+> > We need to ensure the device runtime_resume is completed before
+> > returning IRQ_HANDLED here.
+> 
+> In general, runtime_resume methods are allowed to sleep.  They can't be
+> used in an interrupt handler top half unless the driver has
+> specifically promised they are IRQ-safe.  That's what Rafael was
+> getting at.
+> 
+> Of course, if this routine is a threaded-irq bottom half then there's 
+> no problem.
 
-On Friday 06 March 2015 23:40:34 Pavel Machek wrote:
-> On Sat 2015-03-07 00:12:07, Grazvydas Ignotas wrote:
-> > On Fri, Mar 6, 2015 at 11:57 PM, Pali Roh=C3=A1r
-> > <pali.rohar@gmail.com> wrote:
-> > > On Friday 06 March 2015 22:24:17 Pavel Machek wrote:
-> > >> Hi!
-> > >>=20
-> > >> According to n900 dts, twl4030-bci (aka charger) should
-> > >> be included.
-> > >=20
-> > > AFAIK it is not present on n900...
-> >=20
-> > Right, it uses twl5030 variant without the charger, charging
-> > on n900 is provided by separate chip and for a good reason
-> > as twl's charger is not that good. Forcing the driver to
-> > load just ends up with it accessing non-existent registers
-> > over i2c.
->=20
-> Ok, but:
->=20
-> 1) Why is the twl4030-bci enabled in n900's dts, then
->=20
+Yup.  I overlooked the threaded part.
 
-maybe it is bug in n900 dts...
+> > > I guess what you want to call here is pm_request_resume() and
+> > > I wouldn't say that calling pm_runtime_mark_last_busy() on a
+> > > suspended device was valid.
+> > 
+> > I'll verify again, but I believe the issue was that without doing
+> > mark_last_busy here the device falls back asleep right away.
+> > That probably should be fixed in pm_runtime in general if that's
+> > the case.
+> 
+> It's up to the subsystem to handle this.  For example, the USB 
+> subsystem's runtime-resume routine calls pm_runtime_mark_last_busy.
 
-Grazvydas, is there some runtime check if twl4030/twl5030 chip=20
-has charger or not? or do we need to explicitly disable device=20
-twl4030-bci in DT?
+I'm wondering, though, if there's any reason for us to avoid updating
+power.last_busy in rpm_resume().
 
-> and
->=20
-> 2) When it is enabled, why it does not load?
->=20
-> (I guess there's no way to get to input voltage on n900...?)
->=20
-> 									Pavel
+If I was a driver writer, I'd expect the core to do that for me quite frankly.
 
-you can read voltage only from rx51_battery.ko (TWL ADC) or=20
-bq27x00_battery.ko
+Rafael
 
-look for Nokia_N900_RX-51_Schematics.pdf file where you can find=20
-information what is connected to ADC and bq27200 chip.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1632230.Lj8Be8I94Y
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlT6MIYACgkQi/DJPQPkQ1IhHwCfftLheK7rQDlP7eUn996Srk4Y
-ipYAoMsN4mMCc4rPvMPlRnAZB8ZSFmim
-=m3Tn
------END PGP SIGNATURE-----
-
---nextPart1632230.Lj8Be8I94Y--
