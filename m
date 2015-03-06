@@ -1,80 +1,63 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/8 v4] ARM OMAP2+ GPMC: fixes and bus children
-Date: Fri, 6 Mar 2015 14:15:01 +0200
-Message-ID: <54F99A45.2020409@ti.com>
-References: <1425052615-29093-1-git-send-email-rabel@cit-ec.uni-bielefeld.de> <20150306005813.GF13510@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/24] ARM: OMAP2+: move clock implementations under clock driver
+Date: Fri, 6 Mar 2015 14:28:35 +0200
+Message-ID: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150306005813.GF13510@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58155 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751118AbbCFM3Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Mar 2015 07:29:25 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 06/03/15 02:58, Tony Lindgren wrote:
-> * Robert ABEL <rabel@cit-ec.uni-bielefeld.de> [150227 08:00]:
->> These are the changes I proposed in these patch series: [1], [2], [3], [4]
->> rebased to 3.19 as well as new changes for little bugs I noticed while
->> preparing this patch series as well as changes introduced via comments.
->>
->> 1. DEBUG was undefined in source code --> remove offending lines
->> 2. add capability to have busses as children of the GPMC and multiple
->>    devices on a bus. See [2] for an example DTS syntax.
->> 3. debug output was unaligned --> align it
->> 4. output for copy-pasting to DTS had erroneous timing outputs and
->>    made it hard to copy-paste --> correct timing values, add comments
->>    as DTS comments.
->> 5. WAITMONITORINGTIME is expressed as GPMC_CLK cycles for all accesses.
->>    GPMCFCLKDIVIDER is used as a divider, so it must always be programmed.
->> 6. GPMCFCLKDIVIDER is calculated according to WAITMONITORINGTIME for
->>    asynchronous accesses inside the driver --> asynchronous accesses now
->>    completely decoupled from gpmc,sync-clk-ps.
->> 7. WAITMONITORINGTIME was being programmed/shown in GPMC_FCLK cycles instead
->>    of GPMC_CLK cycles --> add clock domain information where necessary.
->> 8. Calculated values for WAITMONITORINGTIME and CLKACTIVATIONTIME that were
->>    outside the defined range would not raise an error.
->>    DEVICESIZE, ATTACHEDDEVICEPAGELENGTH, WAITMONITORINGTIME and
->>    CLKACTIVATIONTIME would not be marked as incorrect on DTS output.
->>    --> Fix all of these.
-> 
-> Thanks for fixing all these issues:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Thanks. Patches are added to my git tree at
-	git@github.com:rogerq/linux.git
-in the branch
-	for-v4.1/gpmc-omap
+This set moves almost all the legacy OMAP2+ clock driver implementations
+under TI clock driver itself. Some non-used code is deleted at the same time.
 
-cheers,
--roger
-> 
->  
->> [1]: https://lkml.org/lkml/2015/2/12/495
->> [2]: https://lkml.org/lkml/2015/2/16/337
->> [3]: https://lkml.org/lkml/2015/2/24/609
->> [4]: https://lkml.org/lkml/2015/2/26/387
->>
->> Robert ABEL (9):
->>   ARM OMAP2+ GPMC: don't undef DEBUG
->>   ARM OMAP2+ GPMC: add bus children
->>   ARM OMAP2+ GPMC: fix debug output alignment
->>   ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
->>   ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
->>   ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based on WAITMONITORINGTIME
->>   ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
->>   ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
->>
->>  arch/arm/mach-omap2/gpmc-nand.c    |  17 +-
->>  arch/arm/mach-omap2/gpmc-onenand.c |   4 +-
->>  arch/arm/mach-omap2/usb-tusb6010.c |   4 +-
->>  drivers/memory/Makefile            |   2 +
->>  drivers/memory/omap-gpmc.c         | 313 +++++++++++++++++++++++++++++--------
->>  include/linux/omap-gpmc.h          |   2 +-
->>  6 files changed, 265 insertions(+), 77 deletions(-)
->>
->> -- 
->> 2.3.0
->>
+This set touches both mach-omap2 folder + drivers/clk/ti, and should be
+merged either through the clock tree or omap tree. Separating the set
+for two pull-requests is not possible due to inter-dependencies (move
+of code from one location to another.)
+
+Please note that patches 12+13 will cause merge conflicts with the PRCM +
+SCM set I posted earlier, as both are touching ti_clk_ll_ops. I have
+pushed a separate sample branch that has the merge conflicts resolved also
+(see info below; same test set has also been executed with the merged
+branch.)
+
+Testing done:
+- am335x-evm:  boot
+- am335x-sk:  boot
+- am3517-evm:  boot
+- am43xx-gpevm:  boot
+- omap3-beagle-xm:  boot
+- omap3-beagle:  boot, suspend-resume (ret/off), cpuidle (ret/off)
+- beaglebone-black:  boot
+- beaglebone:  boot
+- dra7xx-evm:  boot
+- n900:  boot
+- omap5-uevm:  boot
+- omap4-panda-es:  boot, suspend-resume (ret), cpuidle (ret)
+- omap4-panda:  boot
+- omap2430-sdp:  boot
+- omap3430-sdp:  boot
+- omap4430-sdp:  boot
+
+Branch info:
+- tree: https://github.com/t-kristo/linux-pm.git
+- branch: 4.0-rc1-clock-move
+- merged PRCM branch: 4.0-rc1-clock-move-prcm-cleanup
+
+Bloat-o-meter:
+add/remove: 2/33 grow/shrink: 32/6 up/down: 935/-3201 (-2266)
+
+Overall diffstat:
+ 43 files changed, 2531 insertions(+), 3599 deletions(-)
+
+-Tero
+
