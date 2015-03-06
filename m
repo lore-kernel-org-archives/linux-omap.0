@@ -1,44 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: OMAP5: fix polling intervals for thermal zones
-Date: Fri, 6 Mar 2015 09:07:50 -0800
-Message-ID: <20150306170749.GT13520@atomide.com>
-References: <1425045543-19540-1-git-send-email-t-kristo@ti.com>
- <20150227213535.GA5633@developer.amazonguestwifi.org>
+Subject: Re: [PATCH 0/2] pinctrl: dt-bindings: Fix amx3 SLEWCTRL_FAST binding
+Date: Fri, 6 Mar 2015 09:13:52 -0800
+Message-ID: <20150306171351.GU13520@atomide.com>
+References: <1425085827-4514-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery5.ore.mailhop.org ([54.186.218.12]:37607 "EHLO
-	pmta2.delivery5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752138AbbCFRNO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:13:14 -0500
-Received: from smtp3.ore.mailhop.org (172.31.36.112) by pmta2.delivery1.ore.mailhop.org id hv7g4820u50c for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 17:13:38 +0000 (envelope-from <tony@atomide.com>)
+Received: from pmta2.delivery8.ore.mailhop.org ([54.148.222.11]:45459 "EHLO
+	pmta2.delivery8.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751773AbbCFRTN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:19:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20150227213535.GA5633@developer.amazonguestwifi.org>
+In-Reply-To: <1425085827-4514-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
 
-* Eduardo Valentin <edubezval@gmail.com> [150227 13:39]:
-> On Fri, Feb 27, 2015 at 03:59:03PM +0200, Tero Kristo wrote:
-> > OMAP4 has a finer counter granularity, which allows for a delay of 1000ms
-> > in the thermal zone polling intervals. OMAP5 has a different counter
-> > mechanism, which allows at maximum a 500ms timer. Adjust the cpu thermal
-> > zone polling interval accordingly.
-> > 
-> > Without this patch, the polling interval information is simply ignored,
-> > and the following thermal warnings are printed during boot (assuming
-> > thermal is enabled);
-> > 
-> > [    1.545343] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supported
-> > [    1.552691] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supported
-> > [    1.560029] ti-soc-thermal 4a0021e0.bandgap: Delay 1000 ms is not supported
-> > 
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
+* Dave Gerlach <d-gerlach@ti.com> [150227 17:14]:
+> Currently both am33xx and am43xx have the macro for SLEWCTRL_FAST
+> in pinctrl dt-bindings reversed so that selecting the macro actually
+> sets SLEWCTRL_SLOW in the pad control registers. These patches
+> correct the bindings but leave the pinctrl states that use the binding
+> *UNMODIFIED*. Previously i2c and mdio on am33xx and i2c, mdio, and
+> uart on am43xx had been using this macro and selecting SLEWCTRL_FAST
+> while actually programming SLEWCTRL_SLOW in the pad config registers.
 > 
-> Acked-by: Eduardo Valentin <edubezval@gmail.com>
+> Because the intended selection was SLEWCTRL_FAST the macros are
+> unchanged. I tested on am335x-gp-evm and am437x-gp-evm with no
+> difference in functionality seen.
 
-Applying into omap-for-v4.0/fixes thanks.
+Applying both into omap-for-v4.0/fixes thanks.
 
 Tony
