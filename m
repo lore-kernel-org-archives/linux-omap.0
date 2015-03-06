@@ -1,44 +1,40 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH 0/2] pinctrl: dt-bindings: Fix amx3 SLEWCTRL_FAST binding
-Date: Fri, 6 Mar 2015 11:31:06 -0600
-Message-ID: <54F9E45A.2020903@ti.com>
-References: <1425085827-4514-1-git-send-email-d-gerlach@ti.com> <20150306171351.GU13520@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] ARM: dts: dra7x-evm: DCAN pinmux fixes
+Date: Fri, 6 Mar 2015 09:16:33 -0800
+Message-ID: <20150306171633.GV13520@atomide.com>
+References: <1425562363-19338-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45112 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830AbbCFRbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:31:39 -0500
-In-Reply-To: <20150306171351.GU13520@atomide.com>
+Received: from pmta2.delivery8.ore.mailhop.org ([54.148.222.11]:46766 "EHLO
+	pmta2.delivery8.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751053AbbCFRjN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:39:13 -0500
+Received: from smtp7.ore.mailhop.org (172.31.18.134) by pmta2.delivery1.ore.mailhop.org id hv7j5m20u50g for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 17:22:23 +0000 (envelope-from <tony@atomide.com>)
+Content-Disposition: inline
+In-Reply-To: <1425562363-19338-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: nm@ti.com, nsekhar@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org
 
-On 03/06/2015 11:13 AM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [150227 17:14]:
->> Currently both am33xx and am43xx have the macro for SLEWCTRL_FAST
->> in pinctrl dt-bindings reversed so that selecting the macro actually
->> sets SLEWCTRL_SLOW in the pad control registers. These patches
->> correct the bindings but leave the pinctrl states that use the binding
->> *UNMODIFIED*. Previously i2c and mdio on am33xx and i2c, mdio, and
->> uart on am43xx had been using this macro and selecting SLEWCTRL_FAST
->> while actually programming SLEWCTRL_SLOW in the pad config registers.
->>
->> Because the intended selection was SLEWCTRL_FAST the macros are
->> unchanged. I tested on am335x-gp-evm and am437x-gp-evm with no
->> difference in functionality seen.
+* Roger Quadros <rogerq@ti.com> [150305 05:34]:
+> Hi Tony,
 > 
-> Applying both into omap-for-v4.0/fixes thanks.
-
-Thanks!
-
-Regards,
-Dave
-
+> These are some fixes to the DCAN pinmux.
 > 
-> Tony
+> cheers,
+> -roger
 > 
+> Roger Quadros (2):
+>   ARM: dts: dra7x-evm: Don't use dcan1_rx.gpio1_15 in DCAN pinctrl
+>   ARM: dts: dra7x-evm: avoid possible contention while muxing on CAN
+>     lines
+> 
+>  arch/arm/boot/dts/dra7-evm.dts  | 10 ++++------
+>  arch/arm/boot/dts/dra72-evm.dts | 10 ++++------
+>  2 files changed, 8 insertions(+), 12 deletions(-)
 
+Applying both into omap-for-v4.0/fixes thanks.
+
+Tony
