@@ -1,54 +1,70 @@
-From: Matt Porter <mporter@konsulko.com>
-Subject: [PATCH RESEND] serial: omap_serial: document missing properties and add an example
-Date: Fri,  6 Mar 2015 10:16:12 -0500
-Message-ID: <1425654972-8044-1-git-send-email-mporter@konsulko.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Devicetree List <devicetree@vger.kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v2 0/7] Use DRM component API in tilcdc to connect to tda998x
+Date: Fri, 6 Mar 2015 17:36:28 +0200
+Message-ID: <cover.1425656120.git.jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37532 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754729AbbCFPg7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Mar 2015 10:36:59 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
+Cc: tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr, Jyri Sarha <jsarha@ti.com>
 
-The omap_serial.txt binding documentation lacks a number of properties
-that are used in DTS files for platforms incorporating this peripheral.
-Fix this by documenting the missing required and optional fields and
-add an example.
+Changes since first version of the patch-set:
+- Rename DRM_TILCDC_INIT to DRM_TILCDC_SLAVE_COMPAT and make it visible
+- Add separate: 
+  drm/tilcdc: Decrement refcount of ep-node from of_graph_get_next_endpoint
+- Reduce info-level spam
+- Use component_master_add_with_match()
+- Be more explicit about tda998x being the only supported external encoder
 
-Signed-off-by: Matt Porter <mporter@konsulko.com>
----
- .../devicetree/bindings/serial/omap_serial.txt       | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+Remove tilcdc slave support and connect to tda998x trough its
+component DRM API. For dtb backward compatibility the code creates at
+boot time a DT overlay based on the earlier binding. The overlay
+conforms to the new graph based binding.
 
-diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-index 342eedd..54c2a15 100644
---- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-+++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-@@ -4,7 +4,27 @@ Required properties:
- - compatible : should be "ti,omap2-uart" for OMAP2 controllers
- - compatible : should be "ti,omap3-uart" for OMAP3 controllers
- - compatible : should be "ti,omap4-uart" for OMAP4 controllers
-+- reg : address and length of the register space
-+- interrupts or interrupts-extended : Should contain the uart interrupt
-+                                      specifier or both the interrupt
-+                                      controller phandle and interrupt
-+                                      specifier.
- - ti,hwmods : Must be "uart<n>", n being the instance number (1-based)
- 
- Optional properties:
- - clock-frequency : frequency of the clock input to the UART
-+- dmas : DMA specifier, consisting of a phandle to the DMA controller
-+         node and a DMA channel number.
-+- dma-names : "rx" for receive channel, "tx" for transmit channel.
-+
-+Example:
-+
-+                uart4: serial@49042000 {
-+                        compatible = "ti,omap3-uart";
-+                        reg = <0x49042000 0x400>;
-+                        interrupts = <80>;
-+                        dmas = <&sdma 81 &sdma 82>;
-+                        dma-names = "tx", "rx";
-+                        ti,hwmods = "uart4";
-+                        clock-frequency = <48000000>;
-+                };
+The first patch is just a bugfix and can be applied or dropped
+independently.
+
+Jyri Sarha (7):
+  drm/tilcdc: Fix module unloading
+  drm/tilcdc: Remove tilcdc slave support for tda998x driver
+  drm/tilcdc: Add support for external tda998x encoder
+  drm/tilcdc: Decrement refcount of ep-node from
+    of_graph_get_next_endpoint
+  drm/tilcdc: Add DRM_TILCDC_SLAVE_COMPAT for ti,tilcdc,slave binding
+    support
+  drm/tilcdc: Force building of DRM_TILCDC_SLAVE_COMPAT
+  ARM: dts: am335x-boneblack: Use new binding for HDMI
+
+ .../devicetree/bindings/drm/tilcdc/slave.txt       |  18 -
+ .../devicetree/bindings/drm/tilcdc/tilcdc.txt      |  27 ++
+ arch/arm/boot/dts/am335x-boneblack.dts             |  20 +-
+ drivers/gpu/drm/Makefile                           |   1 +
+ drivers/gpu/drm/tilcdc/Kconfig                     |  13 +
+ drivers/gpu/drm/tilcdc/Makefile                    |   5 +-
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c               |  36 +-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c                |  89 +++--
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h                |   5 +-
+ drivers/gpu/drm/tilcdc/tilcdc_external.c           | 105 ++++++
+ drivers/gpu/drm/tilcdc/tilcdc_external.h           |  24 ++
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              | 411 ---------------------
+ drivers/gpu/drm/tilcdc/tilcdc_slave.h              |  26 --
+ drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c       | 270 ++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts     |  72 ++++
+ 15 files changed, 633 insertions(+), 489 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/drm/tilcdc/slave.txt
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_external.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_external.h
+ delete mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.c
+ delete mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.h
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts
+
 -- 
-1.8.4
+1.9.1
+
