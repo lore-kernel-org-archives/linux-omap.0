@@ -1,40 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: dts: dra7x-evm: DCAN pinmux fixes
-Date: Fri, 6 Mar 2015 09:16:33 -0800
-Message-ID: <20150306171633.GV13520@atomide.com>
-References: <1425562363-19338-1-git-send-email-rogerq@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2+: AM43xx hwmod: Add RTC hwmod for
+ AM43xx
+Date: Fri, 6 Mar 2015 17:44:03 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1503061743170.20994@utopia.booyaka.com>
+References: <1425561211-31003-1-git-send-email-d-gerlach@ti.com> <1425561211-31003-3-git-send-email-d-gerlach@ti.com> <alpine.DEB.2.02.1503060425590.5613@utopia.booyaka.com> <54F9E41B.5010805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery8.ore.mailhop.org ([54.148.222.11]:46766 "EHLO
-	pmta2.delivery8.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751053AbbCFRjN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:39:13 -0500
-Received: from smtp7.ore.mailhop.org (172.31.18.134) by pmta2.delivery1.ore.mailhop.org id hv7j5m20u50g for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 17:22:23 +0000 (envelope-from <tony@atomide.com>)
-Content-Disposition: inline
-In-Reply-To: <1425562363-19338-1-git-send-email-rogerq@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:53876 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244AbbCFRoE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:44:04 -0500
+In-Reply-To: <54F9E41B.5010805@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: nm@ti.com, nsekhar@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, KEERTHY <j-keerthy@ti.com>
 
-* Roger Quadros <rogerq@ti.com> [150305 05:34]:
-> Hi Tony,
-> 
-> These are some fixes to the DCAN pinmux.
-> 
-> cheers,
-> -roger
-> 
-> Roger Quadros (2):
->   ARM: dts: dra7x-evm: Don't use dcan1_rx.gpio1_15 in DCAN pinctrl
->   ARM: dts: dra7x-evm: avoid possible contention while muxing on CAN
->     lines
-> 
->  arch/arm/boot/dts/dra7-evm.dts  | 10 ++++------
->  arch/arm/boot/dts/dra72-evm.dts | 10 ++++------
->  2 files changed, 8 insertions(+), 12 deletions(-)
+Hi Dave,
 
-Applying both into omap-for-v4.0/fixes thanks.
+On Fri, 6 Mar 2015, Dave Gerlach wrote:
 
-Tony
+> Paul,
+> On 03/05/2015 10:26 PM, Paul Walmsley wrote:
+> > On Thu, 5 Mar 2015, Dave Gerlach wrote:
+> > 
+> >> RTC hwmod is needed for proper operation of PM features like
+> >> rtcwake and rtc-only mode so reuse the am33xx rtc hwmod.
+> >>
+> >> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 1 +
+> >>  1 file changed, 1 insertion(+)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> >> index 8eb8592..9070535 100644
+> >> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> >> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> >> @@ -889,6 +889,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+> >>  	&am43xx_l4_ls__dss,
+> >>  	&am43xx_l4_ls__dss_dispc,
+> >>  	&am43xx_l4_ls__dss_rfbi,
+> >> +	&am33xx_l4_wkup__rtc,
+> >>  	NULL,
+> >>  };
+> > 
+> > Thanks, queued for v4.1.
+> 
+> Thanks, but please note as I just commented in Patch 1 of this series, without
+> the ti,no-init flag in place that is introduced there this patch will cause the
+> am43x-epos-evm to fail to boot.
+
+If that's so, shouldn't it appear in the series after patch 3, then?  
+If only patches 1 and 2 are applied, then won't the boot be broken on 
+am43x-epos-evm ?
+
+- Paul
