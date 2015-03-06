@@ -1,45 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: enable TWL4030_USB in omap2plus_defconfig
-Date: Fri, 6 Mar 2015 09:49:34 -0800
-Message-ID: <20150306174933.GX13520@atomide.com>
-References: <1424984849-13083-1-git-send-email-aaro.koskinen@iki.fi>
+Subject: Re: [GIT PULL v2] ARM: OMAP2+: first set of hwmod and PRCM fixes for
+ v4.0-rc
+Date: Fri, 6 Mar 2015 09:54:50 -0800
+Message-ID: <20150306175450.GY13520@atomide.com>
+References: <alpine.DEB.2.02.1503020402460.9987@utopia.booyaka.com>
+ <alpine.DEB.2.02.1503020413320.9987@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta1.delivery4.ore.mailhop.org ([54.191.151.194]:44142 "EHLO
+Received: from pmta1.delivery4.ore.mailhop.org ([54.191.151.194]:54312 "EHLO
 	pmta1.delivery4.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932079AbbCFRy5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 12:54:57 -0500
-Received: from smtp6.ore.mailhop.org (172.31.36.112) by pmta1.delivery1.ore.mailhop.org id hv7ktq20r84f for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 17:54:36 +0000 (envelope-from <tony@atomide.com>)
+	by vger.kernel.org with ESMTP id S1752474AbbCFSAO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 13:00:14 -0500
+Received: from smtp6.ore.mailhop.org (172.31.36.112) by pmta1.delivery1.ore.mailhop.org id hv7lhk20r84c for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 17:59:53 +0000 (envelope-from <tony@atomide.com>)
 Content-Disposition: inline
-In-Reply-To: <1424984849-13083-1-git-send-email-aaro.koskinen@iki.fi>
+In-Reply-To: <alpine.DEB.2.02.1503020413320.9987@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [150226 13:11]:
-> Enable TWL4030_USB which is used at least on Nokia N900/N950/N9 (OMAP3).
+* Paul Walmsley <paul@pwsan.com> [150301 20:17]:
+> The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
 > 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
+>   Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
 > 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index b738652..8c93aa9 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -375,6 +375,7 @@ CONFIG_PWM_TWL=m
->  CONFIG_PWM_TWL_LED=m
->  CONFIG_OMAP_USB2=m
->  CONFIG_TI_PIPE3=m
-> +CONFIG_TWL4030_USB=m
->  CONFIG_EXT2_FS=y
->  CONFIG_EXT3_FS=y
->  # CONFIG_EXT3_FS_XATTR is not set
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.0-rc/omap-fixes-a
+> 
+> for you to fetch changes up to 50f59d07e9822274a2e6034777eb4e90cfb30cfc:
+> 
+>   ARM: OMAP4+: PRM: fix omap4 version of prm_save_and_clear_irqen (2015-03-01 16:58:25 -0700)
+> 
+> ----------------------------------------------------------------
+> ARM: OMAP2+: first set of hwmod and PRCM fixes for v4.0-rc
+> 
+> This series fixes the following bugs:
+> 
+> - a lockdep problem with the OMAP hwmod code;
+> - incorrect PCIe hwmod data for the DRA7xx chips;
+> - the clockdomain handling in the hardreset deassertion code,
+>   preventing idle;
+> - the use of an IRQ status register rather than an IRQ enable register
+>   in the OMAP4 PRM code.
+> 
+> Basic build, boot, and PM test results are available here:
+> 
+> http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v4.0-rc/20150301165949/
 
-Thanks I noticed the same on beagle-xm too, applying into
-omap-for-v4.0/fixes.
+Thanks pulling this into omap-for-v4.0/fixes, sorry for the delay
+with this one.
+
+Regards,
 
 Tony
