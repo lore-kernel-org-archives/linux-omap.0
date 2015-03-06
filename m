@@ -1,51 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/24] ARM: OMAP2+: clock: remove support for legacy
- mpurate command line param
-Date: Fri, 6 Mar 2015 08:25:17 -0800
-Message-ID: <20150306162516.GN13520@atomide.com>
-References: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
- <1425644939-3232-12-git-send-email-t-kristo@ti.com>
- <20150306153254.GK13520@atomide.com>
- <54F9D160.7010708@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DRA7x/OMAP5: Clock: DPLL Clock fixes
+Date: Fri, 6 Mar 2015 08:37:16 -0800
+Message-ID: <20150306163715.GO13520@atomide.com>
+References: <1422724005-9415-1-git-send-email-rk@ti.com>
+ <54E5FC6D.7040701@ti.com> <20150224162719.GA28244@atomide.com>
+ <54ED79B0.4020101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery2.ore.mailhop.org ([54.69.130.42]:42304 "EHLO
-	pmta2.delivery2.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751430AbbCFQai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 11:30:38 -0500
-Received: from smtp6.ore.mailhop.org (172.31.36.112) by pmta2.delivery1.ore.mailhop.org id hv7b4g20u50f for <linux-omap@vger.kernel.org>; Fri, 6 Mar 2015 16:31:04 +0000 (envelope-from <tony@atomide.com>)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <54F9D160.7010708@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <54ED79B0.4020101@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, Ravikumar Kattekola <rk@ti.com>, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [150306 08:10]:
-> On 03/06/2015 05:32 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [150306 04:29]:
-> >>The legacy support is wrong and dangerous, as it doesn't take any
-> >>OPPs into account and does not scale voltages. Switching mpurate should
-> >>be handled through cpufreq.
+* Tero Kristo <t-kristo@ti.com> [150225 00:05]:
+> On 02/24/2015 06:27 PM, Tony Lindgren wrote:
+> >* Ravikumar Kattekola <rk@ti.com> [150219 08:13]:
+> >>On 1/31/2015 10:36 PM, Ravikumar Kattekola wrote:
+> >>>Fix bypass clock source for a few DPLLs.
+> >>>
+> >>>On DRA7x/OMAP5, for a few DPLLs, both CLKINP and CLKINPULOW are connected
+> >>>to a mux and the output from mux is routed to the bypass clkout.
+> >>>Add a mux-clock as bypass clock with CLKINP and CLKINPULOW as parents.
+> >>>
+> >>>Tested against:
+> >>>	tree: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git
+> >>>	branch: master
+> >>>On:
+> >>>CPU  : OMAP5432 ES2.0
+> >>>Board: OMAP5432 uEVM
+> >>>and
+> >>>CPU  : DRA752 ES1.0
+> >>>Board: DRA7xx
+> >>>
+> >>>
+> >>>Ravikumar Kattekola (2):
+> >>>   ARM: DRA7x: dts: Fix the bypass clock source for dpll_iva and others
+> >>>   ARM: OMAP5: dts: Fix the bypass clock source for dpll_iva and others
+> >>>
+> >>>  arch/arm/boot/dts/dra7xx-clocks.dtsi   |   90 ++++++++++++++++++++++++++++----
+> >>>  arch/arm/boot/dts/omap54xx-clocks.dtsi |   41 +++++++++++++--
+> >>>  2 files changed, 118 insertions(+), 13 deletions(-)
+> >>>
+> >>Hi Benoit,
+> >>     Can these fixes be looked into for 3.20-rc?
 > >
-> >Hmm I wonder if some systems actually rely on the mpurate cmdline
-> >parameter. If this cannot be fixed properly, you should at least
-> >print an error here.
+> >Seem like valid fixes to me. Tero, care to take a look at these and ack
+> >if OK?
 > 
-> Yea, I was kind of worried about this comment. We have also an option of
-> doing this through clock driver, but I was hesitant of doing this either.
-> Isn't having a global kernel option like this frowned upon anyway? I believe
-> this piece of init code gets executed on every board on multiarch kernel.
+> Yes, both are good to go.
+> 
+> Acked-by: Tero Kristo <t-kristo@ti.com>
 
-Well the option has been there probably for 10 years already so we
-can't just drop it like that. Chances are it's unused though, so I
-suggest you just print out a warning for it.
+Applying both into omap-for-v4.0/fixes thanks.
 
-It's called from omap_arch_initcall which checks for soc_is_omap()
-so that's not an issue. But when moving the code, you naturally
-need to check the moved code initcall usage.
-
-Regards,
-
-Tony
+Tony 
