@@ -1,87 +1,179 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 12/24] ARM: OMAP2+: clock: add support for clkdm ops to the low level clk ops
-Date: Fri, 6 Mar 2015 14:28:47 +0200
-Message-ID: <1425644939-3232-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 10/24] clk: ti: move omap2_clk_enable_init_clocks under clock driver
+Date: Fri, 6 Mar 2015 14:28:45 +0200
+Message-ID: <1425644939-3232-11-git-send-email-t-kristo@ti.com>
 References: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58181 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58793 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755237AbbCFM3w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Mar 2015 07:29:52 -0500
+	id S1755231AbbCFM3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Mar 2015 07:29:51 -0500
 In-Reply-To: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Clock driver requires access to certain clockdomain handling ops once
-the code is being moved over under clock driver. Example of this is
-clk_enable / clk_disable under omap3 DPLL code. The required clkdm
-APIs are now exported through the ti_clk_ll_ops struct.
+This is no longer used outside clock driver, so move it under the driver
+and remove the export for it from the global header file.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm_common.c |    3 +++
- include/linux/clk/ti.h           |   16 +++++++++++-----
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock.c |   24 ------------------------
+ drivers/clk/ti/clk-2xxx.c   |    2 ++
+ drivers/clk/ti/clk-33xx.c   |    2 ++
+ drivers/clk/ti/clk-3xxx.c   |    1 +
+ drivers/clk/ti/clk-816x.c   |    2 ++
+ drivers/clk/ti/clk.c        |   24 ++++++++++++++++++++++++
+ drivers/clk/ti/clock.h      |    1 +
+ include/linux/clk/ti.h      |    1 -
+ 8 files changed, 32 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index bfaa7ba..6fcb932 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -37,6 +37,7 @@
- #include "clock.h"
- #include "cm.h"
- #include "control.h"
-+#include "clockdomain.h"
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 99f1dc5..720c2bc 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -494,30 +494,6 @@ static int __init omap_clk_setup(char *str)
+ }
+ __setup("mpurate=", omap_clk_setup);
  
- /*
-  * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
-@@ -623,6 +624,8 @@ static void prm_clk_writel(u32 val, void __iomem *reg)
- static struct ti_clk_ll_ops omap_clk_ll_ops = {
- 	.clk_readl = prm_clk_readl,
- 	.clk_writel = prm_clk_writel,
-+	.clkdm_clk_enable = clkdm_clk_enable,
-+	.clkdm_clk_disable = clkdm_clk_disable,
- };
+-/**
+- * omap2_clk_enable_init_clocks - prepare & enable a list of clocks
+- * @clk_names: ptr to an array of strings of clock names to enable
+- * @num_clocks: number of clock names in @clk_names
+- *
+- * Prepare and enable a list of clocks, named by @clk_names.  No
+- * return value. XXX Deprecated; only needed until these clocks are
+- * properly claimed and enabled by the drivers or core code that uses
+- * them.  XXX What code disables & calls clk_put on these clocks?
+- */
+-void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
+-{
+-	struct clk *init_clk;
+-	int i;
+-
+-	for (i = 0; i < num_clocks; i++) {
+-		init_clk = clk_get(NULL, clk_names[i]);
+-		if (WARN(IS_ERR(init_clk), "could not find init clock %s\n",
+-				clk_names[i]))
+-			continue;
+-		clk_prepare_enable(init_clk);
+-	}
+-}
+-
+ const struct clk_hw_omap_ops clkhwops_wait = {
+ 	.find_idlest	= omap2_clk_dflt_find_idlest,
+ 	.find_companion	= omap2_clk_dflt_find_companion,
+diff --git a/drivers/clk/ti/clk-2xxx.c b/drivers/clk/ti/clk-2xxx.c
+index c808ab3..bd8790b 100644
+--- a/drivers/clk/ti/clk-2xxx.c
++++ b/drivers/clk/ti/clk-2xxx.c
+@@ -19,6 +19,8 @@
+ #include <linux/clk-provider.h>
+ #include <linux/clk/ti.h>
  
- int __init of_prcm_init(void)
++#include "clock.h"
++
+ static struct ti_dt_clk omap2xxx_clks[] = {
+ 	DT_CLK(NULL, "func_32k_ck", "func_32k_ck"),
+ 	DT_CLK(NULL, "secure_32k_ck", "secure_32k_ck"),
+diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
+index 028b337..733f9d3 100644
+--- a/drivers/clk/ti/clk-33xx.c
++++ b/drivers/clk/ti/clk-33xx.c
+@@ -19,6 +19,8 @@
+ #include <linux/clk-provider.h>
+ #include <linux/clk/ti.h>
+ 
++#include "clock.h"
++
+ static struct ti_dt_clk am33xx_clks[] = {
+ 	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
+ 	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 383a06e..c0da0b0 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -19,6 +19,7 @@
+ #include <linux/clk-provider.h>
+ #include <linux/clk/ti.h>
+ 
++#include "clock.h"
+ 
+ static struct ti_dt_clk omap3xxx_clks[] = {
+ 	DT_CLK(NULL, "apb_pclk", "dummy_apb_pclk"),
+diff --git a/drivers/clk/ti/clk-816x.c b/drivers/clk/ti/clk-816x.c
+index 9451e65..c69352b 100644
+--- a/drivers/clk/ti/clk-816x.c
++++ b/drivers/clk/ti/clk-816x.c
+@@ -14,6 +14,8 @@
+ #include <linux/clk-provider.h>
+ #include <linux/clk/ti.h>
+ 
++#include "clock.h"
++
+ static struct ti_dt_clk dm816x_clks[] = {
+ 	DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
+ 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index 6d4e381..1b28086 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -334,4 +334,28 @@ struct ti_clk_features *ti_clk_get_features(void)
+ {
+ 	return &ti_clk_features;
+ }
++
++/**
++ * omap2_clk_enable_init_clocks - prepare & enable a list of clocks
++ * @clk_names: ptr to an array of strings of clock names to enable
++ * @num_clocks: number of clock names in @clk_names
++ *
++ * Prepare and enable a list of clocks, named by @clk_names.  No
++ * return value. XXX Deprecated; only needed until these clocks are
++ * properly claimed and enabled by the drivers or core code that uses
++ * them.  XXX What code disables & calls clk_put on these clocks?
++ */
++void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
++{
++	struct clk *init_clk;
++	int i;
++
++	for (i = 0; i < num_clocks; i++) {
++		init_clk = clk_get(NULL, clk_names[i]);
++		if (WARN(IS_ERR(init_clk), "could not find init clock %s\n",
++			 clk_names[i]))
++			continue;
++		clk_prepare_enable(init_clk);
++	}
++}
+ #endif
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 9b51021..4b26af8 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -171,6 +171,7 @@ int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
+ 
+ void omap2_init_clk_hw_omap_clocks(struct clk *clk);
+ int of_ti_clk_autoidle_setup(struct device_node *node);
++void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
+ 
+ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+ extern const struct clk_hw_omap_ops clkhwops_iclk;
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index b1ecb7a..4778783 100644
+index 50be1fd..b1ecb7a 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -238,18 +238,24 @@ struct clk_omap_reg {
- };
- 
- /**
-- * struct ti_clk_ll_ops - low-level register access ops for a clock
-+ * struct ti_clk_ll_ops - low-level ops for clocks
-  * @clk_readl: pointer to register read function
-  * @clk_writel: pointer to register write function
-+ * @clkdm_clk_enable: pointer to clockdomain enable function
-+ * @clkdm_clk_disable: pointer to clockdomain disable function
-  *
-- * Low-level register access ops are generally used by the basic clock types
-- * (clk-gate, clk-mux, clk-divider etc.) to provide support for various
-- * low-level hardware interfaces (direct MMIO, regmap etc.), but can also be
-- * used by other hardware-specific clock drivers if needed.
-+ * Low-level ops are generally used by the basic clock types (clk-gate,
-+ * clk-mux, clk-divider etc.) to provide support for various low-level
-+ * hadrware interfaces (direct MMIO, regmap etc.), and is initialized
-+ * by board code. Low-level ops also contain some other platform specific
-+ * operations not provided directly by clock drivers.
-  */
- struct ti_clk_ll_ops {
- 	u32	(*clk_readl)(void __iomem *reg);
- 	void	(*clk_writel)(u32 val, void __iomem *reg);
-+	int	(*clkdm_clk_enable)(struct clockdomain *clkdm, struct clk *clk);
-+	int	(*clkdm_clk_disable)(struct clockdomain *clkdm,
-+				     struct clk *clk);
- };
- 
- extern struct ti_clk_ll_ops *ti_clk_ll_ops;
+@@ -290,7 +290,6 @@ int omap2_clk_disable_autoidle_all(void);
+ int omap2_clk_enable_autoidle_all(void);
+ int omap2_clk_allow_idle(struct clk *clk);
+ int omap2_clk_deny_idle(struct clk *clk);
+-void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
+ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
+ 			 unsigned long parent_rate);
+ int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
 -- 
 1.7.9.5
 
