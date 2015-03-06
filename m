@@ -1,76 +1,135 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt
- property
-Date: Thu, 5 Mar 2015 16:41:57 -0800
-Message-ID: <20150306004157.GI13520@atomide.com>
-References: <1425561211-31003-1-git-send-email-d-gerlach@ti.com>
- <1425561211-31003-2-git-send-email-d-gerlach@ti.com>
- <alpine.DEB.2.02.1503051815590.5613@utopia.booyaka.com>
- <20150305184952.GF13520@atomide.com> <54F8B2C7.7060202@ti.com>
- <20150305201713.GH13520@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20150305201713.GH13520@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, KEERTHY <j-keerthy@ti.com>
+Subject: [PATCH 3/4] serial: omap: Switch wake-up interrupt to generic wakeirq
+Date: Thu,  5 Mar 2015 16:34:08 -0800
+Message-ID: <1425602049-2674-4-git-send-email-tony@atomide.com>
+References: <1425602049-2674-1-git-send-email-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425602049-2674-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150305 12:24]:
-> * Dave Gerlach <d-gerlach@ti.com> [150305 11:53]:
-> > On 03/05/2015 12:49 PM, Tony Lindgren wrote:
-> > > * Paul Walmsley <paul@pwsan.com> [150305 10:16]:
-> > >> On Thu, 5 Mar 2015, Dave Gerlach wrote:
-> > >>
-> > >>> Introduce a dt property, ti,no-init, that prevents hwmod initialization.
-> > >>> Even if a dt node is marked as disabled, hwmod still at least enables
-> > >>> the hwmod and programs the sysconfig before attempting to idle it at
-> > >>> boot. If an IP has been disabled by the hardware configuration on a
-> > >>> platform, this will cause a hang due to writing to inactive registers.
-> > >>> This property prevents that from happening by marking the hwmod as
-> > >>> _HWMOD_STATE_DISABLED during init.
-> > >>
-> > >> I'm kind of wondering if hwmod should even touch a device if it's marked 
-> > >> as disabled in the DT.  Tony, what do you think?
-> > > 
-> > > Well nothing happens if a device is status = "disabled". No dev entry
-> > > gets created for it at all and hwmod won't have any data for the device
-> > > populated. The only way hwmod code could see that device if the device
-> > > gets it's data from the legacy omap_hwmod_*_data.c instead of DT.
-> > > 
-> > 
-> > We still need this for the sysconfig programming, correct? hwmod programs that
-> > regardless of dt status and then idles the IP,
-> 
-> Well hwmod does not even know about the IP IO addresses if it's marked
-> with status = "disabled".. Which IP are you having problems with?
-> 
-> > which is why I needed the ti,no-init for the epos evm. It isn't just a
-> > matter of we shouldnt write to it because we don't want to use it; we
-> > can't write to it because the module is held off so it causes an
-> > external abort if we do.
-> 
-> Well hard to say not knowing which module this is.. Pretty much all
-> the modules have drivers and the driver just does pm_runtime_get()
-> on it?
+We can now use generic wakeirq handling and remove the custom handling
+for the wake-up interrupts.
 
-Heh OK this thread is about the RTC driver, so I assume that's the
-problem :) So if you set the rtc to status = "disabled" how can the
-hwmod code do anything as AFAIK it won't even get the rtc IO address?
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/tty/serial/omap-serial.c | 38 ++++++++++++++------------------------
+ 1 file changed, 14 insertions(+), 24 deletions(-)
 
-Or am I missing something here?
-
-Regards,
-
-Tony
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 10256fa..1e82365 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -38,6 +38,7 @@
+ #include <linux/serial_core.h>
+ #include <linux/irq.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_wakeirq.h>
+ #include <linux/of.h>
+ #include <linux/of_irq.h>
+ #include <linux/gpio.h>
+@@ -135,6 +136,7 @@ struct uart_omap_port {
+ 	struct uart_port	port;
+ 	struct uart_omap_dma	uart_dma;
+ 	struct device		*dev;
++	struct wakeirq_source	*wirq;
+ 	int			wakeirq;
+ 
+ 	unsigned char		ier;
+@@ -160,7 +162,6 @@ struct uart_omap_port {
+ 	unsigned long		port_activity;
+ 	int			context_loss_cnt;
+ 	u32			errata;
+-	u8			wakeups_enabled;
+ 	u32			features;
+ 
+ 	int			rts_gpio;
+@@ -209,28 +210,11 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+ 	return pdata->get_context_loss_count(up->dev);
+ }
+ 
+-static inline void serial_omap_enable_wakeirq(struct uart_omap_port *up,
+-				       bool enable)
+-{
+-	if (!up->wakeirq)
+-		return;
+-
+-	if (enable)
+-		enable_irq(up->wakeirq);
+-	else
+-		disable_irq_nosync(up->wakeirq);
+-}
+-
++/* REVISIT: Remove this when omap3 boots in device tree only mode */
+ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ {
+ 	struct omap_uart_port_info *pdata = dev_get_platdata(up->dev);
+ 
+-	if (enable == up->wakeups_enabled)
+-		return;
+-
+-	serial_omap_enable_wakeirq(up, enable);
+-	up->wakeups_enabled = enable;
+-
+ 	if (!pdata || !pdata->enable_wakeup)
+ 		return;
+ 
+@@ -750,13 +734,16 @@ static int serial_omap_startup(struct uart_port *port)
+ 
+ 	/* Optional wake-up IRQ */
+ 	if (up->wakeirq) {
+-		retval = request_irq(up->wakeirq, serial_omap_irq,
+-				     up->port.irqflags, up->name, up);
++		up->wirq = devm_kzalloc(up->dev, sizeof(*up->wirq),
++					GFP_KERNEL);
++		if (!up->wirq)
++			return -ENOMEM;
++		retval = dev_pm_wakeirq_request(up->dev, up->wakeirq,
++						NULL, 0, NULL, up->wirq);
+ 		if (retval) {
+ 			free_irq(up->port.irq, up);
+ 			return retval;
+ 		}
+-		disable_irq(up->wakeirq);
+ 	}
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
+@@ -845,8 +832,7 @@ static void serial_omap_shutdown(struct uart_port *port)
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ 	free_irq(up->port.irq, up);
+-	if (up->wakeirq)
+-		free_irq(up->wakeirq, up);
++	dev_pm_wakeirq_free(up->wirq);
+ }
+ 
+ static void serial_omap_uart_qos_work(struct work_struct *work)
+@@ -1479,6 +1465,8 @@ static int serial_omap_suspend(struct device *dev)
+ 	else
+ 		serial_omap_enable_wakeup(up, false);
+ 
++	dev_pm_wakeirq_arm_for_suspend(up->wirq);
++
+ 	return 0;
+ }
+ 
+@@ -1838,6 +1826,7 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	up->context_loss_cnt = serial_omap_get_context_loss_count(up);
+ 
+ 	serial_omap_enable_wakeup(up, true);
++	dev_pm_wakeirq_enable(up->wirq);
+ 
+ 	up->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+ 	schedule_work(&up->qos_work);
+@@ -1852,6 +1841,7 @@ static int serial_omap_runtime_resume(struct device *dev)
+ 	int loss_cnt = serial_omap_get_context_loss_count(up);
+ 
+ 	serial_omap_enable_wakeup(up, false);
++	dev_pm_wakeirq_disable(up->wirq);
+ 
+ 	if (loss_cnt < 0) {
+ 		dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
+-- 
+2.1.4
