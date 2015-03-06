@@ -1,42 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Jyri Sarha <jsarha@ti.com>
 Subject: Re: [PATCH RFC 3/6] drm/tilcdc: Add support for external compontised
  DRM encoder
-Date: Fri, 6 Mar 2015 09:58:49 +0000
-Message-ID: <20150306095848.GH29584@n2100.arm.linux.org.uk>
-References: <cover.1424961754.git.jsarha@ti.com>
- <92792bb4f64fb1b7f26e687ec159d870d0e7a81a.1424961754.git.jsarha@ti.com>
- <20150302160135.GA29584@n2100.arm.linux.org.uk>
- <54F96657.10200@ti.com>
+Date: Fri, 6 Mar 2015 12:21:42 +0200
+Message-ID: <54F97FB6.3060103@ti.com>
+References: <cover.1424961754.git.jsarha@ti.com> <92792bb4f64fb1b7f26e687ec159d870d0e7a81a.1424961754.git.jsarha@ti.com> <20150302160135.GA29584@n2100.arm.linux.org.uk> <54F96657.10200@ti.com> <20150306095848.GH29584@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <54F96657.10200@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, detheridge@ti.com, tony@atomide.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53982 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932369AbbCFKWN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Mar 2015 05:22:13 -0500
+In-Reply-To: <20150306095848.GH29584@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, tomi.valkeinen@ti.com, detheridge@ti.com, moinejf@free.fr, laurent.pinchart@ideasonboard.com
 
-T24gRnJpLCBNYXIgMDYsIDIwMTUgYXQgMTA6MzM6MjdBTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiBXb3VsZCBpdCBiZSBPayB0byBhZGQgYSBjaGVjayB0aGF0IG1hc3Rlci0+b3BzLT5hZGRf
-Y29tcG9uZW50cyBpcyBkZWZpbmVkLAo+IGJlZm9yZSBjYWxsaW5nIGl0IGluIGZpbmRfY29tcG9u
-ZXRzKCkgKGRyaXZlcnMvYmFzZS9jb21wb25lbnQuYzoxMjApIGFuZAo+IHJldHVybiAwIGlmIGl0
-IGlzIG5vdD8KCk5vOgoKaHR0cDovL2Z0cC5hcm0ubGludXgub3JnLnVrL2NnaXQvbGludXgtYXJt
-LmdpdC9jb21taXQvP2g9OGM0ZTg3NjRhN2UzCgphbHNvOgoKaHR0cDovL2Z0cC5hcm0ubGludXgu
-b3JnLnVrL2NnaXQvbGludXgtYXJtLmdpdC9sb2cvP2g9MTFlZGE1YWFmNDFlCgppcyB3aGF0J3Mg
-cGxhbm5lZCB0byBiZSBtZXJnZWQgd2hlbiBJIGNhbiBnZXQgYSByb3VuZCB0dWl0LCBhbmQgcGVv
-cGxlCnN0b3AgdXNpbmcgdGhlIG9sZCBtZXRob2RzLgoKLS0gCkZUVEMgYnJvYWRiYW5kIGZvciAw
-LjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCAxMC41TWJwcyBkb3duIDQwMGticHMgdXAKYWNjb3Jk
-aW5nIHRvIHNwZWVkdGVzdC5uZXQuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-ZHJpLWRldmVsCg==
+On 03/06/15 11:58, Russell King - ARM Linux wrote:
+> On Fri, Mar 06, 2015 at 10:33:27AM +0200, Jyri Sarha wrote:
+>> Would it be Ok to add a check that master->ops->add_components is defined,
+>> before calling it in find_componets() (drivers/base/component.c:120) and
+>> return 0 if it is not?
+>
+> No:
+>
+> http://ftp.arm.linux.org.uk/cgit/linux-arm.git/commit/?h=8c4e8764a7e3
+>
+> also:
+>
+> http://ftp.arm.linux.org.uk/cgit/linux-arm.git/log/?h=11eda5aaf41e
+>
+> is what's planned to be merged when I can get a round tuit, and people
+> stop using the old methods.
+>
+
+Ok, but could it still be allowed to add a master without any components 
+(match == NULL)?
+
+Or do I have to handle the configurations without any components separately?
+
+Best regards,
+Jyri
