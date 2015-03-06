@@ -1,406 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper functions
-Date: Fri, 06 Mar 2015 03:02:05 +0100
-Message-ID: <1805134.DQxHJSAxE3@vostro.rjw.lan>
-References: <1425602049-2674-1-git-send-email-tony@atomide.com> <1425602049-2674-2-git-send-email-tony@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2+: AM43xx hwmod: Add RTC hwmod for
+ AM43xx
+Date: Fri, 6 Mar 2015 04:26:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1503060425590.5613@utopia.booyaka.com>
+References: <1425561211-31003-1-git-send-email-d-gerlach@ti.com> <1425561211-31003-3-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425602049-2674-2-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:44230 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754947AbbCFE0N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 23:26:13 -0500
+In-Reply-To: <1425561211-31003-3-git-send-email-d-gerlach@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, KEERTHY <j-keerthy@ti.com>
 
-Please always CC linux-pm on CC patches.
+On Thu, 5 Mar 2015, Dave Gerlach wrote:
 
-On Thursday, March 05, 2015 04:34:06 PM Tony Lindgren wrote:
-> Some devices have separate wake-up interrupts in addition to the
-> normal device interrupts. The wake-up interrupts can be connected
-> to a separate interrupt controller that is always powered. This
-> allows the devices and the whole system to enter deeper idle states
-> while still being able to wake-up to events.
+> RTC hwmod is needed for proper operation of PM features like
+> rtcwake and rtc-only mode so reuse the am33xx rtc hwmod.
 > 
-> As some devices are already using wake-up interrupts, let's add
-> some helper functions. This is to avoid having the drivers getting
-> things wrong in a different ways. Some of these drivers also have
-> a interrupt re-entrancy problem as the normal device interrupt
-> handler is being called from the wake-up interrupt as pointed out
-> by Thomas Gleixner <tglx@linutronix.de>.
-
-We need to talk a bit about the design here IMO.
-
-I need to have a look at this tomorrow or over the weekend and not in the
-middle of the night in particular.
-
-Some comments below, but I may be overlooking things ATM.
-
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 > ---
->  arch/arm/mach-omap2/Kconfig  |   1 +
->  drivers/base/power/Makefile  |   1 +
->  drivers/base/power/wakeirq.c | 201 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/pm_wakeirq.h   |  69 +++++++++++++++
->  kernel/power/Kconfig         |   4 +
->  5 files changed, 276 insertions(+)
->  create mode 100644 drivers/base/power/wakeirq.c
->  create mode 100644 include/linux/pm_wakeirq.h
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 2b8e477..f3e9b88 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -83,6 +83,7 @@ config ARCH_OMAP2PLUS
->  	select OMAP_DM_TIMER
->  	select OMAP_GPMC
->  	select PINCTRL
-> +	select PM_WAKEIRQ
->  	select SOC_BUS
->  	select TI_PRIV_EDMA
->  	select OMAP_IRQCHIP
-> diff --git a/drivers/base/power/Makefile b/drivers/base/power/Makefile
-> index 1cb8544..527546e 100644
-> --- a/drivers/base/power/Makefile
-> +++ b/drivers/base/power/Makefile
-> @@ -4,5 +4,6 @@ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
->  obj-$(CONFIG_PM_OPP)	+= opp.o
->  obj-$(CONFIG_PM_GENERIC_DOMAINS)	+=  domain.o domain_governor.o
->  obj-$(CONFIG_HAVE_CLK)	+= clock_ops.o
-> +obj-$(CONFIG_PM_WAKEIRQ)	+= wakeirq.o
->  
->  ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
-> diff --git a/drivers/base/power/wakeirq.c b/drivers/base/power/wakeirq.c
-> new file mode 100644
-> index 0000000..566d69d
-> --- /dev/null
-> +++ b/drivers/base/power/wakeirq.c
-> @@ -0,0 +1,201 @@
-> +/*
-> + * wakeirq.c - Device wakeirq helper functions
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/pm_wakeirq.h>
-> +
-> +/**
-> + * handle_dedicated_wakeirq - Handler for device wake-up interrupts
-> + * @wakeirq: Separate wake-up interrupt for a device different
-> + * @_wirq: Wake-up interrupt data
-> + *
-> + * Some devices have a separate wake-up interrupt in addition to the
-> + * regular device interrupt. The wake-up interrupts signal that the
-> + * device should be woken up from a deeper idle state. This handler
-> + * uses device specific pm_runtime functions to wake-up the device
-> + * and then it's up to the device to do whatever it needs to. Note
-> + * as the device may need to restore context and start up regulators,
-> + * this is not a fast path.
-> + *
-> + * Note that we are not resending the lost device interrupts. We assume
-> + * that the wake-up interrupt just needs to wake-up the device, and
-> + * the device pm_runtime_resume() can deal with the situation.
-> + */
-> +static irqreturn_t handle_dedicated_wakeirq(int wakeirq, void *_wirq)
-> +{
-> +	struct wakeirq_source *wirq = _wirq;
-> +	irqreturn_t ret = IRQ_NONE;
-> +
-> +	/* We don't want RPM_ASYNC or RPM_NOWAIT here */
-> +	if (pm_runtime_suspended(wirq->dev)) {
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> index 8eb8592..9070535 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> @@ -889,6 +889,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+>  	&am43xx_l4_ls__dss,
+>  	&am43xx_l4_ls__dss_dispc,
+>  	&am43xx_l4_ls__dss_rfbi,
+> +	&am33xx_l4_wkup__rtc,
+>  	NULL,
+>  };
 
-What if the device is resumed on a different CPU right here?
+Thanks, queued for v4.1.
 
-> +		pm_runtime_mark_last_busy(wirq->dev);
-> +		pm_runtime_resume(wirq->dev);
 
-Calling this with disabled interrupts is a bad idea in general.
-Is the device guaranteed to have power.irq_safe set?
-
-I guess what you want to call here is pm_request_resume() and
-I wouldn't say that calling pm_runtime_mark_last_busy() on a
-suspended device was valid.
-
-> +		ret = IRQ_HANDLED;
-> +	}
-> +
-> +	if (wirq->handler)
-> +		ret = wirq->handler(wakeirq, wirq->data);
-> +
-> +	return ret;
-> +}
-> +
-> +static void dev_pm_wakeirq_init(struct device *dev,
-> +				struct wakeirq_source *wirq)
-> +{
-> +	wirq->dev = dev;
-> +	wirq->wakeirq = -EINVAL;
-> +	wirq->handler = NULL;
-> +	wirq->data = NULL;
-> +	wirq->initialized = true;
-> +}
-> +
-> +/**
-> + * dev_pm_wakeirq_request - Request a wake-up interrupt
-> + * @dev: Device dev entry
-> + * @wakeirq: Device wake-up interrupt
-> + * @handler: Optional device specific handler
-> + * @irqflags: Optional irqflags, IRQF_ONESHOT if not specified
-> + * @data: Optional device specific data
-> + * @wirq: Wake-up irq data
-> + *
-> + * Sets up a threaded interrupt handler for a device that
-> + * by default just wakes up the device on a wake-up interrupt.
-> + * The interrupt starts disabled, and needs to be managed for
-> + * the device by the bus code or the device driver using
-> + * dev_pm_wakeirq_enable() and dev_pm_wakeirq_disable()
-> + * functions.
-> + */
-> +int dev_pm_wakeirq_request(struct device *dev,
-> +			   int wakeirq,
-> +			   irq_handler_t handler,
-> +			   unsigned long irqflags,
-> +			   void *data,
-> +			   struct wakeirq_source *wirq)
-> +{
-> +	int err;
-> +
-> +	if (!dev || !wirq)
-> +		return -EINVAL;
-> +
-> +	if (!wirq->initialized)
-> +		dev_pm_wakeirq_init(dev, wirq);
-> +
-> +	if (!irqflags)
-> +		irqflags = IRQF_ONESHOT;
-> +
-> +	irq_set_status_flags(wakeirq, IRQ_NOAUTOEN);
-> +
-> +	/*
-> +	 * Consumer device may need to power up and restore state
-> +	 * so let's just use threaded irq.
-> +	 */
-> +	err = devm_request_threaded_irq(wirq->dev,
-> +					wakeirq,
-> +					handler,
-> +					handle_dedicated_wakeirq,
-> +					irqflags,
-> +					dev_name(wirq->dev),
-> +					wirq);
-> +	if (err)
-> +		return err;
-> +
-> +	wirq->wakeirq = wakeirq;
-> +	wirq->handler = handler;
-> +	wirq->data = data;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dev_pm_wakeirq_request);
-> +
-> +static int is_valid_wakeirq(struct wakeirq_source *wirq)
-> +{
-> +	return wirq && wirq->initialized && (wirq->wakeirq >= 0);
-> +}
-> +
-> +#define is_invalid_wakeirq(w)	!is_valid_wakeirq(w)
-> +
-> +/**
-> + * dev_pm_wakeirq_free - Free a wake-up interrupt
-> + * @wirq: Device wake-up interrupt
-> + */
-> +void dev_pm_wakeirq_free(struct wakeirq_source *wirq)
-> +{
-> +	if (is_invalid_wakeirq(wirq))
-> +		return;
-> +
-> +	devm_free_irq(wirq->dev, wirq->wakeirq, wirq);
-> +	wirq->wakeirq = -EINVAL;
-> +}
-> +EXPORT_SYMBOL_GPL(dev_pm_wakeirq_free);
-> +
-> +/**
-> + * dev_pm_wakeirq_enable - Enable device wake-up interrupt
-> + * @wirq: Device wake-up interrupt
-> + *
-> + * Called from the bus code or the device driver for
-> + * runtime_suspend() to enable the wake-up interrupt while
-> + * the device is running.
-> + *
-> + * Note that for runtime_suspend()) the wake-up interrupts
-> + * should be unconditionally enabled unlike for suspend()
-> + * that is conditional.
-> + */
-> +void dev_pm_wakeirq_enable(struct wakeirq_source *wirq)
-> +{
-> +	if (is_invalid_wakeirq(wirq))
-> +		return;
-> +
-> +	enable_irq(wirq->wakeirq);
-> +}
-> +EXPORT_SYMBOL_GPL(dev_pm_wakeirq_enable);
-> +
-> +/**
-> + * dev_pm_wakeirq_disable - Disable device wake-up interrupt
-> + * @wirq: Device wake-up interrupt
-> + *
-> + * Called from the bus code or the device driver for
-> + * runtime_resume() to disable the wake-up interrupt while
-> + * the device is running.
-> + */
-> +void dev_pm_wakeirq_disable(struct wakeirq_source *wirq)
-> +{
-> +	if (is_invalid_wakeirq(wirq))
-> +		return;
-> +
-> +	disable_irq_nosync(wirq->wakeirq);
-> +}
-> +EXPORT_SYMBOL_GPL(dev_pm_wakeirq_disable);
-> +
-> +/**
-> + * dev_pm_wakeirq_arm_for_suspend - Configure device wake-up
-> + * @wirq: Device wake-up interrupt
-> + *
-> + * Called from the bus code or the device driver for
-> + * device suspend(). Just sets up the wake-up event
-> + * conditionally based on the device_may_wake(). The
-> + * rest is handled automatically by the generic suspend()
-> + * code and runtime_suspend().
-> + */
-> +void dev_pm_wakeirq_arm_for_suspend(struct wakeirq_source *wirq)
-> +{
-> +	if (is_invalid_wakeirq(wirq))
-> +		return;
-> +
-> +	irq_set_irq_wake(wirq->wakeirq,
-> +			 device_may_wakeup(wirq->dev));
-
-You want to do
-
-	if (device_may_wakeup(wirq->dev))
-		enable_irq_wake(wirq->wakeirq);
-
-here or strange things may happen if two devices share a wakeup IRQ.
-
-Also instead of doing it this way, I'd prefer to hook system wakeup
-interrupts into the wakeup source objects pointed to by the power.wakeup
-fields in struct device.
-
-Then we could just walk the list of wakeup sources and do enable_irq_wake()
-automatically for the wakeup interrupts hooked up to them at the
-suspend_device_irqs() time without the need to do anything from drivers
-at suspend time.
-
-> +}
-> +EXPORT_SYMBOL_GPL(dev_pm_wakeirq_arm_for_suspend);
-> +
-> diff --git a/include/linux/pm_wakeirq.h b/include/linux/pm_wakeirq.h
-> new file mode 100644
-> index 0000000..3ecbc1a
-> --- /dev/null
-> +++ b/include/linux/pm_wakeirq.h
-> @@ -0,0 +1,69 @@
-> +/*
-> + * pm_wakeirq.h - Device wakeirq helper functions
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef _LINUX_PM_WAKEIRQ_H
-> +#define _LINUX_PM_WAKEIRQ_H
-> +
-> +struct wakeirq_source {
-> +	struct device *dev;
-> +	int wakeirq;
-> +	bool initialized;
-> +	bool enabled;
-> +	irq_handler_t handler;
-> +	void *data;
-> +};
-
-Well, so now we have struct wakeup_source already and here we get struct wakeirq_source
-and they mean different things ...
-
-> +
-> +#ifdef CONFIG_PM_WAKEIRQ
-> +
-> +extern int dev_pm_wakeirq_request(struct device *dev,
-> +				  int wakeirq,
-> +				  irq_handler_t handler,
-> +				  unsigned long irqflags,
-> +				  void *data,
-> +				  struct wakeirq_source *wirq);
-> +extern void dev_pm_wakeirq_free(struct wakeirq_source *wirq);
-> +extern void dev_pm_wakeirq_enable(struct wakeirq_source *wirq);
-> +extern void dev_pm_wakeirq_disable(struct wakeirq_source *wirq);
-> +extern void dev_pm_wakeirq_arm_for_suspend(struct wakeirq_source *wirq);
-> +
-> +#else	/* !CONFIG_PM_WAKEIRQ */
-> +
-> +static inline int dev_pm_wakeirq_request(struct device *dev,
-> +					 int wakeirq,
-> +					 irq_handler_t handler,
-> +					 unsigned long irqflags,
-> +					 void *data,
-> +					 struct wakeirq_source *wirq)
-> +{
-> +	return 0;
-> +}
-> +
-> +static inline void dev_pm_wakeirq_free(struct wakeirq_source *wirq)
-> +{
-> +}
-> +
-> +static inline void dev_pm_wakeirq_enable(struct wakeirq_source *wirq)
-> +{
-> +}
-> +
-> +static inline void dev_pm_wakeirq_disable(struct wakeirq_source *wirq)
-> +{
-> +}
-> +
-> +static inline void
-> +dev_pm_wakeirq_arm_for_suspend(struct wakeirq_source *wirq)
-> +{
-> +}
-> +
-> +#endif	/* CONFIG_PM_WAKEIRQ */
-> +#endif	/* _LINUX_PM_WAKEIRQ_H */
-> diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-> index 7e01f78..c249845 100644
-> --- a/kernel/power/Kconfig
-> +++ b/kernel/power/Kconfig
-> @@ -267,6 +267,10 @@ config PM_CLK
->  	def_bool y
->  	depends on PM && HAVE_CLK
->  
-> +config PM_WAKEIRQ
-> +	bool
-> +	depends on PM
-> +
->  config PM_GENERIC_DOMAINS
->  	bool
->  	depends on PM
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+- Paul
