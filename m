@@ -1,22 +1,87 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper functions
-Date: Fri, 6 Mar 2015 13:41:15 +0100
-Message-ID: <CAJZ5v0hoA-dJ73mQEL=F1cSMik5+t-wgjEakSmrA5Yfxc4amMw@mail.gmail.com>
-References: <1425602049-2674-1-git-send-email-tony@atomide.com>
-	<1425602049-2674-2-git-send-email-tony@atomide.com>
-	<1805134.DQxHJSAxE3@vostro.rjw.lan>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] ARM: dts: omap3-beagle: Add NAND device
+Date: Fri, 6 Mar 2015 17:10:05 +0200
+Message-ID: <1425654605-5752-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1805134.DQxHJSAxE3@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39486 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754777AbbCFPKL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 10:10:11 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On Fri, Mar 6, 2015 at 3:02 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> Please always CC linux-pm on CC patches.
+The beagle board contains a 16-bit NAND device connected to
+chip select 0 of the GPMC controller.
 
-Doh.  That was supposed to say "Please always CC linux-pm on PM patches".
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/omap3-beagle.dts | 52 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-I really should not reply to email when I'm too tired ...
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index c792391..bf28502 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -379,3 +379,55 @@
+ 		};
+ 	};
+ };
++
++&gpmc {
++	status = "ok";
++	ranges = <0 0 0x30000000 0x1000000>;	/* CS0 space, 16MB */
++
++	/* Chip select 0 */
++	nand@0,0 {
++		reg = <0 0 4>;		/* NAND I/O window, 4 bytes */
++		interrupts = <20>;
++		ti,nand-ecc-opt = "ham1";
++		nand-bus-width = <16>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		gpmc,device-width = <2>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <36>;
++		gpmc,cs-wr-off-ns = <36>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <24>;
++		gpmc,adv-wr-off-ns = <36>;
++		gpmc,oe-on-ns = <6>;
++		gpmc,oe-off-ns = <48>;
++		gpmc,we-on-ns = <6>;
++		gpmc,we-off-ns = <30>;
++		gpmc,rd-cycle-ns = <72>;
++		gpmc,wr-cycle-ns = <72>;
++		gpmc,access-ns = <54>;
++		gpmc,wr-access-ns = <30>;
++
++		partition@0 {
++			label = "X-Loader";
++			reg = <0 0x80000>;
++		};
++		partition@80000 {
++			label = "U-Boot";
++			reg = <0x80000 0x1e0000>;
++		};
++		partition@1c0000 {
++			label = "U-Boot Env";
++			reg = <0x260000 0x20000>;
++		};
++		partition@280000 {
++			label = "Kernel";
++			reg = <0x280000 0x400000>;
++		};
++		partition@780000 {
++			label = "Filesystem";
++			reg = <0x680000 0xf980000>;
++		};
++	};
++};
+-- 
+2.1.0
+
