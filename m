@@ -1,19 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper functions
-Date: Sat, 07 Mar 2015 00:30:25 +0100
-Message-ID: <1638656.aLmbYYvRI6@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1503061358260.1407-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper
+ functions
+Date: Fri, 6 Mar 2015 15:05:40 -0800
+Message-ID: <20150306230539.GA2651@atomide.com>
+References: <20150306161920.GM13520@atomide.com>
+ <Pine.LNX.4.44L0.1503061358260.1407-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:35374 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751879AbbCFXQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Mar 2015 18:16:26 -0500
+Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.44L0.1503061358260.1407-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
 
-On Friday, March 06, 2015 02:05:43 PM Alan Stern wrote:
+* Alan Stern <stern@rowland.harvard.edu> [150306 11:05]:
 > On Fri, 6 Mar 2015, Tony Lindgren wrote:
 > 
 > > > > +	struct wakeirq_source *wirq = _wirq;
@@ -42,12 +48,15 @@ On Friday, March 06, 2015 02:05:43 PM Alan Stern wrote:
 > used in an interrupt handler top half unless the driver has
 > specifically promised they are IRQ-safe.  That's what Rafael was
 > getting at.
-> 
+
+Yes I understand, otherwise things certainly would not work :)
+
 > Of course, if this routine is a threaded-irq bottom half then there's 
 > no problem.
 
-Yup.  I overlooked the threaded part.
-
+Right this is threaded-irq bottom half because the devices may
+need to restore state and start regulators.
+ 
 > > > I guess what you want to call here is pm_request_resume() and
 > > > I wouldn't say that calling pm_runtime_mark_last_busy() on a
 > > > suspended device was valid.
@@ -60,10 +69,26 @@ Yup.  I overlooked the threaded part.
 > It's up to the subsystem to handle this.  For example, the USB 
 > subsystem's runtime-resume routine calls pm_runtime_mark_last_busy.
 
-I'm wondering, though, if there's any reason for us to avoid updating
-power.last_busy in rpm_resume().
+Hmm.. OK thanks this probably explains why pm_request_resume() did
+not work.
 
-If I was a driver writer, I'd expect the core to do that for me quite frankly.
+For omaps, I could call this from the interconnect related code,
+but then how dow we deal with the subsystems that don't call it?
 
-Rafael
+> > Considering the above, should we add a new function something like
+> > pm_resume_complete() that does not need irq_safe set but does
+> > not return until the device has completed resume?
+> 
+> That doesn't make sense.  You're asking for a routine that is allowed
+> to sleep but can safely be called in interrupt context.
 
+Oh it naturally would not work in irq context, it's for the bottom
+half again. But I'll take a look if we can just call
+pm_request_resume() and disable_irq() on the wakeirq in without
+waiting for the device driver runtime_suspend to disable the wakeirq.
+That would minimize the interface to just dev_pm_request_wakeirq()
+and dev_pm_free_wakeirq().
+
+Regards,
+
+Tony
