@@ -1,14 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 23/24] clk: ti: move some public definitions to private header
-Date: Fri, 6 Mar 2015 14:28:58 +0200
-Message-ID: <1425644939-3232-24-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 22/24] clk: ti: am3517: move remaining am3517 clock support code to clock driver
+Date: Fri, 6 Mar 2015 14:28:57 +0200
+Message-ID: <1425644939-3232-23-git-send-email-t-kristo@ti.com>
 References: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34228 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34226 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212AbbCFMaO (ORCPT
+	with ESMTP id S1755397AbbCFMaO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 07:30:14 -0500
 In-Reply-To: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,271 +16,316 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Several exported TI clock driver features are no longer needed outside
-the clock driver itself, thus move all of these to the driver private
-header file. Also, update some of the driver files to actually include
-this header.
+With legacy clock support gone, this is no longer needed under platform,
+so move it under the clock driver itself. Make some exports be driver
+internal definitions at the same time.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/apll.c     |    2 ++
- drivers/clk/ti/autoidle.c |    2 ++
- drivers/clk/ti/clk-43xx.c |    2 ++
- drivers/clk/ti/clk-44xx.c |    2 ++
- drivers/clk/ti/clk-54xx.c |    2 ++
- drivers/clk/ti/clk-7xx.c  |    3 ++-
- drivers/clk/ti/clock.h    |   47 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h    |   45 -------------------------------------------
- 8 files changed, 59 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/Makefile    |    1 -
+ arch/arm/mach-omap2/clock3517.c |  118 ---------------------------------------
+ arch/arm/mach-omap2/clock3517.h |   14 -----
+ drivers/clk/ti/clk-3xxx.c       |   94 +++++++++++++++++++++++++++++++
+ drivers/clk/ti/clock.h          |    2 +
+ include/linux/clk/ti.h          |    2 -
+ 6 files changed, 96 insertions(+), 135 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clock3517.c
+ delete mode 100644 arch/arm/mach-omap2/clock3517.h
 
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 72d9727..98e3a69 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -27,6 +27,8 @@
- #include <linux/clk/ti.h>
- #include <linux/delay.h>
- 
-+#include "clock.h"
-+
- #define APLL_FORCE_LOCK 0x1
- #define APLL_AUTO_IDLE	0x2
- #define MAX_APLL_WAIT_TRIES		1000000
-diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 7f4010d..d58af4b 100644
---- a/drivers/clk/ti/autoidle.c
-+++ b/drivers/clk/ti/autoidle.c
-@@ -22,6 +22,8 @@
- #include <linux/of_address.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- struct clk_ti_autoidle {
- 	void __iomem		*reg;
- 	u8			shift;
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-index 3795fce..8943167 100644
---- a/drivers/clk/ti/clk-43xx.c
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -19,6 +19,8 @@
- #include <linux/clk-provider.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- static struct ti_dt_clk am43xx_clks[] = {
- 	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
- 	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index 4f4c877..9978255 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -16,6 +16,8 @@
- #include <linux/clkdev.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- /*
-  * OMAP4 ABE DPLL default frequency. In OMAP4460 TRM version V, section
-  * "3.6.3.2.3 CM1_ABE Clock Generator" states that the "DPLL_ABE_X2_CLK
-diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-index 14160b2..76a9ccb 100644
---- a/drivers/clk/ti/clk-54xx.c
-+++ b/drivers/clk/ti/clk-54xx.c
-@@ -17,6 +17,8 @@
- #include <linux/io.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- #define OMAP5_DPLL_ABE_DEFFREQ				98304000
- 
- /*
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index ee32f4de..b1d4d0d 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -16,11 +16,12 @@
- #include <linux/clkdev.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- #define DRA7_DPLL_ABE_DEFFREQ				180633600
- #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
- #define DRA7_DPLL_USB_DEFFREQ				960000000
- 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 9ee4395..7693456 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -187,7 +187,6 @@ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common)
+ obj-$(CONFIG_ARCH_OMAP3)		+= clkt34xx_dpll3m2.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common)
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common)
+ obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
+diff --git a/arch/arm/mach-omap2/clock3517.c b/arch/arm/mach-omap2/clock3517.c
+deleted file mode 100644
+index 4d79ae2..0000000
+--- a/arch/arm/mach-omap2/clock3517.c
++++ /dev/null
+@@ -1,118 +0,0 @@
+-/*
+- * OMAP3517/3505-specific clock framework functions
+- *
+- * Copyright (C) 2010 Texas Instruments, Inc.
+- * Copyright (C) 2011 Nokia Corporation
+- *
+- * Ranjith Lohithakshan
+- * Paul Walmsley
+- *
+- * Parts of this code are based on code written by
+- * Richard Woodruff, Tony Lindgren, Tuukka Tikkanen, Karthik Dasu,
+- * Russell King
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#undef DEBUG
 -
- static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
- 	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 0ca5a36..3c43125 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -154,6 +154,35 @@ struct ti_clk_dpll {
- 	u8 recal_st_bit;
- };
- 
-+/* Composite clock component types */
-+enum {
-+	CLK_COMPONENT_TYPE_GATE = 0,
-+	CLK_COMPONENT_TYPE_DIVIDER,
-+	CLK_COMPONENT_TYPE_MUX,
-+	CLK_COMPONENT_TYPE_MAX,
-+};
-+
-+/**
-+ * struct ti_dt_clk - OMAP DT clock alias declarations
-+ * @lk: clock lookup definition
-+ * @node_name: clock DT node to map to
-+ */
-+struct ti_dt_clk {
-+	struct clk_lookup		lk;
-+	char				*node_name;
-+};
-+
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.node_name = name,	\
-+	}
-+
-+typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
-+
- struct clk *ti_clk_register_gate(struct ti_clk *setup);
- struct clk *ti_clk_register_interface(struct ti_clk *setup);
- struct clk *ti_clk_register_mux(struct ti_clk *setup);
-@@ -169,6 +198,12 @@ void ti_clk_patch_legacy_clks(struct ti_clk **patch);
- struct clk *ti_clk_register_clk(struct ti_clk *setup);
- int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
- 
-+void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
-+void ti_dt_clocks_register(struct ti_dt_clk *oclks);
-+int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
-+		      ti_of_clk_init_cb_t func);
-+int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
-+
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int of_ti_clk_autoidle_setup(struct device_node *node);
- void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
-@@ -186,12 +221,24 @@ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
- 
-+extern const struct clk_ops ti_clk_divider_ops;
-+extern const struct clk_ops ti_clk_mux_ops;
-+
- int omap2_clkops_enable_clkdm(struct clk_hw *hw);
- void omap2_clkops_disable_clkdm(struct clk_hw *hw);
- 
- int omap2_dflt_clk_enable(struct clk_hw *hw);
- void omap2_dflt_clk_disable(struct clk_hw *hw);
- int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
-+void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
-+				   void __iomem **other_reg,
-+				   u8 *other_bit);
-+void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
-+				void __iomem **idlest_reg,
-+				u8 *idlest_bit, u8 *idlest_val);
-+
-+void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
-+void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
- 
- u8 omap2_init_dpll_parent(struct clk_hw *hw);
- int omap3_noncore_dpll_enable(struct clk_hw *hw);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 687b993..7fc0c2d 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -188,33 +188,6 @@ struct clk_hw_omap {
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
- 
--/* Composite clock component types */
--enum {
--	CLK_COMPONENT_TYPE_GATE = 0,
--	CLK_COMPONENT_TYPE_DIVIDER,
--	CLK_COMPONENT_TYPE_MUX,
--	CLK_COMPONENT_TYPE_MAX,
+-#include <linux/kernel.h>
+-#include <linux/clk.h>
+-#include <linux/io.h>
+-
+-#include "clock.h"
+-#include "clock3517.h"
+-#include "cm3xxx.h"
+-#include "cm-regbits-34xx.h"
+-
+-/*
+- * In AM35xx IPSS, the {ICK,FCK} enable bits for modules are exported
+- * in the same register at a bit offset of 0x8. The EN_ACK for ICK is
+- * at an offset of 4 from ICK enable bit.
+- */
+-#define AM35XX_IPSS_ICK_MASK			0xF
+-#define AM35XX_IPSS_ICK_EN_ACK_OFFSET 		0x4
+-#define AM35XX_IPSS_ICK_FCK_OFFSET		0x8
+-#define AM35XX_IPSS_CLK_IDLEST_VAL		0
+-
+-/**
+- * am35xx_clk_find_idlest - return clock ACK info for AM35XX IPSS
+- * @clk: struct clk * being enabled
+- * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+- * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+- * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+- *
+- * The interface clocks on AM35xx IPSS reflects the clock idle status
+- * in the enable register itsel at a bit offset of 4 from the enable
+- * bit. A value of 1 indicates that clock is enabled.
+- */
+-static void am35xx_clk_find_idlest(struct clk_hw_omap *clk,
+-					    void __iomem **idlest_reg,
+-					    u8 *idlest_bit,
+-					    u8 *idlest_val)
+-{
+-	*idlest_reg = (__force void __iomem *)(clk->enable_reg);
+-	*idlest_bit = clk->enable_bit + AM35XX_IPSS_ICK_EN_ACK_OFFSET;
+-	*idlest_val = AM35XX_IPSS_CLK_IDLEST_VAL;
+-}
+-
+-/**
+- * am35xx_clk_find_companion - find companion clock to @clk
+- * @clk: struct clk * to find the companion clock of
+- * @other_reg: void __iomem ** to return the companion clock CM_*CLKEN va in
+- * @other_bit: u8 ** to return the companion clock bit shift in
+- *
+- * Some clocks don't have companion clocks.  For example, modules with
+- * only an interface clock (such as HECC) don't have a companion
+- * clock.  Right now, this code relies on the hardware exporting a bit
+- * in the correct companion register that indicates that the
+- * nonexistent 'companion clock' is active.  Future patches will
+- * associate this type of code with per-module data structures to
+- * avoid this issue, and remove the casts.  No return value.
+- */
+-static void am35xx_clk_find_companion(struct clk_hw_omap *clk,
+-				      void __iomem **other_reg,
+-				      u8 *other_bit)
+-{
+-	*other_reg = (__force void __iomem *)(clk->enable_reg);
+-	if (clk->enable_bit & AM35XX_IPSS_ICK_MASK)
+-		*other_bit = clk->enable_bit + AM35XX_IPSS_ICK_FCK_OFFSET;
+-	else
+-		*other_bit = clk->enable_bit - AM35XX_IPSS_ICK_FCK_OFFSET;
+-}
+-const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait = {
+-	.find_idlest	= am35xx_clk_find_idlest,
+-	.find_companion	= am35xx_clk_find_companion,
 -};
 -
 -/**
-- * struct ti_dt_clk - OMAP DT clock alias declarations
-- * @lk: clock lookup definition
-- * @node_name: clock DT node to map to
+- * am35xx_clk_ipss_find_idlest - return CM_IDLEST info for IPSS
+- * @clk: struct clk * being enabled
+- * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+- * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+- * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+- *
+- * The IPSS target CM_IDLEST bit is at a different shift from the
+- * CM_{I,F}CLKEN bit.  Pass back the correct info via @idlest_reg
+- * and @idlest_bit.  No return value.
 - */
--struct ti_dt_clk {
--	struct clk_lookup		lk;
--	char				*node_name;
+-static void am35xx_clk_ipss_find_idlest(struct clk_hw_omap *clk,
+-					    void __iomem **idlest_reg,
+-					    u8 *idlest_bit,
+-					    u8 *idlest_val)
+-{
+-	u32 r;
+-
+-	r = (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+-	*idlest_reg = (__force void __iomem *)r;
+-	*idlest_bit = AM35XX_ST_IPSS_SHIFT;
+-	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
+-}
+-
+-const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait = {
+-	.allow_idle	= omap2_clkt_iclk_allow_idle,
+-	.deny_idle	= omap2_clkt_iclk_deny_idle,
+-	.find_idlest	= am35xx_clk_ipss_find_idlest,
+-	.find_companion	= omap2_clk_dflt_find_companion,
 -};
+diff --git a/arch/arm/mach-omap2/clock3517.h b/arch/arm/mach-omap2/clock3517.h
+deleted file mode 100644
+index ca5e5a6..0000000
+--- a/arch/arm/mach-omap2/clock3517.h
++++ /dev/null
+@@ -1,14 +0,0 @@
+-/*
+- * OMAP3517/3505 clock function prototypes and macros
+- *
+- * Copyright (C) 2010 Texas Instruments, Inc.
+- * Copyright (C) 2010 Nokia Corporation
+- */
 -
--#define DT_CLK(dev, con, name)		\
--	{				\
--		.lk = {			\
--			.dev_id = dev,	\
--			.con_id = con,	\
--		},			\
--		.node_name = name,	\
--	}
+-#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK3517_H
+-#define __ARCH_ARM_MACH_OMAP2_CLOCK3517_H
 -
- /* Maximum number of clock memmaps */
- #define CLK_MAX_MEMMAPS			4
+-extern const struct clkops clkops_am35xx_ipss_module_wait;
+-extern const struct clkops clkops_am35xx_ipss_wait;
+-
+-#endif
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 7985e24..f043080 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -34,6 +34,18 @@
  
-@@ -225,8 +198,6 @@ enum {
- 	TI_CLKM_SCRM,
+ #define OMAP34XX_CM_IDLEST_VAL				1
+ 
++/*
++ * In AM35xx IPSS, the {ICK,FCK} enable bits for modules are exported
++ * in the same register at a bit offset of 0x8. The EN_ACK for ICK is
++ * at an offset of 4 from ICK enable bit.
++ */
++#define AM35XX_IPSS_ICK_MASK			0xF
++#define AM35XX_IPSS_ICK_EN_ACK_OFFSET		0x4
++#define AM35XX_IPSS_ICK_FCK_OFFSET		0x8
++#define AM35XX_IPSS_CLK_IDLEST_VAL		0
++
++#define AM35XX_ST_IPSS_SHIFT			5
++
+ /**
+  * omap3430es2_clk_ssi_find_idlest - return CM_IDLEST info for SSI
+  * @clk: struct clk * being enabled
+@@ -146,6 +158,88 @@ const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait = {
+ 	.find_companion	= omap2_clk_dflt_find_companion,
  };
  
--typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
--
- /**
-  * struct clk_omap_reg - OMAP register declaration
-  * @offset: offset from the master IP module base address
-@@ -266,9 +237,6 @@ struct ti_clk_ll_ops {
++/**
++ * am35xx_clk_find_idlest - return clock ACK info for AM35XX IPSS
++ * @clk: struct clk * being enabled
++ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
++ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
++ * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
++ *
++ * The interface clocks on AM35xx IPSS reflects the clock idle status
++ * in the enable register itsel at a bit offset of 4 from the enable
++ * bit. A value of 1 indicates that clock is enabled.
++ */
++static void am35xx_clk_find_idlest(struct clk_hw_omap *clk,
++				   void __iomem **idlest_reg,
++				   u8 *idlest_bit,
++				   u8 *idlest_val)
++{
++	*idlest_reg = (__force void __iomem *)(clk->enable_reg);
++	*idlest_bit = clk->enable_bit + AM35XX_IPSS_ICK_EN_ACK_OFFSET;
++	*idlest_val = AM35XX_IPSS_CLK_IDLEST_VAL;
++}
++
++/**
++ * am35xx_clk_find_companion - find companion clock to @clk
++ * @clk: struct clk * to find the companion clock of
++ * @other_reg: void __iomem ** to return the companion clock CM_*CLKEN va in
++ * @other_bit: u8 ** to return the companion clock bit shift in
++ *
++ * Some clocks don't have companion clocks.  For example, modules with
++ * only an interface clock (such as HECC) don't have a companion
++ * clock.  Right now, this code relies on the hardware exporting a bit
++ * in the correct companion register that indicates that the
++ * nonexistent 'companion clock' is active.  Future patches will
++ * associate this type of code with per-module data structures to
++ * avoid this issue, and remove the casts.  No return value.
++ */
++static void am35xx_clk_find_companion(struct clk_hw_omap *clk,
++				      void __iomem **other_reg,
++				      u8 *other_bit)
++{
++	*other_reg = (__force void __iomem *)(clk->enable_reg);
++	if (clk->enable_bit & AM35XX_IPSS_ICK_MASK)
++		*other_bit = clk->enable_bit + AM35XX_IPSS_ICK_FCK_OFFSET;
++	else
++	*other_bit = clk->enable_bit - AM35XX_IPSS_ICK_FCK_OFFSET;
++}
++
++const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait = {
++	.find_idlest	= am35xx_clk_find_idlest,
++	.find_companion	= am35xx_clk_find_companion,
++};
++
++/**
++ * am35xx_clk_ipss_find_idlest - return CM_IDLEST info for IPSS
++ * @clk: struct clk * being enabled
++ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
++ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
++ * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
++ *
++ * The IPSS target CM_IDLEST bit is at a different shift from the
++ * CM_{I,F}CLKEN bit.  Pass back the correct info via @idlest_reg
++ * and @idlest_bit.  No return value.
++ */
++static void am35xx_clk_ipss_find_idlest(struct clk_hw_omap *clk,
++					void __iomem **idlest_reg,
++					u8 *idlest_bit,
++					u8 *idlest_val)
++{
++	u32 r;
++
++	r = (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
++	*idlest_reg = (__force void __iomem *)r;
++	*idlest_bit = AM35XX_ST_IPSS_SHIFT;
++	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
++}
++
++const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++	.find_idlest	= am35xx_clk_ipss_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
++
+ static struct ti_dt_clk omap3xxx_clks[] = {
+ 	DT_CLK(NULL, "apb_pclk", "dummy_apb_pclk"),
+ 	DT_CLK(NULL, "omap_32k_fck", "omap_32k_fck"),
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index c6fbd15..0ca5a36 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -183,6 +183,8 @@ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
++extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
++extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
  
- extern struct ti_clk_ll_ops *ti_clk_ll_ops;
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 8316bd3..687b993 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -331,8 +331,6 @@ void ti_clk_setup_features(struct ti_clk_features *features);
+ struct ti_clk_features *ti_clk_get_features(void);
  
--extern const struct clk_ops ti_clk_divider_ops;
--extern const struct clk_ops ti_clk_mux_ops;
--
- #define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
+ extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
+-extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
+-extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
  
- void omap2_init_clk_clkdm(struct clk_hw *clk);
-@@ -276,14 +244,6 @@ int omap2_clk_disable_autoidle_all(void);
- int omap2_clk_enable_autoidle_all(void);
- int omap2_clk_allow_idle(struct clk *clk);
- int omap2_clk_deny_idle(struct clk *clk);
--void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
--void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
--void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
--				   void __iomem **other_reg,
--				   u8 *other_bit);
--void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
--				void __iomem **idlest_reg,
--				u8 *idlest_bit, u8 *idlest_val);
- unsigned long omap2_dpllcore_recalc(struct clk_hw *hw,
- 				    unsigned long parent_rate);
- int omap2_reprogram_dpllcore(struct clk_hw *clk, unsigned long rate,
-@@ -292,14 +252,9 @@ void omap2xxx_clkt_dpllcore_init(struct clk_hw *hw);
- void omap2xxx_clkt_vps_init(void);
- unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
- 
--void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
--void ti_dt_clocks_register(struct ti_dt_clk *oclks);
- void ti_dt_clk_init_provider(struct device_node *np, int index);
- void ti_dt_clk_init_retry_clks(void);
- void ti_dt_clockdomains_setup(void);
--int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
--		      ti_of_clk_init_cb_t func);
--int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
- 
- int omap3430_dt_clk_init(void);
- int omap3630_dt_clk_init(void);
+ #ifdef CONFIG_ATAGS
+ int omap3430_clk_legacy_init(void);
 -- 
 1.7.9.5
 
