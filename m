@@ -1,53 +1,79 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2] ASoC: omap: fix up SND_OMAP_SOC_OMAP_ABE_TWL6040
- dependency
-Date: Fri, 6 Mar 2015 19:50:33 +0000
-Message-ID: <20150306195032.GV21293@sirena.org.uk>
-References: <22890811.0MuvZ4MxOU@wuerfel>
- <54EDEAE3.6080605@ti.com>
- <2707228.SKhEXovzW4@wuerfel>
+From: Kai Vehmanen <kvehmanen-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>
+Subject: Re: Right interface for cellphone modem audio (was Re: [PATCHv2 0/2]
+ N900 Modem Speech Support)
+Date: Fri, 6 Mar 2015 22:49:50 +0200 (EET)
+Message-ID: <alpine.DEB.2.00.1503062139320.2610@ecabase.localdomain>
+References: <1425343454-6551-1-git-send-email-sre@kernel.org> <20150305113013.GA3867@amd> <alpine.DEB.2.00.1503051844420.2610@ecabase.localdomain> <20150306094354.GA32369@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="BXmg4rwOCWWn8Dzk"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54453 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375AbbCFTux (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 14:50:53 -0500
-Content-Disposition: inline
-In-Reply-To: <2707228.SKhEXovzW4@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150306094354.GA32369@amd>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: perex-/Fr2/VpizcU@public.gmane.org, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lgirdwood@gmail.com
 
+Hi,
 
---BXmg4rwOCWWn8Dzk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, 6 Mar 2015, Pavel Machek wrote:
 
-On Wed, Feb 25, 2015 at 04:42:12PM +0100, Arnd Bergmann wrote:
-> The change to enable OMAP5 support on this platform was a little too
-> eager in adding a 'select' for a particular clock driver that might
-> not be enabled in all configurations, which in turn leads to a build
-> error:
+>> Our take was that ALSA is not the right interface for cmt_speech. The
+>> cmt_speech interface in the modem is _not_ a PCM interface as modelled by
+>> ALSA. Specifically:
+>>
+>> - the interface is lossy in both directions
+>> - data is sent in packets, not a stream of samples (could be other things
+>>   than PCM samples), with timing and meta-data
+>> - timing of uplink is of utmost importance
+>
+> I see that you may not have data available in "downlink" scenario, but
+> how is it lossy in "uplink" scenario? Phone should always try to fill
+> the uplink, no? (Or do you detect silence and not transmit in this
 
-Applied, thanks.
+Lossy was perhaps not the best choice of words, non-continuous would be 
+a better choice in the uplink case. To adjust timing, some samples from 
+the continuous locally recorded PCM stream need to be skipped and/or 
+duplicated. This would normally be done between speech bursts to avoid 
+artifacts.
 
---BXmg4rwOCWWn8Dzk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Packets vs. stream of samples... does userland need to know about the
+> packets? Could we simply hide it from the userland? As userland daemon
+> is (supposed to be) realtime, do we really need extra set of
+> timestamps? What other metadata are there?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Yes, we need flags that tell about the frame. Please see docs for 
+'frame_flags' and 'spc_flags' in libcmtspeechdata cmtspeech.h:
+https://www.gitorious.org/libcmtspeechdata/libcmtspeechdata/source/9206835ea3c96815840a80ccba9eaeb16ff7e294:cmtspeech.h
 
-iQEcBAEBCAAGBQJU+gUIAAoJECTWi3JdVIfQLrIH/j8mnSi3/hSr+Wl5eWxi63sL
-42670ux2XjrflPA4RO5YNV2ls4apm14MBe4ziSHcDqupKqLHPY8TjtLvY2oVMtz2
-N70+JPr7IUu5OityLfCyfOTcePTEZe4213eflRsj0BC6oXmWjWl1P9ijYLRok4Mn
-vwOWCOWb5mUZasi16/mPZaSVo6Kl0o8QmVaOjXwxUbxsTHLqM4RTibC1H7q+8dqI
-R91h/W6v+b0nYQbZPq8T+Y7pNFz0hBd6p4aK/6bFRr3A9fcudYt/z560LGE2SNtQ
-dW9WiaxJfpwdw2tbslbM/V8iLlXoeVLMxtk3jRYv5+7P6jneVv0t6caceMHNtvw=
-=o6Zn
------END PGP SIGNATURE-----
+Kernel space does not have enough info to handle these flags as the audio 
+mixer is not implemented in kernel, so they have to be passed to/from 
+user-space.
 
---BXmg4rwOCWWn8Dzk--
+And some further info in libcmtspeechdata/docs/ 
+https://www.gitorious.org/libcmtspeechdata/libcmtspeechdata/source/9206835ea3c96815840a80ccba9eaeb16ff7e294:doc/libcmtspeechdata_api_docs_main.txt
+
+> Uplink timing... As the daemon is realtime, can it just send the data
+> at the right time? Also normally uplink would be filled, no?
+
+But how would you implement that via the ALSA API? With cmt_speech, a 
+speech packet is prepared in a mmap'ed buffer, flags are set to describe 
+the buffer, and at the correct time, write() is called to trigger 
+transmission in HW (see cmtspeech_ul_buffer_release() in 
+libcmtspeechdata() -> compare this to snd_pcm_mmap_commit() in ALSA). In 
+ALSA, the mmap commit and PCM write variants just add data to the 
+ringbuffer and update the appl pointer. Only initial start (and stop) on 
+stream have the "do something now" semantics in ALSA.
+
+The ALSA compressed offload API did not exist back when we were working on 
+cmt_speech, but that's still not a good fit, although adds some of the 
+concepts (notably frames).
+
+> Well, packets are of fixed size, right? So the userland can simply
+> supply the right size in the common case. As for sending at the right
+> time... well... if the userspace is already real-time, that should be 
+> easy
+
+See above, ALSA just doesn't work like that, there's no syscall for "send 
+these samples now", the model is different.
+
+Br, Kai
