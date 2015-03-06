@@ -1,67 +1,102 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC 3/6] drm/tilcdc: Add support for external compontised
- DRM encoder
-Date: Fri, 6 Mar 2015 10:33:27 +0200
-Message-ID: <54F96657.10200@ti.com>
-References: <cover.1424961754.git.jsarha@ti.com> <92792bb4f64fb1b7f26e687ec159d870d0e7a81a.1424961754.git.jsarha@ti.com> <20150302160135.GA29584@n2100.arm.linux.org.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Right interface for cellphone modem audio (was Re: [PATCHv2 0/2]
+ N900 Modem Speech Support)
+Date: Fri, 6 Mar 2015 10:43:54 +0100
+Message-ID: <20150306094354.GA32369@amd>
+References: <1425343454-6551-1-git-send-email-sre@kernel.org>
+ <20150305113013.GA3867@amd>
+ <alpine.DEB.2.00.1503051844420.2610@ecabase.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55084 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053AbbCFIds (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2015 03:33:48 -0500
-In-Reply-To: <20150302160135.GA29584@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1503051844420.2610@ecabase.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kai Vehmanen <kvehmanen@nosignal.fi>, perex@perex.cz, tiwai@suse.de, alsa-devel@alsa-project.org
+Cc: Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, tomi.valkeinen@ti.com, detheridge@ti.com, moinejf@free.fr, laurent.pinchart@ideasonboard.com
 
-On 03/02/15 18:01, Russell King - ARM Linux wrote:
-> On Thu, Feb 26, 2015 at 04:55:32PM +0200, Jyri Sarha wrote:
->> +	ret = component_bind_all(dev->dev, dev);
->> +	if (ret < 0) {
->> +		dev_err(dev->dev, "Binding subcomponents failed: %d\n", ret);
->
-> Do you need to print this?  The component helper is already fairly
-> verbose about what succeeds and fails.
->
+Hi!
 
-Will remove.
+> >>Userland access goes via /dev/cmt_speech. The API is implemented in
+> >>libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
+> >Yes, the ABI is "tested" for some years, but it is not documented, and
+> >it is very wrong ABI.
+> >
+> >I'm not sure what they do with the "read()". I was assuming it is
+> >meant for passing voice data, but it can return at most 4 bytes,
+> >AFAICT.
+> >
+> >We already have perfectly good ABI for passing voice data around. It
+> >is called "ALSA". libcmtspeech will then become unneccessary, and the
+> >daemon routing voice data will be as simple as "read sample from
+> 
+> I'm no longer involved with cmt_speech (with this driver nor modems in
+> general), but let me clarify some bits about the design.
 
->> +static const struct component_master_ops tilcdc_comp_ops = {
->> +	.add_components = tilcdc_add_external_components,
->
-> I'd much rather you used the new matching support rather than using the
-> old .add_components.  The new matching support is more efficient as you
-> only have to scan DT once, rather than each time we try to probe.  That
-> will mean...
->
+Thanks a lot for your insights; high level design decisions are quite
+hard to understand from C code.
 
-That is otherwise fine, but with the match code it not possible to 
-implement a master that may not have any components.
+> First, the team that designed the driver and the stack above had a lot of
+> folks working also with ALSA (and the ALSA drivers have been merged to
+> mainline long ago) and we considered ALSA on multiple occasions as the
+> interface for this as well.
+> 
+> Our take was that ALSA is not the right interface for cmt_speech. The
+> cmt_speech interface in the modem is _not_ a PCM interface as modelled by
+> ALSA. Specifically:
+> 
+> - the interface is lossy in both directions
+> - data is sent in packets, not a stream of samples (could be other things
+>   than PCM samples), with timing and meta-data
+> - timing of uplink is of utmost importance
 
-Would it be Ok to add a check that master->ops->add_components is 
-defined, before calling it in find_componets() 
-(drivers/base/component.c:120) and return 0 if it is not?
+I see that you may not have data available in "downlink" scenario, but
+how is it lossy in "uplink" scenario? Phone should always try to fill
+the uplink, no? (Or do you detect silence and not transmit in this
+case?) (Actually, I guess applications should be ready for "data not
+ready" case even on "normal" hardware due to differing clocks.)
 
-Best regards,
-Jyri
+Packets vs. stream of samples... does userland need to know about the
+packets? Could we simply hide it from the userland? As userland daemon
+is (supposed to be) realtime, do we really need extra set of
+timestamps? What other metadata are there?
 
->> @@ -613,12 +643,12 @@ static int tilcdc_pdev_probe(struct platform_device *pdev)
->>   		return -ENXIO;
->>   	}
->
-> You need to build a struct component_match array here using
-> component_match_add()...
->
->>
->> -	return drm_platform_init(&tilcdc_driver, pdev);
->> +	return component_master_add(&pdev->dev, &tilcdc_comp_ops);
->
-> and then finally register the ops with component_master_add_with_match().
->
-> Thanks.
->
+Uplink timing... As the daemon is realtime, can it just send the data
+at the right time? Also normally uplink would be filled, no?
 
+> Some definite similarities:
+>  - the mmap interface to manage the PCM buffers (that is on purpose
+>    similar to that of ALSA)
+> 
+> The interface was designed so that the audio mixer (e.g. Pulseaudio) is run
+> with a soft real-time SCHED_FIFO/RR user-space thread that has full control
+> over _when_ voice _packets_ are sent, and can receive packets with meta-data
+> (see libcmtspeechdata interface, cmtspeech.h), and can detect and handle
+> gaps in the received packets.
+
+Well, packets are of fixed size, right? So the userland can simply
+supply the right size in the common case. As for sending at the right
+time... well... if the userspace is already real-time, that should be
+easy. 
+
+Now, there's a difference in the downlink. Maybe ALSA people have an
+idea what to do in this case? Perhaps we can just provide artificial
+"zero" data?
+
+> This is very different from modems that offer an actual PCM voice link for
+> example over I2S to the application processor (there are lots of these on
+> the market). When you walk out of coverage during a call with these modems,
+> you'll still get samples over I2S, but not so with cmt_speech, so ALSA is
+> not the right interface.
+
+Yes, understood.
+
+> Now, I'm not saying the interface is perfect, but just to give a bit of
+> background, why a custom char-device interface was chosen.
+
+Thanks and best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
