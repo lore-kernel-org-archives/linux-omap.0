@@ -1,49 +1,86 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: twl4030_charger: need changes to get probed?
-Date: Fri, 6 Mar 2015 22:57:58 +0100
-Message-ID: <201503062257.58180@pali>
-References: <20150224043341.4243.23291.stgit@notabene.brown> <20150305173350.50502b95@notabene.brown> <20150306212417.GA24169@amd>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 13/15] twl4030_charger: add ac/mode to match usb/mode
+Date: Fri, 6 Mar 2015 23:59:04 +0200
+Message-ID: <CANOLnOOJhz3JSevuz7T+XZDquEvJ-UiVM4KVHxxa4mSqb-yTpg@mail.gmail.com>
+References: <20150224043341.4243.23291.stgit@notabene.brown>
+	<20150224043352.4243.8071.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart7172662.nn1UDZ7dIt";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150306212417.GA24169@amd>
-Sender: linux-pm-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: NeilBrown <neilb@suse.de>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150224043352.4243.8071.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart7172662.nn1UDZ7dIt
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Feb 24, 2015 at 6:33 AM, NeilBrown <neilb@suse.de> wrote:
+> This allows AC charging to be turned off, much like usb charging.
+>
+> "continuous" (aka "linear") mode maps to the CVENAC (constant voltage=
+)
+> feature of the twl4030.
 
-On Friday 06 March 2015 22:24:17 Pavel Machek wrote:
-> Hi!
->=20
-> According to n900 dts, twl4030-bci (aka charger) should be
-> included.
->=20
+Are you sure? Before your patches CVENAC was set at all times and and
+charger still worked in automatic mode.
 
-AFAIK it is not present on n900...
+>
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> ---
+>  drivers/power/twl4030_charger.c |   40 +++++++++++++++++++++++++++++=
+----------
+>  1 file changed, 30 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_=
+charger.c
+> index 6c53f0b601a4..e5a0225ea87e 100644
+> --- a/drivers/power/twl4030_charger.c
+> +++ b/drivers/power/twl4030_charger.c
+> @@ -112,7 +112,7 @@ struct twl4030_bci {
+>         int                     ichg_eoc, ichg_lo, ichg_hi;
+>         int                     usb_cur, ac_cur;
+>         bool                    ac_is_active;
+> -       int                     usb_mode; /* charging mode requested =
+*/
+> +       int                     usb_mode, ac_mode; /* charging mode r=
+equested */
+>  #define        CHARGE_OFF      0
+>  #define        CHARGE_AUTO     1
+>  #define        CHARGE_LINEAR   2
+> @@ -449,12 +449,18 @@ static int twl4030_charger_enable_usb(struct tw=
+l4030_bci *bci, bool enable)
+>  /*
+>   * Enable/Disable AC Charge funtionality.
+>   */
+> -static int twl4030_charger_enable_ac(bool enable)
+> +static int twl4030_charger_enable_ac(struct twl4030_bci *bci, bool e=
+nable)
+>  {
+>         int ret;
+>
+> -       if (enable)
+> -               ret =3D twl4030_clear_set_boot_bci(0, TWL4030_BCIAUTO=
+AC);
+> +       if (bci->ac_mode =3D=3D CHARGE_OFF)
+> +               enable =3D false;
+> +
+> +       if (enable && bci->ac_mode =3D=3D CHARGE_LINEAR)
+> +               ret =3D twl4030_clear_set_boot_bci(0, (TWL4030_CVENAC=
+ |
+> +                                                    TWL4030_BCIAUTOA=
+C));
+> +       else if (enable)
+> +               ret =3D twl4030_clear_set_boot_bci(TWL4030_CVENAC, TW=
+L4030_BCIAUTOAC);
+>         else
+>                 ret =3D twl4030_clear_set_boot_bci(TWL4030_BCIAUTOAC,=
+ 0);
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+CVENAC is required to be set for operation on AC without battery
+(which works fine on most pandora boards). After this patch, when
+booted without battery,  the board will reset before there is a chance
+to set the linear mode by userspace, because this is called on
+probe...
 
---nextPart7172662.nn1UDZ7dIt
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlT6IuYACgkQi/DJPQPkQ1KFCwCgmZb200fLuDlwohiNSLLG+riV
-zWcAnjgwcOUc8GiUw+HAtgeFAnLk6VBu
-=mwLH
------END PGP SIGNATURE-----
-
---nextPart7172662.nn1UDZ7dIt--
+Gra=C5=BEvydas
