@@ -1,68 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt
- property
-Date: Thu, 5 Mar 2015 12:17:14 -0800
-Message-ID: <20150305201713.GH13520@atomide.com>
-References: <1425561211-31003-1-git-send-email-d-gerlach@ti.com>
- <1425561211-31003-2-git-send-email-d-gerlach@ti.com>
- <alpine.DEB.2.02.1503051815590.5613@utopia.booyaka.com>
- <20150305184952.GF13520@atomide.com> <54F8B2C7.7060202@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <54F8B2C7.7060202@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, KEERTHY <j-keerthy@ti.com>
+Subject: [PATCH 0/4] Minimal generic wakeirq helpers
+Date: Thu,  5 Mar 2015 16:34:05 -0800
+Message-ID: <1425602049-2674-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta1.delivery2.ore.mailhop.org ([54.149.210.130]:56536 "EHLO
+	pmta1.delivery2.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751628AbbCFAjv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2015 19:39:51 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [150305 11:53]:
-> On 03/05/2015 12:49 PM, Tony Lindgren wrote:
-> > * Paul Walmsley <paul@pwsan.com> [150305 10:16]:
-> >> On Thu, 5 Mar 2015, Dave Gerlach wrote:
-> >>
-> >>> Introduce a dt property, ti,no-init, that prevents hwmod initialization.
-> >>> Even if a dt node is marked as disabled, hwmod still at least enables
-> >>> the hwmod and programs the sysconfig before attempting to idle it at
-> >>> boot. If an IP has been disabled by the hardware configuration on a
-> >>> platform, this will cause a hang due to writing to inactive registers.
-> >>> This property prevents that from happening by marking the hwmod as
-> >>> _HWMOD_STATE_DISABLED during init.
-> >>
-> >> I'm kind of wondering if hwmod should even touch a device if it's marked 
-> >> as disabled in the DT.  Tony, what do you think?
-> > 
-> > Well nothing happens if a device is status = "disabled". No dev entry
-> > gets created for it at all and hwmod won't have any data for the device
-> > populated. The only way hwmod code could see that device if the device
-> > gets it's data from the legacy omap_hwmod_*_data.c instead of DT.
-> > 
-> 
-> We still need this for the sysconfig programming, correct? hwmod programs that
-> regardless of dt status and then idles the IP,
+Hi all,
 
-Well hwmod does not even know about the IP IO addresses if it's marked
-with status = "disabled".. Which IP are you having problems with?
+Here's an attempt to have Linux generic wakeirq helpers. This allows
+removing most of the related code from drivers. Currently the drivers
+all do it in a slightly different way. And may have issues with interrupt
+re-entrancy and getting the suspend/resume vs runtime_pm wake handling
+right.
 
-> which is why I needed the ti,no-init for the epos evm. It isn't just a
-> matter of we shouldnt write to it because we don't want to use it; we
-> can't write to it because the module is held off so it causes an
-> external abort if we do.
+This is for wakerirqs that are available for some devices in addition
+to the regular device interrupts. The seprate always-on wake-up interrupt
+controller is needed to allow devices and the SoC to enter deeper idle
+states and still be able to wake-up to events.
 
-Well hard to say not knowing which module this is.. Pretty much all
-the modules have drivers and the driver just does pm_runtime_get()
-on it?
+Some of this was discussed in the kernel/irq context a while back [1].
+But it seems that this can be done in drivers/base/power. If somebody has
+hardware that needs to replay lost device interrupts based on the
+wake-up interrupts, then additional kernel/irq changes will be needed.
+
+This set fixes up three drivers to use the generic wakeirq. Note that
+eventually the wakeirq handling for these drivers might end up in a
+bus specific code and could be hidden away from the drivers.
 
 Regards,
 
 Tony
+
+
+[1] https://lkml.org/lkml/2014/11/13/458
+
+Tony Lindgren (4):
+  PM / Wakeirq: Add minimal device wakeirq helper functions
+  serial: 8250_omap: Move wake-up interrupt to generic wakeirq
+  serial: omap: Switch wake-up interrupt to generic wakeirq
+  mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq
+
+ arch/arm/mach-omap2/Kconfig         |   1 +
+ drivers/base/power/Makefile         |   1 +
+ drivers/base/power/wakeirq.c        | 201 ++++++++++++++++++++++++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c       |  55 +++-------
+ drivers/tty/serial/8250/8250_omap.c |  67 +++---------
+ drivers/tty/serial/omap-serial.c    |  38 +++----
+ include/linux/pm_wakeirq.h          |  69 +++++++++++++
+ kernel/power/Kconfig                |   4 +
+ 8 files changed, 318 insertions(+), 118 deletions(-)
+ create mode 100644 drivers/base/power/wakeirq.c
+ create mode 100644 include/linux/pm_wakeirq.h
+
+-- 
+2.1.4
+
