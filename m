@@ -1,58 +1,38 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/10] omap3 crypto fixes
-Date: Sun, 8 Mar 2015 11:01:37 +0100
-Message-ID: <201503081101.37452@pali>
-References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com> <20150306183631.GA13520@atomide.com> <20150306222306.GB587@fuloong-minipc.musicnaut.iki.fi>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper
+ functions
+Date: Sun, 8 Mar 2015 11:34:06 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1503081131510.3638-100000@netrider.rowland.org>
+References: <1638656.aLmbYYvRI6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1446292.dRi6r1Sc2E";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150306222306.GB587-+UqvGBo8NkiJ/SmVcN9c7yH8jP4CeeTLqBW4ids5wwA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1638656.aLmbYYvRI6@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1446292.dRi6r1Sc2E
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Sat, 7 Mar 2015, Rafael J. Wysocki wrote:
 
-On Friday 06 March 2015 23:23:06 Aaro Koskinen wrote:
-> Hi,
->=20
-> On Fri, Mar 06, 2015 at 10:36:32AM -0800, Tony Lindgren wrote:
-> > Are there any fixes in this series that should go into
-> > v4.0-rc series, or can it all wait for v4.1?
->=20
-> I think these all should wait for v4.1.
->=20
-> A.
+> > > Well right now it's using threaded irq, and I'd like to get rid of
+> > > I'll verify again, but I believe the issue was that without doing
+> > > mark_last_busy here the device falls back asleep right away.
+> > > That probably should be fixed in pm_runtime in general if that's
+> > > the case.
+> > 
+> > It's up to the subsystem to handle this.  For example, the USB 
+> > subsystem's runtime-resume routine calls pm_runtime_mark_last_busy.
+> 
+> I'm wondering, though, if there's any reason for us to avoid updating
+> power.last_busy in rpm_resume().
+> 
+> If I was a driver writer, I'd expect the core to do that for me quite frankly.
 
-I would suggest to include at least patches 01, 04, 06. Probably=20
-those could go to -stable tree... but this decision is up to you.
+In theory, you might want to wake up a device to perform some very 
+limited operation (like reading an internal register) and then put it 
+back into suspend very quickly, without waiting for the autosuspend 
+delay to elapse.  Apart from that, I can't think of any reason not to 
+update last_busy in rpm_resume.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
---nextPart1446292.dRi6r1Sc2E
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEUEABECAAYFAlT8HgEACgkQi/DJPQPkQ1Kr+gCgvFjNKWWpdP43zaEWV5hD8Z9s
-aZkAmL1R+Qtpa0h+Evo7wAoSjeAwFR0=
-=4NaA
------END PGP SIGNATURE-----
-
---nextPart1446292.dRi6r1Sc2E--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alan Stern
