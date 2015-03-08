@@ -1,144 +1,84 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [RFC 10/18] omap3isp: Move the syscon register out of the ISP
- register maps
-Date: Sun, 8 Mar 2015 01:43:34 +0200
-Message-ID: <20150307234334.GH6539@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-11-git-send-email-sakari.ailus@iki.fi>
- <1726882.heQ7ZxmKYg@avalon>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH v2] crypto: omap-sham: Check for return value from pm_runtime_get_sync
+Date: Sun,  8 Mar 2015 11:01:01 +0100
+Message-ID: <1425808861-17004-1-git-send-email-pali.rohar@gmail.com>
+References: <1424958600-18881-5-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1726882.heQ7ZxmKYg@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1424958600-18881-5-git-send-email-pali.rohar@gmail.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
+=46unction pm_runtime_get_sync could fail and we need to check return
+value to prevent kernel crash.
 
-On Sun, Mar 08, 2015 at 01:34:17AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> (CC'ing linux-omap and Tony)
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+v2: Check return value for all pm_runtime_get_sync() calls
+---
+ drivers/crypto/omap-sham.c |   23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-Thanks.
-
-> On Saturday 07 March 2015 23:41:07 Sakari Ailus wrote:
-> > The syscon register isn't part of the ISP, use it through the syscom driver
-> > regmap instead. The syscom block is considered to be from 343x on ISP
-> > revision 2.0 whereas 15.0 is assumed to have 3630 syscon.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-> > ---
-> >  arch/arm/boot/dts/omap3.dtsi                |    2 +-
-> >  arch/arm/mach-omap2/devices.c               |   10 ----------
-> >  drivers/media/platform/omap3isp/isp.c       |   19 +++++++++++++++----
-> >  drivers/media/platform/omap3isp/isp.h       |   19 +++++++++++++++++--
-> >  drivers/media/platform/omap3isp/ispcsiphy.c |   20 +++++++++-----------
-> 
-> You might be asked to split the patch into two, let's see what Tony says.
-> 
-> >  5 files changed, 42 insertions(+), 28 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> > index 01b7111..fe0b293 100644
-> > --- a/arch/arm/boot/dts/omap3.dtsi
-> > +++ b/arch/arm/boot/dts/omap3.dtsi
-> > @@ -183,7 +183,7 @@
-> > 
-> >  		omap3_scm_general: tisyscon@48002270 {
-> >  			compatible = "syscon";
-> > -			reg = <0x48002270 0x2f0>;
-> > +			reg = <0x48002270 0x2f4>;
-> >  		};
-> > 
-> >  		pbias_regulator: pbias_regulator {
-> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> > index 1afb50d..e945957 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -143,16 +143,6 @@ static struct resource omap3isp_resources[] = {
-> >  		.flags		= IORESOURCE_MEM,
-> >  	},
-> >  	{
-> > -		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
-> > -		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> > -		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
-> > -		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
-> > -		.flags		= IORESOURCE_MEM,
-> > -	},
-> > -	{
-> >  		.start		= 24 + OMAP_INTC_START,
-> >  		.flags		= IORESOURCE_IRQ,
-> >  	}
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 68d7edfc..4ff4bbd 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -51,6 +51,7 @@
-> >  #include <linux/dma-mapping.h>
-> >  #include <linux/i2c.h>
-> >  #include <linux/interrupt.h>
-> > +#include <linux/mfd/syscon.h>
-> >  #include <linux/module.h>
-> >  #include <linux/omap-iommu.h>
-> >  #include <linux/platform_device.h>
-> > @@ -94,8 +95,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
-> >  		       1 << OMAP3_ISP_IOMEM_RESZ |
-> >  		       1 << OMAP3_ISP_IOMEM_SBL |
-> >  		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
-> > -		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
-> > +		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-> > +		.syscon_offset = 0xdc,
-> > +		.phy_type = ISP_PHY_TYPE_3430,
-> >  	},
-> >  	{
-> >  		.isp_rev = ISP_REVISION_15_0,
-> > @@ -112,8 +114,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
-> >  		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
-> >  		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
-> >  		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
-> > -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
-> > -		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
-> > +		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-> > +		.syscon_offset = 0x2f0,
-> > +		.phy_type = ISP_PHY_TYPE_3630,
-> >  	},
-> >  };
-> > 
-> > @@ -2352,6 +2355,14 @@ static int isp_probe(struct platform_device *pdev)
-> >  		}
-> >  	}
-> > 
-> > +	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
-> > +	isp->syscon_offset = isp_res_maps[m].syscon_offset;
-> > +	isp->phy_type = isp_res_maps[m].phy_type;
-> 
-> You could move those two lines after the error check to keep the check closer 
-> to the source of error.
-
-Ack.
-
-> Apart from that,
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-
-Thanks for the acks!
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index b20e374..c5df53d 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -362,7 +362,13 @@ static void omap_sham_copy_ready_hash(struct ahash=
+_request *req)
+=20
+ static int omap_sham_hw_init(struct omap_sham_dev *dd)
+ {
+-	pm_runtime_get_sync(dd->dev);
++	int err;
++
++	err =3D pm_runtime_get_sync(dd->dev);
++	if (err < 0) {
++		dev_err(dd->dev, "failed to get sync: %d\n", err);
++		return err;
++	}
+=20
+ 	if (!test_bit(FLAGS_INIT, &dd->flags)) {
+ 		set_bit(FLAGS_INIT, &dd->flags);
+@@ -1949,7 +1955,13 @@ static int omap_sham_probe(struct platform_devic=
+e *pdev)
+ 	dd->flags |=3D dd->pdata->flags;
+=20
+ 	pm_runtime_enable(dev);
+-	pm_runtime_get_sync(dev);
++
++	err =3D pm_runtime_get_sync(dev);
++	if (err < 0) {
++		dev_err(dev, "failed to get sync: %d\n", err);
++		goto err_pm;
++	}
++
+ 	rev =3D omap_sham_read(dd, SHA_REG_REV(dd));
+ 	pm_runtime_put_sync(&pdev->dev);
+=20
+@@ -1979,6 +1991,7 @@ err_algs:
+ 		for (j =3D dd->pdata->algs_info[i].registered - 1; j >=3D 0; j--)
+ 			crypto_unregister_ahash(
+ 					&dd->pdata->algs_info[i].algs_list[j]);
++err_pm:
+ 	pm_runtime_disable(dev);
+ 	if (dd->dma_lch)
+ 		dma_release_channel(dd->dma_lch);
+@@ -2021,7 +2034,11 @@ static int omap_sham_suspend(struct device *dev)
+=20
+ static int omap_sham_resume(struct device *dev)
+ {
+-	pm_runtime_get_sync(dev);
++	int err =3D pm_runtime_get_sync(dev);
++	if (err < 0) {
++		dev_err(dev, "failed to get sync: %d\n", err);
++		return err;
++	}
+ 	return 0;
+ }
+ #endif
+--=20
+1.7.9.5
