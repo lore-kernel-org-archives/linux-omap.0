@@ -1,68 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
-Date: Mon, 9 Mar 2015 14:41:29 -0700
-Message-ID: <20150309214129.GK5264@atomide.com>
-References: <20150309205157.GE5140@atomide.com>
- <CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
- <20150309211306.GC22341@saruman.tx.rr.com>
- <CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
- <20150309212014.GE22341@saruman.tx.rr.com>
- <20150309212622.GJ5264@atomide.com>
- <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
+From: =?utf-8?q?=22Email_Technical_Support_=C2=A9_2015=22_=3Cinst=2Egamapinto?=@mail.casanare.gov.co,
+	=?utf-8?b?QG1haWwudGVsZXBhYy5wdD4=?=@mail.casanare.gov.co
+Subject: ATTENTION; UPDATE YOUR ACCOUNT.
+Date: Mon, 09 Mar 2015 20:56:09 +0000
+Message-ID: <20150309205613.BC88F2A0390F@mail.casanare.gov.co>
+Reply-To: upgradingservice57@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.casanare.gov.co ([186.119.119.211]:52867 "EHLO
+	mail.casanare.gov.co" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699AbbCIWoh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2015 18:44:37 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.casanare.gov.co (Postfix) with ESMTP id 95CD32A01D09
+	for <linux-omap@vger.kernel.org>; Mon,  9 Mar 2015 16:51:08 -0500 (COT)
+Received: from mail.casanare.gov.co ([127.0.0.1])
+	by localhost (mail.casanare.gov.co [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 4PlgRQ6eApHr for <linux-omap@vger.kernel.org>;
+	Mon,  9 Mar 2015 16:51:08 -0500 (COT)
+Received: from HP-PC.home (host86-187-197-75.range86-187.btcentralplus.com [86.187.197.75])
+	by mail.casanare.gov.co (Postfix) with ESMTPA id BC88F2A0390F
+	for <linux-omap@vger.kernel.org>; Mon,  9 Mar 2015 15:56:13 -0500 (COT)
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150309 14:35]:
-> On Mon, Mar 9, 2015 at 4:26 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [150309 14:21]:
-> >> On Mon, Mar 09, 2015 at 04:17:29PM -0500, Bin Liu wrote:
-> >> > On Mon, Mar 9, 2015 at 4:13 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> >> > > On Mon, Mar 09, 2015 at 04:11:28PM -0500, Bin Liu wrote:
-> >> > >> Hi,
-> >> > >>
-> >> > >> On Mon, Mar 9, 2015 at 3:51 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> >> > >> > Add a minimal driver for dm816x USB. Otherwise we can just use
-> >> > >> > the existing musb_am335x and musb_dsps on dm816x.
-> >> > >>
-> >> > >> dm816x has the almost identical usbss as that in am335x, we should be
-> >> > >> able to adopt musb_am335x and musb_dsps for dm816x, and dm814x too?
-> >> > >
-> >> > > Tony's using the same musb glue layers, this is just a phy driver,
-> >> > > right ?
-> >> >
-> >> > Can the current am335x phy driver be adopted too? I remember it is
-> >> > under drivers/usb/phy/.
-> >>
-> >> Tony will be best to answer, but according to our IRC discussions, it's
-> >> too different. Tony ?
-> >
-> > Well we should check again between dm814x and am335x documentation
-> > against the $subject driver as the dm816x docs were buggy and I may
-> > have gotten a wrong idea initially.
-> 
-> Will it make our life a little easier by comparing the usb drivers for
-> dm81xx and am335x in previous TI kernel releases? I cam dig out the
-> source code if that helps.
+ATTENTION;
 
-Yeah that probably helps if you've dealt with dm814x earlier :)
-Just don't look at the dm816x trm, only the errata pdf works for
-dm816x phy.
+Your mailbox has exceeded the storage limit which is 5 GB defined by
+the administrator, who is currently running on 10.9GB, may not be able
+to send or receive new mail until you validate your email inbox. To
+validate your mailbox, send the following information below:
 
-Note that we still are missing basic support for dm814x in mainline,
-I'm planning to tackle that at some point but I don't know when I'm
-going to get to it..
+name:
+Username:
+password:
+Confirm Password:
+E-mail:
+phone:
+Account Security Question:
 
-Regards,
+If you can not defend your mailbox, the mailbox is disabled!
 
-Tony
+Sorry for the inconvenience.
+Verification code: is: 0000054631
+Email Technical Support =A9 2015
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
