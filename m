@@ -1,63 +1,54 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: RGB LED control (was Re: "advanced" LED controllers)
-Date: Mon, 9 Mar 2015 10:08:46 +0100
-Message-ID: <20150309090846.GA6659@amd>
-References: <20150219211424.GN13603@saruman.tx.rr.com>
- <CAMuHMdUUNzFYHzSR3yLCJuz11vuO3Z4yVWVxRQfutGY1KxZLPQ@mail.gmail.com>
- <CAAVeFuJ7DCs_=iESJRcXwyQ09eD57dZCxGG5CD3LD9_ZGZHP2A@mail.gmail.com>
- <20150302092111.GA19233@amd>
- <CAAVeFuK9eGO2TN+tgDyN8EFzEhgHOy5YCch+LaqS9PNaQXQ4Qg@mail.gmail.com>
- <20150308205732.GA385@amd>
- <CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 11/24] ARM: OMAP2+: clock: remove support for legacy mpurate
+ command line param
+Date: Mon, 9 Mar 2015 11:08:22 +0200
+Message-ID: <54FD6306.4050109@ti.com>
+References: <1425644939-3232-1-git-send-email-t-kristo@ti.com> <1425644939-3232-12-git-send-email-t-kristo@ti.com> <20150306153254.GK13520@atomide.com> <54F9D160.7010708@ti.com> <20150306162516.GN13520@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Felipe Balbi <balbi@ti.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53776 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752742AbbCIJIu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Mar 2015 05:08:50 -0400
+In-Reply-To: <20150306162516.GN13520@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
 
-On Mon 2015-03-09 09:08:37, Geert Uytterhoeven wrote:
-> Hi Pavel,
-> 
-> On Sun, Mar 8, 2015 at 9:57 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> > Ok, so I played with RGB LED a bit, and we have quite a gap in
-> > documentation: what 50% brightness means is non-trivial and very
-> > important in case we want to do smooth blinking and color transitions.
-> >
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >
-> > diff --git a/Documentation/ABI/testing/sysfs-class-led b/Documentation/ABI/testing/sysfs-class-led
-> > index 3646ec8..649d7a6 100644
-> > --- a/Documentation/ABI/testing/sysfs-class-led
-> > +++ b/Documentation/ABI/testing/sysfs-class-led
-> > @@ -8,6 +8,11 @@ Description:
-> >                 non-zero brightness settings. The value is between 0 and
-> >                 /sys/class/leds/<led>/max_brightness.
-> >
-> > +               If LED supports continuous brightness settings, 50% brightness
-> > +               should correspond to 50% brightness perceived by human, in a similar
-> > +               manner pixel brightness on monitor does (not 50% PWM).
-> 
-> How many drivers do it right? How many don't?
+On 03/06/2015 06:25 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [150306 08:10]:
+>> On 03/06/2015 05:32 PM, Tony Lindgren wrote:
+>>> * Tero Kristo <t-kristo@ti.com> [150306 04:29]:
+>>>> The legacy support is wrong and dangerous, as it doesn't take any
+>>>> OPPs into account and does not scale voltages. Switching mpurate should
+>>>> be handled through cpufreq.
+>>>
+>>> Hmm I wonder if some systems actually rely on the mpurate cmdline
+>>> parameter. If this cannot be fixed properly, you should at least
+>>> print an error here.
+>>
+>> Yea, I was kind of worried about this comment. We have also an option of
+>> doing this through clock driver, but I was hesitant of doing this either.
+>> Isn't having a global kernel option like this frowned upon anyway? I believe
+>> this piece of init code gets executed on every board on multiarch kernel.
+>
+> Well the option has been there probably for 10 years already so we
+> can't just drop it like that. Chances are it's unused though, so I
+> suggest you just print out a warning for it.
+>
+> It's called from omap_arch_initcall which checks for soc_is_omap()
+> so that's not an issue. But when moving the code, you naturally
+> need to check the moved code initcall usage.
 
-Not sure. leds-lp5523.c gets is wrong. Easy test is to attempt to set
-"electric indigo" color
-(http://en.wikipedia.org/wiki/Indigo#Violet-blue) and see what comes
-out.
+This patch is not really needed for the set itself btw, it can just be 
+dropped if you feel it actually is used by someone. Reverting it from 
+the set just causes a minor merge conflict and you can't remove two of 
+the otherwise empty clock files.
 
-> For those that don't, perhaps we handle the conversion between perceived and
-> pwm in the core, e.g. by adding a new flag to led_classdev.flags to indicate
-> the need for conversion?
+You could also just move the code over to clock.c maybe, merge these and 
+do a soc type check to reach the same behaviour.
 
-There is not that many drivers that support smooth power
-adjustments. But yes, we can probably conversion in the core for
-trivial case.
-
-Unfortunately, we only have 8-bits of precision to work with... 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-Tero
