@@ -1,67 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/24] ARM: OMAP2+: clock: remove support for legacy
- mpurate command line param
-Date: Mon, 9 Mar 2015 08:24:54 -0700
-Message-ID: <20150309152453.GF5264@atomide.com>
-References: <1425644939-3232-1-git-send-email-t-kristo@ti.com>
- <1425644939-3232-12-git-send-email-t-kristo@ti.com>
- <20150306153254.GK13520@atomide.com>
- <54F9D160.7010708@ti.com>
- <20150306162516.GN13520@atomide.com>
- <54FD6306.4050109@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Eliad Peller <eliad@wizery.com>
+Subject: [PATCH v5 1/3] dt: bindings: add wl18xx wireless device
+Date: Mon,  9 Mar 2015 17:36:40 +0200
+Message-ID: <1425915402-10012-1-git-send-email-eliad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:35856 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750930AbbCIPaF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:30:05 -0400
-Content-Disposition: inline
-In-Reply-To: <54FD6306.4050109@ti.com>
+Received: from mail-we0-f178.google.com ([74.125.82.178]:41406 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408AbbCIPgv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2015 11:36:51 -0400
+Received: by wesw62 with SMTP id w62so5197868wes.8
+        for <linux-omap@vger.kernel.org>; Mon, 09 Mar 2015 08:36:49 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+To: linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Arnd Bergmann <arnd@arndb.de>
 
-* Tero Kristo <t-kristo@ti.com> [150309 05:56]:
-> On 03/06/2015 06:25 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [150306 08:10]:
-> >>On 03/06/2015 05:32 PM, Tony Lindgren wrote:
-> >>>* Tero Kristo <t-kristo@ti.com> [150306 04:29]:
-> >>>>The legacy support is wrong and dangerous, as it doesn't take any
-> >>>>OPPs into account and does not scale voltages. Switching mpurate should
-> >>>>be handled through cpufreq.
-> >>>
-> >>>Hmm I wonder if some systems actually rely on the mpurate cmdline
-> >>>parameter. If this cannot be fixed properly, you should at least
-> >>>print an error here.
-> >>
-> >>Yea, I was kind of worried about this comment. We have also an option of
-> >>doing this through clock driver, but I was hesitant of doing this either.
-> >>Isn't having a global kernel option like this frowned upon anyway? I believe
-> >>this piece of init code gets executed on every board on multiarch kernel.
-> >
-> >Well the option has been there probably for 10 years already so we
-> >can't just drop it like that. Chances are it's unused though, so I
-> >suggest you just print out a warning for it.
-> >
-> >It's called from omap_arch_initcall which checks for soc_is_omap()
-> >so that's not an issue. But when moving the code, you naturally
-> >need to check the moved code initcall usage.
-> 
-> This patch is not really needed for the set itself btw, it can just be
-> dropped if you feel it actually is used by someone. Reverting it from the
-> set just causes a minor merge conflict and you can't remove two of the
-> otherwise empty clock files.
+Add device tree binding documentation for TI's wl18xx
+wlan chip.
 
-How about set it up in a way where it can be easily reverted later
-on if there is need for that?
- 
-> You could also just move the code over to clock.c maybe, merge these and do
-> a soc type check to reach the same behaviour.
+Signed-off-by: Eliad Peller <eliad@wizery.com>
+---
+ .../devicetree/bindings/net/wireless/ti,wl18xx.txt | 39 ++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wl18xx.txt
 
-If it's needed yeah.
+diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wl18xx.txt b/Documentation/devicetree/bindings/net/wireless/ti,wl18xx.txt
+new file mode 100644
+index 0000000..9dcf535
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/wireless/ti,wl18xx.txt
+@@ -0,0 +1,39 @@
++TI Wilink8 (wl18xx) SDIO devices
++
++This node provides properties for controlling the wilink8 wireless device. The
++node is expected to be specified as a child node to the SDIO controller that
++connects the device to the system.
++
++Required properties:
++ - compatible : Should be "ti,wl18xx".
++ - compatible: should be one of the following:
++    * "ti,wl1801"
++    * "ti,wl1805"
++    * "ti,wl1807"
++    * "ti,wl1831"
++    * "ti,wl1835"
++    * "ti,wl1837"
++ - interrupts : specifies attributes for the out-of-band interrupt.
++
++Optional properties:
++ - interrupt-parent : the phandle for the interrupt controller to which the
++	device interrupts are connected.
++
++Example:
++
++&mmc3 {
++	status = "okay";
++	vmmc-supply = <&wlan_en_reg>;
++	bus-width = <4>;
++	cap-power-off-card;
++	keep-power-in-suspend;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	wlcore: wlcore@2 {
++		compatible = "ti,wl1835";
++		reg = <2>;
++		interrupt-parent = <&gpio0>;
++		interrupts = <19 IRQ_TYPE_NONE>;
++	};
++};
+-- 
+1.8.5.2.229.g4448466.dirty
 
-Regards,
-
-Tony
