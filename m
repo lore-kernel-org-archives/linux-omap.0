@@ -1,164 +1,47 @@
-From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v5 2/3] wl18xx: add basic device-tree support
-Date: Mon,  9 Mar 2015 17:36:41 +0200
-Message-ID: <1425915402-10012-2-git-send-email-eliad@wizery.com>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1425915402-10012-1-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/4] PM / Wakeirq: Add minimal device wakeirq helper
+ functions
+Date: Mon, 9 Mar 2015 11:42:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1503091134240.1472-100000@iolanthe.rowland.org>
+References: <20150309150908.GC5264@atomide.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150309150908.GC5264@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-When running with device-tree, we no longer have a board file
-that can set up the platform data for wlcore.
-Allow this data to be passed from DT.
+On Mon, 9 Mar 2015, Tony Lindgren wrote:
 
-For now, parse only the irq used. Other (optional) properties
-can be added later on.
+> > > > > Considering the above, should we add a new function something like
+> > > > > pm_resume_complete() that does not need irq_safe set but does
+> > > > > not return until the device has completed resume?
+> > > > 
+> > > > That doesn't make sense.  You're asking for a routine that is allowed
+> > > > to sleep but can safely be called in interrupt context.
+> > > 
+> > > Oh it naturally would not work in irq context, it's for the bottom
+> > > half again.
+> > 
+> > In other words, you're suggesting we add a function that runs in 
+> > process context and doesn't return until the device is fully resumed?  
+> > That's exactly what pm_runtime_resume does right now.
+> 
+> But doesn't it only wait for completion if the driver is marked with
+> pm_runtime_irq_safe()?
 
-Signed-off-by: Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
----
- drivers/net/wireless/ti/wlcore/sdio.c | 80 ++++++++++++++++++++++++++++++++---
- 1 file changed, 74 insertions(+), 6 deletions(-)
+Put it this way: pm_runtime_resume invokes a ->runtime_resume
+callback routine (the subsystem's or the driver's or whichever), and it
+assumes that if the routine returns 0 then the device has been resumed.  
+It doesn't really _wait_ for anything; it just calls the callback
+routine.
 
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index d3dd7bf..ee556ac 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -34,6 +34,8 @@
- #include <linux/wl12xx.h>
- #include <linux/pm_runtime.h>
- #include <linux/printk.h>
-+#include <linux/of.h>
-+#include <linux/of_irq.h>
- 
- #include "wlcore.h"
- #include "wl12xx_80211.h"
-@@ -214,6 +216,69 @@ static struct wl1271_if_operations sdio_ops = {
- 	.set_block_size = wl1271_sdio_set_block_size,
- };
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id wlcore_sdio_of_match_table[] = {
-+	{ .compatible = "ti,wl1801" },
-+	{ .compatible = "ti,wl1805" },
-+	{ .compatible = "ti,wl1807" },
-+	{ .compatible = "ti,wl1831" },
-+	{ .compatible = "ti,wl1835" },
-+	{ .compatible = "ti,wl1837" },
-+	{ }
-+};
-+
-+static struct wl12xx_platform_data *wlcore_probe_of(struct device *dev)
-+{
-+	struct device_node *np = dev->of_node;
-+	struct wl12xx_platform_data *pdata;
-+
-+	if (!np || !of_match_node(wlcore_sdio_of_match_table, np))
-+		return NULL;
-+
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+
-+	pdata->irq = irq_of_parse_and_map(np, 0);
-+	if (!pdata->irq) {
-+		dev_err(dev, "No irq in platform data\n");
-+		kfree(pdata);
-+		return NULL;
-+	}
-+
-+	return pdata;
-+}
-+#else
-+static struct wl12xx_platform_data *wlcore_probe_of(struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif
-+
-+static struct wl12xx_platform_data *
-+wlcore_get_platform_data(struct device *dev)
-+{
-+	struct wl12xx_platform_data *pdata;
-+
-+	/* first, look for DT data */
-+	pdata = wlcore_probe_of(dev);
-+	if (pdata)
-+		return pdata;
-+
-+	/* if not found - fallback to static platform data */
-+	pdata = wl12xx_get_platform_data();
-+	if (!IS_ERR(pdata))
-+		return kmemdup(pdata, sizeof(*pdata), GFP_KERNEL);
-+
-+	dev_err(dev, "No platform data set\n");
-+	return NULL;
-+}
-+
-+static void wlcore_del_platform_data(struct wl12xx_platform_data *pdata)
-+{
-+	kfree(pdata);
-+}
-+
- static int wl1271_probe(struct sdio_func *func,
- 				  const struct sdio_device_id *id)
- {
-@@ -245,12 +310,9 @@ static int wl1271_probe(struct sdio_func *func,
- 	/* Use block mode for transferring over one block size of data */
- 	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
- 
--	pdev_data.pdata = wl12xx_get_platform_data();
--	if (IS_ERR(pdev_data.pdata)) {
--		ret = PTR_ERR(pdev_data.pdata);
--		dev_err(glue->dev, "missing wlan platform data: %d\n", ret);
-+	pdev_data.pdata = wlcore_get_platform_data(&func->dev);
-+	if (!pdev_data.pdata)
- 		goto out_free_glue;
--	}
- 
- 	/* if sdio can keep power while host is suspended, enable wow */
- 	mmcflags = sdio_get_host_pm_caps(func);
-@@ -279,7 +341,7 @@ static int wl1271_probe(struct sdio_func *func,
- 	if (!glue->core) {
- 		dev_err(glue->dev, "can't allocate platform_device");
- 		ret = -ENOMEM;
--		goto out_free_glue;
-+		goto out_free_pdata;
- 	}
- 
- 	glue->core->dev.parent = &func->dev;
-@@ -313,6 +375,9 @@ static int wl1271_probe(struct sdio_func *func,
- out_dev_put:
- 	platform_device_put(glue->core);
- 
-+out_free_pdata:
-+	wlcore_del_platform_data(pdev_data.pdata);
-+
- out_free_glue:
- 	kfree(glue);
- 
-@@ -323,11 +388,14 @@ out:
- static void wl1271_remove(struct sdio_func *func)
- {
- 	struct wl12xx_sdio_glue *glue = sdio_get_drvdata(func);
-+	struct wlcore_platdev_data *pdev_data = glue->core->dev.platform_data;
-+	struct wl12xx_platform_data *pdata = pdev_data->pdata;
- 
- 	/* Undo decrement done above in wl1271_probe */
- 	pm_runtime_get_noresume(&func->dev);
- 
- 	platform_device_unregister(glue->core);
-+	wlcore_del_platform_data(pdata);
- 	kfree(glue);
- }
- 
--- 
-1.8.5.2.229.g4448466.dirty
+It behaves this way whether or not the irq_safe flag is set.  The only
+difference is that if irq_safe is set then the callback routine is
+invoked with interrupts disabled (and in this case pm_runtime_resume
+may be called in interrupt context -- normally it can be called only in
+process context).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alan Stern
