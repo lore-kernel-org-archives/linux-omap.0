@@ -1,70 +1,72 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: RGB LED control (was Re: "advanced" LED controllers)
-Date: Mon, 09 Mar 2015 11:50:56 +0000
-Message-ID: <yw1xd24i1ja7.fsf@unicorn.mansr.com>
-References: <20150219211424.GN13603@saruman.tx.rr.com>
-	<CAMuHMdUUNzFYHzSR3yLCJuz11vuO3Z4yVWVxRQfutGY1KxZLPQ@mail.gmail.com>
-	<CAAVeFuJ7DCs_=iESJRcXwyQ09eD57dZCxGG5CD3LD9_ZGZHP2A@mail.gmail.com>
-	<20150302092111.GA19233@amd>
-	<CAAVeFuK9eGO2TN+tgDyN8EFzEhgHOy5YCch+LaqS9PNaQXQ4Qg@mail.gmail.com>
-	<20150308205732.GA385@amd>
-	<CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [GIT PULL] OMAP-GPMC driver updates for v4.1
+Date: Mon, 9 Mar 2015 14:09:38 +0200
+Message-ID: <54FD8D82.9060507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
-	(Geert Uytterhoeven's message of "Mon, 9 Mar 2015 09:08:37 +0100")
-Sender: linux-gpio-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Alexandre Courbot <gnurou@gmail.com>, Felipe Balbi <balbi@ti.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59837 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbbCIMJz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2015 08:09:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, Semen Protsenko <semen.protsenko@globallogic.com>
 
-Geert Uytterhoeven <geert@linux-m68k.org> writes:
+Hi Arnd,
 
-> Hi Pavel,
->
-> On Sun, Mar 8, 2015 at 9:57 PM, Pavel Machek <pavel@ucw.cz> wrote:
->> Ok, so I played with RGB LED a bit, and we have quite a gap in
->> documentation: what 50% brightness means is non-trivial and very
->> important in case we want to do smooth blinking and color transition=
-s.
->>
->> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->>
->> diff --git a/Documentation/ABI/testing/sysfs-class-led b/Documentati=
-on/ABI/testing/sysfs-class-led
->> index 3646ec8..649d7a6 100644
->> --- a/Documentation/ABI/testing/sysfs-class-led
->> +++ b/Documentation/ABI/testing/sysfs-class-led
->> @@ -8,6 +8,11 @@ Description:
->>                 non-zero brightness settings. The value is between 0=
- and
->>                 /sys/class/leds/<led>/max_brightness.
->>
->> +               If LED supports continuous brightness settings, 50% =
-brightness
->> +               should correspond to 50% brightness perceived by hum=
-an, in a similar
->> +               manner pixel brightness on monitor does (not 50% PWM=
-).
->
-> How many drivers do it right? How many don't?
->
-> For those that don't, perhaps we handle the conversion between percei=
-ved and
-> pwm in the core, e.g. by adding a new flag to led_classdev.flags to i=
-ndicate
-> the need for conversion?
+Based on Tony's request I will be sending you pull requests for OMAP-GPMC driver
+hence forth.
 
-Some LED controllers do the right thing in hardware, so any adjustment
-done in the core needs to be optional.
+Please pull in these OMAP-GPMC driver fixes for v4.1.
+Patches have been tested for GPMC-NAND on dra7-evm and omap3-beagle.
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
+
+The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
+
+  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
+
+are available in the git repository at:
+
+  git@github.com:rogerq/linux.git tags/gpmc-omap-for-v4.1
+
+for you to fetch changes up to 4b613e9b4bbe94545a588a100e09006d827a7ebe:
+
+  ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters (2015-03-06 12:55:32 +0200)
+
+----------------------------------------------------------------
+OMAP-GPMC driver fixes for v4.1
+
+* Fixed WAITMONITORINGTIME programming to be based on
+GPMC_CLK instead of GPMC_FCLK. The GPMC clock divider
+programming is fixed for both synchronous and asynchronous
+modes.
+* Allow GPMC's children of default bus type to be populated in
+the device tree.
+* Improved DEBUG output data and format.
+* Prevent writing 1 into reserved bits of GPMC_CONFIG7.
+
+----------------------------------------------------------------
+Robert ABEL (8):
+      ARM OMAP2+ GPMC: don't undef DEBUG
+      ARM OMAP2+ GPMC: add bus children
+      ARM OMAP2+ GPMC: fix debug output alignment
+      ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
+      ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
+      ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based on WAITMONITORINGTIME
+      ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
+      ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
+
+Semen Protsenko (2):
+      ARM: OMAP2+: gpmc: Fix writing in gpmc_cs_set_memconf
+      ARM: OMAP2+: gpmc: make gpmc_cs_get_name() static
+
+ arch/arm/mach-omap2/gpmc-nand.c    |  18 +++++----
+ arch/arm/mach-omap2/gpmc-onenand.c |   4 +-
+ arch/arm/mach-omap2/usb-tusb6010.c |   4 +-
+ drivers/memory/omap-gpmc.c         | 358 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------
+ include/linux/omap-gpmc.h          |   3 +-
+ 5 files changed, 305 insertions(+), 82 deletions(-)
