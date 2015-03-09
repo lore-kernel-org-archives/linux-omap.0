@@ -1,102 +1,56 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: twl4030_charger: need changes to get probed?
-Date: Mon, 9 Mar 2015 11:06:53 +1100
-Message-ID: <20150309110653.7532613c@notabene.brown>
-References: <20150224043341.4243.23291.stgit@notabene.brown>
-	<20150224043352.4243.11227.stgit@notabene.brown>
-	<20150302210926.GP13270@amd>
-	<20150305173350.50502b95@notabene.brown>
-	<20150306212417.GA24169@amd>
-	<20150307210102.GL5233@earth>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: RGB LED control (was Re: "advanced" LED controllers)
+Date: Mon, 9 Mar 2015 09:08:37 +0100
+Message-ID: <CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
+References: <20150219211424.GN13603@saruman.tx.rr.com>
+	<CAMuHMdUUNzFYHzSR3yLCJuz11vuO3Z4yVWVxRQfutGY1KxZLPQ@mail.gmail.com>
+	<CAAVeFuJ7DCs_=iESJRcXwyQ09eD57dZCxGG5CD3LD9_ZGZHP2A@mail.gmail.com>
+	<20150302092111.GA19233@amd>
+	<CAAVeFuK9eGO2TN+tgDyN8EFzEhgHOy5YCch+LaqS9PNaQXQ4Qg@mail.gmail.com>
+	<20150308205732.GA385@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/t8viym4Ys3iYI07D4d0NOPc"; protocol="application/pgp-signature"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150307210102.GL5233@earth>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, GTA04 owners <gta04-owner@goldelico.com>, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <20150308205732.GA385@amd>
+Sender: linux-leds-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Felipe Balbi <balbi@ti.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/t8viym4Ys3iYI07D4d0NOPc
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Pavel,
 
-On Sat, 7 Mar 2015 22:01:02 +0100 Sebastian Reichel <sre@debian.org> wrote:
+On Sun, Mar 8, 2015 at 9:57 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Ok, so I played with RGB LED a bit, and we have quite a gap in
+> documentation: what 50% brightness means is non-trivial and very
+> important in case we want to do smooth blinking and color transitions.
+>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>
+> diff --git a/Documentation/ABI/testing/sysfs-class-led b/Documentation/ABI/testing/sysfs-class-led
+> index 3646ec8..649d7a6 100644
+> --- a/Documentation/ABI/testing/sysfs-class-led
+> +++ b/Documentation/ABI/testing/sysfs-class-led
+> @@ -8,6 +8,11 @@ Description:
+>                 non-zero brightness settings. The value is between 0 and
+>                 /sys/class/leds/<led>/max_brightness.
+>
+> +               If LED supports continuous brightness settings, 50% brightness
+> +               should correspond to 50% brightness perceived by human, in a similar
+> +               manner pixel brightness on monitor does (not 50% PWM).
 
-> Hi,
->=20
-> On Fri, Mar 06, 2015 at 10:24:17PM +0100, Pavel Machek wrote:
-> > According to n900 dts, twl4030-bci (aka charger) should be
-> > included.
->=20
-> its part of twl, but not used on N900 afaik.
->=20
-> > (But it does not seem to do anything useful on n900. I was hoping for
-> > measurement of input voltage, but .. no.)
->=20
-> check for rx51-battery.
->=20
-> > Any ideas why the patch below is needed?
->=20
-> platform_driver_probe() does not support deferred probing.
->=20
-> Neil, can you take this patch into your series for the next round?
+How many drivers do it right? How many don't?
 
-I could, but I do wonder if it is the right thing to do.
+For those that don't, perhaps we handle the conversion between perceived and
+pwm in the core, e.g. by adding a new flag to led_classdev.flags to indicate
+the need for conversion?
 
-Shouldn't we fix platform_driver_probe() to support deferred probing.
+Gr{oetje,eeting}s,
 
-As I understand it, it refused to retry a probe if there is an error, and t=
-he
-comments suggest that such retrying is avoided because it would be a waste
-of time:
+                        Geert
 
-	/*
-	 * Prevent driver from requesting probe deferral to avoid further
-	 * futile probe attempts.
-	 */
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-In this case, it isn't futile.
-
-Earlier there is a comment saying:
-
- * Use this instead of platform_driver_register() when you know the device
- * is not hotpluggable and has already been registered, and you want to
- * remove its run-once probe() infrastructure from memory after the driver
- * has bound to the device.
-
-I presume all this applies.  I assume that the only problem is a probe-order
-thing.  So maybe we should fix platform_driver_probe() to do the right thing
-with -EPROBEDEFER??
-
-Trouble is, I really don't understand the  point or mechanism for
-platform_driver_probe(), so I cannot suggest anything.
-But I have been annoyed before that platform_driver_probe doesn't cope with
-EPROBEDEFER, so I would like it fixed.
-
-NeilBrown
-
---Sig_/t8viym4Ys3iYI07D4d0NOPc
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIVAwUBVPzkHTnsnt1WYoG5AQKwHA//d5aOUNOlfZ59C9EtQGz1zSn+mpIsXjz0
-MHcL7ZbBSfBxd8PLDBUpb/JRL/SelK5vFqOo2zmXvgqG/ANyDSo3vING8UU0kK2w
-WiTQzOKJ5JPfcW4jAPo1TMbE8C7iGttB1/Z0jOEe6BlZiDYpobWYYKV7wtK3dVPl
-c+Gdc1tY1s2v4+zoSe4t5gjZdBEsbS0Z2+4Y1ldkQ5Jx6dZyR9bThe/Orp1rJz3q
-FgNuvxrtf27BJEHGhZ9+gucK/thxHqilVXqTjj2EBAPFnnIDftuRCzEnck/ukCFp
-rvtGBHuNyAP8bQJYAs1/fObFlDkIdu4OqJE5sKWT0hhirx6D6EpMzsnfiCFRy4DG
-ajmhXEJQ1sKo0PFoJE82W3zXrgAoMGefuy8+oeagToQG8WfHI3RuqDVhEijg3Rj2
-t131LOi3p2M4KlirhhBO3P9EXUvfPBtIOIo6Y1y2clxR/cIV5P1QSpTiuAm0G9Qt
-WvgrySckYYEv7naTF0wB9E3jr/7zV4qDlcloh50v0gqZlWIyvD24IFR0/NT89ByG
-tOKRs51XQ4fGphETeztoTX23N0OCd9+rY4uH4Sln34de6U24CVhlZQ9MEF/aZ0zh
-s3tK/ppkWEtWC4QgswqRTvXmER+5aRvUivkHOKcW8DbA3r+oHhNZmB03XOr7rnpY
-/K5p1mS9J+8=
-=4dn5
------END PGP SIGNATURE-----
-
---Sig_/t8viym4Ys3iYI07D4d0NOPc--
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
