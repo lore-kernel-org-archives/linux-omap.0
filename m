@@ -1,64 +1,67 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
-Date: Mon, 9 Mar 2015 16:31:51 -0500
-Message-ID: <CADYTM3bGM2BhRN=PZozpHcDYSsHbkgY2fsXuxDYMsixSh8R_Zw@mail.gmail.com>
-References: <20150309205157.GE5140@atomide.com>
-	<CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
-	<20150309211306.GC22341@saruman.tx.rr.com>
-	<CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
-	<20150309212016.GI5264@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: ARM: OMPA4+: is it expected dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(64)); to fail?
+Date: Mon, 09 Mar 2015 22:33:45 +0100
+Message-ID: <2886917.pqK9QloHOD@wuerfel>
+References: <54F8A68B.3080709@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150309212016.GI5264@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <54F8A68B.3080709@linaro.org>
+Sender: owner-linux-mm@kvack.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux@arm.linux.org.uk, Tejun Heo <tj@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Laura Abbott <lauraa@codeaurora.org>, open list <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 9, 2015 at 4:20 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Bin Liu <binmlist@gmail.com> [150309 14:17]:
->> On Mon, Mar 9, 2015 at 4:13 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > On Mon, Mar 09, 2015 at 04:11:28PM -0500, Bin Liu wrote:
->> >> Hi,
->> >>
->> >> On Mon, Mar 9, 2015 at 3:51 PM, Tony Lindgren <tony@atomide.com> wrote:
->> >> > Add a minimal driver for dm816x USB. Otherwise we can just use
->> >> > the existing musb_am335x and musb_dsps on dm816x.
->> >>
->> >> dm816x has the almost identical usbss as that in am335x, we should be
->> >> able to adopt musb_am335x and musb_dsps for dm816x, and dm814x too?
->> >
->> > Tony's using the same musb glue layers, this is just a phy driver,
->> > right ?
->>
->> Can the current am335x phy driver be adopted too? I remember it is
->> under drivers/usb/phy/.
->
-> Yes this is just the phy, other than that things work the same.
->
-> I believe this is different from the am335x phy, and more similar to
-> what we have in old drivers/usb/musb/davinci.c. Chances are dm814x
-> is same as am335x phy.
+On Thursday 05 March 2015 20:55:07 Grygorii.Strashko@linaro.org wrote:
+> Hi All,
+> 
+> Now I can see very interesting behavior related to dma_coerce_mask_and_coherent()
+> and friends which I'd like to explain and clarify.
+> 
+> Below is set of questions I have (why - I explained below):
+> - Is expected dma_coerce_mask_and_coherent(DMA_BIT_MASK(64)) and friends to fail on 32 bits HW?
 
-Alright, I only played the dm814x board a few times, but never with
-dm816x, and thought dm816x and dm814x usbss are the same and very
-close to am335x - am335x came out later than dm81xx and has some
-improvement in usbss.
+No. dma_coerce_mask_and_coherent() is meant to ignore the actual mask. It's
+usually considered a bug to use this function for that reason.
 
->
-> But yeah, we really should do a proper phy driver for am335x too
-> along the same lines. Might even be be able to combine those drivers
-> with just different compatible values to set the quirks and the
-> enable/disable functions.
+> - What is expected value for max_pfn: max_phys_pfn or max_phys_pfn + 1?
+> 
+> - What is expected value for struct memblock_region->size: mem_range_size or mem_range_size - 1?
+> 
+> - What is expected value to be returned by memblock_end_of_DRAM():
+>   @base + @size(max_phys_addr + 1) or @base + @size - 1(max_phys_addr)?
+> 
+> 
+> I'm working with BeaglBoard-X15 (AM572x/DRA7xx) board and have following code in OMAP ASOC driver
+> which is failed SOMETIMES during the boot with error -EIO.
+> === to omap-pcm.c:
+> omap_pcm_new() {
+> ...
+> 	ret = dma_coerce_mask_and_coherent(card->dev, DMA_BIT_MASK(64));
+> ^^ failed sometimes
+> 	if (ret)
+> 		return ret;
+> }
 
-Ok, I agreed we can make dm816x working first, then gradually move
-am335x aligned to the framework.
+The code should be fixed to use dma_set_mask_and_coherent(), which is expected to
+fail if the bus is incapable of addressing all RAM within the mask.
 
-Regards,
--Bin.
+> I'd be very appreciated for any comments/clarification on questions I've listed at the
+> beginning of my e-mail - there are no patches from my side as I'd like to understand 
+> expected behavior of the kernel first (especially taking into account that any
+> memblock changes might affect on at least half of arches). 
 
->
-> Regards,
->
-> Tony
+Is the device you have actually 64-bit capable?
+
+Is the bus it is connected to 64-bit wide?
+
+Does the dma-ranges property of the parent bus reflect the correct address width?
+
+	Arnd
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
