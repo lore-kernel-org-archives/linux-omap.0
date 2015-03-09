@@ -1,75 +1,84 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Mon, 9 Mar 2015 15:49:30 -0700
-Message-ID: <20150309224929.GL5264@atomide.com>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
- <1425915402-10012-3-git-send-email-eliad@wizery.com>
- <9217056.Z3urqp19oZ@wuerfel>
- <CAB3XZEc_sjpA8kgfYCsO8FjGEc6O0xhE9aKO3VtgVbd+Meaakg@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
+ and add ranges
+Date: Mon, 9 Mar 2015 18:59:06 -0500
+Message-ID: <54FE33CA.4090709@ti.com>
+References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com> <1425528742-3087-3-git-send-email-d-gerlach@ti.com> <20150305154039.GD13520@atomide.com> <54F88849.1090708@ti.com> <20150305165727.GE13520@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAB3XZEc_sjpA8kgfYCsO8FjGEc6O0xhE9aKO3VtgVbd+Meaakg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150305165727.GE13520@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150309 14:03]:
-> On Mon, Mar 9, 2015 at 9:50 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
-> > On Monday 09 March 2015 17:36:42 Eliad Peller wrote:
-> >> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> >> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> >> @@ -64,4 +64,13 @@
-> >>         vmmc-supply = <&lbep5clwmc_wlen>;
-> >>         bus-width = <4>;
-> >>         non-removable;
-> >> +
-> >> +       #address-cells = <1>;
-> >> +       #size-cells = <0>;
-> >> +       wlcore: wlcore@2 {
-> >> +               compatible = "ti,wl1835";
-> >> +               reg = <2>;
-> >> +               interrupt-parent = <&gpio5>;
-> >> +               interrupts = <8 IRQ_TYPE_NONE>;
-> >> +       };
-> >>
-> >
-> > Why IRQ_TYPE_NONE?
-> >
-> i simply mirrored the current board file (which only sets the irq number).
-> 
-> > I was expecting you to remove all calls to legacy_init_wl12xx from this file,
-> > including the ones for wl12xx aside from the wl18xx ones you removed, but
-> > if that's enough to clean out the platform_data handling from the wlcore
-> > driver, it's good enough as a start.
-> not sure i'm following - can you elaborate?
-> 
-> i'll summarize the way i see it. please correct me if i'm wrong.
-> 
-> both wl18xx and wl12xx use the platform data to get the irq number.
-> wl12xx (only) also needs some additional clock definitions to be
-> passed. there's currently some issue with specifying some the of clock
-> sources, so i preferred starting only with (the simpler) wl18xx
-> bindings.
-> 
-> for platforms with wl18xx, we can remove the pdata-quirk, as all the
-> data (i.e. irq) can be passed by the new DT bindings.
-> however, for platforms with wl12xx, we still need to pass the clock
-> definitions (along with the irq), so we have to keep
-> legacy_init_wl12xx for the time being (and that's also why we have to
-> currently keep the platform_data handling in the wlcore driver)
-> 
-> do you have something else in mind?
+Tony,
 
-I think what Arnd is saying is we've now removed all the wl12xx using
-legacy platforms, so all of them can boot with just data from dts.
+On 03/05/2015 10:57 AM, Tony Lindgren wrote:
+> * Suman Anna <s-anna@ti.com> [150305 08:47]:
+>> On 03/05/2015 09:40 AM, Tony Lindgren wrote:
+>>> * Dave Gerlach <d-gerlach@ti.com> [150304 20:14]:
+>> Dave,
+>>
+>> Looks like the commit message disappeared during your patch preparation.
+>>
+>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>>> ---
+>>>>  arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
+>>>>  1 file changed, 13 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>>>> index acd3705..086415c 100644
+>>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>>> @@ -77,10 +77,23 @@
+>>>>  	 */
+>>>>  	soc {
+>>>>  		compatible = "ti,omap-infra";
+>>>> +		#address-cells = <1>;
+>>>> +		#size-cells = <1>;
+>>>> +		ranges = <0x0     0x44d00000 0x4000>,
+>>>> +			 <0x80000 0x44d80000 0x2000>;
+>>>> +
+>>>
+>>> I think putting the ranges here will cause issues for adding
+>>> ranges for anything else.
+>>>
+>>> How about do something like this instead (untested):
+>>>
+>>> ocp {
+>>> 	l4_wkup: l4_wkup@44c00000 {
+>>> 		compatible = "am335-l4-wkup", "simple-bus";
+>>> 		ranges = <0 0x44c00000 0x3fffff>;
+>>>
+>>> 		wkup_m3: wkup_m3@44d00000 {
+>>> 			compatible = "ti,am3353-wkup-m3";
+>>> 			reg = <0x1000000     0x4000>,	/* M3 UMEM */
+>>> 			      <0x180000	     0x2000>;	/* M3 DMEM */
+>>> 			ti,hwmods = "wkup_m3";
+>>> 			ti,pm-firmware = "am335x-pm-firmware.elf";
+>>> 		};
+>>>
+>>> 		...
+>>> 	};
+>>> };
+>>>
+>>> That way we can start moving also the other l4_wkup components there
+>>> eventuallly without having to redo the ranges again for wkup_m3.
+>>>
+>>> You can also look at how the scm_conf was done for dm816x.dtsi for an
+>>> example, and the recent large set of patches posted by Tero.
 
-Regards,
+I have taken a look at both the above. The L4_WKUP range includes the
+PRCM, Control Module, as well as a few peripherals like DMTimer0, UART0
+etc. What all do we want to move here eventually? Depending on that, we
+may have to use 2 address cells like in Tero's PRCM cleanup series
+rather than the single cell translation used by you in dm816x.dtsi so
+that we can retain the relative addresses w.r.t the existing node bases
+in the derivative child nodes.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
