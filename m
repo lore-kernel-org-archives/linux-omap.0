@@ -1,72 +1,82 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] OMAP-GPMC driver updates for v4.1
-Date: Mon, 9 Mar 2015 14:09:38 +0200
-Message-ID: <54FD8D82.9060507@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/6] dmaengine/dra7x: DMA router (crossbar support)
+Date: Mon, 9 Mar 2015 15:14:06 +0200
+Message-ID: <54FD9C9E.8000405@ti.com>
+References: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59837 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbbCIMJz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2015 08:09:55 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424787683-19151-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, Semen Protsenko <semen.protsenko@globallogic.com>
 
-Hi Arnd,
+Hi,
 
-Based on Tony's request I will be sending you pull requests for OMAP-GPMC driver
-hence forth.
+On 02/24/2015 04:21 PM, Peter Ujfalusi wrote:
+> Hi,
+>=20
+> The series adds support for DMA router type of devices. They are used=
+ in SoCs
+> which has more peripherals with DMA request lines than the DMA contro=
+ller can
+> handle.
+> The router itself is not part of the DMA controller and it's operatio=
+n should be
+> transparent (as it is in the HW) for the SW stack.
+>=20
+> This series takes into accound the comments Sricharan received for hi=
+s version
+> of the crossbar driver:
+> https://lkml.org/lkml/2014/3/7/199
+>=20
+> This implementation is not tied to any DMA driver so it is possible t=
+o use the
+> framework by other vendors, also ACPI version of binding can be easy =
+enough to
+> be added.
+>=20
+> The omap-dma part of changes are based on the dma property name chang=
+e series:
+> https://lkml.org/lkml/2015/2/20/182
+>=20
+> but the code has fallback so it is working w/o the changes in that se=
+ries.
 
-Please pull in these OMAP-GPMC driver fixes for v4.1.
-Patches have been tested for GPMC-NAND on dra7-evm and omap3-beagle.
+Gentle ping on this series before I send the V2 with the comments from =
+Russell
+and Paul addressed.
 
-Thanks.
+Kind Regards,
+P=E9ter
 
-The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
-
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-
-are available in the git repository at:
-
-  git@github.com:rogerq/linux.git tags/gpmc-omap-for-v4.1
-
-for you to fetch changes up to 4b613e9b4bbe94545a588a100e09006d827a7ebe:
-
-  ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters (2015-03-06 12:55:32 +0200)
-
-----------------------------------------------------------------
-OMAP-GPMC driver fixes for v4.1
-
-* Fixed WAITMONITORINGTIME programming to be based on
-GPMC_CLK instead of GPMC_FCLK. The GPMC clock divider
-programming is fixed for both synchronous and asynchronous
-modes.
-* Allow GPMC's children of default bus type to be populated in
-the device tree.
-* Improved DEBUG output data and format.
-* Prevent writing 1 into reserved bits of GPMC_CONFIG7.
-
-----------------------------------------------------------------
-Robert ABEL (8):
-      ARM OMAP2+ GPMC: don't undef DEBUG
-      ARM OMAP2+ GPMC: add bus children
-      ARM OMAP2+ GPMC: fix debug output alignment
-      ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
-      ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-      ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based on WAITMONITORINGTIME
-      ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
-      ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
-
-Semen Protsenko (2):
-      ARM: OMAP2+: gpmc: Fix writing in gpmc_cs_set_memconf
-      ARM: OMAP2+: gpmc: make gpmc_cs_get_name() static
-
- arch/arm/mach-omap2/gpmc-nand.c    |  18 +++++----
- arch/arm/mach-omap2/gpmc-onenand.c |   4 +-
- arch/arm/mach-omap2/usb-tusb6010.c |   4 +-
- drivers/memory/omap-gpmc.c         | 358 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------
- include/linux/omap-gpmc.h          |   3 +-
- 5 files changed, 305 insertions(+), 82 deletions(-)
+>=20
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (6):
+>   dmaengine: of_dma: Support for DMA routers
+>   dmaengine: Add driver for TI DMA crossbar on DRA7x
+>   dmaengine: omap-dma: Use defines for dma channels and request count
+>   dmaengine: omap-dma: Take DMA request number from DT if it is
+>     available
+>   dmaengine: omap-dma: Remove mapping between virtual channels and
+>     requests
+>   ARM: DTS: dra7x: Integrate sDMA crossbar
+>=20
+>  Documentation/devicetree/bindings/dma/dma.txt |  27 ++++
+>  arch/arm/boot/dts/dra7.dtsi                   |  57 ++++----
+>  drivers/dma/Kconfig                           |   4 +
+>  drivers/dma/Makefile                          |   1 +
+>  drivers/dma/dmaengine.c                       |   7 +
+>  drivers/dma/of-dma.c                          |  92 +++++++++++++
+>  drivers/dma/omap-dma.c                        |  24 +++-
+>  drivers/dma/ti-dma-crossbar.c                 | 191 ++++++++++++++++=
+++++++++++
+>  include/linux/dmaengine.h                     |  17 +++
+>  include/linux/of_dma.h                        |  21 +++
+>  10 files changed, 413 insertions(+), 28 deletions(-)
+>  create mode 100644 drivers/dma/ti-dma-crossbar.c
+>=20
