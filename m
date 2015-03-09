@@ -1,54 +1,75 @@
-From: =?utf-8?q?=22Email_Technical_Support_=C2=A9_2015=22_=3Cinst=2Egamapinto?=@mail.casanare.gov.co,
-	=?utf-8?b?QG1haWwudGVsZXBhYy5wdD4=?=@mail.casanare.gov.co
-Subject: ATTENTION; UPDATE YOUR ACCOUNT.
-Date: Mon, 09 Mar 2015 20:56:09 +0000
-Message-ID: <20150309205613.BC88F2A0390F@mail.casanare.gov.co>
-Reply-To: upgradingservice57@gmail.com
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
+Date: Mon, 9 Mar 2015 15:49:30 -0700
+Message-ID: <20150309224929.GL5264@atomide.com>
+References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
+ <1425915402-10012-3-git-send-email-eliad@wizery.com>
+ <9217056.Z3urqp19oZ@wuerfel>
+ <CAB3XZEc_sjpA8kgfYCsO8FjGEc6O0xhE9aKO3VtgVbd+Meaakg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.casanare.gov.co ([186.119.119.211]:52867 "EHLO
-	mail.casanare.gov.co" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699AbbCIWoh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2015 18:44:37 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.casanare.gov.co (Postfix) with ESMTP id 95CD32A01D09
-	for <linux-omap@vger.kernel.org>; Mon,  9 Mar 2015 16:51:08 -0500 (COT)
-Received: from mail.casanare.gov.co ([127.0.0.1])
-	by localhost (mail.casanare.gov.co [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 4PlgRQ6eApHr for <linux-omap@vger.kernel.org>;
-	Mon,  9 Mar 2015 16:51:08 -0500 (COT)
-Received: from HP-PC.home (host86-187-197-75.range86-187.btcentralplus.com [86.187.197.75])
-	by mail.casanare.gov.co (Postfix) with ESMTPA id BC88F2A0390F
-	for <linux-omap@vger.kernel.org>; Mon,  9 Mar 2015 15:56:13 -0500 (COT)
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAB3XZEc_sjpA8kgfYCsO8FjGEc6O0xhE9aKO3VtgVbd+Meaakg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-ATTENTION;
+* Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150309 14:03]:
+> On Mon, Mar 9, 2015 at 9:50 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+> > On Monday 09 March 2015 17:36:42 Eliad Peller wrote:
+> >> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> >> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> >> @@ -64,4 +64,13 @@
+> >>         vmmc-supply = <&lbep5clwmc_wlen>;
+> >>         bus-width = <4>;
+> >>         non-removable;
+> >> +
+> >> +       #address-cells = <1>;
+> >> +       #size-cells = <0>;
+> >> +       wlcore: wlcore@2 {
+> >> +               compatible = "ti,wl1835";
+> >> +               reg = <2>;
+> >> +               interrupt-parent = <&gpio5>;
+> >> +               interrupts = <8 IRQ_TYPE_NONE>;
+> >> +       };
+> >>
+> >
+> > Why IRQ_TYPE_NONE?
+> >
+> i simply mirrored the current board file (which only sets the irq number).
+> 
+> > I was expecting you to remove all calls to legacy_init_wl12xx from this file,
+> > including the ones for wl12xx aside from the wl18xx ones you removed, but
+> > if that's enough to clean out the platform_data handling from the wlcore
+> > driver, it's good enough as a start.
+> not sure i'm following - can you elaborate?
+> 
+> i'll summarize the way i see it. please correct me if i'm wrong.
+> 
+> both wl18xx and wl12xx use the platform data to get the irq number.
+> wl12xx (only) also needs some additional clock definitions to be
+> passed. there's currently some issue with specifying some the of clock
+> sources, so i preferred starting only with (the simpler) wl18xx
+> bindings.
+> 
+> for platforms with wl18xx, we can remove the pdata-quirk, as all the
+> data (i.e. irq) can be passed by the new DT bindings.
+> however, for platforms with wl12xx, we still need to pass the clock
+> definitions (along with the irq), so we have to keep
+> legacy_init_wl12xx for the time being (and that's also why we have to
+> currently keep the platform_data handling in the wlcore driver)
+> 
+> do you have something else in mind?
 
-Your mailbox has exceeded the storage limit which is 5 GB defined by
-the administrator, who is currently running on 10.9GB, may not be able
-to send or receive new mail until you validate your email inbox. To
-validate your mailbox, send the following information below:
+I think what Arnd is saying is we've now removed all the wl12xx using
+legacy platforms, so all of them can boot with just data from dts.
 
-name:
-Username:
-password:
-Confirm Password:
-E-mail:
-phone:
-Account Security Question:
+Regards,
 
-If you can not defend your mailbox, the mailbox is disabled!
-
-Sorry for the inconvenience.
-Verification code: is: 0000054631
-Email Technical Support =A9 2015
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
