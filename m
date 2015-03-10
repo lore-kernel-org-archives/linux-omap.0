@@ -1,56 +1,64 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Tue, 10 Mar 2015 16:54:40 +0100
-Message-ID: <2231165.khxX6WSbaL@wuerfel>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <9217056.Z3urqp19oZ@wuerfel> <CAB3XZEc_sjpA8kgfYCsO8FjGEc6O0xhE9aKO3VtgVbd+Meaakg@mail.gmail.com>
+Date: Tue, 10 Mar 2015 08:55:30 -0700
+Message-ID: <20150310155529.GP5264@atomide.com>
+References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
+ <2223973.a64rBcZvaA@wuerfel>
+ <20150310142805.GN5264@atomide.com>
+ <2300824.dcEMS7aYJa@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:52546 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbbCJPzO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2015 11:55:14 -0400
-In-Reply-To: <CAB3XZEc_sjpA8kgfYCsO8FjGEc6O0xhE9aKO3VtgVbd+Meaakg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2300824.dcEMS7aYJa@wuerfel>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 09 March 2015 23:03:30 Eliad Peller wrote:
-> On Mon, Mar 9, 2015 at 9:50 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Monday 09 March 2015 17:36:42 Eliad Peller wrote:
-> >> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> >> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-> >> @@ -64,4 +64,13 @@
-> >>         vmmc-supply = <&lbep5clwmc_wlen>;
-> >>         bus-width = <4>;
-> >>         non-removable;
-> >> +
-> >> +       #address-cells = <1>;
-> >> +       #size-cells = <0>;
-> >> +       wlcore: wlcore@2 {
-> >> +               compatible = "ti,wl1835";
-> >> +               reg = <2>;
-> >> +               interrupt-parent = <&gpio5>;
-> >> +               interrupts = <8 IRQ_TYPE_NONE>;
-> >> +       };
-> >>
-> >
-> > Why IRQ_TYPE_NONE?
-> >
-> i simply mirrored the current board file (which only sets the irq number).
+* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [150310 08:48]:
+> On Tuesday 10 March 2015 07:28:05 Tony Lindgren wrote:
+> > 
+> > Oops I forgot about the omap3-sbc-t3730, so yes we have to keep the
+> > platform data a little bit longer. But nothing stopping us moving
+> > all the other ones to use a proper device tree based configuration.
+> > 
+> 
+> For all I can tell, the t3730 board file does not support wl12xx
+> at the moment, only the dts file does.
 
-The irq type is set in this chunk of code from wlcore_nvs_cb:
+Hmm strange, it seems to configure the wlan_rst pin. Maybe there
+are variants with different WLAN module. But yeah, seems to be
+unused.
 
-        if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ) {
-                irqflags = IRQF_TRIGGER_RISING;
-                hardirq_fn = wlcore_hardirq;
-        } else {
-                irqflags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT;
-        }
+That still leaves configuring all the dts users of the
+pdata-quirks.c legacy_init_wl12xx() with proper dts before
+removing it:
 
-This means you would replace the platform_quirks with setting the
-correct irq type.
+$ git grep legacy_init_wl12xx pdata-quirks.c
+pdata-quirks.c:static void __init __used legacy_init_wl12xx(unsigned ref_clock,
+pdata-quirks.c:static inline void legacy_init_wl12xx(unsigned ref_clock,
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
+pdata-quirks.c: legacy_init_wl12xx(0, 0, 177);
+pdata-quirks.c: legacy_init_wl12xx(0, 0, 136);
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 149);
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_26, 0, 162);
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 145);
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_26,
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 41);
+pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 31);
 
-	Arnd
+> If we do what Sekhar suggested and drop wl12xx support from
+> the DA850 EVM board file, we can fix all wlcore users.
+
+I guess Sekhar knows the da850 evm status the best. So up to
+you guys if wl12xx is not being used on legacy da850.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
