@@ -1,85 +1,151 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
-Date: Tue, 10 Mar 2015 09:35:32 -0500
-Message-ID: <CADYTM3aRMboKrYrdoRAkeL1=J_Sfvgf3vDx_AEJa_qKfneQs9A@mail.gmail.com>
-References: <20150309205157.GE5140@atomide.com>
-	<CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
-	<20150309211306.GC22341@saruman.tx.rr.com>
-	<CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
-	<20150309212014.GE22341@saruman.tx.rr.com>
-	<20150309212622.GJ5264@atomide.com>
-	<CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
-	<20150309214129.GK5264@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] pinctrl: bindings: pinctrl: Add support for TI's
+ IODelay configuration
+Date: Tue, 10 Mar 2015 10:06:11 -0500
+Message-ID: <54FF0863.7080804@ti.com>
+References: <1425427237-11511-1-git-send-email-nm@ti.com>	<1425427237-11511-2-git-send-email-nm@ti.com> <CACRpkdaLEPzBywMnMrteboK7Q4su8PoB0wjnGvVpgUJ=2czVxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:42770 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180AbbCJOfd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2015 10:35:33 -0400
-In-Reply-To: <20150309214129.GK5264@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdaLEPzBywMnMrteboK7Q4su8PoB0wjnGvVpgUJ=2czVxQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
 
-On Mon, Mar 9, 2015 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Bin Liu <binmlist@gmail.com> [150309 14:35]:
->> On Mon, Mar 9, 2015 at 4:26 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Felipe Balbi <balbi@ti.com> [150309 14:21]:
->> >> On Mon, Mar 09, 2015 at 04:17:29PM -0500, Bin Liu wrote:
->> >> > On Mon, Mar 9, 2015 at 4:13 PM, Felipe Balbi <balbi@ti.com> wrote:
->> >> > > On Mon, Mar 09, 2015 at 04:11:28PM -0500, Bin Liu wrote:
->> >> > >> Hi,
->> >> > >>
->> >> > >> On Mon, Mar 9, 2015 at 3:51 PM, Tony Lindgren <tony@atomide.com> wrote:
->> >> > >> > Add a minimal driver for dm816x USB. Otherwise we can just use
->> >> > >> > the existing musb_am335x and musb_dsps on dm816x.
->> >> > >>
->> >> > >> dm816x has the almost identical usbss as that in am335x, we should be
->> >> > >> able to adopt musb_am335x and musb_dsps for dm816x, and dm814x too?
->> >> > >
->> >> > > Tony's using the same musb glue layers, this is just a phy driver,
->> >> > > right ?
->> >> >
->> >> > Can the current am335x phy driver be adopted too? I remember it is
->> >> > under drivers/usb/phy/.
->> >>
->> >> Tony will be best to answer, but according to our IRC discussions, it's
->> >> too different. Tony ?
->> >
->> > Well we should check again between dm814x and am335x documentation
->> > against the $subject driver as the dm816x docs were buggy and I may
->> > have gotten a wrong idea initially.
->>
->> Will it make our life a little easier by comparing the usb drivers for
->> dm81xx and am335x in previous TI kernel releases? I cam dig out the
->> source code if that helps.
->
-> Yeah that probably helps if you've dealt with dm814x earlier :)
+On 03/10/2015 05:39 AM, Linus Walleij wrote:
+> On Wed, Mar 4, 2015 at 1:00 AM, Nishanth Menon <nm@ti.com> wrote:
+> 
+>> +Configuration definition follows similar model as the pinctrl-single:
+>> +The groups of pin configuration are defined under "pinctrl-single,pins"
+>> +
+>> +&dra7_iodelay_core {
+>> +       mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
+>> +               pinctrl-single,pins = <
+>> +                       0x18c (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A19_IN */
+>> +                       0x1a4 (A_DELAY(265) | G_DELAY(360))     /* CFG_GPMC_A20_IN */
+>> +                       0x1b0 (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A21_IN */
+>> +                       0x1bc (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A22_IN */
+>> +                       0x1c8 (A_DELAY(287) | G_DELAY(420))     /* CFG_GPMC_A23_IN */
+>> +                       0x1d4 (A_DELAY(144) | G_DELAY(240))     /* CFG_GPMC_A24_IN */
+>> +                       0x1e0 (A_DELAY(0) | G_DELAY(0))         /* CFG_GPMC_A25_IN */
+>> +                       0x1ec (A_DELAY(120) | G_DELAY(0))       /* CFG_GPMC_A26_IN */
+>> +                       0x1f8 (A_DELAY(120) | G_DELAY(180))     /* CFG_GPMC_A27_IN */
+>> +                       0x360 (A_DELAY(0) | G_DELAY(0))         /* CFG_GPMC_CS1_IN */
+>> +               >;
+>> +       };
+>> +};
+> 
+> But wait.
+> 
+> The promise when we merged pinctrl-single was that this driver was to be used
+> when the system had a one-register-per-pin layout and it was easy to do device
+> trees based on that.
+> 
+> We were very reluctant to accept that even though we didn't even have the
+> generic pin control bindings in place, the argument being that the driver
+> should know the detailed register layout, it should not be described in the
+> device tree. We eventually caved in and accepted it as an exception.
+> 
+> Since this pin controller is not using pinctrl-single it does not enjoy that
+> privilege and you need to explain why this pin controller cannot use the
+> generic bindings like so many other pin controllers have since started
+> to do. ("It is in the same SoC" is not an acceptable argument.)
+> 
+> What is wrong with this:
+> Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
+> 
+> We can add generic delay bindings to the list, it even seems like
+> a good idea to do so, as it is likely something that will come up in
+> other hardware and will be needed for ACPI etc going forward.
 
-Well, don't expect much from me about dm814x ;), I did not read its
-trm nor errata, but only booted the board a few times trying to
-compare the MUSB behaviours while debugging issues on am335x.
+Let me try to explain how the hardware works in this instance - it is
+a quirk that we had'nt understood as being mandatory until very recently.
 
-Ok, the previous TI released 3.2 kernel for am335x is at [1], and
-2.6.37 kernel dm81xx is at [2].
+Apologies on pointing to TRM. Unfortunately, understanding this kind
+of needs us to understand the hardware a little deeper.
 
+http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+18.5.2 CTRL_MODULE_CORE registers (page 4040) -> mux starts from
+CTRL_CORE_PAD_GPMC_AD0 (page 4390)
+
+This is the basic support needed for DRA7 family of SoC
+handled by pinctrl-single. a single register for a single pin -> write
+the mux mode, internal pull, wakeup capability etc. handled today as
+part of pinctrl-single compatible "ti,dra7-padconf".
+
+This works for almost 95%+ of the pins. few pins need tweaking of the
+delay parameters to address per die, operational and board(rarely)
+characteristics.
+
+Here is where it gets a little complicated.
+
+18.6.1 IODELAYCONFIG Module Instance Summary (page 4798) - starts at
+CFG_RMII_MHZ_50_CLK_IN.
+
+These registers are programmed per "18.4.6.1.4 Manual IO Timing Modes"
+(page 4004).
+
+Initial sequence of recalibration involves IO isolation - process
+involving isolating every DRA7 pin from the external world - The only
+logical place to do this is obviously as part of bootloader. Doing
+this from kernel can be more than rationally complicated (IO isolation
+for doing recalibration while a video playback or coprocessor like DSP
+is active is just plain ridiculous in complexity).
+
+The calibrated values then are read for programming these iodelay
+registers per pin as described in the Section "18.4.6.1.4 Manual IO
+Timing Modes" (page 4005).
+
+
+In summary:
+- This does not really control traditional points of pinctrl control
+such as mux mode, pull direction etc. It is, in short, a tweaking of
+delay paths from the IP to the external pin.
+
+- Most pins do not need iodelay register programming. The ones that do
+may have upto 3 other registers that may need programming (IN, OUT, OUTEN)
+
+- Unlike pinctrl-single where a value is read from dts and programmed
+straight to the register, programming iodelay involves taking two
+parameter(a_delay and g_delay) per iodelay register, value for the
+registers computed based on two other parameters(cdpe, fdpe). Where
+cdpe and fdpe are computed based on "recalibration sequence" generated
+values programmed in register fields for ref_count, delay_count and
+ref_clk_period.
+	- This is also why pinctrl-single wont work here - it is not
+	  a copy from dts to register sequence, it is a compute from
+	  dts to register sequence.
+
+- The recalibration parameters ref_count, delay_count and
+ref_clk_period are die dependent (hence the need of recalibration
+sequence).
+
+- The parameters a_delay, g_delay are dependent on operational
+mode/board properties.
+	- This is why such a data in kernel may not scale with
+	  multitude of board variations and operational needs of
+	  certain pins.
+	- The values themselves come from some automated tool/data
+	  sheet with per-board tweaking done under simulation.
+
+Considering this was a "configuration of per pin iodelay", i chose
+pinconf-like model here. Unfortunately, The traditional pinconf is a
+set of properties for a pin, but it does not give information as to
+which register those properties belong to. since these registers do
+not form the same pattern of offsets as padconf register, that iodelay
+register information will need to be encoded in some form.
+
+The traditional pinctrl does not fit this hardware either. it does not
+control mux, rather given that pinctrl has selected a specific mux
+mode, it tweaks the delay parameters corresponding to that mux.
+
+
+This is one of those modules that I cant seem to fit neatly in any of
+the existing frameworks, I am most happy to understand if there are
+alternatives that can be proposed..
+
+-- 
 Regards,
--Bin.
-
-[1] http://arago-project.org/git/projects/?p=linux-am33x.git;a=shortlog;h=refs/heads/v3.2-staging
-
-[2] http://arago-project.org/git/projects/?p=linux-omap3.git;a=shortlog;h=refs/heads/TI81XXPSP_04.04.00.01
-
-
-> Just don't look at the dm816x trm, only the errata pdf works for
-> dm816x phy.
->
-> Note that we still are missing basic support for dm814x in mainline,
-> I'm planning to tackle that at some point but I don't know when I'm
-> going to get to it..
->
-> Regards,
->
-> Tony
+Nishanth Menon
