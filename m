@@ -1,46 +1,79 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: ARM: OMPA4+: is it expected dma_coerce_mask_and_coherent(dev,
- DMA_BIT_MASK(64)); to fail?
-Date: Tue, 10 Mar 2015 11:05:38 +0000
-Message-ID: <20150310110538.GK29584@n2100.arm.linux.org.uk>
-References: <54F8A68B.3080709@linaro.org>
- <20150305201753.GG29584@n2100.arm.linux.org.uk>
- <54FA2084.8050803@linaro.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 6/7] drm/tilcdc: Force building of DRM_TILCDC_SLAVE_COMPAT
+Date: Tue, 10 Mar 2015 13:40:09 +0200
+Message-ID: <54FED819.6070003@ti.com>
+References: <cover.1425656120.git.jsarha@ti.com> <59153f75fc48a34c9f36ebfdf7e6efe21bd03866.1425656120.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54FA2084.8050803@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tejun Heo <tj@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Laura Abbott <lauraa@codeaurora.org>, open list <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40369 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750937AbbCJLk3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Mar 2015 07:40:29 -0400
+In-Reply-To: <59153f75fc48a34c9f36ebfdf7e6efe21bd03866.1425656120.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr
 
-On Fri, Mar 06, 2015 at 11:47:48PM +0200, Grygorii.Strashko@linaro.org wrote:
-> Hi Russell,
-> 
-> On 03/05/2015 10:17 PM, Russell King - ARM Linux wrote:
-> > On Thu, Mar 05, 2015 at 08:55:07PM +0200, Grygorii.Strashko@linaro.org wrote:
-> >> The dma_coerce_mask_and_coherent() will fail in case 'Example 3' and succeed in cases 1,2.
-> >> dma-mapping.c --> __dma_supported()
-> >> 	if (sizeof(mask) != sizeof(dma_addr_t) && <== true for all OMAP4+
-> >> 	    mask > (dma_addr_t)~0 &&		<== true for DMA_BIT_MASK(64)
-> >> 	    dma_to_pfn(dev, ~0) < max_pfn) {  <== true only for Example 3
-> > 
-> > Hmm, I think this may make more sense to be "< max_pfn - 1" here, as
-> > that would be better suited to our intention.
-> > 
-> > The result of dma_to_pfn(dev, ~0) is the maximum PFN which we could
-> > address via DMA, but we're comparing it with the maximum PFN in the
-> > system plus 1 - so we need to subtract one from it.
-> 
-> Ok. I'll try it.
+--rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Any news on this - I think it is a real off-by-one bug which we should
-fix in any case.
+On 06/03/15 17:36, Jyri Sarha wrote:
+> If I read Documentation/kbuild/makefiles.txt section 3.6 right, this
+> patch should not be needed. However, without this patch the objects
+> needed for DRM_TILCDC_SLAVE_COMPAT are not linked, if DRM_TILCDC is
+> built as module.
+>=20
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  drivers/gpu/drm/Makefile | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+> index 2c239b9..ad7f10f 100644
+> --- a/drivers/gpu/drm/Makefile
+> +++ b/drivers/gpu/drm/Makefile
+> @@ -60,6 +60,7 @@ obj-$(CONFIG_DRM_RCAR_DU) +=3D rcar-du/
+>  obj-$(CONFIG_DRM_SHMOBILE) +=3Dshmobile/
+>  obj-$(CONFIG_DRM_OMAP)	+=3D omapdrm/
+>  obj-$(CONFIG_DRM_TILCDC)	+=3D tilcdc/
+> +obj-$(CONFIG_DRM_TILCDC_SLAVE_COMPAT) +=3D tilcdc/
+>  obj-$(CONFIG_DRM_QXL) +=3D qxl/
+>  obj-$(CONFIG_DRM_BOCHS) +=3D bochs/
+>  obj-$(CONFIG_DRM_MSM) +=3D msm/
 
-Thanks.
+I don't think it's a good idea to enter the directory twice. Maybe it
+works fine, I don't know, but I'd suggest just using "obj-y" above.
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+ Tomi
+
+
+
+--rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJU/tgZAAoJEPo9qoy8lh71G60P/0wi4NS2DnGvnoevGW2IWUYi
+cDP/71XhQyFaGPGS8DP2l7Re+l+6FjnyAHPBql+IRnQAWclhFMfPaMR1xnsQNbO7
+CE534YvC/qCRpKIuBHSpJ27CUJAnyrNPKDKAJBB7zZ2SUPGUqihnetXhIQMeAfuX
+7TzTUAIuYXv/ZyMXPNap7Ye5cNBHW0tgm0GQmNJUKZKKMBD8C7jApY64B/WjkTs/
+Y3FNpqIJQlkXuxnM4RlKzEbGORBgEZQRqEK6An8lVhZ+EL5uf0lz+BHVrurMnC12
+4Qz7FV015jMT4Pl8BeQ33AMTwbUJ/njRpUjhlWv4kdeuQPqB1JhL9fBsEg1iAVeG
+SNqF3z+EMkvf+Fw/ogki0oqD4yltfffeds2riV9WTAwTT5406TZ41jmivOmcNNqw
+CHiylaz57FLcsfNG1q5E60rS3IEj1oMwFtDDIX7C16KJETfmM+gO+TQ4Uu7Nn/li
+XvDeZd+RBzo4LhdPmgAmI4FIE56ZLWch+xjM8uNefrh1OkaisWTt8FTFzXXmJPEZ
+xfZFskqxjXFIbwK1Yu8Hh9x5PmjXZWG04LMqd7IYzrcQpxs+VrBMlojb6yRi9DNJ
+jAXk6RNjGe1jUbZhi8FoGQKgdhXFYOQTUT9yt4S7Q2a7VisvSob3HCtszYYWGKnK
+ZN2i6xmzNUkXf/gzY730
+=yZRa
+-----END PGP SIGNATURE-----
+
+--rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot--
