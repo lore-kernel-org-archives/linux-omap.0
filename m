@@ -1,63 +1,86 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Tue, 10 Mar 2015 08:55:30 -0700
-Message-ID: <20150310155529.GP5264@atomide.com>
+Date: Tue, 10 Mar 2015 18:11:02 +0200
+Message-ID: <CAB3XZEfEQnb7qsxuAAr6pUehm1nw6Eu4ZsV1+E477yF5K1hczA@mail.gmail.com>
 References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
- <2223973.a64rBcZvaA@wuerfel>
- <20150310142805.GN5264@atomide.com>
- <2300824.dcEMS7aYJa@wuerfel>
+	<2223973.a64rBcZvaA@wuerfel>
+	<CAB3XZEftjwUGS_Kj2dCxYY1m82C+a1_=akbnG3_hLETCr+Dddg@mail.gmail.com>
+	<5683860.JYkc24rKim@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2300824.dcEMS7aYJa@wuerfel>
+In-Reply-To: <5683860.JYkc24rKim@wuerfel>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [150310 08:48]:
-> On Tuesday 10 March 2015 07:28:05 Tony Lindgren wrote:
-> > 
-> > Oops I forgot about the omap3-sbc-t3730, so yes we have to keep the
-> > platform data a little bit longer. But nothing stopping us moving
-> > all the other ones to use a proper device tree based configuration.
-> > 
-> 
-> For all I can tell, the t3730 board file does not support wl12xx
-> at the moment, only the dts file does.
+On Tue, Mar 10, 2015 at 5:52 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+> On Tuesday 10 March 2015 16:31:33 Eliad Peller wrote:
+>> On Tue, Mar 10, 2015 at 4:11 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+>> > On Tuesday 10 March 2015 13:00:19 Eliad Peller wrote:
+>> >> On Tue, Mar 10, 2015 at 12:49 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>> >> >> > I was expecting you to remove all calls to legacy_init_wl12xx from this file,
+>> >> >> > including the ones for wl12xx aside from the wl18xx ones you removed, but
+>> >> >> > if that's enough to clean out the platform_data handling from the wlcore
+>> >> >> > driver, it's good enough as a start.
+>> >> >> not sure i'm following - can you elaborate?
+>> >> >>
+>> >> >> i'll summarize the way i see it. please correct me if i'm wrong.
+>> >> >>
+>> >> >> both wl18xx and wl12xx use the platform data to get the irq number.
+>> >> >> wl12xx (only) also needs some additional clock definitions to be
+>> >> >> passed. there's currently some issue with specifying some the of clock
+>> >> >> sources, so i preferred starting only with (the simpler) wl18xx
+>> >> >> bindings.
+>> >> >>
+>> >> >> for platforms with wl18xx, we can remove the pdata-quirk, as all the
+>> >> >> data (i.e. irq) can be passed by the new DT bindings.
+>> >> >> however, for platforms with wl12xx, we still need to pass the clock
+>> >> >> definitions (along with the irq), so we have to keep
+>> >> >> legacy_init_wl12xx for the time being (and that's also why we have to
+>> >> >> currently keep the platform_data handling in the wlcore driver)
+>> >> >>
+>> >> >> do you have something else in mind?
+>> >> >
+>> >> > I think what Arnd is saying is we've now removed all the wl12xx using
+>> >> > legacy platforms, so all of them can boot with just data from dts.
+>> >
+>> > Right, that was my idea.
+>> >
+>> >> I don't think that's the case (unless i'm missing something).
+>> >> e.g. there's still pdata-quirk for "compulab,omap3-sbc-t3730" which
+>> >> initializes wl12xx device.
+>> >
+>> > This one is just like the igep0030, as Tony was saying: the board
+>> > boots from device tree already, so now that we have a binding for
+>> > it, we can remove the wl12xx_set_platform_data() for it.
+>> >
+>> i think the wl12xx_set_platform_data() name created some confusion -
+>> it is used to pass platform data for both wl12xx and wl18xx devices.
+>> (this confusion is all around the wlcore driver as well, due to the
+>> code evolution)
+>>
+>> the binding i added is for wl18xx only (there is no wl12xx binding yet).
+>> the remaining boards, AFAICT, have wl12xx (rather than wl18xx) cards.
+>> so i don't see how we can remove these wl12xx_set_platform_data()
+>> calls before we have wl12xx bindings in-place as well.
+>
+> What is missing for that binding then? I keep getting confused here,
+> but I thought that they share the implementation that looks at the
+> platform data.
+>
+they both get the same wl12xx_platform_data struct, but only wl12xx
+cares about the clocks-related fields.
+the bindings i added parses only the irq.
 
-Hmm strange, it seems to configure the wlan_rst pin. Maybe there
-are variants with different WLAN module. But yeah, seems to be
-unused.
+(Luca tried previously to upstream wl12xx DT support along with the
+required clock DT changes, but got some rejections, mainly wrt. clock
+stuff.
+e.g. http://thread.gmane.org/gmane.linux.kernel/1520752
+that's why i preferred starting with "easier" wl18xx bindings only)
 
-That still leaves configuring all the dts users of the
-pdata-quirks.c legacy_init_wl12xx() with proper dts before
-removing it:
-
-$ git grep legacy_init_wl12xx pdata-quirks.c
-pdata-quirks.c:static void __init __used legacy_init_wl12xx(unsigned ref_clock,
-pdata-quirks.c:static inline void legacy_init_wl12xx(unsigned ref_clock,
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
-pdata-quirks.c: legacy_init_wl12xx(0, 0, 177);
-pdata-quirks.c: legacy_init_wl12xx(0, 0, 136);
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 149);
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_26, 0, 162);
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 145);
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_26,
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 41);
-pdata-quirks.c: legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 31);
-
-> If we do what Sekhar suggested and drop wl12xx support from
-> the DA850 EVM board file, we can fix all wlcore users.
-
-I guess Sekhar knows the da850 evm status the best. So up to
-you guys if wl12xx is not being used on legacy da850.
-
-Regards,
-
-Tony
+Eliad.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
