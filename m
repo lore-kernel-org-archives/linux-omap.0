@@ -1,74 +1,46 @@
-From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v4 3/6] Documentation: DT: Document twl4030-madc-battery bindings
-Date: Tue, 10 Mar 2015 22:27:24 +0100
-Message-ID: <1426022847-30912-4-git-send-email-marek@goldelico.com>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH v4 6/6] power: twl4030_madc_battery: Add missing MODULE_ALIAS
+Date: Tue, 10 Mar 2015 22:27:27 +0100
+Message-ID: <1426022847-30912-7-git-send-email-marek@goldelico.com>
 References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426022847-30912-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f180.google.com ([74.125.82.180]:45536 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753572AbbCJV2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2015 17:28:12 -0400
+In-Reply-To: <1426022847-30912-1-git-send-email-marek@goldelico.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 
-Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Without MODULE_ALIAS twl4030_madc_battery won't get loaded automaticall=
+y.
+
+Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
- .../bindings/power_supply/twl4030_madc_battery.txt | 43 ++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
+ drivers/power/twl4030_madc_battery.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt b/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
-new file mode 100644
-index 0000000..d3dd9d8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
-@@ -0,0 +1,43 @@
-+twl4030_madc_battery
-+
-+Required properties:
-+ - compatible : "ti,twl4030-madc-battery"
-+ - capacity-uah : battery capacity in uAh
-+ - ti,volt-to-capacity-charging-map : list of voltage(mV):level(%) values
-+	for charging calibration (see example)
-+ - ti,volt-to-capacity-discharging-map : list of voltage(mV):level(%) values
-+	for discharging calibration (see example)
-+ - io-channels: Should contain IIO channel specifiers
-+	for each element in io-channel-names.
-+- io-channel-names: Should contain the following values:
-+ * "temp" - The ADC channel for temperature reading
-+ * "ichg" - The ADC channel for battery charging status
-+ * "vbat" - The ADC channel to measure the battery voltage
-+
-+Example:
-+	madc-battery {
-+		compatible = "ti,twl4030-madc-battery";
-+		capacity-uah = <1200000>;
-+		ti,volt-to-capacity-charging-map = <4200 100>,
-+					        <4100 75>,
-+					        <4000 55>,
-+					        <3900 25>,
-+					        <3800 5>,
-+					        <3700 2>,
-+					        <3600 1>,
-+					        <3300 0>;
-+
-+		ti,volt-to-capacity-discharging-map = <4200 100>
-+						   <4100 95>,
-+						   <4000 70>,
-+						   <3800 50>,
-+						   <3700 10>,
-+						   <3600 5>,
-+						   <3300 0>;
-+		io-channels = <&twl_madc 1>,
-+	                      <&twl_madc 10>,
-+			      <&twl_madc 12>;
-+		io-channel-names = "temp",
-+		                   "ichg",
-+		                   "vbat";
-+	};
--- 
+diff --git a/drivers/power/twl4030_madc_battery.c b/drivers/power/twl40=
+30_madc_battery.c
+index 3e0005d..d0753f1 100644
+--- a/drivers/power/twl4030_madc_battery.c
++++ b/drivers/power/twl4030_madc_battery.c
+@@ -355,3 +355,4 @@ module_platform_driver(twl4030_madc_battery_driver)=
+;
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Lukas M=C3=A4rdian <lukas@goldelico.com>");
+ MODULE_DESCRIPTION("twl4030_madc battery driver");
++MODULE_ALIAS("platform:twl4030_madc_battery");
+--=20
 1.9.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
