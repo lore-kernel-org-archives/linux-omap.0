@@ -1,62 +1,137 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Tue, 10 Mar 2015 20:49:18 +0100
-Message-ID: <3817307.UNCtDNMakZ@wuerfel>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <CAB3XZEdK2O7tSSTchvRQtaefzCECjjQ-biQmOBHGdzJaBknSFQ@mail.gmail.com> <20150310173550.GT5264@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
+ and add ranges
+Date: Tue, 10 Mar 2015 14:55:30 -0500
+Message-ID: <54FF4C32.5070106@ti.com>
+References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com> <1425528742-3087-3-git-send-email-d-gerlach@ti.com> <20150305154039.GD13520@atomide.com> <54F88849.1090708@ti.com> <20150305165727.GE13520@atomide.com> <54FE33CA.4090709@ti.com> <20150310160919.GQ5264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150310173550.GT5264-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150310160919.GQ5264@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 10 March 2015 10:35:50 Tony Lindgren wrote:
-> * Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150310 10:01]:
-> > i'm really not familiar with the common clock framework, but there
-> > still doesn't seem to be a way to determine whether a clock is XTAL or
-> > not (which is what Luca's patch was about). should we use compatible
-> > flag in such case? i'm not sure it sounds right.
-> > 
-> > anyway, i'd really prefer, if possible, starting with the wl18xx
-> > bindings, and defer the wl12xx complications to later on.
-> > (i also need to find some wl12xx card in order to actually test the
-> > patches once i'll have them...)
-> > 
-> > we do have to make sure these wl18xx bindings are future-compatible
-> > with the wl12xx ones, but i think the current bindings are pretty much
-> > standard (and are actually a subset of the bindings needed by wl12xx),
-> > so it should be fine.
+Tony,
+On 03/10/2015 11:09 AM, Tony Lindgren wrote:
+> * Suman Anna <s-anna@ti.com> [150309 16:59]:
+>> On 03/05/2015 10:57 AM, Tony Lindgren wrote:
+>>> * Suman Anna <s-anna@ti.com> [150305 08:47]:
+>>>> On 03/05/2015 09:40 AM, Tony Lindgren wrote:
+>>>>> * Dave Gerlach <d-gerlach@ti.com> [150304 20:14]:
+>>>> Dave,
+>>>>
+>>>> Looks like the commit message disappeared during your patch preparation.
+>>>>
+>>>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>>>>> ---
+>>>>>>  arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
+>>>>>>  1 file changed, 13 insertions(+), 8 deletions(-)
+>>>>>>
+>>>>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>>>>>> index acd3705..086415c 100644
+>>>>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>>>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>>>>> @@ -77,10 +77,23 @@
+>>>>>>  	 */
+>>>>>>  	soc {
+>>>>>>  		compatible = "ti,omap-infra";
+>>>>>> +		#address-cells = <1>;
+>>>>>> +		#size-cells = <1>;
+>>>>>> +		ranges = <0x0     0x44d00000 0x4000>,
+>>>>>> +			 <0x80000 0x44d80000 0x2000>;
+>>>>>> +
+>>>>>
+>>>>> I think putting the ranges here will cause issues for adding
+>>>>> ranges for anything else.
+>>>>>
+>>>>> How about do something like this instead (untested):
+>>>>>
+>>>>> ocp {
+>>>>> 	l4_wkup: l4_wkup@44c00000 {
+>>>>> 		compatible = "am335-l4-wkup", "simple-bus";
+>>>>> 		ranges = <0 0x44c00000 0x3fffff>;
+>>>>>
+>>>>> 		wkup_m3: wkup_m3@44d00000 {
+>>>>> 			compatible = "ti,am3353-wkup-m3";
+>>>>> 			reg = <0x1000000     0x4000>,	/* M3 UMEM */
+>>>>> 			      <0x180000	     0x2000>;	/* M3 DMEM */
+>>>>> 			ti,hwmods = "wkup_m3";
+>>>>> 			ti,pm-firmware = "am335x-pm-firmware.elf";
+>>>>> 		};
+>>>>>
+>>>>> 		...
+>>>>> 	};
+>>>>> };
+>>>>>
+>>>>> That way we can start moving also the other l4_wkup components there
+>>>>> eventuallly without having to redo the ranges again for wkup_m3.
+>>>>>
+>>>>> You can also look at how the scm_conf was done for dm816x.dtsi for an
+>>>>> example, and the recent large set of patches posted by Tero.
+>>
+>> I have taken a look at both the above. The L4_WKUP range includes the
+>> PRCM, Control Module, as well as a few peripherals like DMTimer0, UART0
+>> etc. What all do we want to move here eventually?
 > 
-> Well how about add just the parsing of the clock and assume it's always
-> WL12XX_REFCLOCK_38 for now as that's the only thing we're currently
-> using. Then we can add a property or compatible value if using something
-> else as needed.
+> Well eventually all the children of L4_WKUP, but that can be done
+> slowly as some of the drivers have weird hacks and may not work
+> properly if moved around.
 > 
+> For example, anything with reg entries for something like SCM area will
+> break as that's not going to be in the L4_WKUP area ny longer :p And
+> that's actually good as it will protect us from spaghetti code
+> automatically later on for new code.
+> 
+>> Depending on that, we may have to use 2 address cells like in Tero's
+>> PRCM cleanup series rather than the single cell translation used by
+>> you in dm816x.dtsi so that we can retain the relative addresses
+>> w.r.t the existing node bases in the derivative child nodes.
+> 
+> Hmm OK, care to paste a dts snippet example for that?
 
-We have two exceptions:
+Suman and I have been looking at this together, so I can comment here. An
+implementation like this is what Suman is referring to:
 
-static void __init omap3_zoom_legacy_init(void)
-{
-        legacy_init_wl12xx(WL12XX_REFCLOCK_26, 0, 162);
-}
++               l4_wkup: l4_wkup@44c00000 {
++                       compatible = "am335-l4-wkup", "simple-bus";
++                       #address-cells = <2>;
++                       #size-cells = <1>;
++                       ranges = <0 0           0x44c00000 0x100000>,
++                                <1 0x0         0x44d00000 0x4000>,
++                                <2 0x80000     0x44d80000 0x2000>;
++
++                       wkup_m3: wkup_m3@1,0 {
++                               compatible = "ti,am3353-wkup-m3";
++                               reg = <1 0x0     0x4000>,       /* M3 UMEM */
++                                     <2 0x80000 0x2000>;       /* M3 DMEM */
++
++                               ti,hwmods = "wkup_m3";
++                               ti,pm-firmware = "am335x-pm-firmware.elf";
++                       };
++               };
++
 
-static void __init omap4_sdp_legacy_init(void)
-{
-        legacy_init_wl12xx(WL12XX_REFCLOCK_26,
-                           WL12XX_TCXOCLOCK_26, 53);
-}
+The of_* layer automatically translates everything so the pdata-quirks can still
+match based on wkup_m3@44d00000. The existing wkup_m3_rproc driver works almost
+entirely as is with this, all cpu addresses are read and mapped correctly but
+the driver no longer will read the actual device addresses correctly which we
+need for understanding where to load the firmware sections.
 
-Where do those clocks come from? If these are always fixed-rate
-clocks coming from an external clock provider, using a separate
-compatible string in the clock provider would seem reasonable to
-me, but we can do that once we have to: none of the machines
-we support use an XTAL clock input.
+These device addresses are being read directly using of_get_address, which reads
+the first value in the reg entries which is 1 and 2 now for UMEM and DMEM. We
+would need some sort of change there also to get the proper 0x0 and 0x80000
+device address values. Just advancing the pointer returned by of_get_address
+does the trick but this doesn't seem like the cleanest solution.
 
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Dave
+
+> 
+> Regards,
+> 
+> Tony
+> 
