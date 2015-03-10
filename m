@@ -1,84 +1,76 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
- and add ranges
-Date: Mon, 9 Mar 2015 18:59:06 -0500
-Message-ID: <54FE33CA.4090709@ti.com>
-References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com> <1425528742-3087-3-git-send-email-d-gerlach@ti.com> <20150305154039.GD13520@atomide.com> <54F88849.1090708@ti.com> <20150305165727.GE13520@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: RGB LED control (was Re: "advanced" LED controllers)
+Date: Tue, 10 Mar 2015 09:04:21 +0100
+Message-ID: <20150310080420.GA31091@amd>
+References: <20150219211424.GN13603@saruman.tx.rr.com>
+ <CAMuHMdUUNzFYHzSR3yLCJuz11vuO3Z4yVWVxRQfutGY1KxZLPQ@mail.gmail.com>
+ <CAAVeFuJ7DCs_=iESJRcXwyQ09eD57dZCxGG5CD3LD9_ZGZHP2A@mail.gmail.com>
+ <20150302092111.GA19233@amd>
+ <CAAVeFuK9eGO2TN+tgDyN8EFzEhgHOy5YCch+LaqS9PNaQXQ4Qg@mail.gmail.com>
+ <20150308205732.GA385@amd>
+ <CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
+ <yw1xd24i1ja7.fsf@unicorn.mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150305165727.GE13520@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <yw1xd24i1ja7.fsf@unicorn.mansr.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Alexandre Courbot <gnurou@gmail.com>, Felipe Balbi <balbi@ti.com>, Bryan Wu <cooloney@gmail.cofm>, Richard Purdie <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+On Mon 2015-03-09 11:50:56, M=E5ns Rullg=E5rd wrote:
+> Geert Uytterhoeven <geert@linux-m68k.org> writes:
+>=20
+> > Hi Pavel,
+> >
+> > On Sun, Mar 8, 2015 at 9:57 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> >> Ok, so I played with RGB LED a bit, and we have quite a gap in
+> >> documentation: what 50% brightness means is non-trivial and very
+> >> important in case we want to do smooth blinking and color transiti=
+ons.
+> >>
+> >> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >>
+> >> diff --git a/Documentation/ABI/testing/sysfs-class-led b/Documenta=
+tion/ABI/testing/sysfs-class-led
+> >> index 3646ec8..649d7a6 100644
+> >> --- a/Documentation/ABI/testing/sysfs-class-led
+> >> +++ b/Documentation/ABI/testing/sysfs-class-led
+> >> @@ -8,6 +8,11 @@ Description:
+> >>                 non-zero brightness settings. The value is between=
+ 0 and
+> >>                 /sys/class/leds/<led>/max_brightness.
+> >>
+> >> +               If LED supports continuous brightness settings, 50=
+% brightness
+> >> +               should correspond to 50% brightness perceived by h=
+uman, in a similar
+> >> +               manner pixel brightness on monitor does (not 50% P=
+WM).
+> >
+> > How many drivers do it right? How many don't?
+> >
+> > For those that don't, perhaps we handle the conversion between perc=
+eived and
+> > pwm in the core, e.g. by adding a new flag to led_classdev.flags to=
+ indicate
+> > the need for conversion?
+>=20
+> Some LED controllers do the right thing in hardware, so any adjustmen=
+t
+> done in the core needs to be optional.
 
-On 03/05/2015 10:57 AM, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [150305 08:47]:
->> On 03/05/2015 09:40 AM, Tony Lindgren wrote:
->>> * Dave Gerlach <d-gerlach@ti.com> [150304 20:14]:
->> Dave,
->>
->> Looks like the commit message disappeared during your patch preparation.
->>
->>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->>>> ---
->>>>  arch/arm/boot/dts/am33xx.dtsi | 21 +++++++++++++--------
->>>>  1 file changed, 13 insertions(+), 8 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>>> index acd3705..086415c 100644
->>>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>>> @@ -77,10 +77,23 @@
->>>>  	 */
->>>>  	soc {
->>>>  		compatible = "ti,omap-infra";
->>>> +		#address-cells = <1>;
->>>> +		#size-cells = <1>;
->>>> +		ranges = <0x0     0x44d00000 0x4000>,
->>>> +			 <0x80000 0x44d80000 0x2000>;
->>>> +
->>>
->>> I think putting the ranges here will cause issues for adding
->>> ranges for anything else.
->>>
->>> How about do something like this instead (untested):
->>>
->>> ocp {
->>> 	l4_wkup: l4_wkup@44c00000 {
->>> 		compatible = "am335-l4-wkup", "simple-bus";
->>> 		ranges = <0 0x44c00000 0x3fffff>;
->>>
->>> 		wkup_m3: wkup_m3@44d00000 {
->>> 			compatible = "ti,am3353-wkup-m3";
->>> 			reg = <0x1000000     0x4000>,	/* M3 UMEM */
->>> 			      <0x180000	     0x2000>;	/* M3 DMEM */
->>> 			ti,hwmods = "wkup_m3";
->>> 			ti,pm-firmware = "am335x-pm-firmware.elf";
->>> 		};
->>>
->>> 		...
->>> 	};
->>> };
->>>
->>> That way we can start moving also the other l4_wkup components there
->>> eventuallly without having to redo the ranges again for wkup_m3.
->>>
->>> You can also look at how the scm_conf was done for dm816x.dtsi for an
->>> example, and the recent large set of patches posted by Tero.
+Do you have example controller that gets it right, btw?
 
-I have taken a look at both the above. The L4_WKUP range includes the
-PRCM, Control Module, as well as a few peripherals like DMTimer0, UART0
-etc. What all do we want to move here eventually? Depending on that, we
-may have to use 2 address cells like in Tero's PRCM cleanup series
-rather than the single cell translation used by you in dm816x.dtsi so
-that we can retain the relative addresses w.r.t the existing node bases
-in the derivative child nodes.
+Bryan, can you apply the documentation patch so we can start fixing
+the drivers?
 
-regards
-Suman
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
