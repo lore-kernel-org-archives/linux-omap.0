@@ -1,60 +1,101 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: menelaus: rmove incorrect __exit markups
-Date: Tue, 10 Mar 2015 15:13:54 +0000
-Message-ID: <20150310151354.GA3342@x1>
-References: <20150309174936.GA22662@dtor-ws>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] pinctrl: bindings: pinctrl: Add support for TI's
+ IODelay configuration
+Date: Tue, 10 Mar 2015 08:33:21 -0700
+Message-ID: <20150310153321.GO5264@atomide.com>
+References: <1425427237-11511-1-git-send-email-nm@ti.com>
+ <1425427237-11511-2-git-send-email-nm@ti.com>
+ <CACRpkdaLEPzBywMnMrteboK7Q4su8PoB0wjnGvVpgUJ=2czVxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150309174936.GA22662@dtor-ws>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <CACRpkdaLEPzBywMnMrteboK7Q4su8PoB0wjnGvVpgUJ=2czVxQ@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 09 Mar 2015, Dmitry Torokhov wrote:
+* Linus Walleij <linus.walleij@linaro.org> [150310 03:39]:
+> On Wed, Mar 4, 2015 at 1:00 AM, Nishanth Menon <nm@ti.com> wrote:
+> 
+> > +Configuration definition follows similar model as the pinctrl-single:
+> > +The groups of pin configuration are defined under "pinctrl-single,pins"
+> > +
+> > +&dra7_iodelay_core {
+> > +       mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
+> > +               pinctrl-single,pins = <
+> > +                       0x18c (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A19_IN */
+> > +                       0x1a4 (A_DELAY(265) | G_DELAY(360))     /* CFG_GPMC_A20_IN */
+> > +                       0x1b0 (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A21_IN */
+> > +                       0x1bc (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A22_IN */
+> > +                       0x1c8 (A_DELAY(287) | G_DELAY(420))     /* CFG_GPMC_A23_IN */
+> > +                       0x1d4 (A_DELAY(144) | G_DELAY(240))     /* CFG_GPMC_A24_IN */
+> > +                       0x1e0 (A_DELAY(0) | G_DELAY(0))         /* CFG_GPMC_A25_IN */
+> > +                       0x1ec (A_DELAY(120) | G_DELAY(0))       /* CFG_GPMC_A26_IN */
+> > +                       0x1f8 (A_DELAY(120) | G_DELAY(180))     /* CFG_GPMC_A27_IN */
+> > +                       0x360 (A_DELAY(0) | G_DELAY(0))         /* CFG_GPMC_CS1_IN */
+> > +               >;
+> > +       };
+> > +};
+> 
+> But wait.
+> 
+> The promise when we merged pinctrl-single was that this driver was to be used
+> when the system had a one-register-per-pin layout and it was easy to do device
+> trees based on that.
+> 
+> We were very reluctant to accept that even though we didn't even have the
+> generic pin control bindings in place, the argument being that the driver
+> should know the detailed register layout, it should not be described in the
+> device tree. We eventually caved in and accepted it as an exception.
 
-> Even if bus is not hot-pluggable, the devices can be unbound from the
-> driver via sysfs, so we should not be using __exit annotations on
-> remove() methods. The only exception is drivers registered with
-> platform_driver_probe() which specifically disables sysfs bind/unbind
-> attributes.
->=20
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  drivers/mfd/menelaus.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+Hey let's get few things straight here. There's nothing stopping the
+driver from knowing a detailed register layout with the pinctrl-single
+binding. This can be very easily done based on the compatible flag and
+match data as needed and check the values provided.
 
-Applied, thanks.
+And let's also recap the reasons for the pinctrl-single binding. The
+the main reason for the pinctrl-single binding is to avoid mapping
+individual register bits to device tree compatible string properties.
 
-> diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-> index 9f01aef..5269ff2 100644
-> --- a/drivers/mfd/menelaus.c
-> +++ b/drivers/mfd/menelaus.c
-> @@ -1259,7 +1259,7 @@ fail:
->  	return err;
->  }
-> =20
-> -static int __exit menelaus_remove(struct i2c_client *client)
-> +static int menelaus_remove(struct i2c_client *client)
->  {
->  	struct menelaus_chip	*menelaus =3D i2c_get_clientdata(client);
-> =20
-> @@ -1280,7 +1280,7 @@ static struct i2c_driver menelaus_i2c_driver =3D=
- {
->  		.name		=3D DRIVER_NAME,
->  	},
->  	.probe		=3D menelaus_probe,
-> -	.remove		=3D __exit_p(menelaus_remove),
-> +	.remove		=3D menelaus_remove,
->  	.id_table	=3D menelaus_id,
->  };
-> =20
+Imagine doing that for hundreds of similar registers. Believe me, I tried
+using device tree properties initially and it just sucked big time. For
+larger amounts of dts data, it's best to stick to numeric values and
+phandles in the device tree data and rely on the preprocessor for
+getting the values right.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+Finally, we don't want to build databases into the kernel drivers for
+every SoC. We certainly have plenty fo those already.
+ 
+> Since this pin controller is not using pinctrl-single it does not enjoy that
+> privilege and you need to explain why this pin controller cannot use the
+> generic bindings like so many other pin controllers have since started
+> to do. ("It is in the same SoC" is not an acceptable argument.)
+>
+> What is wrong with this:
+> Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
+
+Nishanth, care to explain your reasons for using pinctrl-single binding
+here vs the generic binding? Is the amount of string parsing with the
+data an issue here?
+ 
+> We can add generic delay bindings to the list, it even seems like
+> a good idea to do so, as it is likely something that will come up in
+> other hardware and will be needed for ACPI etc going forward.
+
+We certainly need to make setting delays (with values) generic, no
+doubt about that.
+
+If the large amount of data is not an issue here, we could maybe set
+each iodelay register as a separate device? Then the binding could
+be just along the interrupts-extended type binding:
+
+foo = <&bar 0x18c A_DELAY(0) G_DELAY(120)>;
+
+Where the 0x18c is the instance offset of the register within the
+ti,dra7-iodelay compatible controller.
+
+Regards,
+
+Tony
