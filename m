@@ -1,79 +1,90 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 6/7] drm/tilcdc: Force building of DRM_TILCDC_SLAVE_COMPAT
-Date: Tue, 10 Mar 2015 13:40:09 +0200
-Message-ID: <54FED819.6070003@ti.com>
-References: <cover.1425656120.git.jsarha@ti.com> <59153f75fc48a34c9f36ebfdf7e6efe21bd03866.1425656120.git.jsarha@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
+Date: Tue, 10 Mar 2015 15:11:14 +0100
+Message-ID: <2223973.a64rBcZvaA@wuerfel>
+References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <20150309224929.GL5264@atomide.com> <CAB3XZEdS+mK1MiB7OWiehFGRBnUzJ84s3rFrCy3-YFYhL-BNWw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40369 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750937AbbCJLk3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Mar 2015 07:40:29 -0400
-In-Reply-To: <59153f75fc48a34c9f36ebfdf7e6efe21bd03866.1425656120.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAB3XZEdS+mK1MiB7OWiehFGRBnUzJ84s3rFrCy3-YFYhL-BNWw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr
 
---rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 10 March 2015 13:00:19 Eliad Peller wrote:
+> On Tue, Mar 10, 2015 at 12:49 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> > * Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150309 14:03]:
+> >> On Mon, Mar 9, 2015 at 9:50 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+> >> > On Monday 09 March 2015 17:36:42 Eliad Peller wrote:
+> >> >> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> >> >> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+> >> >> @@ -64,4 +64,13 @@
+> >> >>         vmmc-supply = <&lbep5clwmc_wlen>;
+> >> >>         bus-width = <4>;
+> >> >>         non-removable;
+> >> >> +
+> >> >> +       #address-cells = <1>;
+> >> >> +       #size-cells = <0>;
+> >> >> +       wlcore: wlcore@2 {
+> >> >> +               compatible = "ti,wl1835";
+> >> >> +               reg = <2>;
+> >> >> +               interrupt-parent = <&gpio5>;
+> >> >> +               interrupts = <8 IRQ_TYPE_NONE>;
+> >> >> +       };
+> >> >>
+> >> >
+> >> > Why IRQ_TYPE_NONE?
+> >> >
+> >> i simply mirrored the current board file (which only sets the irq number).
+> >>
+> >> > I was expecting you to remove all calls to legacy_init_wl12xx from this file,
+> >> > including the ones for wl12xx aside from the wl18xx ones you removed, but
+> >> > if that's enough to clean out the platform_data handling from the wlcore
+> >> > driver, it's good enough as a start.
+> >> not sure i'm following - can you elaborate?
+> >>
+> >> i'll summarize the way i see it. please correct me if i'm wrong.
+> >>
+> >> both wl18xx and wl12xx use the platform data to get the irq number.
+> >> wl12xx (only) also needs some additional clock definitions to be
+> >> passed. there's currently some issue with specifying some the of clock
+> >> sources, so i preferred starting only with (the simpler) wl18xx
+> >> bindings.
+> >>
+> >> for platforms with wl18xx, we can remove the pdata-quirk, as all the
+> >> data (i.e. irq) can be passed by the new DT bindings.
+> >> however, for platforms with wl12xx, we still need to pass the clock
+> >> definitions (along with the irq), so we have to keep
+> >> legacy_init_wl12xx for the time being (and that's also why we have to
+> >> currently keep the platform_data handling in the wlcore driver)
+> >>
+> >> do you have something else in mind?
+> >
+> > I think what Arnd is saying is we've now removed all the wl12xx using
+> > legacy platforms, so all of them can boot with just data from dts.
 
-On 06/03/15 17:36, Jyri Sarha wrote:
-> If I read Documentation/kbuild/makefiles.txt section 3.6 right, this
-> patch should not be needed. However, without this patch the objects
-> needed for DRM_TILCDC_SLAVE_COMPAT are not linked, if DRM_TILCDC is
-> built as module.
->=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  drivers/gpu/drm/Makefile | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
-> index 2c239b9..ad7f10f 100644
-> --- a/drivers/gpu/drm/Makefile
-> +++ b/drivers/gpu/drm/Makefile
-> @@ -60,6 +60,7 @@ obj-$(CONFIG_DRM_RCAR_DU) +=3D rcar-du/
->  obj-$(CONFIG_DRM_SHMOBILE) +=3Dshmobile/
->  obj-$(CONFIG_DRM_OMAP)	+=3D omapdrm/
->  obj-$(CONFIG_DRM_TILCDC)	+=3D tilcdc/
-> +obj-$(CONFIG_DRM_TILCDC_SLAVE_COMPAT) +=3D tilcdc/
->  obj-$(CONFIG_DRM_QXL) +=3D qxl/
->  obj-$(CONFIG_DRM_BOCHS) +=3D bochs/
->  obj-$(CONFIG_DRM_MSM) +=3D msm/
+Right, that was my idea.
 
-I don't think it's a good idea to enter the directory twice. Maybe it
-works fine, I don't know, but I'd suggest just using "obj-y" above.
+> I don't think that's the case (unless i'm missing something).
+> e.g. there's still pdata-quirk for "compulab,omap3-sbc-t3730" which
+> initializes wl12xx device.
 
- Tomi
+This one is just like the igep0030, as Tony was saying: the board
+boots from device tree already, so now that we have a binding for
+it, we can remove the wl12xx_set_platform_data() for it.
 
+Unfortunately, there is still one machine that uses a board file
+in combination with this wl12xx: da850-evm calls
+wl12xx_set_platform_data() from a legacy board file without DT.
 
+We have DT support for this file as well, but if I remember correctly,
+it is somewhat incomplete and we don't want to remove the file
+yet. Adding Sekhar and Kevin to Cc here for confirmation.
 
---rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU/tgZAAoJEPo9qoy8lh71G60P/0wi4NS2DnGvnoevGW2IWUYi
-cDP/71XhQyFaGPGS8DP2l7Re+l+6FjnyAHPBql+IRnQAWclhFMfPaMR1xnsQNbO7
-CE534YvC/qCRpKIuBHSpJ27CUJAnyrNPKDKAJBB7zZ2SUPGUqihnetXhIQMeAfuX
-7TzTUAIuYXv/ZyMXPNap7Ye5cNBHW0tgm0GQmNJUKZKKMBD8C7jApY64B/WjkTs/
-Y3FNpqIJQlkXuxnM4RlKzEbGORBgEZQRqEK6An8lVhZ+EL5uf0lz+BHVrurMnC12
-4Qz7FV015jMT4Pl8BeQ33AMTwbUJ/njRpUjhlWv4kdeuQPqB1JhL9fBsEg1iAVeG
-SNqF3z+EMkvf+Fw/ogki0oqD4yltfffeds2riV9WTAwTT5406TZ41jmivOmcNNqw
-CHiylaz57FLcsfNG1q5E60rS3IEj1oMwFtDDIX7C16KJETfmM+gO+TQ4Uu7Nn/li
-XvDeZd+RBzo4LhdPmgAmI4FIE56ZLWch+xjM8uNefrh1OkaisWTt8FTFzXXmJPEZ
-xfZFskqxjXFIbwK1Yu8Hh9x5PmjXZWG04LMqd7IYzrcQpxs+VrBMlojb6yRi9DNJ
-jAXk6RNjGe1jUbZhi8FoGQKgdhXFYOQTUT9yt4S7Q2a7VisvSob3HCtszYYWGKnK
-ZN2i6xmzNUkXf/gzY730
-=yZRa
------END PGP SIGNATURE-----
-
---rQg2SmCNru0gpQ1DJfniqaCQ8UhJ36Dot--
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
