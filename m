@@ -1,98 +1,85 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Tue, 10 Mar 2015 20:04:16 +0530
-Message-ID: <54FF00E8.4040502@ti.com>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <20150309224929.GL5264@atomide.com> <CAB3XZEdS+mK1MiB7OWiehFGRBnUzJ84s3rFrCy3-YFYhL-BNWw@mail.gmail.com> <2223973.a64rBcZvaA@wuerfel>
+From: Bin Liu <binmlist@gmail.com>
+Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
+Date: Tue, 10 Mar 2015 09:35:32 -0500
+Message-ID: <CADYTM3aRMboKrYrdoRAkeL1=J_Sfvgf3vDx_AEJa_qKfneQs9A@mail.gmail.com>
+References: <20150309205157.GE5140@atomide.com>
+	<CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
+	<20150309211306.GC22341@saruman.tx.rr.com>
+	<CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
+	<20150309212014.GE22341@saruman.tx.rr.com>
+	<20150309212622.GJ5264@atomide.com>
+	<CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
+	<20150309214129.GK5264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2223973.a64rBcZvaA@wuerfel>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:42770 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753180AbbCJOfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2015 10:35:33 -0400
+In-Reply-To: <20150309214129.GK5264@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
 
-On Tuesday 10 March 2015 07:41 PM, Arnd Bergmann wrote:
-> On Tuesday 10 March 2015 13:00:19 Eliad Peller wrote:
->> On Tue, Mar 10, 2015 at 12:49 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->>> * Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150309 14:03]:
->>>> On Mon, Mar 9, 2015 at 9:50 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
->>>>> On Monday 09 March 2015 17:36:42 Eliad Peller wrote:
->>>>>> --- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
->>>>>> +++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
->>>>>> @@ -64,4 +64,13 @@
->>>>>>         vmmc-supply = <&lbep5clwmc_wlen>;
->>>>>>         bus-width = <4>;
->>>>>>         non-removable;
->>>>>> +
->>>>>> +       #address-cells = <1>;
->>>>>> +       #size-cells = <0>;
->>>>>> +       wlcore: wlcore@2 {
->>>>>> +               compatible = "ti,wl1835";
->>>>>> +               reg = <2>;
->>>>>> +               interrupt-parent = <&gpio5>;
->>>>>> +               interrupts = <8 IRQ_TYPE_NONE>;
->>>>>> +       };
->>>>>>
->>>>>
->>>>> Why IRQ_TYPE_NONE?
->>>>>
->>>> i simply mirrored the current board file (which only sets the irq number).
->>>>
->>>>> I was expecting you to remove all calls to legacy_init_wl12xx from this file,
->>>>> including the ones for wl12xx aside from the wl18xx ones you removed, but
->>>>> if that's enough to clean out the platform_data handling from the wlcore
->>>>> driver, it's good enough as a start.
->>>> not sure i'm following - can you elaborate?
->>>>
->>>> i'll summarize the way i see it. please correct me if i'm wrong.
->>>>
->>>> both wl18xx and wl12xx use the platform data to get the irq number.
->>>> wl12xx (only) also needs some additional clock definitions to be
->>>> passed. there's currently some issue with specifying some the of clock
->>>> sources, so i preferred starting only with (the simpler) wl18xx
->>>> bindings.
->>>>
->>>> for platforms with wl18xx, we can remove the pdata-quirk, as all the
->>>> data (i.e. irq) can be passed by the new DT bindings.
->>>> however, for platforms with wl12xx, we still need to pass the clock
->>>> definitions (along with the irq), so we have to keep
->>>> legacy_init_wl12xx for the time being (and that's also why we have to
->>>> currently keep the platform_data handling in the wlcore driver)
->>>>
->>>> do you have something else in mind?
->>>
->>> I think what Arnd is saying is we've now removed all the wl12xx using
->>> legacy platforms, so all of them can boot with just data from dts.
-> 
-> Right, that was my idea.
-> 
->> I don't think that's the case (unless i'm missing something).
->> e.g. there's still pdata-quirk for "compulab,omap3-sbc-t3730" which
->> initializes wl12xx device.
-> 
-> This one is just like the igep0030, as Tony was saying: the board
-> boots from device tree already, so now that we have a binding for
-> it, we can remove the wl12xx_set_platform_data() for it.
-> 
-> Unfortunately, there is still one machine that uses a board file
-> in combination with this wl12xx: da850-evm calls
-> wl12xx_set_platform_data() from a legacy board file without DT.
-> 
-> We have DT support for this file as well, but if I remember correctly,
-> it is somewhat incomplete and we don't want to remove the file
-> yet. Adding Sekhar and Kevin to Cc here for confirmation.
+On Mon, Mar 9, 2015 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Bin Liu <binmlist@gmail.com> [150309 14:35]:
+>> On Mon, Mar 9, 2015 at 4:26 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Felipe Balbi <balbi@ti.com> [150309 14:21]:
+>> >> On Mon, Mar 09, 2015 at 04:17:29PM -0500, Bin Liu wrote:
+>> >> > On Mon, Mar 9, 2015 at 4:13 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> >> > > On Mon, Mar 09, 2015 at 04:11:28PM -0500, Bin Liu wrote:
+>> >> > >> Hi,
+>> >> > >>
+>> >> > >> On Mon, Mar 9, 2015 at 3:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> >> > >> > Add a minimal driver for dm816x USB. Otherwise we can just use
+>> >> > >> > the existing musb_am335x and musb_dsps on dm816x.
+>> >> > >>
+>> >> > >> dm816x has the almost identical usbss as that in am335x, we should be
+>> >> > >> able to adopt musb_am335x and musb_dsps for dm816x, and dm814x too?
+>> >> > >
+>> >> > > Tony's using the same musb glue layers, this is just a phy driver,
+>> >> > > right ?
+>> >> >
+>> >> > Can the current am335x phy driver be adopted too? I remember it is
+>> >> > under drivers/usb/phy/.
+>> >>
+>> >> Tony will be best to answer, but according to our IRC discussions, it's
+>> >> too different. Tony ?
+>> >
+>> > Well we should check again between dm814x and am335x documentation
+>> > against the $subject driver as the dm816x docs were buggy and I may
+>> > have gotten a wrong idea initially.
+>>
+>> Will it make our life a little easier by comparing the usb drivers for
+>> dm81xx and am335x in previous TI kernel releases? I cam dig out the
+>> source code if that helps.
+>
+> Yeah that probably helps if you've dealt with dm814x earlier :)
 
-Thats true, we do not want to drop legacy booting for DA850 EVM yet.
+Well, don't expect much from me about dm814x ;), I did not read its
+trm nor errata, but only booted the board a few times trying to
+compare the MUSB behaviours while debugging issues on am335x.
 
-But if its coming in the way of code consolidation, I do not mind
-dropping WLAN support for that board. Anyone who really needs it can add
-support to the DA850 EVM DT file.
+Ok, the previous TI released 3.2 kernel for am335x is at [1], and
+2.6.37 kernel dm81xx is at [2].
 
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+-Bin.
+
+[1] http://arago-project.org/git/projects/?p=linux-am33x.git;a=shortlog;h=refs/heads/v3.2-staging
+
+[2] http://arago-project.org/git/projects/?p=linux-omap3.git;a=shortlog;h=refs/heads/TI81XXPSP_04.04.00.01
+
+
+> Just don't look at the dm816x trm, only the errata pdf works for
+> dm816x phy.
+>
+> Note that we still are missing basic support for dm814x in mainline,
+> I'm planning to tackle that at some point but I don't know when I'm
+> going to get to it..
+>
+> Regards,
+>
+> Tony
