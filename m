@@ -1,111 +1,161 @@
-From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Tue, 10 Mar 2015 19:01:39 +0200
-Message-ID: <CAB3XZEdK2O7tSSTchvRQtaefzCECjjQ-biQmOBHGdzJaBknSFQ@mail.gmail.com>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
-	<2223973.a64rBcZvaA@wuerfel>
-	<CAB3XZEftjwUGS_Kj2dCxYY1m82C+a1_=akbnG3_hLETCr+Dddg@mail.gmail.com>
-	<5683860.JYkc24rKim@wuerfel>
-	<CAB3XZEfEQnb7qsxuAAr6pUehm1nw6Eu4ZsV1+E477yF5K1hczA@mail.gmail.com>
-	<20150310161801.GR5264@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] pinctrl: bindings: pinctrl: Add support for TI's
+ IODelay configuration
+Date: Tue, 10 Mar 2015 12:25:09 -0500
+Message-ID: <54FF28F5.4040707@ti.com>
+References: <1425427237-11511-1-git-send-email-nm@ti.com>
+ <1425427237-11511-2-git-send-email-nm@ti.com>
+ <CACRpkdaLEPzBywMnMrteboK7Q4su8PoB0wjnGvVpgUJ=2czVxQ@mail.gmail.com>
+ <20150310153321.GO5264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150310161801.GR5264-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150310153321.GO5264@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Lokesh Vutla <lokeshvutla@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 10, 2015 at 6:18 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> * Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150310 09:11]:
->> On Tue, Mar 10, 2015 at 5:52 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
->> > On Tuesday 10 March 2015 16:31:33 Eliad Peller wrote:
->> >> On Tue, Mar 10, 2015 at 4:11 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
->> >> > On Tuesday 10 March 2015 13:00:19 Eliad Peller wrote:
->> >> >> On Tue, Mar 10, 2015 at 12:49 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->> >> >> >> > I was expecting you to remove all calls to legacy_init_wl12xx from this file,
->> >> >> >> > including the ones for wl12xx aside from the wl18xx ones you removed, but
->> >> >> >> > if that's enough to clean out the platform_data handling from the wlcore
->> >> >> >> > driver, it's good enough as a start.
->> >> >> >> not sure i'm following - can you elaborate?
->> >> >> >>
->> >> >> >> i'll summarize the way i see it. please correct me if i'm wrong.
->> >> >> >>
->> >> >> >> both wl18xx and wl12xx use the platform data to get the irq number.
->> >> >> >> wl12xx (only) also needs some additional clock definitions to be
->> >> >> >> passed. there's currently some issue with specifying some the of clock
->> >> >> >> sources, so i preferred starting only with (the simpler) wl18xx
->> >> >> >> bindings.
->> >> >> >>
->> >> >> >> for platforms with wl18xx, we can remove the pdata-quirk, as all the
->> >> >> >> data (i.e. irq) can be passed by the new DT bindings.
->> >> >> >> however, for platforms with wl12xx, we still need to pass the clock
->> >> >> >> definitions (along with the irq), so we have to keep
->> >> >> >> legacy_init_wl12xx for the time being (and that's also why we have to
->> >> >> >> currently keep the platform_data handling in the wlcore driver)
->> >> >> >>
->> >> >> >> do you have something else in mind?
->> >> >> >
->> >> >> > I think what Arnd is saying is we've now removed all the wl12xx using
->> >> >> > legacy platforms, so all of them can boot with just data from dts.
->> >> >
->> >> > Right, that was my idea.
->> >> >
->> >> >> I don't think that's the case (unless i'm missing something).
->> >> >> e.g. there's still pdata-quirk for "compulab,omap3-sbc-t3730" which
->> >> >> initializes wl12xx device.
->> >> >
->> >> > This one is just like the igep0030, as Tony was saying: the board
->> >> > boots from device tree already, so now that we have a binding for
->> >> > it, we can remove the wl12xx_set_platform_data() for it.
->> >> >
->> >> i think the wl12xx_set_platform_data() name created some confusion -
->> >> it is used to pass platform data for both wl12xx and wl18xx devices.
->> >> (this confusion is all around the wlcore driver as well, due to the
->> >> code evolution)
->> >>
->> >> the binding i added is for wl18xx only (there is no wl12xx binding yet).
->> >> the remaining boards, AFAICT, have wl12xx (rather than wl18xx) cards.
->> >> so i don't see how we can remove these wl12xx_set_platform_data()
->> >> calls before we have wl12xx bindings in-place as well.
->> >
->> > What is missing for that binding then? I keep getting confused here,
->> > but I thought that they share the implementation that looks at the
->> > platform data.
->> >
->> they both get the same wl12xx_platform_data struct, but only wl12xx
->> cares about the clocks-related fields.
->> the bindings i added parses only the irq.
+On 03/10/2015 10:33 AM, Tony Lindgren wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [150310 03:39]:
+>> On Wed, Mar 4, 2015 at 1:00 AM, Nishanth Menon <nm@ti.com> wrote:
 >>
->> (Luca tried previously to upstream wl12xx DT support along with the
->> required clock DT changes, but got some rejections, mainly wrt. clock
->> stuff.
->> e.g. http://thread.gmane.org/gmane.linux.kernel/1520752
->> that's why i preferred starting with "easier" wl18xx bindings only)
->
-> I believe we did not have clock bindings back then, now it's simple
-> to get the clock. If it's some internal clock to the wl12xx, then
-> that's a different story, it should be just hidden behind a compatible
-> flag then.
->
-i'm really not familiar with the common clock framework, but there
-still doesn't seem to be a way to determine whether a clock is XTAL or
-not (which is what Luca's patch was about). should we use compatible
-flag in such case? i'm not sure it sounds right.
+>>> +Configuration definition follows similar model as the pinctrl-single:
+>>> +The groups of pin configuration are defined under "pinctrl-single,pins"
+>>> +
+>>> +&dra7_iodelay_core {
+>>> +       mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
+>>> +               pinctrl-single,pins = <
+>>> +                       0x18c (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A19_IN */
+>>> +                       0x1a4 (A_DELAY(265) | G_DELAY(360))     /* CFG_GPMC_A20_IN */
+>>> +                       0x1b0 (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A21_IN */
+>>> +                       0x1bc (A_DELAY(0) | G_DELAY(120))       /* CFG_GPMC_A22_IN */
+>>> +                       0x1c8 (A_DELAY(287) | G_DELAY(420))     /* CFG_GPMC_A23_IN */
+>>> +                       0x1d4 (A_DELAY(144) | G_DELAY(240))     /* CFG_GPMC_A24_IN */
+>>> +                       0x1e0 (A_DELAY(0) | G_DELAY(0))         /* CFG_GPMC_A25_IN */
+>>> +                       0x1ec (A_DELAY(120) | G_DELAY(0))       /* CFG_GPMC_A26_IN */
+>>> +                       0x1f8 (A_DELAY(120) | G_DELAY(180))     /* CFG_GPMC_A27_IN */
+>>> +                       0x360 (A_DELAY(0) | G_DELAY(0))         /* CFG_GPMC_CS1_IN */
+>>> +               >;
+>>> +       };
+>>> +};
+>>
+>> But wait.
+>>
+>> The promise when we merged pinctrl-single was that this driver was to be used
+>> when the system had a one-register-per-pin layout and it was easy to do device
+>> trees based on that.
+>>
+>> We were very reluctant to accept that even though we didn't even have the
+>> generic pin control bindings in place, the argument being that the driver
+>> should know the detailed register layout, it should not be described in the
+>> device tree. We eventually caved in and accepted it as an exception.
+> 
+> Hey let's get few things straight here. There's nothing stopping the
+> driver from knowing a detailed register layout with the pinctrl-single
+> binding. This can be very easily done based on the compatible flag and
+> match data as needed and check the values provided.
+> 
+> And let's also recap the reasons for the pinctrl-single binding. The
+> the main reason for the pinctrl-single binding is to avoid mapping
+> individual register bits to device tree compatible string properties.
+> 
+> Imagine doing that for hundreds of similar registers. Believe me, I tried
+> using device tree properties initially and it just sucked big time. For
+> larger amounts of dts data, it's best to stick to numeric values and
+> phandles in the device tree data and rely on the preprocessor for
+> getting the values right.
+> 
+> Finally, we don't want to build databases into the kernel drivers for
+> every SoC. We certainly have plenty fo those already.
+>  
+>> Since this pin controller is not using pinctrl-single it does not enjoy that
+>> privilege and you need to explain why this pin controller cannot use the
+>> generic bindings like so many other pin controllers have since started
+>> to do. ("It is in the same SoC" is not an acceptable argument.)
+>>
+>> What is wrong with this:
+>> Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
+> 
+> Nishanth, care to explain your reasons for using pinctrl-single binding
+> here vs the generic binding? Is the amount of string parsing with the
+> data an issue here?
 
-anyway, i'd really prefer, if possible, starting with the wl18xx
-bindings, and defer the wl12xx complications to later on.
-(i also need to find some wl12xx card in order to actually test the
-patches once i'll have them...)
+Wrong option chosen, I suppose :( - alright, lets discuss the alternative.
 
-we do have to make sure these wl18xx bindings are future-compatible
-with the wl12xx ones, but i think the current bindings are pretty much
-standard (and are actually a subset of the bindings needed by wl12xx),
-so it should be fine.
+>  
+>> We can add generic delay bindings to the list, it even seems like
+>> a good idea to do so, as it is likely something that will come up in
+>> other hardware and will be needed for ACPI etc going forward.
+> 
+> We certainly need to make setting delays (with values) generic, no
+> doubt about that.
+> 
+> If the large amount of data is not an issue here, we could maybe set
+> each iodelay register as a separate device? Then the binding could
+> be just along the interrupts-extended type binding:
+> 
+> foo = <&bar 0x18c A_DELAY(0) G_DELAY(120)>;
+> 
+> Where the 0x18c is the instance offset of the register within the
+> ti,dra7-iodelay compatible controller.
 
-Eliad.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+if mmc2_pins_default point at pins for mmc pin configuration for
+control_core (pinctrl-single), are you proposing the following?
+
+ mmc2_pins_default: mmc2_pins_default {
+         pinctrl-single,pins = <
+                 0x9c (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a23.mmc2_clk */
+                 0xb0 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_cs1.mmc2_cmd */
+                 0xa0 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a24.mmc2_dat0 */
+                 0xa4 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a25.mmc2_dat1 */
+                 0xa8 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a26.mmc2_dat2 */
+                 0xac (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a27.mmc2_dat3 */
+                 0x8c (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a19.mmc2_dat4 */
+                 0x90 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a20.mmc2_dat5 */
+                 0x94 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a21.mmc2_dat6 */
+                 0x98 (PIN_INPUT_PULLUP | MANUAL_MODE | MUX_MODE1) /*
+gpmc_a22.mmc2_dat7 */
+         >;
+ };
+
+&mmc2 {
+...
+ pinctrl-1 =
+ 	&mmc2_pins_default,	/* points to mmc control core pins */
+ 	<&iodelay 0x18c A_DELAY(0) | G_DELAY(120)>,       /* CFG_GPMC_A19_IN */
+ 	<&iodelay 0x1a4 A_DELAY(265) | G_DELAY(360)>,     /* CFG_GPMC_A20_IN */
+ 	<&iodelay 0x1b0 A_DELAY(0) | G_DELAY(120)>,       /* CFG_GPMC_A21_IN */
+ 	<&iodelay 0x1bc A_DELAY(0) | G_DELAY(120)>,       /* CFG_GPMC_A22_IN */
+ 	<&iodelay 0x1c8 A_DELAY(287) | G_DELAY(420)>,     /* CFG_GPMC_A23_IN */
+ 	<&iodelay 0x1d4 A_DELAY(144) | G_DELAY(240)>,     /* CFG_GPMC_A24_IN */
+ 	<&iodelay 0x1e0 A_DELAY(0) | G_DELAY(0)>,         /* CFG_GPMC_A25_IN */
+ 	<&iodelay 0x1ec A_DELAY(120) | G_DELAY(0)>,       /* CFG_GPMC_A26_IN */
+ 	<&iodelay 0x1f8 A_DELAY(120) | G_DELAY(180)>,     /* CFG_GPMC_A27_IN */
+ 	<&iodelay 0x360 A_DELAY(0) | G_DELAY(0)>;         /* CFG_GPMC_CS1_IN */
+
+I have to check if we are capable of parsing that. but if that is the
+approach chosen, I suppose we might be able to figure something, I
+suppose..
+
+-- 
+Regards,
+Nishanth Menon
