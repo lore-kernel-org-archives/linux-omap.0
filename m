@@ -1,52 +1,75 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Wed, 11 Mar 2015 02:19:25 +0100
-Message-ID: <CABxcv=kUwU2KVw5jYryh62v5us2-CiJFMnYN2nyWLRMWnEkU3w@mail.gmail.com>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
-	<1425915402-10012-3-git-send-email-eliad@wizery.com>
-	<CABxcv=kL3Hw43VVxAsZ=DnY4Z+5431PO2YehcK2zTkFGBG0cNA@mail.gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: implement bus recovery
+Date: Tue, 10 Mar 2015 20:50:04 -0500
+Message-ID: <20150311015004.GB21726@saruman.tx.rr.com>
+References: <1424369209-26735-1-git-send-email-balbi@ti.com>
+ <20150309163917.GI3739@saruman.tx.rr.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:39809 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbbCKBT0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2015 21:19:26 -0400
-Received: by wghn12 with SMTP id n12so5745583wgh.6
-        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2015 18:19:25 -0700 (PDT)
-In-Reply-To: <CABxcv=kL3Hw43VVxAsZ=DnY4Z+5431PO2YehcK2zTkFGBG0cNA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150309163917.GI3739-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>, Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
 
-Hello Eliad,
+--H+4ONPRPur6+Ovig
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 11, 2015 at 1:28 AM, Javier Martinez Canillas
-<javier@dowhile0.org> wrote:
-> On Mon, Mar 9, 2015 at 4:36 PM, Eliad Peller <eliad@wizery.com> wrote:
->> --- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
->> +++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
->> @@ -42,4 +42,13 @@
->>         vmmc-supply = <&lbep5clwmc_wlen>;
+On Mon, Mar 09, 2015 at 11:39:17AM -0500, Felipe Balbi wrote:
+> On Thu, Feb 19, 2015 at 12:06:49PM -0600, Felipe Balbi wrote:
+> > If either SCL or SDA are stuck low, we need to
+> > recover the bus using the procedure described
+> > on section 3.1.16 of the I2C specification.
+> >=20
+> > Note that we're trying to implement the procedure
+> > exactly as described by that section. First we
+> > check which line is stuck low, then implement
+> > one or the other procedure. If SDA recovery procedure
+> > fails, we reset our IP in an attempt to make it work.
+> >=20
+> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > ---
+> >=20
+> > Tested with AM437x IDK, AM437x SK, BeagleBoneBlack and Beagle X15 with
+> > 1000 iterations of i2cdetect on all available buses.
+> >=20
+> > That said, I couldn't get any device to hold the bus busy so I could
+> > see this working. If anybody has any good way of forcing a condition
+> > so that we need bus recovery, I'd be glad to look at.
+>=20
+> ping
 
-Something I forgot to mention is that this vmmc-supply is a DT hack
-since the WLAN SDIO chip needs a WL_EN signal to be asserted as a part
-of the chip power sequencing.
+any comments here ?? Anybody at all ????
 
-But there wasn't a DT binding to describe that so most boards use the
-same hack which is to define a fake fixed-regulator with an enable
-GPIO just to toggle that pin.
+--=20
+balbi
 
-But now the MMC subsystem has support for power sequence providers and
-the pwrseq-simple driver
-(Documentation/devicetree/bindings/mmc/mmc-pwrseq-simple.txt) has
-support for reset GPIOs so you may want to change that as well.
+--H+4ONPRPur6+Ovig
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-In fact, the pwrseq-simple also has support for an external clock (and
-can be extended to support more than one) so if the clocks are not
-internal to the wl12xx, maybe these should be defined in the
-pwrseq-simple dev node assuming that there is a clock driver for them.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Best regards,
-Javier
+iQIcBAEBAgAGBQJU/59LAAoJEIaOsuA1yqREKisQAKl2+ezaBMOT8HcSmMY3+YQB
+/pD6jD5YS0BmO0bAawRto1xmghLEty9phHOsg4HktFmpwqJJJ+S+JeqTN0wVJftm
+qt44dAhvoPaGx2wppp+Nog0O30eXay7nZhaJ6IcDcOUaX77WAeL+J/+9Etdx+ILK
+juNQwYt+gZlnP92tsOreJuGTirY0UOtJaWUh9LnHvBHF0X/SWa04j5L/kDF3OCe4
+lFfKLiLbeMQR/Er/iGLrwQe8tMDFuo+h62yUv4mMbIrpsVWoCKnu9eC06hn6Pr85
+wczSGipg4vgvY2Y20K00rC0CEhUhrEalt5UKmMJG6zD2D143rMitoQ029UViWi5E
++az5yYI/JyOOsSYAKCT56vBrMu9VDx57n0o9zDFClzWvA11N4jqjo5t18508YcHA
+omcNhJz1xMavdQhMMUwEgaxj63MQEzVqBllIngXV9swtHA6bbsqO2u3mRCATp1SW
+WPXdCFriMNpNJ03kZED2YQrdDW3A7wp7zvmqg72YSUrpxijNdJs744MLeh/GnQjN
+JAlbXiC+NqwAXCZ3zP8BVfFtGNp2ka9Pfpe1TVNu1Z1DQMr/uTEbYaPKI+RdSHqP
+2nD8Ra2DGJibofZk2J+np5iHLG0g9VvCYNaE8w3y5xXd6ShnwIVXq6rao1V+jGdN
+dzbDFsGQZ8L6sOP5oawx
+=SQYu
+-----END PGP SIGNATURE-----
+
+--H+4ONPRPur6+Ovig--
