@@ -1,68 +1,149 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v6 1/7] genirq: Add irqchip_set_wake_parent
-Date: Wed, 11 Mar 2015 15:43:43 +0000
-Message-ID: <1426088629-15377-2-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v6 4/7] irqchip: GIC: get rid of routable domain
+Date: Wed, 11 Mar 2015 15:43:46 +0000
+Message-ID: <1426088629-15377-5-git-send-email-marc.zyngier@arm.com>
 References: <1426088629-15377-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46332 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:46358 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775AbbCKPn5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Mar 2015 11:43:57 -0400
+	id S1750775AbbCKPoF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Mar 2015 11:44:05 -0400
 In-Reply-To: <1426088629-15377-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This proves to be useful with stacked domains, when the current
-domain doesn't implement wake-up, but expect the parent to do so.
+The only user of the so called "routable domain" functionality
+now being fixed, let's clean up the GIC.
 
 Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- include/linux/irq.h |  1 +
- kernel/irq/chip.c   | 16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+ drivers/irqchip/irq-gic.c       | 59 ++++-------------------------------------
+ include/linux/irqchip/arm-gic.h |  6 -----
+ 2 files changed, 5 insertions(+), 60 deletions(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index d09ec7a..3057c48 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -460,6 +460,7 @@ extern void irq_chip_eoi_parent(struct irq_data *data);
- extern int irq_chip_set_affinity_parent(struct irq_data *data,
- 					const struct cpumask *dest,
- 					bool force);
-+extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on);
- #endif
- 
- /* Handling of unhandled and spurious interrupts: */
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 6f1c7a5..eb9a4ea 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -948,6 +948,22 @@ int irq_chip_retrigger_hierarchy(struct irq_data *data)
- 
- 	return -ENOSYS;
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 4634cf7..e3ca6da 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -798,15 +798,12 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
+ 		irq_domain_set_info(d, irq, hw, &gic_chip, d->host_data,
+ 				    handle_fasteoi_irq, NULL, NULL);
+ 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
+-
+-		gic_routable_irq_domain_ops->map(d, irq, hw);
+ 	}
+ 	return 0;
  }
-+
-+/**
-+ * irq_chip_set_wake_parent - Set/reset wake-up on the parent interrupt
-+ * @data:	Pointer to interrupt specific data
-+ * @on:		Whether to set or reset the wake-up capability of this irq
-+ *
-+ * Conditional, as the underlying parent chip might not implement it.
-+ */
-+int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
-+{
-+	data = data->parent_data;
-+	if (data->chip->irq_set_wake)
-+		return data->chip->irq_set_wake(data, on);
-+
-+	return -ENOSYS;
-+}
- #endif
  
- /**
+ static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
+ {
+-	gic_routable_irq_domain_ops->unmap(d, irq);
+ }
+ 
+ static int gic_irq_domain_xlate(struct irq_domain *d,
+@@ -825,16 +822,8 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+ 	*out_hwirq = intspec[1] + 16;
+ 
+ 	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
+-	if (!intspec[0]) {
+-		ret = gic_routable_irq_domain_ops->xlate(d, controller,
+-							 intspec,
+-							 intsize,
+-							 out_hwirq,
+-							 out_type);
+-
+-		if (IS_ERR_VALUE(ret))
+-			return ret;
+-	}
++	if (!intspec[0])
++		*out_hwirq += 16;
+ 
+ 	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
+ 
+@@ -891,37 +880,6 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.xlate = gic_irq_domain_xlate,
+ };
+ 
+-/* Default functions for routable irq domain */
+-static int gic_routable_irq_domain_map(struct irq_domain *d, unsigned int irq,
+-			      irq_hw_number_t hw)
+-{
+-	return 0;
+-}
+-
+-static void gic_routable_irq_domain_unmap(struct irq_domain *d,
+-					  unsigned int irq)
+-{
+-}
+-
+-static int gic_routable_irq_domain_xlate(struct irq_domain *d,
+-				struct device_node *controller,
+-				const u32 *intspec, unsigned int intsize,
+-				unsigned long *out_hwirq,
+-				unsigned int *out_type)
+-{
+-	*out_hwirq += 16;
+-	return 0;
+-}
+-
+-static const struct irq_domain_ops gic_default_routable_irq_domain_ops = {
+-	.map = gic_routable_irq_domain_map,
+-	.unmap = gic_routable_irq_domain_unmap,
+-	.xlate = gic_routable_irq_domain_xlate,
+-};
+-
+-const struct irq_domain_ops *gic_routable_irq_domain_ops =
+-					&gic_default_routable_irq_domain_ops;
+-
+ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			   void __iomem *dist_base, void __iomem *cpu_base,
+ 			   u32 percpu_offset, struct device_node *node)
+@@ -929,7 +887,6 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	irq_hw_number_t hwirq_base;
+ 	struct gic_chip_data *gic;
+ 	int gic_irqs, irq_base, i;
+-	int nr_routable_irqs;
+ 
+ 	BUG_ON(gic_nr >= MAX_GIC_NR);
+ 
+@@ -985,15 +942,9 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	gic->gic_irqs = gic_irqs;
+ 
+ 	if (node) {		/* DT case */
+-		const struct irq_domain_ops *ops = &gic_irq_domain_hierarchy_ops;
+-
+-		if (!of_property_read_u32(node, "arm,routable-irqs",
+-					  &nr_routable_irqs)) {
+-			ops = &gic_irq_domain_ops;
+-			gic_irqs = nr_routable_irqs;
+-		}
+-
+-		gic->domain = irq_domain_add_linear(node, gic_irqs, ops, gic);
++		gic->domain = irq_domain_add_linear(node, gic_irqs,
++						    &gic_irq_domain_hierarchy_ops,
++						    gic);
+ 	} else {		/* Non-DT case */
+ 		/*
+ 		 * For primary GICs, skip over SGIs.
+diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+index 71d706d..3978c5b 100644
+--- a/include/linux/irqchip/arm-gic.h
++++ b/include/linux/irqchip/arm-gic.h
+@@ -115,11 +115,5 @@ int gic_get_cpu_id(unsigned int cpu);
+ void gic_migrate_target(unsigned int new_cpu_id);
+ unsigned long gic_get_sgir_physaddr(void);
+ 
+-extern const struct irq_domain_ops *gic_routable_irq_domain_ops;
+-static inline void __init register_routable_domain_ops
+-					(const struct irq_domain_ops *ops)
+-{
+-	gic_routable_irq_domain_ops = ops;
+-}
+ #endif /* __ASSEMBLY */
+ #endif
 -- 
 2.1.4
 
