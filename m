@@ -1,348 +1,58 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
-Date: Wed, 11 Mar 2015 15:28:09 +0530
-Message-ID: <550011B1.5010706@ti.com>
-References: <20150309205157.GE5140@atomide.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v5 2/3] wl18xx: add basic device-tree support
+Date: Wed, 11 Mar 2015 11:05:47 +0100
+Message-ID: <CABxcv=nn9-1a-3809Y1JgC5ExkwHqQmCXRT3tX=h7Z6C7c+m2A@mail.gmail.com>
+References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
+	<1425915402-10012-2-git-send-email-eliad@wizery.com>
+	<CABxcv=mygdT2Q+ByVKPx4+o_Oj9KSy=zVX9ng9yN25ivkfSn1A@mail.gmail.com>
+	<2121942.zIG9BfPsTV@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150309205157.GE5140@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:41756 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751847AbbCKKFt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2015 06:05:49 -0400
+Received: by wghl2 with SMTP id l2so7966181wgh.8
+        for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2015 03:05:48 -0700 (PDT)
+In-Reply-To: <2121942.zIG9BfPsTV@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Eliad Peller <eliad@wizery.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>
 
-Hi Tony,
+Hello Arnd,
 
-On Tuesday 10 March 2015 02:21 AM, Tony Lindgren wrote:
-> Add a minimal driver for dm816x USB. Otherwise we can just use
-> the existing musb_am335x and musb_dsps on dm816x.
-
-If we can use an existing driver, I'd prefer that.
+On Wed, Mar 11, 2015 at 10:51 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 11 March 2015 01:34:19 Javier Martinez Canillas wrote:
+>> > +
+>> > +static struct wl12xx_platform_data *
+>> > +wlcore_get_platform_data(struct device *dev)
+>> > +{
+>> > +       struct wl12xx_platform_data *pdata;
+>> > +
+>> > +       /* first, look for DT data */
+>>
+>> I thought it was the opposite, that platform data should over-rule DT.
+>> That way you can still use the data filled in
+>> arch/arm/mach-omap2/pdata-quirks.c even after the driver supports your
+>> new DT binding.
 >
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> No, the pdata-quirks stuff for this driver must die, it was a hack
+> that only exists because we previously could not attach data to an
+> sdio function.
 >
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/phy/dm816x-phy.txt
-> @@ -0,0 +1,24 @@
-> +Device tree binding documentation for am816x USB PHY
-> +=========================
-> +
-> +Required properties:
-> +- compatible : should be "ti,dm816x-usb-phy"
-> +- reg : offset and length of the PHY register set.
-> +- reg-names : name for the phy registers
-> +- clocks : phandle to the clock
-> +- clock-names : name of the clock
-> +- syscon: phandle for the syscon node to access misc registers
-> +- #phy-cells : from the generic PHY bindings, must be 1
-> +- syscon: phandle for the syscon node to access misc registers
-> +
-> +Example:
-> +
-> +usb_phy0: usb-phy@20 {
-> +	compatible = "ti,dm8168-usb-phy";
-> +	reg = <0x20 0x8>;
-> +	reg-names = "phy";
-> +	clocks = <&main_fapll 6>;
-> +	clock-names = "refclk";
-> +	#phy-cells = <0>;
-> +	syscon = <&scm_conf>;
-> +};
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
-> @@ -35,6 +35,13 @@ config ARMADA375_USBCLUSTER_PHY
->   	depends on OF
->   	select GENERIC_PHY
->
-> +config PHY_DM816X_USB
-> +	tristate "TI dm816x USB PHY driver"
-> +	depends on ARCH_OMAP2PLUS
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this for dm81xx USB to work."
-> +
->   config PHY_EXYNOS_MIPI_VIDEO
->   	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
->   	depends on HAS_IOMEM
-> --- a/drivers/phy/Makefile
-> +++ b/drivers/phy/Makefile
-> @@ -5,6 +5,7 @@
->   obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
->   obj-$(CONFIG_PHY_BERLIN_USB)		+= phy-berlin-usb.o
->   obj-$(CONFIG_PHY_BERLIN_SATA)		+= phy-berlin-sata.o
-> +obj-$(CONFIG_PHY_DM816X_USB)		+= phy-dm816x-usb.o
->   obj-$(CONFIG_ARMADA375_USBCLUSTER_PHY)	+= phy-armada375-usb2.o
->   obj-$(CONFIG_BCM_KONA_USB2_PHY)		+= phy-bcm-kona-usb2.o
->   obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
-> --- /dev/null
-> +++ b/drivers/phy/phy-dm816x-usb.c
-> @@ -0,0 +1,295 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/regmap.h>
-> +
-> +#include <linux/slab.h>
-> +#include <linux/of.h>
-> +#include <linux/io.h>
-> +#include <linux/usb/phy_companion.h>
-> +#include <linux/clk.h>
-> +#include <linux/err.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/delay.h>
-> +#include <linux/phy/phy.h>
-> +#include <linux/of_platform.h>
-> +
-> +#include <linux/mfd/syscon.h>
-> +
-> +/*
-> + * TRM has two sets of USB_CTRL registers.. The correct register bits
-> + * are in TRM section 24.9.8.2 USB_CTRL Register.
-> + */
-> +#define DM816X_USB_CTRL_PHYCLKSRC	BIT(8)	/* 1 = PLL ref clock */
-> +#define DM816X_USB_CTRL_PHYSLEEP1	BIT(1)
-> +#define DM816X_USB_CTRL_PHYSLEEP0	BIT(0)
-> +
-> +#define DM816X_USBPHY_CTRL_TXRISETUNE	1
-> +#define DM816X_USBPHY_CTRL_TXVREFTUNE	0xc
-> +#define DM816X_USBPHY_CTRL_TXPREEMTUNE	0x2
-> +
-> +struct dm816x_usb_phy {
-> +	struct regmap *syscon;
-> +	struct device *dev;
-> +	unsigned int instance;
-> +	struct clk *refclk;
-> +	struct usb_phy phy;
-> +	unsigned int usb_ctrl;		/* Shared between phy0 and phy1 */
-> +	unsigned int usbphy_ctrl;
-> +};
-> +
-> +static int dm816x_usb_phy_set_host(struct usb_otg *otg, struct usb_bus *host)
-> +{
-> +	otg->host = host;
-> +	if (!host)
-> +		otg->state = OTG_STATE_UNDEFINED;
-> +
-> +	return 0;
-> +}
-> +
-> +static int dm816x_usb_phy_set_peripheral(struct usb_otg *otg,
-> +					 struct usb_gadget *gadget)
-> +{
-> +	otg->gadget = gadget;
-> +	if (!gadget)
-> +		otg->state = OTG_STATE_UNDEFINED;
-> +
-> +	return 0;
-> +}
-> +
-> +static int dm816x_usb_phy_power_off(struct phy *x)
-> +{
-> +	struct dm816x_usb_phy *phy = phy_get_drvdata(x);
-> +
-> +	pm_runtime_put(phy->dev);
 
-phy core takes care of invoking pm_runtime_put on power_off.
-So this function shouldn't be needed at all.
-> +
-> +	return 0;
-> +}
-> +
-> +static int dm816x_usb_phy_power_on(struct phy *x)
-> +{
-> +	struct dm816x_usb_phy *phy = phy_get_drvdata(x);
-> +
-> +	return pm_runtime_get_sync(phy->dev);
+Ok sorry, I misunderstood and thought that the output from the
+discussion in patch 3/3 was that the pdata could not still be removed
+due not having a way to configure the clocks for wl12xx.
 
-similarly on power_on, phy_core invokes pm_runtime_get_sync.
-> +}
-> +
-> +static int dm816x_usb_phy_init(struct phy *x)
-> +{
-> +	struct dm816x_usb_phy *phy = phy_get_drvdata(x);
-> +	unsigned int val;
-> +	int error;
-> +
-> +	error = pm_runtime_get_sync(phy->dev);
-> +	if (error)
-> +		return error;
+I totally agree with removing the pdata on this driver, in fact I
+would go an just remove all the remaining OMAP2+ board files and
+pdata-quirks completely. Most OMAP2+ boards have been converted to DT
+years ago and if someone really cares about mainline support for these
+boards, they can add a DTS and DT bindings for the drivers that still
+needed like this one.
 
-not required.
-> +
-> +	if (clk_get_rate(phy->refclk) != 24000000)
-> +		dev_warn(phy->dev, "nonstandard phy refclk\n");
-> +
-> +	/* Set PLL ref clock and put phys to sleep */
-> +	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
-> +				   DM816X_USB_CTRL_PHYCLKSRC |
-> +				   DM816X_USB_CTRL_PHYSLEEP1 |
-> +				   DM816X_USB_CTRL_PHYSLEEP0,
-> +				   0);
-> +	regmap_read(phy->syscon, phy->usb_ctrl, &val);
-> +
-> +	/*
-> +	 * TI kernel sets these values for "symmetrical eye diagram and
-> +	 * better signal quality" so let's assume somebody checked the
-> +	 * values with a scope and set them here too.
-> +	 */
-> +	regmap_read(phy->syscon, phy->usbphy_ctrl, &val);
-> +	val |= DM816X_USBPHY_CTRL_TXRISETUNE |
-> +		DM816X_USBPHY_CTRL_TXVREFTUNE |
-> +		DM816X_USBPHY_CTRL_TXPREEMTUNE;
-> +	regmap_write(phy->syscon, phy->usbphy_ctrl, val);
-> +
-> +	pm_runtime_put(phy->dev);
-
-same here.
-> +
-> +	return 0;
-> +}
-> +
-> +static struct phy_ops ops = {
-> +	.init		= dm816x_usb_phy_init,
-> +	.power_on	= dm816x_usb_phy_power_on,
-> +	.power_off	= dm816x_usb_phy_power_off,
-> +	.owner		= THIS_MODULE,
-> +};
-> +
-> +static int dm816x_usb_phy_runtime_suspend(struct device *dev)
-> +{
-> +	struct dm816x_usb_phy *phy = dev_get_drvdata(dev);
-> +	unsigned int mask, val;
-> +	int error = 0;
-> +
-> +	mask = BIT(phy->instance);
-> +	val = ~BIT(phy->instance);
-> +	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
-> +				   mask, val);
-> +	if (error)
-> +		dev_err(phy->dev, "phy%i failed to power off\n",
-> +			phy->instance);
-> +	clk_disable(phy->refclk);
-> +
-> +	return 0;
-> +}
-> +
-> +static int dm816x_usb_phy_runtime_resume(struct device *dev)
-> +{
-> +	struct dm816x_usb_phy *phy = dev_get_drvdata(dev);
-> +	unsigned int mask, val;
-> +	int error;
-> +
-> +	error = clk_enable(phy->refclk);
-> +	if (error)
-> +		return error;
-> +
-> +	mask = BIT(phy->instance);
-> +	val = BIT(phy->instance);
-> +	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
-> +				   mask, val);
-> +	if (error) {
-> +		dev_err(phy->dev, "phy%i failed to power on\n",
-> +			phy->instance);
-> +		clk_disable(phy->refclk);
-> +		return error;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static UNIVERSAL_DEV_PM_OPS(dm816x_usb_phy_pm_ops,
-> +			    dm816x_usb_phy_runtime_suspend,
-> +			    dm816x_usb_phy_runtime_resume,
-> +			    NULL);
-> +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id dm816x_usb_phy_id_table[] = {
-> +	{
-> +		.compatible = "ti,dm8168-usb-phy",
-> +	},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, dm816x_usb_phy_id_table);
-> +#endif
-> +
-> +static int dm816x_usb_phy_probe(struct platform_device *pdev)
-> +{
-> +	struct dm816x_usb_phy *phy;
-> +	struct resource *res;
-> +	struct phy *generic_phy;
-> +	struct phy_provider *phy_provider;
-> +	struct usb_otg *otg;
-> +	const struct of_device_id *of_id;
-> +	const struct usb_phy_data *phy_data;
-> +	int error;
-> +
-> +	of_id = of_match_device(of_match_ptr(dm816x_usb_phy_id_table),
-> +				&pdev->dev);
-> +	if (!of_id)
-> +		return -EINVAL;
-> +
-> +	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
-> +	if (!phy)
-> +		return -ENOMEM;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res)
-> +		return -ENOENT;
-> +
-> +	phy->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-> +						      "syscon");
-> +	if (IS_ERR(phy->syscon))
-> +		return PTR_ERR(phy->syscon);
-> +
-> +	/*
-> +	 * According to sprs614e.pdf, the first usb_ctrl is shared and
-> +	 * the second instance for usb_ctrl is reserved.. Also the
-> +	 * register bits are different from earlier TRMs.
-> +	 */
-> +	phy->usb_ctrl = 0x20;
-> +	phy->usbphy_ctrl = (res->start & 0xff) + 4;
-> +	if (phy->usbphy_ctrl == 0x2c)
-> +		phy->instance = 1;
-> +
-> +	phy_data = of_id->data;
-> +
-> +	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
-> +	if (!otg)
-> +		return -ENOMEM;
-> +
-> +	phy->dev = &pdev->dev;
-> +	phy->phy.dev = phy->dev;
-> +	phy->phy.label = "dm8168_usb_phy";
-> +	phy->phy.otg = otg;
-> +	phy->phy.type = USB_PHY_TYPE_USB2;
-> +	otg->set_host = dm816x_usb_phy_set_host;
-> +	otg->set_peripheral = dm816x_usb_phy_set_peripheral;
-> +	otg->usb_phy = &phy->phy;
-> +
-> +	platform_set_drvdata(pdev, phy);
-> +
-> +	phy->refclk = devm_clk_get(phy->dev, "refclk");
-> +	if (IS_ERR(phy->refclk))
-> +		return PTR_ERR(phy->refclk);
-> +
-> +	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
-> +	if (IS_ERR(generic_phy))
-> +		return PTR_ERR(generic_phy);
-
-Just invoke pm_runtime_enable before phy_create and phy core will take care of
-invoking all pm_runtime functions at appropriate time.
-
-Cheers
-Kishon
+Best regards,
+Javier
