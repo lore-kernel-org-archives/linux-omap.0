@@ -1,62 +1,66 @@
 From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 5/8] ARM: tegra: clock: Provide y2038-safe
- tegra_read_persistent_clock() replacement
-Date: Wed, 11 Mar 2015 09:52:20 +0100
-Message-ID: <20150311085218.GB19577@ulmo.nvidia.com>
+Subject: Re: [PATCH 6/8] ARM: time: Provide read_boot_clock64() and
+ read_persistent_clock64()
+Date: Wed, 11 Mar 2015 09:53:58 +0100
+Message-ID: <20150311085357.GC19577@ulmo.nvidia.com>
 References: <1426044277-22170-1-git-send-email-xlpang@126.com>
+ <1426044277-22170-2-git-send-email-xlpang@126.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
+	protocol="application/pgp-signature"; boundary="Fig2xvG2VGoz8o/s"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1426044277-22170-1-git-send-email-xlpang@126.com>
+In-Reply-To: <1426044277-22170-2-git-send-email-xlpang@126.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Xunlei Pang <xlpang@126.com>
 Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, Thomas Gleixner <tglx@linutronix.de>, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, linux390@de.ibm.com, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ralf Baechle <ralf@linux-mips.org>, Arnd Bergmann <arnd@arndb.de>, Xunlei Pang <pang.xunlei@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---NDin8bjvE/0mNLFQ
+--Fig2xvG2VGoz8o/s
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 11, 2015 at 11:24:34AM +0800, Xunlei Pang wrote:
+On Wed, Mar 11, 2015 at 11:24:35AM +0800, Xunlei Pang wrote:
 > From: Xunlei Pang <pang.xunlei@linaro.org>
 >=20
 > As part of addressing "y2038 problem" for in-kernel uses, this
-> patch adds the y2038-safe tegra_read_persistent_clock64() using
-> timespec64.
->=20
-> Because we rely on some subsequent changes to convert arm multiarch
-> support, tegra_read_persistent_clock() will be removed then.
+> patch converts read_boot_clock() to read_boot_clock64() and
+> read_persistent_clock() to read_persistent_clock64() using
+> timespec64 by converting clock_access_fn to use timespec64.
 >=20
 > Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
 > ---
->  drivers/clocksource/tegra20_timer.c | 21 ++++++++++++++-------
->  1 file changed, 14 insertions(+), 7 deletions(-)
+>  arch/arm/include/asm/mach/time.h    |  3 +--
+>  arch/arm/kernel/time.c              |  6 +++---
+>  arch/arm/plat-omap/counter_32k.c    | 10 +---------
+>  drivers/clocksource/tegra20_timer.c | 10 +---------
+>  4 files changed, 6 insertions(+), 23 deletions(-)
+
+For the Tegra part:
 
 Acked-by: Thierry Reding <treding@nvidia.com>
 
---NDin8bjvE/0mNLFQ
+--Fig2xvG2VGoz8o/s
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVAAJCAAoJEN0jrNd/PrOhjfEP/0kAwCDVBYdY0lhoqPZBpKWD
-FADLjCfUVObEYDL3vQmdBan6N0OshCRcKsXIO3SNvaDRlrZb+6/BQGfiZc0wfcIc
-661n7hqYcoiZR8Fwl5TCJCFGBu0RtZv60VktdTRHigFNz60kjJiaDkg6AkoCOKRA
-zbDTWlYWgN6J6HDgmhsrSvt2mmyRAhsF07iiyEQGvZFYf73mp1bUcXqHtPHXSImp
-wIyTtc9jXFnEVVSdWkK+5/rtIe39eaI5qRXo/vIfD6ZMOGJj0nc92NSqxzV5ycoK
-Ygs84OeM8Lw1ag3s3zYw7DImOyliDCzN5a1Qj3P45GmbTImbgcR3Pvf9tno4Zp/f
-ex66Rtbo8AYN6GXna6M43QtQrHRgr3KQOwYhUu+A6DJXClb4kb4Fs5tXrFQUkbN+
-WjXIogIHqp1/zq14u9oSbPZFWZDQUHK3baNTGQrbeVpWAl4aWOZM34Eixvx8En3u
-wOCpD552nGYcYmQHBQKt5wTi/tyA2PW6jgFNmJHZ3CLGM+SW7otYL1XpBF9H4w59
-xH8bN2SDT0a0ojNHL5+UA0H06K0SM9yJvK9TSk59DPGlFYfjzI1td+CCH0D13fHt
-UeYXNL+xdWntw36egkUtZKmwwEFOYYHOsc8dT6nX6H7eaoUxoFWltrXdkkD3iCta
-DmulVxXg3lqOP4z179TL
-=8Bdv
+iQIcBAABCAAGBQJVAAKlAAoJEN0jrNd/PrOhmOIQAKG1KccIgobtNXnI0FEYailH
+6s6NI2k9Le8h0/+//4LTfreJ5FY0HgOtWKC1x+/CvDrOporofJzUEEhI+y2xB5Qb
+FSOCUuGa7efmN6QqG9hzzI7BMjQp2N02N95S8MWTVAmhtG1O55xrH4QMu9Xxmxsb
+q7uADlgyql8mR6ux3YtMuNwDzoXUktD7g9lImLipVOjLUuX1eOhEzr1/dUcbXaro
+TLivSzpcytBrRih6iQe52N25KiBlAmdJzQHwtgyZvhhpioxMW7+kqiF3XrI1pAHO
+5irQUyIaUTa5aWiF7jqePw0fjNvcEQ4DfWfv8z7jYT2U/W7sK4bMpgJUGEXaDlP3
+0MRTlm59Y7guJdLOC7eK291a7DZ59uQqCsoxhOby+EE5/SLNgPvXa2GGeLgQEQBe
+YDVjCe1leeAeTmI2f8TmrFtdbgo5yi0Tj3qN9mdh9uSIq9bqH9U6CXSbgZ3uqDqq
+tQyhzbhJmiB64J4gDhxTXaK+mZITJyXXPqkldQ18SeIlKNpxKWEM8x5RR6Z/vKFn
+Opn9rcm9tlIgKPPtYXe/PAICDr4v4osiyqJ0KmnNVHxtFQPxmUu0heS7IVSRaK2z
+87AdxNUYopiFlcHA9XZKFlrSxUCx4rh0PPlixFkklZ/ANQ2WgBwhX+j55vE6TL6R
+eg3aCiOjPdeiCYER0TN1
+=zTtO
 -----END PGP SIGNATURE-----
 
---NDin8bjvE/0mNLFQ--
+--Fig2xvG2VGoz8o/s--
