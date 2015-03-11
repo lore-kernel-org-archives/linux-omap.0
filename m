@@ -1,7 +1,7 @@
 From: Xunlei Pang <xlpang-KN7UnAbNpbg@public.gmane.org>
-Subject: [PATCH 1/8] time: Add y2038 safe read_boot_clock64()
-Date: Wed, 11 Mar 2015 11:15:08 +0800
-Message-ID: <1426043715-22043-2-git-send-email-xlpang@126.com>
+Subject: [PATCH 2/8] time: Add y2038 safe read_persistent_clock64()
+Date: Wed, 11 Mar 2015 11:15:09 +0800
+Message-ID: <1426043715-22043-3-git-send-email-xlpang@126.com>
 References: <1426043715-22043-1-git-send-email-xlpang@126.com>
 Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1426043715-22043-1-git-send-email-xlpang-KN7UnAbNpbg@public.gmane.org>
@@ -13,62 +13,119 @@ List-Id: linux-omap@vger.kernel.org
 From: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
 As part of addressing in-kernel y2038 issues, this patch adds
-read_boot_clock64() and replaces all the call sites of read_boot_clock()
-with this function. This is a __weak implementation, which simply
-calls the existing y2038 unsafe read_boot_clock().
+read_persistent_clock64() and replaces all the call sites of
+read_persistent_clock() with this function. This is a __weak
+implementation, which simply calls the existing y2038 unsafe
+read_persistent_clock().
 
 This allows architecture specific implementations to be converted
-independently, and eventually the y2038 unsafe read_boot_clock()
+independently, and eventually the y2038 unsafe read_persistent_clock()
 can be removed after all its architecture specific implementations
-have been converted to read_boot_clock64().
+have been converted to read_persistent_clock64().
 
 Suggested-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 Signed-off-by: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
+ arch/mips/lasat/sysctl.c    |  4 ++--
  include/linux/timekeeping.h |  1 +
- kernel/time/timekeeping.c   | 11 +++++++++--
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ kernel/time/timekeeping.c   | 22 ++++++++++++----------
+ 3 files changed, 15 insertions(+), 12 deletions(-)
 
+diff --git a/arch/mips/lasat/sysctl.c b/arch/mips/lasat/sysctl.c
+index 3b7f65c..cf9b4633 100644
+--- a/arch/mips/lasat/sysctl.c
++++ b/arch/mips/lasat/sysctl.c
+@@ -75,11 +75,11 @@ static int rtctmp;
+ int proc_dolasatrtc(struct ctl_table *table, int write,
+ 		       void *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	struct timespec ts;
++	struct timespec64 ts;
+ 	int r;
+ 
+ 	if (!write) {
+-		read_persistent_clock(&ts);
++		read_persistent_clock64(&ts);
+ 		rtctmp = ts.tv_sec;
+ 		/* check for time < 0 and set to 0 */
+ 		if (rtctmp < 0)
 diff --git a/include/linux/timekeeping.h b/include/linux/timekeeping.h
-index 3eaae47..d53c522 100644
+index d53c522..ff56a0f 100644
 --- a/include/linux/timekeeping.h
 +++ b/include/linux/timekeeping.h
-@@ -263,6 +263,7 @@ static inline bool has_persistent_clock(void)
+@@ -262,6 +262,7 @@ static inline bool has_persistent_clock(void)
+ }
  
  extern void read_persistent_clock(struct timespec *ts);
++extern void read_persistent_clock64(struct timespec64 *ts);
  extern void read_boot_clock(struct timespec *ts);
-+extern void read_boot_clock64(struct timespec64 *ts);
+ extern void read_boot_clock64(struct timespec64 *ts);
  extern int update_persistent_clock(struct timespec now);
- 
- 
 diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
-index 91db941..7080c21 100644
+index 7080c21..0e5a696 100644
 --- a/kernel/time/timekeeping.c
 +++ b/kernel/time/timekeeping.c
-@@ -1072,6 +1072,14 @@ void __weak read_boot_clock(struct timespec *ts)
+@@ -1057,6 +1057,14 @@ void __weak read_persistent_clock(struct timespec *ts)
  	ts->tv_nsec = 0;
  }
  
-+void __weak read_boot_clock64(struct timespec64 *ts64)
++void __weak read_persistent_clock64(struct timespec64 *ts64)
 +{
 +	struct timespec ts;
 +
-+	read_boot_clock(&ts);
++	read_persistent_clock(&ts);
 +	*ts64 = timespec_to_timespec64(ts);
 +}
 +
- /*
-  * timekeeping_init - Initializes the clocksource and common timekeeping values
-  */
-@@ -1093,8 +1101,7 @@ void __init timekeeping_init(void)
- 	} else if (now.tv_sec || now.tv_nsec)
- 		persistent_clock_exist = true;
+ /**
+  * read_boot_clock -  Return time of the system start.
+  *
+@@ -1089,10 +1097,8 @@ void __init timekeeping_init(void)
+ 	struct clocksource *clock;
+ 	unsigned long flags;
+ 	struct timespec64 now, boot, tmp;
+-	struct timespec ts;
  
--	read_boot_clock(&ts);
--	boot = timespec_to_timespec64(ts);
-+	read_boot_clock64(&boot);
- 	if (!timespec64_valid_strict(&boot)) {
- 		pr_warn("WARNING: Boot clock returned invalid value!\n"
+-	read_persistent_clock(&ts);
+-	now = timespec_to_timespec64(ts);
++	read_persistent_clock64(&now);
+ 	if (!timespec64_valid_strict(&now)) {
+ 		pr_warn("WARNING: Persistent clock returned invalid value!\n"
  			"         Check your CMOS/BIOS settings.\n");
+@@ -1163,7 +1169,7 @@ static void __timekeeping_inject_sleeptime(struct timekeeper *tk,
+  * timekeeping_inject_sleeptime64 - Adds suspend interval to timeekeeping values
+  * @delta: pointer to a timespec64 delta value
+  *
+- * This hook is for architectures that cannot support read_persistent_clock
++ * This hook is for architectures that cannot support read_persistent_clock64
+  * because their RTC/persistent clock is only accessible when irqs are enabled.
+  *
+  * This function should only be called by rtc_resume(), and allows
+@@ -1210,12 +1216,10 @@ void timekeeping_resume(void)
+ 	struct clocksource *clock = tk->tkr.clock;
+ 	unsigned long flags;
+ 	struct timespec64 ts_new, ts_delta;
+-	struct timespec tmp;
+ 	cycle_t cycle_now, cycle_delta;
+ 	bool suspendtime_found = false;
+ 
+-	read_persistent_clock(&tmp);
+-	ts_new = timespec_to_timespec64(tmp);
++	read_persistent_clock64(&ts_new);
+ 
+ 	clockevents_resume();
+ 	clocksource_resume();
+@@ -1291,10 +1295,8 @@ int timekeeping_suspend(void)
+ 	unsigned long flags;
+ 	struct timespec64		delta, delta_delta;
+ 	static struct timespec64	old_delta;
+-	struct timespec tmp;
+ 
+-	read_persistent_clock(&tmp);
+-	timekeeping_suspend_time = timespec_to_timespec64(tmp);
++	read_persistent_clock64(&timekeeping_suspend_time);
+ 
+ 	/*
+ 	 * On some systems the persistent_clock can not be detected at
 -- 
 1.9.1
