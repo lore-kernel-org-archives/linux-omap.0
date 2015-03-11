@@ -1,54 +1,52 @@
-From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+From: Javier Martinez Canillas <javier@dowhile0.org>
 Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Wed, 11 Mar 2015 02:00:59 +0100
-Message-ID: <CABxcv=ndnNj4MhoXeW=GHXT4aEWQYHdbu-Mg4R2Zhf9CJTrJCA@mail.gmail.com>
+Date: Wed, 11 Mar 2015 02:19:25 +0100
+Message-ID: <CABxcv=kUwU2KVw5jYryh62v5us2-CiJFMnYN2nyWLRMWnEkU3w@mail.gmail.com>
 References: <1425915402-10012-1-git-send-email-eliad@wizery.com>
-	<2223973.a64rBcZvaA@wuerfel>
-	<CAB3XZEftjwUGS_Kj2dCxYY1m82C+a1_=akbnG3_hLETCr+Dddg@mail.gmail.com>
-	<5683860.JYkc24rKim@wuerfel>
-	<CAB3XZEfEQnb7qsxuAAr6pUehm1nw6Eu4ZsV1+E477yF5K1hczA@mail.gmail.com>
-	<20150310161801.GR5264@atomide.com>
-	<CAB3XZEdK2O7tSSTchvRQtaefzCECjjQ-biQmOBHGdzJaBknSFQ@mail.gmail.com>
-	<20150310173550.GT5264@atomide.com>
+	<1425915402-10012-3-git-send-email-eliad@wizery.com>
+	<CABxcv=kL3Hw43VVxAsZ=DnY4Z+5431PO2YehcK2zTkFGBG0cNA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150310173550.GT5264-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:39809 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509AbbCKBT0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2015 21:19:26 -0400
+Received: by wghn12 with SMTP id n12so5745583wgh.6
+        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2015 18:19:25 -0700 (PDT)
+In-Reply-To: <CABxcv=kL3Hw43VVxAsZ=DnY4Z+5431PO2YehcK2zTkFGBG0cNA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Eliad Peller <eliad@wizery.com>, Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
 
-Hello Tony,
+Hello Eliad,
 
-On Tue, Mar 10, 2015 at 6:35 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->>
->> we do have to make sure these wl18xx bindings are future-compatible
->> with the wl12xx ones, but i think the current bindings are pretty much
->> standard (and are actually a subset of the bindings needed by wl12xx),
->> so it should be fine.
->
-> Well how about add just the parsing of the clock and assume it's always
-> WL12XX_REFCLOCK_38 for now as that's the only thing we're currently
-> using. Then we can add a property or compatible value if using something
-> else as needed.
->
+On Wed, Mar 11, 2015 at 1:28 AM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
+> On Mon, Mar 9, 2015 at 4:36 PM, Eliad Peller <eliad@wizery.com> wrote:
+>> --- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+>> +++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+>> @@ -42,4 +42,13 @@
+>>         vmmc-supply = <&lbep5clwmc_wlen>;
 
-What do you mean by parsing here? IIUC there isn't a clock driver for
-these clocks and are setup directly in the
-drivers/net/wireless/ti/wl12xx/main.c driver.
+Something I forgot to mention is that this vmmc-supply is a DT hack
+since the WLAN SDIO chip needs a WL_EN signal to be asserted as a part
+of the chip power sequencing.
 
-So you can't make the WLAN chip dev node a consumer of these clocks by
-adding a phandle to a clock provider and clock specifiers since there
-isn't a provider to be referenced in the DT. Or did I misunderstand?
+But there wasn't a DT binding to describe that so most boards use the
+same hack which is to define a fake fixed-regulator with an enable
+GPIO just to toggle that pin.
 
-> Regards,
->
-> Tony
+But now the MMC subsystem has support for power sequence providers and
+the pwrseq-simple driver
+(Documentation/devicetree/bindings/mmc/mmc-pwrseq-simple.txt) has
+support for reset GPIOs so you may want to change that as well.
+
+In fact, the pwrseq-simple also has support for an external clock (and
+can be extended to support more than one) so if the clocks are not
+internal to the wl12xx, maybe these should be defined in the
+pwrseq-simple dev node assuming that there is a clock driver for them.
 
 Best regards,
 Javier
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
