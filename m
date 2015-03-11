@@ -1,50 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v5 2/3] wl18xx: add basic device-tree support
-Date: Wed, 11 Mar 2015 11:32:14 +0100
-Message-ID: <2158874.BdVTdz3Bds@wuerfel>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <2121942.zIG9BfPsTV@wuerfel> <CABxcv=nn9-1a-3809Y1JgC5ExkwHqQmCXRT3tX=h7Z6C7c+m2A@mail.gmail.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
+Date: Wed, 11 Mar 2015 12:16:39 +0100
+Message-ID: <1426072599.4244.98.camel@x220>
+References: <20150309205157.GE5140@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:60665 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750975AbbCKKcW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2015 06:32:22 -0400
-In-Reply-To: <CABxcv=nn9-1a-3809Y1JgC5ExkwHqQmCXRT3tX=h7Z6C7c+m2A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150309205157.GE5140@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>, Dave Jones <davej@codemonkey.org.uk>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Eliad Peller <eliad@wizery.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>
 
-On Wednesday 11 March 2015 11:05:47 Javier Martinez Canillas wrote:
-> 
-> On Wed, Mar 11, 2015 at 10:51 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Wednesday 11 March 2015 01:34:19 Javier Martinez Canillas wrote:
-> >> > +
-> >> > +static struct wl12xx_platform_data *
-> >> > +wlcore_get_platform_data(struct device *dev)
-> >> > +{
-> >> > +       struct wl12xx_platform_data *pdata;
-> >> > +
-> >> > +       /* first, look for DT data */
-> >>
-> >> I thought it was the opposite, that platform data should over-rule DT.
-> >> That way you can still use the data filled in
-> >> arch/arm/mach-omap2/pdata-quirks.c even after the driver supports your
-> >> new DT binding.
-> >
-> > No, the pdata-quirks stuff for this driver must die, it was a hack
-> > that only exists because we previously could not attach data to an
-> > sdio function.
-> >
-> 
-> Ok sorry, I misunderstood and thought that the output from the
-> discussion in patch 3/3 was that the pdata could not still be removed
-> due not having a way to configure the clocks for wl12xx.
+On Mon, 2015-03-09 at 13:51 -0700, Tony Lindgren wrote:
+> --- /dev/null
+> +++ b/drivers/phy/phy-dm816x-usb.c
+> @@ -0,0 +1,295 @@
+> +/*
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
 
-I think that is still the case, but we should never have both pdata
-and DT, and if we ever did, I think the DT should take precedence
-so we can be sure that the pdata is not used and can be removed.
+This states the license is GPL v2 or later.
 
-	Arnd
+> +MODULE_LICENSE("GPL v2");
+
+So you probably want
+    MODULE_LICENSE("GPL");
+
+here.
+
+
+Paul Bolle
