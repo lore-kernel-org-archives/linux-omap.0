@@ -1,97 +1,62 @@
-From: Xunlei Pang <xlpang-KN7UnAbNpbg@public.gmane.org>
-Subject: [PATCH 7/8] s390: time: Provide read_boot_clock64() and read_persistent_clock64()
-Date: Wed, 11 Mar 2015 11:24:36 +0800
-Message-ID: <1426044277-22170-3-git-send-email-xlpang@126.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 5/8] ARM: tegra: clock: Provide y2038-safe
+ tegra_read_persistent_clock() replacement
+Date: Wed, 11 Mar 2015 09:52:20 +0100
+Message-ID: <20150311085218.GB19577@ulmo.nvidia.com>
 References: <1426044277-22170-1-git-send-email-xlpang@126.com>
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426044277-22170-1-git-send-email-xlpang-KN7UnAbNpbg@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Martin Schwidefsky <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1426044277-22170-1-git-send-email-xlpang@126.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xunlei Pang <xlpang@126.com>
+Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, Thomas Gleixner <tglx@linutronix.de>, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, linux390@de.ibm.com, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ralf Baechle <ralf@linux-mips.org>, Arnd Bergmann <arnd@arndb.de>, Xunlei Pang <pang.xunlei@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-As part of addressing "y2038 problem" for in-kernel uses, this
-patch converts read_boot_clock() to read_boot_clock64() and
-read_persistent_clock() to read_persistent_clock64() using
-timespec64.
+--NDin8bjvE/0mNLFQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Since S390 is a 64bit architecture, also rename some timespec
-to timespec64 in time.c and the related references.
+On Wed, Mar 11, 2015 at 11:24:34AM +0800, Xunlei Pang wrote:
+> From: Xunlei Pang <pang.xunlei@linaro.org>
+>=20
+> As part of addressing "y2038 problem" for in-kernel uses, this
+> patch adds the y2038-safe tegra_read_persistent_clock64() using
+> timespec64.
+>=20
+> Because we rely on some subsequent changes to convert arm multiarch
+> support, tegra_read_persistent_clock() will be removed then.
+>=20
+> Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
+> ---
+>  drivers/clocksource/tegra20_timer.c | 21 ++++++++++++++-------
+>  1 file changed, 14 insertions(+), 7 deletions(-)
 
-Signed-off-by: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- arch/s390/include/asm/timex.h | 4 ++--
- arch/s390/kernel/debug.c      | 4 ++--
- arch/s390/kernel/time.c       | 6 +++---
- 3 files changed, 7 insertions(+), 7 deletions(-)
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-diff --git a/arch/s390/include/asm/timex.h b/arch/s390/include/asm/timex.h
-index 98eb2a5..8b08be3 100644
---- a/arch/s390/include/asm/timex.h
-+++ b/arch/s390/include/asm/timex.h
-@@ -108,10 +108,10 @@ int get_sync_clock(unsigned long long *clock);
- void init_cpu_timer(void);
- unsigned long long monotonic_clock(void);
- 
--void tod_to_timeval(__u64, struct timespec *);
-+void tod_to_timeval(__u64, struct timespec64 *);
- 
- static inline
--void stck_to_timespec(unsigned long long stck, struct timespec *ts)
-+void stck_to_timespec64(unsigned long long stck, struct timespec64 *ts)
- {
- 	tod_to_timeval(stck - TOD_UNIX_EPOCH, ts);
- }
-diff --git a/arch/s390/kernel/debug.c b/arch/s390/kernel/debug.c
-index c1f21ac..20ff016 100644
---- a/arch/s390/kernel/debug.c
-+++ b/arch/s390/kernel/debug.c
-@@ -1457,14 +1457,14 @@ int
- debug_dflt_header_fn(debug_info_t * id, struct debug_view *view,
- 			 int area, debug_entry_t * entry, char *out_buf)
- {
--	struct timespec time_spec;
-+	struct timespec64 time_spec;
- 	char *except_str;
- 	unsigned long caller;
- 	int rc = 0;
- 	unsigned int level;
- 
- 	level = entry->id.fields.level;
--	stck_to_timespec(entry->id.stck, &time_spec);
-+	stck_to_timespec64(entry->id.stck, &time_spec);
- 
- 	if (entry->id.fields.exception)
- 		except_str = "*";
-diff --git a/arch/s390/kernel/time.c b/arch/s390/kernel/time.c
-index 20660dd..e4df144 100644
---- a/arch/s390/kernel/time.c
-+++ b/arch/s390/kernel/time.c
-@@ -76,7 +76,7 @@ unsigned long long monotonic_clock(void)
- }
- EXPORT_SYMBOL(monotonic_clock);
- 
--void tod_to_timeval(__u64 todval, struct timespec *xt)
-+void tod_to_timeval(__u64 todval, struct timespec64 *xt)
- {
- 	unsigned long long sec;
- 
-@@ -181,12 +181,12 @@ static void timing_alert_interrupt(struct ext_code ext_code,
- static void etr_reset(void);
- static void stp_reset(void);
- 
--void read_persistent_clock(struct timespec *ts)
-+void read_persistent_clock64(struct timespec64 *ts)
- {
- 	tod_to_timeval(get_tod_clock() - TOD_UNIX_EPOCH, ts);
- }
- 
--void read_boot_clock(struct timespec *ts)
-+void read_boot_clock64(struct timespec64 *ts)
- {
- 	tod_to_timeval(sched_clock_base_cc - TOD_UNIX_EPOCH, ts);
- }
--- 
-1.9.1
+--NDin8bjvE/0mNLFQ
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVAAJCAAoJEN0jrNd/PrOhjfEP/0kAwCDVBYdY0lhoqPZBpKWD
+FADLjCfUVObEYDL3vQmdBan6N0OshCRcKsXIO3SNvaDRlrZb+6/BQGfiZc0wfcIc
+661n7hqYcoiZR8Fwl5TCJCFGBu0RtZv60VktdTRHigFNz60kjJiaDkg6AkoCOKRA
+zbDTWlYWgN6J6HDgmhsrSvt2mmyRAhsF07iiyEQGvZFYf73mp1bUcXqHtPHXSImp
+wIyTtc9jXFnEVVSdWkK+5/rtIe39eaI5qRXo/vIfD6ZMOGJj0nc92NSqxzV5ycoK
+Ygs84OeM8Lw1ag3s3zYw7DImOyliDCzN5a1Qj3P45GmbTImbgcR3Pvf9tno4Zp/f
+ex66Rtbo8AYN6GXna6M43QtQrHRgr3KQOwYhUu+A6DJXClb4kb4Fs5tXrFQUkbN+
+WjXIogIHqp1/zq14u9oSbPZFWZDQUHK3baNTGQrbeVpWAl4aWOZM34Eixvx8En3u
+wOCpD552nGYcYmQHBQKt5wTi/tyA2PW6jgFNmJHZ3CLGM+SW7otYL1XpBF9H4w59
+xH8bN2SDT0a0ojNHL5+UA0H06K0SM9yJvK9TSk59DPGlFYfjzI1td+CCH0D13fHt
+UeYXNL+xdWntw36egkUtZKmwwEFOYYHOsc8dT6nX6H7eaoUxoFWltrXdkkD3iCta
+DmulVxXg3lqOP4z179TL
+=8Bdv
+-----END PGP SIGNATURE-----
+
+--NDin8bjvE/0mNLFQ--
