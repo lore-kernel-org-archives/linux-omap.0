@@ -1,94 +1,182 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am33xx: Move wkup_m3 node to soc node
- and add ranges
-Date: Wed, 11 Mar 2015 10:32:13 -0700
-Message-ID: <20150311173212.GC5264@atomide.com>
-References: <1425528742-3087-1-git-send-email-d-gerlach@ti.com>
- <1425528742-3087-3-git-send-email-d-gerlach@ti.com>
- <20150305154039.GD13520@atomide.com>
- <54F88849.1090708@ti.com>
- <20150305165727.GE13520@atomide.com>
- <54FE33CA.4090709@ti.com>
- <20150310160919.GQ5264@atomide.com>
- <54FF4C32.5070106@ti.com>
- <20150311162635.GZ5264@atomide.com>
- <550078D5.7080700@ti.com>
+Subject: Re: [PATCH v4 3/6] Documentation: DT: Document twl4030-madc-battery
+ bindings
+Date: Wed, 11 Mar 2015 10:43:17 -0700
+Message-ID: <20150311174316.GD5264@atomide.com>
+References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
+ <1426022847-30912-4-git-send-email-marek@goldelico.com>
+ <20150311152414.GX5264@atomide.com>
+ <844740CD-C95B-4411-A2C8-4906F58DBEE8@goldelico.com>
+ <20150311164442.GA5264@atomide.com>
+ <F7BA143D-5CF9-42E3-AFA8-B83B149EF77E@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:36584 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751609AbbCKRsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Mar 2015 13:48:23 -0400
 Content-Disposition: inline
-In-Reply-To: <550078D5.7080700@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>, Felipe Balbi <balbi@ti.com>
+In-Reply-To: <F7BA143D-5CF9-42E3-AFA8-B83B149EF77E@goldelico.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Marek Belisko <marek@goldelico.com>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-pm@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [150311 10:18]:
-> On 03/11/2015 11:26 AM, Tony Lindgren wrote:
-> > * Dave Gerlach <d-gerlach@ti.com> [150310 12:55]:
-> >> Suman and I have been looking at this together, so I can comment here. An
-> >> implementation like this is what Suman is referring to:
-> >>
-> >> +               l4_wkup: l4_wkup@44c00000 {
-> >> +                       compatible = "am335-l4-wkup", "simple-bus";
-> >> +                       #address-cells = <2>;
-> >> +                       #size-cells = <1>;
-> >> +                       ranges = <0 0           0x44c00000 0x100000>,
-> >> +                                <1 0x0         0x44d00000 0x4000>,
-> >> +                                <2 0x80000     0x44d80000 0x2000>;
-> 
-> Actually, this would be slightly different, something like
->  +                       ranges = <0 0    0x44c00000 0x100000>,
->  +                                <1 0    0x44d00000 0x100000>,
->  +                                <2 0    0x44e00000 0x4000>,
->  +				  <3 0    0x44e10000 0x2000>;
-> 
-> and the M3 DMEM entry below will be adjusted as <1 0x80000 0x2000>.
-> 
-> >> +
-> >> +                       wkup_m3: wkup_m3@1,0 {
-> >> +                               compatible = "ti,am3353-wkup-m3";
-> >> +                               reg = <1 0x0     0x4000>,       /* M3 UMEM */
-> >> +                                     <2 0x80000 0x2000>;       /* M3 DMEM */
-> >> +
-> >> +                               ti,hwmods = "wkup_m3";
-> >> +                               ti,pm-firmware = "am335x-pm-firmware.elf";
-> >> +                       };
-> >> +               };
-> >> +
-> >>
-> >> The of_* layer automatically translates everything so the pdata-quirks can still
-> >> match based on wkup_m3@44d00000. The existing wkup_m3_rproc driver works almost
-> >> entirely as is with this, all cpu addresses are read and mapped correctly but
-> >> the driver no longer will read the actual device addresses correctly which we
-> >> need for understanding where to load the firmware sections.
-> > 
-> > OK. I still don't quite understand how these additional ranges make sense
-> > for other drivers connected to the l4_wkup. For wkup_m3, it makes sense if
-> > it allows you to translate directly to the m3 address space, but is that
-> > really the case here? Maybe you should have the ranges in wkup_m3 instead
-> > if you want addresses for the m3?
-> 
-> The idea is to introduce an additional address element (first cell in
-> ranges) so that the immediate child nodes bus address is referenced as 0
-> (second cell) for translation for their child nodes. This is the
-> approach used by the current scm node in Tero's series for OMAP4+. This
-> will work tomorrow if we move the prcm, scrm node under l4_wkup with
-> changes only in those nodes, and have their child nodes reg properties
-> unchanged. I guess you can see the difference between the following two
-> patches from Tero's PRCM series,
-> https://patchwork.kernel.org/patch/5882831/ &
-> https://patchwork.kernel.org/patch/5882841/
+* Dr. H. Nikolaus Schaller <hns@goldelico.com> [150311 10:13]:
+> Am 11.03.2015 um 17:44 schrieb Tony Lindgren <tony@atomide.com>:
+> > * Dr. H. Nikolaus Schaller <hns@goldelico.com> [150311 09:17]:
+> >> Am 11.03.2015 um 16:24 schrieb Tony Lindgren <tony@atomide.com>:
+> >>>=20
+> >>> Rather than just making platform_data into device tree properties=
+=2E.
+> >>>=20
+> >>> Can't you hide the these custom properties behind the compatible =
+flag?
+> >>>=20
+> >>> You can initialize that data in the driver based on the compatibl=
+e
+> >>> flag and the match data.
+> >>>=20
+> >>> This makes sense if you can group things to similar configuration=
+s.
+> >>=20
+> >> Maybe I have not completely understood your proposal.
+> >>=20
+> >> Do you mean to go back to have big parameter tables for each devic=
+e/battery
+> >> combination in the driver code and the compatible flag (e.g. compa=
+tible =3D =E2=80=9Cboard17=E2=80=9D)
+> >> chooses the right data set for the charging map and channels?
+> >=20
+> > If you can somehow group them, then yes.
+>=20
+> I don=E2=80=99t see how to group them. Could you make a proposal?
 
-Well I just commented on Tero on that regarding the dra7 patch. I think
-we need to have separate scm instances for scm_device, scm_core and
-scm_wkup instead of doing multiple ranges. This based on looking at for
-example 5432 TRM "Figure 18-1. Control Module Overview".
+Sorry no idea about that :) I though you may have some ideas based on
+dealing with the driver.
+=20
+> >> I thought this is what the DT was introduced for - to have the sam=
+e driver=20
+> >> code but adapt to different boards depending on hardware variation=
+s.
+> >=20
+> > Yeah but you also need to consider the issues related to introducin=
+g
+> > new device tree properties. The device tree properties introduced
+> > should be generic where possible.
+>=20
+> Yes, that was discussed for a while for this driver=E2=80=99s binding=
+s leading to v4.
+>=20
+> Which ones do you think are not generic enough?
 
-But here I think it's a different issue. You want to use ranges for getting
-the m3 address space for the firmware? I'm not convinced we should
-complicate the ranges for all l4_wkup drivers because of that.
+It seems maps is the only one then, assuming the cpacity-uah can be mad=
+e
+Linux generic.=20
+
+> >> And batteries have very different characteristics and vary between=
+ devices=E2=80=A6
+> >=20
+> > Right. Maybe that has been already agreed on to use capacity-uah fo=
+r
+> > batteries in general?
+>=20
+> Ah, do you mean with generic/not generic the distinction between a =E2=
+=80=9Cti,=E2=80=9D prefix
+> and no prefix?
+>=20
+> Well, I don=E2=80=99t know if there is such an agreement and I would =
+have no argument
+> against calling it =E2=80=9Cti,capacity-uah=E2=80=9D.
+
+No no, "capacity-uah" is what we should use, but you need an ack from
+the battery and device tree people that this is OK. Let's not add
+"ti,capacity-uah=E2=80=9D as that can obviously be a generic property.
+=20
+> > In that case I have not problem with that as
+> > it=E2=80=99s a generic property :)
+>=20
+> Well, many batteries and systems have a fuel gauge chip (e.g. bq27000=
+). This
+> chip =E2=80=9Cknows=E2=80=9D the capacity. But therefore it is not ne=
+eded to specify
+> it anywhere because it can be read out (usually in uAh).
+>=20
+> This driver is to solve the issue that there is no such factory-progr=
+ammed
+> battery or fuel gauge chip connected to a twl4030 driver. Nobody can =
+program
+> that capacity value - except someone matching the device tree with re=
+al hardware.
+>=20
+> And, by doing and averaging some charge-discharge cycles the fuel gau=
+ge
+> mapping is calibrated.
+
+OK=20
+=20
+> >> The charging maps are depending on the battery type connected to t=
+he twl4030
+> >> and which madc channel is which value is also a little hardware de=
+pendent
+> >> (although the twl4030 doesn=E2=80=99t give much choice).
+> >=20
+> > Just to consider alternatives before introducing driver specific
+> > property for the maps.. Maybe here you could have few different typ=
+e
+> > of maps and select something safe by default? Of course it could be=
+ this
+> > is higly board specific, I think some devices may be able to run be=
+low
+> > 3.3V for example..
+>=20
+> Every battery setup has a different map (which also might depend on t=
+he
+> series resistance of the battery and the wiring).
+>=20
+> >=20
+> >> And moving this information into the driver for each board that us=
+es it
+> >> would blow up the code.
+> >=20
+> > Right, I'm not saying we should build databases into the kernel dri=
+vers.
+> > Just trying to avoid introducing driver specific properties unless
+> > really needed :)
+>=20
+> They are not really driver specific, they are battery specific. They
+> describe properties of the battery:
+>=20
+> * capacity - depends on battery
+> * voltage depending on current charging level - depends on battery (a=
+nd differs between charging and discharging)
+> * wiring of MADC inputs to the twl4030 is board dependent.
+>=20
+> So all these properties are not driver specific, but describe hardwar=
+e.
+> And therefore they had been introduced exactly this way into the old
+> platform_data driver.
+>=20
+> So if you want to see a =E2=80=9Cti," prefix to the capacity property=
+ I would be
+> fine.
+
+Oh if they are battery spicific, then ideally we'd have generic batery
+voltage to capacity maps property rather than a custom ti specific
+property.
+
+To avoid extra hassles later on, maybe you could submit a generic
+binding patch only documenting it to the battery people and the device
+tree people? That will make it easier to maintain this driver in the
+long run.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
