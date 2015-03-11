@@ -1,75 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 Subject: Re: [PATCH v5 3/3] ARM: dts: igep00x0: add wl18xx bindings
-Date: Wed, 11 Mar 2015 14:13:59 +0100
-Message-ID: <2233058.m8xh0sUU5j@wuerfel>
-References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <CABxcv=nE_Qd7do+dRyp=fw3wYmWFb+0eEjXYOtdjqE55Cp0zmQ@mail.gmail.com> <CAB3XZEfnZbZqH95suJ9n39aZRr8kxPdj2HZuWKMvQtYmXe3QEQ@mail.gmail.com>
+Date: Wed, 11 Mar 2015 14:17:42 +0100
+Message-ID: <2353601.si5uCETVn2@wuerfel>
+References: <1425915402-10012-1-git-send-email-eliad@wizery.com> <6286151.8rcX893TN6@wuerfel> <CABxcv=mPVxW=BqL2PUL=AtS74kcqMG1yxC1WqMpxGiNOqGAnyQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:64236 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780AbbCKNOd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2015 09:14:33 -0400
-In-Reply-To: <CAB3XZEfnZbZqH95suJ9n39aZRr8kxPdj2HZuWKMvQtYmXe3QEQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABxcv=mPVxW=BqL2PUL=AtS74kcqMG1yxC1WqMpxGiNOqGAnyQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Wednesday 11 March 2015 14:12:54 Eliad Peller wrote:
-> On Wed, Mar 11, 2015 at 1:34 PM, Javier Martinez Canillas
-> <javier@dowhile0.org> wrote:
-> > I think that patch [0] should not be needed since for external clocks,
-> > the IP providing the clocks should have its own clock driver and for
-> > internal clocks, a property should be used instead as you said.
-> >
-> >> If there is no external clock provider for this chip and the clocks
-> >> are provided by the device itself, then all we need is a clock-frequency
-> >> property in the device node.
-> >>
-> >
-> > Agreed, IIUC Luciano wanted to expose the internal clocks by
-> > registering in the common clock framework but if those clocks are not
-> > really accessible from outside the wlan chip, then I also think that a
-> > device node property should be used instead.
-> >
-> how should i describe multiple clock-frequency properties (there are 2
-> relevant clocks) in this case?
+On Wednesday 11 March 2015 14:07:11 Javier Martinez Canillas wrote:
 > 
-> does something like the following makes sense?
+> Right now it seems that all boards in mainline with a WiLink6 part are
+> using internal clocks. So as a first step I think that adding an
+> optional refclock-frequency and tcxoclock-frequency properties should
+> be enough.
 > 
-> wlcore: wlcore@2 {
->     ...
->     refclock: refclock {
->         compatible = "fixed-clock";
->         #clock-cells = <0>;
->         clock-frequency = <38400000>;
->     };
-> }
+> It would be good if the driver supports getting the refclock and
+> tcxoclock from an external provider in case a board gets these from
+> external clocks but that can be done as a followup if there are boards
+> in the future using that design.
+> 
+> But please bear in mind that I'm not familiar with the clock handling
+> in WiLink6 since the WiLink8 part used in the IGEP boards does not
+> need these clocks and I only looked at Luciano's previous patches and
+> the WiLink today driver today. So it would be good if Eliad can double
+> check my assumptions to see if those are correct.
 
-I would put that clock node on the top level of the DT, as you are
-describing an external clock input here, but other than that, it looks
-good.
+Sounds good. I'd also be fine with not implementing the case for
+external clocks in the code until we need (and can test) it, but
+I think it should be specified in the binding from the start.
 
-I would do the binding in a way that mandates either a "clocks"
-reference to an external clock provider in case of a XTAL or
-a "clock-frequency" property. In the first case, you can use
-the "clock-names" property to identify the "ref" and "txco"
-clock inputs, in the second case we could either decide
-to have a single property with two cells, or have named
-properties like
-
-	wlcore@2 {
-		interrupts = < ... >;
-		tcxo-clock-frequency = <38400000>;
-		ref-clock-frequency = <19200000>;
-	}
-
-I don't know which combinations are possible here. I did notice
-that most of the references in the board hacks use '0' as the
-tcxo clock value, which happens to be the same as
-WL12XX_TCXOCLOCK_19_2, but could also meant that no tcxo clock
-is used.
-
-	Arnd 
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
