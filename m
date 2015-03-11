@@ -1,66 +1,51 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 6/8] ARM: time: Provide read_boot_clock64() and
- read_persistent_clock64()
-Date: Wed, 11 Mar 2015 09:53:58 +0100
-Message-ID: <20150311085357.GC19577@ulmo.nvidia.com>
-References: <1426044277-22170-1-git-send-email-xlpang@126.com>
- <1426044277-22170-2-git-send-email-xlpang@126.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Documentation: leds: clarify what 50% brightness means
+Date: Wed, 11 Mar 2015 10:34:26 +0100
+Message-ID: <20150311093425.GA8866@amd>
+References: <20150219211424.GN13603@saruman.tx.rr.com>
+ <CAMuHMdUUNzFYHzSR3yLCJuz11vuO3Z4yVWVxRQfutGY1KxZLPQ@mail.gmail.com>
+ <CAAVeFuJ7DCs_=iESJRcXwyQ09eD57dZCxGG5CD3LD9_ZGZHP2A@mail.gmail.com>
+ <20150302092111.GA19233@amd>
+ <CAAVeFuK9eGO2TN+tgDyN8EFzEhgHOy5YCch+LaqS9PNaQXQ4Qg@mail.gmail.com>
+ <20150308205732.GA385@amd>
+ <CAMuHMdUVgZ1i5zymxmi3-i98n9UPTV=Sq-Oa=ieyfOzETW-DzA@mail.gmail.com>
+ <yw1xd24i1ja7.fsf@unicorn.mansr.com>
+ <20150310080420.GA31091@amd>
+ <CAK5ve-K4jyBSVk1CZ8qQrFgevqdbhdsgZ1ZYX2e-t07494oq4A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="Fig2xvG2VGoz8o/s"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1426044277-22170-2-git-send-email-xlpang@126.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Xunlei Pang <xlpang@126.com>
-Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, Thomas Gleixner <tglx@linutronix.de>, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, linux390@de.ibm.com, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ralf Baechle <ralf@linux-mips.org>, Arnd Bergmann <arnd@arndb.de>, Xunlei Pang <pang.xunlei@linaro.org>
+In-Reply-To: <CAK5ve-K4jyBSVk1CZ8qQrFgevqdbhdsgZ1ZYX2e-t07494oq4A@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Bryan Wu <cooloney@gmail.com>
+Cc: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Alexandre Courbot <gnurou@gmail.com>, Felipe Balbi <balbi@ti.com>, Bryan Wu <cooloney@gmail.cofm>, Richard Purdie <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+I played with RGB LED a bit, and we have quite a gap in
+documentation: what 50% brightness means is non-trivial and very
+important in case we want to do smooth blinking and color
+transitions.
+    
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
---Fig2xvG2VGoz8o/s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+diff --git a/Documentation/ABI/testing/sysfs-class-led b/Documentation/ABI/testing/sysfs-class-led
+index 3646ec8..649d7a6 100644
+--- a/Documentation/ABI/testing/sysfs-class-led
++++ b/Documentation/ABI/testing/sysfs-class-led
+@@ -8,6 +8,11 @@ Description:
+ 		non-zero brightness settings. The value is between 0 and
+ 		/sys/class/leds/<led>/max_brightness.
+ 
++		If LED supports continuous brightness settings, 50% brightness
++		should correspond to 50% brightness perceived by human, in a similar
++		manner pixel brightness on monitor does (not 50% PWM).
++
++
+ What:		/sys/class/leds/<led>/max_brightness
+ Date:		March 2006
+ KernelVersion:	2.6.17
 
-On Wed, Mar 11, 2015 at 11:24:35AM +0800, Xunlei Pang wrote:
-> From: Xunlei Pang <pang.xunlei@linaro.org>
->=20
-> As part of addressing "y2038 problem" for in-kernel uses, this
-> patch converts read_boot_clock() to read_boot_clock64() and
-> read_persistent_clock() to read_persistent_clock64() using
-> timespec64 by converting clock_access_fn to use timespec64.
->=20
-> Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
-> ---
->  arch/arm/include/asm/mach/time.h    |  3 +--
->  arch/arm/kernel/time.c              |  6 +++---
->  arch/arm/plat-omap/counter_32k.c    | 10 +---------
->  drivers/clocksource/tegra20_timer.c | 10 +---------
->  4 files changed, 6 insertions(+), 23 deletions(-)
-
-For the Tegra part:
-
-Acked-by: Thierry Reding <treding@nvidia.com>
-
---Fig2xvG2VGoz8o/s
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVAAKlAAoJEN0jrNd/PrOhmOIQAKG1KccIgobtNXnI0FEYailH
-6s6NI2k9Le8h0/+//4LTfreJ5FY0HgOtWKC1x+/CvDrOporofJzUEEhI+y2xB5Qb
-FSOCUuGa7efmN6QqG9hzzI7BMjQp2N02N95S8MWTVAmhtG1O55xrH4QMu9Xxmxsb
-q7uADlgyql8mR6ux3YtMuNwDzoXUktD7g9lImLipVOjLUuX1eOhEzr1/dUcbXaro
-TLivSzpcytBrRih6iQe52N25KiBlAmdJzQHwtgyZvhhpioxMW7+kqiF3XrI1pAHO
-5irQUyIaUTa5aWiF7jqePw0fjNvcEQ4DfWfv8z7jYT2U/W7sK4bMpgJUGEXaDlP3
-0MRTlm59Y7guJdLOC7eK291a7DZ59uQqCsoxhOby+EE5/SLNgPvXa2GGeLgQEQBe
-YDVjCe1leeAeTmI2f8TmrFtdbgo5yi0Tj3qN9mdh9uSIq9bqH9U6CXSbgZ3uqDqq
-tQyhzbhJmiB64J4gDhxTXaK+mZITJyXXPqkldQ18SeIlKNpxKWEM8x5RR6Z/vKFn
-Opn9rcm9tlIgKPPtYXe/PAICDr4v4osiyqJ0KmnNVHxtFQPxmUu0heS7IVSRaK2z
-87AdxNUYopiFlcHA9XZKFlrSxUCx4rh0PPlixFkklZ/ANQ2WgBwhX+j55vE6TL6R
-eg3aCiOjPdeiCYER0TN1
-=zTtO
------END PGP SIGNATURE-----
-
---Fig2xvG2VGoz8o/s--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
