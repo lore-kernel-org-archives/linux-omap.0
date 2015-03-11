@@ -1,75 +1,74 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: implement bus recovery
-Date: Tue, 10 Mar 2015 20:50:04 -0500
-Message-ID: <20150311015004.GB21726@saruman.tx.rr.com>
-References: <1424369209-26735-1-git-send-email-balbi@ti.com>
- <20150309163917.GI3739@saruman.tx.rr.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150309163917.GI3739-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Xunlei Pang <xlpang-KN7UnAbNpbg@public.gmane.org>
+Subject: [PATCH 1/8] time: Add y2038 safe read_boot_clock64()
+Date: Wed, 11 Mar 2015 11:15:08 +0800
+Message-ID: <1426043715-22043-2-git-send-email-xlpang@126.com>
+References: <1426043715-22043-1-git-send-email-xlpang@126.com>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426043715-22043-1-git-send-email-xlpang-KN7UnAbNpbg@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Martin Schwidefsky <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---H+4ONPRPur6+Ovig
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-On Mon, Mar 09, 2015 at 11:39:17AM -0500, Felipe Balbi wrote:
-> On Thu, Feb 19, 2015 at 12:06:49PM -0600, Felipe Balbi wrote:
-> > If either SCL or SDA are stuck low, we need to
-> > recover the bus using the procedure described
-> > on section 3.1.16 of the I2C specification.
-> >=20
-> > Note that we're trying to implement the procedure
-> > exactly as described by that section. First we
-> > check which line is stuck low, then implement
-> > one or the other procedure. If SDA recovery procedure
-> > fails, we reset our IP in an attempt to make it work.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > ---
-> >=20
-> > Tested with AM437x IDK, AM437x SK, BeagleBoneBlack and Beagle X15 with
-> > 1000 iterations of i2cdetect on all available buses.
-> >=20
-> > That said, I couldn't get any device to hold the bus busy so I could
-> > see this working. If anybody has any good way of forcing a condition
-> > so that we need bus recovery, I'd be glad to look at.
->=20
-> ping
+As part of addressing in-kernel y2038 issues, this patch adds
+read_boot_clock64() and replaces all the call sites of read_boot_clock()
+with this function. This is a __weak implementation, which simply
+calls the existing y2038 unsafe read_boot_clock().
 
-any comments here ?? Anybody at all ????
+This allows architecture specific implementations to be converted
+independently, and eventually the y2038 unsafe read_boot_clock()
+can be removed after all its architecture specific implementations
+have been converted to read_boot_clock64().
 
---=20
-balbi
+Suggested-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Signed-off-by: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+---
+ include/linux/timekeeping.h |  1 +
+ kernel/time/timekeeping.c   | 11 +++++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---H+4ONPRPur6+Ovig
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJU/59LAAoJEIaOsuA1yqREKisQAKl2+ezaBMOT8HcSmMY3+YQB
-/pD6jD5YS0BmO0bAawRto1xmghLEty9phHOsg4HktFmpwqJJJ+S+JeqTN0wVJftm
-qt44dAhvoPaGx2wppp+Nog0O30eXay7nZhaJ6IcDcOUaX77WAeL+J/+9Etdx+ILK
-juNQwYt+gZlnP92tsOreJuGTirY0UOtJaWUh9LnHvBHF0X/SWa04j5L/kDF3OCe4
-lFfKLiLbeMQR/Er/iGLrwQe8tMDFuo+h62yUv4mMbIrpsVWoCKnu9eC06hn6Pr85
-wczSGipg4vgvY2Y20K00rC0CEhUhrEalt5UKmMJG6zD2D143rMitoQ029UViWi5E
-+az5yYI/JyOOsSYAKCT56vBrMu9VDx57n0o9zDFClzWvA11N4jqjo5t18508YcHA
-omcNhJz1xMavdQhMMUwEgaxj63MQEzVqBllIngXV9swtHA6bbsqO2u3mRCATp1SW
-WPXdCFriMNpNJ03kZED2YQrdDW3A7wp7zvmqg72YSUrpxijNdJs744MLeh/GnQjN
-JAlbXiC+NqwAXCZ3zP8BVfFtGNp2ka9Pfpe1TVNu1Z1DQMr/uTEbYaPKI+RdSHqP
-2nD8Ra2DGJibofZk2J+np5iHLG0g9VvCYNaE8w3y5xXd6ShnwIVXq6rao1V+jGdN
-dzbDFsGQZ8L6sOP5oawx
-=SQYu
------END PGP SIGNATURE-----
-
---H+4ONPRPur6+Ovig--
+diff --git a/include/linux/timekeeping.h b/include/linux/timekeeping.h
+index 3eaae47..d53c522 100644
+--- a/include/linux/timekeeping.h
++++ b/include/linux/timekeeping.h
+@@ -263,6 +263,7 @@ static inline bool has_persistent_clock(void)
+ 
+ extern void read_persistent_clock(struct timespec *ts);
+ extern void read_boot_clock(struct timespec *ts);
++extern void read_boot_clock64(struct timespec64 *ts);
+ extern int update_persistent_clock(struct timespec now);
+ 
+ 
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index 91db941..7080c21 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -1072,6 +1072,14 @@ void __weak read_boot_clock(struct timespec *ts)
+ 	ts->tv_nsec = 0;
+ }
+ 
++void __weak read_boot_clock64(struct timespec64 *ts64)
++{
++	struct timespec ts;
++
++	read_boot_clock(&ts);
++	*ts64 = timespec_to_timespec64(ts);
++}
++
+ /*
+  * timekeeping_init - Initializes the clocksource and common timekeeping values
+  */
+@@ -1093,8 +1101,7 @@ void __init timekeeping_init(void)
+ 	} else if (now.tv_sec || now.tv_nsec)
+ 		persistent_clock_exist = true;
+ 
+-	read_boot_clock(&ts);
+-	boot = timespec_to_timespec64(ts);
++	read_boot_clock64(&boot);
+ 	if (!timespec64_valid_strict(&boot)) {
+ 		pr_warn("WARNING: Boot clock returned invalid value!\n"
+ 			"         Check your CMOS/BIOS settings.\n");
+-- 
+1.9.1
