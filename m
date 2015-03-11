@@ -1,90 +1,76 @@
-From: Xunlei Pang <xlpang@126.com>
-Subject: [PATCH 4/8] ARM: OMAP: 32k counter: Provide y2038-safe omap_read_persistent_clock() replacement
-Date: Wed, 11 Mar 2015 11:15:11 +0800
-Message-ID: <1426043715-22043-5-git-send-email-xlpang@126.com>
-References: <1426043715-22043-1-git-send-email-xlpang@126.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from m15-112.126.com ([220.181.15.112]:48968 "EHLO m15-112.126.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752277AbbCKDT1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Mar 2015 23:19:27 -0400
-In-Reply-To: <1426043715-22043-1-git-send-email-xlpang@126.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Xunlei Pang <xlpang-KN7UnAbNpbg@public.gmane.org>
+Subject: [PATCH 0/8] Add y2038 safe replacements for read_boot_clock(), read_persistent_clock() and update_persistent_clock()
+Date: Wed, 11 Mar 2015 11:15:07 +0800
+Message-ID: <1426043715-22043-1-git-send-email-xlpang@126.com>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Martin Schwidefsky <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: rtc-linux@googlegroups.com, Thomas Gleixner <tglx@linutronix.de>, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-tegra@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, linux390@de.ibm.com, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ralf Baechle <ralf@linux-mips.org>, Arnd Bergmann <arnd@arndb.de>, Xunlei Pang <pang.xunlei@linaro.org>
 
-From: Xunlei Pang <pang.xunlei@linaro.org>
+From: Xunlei Pang <pang.xunlei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-As part of addressing "y2038 problem" for in-kernel uses, this
-patch adds the y2038-safe omap_read_persistent_clock64() using
-timespec64.
+read_boot_clock(), read_persistent_clock() and update_persistent_clock()
+all use timespec which may have "y2038 problem", thus we are planning on
+converting all of them to use timespec64.
 
-Because we rely on some subsequent changes to convert arm multiarch
-support, omap_read_persistent_clock() will be removed then.
+The approach we're using is:
+1) First of all, add the "__weak" implementaion of xxx_clock64() which uses
+   xxx_clock() and timespec64.
 
-Also remove the needless spinlock, because read_persistent_clock()
-doesn't run simultaneously.
+   Let's take read_persistent_clock() as an example. We can create its
+   y2038-safe version below:
+        void __weak read_persistent_clock64(struct timespec64 *ts64)
+        {
+             struct timespec ts;
 
-Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
----
- arch/arm/plat-omap/counter_32k.c | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+            read_persistent_clock(&ts);
+            *ts64 = timespec_to_timespec64(ts);
+        }
 
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 61b4d70..d422e36 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -44,24 +44,20 @@ static u64 notrace omap_32k_read_sched_clock(void)
- }
- 
- /**
-- * omap_read_persistent_clock -  Return time from a persistent clock.
-+ * omap_read_persistent_clock64 -  Return time from a persistent clock.
-  *
-  * Reads the time from a source which isn't disabled during PM, the
-  * 32k sync timer.  Convert the cycles elapsed since last read into
-- * nsecs and adds to a monotonically increasing timespec.
-+ * nsecs and adds to a monotonically increasing timespec64.
-  */
--static struct timespec persistent_ts;
-+static struct timespec64 persistent_ts;
- static cycles_t cycles;
- static unsigned int persistent_mult, persistent_shift;
--static DEFINE_SPINLOCK(read_persistent_clock_lock);
- 
--static void omap_read_persistent_clock(struct timespec *ts)
-+static void omap_read_persistent_clock64(struct timespec64 *ts)
- {
- 	unsigned long long nsecs;
- 	cycles_t last_cycles;
--	unsigned long flags;
--
--	spin_lock_irqsave(&read_persistent_clock_lock, flags);
- 
- 	last_cycles = cycles;
- 	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
-@@ -69,11 +65,17 @@ static void omap_read_persistent_clock(struct timespec *ts)
- 	nsecs = clocksource_cyc2ns(cycles - last_cycles,
- 					persistent_mult, persistent_shift);
- 
--	timespec_add_ns(&persistent_ts, nsecs);
-+	timespec64_add_ns(&persistent_ts, nsecs);
- 
- 	*ts = persistent_ts;
-+}
-+
-+static void omap_read_persistent_clock(struct timespec *ts)
-+{
-+	struct timespec64 ts64;
- 
--	spin_unlock_irqrestore(&read_persistent_clock_lock, flags);
-+	omap_read_persistent_clock64(&ts64);
-+	*ts = timespec64_to_timespec(ts64);
- }
- 
- /**
+   Then, replace all the call sites of xxx_clock() with xxx_clock64() except
+   the one used by xxx_clock64().
+
+2) Convert every architecture specific xxx_clock() to xxx_clock64() one by one.
+   At this point, we can convert the three functions at a time if needed, because
+   most time they're correlated.
+
+3) Remove xxx_clock() after all its architecture specific implementations have been
+   converted to use corresponding y2038 safe xxx_clock64().
+
+This patchset firstly finished the step1 for all the three functions, then focused
+on read_boot_clock() which is simple to go on with step2 and step3 as a whole show.
+
+As for read_persistent_clock() and update_persistent_clock() which are more complex,
+requiring many efforts to convert every architecture specific implementation gradually.
+
+The approach used here is Suggested-by: "Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>"
+
+Xunlei Pang (8):
+  time: Add y2038 safe read_boot_clock64()
+  time: Add y2038 safe read_persistent_clock64()
+  time: Add y2038 safe update_persistent_clock64()
+  ARM: OMAP: 32k counter: Provide y2038-safe
+    omap_read_persistent_clock() replacement
+  ARM: tegra: clock: Provide y2038-safe tegra_read_persistent_clock()
+    replacement
+  ARM: time: Provide read_boot_clock64() and read_persistent_clock64()
+  s390: time: Provide read_boot_clock64() and read_persistent_clock64()
+  time: Remove read_boot_clock()
+
+ arch/arm/include/asm/mach/time.h    |  3 +--
+ arch/arm/kernel/time.c              |  6 +++---
+ arch/arm/plat-omap/counter_32k.c    | 18 ++++++------------
+ arch/mips/lasat/sysctl.c            |  4 ++--
+ arch/s390/include/asm/timex.h       |  4 ++--
+ arch/s390/kernel/debug.c            |  4 ++--
+ arch/s390/kernel/time.c             |  6 +++---
+ drivers/clocksource/tegra20_timer.c | 15 +++++++--------
+ drivers/rtc/systohc.c               |  2 +-
+ include/linux/timekeeping.h         |  4 +++-
+ kernel/time/ntp.c                   | 13 ++++++++++++-
+ kernel/time/timekeeping.c           | 31 ++++++++++++++++---------------
+ 12 files changed, 58 insertions(+), 52 deletions(-)
+
 -- 
 1.9.1
-
-
