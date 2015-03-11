@@ -1,85 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/7] Documentation: devicetree: dma: Binding documentation for TI DMA crossbar
-Date: Wed, 11 Mar 2015 15:23:25 +0200
-Message-ID: <1426080210-841-3-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 5/7] dmaengine: omap-dma: Take DMA request number from DT if it is available
+Date: Wed, 11 Mar 2015 15:23:28 +0200
+Message-ID: <1426080210-841-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1426080210-841-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426080210-841-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426080210-841-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Cc: grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The DRA7x has more peripherals with DMA requests than the sDMA can handle:
-205 vs 127. All DMA requests are routed through the DMA crossbar, which can
-be configured to route selected incoming DMA requests to specific request
-line of the DMA controller.
+Use the dma-requests property from DT to get the number of DMA requests.
+In case of legacy boot or failure to find the property, use the default
+127 as number of requests.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/dma/ti-dma-crossbar.txt    | 52 ++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
+ drivers/dma/omap-dma.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt b/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
-new file mode 100644
-index 000000000000..e5c2352081b6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
-@@ -0,0 +1,52 @@
-+Texas Instruments DMA Crossbar (DMA request router)
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 56c33e93dd24..2b30acaa721f 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -34,6 +34,7 @@ struct omap_dmadev {
+ 	const struct omap_dma_reg *reg_map;
+ 	struct omap_system_dma_plat_info *plat;
+ 	bool legacy;
++	unsigned dma_requests;
+ 	spinlock_t irq_lock;
+ 	uint32_t irq_enable_mask;
+ 	struct omap_chan *lch_map[OMAP_SDMA_CHANNELS];
+@@ -1118,7 +1119,16 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 
+ 	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
+ 
+-	for (i = 0; i < OMAP_SDMA_REQUESTS; i++) {
++	if (!pdev->dev.of_node || of_property_read_u32(pdev->dev.of_node,
++						       "dma-requests",
++						       &od->dma_requests)) {
++		dev_info(&pdev->dev,
++			 "Missing dma-requests property, using %u.\n",
++			 OMAP_SDMA_REQUESTS);
++		od->dma_requests = OMAP_SDMA_REQUESTS;
++	}
 +
-+Required properties:
-+- compatible:	"ti,dra7-dma-crossbar" for DRA7xx DMA crossbar
-+- reg:		Memory map for accessing module
-+- #dma-cells:	Should be set to <1>.
-+		Clients should use the crossbar request number (input)
-+- dma-requests:	Number of DMA requests the crossbar can receive
-+- dma-device:	phandle pointing to the DMA controller
-+
-+The DMA controller node need to have the following poroperties:
-+- dma-requests:	Number of DMA requests the controller can handle
-+
-+Optional properties:
-+- ti,dma-safe-map: Safe routing value for unused request lines
-+
-+Example:
-+
-+/* DMA controller */
-+sdma: dma-controller@4a056000 {
-+	compatible = "ti,omap4430-sdma";
-+	reg = <0x4a056000 0x1000>;
-+	interrupts =	<GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>,
-+			<GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>,
-+			<GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
-+			<GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
-+	#dma-cells = <1>;
-+	dma-channels = <32>;
-+	dma-requests = <127>;
-+};
-+
-+/* DMA crossbar */
-+sdma_xbar: dma-router@4a002b78 {
-+	compatible = "ti,dra7-dma-crossbar";
-+	reg = <0x4a002b78 0xfc>;
-+	#dma-cells = <1>;
-+	dma-requests = <205>;
-+	ti,dma-safe-map = <0>;
-+	dma-device = <&sdma>;
-+};
-+
-+/* DMA client */
-+uart1: serial@4806a000 {
-+	compatible = "ti,omap4-uart";
-+	reg = <0x4806a000 0x100>;
-+	interrupts-extended = <&gic GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
-+	ti,hwmods = "uart1";
-+	clock-frequency = <48000000>;
-+	status = "disabled";
-+	dmas = <&sdma_xbar 49>, <&sdma_xbar 50>;
-+	dma-names = "tx", "rx";
-+};
++	for (i = 0; i < od->dma_requests; i++) {
+ 		rc = omap_dma_chan_init(od, i);
+ 		if (rc) {
+ 			omap_dma_free(od);
 -- 
 2.3.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
