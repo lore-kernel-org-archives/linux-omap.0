@@ -1,114 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 34/35] ARM: dts: dra7: add system control module node
-Date: Wed, 11 Mar 2015 14:00:07 -0700
-Message-ID: <20150311210007.GG5264@atomide.com>
-References: <1424891085-10392-1-git-send-email-t-kristo@ti.com>
- <1424891085-10392-35-git-send-email-t-kristo@ti.com>
- <20150311171708.GB5264@atomide.com>
- <550092CA.9030008@ti.com>
- <20150311192621.GE5264@atomide.com>
- <55009E23.2020805@ti.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: ti,codec property in sound/soc/omap/omap-twl4030.c not used
+Date: Wed, 11 Mar 2015 23:12:25 +0100
+Message-ID: <CAAfyv34ebp1oL7t9GKT20_c4VYMM=3rfJTrj-MfT6NUBXk6d2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:36627 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751467AbbCKVFM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Mar 2015 17:05:12 -0400
-Content-Disposition: inline
-In-Reply-To: <55009E23.2020805@ti.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:40245 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbbCKWM1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2015 18:12:27 -0400
+Received: by wghk14 with SMTP id k14so12355329wgh.7
+        for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2015 15:12:25 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, alsa-devel@alsa-project.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-* Tero Kristo <t-kristo@ti.com> [150311 12:57]:
-> On 03/11/2015 09:26 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [150311 12:09]:
-> >>On 03/11/2015 07:17 PM, Tony Lindgren wrote:
-> >>>Hi Tero,
-> >>>
-> >>>* Tero Kristo <t-kristo@ti.com> [150225 11:09]:
-> >>>>Add node for system control module, and move all the existing system
-> >>>>control IO space users under this new node as its children. A new node
-> >>>>for scm_conf area is also added.
-> >>>...
-> >>>
-> >>>>--- a/arch/arm/boot/dts/dra7.dtsi
-> >>>>+++ b/arch/arm/boot/dts/dra7.dtsi
-> >>>>@@ -203,26 +203,47 @@
-> >>>>  			};
-> >>>>  		};
-> >>>>
-> >>>>+		scm: scm@4a002000 {
-> >>>>+			compatible = "ti,dra7-ctrl", "simple-bus";
-> >>>>+			reg = <0x4a002000 0x1400>,
-> >>>>+			      <0x4a003400 0x600>,
-> >>>>+			      <0x4ae0c000 0x600>;
-> >>>>+			#address-cells = <2>;
-> >>>>+			#size-cells = <1>;
-> >>>>+			ranges = <0 0 0x4a002000 0x1400>,
-> >>>>+				 <1 0 0x4a003400 0x600>,
-> >>>>+				 <2 0 0x4ae0c000 0x600>;
-> >>>>+
-> >>>>+			scm_conf: tisyscon@0,0 {
-> >>>>+				compatible = "syscon";
-> >>>>+				reg = <0 0x0 0x1400>;
-> >>>>+				#address-cells = <1>;
-> >>>>+				#size-cells = <1>;
-> >>>>+			};
-> >>>>+
-> >>>>+			dra7_pmx_core: pinmux@1,0 {
-> >>>>+				compatible = "ti,dra7-padconf",
-> >>>>+					     "pinctrl-single";
-> >>>>+				reg = <1 0x0 0x0464>;
-> >>>>+				#address-cells = <1>;
-> >>>>+				#size-cells = <0>;
-> >>>>+				#interrupt-cells = <1>;
-> >>>>+				interrupt-controller;
-> >>>>+				pinctrl-single,register-width = <32>;
-> >>>>+				pinctrl-single,function-mask = <0x3fffffff>;
-> >>>>+			};
-> >>>>+		};
-> >>>
-> >>>Wouldn't it make more sense to have separate device_scm, core_scm and
-> >>>wkup_scm instead of stuffing multiple ranges here?
-> >>>
-> >>>Or are there other reasons for the multiple ranges?
-> >>
-> >>Yea that was the alternative I was thinking about, I ended up with this for
-> >>some reason. I think personally I liked having them all under the same SCM
-> >>part, because they are nicely grouped then, and well, its the same system
-> >>control part in the chip. We can split it up easily of course. Should we
-> >>have a higher level scm part and then have core_scm and wkup_scm under this
-> >>followed by the sub-functions, or just drop the top level scm part
-> >>completely?
-> >
-> >Well I'd model it after the hardware so we can have one or more scm driver
-> >instances managing the clock for those blocks. If we squash them together,
-> >we won't have a chance to pass interrupts and clocks device tree property
-> >to the right driver instance. And for example 5432 TRM has them as separate
-> >devices in "Figure 18-1. Control Module Overview".
-> >
-> >I don't think we need the top level scm to group them under, these are all
-> >connected seprately to the interconnect, right?
-> 
-> Yea, can't really think of any real need for the top-level node.
-> 
-> >
-> >>This same question applies to omap4 + omap5 also. In some part for omap3
-> >>also, as it also has pmx_core + pmx_wkup separately, even if they are part
-> >>of the same register space.
-> >>
-> >>Anyway, just a political decision from your side, I am fine either way. :)
-> >
-> >OK thanks for confirming that, to me it makes sense to set them up as
-> >separate instances then.
-> 
-> All right, you got fair points there, I'll rework this for next revision of
-> the set. Had a quick look at OMAP3 TRM and it is also basically listing
-> these as separate instances also, so I'll change all OMAP3+.
+Hi,
 
-Oh OK.
+I'm looking at sources for omap-twl4030.c driver which is used by many
+boards. In DT bindings documentation is property ti,codec described as
+mandatory but it's never parsed in driver code. I did small experiment
+in gta04 board and remove ti,codec from devicetree and sound was
+working. I think it can be removed from documentation and also from
+various device trees. Is my assumption correct? Thanks.
 
-Tony
+BR,
+
+marek
+
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
