@@ -1,215 +1,319 @@
-From: Eliad Peller <eliad@wizery.com>
-Subject: [PATCH v6 1/6] wlcore: set irq_trigger in board files instead of hiding behind a quirk
-Date: Thu, 12 Mar 2015 14:09:09 +0200
-Message-ID: <1426162154-8716-2-git-send-email-eliad@wizery.com>
+From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v6 2/6] wl12xx: use frequency instead of enumerations for pdata clocks
+Date: Thu, 12 Mar 2015 14:09:10 +0200
+Message-ID: <1426162154-8716-3-git-send-email-eliad@wizery.com>
 References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:34961 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754206AbbCLMJb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2015 08:09:31 -0400
-Received: by wggy19 with SMTP id y19so15883971wgg.2
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2015 05:09:29 -0700 (PDT)
-In-Reply-To: <1426162154-8716-1-git-send-email-eliad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426162154-8716-1-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Luciano Coelho <luca@coelho.fi>
 
-From: Luciano Coelho <luca@coelho.fi>
+From: Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
 
-The platform_quirk element in the platform data was used
-to change the way the IRQ is triggered.  When set,
-the EDGE_IRQ quirk would change the irqflags used
-and treat edge trigger differently from the rest.
+Instead of defining an enumeration with the FW specific values for the
+different clock rates, use the actual frequency instead.  Also add a
+boolean to specify whether the clock is XTAL or not.
 
-Instead of hiding this irq flag setting behind the quirk,
-have the board files set the irq_trigger explicitly.
+Change all board files to reflect this.
 
-This will allow us to use standard irq DT definitions
-later on.
-
-Signed-off-by: Luciano Coelho <luca@coelho.fi>
-[Eliad - rebase, add irq_trigger field and pass it,
-update board file changes]
-Signed-off-by: Eliad Peller <eliad@wizery.com>
+Signed-off-by: Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
+[Eliad - small fixes, update board file changes]
+Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 ---
- arch/arm/mach-davinci/board-da850-evm.c  |  2 +-
- arch/arm/mach-omap2/pdata-quirks.c       |  1 +
- drivers/net/wireless/ti/wlcore/debugfs.c |  2 +-
- drivers/net/wireless/ti/wlcore/main.c    | 27 ++++++++++++++++-----------
- drivers/net/wireless/ti/wlcore/sdio.c    |  2 +-
- drivers/net/wireless/ti/wlcore/wlcore.h  |  5 ++---
- include/linux/wl12xx.h                   |  5 +----
- 7 files changed, 23 insertions(+), 21 deletions(-)
+ arch/arm/mach-davinci/board-da850-evm.c |  3 +-
+ arch/arm/mach-omap2/pdata-quirks.c      | 29 ++++++++--------
+ drivers/net/wireless/ti/wl12xx/main.c   | 60 ++++++++++++++++++++++++++++++---
+ drivers/net/wireless/ti/wl12xx/wl12xx.h | 28 +++++++++++++++
+ include/linux/wl12xx.h                  | 27 ++-------------
+ 5 files changed, 103 insertions(+), 44 deletions(-)
 
 diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 6b5a97d..916589c 100644
+index 916589c..853b941 100644
 --- a/arch/arm/mach-davinci/board-da850-evm.c
 +++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1385,8 +1385,8 @@ static const short da850_wl12xx_pins[] __initconst = {
- 
+@@ -1386,7 +1386,8 @@ static const short da850_wl12xx_pins[] __initconst = {
  static struct wl12xx_platform_data da850_wl12xx_wlan_data __initdata = {
  	.irq			= -1,
-+	.irq_trigger		= IRQ_TYPE_EDGE_RISING,
- 	.board_ref_clock	= WL12XX_REFCLOCK_38,
--	.platform_quirks	= WL12XX_PLATFORM_QUIRK_EDGE_IRQ,
+ 	.irq_trigger		= IRQ_TYPE_EDGE_RISING,
+-	.board_ref_clock	= WL12XX_REFCLOCK_38,
++	.ref_clock_freq		= 38400000,
++	.ref_clock_xtal		= false,
  };
  
  static __init int da850_wl12xx_init(void)
 diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 190fa43..4449f4c 100644
+index 4449f4c..337cc22 100644
 --- a/arch/arm/mach-omap2/pdata-quirks.c
 +++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -48,6 +48,7 @@ static void __init __used legacy_init_wl12xx(unsigned ref_clock,
- 	wl12xx.board_ref_clock = ref_clock;
- 	wl12xx.board_tcxo_clock = tcxo_clock;
+@@ -39,14 +39,14 @@ static struct twl4030_gpio_platform_data twl_gpio_auxdata;
+ 
+ static struct wl12xx_platform_data wl12xx __initdata;
+ 
+-static void __init __used legacy_init_wl12xx(unsigned ref_clock,
+-					     unsigned tcxo_clock,
++static void __init __used legacy_init_wl12xx(u32 ref_clock_freq,
++					     u32 tcxo_clock_freq,
+ 					     int gpio)
+ {
+ 	int res;
+ 
+-	wl12xx.board_ref_clock = ref_clock;
+-	wl12xx.board_tcxo_clock = tcxo_clock;
++	wl12xx.ref_clock_freq = ref_clock_freq;
++	wl12xx.tcxo_clock_freq = tcxo_clock_freq;
  	wl12xx.irq = gpio_to_irq(gpio);
-+	wl12xx.irq_trigger = IRQ_TYPE_LEVEL_HIGH;
+ 	wl12xx.irq_trigger = IRQ_TYPE_LEVEL_HIGH;
  
- 	res = wl12xx_set_platform_data(&wl12xx);
- 	if (res) {
-diff --git a/drivers/net/wireless/ti/wlcore/debugfs.c b/drivers/net/wireless/ti/wlcore/debugfs.c
-index 68f3bf2..eb43f94 100644
---- a/drivers/net/wireless/ti/wlcore/debugfs.c
-+++ b/drivers/net/wireless/ti/wlcore/debugfs.c
-@@ -502,7 +502,7 @@ static ssize_t driver_state_read(struct file *file, char __user *user_buf,
- 	DRIVER_STATE_PRINT_HEX(irq);
- 	/* TODO: ref_clock and tcxo_clock were moved to wl12xx priv */
- 	DRIVER_STATE_PRINT_HEX(hw_pg_ver);
--	DRIVER_STATE_PRINT_HEX(platform_quirks);
-+	DRIVER_STATE_PRINT_HEX(irq_flags);
- 	DRIVER_STATE_PRINT_HEX(chip.id);
- 	DRIVER_STATE_PRINT_STR(chip.fw_ver_str);
- 	DRIVER_STATE_PRINT_STR(chip.phy_fw_ver_str);
-diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
-index 1e13699..67518f6 100644
---- a/drivers/net/wireless/ti/wlcore/main.c
-+++ b/drivers/net/wireless/ti/wlcore/main.c
-@@ -27,6 +27,7 @@
- #include <linux/vmalloc.h>
- #include <linux/wl12xx.h>
- #include <linux/interrupt.h>
-+#include <linux/irq.h>
+@@ -57,8 +57,8 @@ static void __init __used legacy_init_wl12xx(unsigned ref_clock,
+ 	}
+ }
+ #else
+-static inline void legacy_init_wl12xx(unsigned ref_clock,
+-				      unsigned tcxo_clock,
++static inline void legacy_init_wl12xx(u32 ref_clock_freq,
++				      u32 tcxo_clock_freq,
+ 				      int gpio)
+ {
+ }
+@@ -130,7 +130,7 @@ static void __init omap3_sbc_t3730_twl_init(void)
+ static void __init omap3_sbc_t3730_legacy_init(void)
+ {
+ 	omap3_sbc_t3x_usb_hub_init(167, "sb-t35 usb hub");
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
++	legacy_init_wl12xx(38400000, 0, 136);
+ }
  
- #include "wlcore.h"
- #include "debug.h"
-@@ -538,7 +539,7 @@ static int wlcore_irq_locked(struct wl1271 *wl)
- 	 * In case edge triggered interrupt must be used, we cannot iterate
- 	 * more than once without introducing race conditions with the hardirq.
- 	 */
--	if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ)
-+	if (wl->irq_flags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))
- 		loopcount = 1;
+ static void __init omap3_sbc_t3530_legacy_init(void)
+@@ -174,12 +174,12 @@ static void __init omap3_igep0030_rev_g_legacy_init(void)
  
- 	wl1271_debug(DEBUG_IRQ, "IRQ work");
-@@ -6249,7 +6250,6 @@ struct ieee80211_hw *wlcore_alloc_hw(size_t priv_size, u32 aggr_buf_size,
- 	wl->ap_ps_map = 0;
- 	wl->ap_fw_ps_map = 0;
- 	wl->quirks = 0;
--	wl->platform_quirks = 0;
- 	wl->system_hlid = WL12XX_SYSTEM_HLID;
- 	wl->active_sta_count = 0;
- 	wl->active_link_count = 0;
-@@ -6391,7 +6391,8 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
- 	struct platform_device *pdev = wl->pdev;
- 	struct wlcore_platdev_data *pdev_data = dev_get_platdata(&pdev->dev);
- 	struct wl12xx_platform_data *pdata = pdev_data->pdata;
--	unsigned long irqflags;
-+	struct resource *res;
+ static void __init omap3_evm_legacy_init(void)
+ {
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 149);
++	legacy_init_wl12xx(38400000, 0, 149);
+ }
+ 
+ static void __init omap3_zoom_legacy_init(void)
+ {
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_26, 0, 162);
++	legacy_init_wl12xx(26000000, 0, 162);
+ }
+ 
+ static void am35xx_enable_emac_int(void)
+@@ -246,7 +246,7 @@ static void __init omap3_sbc_t3517_legacy_init(void)
+ 	am35xx_emac_reset();
+ 	hsmmc2_internal_input_clk();
+ 	omap3_sbc_t3517_wifi_init();
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 145);
++	legacy_init_wl12xx(38400000, 0, 145);
+ }
+ 
+ static void __init am3517_evm_legacy_init(void)
+@@ -291,18 +291,17 @@ static void __init omap3_tao3530_legacy_init(void)
+ #ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_sdp_legacy_init(void)
+ {
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_26,
+-			   WL12XX_TCXOCLOCK_26, 53);
++	legacy_init_wl12xx(26000000, 26000000, 53);
+ }
+ 
+ static void __init omap4_panda_legacy_init(void)
+ {
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
++	legacy_init_wl12xx(38400000, 0, 53);
+ }
+ 
+ static void __init var_som_om44_legacy_init(void)
+ {
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 41);
++	legacy_init_wl12xx(38400000, 0, 41);
+ }
+ #endif
+ 
+@@ -317,7 +316,7 @@ static struct iommu_platform_data omap4_iommu_pdata = {
+ #ifdef CONFIG_SOC_AM33XX
+ static void __init am335x_evmsk_legacy_init(void)
+ {
+-	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 31);
++	legacy_init_wl12xx(38400000, 0, 31);
+ }
+ #endif
+ 
+diff --git a/drivers/net/wireless/ti/wl12xx/main.c b/drivers/net/wireless/ti/wl12xx/main.c
+index 144d1f8..b3f751f 100644
+--- a/drivers/net/wireless/ti/wl12xx/main.c
++++ b/drivers/net/wireless/ti/wl12xx/main.c
+@@ -1770,6 +1770,40 @@ wl12xx_iface_combinations[] = {
+ 	},
+ };
+ 
++static const struct wl12xx_clock wl12xx_refclock_table[] = {
++	{ 19200000,	false,	WL12XX_REFCLOCK_19	},
++	{ 26000000,	false,	WL12XX_REFCLOCK_26	},
++	{ 26000000,	true,	WL12XX_REFCLOCK_26_XTAL	},
++	{ 38400000,	false,	WL12XX_REFCLOCK_38	},
++	{ 38400000,	true,	WL12XX_REFCLOCK_38_XTAL	},
++	{ 52000000,	false,	WL12XX_REFCLOCK_52	},
++	{ 0,		false,	0 }
++};
 +
- 	int ret;
- 	irq_handler_t hardirq_fn = NULL;
- 
-@@ -6418,19 +6419,23 @@ static void wlcore_nvs_cb(const struct firmware *fw, void *context)
- 	/* adjust some runtime configuration parameters */
- 	wlcore_adjust_conf(wl);
- 
--	wl->irq = platform_get_irq(pdev, 0);
--	wl->platform_quirks = pdata->platform_quirks;
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res) {
-+		wl1271_error("Could not get IRQ resource");
-+		goto out_free_nvs;
-+	}
++static const struct wl12xx_clock wl12xx_tcxoclock_table[] = {
++	{ 16368000,	true,	WL12XX_TCXOCLOCK_16_368	},
++	{ 16800000,	true,	WL12XX_TCXOCLOCK_16_8	},
++	{ 19200000,	true,	WL12XX_TCXOCLOCK_19_2	},
++	{ 26000000,	true,	WL12XX_TCXOCLOCK_26	},
++	{ 32736000,	true,	WL12XX_TCXOCLOCK_32_736	},
++	{ 33600000,	true,	WL12XX_TCXOCLOCK_33_6	},
++	{ 38400000,	true,	WL12XX_TCXOCLOCK_38_4	},
++	{ 52000000,	true,	WL12XX_TCXOCLOCK_52	},
++	{ 0,		false,	0 }
++};
 +
-+	wl->irq = res->start;
-+	wl->irq_flags = res->flags & IRQF_TRIGGER_MASK;
- 	wl->if_ops = pdev_data->if_ops;
++static int wl12xx_get_clock_idx(const struct wl12xx_clock *table,
++				u32 freq, bool xtal)
++{
++	int i;
++
++	for (i = 0; table[i].freq != 0; i++)
++		if ((table[i].freq == freq) && (table[i].xtal == xtal))
++			return table[i].hw_idx;
++
++	return -EINVAL;
++}
++
+ static int wl12xx_setup(struct wl1271 *wl)
+ {
+ 	struct wl12xx_priv *priv = wl->priv;
+@@ -1799,7 +1833,17 @@ static int wl12xx_setup(struct wl1271 *wl)
+ 	wl12xx_conf_init(wl);
  
--	if (wl->platform_quirks & WL12XX_PLATFORM_QUIRK_EDGE_IRQ) {
--		irqflags = IRQF_TRIGGER_RISING;
-+	if (wl->irq_flags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))
- 		hardirq_fn = wlcore_hardirq;
+ 	if (!fref_param) {
+-		priv->ref_clock = pdata->board_ref_clock;
++		priv->ref_clock = wl12xx_get_clock_idx(wl12xx_refclock_table,
++						       pdata->ref_clock_freq,
++						       pdata->ref_clock_xtal);
++		if (priv->ref_clock < 0) {
++			wl1271_error("Invalid ref_clock frequency (%d Hz, %s)",
++				     pdata->ref_clock_freq,
++				     pdata->ref_clock_xtal ?
++				     "XTAL" : "not XTAL");
++
++			return priv->ref_clock;
++		}
+ 	} else {
+ 		if (!strcmp(fref_param, "19.2"))
+ 			priv->ref_clock = WL12XX_REFCLOCK_19;
+@@ -1817,9 +1861,17 @@ static int wl12xx_setup(struct wl1271 *wl)
+ 			wl1271_error("Invalid fref parameter %s", fref_param);
+ 	}
+ 
+-	if (!tcxo_param) {
+-		priv->tcxo_clock = pdata->board_tcxo_clock;
 -	} else {
--		irqflags = IRQF_TRIGGER_HIGH | IRQF_ONESHOT;
--	}
-+	else
-+		wl->irq_flags |= IRQF_ONESHOT;
- 
- 	ret = request_threaded_irq(wl->irq, hardirq_fn, wlcore_irq,
--				   irqflags, pdev->name, wl);
-+				   wl->irq_flags, pdev->name, wl);
- 	if (ret < 0) {
- 		wl1271_error("request_irq() failed: %d", ret);
- 		goto out_free_nvs;
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index d3dd7bf..2bce00a 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -287,7 +287,7 @@ static int wl1271_probe(struct sdio_func *func,
- 	memset(res, 0x00, sizeof(res));
- 
- 	res[0].start = pdev_data.pdata->irq;
--	res[0].flags = IORESOURCE_IRQ;
-+	res[0].flags = IORESOURCE_IRQ | pdev_data.pdata->irq_trigger;
- 	res[0].name = "irq";
- 
- 	ret = platform_device_add_resources(glue->core, res, ARRAY_SIZE(res));
-diff --git a/drivers/net/wireless/ti/wlcore/wlcore.h b/drivers/net/wireless/ti/wlcore/wlcore.h
-index d599c86..7f363fa 100644
---- a/drivers/net/wireless/ti/wlcore/wlcore.h
-+++ b/drivers/net/wireless/ti/wlcore/wlcore.h
-@@ -197,6 +197,8 @@ struct wl1271 {
- 
- 	int irq;
- 
-+	int irq_flags;
++	if (!tcxo_param && pdata->tcxo_clock_freq) {
++		priv->tcxo_clock = wl12xx_get_clock_idx(wl12xx_tcxoclock_table,
++							pdata->tcxo_clock_freq,
++							true);
++		if (priv->tcxo_clock < 0) {
++			wl1271_error("Invalid tcxo_clock frequency (%d Hz)",
++				     pdata->tcxo_clock_freq);
 +
- 	spinlock_t wl_lock;
++			return priv->tcxo_clock;
++		}
++	} else if (tcxo_param) {
+ 		if (!strcmp(tcxo_param, "19.2"))
+ 			priv->tcxo_clock = WL12XX_TCXOCLOCK_19_2;
+ 		else if (!strcmp(tcxo_param, "26"))
+diff --git a/drivers/net/wireless/ti/wl12xx/wl12xx.h b/drivers/net/wireless/ti/wl12xx/wl12xx.h
+index 75c9265..5952e99a 100644
+--- a/drivers/net/wireless/ti/wl12xx/wl12xx.h
++++ b/drivers/net/wireless/ti/wl12xx/wl12xx.h
+@@ -82,6 +82,34 @@ struct wl12xx_priv {
+ 	struct wl127x_rx_mem_pool_addr *rx_mem_addr;
+ };
  
- 	enum wlcore_state state;
-@@ -404,9 +406,6 @@ struct wl1271 {
- 	/* Quirks of specific hardware revisions */
- 	unsigned int quirks;
- 
--	/* Platform limitations */
--	unsigned int platform_quirks;
--
- 	/* number of currently active RX BA sessions */
- 	int ba_rx_session_count;
- 
++/* Reference clock values */
++enum {
++	WL12XX_REFCLOCK_19	= 0, /* 19.2 MHz */
++	WL12XX_REFCLOCK_26	= 1, /* 26 MHz */
++	WL12XX_REFCLOCK_38	= 2, /* 38.4 MHz */
++	WL12XX_REFCLOCK_52	= 3, /* 52 MHz */
++	WL12XX_REFCLOCK_38_XTAL = 4, /* 38.4 MHz, XTAL */
++	WL12XX_REFCLOCK_26_XTAL = 5, /* 26 MHz, XTAL */
++};
++
++/* TCXO clock values */
++enum {
++	WL12XX_TCXOCLOCK_19_2	= 0, /* 19.2MHz */
++	WL12XX_TCXOCLOCK_26	= 1, /* 26 MHz */
++	WL12XX_TCXOCLOCK_38_4	= 2, /* 38.4MHz */
++	WL12XX_TCXOCLOCK_52	= 3, /* 52 MHz */
++	WL12XX_TCXOCLOCK_16_368	= 4, /* 16.368 MHz */
++	WL12XX_TCXOCLOCK_32_736	= 5, /* 32.736 MHz */
++	WL12XX_TCXOCLOCK_16_8	= 6, /* 16.8 MHz */
++	WL12XX_TCXOCLOCK_33_6	= 7, /* 33.6 MHz */
++};
++
++struct wl12xx_clock {
++	u32	freq;
++	bool	xtal;
++	u8	hw_idx;
++};
++
+ struct wl12xx_fw_packet_counters {
+ 	/* Cumulative counter of released packets per AC */
+ 	u8 tx_released_pkts[NUM_TX_QUEUES];
 diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
-index a9c723b..3876b67 100644
+index 3876b67..eea1e6d 100644
 --- a/include/linux/wl12xx.h
 +++ b/include/linux/wl12xx.h
-@@ -57,15 +57,12 @@ struct wl1251_platform_data {
+@@ -26,28 +26,6 @@
  
+ #include <linux/err.h>
+ 
+-/* Reference clock values */
+-enum {
+-	WL12XX_REFCLOCK_19	= 0, /* 19.2 MHz */
+-	WL12XX_REFCLOCK_26	= 1, /* 26 MHz */
+-	WL12XX_REFCLOCK_38	= 2, /* 38.4 MHz */
+-	WL12XX_REFCLOCK_52	= 3, /* 52 MHz */
+-	WL12XX_REFCLOCK_38_XTAL = 4, /* 38.4 MHz, XTAL */
+-	WL12XX_REFCLOCK_26_XTAL = 5, /* 26 MHz, XTAL */
+-};
+-
+-/* TCXO clock values */
+-enum {
+-	WL12XX_TCXOCLOCK_19_2	= 0, /* 19.2MHz */
+-	WL12XX_TCXOCLOCK_26	= 1, /* 26 MHz */
+-	WL12XX_TCXOCLOCK_38_4	= 2, /* 38.4MHz */
+-	WL12XX_TCXOCLOCK_52	= 3, /* 52 MHz */
+-	WL12XX_TCXOCLOCK_16_368	= 4, /* 16.368 MHz */
+-	WL12XX_TCXOCLOCK_32_736	= 5, /* 32.736 MHz */
+-	WL12XX_TCXOCLOCK_16_8	= 6, /* 16.8 MHz */
+-	WL12XX_TCXOCLOCK_33_6	= 7, /* 33.6 MHz */
+-};
+-
+ struct wl1251_platform_data {
+ 	int power_gpio;
+ 	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
+@@ -58,8 +36,9 @@ struct wl1251_platform_data {
  struct wl12xx_platform_data {
  	int irq;
-+	u32 irq_trigger;
- 	int board_ref_clock;
- 	int board_tcxo_clock;
--	unsigned long platform_quirks;
+ 	u32 irq_trigger;
+-	int board_ref_clock;
+-	int board_tcxo_clock;
++	bool ref_clock_xtal;	/* specify whether the clock is XTAL or not */
++	u32 ref_clock_freq;	/* in Hertz */
++	u32 tcxo_clock_freq;	/* in Hertz, tcxo is always XTAL */
  	bool pwr_in_suspend;
  };
  
--/* Platform does not support level trigger interrupts */
--#define WL12XX_PLATFORM_QUIRK_EDGE_IRQ	BIT(0)
--
- #ifdef CONFIG_WILINK_PLATFORM_DATA
- 
- int wl12xx_set_platform_data(const struct wl12xx_platform_data *data);
 -- 
 1.8.5.2.229.g4448466.dirty
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
