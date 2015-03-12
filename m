@@ -1,108 +1,100 @@
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Subject: [PATCH] ARM: dts: am437x-gp-evm: add DT nodes for ov2659 sensor
-Date: Thu, 12 Mar 2015 23:38:21 +0000
-Message-ID: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: omap3isp: hist: Move histogram DMA to DMA engine
+Date: Fri, 13 Mar 2015 01:56:32 +0200
+Message-ID: <20150312235632.GQ11954@valkosipuli.retiisi.org.uk>
+References: <1425850675-32266-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54265 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755223AbbCLX5F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Mar 2015 19:57:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1425850675-32266-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Laurent,
 
-this patch does the following:
-1: adds DT node for fixed oscillator.
-2: adds DT node entries for ov2659 sensor
-3: adds remote-endpoint entry for VPFE.
+On Sun, Mar 08, 2015 at 11:37:55PM +0200, Laurent Pinchart wrote:
+...
+> @@ -198,24 +177,58 @@ static void hist_dma_cb(int lch, u16 ch_status, void *data)
+>  static int hist_buf_dma(struct ispstat *hist)
+>  {
+>  	dma_addr_t dma_addr = hist->active_buf->dma_addr;
+> +	struct dma_async_tx_descriptor *tx;
+> +	struct dma_slave_config cfg;
+> +	dma_cookie_t cookie;
+> +	int ret;
+>  
+>  	if (unlikely(!dma_addr)) {
+>  		dev_dbg(hist->isp->dev, "hist: invalid DMA buffer address\n");
+> -		hist_reset_mem(hist);
+> -		return STAT_NO_BUF;
+> +		goto error;
+>  	}
+>  
+>  	isp_reg_writel(hist->isp, 0, OMAP3_ISP_IOMEM_HIST, ISPHIST_ADDR);
+>  	isp_reg_set(hist->isp, OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT,
+>  		    ISPHIST_CNT_CLEAR);
+>  	omap3isp_flush(hist->isp);
+> -	hist->dma_config.dst_start = dma_addr;
+> -	hist->dma_config.elem_count = hist->buf_size / sizeof(u32);
+> -	omap_set_dma_params(hist->dma_ch, &hist->dma_config);
+>  
+> -	omap_start_dma(hist->dma_ch);
+> +	memset(&cfg, 0, sizeof(cfg));
+> +	cfg.src_addr = hist->isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
+> +		     + ISPHIST_DATA;
+> +	cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+> +	cfg.src_maxburst = hist->buf_size / 4;
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Note this patch depends on
- https://patchwork.kernel.org/patch/6000161/
- 
- arch/arm/boot/dts/am437x-gp-evm.dts | 42 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+How about initialising the struct when you declare it instead? That might be
+a matter of opinion though, but I think I prefer that. Up to you.
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index f84d971..195f452 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -106,6 +106,14 @@
- 			};
- 		};
- 	};
-+
-+	/* fixed 12MHz oscillator */
-+	refclk: oscillator {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <12000000>;
-+	};
-+
- };
- 
- &am43xx_pinmux {
-@@ -404,6 +412,21 @@
- 			regulator-always-on;
- 		};
- 	};
-+
-+	ov2659@30 {
-+		compatible = "ovti,ov2659";
-+		reg = <0x30>;
-+
-+		clocks = <&refclk 0>;
-+		clock-names = "xvclk";
-+
-+		port {
-+			ov2659_0: endpoint {
-+				remote-endpoint = <&vpfe1_ep>;
-+				link-frequencies = /bits/ 64 <70000000>;
-+			};
-+		};
-+	};
- };
- 
- &i2c1 {
-@@ -423,6 +446,21 @@
- 		touchscreen-size-x = <1024>;
- 		touchscreen-size-y = <600>;
- 	};
-+
-+	ov2659@30 {
-+		compatible = "ovti,ov2659";
-+		reg = <0x30>;
-+
-+		clocks = <&refclk 0>;
-+		clock-names = "xvclk";
-+
-+		port {
-+			ov2659_1: endpoint {
-+				remote-endpoint = <&vpfe0_ep>;
-+				link-frequencies = /bits/ 64 <70000000>;
-+			};
-+		};
-+	};
- };
- 
- &epwmss0 {
-@@ -626,7 +664,7 @@
- 
- 	port {
- 		vpfe0_ep: endpoint {
--			/* remote-endpoint = <&sensor>; add once we have it */
-+			remote-endpoint = <&ov2659_1>;
- 			ti,am437x-vpfe-interface = <0>;
- 			bus-width = <8>;
- 			hsync-active = <0>;
-@@ -643,7 +681,7 @@
- 
- 	port {
- 		vpfe1_ep: endpoint {
--			/* remote-endpoint = <&sensor>; add once we have it */
-+			remote-endpoint = <&ov2659_0>;
- 			ti,am437x-vpfe-interface = <0>;
- 			bus-width = <8>;
- 			hsync-active = <0>;
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+> +	ret = dmaengine_slave_config(hist->dma_ch, &cfg);
+> +	if (ret < 0) {
+> +		dev_dbg(hist->isp->dev,
+> +			"hist: DMA slave configuration failed\n");
+> +		goto error;
+> +	}
+> +
+> +	tx = dmaengine_prep_slave_single(hist->dma_ch, dma_addr,
+> +					 hist->buf_size, DMA_DEV_TO_MEM,
+> +					 DMA_CTRL_ACK);
+> +	if (tx == NULL) {
+> +		dev_dbg(hist->isp->dev,
+> +			"hist: DMA slave preparation failed\n");
+> +		goto error;
+> +	}
+> +
+> +	tx->callback = hist_dma_cb;
+> +	tx->callback_param = hist;
+> +	cookie = tx->tx_submit(tx);
+> +	if (dma_submit_error(cookie)) {
+> +		dev_dbg(hist->isp->dev, "hist: DMA submission failed\n");
+> +		goto error;
+> +	}
+> +
+> +	dma_async_issue_pending(hist->dma_ch);
+>  
+>  	return STAT_BUF_WAITING_DMA;
+> +
+> +error:
+> +	hist_reset_mem(hist);
+> +	return STAT_NO_BUF;
+>  }
+>  
+>  static int hist_buf_pio(struct ispstat *hist)
+
 -- 
-2.1.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
