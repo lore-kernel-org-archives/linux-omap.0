@@ -1,48 +1,37 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: ti,codec property in sound/soc/omap/omap-twl4030.c not used
-Date: Thu, 12 Mar 2015 11:19:06 +0200
-Message-ID: <55015A0A.1060309@ti.com>
-References: <CAAfyv34ebp1oL7t9GKT20_c4VYMM=3rfJTrj-MfT6NUBXk6d2A@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v8 0/4] hwspinlock core & omap dt support
+Date: Thu, 12 Mar 2015 11:24:27 +0200
+Message-ID: <CAK=WgbY1Gbc+b1YtHafUyph6P60fees1ND_K5OE=9MXuqszbOg@mail.gmail.com>
+References: <1425520876-37826-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35970 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751876AbbCLJTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Mar 2015 05:19:30 -0400
-In-Reply-To: <CAAfyv34ebp1oL7t9GKT20_c4VYMM=3rfJTrj-MfT6NUBXk6d2A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1425520876-37826-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Bjorn Andersson <bjorn.andersson-/MT0OVThwyLZJqsBc5GL+g@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>, jarkko.nikula@bitmer.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, alsa-devel@alsa-project.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-On 03/12/2015 12:12 AM, Belisko Marek wrote:
-> Hi,
->=20
-> I'm looking at sources for omap-twl4030.c driver which is used by man=
-y
-> boards. In DT bindings documentation is property ti,codec described a=
-s
-> mandatory but it's never parsed in driver code. I did small experimen=
-t
-> in gta04 board and remove ti,codec from devicetree and sound was
-> working. I think it can be removed from documentation and also from
-> various device trees. Is my assumption correct? Thanks.
+Hi Suman,
 
-Correct. The ti,twl4030-audio is for the MFD driver and the device for =
-the
-ASoC codec is created in there w/o actual DT compatible string. The aud=
-io part
-of the twl4030 is responsible for the audio and the vibra functionality=
-=2E
+On Thu, Mar 5, 2015 at 4:01 AM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+> This is the latest version of the hwspinlock dt support series,
+> rebased onto v4.0-rc1 and addressing the long discussion on the
+> bindings in v7 [1]. I really hope that this series can make it
+> into 4.1.
 
-Are you going to send the patches?
+>From a quick glance this looks great, thanks!
+
+> Mark,
+> Can you please provide your Acked-by for the binding documents
+> so that Ohad can pick up the patches for the next merge window?
+
+That would be perfect. Once we'll have it I could move forward with
+this towards 4.1.
 
 Thanks,
-P=C3=A9ter
+Ohad.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
