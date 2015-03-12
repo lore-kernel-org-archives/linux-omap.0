@@ -1,319 +1,178 @@
-From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 2/6] wl12xx: use frequency instead of enumerations for pdata clocks
-Date: Thu, 12 Mar 2015 14:09:10 +0200
-Message-ID: <1426162154-8716-3-git-send-email-eliad@wizery.com>
+From: Eliad Peller <eliad@wizery.com>
+Subject: [PATCH v6 4/6] wlcore: add device-tree support
+Date: Thu, 12 Mar 2015 14:09:12 +0200
+Message-ID: <1426162154-8716-5-git-send-email-eliad@wizery.com>
 References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426162154-8716-1-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:36202 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224AbbCLMJj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2015 08:09:39 -0400
+Received: by wiwh11 with SMTP id h11so36726946wiw.1
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2015 05:09:38 -0700 (PDT)
+In-Reply-To: <1426162154-8716-1-git-send-email-eliad@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Ido Yariv <ido@wizery.com>
 
-From: Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
+When running with device-tree, we no longer have a board file
+that can set up the platform data for wlcore.
+Allow this data to be passed from DT.
 
-Instead of defining an enumeration with the FW specific values for the
-different clock rates, use the actual frequency instead.  Also add a
-boolean to specify whether the clock is XTAL or not.
-
-Change all board files to reflect this.
-
-Signed-off-by: Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
-[Eliad - small fixes, update board file changes]
-Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Ido Yariv <ido@wizery.com>
+Signed-off-by: Eliad Peller <eliad@wizery.com>
 ---
- arch/arm/mach-davinci/board-da850-evm.c |  3 +-
- arch/arm/mach-omap2/pdata-quirks.c      | 29 ++++++++--------
- drivers/net/wireless/ti/wl12xx/main.c   | 60 ++++++++++++++++++++++++++++++---
- drivers/net/wireless/ti/wl12xx/wl12xx.h | 28 +++++++++++++++
- include/linux/wl12xx.h                  | 27 ++-------------
- 5 files changed, 103 insertions(+), 44 deletions(-)
+v6: parse frequency properties, add wl12xx compatible strings
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 916589c..853b941 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1386,7 +1386,8 @@ static const short da850_wl12xx_pins[] __initconst = {
- static struct wl12xx_platform_data da850_wl12xx_wlan_data __initdata = {
- 	.irq			= -1,
- 	.irq_trigger		= IRQ_TYPE_EDGE_RISING,
--	.board_ref_clock	= WL12XX_REFCLOCK_38,
-+	.ref_clock_freq		= 38400000,
-+	.ref_clock_xtal		= false,
+ drivers/net/wireless/ti/wlcore/sdio.c | 93 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 87 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
+index 2bce00a..b55dc0e 100644
+--- a/drivers/net/wireless/ti/wlcore/sdio.c
++++ b/drivers/net/wireless/ti/wlcore/sdio.c
+@@ -34,6 +34,8 @@
+ #include <linux/wl12xx.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/printk.h>
++#include <linux/of.h>
++#include <linux/of_irq.h>
+ 
+ #include "wlcore.h"
+ #include "wl12xx_80211.h"
+@@ -214,6 +216,82 @@ static struct wl1271_if_operations sdio_ops = {
+ 	.set_block_size = wl1271_sdio_set_block_size,
  };
  
- static __init int da850_wl12xx_init(void)
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 4449f4c..337cc22 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -39,14 +39,14 @@ static struct twl4030_gpio_platform_data twl_gpio_auxdata;
- 
- static struct wl12xx_platform_data wl12xx __initdata;
- 
--static void __init __used legacy_init_wl12xx(unsigned ref_clock,
--					     unsigned tcxo_clock,
-+static void __init __used legacy_init_wl12xx(u32 ref_clock_freq,
-+					     u32 tcxo_clock_freq,
- 					     int gpio)
- {
- 	int res;
- 
--	wl12xx.board_ref_clock = ref_clock;
--	wl12xx.board_tcxo_clock = tcxo_clock;
-+	wl12xx.ref_clock_freq = ref_clock_freq;
-+	wl12xx.tcxo_clock_freq = tcxo_clock_freq;
- 	wl12xx.irq = gpio_to_irq(gpio);
- 	wl12xx.irq_trigger = IRQ_TYPE_LEVEL_HIGH;
- 
-@@ -57,8 +57,8 @@ static void __init __used legacy_init_wl12xx(unsigned ref_clock,
- 	}
- }
- #else
--static inline void legacy_init_wl12xx(unsigned ref_clock,
--				      unsigned tcxo_clock,
-+static inline void legacy_init_wl12xx(u32 ref_clock_freq,
-+				      u32 tcxo_clock_freq,
- 				      int gpio)
- {
- }
-@@ -130,7 +130,7 @@ static void __init omap3_sbc_t3730_twl_init(void)
- static void __init omap3_sbc_t3730_legacy_init(void)
- {
- 	omap3_sbc_t3x_usb_hub_init(167, "sb-t35 usb hub");
--	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
-+	legacy_init_wl12xx(38400000, 0, 136);
- }
- 
- static void __init omap3_sbc_t3530_legacy_init(void)
-@@ -174,12 +174,12 @@ static void __init omap3_igep0030_rev_g_legacy_init(void)
- 
- static void __init omap3_evm_legacy_init(void)
- {
--	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 149);
-+	legacy_init_wl12xx(38400000, 0, 149);
- }
- 
- static void __init omap3_zoom_legacy_init(void)
- {
--	legacy_init_wl12xx(WL12XX_REFCLOCK_26, 0, 162);
-+	legacy_init_wl12xx(26000000, 0, 162);
- }
- 
- static void am35xx_enable_emac_int(void)
-@@ -246,7 +246,7 @@ static void __init omap3_sbc_t3517_legacy_init(void)
- 	am35xx_emac_reset();
- 	hsmmc2_internal_input_clk();
- 	omap3_sbc_t3517_wifi_init();
--	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 145);
-+	legacy_init_wl12xx(38400000, 0, 145);
- }
- 
- static void __init am3517_evm_legacy_init(void)
-@@ -291,18 +291,17 @@ static void __init omap3_tao3530_legacy_init(void)
- #ifdef CONFIG_ARCH_OMAP4
- static void __init omap4_sdp_legacy_init(void)
- {
--	legacy_init_wl12xx(WL12XX_REFCLOCK_26,
--			   WL12XX_TCXOCLOCK_26, 53);
-+	legacy_init_wl12xx(26000000, 26000000, 53);
- }
- 
- static void __init omap4_panda_legacy_init(void)
- {
--	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
-+	legacy_init_wl12xx(38400000, 0, 53);
- }
- 
- static void __init var_som_om44_legacy_init(void)
- {
--	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 41);
-+	legacy_init_wl12xx(38400000, 0, 41);
- }
- #endif
- 
-@@ -317,7 +316,7 @@ static struct iommu_platform_data omap4_iommu_pdata = {
- #ifdef CONFIG_SOC_AM33XX
- static void __init am335x_evmsk_legacy_init(void)
- {
--	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 31);
-+	legacy_init_wl12xx(38400000, 0, 31);
- }
- #endif
- 
-diff --git a/drivers/net/wireless/ti/wl12xx/main.c b/drivers/net/wireless/ti/wl12xx/main.c
-index 144d1f8..b3f751f 100644
---- a/drivers/net/wireless/ti/wl12xx/main.c
-+++ b/drivers/net/wireless/ti/wl12xx/main.c
-@@ -1770,6 +1770,40 @@ wl12xx_iface_combinations[] = {
- 	},
- };
- 
-+static const struct wl12xx_clock wl12xx_refclock_table[] = {
-+	{ 19200000,	false,	WL12XX_REFCLOCK_19	},
-+	{ 26000000,	false,	WL12XX_REFCLOCK_26	},
-+	{ 26000000,	true,	WL12XX_REFCLOCK_26_XTAL	},
-+	{ 38400000,	false,	WL12XX_REFCLOCK_38	},
-+	{ 38400000,	true,	WL12XX_REFCLOCK_38_XTAL	},
-+	{ 52000000,	false,	WL12XX_REFCLOCK_52	},
-+	{ 0,		false,	0 }
++#ifdef CONFIG_OF
++static const struct of_device_id wlcore_sdio_of_match_table[] = {
++	{ .compatible = "ti,wl1271" },
++	{ .compatible = "ti,wl1273" },
++	{ .compatible = "ti,wl1281" },
++	{ .compatible = "ti,wl1283" },
++	{ .compatible = "ti,wl1801" },
++	{ .compatible = "ti,wl1805" },
++	{ .compatible = "ti,wl1807" },
++	{ .compatible = "ti,wl1831" },
++	{ .compatible = "ti,wl1835" },
++	{ .compatible = "ti,wl1837" },
++	{ }
 +};
 +
-+static const struct wl12xx_clock wl12xx_tcxoclock_table[] = {
-+	{ 16368000,	true,	WL12XX_TCXOCLOCK_16_368	},
-+	{ 16800000,	true,	WL12XX_TCXOCLOCK_16_8	},
-+	{ 19200000,	true,	WL12XX_TCXOCLOCK_19_2	},
-+	{ 26000000,	true,	WL12XX_TCXOCLOCK_26	},
-+	{ 32736000,	true,	WL12XX_TCXOCLOCK_32_736	},
-+	{ 33600000,	true,	WL12XX_TCXOCLOCK_33_6	},
-+	{ 38400000,	true,	WL12XX_TCXOCLOCK_38_4	},
-+	{ 52000000,	true,	WL12XX_TCXOCLOCK_52	},
-+	{ 0,		false,	0 }
-+};
-+
-+static int wl12xx_get_clock_idx(const struct wl12xx_clock *table,
-+				u32 freq, bool xtal)
++static struct wl12xx_platform_data *wlcore_probe_of(struct device *dev)
 +{
-+	int i;
++	struct device_node *np = dev->of_node;
++	struct wl12xx_platform_data *pdata;
 +
-+	for (i = 0; table[i].freq != 0; i++)
-+		if ((table[i].freq == freq) && (table[i].xtal == xtal))
-+			return table[i].hw_idx;
++	if (!np || !of_match_node(wlcore_sdio_of_match_table, np))
++		return NULL;
 +
-+	return -EINVAL;
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return NULL;
++
++	pdata->irq = irq_of_parse_and_map(np, 0);
++	if (!pdata->irq) {
++		dev_err(dev, "No irq in platform data\n");
++		kfree(pdata);
++		return NULL;
++	}
++
++	pdata->irq_trigger =
++		irqd_get_trigger_type(irq_get_irq_data(pdata->irq));
++
++	/* optional clock frequency params */
++	of_property_read_u32(np, "ref-clock-frequency",
++			     &pdata->ref_clock_freq);
++	of_property_read_u32(np, "tcxo-clock-frequency",
++			     &pdata->tcxo_clock_freq);
++
++	return pdata;
++}
++#else
++static struct wl12xx_platform_data *wlcore_probe_of(struct device *dev)
++{
++	return NULL;
++}
++#endif
++
++static struct wl12xx_platform_data *
++wlcore_get_platform_data(struct device *dev)
++{
++	struct wl12xx_platform_data *pdata;
++
++	/* first, look for DT data */
++	pdata = wlcore_probe_of(dev);
++	if (pdata)
++		return pdata;
++
++	/* if not found - fallback to static platform data */
++	pdata = wl12xx_get_platform_data();
++	if (!IS_ERR(pdata))
++		return kmemdup(pdata, sizeof(*pdata), GFP_KERNEL);
++
++	dev_err(dev, "No platform data set\n");
++	return NULL;
 +}
 +
- static int wl12xx_setup(struct wl1271 *wl)
- {
- 	struct wl12xx_priv *priv = wl->priv;
-@@ -1799,7 +1833,17 @@ static int wl12xx_setup(struct wl1271 *wl)
- 	wl12xx_conf_init(wl);
- 
- 	if (!fref_param) {
--		priv->ref_clock = pdata->board_ref_clock;
-+		priv->ref_clock = wl12xx_get_clock_idx(wl12xx_refclock_table,
-+						       pdata->ref_clock_freq,
-+						       pdata->ref_clock_xtal);
-+		if (priv->ref_clock < 0) {
-+			wl1271_error("Invalid ref_clock frequency (%d Hz, %s)",
-+				     pdata->ref_clock_freq,
-+				     pdata->ref_clock_xtal ?
-+				     "XTAL" : "not XTAL");
++static void wlcore_del_platform_data(struct wl12xx_platform_data *pdata)
++{
++	kfree(pdata);
++}
 +
-+			return priv->ref_clock;
-+		}
- 	} else {
- 		if (!strcmp(fref_param, "19.2"))
- 			priv->ref_clock = WL12XX_REFCLOCK_19;
-@@ -1817,9 +1861,17 @@ static int wl12xx_setup(struct wl1271 *wl)
- 			wl1271_error("Invalid fref parameter %s", fref_param);
+ static int wl1271_probe(struct sdio_func *func,
+ 				  const struct sdio_device_id *id)
+ {
+@@ -245,12 +323,9 @@ static int wl1271_probe(struct sdio_func *func,
+ 	/* Use block mode for transferring over one block size of data */
+ 	func->card->quirks |= MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
+ 
+-	pdev_data.pdata = wl12xx_get_platform_data();
+-	if (IS_ERR(pdev_data.pdata)) {
+-		ret = PTR_ERR(pdev_data.pdata);
+-		dev_err(glue->dev, "missing wlan platform data: %d\n", ret);
++	pdev_data.pdata = wlcore_get_platform_data(&func->dev);
++	if (!pdev_data.pdata)
+ 		goto out_free_glue;
+-	}
+ 
+ 	/* if sdio can keep power while host is suspended, enable wow */
+ 	mmcflags = sdio_get_host_pm_caps(func);
+@@ -279,7 +354,7 @@ static int wl1271_probe(struct sdio_func *func,
+ 	if (!glue->core) {
+ 		dev_err(glue->dev, "can't allocate platform_device");
+ 		ret = -ENOMEM;
+-		goto out_free_glue;
++		goto out_free_pdata;
  	}
  
--	if (!tcxo_param) {
--		priv->tcxo_clock = pdata->board_tcxo_clock;
--	} else {
-+	if (!tcxo_param && pdata->tcxo_clock_freq) {
-+		priv->tcxo_clock = wl12xx_get_clock_idx(wl12xx_tcxoclock_table,
-+							pdata->tcxo_clock_freq,
-+							true);
-+		if (priv->tcxo_clock < 0) {
-+			wl1271_error("Invalid tcxo_clock frequency (%d Hz)",
-+				     pdata->tcxo_clock_freq);
-+
-+			return priv->tcxo_clock;
-+		}
-+	} else if (tcxo_param) {
- 		if (!strcmp(tcxo_param, "19.2"))
- 			priv->tcxo_clock = WL12XX_TCXOCLOCK_19_2;
- 		else if (!strcmp(tcxo_param, "26"))
-diff --git a/drivers/net/wireless/ti/wl12xx/wl12xx.h b/drivers/net/wireless/ti/wl12xx/wl12xx.h
-index 75c9265..5952e99a 100644
---- a/drivers/net/wireless/ti/wl12xx/wl12xx.h
-+++ b/drivers/net/wireless/ti/wl12xx/wl12xx.h
-@@ -82,6 +82,34 @@ struct wl12xx_priv {
- 	struct wl127x_rx_mem_pool_addr *rx_mem_addr;
- };
+ 	glue->core->dev.parent = &func->dev;
+@@ -313,6 +388,9 @@ static int wl1271_probe(struct sdio_func *func,
+ out_dev_put:
+ 	platform_device_put(glue->core);
  
-+/* Reference clock values */
-+enum {
-+	WL12XX_REFCLOCK_19	= 0, /* 19.2 MHz */
-+	WL12XX_REFCLOCK_26	= 1, /* 26 MHz */
-+	WL12XX_REFCLOCK_38	= 2, /* 38.4 MHz */
-+	WL12XX_REFCLOCK_52	= 3, /* 52 MHz */
-+	WL12XX_REFCLOCK_38_XTAL = 4, /* 38.4 MHz, XTAL */
-+	WL12XX_REFCLOCK_26_XTAL = 5, /* 26 MHz, XTAL */
-+};
++out_free_pdata:
++	wlcore_del_platform_data(pdev_data.pdata);
 +
-+/* TCXO clock values */
-+enum {
-+	WL12XX_TCXOCLOCK_19_2	= 0, /* 19.2MHz */
-+	WL12XX_TCXOCLOCK_26	= 1, /* 26 MHz */
-+	WL12XX_TCXOCLOCK_38_4	= 2, /* 38.4MHz */
-+	WL12XX_TCXOCLOCK_52	= 3, /* 52 MHz */
-+	WL12XX_TCXOCLOCK_16_368	= 4, /* 16.368 MHz */
-+	WL12XX_TCXOCLOCK_32_736	= 5, /* 32.736 MHz */
-+	WL12XX_TCXOCLOCK_16_8	= 6, /* 16.8 MHz */
-+	WL12XX_TCXOCLOCK_33_6	= 7, /* 33.6 MHz */
-+};
-+
-+struct wl12xx_clock {
-+	u32	freq;
-+	bool	xtal;
-+	u8	hw_idx;
-+};
-+
- struct wl12xx_fw_packet_counters {
- 	/* Cumulative counter of released packets per AC */
- 	u8 tx_released_pkts[NUM_TX_QUEUES];
-diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
-index 3876b67..eea1e6d 100644
---- a/include/linux/wl12xx.h
-+++ b/include/linux/wl12xx.h
-@@ -26,28 +26,6 @@
+ out_free_glue:
+ 	kfree(glue);
  
- #include <linux/err.h>
+@@ -323,11 +401,14 @@ out:
+ static void wl1271_remove(struct sdio_func *func)
+ {
+ 	struct wl12xx_sdio_glue *glue = sdio_get_drvdata(func);
++	struct wlcore_platdev_data *pdev_data = glue->core->dev.platform_data;
++	struct wl12xx_platform_data *pdata = pdev_data->pdata;
  
--/* Reference clock values */
--enum {
--	WL12XX_REFCLOCK_19	= 0, /* 19.2 MHz */
--	WL12XX_REFCLOCK_26	= 1, /* 26 MHz */
--	WL12XX_REFCLOCK_38	= 2, /* 38.4 MHz */
--	WL12XX_REFCLOCK_52	= 3, /* 52 MHz */
--	WL12XX_REFCLOCK_38_XTAL = 4, /* 38.4 MHz, XTAL */
--	WL12XX_REFCLOCK_26_XTAL = 5, /* 26 MHz, XTAL */
--};
--
--/* TCXO clock values */
--enum {
--	WL12XX_TCXOCLOCK_19_2	= 0, /* 19.2MHz */
--	WL12XX_TCXOCLOCK_26	= 1, /* 26 MHz */
--	WL12XX_TCXOCLOCK_38_4	= 2, /* 38.4MHz */
--	WL12XX_TCXOCLOCK_52	= 3, /* 52 MHz */
--	WL12XX_TCXOCLOCK_16_368	= 4, /* 16.368 MHz */
--	WL12XX_TCXOCLOCK_32_736	= 5, /* 32.736 MHz */
--	WL12XX_TCXOCLOCK_16_8	= 6, /* 16.8 MHz */
--	WL12XX_TCXOCLOCK_33_6	= 7, /* 33.6 MHz */
--};
--
- struct wl1251_platform_data {
- 	int power_gpio;
- 	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
-@@ -58,8 +36,9 @@ struct wl1251_platform_data {
- struct wl12xx_platform_data {
- 	int irq;
- 	u32 irq_trigger;
--	int board_ref_clock;
--	int board_tcxo_clock;
-+	bool ref_clock_xtal;	/* specify whether the clock is XTAL or not */
-+	u32 ref_clock_freq;	/* in Hertz */
-+	u32 tcxo_clock_freq;	/* in Hertz, tcxo is always XTAL */
- 	bool pwr_in_suspend;
- };
+ 	/* Undo decrement done above in wl1271_probe */
+ 	pm_runtime_get_noresume(&func->dev);
+ 
+ 	platform_device_unregister(glue->core);
++	wlcore_del_platform_data(pdata);
+ 	kfree(glue);
+ }
  
 -- 
 1.8.5.2.229.g4448466.dirty
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
