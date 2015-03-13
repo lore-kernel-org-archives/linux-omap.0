@@ -1,72 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
-Date: Fri, 13 Mar 2015 12:30:59 -0700
-Message-ID: <20150313193058.GN5264@atomide.com>
-References: <20150309205157.GE5140@atomide.com>
- <CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
- <20150309211306.GC22341@saruman.tx.rr.com>
- <CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
- <20150309212014.GE22341@saruman.tx.rr.com>
- <20150309212622.GJ5264@atomide.com>
- <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
- <20150309214129.GK5264@atomide.com>
- <CAALWOA-sdLzUP8_6BKvsDQeAqxCw5-n410u3=W3D5yaCLYChbQ@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv2] thermal: add omap3 support
+Date: Fri, 13 Mar 2015 20:40:25 +0100
+Message-ID: <20150313194025.GA22182@amd>
+References: <20150103111146.GB7065@amd>
+ <20150118202824.GB29014@amd>
+ <20150313050300.GA30104@developer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:37080 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753210AbbCMTf6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Mar 2015 15:35:58 -0400
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAALWOA-sdLzUP8_6BKvsDQeAqxCw5-n410u3=W3D5yaCLYChbQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150313050300.GA30104@developer>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Bin Liu <binmlist@gmail.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [150313 11:39]:
-> Given that the documentation mentions the actual phy used, it may be
-> worth mentioning this also in the driver?  i.e. that it's not a
-> "dm816x phy" but a "SR70LX Synopsys USB 2.0 OTG nanoPHY" (in contrast
-> to the dm814x and am335x which use a phy TI made themselves)
+Hi!
 
-Hmm OK have to check that. It could also be that dm816x documentation
-is copy-paste from da850 or am3517 and the PHY got changed in the
-hardware as the registers don't match the documentation. Only the
-dm816x errata has right documentation for the USB PHY.
- 
-> USB is one of the few subsystems of the DM814x I've never really
-> examined in any detail, but it appears nearly identical to the AM335x.
-> (e.g. the phy registers in the control module are nearly identical,
-> differing only in some bits related to GPIO-mode)
-
-OK thanks for confirming that. It's different from this one then.
- 
-> On 9 March 2015 at 22:41, Tony Lindgren <tony@atomide.com> wrote:
-> > Note that we still are missing basic support for dm814x in mainline,
-> > I'm planning to tackle that at some point but I don't know when I'm
-> > going to get to it..
+> > @@ -384,25 +385,10 @@ int ti_bandgap_set_sensor_data(struct ti_bandgap *bgp, int id, void *data);
+> >  void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
+> >  int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
+> >  
+> > -#ifdef CONFIG_OMAP4_THERMAL
+> > +extern const struct ti_bandgap_data omap34xx_data;
+> >  extern const struct ti_bandgap_data omap4430_data;
+> >  extern const struct ti_bandgap_data omap4460_data;
+> >  extern const struct ti_bandgap_data omap4470_data;
+> > -#else
+> > -#define omap4430_data					NULL
+> > -#define omap4460_data					NULL
+> > -#define omap4470_data					NULL
+> > -#endif
+> > -
+> > -#ifdef CONFIG_OMAP5_THERMAL
+> >  extern const struct ti_bandgap_data omap5430_data;
+> > -#else
+> > -#define omap5430_data					NULL
+> > -#endif
+> > -
+> > -#ifdef CONFIG_DRA752_THERMAL
+> >  extern const struct ti_bandgap_data dra752_data;
+> > -#else
+> > -#define dra752_data					NULL
+> > -#endif
 > 
-> Do ping me if you have questions. While I still don't have time to
-> really throw myself on the task myself, and I'm still hindered by
-> insufficient knowledge of the kernel, I do have quite a bit of
-> experience with the processor itself.
+> Pavel,
 > 
+> Why do we need to remove the existing symbols for other chips in this file to get OMAP3 support in?
 > 
-> BTW, w.r.t. the old "official" TI kernel for dm81xx: there are
-> actually two relevant forks of the unmaintained
-> arago-omap3/ti81xx-master branch, namely:
-> 
-> http://arago-project.org/git/projects/?p=linux-ipnc-rdk-dm81xx.git
-> http://arago-project.org/git/projects/?p=linux-dvr-rdk-dm81xx.git
-> 
-> which contain various bugfixes, including for usb (though also patches
-> specific to those SDKs).
 
-Yeah it will be several days of work anyways, not currently my
-priority for sure. Would be nice to get it done though.
+No, I don't need to remove this, and you can safely drop this hunk.
 
-Regards,
+OTOH those ifdefs are unneccessary and eye-sore: extern symbol
+declarations do not really hurt, and .c files already contain enough
+#ifdefs for other reasons that the symbols will not be needed when it
+is not configured.
 
-Tony
+Try it, it should work ok.
+
+Best regards,
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
