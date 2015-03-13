@@ -1,44 +1,60 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v2 2/2] Documentation: omap-twl4030: Move ti,codec property to optional
-Date: Fri, 13 Mar 2015 21:40:37 +0100
-Message-ID: <1426279237-15940-3-git-send-email-marek@goldelico.com>
-References: <1426279237-15940-1-git-send-email-marek@goldelico.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 2/4] CLK: TI: OMAP5: Correct the DT clock aliases for timers
+Date: Fri, 13 Mar 2015 17:58:36 -0500
+Message-ID: <1426287518-47786-3-git-send-email-s-anna@ti.com>
+References: <1426287518-47786-1-git-send-email-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426279237-15940-1-git-send-email-marek@goldelico.com>
+In-Reply-To: <1426287518-47786-1-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, peter.ujfalusi@ti.com
-Cc: eballetbo@gmail.com, javier@dowhile0.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jarkko.nikula@bitmer.com, hns@goldelico.com, arnd@arndb.de, Marek Belisko <marek@goldelico.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-ti,codec property is not used in omap-twl4030 driver in linux kernel but
-we keep it as optional property, so that the existing dtbs do not
-become noncompliant after the change on other OS.
+The DT clock aliases for Timers use the legacy (non-DT) device
+names and a source clock named sys_ck. OMAP5 is DT-boot only,
+so correct the DT clock aliases to use the DT device names
+instead. Also, the source clock name is corrected from 'sys_ck'
+to 'timer_sys_ck', the name used by the OMAP dmtimer driver.
 
-Signed-off-by: Marek Belisko <marek@goldelico.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- Documentation/devicetree/bindings/sound/omap-twl4030.txt | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/clk/ti/clk-54xx.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/sound/omap-twl4030.txt b/Documentation/devicetree/bindings/sound/omap-twl4030.txt
-index 1ab6bc8..f6a715e 100644
---- a/Documentation/devicetree/bindings/sound/omap-twl4030.txt
-+++ b/Documentation/devicetree/bindings/sound/omap-twl4030.txt
-@@ -4,9 +4,9 @@ Required properties:
- - compatible: "ti,omap-twl4030"
- - ti,model: Name of the sound card (for example "omap3beagle")
- - ti,mcbsp: phandle for the McBSP node
--- ti,codec: phandle for the twl4030 audio node
- 
- Optional properties:
-+- ti,codec: phandle for the twl4030 audio node
- - ti,mcbsp-voice: phandle for the McBSP node connected to the voice port of twl
- - ti, jack-det-gpio: Jack detect GPIO
- - ti,audio-routing: List of connections between audio components.
-@@ -59,5 +59,4 @@ sound {
- 	ti,model = "omap3beagle";
- 
- 	ti,mcbsp = <&mcbsp2>;
--	ti,codec = <&twl_audio>;
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+index 14160b223548..96c69a335975 100644
+--- a/drivers/clk/ti/clk-54xx.c
++++ b/drivers/clk/ti/clk-54xx.c
+@@ -208,17 +208,17 @@ static struct ti_dt_clk omap54xx_clks[] = {
+ 	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
+ 	DT_CLK("omap_wdt", "ick", "dummy_ck"),
+ 	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
+-	DT_CLK("omap_timer.1", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.2", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.3", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.4", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.9", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.10", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.11", "sys_ck", "sys_clkin"),
+-	DT_CLK("omap_timer.5", "sys_ck", "dss_syc_gfclk_div"),
+-	DT_CLK("omap_timer.6", "sys_ck", "dss_syc_gfclk_div"),
+-	DT_CLK("omap_timer.7", "sys_ck", "dss_syc_gfclk_div"),
+-	DT_CLK("omap_timer.8", "sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("4ae18000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("48032000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("48034000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("48036000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("4803e000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("48086000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("48088000.timer", "timer_sys_ck", "sys_clkin"),
++	DT_CLK("40138000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("4013a000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("4013c000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("4013e000.timer", "timer_sys_ck", "dss_syc_gfclk_div"),
+ 	{ .node_name = NULL },
  };
+ 
 -- 
-1.9.1
+2.3.2
