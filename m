@@ -1,42 +1,33 @@
-From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
- clk instances
-Date: Fri, 13 Mar 2015 09:20:10 +0100
-Message-ID: <20150313082010.GA1033@breakpoint.cc>
-References: <54CFFBCF.90706@codeaurora.org>
- <20150202225036.421.43421@quantum>
- <54D0F179.1040906@gmail.com>
- <54D2AA9B.7010800@codeaurora.org>
- <54D3900A.9060200@gmail.com>
- <54D423C3.9030105@codeaurora.org>
- <54E3BA20.3080205@codeaurora.org>
- <20150312172006.GA18418@breakpoint.cc>
- <5501EC6C.5010100@codeaurora.org>
- <20150313032931.GO20455@dragon>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 2/2] Documentation: omap-twl4030: Remove ti,codec property
+Date: Fri, 13 Mar 2015 12:05:20 +0100
+Message-ID: <38159868.RLZZTyUOlK@wuerfel>
+References: <1426194899-14037-1-git-send-email-marek@goldelico.com> <1426194899-14037-3-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150313032931.GO20455@dragon>
+In-Reply-To: <1426194899-14037-3-git-send-email-marek@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Quentin Lambert <lambert.quentin@gmail.com>, Mike Turquette <mturquette@linaro.org>, Julia Lawall <julia.lawall@lip6.fr>, Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: bcousson@baylibre.com, tony@atomide.com, peter.ujfalusi@ti.com, eballetbo@gmail.com, javier@dowhile0.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jarkko.nikula@bitmer.com, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Shawn,
+On Thursday 12 March 2015 22:14:59 Marek Belisko wrote:
+> diff --git a/Documentation/devicetree/bindings/sound/omap-twl4030.txt b/Documentation/devicetree/bindings/sound/omap-twl4030.txt
+> index 1ab6bc8..656165f 100644
+> --- a/Documentation/devicetree/bindings/sound/omap-twl4030.txt
+> +++ b/Documentation/devicetree/bindings/sound/omap-twl4030.txt
+> @@ -4,7 +4,6 @@ Required properties:
+>  - compatible: "ti,omap-twl4030"
+>  - ti,model: Name of the sound card (for example "omap3beagle")
+>  - ti,mcbsp: phandle for the McBSP node
+> -- ti,codec: phandle for the twl4030 audio node
 
-On Fri, Mar 13, 2015 at 11:29:32AM +0800, Shawn Guo wrote:
+As this was a required property, are you sure that no other operating system
+uses it?
 
-> We did not add a DT property for it, because there was already enough
-> info (clock configuration) in DT for kernel to figure it out.
-Correct. My understanding is whatever can be figured out without DT should
-be done that way.
+Even if not, you should probably change it to be an optional property, so
+that the existing dtbs do not become noncompliant after the change.
 
-Is there a way to get this clock-select bit set without
-enable_fec_anatop_clock() in u-boot? Because this one selects the clock and
-frequency and also sets the proper bit in gpr1. My question is simply why do
-we need to do this here as well.
-
-> Shawn
-
-Sebastian
+	Arnd
