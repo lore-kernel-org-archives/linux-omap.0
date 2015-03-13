@@ -1,47 +1,71 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v6 5/6] ARM: dts: add wl12xx/wl18xx bindings
-Date: Fri, 13 Mar 2015 08:27:52 -0700
-Message-ID: <20150313152751.GK5264@atomide.com>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
- <1426162154-8716-6-git-send-email-eliad@wizery.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v6 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked
+ domains
+Date: Fri, 13 Mar 2015 08:40:39 -0700
+Message-ID: <20150313154039.GL5264@atomide.com>
+References: <1426088629-15377-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:36976 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751448AbbCMPpi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Mar 2015 11:45:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1426162154-8716-6-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1426088629-15377-1-git-send-email-marc.zyngier@arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150312 05:09]:
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
->  
-> -static void __init omap3_evm_legacy_init(void)
-> -{
-> -	legacy_init_wl12xx(38400000, 0, 149);
-> -}
+* Marc Zyngier <marc.zyngier@arm.com> [150311 08:44]:
+> This series is extracted from [4], which is trying to remove all
+> traces of gic_arch_extn from the tree. As some maintainers are more
+> responsive than others (understatement of the year...), I've decided
+> to split it per sub-arch, and get it moving, at least partially.
+> 
+> This series addresses OMAP{4,5} by converting the WUGEN to stacked
+> domains. The DRA7 crossbar gets the same treatment.
+...
+> 
+>  Documentation/devicetree/bindings/arm/gic.txt      |   6 -
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |  18 +-
+>  .../interrupt-controller/ti,omap4-wugen-mpu        |  33 ++++
+>  arch/arm/boot/dts/am4372.dtsi                      |  11 +-
+>  arch/arm/boot/dts/am437x-gp-evm.dts                |   1 -
+>  arch/arm/boot/dts/am437x-sk-evm.dts                |   1 -
+>  arch/arm/boot/dts/am43x-epos-evm.dts               |   1 -
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts            |   3 +-
+>  arch/arm/boot/dts/dra7-evm.dts                     |   2 +-
+>  arch/arm/boot/dts/dra7.dtsi                        |  43 +++--
+>  arch/arm/boot/dts/dra72-evm.dts                    |   1 -
+>  arch/arm/boot/dts/dra72x.dtsi                      |   3 +-
+>  arch/arm/boot/dts/dra74x.dtsi                      |   5 +-
+>  arch/arm/boot/dts/omap4-duovero.dtsi               |   2 -
+>  arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
+>  arch/arm/boot/dts/omap4-sdp.dts                    |   8 +-
+>  arch/arm/boot/dts/omap4-var-som-om44.dtsi          |   2 -
+>  arch/arm/boot/dts/omap4.dtsi                       |  18 +-
+>  arch/arm/boot/dts/omap5-cm-t54.dts                 |   1 -
+>  arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
+>  arch/arm/boot/dts/omap5.dtsi                       |  26 ++-
+>  arch/arm/mach-omap2/omap-wakeupgen.c               | 128 ++++++++++---
+>  arch/arm/mach-omap2/omap-wakeupgen.h               |   1 -
+>  arch/arm/mach-omap2/omap4-common.c                 |  27 +--
+>  drivers/irqchip/irq-crossbar.c                     | 210 ++++++++++++---------
+>  drivers/irqchip/irq-gic.c                          |  59 +-----
+>  include/linux/irq.h                                |   1 +
+>  include/linux/irqchip/arm-gic.h                    |   6 -
+>  include/linux/irqchip/irq-crossbar.h               |  11 --
+>  kernel/irq/chip.c                                  |  16 ++
+>  30 files changed, 376 insertions(+), 278 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+>  delete mode 100644 include/linux/irqchip/irq-crossbar.h
 
-FYI, at least this part conflicts with the fixes in the arm-soc
-tree for the v4.0-rc series as omap3 evm also needs the copy clock
-quirk.
-
-> @@ -419,20 +351,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
->  	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
->  	{ "isee,omap3-igep0020-rev-f", omap3_igep0020_rev_f_legacy_init, },
->  	{ "isee,omap3-igep0030-rev-g", omap3_igep0030_rev_g_legacy_init, },
-> -	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
-
-So this function cannot be yet removed.
-
-With that fixed, I was able to iw dev wlan0 scan with series on
-omap3 evm :)
+For merging this, how about Marc sets up an immutable branch against
+v4.0-rc1 that both Jason and I can merge it in? Then Jason can
+send the pull request I can sort out the merge conflict issues.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
