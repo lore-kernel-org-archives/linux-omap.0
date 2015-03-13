@@ -1,67 +1,83 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv2] thermal: add omap3 support
-Date: Fri, 13 Mar 2015 12:53:45 -0400
-Message-ID: <20150313165343.GB30104@developer>
-References: <20150103111146.GB7065@amd>
- <20150118202824.GB29014@amd>
- <20150313120935.GA27533@amd>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH v6 0/7] irqchip: Move OMAP{4,5}/DRA7 to use stacked domains
+Date: Fri, 13 Mar 2015 17:25:35 +0000
+Message-ID: <20150313172535.GM21998@io.lakedaemon.net>
+References: <1426088629-15377-1-git-send-email-marc.zyngier@arm.com>
+ <20150313154039.GL5264@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nVMJ2NtxeReIH9PS"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150313120935.GA27533@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+In-Reply-To: <20150313154039.GL5264@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hey Tony,
 
---nVMJ2NtxeReIH9PS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Mar 13, 2015 at 08:40:39AM -0700, Tony Lindgren wrote:
+> * Marc Zyngier <marc.zyngier@arm.com> [150311 08:44]:
+> > This series is extracted from [4], which is trying to remove all
+> > traces of gic_arch_extn from the tree. As some maintainers are more
+> > responsive than others (understatement of the year...), I've decided
+> > to split it per sub-arch, and get it moving, at least partially.
+> > 
+> > This series addresses OMAP{4,5} by converting the WUGEN to stacked
+> > domains. The DRA7 crossbar gets the same treatment.
+> ...
+> > 
+> >  Documentation/devicetree/bindings/arm/gic.txt      |   6 -
+> >  .../devicetree/bindings/arm/omap/crossbar.txt      |  18 +-
+> >  .../interrupt-controller/ti,omap4-wugen-mpu        |  33 ++++
+> >  arch/arm/boot/dts/am4372.dtsi                      |  11 +-
+> >  arch/arm/boot/dts/am437x-gp-evm.dts                |   1 -
+> >  arch/arm/boot/dts/am437x-sk-evm.dts                |   1 -
+> >  arch/arm/boot/dts/am43x-epos-evm.dts               |   1 -
+> >  arch/arm/boot/dts/am57xx-beagle-x15.dts            |   3 +-
+> >  arch/arm/boot/dts/dra7-evm.dts                     |   2 +-
+> >  arch/arm/boot/dts/dra7.dtsi                        |  43 +++--
+> >  arch/arm/boot/dts/dra72-evm.dts                    |   1 -
+> >  arch/arm/boot/dts/dra72x.dtsi                      |   3 +-
+> >  arch/arm/boot/dts/dra74x.dtsi                      |   5 +-
+> >  arch/arm/boot/dts/omap4-duovero.dtsi               |   2 -
+> >  arch/arm/boot/dts/omap4-panda-common.dtsi          |   8 +-
+> >  arch/arm/boot/dts/omap4-sdp.dts                    |   8 +-
+> >  arch/arm/boot/dts/omap4-var-som-om44.dtsi          |   2 -
+> >  arch/arm/boot/dts/omap4.dtsi                       |  18 +-
+> >  arch/arm/boot/dts/omap5-cm-t54.dts                 |   1 -
+> >  arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
+> >  arch/arm/boot/dts/omap5.dtsi                       |  26 ++-
+> >  arch/arm/mach-omap2/omap-wakeupgen.c               | 128 ++++++++++---
+> >  arch/arm/mach-omap2/omap-wakeupgen.h               |   1 -
+> >  arch/arm/mach-omap2/omap4-common.c                 |  27 +--
+> >  drivers/irqchip/irq-crossbar.c                     | 210 ++++++++++++---------
+> >  drivers/irqchip/irq-gic.c                          |  59 +-----
+> >  include/linux/irq.h                                |   1 +
+> >  include/linux/irqchip/arm-gic.h                    |   6 -
+> >  include/linux/irqchip/irq-crossbar.h               |  11 --
+> >  kernel/irq/chip.c                                  |  16 ++
+> >  30 files changed, 376 insertions(+), 278 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/interrupt-controller/ti,omap4-wugen-mpu
+> >  delete mode 100644 include/linux/irqchip/irq-crossbar.h
+> 
+> For merging this, how about Marc sets up an immutable branch against
+> v4.0-rc1 that both Jason and I can merge it in? Then Jason can
+> send the pull request I can sort out the merge conflict issues.
 
+If you don't mind, I'll create the branch.  I tend to fixup some nitpicks when
+I apply patches for irqchip.  If there are any nits you'd like me to fix while
+I'm applying, just let me know.
 
-Hey Pavel,
+thx,
 
-On Fri, Mar 13, 2015 at 01:09:35PM +0100, Pavel Machek wrote:
-> Hi!
->=20
-> I checked 4.0-rc3 and linux-next as of today, and can not see omap3
-> thermal support. Can you apply the patches?
-
-Yeah, it should be possible. Apologize, it really fell into the cracks.
-
-There is a comment on it though. Please check my concern in you v2.
-
-BR,
-
-Eduardo
-
-
->=20
-> Thanks,
-> 									Pavel
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
---nVMJ2NtxeReIH9PS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJVAxYXAAoJEMLUO4d9pOJWjFgH/Ag4XX2B6lPpOA+7k4LCl+H3
-VxioIm/lAhhYzEOClo6mE5hD3Sku6s+x/jC6MS6Og8yQqXAGjuHYedkPUntClXPU
-dfaV4pGV48EXl24fJTgLRgkcehBJs1L0F/Trqsr7LAqkCXhdQDvy7xYjSkF5UzRp
-2dGkfCK4wIGxcW4UQsLaHqgOgV78GlPuuV+TCEt3UJvlYxCRvL7JstL0ONu7Gnb+
-wqwj7KAyMsWU+QH8sU7CgCx1Vo7GdoS4waHdT+/H5oXk4n1iyx6aT10MjF6LqBHT
-dWp+SuC7jQ+V+kYqYLh4XraYUNGMdL3VECeoAXIn1bp1AYr51DOYAxj1Pv4bmkk=
-=FDn2
------END PGP SIGNATURE-----
-
---nVMJ2NtxeReIH9PS--
+Jason.
