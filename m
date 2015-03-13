@@ -1,53 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/2] ARM: devicetree: Remove unused ti,codec property
-Date: Fri, 13 Mar 2015 09:09:01 +0200
-Message-ID: <55028D0D.3050403@ti.com>
-References: <1426194899-14037-1-git-send-email-marek@goldelico.com>
+From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v6 5/6] ARM: dts: add wl12xx/wl18xx bindings
+Date: Fri, 13 Mar 2015 09:01:08 +0100
+Message-ID: <CABxcv=mETO9ESVa04YjRO1d-h5ksEwvwGKb1G-jxVk6ttr9JYg@mail.gmail.com>
+References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
+	<1426162154-8716-6-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426194899-14037-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>, bcousson@baylibre.com, tony@atomide.com
-Cc: eballetbo@gmail.com, javier@dowhile0.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jarkko.nikula@bitmer.com, hns@goldelico.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426162154-8716-6-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, paupa13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/12/2015 11:14 PM, Marek Belisko wrote:
-> ti,codec in not parsed in omap-twl4030 sound driver. It's not necessa=
-ry
-> to specify this property in DT because ti,twl4030-audio which ti,code=
-c
-> was pointing to by phandle is mfd driver and device for ASoC ic creat=
-ed w/o
-> any DT property (codec name is hardcoded in ASoC driver).
+Hello Eliad,
 
-All:
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+On Thu, Mar 12, 2015 at 1:09 PM, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> wrote:
+> Replace all the pdata-quirks for setting wl12xx/wl18xx
+> platform data with proper DT definitions.
+>
+> The patch was compile-tested only.
+>
+> Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+> ---
 
+I wanted to test your series but I realized that the IGEPv2 I've
+access is the old revision that has another SDIO wlan module instead
+of a Wilink8.
 
->=20
-> Please see reply [1] from Peter Ujfalusi.
->=20
-> [1]: http://comments.gmane.org/gmane.linux.ports.arm.omap/124273
->=20
-> Marek Belisko (2):
->   ARM: dts: omap3: Remove all references to ti,codec property
->   Documentation: omap-twl4030: Remove ti,codec property
->=20
->  Documentation/devicetree/bindings/sound/omap-twl4030.txt | 2 --
->  arch/arm/boot/dts/omap3-beagle-xm.dts                    | 1 -
->  arch/arm/boot/dts/omap3-beagle.dts                       | 1 -
->  arch/arm/boot/dts/omap3-cm-t3x30.dtsi                    | 1 -
->  arch/arm/boot/dts/omap3-devkit8000.dts                   | 1 -
->  arch/arm/boot/dts/omap3-gta04.dtsi                       | 1 -
->  arch/arm/boot/dts/omap3-igep.dtsi                        | 1 -
->  arch/arm/boot/dts/omap3-lilly-a83x.dtsi                  | 1 -
->  arch/arm/boot/dts/omap3-overo-base.dtsi                  | 1 -
->  arch/arm/boot/dts/omap3-tao3530.dtsi                     | 1 -
->  10 files changed, 11 deletions(-)
->=20
+Maybe Enric have the new revision? I also added to Pau Pajuel as cc
+who still works in the company manufacturing these boards so he should
+be able to test it.
 
+But in any case, your patch looks good to me so for the
+arch/arm/boot/dts/omap3-igep00* changes:
 
---=20
-P=E9ter
+Acked-by: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
