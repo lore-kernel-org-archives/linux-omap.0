@@ -1,48 +1,59 @@
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [Cocci] [PATCH v13 3/6] clk: Make clk API return per-user struct
- clk instances
-Date: Fri, 13 Mar 2015 21:42:14 +0800
-Message-ID: <20150313134211.GV20455@dragon>
-References: <20150202225036.421.43421@quantum>
- <54D0F179.1040906@gmail.com>
- <54D2AA9B.7010800@codeaurora.org>
- <54D3900A.9060200@gmail.com>
- <54D423C3.9030105@codeaurora.org>
- <54E3BA20.3080205@codeaurora.org>
- <20150312172006.GA18418@breakpoint.cc>
- <5501EC6C.5010100@codeaurora.org>
- <20150313032931.GO20455@dragon>
- <20150313082010.GA1033@breakpoint.cc>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC (do not merge)] ASoC: davinci-mcasp: Set rule constraint
+ if implicit bclk divider is used
+Date: Fri, 13 Mar 2015 16:21:44 +0200
+Message-ID: <5502F278.2070608@ti.com>
+References: <1426246615-12772-1-git-send-email-jsarha@ti.com> <5502D052.1030804@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150313082010.GA1033@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Quentin Lambert <lambert.quentin@gmail.com>, Mike Turquette <mturquette@linaro.org>, Julia Lawall <julia.lawall@lip6.fr>, Paul Walmsley <paul@pwsan.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux-omap@vger.kernel.org, cocci@systeme.lip6.fr, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41484 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751601AbbCMOV4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2015 10:21:56 -0400
+In-Reply-To: <5502D052.1030804@metafoo.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lars-Peter Clausen <lars@metafoo.de>, alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com
 
-On Fri, Mar 13, 2015 at 09:20:10AM +0100, Sebastian Andrzej Siewior wrote:
-> Hi Shawn,
-> 
-> On Fri, Mar 13, 2015 at 11:29:32AM +0800, Shawn Guo wrote:
-> 
-> > We did not add a DT property for it, because there was already enough
-> > info (clock configuration) in DT for kernel to figure it out.
-> Correct. My understanding is whatever can be figured out without DT should
-> be done that way.
-> 
-> Is there a way to get this clock-select bit set without
-> enable_fec_anatop_clock() in u-boot? Because this one selects the clock and
-> frequency and also sets the proper bit in gpr1. My question is simply why do
-> we need to do this here as well.
+On 03/13/15 13:56, Lars-Peter Clausen wrote:
+> On 03/13/2015 12:36 PM, Jyri Sarha wrote:
+> [...]
+>> In theory this patch does exactly what it is supposed to. It only
+>> allows a sample-rate and sample-format combination if the rate can be
+>> produced with reasonable accuracy. Unfortunately the alsa-lib and
+>> alsa-tools are not able use this information too well. If the requested
+>> sample-rate and sample-format is not available the aplay/arecord
+>> fails, even if plughw is selected, with:
+>>
+>> pcm_params.c:170: snd1_pcm_hw_param_get_min: Assertion
+>> `!snd_interval_empty(i)' failed.
+> [...]
+>> +
+>> +    /*
+>> +     * If we rely on implicit BCLK divider setting we should
+>> +     * set constraints based on what we can provide.
+>> +     */
+>> +    if (mcasp->bclk_master && mcasp->bclk_div == 0 &&
+>> mcasp->sysclk_freq)
+>> +        return snd_pcm_hw_rule_add(substream->runtime, 0,
+>> +                       SNDRV_PCM_HW_PARAM_RATE,
+>> +                       davinci_mcasp_hw_rule_rate,
+>> +                       mcasp,
+>> +                       SNDRV_PCM_HW_PARAM_FRAME_BITS,
+>> +                       SNDRV_PCM_HW_PARAM_CHANNELS, -1);
+>> +
+>
+> For things to work correctly you also need reverse rules restricting
+> CHANNELS and FRAME_BITS based on the RATE. This might fix the issue you
+> are seeing with the ALSA tools.
+>
 
-I'm not sure I follow your question.  But we had been doing this setup
-in kernel function imx6q_1588_init() for a while.  The problem we're
-having now is that the clk core change broke it since v4.0-rc1.  And the
-fix is already queued there [1].
+Thanks, that was indeed the case. I mail a new patch once I get my patch 
+in order.
 
-Shawn
+Best regards,
+Jyri
 
-[1] https://git.kernel.org/cgit/linux/kernel/git/clk/linux.git/log/?h=clk-fixes
