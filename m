@@ -1,59 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
-Date: Fri, 13 Mar 2015 08:13:02 -0700
-Message-ID: <20150313151301.GJ5264@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v6 5/6] ARM: dts: add wl12xx/wl18xx bindings
+Date: Fri, 13 Mar 2015 08:27:52 -0700
+Message-ID: <20150313152751.GK5264@atomide.com>
 References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
- <1426162154-8716-7-git-send-email-eliad@wizery.com>
+ <1426162154-8716-6-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1426162154-8716-7-git-send-email-eliad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, Arnd Bergmann <arnd@arndb.de>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-wireless@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Luciano Coelho <luca@coelho.fi>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1426162154-8716-6-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBFbGlhZCBQZWxsZXIgPGVsaWFkQHdpemVyeS5jb20+IFsxNTAzMTIgMDU6MTBdOgo+IE5vdyB0
-aGF0IHdlIGhhdmUgd2xjb3JlIGRldmljZS10cmVlIGJpbmRpbmdzIGluIHBsYWNlCj4gKGZvciBi
-b3RoIHdsMTJ4eCBhbmQgd2wxOHh4KSwgcmVtb3ZlIHRoZSBsZWdhY3kKPiB3bDEyeHhfcGxhdGZv
-cm1fZGF0YSBzdHJ1Y3QsIGFuZCBtb3ZlIGl0cyBtZW1iZXJzCj4gaW50byB0aGUgcGxhdGZvcm0g
-ZGV2aWNlIGRhdGEgKHRoYXQgaXMgcGFzc2VkIHRvIHdsY29yZSkKPiAKPiBEYXZpbmNpIDg1MCBp
-cyB0aGUgb25seSBwbGF0Zm9ybSB0aGF0IHN0aWxsIHNldAo+IHRoZSBwbGF0Zm9ybSBkYXRhIGlu
-IHRoZSBsZWdhY3kgd2F5IChhbmQgZG9lc24ndAo+IGhhdmUgRFQgYmluZGluZ3MpLCBzbyByZW1v
-dmUgdGhlIHJlbGV2YW50Cj4gY29kZS9LY29uZmlnIG9wdGlvbiBmcm9tIHRoZSBib2FyZCBmaWxl
-IChhcyBzdWdnZXN0ZWQKPiBieSBTZWtoYXIgTm9yaSkKPiAKPiBTaWduZWQtb2ZmLWJ5OiBMdWNp
-YW5vIENvZWxobyA8bHVjYUBjb2VsaG8uZmk+Cj4gU2lnbmVkLW9mZi1ieTogRWxpYWQgUGVsbGVy
-IDxlbGlhZEB3aXplcnkuY29tPgo+IC0tLQo+ICBhcmNoL2FybS9tYWNoLWRhdmluY2kvS2NvbmZp
-ZyAgICAgICAgICAgICAgICAgIHwgIDExIC0tLQo+ICBhcmNoL2FybS9tYWNoLWRhdmluY2kvYm9h
-cmQtZGE4NTAtZXZtLmMgICAgICAgIHwgMTEzIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAg
-ZHJpdmVycy9uZXQvd2lyZWxlc3MvdGkvd2lsaW5rX3BsYXRmb3JtX2RhdGEuYyB8ICAyNSAtLS0t
-LS0KPiAgZHJpdmVycy9uZXQvd2lyZWxlc3MvdGkvd2wxMnh4L21haW4uYyAgICAgICAgICB8ICAx
-OSArKy0tLQo+ICBkcml2ZXJzL25ldC93aXJlbGVzcy90aS93bGNvcmUvYm9vdC5jICAgICAgICAg
-IHwgICAxIC0KPiAgZHJpdmVycy9uZXQvd2lyZWxlc3MvdGkvd2xjb3JlL21haW4uYyAgICAgICAg
-ICB8ICAgNCArLQo+ICBkcml2ZXJzL25ldC93aXJlbGVzcy90aS93bGNvcmUvc2Rpby5jICAgICAg
-ICAgIHwgIDc1ICsrKysrLS0tLS0tLS0tLS0KPiAgZHJpdmVycy9uZXQvd2lyZWxlc3MvdGkvd2xj
-b3JlL3dsY29yZV9pLmggICAgICB8ICAgOCArLQo+ICBpbmNsdWRlL2xpbnV4L3dsMTJ4eC5oICAg
-ICAgICAgICAgICAgICAgICAgICAgIHwgIDI1IC0tLS0tLQo+ICA5IGZpbGVzIGNoYW5nZWQsIDM2
-IGluc2VydGlvbnMoKyksIDI0NSBkZWxldGlvbnMoLSkKCkkgZ290IGEgYnVpbGQgZXJyb3IgcmVs
-YXRlZCB0byB0aGUgU1BJIGRyaXZlciB3aXRoIHRoaXMgc2VyaWVzLCBwcm9iYWJseQpuZWVkIHRv
-IHVwZGF0ZSB0aGlzIHBhdGNoOgoKZHJpdmVycy9uZXQvd2lyZWxlc3MvdGkvd2xjb3JlL3NwaS5j
-OiBJbiBmdW5jdGlvbiDigJh3bDEyNzFfcHJvYmXigJk6CmRyaXZlcnMvbmV0L3dpcmVsZXNzL3Rp
-L3dsY29yZS9zcGkuYzozMzQ6MTE6IGVycm9yOiDigJhzdHJ1Y3Qgd2xjb3JlX3BsYXRkZXZfZGF0
-YeKAmSBoYXMgbm8gbWVtYmVyIG5hbWVkIOKAmHBkYXRh4oCZCiAgcGRldl9kYXRhLnBkYXRhID0g
-ZGV2X2dldF9wbGF0ZGF0YSgmc3BpLT5kZXYpOwogICAgICAgICAgIF4KZHJpdmVycy9uZXQvd2ly
-ZWxlc3MvdGkvd2xjb3JlL3NwaS5jOjMzNToxNjogZXJyb3I6IOKAmHN0cnVjdCB3bGNvcmVfcGxh
-dGRldl9kYXRh4oCZIGhhcyBubyBtZW1iZXIgbmFtZWQg4oCYcGRhdGHigJkKICBpZiAoIXBkZXZf
-ZGF0YS5wZGF0YSkgewoKUmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
-LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+* Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150312 05:09]:
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+>  
+> -static void __init omap3_evm_legacy_init(void)
+> -{
+> -	legacy_init_wl12xx(38400000, 0, 149);
+> -}
+
+FYI, at least this part conflicts with the fixes in the arm-soc
+tree for the v4.0-rc series as omap3 evm also needs the copy clock
+quirk.
+
+> @@ -419,20 +351,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
+>  	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
+>  	{ "isee,omap3-igep0020-rev-f", omap3_igep0020_rev_f_legacy_init, },
+>  	{ "isee,omap3-igep0030-rev-g", omap3_igep0030_rev_g_legacy_init, },
+> -	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
+
+So this function cannot be yet removed.
+
+With that fixed, I was able to iw dev wlan0 scan with series on
+omap3 evm :)
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
