@@ -1,43 +1,76 @@
-From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v6 0/6] wlcore: add device-tree support
-Date: Sun, 15 Mar 2015 10:58:45 +0200
-Message-ID: <CAB3XZEc0FOayfmrWvD-aq0Ez987G4JFkvHxO-ttF48z_F=_9Vg@mail.gmail.com>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
-	<55030C42.6020206@armadeus.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 00/10] omap3 crypto fixes
+Date: Sun, 15 Mar 2015 10:59:32 +0100
+Message-ID: <201503151059.32063@pali>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com> <201503081101.37452@pali> <alpine.DEB.2.02.1503081633300.20994@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55030C42.6020206-d2DlULPkwbNWk0Htik3J/w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?Q?S=C3=A9bastien_Szymanski?= <sebastien.szymanski-d2DlULPkwbNWk0Htik3J/w@public.gmane.org>
-Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Julien Boibessot <julien.boibessot-d2DlULPkwbNWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed;
+  boundary="nextPart3182315.HzrrPGmqaH";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:34260 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751810AbbCOJ7f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2015 05:59:35 -0400
+In-Reply-To: <alpine.DEB.2.02.1503081633300.20994@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>
 
-hi S=C3=A9bastien,
+--nextPart3182315.HzrrPGmqaH
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 13, 2015 at 6:11 PM, S=C3=A9bastien Szymanski
-<sebastien.szymanski-d2DlULPkwbNWk0Htik3J/w@public.gmane.org> wrote:
-> Hello,
->
-> On 03/12/2015 01:09 PM, Eliad Peller wrote:
->>
->> NOTE: all the platform patches were compile-tested
->> only. I'm looking for some wl12xx card (that i should
->> have somewhere) to test the wl12xx changes (wrt. clocks),
->> but haven't found it yet.
->>
->
-> I have tested this series on a APF6 board, i.MX6 based board with a
-> Jorjin WG7311-0A Wifi/BT module which is based on the wl1271l.
->
-> It works. I was able to power up the wlan0 interface and ping google.
->
-thanks for testing it!
+On Sunday 08 March 2015 17:35:13 Paul Walmsley wrote:
+> On Sun, 8 Mar 2015, Pali Roh=C3=A1r wrote:
+> > On Friday 06 March 2015 23:23:06 Aaro Koskinen wrote:
+> > > On Fri, Mar 06, 2015 at 10:36:32AM -0800, Tony Lindgren=20
+wrote:
+> > > > Are there any fixes in this series that should go into
+> > > > v4.0-rc series, or can it all wait for v4.1?
+> > >=20
+> > > I think these all should wait for v4.1.
+> > >=20
+> > > A.
+> >=20
+> > I would suggest to include at least patches 01, 04, 06.
+> > Probably those could go to -stable tree... but this
+> > decision is up to you.
+>=20
+> I'm not sure patch 1 is a fix.  As far as I know we haven't
+> run into any issues with it on real hardware - only on QEMU -
+> unless you know otherwise, Pali?  Are we sure that the QEMU
+> model behavior matches the hardware?
+>=20
+>=20
+> - Paul
 
-Eliad.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireles=
-s" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch 1 check for return value of more functions. If real HW or=20
+software emulated HW (in qemu) does not support e.g. aes then=20
+kernel show oops message, because kernel does not check return=20
+values and try to touch non-existent HW. So I think patch 1 is=20
+really fix. In my opinion if something can fail, then kernel=20
+should check if it failed. And not expect that function call=20
+always pass.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3182315.HzrrPGmqaH
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlUFWAQACgkQi/DJPQPkQ1JXCgCfZulItY/lich4DDYhBSXqwhQ6
+eHQAnjPcOXMp+jWKOW2umzBzKPb4LtL6
+=VleP
+-----END PGP SIGNATURE-----
+
+--nextPart3182315.HzrrPGmqaH--
