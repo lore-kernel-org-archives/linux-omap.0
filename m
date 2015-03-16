@@ -1,49 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/6] ARM: dts: omap3-gta04: Add battery support
-Date: Mon, 16 Mar 2015 13:50:58 -0700
-Message-ID: <20150316205057.GC12397@atomide.com>
-References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
- <1423088075-10025-5-git-send-email-marek@goldelico.com>
- <20150305003651.GB1033@earth>
- <20150316203537.GA12397@atomide.com>
- <CAAfyv34oWPgXw4tcy8zZ_vyU9=CxTPFZALVDkqqubAb4R41bvw@mail.gmail.com>
+Subject: Re: [PATCH v4 4/6] ARM: dts: omap3-gta04: Add battery support
+Date: Mon, 16 Mar 2015 13:53:42 -0700
+Message-ID: <20150316205341.GD12397@atomide.com>
+References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
+ <1426022847-30912-5-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAfyv34oWPgXw4tcy8zZ_vyU9=CxTPFZALVDkqqubAb4R41bvw@mail.gmail.com>
+In-Reply-To: <1426022847-30912-5-git-send-email-marek@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, LKML <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Marek Belisko <marek@goldelico.com>
+Cc: bcousson@baylibre.com, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-* Belisko Marek <marek.belisko@gmail.com> [150316 13:47]:
-> Hi Tony,
+* Marek Belisko <marek@goldelico.com> [150310 14:28]:
+> Added battery support for gta04 devices.
 > 
-> On Mon, Mar 16, 2015 at 9:35 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Sebastian Reichel <sre@kernel.org> [150304 16:41]:
-> >> Hi,
-> >>
-> >> On Wed, Feb 04, 2015 at 11:14:33PM +0100, Marek Belisko wrote:
-> >> > Signed-off-by: Marek Belisko <marek@goldelico.com>
-> >> > ---
-> >> >  arch/arm/boot/dts/omap3-gta04.dtsi | 30 ++++++++++++++++++++++++++++++
-> >> >  1 file changed, 30 insertions(+)
-> >>
-> >> DTS changes must go via omap-dt tree once the driver changes have been
-> >> merged.
-> >
-> > And looks like you wanted to add ti, prefix to the binding. I'll
-> > mark this one as read, please repost this one separately once the
-> > driver changes are in Linux next.
-> ti prefix Iis done in v4 series already [1]
-> >
-> > Regards,
-> >
-> > Tony
-> 
-> [1] - http://lkml.iu.edu/hypermail/linux/kernel/1503.1/02157.html
+> Signed-off-by: Marek Belisko <marek@goldelico.com>
 
-OK will pick it from there thanks.
+Picking up this patch into omap-for-v4.1/dt branch thanks.
 
 Tony
+
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> index fb3a696..cbf515a 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -49,6 +49,32 @@
+>  		ti,codec = <&twl_audio>;
+>  	};
+>  
+> +	battery {
+> +		compatible = "ti,twl4030-madc-battery";
+> +		capacity-uah = <1200000>;
+> +		ti,volt-to-capacity-charging-map = <4200 100>,
+> +					     <4100 75>,
+> +					     <4000 55>,
+> +					     <3900 25>,
+> +					     <3800 5>,
+> +					     <3700 2>,
+> +					     <3600 1>,
+> +					     <3300 0>;
+> +		ti,volt-to-capacity-discharging-map = <4200 100>,
+> +						<4100 95>,
+> +						<4000 70>,
+> +						<3800 50>,
+> +						<3700 10>,
+> +						<3600 5>,
+> +						<3300 0>;
+> +		io-channels = <&twl_madc 1>,
+> +	                      <&twl_madc 10>,
+> +			      <&twl_madc 12>;
+> +		io-channel-names = "temp",
+> +		                   "ichg",
+> +		                   "vbat";
+> +	};
+> +
+>  	spi_lcd {
+>  		compatible = "spi-gpio";
+>  		#address-cells = <0x1>;
+> @@ -518,3 +544,7 @@
+>  &mcbsp2 {
+>  	status = "okay";
+>  };
+> +
+> +&twl_madc {
+> +	ti,system-uses-second-madc-irq;
+> +};
+> -- 
+> 1.9.1
+> 
