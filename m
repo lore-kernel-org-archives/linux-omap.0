@@ -1,49 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
-Date: Mon, 16 Mar 2015 14:01:43 -0700
-Message-ID: <20150316210143.GF12397@atomide.com>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
- <2070859.WcMooC33YH@wuerfel>
- <20150316152939.GP5264@atomide.com>
- <201503162158.50587@pali>
+Subject: Re: [PATCH v4 4/6] ARM: dts: omap3-gta04: Add battery support
+Date: Mon, 16 Mar 2015 14:04:39 -0700
+Message-ID: <20150316210439.GG12397@atomide.com>
+References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
+ <1426022847-30912-5-git-send-email-marek@goldelico.com>
+ <20150316205341.GD12397@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:37813 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932962AbbCPVGd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 17:06:33 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201503162158.50587@pali>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150316205341.GD12397@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: bcousson@baylibre.com, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Eliad Peller <eliad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Sekhar Nori <nsekhar@ti.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Luciano Coelho <luca@coelho.fi>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150316 13:59]:
-> On Monday 16 March 2015 16:29:39 Tony Lindgren wrote:
-> > I believe the last pending issues is the support for
-> > ATAG_REVISION in device tree mode as posted by Pali.
-> >=20
->=20
-> No. In DT boot there is missing /proc/atags file (readable by=20
-> userspace processes).
+* Tony Lindgren <tony@atomide.com> [150316 13:59]:
+> * Marek Belisko <marek@goldelico.com> [150310 14:28]:
+> > Added battery support for gta04 devices.
+> > 
+> > Signed-off-by: Marek Belisko <marek@goldelico.com>
+> 
+> Picking up this patch into omap-for-v4.1/dt branch thanks.
 
-Oh OK thanks for the update.
-
-> And also broken AES/SHA/MD5 support. Fix for crypto DT stuff
-> I already sent.
-
-But this is not a regression in mainline with legacy boot vs
-device tree based booting, right? Sounds like it never worked
-in the mainline or am thinking of some other set of patches?
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Actually not yet applying this as looks like Pavel just
+had few comments on these properties.
+ 
+> Tony
+> 
+> > ---
+> >  arch/arm/boot/dts/omap3-gta04.dtsi | 30 ++++++++++++++++++++++++++++++
+> >  1 file changed, 30 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> > index fb3a696..cbf515a 100644
+> > --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> > +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> > @@ -49,6 +49,32 @@
+> >  		ti,codec = <&twl_audio>;
+> >  	};
+> >  
+> > +	battery {
+> > +		compatible = "ti,twl4030-madc-battery";
+> > +		capacity-uah = <1200000>;
+> > +		ti,volt-to-capacity-charging-map = <4200 100>,
+> > +					     <4100 75>,
+> > +					     <4000 55>,
+> > +					     <3900 25>,
+> > +					     <3800 5>,
+> > +					     <3700 2>,
+> > +					     <3600 1>,
+> > +					     <3300 0>;
+> > +		ti,volt-to-capacity-discharging-map = <4200 100>,
+> > +						<4100 95>,
+> > +						<4000 70>,
+> > +						<3800 50>,
+> > +						<3700 10>,
+> > +						<3600 5>,
+> > +						<3300 0>;
+> > +		io-channels = <&twl_madc 1>,
+> > +	                      <&twl_madc 10>,
+> > +			      <&twl_madc 12>;
+> > +		io-channel-names = "temp",
+> > +		                   "ichg",
+> > +		                   "vbat";
+> > +	};
+> > +
+> >  	spi_lcd {
+> >  		compatible = "spi-gpio";
+> >  		#address-cells = <0x1>;
+> > @@ -518,3 +544,7 @@
+> >  &mcbsp2 {
+> >  	status = "okay";
+> >  };
+> > +
+> > +&twl_madc {
+> > +	ti,system-uses-second-madc-irq;
+> > +};
+> > -- 
+> > 1.9.1
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
