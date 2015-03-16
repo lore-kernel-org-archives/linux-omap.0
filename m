@@ -1,70 +1,98 @@
-From: Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 21/35 linux-next] mfd: constify of_device_id array
-Date: Mon, 16 Mar 2015 20:21:36 +0100
-Message-ID: <1426533710-25687-2-git-send-email-fabf@skynet.be>
-References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
- <1426533710-25687-1-git-send-email-fabf@skynet.be>
+From: Petr Kulhavy <petr@barix.com>
+Subject: Serious memory leak in TI EDMA driver (drivers/dma/edma.c)
+Date: Mon, 16 Mar 2015 20:26:14 +0100
+Message-ID: <55072E56.7050802@barix.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-2;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailrelay118.isp.belgacom.be ([195.238.20.145]:8331 "EHLO
-	mailrelay118.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934729AbbCPTVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 15:21:55 -0400
-In-Reply-To: <1426533710-25687-1-git-send-email-fabf@skynet.be>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:33450 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932546AbbCPT0S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 15:26:18 -0400
+Received: by weop45 with SMTP id p45so20299341weo.0
+        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2015 12:26:17 -0700 (PDT)
+Received: from [192.168.2.128] (84-72-111-243.dclient.hispeed.ch. [84.72.111.243])
+        by mx.google.com with ESMTPSA id ga8sm16659367wib.11.2015.03.16.12.26.15
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 16 Mar 2015 12:26:16 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Fabian Frederick <fabf@skynet.be>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-of_device_id is always used as const.
-(See driver.of_match_table and open firmware functions)
+Hi,
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
- drivers/mfd/hi6421-pmic-core.c | 2 +-
- drivers/mfd/rk808.c            | 2 +-
- drivers/mfd/twl4030-power.c    | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+I have found a memory leak in the TI EDMA driver, which happens every=20
+time a DMA transfer is performed.
+The leak is in kernel 3.17, however the same problem seems to exist als=
+o=20
+in 3.19.
 
-diff --git a/drivers/mfd/hi6421-pmic-core.c b/drivers/mfd/hi6421-pmic-core.c
-index 7210ae2..95b2ff8 100644
---- a/drivers/mfd/hi6421-pmic-core.c
-+++ b/drivers/mfd/hi6421-pmic-core.c
-@@ -93,7 +93,7 @@ static int hi6421_pmic_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static struct of_device_id of_hi6421_pmic_match_tbl[] = {
-+static const struct of_device_id of_hi6421_pmic_match_tbl[] = {
- 	{ .compatible = "hisilicon,hi6421-pmic", },
- 	{ },
- };
-diff --git a/drivers/mfd/rk808.c b/drivers/mfd/rk808.c
-index 7cf25c7..4b1e439 100644
---- a/drivers/mfd/rk808.c
-+++ b/drivers/mfd/rk808.c
-@@ -246,7 +246,7 @@ static int rk808_remove(struct i2c_client *client)
- 	return 0;
- }
- 
--static struct of_device_id rk808_of_match[] = {
-+static const struct of_device_id rk808_of_match[] = {
- 	{ .compatible = "rockchip,rk808" },
- 	{ },
- };
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 3935092..f440aed 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -829,7 +829,7 @@ static struct twl4030_power_data osc_off_idle = {
- 	.board_config		= osc_off_rconfig,
- };
- 
--static struct of_device_id twl4030_power_of_match[] = {
-+static const struct of_device_id twl4030_power_of_match[] = {
- 	{
- 		.compatible = "ti,twl4030-power",
- 	},
--- 
-2.1.0
+In particular this was found on our custom TI AM1808 based hardware=20
+while accessing the MMC/SD card interface.
+When extensively using the SD card (e.g. downloading files to it) you=20
+can virtually see the "SUnreclaim" memory in /proc/meminfo growing few=20
+kB every few seconds.
+After few days of operation a device with 128MB of RAM renders unusable=
+=20
+(lack of memory, system slow, processes being killed, etc.), the=20
+unreclaimed SLAB memory is over 50MB.
 
+The kernel memory leak debug mechanism revealed the leak to happen in=20
+edma_prep_slave_sg(), however the same pattern repeats all over the=20
+edma.c file (see below).
+
+unreferenced object 0xc5abe3c0 (size 128):
+   comm "mmcqd/0", pid 1099, jiffies 4294948151 (age 5865.330s)
+   hex dump (first 32 bytes):
+     b7 02 00 00 03 00 00 00 00 00 00 00 80 bb 81 c7  ................
+     18 b4 23 c0 00 00 00 00 00 00 00 00 00 00 00 00  ..#.............
+   backtrace:
+     [<c023c8d0>] edma_prep_slave_sg+0x98/0x344
+     [<c030b350>] mmc_davinci_request+0x3d4/0x53c
+     [<c02f86c8>] mmc_start_request+0xc4/0xe8
+     [<c02f9654>] mmc_start_req+0x18c/0x354
+     [<c0307c84>] mmc_blk_issue_rw_rq+0xc0/0xc94
+     [<c0308a0c>] mmc_blk_issue_rq+0x1b4/0x4f4
+     [<c0309648>] mmc_queue_thread+0xb8/0x168
+     [<c0034930>] kthread+0xb4/0xd0
+     [<c0009730>] ret_from_fork+0x14/0x24
+     [<ffffffff>] 0xffffffff
+
+
+The structure edma_desc is allocated using kzalloc in the=20
+edma_prep_slave_sg() function, then a pointer to a member of its=20
+substructure (dma_async_tx_descriptor) is returned.
+Therefore the edma_desc structure cannot be freed since the allocated=20
+address is nowhere stored and therefore lost.
+I also haven't found that the dma_async_tx_descriptor would be freed,=20
+but not sure whether the kernel does this in some other place?
+
+Basically every time there is edma_prep_slave_sg 128 bytes of memory is=
+=20
+allocated but it's never freed.
+I'm not sure what is the right way to fix this issue, but it seems to m=
+e=20
+that the driver needs a more significant change to keep e.g. a pool of=20
+resources which is reused and eventually freed, like some other EDMA=20
+drivers do.
+
+Could you please advise what to do.
+
+Thank you
+Petr
+
+
+--=20
+Petr Kulhavy, MSc
+System Architect
+Barix AG, Z=FCrich, Switzerland
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
