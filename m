@@ -1,23 +1,23 @@
 From: Petr Kulhavy <petr@barix.com>
 Subject: Serious memory leak in TI EDMA driver (drivers/dma/edma.c)
-Date: Mon, 16 Mar 2015 20:26:14 +0100
-Message-ID: <55072E56.7050802@barix.com>
+Date: Mon, 16 Mar 2015 20:27:13 +0100
+Message-ID: <55072E91.2010907@barix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:33450 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932546AbbCPT0S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 15:26:18 -0400
-Received: by weop45 with SMTP id p45so20299341weo.0
-        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2015 12:26:17 -0700 (PDT)
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:32833 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753753AbbCPT1R convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 15:27:17 -0400
+Received: by wixw10 with SMTP id w10so35399074wix.0
+        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2015 12:27:16 -0700 (PDT)
 Received: from [192.168.2.128] (84-72-111-243.dclient.hispeed.ch. [84.72.111.243])
-        by mx.google.com with ESMTPSA id ga8sm16659367wib.11.2015.03.16.12.26.15
+        by mx.google.com with ESMTPSA id l6sm16693257wjx.33.2015.03.16.12.27.14
         for <linux-omap@vger.kernel.org>
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 16 Mar 2015 12:26:16 -0700 (PDT)
+        Mon, 16 Mar 2015 12:27:15 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -89,6 +89,7 @@ Petr
 Petr Kulhavy, MSc
 System Architect
 Barix AG, Z=FCrich, Switzerland
+
 
 
 --
