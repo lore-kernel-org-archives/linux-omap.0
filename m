@@ -1,80 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: boot: dts: am437x-idk: enable i2c2
-Date: Mon, 16 Mar 2015 14:07:51 -0700
-Message-ID: <20150316210750.GH12397@atomide.com>
-References: <1424375858-26664-1-git-send-email-balbi@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
+Date: Mon, 16 Mar 2015 22:15:06 +0100
+Message-ID: <201503162215.06436@pali>
+References: <1426162154-8716-1-git-send-email-eliad@wizery.com> <201503162158.50587@pali> <20150316210143.GF12397@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart4421972.f2NvejiPmL";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:37838 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932851AbbCPVMk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 17:12:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1424375858-26664-1-git-send-email-balbi@ti.com>
+Received: from mail-we0-f178.google.com ([74.125.82.178]:33896 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932779AbbCPVPK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 17:15:10 -0400
+In-Reply-To: <20150316210143.GF12397@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Eliad Peller <eliad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Sekhar Nori <nsekhar@ti.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Luciano Coelho <luca@coelho.fi>
 
-* Felipe Balbi <balbi@ti.com> [150219 12:02]:
-> i2c2 goes to an expansion connector which we
-> want to use.
+--nextPart4421972.f2NvejiPmL
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Applying into omap-for-v4.1/dt thanks.
+On Monday 16 March 2015 22:01:43 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150316 13:59]:
+> > On Monday 16 March 2015 16:29:39 Tony Lindgren wrote:
+> > > I believe the last pending issues is the support for
+> > > ATAG_REVISION in device tree mode as posted by Pali.
+> >=20
+> > No. In DT boot there is missing /proc/atags file (readable
+> > by userspace processes).
+>=20
+> Oh OK thanks for the update.
+>=20
+> > And also broken AES/SHA/MD5 support. Fix for crypto DT stuff
+> > I already sent.
+>=20
+> But this is not a regression in mainline with legacy boot vs
+> device tree based booting, right? Sounds like it never worked
+> in the mainline or am thinking of some other set of patches?
+>=20
+> Regards,
+>=20
+> Tony
 
-Tony
- 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  arch/arm/boot/dts/am437x-idk-evm.dts | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-> index 2471f1ebd4ed..22c2031dea17 100644
-> --- a/arch/arm/boot/dts/am437x-idk-evm.dts
-> +++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-> @@ -133,6 +133,20 @@
->  		>;
->  	};
->  
-> +	i2c2_pins_default: i2c2_pins_default {
-> +		pinctrl-single,pins = <
-> +			0x1e8 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE3) /* cam1_data1.i2c2_scl */
-> +			0x1ec (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE3) /* cam1_data0.i2c2_sda */
-> +		>;
-> +	};
-> +
-> +	i2c2_pins_sleep: i2c2_pins_sleep {
-> +		pinctrl-single,pins = <
-> +			0x1e8 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			0x1ec (PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +		>;
-> +	};
-> +
->  	mmc1_pins_default: pinmux_mmc1_pins_default {
->  		pinctrl-single,pins = <
->  			0x100 (PIN_INPUT | MUX_MODE0) /* mmc0_clk.mmc0_clk */
-> @@ -263,6 +277,14 @@
->  	};
->  };
->  
-> +&i2c2 {
-> +	status = "okay";
-> +	pinctrl-names = "default", "sleep";
-> +	pinctrl-0 = <&i2c2_pins_default>;
-> +	pinctrl-1 = <&i2c2_pins_sleep>;
-> +	clock-frequency = <100000>;
-> +};
-> +
->  &epwmss0 {
->  	status = "okay";
->  };
-> -- 
-> 2.3.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+In legacy board code are DMA channels defined. In DT files not.=20
+So I think this is regression. Omap secure devices are broken in=20
+both legacy & DT code, but non secure could work with legacy=20
+code. But all devices booted with DT are broken.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart4421972.f2NvejiPmL
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEUEABECAAYFAlUHR9oACgkQi/DJPQPkQ1IhNQCVELNe1gVIPPPrPwemu8Z7K4Ml
+7QCgwsZ9t67OaNK8Bdmi+lJRjGY//mM=
+=npYa
+-----END PGP SIGNATURE-----
+
+--nextPart4421972.f2NvejiPmL--
