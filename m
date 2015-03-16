@@ -1,7 +1,7 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 09/15] omap3isp: Replace mmio_base_phys array with the histogram block base
-Date: Mon, 16 Mar 2015 02:26:04 +0200
-Message-ID: <1426465570-30295-10-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH 12/15] dt: bindings: Add lane-polarity property to endpoint nodes
+Date: Mon, 16 Mar 2015 02:26:07 +0200
+Message-ID: <1426465570-30295-13-git-send-email-sakari.ailus@iki.fi>
 References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
@@ -10,68 +10,30 @@ To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-Only the histogram sub-block driver uses the physical address. Do not store
-it for other sub-blocks.
+Add lane-polarity property to endpoint nodes. This essentially tells that
+the order of the differential signal wires is inverted.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/omap3isp/isp.c     |    3 ++-
- drivers/media/platform/omap3isp/isp.h     |    6 +++---
- drivers/media/platform/omap3isp/isphist.c |    3 +--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index c045318..68d7edfc 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2247,7 +2247,8 @@ static int isp_map_mem_resource(struct platform_device *pdev,
- 	if (IS_ERR(isp->mmio_base[res]))
- 		return PTR_ERR(isp->mmio_base[res]);
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 571b4c6..27cfa4e 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -106,6 +106,12 @@ Optional endpoint properties
+ - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
+   instance, this is the actual frequency of the bus, not bits per clock per
+   lane value. An array of 64-bit unsigned integers.
++- lane-polarity: an array of polarities of the lanes starting from the clock
++  lane and followed by the data lanes in the same order as in data-lanes.
++  Valid values are 0 (normal) and 1 (inverted). The length of the array
++  should be the combined length of data-lanes and clock-lanes properties.
++  If the lane-polarity property is omitted, the value must be interpreted as 0
++  (normal). This property is valid for serial busses only.
  
--	isp->mmio_base_phys[res] = mem->start;
-+	if (res == OMAP3_ISP_IOMEM_HIST)
-+		isp->mmio_hist_base_phys = mem->start;
  
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index b932a6f..9535524 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -138,8 +138,8 @@ struct isp_xclk {
-  * @irq_num: Currently used IRQ number.
-  * @mmio_base: Array with kernel base addresses for ioremapped ISP register
-  *             regions.
-- * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
-- *                  regions.
-+ * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block register
-+ *			 region.
-  * @mapping: IOMMU mapping
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-@@ -175,7 +175,7 @@ struct isp_device {
- 	unsigned int irq_num;
- 
- 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
--	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
-+	unsigned long mmio_hist_base_phys;
- 
- 	struct dma_iommu_mapping *mapping;
- 
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index 738b946..7138b04 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -193,8 +193,7 @@ static int hist_buf_dma(struct ispstat *hist)
- 	omap3isp_flush(hist->isp);
- 
- 	memset(&cfg, 0, sizeof(cfg));
--	cfg.src_addr = hist->isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
--		     + ISPHIST_DATA;
-+	cfg.src_addr = hist->isp->mmio_hist_base_phys + ISPHIST_DATA;
- 	cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
- 	cfg.src_maxburst = hist->buf_size / 4;
- 
+ Example
 -- 
 1.7.10.4
