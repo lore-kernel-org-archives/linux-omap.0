@@ -1,168 +1,87 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 13/15] v4l: of: Read lane-polarity endpoint property
-Date: Tue, 17 Mar 2015 01:12:40 +0200
-Message-ID: <20150316231240.GE11954@valkosipuli.retiisi.org.uk>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
- <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi>
- <2045850.eQKZGjon2a@avalon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP1: PM: fix some build warnings on 1510-only
+ Kconfigs
+Date: Mon, 16 Mar 2015 16:13:03 -0700
+Message-ID: <20150316231302.GU12397@atomide.com>
+References: <alpine.DEB.2.02.1502070020530.3767@utopia.booyaka.com>
+ <54D9CFBC.3070405@nvidia.com>
+ <54D9E42C.7010105@gmail.com>
+ <alpine.DEB.2.02.1502110218090.3767@utopia.booyaka.com>
+ <20150211203757.GH2531@atomide.com>
+ <alpine.DEB.2.02.1502112056200.3767@utopia.booyaka.com>
+ <20150211211454.GJ2531@atomide.com>
+ <54DC8DF7.1070302@gmail.com>
+ <54DC9DBB.4000601@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56587 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751660AbbCPXMr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 19:12:47 -0400
+Received: from muru.com ([72.249.23.125]:37955 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932601AbbCPXRx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Mar 2015 19:17:53 -0400
 Content-Disposition: inline
-In-Reply-To: <2045850.eQKZGjon2a@avalon>
+In-Reply-To: <54DC9DBB.4000601@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
+To: Jon Hunter <jgchunter@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux@arm.linux.org.uk >> Russell King" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi >> Aaro Koskinen" <aaro.koskinen@iki.fi>, "khilman@deeprootsystems.com >> Kevin Hilman" <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, Jon Hunter <jonathanh@nvidia.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, tuukka.tikkanen@linaro.org
 
-Hi Laurent,
-
-On Mon, Mar 16, 2015 at 11:05:38AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+* Jon Hunter <jgchunter@gmail.com> [150212 04:37]:
 > 
-> Thank you for the patch.
+> On 02/12/2015 11:26 AM, Jon Hunter wrote:
+> > 
+> > On 02/11/2015 09:14 PM, Tony Lindgren wrote:
+> >> * Paul Walmsley <paul@pwsan.com> [150211 13:03]:
+> >>> On Wed, 11 Feb 2015, Tony Lindgren wrote:
+> >>>
+> >>>> * Paul Walmsley <paul@pwsan.com> [150210 18:28]:
+> >>>>> On Tue, 10 Feb 2015, Jon Hunter wrote:
+> >>>>>> On 07/02/2015 00:23, Paul Walmsley wrote:
+> >>>>>
+> >>>>>> Unfortunately, there is not a single TRM for the omap5910 but individual 
+> >>>>>> documents for each chapter in the original TRM. Check out the "OMAP5910 
+> >>>>>> Dual-Core Processor Timer Reference Guide" and possibly the "OMAP5910 
+> >>>>>> Dual-Core Processor Clock Generation and System Reset Management 
+> >>>>>> Reference Guide"
+> >>>>>>
+> >>>>>> The omap15xx/5910 did have a 32k timer but as you can see it appears it
+> >>>>>> was never supported by the kernel for this device (not sure why). I do
+> >>>>>> recall that there is some errata regarding the 32k timer, if you look at
+> >>>>>> the omap5910 errata document and search for 32k you should find it.
+> >>>>>
+> >>>>> OK thanks for the context.  I probably am not going to investigate adding 
+> >>>>> support for this timer on OMAP1510/5910 - am primarily trying to avoid 
+> >>>>> causing a regression on the existing platforms.
+> >>>>
+> >>>> At least I've never seen the 32KiHz timer registers in any 15xx
+> >>>> documentation. Jon are you sure you're not mixing up 5910 (15xx)
+> >>>> and 5912 (16xx)?
+> >>>
+> >>> It's documented in the OMAP5910 Timer Reference Guide (SPRU682A) Section 3 
+> >>> "32-kHz Timer", at the link Jon mentioned.  Have not checked the errata 
+> >>> that Jon mentioned though.
+> >>
+> >> Interesting. Looks like it's the same as on 16xx at 0xfffb9000.
+> >> AFAIK that never worked on 15xx. Or maybe the issue was that 15xx
+> >> is missing the constantly running 32KiHz counter making the timer
+> >> unusable from PM point of view as the clockevent alone is not enough.
+> >>
+> >>> Regarding the patch: I'd suggest keeping the compilation warning fixes 
+> >>> (which was the original purpose of the patch) from anything that changes 
+> >>> the logic too much.   That way if there's an error in the patch that 
+> >>> changes the logic and it needs to be reverted, it won't also revert the 
+> >>> warning fixes.
+> >>
+> >> Makes sense to me.
+> > 
+> > Yes that's fine with me as well, I don't wish to over complicate
+> > matters. I have a couple minor comments though and will respond to the
+> > latest patch rev.
 > 
-> On Monday 16 March 2015 02:26:08 Sakari Ailus wrote:
-> > Add lane_polarity field to struct v4l2_of_bus_mipi_csi2 and write the
-> > contents of the lane polarity property to it. The field tells the polarity
-> > of the physical lanes starting from the first one. Any unused lanes are
-> > ignored, i.e. only the polarity of the used lanes is specified.
-> > 
-> > Also rework reading the "data-lanes" property a little.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-of.c |   41 ++++++++++++++++++++++++++--------
-> >  include/media/v4l2-of.h           |    3 +++
-> >  2 files changed, 35 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> > b/drivers/media/v4l2-core/v4l2-of.c index b4ed9a9..e44cc15 100644
-> > --- a/drivers/media/v4l2-core/v4l2-of.c
-> > +++ b/drivers/media/v4l2-core/v4l2-of.c
-> > @@ -19,11 +19,10 @@
-> > 
-> >  #include <media/v4l2-of.h>
-> > 
-> > -static void v4l2_of_parse_csi_bus(const struct device_node *node,
-> > -				  struct v4l2_of_endpoint *endpoint)
-> > +static int v4l2_of_parse_csi_bus(const struct device_node *node,
-> > +				 struct v4l2_of_endpoint *endpoint)
-> >  {
-> >  	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
-> > -	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
-> >  	struct property *prop;
-> >  	bool have_clk_lane = false;
-> >  	unsigned int flags = 0;
-> > @@ -32,16 +31,34 @@ static void v4l2_of_parse_csi_bus(const struct
-> > device_node *node, prop = of_find_property(node, "data-lanes", NULL);
-> >  	if (prop) {
-> >  		const __be32 *lane = NULL;
-> > -		int i;
-> > +		unsigned int i;
-> > 
-> > -		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
-> > -			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-> > +		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
-> > +			lane = of_prop_next_u32(prop, lane, &v);
-> >  			if (!lane)
-> >  				break;
-> > +			bus->data_lanes[i] = v;
-> >  		}
-> >  		bus->num_data_lanes = i;
-> > -		while (i--)
-> > -			bus->data_lanes[i] = data_lanes[i];
-> > +	}
-> > +
-> > +	prop = of_find_property(node, "lane-polarity", NULL);
-> > +	if (prop) {
-> > +		const __be32 *polarity = NULL;
-> > +		unsigned int i;
-> > +
-> > +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarity); i++) {
-> > +			polarity = of_prop_next_u32(prop, polarity, &v);
-> > +			if (!polarity)
-> > +				break;
-> > +			bus->lane_polarity[i] = v;
-> > +		}
-> > +
-> > +		if (i < 1 + bus->num_data_lanes /* clock + data */) {
-> > +			pr_warn("bad size of lane-polarity array in node %s, was %u, 
-> should be
-> > %u\n",
-> 
-> How about
-> 
-> 		pr_warn("%s: too few lane-polarity entries (need %u, got %u)\n",
-> 			node->full_name, 1 + bus->num_data_lanes, i);
+> Actually, nevermind the latest version is fine with me. Jon
 
-Fixed.
+Applying the second version into omap-for-v4.1/fixes-not-urgent.
 
-> > +				node->full_name, i, 1 + bus->num_data_lanes);
-> > +			return -EINVAL;
-> > +		}
-> >  	}
-> > 
-> >  	if (!of_property_read_u32(node, "clock-lanes", &v)) {
-> > @@ -56,6 +73,8 @@ static void v4l2_of_parse_csi_bus(const struct device_node
-> > *node,
-> > 
-> >  	bus->flags = flags;
-> >  	endpoint->bus_type = V4L2_MBUS_CSI2;
-> > +
-> > +	return 0;
-> >  }
-> > 
-> >  static void v4l2_of_parse_parallel_bus(const struct device_node *node,
-> > @@ -127,11 +146,15 @@ static void v4l2_of_parse_parallel_bus(const struct
-> > device_node *node, int v4l2_of_parse_endpoint(const struct device_node
-> > *node,
-> >  			   struct v4l2_of_endpoint *endpoint)
-> >  {
-> > +	int rval;
-> > +
-> >  	of_graph_parse_endpoint(node, &endpoint->base);
-> >  	endpoint->bus_type = 0;
-> >  	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
-> > 
-> > -	v4l2_of_parse_csi_bus(node, endpoint);
-> > +	rval = v4l2_of_parse_csi_bus(node, endpoint);
-> > +	if (rval)
-> > +		return rval;
-> >  	/*
-> >  	 * Parse the parallel video bus properties only if none
-> >  	 * of the MIPI CSI-2 specific properties were found.
-> > diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> > index 70fa7b7..a70eb52 100644
-> > --- a/include/media/v4l2-of.h
-> > +++ b/include/media/v4l2-of.h
-> > @@ -29,12 +29,15 @@ struct device_node;
-> >   * @data_lanes: an array of physical data lane indexes
-> >   * @clock_lane: physical lane index of the clock lane
-> >   * @num_data_lanes: number of data lanes
-> > + * @lane_polarity: polarity of the lanes. The order is the same of
-> > + *		   the physical lanes.
-> >   */
-> >  struct v4l2_of_bus_mipi_csi2 {
-> >  	unsigned int flags;
-> >  	unsigned char data_lanes[4];
-> >  	unsigned char clock_lane;
-> >  	unsigned short num_data_lanes;
-> > +	bool lane_polarity[5];
-> 
-> A bit of bike-shedding here, should this be lane_polarities ? And, thinking 
-> about it, should the DT property be renamed to "lane-polarities" as well ? 
-> This would match "data-lanes".
+Regards,
 
-Good idea. I'll take that into account before reposting the sets.
-
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Tony
