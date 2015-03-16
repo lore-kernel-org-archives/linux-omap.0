@@ -1,44 +1,47 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH] regulator: tps65910: Add missing #include <linux/of.h>
-Date: Sun, 15 Mar 2015 14:03:50 +0100
-Message-ID: <1426424630-9781-1-git-send-email-geert@linux-m68k.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 0/4] OMAP 3 ISP (and N9/N950 primary camera support) dts changes
+Date: Mon, 16 Mar 2015 02:01:16 +0200
+Message-ID: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44812 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751844AbbCPACH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:02:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
 
-drivers/regulator/tps65910-regulator.c: In function =E2=80=98tps65910_p=
-arse_dt_reg_data=E2=80=99:
-drivers/regulator/tps65910-regulator.c:1018: error: implicit declaratio=
-n of function =E2=80=98of_get_child_by_name=E2=80=99
-drivers/regulator/tps65910-regulator.c:1018: warning: assignment makes =
-pointer from integer without a cast
-drivers/regulator/tps65910-regulator.c:1034: error: implicit declaratio=
-n of function =E2=80=98of_node_put=E2=80=99
-drivers/regulator/tps65910-regulator.c:1056: error: implicit declaratio=
-n of function =E2=80=98of_property_read_u32=E2=80=99
+Hi Tony and others,
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/regulator/tps65910-regulator.c | 1 +
- 1 file changed, 1 insertion(+)
+I had a couple of patches that contained dts changes in my OMAP 3 ISP / N9
+camera DT support set. Since it became apparent that at least some of the
+changes should go through linux-omap due to potential conflicts with other
+patches, I decided to separate the dts changes from the set that could go
+through the linux-omap tree. Here they are.
 
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator=
-/tps65910-regulator.c
-index e2cffe01b8072263..fb991ec764235d55 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/err.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/regulator/driver.h>
- #include <linux/regulator/machine.h>
---=20
-1.9.1
+There's also the OMAP 3 ISP DT binding change, including a corresponding
+header file that's included for human-readable names for the PHY types.
+
+There are no dependencies between the sets, other than the obvious one that
+omap3isp DT support won't work unless both are applied. The original thread
+can be found here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg87263.html>
+
+What's changed since the RFC set in the domain of these patches, there are
+lots of changes elsewhere as well:
+
+- syscon register range extension as a separate patchset,
+
+- Fixed OMAP 3 ISP DT binding documentation according to Laurent's comments.
+  Especially the PHY types have now human-readable names that refer to the
+  PHY names in the documentation.
+
+- The isp nodes are called isp rather than omap3_isp.
+
+-- 
+Kind regards,
+Sakari
+
