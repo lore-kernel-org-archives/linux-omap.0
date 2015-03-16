@@ -1,90 +1,42 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
-Date: Mon, 16 Mar 2015 19:25:37 +0100
-Message-ID: <20150316182536.GA16829@earth>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
- <20150313151301.GJ5264@atomide.com>
- <CAB3XZEdFMQexA69JEuw=VnqsNOEkWAM0+oWWmt6DaN9+hZ+vdw@mail.gmail.com>
- <2070859.WcMooC33YH@wuerfel>
- <20150316152939.GP5264@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap1_defconfig: drop obsolete Kconfig symbols
+Date: Mon, 16 Mar 2015 11:22:15 -0700
+Message-ID: <20150316182214.GV5264@atomide.com>
+References: <alpine.DEB.2.02.1502070024030.3767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:55390 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932728AbbCPS0E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 14:26:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20150316152939.GP5264@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Eliad Peller <eliad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Sekhar Nori <nsekhar@ti.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Luciano Coelho <luca@coelho.fi>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-
-
---BXVAT5kNtrzKuDFl
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <alpine.DEB.2.02.1502070024030.3767@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, stefan.hengelein@fau.de, valentinrothberg@gmail.com, pebolle@tiscali.nl
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Paul Walmsley <paul@pwsan.com> [150206 16:29]:
+> 
+> scripts/checkkconfigsymbols.py indicates that omap1_defconfig
+> references the following obsolete Kconfig symbols:
+> 
+> CONFIG_BT_L2CAP
+> CONFIG_BT_SCO
+> CONFIG_DEBUG_ERRORS
+> CONFIG_EXPERIMENTAL
+> CONFIG_FB_OMAP_BOOTLOADER_INIT
+> CONFIG_LEDS_CPU
+> CONFIG_MACH_OMAP_HTCWIZARD
+> CONFIG_MTD_CHAR
+> CONFIG_MTD_DEBUG
+> CONFIG_MTD_DEBUG_VERBOSE
+> CONFIG_MTD_PARTITIONS
+> CONFIG_NET_ETHERNET
+> CONFIG_RCU_CPU_STALL_DETECTOR
+> CONFIG_SCSI_MULTI_LUN
+> CONFIG_USB_DEVICE_CLASS
+> CONFIG_VIDEO_OUTPUT_CONTROL
+> 
+> Drop them from omap1_defconfig.
 
-On Mon, Mar 16, 2015 at 08:29:39AM -0700, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [150315 05:10]:
-> > On Sunday 15 March 2015 10:50:42 Eliad Peller wrote:
-> > > yeah, i missed it :/
-> > >=20
-> > > looks like there's no platform that defines platform data for it.
-> > > i'll replace the dev_get_platdata() with a function that only parses
-> > > the clock-frequency properties (the irq is taken in this case from the
-> > > spi_device).
-> > > (or maybe i should just drop it, as no one actually uses it?)
-> >=20
-> > I don't think we should drop the driver, but dropping the platform_data
-> > support sounds reasonable. New users of this driver should all be using
-> > DT, and if there is a good reason to use platform_data, it's easily
-> > put back.
->=20
-> Well we have n8x0 and n900 using the spi driver. For those, n8x0 boot
-> all in dts mode, but n900 still also boots in legacy mode. It seems the
-> board-rx51-peripherals.c only passes the power_gpio though, so that
-> should be easy to keep around.
->=20
-> We should keep things still working for n900 in legacy mode until the
-> pending regressions with device tree based booting have been cleared
-> for at least one merge cycle. I believe the last pending issues is the
-> support for ATAG_REVISION in device tree mode as posted by Pali.
+Applying this one into omap-for-v4.1/defconfig thanks.
 
-mh by migrating to newer gpiod interface platform data is no longer
-needed (instead the boardfile would need a gpiod_lookup_table). That
-way all of the dirty code is in the board file and will be removed
-once the time comes. See for example rx51_fmtx_gpios_table.
-
-Note: This is independent of wl12xx changes, since N900 uses wl1251.
-
--- Sebastian
-
---BXVAT5kNtrzKuDFl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVByAdAAoJENju1/PIO/qaugAQAJyd6jAeZYJsxqG5J2qkey+g
-Zb+K1Q2yw9koChF9MMersXC4Rz8ClOZLKGx9/WWBZ8HAAlYzIrmMAP0BjCjgfswC
-8u/a56VK5smNiG+9hdromtnBRKh9zpKel/nOpC+0CNP21rJevvxA4c7S2lc+ACM8
-4bCvayP3PBaklZq8xSEM2NrqGNv6g2TR5+yooUMbbDbG6fg8oH/2IzkcP0StrKT7
-uXSUYufCDMAUllhhM4R5bt82pOJDtmx4AB0WikVmU3ldfgC3Uf8J6g9STr8lwPX2
-v19xi+8cnSE2nQtvjig35QDYiVONIP+IRoWVNezLHS3fQpMxdwSFeeQPRWN6nDvc
-n3ta2C2v213hB/mIxJ8ODhXx2b/MpraaFKjn0ml8ye0T8u/PU6ZbciTgLxHZoKtV
-JXwf0VvmO0+Qy2tTt5Zf/S0XNGx7zAojbRT6o/s8fxDpta/rsIPE5W+A8mtrlKhf
-Am4vFn3N4fCwmDIEhSpQXEe/W2hLWlmIlm0jMjg2ANVJiYNabx/kBPDb2BUhNJ+b
-wTrLv9V0L2+3Iizx6HvMKT1dt9CPf+av3vdq+wJrNBYh099pNTgbHl5j+etq09Oe
-73bSwtA7S1vuiGdif08AqYgKZJohoGUH1WguJ5g8klQ0G58mPrtKSYxCA8c5RGWQ
-Utgjq73IYFFZw0R5qCon
-=X9g0
------END PGP SIGNATURE-----
-
---BXVAT5kNtrzKuDFl--
+Tony
