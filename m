@@ -1,228 +1,137 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 10/15] omap3isp: Move the syscon register out of the ISP register maps
-Date: Mon, 16 Mar 2015 02:26:05 +0200
-Message-ID: <1426465570-30295-11-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH 13/15] v4l: of: Read lane-polarity endpoint property
+Date: Mon, 16 Mar 2015 02:26:08 +0200
+Message-ID: <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi>
 References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45111 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752713AbbCPA1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:27:01 -0400
 In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-List-Id: linux-omap@vger.kernel.org
 
-The syscon register isn't part of the ISP, use it through the syscom driver
-regmap instead. The syscom block is considered to be from 343x on ISP
-revision 2.0 whereas 15.0 is assumed to have 3630 syscon.
+Add lane_polarity field to struct v4l2_of_bus_mipi_csi2 and write the
+contents of the lane polarity property to it. The field tells the polarity
+of the physical lanes starting from the first one. Any unused lanes are
+ignored, i.e. only the polarity of the used lanes is specified.
+
+Also rework reading the "data-lanes" property a little.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/devices.c               |   10 ----------
- drivers/media/platform/omap3isp/isp.c       |   20 ++++++++++++++++----
- drivers/media/platform/omap3isp/isp.h       |   19 +++++++++++++++++--
- drivers/media/platform/omap3isp/ispcsiphy.c |   20 +++++++++-----------
- 4 files changed, 42 insertions(+), 27 deletions(-)
+ drivers/media/v4l2-core/v4l2-of.c |   41 +++++++++++++++++++++++++++++--------
+ include/media/v4l2-of.h           |    3 +++
+ 2 files changed, 35 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 1afb50d..e945957 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -143,16 +143,6 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
--		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
--		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
- 		.start		= 24 + OMAP_INTC_START,
- 		.flags		= IORESOURCE_IRQ,
- 	}
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 68d7edfc..83b4368 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -51,6 +51,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-+#include <linux/mfd/syscon.h>
- #include <linux/module.h>
- #include <linux/omap-iommu.h>
- #include <linux/platform_device.h>
-@@ -94,8 +95,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_RESZ |
- 		       1 << OMAP3_ISP_IOMEM_SBL |
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
--		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
-+		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-+		.syscon_offset = 0xdc,
-+		.phy_type = ISP_PHY_TYPE_3430,
- 	},
- 	{
- 		.isp_rev = ISP_REVISION_15_0,
-@@ -112,8 +114,9 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
- 		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
- 		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
--		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
-+		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+		.syscon_offset = 0x2f0,
-+		.phy_type = ISP_PHY_TYPE_3630,
- 	},
- };
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index b4ed9a9..e44cc15 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -19,11 +19,10 @@
  
-@@ -2352,6 +2355,15 @@ static int isp_probe(struct platform_device *pdev)
+ #include <media/v4l2-of.h>
+ 
+-static void v4l2_of_parse_csi_bus(const struct device_node *node,
+-				  struct v4l2_of_endpoint *endpoint)
++static int v4l2_of_parse_csi_bus(const struct device_node *node,
++				 struct v4l2_of_endpoint *endpoint)
+ {
+ 	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+-	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
+ 	struct property *prop;
+ 	bool have_clk_lane = false;
+ 	unsigned int flags = 0;
+@@ -32,16 +31,34 @@ static void v4l2_of_parse_csi_bus(const struct device_node *node,
+ 	prop = of_find_property(node, "data-lanes", NULL);
+ 	if (prop) {
+ 		const __be32 *lane = NULL;
+-		int i;
++		unsigned int i;
+ 
+-		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
+-			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
++		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
++			lane = of_prop_next_u32(prop, lane, &v);
+ 			if (!lane)
+ 				break;
++			bus->data_lanes[i] = v;
  		}
- 	}
- 
-+	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
-+	if (IS_ERR(isp->syscon)) {
-+		ret = PTR_ERR(isp->syscon);
-+		goto error_isp;
+ 		bus->num_data_lanes = i;
+-		while (i--)
+-			bus->data_lanes[i] = data_lanes[i];
 +	}
 +
-+	isp->syscon_offset = isp_res_maps[m].syscon_offset;
-+	isp->phy_type = isp_res_maps[m].phy_type;
++	prop = of_find_property(node, "lane-polarity", NULL);
++	if (prop) {
++		const __be32 *polarity = NULL;
++		unsigned int i;
 +
- 	/* IOMMU */
- 	ret = isp_attach_iommu(isp);
- 	if (ret < 0) {
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 9535524..03d2129 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -59,8 +59,6 @@ enum isp_mem_resources {
- 	OMAP3_ISP_IOMEM_CSI2C_REGS1,
- 	OMAP3_ISP_IOMEM_CSIPHY1,
- 	OMAP3_ISP_IOMEM_CSI2C_REGS2,
--	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
--	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
- 	OMAP3_ISP_IOMEM_LAST
- };
- 
-@@ -93,14 +91,25 @@ enum isp_subclk_resource {
- /* ISP2P: OMAP 36xx */
- #define ISP_REVISION_15_0		0xF0
- 
-+#define ISP_PHY_TYPE_3430		0
-+#define ISP_PHY_TYPE_3630		1
++		for (i = 0; i < ARRAY_SIZE(bus->lane_polarity); i++) {
++			polarity = of_prop_next_u32(prop, polarity, &v);
++			if (!polarity)
++				break;
++			bus->lane_polarity[i] = v;
++		}
 +
-+struct regmap;
-+
- /*
-  * struct isp_res_mapping - Map ISP io resources to ISP revision.
-  * @isp_rev: ISP_REVISION_x_x
-  * @map: bitmap for enum isp_mem_resources
-+ * @syscon_offset: offset of the syscon register for 343x / 3630
-+ *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
-+ *	    from the syscon base address
-+ * @phy_type: ISP_PHY_TYPE_{3430,3630}
-  */
- struct isp_res_mapping {
- 	u32 isp_rev;
- 	u32 map;
-+	u32 syscon_offset;
-+	u32 phy_type;
- };
- 
- /*
-@@ -140,6 +149,9 @@ struct isp_xclk {
-  *             regions.
-  * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block register
-  *			 region.
-+ * @syscon: Regmap for the syscon register space
-+ * @syscon_offset: Offset of the CSIPHY control register in syscon
-+ * @phy_type: ISP_PHY_TYPE_{3430,3630}
-  * @mapping: IOMMU mapping
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-@@ -176,6 +188,9 @@ struct isp_device {
- 
- 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
- 	unsigned long mmio_hist_base_phys;
-+	struct regmap *syscon;
-+	u32 syscon_offset;
-+	u32 phy_type;
- 
- 	struct dma_iommu_mapping *mapping;
- 
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 4486e9f..d91dde1 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -16,6 +16,7 @@
- 
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/regmap.h>
- #include <linux/regulator/consumer.h>
- 
- #include "isp.h"
-@@ -26,10 +27,11 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy,
- 				    enum isp_interface_type iface,
- 				    bool ccp2_strobe)
- {
--	u32 reg = isp_reg_readl(
--		phy->isp, OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-+	u32 reg;
- 	u32 shift, mode;
- 
-+	regmap_read(phy->isp->syscon, phy->isp->syscon_offset, &reg);
-+
- 	switch (iface) {
- 	default:
- 	/* Should not happen in practice, but let's keep the compiler happy. */
-@@ -63,8 +65,7 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy,
- 	reg &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << shift);
- 	reg |= mode << shift;
- 
--	isp_reg_writel(phy->isp, reg,
--		       OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-+	regmap_write(phy->isp->syscon, phy->isp->syscon_offset, reg);
- }
- 
- static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
-@@ -78,16 +79,14 @@ static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
- 		return;
- 
- 	if (!on) {
--		isp_reg_writel(phy->isp, 0,
--			       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-+		regmap_write(phy->isp->syscon, phy->isp->syscon_offset, 0);
- 		return;
++		if (i < 1 + bus->num_data_lanes /* clock + data */) {
++			pr_warn("bad size of lane-polarity array in node %s, was %u, should be %u\n",
++				node->full_name, i, 1 + bus->num_data_lanes);
++			return -EINVAL;
++		}
  	}
  
- 	if (ccp2_strobe)
- 		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
+ 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+@@ -56,6 +73,8 @@ static void v4l2_of_parse_csi_bus(const struct device_node *node,
  
--	isp_reg_writel(phy->isp, csirxfe,
--		       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-+	regmap_write(phy->isp->syscon, phy->isp->syscon_offset, csirxfe);
+ 	bus->flags = flags;
+ 	endpoint->bus_type = V4L2_MBUS_CSI2;
++
++	return 0;
  }
  
- /*
-@@ -106,10 +105,9 @@ static void csiphy_routing_cfg(struct isp_csiphy *phy,
- 			       enum isp_interface_type iface, bool on,
- 			       bool ccp2_strobe)
+ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+@@ -127,11 +146,15 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 			   struct v4l2_of_endpoint *endpoint)
  {
--	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL]
--	    && on)
-+	if (phy->isp->phy_type == ISP_PHY_TYPE_3630 && on)
- 		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
--	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE])
-+	if (phy->isp->phy_type == ISP_PHY_TYPE_3430)
- 		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe);
- }
++	int rval;
++
+ 	of_graph_parse_endpoint(node, &endpoint->base);
+ 	endpoint->bus_type = 0;
+ 	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
  
+-	v4l2_of_parse_csi_bus(node, endpoint);
++	rval = v4l2_of_parse_csi_bus(node, endpoint);
++	if (rval)
++		return rval;
+ 	/*
+ 	 * Parse the parallel video bus properties only if none
+ 	 * of the MIPI CSI-2 specific properties were found.
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index 70fa7b7..a70eb52 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -29,12 +29,15 @@ struct device_node;
+  * @data_lanes: an array of physical data lane indexes
+  * @clock_lane: physical lane index of the clock lane
+  * @num_data_lanes: number of data lanes
++ * @lane_polarity: polarity of the lanes. The order is the same of
++ *		   the physical lanes.
+  */
+ struct v4l2_of_bus_mipi_csi2 {
+ 	unsigned int flags;
+ 	unsigned char data_lanes[4];
+ 	unsigned char clock_lane;
+ 	unsigned short num_data_lanes;
++	bool lane_polarity[5];
+ };
+ 
+ /**
 -- 
 1.7.10.4
+
