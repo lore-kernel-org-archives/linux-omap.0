@@ -1,77 +1,167 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
-Date: Mon, 16 Mar 2015 09:49:51 -0700
-Message-ID: <20150316164951.GR5264@atomide.com>
-References: <CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
- <20150309211306.GC22341@saruman.tx.rr.com>
- <CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
- <20150309212014.GE22341@saruman.tx.rr.com>
- <20150309212622.GJ5264@atomide.com>
- <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
- <20150309214129.GK5264@atomide.com>
- <CAALWOA-sdLzUP8_6BKvsDQeAqxCw5-n410u3=W3D5yaCLYChbQ@mail.gmail.com>
- <20150313193058.GN5264@atomide.com>
- <CAALWOA_FM71OsvCfPuz4DHwGDEpfxcSB4L+YdoCsJuZkukK2iw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.0-rc4
+Date: Mon, 16 Mar 2015 17:15:03 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1503161713210.29420@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAALWOA_FM71OsvCfPuz4DHwGDEpfxcSB4L+YdoCsJuZkukK2iw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Bin Liu <binmlist@gmail.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47803 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932398AbbCPRPG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 13:15:06 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [150314 14:04]:
-> On 13 March 2015 at 20:30, Tony Lindgren <tony@atomide.com> wrote:
-> > Hmm OK have to check that. It could also be that dm816x documentation
-> > is copy-paste from da850 or am3517 and the PHY got changed in the
-> > hardware as the registers don't match the documentation. Only the
-> > dm816x errata has right documentation for the USB PHY.
-> 
-> Hmm? While I see plenty of usb errata (mostly DMA bugs), I don't see
-> anything about registers being different.
 
-Sorry it seems to be the partially updated TRM instead, it's the
-sprs614e.pdf instead. That has the USBPHY_CTRL registers right.
-No mention of Synopsys in sprs614e.pdf though so who knows. It
-seems something got swapped compared to the TRM as the USB_CTRL
-registers totally changed.
+Here are some basic OMAP test results for Linux v4.0-rc4.
+Logs and other details at:
 
-I'll just add a comments you mentioned earlier about it probably
-being Synopsys phy.
- 
-> I do see something curious: advisory 70, the only PHY-related erratum
-> I see, is also present in the DM814x errata and even in AM335x r1.0.
-> This strongly suggests the PHYs must at least be closely related...
+    http://www.pwsan.com/omap/testlogs/test_v4.0-rc4/20150315232818/
 
-Hmm interesting. But dm814x has again different USB_CTRL registers,
-seems to be wired up like am335x. Also there's no USBPHY_CTRL
-registers on dm814x or am335x. Chances are that dm814x is wired up
-the same way as am335x.
 
-> The dm816x TRM makes three separate mentions of the synopsys usb phy
-> though, while I found no other TRMs that mention it, so if it's a
-> copy-paste error (which certainly would not be exceptional) I don't
-> know where from.
+Test summary
+------------
 
-Yes I checked am3517 trm, and that too mentions Synopsys once, but
-has different registers. And also checked the l-138/da850 TRM, and
-that does not have USB_CTRL and USBPHY_CTRL registers either.. Looks
-like the copy paste errors come from tms320dm6446.pdf that has
-the USB_CTRL and USBPHY_CTRL registers, but then no mention of
-Synopsys.
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-> I suppose it's still possible TI acquired a sufficiently permissive
-> license for the synopsys phy to fork it and call it a "TI PHY" as they
-> do in the AM335x docs. (No mention of its origin is made in the DM814x
-> docs.)
-> 
-> BTW, da850? Is that yet another instance of Primus? (i.e.
-> omap-L1xx/c674x/am1xxx with odd final digit, also da830/da828)
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-Yes it's the arm926 based series, l-138 is da850 I believe.
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
-Regards,
+Build warnings from toolchain: uImage:
+    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-Tony
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL (15/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_oldconfig, multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 2/17): 5912osk, 3517evm
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  5430es2sbct54, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 2/17): 4430es2panda, 4460varsomom
+
+Obsolete Kconfig symbols:
+    FAIL ( 2/20): omap1_defconfig, multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.0-rc3 (9eccca0843205f87c00404b663188b88eb248051)):
+   text     data      bss    total  kernel
+   +377     +128        0     +505  omap1_defconfig
+   +377     +104        0     +481  omap1_defconfig_1510innovator_only
+   +377      +96        0     +473  omap1_defconfig_5912osk_only
+  +1316     -104    +1472    +2684  multi_v7_defconfig
+  -2948    +4088        0    +1140  omap2plus_defconfig
+   +700      +32        0     +732  omap2plus_defconfig_2430sdp_only
+  +1048     +680        0    +1728  omap2plus_defconfig_am33xx_only
+  +1116     +744        0    +1860  omap2plus_defconfig_am43xx_only
+  -2948    +4032        0    +1084  omap2plus_defconfig_cpupm
+  +1180     +360        0    +1540  omap2plus_defconfig_dra7xx_only
+   +552     +520        0    +1072  omap2plus_defconfig_n800_multi_omap2xxx
+   +452     +424        0     +876  omap2plus_defconfig_n800_only_a
+  -2948    +4016        0    +1068  omap2plus_defconfig_no_pm
+  +1116    +1288        0    +2404  omap2plus_defconfig_omap2_4_only
+  +1084    +1528        0    +2612  omap2plus_defconfig_omap3_4_only
+  +1116     +648        0    +1764  omap2plus_defconfig_omap5_only
+   +720        0      -88     +632  rmk_omap3430_ldp_allnoconfig
+   +604    +1016      +64    +1684  rmk_omap3430_ldp_oldconfig
+   +684        0     -104     +580  rmk_omap4430_sdp_allnoconfig
+   +568     +904      +64    +1536  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.0-rc3 (9eccca0843205f87c00404b663188b88eb248051))
+  avail  rsrvd   high  freed  board          kconfig
+    -4k     4k      .      .  2430sdp        omap2plus_defconfig
+    -4k     4k      .     4k  3530es31beagle omap2plus_defconfig
+    -4k     4k      .     4k  3530es3beagle  omap2plus_defconfig
+    -4k     4k      .     4k  3730beaglexm   omap2plus_defconfig
+    -4k     4k      .     4k  3730es12beaglexmomap2plus_defconfig
+    -4k     4k      .     4k  37xxevm        omap2plus_defconfig
+    -4k     4k      .     4k  4430es2panda   omap2plus_defconfig
+    -4k     4k      .     4k  4460pandaes    omap2plus_defconfig
+    -4k     4k      .     4k  4460varsomom   omap2plus_defconfig
+    -4k     4k      .     4k  5430es2sbct54  omap2plus_defconfig
+    -8k     8k      .     4k  5430es2uevm    omap2plus_defconfig
+    -4k     4k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
+    -4k     4k      .     4k  am335xbonelt   omap2plus_defconfig
+
