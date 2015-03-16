@@ -1,53 +1,55 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
-Date: Mon, 16 Mar 2015 21:58:50 +0100
-Message-ID: <201503162158.50587@pali>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com> <2070859.WcMooC33YH@wuerfel> <20150316152939.GP5264@atomide.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH v3 3/6] Documentation: DT: Document twl4030-madc-battery
+ bindings
+Date: Mon, 16 Mar 2015 22:05:32 +0100
+Message-ID: <20150316210532.GA11441@amd>
+References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+ <1423088075-10025-4-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2394951.4rG3PKCz3q";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150316152939.GP5264-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1423088075-10025-4-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, gta04-owner-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart2394951.4rG3PKCz3q
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Wed 2015-02-04 23:14:32, Marek Belisko wrote:
+> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  .../bindings/power_supply/twl4030_madc_battery.txt | 43 ++++++++++++++++++++++
+>  1 file changed, 43 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt b/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
+> new file mode 100644
+> index 0000000..bb3580c
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
+> @@ -0,0 +1,43 @@
+> +twl4030_madc_battery
+> +
+> +Required properties:
+> + - compatible : "ti,twl4030-madc-battery"
+> + - capacity-uah : battery capacity in uAh
 
-On Monday 16 March 2015 16:29:39 Tony Lindgren wrote:
-> I believe the last pending issues is the support for
-> ATAG_REVISION in device tree mode as posted by Pali.
->=20
+Could we make it capacity-uAh ?
 
-No. In DT boot there is missing /proc/atags file (readable by=20
-userspace processes). And also broken AES/SHA/MD5 support. Fix=20
-for crypto DT stuff I already sent.
+> + - volt-to-capacity-charging-map : list of voltage(mV):level(%) values
+> +	for charging calibration (see example)
+> + - volt-to-capacity-discharging-map : list of voltage(mV):level(%) values
+> +	for discharging calibration (see example)
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Would "mV-to-capacity..." be more accurate? Also, would it make sense
+to introduce coefficients for temperature and discharge rate?
 
---nextPart2394951.4rG3PKCz3q
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlUHRAoACgkQi/DJPQPkQ1L/dwCfRCUG0IYxQIYaZfCmkq2uNjTz
-WhIAoJqZnxe8b6bSnrw1AQHyDYVifALf
-=du7Z
------END PGP SIGNATURE-----
-
---nextPart2394951.4rG3PKCz3q--
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
