@@ -1,82 +1,155 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Serious memory leak in TI EDMA driver (drivers/dma/edma.c)
-Date: Mon, 16 Mar 2015 12:27:24 -0700
-Message-ID: <20150316192724.GX5264@atomide.com>
-References: <55072E56.7050802@barix.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:37738 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932427AbbCPTcO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 15:32:14 -0400
-Content-Disposition: inline
-In-Reply-To: <55072E56.7050802@barix.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH 32/35 linux-next] clk: constify of_device_id array
+Date: Mon, 16 Mar 2015 20:59:06 +0100
+Message-ID: <1426535949-26107-1-git-send-email-fabf@skynet.be>
+References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1426533469-25458-1-git-send-email-fabf@skynet.be>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Fabian Frederick <fabf@skynet.be>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Petr Kulhavy <petr@barix.com>
-Cc: linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi,
+of_device_id is always used as const.
+(See driver.of_match_table and open firmware functions)
 
-* Petr Kulhavy <petr@barix.com> [150316 12:26]:
-> Hi,
-> 
-> I have found a memory leak in the TI EDMA driver, which happens every time a
-> DMA transfer is performed.
-> The leak is in kernel 3.17, however the same problem seems to exist also in
-> 3.19.
-> 
-> In particular this was found on our custom TI AM1808 based hardware while
-> accessing the MMC/SD card interface.
-> When extensively using the SD card (e.g. downloading files to it) you can
-> virtually see the "SUnreclaim" memory in /proc/meminfo growing few kB every
-> few seconds.
-> After few days of operation a device with 128MB of RAM renders unusable
-> (lack of memory, system slow, processes being killed, etc.), the unreclaimed
-> SLAB memory is over 50MB.
-> 
-> The kernel memory leak debug mechanism revealed the leak to happen in
-> edma_prep_slave_sg(), however the same pattern repeats all over the edma.c
-> file (see below).
-> 
-> unreferenced object 0xc5abe3c0 (size 128):
->   comm "mmcqd/0", pid 1099, jiffies 4294948151 (age 5865.330s)
->   hex dump (first 32 bytes):
->     b7 02 00 00 03 00 00 00 00 00 00 00 80 bb 81 c7  ................
->     18 b4 23 c0 00 00 00 00 00 00 00 00 00 00 00 00  ..#.............
->   backtrace:
->     [<c023c8d0>] edma_prep_slave_sg+0x98/0x344
->     [<c030b350>] mmc_davinci_request+0x3d4/0x53c
->     [<c02f86c8>] mmc_start_request+0xc4/0xe8
->     [<c02f9654>] mmc_start_req+0x18c/0x354
->     [<c0307c84>] mmc_blk_issue_rw_rq+0xc0/0xc94
->     [<c0308a0c>] mmc_blk_issue_rq+0x1b4/0x4f4
->     [<c0309648>] mmc_queue_thread+0xb8/0x168
->     [<c0034930>] kthread+0xb4/0xd0
->     [<c0009730>] ret_from_fork+0x14/0x24
->     [<ffffffff>] 0xffffffff
-> 
-> 
-> The structure edma_desc is allocated using kzalloc in the
-> edma_prep_slave_sg() function, then a pointer to a member of its
-> substructure (dma_async_tx_descriptor) is returned.
-> Therefore the edma_desc structure cannot be freed since the allocated
-> address is nowhere stored and therefore lost.
-> I also haven't found that the dma_async_tx_descriptor would be freed, but
-> not sure whether the kernel does this in some other place?
-> 
-> Basically every time there is edma_prep_slave_sg 128 bytes of memory is
-> allocated but it's never freed.
-> I'm not sure what is the right way to fix this issue, but it seems to me
-> that the driver needs a more significant change to keep e.g. a pool of
-> resources which is reused and eventually freed, like some other EDMA drivers
-> do.
-> 
-> Could you please advise what to do.
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/clk/clk-palmas.c                 | 2 +-
+ drivers/clk/st/clkgen-fsyn.c             | 2 +-
+ drivers/clk/st/clkgen-mux.c              | 8 ++++----
+ drivers/clk/st/clkgen-pll.c              | 4 ++--
+ drivers/clk/ti/clk-dra7-atl.c            | 2 +-
+ drivers/clk/ti/clockdomain.c             | 2 +-
+ drivers/clk/versatile/clk-vexpress-osc.c | 2 +-
+ 7 files changed, 11 insertions(+), 11 deletions(-)
 
-Thanks for reporting it. This sounds like something for Peter to look at.
-
-Regards,
-
-Tony
+diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
+index 8d45992..45a535a 100644
+--- a/drivers/clk/clk-palmas.c
++++ b/drivers/clk/clk-palmas.c
+@@ -161,7 +161,7 @@ static struct palmas_clks_of_match_data palmas_of_clk32kgaudio = {
+ 	},
+ };
+ 
+-static struct of_device_id palmas_clks_of_match[] = {
++static const struct of_device_id palmas_clks_of_match[] = {
+ 	{
+ 		.compatible = "ti,palmas-clk32kg",
+ 		.data = &palmas_of_clk32kg,
+diff --git a/drivers/clk/st/clkgen-fsyn.c b/drivers/clk/st/clkgen-fsyn.c
+index af94ed8..a917c4c 100644
+--- a/drivers/clk/st/clkgen-fsyn.c
++++ b/drivers/clk/st/clkgen-fsyn.c
+@@ -1057,7 +1057,7 @@ static struct clk * __init st_clk_register_quadfs_fsynth(
+ 	return clk;
+ }
+ 
+-static struct of_device_id quadfs_of_match[] = {
++static const struct of_device_id quadfs_of_match[] = {
+ 	{
+ 		.compatible = "st,stih416-quadfs216",
+ 		.data = &st_fs216c65_416
+diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
+index 9a15ec3..fdcff10 100644
+--- a/drivers/clk/st/clkgen-mux.c
++++ b/drivers/clk/st/clkgen-mux.c
+@@ -341,7 +341,7 @@ static struct clkgena_divmux_data st_divmux_c32odf3 = {
+ 	.fb_start_bit_idx = 24,
+ };
+ 
+-static struct of_device_id clkgena_divmux_of_match[] = {
++static const struct of_device_id clkgena_divmux_of_match[] = {
+ 	{
+ 		.compatible = "st,clkgena-divmux-c65-hs",
+ 		.data = &st_divmux_c65hs,
+@@ -479,7 +479,7 @@ static struct clkgena_prediv_data prediv_c32_data = {
+ 	.table = prediv_table16,
+ };
+ 
+-static struct of_device_id clkgena_prediv_of_match[] = {
++static const struct of_device_id clkgena_prediv_of_match[] = {
+ 	{ .compatible = "st,clkgena-prediv-c65", .data = &prediv_c65_data },
+ 	{ .compatible = "st,clkgena-prediv-c32", .data = &prediv_c32_data },
+ 	{}
+@@ -586,7 +586,7 @@ static struct clkgen_mux_data stih407_a9_mux_data = {
+ 	.width = 2,
+ };
+ 
+-static struct of_device_id mux_of_match[] = {
++static const struct of_device_id mux_of_match[] = {
+ 	{
+ 		.compatible = "st,stih416-clkgenc-vcc-hd",
+ 		.data = &clkgen_mux_c_vcc_hd_416,
+@@ -693,7 +693,7 @@ static struct clkgen_vcc_data st_clkgenf_vcc_416 = {
+ 	.lock = &clkgenf_lock,
+ };
+ 
+-static struct of_device_id vcc_of_match[] = {
++static const struct of_device_id vcc_of_match[] = {
+ 	{ .compatible = "st,stih416-clkgenc", .data = &st_clkgenc_vcc_416 },
+ 	{ .compatible = "st,stih416-clkgenf", .data = &st_clkgenf_vcc_416 },
+ 	{}
+diff --git a/drivers/clk/st/clkgen-pll.c b/drivers/clk/st/clkgen-pll.c
+index 29769d7..d204ba8 100644
+--- a/drivers/clk/st/clkgen-pll.c
++++ b/drivers/clk/st/clkgen-pll.c
+@@ -593,7 +593,7 @@ static struct clk * __init clkgen_odf_register(const char *parent_name,
+ 	return clk;
+ }
+ 
+-static struct of_device_id c32_pll_of_match[] = {
++static const struct of_device_id c32_pll_of_match[] = {
+ 	{
+ 		.compatible = "st,plls-c32-a1x-0",
+ 		.data = &st_pll3200c32_a1x_0,
+@@ -708,7 +708,7 @@ err:
+ }
+ CLK_OF_DECLARE(clkgen_c32_pll, "st,clkgen-plls-c32", clkgen_c32_pll_setup);
+ 
+-static struct of_device_id c32_gpu_pll_of_match[] = {
++static const struct of_device_id c32_gpu_pll_of_match[] = {
+ 	{
+ 		.compatible = "st,stih415-gpu-pll-c32",
+ 		.data = &st_pll1200c32_gpu_415,
+diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+index 59bb4b3..d86bc46 100644
+--- a/drivers/clk/ti/clk-dra7-atl.c
++++ b/drivers/clk/ti/clk-dra7-atl.c
+@@ -294,7 +294,7 @@ static int of_dra7_atl_clk_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct of_device_id of_dra7_atl_clk_match_tbl[] = {
++static const struct of_device_id of_dra7_atl_clk_match_tbl[] = {
+ 	{ .compatible = "ti,dra7-atl", },
+ 	{},
+ };
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+index b4c5fac..35fe108 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -52,7 +52,7 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
+ 	}
+ }
+ 
+-static struct of_device_id ti_clkdm_match_table[] __initdata = {
++static const struct of_device_id ti_clkdm_match_table[] __initconst = {
+ 	{ .compatible = "ti,clockdomain" },
+ 	{ }
+ };
+diff --git a/drivers/clk/versatile/clk-vexpress-osc.c b/drivers/clk/versatile/clk-vexpress-osc.c
+index 765f1e0..89c0609 100644
+--- a/drivers/clk/versatile/clk-vexpress-osc.c
++++ b/drivers/clk/versatile/clk-vexpress-osc.c
+@@ -110,7 +110,7 @@ static int vexpress_osc_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct of_device_id vexpress_osc_of_match[] = {
++static const struct of_device_id vexpress_osc_of_match[] = {
+ 	{ .compatible = "arm,vexpress-osc", },
+ 	{}
+ };
+-- 
+2.1.0
