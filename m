@@ -1,56 +1,44 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 0/2] ARM: devicetree: Remove unused ti,codec property
-Date: Mon, 16 Mar 2015 09:16:32 +0200
-Message-ID: <55068350.9080500@ti.com>
-References: <1426279237-15940-1-git-send-email-marek@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426279237-15940-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>, bcousson@baylibre.com, tony@atomide.com
-Cc: eballetbo@gmail.com, javier@dowhile0.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jarkko.nikula@bitmer.com, hns@goldelico.com, arnd@arndb.de
+From: Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH] mfd: twl6040: match wait_for_completion_timeout return type
+Date: Mon, 16 Mar 2015 04:17:02 -0400
+Message-ID: <1426493822-10331-1-git-send-email-hofrat@osadl.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.osadl.org ([62.245.132.105]:47828 "EHLO www.osadl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751338AbbCPIVg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Mar 2015 04:21:36 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
 
-On 03/13/2015 10:40 PM, Marek Belisko wrote:
-> ti,codec in not parsed in omap-twl4030 sound driver. It's not necessa=
-ry
-> to specify this property in DT because ti,twl4030-audio which ti,code=
-c
-> was pointing to by phandle is mfd driver and device for ASoC ic creat=
-ed w/o
-> any DT property (codec name is hardcoded in ASoC driver).
->=20
-> Please see reply [1] from Peter Ujfalusi.
+Return type of wait_for_completion_timeout is unsigned long not int. As
+time_left is exclusively used for wait_for_completion_timeout here its
+type is simply changed to unsigned long.
 
-All:
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+---
 
->=20
-> Changes from v1:
-> - keep ti,codec property in Documentation as optional that the
-> existing dtbs do not become noncompliant after the change
->=20
-> [1]: http://comments.gmane.org/gmane.linux.ports.arm.omap/124273
->=20
-> Marek Belisko (2):
->   ARM: dts: omap3: Remove all references to ti,codec property
->   Documentation: omap-twl4030: Move ti,codec property to optional
->=20
->  Documentation/devicetree/bindings/sound/omap-twl4030.txt | 3 +--
->  arch/arm/boot/dts/omap3-beagle-xm.dts                    | 1 -
->  arch/arm/boot/dts/omap3-beagle.dts                       | 1 -
->  arch/arm/boot/dts/omap3-cm-t3x30.dtsi                    | 1 -
->  arch/arm/boot/dts/omap3-devkit8000.dts                   | 1 -
->  arch/arm/boot/dts/omap3-gta04.dtsi                       | 1 -
->  arch/arm/boot/dts/omap3-igep.dtsi                        | 1 -
->  arch/arm/boot/dts/omap3-lilly-a83x.dtsi                  | 1 -
->  arch/arm/boot/dts/omap3-overo-base.dtsi                  | 1 -
->  arch/arm/boot/dts/omap3-tao3530.dtsi                     | 1 -
->  10 files changed, 1 insertion(+), 11 deletions(-)
->=20
+Patch was compile tested with x86_64_defconfig + CONFIG_TWL6040_CORE=y
 
+Patch is against 4.0-rc3 (localversion-next is -next-20150316)
 
---=20
-P=E9ter
+ drivers/mfd/twl6040.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index f71ee3d..d6f9761 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -259,7 +259,7 @@ static irqreturn_t twl6040_thint_handler(int irq, void *data)
+ 
+ static int twl6040_power_up_automatic(struct twl6040 *twl6040)
+ {
+-	int time_left;
++	unsigned long time_left;
+ 
+ 	gpio_set_value(twl6040->audpwron, 1);
+ 
+-- 
+1.7.10.4
+
