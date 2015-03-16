@@ -1,49 +1,50 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] ARM: dts: add openpandora device support
-Date: Mon, 16 Mar 2015 15:04:29 -0700
-Message-ID: <20150316220429.GM12397@atomide.com>
-References: <1425072399-23152-1-git-send-email-marek@goldelico.com>
+Subject: Re: [PATCH v2 3/3] ARM: dts: AM4372: update hdq compatible property
+Date: Mon, 16 Mar 2015 15:08:38 -0700
+Message-ID: <20150316220837.GN12397@atomide.com>
+References: <1425293374-30878-1-git-send-email-vigneshr@ti.com>
+ <1425293374-30878-4-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1425072399-23152-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <1425293374-30878-4-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Evgeniy Polyakov <zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [150227 13:30]:
-> changes from v2:
-> - fix missing PIN_INPUT for penirq node
-> - added Reviewed-by and Tested-by
+* Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [150302 02:53]:
+> This patch updates hdq node compatible property to "ti,am4372-hdq".
 > 
-> changes from v1:
-> - add new boards to makefile in patch 2,3 (don't add them
-> in separate commit together), fix gpmc issues (reported by Tony Lindgren)
-> 
-> - fix various issues reported by Grazvydas Ignotas
-> (drop internal pullups from pinmux as external are in place,
-> fix gpio buttons active state ...)
-> 
-> This series of patches adds initial device tree support for the
-> OpenPandora. The most important parts are working (display, keyboard,
-> touch, charging, fuel gauge, musb port, sd/mmc ports, leds, buttons).
-> Not yet supported are: usb host port, nubs, wifi, bluetooth, audio.
-> 
-> First patch add common dtsi file which is then used in 600mhz and 1ghz
-> variants of openpandora which support is added in patches 2 and 3.
-> 
-> H. Nikolaus Schaller (3):
->   ARM: dts: omap3-pandora: add common device tree
->   ARM: dts: omap3-pandora: add OMAP3530 600 MHz version
->   ARM: dts: omap3-pandora: add DM3730 1 GHz version
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 
-Thanks everybody for doing this, applying into omap-for-v4.1/dt.
-
-Regards,
+Looks like this is safe to apply even with the driver changes pending
+as the driver is currently only parsing ti,omap3-1w property.
+So applying this patch into omap-for-v4.1/dt thanks.
 
 Tony
+
+> ---
+>  arch/arm/boot/dts/am4372.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 1943fc333e7c..ae0e8c15a6df 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -884,7 +884,7 @@
+>  		};
+>  
+>  		hdq: hdq@48347000 {
+> -			compatible = "ti,am43xx-hdq";
+> +			compatible = "ti,am4372-hdq";
+>  			reg = <0x48347000 0x1000>;
+>  			interrupts = <GIC_SPI 139 IRQ_TYPE_LEVEL_HIGH>;
+>  			clocks = <&func_12m_clk>;
+> -- 
+> 1.9.1
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
