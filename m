@@ -1,43 +1,55 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 00/15] omap3isp driver DT support
-Date: Mon, 16 Mar 2015 02:25:55 +0200
-Message-ID: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH 02/15] omap3isp: Avoid a BUG_ON() in media_entity_create_link()
+Date: Mon, 16 Mar 2015 02:25:57 +0200
+Message-ID: <1426465570-30295-3-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45048 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45054 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751027AbbCPA05 (ORCPT
+	by vger.kernel.org with ESMTP id S1750937AbbCPA05 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
 	Sun, 15 Mar 2015 20:26:57 -0400
+In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 
-Hi folks,
+If an uninitialised v4l2_subdev struct was passed to
+media_entity_create_link(), one of the BUG_ON()'s in the function will be
+hit since media_entity.num_pads will be zero. Avoid this by checking whether
+the num_pads field is non-zero for the interface.
 
-Here's the first non-RFC version of the omap3isp driver DT support patchset.
-It's a sub-set of patches in this RFC set:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-<URL:http://www.spinics.net/lists/linux-media/msg87263.html>
-
-What has been changed since the RFC set in these patches is roughly:
-
-- The patches have been rebased on Laurent's hist DMA patch:
-
-  <URL:http://www.spinics.net/lists/linux-media/msg87349.html>
-
-- the dts changes have been split off as a separate set "[PATCH 0/4] OMAP 3
-  ISP (and N9/N950 primary camera support) dts changes". This includes the
-  OMAP 3 ISP DT binding patch. There are no direct dependencies to this set.
-
-- Use unsigned int rather than int in loop over an array in v4l2-of.c.
-
-- Check that there at least as as many lane polarities as there are lanes.
-
-- Fixed syscon handling for non-DT case.
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index fb193b6..4ab674d 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1946,6 +1946,19 @@ static int isp_register_entities(struct isp_device *isp)
+ 			goto done;
+ 		}
+ 
++		/*
++		 * Not all interfaces are available on all revisions
++		 * of the ISP. The sub-devices of those interfaces
++		 * aren't initialised in such a case. Check this by
++		 * ensuring the num_pads is non-zero.
++		 */
++		if (!input->num_pads) {
++			dev_err(isp->dev, "%s: invalid input %u\n",
++				entity->name, subdevs->interface);
++			ret = -EINVAL;
++			goto done;
++		}
++
+ 		for (i = 0; i < sensor->entity.num_pads; i++) {
+ 			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
+ 				break;
 -- 
-Kind regards,
-Sakari
-
+1.7.10.4
 
