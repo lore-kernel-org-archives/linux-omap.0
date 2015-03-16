@@ -1,50 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: config: omap2plus_defconfig: switch over to LZMA
- compression
-Date: Mon, 16 Mar 2015 11:18:47 -0700
-Message-ID: <20150316181847.GU5264@atomide.com>
-References: <1422638336-24243-1-git-send-email-balbi@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
+Date: Mon, 16 Mar 2015 19:25:37 +0100
+Message-ID: <20150316182536.GA16829@earth>
+References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
+ <20150313151301.GJ5264@atomide.com>
+ <CAB3XZEdFMQexA69JEuw=VnqsNOEkWAM0+oWWmt6DaN9+hZ+vdw@mail.gmail.com>
+ <2070859.WcMooC33YH@wuerfel>
+ <20150316152939.GP5264@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:37703 "EHLO muru.com"
+Received: from ring0.de ([5.45.105.125]:55390 "EHLO ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932805AbbCPSXh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 14:23:37 -0400
+	id S932728AbbCPS0E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Mar 2015 14:26:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1422638336-24243-1-git-send-email-balbi@ti.com>
+In-Reply-To: <20150316152939.GP5264@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, David Cohen <david.a.cohen@linux.intel.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Eliad Peller <eliad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Sekhar Nori <nsekhar@ti.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Luciano Coelho <luca@coelho.fi>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 
-* Felipe Balbi <balbi@ti.com> [150130 09:22]:
-> LZMA compression makes about 33% smaller zImage
-> with just a slight extra decompression time.
-> 
-> Before this patch, zImage built with o2+_dc
-> is 4.5MiB and after it's about 3.3MiB.
-> 
-> Suggested-by: David Cohen <david.a.cohen@linux.intel.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Applying this into omap-for-v4.1/defconfig thanks.
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony
+Hi,
 
-> ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index b7386524c356..742c62b6d663 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -1,3 +1,4 @@
-> +CONFIG_KERNEL_LZMA=y
->  CONFIG_SYSVIPC=y
->  CONFIG_POSIX_MQUEUE=y
->  CONFIG_FHANDLE=y
-> -- 
-> 2.3.0-rc1
-> 
+On Mon, Mar 16, 2015 at 08:29:39AM -0700, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [150315 05:10]:
+> > On Sunday 15 March 2015 10:50:42 Eliad Peller wrote:
+> > > yeah, i missed it :/
+> > >=20
+> > > looks like there's no platform that defines platform data for it.
+> > > i'll replace the dev_get_platdata() with a function that only parses
+> > > the clock-frequency properties (the irq is taken in this case from the
+> > > spi_device).
+> > > (or maybe i should just drop it, as no one actually uses it?)
+> >=20
+> > I don't think we should drop the driver, but dropping the platform_data
+> > support sounds reasonable. New users of this driver should all be using
+> > DT, and if there is a good reason to use platform_data, it's easily
+> > put back.
+>=20
+> Well we have n8x0 and n900 using the spi driver. For those, n8x0 boot
+> all in dts mode, but n900 still also boots in legacy mode. It seems the
+> board-rx51-peripherals.c only passes the power_gpio though, so that
+> should be easy to keep around.
+>=20
+> We should keep things still working for n900 in legacy mode until the
+> pending regressions with device tree based booting have been cleared
+> for at least one merge cycle. I believe the last pending issues is the
+> support for ATAG_REVISION in device tree mode as posted by Pali.
+
+mh by migrating to newer gpiod interface platform data is no longer
+needed (instead the boardfile would need a gpiod_lookup_table). That
+way all of the dirty code is in the board file and will be removed
+once the time comes. See for example rx51_fmtx_gpios_table.
+
+Note: This is independent of wl12xx changes, since N900 uses wl1251.
+
+-- Sebastian
+
+--BXVAT5kNtrzKuDFl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVByAdAAoJENju1/PIO/qaugAQAJyd6jAeZYJsxqG5J2qkey+g
+Zb+K1Q2yw9koChF9MMersXC4Rz8ClOZLKGx9/WWBZ8HAAlYzIrmMAP0BjCjgfswC
+8u/a56VK5smNiG+9hdromtnBRKh9zpKel/nOpC+0CNP21rJevvxA4c7S2lc+ACM8
+4bCvayP3PBaklZq8xSEM2NrqGNv6g2TR5+yooUMbbDbG6fg8oH/2IzkcP0StrKT7
+uXSUYufCDMAUllhhM4R5bt82pOJDtmx4AB0WikVmU3ldfgC3Uf8J6g9STr8lwPX2
+v19xi+8cnSE2nQtvjig35QDYiVONIP+IRoWVNezLHS3fQpMxdwSFeeQPRWN6nDvc
+n3ta2C2v213hB/mIxJ8ODhXx2b/MpraaFKjn0ml8ye0T8u/PU6ZbciTgLxHZoKtV
+JXwf0VvmO0+Qy2tTt5Zf/S0XNGx7zAojbRT6o/s8fxDpta/rsIPE5W+A8mtrlKhf
+Am4vFn3N4fCwmDIEhSpQXEe/W2hLWlmIlm0jMjg2ANVJiYNabx/kBPDb2BUhNJ+b
+wTrLv9V0L2+3Iizx6HvMKT1dt9CPf+av3vdq+wJrNBYh099pNTgbHl5j+etq09Oe
+73bSwtA7S1vuiGdif08AqYgKZJohoGUH1WguJ5g8klQ0G58mPrtKSYxCA8c5RGWQ
+Utgjq73IYFFZw0R5qCon
+=X9g0
+-----END PGP SIGNATURE-----
+
+--BXVAT5kNtrzKuDFl--
