@@ -1,47 +1,112 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 0/4] OMAP 3 ISP (and N9/N950 primary camera support) dts changes
-Date: Mon, 16 Mar 2015 02:01:16 +0200
-Message-ID: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44812 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751844AbbCPACH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:02:07 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH 4/4] arm: dts: n950, n9: Add primary camera support
+Date: Mon, 16 Mar 2015 02:01:20 +0200
+Message-ID: <1426464080-29119-5-git-send-email-sakari.ailus@iki.fi>
+References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi Tony and others,
+Add support for the primary camera of the Nokia N950 and N9.
 
-I had a couple of patches that contained dts changes in my OMAP 3 ISP / N9
-camera DT support set. Since it became apparent that at least some of the
-changes should go through linux-omap due to potential conflicts with other
-patches, I decided to separate the dts changes from the set that could go
-through the linux-omap tree. Here they are.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/boot/dts/omap3-n9.dts   |   37 +++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts |   37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+)
 
-There's also the OMAP 3 ISP DT binding change, including a corresponding
-header file that's included for human-readable names for the PHY types.
-
-There are no dependencies between the sets, other than the obvious one that
-omap3isp DT support won't work unless both are applied. The original thread
-can be found here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg87263.html>
-
-What's changed since the RFC set in the domain of these patches, there are
-lots of changes elsewhere as well:
-
-- syscon register range extension as a separate patchset,
-
-- Fixed OMAP 3 ISP DT binding documentation according to Laurent's comments.
-  Especially the PHY types have now human-readable names that refer to the
-  PHY names in the documentation.
-
-- The isp nodes are called isp rather than omap3_isp.
-
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index 9938b5d..7711df1 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -16,3 +16,40 @@
+ 	model = "Nokia N9";
+ 	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+ };
++
++&i2c2 {
++	smia_1: camera@10 {
++		compatible = "nokia,smia";
++		reg = <0x10>;
++		/* No reset gpio */
++		vana-supply = <&vaux3>;
++		clocks = <&isp 0>;
++		clock-frequency = <9600000>;
++		nokia,nvm-size = <(16 * 64)>;
++		port {
++			smia_1_1: endpoint {
++				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&csi2a_ep>;
++			};
++		};
++	};
++};
++
++&isp {
++	vdd-csiphy1-supply = <&vaux2>;
++	vdd-csiphy2-supply = <&vaux2>;
++	ports {
++		port@2 {
++			reg = <2>;
++			csi2a_ep: endpoint {
++				remote-endpoint = <&smia_1_1>;
++				clock-lanes = <2>;
++				data-lanes = <1 3>;
++				crc = <1>;
++				lane-polarity = <1 1 1>;
++			};
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 261c558..761f275 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -16,3 +16,40 @@
+ 	model = "Nokia N950";
+ 	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+ };
++
++&i2c2 {
++	smia_1: camera@10 {
++		compatible = "nokia,smia";
++		reg = <0x10>;
++		/* No reset gpio */
++		vana-supply = <&vaux3>;
++		clocks = <&isp 0>;
++		clock-frequency = <9600000>;
++		nokia,nvm-size = <(16 * 64)>;
++		port {
++			smia_1_1: endpoint {
++				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++				remote-endpoint = <&csi2a_ep>;
++			};
++		};
++	};
++};
++
++&isp {
++	vdd-csiphy1-supply = <&vaux2>;
++	vdd-csiphy2-supply = <&vaux2>;
++	ports {
++		port@2 {
++			reg = <2>;
++			csi2a_ep: endpoint {
++				remote-endpoint = <&smia_1_1>;
++				clock-lanes = <2>;
++				data-lanes = <3 1>;
++				crc = <1>;
++				lane-polarity = <1 1 1>;
++			};
++		};
++	};
++};
 -- 
-Kind regards,
-Sakari
-
+1.7.10.4
