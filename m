@@ -1,31 +1,34 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 7/7] ARM: omap2plus_defconfig: Enable EXTCON_GPIO_USB
-Date: Mon, 16 Mar 2015 10:53:57 -0700
-Message-ID: <20150316175355.GS5264@atomide.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
- <1422274532-9488-8-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: config: omap2plus_defconfig: switch over to LZMA
+ compression
+Date: Mon, 16 Mar 2015 11:18:47 -0700
+Message-ID: <20150316181847.GU5264@atomide.com>
+References: <1422638336-24243-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:37703 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932805AbbCPSXh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Mar 2015 14:23:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1422274532-9488-8-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1422638336-24243-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, David Cohen <david.a.cohen@linux.intel.com>
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150126 04:19]:
-> This driver is needed for USB cable type detection on dra7-evm,
-> dra72-evm and am57xx-beagle-x15.
+* Felipe Balbi <balbi@ti.com> [150130 09:22]:
+> LZMA compression makes about 33% smaller zImage
+> with just a slight extra decompression time.
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Before this patch, zImage built with o2+_dc
+> is 4.5MiB and after it's about 3.3MiB.
+> 
+> Suggested-by: David Cohen <david.a.cohen@linux.intel.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Applying this into omap-for-v4.1/defconfig. I think it's all
-queued up after this, please check and repost patches if
-it's still missing something as I've marked all the extcon
-related threads as read here now.
-
-Regards,
+Applying this into omap-for-v4.1/defconfig thanks.
 
 Tony
 
@@ -34,21 +37,14 @@ Tony
 >  1 file changed, 1 insertion(+)
 > 
 > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 667d9d5..7e10e58 100644
+> index b7386524c356..742c62b6d663 100644
 > --- a/arch/arm/configs/omap2plus_defconfig
 > +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -326,6 +326,7 @@ CONFIG_DMADEVICES=y
->  CONFIG_TI_EDMA=y
->  CONFIG_DMA_OMAP=y
->  CONFIG_EXTCON=y
-> +CONFIG_EXTCON_USB_GPIO=m
->  CONFIG_EXTCON_PALMAS=y
->  CONFIG_PWM=y
->  CONFIG_PWM_TIECAP=y
+> @@ -1,3 +1,4 @@
+> +CONFIG_KERNEL_LZMA=y
+>  CONFIG_SYSVIPC=y
+>  CONFIG_POSIX_MQUEUE=y
+>  CONFIG_FHANDLE=y
 > -- 
-> 2.1.0
+> 2.3.0-rc1
 > 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
