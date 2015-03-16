@@ -1,51 +1,88 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] regulator: tps65910: Add missing #include <linux/of.h>
-Date: Mon, 16 Mar 2015 11:41:24 +0000
-Message-ID: <20150316114124.GP28806@sirena.org.uk>
-References: <1426424630-9781-1-git-send-email-geert@linux-m68k.org>
+From: "Ivan T. Ivanov" <ivan.ivanov@linaro.org>
+Subject: Re: [PATCH v4 1/1] extcon: usb-gpio: Introduce gpio usb extcon
+ driver
+Date: Mon, 16 Mar 2015 14:32:29 +0200
+Message-ID: <1426509149.2330.5.camel@linaro.org>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+	 <1422274532-9488-2-git-send-email-rogerq@ti.com> <54C8D2F4.9050404@ti.com>
+	 <54CF4FC7.2050309@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="8lV4/+ewWCwXF+0e"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46357 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754252AbbCPLlg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 07:41:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1426424630-9781-1-git-send-email-geert@linux-m68k.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54CF4FC7.2050309@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: cw00.choi@samsung.com, myungjoo.ham@samsung.com, balbi@ti.com, tony@atomide.com, george.cherian@ti.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+
+Hi, 
+
+On Mon, 2015-02-02 at 12:21 +0200, Roger Quadros wrote:
+> This driver observes the USB ID pin connected over a GPIO and
+> updates the USB cable extcon states accordingly.
+> 
+> The existing GPIO extcon driver is not suitable for this purpose
+> as it needs to be taught to understand USB cable states and it
+> can't handle more than one cable per instance.
+> 
+> For the USB case we need to handle 2 cable states.
+> 1) USB (attach/detach)
+> 2) USB-HOST (attach/detach)
+> 
+> This driver can be easily updated in the future to handle VBUS
+> events in case it happens to be available on GPIO for any platform.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+> v4:
+> - got rid of id_irqwake flag. Fail if enable/disable_irq_wake() fails
+> - changed host cable name to "USB-HOST"
+
+I am sorry that I am getting a bit little late into this.
+
+Isn't supposed that we have to use strings defined in 
+const char extcon_cable_name[][]?
 
 
---8lV4/+ewWCwXF+0e
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> +
+> +/* List of detectable cables */
+> +enum {
+> +       EXTCON_CABLE_USB = 0,
+> +       EXTCON_CABLE_USB_HOST,
+> +
 
-On Sun, Mar 15, 2015 at 02:03:50PM +0100, Geert Uytterhoeven wrote:
-> drivers/regulator/tps65910-regulator.c: In function =E2=80=98tps65910_par=
-se_dt_reg_data=E2=80=99:
-> drivers/regulator/tps65910-regulator.c:1018: error: implicit declaration =
-of function =E2=80=98of_get_child_by_name=E2=80=99
+Same here: duplicated with enum extcon_cable_name
 
-Applied, thanks.
+> +       EXTCON_CABLE_END,
+> +};
+> +
+> +static const char *usb_extcon_cable[] = {
+> +       [EXTCON_CABLE_USB] = "USB",
+> +       [EXTCON_CABLE_USB_HOST] = "USB-HOST",
+> +       NULL,
+> +};
+> 
 
---8lV4/+ewWCwXF+0e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+<snip>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> +
+> +static int usb_extcon_probe(struct platform_device *pdev)
+> +{
+> 
 
-iQEcBAEBCAAGBQJVBsFjAAoJECTWi3JdVIfQbi4H/AhtCRiTkuJkwibgpka0UmG0
-PjlRarGbL7viQ+4h9GZQWzub7nrUpFMbPnhD0JcZNnVjA1+wylkZnMNB7cEWelQb
-pMrVkoXvpQH+0jy05JttHFWO1CdipKvMV8KiP39sKe3M810V6wA0EzNIWI0lGhcs
-5Fhgtag0purcA9TwwdS317ny2qyBxOmgv/N2nmSgE3HD+dymdWRWYHXLdSXqDyNw
-Bc5iesv0ReZFkAc0TSUWz3f5ogoWnsr0AD1p5uTl7fixYTkv4pAfuPAo5aIQ1r1h
-Ac2VNmBpRDOJymX58R2XmhcOYv+2N2UICJjLI51ts15xwlI++8a9qHP3DGazgxM=
-=47Ai
------END PGP SIGNATURE-----
+<snip>
 
---8lV4/+ewWCwXF+0e--
+> +
+> +       ret = devm_request_threaded_irq(dev, info->id_irq, NULL,
+> +                                       usb_irq_handler,
+> +                                       IRQF_TRIGGER_RISING |
+> +                                       IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+
+Shouldn't triggers be defined in DTS files?
+
+
+Regards,
+Ivan
+
+> 
