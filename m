@@ -1,83 +1,54 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: dts: DRA7: Remove ti,timer-dsp and ti,timer-pwm properties
-Date: Mon, 16 Mar 2015 12:20:37 -0500
-Message-ID: <1426526437-63741-1-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 7/7] ARM: omap2plus_defconfig: Enable EXTCON_GPIO_USB
+Date: Mon, 16 Mar 2015 10:53:57 -0700
+Message-ID: <20150316175355.GS5264@atomide.com>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+ <1422274532-9488-8-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58227 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934088AbbCPRVH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 13:21:07 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1422274532-9488-8-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-Remove the 'ti,timer-dsp' and 'ti,timer-pwm' properties from the timer
-nodes that still have them. This seems to be copied from OMAP5, on
-which only certain timers are capable of providing PWM functionality
-or be able to interrupt the DSP. All the GPTimers On DRA7 are capable
-of PWM and interrupting any core (due to the presence of Crossbar).
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150126 04:19]:
+> This driver is needed for USB cable type detection on dra7-evm,
+> dra72-evm and am57xx-beagle-x15.
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-These properties were used by the driver to add capabilities to each
-timer, and support requesting timers by capability. In the DT world,
-we expect any users of timers to use phandles to the respective timer,
-and use the omap_dm_timer_request_by_node() API. The API to request
-using capabilities, omap_dm_timer_request_by_cap() API should be
-deprecated eventually.
+Applying this into omap-for-v4.1/defconfig. I think it's all
+queued up after this, please check and repost patches if
+it's still missing something as I've marked all the extcon
+related threads as read here now.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 7 -------
- 1 file changed, 7 deletions(-)
+Regards,
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5827fedafd43..318d9409e8cd 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -658,7 +658,6 @@
- 			reg = <0x48820000 0x80>;
- 			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer5";
--			ti,timer-dsp;
- 		};
- 
- 		timer6: timer@48822000 {
-@@ -666,8 +665,6 @@
- 			reg = <0x48822000 0x80>;
- 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer6";
--			ti,timer-dsp;
--			ti,timer-pwm;
- 		};
- 
- 		timer7: timer@48824000 {
-@@ -675,7 +672,6 @@
- 			reg = <0x48824000 0x80>;
- 			interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer7";
--			ti,timer-dsp;
- 		};
- 
- 		timer8: timer@48826000 {
-@@ -683,8 +679,6 @@
- 			reg = <0x48826000 0x80>;
- 			interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer8";
--			ti,timer-dsp;
--			ti,timer-pwm;
- 		};
- 
- 		timer9: timer@4803e000 {
-@@ -706,7 +700,6 @@
- 			reg = <0x48088000 0x80>;
- 			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "timer11";
--			ti,timer-pwm;
- 		};
- 
- 		timer13: timer@48828000 {
--- 
-2.3.2
+Tony
 
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 667d9d5..7e10e58 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -326,6 +326,7 @@ CONFIG_DMADEVICES=y
+>  CONFIG_TI_EDMA=y
+>  CONFIG_DMA_OMAP=y
+>  CONFIG_EXTCON=y
+> +CONFIG_EXTCON_USB_GPIO=m
+>  CONFIG_EXTCON_PALMAS=y
+>  CONFIG_PWM=y
+>  CONFIG_PWM_TIECAP=y
+> -- 
+> 2.1.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
