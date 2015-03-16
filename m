@@ -1,50 +1,77 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v6 6/6] wlcore: remove wl12xx_platform_data
-Date: Mon, 16 Mar 2015 08:29:39 -0700
-Message-ID: <20150316152939.GP5264@atomide.com>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
- <20150313151301.GJ5264@atomide.com>
- <CAB3XZEdFMQexA69JEuw=VnqsNOEkWAM0+oWWmt6DaN9+hZ+vdw@mail.gmail.com>
- <2070859.WcMooC33YH@wuerfel>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
+Date: Mon, 16 Mar 2015 09:49:51 -0700
+Message-ID: <20150316164951.GR5264@atomide.com>
+References: <CADYTM3bEQ1mFTusuFQAMYfgOrhNM4=8a7_5=Nh5kHQKO3r1v6A@mail.gmail.com>
+ <20150309211306.GC22341@saruman.tx.rr.com>
+ <CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
+ <20150309212014.GE22341@saruman.tx.rr.com>
+ <20150309212622.GJ5264@atomide.com>
+ <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
+ <20150309214129.GK5264@atomide.com>
+ <CAALWOA-sdLzUP8_6BKvsDQeAqxCw5-n410u3=W3D5yaCLYChbQ@mail.gmail.com>
+ <20150313193058.GN5264@atomide.com>
+ <CAALWOA_FM71OsvCfPuz4DHwGDEpfxcSB4L+YdoCsJuZkukK2iw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2070859.WcMooC33YH@wuerfel>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CAALWOA_FM71OsvCfPuz4DHwGDEpfxcSB4L+YdoCsJuZkukK2iw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Bin Liu <binmlist@gmail.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [150315 05:10]:
-> On Sunday 15 March 2015 10:50:42 Eliad Peller wrote:
-> > yeah, i missed it :/
-> > 
-> > looks like there's no platform that defines platform data for it.
-> > i'll replace the dev_get_platdata() with a function that only parses
-> > the clock-frequency properties (the irq is taken in this case from the
-> > spi_device).
-> > (or maybe i should just drop it, as no one actually uses it?)
+* Matthijs van Duin <matthijsvanduin@gmail.com> [150314 14:04]:
+> On 13 March 2015 at 20:30, Tony Lindgren <tony@atomide.com> wrote:
+> > Hmm OK have to check that. It could also be that dm816x documentation
+> > is copy-paste from da850 or am3517 and the PHY got changed in the
+> > hardware as the registers don't match the documentation. Only the
+> > dm816x errata has right documentation for the USB PHY.
 > 
-> I don't think we should drop the driver, but dropping the platform_data
-> support sounds reasonable. New users of this driver should all be using
-> DT, and if there is a good reason to use platform_data, it's easily
-> put back.
+> Hmm? While I see plenty of usb errata (mostly DMA bugs), I don't see
+> anything about registers being different.
 
-Well we have n8x0 and n900 using the spi driver. For those, n8x0 boot
-all in dts mode, but n900 still also boots in legacy mode. It seems the
-board-rx51-peripherals.c only passes the power_gpio though, so that
-should be easy to keep around.
+Sorry it seems to be the partially updated TRM instead, it's the
+sprs614e.pdf instead. That has the USBPHY_CTRL registers right.
+No mention of Synopsys in sprs614e.pdf though so who knows. It
+seems something got swapped compared to the TRM as the USB_CTRL
+registers totally changed.
 
-We should keep things still working for n900 in legacy mode until the
-pending regressions with device tree based booting have been cleared
-for at least one merge cycle. I believe the last pending issues is the
-support for ATAG_REVISION in device tree mode as posted by Pali.
+I'll just add a comments you mentioned earlier about it probably
+being Synopsys phy.
+ 
+> I do see something curious: advisory 70, the only PHY-related erratum
+> I see, is also present in the DM814x errata and even in AM335x r1.0.
+> This strongly suggests the PHYs must at least be closely related...
+
+Hmm interesting. But dm814x has again different USB_CTRL registers,
+seems to be wired up like am335x. Also there's no USBPHY_CTRL
+registers on dm814x or am335x. Chances are that dm814x is wired up
+the same way as am335x.
+
+> The dm816x TRM makes three separate mentions of the synopsys usb phy
+> though, while I found no other TRMs that mention it, so if it's a
+> copy-paste error (which certainly would not be exceptional) I don't
+> know where from.
+
+Yes I checked am3517 trm, and that too mentions Synopsys once, but
+has different registers. And also checked the l-138/da850 TRM, and
+that does not have USB_CTRL and USBPHY_CTRL registers either.. Looks
+like the copy paste errors come from tms320dm6446.pdf that has
+the USB_CTRL and USBPHY_CTRL registers, but then no mention of
+Synopsys.
+
+> I suppose it's still possible TI acquired a sufficiently permissive
+> license for the synopsys phy to fork it and call it a "TI PHY" as they
+> do in the AM335x docs. (No mention of its origin is made in the DM814x
+> docs.)
+> 
+> BTW, da850? Is that yet another instance of Primus? (i.e.
+> omap-L1xx/c674x/am1xxx with odd final digit, also da830/da828)
+
+Yes it's the arm926 based series, l-138 is da850 I believe.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
