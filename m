@@ -1,73 +1,120 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND] serial: omap_serial: document missing properties
- and add an example
-Date: Mon, 16 Mar 2015 15:13:38 -0700
-Message-ID: <20150316221337.GP12397@atomide.com>
-References: <1425654972-8044-1-git-send-email-mporter@konsulko.com>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: add DT nodes for ov2659 sensor
+Date: Mon, 16 Mar 2015 15:17:40 -0700
+Message-ID: <20150316221740.GQ12397@atomide.com>
+References: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:37915 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754018AbbCPWS1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2015 18:18:27 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1425654972-8044-1-git-send-email-mporter@konsulko.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Porter <mporter@konsulko.com>
-Cc: Devicetree List <devicetree@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-* Matt Porter <mporter@konsulko.com> [150306 07:16]:
-> The omap_serial.txt binding documentation lacks a number of properties
-> that are used in DTS files for platforms incorporating this peripheral.
-> Fix this by documenting the missing required and optional fields and
-> add an example.
+* Lad Prabhakar <prabhakar.csengg@gmail.com> [150312 16:38]:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 > 
-> Signed-off-by: Matt Porter <mporter@konsulko.com>
+> this patch does the following:
+> 1: adds DT node for fixed oscillator.
+> 2: adds DT node entries for ov2659 sensor
+> 3: adds remote-endpoint entry for VPFE.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Applying the original version as they seem to be the same.
-
-Regards,
+Applying into omap-for-v4.1/dt thanks.
 
 Tony
 
 > ---
->  .../devicetree/bindings/serial/omap_serial.txt       | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-> index 342eedd..54c2a15 100644
-> --- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-> +++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-> @@ -4,7 +4,27 @@ Required properties:
->  - compatible : should be "ti,omap2-uart" for OMAP2 controllers
->  - compatible : should be "ti,omap3-uart" for OMAP3 controllers
->  - compatible : should be "ti,omap4-uart" for OMAP4 controllers
-> +- reg : address and length of the register space
-> +- interrupts or interrupts-extended : Should contain the uart interrupt
-> +                                      specifier or both the interrupt
-> +                                      controller phandle and interrupt
-> +                                      specifier.
->  - ti,hwmods : Must be "uart<n>", n being the instance number (1-based)
+>  Note this patch depends on
+>  https://patchwork.kernel.org/patch/6000161/
 >  
->  Optional properties:
->  - clock-frequency : frequency of the clock input to the UART
-> +- dmas : DMA specifier, consisting of a phandle to the DMA controller
-> +         node and a DMA channel number.
-> +- dma-names : "rx" for receive channel, "tx" for transmit channel.
+>  arch/arm/boot/dts/am437x-gp-evm.dts | 42 +++++++++++++++++++++++++++++++++++--
+>  1 file changed, 40 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+> index f84d971..195f452 100644
+> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> @@ -106,6 +106,14 @@
+>  			};
+>  		};
+>  	};
 > +
-> +Example:
+> +	/* fixed 12MHz oscillator */
+> +	refclk: oscillator {
+> +		#clock-cells = <0>;
+> +		compatible = "fixed-clock";
+> +		clock-frequency = <12000000>;
+> +	};
 > +
-> +                uart4: serial@49042000 {
-> +                        compatible = "ti,omap3-uart";
-> +                        reg = <0x49042000 0x400>;
-> +                        interrupts = <80>;
-> +                        dmas = <&sdma 81 &sdma 82>;
-> +                        dma-names = "tx", "rx";
-> +                        ti,hwmods = "uart4";
-> +                        clock-frequency = <48000000>;
-> +                };
+>  };
+>  
+>  &am43xx_pinmux {
+> @@ -404,6 +412,21 @@
+>  			regulator-always-on;
+>  		};
+>  	};
+> +
+> +	ov2659@30 {
+> +		compatible = "ovti,ov2659";
+> +		reg = <0x30>;
+> +
+> +		clocks = <&refclk 0>;
+> +		clock-names = "xvclk";
+> +
+> +		port {
+> +			ov2659_0: endpoint {
+> +				remote-endpoint = <&vpfe1_ep>;
+> +				link-frequencies = /bits/ 64 <70000000>;
+> +			};
+> +		};
+> +	};
+>  };
+>  
+>  &i2c1 {
+> @@ -423,6 +446,21 @@
+>  		touchscreen-size-x = <1024>;
+>  		touchscreen-size-y = <600>;
+>  	};
+> +
+> +	ov2659@30 {
+> +		compatible = "ovti,ov2659";
+> +		reg = <0x30>;
+> +
+> +		clocks = <&refclk 0>;
+> +		clock-names = "xvclk";
+> +
+> +		port {
+> +			ov2659_1: endpoint {
+> +				remote-endpoint = <&vpfe0_ep>;
+> +				link-frequencies = /bits/ 64 <70000000>;
+> +			};
+> +		};
+> +	};
+>  };
+>  
+>  &epwmss0 {
+> @@ -626,7 +664,7 @@
+>  
+>  	port {
+>  		vpfe0_ep: endpoint {
+> -			/* remote-endpoint = <&sensor>; add once we have it */
+> +			remote-endpoint = <&ov2659_1>;
+>  			ti,am437x-vpfe-interface = <0>;
+>  			bus-width = <8>;
+>  			hsync-active = <0>;
+> @@ -643,7 +681,7 @@
+>  
+>  	port {
+>  		vpfe1_ep: endpoint {
+> -			/* remote-endpoint = <&sensor>; add once we have it */
+> +			remote-endpoint = <&ov2659_0>;
+>  			ti,am437x-vpfe-interface = <0>;
+>  			bus-width = <8>;
+>  			hsync-active = <0>;
 > -- 
-> 1.8.4
+> 2.1.0
 > 
