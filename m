@@ -1,39 +1,87 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 12/15] dt: bindings: Add lane-polarity property to endpoint nodes
-Date: Mon, 16 Mar 2015 02:26:07 +0200
-Message-ID: <1426465570-30295-13-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH 04/15] omap3isp: DT support for clocks
+Date: Mon, 16 Mar 2015 02:25:59 +0200
+Message-ID: <1426465570-30295-5-git-send-email-sakari.ailus@iki.fi>
 References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45065 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751905AbbCPA06 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:26:58 -0400
 In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-List-Id: linux-omap@vger.kernel.org
 
-Add lane-polarity property to endpoint nodes. This essentially tells that
-the order of the differential signal wires is inverted.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/platform/omap3isp/isp.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 571b4c6..27cfa4e 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -106,6 +106,12 @@ Optional endpoint properties
- - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
-   instance, this is the actual frequency of the bus, not bits per clock per
-   lane value. An array of 64-bit unsigned integers.
-+- lane-polarity: an array of polarities of the lanes starting from the clock
-+  lane and followed by the data lanes in the same order as in data-lanes.
-+  Valid values are 0 (normal) and 1 (inverted). The length of the array
-+  should be the combined length of data-lanes and clock-lanes properties.
-+  If the lane-polarity property is omitted, the value must be interpreted as 0
-+  (normal). This property is valid for serial busses only.
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index f694615..82499cd 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -279,9 +279,21 @@ static const struct clk_init_data isp_xclk_init_data = {
+ 	.num_parents = 1,
+ };
  
++static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
++{
++	unsigned int idx = clkspec->args[0];
++	struct isp_device *isp = data;
++
++	if (idx >= ARRAY_SIZE(isp->xclks))
++		return ERR_PTR(-ENOENT);
++
++	return isp->xclks[idx].clk;
++}
++
+ static int isp_xclk_init(struct isp_device *isp)
+ {
+ 	struct isp_platform_data *pdata = isp->pdata;
++	struct device_node *np = isp->dev->of_node;
+ 	struct clk_init_data init;
+ 	unsigned int i;
  
- Example
+@@ -312,6 +324,12 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		if (IS_ERR(xclk->clk))
+ 			return PTR_ERR(xclk->clk);
+ 
++		/* When instantiated from DT we don't need to register clock
++		 * aliases.
++		 */
++		if (np)
++			continue;
++
+ 		if (pdata->xclks[i].con_id == NULL &&
+ 		    pdata->xclks[i].dev_id == NULL)
+ 			continue;
+@@ -327,13 +345,20 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		clkdev_add(xclk->lookup);
+ 	}
+ 
++	if (np)
++		of_clk_add_provider(np, isp_xclk_src_get, isp);
++
+ 	return 0;
+ }
+ 
+ static void isp_xclk_cleanup(struct isp_device *isp)
+ {
++	struct device_node *np = isp->dev->of_node;
+ 	unsigned int i;
+ 
++	if (np)
++		of_clk_del_provider(np);
++
+ 	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+ 		struct isp_xclk *xclk = &isp->xclks[i];
+ 
 -- 
 1.7.10.4
+
