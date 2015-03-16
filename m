@@ -1,36 +1,43 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 01/15] omap3isp: Fix error handling in probe
-Date: Mon, 16 Mar 2015 02:25:56 +0200
-Message-ID: <1426465570-30295-2-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
+Subject: [PATCH 00/15] omap3isp driver DT support
+Date: Mon, 16 Mar 2015 02:25:55 +0200
+Message-ID: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45048 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751027AbbCPA05 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:26:57 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-List-Id: linux-omap@vger.kernel.org
 
-The mutex was not destroyed correctly if dma_coerce_mask_and_coherent()
-failed for some reason.
+Hi folks,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Here's the first non-RFC version of the omap3isp driver DT support patchset.
+It's a sub-set of patches in this RFC set:
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index deca809..fb193b6 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2252,7 +2252,7 @@ static int isp_probe(struct platform_device *pdev)
- 
- 	ret = dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
- 	if (ret)
--		return ret;
-+		goto error;
- 
- 	platform_set_drvdata(pdev, isp);
- 
+<URL:http://www.spinics.net/lists/linux-media/msg87263.html>
+
+What has been changed since the RFC set in these patches is roughly:
+
+- The patches have been rebased on Laurent's hist DMA patch:
+
+  <URL:http://www.spinics.net/lists/linux-media/msg87349.html>
+
+- the dts changes have been split off as a separate set "[PATCH 0/4] OMAP 3
+  ISP (and N9/N950 primary camera support) dts changes". This includes the
+  OMAP 3 ISP DT binding patch. There are no direct dependencies to this set.
+
+- Use unsigned int rather than int in loop over an array in v4l2-of.c.
+
+- Check that there at least as as many lane polarities as there are lanes.
+
+- Fixed syscon handling for non-DT case.
+
 -- 
-1.7.10.4
+Kind regards,
+Sakari
+
+
