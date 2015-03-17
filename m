@@ -1,89 +1,88 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [GIT PULL] OMAP-GPMC driver updates for v4.1
-Date: Tue, 17 Mar 2015 15:27:01 +0200
-Message-ID: <55082BA5.50601@ti.com>
-References: <54FD8D82.9060507@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v3 3/6] Documentation: DT: Document twl4030-madc-battery
+ bindings
+Date: Tue, 17 Mar 2015 14:59:13 +0100
+Message-ID: <20150317135913.GA4034@amd>
+References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+ <1423088075-10025-4-git-send-email-marek@goldelico.com>
+ <20150316210532.GA11441@amd>
+ <CAAfyv34vnRY=TAyx4+7s1SW7rVE7CFh9z+OOcCsbCx63y9aVog@mail.gmail.com>
+ <20150317084730.GA9761@amd>
+ <940EE988-03A4-4B1B-A168-959E367953A6@goldelico.com>
+ <20150317103746.GB3759@amd>
+ <CDA0FF88-2D00-46E0-828E-DD6F4FF4ADAF@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46396 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752965AbbCQN1T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Mar 2015 09:27:19 -0400
-In-Reply-To: <54FD8D82.9060507@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CDA0FF88-2D00-46E0-828E-DD6F4FF4ADAF@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, mark.rutland@arm.com, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux PM mailing list <linux-pm@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, Semen Protsenko <semen.protsenko@globallogic.com>
 
-Hi Arnd,
+Hi!
 
-I think you might have missed this as I'm not in your usual list of maintainers :).
-So a gentle reminder. Please let me know if anything is not as per your requirements.
+> >>>>> to introduce coefficients for temperature and discharge rate?
+> >>>> What do you mean? Nothing like that is used in current driver wh=
+y do
+> >>>> we need to add it?
+> >>>=20
+> >>> Well, conversion between Li-ion's voltage and state of charge at =
+0
+> >>> current is well known:
+> >>=20
+> >> We can=E2=80=99t measure at 0 current since the OMAP is driven fro=
+m battery
+> >> and charger and may also draw some mA=E2=80=A6
+> >=20
+> > Yes, but you know how many mA you are taking just now. So if you kn=
+ew
+> > the internal resistance, you could compute the voltage at 0
+> > current. (And it should also work during charging, as long as you k=
+now
+> > how much current is going in.)
+>=20
+> As far as I understand the twl4030 charger and MADC it is not possibl=
+e to
+> separate these values. It is only reporting the inflow from charger t=
+o
+> battery + system. So you don=E2=80=99t know how many mA are supplying=
+ the system
+> and how many mA are left over for charging.
+>=20
+> You can only assume how much the system is drawing while running (som=
+ething
+> between 50 and 600 mA but this depends on system activities, power st=
+ate
+> of peripherald and e.g. backlight being switched on).
+>=20
+> I think your basic assumption that we know any time how many mA the s=
+ystem
+> is taking is not given.
 
-cheers,
--roger
+So.. you won't be able to get exact value while charging, but you
+get one while discharging, which is what really matters...?
 
-On 09/03/15 14:09, Roger Quadros wrote:
-> Hi Arnd,
-> 
-> Based on Tony's request I will be sending you pull requests for OMAP-GPMC driver
-> hence forth.
-> 
-> Please pull in these OMAP-GPMC driver fixes for v4.1.
-> Patches have been tested for GPMC-NAND on dra7-evm and omap3-beagle.
-> 
-> Thanks.
-> 
-> The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
-> 
->   Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-> 
-> are available in the git repository at:
-> 
->   git@github.com:rogerq/linux.git tags/gpmc-omap-for-v4.1
-> 
-> for you to fetch changes up to 4b613e9b4bbe94545a588a100e09006d827a7ebe:
-> 
->   ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters (2015-03-06 12:55:32 +0200)
-> 
-> ----------------------------------------------------------------
-> OMAP-GPMC driver fixes for v4.1
-> 
-> * Fixed WAITMONITORINGTIME programming to be based on
-> GPMC_CLK instead of GPMC_FCLK. The GPMC clock divider
-> programming is fixed for both synchronous and asynchronous
-> modes.
-> * Allow GPMC's children of default bus type to be populated in
-> the device tree.
-> * Improved DEBUG output data and format.
-> * Prevent writing 1 into reserved bits of GPMC_CONFIG7.
-> 
-> ----------------------------------------------------------------
-> Robert ABEL (8):
->       ARM OMAP2+ GPMC: don't undef DEBUG
->       ARM OMAP2+ GPMC: add bus children
->       ARM OMAP2+ GPMC: fix debug output alignment
->       ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
->       ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
->       ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based on WAITMONITORINGTIME
->       ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
->       ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
-> 
-> Semen Protsenko (2):
->       ARM: OMAP2+: gpmc: Fix writing in gpmc_cs_set_memconf
->       ARM: OMAP2+: gpmc: make gpmc_cs_get_name() static
-> 
->  arch/arm/mach-omap2/gpmc-nand.c    |  18 +++++----
->  arch/arm/mach-omap2/gpmc-onenand.c |   4 +-
->  arch/arm/mach-omap2/usb-tusb6010.c |   4 +-
->  drivers/memory/omap-gpmc.c         | 358 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------
->  include/linux/omap-gpmc.h          |   3 +-
->  5 files changed, 305 insertions(+), 82 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> > Yes, and that coefficient should be internal battery resistance ;-)=
+=2E
+>=20
+> But where do you know this value from to write it into a DT file?
+> Usually you can=E2=80=99t measure it easily and for some batteries yo=
+u don=E2=80=99t have
+> a data sheet.
+>=20
+> Contrary, the calibration curves can easily be measured on the device
+> (assuming that the charge level decreases/increases linearly over tim=
+e
+> between Full and Empty).
 
+If you can copy it from the data sheet, that's the easiest option. If
+not, you should be able to easily compute it from the charge/discharge
+curves or from measured voltage at different loads.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
