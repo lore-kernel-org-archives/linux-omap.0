@@ -1,42 +1,132 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP: dmtimer: disable pm runtime on remove
-Date: Mon, 16 Mar 2015 20:14:03 -0500
-Message-ID: <1426554843-42641-3-git-send-email-s-anna@ti.com>
-References: <1426554843-42641-1-git-send-email-s-anna@ti.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: add DT nodes for ov2659 sensor
+Date: Tue, 17 Mar 2015 01:20:04 +0000
+Message-ID: <CA+V-a8uWqjze32ukOGonQAACByPmW6WDbpFrA9EFipnNJeD58A@mail.gmail.com>
+References: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com> <20150316221740.GQ12397@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48430 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100AbbCQBOd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 21:14:33 -0400
-In-Reply-To: <1426554843-42641-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150316221740.GQ12397@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, LAK <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-Disable the pm_runtime of the device upon remove. This is
-added to balance the pm_runtime_enable() invoked in the probe.
+Hi Tony,
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/plat-omap/dmtimer.c | 2 ++
- 1 file changed, 2 insertions(+)
+On Mon, Mar 16, 2015 at 10:17 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Lad Prabhakar <prabhakar.csengg@gmail.com> [150312 16:38]:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> this patch does the following:
+>> 1: adds DT node for fixed oscillator.
+>> 2: adds DT node entries for ov2659 sensor
+>> 3: adds remote-endpoint entry for VPFE.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+> Applying into omap-for-v4.1/dt thanks.
+>
+I would like to get this one in via media tree to avoid dependency
+as I am still waiting for Acks from DT maintainers for the sensor
+driver.
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index f32c74c0e1de..8ca94d379bc3 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -910,6 +910,8 @@ static int omap_dm_timer_remove(struct platform_device *pdev)
- 		}
- 	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
-+	pm_runtime_disable(&pdev->dev);
-+
- 	return ret;
- }
- 
--- 
-2.3.2
+If I can get your Ack on this I'll queue it up along with sensor
+driver via media tree.
 
+Cheers,
+--Prabhakar Lad
+
+> Tony
+>
+>> ---
+>>  Note this patch depends on
+>>  https://patchwork.kernel.org/patch/6000161/
+>>
+>>  arch/arm/boot/dts/am437x-gp-evm.dts | 42 +++++++++++++++++++++++++++++++++++--
+>>  1 file changed, 40 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+>> index f84d971..195f452 100644
+>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+>> @@ -106,6 +106,14 @@
+>>                       };
+>>               };
+>>       };
+>> +
+>> +     /* fixed 12MHz oscillator */
+>> +     refclk: oscillator {
+>> +             #clock-cells = <0>;
+>> +             compatible = "fixed-clock";
+>> +             clock-frequency = <12000000>;
+>> +     };
+>> +
+>>  };
+>>
+>>  &am43xx_pinmux {
+>> @@ -404,6 +412,21 @@
+>>                       regulator-always-on;
+>>               };
+>>       };
+>> +
+>> +     ov2659@30 {
+>> +             compatible = "ovti,ov2659";
+>> +             reg = <0x30>;
+>> +
+>> +             clocks = <&refclk 0>;
+>> +             clock-names = "xvclk";
+>> +
+>> +             port {
+>> +                     ov2659_0: endpoint {
+>> +                             remote-endpoint = <&vpfe1_ep>;
+>> +                             link-frequencies = /bits/ 64 <70000000>;
+>> +                     };
+>> +             };
+>> +     };
+>>  };
+>>
+>>  &i2c1 {
+>> @@ -423,6 +446,21 @@
+>>               touchscreen-size-x = <1024>;
+>>               touchscreen-size-y = <600>;
+>>       };
+>> +
+>> +     ov2659@30 {
+>> +             compatible = "ovti,ov2659";
+>> +             reg = <0x30>;
+>> +
+>> +             clocks = <&refclk 0>;
+>> +             clock-names = "xvclk";
+>> +
+>> +             port {
+>> +                     ov2659_1: endpoint {
+>> +                             remote-endpoint = <&vpfe0_ep>;
+>> +                             link-frequencies = /bits/ 64 <70000000>;
+>> +                     };
+>> +             };
+>> +     };
+>>  };
+>>
+>>  &epwmss0 {
+>> @@ -626,7 +664,7 @@
+>>
+>>       port {
+>>               vpfe0_ep: endpoint {
+>> -                     /* remote-endpoint = <&sensor>; add once we have it */
+>> +                     remote-endpoint = <&ov2659_1>;
+>>                       ti,am437x-vpfe-interface = <0>;
+>>                       bus-width = <8>;
+>>                       hsync-active = <0>;
+>> @@ -643,7 +681,7 @@
+>>
+>>       port {
+>>               vpfe1_ep: endpoint {
+>> -                     /* remote-endpoint = <&sensor>; add once we have it */
+>> +                     remote-endpoint = <&ov2659_0>;
+>>                       ti,am437x-vpfe-interface = <0>;
+>>                       bus-width = <8>;
+>>                       hsync-active = <0>;
+>> --
+>> 2.1.0
+>>
