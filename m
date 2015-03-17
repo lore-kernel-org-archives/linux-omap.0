@@ -1,93 +1,100 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v4 1/1] extcon: usb-gpio: Introduce gpio usb extcon driver
-Date: Tue, 17 Mar 2015 11:01:51 +0900
-Message-ID: <55078B0F.1040800@samsung.com>
-References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
- <1422274532-9488-2-git-send-email-rogerq@ti.com> <54C8D2F4.9050404@ti.com>
- <54CF4FC7.2050309@ti.com> <1426509149.2330.5.camel@linaro.org>
- <5506D675.8010006@ti.com> <1426515811.2330.16.camel@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
+Date: Mon, 16 Mar 2015 19:19:19 -0700
+Message-ID: <20150317021919.GA31346@atomide.com>
+References: <CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
+ <20150309212014.GE22341@saruman.tx.rr.com>
+ <20150309212622.GJ5264@atomide.com>
+ <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
+ <20150309214129.GK5264@atomide.com>
+ <CAALWOA-sdLzUP8_6BKvsDQeAqxCw5-n410u3=W3D5yaCLYChbQ@mail.gmail.com>
+ <20150313193058.GN5264@atomide.com>
+ <CAALWOA_FM71OsvCfPuz4DHwGDEpfxcSB4L+YdoCsJuZkukK2iw@mail.gmail.com>
+ <20150316164951.GR5264@atomide.com>
+ <CAALWOA-oynZi-L=iUrvVCAFQ0bXLSwdqpNV5qKakCdUU0M7rHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1426515811.2330.16.camel@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <CAALWOA-oynZi-L=iUrvVCAFQ0bXLSwdqpNV5qKakCdUU0M7rHw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <ivan.ivanov@linaro.org>
-Cc: Roger Quadros <rogerq@ti.com>, myungjoo.ham@samsung.com, balbi@ti.com, tony@atomide.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Bin Liu <binmlist@gmail.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ivan,
+* Matthijs van Duin <matthijsvanduin@gmail.com> [150316 14:17]:
+> *gets increasingly confused*
 
-On 03/16/2015 11:23 PM, Ivan T. Ivanov wrote:
+:)
+ 
+> The datasheet (sprs614e) only contains register addresses, and they
+> seem to match the TRM's USB chapter.  The only disagreement I can spot
+> is related to USB_CTRL register(s) in the control module (offsets
+> 0x620 and 0x628) where
+> * the TRM claims both exist in the control module chapter (1.16.1.3),
+> one for each both
+> * the TRM's USB chapter claims only one exists, and its layout
+> (24.9.8.2) doesn't resemble the former one
+
+Yes the second entry is the closest thing to a documentation
+here it seems.
+
+> * the datasheet agrees only one exists (but gives no layout)
+> * reality seems to disagree with both: I booted up our evm816x,
+> plugged in a mouse to confirm USB is functional, and attached JTAG:
+> both registers read as zero (contradicting both layouts) and appear to
+> ignore writes.
+
+Yes so it seem here too, this is dm816x rev c, what do you have?
+
+Anyways, I'll add a note that at least rev c does not seems to do
+anything with USB_CTRL but that we follow what the TI tree is doing
+in case some other revisions of the hardware use it.
+ 
+> There doesn't seem to be any disagreement in the docs about the
+> USBPHY_CTRL regs (offsets 0x624 and 0x62c in control module) as far as
+> I can tell, and the documented reset values also match what I see via
+> JTAG.
+
+Yes agreed.
+
+> > But dm814x [..] seems to be wired up like am335x.
 > 
-> Hi Roger, 
+> This I mentioned: the only difference is related to GPIO mode (which
+> on the dm814x yields exactly that: GPIO, while the am335x uses it to
+> hook up UARTs).
 > 
-> On Mon, 2015-03-16 at 15:11 +0200, Roger Quadros wrote:
->> Hi Ivan,
->>
->> On 16/03/15 14:32, Ivan T. Ivanov wrote:
->>> Hi,
->>>
->>> On Mon, 2015-02-02 at 12:21 +0200, Roger Quadros wrote:
->>>> This driver observes the USB ID pin connected over a GPIO and
->>>> updates the USB cable extcon states accordingly.
->>>>
->>>> The existing GPIO extcon driver is not suitable for this purpose
->>>> as it needs to be taught to understand USB cable states and it
->>>> can't handle more than one cable per instance.
->>>>
->>>> For the USB case we need to handle 2 cable states.
->>>> 1) USB (attach/detach)
->>>> 2) USB-HOST (attach/detach)
->>>>
->>>> This driver can be easily updated in the future to handle VBUS
->>>> events in case it happens to be available on GPIO for any platform.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>> v4:
->>>> - got rid of id_irqwake flag. Fail if enable/disable_irq_wake() fails
->>>> - changed host cable name to "USB-HOST"
->>>
->>> I am sorry that I am getting a bit little late into this.
->>>
->>> Isn't supposed that we have to use strings defined in
->>> const char extcon_cable_name[][]?
->>>
->>>
->>>> +
->>>> +/* List of detectable cables */
->>>> +enum {
->>>> +       EXTCON_CABLE_USB = 0,
->>>> +       EXTCON_CABLE_USB_HOST,
->>>> +
->>>
->>> Same here: duplicated with enum extcon_cable_name
->>>
->>>> +       EXTCON_CABLE_END,
->>>> +};
->>>> +
->>>> +static const char *usb_extcon_cable[] = {
->>>> +       [EXTCON_CABLE_USB] = "USB",
->>>> +       [EXTCON_CABLE_USB_HOST] = "USB-HOST",
->>>> +       NULL,
->>>> +};
->>
->> I'm not exactly sure how else it is supposed to work if we
->> support only a subset of cables from the global extcon_cable_name[][].
+> > Yes I checked am3517 trm, and that too mentions Synopsys once
 > 
-> I don't see issue that we use just 2 events. I think that we can
-> reuse  enum extcon_cable_name and strings already defined in 
-> extcon_cable_name[][] global variable. It is defined extern in
-> extcon.h file exactly for this purpose, no?
+> Only in its ECHI/OCHI host controller, not the OTG one...
 
-'extcon_cable_name' global variable is not used on extcon driver directly.
-It is just recommended cable name. 
+Oh OK I missed that part.
+ 
+> Anyhow, I didn't expect this small observation to end up becoming a
+> device archeology expedition, sorry about that ;-)
 
-I have plan to use standard cable name for extcon driver instead of that
-each extcon driver define the cable name.
+Well thanks for spotting the weirdness :) 
+ 
+> >> BTW, da850? Is that yet another instance of Primus? (i.e.
+> >> omap-L1xx/c674x/am1xxx with odd final digit, also da830/da828)
+> >
+> > Yes it's the arm926 based series, l-138 is da850 I believe.
+> 
+> Ah, but there are two such series: Freon and Primus. Just to be
+> different, their part numbers are both allocated from the omap-L1xx
+> (arm+dsp) / tms320c674x (dsp only) / am1xxx (arm only) ranges, but
+> distinguished by Freon having even final digit while Primus has odd
+> final digit. Of course this doesn't hold for the da8xx parts, that
+> would be too consistent.
 
-[snip]
+I can't keep up with these part numbers..
+ 
+> But you're right, da850 indeed seems to be a Freon rather than a
+> Primus based on some more googling (apparently da850 has SATA --
+> Primus doesn't).
 
-Thanks,
-Chanwoo Choi
+OK
+
+Regards,
+
+Tony
