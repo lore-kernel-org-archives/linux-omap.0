@@ -1,88 +1,118 @@
-From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v6 5/6] ARM: dts: add wl12xx/wl18xx bindings
-Date: Tue, 17 Mar 2015 09:02:33 +0200
-Message-ID: <CAB3XZEeqKy2Zox0wvZmc-pJjCRzBcAXRFj2TjD=WGZjvnFuAqg@mail.gmail.com>
-References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
-	<1426162154-8716-6-git-send-email-eliad@wizery.com>
-	<CABxcv=mETO9ESVa04YjRO1d-h5ksEwvwGKb1G-jxVk6ttr9JYg@mail.gmail.com>
-	<CAFqH_53D52WGDZUTv=w7SguTeROwrzmn9XLB+cTg-3y+Q4FxfQ@mail.gmail.com>
-	<CAN692hmTGDDB3W5TtgfmQK5V9hUGpqVHpF=xK7F_v85cUjcRPw@mail.gmail.com>
+From: "Ivan T. Ivanov" <ivan.ivanov@linaro.org>
+Subject: Re: [PATCH v4 1/1] extcon: usb-gpio: Introduce gpio usb extcon
+ driver
+Date: Tue, 17 Mar 2015 09:52:18 +0200
+Message-ID: <1426578738.2330.18.camel@linaro.org>
+References: <1422274532-9488-1-git-send-email-rogerq@ti.com>
+	 <1422274532-9488-2-git-send-email-rogerq@ti.com> <54C8D2F4.9050404@ti.com>
+	 <54CF4FC7.2050309@ti.com> <1426509149.2330.5.camel@linaro.org>
+	 <5506D675.8010006@ti.com> <1426515811.2330.16.camel@linaro.org>
+	 <55078B0F.1040800@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN692hmTGDDB3W5TtgfmQK5V9hUGpqVHpF=xK7F_v85cUjcRPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pau Pajuel <paupa13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, =?UTF-8?Q?Agust=C3=AD?= <afontquerni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, eduard gavin <egavinc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55078B0F.1040800@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Roger Quadros <rogerq@ti.com>, myungjoo.ham@samsung.com, balbi@ti.com, tony@atomide.com, nsekhar@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-that would be great. thanks.
-i'll try posting the updated patchset (v7, some minor changes) tomorrow=
-=2E
+Hi,
 
-Eliad.
+On Tue, 2015-03-17 at 11:01 +0900, Chanwoo Choi wrote:
+> Hi Ivan,
+> 
+> On 03/16/2015 11:23 PM, Ivan T. Ivanov wrote:
+> > Hi Roger,
+> > 
+> > On Mon, 2015-03-16 at 15:11 +0200, Roger Quadros wrote:
+> > > Hi Ivan,
+> > > 
+> > > On 16/03/15 14:32, Ivan T. Ivanov wrote:
+> > > > Hi,
+> > > > 
+> > > > On Mon, 2015-02-02 at 12:21 +0200, Roger Quadros wrote:
+> > > > > This driver observes the USB ID pin connected over a GPIO and
+> > > > > updates the USB cable extcon states accordingly.
+> > > > > 
+> > > > > The existing GPIO extcon driver is not suitable for this purpose
+> > > > > as it needs to be taught to understand USB cable states and it
+> > > > > can't handle more than one cable per instance.
+> > > > > 
+> > > > > For the USB case we need to handle 2 cable states.
+> > > > > 1) USB (attach/detach)
+> > > > > 2) USB-HOST (attach/detach)
+> > > > > 
+> > > > > This driver can be easily updated in the future to handle VBUS
+> > > > > events in case it happens to be available on GPIO for any platform.
+> > > > > 
+> > > > > Signed-off-by: Roger Quadros <rogerq@ti.com>
+> > > > > ---
+> > > > > v4:
+> > > > > - got rid of id_irqwake flag. Fail if enable/disable_irq_wake() fails
+> > > > > - changed host cable name to "USB-HOST"
+> > > > 
+> > > > I am sorry that I am getting a bit little late into this.
+> > > > 
+> > > > Isn't supposed that we have to use strings defined in
+> > > > const char extcon_cable_name[][]?
+> > > > 
+> > > > 
+> > > > > +
+> > > > > +/* List of detectable cables */
+> > > > > +enum {
+> > > > > +       EXTCON_CABLE_USB = 0,
+> > > > > +       EXTCON_CABLE_USB_HOST,
+> > > > > +
+> > > > 
+> > > > Same here: duplicated with enum extcon_cable_name
+> > > > 
+> > > > > +       EXTCON_CABLE_END,
+> > > > > +};
+> > > > > +
+> > > > > +static const char *usb_extcon_cable[] = {
+> > > > > +       [EXTCON_CABLE_USB] = "USB",
+> > > > > +       [EXTCON_CABLE_USB_HOST] = "USB-HOST",
+> > > > > +       NULL,
+> > > > > +};
+> > > 
+> > > I'm not exactly sure how else it is supposed to work if we
+> > > support only a subset of cables from the global extcon_cable_name[][].
+> > 
+> > I don't see issue that we use just 2 events. I think that we can
+> > reuse  enum extcon_cable_name
 
-On Mon, Mar 16, 2015 at 3:08 PM, Pau Pajuel <paupa13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hi,
->
-> 2015-03-13 9:17 GMT+01:00 Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->>
->> Hello,
->>
->> 2015-03-13 9:01 GMT+01:00 Javier Martinez Canillas <javier@dowhile0.=
-org>:
->> > Hello Eliad,
->> >
->> > On Thu, Mar 12, 2015 at 1:09 PM, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> w=
-rote:
->> >> Replace all the pdata-quirks for setting wl12xx/wl18xx
->> >> platform data with proper DT definitions.
->> >>
->> >> The patch was compile-tested only.
->> >>
->> >> Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
->> >> ---
->> >
->> > I wanted to test your series but I realized that the IGEPv2 I've
->> > access is the old revision that has another SDIO wlan module inste=
-ad
->> > of a Wilink8.
->> >
->> > Maybe Enric have the new revision? I also added to Pau Pajuel as c=
-c
->> > who still works in the company manufacturing these boards so he sh=
-ould
->> > be able to test it.
->> >
->>
->> Sorry, now I only have an old revision too, so I can't test, cc'ing
->> Agust=C3=AD that has access to the hardware, maybe he can test it or=
- he can
->> provide to us a board ;)
->>
->> > But in any case, your patch looks good to me so for the
->> > arch/arm/boot/dts/omap3-igep00* changes:
->> >
->> > Acked-by: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
->> >
->>
->> For my part also looks good.
->>
->> Acked-by: Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>
->> Best regards,
->>    Enric
->>
->> > Best regards,
->> > Javier
->
->
-> I'm gonna test it this week. I added Eduard Gavin as cc too.
->
-> Cheers!
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now I see that extcon_dev_register() expect NULL terminated array of 
+pointers, so it will not be possible to use enum extcon_cable_name
+as index in the above array, sorry.
+
+> >  and strings already defined in
+> > extcon_cable_name[][] global variable. It is defined extern in
+> > extcon.h file exactly for this purpose, no?
+> 
+> 'extcon_cable_name' global variable is not used on extcon driver directly.
+> It is just recommended cable name.
+
+Hm, this is what bothers me. How client drivers will know cable name if 
+every provider start using its own naming scheme? 
+
+If I write client driver I will use:
+
+extcon_register_interest(obj, name, extcon_cable_name[EXTCON_USB_HOST], nb);
+
+and this will now work with this driver because it define string differently.
+
+... Well, I see that string is changed because your recommendation :-), 
+then lets fix extcon_cable_name strings and not let drivers define its own
+names.
+
+
+> I have plan to use standard cable name for extcon driver instead of that
+> each extcon driver define the cable name.
+> 
+
+Sound like a good plan :-)
+
+Regards,
+Ivan
