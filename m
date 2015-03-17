@@ -1,40 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: remove dead kconfig option OMAP4_ERRATA_I688
-Date: Tue, 17 Mar 2015 10:27:37 -0700
-Message-ID: <20150317172737.GE31346@atomide.com>
-References: <1424889867-8980-1-git-send-email-stefan.hengelein@fau.de>
- <20150316233005.GA2598@atomide.com>
- <550855B7.3020905@oracle.com>
- <550856FF.9080702@ti.com>
- <20150317163440.GC31346@atomide.com>
- <CAGo_u6oHk9MXPGQv1rCpvW_oegzEzFTu3sZ_4j_6HFEivnXZXg@mail.gmail.com>
- <20150317171000.GD31346@atomide.com>
- <CAGo_u6rNj=k0cYx1G_v2eFHcf0sHY++bUz0uM6PfiRXbc2chqg@mail.gmail.com>
+Subject: Re: [PATCH 3/3] ARM: omap2plus_defconfig: Enable n900 modem as
+ loadable modules
+Date: Tue, 17 Mar 2015 10:32:44 -0700
+Message-ID: <20150317173243.GF31346@atomide.com>
+References: <1426536003-7077-1-git-send-email-tony@atomide.com>
+ <1426536003-7077-4-git-send-email-tony@atomide.com>
+ <20150317110000.GA1115@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:38132 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753892AbbCQRha (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Mar 2015 13:37:30 -0400
 Content-Disposition: inline
-In-Reply-To: <CAGo_u6rNj=k0cYx1G_v2eFHcf0sHY++bUz0uM6PfiRXbc2chqg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, santosh shilimkar <santosh.shilimkar@oracle.com>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Stefan Hengelein <stefan.hengelein@fau.de>
+In-Reply-To: <20150317110000.GA1115@earth>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Nishanth Menon <nm@ti.com> [150317 10:18]:
-> On Tue, Mar 17, 2015 at 12:10 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> >
-> > Yes that's a good point and adding a printk is a good idea. Care to
-> > crank out a separate patch for that?
+* Sebastian Reichel <sre@kernel.org> [150317 04:00]:
+> Hi Tony,
 > 
+> On Mon, Mar 16, 2015 at 01:00:03PM -0700, Tony Lindgren wrote:
+> > Enable n900 modem as loadable modules.
 > 
-> had hoped to have it part of this patch - does'nt that make more sense?
+> Acked-By: Sebastian Reichel <sre@kernel.org>
+> 
+> > [...]
+> > +CONFIG_HSI_CHAR=m
+> > [...]
+> 
+> I think this one should be disabled by default. It's only needed by
+> very few people (it exposes the hsi bus to userspace, like i2c-dev
+> driver does for i2c).
 
-Hmm well this patch removes code that's been dead for a few years.. I'd
-rather keep this as clean up, then merge what you're suggesting as a
-separate non-critical patch as that we could already do without removing
-this code.
-
-Regards,
+OK will disable thanks.
 
 Tony
