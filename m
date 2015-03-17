@@ -1,18 +1,26 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] ARM: OMAP3: Remove legacy support for devkit8000
-Date: Mon, 16 Mar 2015 17:25:10 -0700
-Message-ID: <1426551911-17356-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 1/3] ARM: OMAP3: Remove legacy support for EMA-Tech Stalker
+ board
+Date: Mon, 16 Mar 2015 17:25:09 -0700
+Message-ID: <1426551911-17356-2-git-send-email-tony@atomide.com>
 References: <1426551911-17356-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tkt-001-i374.relay.mailchannels.net ([174.136.5.177]:46507 "EHLO
-	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754044AbbCQAae (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2015 20:30:34 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1426551911-17356-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Thomas Weber <thomas@tomweber.eu>
+Cc: Jason Lam <lzg@ema-tech.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
 We've been moving all omap2+ based systems to boot in device tree only
 mode for a few years now. Only omap3 has legacy booting support
@@ -46,59 +54,62 @@ but I'd rather not get suprised by missing .dts files at the point
 where we are ready to drop all remaining omap3 legacy booting
 support later on.
 
-http://www.embest-tech.com/product/single-board-computers/index.html
+Also looks like this board is no longer listed on ema-tech.com
+product page at:
 
-Cc: Thomas Weber <thomas@tomweber.eu>
+http://ema-tech.com/en/categories.html
+
+Cc: Jason Lam <lzg@ema-tech.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig            |   6 -
- arch/arm/mach-omap2/Makefile           |   1 -
- arch/arm/mach-omap2/board-devkit8000.c | 654 ---------------------------------
- 3 files changed, 661 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-devkit8000.c
+ arch/arm/mach-omap2/Kconfig              |   6 -
+ arch/arm/mach-omap2/Makefile             |   2 -
+ arch/arm/mach-omap2/board-omap3stalker.c | 433 -------------------------------
+ 3 files changed, 441 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-omap3stalker.c
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 88e3eaf..559e287 100644
+index 2b8e477..88e3eaf 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -175,12 +175,6 @@ config MACH_OMAP3_BEAGLE
- 	default y
- 	select OMAP_PACKAGE_CBB
+@@ -260,12 +260,6 @@ config MACH_CM_T35
+ config MACH_CM_T3730
+        bool
  
--config MACH_DEVKIT8000
--	bool "DEVKIT8000 board"
+-config MACH_SBC3530
+-	bool "OMAP3 SBC STALKER board"
 -	depends on ARCH_OMAP3
 -	default y
 -	select OMAP_PACKAGE_CUS
 -
- config MACH_OMAP_LDP
- 	bool "OMAP3 LDP board"
+ config OMAP3_SDRC_AC_TIMING
+ 	bool "Enable SDRC AC timing register changes"
  	depends on ARCH_OMAP3
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 10b9563..c346b48 100644
+index b83f18f..10b9563 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -243,7 +243,6 @@ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o pdata-quirks.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
--obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o
- obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
- obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
- obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -256,8 +256,6 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-video.o
+ obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o
+ obj-$(CONFIG_MACH_TOUCHBOOK)		+= board-omap3touchbook.o
+ 
+-obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
+-
+ # Platform specific device init code
+ 
+ omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
 deleted file mode 100644
-index d8e4f34..0000000
---- a/arch/arm/mach-omap2/board-devkit8000.c
+index 6311f4b..0000000
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
 +++ /dev/null
-@@ -1,654 +0,0 @@
+@@ -1,433 +0,0 @@
 -/*
-- * board-devkit8000.c - TimLL Devkit8000
+- * linux/arch/arm/mach-omap2/board-omap3evm.c
 - *
-- * Copyright (C) 2009 Kim Botherway
-- * Copyright (C) 2010 Thomas Weber
+- * Copyright (C) 2008 Guangzhou EMA-Tech
 - *
-- * Modified from mach-omap2/board-omap3beagle.c
+- * Modified from mach-omap2/board-omap3evm.c
 - *
 - * Initial code: Syed Mohammed Khasim
 - *
@@ -119,15 +130,17 @@ index d8e4f34..0000000
 -#include <linux/input.h>
 -#include <linux/gpio_keys.h>
 -
--#include <linux/mtd/mtd.h>
--#include <linux/mtd/partitions.h>
--#include <linux/mtd/nand.h>
--#include <linux/mmc/host.h>
--#include <linux/usb/phy.h>
--
+-#include <linux/regulator/fixed.h>
 -#include <linux/regulator/machine.h>
 -#include <linux/i2c/twl.h>
--#include "id.h"
+-#include <linux/mmc/host.h>
+-#include <linux/input/matrix_keypad.h>
+-#include <linux/spi/spi.h>
+-#include <linux/interrupt.h>
+-#include <linux/smsc911x.h>
+-#include <linux/platform_data/at24.h>
+-#include <linux/usb/phy.h>
+-
 -#include <asm/mach-types.h>
 -#include <asm/mach/arch.h>
 -#include <asm/mach/map.h>
@@ -140,306 +153,186 @@ index d8e4f34..0000000
 -#include <video/omap-panel-data.h>
 -
 -#include <linux/platform_data/spi-omap2-mcspi.h>
--#include <linux/input/matrix_keypad.h>
--#include <linux/spi/spi.h>
--#include <linux/dm9000.h>
--#include <linux/interrupt.h>
 -
 -#include "sdram-micron-mt46h32m32lf-6.h"
 -#include "mux.h"
 -#include "hsmmc.h"
--#include "board-flash.h"
 -#include "common-board-devices.h"
 -
--#define	NAND_CS			0
+-#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+-#include "gpmc-smsc911x.h"
 -
--#define OMAP_DM9000_GPIO_IRQ	25
--#define OMAP3_DEVKIT_TS_GPIO	27
+-#define OMAP3STALKER_ETHR_START	0x2c000000
+-#define OMAP3STALKER_ETHR_SIZE	1024
+-#define OMAP3STALKER_ETHR_GPIO_IRQ	19
+-#define OMAP3STALKER_SMC911X_CS	5
 -
--static struct mtd_partition devkit8000_nand_partitions[] = {
--	/* All the partition sizes are listed in terms of NAND block size */
--	{
--		.name		= "X-Loader",
--		.offset		= 0,
--		.size		= 4 * NAND_BLOCK_SIZE,
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+-static struct omap_smsc911x_platform_data smsc911x_cfg = {
+-	.cs             = OMAP3STALKER_SMC911X_CS,
+-	.gpio_irq       = OMAP3STALKER_ETHR_GPIO_IRQ,
+-	.gpio_reset     = -EINVAL,
+-	.flags		= (SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS),
+-};
+-
+-static inline void __init omap3stalker_init_eth(void)
+-{
+-	omap_mux_init_gpio(19, OMAP_PIN_INPUT_PULLUP);
+-	gpmc_smsc911x_init(&smsc911x_cfg);
+-}
+-
+-#else
+-static inline void __init omap3stalker_init_eth(void)
+-{
+-	return;
+-}
+-#endif
+-
+-/*
+- * OMAP3 DSS control signals
+- */
+-
+-#define DSS_ENABLE_GPIO	199
+-#define LCD_PANEL_BKLIGHT_GPIO	210
+-#define ENABLE_VPLL2_DEV_GRP	0xE0
+-
+-static void __init omap3_stalker_display_init(void)
+-{
+-	return;
+-}
+-static struct connector_dvi_platform_data omap3stalker_dvi_connector_pdata = {
+-	.name                   = "dvi",
+-	.source                 = "tfp410.0",
+-	.i2c_bus_num            = -1,
+-};
+-
+-static struct platform_device omap3stalker_dvi_connector_device = {
+-	.name                   = "connector-dvi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3stalker_dvi_connector_pdata,
+-};
+-
+-static struct encoder_tfp410_platform_data omap3stalker_tfp410_pdata = {
+-	.name                   = "tfp410.0",
+-	.source                 = "dpi.0",
+-	.data_lines             = 24,
+-	.power_down_gpio        = DSS_ENABLE_GPIO,
+-};
+-
+-static struct platform_device omap3stalker_tfp410_device = {
+-	.name                   = "tfp410",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3stalker_tfp410_pdata,
+-};
+-
+-static struct connector_atv_platform_data omap3stalker_tv_pdata = {
+-	.name = "tv",
+-	.source = "venc.0",
+-	.connector_type = OMAP_DSS_VENC_TYPE_COMPOSITE,
+-	.invert_polarity = false,
+-};
+-
+-static struct platform_device omap3stalker_tv_connector_device = {
+-	.name                   = "connector-analog-tv",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3stalker_tv_pdata,
+-};
+-
+-static struct omap_dss_board_info omap3_stalker_dss_data = {
+-	.default_display_name = "dvi",
+-};
+-
+-static struct regulator_consumer_supply omap3stalker_vmmc1_supply[] = {
+-	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+-};
+-
+-static struct regulator_consumer_supply omap3stalker_vsim_supply[] = {
+-	REGULATOR_SUPPLY("vmmc_aux", "omap_hsmmc.0"),
+-};
+-
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data omap3stalker_vmmc1 = {
+-	.constraints		= {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-		| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-		| REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS,
 -	},
--	{
--		.name		= "U-Boot",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
--		.size		= 15 * NAND_BLOCK_SIZE,
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3stalker_vmmc1_supply),
+-	.consumer_supplies	= omap3stalker_vmmc1_supply,
+-};
+-
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data omap3stalker_vsim = {
+-	.constraints		= {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-		| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-		| REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS,
 -	},
--	{
--		.name		= "U-Boot Env",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
--		.size		= 1 * NAND_BLOCK_SIZE,
--	},
--	{
--		.name		= "Kernel",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
--		.size		= 32 * NAND_BLOCK_SIZE,
--	},
--	{
--		.name		= "File System",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
--		.size		= MTDPART_SIZ_FULL,
--	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3stalker_vsim_supply),
+-	.consumer_supplies	= omap3stalker_vsim_supply,
 -};
 -
 -static struct omap2_hsmmc_info mmc[] = {
 -	{
 -		.mmc		= 1,
--		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
--		.gpio_wp	= 29,
+-		.caps		= MMC_CAP_4_BIT_DATA,
+-		.gpio_cd	= -EINVAL,
+-		.gpio_wp	= 23,
 -		.deferred	= true,
+-	 },
+-	{}			/* Terminator */
+-};
+-
+-static struct gpio_keys_button gpio_buttons[] = {
+-	{
+-	 .code		= BTN_EXTRA,
+-	 .gpio		= 18,
+-	 .desc		= "user",
+-	 .wakeup	= 1,
+-	 },
+-};
+-
+-static struct gpio_keys_platform_data gpio_key_info = {
+-	.buttons	= gpio_buttons,
+-	.nbuttons	= ARRAY_SIZE(gpio_buttons),
+-};
+-
+-static struct platform_device keys_gpio = {
+-	.name		= "gpio-keys",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data	= &gpio_key_info,
 -	},
--	{}	/* Terminator */
 -};
--
--static struct regulator_consumer_supply devkit8000_vmmc1_supply[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
--};
--
--/* ads7846 on SPI */
--static struct regulator_consumer_supply devkit8000_vio_supply[] = {
--	REGULATOR_SUPPLY("vcc", "spi2.0"),
--};
--
--static const struct display_timing devkit8000_lcd_videomode = {
--	.pixelclock	= { 0, 40000000, 0 },
--
--	.hactive = { 0, 800, 0 },
--	.hfront_porch = { 0, 1, 0 },
--	.hback_porch = { 0, 1, 0 },
--	.hsync_len = { 0, 48, 0 },
--
--	.vactive = { 0, 480, 0 },
--	.vfront_porch = { 0, 12, 0 },
--	.vback_porch = { 0, 25, 0 },
--	.vsync_len = { 0, 3, 0 },
--
--	.flags = DISPLAY_FLAGS_HSYNC_LOW | DISPLAY_FLAGS_VSYNC_LOW |
--		DISPLAY_FLAGS_DE_HIGH | DISPLAY_FLAGS_PIXDATA_POSEDGE,
--};
--
--static struct panel_dpi_platform_data devkit8000_lcd_pdata = {
--	.name                   = "lcd",
--	.source                 = "dpi.0",
--
--	.data_lines		= 24,
--
--	.display_timing		= &devkit8000_lcd_videomode,
--
--	.enable_gpio		= -1,	/* filled in code */
--	.backlight_gpio		= -1,
--};
--
--static struct platform_device devkit8000_lcd_device = {
--	.name                   = "panel-dpi",
--	.id                     = 0,
--	.dev.platform_data      = &devkit8000_lcd_pdata,
--};
--
--static struct connector_dvi_platform_data devkit8000_dvi_connector_pdata = {
--	.name                   = "dvi",
--	.source                 = "tfp410.0",
--	.i2c_bus_num            = 1,
--};
--
--static struct platform_device devkit8000_dvi_connector_device = {
--	.name                   = "connector-dvi",
--	.id                     = 0,
--	.dev.platform_data      = &devkit8000_dvi_connector_pdata,
--};
--
--static struct encoder_tfp410_platform_data devkit8000_tfp410_pdata = {
--	.name                   = "tfp410.0",
--	.source                 = "dpi.0",
--	.data_lines             = 24,
--	.power_down_gpio        = -1,	/* filled in code */
--};
--
--static struct platform_device devkit8000_tfp410_device = {
--	.name                   = "tfp410",
--	.id                     = 0,
--	.dev.platform_data      = &devkit8000_tfp410_pdata,
--};
--
--static struct connector_atv_platform_data devkit8000_tv_pdata = {
--	.name = "tv",
--	.source = "venc.0",
--	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
--	.invert_polarity = false,
--};
--
--static struct platform_device devkit8000_tv_connector_device = {
--	.name                   = "connector-analog-tv",
--	.id                     = 0,
--	.dev.platform_data      = &devkit8000_tv_pdata,
--};
--
--static struct omap_dss_board_info devkit8000_dss_data = {
--	.default_display_name = "lcd",
--};
--
--static uint32_t board_keymap[] = {
--	KEY(0, 0, KEY_1),
--	KEY(1, 0, KEY_2),
--	KEY(2, 0, KEY_3),
--	KEY(0, 1, KEY_4),
--	KEY(1, 1, KEY_5),
--	KEY(2, 1, KEY_6),
--	KEY(3, 1, KEY_F5),
--	KEY(0, 2, KEY_7),
--	KEY(1, 2, KEY_8),
--	KEY(2, 2, KEY_9),
--	KEY(3, 2, KEY_F6),
--	KEY(0, 3, KEY_F7),
--	KEY(1, 3, KEY_0),
--	KEY(2, 3, KEY_F8),
--	PERSISTENT_KEY(4, 5),
--	KEY(4, 4, KEY_VOLUMEUP),
--	KEY(5, 5, KEY_VOLUMEDOWN),
--	0
--};
--
--static struct matrix_keymap_data board_map_data = {
--	.keymap			= board_keymap,
--	.keymap_size		= ARRAY_SIZE(board_keymap),
--};
--
--static struct twl4030_keypad_data devkit8000_kp_data = {
--	.keymap_data	= &board_map_data,
--	.rows		= 6,
--	.cols		= 6,
--	.rep		= 1,
--};
--
--static struct gpio_led gpio_leds[];
--
--static int devkit8000_twl_gpio_setup(struct device *dev,
--		unsigned gpio, unsigned ngpio)
--{
--	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
--	mmc[0].gpio_cd = gpio + 0;
--	omap_hsmmc_late_init(mmc);
--
--	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
--	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
--
--	/* TWL4030_GPIO_MAX + 0 is "LCD_PWREN" (out, active high) */
--	devkit8000_lcd_pdata.enable_gpio = gpio + TWL4030_GPIO_MAX + 0;
--
--	/* gpio + 7 is "DVI_PD" (out, active low) */
--	devkit8000_tfp410_pdata.power_down_gpio = gpio + 7;
--
--	return 0;
--}
--
--static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
--	.use_leds	= true,
--	.pulldowns	= BIT(1) | BIT(2) | BIT(6) | BIT(8) | BIT(13)
--				| BIT(15) | BIT(16) | BIT(17),
--	.setup		= devkit8000_twl_gpio_setup,
--};
--
--static struct regulator_consumer_supply devkit8000_vpll1_supplies[] = {
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dpi.0"),
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
--};
--
--/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
--static struct regulator_init_data devkit8000_vmmc1 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 3150000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(devkit8000_vmmc1_supply),
--	.consumer_supplies	= devkit8000_vmmc1_supply,
--};
--
--/* VPLL1 for digital video outputs */
--static struct regulator_init_data devkit8000_vpll1 = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(devkit8000_vpll1_supplies),
--	.consumer_supplies	= devkit8000_vpll1_supplies,
--};
--
--/* VAUX4 for ads7846 and nubs */
--static struct regulator_init_data devkit8000_vio = {
--	.constraints = {
--		.min_uV                 = 1800000,
--		.max_uV                 = 1800000,
--		.apply_uV               = true,
--		.valid_modes_mask       = REGULATOR_MODE_NORMAL
--			| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask         = REGULATOR_CHANGE_MODE
--			| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies  = ARRAY_SIZE(devkit8000_vio_supply),
--	.consumer_supplies      = devkit8000_vio_supply,
--};
--
--static struct twl4030_platform_data devkit8000_twldata = {
--	/* platform_data for children goes here */
--	.gpio		= &devkit8000_gpio_data,
--	.vmmc1		= &devkit8000_vmmc1,
--	.vpll1		= &devkit8000_vpll1,
--	.vio		= &devkit8000_vio,
--	.keypad		= &devkit8000_kp_data,
--};
--
--static int __init devkit8000_i2c_init(void)
--{
--	omap3_pmic_get_config(&devkit8000_twldata,
--			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
--			  TWL_COMMON_REGULATOR_VDAC);
--	omap3_pmic_init("tps65930", &devkit8000_twldata);
--	/* Bus 3 is attached to the DVI port where devices like the pico DLP
--	 * projector don't work reliably with 400kHz */
--	omap_register_i2c_bus(3, 400, NULL, 0);
--	return 0;
--}
 -
 -static struct gpio_led gpio_leds[] = {
 -	{
--		.name			= "led1",
--		.default_trigger	= "heartbeat",
--		.gpio			= 186,
--		.active_low		= true,
--	},
+-	 .name			= "stalker:D8:usr0",
+-	 .default_trigger	= "default-on",
+-	 .gpio			= 126,
+-	 },
 -	{
--		.name			= "led2",
--		.default_trigger	= "mmc0",
--		.gpio			= 163,
--		.active_low		= true,
--	},
+-	 .name			= "stalker:D9:usr1",
+-	 .default_trigger	= "default-on",
+-	 .gpio			= 127,
+-	 },
 -	{
--		.name			= "ledB",
--		.default_trigger	= "none",
--		.gpio			= 153,
--		.active_low             = true,
--	},
+-	 .name			= "stalker:D3:mmc0",
+-	 .gpio			= -EINVAL,	/* gets replaced */
+-	 .active_low		= true,
+-	 .default_trigger	= "mmc0",
+-	 },
 -	{
--		.name			= "led3",
--		.default_trigger	= "none",
--		.gpio			= 164,
--		.active_low             = true,
--	},
+-	 .name			= "stalker:D4:heartbeat",
+-	 .gpio			= -EINVAL,	/* gets replaced */
+-	 .active_low		= true,
+-	 .default_trigger	= "heartbeat",
+-	 },
 -};
 -
 -static struct gpio_led_platform_data gpio_led_info = {
@@ -455,297 +348,194 @@ index d8e4f34..0000000
 -	},
 -};
 -
--static struct gpio_keys_button gpio_buttons[] = {
--	{
--		.code			= BTN_EXTRA,
--		.gpio			= 26,
--		.desc			= "user",
--		.wakeup			= 1,
--	},
--};
--
--static struct gpio_keys_platform_data gpio_key_info = {
--	.buttons	= gpio_buttons,
--	.nbuttons	= ARRAY_SIZE(gpio_buttons),
--};
--
--static struct platform_device keys_gpio = {
--	.name	= "gpio-keys",
--	.id	= -1,
--	.dev	= {
--		.platform_data	= &gpio_key_info,
--	},
--};
--
--#define OMAP_DM9000_BASE	0x2c000000
--
--static struct resource omap_dm9000_resources[] = {
--	[0] = {
--		.start		= OMAP_DM9000_BASE,
--		.end		= (OMAP_DM9000_BASE + 0x4 - 1),
--		.flags		= IORESOURCE_MEM,
--	},
--	[1] = {
--		.start		= (OMAP_DM9000_BASE + 0x400),
--		.end		= (OMAP_DM9000_BASE + 0x400 + 0x4 - 1),
--		.flags		= IORESOURCE_MEM,
--	},
--	[2] = {
--		.flags		= IORESOURCE_IRQ | IRQF_TRIGGER_LOW,
--	},
--};
--
--static struct dm9000_plat_data omap_dm9000_platdata = {
--	.flags = DM9000_PLATF_16BITONLY,
--};
--
--static struct platform_device omap_dm9000_dev = {
--	.name = "dm9000",
--	.id = -1,
--	.num_resources	= ARRAY_SIZE(omap_dm9000_resources),
--	.resource	= omap_dm9000_resources,
--	.dev = {
--		.platform_data = &omap_dm9000_platdata,
--	},
--};
--
--static void __init omap_dm9000_init(void)
+-static int
+-omap3stalker_twl_gpio_setup(struct device *dev,
+-			    unsigned gpio, unsigned ngpio)
 -{
--	unsigned char *eth_addr = omap_dm9000_platdata.dev_addr;
--	struct omap_die_id odi;
--	int ret;
+-	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+-	mmc[0].gpio_cd = gpio + 0;
+-	omap_hsmmc_late_init(mmc);
 -
--	ret = gpio_request_one(OMAP_DM9000_GPIO_IRQ, GPIOF_IN, "dm9000 irq");
--	if (ret < 0) {
--		printk(KERN_ERR "Failed to request GPIO%d for dm9000 IRQ\n",
--			OMAP_DM9000_GPIO_IRQ);
--		return;
--	}
+-	/*
+-	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+-	 * the P2 connector; notably LEDA for the LCD backlight.
+-	 */
 -
--	/* init the mac address using DIE id */
--	omap_get_die_id(&odi);
+-	/* TWL4030_GPIO_MAX + 0 == ledA, LCD Backlight control */
+-	gpio_request_one(gpio + TWL4030_GPIO_MAX, GPIOF_OUT_INIT_LOW,
+-			 "EN_LCD_BKL");
 -
--	eth_addr[0] = 0x02; /* locally administered */
--	eth_addr[1] = odi.id_1 & 0xff;
--	eth_addr[2] = (odi.id_0 & 0xff000000) >> 24;
--	eth_addr[3] = (odi.id_0 & 0x00ff0000) >> 16;
--	eth_addr[4] = (odi.id_0 & 0x0000ff00) >> 8;
--	eth_addr[5] = (odi.id_0 & 0x000000ff);
+-	/* gpio + 7 == DVI Enable */
+-	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+-
+-	/* TWL4030_GPIO_MAX + 1 == ledB (out, mmc0) */
+-	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+-	/* GPIO + 13 == ledsync (out, heartbeat) */
+-	gpio_leds[3].gpio = gpio + 13;
+-
+-	platform_device_register(&leds_gpio);
+-	return 0;
 -}
 -
--static struct platform_device *devkit8000_devices[] __initdata = {
--	&leds_gpio,
+-static struct twl4030_gpio_platform_data omap3stalker_gpio_data = {
+-	.use_leds	= true,
+-	.setup		= omap3stalker_twl_gpio_setup,
+-};
+-
+-static uint32_t board_keymap[] = {
+-	KEY(0, 0, KEY_LEFT),
+-	KEY(0, 1, KEY_DOWN),
+-	KEY(0, 2, KEY_ENTER),
+-	KEY(0, 3, KEY_M),
+-
+-	KEY(1, 0, KEY_RIGHT),
+-	KEY(1, 1, KEY_UP),
+-	KEY(1, 2, KEY_I),
+-	KEY(1, 3, KEY_N),
+-
+-	KEY(2, 0, KEY_A),
+-	KEY(2, 1, KEY_E),
+-	KEY(2, 2, KEY_J),
+-	KEY(2, 3, KEY_O),
+-
+-	KEY(3, 0, KEY_B),
+-	KEY(3, 1, KEY_F),
+-	KEY(3, 2, KEY_K),
+-	KEY(3, 3, KEY_P)
+-};
+-
+-static struct matrix_keymap_data board_map_data = {
+-	.keymap		= board_keymap,
+-	.keymap_size	= ARRAY_SIZE(board_keymap),
+-};
+-
+-static struct twl4030_keypad_data omap3stalker_kp_data = {
+-	.keymap_data	= &board_map_data,
+-	.rows		= 4,
+-	.cols		= 4,
+-	.rep		= 1,
+-};
+-
+-static struct twl4030_platform_data omap3stalker_twldata = {
+-	/* platform_data for children goes here */
+-	.keypad		= &omap3stalker_kp_data,
+-	.gpio		= &omap3stalker_gpio_data,
+-	.vmmc1		= &omap3stalker_vmmc1,
+-	.vsim		= &omap3stalker_vsim,
+-};
+-
+-static struct at24_platform_data fram_info = {
+-	.byte_len	= (64 * 1024) / 8,
+-	.page_size	= 8192,
+-	.flags		= AT24_FLAG_ADDR16 | AT24_FLAG_IRUGO,
+-};
+-
+-static struct i2c_board_info __initdata omap3stalker_i2c_boardinfo3[] = {
+-	{
+-	 I2C_BOARD_INFO("24c64", 0x50),
+-	 .flags		= I2C_CLIENT_WAKE,
+-	 .platform_data	= &fram_info,
+-	 },
+-};
+-
+-static int __init omap3_stalker_i2c_init(void)
+-{
+-	omap3_pmic_get_config(&omap3stalker_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
+-			TWL_COMMON_PDATA_AUDIO,
+-			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
+-
+-	omap3stalker_twldata.vdac->constraints.apply_uV = true;
+-	omap3stalker_twldata.vpll2->constraints.apply_uV = true;
+-	omap3stalker_twldata.vpll2->constraints.name = "VDVI";
+-
+-	omap3_pmic_init("twl4030", &omap3stalker_twldata);
+-	omap_register_i2c_bus(2, 400, NULL, 0);
+-	omap_register_i2c_bus(3, 400, omap3stalker_i2c_boardinfo3,
+-			      ARRAY_SIZE(omap3stalker_i2c_boardinfo3));
+-	return 0;
+-}
+-
+-#define OMAP3_STALKER_TS_GPIO	175
+-
+-static struct usbhs_phy_data phy_data[] __initdata = {
+-	{
+-		.port = 2,
+-		.reset_gpio = 21,
+-		.vcc_gpio = -EINVAL,
+-	},
+-};
+-
+-static struct platform_device *omap3_stalker_devices[] __initdata = {
 -	&keys_gpio,
--	&omap_dm9000_dev,
--	&devkit8000_lcd_device,
--	&devkit8000_tfp410_device,
--	&devkit8000_dvi_connector_device,
--	&devkit8000_tv_connector_device,
+-	&omap3stalker_tfp410_device,
+-	&omap3stalker_dvi_connector_device,
+-	&omap3stalker_tv_connector_device,
 -};
 -
 -static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
 -};
 -
 -#ifdef CONFIG_OMAP_MUX
 -static struct omap_board_mux board_mux[] __initdata = {
--	/* nCS and IRQ for Devkit8000 ethernet */
--	OMAP3_MUX(GPMC_NCS6, OMAP_MUX_MODE0),
--	OMAP3_MUX(ETK_D11, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
--
--	/* McSPI 2*/
--	OMAP3_MUX(MCSPI2_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCSPI2_SIMO, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(MCSPI2_SOMI, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCSPI2_CS0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(MCSPI2_CS1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--
--	/* PENDOWN GPIO */
--	OMAP3_MUX(ETK_D13, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
--
--	/* mUSB */
--	OMAP3_MUX(HSUSB0_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_STP, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(HSUSB0_DIR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_NXT, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(HSUSB0_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* USB 1 */
--	OMAP3_MUX(ETK_CTL, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_CLK, OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(ETK_D8, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D9, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D0, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D1, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D2, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D3, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D4, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D5, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D6, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--	OMAP3_MUX(ETK_D7, OMAP_MUX_MODE3 | OMAP_PIN_INPUT),
--
--	/* MMC 1 */
--	OMAP3_MUX(SDMMC1_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_CMD, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT4, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT5, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT6, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(SDMMC1_DAT7, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* McBSP 2 */
--	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--
--	/* I2C 1 */
--	OMAP3_MUX(I2C1_SCL, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(I2C1_SDA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* I2C 2 */
--	OMAP3_MUX(I2C2_SCL, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(I2C2_SDA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* I2C 3 */
--	OMAP3_MUX(I2C3_SCL, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(I2C3_SDA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* I2C 4 */
--	OMAP3_MUX(I2C4_SCL, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(I2C4_SDA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* serial ports */
--	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
--	OMAP3_MUX(UART1_TX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(UART1_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* DSS */
--	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA9, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA10, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA11, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA12, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA13, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA14, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--
--	/* expansion port */
--	/* McSPI 1 */
--	OMAP3_MUX(MCSPI1_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCSPI1_SIMO, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCSPI1_SOMI, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCSPI1_CS0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
--	OMAP3_MUX(MCSPI1_CS3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
--
--	/* HDQ */
--	OMAP3_MUX(HDQ_SIO, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	/* McSPI4 */
--	OMAP3_MUX(MCBSP1_CLKR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
--	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
--
--	/* MMC 2 */
--	OMAP3_MUX(SDMMC2_DAT4, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(SDMMC2_DAT5, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(SDMMC2_DAT6, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(SDMMC2_DAT7, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
--
--	/* I2C3 */
--	OMAP3_MUX(I2C3_SCL, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--	OMAP3_MUX(I2C3_SDA, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
--
--	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(MCBSP_CLKS, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
--
--	OMAP3_MUX(GPMC_NCS7, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(GPMC_NCS3, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
--
--	/* TPS IRQ */
--	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_WAKEUP_EN | \
--			OMAP_PIN_INPUT_PULLUP),
--
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
+-	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
+-		  OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE),
+-	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+-		  OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE),
+-	{.reg_offset = OMAP_MUX_TERMINATOR},
 -};
 -#endif
 -
--static void __init devkit8000_init(void)
+-static struct regulator_consumer_supply dummy_supplies[] = {
+-	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
+-	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
+-};
+-
+-static void __init omap3_stalker_init(void)
 -{
+-	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
 -	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
--	omap_serial_init();
--	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
--				  mt46h32m32lf6_sdrc_params);
 -
--	omap_dm9000_init();
--
+-	omap_mux_init_gpio(23, OMAP_PIN_INPUT);
 -	omap_hsmmc_init(mmc);
--	devkit8000_i2c_init();
--	omap_dm9000_resources[2].start = gpio_to_irq(OMAP_DM9000_GPIO_IRQ);
--	platform_add_devices(devkit8000_devices,
--			ARRAY_SIZE(devkit8000_devices));
 -
--	omap_display_init(&devkit8000_dss_data);
+-	omap3_stalker_i2c_init();
 -
--	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
+-	platform_add_devices(omap3_stalker_devices,
+-			     ARRAY_SIZE(omap3_stalker_devices));
 -
+-	omap_display_init(&omap3_stalker_dss_data);
+-
+-	omap_serial_init();
+-	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
 -	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
 -	usb_musb_init(NULL);
--	usbhs_init(&usbhs_bdata);
--	board_nand_init(devkit8000_nand_partitions,
--			ARRAY_SIZE(devkit8000_nand_partitions), NAND_CS,
--			NAND_BUSWIDTH_16, NULL);
--	omap_twl4030_audio_init("omap3beagle", NULL);
 -
--	/* Ensure SDRC pins are mux'd for self-refresh */
--	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
--	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+-	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
+-	usbhs_init(&usbhs_bdata);
+-	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
+-
+-	omap_mux_init_gpio(21, OMAP_PIN_OUTPUT);
+-	omap_mux_init_gpio(18, OMAP_PIN_INPUT_PULLUP);
+-
+-	omap3stalker_init_eth();
+-	omap3_stalker_display_init();
+-/* Ensure SDRC pins are mux'd for self-refresh */
+-	omap_mux_init_signal("sdr_cke0", OMAP_PIN_OUTPUT);
+-	omap_mux_init_signal("sdr_cke1", OMAP_PIN_OUTPUT);
 -}
 -
--MACHINE_START(DEVKIT8000, "OMAP3 Devkit8000")
--	.atag_offset	= 0x100,
--	.reserve	= omap_reserve,
--	.map_io		= omap3_map_io,
--	.init_early	= omap35xx_init_early,
--	.init_irq	= omap3_init_irq,
--	.init_machine	= devkit8000_init,
--	.init_late	= omap35xx_init_late,
--	.init_time	= omap3_secure_sync32k_timer_init,
--	.restart	= omap3xxx_restart,
+-MACHINE_START(SBC3530, "OMAP3 STALKER")
+-	/* Maintainer: Jason Lam -lzg@ema-tech.com */
+-	.atag_offset		= 0x100,
+-	.map_io			= omap3_map_io,
+-	.init_early		= omap35xx_init_early,
+-	.init_irq		= omap3_init_irq,
+-	.init_machine		= omap3_stalker_init,
+-	.init_late		= omap35xx_init_late,
+-	.init_time		= omap3_secure_sync32k_timer_init,
+-	.restart		= omap3xxx_restart,
 -MACHINE_END
 -- 
 2.1.4
-
