@@ -1,33 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: remove dead kconfig option OMAP4_ERRATA_I688
-Date: Tue, 17 Mar 2015 12:18:20 -0500
-Message-ID: <CAGo_u6rNj=k0cYx1G_v2eFHcf0sHY++bUz0uM6PfiRXbc2chqg@mail.gmail.com>
-References: <1424889867-8980-1-git-send-email-stefan.hengelein@fau.de>
-	<20150316233005.GA2598@atomide.com>
-	<550855B7.3020905@oracle.com>
-	<550856FF.9080702@ti.com>
-	<20150317163440.GC31346@atomide.com>
-	<CAGo_u6oHk9MXPGQv1rCpvW_oegzEzFTu3sZ_4j_6HFEivnXZXg@mail.gmail.com>
-	<20150317171000.GD31346@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 02/35 linux-next] regulator: constify of_device_id array
+Date: Tue, 17 Mar 2015 17:19:06 +0000
+Message-ID: <20150317171906.GQ28806@sirena.org.uk>
+References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
+ <1426533469-25458-3-git-send-email-fabf@skynet.be>
+ <20150317121128.GH28806@sirena.org.uk>
+ <1489228275.7513.1426612212420.open-xchange@webmail.nmp.proximus.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="4CM1oNDqiDLyatGS"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150317171000.GD31346@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1489228275.7513.1426612212420.open-xchange@webmail.nmp.proximus.be>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, santosh shilimkar <santosh.shilimkar@oracle.com>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Stefan Hengelein <stefan.hengelein@fau.de>
+To: Fabian Frederick <fabf@skynet.be>
+Cc: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, Joe Perches <joe@perches.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 17, 2015 at 12:10 PM, Tony Lindgren <tony@atomide.com> wrote:
->
->
-> Yes that's a good point and adding a printk is a good idea. Care to
-> crank out a separate patch for that?
 
+--4CM1oNDqiDLyatGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-had hoped to have it part of this patch - does'nt that make more sense?
+On Tue, Mar 17, 2015 at 06:10:12PM +0100, Fabian Frederick wrote:
 
--- 
----
-Regards,
-Nishanth Menon
+> Thanks Mark, I used a --cc-cmd script by Joe Perches with
+> git send-email which uses --nom for cover-letter.
+
+> This limits recipients to mailing lists: 37 instead of 123 in this case.
+> I guess it's better to reduce the noise :)
+
+Well, another thing to do if there's no dependencies is to just send
+each patch separately - there's no real relationship between the
+patches.  This also avoids the issue.
+
+--4CM1oNDqiDLyatGS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVCGIJAAoJECTWi3JdVIfQSq8H/0wPmu2IEnTi0UjTEUDPgNPu
+AVfKpTycC5czxXZaMIG+F6sAuMWkv9K0OAkadOIjvYhOUXhLa1mFSAKr8fDoeoei
+LVvcMa5TJIrovvfYFl7CBfMhyZjRLQIxWmFAgtOXgmkuYw8cy3NahVKZyAnPxcsx
+BM6vSiet8X9ICT7BU+HsNjlnTs7fbBFk1bnbAW5vPVPU91JIVRjOOyGLGIMTqHsV
+gTa6ahm1znwIv3EaVMR7R7UxCHUUS/TnxXEFyRDxbPPpU/lZvgEMdxL3orglMgDM
+s3TKuuSnXyZ3PL+RnQ/9o+aBtxaLfrtGmrGKbKz6hen3u/qQ21+9VYv4WxML2Ks=
+=XfiZ
+-----END PGP SIGNATURE-----
+
+--4CM1oNDqiDLyatGS--
