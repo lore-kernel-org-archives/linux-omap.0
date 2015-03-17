@@ -1,54 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Couple of dmtimer fixes
-Date: Tue, 17 Mar 2015 10:45:29 -0700
-Message-ID: <20150317174529.GG31346@atomide.com>
-References: <1426554843-42641-1-git-send-email-s-anna@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra7x-evm: beagle-x14: Fix USB Peripheral
+Date: Tue, 17 Mar 2015 11:02:57 -0700
+Message-ID: <20150317180257.GH31346@atomide.com>
+References: <1426585431-29914-1-git-send-email-rogerq@ti.com>
+ <20150317145428.GA5001@saruman.tx.rr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:38139 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:38144 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752669AbbCQRuQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Mar 2015 13:50:16 -0400
+	id S1752069AbbCQSHo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Mar 2015 14:07:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1426554843-42641-1-git-send-email-s-anna@ti.com>
+In-Reply-To: <20150317145428.GA5001@saruman.tx.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [150316 18:14]:
-> Hi Tony,
+* Felipe Balbi <balbi@ti.com> [150317 07:55]:
+> Hi,
 > 
-> Please find couple of non-urgent fixes to the OMAP dmtimer driver.
-> The patches are based on 4.0-rc1.
+> On Tue, Mar 17, 2015 at 11:43:51AM +0200, Roger Quadros wrote:
+> > Now that we have EXTCON_USB_GPIO queued for v4.1, revert
+> > commit addfcde7c485 ("ARM: dts: dra7x-evm: beagle-x15: Fix USB Host")
+> > 
+> > On these EVMs, the USB cable state has to be determined via the
+> > ID pin tied to a GPIO line. We use the gpio-usb-extcon driver
+> > to read the ID pin and the extcon framework to forward
+> > the USB cable state information to the USB driver so the
+> > controller can be configured in the right mode (host/peripheral).
+> > 
+> > Gets USB peripheral mode to work on this EVM.
+> > 
+> > Signed-off-by: Roger Quadros <rogerq@ti.com>
 > 
-> The first patch is a fix for the issue I reported earlier on the
-> DRA7 dmtimer hwmod patches [1]. DRA7 has timers 13 through 16 disabled
-> in DT currently, and enabling any of them would cause a kernel hang.
-> This fix properly checks the pm_runtime_get_sync() calls in the OMAP
-> dmtimer driver irrespective of whether the hwmods are added or not.
-> In the case that they are not added, the runtime_pm calls should return
-> the value as returned from _od_fail_runtime_resume(), and the probe
-> should bail out properly fixing the boot hang.
+> on subject: x14 ? other than that
 > 
-> Second patch is a minor fix that balances the pm_runtime_enable() call
-> in probe with pm_runtime_disable() call in remove, so that the devices
-> can be bound again properly after doing an unbind through sysfs.
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-OK thanks applying both into omap-for-v4.0/fixes.
+Applying into omap-for-v4.1/dt-v2 with the subject line fixed.
 
 Tony
- 
-> [1] http://marc.info/?l=linux-omap&m=142653933112526&w=2
-> 
-> Suman Anna (2):
->   ARM: OMAP: dmtimer: check for pm_runtime_get_sync() failure
->   ARM: OMAP: dmtimer: disable pm runtime on remove
-> 
->  arch/arm/plat-omap/dmtimer.c | 15 ++++++++++++++-
->  1 file changed, 14 insertions(+), 1 deletion(-)
-> 
-> -- 
-> 2.3.2
-> 
