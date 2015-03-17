@@ -1,94 +1,69 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] ARM: dts: dra7x-evm: beagle-x14: Fix USB Peripheral
-Date: Tue, 17 Mar 2015 11:43:51 +0200
-Message-ID: <1426585431-29914-1-git-send-email-rogerq@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v3 3/6] Documentation: DT: Document twl4030-madc-battery
+ bindings
+Date: Tue, 17 Mar 2015 11:01:42 +0100
+Message-ID: <20150317100142.GA3759@amd>
+References: <1423088075-10025-1-git-send-email-marek@goldelico.com>
+ <1423088075-10025-4-git-send-email-marek@goldelico.com>
+ <20150316210532.GA11441@amd>
+ <CAAfyv34vnRY=TAyx4+7s1SW7rVE7CFh9z+OOcCsbCx63y9aVog@mail.gmail.com>
+ <20150317084730.GA9761@amd>
+ <9A1B178A-2751-4864-94B5-FCDCDA2E3875@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38691 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932115AbbCQJn4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Mar 2015 05:43:56 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9A1B178A-2751-4864-94B5-FCDCDA2E3875@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, mark.rutland@arm.com, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux PM mailing list <linux-pm@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: balbi@ti.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Now that we have EXTCON_USB_GPIO queued for v4.1, revert
-commit addfcde7c485 ("ARM: dts: dra7x-evm: beagle-x15: Fix USB Host")
+On Tue 2015-03-17 10:07:12, Dr. H. Nikolaus Schaller wrote:
+> 
+> Am 17.03.2015 um 09:47 schrieb Pavel Machek <pavel@ucw.cz>:
+> 
+> > Hi!
+> > 
+> >>>> diff --git a/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt b/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
+> >>>> new file mode 100644
+> >>>> index 0000000..bb3580c
+> >>>> --- /dev/null
+> >>>> +++ b/Documentation/devicetree/bindings/power_supply/twl4030_madc_battery.txt
+> >>>> @@ -0,0 +1,43 @@
+> >>>> +twl4030_madc_battery
+> >>>> +
+> >>>> +Required properties:
+> >>>> + - compatible : "ti,twl4030-madc-battery"
+> >>>> + - capacity-uah : battery capacity in uAh
+> >>> 
+> >>> Could we make it capacity-uAh ?
+> >> This name was suggested by Mark Rutland [1] and naming convention
+> >> should be all lowercase. There exists already bindings
+> >> without uppercase (e.g. ti,bb-uamp) so I would keep it consistent.
+> > 
+> > Messing up SI units due to "convention" is _stupid_. Don't do it.
+> > 
+> >>> to introduce coefficients for temperature and discharge rate?
+> >> What do you mean? Nothing like that is used in current driver why do
+> >> we need to add it?
+> > 
+> > Well, conversion between Li-ion's voltage and state of charge at 0
+> > current is well known:
+> > 
+> >    def percent(m, v):
+> >    	u = 0.0387-(1.4523*(3.7835-v))
+> >        if u < 0:
+> >            return 0
+> >          return (0.1966+math.sqrt(u))*100
+> 
+> I forgot to ask: does the kernel have a sqrt() function?
 
-On these EVMs, the USB cable state has to be determined via the
-ID pin tied to a GPIO line. We use the gpio-usb-extcon driver
-to read the ID pin and the extcon framework to forward
-the USB cable state information to the USB driver so the
-controller can be configured in the right mode (host/peripheral).
+This could be good enough.
 
-Gets USB peripheral mode to work on this EVM.
+https://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.0/2.6.0-mm1/broken-out/fix-sqrt.patch
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 8 ++++++++
- arch/arm/boot/dts/dra7-evm.dts          | 8 ++++++++
- arch/arm/boot/dts/dra72-evm.dts         | 8 ++++++++
- 3 files changed, 24 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index bd48dba..170fbf9 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -548,6 +548,14 @@
- 	pinctrl-0 = <&usb1_pins>;
- };
- 
-+&omap_dwc3_1 {
-+	extcon = <&extcon_usb1>;
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon_usb2>;
-+};
-+
- &usb2 {
- 	dr_mode = "peripheral";
- };
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index b1bd06c..aa46590 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -541,6 +541,14 @@
- 	};
- };
- 
-+&omap_dwc3_1 {
-+	extcon = <&extcon_usb1>;
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon_usb2>;
-+};
-+
- &usb1 {
- 	dr_mode = "peripheral";
- 	pinctrl-names = "default";
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index daf2811..ce0390f 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -377,6 +377,14 @@
- 	phy-supply = <&ldo4_reg>;
- };
- 
-+&omap_dwc3_1 {
-+	extcon = <&extcon_usb1>;
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon_usb2>;
-+};
-+
- &usb1 {
- 	dr_mode = "peripheral";
- 	pinctrl-names = "default";
+									Pavel
 -- 
-2.1.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
