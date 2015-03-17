@@ -1,47 +1,52 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 02/35 linux-next] regulator: constify of_device_id array
-Date: Tue, 17 Mar 2015 12:11:28 +0000
-Message-ID: <20150317121128.GH28806@sirena.org.uk>
-References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
- <1426533469-25458-3-git-send-email-fabf@skynet.be>
+Subject: Re: [PATCH 0/2] regulator: TPS659038: Fixes for REGEN2 and REGEN3
+Date: Tue, 17 Mar 2015 12:21:57 +0000
+Message-ID: <20150317122157.GK28806@sirena.org.uk>
+References: <1426587965-23553-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="gqUrV6DUXoHnB0ku"
+	protocol="application/pgp-signature"; boundary="aVF5wPVC5Z7LhB4n"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1426533469-25458-3-git-send-email-fabf@skynet.be>
+In-Reply-To: <1426587965-23553-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: sameo@linux.intel.com, lee.jones@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---gqUrV6DUXoHnB0ku
+--aVF5wPVC5Z7LhB4n
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 16, 2015 at 08:17:08PM +0100, Fabian Frederick wrote:
-> of_device_id is always used as const.
-> (See driver.of_match_table and open firmware functions)
+On Tue, Mar 17, 2015 at 03:56:03PM +0530, Keerthy wrote:
+> The series fixes couple of issues in the driver w.r.t TPS659038 PMICs.
+> 1) Correcting the REGEN2_CTRL address.
+> 2) REGEN3 is not present hence adding a check not to register for TPS6590=
+38.
 
-Applied, thanks.  Please remember to always include people in the cover
-letter for patch serieses so they know what's going on with regard to
-dependencies and so on.
+Applied both, thanks. =20
 
---gqUrV6DUXoHnB0ku
+>   regulator: palmas: Correct TPS659038 register definition for REGEN2
+>   regulator: Palmas: Add has_regen3 check for TPS659038
+
+Please try to keep the style of the subject lines consistent...
+
+--aVF5wPVC5Z7LhB4n
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJVCBnvAAoJECTWi3JdVIfQY5MH/2XX3be4loeibyXav80nwHQF
-dCPrX8qK46/wiLm6E6DOYHFiZ7Sd6eO/JecBqj4Fjq+k+F/RP/DO/CUoUGb6Gn+r
-euZKgco08qIpVbNsBLdJJA/1raUnUB/ODIQhtVLecCtsCOca7AettG400OnJIX0i
-0d2qMz/RMMMpRHhnCNTkM7xTF4X0UzXLoFEm1LBsQFPaui52JYeaa5u7Q3xHPjhk
-vWaJ+dBSBiWsGZaKmmq2j5Mpsr25/spmPhoQ7PapjkGZLV1nyPm9pUshOvESjdbg
-jwvTxgZJTfeuLc14FlC3NFf7gBVvtxRhykxCBZpaaclMJdLljBpNrEBeeBXrp5E=
-=LqyN
+iQEcBAEBCAAGBQJVCBxlAAoJECTWi3JdVIfQNdsH/AgstvLT/Bwu/ld33j4tZ1be
+Ej2h+6XfVU2j0Vs7d8j+Mx2lHTBcDQIdNhLFNXDXglqgCCsFZJVqFTcguAZK1WK/
+sBrChmfaa8tCN/2p8hD8yy6W2hIY6dPrCDMoKX70KJXgjI8NmQrxEzCXVIgo3mF7
+CoCF1LvtlygQmLePxV+Md4KxELpPnpbWRpAqA5wl7w4MedHTf/HoOvbzscJ6hvQq
+R9hkaSJbzW3moZEJMBHtpF3RhMdJpRq4wo45QjZY3bcWA1btijhPhZ+c/Qwj5rXn
+YKqSNISeXMmIzXv1ySYCGyTYdvjtG7LibHyE2a0Kov5xEFytdUJaRt0aNRQiS38=
+=BzMI
 -----END PGP SIGNATURE-----
 
---gqUrV6DUXoHnB0ku--
+--aVF5wPVC5Z7LhB4n--
