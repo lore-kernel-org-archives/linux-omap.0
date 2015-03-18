@@ -1,253 +1,206 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 03/35] ARM: OMAP2+: PRM: add generic API for clear_mod_irqs
-Date: Wed, 18 Mar 2015 16:43:48 +0200
-Message-ID: <1426689860-17537-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 08/35] clk: ti: fix ti_clk_get_reg_addr error handling
+Date: Wed, 18 Mar 2015 16:43:53 +0200
+Message-ID: <1426689860-17537-9-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50887 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50892 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933486AbbCROov (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:44:51 -0400
+	id S933486AbbCROox (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:44:53 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>
 
-OMAP2/3 now use generic API for the prm_clear_mod_irqs, the SoC specific
-implementation details are provided through prm_ll_data.
+There is a case where NULL can be a valid return value for
+ti_clk_get_reg_addr, specifically the case where both the provider index
+and register offsets are zero. In this case, the current error checking
+against a NULL pointer will fail. Thus, change the API to return a
+ERR_PTR value in an error case, and change all the users of this API to
+check against IS_ERR instead.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Michael Turquette <mturquette@linaro.org>
 ---
- arch/arm/mach-omap2/pm24xx.c     |   24 +++++++++++-------------
- arch/arm/mach-omap2/pm34xx.c     |   18 ++++++++----------
- arch/arm/mach-omap2/prm.h        |    2 ++
- arch/arm/mach-omap2/prm2xxx.c    |    4 +++-
- arch/arm/mach-omap2/prm2xxx.h    |    2 --
- arch/arm/mach-omap2/prm3xxx.c    |    3 ++-
- arch/arm/mach-omap2/prm3xxx.h    |    1 -
- arch/arm/mach-omap2/prm_common.c |   21 +++++++++++++++++++++
- 8 files changed, 47 insertions(+), 28 deletions(-)
+ drivers/clk/ti/apll.c      |    5 +++--
+ drivers/clk/ti/autoidle.c  |    2 +-
+ drivers/clk/ti/clk.c       |    7 ++++---
+ drivers/clk/ti/divider.c   |    4 ++--
+ drivers/clk/ti/dpll.c      |    6 +++---
+ drivers/clk/ti/gate.c      |    4 ++--
+ drivers/clk/ti/interface.c |    2 +-
+ drivers/clk/ti/mux.c       |    4 ++--
+ 8 files changed, 18 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index fe01c5a..b1aad7e 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -75,9 +75,9 @@ static int omap2_enter_full_retention(void)
+diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+index 72d9727..49baf38 100644
+--- a/drivers/clk/ti/apll.c
++++ b/drivers/clk/ti/apll.c
+@@ -203,7 +203,7 @@ static void __init of_dra7_apll_setup(struct device_node *node)
+ 	ad->control_reg = ti_clk_get_reg_addr(node, 0);
+ 	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
  
- 	/* Clear old wake-up events */
- 	/* REVISIT: These write to reserved bits? */
--	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
--	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
--	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
-+	omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
-+	omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
-+	omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
+-	if (!ad->control_reg || !ad->idlest_reg)
++	if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
+ 		goto cleanup;
  
- 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
- 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-@@ -104,18 +104,16 @@ no_sleep:
- 	clk_enable(osc_ck);
+ 	ad->idlest_mask = 0x1;
+@@ -384,7 +384,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
+ 	ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
+ 	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
  
- 	/* clear CORE wake-up events */
--	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
--	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
-+	omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
-+	omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
+-	if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
++	if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
++	    IS_ERR(ad->idlest_reg))
+ 		goto cleanup;
  
- 	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
--	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
-+	omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
+ 	clk = clk_register(NULL, &clk_hw->hw);
+diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+index 8912ff8..e75c64c 100644
+--- a/drivers/clk/ti/autoidle.c
++++ b/drivers/clk/ti/autoidle.c
+@@ -119,7 +119,7 @@ int __init of_ti_clk_autoidle_setup(struct device_node *node)
+ 	clk->name = node->name;
+ 	clk->reg = ti_clk_get_reg_addr(node, 0);
  
- 	/* MPU domain wake events */
--	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
--				    0x1);
-+	omap_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET, 0x1);
- 
--	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
--				    0x20);
-+	omap_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET, 0x20);
- 
- 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
- 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
-@@ -143,9 +141,9 @@ static void omap2_enter_mpu_retention(void)
- 	 * it is in retention mode. */
- 	if (omap2_allow_mpu_retention()) {
- 		/* REVISIT: These write to reserved bits? */
--		omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
--		omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
--		omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
-+		omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
-+		omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
-+		omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
- 
- 		/* Try to enter MPU retention */
- 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2581329..87b98bf9 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -137,8 +137,8 @@ static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
+-	if (!clk->reg) {
++	if (IS_ERR(clk->reg)) {
+ 		kfree(clk);
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index e22b956..0ebe5c5 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -103,7 +103,8 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+  * @index: register index from the clock node
+  *
+  * Builds clock register address from device tree information. This
+- * is a struct of type clk_omap_reg.
++ * is a struct of type clk_omap_reg. Returns a pointer to the register
++ * address, or a pointer error value in failure.
+  */
+ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
  {
- 	int c;
+@@ -121,14 +122,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
  
--	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
--					OMAP3430_ST_IO_CHAIN_MASK);
-+	c = omap_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
-+				    OMAP3430_ST_IO_CHAIN_MASK);
- 
- 	return c ? IRQ_HANDLED : IRQ_NONE;
- }
-@@ -152,15 +152,13 @@ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
- 	 * these are handled in a separate handler to avoid acking
- 	 * IO events before parsing in mux code
- 	 */
--	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
--					~(OMAP3430_ST_IO_MASK |
--					  OMAP3430_ST_IO_CHAIN_MASK));
--	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
--	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
-+	c = omap_prm_clear_mod_irqs(WKUP_MOD, 1, ~(OMAP3430_ST_IO_MASK |
-+						   OMAP3430_ST_IO_CHAIN_MASK));
-+	c += omap_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
-+	c += omap_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
- 	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
--		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1,
--						 ~0);
-+		c += omap_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
-+		c += omap_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, ~0);
+ 	if (i == CLK_MAX_MEMMAPS) {
+ 		pr_err("clk-provider not found for %s!\n", node->name);
+-		return NULL;
++		return ERR_PTR(-ENOENT);
  	}
  
- 	return c ? IRQ_HANDLED : IRQ_NONE;
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index ba9b933..2a01a58 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -146,6 +146,7 @@ struct prm_ll_data {
- 	int (*is_hardreset_asserted)(u8 shift, u8 part, s16 prm_mod,
- 				     u16 offset);
- 	void (*reset_system)(void);
-+	int (*clear_mod_irqs)(s16 module, u8 regs, u32 wkst_mask);
- };
+ 	reg->index = i;
  
- extern int prm_register(struct prm_ll_data *pld);
-@@ -161,6 +162,7 @@ extern void prm_clear_context_loss_flags_old(u8 part, s16 inst, u16 idx);
- void omap_prm_reset_system(void);
+ 	if (of_property_read_u32_index(node, "reg", index, &val)) {
+ 		pr_err("%s must have reg[%d]!\n", node->name, index);
+-		return NULL;
++		return ERR_PTR(-EINVAL);
+ 	}
  
- void omap_prm_reconfigure_io_chain(void);
-+int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+ 	reg->offset = val;
+diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+index 6211893..ff5f117 100644
+--- a/drivers/clk/ti/divider.c
++++ b/drivers/clk/ti/divider.c
+@@ -530,8 +530,8 @@ static int __init ti_clk_divider_populate(struct device_node *node,
+ 	u32 val;
  
+ 	*reg = ti_clk_get_reg_addr(node, 0);
+-	if (!*reg)
+-		return -EINVAL;
++	if (IS_ERR(*reg))
++		return PTR_ERR(*reg);
+ 
+ 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
+ 		*shift = val;
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index 81dc469..11478a5 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -390,18 +390,18 @@ static void __init of_ti_dpll_setup(struct device_node *node,
  #endif
+ 	} else {
+ 		dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
+-		if (!dd->idlest_reg)
++		if (IS_ERR(dd->idlest_reg))
+ 			goto cleanup;
  
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index af0f152..bacb05e 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -123,13 +123,14 @@ static void omap2xxx_prm_dpll_reset(void)
-  * Clears wakeup status bits for a given module, so that the device can
-  * re-enter idle.
-  */
--void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
-+static int omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
- {
- 	u32 wkst;
+ 		dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
+ 	}
  
- 	wkst = omap2_prm_read_mod_reg(module, regs);
- 	wkst &= wkst_mask;
- 	omap2_prm_write_mod_reg(wkst, module, regs);
-+	return 0;
- }
+-	if (!dd->control_reg || !dd->mult_div1_reg)
++	if (IS_ERR(dd->control_reg) || IS_ERR(dd->mult_div1_reg))
+ 		goto cleanup;
  
- int omap2xxx_clkdm_sleep(struct clockdomain *clkdm)
-@@ -216,6 +217,7 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
- 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
- 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
- 	.reset_system = &omap2xxx_prm_dpll_reset,
-+	.clear_mod_irqs = &omap2xxx_prm_clear_mod_irqs,
- };
+ 	if (dd->autoidle_mask) {
+ 		dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
+-		if (!dd->autoidle_reg)
++		if (IS_ERR(dd->autoidle_reg))
+ 			goto cleanup;
+ 	}
  
- int __init omap2xxx_prm_init(void)
-diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
-index 1d51643..9c91f4f 100644
---- a/arch/arm/mach-omap2/prm2xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx.h
-@@ -124,8 +124,6 @@
- extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
- extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
+diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
+index d493307..0c6fdfc 100644
+--- a/drivers/clk/ti/gate.c
++++ b/drivers/clk/ti/gate.c
+@@ -225,7 +225,7 @@ static void __init _of_ti_gate_clk_setup(struct device_node *node,
  
--void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
--
- extern int __init omap2xxx_prm_init(void);
+ 	if (ops != &omap_gate_clkdm_clk_ops) {
+ 		reg = ti_clk_get_reg_addr(node, 0);
+-		if (!reg)
++		if (IS_ERR(reg))
+ 			return;
  
- #endif
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 4cc72e8..a444334 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -226,7 +226,7 @@ static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
-  * that any peripheral wake-up events occurring while attempting to
-  * clear the PM_WKST_x are detected and cleared.
-  */
--int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
-+static int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
- {
- 	u32 wkst, fclk, iclk, clken;
- 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
-@@ -664,6 +664,7 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
- 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
- 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
- 	.reset_system = &omap3xxx_prm_dpll3_reset,
-+	.clear_mod_irqs = &omap3xxx_prm_clear_mod_irqs,
- };
+ 		if (!of_property_read_u32(node, "ti,bit-shift", &val))
+@@ -264,7 +264,7 @@ _of_ti_composite_gate_clk_setup(struct device_node *node,
+ 		return;
  
- int __init omap3xxx_prm_init(void)
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index 856f3c5..5a09a74 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -145,7 +145,6 @@ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
- extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 	gate->enable_reg = ti_clk_get_reg_addr(node, 0);
+-	if (!gate->enable_reg)
++	if (IS_ERR(gate->enable_reg))
+ 		goto cleanup;
  
- extern int __init omap3xxx_prm_init(void);
--int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
- void omap3xxx_prm_iva_idle(void);
- void omap3_prm_reset_modem(void);
- int omap3xxx_prm_clear_global_cold_reset(void);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index c5cfaa9..2c2e7ed 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -534,6 +534,27 @@ void omap_prm_reset_system(void)
- }
+ 	of_property_read_u32(node, "ti,bit-shift", &val);
+diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
+index 265d91f..c76230d 100644
+--- a/drivers/clk/ti/interface.c
++++ b/drivers/clk/ti/interface.c
+@@ -111,7 +111,7 @@ static void __init _of_ti_interface_clk_setup(struct device_node *node,
+ 	u32 val;
  
- /**
-+ * omap_prm_clear_mod_irqs - clear wake-up events from PRCM interrupt
-+ * @module: PRM module to clear wakeups from
-+ * @regs: register to clear
-+ * @wkst_mask: wkst bits to clear
-+ *
-+ * Clears any wakeup events for the module and register set defined.
-+ * Uses SoC specific implementation to do the actual wakeup status
-+ * clearing.
-+ */
-+int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
-+{
-+	if (!prm_ll_data->clear_mod_irqs) {
-+		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
-+			  __func__);
-+		return -EINVAL;
-+	}
-+
-+	return prm_ll_data->clear_mod_irqs(module, regs, wkst_mask);
-+}
-+
-+/**
-  * prm_register - register per-SoC low-level data with the PRM
-  * @pld: low-level per-SoC OMAP PRM data & function pointers to register
-  *
+ 	reg = ti_clk_get_reg_addr(node, 0);
+-	if (!reg)
++	if (IS_ERR(reg))
+ 		return;
+ 
+ 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index 728e253..5cdeed5 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -210,7 +210,7 @@ static void of_mux_clk_setup(struct device_node *node)
+ 
+ 	reg = ti_clk_get_reg_addr(node, 0);
+ 
+-	if (!reg)
++	if (IS_ERR(reg))
+ 		goto cleanup;
+ 
+ 	of_property_read_u32(node, "ti,bit-shift", &shift);
+@@ -283,7 +283,7 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
+ 
+ 	mux->reg = ti_clk_get_reg_addr(node, 0);
+ 
+-	if (!mux->reg)
++	if (IS_ERR(mux->reg))
+ 		goto cleanup;
+ 
+ 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
 -- 
 1.7.9.5
 
