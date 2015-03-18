@@ -1,96 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] usb: musb: Fix fifo reads for dm816x with musb_dsps
-Date: Wed, 18 Mar 2015 15:48:02 -0700
-Message-ID: <1426718882-27187-1-git-send-email-tony@atomide.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 0/3] OMAP 3 ISP (and N9/N950 primary camera support) dts changes
+Date: Thu, 19 Mar 2015 01:50:21 +0200
+Message-ID: <1426722625-4132-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from si-002-i39.relay.mailchannels.net ([184.154.112.204]:8949 "EHLO
-	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752021AbbCRWxL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 18:53:11 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49895 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753807AbbCRXvO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 19:51:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, George Cherian <george.cherian@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com, t-kristo@ti.com, linux-media@vger.kernel.org
 
-Looks like dm81xx can only do 32-bit fifo reads like am35x. Let's set
-up musb-dsps with a custom read_fifo function based on the compatible
-flag.
+Hi folks,
 
-Otherwise we can get the following errors when starting dhclient on a
-asix USB Ethernet adapter:
+Since v1, I've rebased the set on Tero Kristo's PRCM / SCM cleanup patchset
+here:
 
-asix 2-1:1.0 eth2: asix_rx_fixup() Bad Header Length 0xffff003c, offset 4
+<URL:http://www.spinics.net/lists/linux-omap/msg116949.html>
 
-While at it, let's also remove pointless cast of the driver data.
+v1 can be found here:
 
-Cc: Bin Liu <binmlist@gmail.com>
-Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Cc: George Cherian <george.cherian@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/usb/musb/musb_dsps.c | 37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
+<URL:http://www.spinics.net/lists/linux-omap/msg116753.html>
 
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -655,6 +655,36 @@ static int dsps_musb_reset(struct musb *musb)
- 	return !session_restart;
- }
- 
-+/* Similar to am35x, dm81xx support only 32-bit read operation */
-+static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
-+{
-+	void __iomem *fifo = hw_ep->fifo;
-+	u32		val;
-+	int		i;
-+
-+	/* Read for 32bit-aligned destination address */
-+	if (likely((0x03 & (unsigned long)dst) == 0) && len >= 4) {
-+		readsl(fifo, dst, len >> 2);
-+		dst += len & ~0x03;
-+		len &= 0x03;
-+	}
-+	/*
-+	 * Now read the remaining 1 to 3 byte or complete length if
-+	 * unaligned address.
-+	 */
-+	if (len > 4) {
-+		for (i = 0; i < (len >> 2); i++) {
-+			*(u32 *)dst = musb_readl(fifo, 0);
-+			dst += 4;
-+		}
-+		len &= 0x03;
-+	}
-+	if (len > 0) {
-+		val = musb_readl(fifo, 0);
-+		memcpy(dst, &val, len);
-+	}
-+}
-+
- static struct musb_platform_ops dsps_ops = {
- 	.quirks		= MUSB_INDEXED_EP,
- 	.init		= dsps_musb_init,
-@@ -802,6 +832,9 @@ static int dsps_probe(struct platform_device *pdev)
- 	}
- 	wrp = match->data;
- 
-+	if (of_device_is_compatible(pdev->dev.of_node, "ti,musb-dm816"))
-+		dsps_ops.read_fifo = dsps_read_fifo32;
-+
- 	/* allocate glue */
- 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
- 	if (!glue)
-@@ -878,7 +911,9 @@ static const struct dsps_musb_wrapper am33xx_driver_data = {
- 
- static const struct of_device_id musb_dsps_of_match[] = {
- 	{ .compatible = "ti,musb-am33xx",
--		.data = (void *) &am33xx_driver_data, },
-+		.data = &am33xx_driver_data, },
-+	{ .compatible = "ti,musb-dm816",
-+		.data = &am33xx_driver_data, },
- 	{  },
- };
- MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
+Changes since v1:
+
+- Fixed phy reference (number to name) in the example,
+
+- Dropped the first patch. This is already done by Tero's patch "ARM: dts:
+  omap3: merge control module features under scrm node".
+
 -- 
-2.1.4
+Kind regards,
+Sakari
 
