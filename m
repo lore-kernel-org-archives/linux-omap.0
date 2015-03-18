@@ -1,59 +1,81 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7: remove ti,hwmod property from pcie
- phy
-Date: Wed, 18 Mar 2015 18:36:40 +0200
-Message-ID: <5509A998.2080509@ti.com>
-References: <1424422274-27946-1-git-send-email-kishon@ti.com> <1424422274-27946-2-git-send-email-kishon@ti.com>
+From: Eliad Peller <eliad@wizery.com>
+Subject: [PATCH v7 0/6] wlcore: add device-tree support
+Date: Wed, 18 Mar 2015 18:38:24 +0200
+Message-ID: <1426696710-6891-1-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48552 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753123AbbCRQhS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 12:37:18 -0400
-In-Reply-To: <1424422274-27946-2-git-send-email-kishon@ti.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:33878 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755654AbbCRQih (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 12:38:37 -0400
+Received: by wibg7 with SMTP id g7so66877120wib.1
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 09:38:36 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, grygorii.strashko@linaro.org, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
-Cc: linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, t-kristo@ti.com
+To: linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Tony,
+Add device-tree support to the wlcore (wl12xx/wl18xx)
+driver.
 
-As I can see Patch 1 from this series was merged in 4.0-rc4,
-but this patch wasn't. As result, I can see below warning all the time during boot now:
+Update the current users to use the bindings instead
+of pdata-quirks.
 
-[    0.594591] platform 4a094000.pciephy: Cannot lookup hwmod 'pcie1-phy'
- 
+Finally, remove the deprecated wl12xx_platform_data
+struct (along with the da850 board file code that
+still uses it)
 
-On 02/20/2015 10:51 AM, Kishon Vijay Abraham I wrote:
-> Now that we don't have hwmod entry for pcie PHY remove the
-> ti,hwmod property from PCIE PHY's
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->   arch/arm/boot/dts/dra7.dtsi |    2 --
->   1 file changed, 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 5827fed..18a904d 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1111,7 +1111,6 @@
->   					      "wkupclk", "refclk",
->   					      "div-clk", "phy-div";
->   				#phy-cells = <0>;
-> -				ti,hwmods = "pcie1-phy";
->   			};
->   
->   			pcie2_phy: pciephy@4a095000 {
-> @@ -1130,7 +1129,6 @@
->   					      "wkupclk", "refclk",
->   					      "div-clk", "phy-div";
->   				#phy-cells = <0>;
-> -				ti,hwmods = "pcie2-phy";
->   				status = "disabled";
->   			};
->   		};
-> 
+v7:
+* rebase (v4.0-rc4)
+* fix wlcore_spi compilation (remove platform data)
+* additional minor changes in driver code
+
+v6:
+* Add Luca's patches to pass irq_trigger/freq
+* Support wl12xx as well
+* Update all relevant platforms
+
+Eliad Peller (4):
+  dt: bindings: add TI's wilink wireless device
+  wlcore: add device-tree support
+  ARM: dts: add wl12xx/wl18xx bindings
+  wlcore: remove wl12xx_platform_data
+
+Luciano Coelho (2):
+  wlcore: set irq_trigger in board files instead of hiding behind a
+    quirk
+  wl12xx: use frequency instead of enumerations for pdata clocks
+
+ .../devicetree/bindings/net/wireless/ti,wlcore.txt |  47 +++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  11 ++
+ arch/arm/boot/dts/omap3-cm-t3517.dts               |  10 ++
+ arch/arm/boot/dts/omap3-cm-t3730.dts               |  10 ++
+ arch/arm/boot/dts/omap3-evm-common.dtsi            |  10 ++
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts         |   9 ++
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts         |   9 ++
+ arch/arm/boot/dts/omap3-zoom3.dts                  |  10 ++
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |  10 ++
+ arch/arm/boot/dts/omap4-sdp.dts                    |  11 ++
+ arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi     |  10 ++
+ arch/arm/mach-davinci/Kconfig                      |  11 --
+ arch/arm/mach-davinci/board-da850-evm.c            | 112 ---------------------
+ arch/arm/mach-omap2/pdata-quirks.c                 |  74 --------------
+ drivers/net/wireless/ti/wilink_platform_data.c     |  25 -----
+ drivers/net/wireless/ti/wl12xx/main.c              |  63 ++++++++++--
+ drivers/net/wireless/ti/wl12xx/wl12xx.h            |  28 ++++++
+ drivers/net/wireless/ti/wlcore/boot.c              |   1 -
+ drivers/net/wireless/ti/wlcore/debugfs.c           |   2 +-
+ drivers/net/wireless/ti/wlcore/main.c              |  31 +++---
+ drivers/net/wireless/ti/wlcore/sdio.c              |  63 ++++++++++--
+ drivers/net/wireless/ti/wlcore/spi.c               |   6 +-
+ drivers/net/wireless/ti/wlcore/wlcore.h            |   5 +-
+ drivers/net/wireless/ti/wlcore/wlcore_i.h          |   6 +-
+ include/linux/wl12xx.h                             |  49 ---------
+ 25 files changed, 311 insertions(+), 312 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
+
+-- 
+1.8.5.2.229.g4448466.dirty
 
