@@ -1,79 +1,83 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 35/35] ARM: OMAP4+: control: add support for initializing control module via DT
-Date: Wed, 18 Mar 2015 16:44:20 +0200
-Message-ID: <1426689860-17537-36-git-send-email-t-kristo@ti.com>
-References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
+From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Subject: Re: [PATCH] drm/omap: tiler: add hibernation callback
+Date: Wed, 18 Mar 2015 16:56:07 +0200
+Message-ID: <55099207.3060006@linaro.org>
+References: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56535 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964836AbbCROpm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:45:42 -0400
-In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33161 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916AbbCRO4N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 10:56:13 -0400
+Received: by lbnq5 with SMTP id q5so3411064lbn.0
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 07:56:12 -0700 (PDT)
+In-Reply-To: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>
+Cc: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
 
-OMAP4, OMAP5 and DRA7 now parse DT entries for control module address spaces,
-and set up syscon mappings appropriately. Low level IO init is updated to
-remove the legacy control module mappings for these devices also.
+Hi All,
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/control.c |    3 +++
- arch/arm/mach-omap2/io.c      |    6 +++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+On 02/25/2015 08:08 PM, grygorii.strashko@linaro.org wrote:
+> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>
+> Setting a dev_pm_ops resume callback but not a set of
+> hibernation handler means that pm function will not be
+> called upon hibernation.
+> Fix this by using SIMPLE_DEV_PM_OPS, which appropriately
+> assigns the suspend and hibernation handlers and move
+> omap_dmm_resume under CONFIG_PM_SLEEP to avoid build warnings.
+>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+> ---
+>   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 10 +++-------
+>   1 file changed, 3 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+> index 56c6055..afb8cfc 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+> @@ -941,7 +941,7 @@ error:
+>   }
+>   #endif
+>
+> -#ifdef CONFIG_PM
+> +#ifdef CONFIG_PM_SLEEP
+>   static int omap_dmm_resume(struct device *dev)
+>   {
+>   	struct tcm_area area;
+> @@ -965,12 +965,10 @@ static int omap_dmm_resume(struct device *dev)
+>
+>   	return 0;
+>   }
+> -
+> -static const struct dev_pm_ops omap_dmm_pm_ops = {
+> -	.resume = omap_dmm_resume,
+> -};
+>   #endif
+>
+> +SIMPLE_DEV_PM_OPS(omap_dmm_pm_ops, NULL, omap_dmm_resume);
+> +
+>   #if defined(CONFIG_OF)
+>   static const struct of_device_id dmm_of_match[] = {
+>   	{ .compatible = "ti,omap4-dmm", },
+> @@ -986,9 +984,7 @@ struct platform_driver omap_dmm_driver = {
+>   		.owner = THIS_MODULE,
+>   		.name = DMM_DRIVER_NAME,
+>   		.of_match_table = of_match_ptr(dmm_of_match),
+> -#ifdef CONFIG_PM
+>   		.pm = &omap_dmm_pm_ops,
+> -#endif
+>   	},
+>   };
+>
+>
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 9f96e60..e63cfb2 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -649,6 +649,9 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
- 	{ .compatible = "ti,am4-scrm", .data = &ctrl_data },
- 	{ .compatible = "ti,omap2-scrm", .data = &omap2_ctrl_data },
- 	{ .compatible = "ti,omap3-scrm", .data = &omap2_ctrl_data },
-+	{ .compatible = "ti,omap4-ctrl", .data = &ctrl_data },
-+	{ .compatible = "ti,omap5-ctrl", .data = &ctrl_data },
-+	{ .compatible = "ti,dra7-ctrl", .data = &ctrl_data },
- 	{ }
- };
- 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 6c39cc0..7743e367 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -631,8 +631,8 @@ void __init omap4430_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP443X_CLASS,
- 			      OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
-+	omap2_control_base_init();
- 	omap4xxx_check_revision();
- 	omap4xxx_check_features();
- 	omap2_prcm_base_init();
-@@ -659,8 +659,8 @@ void __init omap5_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP54XX_CLASS,
- 			      OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
-+	omap2_control_base_init();
- 	omap4_pm_init_early();
- 	omap2_prcm_base_init();
- 	omap5xxx_check_revision();
-@@ -684,8 +684,8 @@ void __init omap5_init_late(void)
- void __init dra7xx_init_early(void)
- {
- 	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
-+	omap2_control_base_init();
- 	omap4_pm_init_early();
- 	omap2_prcm_base_init();
- 	dra7xxx_check_revision();
+Any comments on this?
+
 -- 
-1.7.9.5
-
+regards,
+-grygorii
