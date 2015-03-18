@@ -1,132 +1,228 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 28/35] ARM: dts: am43xx-epos-evm: fix pinmux node layout
-Date: Wed, 18 Mar 2015 16:44:13 +0200
-Message-ID: <1426689860-17537-29-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 25/35] ARM: dts: omap24xx: merge control module features under scrm node
+Date: Wed, 18 Mar 2015 16:44:10 +0200
+Message-ID: <1426689860-17537-26-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50935 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56519 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755175AbbCROpc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:45:32 -0400
+	id S1755169AbbCROp2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:45:28 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Pinmux node should be a reference to the base one, not a complete re-write
-of it. Having the node like this also prevents modifying the node layout
-in the base am4372.dtsi file, which is needed for control module changes.
+This patch moves all the control module related features under scrm node.
+scm_conf area is changed to use syscon, and also the clocks are moved
+under scm_conf area.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts |   84 +++++++++++++++++-----------------
- 1 file changed, 42 insertions(+), 42 deletions(-)
+ arch/arm/boot/dts/omap2420.dtsi        |   33 +++++++++++++++++---------
+ arch/arm/boot/dts/omap2430-clocks.dtsi |    6 ++---
+ arch/arm/boot/dts/omap2430.dtsi        |   40 ++++++++++++++++++--------------
+ arch/arm/boot/dts/omap24xx-clocks.dtsi |    4 ++--
+ arch/arm/mach-omap2/control.c          |    7 +++++-
+ 5 files changed, 56 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 257c099..72f01bb 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -69,7 +69,48 @@
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+index e2b2e93..49bc2ee 100644
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -28,12 +28,32 @@
  		};
- 	};
  
--	am43xx_pinmux: pinmux@44e10800 {
-+	matrix_keypad: matrix_keypad@0 {
-+		compatible = "gpio-matrix-keypad";
-+		debounce-delay-ms = <5>;
-+		col-scan-delay-us = <2>;
+ 		scrm: scrm@48000000 {
+-			compatible = "ti,omap2-scrm";
++			compatible = "ti,omap2-scrm", "simple-bus";
+ 			reg = <0x48000000 0x1000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x48000000 0x1000>;
+ 
+-			scrm_clocks: clocks {
++			omap2420_pmx: pinmux@30 {
++				compatible = "ti,omap2420-padconf",
++					     "pinctrl-single";
++				reg = <0x30 0x0113>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				pinctrl-single,register-width = <8>;
++				pinctrl-single,function-mask = <0x3f>;
++			};
 +
-+		row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
-+			     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
-+			     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
-+			     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
++			scm_conf: scm_conf@270 {
++				compatible = "syscon";
++				reg = <0x270 0x100>;
++				#address-cells = <1>;
++				#size-cells = <1>;
 +
-+		col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
-+			     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
-+			     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
-+			     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
-+
-+		linux,keymap = <0x00000201	/* P1 */
-+			0x01000204	/* P4 */
-+			0x02000207	/* P7 */
-+			0x0300020a	/* NUMERIC_STAR */
-+			0x00010202	/* P2 */
-+			0x01010205	/* P5 */
-+			0x02010208	/* P8 */
-+			0x03010200	/* P0 */
-+			0x00020203	/* P3 */
-+			0x01020206	/* P6 */
-+			0x02020209	/* P9 */
-+			0x0302020b	/* NUMERIC_POUND */
-+			0x00030067	/* UP */
-+			0x0103006a	/* RIGHT */
-+			0x0203006c	/* DOWN */
-+			0x03030069>;	/* LEFT */
-+	};
-+
-+	backlight {
-+		compatible = "pwm-backlight";
-+		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
-+		brightness-levels = <0 51 53 56 62 75 101 152 255>;
-+		default-brightness-level = <8>;
-+	};
-+};
-+
-+&am43xx_pinmux {
- 		cpsw_default: cpsw_default {
- 			pinctrl-single,pins = <
- 				/* Slave 1 */
-@@ -279,47 +320,6 @@
- 				0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
- 			>;
++				scrm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 			};
+ 
+ 			scrm_clockdomains: clockdomains {
+@@ -46,15 +66,6 @@
+ 			ti,hwmods = "counter_32k";
  		};
--	};
--
--	matrix_keypad: matrix_keypad@0 {
--			compatible = "gpio-matrix-keypad";
--			debounce-delay-ms = <5>;
--			col-scan-delay-us = <2>;
--
--			row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
--				     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
--				     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
--				     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
--
--			col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
--				     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
--				     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
--				     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
--
--			linux,keymap = <0x00000201	/* P1 */
--				0x01000204	/* P4 */
--				0x02000207	/* P7 */
--				0x0300020a	/* NUMERIC_STAR */
--				0x00010202	/* P2 */
--				0x01010205	/* P5 */
--				0x02010208	/* P8 */
--				0x03010200	/* P0 */
--				0x00020203	/* P3 */
--				0x01020206	/* P6 */
--				0x02020209	/* P9 */
--				0x0302020b	/* NUMERIC_POUND */
--				0x00030067	/* UP */
--				0x0103006a	/* RIGHT */
--				0x0203006c	/* DOWN */
--				0x03030069>;	/* LEFT */
+ 
+-		omap2420_pmx: pinmux@48000030 {
+-			compatible = "ti,omap2420-padconf", "pinctrl-single";
+-			reg = <0x48000030 0x0113>;
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			pinctrl-single,register-width = <8>;
+-			pinctrl-single,function-mask = <0x3f>;
 -		};
 -
--	backlight {
--		compatible = "pwm-backlight";
--		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
--		brightness-levels = <0 51 53 56 62 75 101 152 255>;
--		default-brightness-level = <8>;
--	};
+ 		gpio1: gpio@48018000 {
+ 			compatible = "ti,omap2-gpio";
+ 			reg = <0x48018000 0x200>;
+diff --git a/arch/arm/boot/dts/omap2430-clocks.dtsi b/arch/arm/boot/dts/omap2430-clocks.dtsi
+index 805f75d..cb4b229 100644
+--- a/arch/arm/boot/dts/omap2430-clocks.dtsi
++++ b/arch/arm/boot/dts/omap2430-clocks.dtsi
+@@ -13,7 +13,7 @@
+ 		#clock-cells = <0>;
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+-		reg = <0x02e8>;
++		reg = <0x78>;
+ 	};
+ 
+ 	mcbsp3_fck: mcbsp3_fck {
+@@ -27,7 +27,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <2>;
+-		reg = <0x02e8>;
++		reg = <0x78>;
+ 	};
+ 
+ 	mcbsp4_fck: mcbsp4_fck {
+@@ -41,7 +41,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <4>;
+-		reg = <0x02e8>;
++		reg = <0x78>;
+ 	};
+ 
+ 	mcbsp5_fck: mcbsp5_fck {
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index 0dc8de2..e06d7eb 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -28,12 +28,32 @@
+ 		};
+ 
+ 		scrm: scrm@49002000 {
+-			compatible = "ti,omap2-scrm";
++			compatible = "ti,omap2-scrm", "simple-bus";
+ 			reg = <0x49002000 0x1000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x49000000 0x1000>;
+ 
+-			scrm_clocks: clocks {
++			omap2430_pmx: pinmux@30 {
++				compatible = "ti,omap2430-padconf",
++					     "pinctrl-single";
++				reg = <0x30 0x0154>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				pinctrl-single,register-width = <8>;
++				pinctrl-single,function-mask = <0x3f>;
++			};
++
++			scm_conf: scm_conf@270 {
++				compatible = "syscon";
++				reg = <0x270 0x240>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++
++				scrm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 			};
+ 
+ 			scrm_clockdomains: clockdomains {
+@@ -46,24 +66,10 @@
+ 			ti,hwmods = "counter_32k";
+ 		};
+ 
+-		omap2430_pmx: pinmux@49002030 {
+-			compatible = "ti,omap2430-padconf", "pinctrl-single";
+-			reg = <0x49002030 0x0154>;
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			pinctrl-single,register-width = <8>;
+-			pinctrl-single,function-mask = <0x3f>;
+-		};
+-
+-		omap2_scm_general: tisyscon@49002270 {
+-			compatible = "syscon";
+-			reg = <0x49002270 0x240>;
+-		};
+-
+ 		pbias_regulator: pbias_regulator {
+ 			compatible = "ti,pbias-omap";
+ 			reg = <0x230 0x4>;
+-			syscon = <&omap2_scm_general>;
++			syscon = <&scm_conf>;
+ 			pbias_mmc_reg: pbias_mmc_omap2430 {
+ 				regulator-name = "pbias_mmc_omap2430";
+ 				regulator-min-microvolt = <1800000>;
+diff --git a/arch/arm/boot/dts/omap24xx-clocks.dtsi b/arch/arm/boot/dts/omap24xx-clocks.dtsi
+index a1365ca..a078b55 100644
+--- a/arch/arm/boot/dts/omap24xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap24xx-clocks.dtsi
+@@ -13,7 +13,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <2>;
+-		reg = <0x0274>;
++		reg = <0x4>;
+ 	};
+ 
+ 	mcbsp1_fck: mcbsp1_fck {
+@@ -27,7 +27,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <6>;
+-		reg = <0x0274>;
++		reg = <0x4>;
+ 	};
+ 
+ 	mcbsp2_fck: mcbsp2_fck {
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index edc0f26..5359bc3 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -661,10 +661,15 @@ static struct control_init_data ctrl_data = {
+ 	.index = TI_CLKM_CTRL,
  };
  
- &mmc1 {
++static const struct control_init_data omap2_ctrl_data = {
++	.index = TI_CLKM_CTRL,
++	.offset = -OMAP2_CONTROL_GENERAL,
++};
++
+ static const struct of_device_id omap_scrm_dt_match_table[] = {
+ 	{ .compatible = "ti,am3-scrm", .data = &ctrl_data },
+ 	{ .compatible = "ti,am4-scrm", .data = &ctrl_data },
+-	{ .compatible = "ti,omap2-scrm", .data = &ctrl_data },
++	{ .compatible = "ti,omap2-scrm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,omap3-scrm", .data = &ctrl_data },
+ 	{ }
+ };
 -- 
 1.7.9.5
 
