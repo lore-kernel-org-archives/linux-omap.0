@@ -1,54 +1,76 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 00/35] ARM: OMAP2+: PRCM / SCM cleanups against 4.0-rc1
-Date: Wed, 18 Mar 2015 16:43:45 +0200
-Message-ID: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 01/35] ARM: OMAP2+: PRCM: rename of_prcm_init to omap_prcm_init
+Date: Wed, 18 Mar 2015 16:43:46 +0200
+Message-ID: <1426689860-17537-2-git-send-email-t-kristo@ti.com>
+References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56452 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755107AbbCROom (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:44:42 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:52425 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755107AbbCROoo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 10:44:44 -0400
+In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
+This avoids conflicts in the global namespace, and is more descriptive
+of the purpose anyway.
 
-Changes in this set compared to v3:
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/io.c         |    2 +-
+ arch/arm/mach-omap2/prm.h        |    2 +-
+ arch/arm/mach-omap2/prm_common.c |    8 +++++++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-- Changed the SCM module DT node layout based on comments from Tony;
-  basically the wkup / core are split into their own nodes now. This
-  applies for omap3, omap4, omap5 and dra7, rest of the SoCs have their
-  control module integrated as one instance (Patch 26, 30, 33, 34)
-- Changed the tisyscon node name to scm_conf. This name is more
-  descriptive for the purpose being used, scm_conf was already used
-  as an alias (Patch 24, 25, 27, 29)
-- Rest of the patches have no changes compared to v3.
-
-Testing done:
-- am335x-evm      : boot
-- am335x-evmsk    : boot
-- am3517-evm      : boot
-- am43x-epos-evm  : boot
-- am437x-gp-evm   : boot
-- omap3-beagle-xm : boot
-- omap3-beagle    : boot, suspend-resume (ret/off), cpuidle (ret/off)
-- am335x-boneblack: boot
-- am335x-bone     : boot
-- dra7xx-evm      : boot
-- omap3-n900      : boot
-- omap5-uevm      : boot
-- omap4-panda-es  : boot, suspend-resume (ret), cpuidle (ret)
-- omap4-panda     : boot
-- omap2430-sdp    : boot
-- omap3430-sdp    : boot
-- omap4-sdp-es23plus: boot
-
-Test branch pushed at:
-- tree: https://github.com/t-kristo/linux-pm.git
-- branch: 4.0-rc1-prcm-cleanup-v4
-
--Tero
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index c4871c5..f504f71 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -764,7 +764,7 @@ int __init omap_clk_init(void)
+ 	ti_clk_init_features();
+ 
+ 	if (of_have_populated_dt()) {
+-		ret = of_prcm_init();
++		ret = omap_prcm_init();
+ 		if (ret)
+ 			return ret;
+ 
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index b9061a6..ba9b933 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -19,7 +19,7 @@
+ extern void __iomem *prm_base;
+ extern u16 prm_features;
+ extern void omap2_set_globals_prm(void __iomem *prm);
+-int of_prcm_init(void);
++int omap_prcm_init(void);
+ void omap3_prcm_legacy_iomaps_init(void);
+ # endif
+ 
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index bfaa7ba..c5cfaa9 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -625,7 +625,13 @@ static struct ti_clk_ll_ops omap_clk_ll_ops = {
+ 	.clk_writel = prm_clk_writel,
+ };
+ 
+-int __init of_prcm_init(void)
++/**
++ * omap_prcm_init - low level init for the PRCM drivers
++ *
++ * Initializes the low level clock infrastructure for PRCM drivers.
++ * Returns 0 in success, negative error value in failure.
++ */
++int __init omap_prcm_init(void)
+ {
+ 	struct device_node *np;
+ 	void __iomem *mem;
+-- 
+1.7.9.5
 
