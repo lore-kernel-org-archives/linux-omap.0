@@ -1,164 +1,77 @@
-From: Michael Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH 32/35 linux-next] clk: constify of_device_id array
-Date: Wed, 18 Mar 2015 07:15:09 -0700
-Message-ID: <20150318141509.7930.28419@quantum>
-References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
- <1426535949-26107-1-git-send-email-fabf@skynet.be>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/4] ARM: dts: Add cppi41 support for dm816x MUSB
+Date: Wed, 18 Mar 2015 09:40:35 -0500
+Message-ID: <20150318144035.GB1116@saruman.tx.rr.com>
+References: <1426637961-4197-1-git-send-email-tony@atomide.com>
+ <1426637961-4197-4-git-send-email-tony@atomide.com>
+ <20150318003121.GA12911@saruman.tx.rr.com>
+ <20150318011836.GK31346@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426535949-26107-1-git-send-email-fabf@skynet.be>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Fabian Frederick <fabf@skynet.be>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hHWLQfXTYDoKhP50"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:52272 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933140AbbCROlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 10:41:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20150318011836.GK31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
 
-Quoting Fabian Frederick (2015-03-16 12:59:06)
-> of_device_id is always used as const.
-> (See driver.of_match_table and open firmware functions)
-> 
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+--hHWLQfXTYDoKhP50
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Michael Turquette <mturquette@linaro.org>
+On Tue, Mar 17, 2015 at 06:18:37PM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [150317 17:32]:
+> > Hi,
+> >=20
+> > On Tue, Mar 17, 2015 at 05:19:20PM -0700, Tony Lindgren wrote:
+> > > Looks like we have cppi41 on dm816x just like on am335x.
+> > >=20
+> > > Cc: Bin Liu <binmlist@gmail.com>
+> > > Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> > > Cc: Felipe Balbi <balbi@ti.com>
+> > > Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >=20
+> > Any logs available ? Any throughput improvements with DMA ?
+>=20
+> So far I only logged with the debug option on. I can do some
+> test runs with your for-next branch to a USB mass storage device
+> if you prefer that, or got some other test in mind?
 
-> ---
->  drivers/clk/clk-palmas.c                 | 2 +-
->  drivers/clk/st/clkgen-fsyn.c             | 2 +-
->  drivers/clk/st/clkgen-mux.c              | 8 ++++----
->  drivers/clk/st/clkgen-pll.c              | 4 ++--
->  drivers/clk/ti/clk-dra7-atl.c            | 2 +-
->  drivers/clk/ti/clockdomain.c             | 2 +-
->  drivers/clk/versatile/clk-vexpress-osc.c | 2 +-
->  7 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
-> index 8d45992..45a535a 100644
-> --- a/drivers/clk/clk-palmas.c
-> +++ b/drivers/clk/clk-palmas.c
-> @@ -161,7 +161,7 @@ static struct palmas_clks_of_match_data palmas_of_clk32kgaudio = {
->         },
->  };
->  
-> -static struct of_device_id palmas_clks_of_match[] = {
-> +static const struct of_device_id palmas_clks_of_match[] = {
->         {
->                 .compatible = "ti,palmas-clk32kg",
->                 .data = &palmas_of_clk32kg,
-> diff --git a/drivers/clk/st/clkgen-fsyn.c b/drivers/clk/st/clkgen-fsyn.c
-> index af94ed8..a917c4c 100644
-> --- a/drivers/clk/st/clkgen-fsyn.c
-> +++ b/drivers/clk/st/clkgen-fsyn.c
-> @@ -1057,7 +1057,7 @@ static struct clk * __init st_clk_register_quadfs_fsynth(
->         return clk;
->  }
->  
-> -static struct of_device_id quadfs_of_match[] = {
-> +static const struct of_device_id quadfs_of_match[] = {
->         {
->                 .compatible = "st,stih416-quadfs216",
->                 .data = &st_fs216c65_416
-> diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
-> index 9a15ec3..fdcff10 100644
-> --- a/drivers/clk/st/clkgen-mux.c
-> +++ b/drivers/clk/st/clkgen-mux.c
-> @@ -341,7 +341,7 @@ static struct clkgena_divmux_data st_divmux_c32odf3 = {
->         .fb_start_bit_idx = 24,
->  };
->  
-> -static struct of_device_id clkgena_divmux_of_match[] = {
-> +static const struct of_device_id clkgena_divmux_of_match[] = {
->         {
->                 .compatible = "st,clkgena-divmux-c65-hs",
->                 .data = &st_divmux_c65hs,
-> @@ -479,7 +479,7 @@ static struct clkgena_prediv_data prediv_c32_data = {
->         .table = prediv_table16,
->  };
->  
-> -static struct of_device_id clkgena_prediv_of_match[] = {
-> +static const struct of_device_id clkgena_prediv_of_match[] = {
->         { .compatible = "st,clkgena-prediv-c65", .data = &prediv_c65_data },
->         { .compatible = "st,clkgena-prediv-c32", .data = &prediv_c32_data },
->         {}
-> @@ -586,7 +586,7 @@ static struct clkgen_mux_data stih407_a9_mux_data = {
->         .width = 2,
->  };
->  
-> -static struct of_device_id mux_of_match[] = {
-> +static const struct of_device_id mux_of_match[] = {
->         {
->                 .compatible = "st,stih416-clkgenc-vcc-hd",
->                 .data = &clkgen_mux_c_vcc_hd_416,
-> @@ -693,7 +693,7 @@ static struct clkgen_vcc_data st_clkgenf_vcc_416 = {
->         .lock = &clkgenf_lock,
->  };
->  
-> -static struct of_device_id vcc_of_match[] = {
-> +static const struct of_device_id vcc_of_match[] = {
->         { .compatible = "st,stih416-clkgenc", .data = &st_clkgenc_vcc_416 },
->         { .compatible = "st,stih416-clkgenf", .data = &st_clkgenf_vcc_416 },
->         {}
-> diff --git a/drivers/clk/st/clkgen-pll.c b/drivers/clk/st/clkgen-pll.c
-> index 29769d7..d204ba8 100644
-> --- a/drivers/clk/st/clkgen-pll.c
-> +++ b/drivers/clk/st/clkgen-pll.c
-> @@ -593,7 +593,7 @@ static struct clk * __init clkgen_odf_register(const char *parent_name,
->         return clk;
->  }
->  
-> -static struct of_device_id c32_pll_of_match[] = {
-> +static const struct of_device_id c32_pll_of_match[] = {
->         {
->                 .compatible = "st,plls-c32-a1x-0",
->                 .data = &st_pll3200c32_a1x_0,
-> @@ -708,7 +708,7 @@ err:
->  }
->  CLK_OF_DECLARE(clkgen_c32_pll, "st,clkgen-plls-c32", clkgen_c32_pll_setup);
->  
-> -static struct of_device_id c32_gpu_pll_of_match[] = {
-> +static const struct of_device_id c32_gpu_pll_of_match[] = {
->         {
->                 .compatible = "st,stih415-gpu-pll-c32",
->                 .data = &st_pll1200c32_gpu_415,
-> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-> index 59bb4b3..d86bc46 100644
-> --- a/drivers/clk/ti/clk-dra7-atl.c
-> +++ b/drivers/clk/ti/clk-dra7-atl.c
-> @@ -294,7 +294,7 @@ static int of_dra7_atl_clk_remove(struct platform_device *pdev)
->         return 0;
->  }
->  
-> -static struct of_device_id of_dra7_atl_clk_match_tbl[] = {
-> +static const struct of_device_id of_dra7_atl_clk_match_tbl[] = {
->         { .compatible = "ti,dra7-atl", },
->         {},
->  };
-> diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
-> index b4c5fac..35fe108 100644
-> --- a/drivers/clk/ti/clockdomain.c
-> +++ b/drivers/clk/ti/clockdomain.c
-> @@ -52,7 +52,7 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
->         }
->  }
->  
-> -static struct of_device_id ti_clkdm_match_table[] __initdata = {
-> +static const struct of_device_id ti_clkdm_match_table[] __initconst = {
->         { .compatible = "ti,clockdomain" },
->         { }
->  };
-> diff --git a/drivers/clk/versatile/clk-vexpress-osc.c b/drivers/clk/versatile/clk-vexpress-osc.c
-> index 765f1e0..89c0609 100644
-> --- a/drivers/clk/versatile/clk-vexpress-osc.c
-> +++ b/drivers/clk/versatile/clk-vexpress-osc.c
-> @@ -110,7 +110,7 @@ static int vexpress_osc_probe(struct platform_device *pdev)
->         return 0;
->  }
->  
-> -static struct of_device_id vexpress_osc_of_match[] = {
-> +static const struct of_device_id vexpress_osc_of_match[] = {
->         { .compatible = "arm,vexpress-osc", },
->         {}
->  };
-> -- 
-> 2.1.0
-> 
+mass storage should be fine, just wanna know if you're getting
+acceptable throughput.
+
+--=20
+balbi
+
+--hHWLQfXTYDoKhP50
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVCY5jAAoJEIaOsuA1yqREsaAP/0uxmhcAaaGBZgfCloOZ9Jy1
+D6t9Ht+EuFlE61zOec2L9o6H5yNtckhwSfuc2X6O6stomD9ybYViRjBW5iqxUXk4
+OnEhDbDyzKRjjkjQHJXZc/ifU5YtFDTlvaqkO0m/cGpVRDmLBCxqXWFAUUyzq096
+bxX7ilJBN0otHpb7AlkGw61Vj/7vzah6L587AET6M48i5AcRvq74Kv3/I6S7WOw/
+LMvpWF6Y127Em8Y6JuGThGgvwvEmho9vP1BOnyluinOWXM1sl5AaPWPEAqf51LqB
+KsUrgZ3HotLL2RSlSHxaVx2/LXfgm/l5/Z4QevDF5osEriY1n82coBydxLyr45Et
+SKRaQJnoIuoV1B8lxGOi3h0rpraI2UPUxMS9MfprJQFy1D0MOiaz4NDtu7TrO3aD
+j3p5zcFumDb6KSNzqEQ3SoRa3LR1dv4QVDLBkhdTLH8Kz8Xp6ENwBHFszmeUmYWV
+OfiIOxLsma3mFWTF/LxJXIBfn8O7fplUqyjavUpic1h8jCbjlz8YcXvsQJNSUO9h
+jXydog2dkmy4AunB6pCFcnXMaRZOrwbsm3Jg+hj06Jl1uxS/nCc+VbNejN5nDhEW
+YZwmQaqNx+ltoptXtzXvej6rWKDe0L4crze/CgUeHxBYsvphxB4Knw4kdqgEZBrl
+WqIhUozDKselCKXrUtdG
+=oeKI
+-----END PGP SIGNATURE-----
+
+--hHWLQfXTYDoKhP50--
