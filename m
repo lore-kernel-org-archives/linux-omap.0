@@ -1,58 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
-Date: Wed, 18 Mar 2015 13:31:01 -0700
-Message-ID: <20150318203100.GV31346@atomide.com>
-References: <1426707461.13824.2.camel@symus-gk-mint>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v7 0/6] wlcore: add device-tree support
+Date: Wed, 18 Mar 2015 13:53:56 -0700
+Message-ID: <20150318205356.GW31346@atomide.com>
+References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:38461 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750905AbbCRUfo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 16:35:44 -0400
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1426707461.13824.2.camel@symus-gk-mint>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1426696710-6891-1-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg Knight <g.knight@symetrica.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Greg,
-
-* Greg Knight <g.knight@symetrica.com> [150318 12:38]:
-> Hi, linux-omap,
+* Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [150318 09:39]:
+> Add device-tree support to the wlcore (wl12xx/wl18xx)
+> driver.
 > 
-> I've attached a patch which adds a device-tree field "ti,dma-min-bytes"
-> which replaces the macro DMA_MIN_BYTES. Adjusting this field addresses
-> issues we've had where, in our particular use case, the usleep() in the
-> SPI worker thread eats a full 20% of our CPU (AM3359).
+> Update the current users to use the bindings instead
+> of pdata-quirks.
 > 
-> I opted to implement it as a device-tree parameter and keep the original
-> value (160) as the default, in order to avoid impacting anyone else.
+> Finally, remove the deprecated wl12xx_platform_data
+> struct (along with the da850 board file code that
+> still uses it)
 > 
-> The patch is attached. Patches 1-2 are an unrelated McASP change (see my
-> other message).
-> 
-> What is the process for getting this upstreamed?
+> v7:
+> * rebase (v4.0-rc4)
+> * fix wlcore_spi compilation (remove platform data)
+> * additional minor changes in driver code
 
-Well I suggest you run get_maintainer.pl on your patches to figure
-out who to send them to for review. For example this one:
-
-$ scripts/get_maintainer.pl -f drivers/spi/spi-omap2-mcspi.c 
-Mark Brown <broonie@kernel.org> (maintainer:SPI SUBSYSTEM)
-linux-spi@vger.kernel.org (open list:SPI SUBSYSTEM)
-linux-kernel@vger.kernel.org (open list)
- 
-Also you might want to run scripts/checkpatch.pl --strict on them
-to sort out any formatting issues etc.
-
-And if it's omap related patch, please cc also the linux-omap
-mailing list too.
-
-That's pretty much all that's needed, then just update the patches
-baded on people's comments :) Good idea to fix up these issues
-in the upstream kernel.
+Thanks for updating it, looks good to me now and still works
+for me.
 
 Regards,
 
 Tony
+ 
+> v6:
+> * Add Luca's patches to pass irq_trigger/freq
+> * Support wl12xx as well
+> * Update all relevant platforms
+> 
+> Eliad Peller (4):
+>   dt: bindings: add TI's wilink wireless device
+>   wlcore: add device-tree support
+>   ARM: dts: add wl12xx/wl18xx bindings
+>   wlcore: remove wl12xx_platform_data
+> 
+> Luciano Coelho (2):
+>   wlcore: set irq_trigger in board files instead of hiding behind a
+>     quirk
+>   wl12xx: use frequency instead of enumerations for pdata clocks
+> 
+>  .../devicetree/bindings/net/wireless/ti,wlcore.txt |  47 +++++++++
+>  arch/arm/boot/dts/am335x-evmsk.dts                 |  11 ++
+>  arch/arm/boot/dts/omap3-cm-t3517.dts               |  10 ++
+>  arch/arm/boot/dts/omap3-cm-t3730.dts               |  10 ++
+>  arch/arm/boot/dts/omap3-evm-common.dtsi            |  10 ++
+>  arch/arm/boot/dts/omap3-igep0020-rev-f.dts         |   9 ++
+>  arch/arm/boot/dts/omap3-igep0030-rev-g.dts         |   9 ++
+>  arch/arm/boot/dts/omap3-zoom3.dts                  |  10 ++
+>  arch/arm/boot/dts/omap4-panda-common.dtsi          |  10 ++
+>  arch/arm/boot/dts/omap4-sdp.dts                    |  11 ++
+>  arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi     |  10 ++
+>  arch/arm/mach-davinci/Kconfig                      |  11 --
+>  arch/arm/mach-davinci/board-da850-evm.c            | 112 ---------------------
+>  arch/arm/mach-omap2/pdata-quirks.c                 |  74 --------------
+>  drivers/net/wireless/ti/wilink_platform_data.c     |  25 -----
+>  drivers/net/wireless/ti/wl12xx/main.c              |  63 ++++++++++--
+>  drivers/net/wireless/ti/wl12xx/wl12xx.h            |  28 ++++++
+>  drivers/net/wireless/ti/wlcore/boot.c              |   1 -
+>  drivers/net/wireless/ti/wlcore/debugfs.c           |   2 +-
+>  drivers/net/wireless/ti/wlcore/main.c              |  31 +++---
+>  drivers/net/wireless/ti/wlcore/sdio.c              |  63 ++++++++++--
+>  drivers/net/wireless/ti/wlcore/spi.c               |   6 +-
+>  drivers/net/wireless/ti/wlcore/wlcore.h            |   5 +-
+>  drivers/net/wireless/ti/wlcore/wlcore_i.h          |   6 +-
+>  include/linux/wl12xx.h                             |  49 ---------
+>  25 files changed, 311 insertions(+), 312 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
+> 
+> -- 
+> 1.8.5.2.229.g4448466.dirty
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
