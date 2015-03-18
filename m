@@ -1,83 +1,89 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH] drm/omap: tiler: add hibernation callback
-Date: Wed, 18 Mar 2015 12:04:38 -0400
-Message-ID: <CAF6AEGvdsQGDP8dLxU8ew1JQ9xmAf66zCwfRVW2-TTdXK5Va-Q@mail.gmail.com>
-References: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] ARM: dts: Add cppi41 support for dm816x MUSB
+Date: Wed, 18 Mar 2015 09:25:29 -0700
+Message-ID: <20150318162528.GO31346@atomide.com>
+References: <1426637961-4197-1-git-send-email-tony@atomide.com>
+ <1426637961-4197-4-git-send-email-tony@atomide.com>
+ <20150318003121.GA12911@saruman.tx.rr.com>
+ <20150318011836.GK31346@atomide.com>
+ <20150318144035.GB1116@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:34522 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755521AbbCRQEi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 12:04:38 -0400
-Received: by qcaz10 with SMTP id z10so42226324qca.1
-        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 09:04:38 -0700 (PDT)
-In-Reply-To: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org>
+Received: from muru.com ([72.249.23.125]:38367 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754622AbbCRQaN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 12:30:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20150318144035.GB1116@saruman.tx.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@linaro.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, David Airlie <airlied@linux.ie>, "Menon, Nishanth" <nm@ti.com>, Sumit Semwal <sumit.semwal@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
 
-On Wed, Feb 25, 2015 at 1:08 PM,  <grygorii.strashko@linaro.org> wrote:
-> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->
-> Setting a dev_pm_ops resume callback but not a set of
-> hibernation handler means that pm function will not be
-> called upon hibernation.
-> Fix this by using SIMPLE_DEV_PM_OPS, which appropriately
-> assigns the suspend and hibernation handlers and move
-> omap_dmm_resume under CONFIG_PM_SLEEP to avoid build warnings.
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+* Felipe Balbi <balbi@ti.com> [150318 07:41]:
+> On Tue, Mar 17, 2015 at 06:18:37PM -0700, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [150317 17:32]:
+> > > Hi,
+> > > 
+> > > On Tue, Mar 17, 2015 at 05:19:20PM -0700, Tony Lindgren wrote:
+> > > > Looks like we have cppi41 on dm816x just like on am335x.
+> > > > 
+> > > > Cc: Bin Liu <binmlist@gmail.com>
+> > > > Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> > > > Cc: Felipe Balbi <balbi@ti.com>
+> > > > Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > 
+> > > Any logs available ? Any throughput improvements with DMA ?
+> > 
+> > So far I only logged with the debug option on. I can do some
+> > test runs with your for-next branch to a USB mass storage device
+> > if you prefer that, or got some other test in mind?
+> 
+> mass storage should be fine, just wanna know if you're getting
+> acceptable throughput.
 
-Reviewed-by: Rob Clark <robdclark@gmail.com>
+No luck with your current merge branch with DMA right now, it's
+producing an error both on bbb and dm816x:
 
-> ---
->  drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> index 56c6055..afb8cfc 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> @@ -941,7 +941,7 @@ error:
->  }
->  #endif
->
-> -#ifdef CONFIG_PM
-> +#ifdef CONFIG_PM_SLEEP
->  static int omap_dmm_resume(struct device *dev)
->  {
->         struct tcm_area area;
-> @@ -965,12 +965,10 @@ static int omap_dmm_resume(struct device *dev)
->
->         return 0;
->  }
-> -
-> -static const struct dev_pm_ops omap_dmm_pm_ops = {
-> -       .resume = omap_dmm_resume,
-> -};
->  #endif
->
-> +SIMPLE_DEV_PM_OPS(omap_dmm_pm_ops, NULL, omap_dmm_resume);
-> +
->  #if defined(CONFIG_OF)
->  static const struct of_device_id dmm_of_match[] = {
->         { .compatible = "ti,omap4-dmm", },
-> @@ -986,9 +984,7 @@ struct platform_driver omap_dmm_driver = {
->                 .owner = THIS_MODULE,
->                 .name = DMM_DRIVER_NAME,
->                 .of_match_table = of_match_ptr(dmm_of_match),
-> -#ifdef CONFIG_PM
->                 .pm = &omap_dmm_pm_ops,
-> -#endif
->         },
->  };
->
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+"musb-hdrc musb-hdrc.0.auto: Need DT for the DMA engine." 
+
+So here are some test results against -rc4.
+
+CONFIG_MUSB_PIO_ONLY
+
+Copy a 10MB file to /dev/sda right after a reboot:
+
+# time /bin/sh -c 'cp filler /mnt/ && sync'
+real    0m2.480s
+user    0m0.000s
+sys     0m0.320s
+
+Run hdparm a few times:
+
+# hdparm -t /dev/sda
+
+/dev/sda:
+ Timing buffered disk reads:  34 MB in  3.16 seconds =  10.75 MB/sec
+
+
+CONFIG_USB_TI_CPPI41_DMA
+
+Copy a 10MB file to /dev/sda right after a reboot:
+
+# time /bin/sh -c 'cp filler /mnt/ && sync'
+real    0m2.095s
+user    0m0.000s
+sys     0m0.310s
+
+Run hdparm a few times:
+
+# hdparm -t /dev/sda
+
+/dev/sda:
+ Timing buffered disk reads:  52 MB in  3.07 seconds =  16.94 MB/sec
+
+Regards,
+
+Tony
