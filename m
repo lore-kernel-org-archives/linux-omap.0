@@ -1,171 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 30/35] ARM: dts: omap4: add system control module node
-Date: Wed, 18 Mar 2015 14:30:01 -0700
-Message-ID: <20150318213000.GX31346@atomide.com>
-References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
- <1426689860-17537-31-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC][PATCH 1/9] usb: hcd: Introduce usb_start/stop_hcd()
+Date: Wed, 18 Mar 2015 14:41:41 -0700
+Message-ID: <20150318214140.GY31346@atomide.com>
+References: <1426686963-11613-2-git-send-email-rogerq@ti.com>
+ <Pine.LNX.4.44L0.1503181538170.1497-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:38491 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756933AbbCRVeo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 17:34:44 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1426689860-17537-31-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.44L0.1503181538170.1497-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Tero Kristo <t-kristo@ti.com> [150318 07:45]:
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -167,36 +167,65 @@
-> +		scm: scm@4a002000 {
-> +			compatible = "ti,omap4-ctrl", "simple-bus";
-> +			reg = <0x4a002000 0x1000>,
-> +			      <0x4a100000 0x1000>;
-> +			#address-cells = <2>;
-> +			#size-cells = <1>;
-> +			ranges = <0 0 0x4a002000 0x1000>,
-> +				 <1 0 0x4a100000 0x1000>;
+* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [150318 12:50]:
+> On Wed, 18 Mar 2015, Roger Quadros wrote:
+> 
+> > To support OTG we want a mechanism to start and stop
+> > the HCD from the OTG state machine. Add usb_start_hcd()
+> > and usb_stop_hcd().
+> > 
+> > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> 
+> There are a few problems in this proposed patch.
+> 
+> > +int usb_start_hcd(struct usb_hcd *hcd)
+> > +{
+> > +	int retval;
+> > +	struct usb_device *rhdev = hcd->self.root_hub;
+> > +
+> > +	if (hcd->state != HC_STATE_HALT) {
+> > +		dev_err(hcd->self.controller, "not starting a running HCD\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	hcd->state = HC_STATE_RUNNING;
+> > +	retval = hcd->driver->start(hcd);
+> > +	if (retval < 0) {
+> > +		dev_err(hcd->self.controller, "startup error %d\n", retval);
+> > +		hcd->state = HC_STATE_HALT;
+> > +		return retval;
+> > +	}
+> > +
+> > +	/* starting here, usbcore will pay attention to this root hub */
+> > +	if ((retval = register_root_hub(hcd)) != 0)
+> > +		goto err_register_root_hub;
+> 
+> If the host controller is started more than once, you will end up
+> unregistering and re-registering the root hub.  The device core does
+> not allow this.  Once a device has been unregistered, you must not try
+> to register it again -- you have to allocate a new device and register
+> it instead.
+> 
+> Also, although you call the driver's ->start method multiple times, the
+> ->reset method is called only once, when the controller is first 
+> probed.  It's not clear that this will work in a situation where the HC 
+> and the UDC share hardware state; after the UDC is stopped it may be 
+> necessary to reset the HC before it can run again.
+> 
+> It might be possible to make this work, but I suspect quite a few 
+> drivers would need rewriting first.  As another example of the problems 
+> you face, consider how stopping a host controller will interact with 
+> the driver's PM support (both system suspend and runtime suspend).
+> 
+> It would be a lot simpler to unbind the host controller driver
+> completely when switching to device mode and rebind it when switching
+> back.  I guess that is the sort of heavy-duty approach you want to
+> avoid, but it may be the only practical way forward.
 
-Oops I still have a bit of an issue with this, sorry I should have
-been more clear last time.
-
-Now it's hard to figure out which children belong to l4_cfg and which
-ones to l4_wkup. I suggest we set them up as completely separate blocks
-as that's what they are.
-
-Below is an example of what I think things should look like for omap4,
-maybe take a look at that and see if that makes sense for you?
-
-It may need to be patched in separate parts to keep the patches readable
-though :)
+Hmm from memory I think the OTG spec assumes the USB devices are
+suspended when attempting the role change? I could be totally wrong,
+it's been a really long time since I've looked at the OTG spec, but
+maybe that would make it easier to deal with thing?
 
 Regards,
 
 Tony
-
-
-	ocp {
-		...
-
-		l4_cfg: l4@4a000000 {
-			compatible = "ti,omap4-l4-cfg", "simple-bus";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			ranges = <0 0x4a000000 0x1000000>;
-
-			cm1: cm1@4000 {
-				compatible = "ti,omap4-cm1";
-				reg = <0x4000 0x2000>;
-
-				cm1_clocks: clocks {
-					#address-cells = <1>;
-					#size-cells = <0>;
-				};
-
-				cm1_clockdomains: clockdomains {
-				};
-			};
-
-			cm2: cm2@8000 {
-				compatible = "ti,omap4-cm2";
-				reg = <0x8000 0x3000>;
-
-				cm2_clocks: clocks {
-					#address-cells = <1>;
-					#size-cells = <0>;
-				};
-
-				cm2_clockdomains: clockdomains {
-				};
-			};
-
-			omap4_pmx_core: pinmux@100040 {
-				compatible = "ti,omap4-padconf", "pinctrl-single";
-				reg = <0x100040 0x0196>;
-				#address-cells = <1>;
-				#size-cells = <0>;
-				#interrupt-cells = <1>;
-				interrupt-controller;
-				pinctrl-single,register-width = <16>;
-				pinctrl-single,function-mask = <0x7fff>;
-			};
-
-			omap4_padconf_global: tisyscon@1005a0 {
-				compatible = "syscon";
-				reg = <0x1005a0 0x170>;
-				#address-cells = <1>;
-				#size-cells = <1>;
-
-				pbias_regulator: pbias_regulator {
-					compatible = "ti,pbias-omap";
-					reg = <0x60 0x4>;
-					syscon = <&omap4_padconf_global>;
-					pbias_mmc_reg: pbias_mmc_omap4 {
-						regulator-name = "pbias_mmc_omap4";
-						regulator-min-microvolt = <1800000>;
-						regulator-max-microvolt = <3000000>;
-					};
-				};
-			};
-		};
-
-		l4_wkup: l4@4a300000 {
-			compatible = "ti,omap4-l4-wkup", "simple-bus";
-			#address-cells = <1>;
-			#size-cells = <1>;
-			ranges = <0 0x4a300000 0x40000>;
-
-			counter32k: counter@4000 {
-				compatible = "ti,omap-counter32k";
-				reg = <0x4000 0x20>;
-				ti,hwmods = "counter_32k";
-			};
-
-			prm: prm@6000 {
-				compatible = "ti,omap4-prm";
-				reg = <0x6000 0x3000>;
-				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
-
-				prm_clocks: clocks {
-					#address-cells = <1>;
-					#size-cells = <0>;
-				};
-
-				prm_clockdomains: clockdomains {
-				};
-			};
-
-			scrm: scrm@a000 {
-				compatible = "ti,omap4-scrm";
-				reg = <0xa000 0x2000>;
-				#address-cells = <1>;
-				#size-cells = <1>;
-				ranges = <0 0xa000 0x2000>;
-
-				scrm_clocks: clocks {
-					#address-cells = <1>;
-					#size-cells = <0>;
-				};
-
-				scrm_clockdomains: clockdomains {
-				};
-			};
-
-			omap4_pmx_wkup: pinmux@1e040 {
-				compatible = "ti,omap4-padconf", "pinctrl-single";
-				reg = <0x1e040 0x0038>;
-				#address-cells = <1>;
-				#size-cells = <0>;
-				#interrupt-cells = <1>;
-				interrupt-controller;
-				pinctrl-single,register-width = <16>;
-				pinctrl-single,function-mask = <0x7fff>;
-			};
-		};
-		...
-	};
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
