@@ -1,12 +1,12 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 3/3] arm: dts: n950, n9: Add primary camera support
-Date: Thu, 19 Mar 2015 01:50:24 +0200
-Message-ID: <1426722625-4132-4-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH v2 2/3] arm: dts: omap3: Add DT entries for OMAP 3
+Date: Thu, 19 Mar 2015 01:50:23 +0200
+Message-ID: <1426722625-4132-3-git-send-email-sakari.ailus@iki.fi>
 References: <1426722625-4132-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49897 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49898 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753832AbbCRXvO (ORCPT
+	by vger.kernel.org with ESMTP id S1753703AbbCRXvO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
 	Wed, 18 Mar 2015 19:51:14 -0400
 In-Reply-To: <1426722625-4132-1-git-send-email-sakari.ailus@iki.fi>
@@ -15,105 +15,86 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com, t-kristo@ti.com, linux-media@vger.kernel.org
 
-Add support for the primary camera of the Nokia N950 and N9.
+The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
+Especially the phy-type property is different.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/boot/dts/omap3-n9.dts   |   37 +++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-n950.dts |   37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 74 insertions(+)
+ arch/arm/boot/dts/omap34xx.dtsi |   17 +++++++++++++++++
+ arch/arm/boot/dts/omap36xx.dtsi |   17 +++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index 9938b5d..f2e2139 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -16,3 +16,40 @@
- 	model = "Nokia N9";
- 	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 3819c1e..4f6b2d5 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -8,6 +8,8 @@
+  * kind, whether express or implied.
+  */
+ 
++#include <dt-bindings/media/omap3-isp.h>
++
+ #include "omap3.dtsi"
+ 
+ / {
+@@ -37,6 +39,21 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		isp: isp@480bc000 {
++			compatible = "ti,omap3-isp";
++			reg = <0x480bc000 0x12fc
++			       0x480bd800 0x017c>;
++			interrupts = <24>;
++			iommus = <&mmu_isp>;
++			syscon = <&scm_conf 0xdc>;
++			ti,phy-type = <OMAP3ISP_PHY_TYPE_COMPLEX_IO>;
++			#clock-cells = <1>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++		};
+ 	};
  };
+ 
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 541704a..86253de 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -8,6 +8,8 @@
+  * kind, whether express or implied.
+  */
+ 
++#include <dt-bindings/media/omap3-isp.h>
 +
-+&i2c2 {
-+	smia_1: camera@10 {
-+		compatible = "nokia,smia";
-+		reg = <0x10>;
-+		/* No reset gpio */
-+		vana-supply = <&vaux3>;
-+		clocks = <&isp 0>;
-+		clock-frequency = <9600000>;
-+		nokia,nvm-size = <(16 * 64)>;
-+		port {
-+			smia_1_1: endpoint {
-+				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+				remote-endpoint = <&csi2a_ep>;
+ #include "omap3.dtsi"
+ 
+ / {
+@@ -69,6 +71,21 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		isp: isp@480bc000 {
++			compatible = "ti,omap3-isp";
++			reg = <0x480bc000 0x12fc
++			       0x480bd800 0x0600>;
++			interrupts = <24>;
++			iommus = <&mmu_isp>;
++			syscon = <&scm_conf 0x2f0>;
++			ti,phy-type = <OMAP3ISP_PHY_TYPE_CSIPHY>;
++			#clock-cells = <1>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
 +			};
 +		};
-+	};
-+};
-+
-+&isp {
-+	vdd-csiphy1-supply = <&vaux2>;
-+	vdd-csiphy2-supply = <&vaux2>;
-+	ports {
-+		port@2 {
-+			reg = <2>;
-+			csi2a_ep: endpoint {
-+				remote-endpoint = <&smia_1_1>;
-+				clock-lanes = <2>;
-+				data-lanes = <1 3>;
-+				crc = <1>;
-+				lane-polarities = <1 1 1>;
-+			};
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 261c558..0885b34 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -16,3 +16,40 @@
- 	model = "Nokia N950";
- 	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+ 	};
  };
-+
-+&i2c2 {
-+	smia_1: camera@10 {
-+		compatible = "nokia,smia";
-+		reg = <0x10>;
-+		/* No reset gpio */
-+		vana-supply = <&vaux3>;
-+		clocks = <&isp 0>;
-+		clock-frequency = <9600000>;
-+		nokia,nvm-size = <(16 * 64)>;
-+		port {
-+			smia_1_1: endpoint {
-+				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+				remote-endpoint = <&csi2a_ep>;
-+			};
-+		};
-+	};
-+};
-+
-+&isp {
-+	vdd-csiphy1-supply = <&vaux2>;
-+	vdd-csiphy2-supply = <&vaux2>;
-+	ports {
-+		port@2 {
-+			reg = <2>;
-+			csi2a_ep: endpoint {
-+				remote-endpoint = <&smia_1_1>;
-+				clock-lanes = <2>;
-+				data-lanes = <3 1>;
-+				crc = <1>;
-+				lane-polarities = <1 1 1>;
-+			};
-+		};
-+	};
-+};
+ 
 -- 
 1.7.10.4
 
