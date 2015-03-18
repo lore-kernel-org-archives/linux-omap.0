@@ -1,165 +1,102 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 10/35] ARM: OMAP2+: PRCM: add support for static clock memmap indices
-Date: Wed, 18 Mar 2015 16:43:55 +0200
-Message-ID: <1426689860-17537-11-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 06/35] ARM: OMAP4+: CM: move omap_cm_base_init under OMAP4 CM driver
+Date: Wed, 18 Mar 2015 16:43:51 +0200
+Message-ID: <1426689860-17537-7-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56471 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56462 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933648AbbCROo7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:44:59 -0400
+	id S933648AbbCROow (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:44:52 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-All clock provider related drivers will now register their iomaps
-with a static index. This makes it easier to split up the individual
-drivers to their own files in subsequent patches.
+There is no need to call this separately from io.c, rather this can be
+done commonly under the CM driver. Also, this patch makes the API static,
+as it is no longer used outside the driver file.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prcm-common.h |    8 ++++
- arch/arm/mach-omap2/prm_common.c  |   79 +++++++++++++++++++++++--------------
- include/linux/clk/ti.h            |    1 +
- 3 files changed, 59 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap2/cm44xx.h     |    1 -
+ arch/arm/mach-omap2/cminst44xx.c |    4 +++-
+ arch/arm/mach-omap2/io.c         |    4 ----
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 6163d66..ee38356 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -518,6 +518,14 @@ struct omap_prcm_irq_setup {
- 	.priority = _priority				\
- 	}
+diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
+index 728d06a..ad6e263 100644
+--- a/arch/arm/mach-omap2/cm44xx.h
++++ b/arch/arm/mach-omap2/cm44xx.h
+@@ -23,7 +23,6 @@
+ #define OMAP4_CM_CLKSTCTRL				0x0000
+ #define OMAP4_CM_STATICDEP				0x0004
  
-+/**
-+ * struct omap_prcm_init_data - PRCM driver init data
-+ * @index: clock memory mapping index to be used
-+ */
-+struct omap_prcm_init_data {
-+	int index;
-+};
+-void omap_cm_base_init(void);
+ int omap4_cm_init(void);
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 95a8cff..9319034 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -63,7 +63,7 @@ static void __iomem *_cm_bases[OMAP4_MAX_PRCM_PARTITIONS];
+  * Populates the base addresses of the _cm_bases
+  * array used for read/write of cm module registers.
+  */
+-void omap_cm_base_init(void)
++static void omap_cm_base_init(void)
+ {
+ 	_cm_bases[OMAP4430_PRM_PARTITION] = prm_base;
+ 	_cm_bases[OMAP4430_CM1_PARTITION] = cm_base;
+@@ -516,6 +516,8 @@ static struct cm_ll_data omap4xxx_cm_ll_data = {
+ 
+ int __init omap4_cm_init(void)
+ {
++	omap_cm_base_init();
 +
- extern void omap_prcm_irq_cleanup(void);
- extern int omap_prcm_register_chain_handler(
- 	struct omap_prcm_irq_setup *irq_setup);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 79cee11..8ec5201 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -633,31 +633,47 @@ int prm_unregister(struct prm_ll_data *pld)
- 	return 0;
+ 	return cm_register(&omap4xxx_cm_ll_data);
  }
  
-+static struct omap_prcm_init_data prm_data = {
-+	.index = TI_CLKM_PRM,
-+};
-+
-+static struct omap_prcm_init_data cm_data = {
-+	.index = TI_CLKM_CM,
-+};
-+
-+static struct omap_prcm_init_data cm2_data = {
-+	.index = TI_CLKM_CM2,
-+};
-+
-+static struct omap_prcm_init_data scrm_data = {
-+	.index = TI_CLKM_SCRM,
-+};
-+
- static const struct of_device_id omap_prcm_dt_match_table[] = {
--	{ .compatible = "ti,am3-prcm" },
--	{ .compatible = "ti,am3-scrm" },
--	{ .compatible = "ti,am4-prcm" },
--	{ .compatible = "ti,am4-scrm" },
--	{ .compatible = "ti,dm814-prcm" },
--	{ .compatible = "ti,dm814-scrm" },
--	{ .compatible = "ti,dm816-prcm" },
--	{ .compatible = "ti,dm816-scrm" },
--	{ .compatible = "ti,omap2-prcm" },
--	{ .compatible = "ti,omap2-scrm" },
--	{ .compatible = "ti,omap3-prm" },
--	{ .compatible = "ti,omap3-cm" },
--	{ .compatible = "ti,omap3-scrm" },
--	{ .compatible = "ti,omap4-cm1" },
--	{ .compatible = "ti,omap4-prm" },
--	{ .compatible = "ti,omap4-cm2" },
--	{ .compatible = "ti,omap4-scrm" },
--	{ .compatible = "ti,omap5-prm" },
--	{ .compatible = "ti,omap5-cm-core-aon" },
--	{ .compatible = "ti,omap5-scrm" },
--	{ .compatible = "ti,omap5-cm-core" },
--	{ .compatible = "ti,dra7-prm" },
--	{ .compatible = "ti,dra7-cm-core-aon" },
--	{ .compatible = "ti,dra7-cm-core" },
-+	{ .compatible = "ti,am3-prcm", .data = &prm_data },
-+	{ .compatible = "ti,am3-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,am4-prcm", .data = &prm_data },
-+	{ .compatible = "ti,am4-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,dm814-prcm", .data = &prm_data },
-+	{ .compatible = "ti,dm814-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,dm816-prcm", .data = &prm_data },
-+	{ .compatible = "ti,dm816-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,omap2-prcm", .data = &prm_data },
-+	{ .compatible = "ti,omap2-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,omap3-prm", .data = &prm_data },
-+	{ .compatible = "ti,omap3-cm", .data = &cm_data },
-+	{ .compatible = "ti,omap3-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,omap4-cm1", .data = &cm_data },
-+	{ .compatible = "ti,omap4-prm", .data = &prm_data },
-+	{ .compatible = "ti,omap4-cm2", .data = &cm2_data },
-+	{ .compatible = "ti,omap4-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,omap5-prm", .data = &prm_data },
-+	{ .compatible = "ti,omap5-cm-core-aon", .data = &cm_data },
-+	{ .compatible = "ti,omap5-scrm", .data = &scrm_data },
-+	{ .compatible = "ti,omap5-cm-core", .data = &cm2_data },
-+	{ .compatible = "ti,dra7-prm", .data = &prm_data },
-+	{ .compatible = "ti,dra7-cm-core-aon", .data = &cm_data },
-+	{ .compatible = "ti,dra7-cm-core", .data = &cm2_data },
- 	{ }
- };
- 
-@@ -690,15 +706,20 @@ int __init omap_prcm_init(void)
- {
- 	struct device_node *np;
- 	void __iomem *mem;
--	int memmap_index = 0;
-+	const struct of_device_id *match;
-+	const struct omap_prcm_init_data *data;
- 
- 	ti_clk_ll_ops = &omap_clk_ll_ops;
- 
--	for_each_matching_node(np, omap_prcm_dt_match_table) {
-+	for_each_matching_node_and_match(np, omap_prcm_dt_match_table, &match) {
-+		data = match->data;
-+
- 		mem = of_iomap(np, 0);
--		clk_memmaps[memmap_index] = mem;
--		ti_dt_clk_init_provider(np, memmap_index);
--		memmap_index++;
-+		if (!mem)
-+			return -ENOMEM;
-+
-+		clk_memmaps[data->index] = mem;
-+		ti_dt_clk_init_provider(np, data->index);
- 	}
- 
- 	return 0;
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6784400..19895a3 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -221,6 +221,7 @@ struct ti_dt_clk {
- /* Static memmap indices */
- enum {
- 	TI_CLKM_CM = 0,
-+	TI_CLKM_CM2,
- 	TI_CLKM_PRM,
- 	TI_CLKM_SCRM,
- };
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 5569c2f..364b530 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -623,7 +623,6 @@ void __init am43xx_init_early(void)
+ 				  NULL);
+ 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
+ 	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
+-	omap_cm_base_init();
+ 	omap3xxx_check_revision();
+ 	am33xx_check_features();
+ 	omap44xx_prm_init();
+@@ -653,7 +652,6 @@ void __init omap4430_init_early(void)
+ 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
+ 			     OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
+-	omap_cm_base_init();
+ 	omap4xxx_check_revision();
+ 	omap4xxx_check_features();
+ 	omap4_cm_init();
+@@ -688,7 +686,6 @@ void __init omap5_init_early(void)
+ 			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
+ 	omap4_pm_init_early();
+-	omap_cm_base_init();
+ 	omap44xx_prm_init();
+ 	omap5xxx_check_revision();
+ 	omap4_cm_init();
+@@ -719,7 +716,6 @@ void __init dra7xx_init_early(void)
+ 			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
+ 	omap4_pm_init_early();
+-	omap_cm_base_init();
+ 	omap44xx_prm_init();
+ 	dra7xxx_check_revision();
+ 	omap4_cm_init();
 -- 
 1.7.9.5
 
