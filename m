@@ -1,84 +1,132 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 31/35] ARM: OMAP4: display: convert display to use syscon for dsi muxing
-Date: Wed, 18 Mar 2015 16:44:16 +0200
-Message-ID: <1426689860-17537-32-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 28/35] ARM: dts: am43xx-epos-evm: fix pinmux node layout
+Date: Wed, 18 Mar 2015 16:44:13 +0200
+Message-ID: <1426689860-17537-29-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52482 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964822AbbCROpi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 10:45:38 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:50935 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755175AbbCROpc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:45:32 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-The legacy control module APIs will be gone, thus convert the display
-driver to use syscon. This change should eventually be moved to
-display driver from the board directory.
+Pinmux node should be a reference to the base one, not a complete re-write
+of it. Having the node like this also prevents modifying the node layout
+in the base am4372.dtsi file, which is needed for control module changes.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/display.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am43x-epos-evm.dts |   84 +++++++++++++++++-----------------
+ 1 file changed, 42 insertions(+), 42 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 7a050f9..f492ae1 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -26,6 +26,8 @@
- #include <linux/of.h>
- #include <linux/of_platform.h>
- #include <linux/slab.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/regmap.h>
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 257c099..72f01bb 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -69,7 +69,48 @@
+ 		};
+ 	};
  
- #include <video/omapdss.h>
- #include "omap_hwmod.h"
-@@ -104,6 +106,10 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initconst = {
- 	{ "dss_hdmi", "omapdss_hdmi", -1 },
+-	am43xx_pinmux: pinmux@44e10800 {
++	matrix_keypad: matrix_keypad@0 {
++		compatible = "gpio-matrix-keypad";
++		debounce-delay-ms = <5>;
++		col-scan-delay-us = <2>;
++
++		row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
++			     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
++			     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
++			     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
++
++		col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
++			     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
++			     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
++			     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
++
++		linux,keymap = <0x00000201	/* P1 */
++			0x01000204	/* P4 */
++			0x02000207	/* P7 */
++			0x0300020a	/* NUMERIC_STAR */
++			0x00010202	/* P2 */
++			0x01010205	/* P5 */
++			0x02010208	/* P8 */
++			0x03010200	/* P0 */
++			0x00020203	/* P3 */
++			0x01020206	/* P6 */
++			0x02020209	/* P9 */
++			0x0302020b	/* NUMERIC_POUND */
++			0x00030067	/* UP */
++			0x0103006a	/* RIGHT */
++			0x0203006c	/* DOWN */
++			0x03030069>;	/* LEFT */
++	};
++
++	backlight {
++		compatible = "pwm-backlight";
++		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
++		default-brightness-level = <8>;
++	};
++};
++
++&am43xx_pinmux {
+ 		cpsw_default: cpsw_default {
+ 			pinctrl-single,pins = <
+ 				/* Slave 1 */
+@@ -279,47 +320,6 @@
+ 				0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
+ 			>;
+ 		};
+-	};
+-
+-	matrix_keypad: matrix_keypad@0 {
+-			compatible = "gpio-matrix-keypad";
+-			debounce-delay-ms = <5>;
+-			col-scan-delay-us = <2>;
+-
+-			row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
+-				     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
+-				     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
+-				     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
+-
+-			col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
+-				     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
+-				     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
+-				     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
+-
+-			linux,keymap = <0x00000201	/* P1 */
+-				0x01000204	/* P4 */
+-				0x02000207	/* P7 */
+-				0x0300020a	/* NUMERIC_STAR */
+-				0x00010202	/* P2 */
+-				0x01010205	/* P5 */
+-				0x02010208	/* P8 */
+-				0x03010200	/* P0 */
+-				0x00020203	/* P3 */
+-				0x01020206	/* P6 */
+-				0x02020209	/* P9 */
+-				0x0302020b	/* NUMERIC_POUND */
+-				0x00030067	/* UP */
+-				0x0103006a	/* RIGHT */
+-				0x0203006c	/* DOWN */
+-				0x03030069>;	/* LEFT */
+-		};
+-
+-	backlight {
+-		compatible = "pwm-backlight";
+-		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
+-		brightness-levels = <0 51 53 56 62 75 101 152 255>;
+-		default-brightness-level = <8>;
+-	};
  };
  
-+#define OMAP4_DSIPHY_SYSCON_OFFSET		0x78
-+
-+static struct regmap *omap4_dsi_mux_syscon;
-+
- static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- {
- 	u32 enable_mask, enable_shift;
-@@ -124,7 +130,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 		return -ENODEV;
- 	}
- 
--	reg = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
-+	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
- 
- 	reg &= ~enable_mask;
- 	reg &= ~pipd_mask;
-@@ -132,7 +138,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	reg |= (lanes << enable_shift) & enable_mask;
- 	reg |= (lanes << pipd_shift) & pipd_mask;
- 
--	omap4_ctrl_pad_writel(reg, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
-+	regmap_write(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, reg);
- 
- 	return 0;
- }
-@@ -665,5 +671,10 @@ int __init omapdss_init_of(void)
- 		return r;
- 	}
- 
-+	/* add DSI info for omap4 */
-+	node = of_find_node_by_name(NULL, "omap4_padconf_global");
-+	if (node)
-+		omap4_dsi_mux_syscon = syscon_node_to_regmap(node);
-+
- 	return 0;
- }
+ &mmc1 {
 -- 
 1.7.9.5
 
