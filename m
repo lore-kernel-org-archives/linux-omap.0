@@ -1,206 +1,45 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 08/35] clk: ti: fix ti_clk_get_reg_addr error handling
-Date: Wed, 18 Mar 2015 16:43:53 +0200
-Message-ID: <1426689860-17537-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 07/35] ARM: OMAP4: PRM: move omap4xxx_prm_init earlier in init order
+Date: Wed, 18 Mar 2015 16:43:52 +0200
+Message-ID: <1426689860-17537-8-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50892 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50889 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933486AbbCROox (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:44:53 -0400
+	id S933637AbbCROow (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:44:52 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org
 
-There is a case where NULL can be a valid return value for
-ti_clk_get_reg_addr, specifically the case where both the provider index
-and register offsets are zero. In this case, the current error checking
-against a NULL pointer will fail. Thus, change the API to return a
-ERR_PTR value in an error case, and change all the users of this API to
-check against IS_ERR instead.
+OMAP4 has different ordering of PRM and CM init calls in the early init.
+Re-oder these accordingly for OMAP4 also. This is needed so that we
+can do some optimizations in the following patches for the PRCM init.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Michael Turquette <mturquette@linaro.org>
 ---
- drivers/clk/ti/apll.c      |    5 +++--
- drivers/clk/ti/autoidle.c  |    2 +-
- drivers/clk/ti/clk.c       |    7 ++++---
- drivers/clk/ti/divider.c   |    4 ++--
- drivers/clk/ti/dpll.c      |    6 +++---
- drivers/clk/ti/gate.c      |    4 ++--
- drivers/clk/ti/interface.c |    2 +-
- drivers/clk/ti/mux.c       |    4 ++--
- 8 files changed, 18 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 72d9727..49baf38 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -203,7 +203,7 @@ static void __init of_dra7_apll_setup(struct device_node *node)
- 	ad->control_reg = ti_clk_get_reg_addr(node, 0);
- 	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
- 
--	if (!ad->control_reg || !ad->idlest_reg)
-+	if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
- 		goto cleanup;
- 
- 	ad->idlest_mask = 0x1;
-@@ -384,7 +384,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
- 	ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
- 	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
- 
--	if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
-+	if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
-+	    IS_ERR(ad->idlest_reg))
- 		goto cleanup;
- 
- 	clk = clk_register(NULL, &clk_hw->hw);
-diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 8912ff8..e75c64c 100644
---- a/drivers/clk/ti/autoidle.c
-+++ b/drivers/clk/ti/autoidle.c
-@@ -119,7 +119,7 @@ int __init of_ti_clk_autoidle_setup(struct device_node *node)
- 	clk->name = node->name;
- 	clk->reg = ti_clk_get_reg_addr(node, 0);
- 
--	if (!clk->reg) {
-+	if (IS_ERR(clk->reg)) {
- 		kfree(clk);
- 		return -EINVAL;
- 	}
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index e22b956..0ebe5c5 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -103,7 +103,8 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
-  * @index: register index from the clock node
-  *
-  * Builds clock register address from device tree information. This
-- * is a struct of type clk_omap_reg.
-+ * is a struct of type clk_omap_reg. Returns a pointer to the register
-+ * address, or a pointer error value in failure.
-  */
- void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
- {
-@@ -121,14 +122,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
- 
- 	if (i == CLK_MAX_MEMMAPS) {
- 		pr_err("clk-provider not found for %s!\n", node->name);
--		return NULL;
-+		return ERR_PTR(-ENOENT);
- 	}
- 
- 	reg->index = i;
- 
- 	if (of_property_read_u32_index(node, "reg", index, &val)) {
- 		pr_err("%s must have reg[%d]!\n", node->name, index);
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 	}
- 
- 	reg->offset = val;
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index 6211893..ff5f117 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -530,8 +530,8 @@ static int __init ti_clk_divider_populate(struct device_node *node,
- 	u32 val;
- 
- 	*reg = ti_clk_get_reg_addr(node, 0);
--	if (!*reg)
--		return -EINVAL;
-+	if (IS_ERR(*reg))
-+		return PTR_ERR(*reg);
- 
- 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
- 		*shift = val;
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 81dc469..11478a5 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -390,18 +390,18 @@ static void __init of_ti_dpll_setup(struct device_node *node,
- #endif
- 	} else {
- 		dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
--		if (!dd->idlest_reg)
-+		if (IS_ERR(dd->idlest_reg))
- 			goto cleanup;
- 
- 		dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
- 	}
- 
--	if (!dd->control_reg || !dd->mult_div1_reg)
-+	if (IS_ERR(dd->control_reg) || IS_ERR(dd->mult_div1_reg))
- 		goto cleanup;
- 
- 	if (dd->autoidle_mask) {
- 		dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
--		if (!dd->autoidle_reg)
-+		if (IS_ERR(dd->autoidle_reg))
- 			goto cleanup;
- 	}
- 
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index d493307..0c6fdfc 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -225,7 +225,7 @@ static void __init _of_ti_gate_clk_setup(struct device_node *node,
- 
- 	if (ops != &omap_gate_clkdm_clk_ops) {
- 		reg = ti_clk_get_reg_addr(node, 0);
--		if (!reg)
-+		if (IS_ERR(reg))
- 			return;
- 
- 		if (!of_property_read_u32(node, "ti,bit-shift", &val))
-@@ -264,7 +264,7 @@ _of_ti_composite_gate_clk_setup(struct device_node *node,
- 		return;
- 
- 	gate->enable_reg = ti_clk_get_reg_addr(node, 0);
--	if (!gate->enable_reg)
-+	if (IS_ERR(gate->enable_reg))
- 		goto cleanup;
- 
- 	of_property_read_u32(node, "ti,bit-shift", &val);
-diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-index 265d91f..c76230d 100644
---- a/drivers/clk/ti/interface.c
-+++ b/drivers/clk/ti/interface.c
-@@ -111,7 +111,7 @@ static void __init _of_ti_interface_clk_setup(struct device_node *node,
- 	u32 val;
- 
- 	reg = ti_clk_get_reg_addr(node, 0);
--	if (!reg)
-+	if (IS_ERR(reg))
- 		return;
- 
- 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index 728e253..5cdeed5 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -210,7 +210,7 @@ static void of_mux_clk_setup(struct device_node *node)
- 
- 	reg = ti_clk_get_reg_addr(node, 0);
- 
--	if (!reg)
-+	if (IS_ERR(reg))
- 		goto cleanup;
- 
- 	of_property_read_u32(node, "ti,bit-shift", &shift);
-@@ -283,7 +283,7 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
- 
- 	mux->reg = ti_clk_get_reg_addr(node, 0);
- 
--	if (!mux->reg)
-+	if (IS_ERR(mux->reg))
- 		goto cleanup;
- 
- 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 364b530..460da22 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -654,9 +654,9 @@ void __init omap4430_init_early(void)
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
+ 	omap4xxx_check_revision();
+ 	omap4xxx_check_features();
++	omap44xx_prm_init();
+ 	omap4_cm_init();
+ 	omap4_pm_init_early();
+-	omap44xx_prm_init();
+ 	omap44xx_voltagedomains_init();
+ 	omap44xx_powerdomains_init();
+ 	omap44xx_clockdomains_init();
 -- 
 1.7.9.5
 
