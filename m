@@ -1,53 +1,51 @@
-From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Subject: Re: [PATCH v2] phy: Add a driver for dm816x USB PHY
-Date: Wed, 18 Mar 2015 12:13:31 +0100
-Message-ID: <1426677211.15575.27.camel@x220>
-References: <1426637554-27178-1-git-send-email-tony@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: pcf857x: restore the initial line state of all pcf lines
+Date: Wed, 18 Mar 2015 13:21:36 +0100
+Message-ID: <CACRpkdYQv4z68HWAq0KFV1WiSgJeNzm4sosnJxXHHvQp5AqsSg@mail.gmail.com>
+References: <1418371601-22658-1-git-send-email-kishon@ti.com>
+	<548F498F.7050202@ti.com>
+	<549271A9.5040701@ti.com>
+	<5492E09F.1000003@ti.com>
+	<54AA2EB1.8090501@ti.com>
+	<CACRpkdago2vWJYFmywULna6nkrbtciPZFESuuKixF0r8rSB1Sw@mail.gmail.com>
+	<5506987C.3060601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426637554-27178-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <5506987C.3060601@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Two trivialities I failed the spot the first time.
+On Mon, Mar 16, 2015 at 9:46 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> On Wednesday 14 January 2015 05:28 PM, Linus Walleij wrote:
 
-On Tue, 2015-03-17 at 17:12 -0700, Tony Lindgren wrote:
-> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> index 2962de2..c858c2b 100644
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
+>> #include <linux/reboot.h>
+>>
+>> static int foo_reboot_handler(struct notifier_block *this,
+>>                                  unsigned long code,
+>>                                  void *unused)
+>> {
+>>          pr_crit("do some last minute stuff\n");
+>>          return NOTIFY_OK;
+>> }
+>>
+>> static struct notifier_block foo_reboot_notifier = {
+>>          .notifier_call = foo_reboot_handler,
+>> };
+>>
+>> register_reboot_notifier(&foo_reboot_notifier);
+>
+>
+> Added debug prints and found the reboot notifier gets invoked before the
+> shutdown handler which means some stuff can be done after this reboot
+> notifier:-(
 
-> +config PHY_DM816X_USB
-> +	tristate "TI dm816x USB PHY driver"
-> +	depends on ARCH_OMAP2PLUS
-> +	select GENERIC_PHY
-> +	help
-> +	  Enable this for dm81xx USB to work."
-> +
+Specify exactly what stuff may happen after the reboot notifier.
 
-A trailing double quote.
+Of course stuff happens both before and after the reboot
+notifier, the question is exactly what, that may conflict with this.
 
-> --- /dev/null
-> +++ b/drivers/phy/phy-dm816x-usb.c
-
-> +MODULE_ALIAS("platform: dm816x_usb");
-
-That space looks odd. Will it be removed by scripts/mod/file2alias.c? Or
-will it end up in the mdule, in modules.alias, and presumably break
-something (I'm not sure what, actually)?
-
-There are currently six other instances MODULE_ALIAS() that have a space
-there. That would mean they're all broken, somehow, which would be
-unlikely, so I guess it's just a stylistic nit.
-
-
-Paul Bolle
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
