@@ -1,292 +1,194 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: davinci-mcasp: Set rule constraints if implicit
- BCLK divider is used
-Date: Wed, 18 Mar 2015 10:08:46 +0200
-Message-ID: <5509328E.5020606@ti.com>
-References: <1426604203-6467-1-git-send-email-jsarha@ti.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
+Date: Wed, 18 Mar 2015 09:32:33 +0100
+Message-ID: <CAALWOA9yoS5sdo-A_hdqhkqGqZ-VCg9jZfdavhxskFdE_pA1Sg@mail.gmail.com>
+References: <1421192272-20754-1-git-send-email-tony@atomide.com>
+ <1421192272-20754-5-git-send-email-tony@atomide.com> <20150117164709.GS18552@atomide.com>
+ <CAALWOA-XVrC84=6Xt04m+QaBhweAcp2HVTH7v=QewtJmQLEaWA@mail.gmail.com>
+ <20150202160932.GF16250@atomide.com> <20150318000652.GJ31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35313 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755001AbbCRII7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 04:08:59 -0400
-In-Reply-To: <1426604203-6467-1-git-send-email-jsarha@ti.com>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:34929 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753123AbbCRIc4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 04:32:56 -0400
+Received: by wgdm6 with SMTP id m6so28651221wgd.2
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 01:32:54 -0700 (PDT)
+In-Reply-To: <20150318000652.GJ31346@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, lars@metafoo.de
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
 
-On 03/17/2015 04:56 PM, Jyri Sarha wrote:
-> Set a rule constraints to allow only combinations of sample-rate and
-> number of frame-bits that can be played/captured with a reasonable
-> sample-rate accuracy.
->=20
-> Also, takes the number of serializers into account when implicitly
-> selecting the BLCK divider.
->=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
-> Now this works as it should.
->=20
-> Thanks,
-> Jyri
->=20
->  sound/soc/davinci/davinci-mcasp.c | 150 ++++++++++++++++++++++++++++=
-+++++++---
->  1 file changed, 140 insertions(+), 10 deletions(-)
->=20
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/da=
-vinci-mcasp.c
-> index de3b155..3ecee3b 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -26,6 +26,7 @@
->  #include <linux/of.h>
->  #include <linux/of_platform.h>
->  #include <linux/of_device.h>
-> +#include <linux/math64.h>
-> =20
->  #include <sound/asoundef.h>
->  #include <sound/core.h>
-> @@ -64,6 +65,11 @@ struct davinci_mcasp_context {
->  	u32	*xrsr_regs; /* for serializer configuration */
->  };
-> =20
-> +struct davinci_mcasp_ruledata {
-> +	struct davinci_mcasp *mcasp;
-> +	int serializers;
-> +};
-> +
->  struct davinci_mcasp {
->  	struct davinci_pcm_dma_params dma_params[2];
->  	struct snd_dmaengine_dai_dma_data dma_data[2];
-> @@ -98,6 +104,8 @@ struct davinci_mcasp {
->  #ifdef CONFIG_PM_SLEEP
->  	struct davinci_mcasp_context context;
->  #endif
-> +
-> +	struct davinci_mcasp_ruledata ruledata[2];
->  };
-> =20
->  static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 o=
-ffset,
-> @@ -855,6 +863,30 @@ static int mcasp_dit_hw_param(struct davinci_mca=
-sp *mcasp,
->  	return 0;
->  }
-> =20
-> +static int davinci_mcasp_calc_clk_div(struct davinci_mcasp *mcasp,
-> +				      unsigned int bclk_freq,
-> +				      int *error_ppm)
-> +{
-> +	int div =3D mcasp->sysclk_freq / bclk_freq;
-> +	int rem =3D mcasp->sysclk_freq % bclk_freq;
-> +
-> +	if (rem !=3D 0) {
-> +		if (div =3D=3D 0 ||
-> +		    ((mcasp->sysclk_freq / div) - bclk_freq) >
-> +		    (bclk_freq - (mcasp->sysclk_freq / (div+1)))) {
-> +			div++;
-> +			rem =3D rem - bclk_freq;
-> +		}
-> +	}
-> +	if (error_ppm)
-> +		*error_ppm =3D
-> +			(div*1000000 + (int)div64_long(1000000LL*rem,
-> +						       (int)bclk_freq))
-> +			/div - 1000000;
-> +
-> +	return div;
-> +}
-> +
->  static int davinci_mcasp_hw_params(struct snd_pcm_substream *substre=
-am,
->  					struct snd_pcm_hw_params *params,
->  					struct snd_soc_dai *cpu_dai)
-> @@ -872,16 +904,19 @@ static int davinci_mcasp_hw_params(struct snd_p=
-cm_substream *substream,
->  	 * the machine driver, we need to calculate the ratio.
->  	 */
->  	if (mcasp->bclk_master && mcasp->bclk_div =3D=3D 0 && mcasp->sysclk=
-_freq) {
-> -		unsigned int bclk_freq =3D snd_soc_params_to_bclk(params);
-> -		unsigned int div =3D mcasp->sysclk_freq / bclk_freq;
-> -		if (mcasp->sysclk_freq % bclk_freq !=3D 0) {
-> -			if (((mcasp->sysclk_freq / div) - bclk_freq) >
-> -			    (bclk_freq - (mcasp->sysclk_freq / (div+1))))
-> -				div++;
-> -			dev_warn(mcasp->dev,
-> -				 "Inaccurate BCLK: %u Hz / %u !=3D %u Hz\n",
-> -				 mcasp->sysclk_freq, div, bclk_freq);
-> -		}
-> +		uint bclk_freq =3D snd_soc_params_to_bclk(params);
-> +		int dir =3D substream->stream =3D=3D SNDRV_PCM_STREAM_PLAYBACK ?
-> +			TX_MODE : RX_MODE;
-> +		int ppm, div;
-> +
-> +		bclk_freq /=3D mcasp->ruledata[dir].serializers;
+> And we also need to populate the tables along the lines of 27b7d5f3cc49
+> ("bus: omap_l3_noc: Add AM4372 interconnect error data").
 
-Not correct, see my comment below.
+I think intercon data should be in DT rather than some hardcoded table.
 
-> +
-> +		div =3D davinci_mcasp_calc_clk_div(mcasp, bclk_freq, &ppm);
-> +
-> +		if (ppm)
-> +			dev_info(mcasp->dev, "Sample-rate is off by %d PPM\n",
-> +				 ppm);
-> +
->  		__davinci_mcasp_set_clkdiv(cpu_dai, 1, div, 0);
->  	}
-> =20
-> @@ -973,6 +1008,74 @@ static int davinci_mcasp_trigger(struct snd_pcm=
-_substream *substream,
->  	return ret;
->  }
-> =20
-> +static const unsigned int davinci_mcasp_dai_rates[] =3D {
-> +	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
-> +	88200, 96000, 176400, 192000,
-> +};
-> +
-> +#define DAVINCI_MAX_RATE_ERROR_PPM 1000
-> +
-> +static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *para=
-ms,
-> +				      struct snd_pcm_hw_rule *rule)
-> +{
-> +	struct davinci_mcasp_ruledata *rd =3D rule->private;
-> +	unsigned int list[ARRAY_SIZE(davinci_mcasp_dai_rates)];
-> +	int frame_size;
-> +	int i, count =3D 0;
-> +
-> +	frame_size =3D snd_soc_params_to_frame_size(params);
-> +	if (frame_size < 0)
-> +		return frame_size;
-> +
-> +	for (i =3D 0; i < ARRAY_SIZE(davinci_mcasp_dai_rates); i++) {
-> +		uint bclk_freq =3D frame_size*davinci_mcasp_dai_rates[i]/
-> +			rd->serializers;
-> +		int ppm;
-> +
-> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
-> +			list[count++] =3D davinci_mcasp_dai_rates[i];
-> +
-> +	}
-> +	dev_dbg(rd->mcasp->dev, "%d frequencies for %u fsize (%d)\n",
-> +		count, frame_size, rd->serializers);
-> +
-> +	return snd_interval_list(hw_param_interval(params, rule->var),
-> +				 count, list, 0);
-> +}
-> +
-> +static int davinci_mcasp_hw_rule_framebits(struct snd_pcm_hw_params =
-*params,
-> +					   struct snd_pcm_hw_rule *rule)
-> +{
-> +	struct davinci_mcasp_ruledata *rd =3D rule->private;
-> +	struct snd_interval *ci =3D
-> +		hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
-> +	unsigned int max_chan_per_wire =3D ci->max / rd->serializers;
+> Do the below ranges match your JTAG results?
 
-This is not correct. Serializers are working in parallel. The
-max_chan_per_wire can not be higher than tdm_slots and can not be less =
-then 2
-(in IIS mode).
-Let's say we have 3 tx serializers and tdm_slots is 2:
-in case of stereo stream we will have 2 channels worth of bclk on wire.
-In case of 3 or 4 channel audio, we will have again 2 channels worth of=
- bclk
+Yup. Based a memory dump I had done earlier, combined with the high
+degree of similarity with centaurus and filling in the remaining
+blanks with my best guess yields:
 
-But if we have tdm_slots set to 6:
-in case of stereo we will have 2 channels worth of bclk.
-in case of 4 channel we will have 4, etc
+44000000 host L3F
+44000100 target 01 dmm port 0
+44000200 target 02 dmm port 1
+44000300 target 03 iva 0 sl2 ?
+44000400 target 04 iva 1 sl2 ?
+44000500 target 05 dsp sdma
+44000600 target 06 expansion port
+44000700 target 07 edma tc 0
+44000800 target 08 edma tc 1
+44000900 target 09 edma tc 2
+44000a00 target 0a edma tc 3
+44000b00 target 0b edma cc
+44000c00 target 23 system mmu
+44000d00 target 25 iva 2 sl2 ?
+44000e00 flagmux l3f
+44000f00 flagmux top
+44001000 statcoll
+44001400 statcoll
+44001800 statcoll
+44001c00 bw-regulator
+44001d00 bw-regulator
+44001e00 bw-regulator
+44001f00 bw-regulator
+44002000 bw-regulator
+44002100 bw-regulator
+44002200 bw-regulator
+44002300 bw-regulator
+44002400 bw-regulator
 
-I believe the places where you use the ->serializers need to be recheck=
-ed again.
+44400000 host L3M
+44400100 target 0d ducati
+44400200 target 0e sgx
+44400300 target 0f pcie
+44400400 target 10 ocmc ram
+44400500 target 11 vcp
+44400600 target 12 iva config
+44400700 target 13 iss
+44400800 target 14 tppss
+44400900 target 15 l4hs port 0
+44400a00 target 16 secss
+44400b00 target 24 l4hs port 1
+44400c00 target 26 mmc 2
+44400d00 target 1f l3_instr
+44400e00 flagmux L3M
+44401000 statcoll
 
+44800000 host L3S
+44800100 target 18 vlynq ?
+44800200 target 19 mcbsp
+44800300 target 1a hdmi
+44800400 target 1b l4fw
+44800500 target 1c l4ls port 0
+44800600 target 1d l4ls port 1
+44800700 target 1e gpmc
+44800800 target 20 mcasp 0
+44800900 target 21 mcasp 1
+44800a00 target 22 mcasp 2
+44800b00 target 27 usb
+44800c00 flagmux L3S
 
-> +	unsigned int list[max_chan_per_wire*4];
-> +	int rate =3D params_rate(params);
-> +	int chans, fbits, count =3D 0;
-> +
-> +	for (chans =3D ci->min; chans <=3D max_chan_per_wire; chans++) {
-> +		for (fbits =3D 8; fbits <=3D 32; fbits +=3D 8) {
-> +			uint bclk_freq =3D chans*fbits*rate;
-> +			int ppm;
-> +
-> +			davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-> +			if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
-> +				list[count++] =3D chans*fbits*rd->serializers;
-> +				BUG_ON(count > ARRAY_SIZE(list));
-> +			}
-> +		}
-> +	}
-> +
-> +	dev_dbg(rd->mcasp->dev,
-> +		"%d possible frame size for %d Hz (%d)\n",
-> +		count, rate, rd->serializers);
-> +
-> +	return snd_interval_list(hw_param_interval(params, rule->var),
-> +				 count, list, 0);
-> +}
-> +
->  static int davinci_mcasp_startup(struct snd_pcm_substream *substream=
-,
->  				 struct snd_soc_dai *cpu_dai)
->  {
-> @@ -998,6 +1101,7 @@ static int davinci_mcasp_startup(struct snd_pcm_=
-substream *substream,
->  		if (mcasp->serial_dir[i] =3D=3D dir)
->  			max_channels++;
->  	}
-> +	mcasp->ruledata[dir].serializers =3D max_channels;
->  	max_channels *=3D mcasp->tdm_slots;
->  	/*
->  	 * If the already active stream has less channels than the calculat=
-ed
-> @@ -1012,6 +1116,32 @@ static int davinci_mcasp_startup(struct snd_pc=
-m_substream *substream,
->  	snd_pcm_hw_constraint_minmax(substream->runtime,
->  				     SNDRV_PCM_HW_PARAM_CHANNELS,
->  				     2, max_channels);
-> +
-> +	/*
-> +	 * If we rely on implicit BCLK divider setting we should
-> +	 * set constraints based on what we can provide.
-> +	 */
-> +	if (mcasp->bclk_master && mcasp->bclk_div =3D=3D 0 && mcasp->sysclk=
-_freq) {
-> +		int ret;
-> +
-> +		mcasp->ruledata[dir].mcasp =3D mcasp;
-> +
-> +		ret =3D snd_pcm_hw_rule_add(substream->runtime, 0,
-> +					  SNDRV_PCM_HW_PARAM_RATE,
-> +					  davinci_mcasp_hw_rule_rate,
-> +					  &mcasp->ruledata[dir],
-> +					  SNDRV_PCM_HW_PARAM_FRAME_BITS, -1);
-> +		if (ret)
-> +			return ret;
-> +		ret =3D snd_pcm_hw_rule_add(substream->runtime, 0,
-> +					  SNDRV_PCM_HW_PARAM_FRAME_BITS,
-> +					  davinci_mcasp_hw_rule_framebits,
-> +					  &mcasp->ruledata[dir],
-> +					  SNDRV_PCM_HW_PARAM_RATE, -1);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->  	return 0;
->  }
-> =20
->=20
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note BTW that centaurus (in contrast with netra and subarctic)
+actually has a pretty good interconnect chapter with full register
+maps (except for the L3 firewals).
+
+> That got me wondering if we can actually scan that data based
+> on the ranges below as target is 00130001 and flagmux 00370001.
+> We would be missing the names, but that would be still less data
+> to pile up in the kernel :) If some module is disabled, then it
+> should never produce errors so it seems safe to scan the data..
+
+Note that reading invalid addresses while scanning does yield bus
+errors you'd need to trap. There can be gaps, and some modules can be
+larger than 0x100 (e.g. statcoll is variable in size), but other than
+that it's just a matter of reading words in increments of 0x100 and
+match with one of the known types:
+        // 13'0001  target
+        // 1a'0001  host
+        // 2c'0001  bw_limiter
+        // 2d'0001  rate_adapter
+        // 31'0001  bw_regulator
+        // 37'0001  flagmux
+        // 38'0001  pwr_discon
+        // 3a'0001  statcoll
+
+The statcoll content should read as zeros after reset, so no risk in
+accidently detecting a module inside it.
+
+> Can we dig even more info?
+
+Much can be auto-detected indeed, although it may be preferred to use
+auto-detection to generate the data, assign missing names, and then
+have other users use that data file.
+
+If you know where the FlexNOC L3 intercon registers themselves are
+located (called the "service network" in Vayu), then you can scan the
+L3 with the following steps:
+
+1. Detect all FlexNOC components as mentioned above. The components we
+care about for now are Target NIUs and Flagmuxes, and optionally the
+Host to decode errors while scanning the service network itself. In
+this step you learn the association Target NIU regbase <-> Target NIU
+ID since this is indicated in one of the regs.   Make sure error
+logging is enabled for all targets.
+
+2. Disable all L3 Target NIUs. You will temporarily lose access to all
+peripherals, OCMC ram, and on subarctic also DDR memory (I think on
+devices with a DMM you'd retain access to DDR memory). Note that the
+service network itself isn't considered an L3 target.
+
+3. Probe the whole address space with reads or writes, while trapping
+data aborts (or use posted writes, those won't generate a data abort
+but only signal the L3 error irq).  The smallest L3 ranges I've seen
+so far were 64 KB, so scanning the whole address space would require
+2^16 accesses. Shouldn't take too long. Ranges which are not routed to
+L3 targets (e.g. the service networks themselves, or MPUSS-local
+peripherals) should be manually excluded.
+
+4. For each access, examine the Flagmux modules and Target NIU error
+logs. (Then clear the error log for the next access) You should now
+learn:
+  a. which target was reached at that address
+  b. to which target-local address it was mapped
+  c. which bit of which flagmux is used for errors from this target
+  d. to which bit of the top flagmux this flagmux connects
+
+Note that usually a Target NIU will have its regs in the service
+network of the L3 it belongs to, and report errors to the associated
+Flagmux. Centaurus is a counter-example since for some odd reason its
+DMM Target NIUs regs moved to the L3M service network, even though
+they attach to the L3F and report errors to the L3F flagmux.
+
+Distinguishing the top flagmux from the others, or even more general
+flagmux topologies, can also be deduced programmatically but I'm not
+sure that's worth the effort.
+
+The target which seems to be reachable at many many address ranges,
+none of which documented as containing any peripheral, is your "error
+target" where unroutable packets are sent to to generate an error
+reply.
+
+5. Reenable all target NIUs.
+
+6. Identify the L3 targets. This will be semi-automatic at best, since
+there's no generally reliable way to do this. Not all peripherals have
+a highlander-style revision register, and even the ones that do
+sometimes have it at a non-zero offset or failed to pick a unique
+function code to identify the module. (Or split it into two 16-bit
+halves in consecutive 32-bit registers... nicely done, omap-i2c)
+
+One interesting option is keeping a database of L3 targets across
+multiple devices and taking advantage of design reuse: if you find a
+target whose NIU ID and mapped memory ranges match those of a specific
+target in another device, then there's a good chance they are in fact
+the same. This is highly visible in centaurus vs subarctic for
+example.
+
+7. Some targets will be other interconnects; proceed with inspecting
+those. (Fortunately the L4 intercons are easier to scan).
+
+Matthijs
