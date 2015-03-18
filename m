@@ -1,139 +1,74 @@
-From: Greg Knight <g.knight@symetrica.com>
-Subject: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
-Date: Wed, 18 Mar 2015 15:37:41 -0400
-Message-ID: <1426707461.13824.2.camel@symus-gk-mint>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [RFC][PATCH 1/9] usb: hcd: Introduce usb_start/stop_hcd()
+Date: Wed, 18 Mar 2015 15:49:08 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1503181538170.1497-100000@iolanthe.rowland.org>
+References: <1426686963-11613-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-DFaskEiKDBEOMGDyWAmn"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f44.google.com ([209.85.192.44]:34080 "EHLO
-	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755449AbbCRThn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2015 15:37:43 -0400
-Received: by qgh62 with SMTP id 62so46842325qgh.1
-        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 12:37:42 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426686963-11613-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Greg Knight <g.knight@symetrica.com>
 
+On Wed, 18 Mar 2015, Roger Quadros wrote:
 
---=-DFaskEiKDBEOMGDyWAmn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+> To support OTG we want a mechanism to start and stop
+> the HCD from the OTG state machine. Add usb_start_hcd()
+> and usb_stop_hcd().
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-Hi, linux-omap,
+There are a few problems in this proposed patch.
 
-I've attached a patch which adds a device-tree field "ti,dma-min-bytes"
-which replaces the macro DMA_MIN_BYTES. Adjusting this field addresses
-issues we've had where, in our particular use case, the usleep() in the
-SPI worker thread eats a full 20% of our CPU (AM3359).
+> +int usb_start_hcd(struct usb_hcd *hcd)
+> +{
+> +	int retval;
+> +	struct usb_device *rhdev = hcd->self.root_hub;
+> +
+> +	if (hcd->state != HC_STATE_HALT) {
+> +		dev_err(hcd->self.controller, "not starting a running HCD\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	hcd->state = HC_STATE_RUNNING;
+> +	retval = hcd->driver->start(hcd);
+> +	if (retval < 0) {
+> +		dev_err(hcd->self.controller, "startup error %d\n", retval);
+> +		hcd->state = HC_STATE_HALT;
+> +		return retval;
+> +	}
+> +
+> +	/* starting here, usbcore will pay attention to this root hub */
+> +	if ((retval = register_root_hub(hcd)) != 0)
+> +		goto err_register_root_hub;
 
-I opted to implement it as a device-tree parameter and keep the original
-value (160) as the default, in order to avoid impacting anyone else.
+If the host controller is started more than once, you will end up
+unregistering and re-registering the root hub.  The device core does
+not allow this.  Once a device has been unregistered, you must not try
+to register it again -- you have to allocate a new device and register
+it instead.
 
-The patch is attached. Patches 1-2 are an unrelated McASP change (see my
-other message).
+Also, although you call the driver's ->start method multiple times, the
+->reset method is called only once, when the controller is first 
+probed.  It's not clear that this will work in a situation where the HC 
+and the UDC share hardware state; after the UDC is stopped it may be 
+necessary to reset the HC before it can run again.
 
-What is the process for getting this upstreamed?
+It might be possible to make this work, but I suspect quite a few 
+drivers would need rewriting first.  As another example of the problems 
+you face, consider how stopping a host controller will interact with 
+the driver's PM support (both system suspend and runtime suspend).
 
-Thanks,
-Greg
+It would be a lot simpler to unbind the host controller driver
+completely when switching to device mode and rebind it when switching
+back.  I guess that is the sort of heavy-duty approach you want to
+avoid, but it may be the only practical way forward.
 
---=-DFaskEiKDBEOMGDyWAmn
-Content-Disposition: attachment;
-	filename*0=0003-spi-omap2-mcspi-DMA_MIN_BYTES-hashdef-ti-dma-min-byt.pat;
-	filename*1=ch
-Content-Type: text/x-patch;
-	name="0003-spi-omap2-mcspi-DMA_MIN_BYTES-hashdef-ti-dma-min-byt.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Alan Stern
 
->From 2b51699d1f7f05de45f0f0f065c37da81181f4eb Mon Sep 17 00:00:00 2001
-From: Greg Knight <g.knight@symetrica.com>
-Date: Mon, 2 Mar 2015 10:44:21 -0500
-Subject: [PATCH 3/3] spi-omap2-mcspi: DMA_MIN_BYTES hashdef =>
- ti,dma-min-bytes device tree option
-
----
- drivers/spi/spi-omap2-mcspi.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 70cd418..4ac1f3e 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -117,8 +117,7 @@ struct omap2_mcspi_dma {
- /* use PIO for small transfers, avoiding DMA setup/teardown overhead and
-  * cache operations; better heuristics consider wordsize and bitrate.
-  */
--#define DMA_MIN_BYTES			160
--
-+#define DMA_MIN_BYTES_DEFAULT			160
- 
- /*
-  * Used for context save and restore, structure members to be updated whenever
-@@ -141,6 +140,9 @@ struct omap2_mcspi {
- 	struct omap2_mcspi_regs ctx;
- 	int			fifo_depth;
- 	unsigned int		pin_dir:1;
-+
-+	/* SPI transfer threshold over which we prefer DMA to PIO */
-+	unsigned dma_min_bytes;
- };
- 
- struct omap2_mcspi_cs {
-@@ -1115,7 +1117,7 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
- 			unsigned	count;
- 
- 			if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
--			    (m->is_dma_mapped || t->len >= DMA_MIN_BYTES))
-+			    (m->is_dma_mapped || t->len >= mcspi->dma_min_bytes))
- 				omap2_mcspi_set_fifo(spi, t, 1);
- 
- 			omap2_mcspi_set_enable(spi, 1);
-@@ -1126,7 +1128,7 @@ static void omap2_mcspi_work(struct omap2_mcspi *mcspi, struct spi_message *m)
- 						+ OMAP2_MCSPI_TX0);
- 
- 			if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
--			    (m->is_dma_mapped || t->len >= DMA_MIN_BYTES))
-+			    (m->is_dma_mapped || t->len >= mcspi->dma_min_bytes))
- 				count = omap2_mcspi_txrx_dma(spi, t);
- 			else
- 				count = omap2_mcspi_txrx_pio(spi, t);
-@@ -1216,7 +1218,7 @@ static int omap2_mcspi_transfer_one_message(struct spi_master *master,
- 			return -EINVAL;
- 		}
- 
--		if (m->is_dma_mapped || len < DMA_MIN_BYTES)
-+		if (m->is_dma_mapped || len < mcspi->dma_min_bytes)
- 			continue;
- 
- 		if (mcspi_dma->dma_tx && tx_buf != NULL) {
-@@ -1331,10 +1333,12 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
- 
- 	mcspi = spi_master_get_devdata(master);
- 	mcspi->master = master;
-+	mcspi->dma_min_bytes = DMA_MIN_BYTES_DEFAULT;
- 
- 	match = of_match_device(omap_mcspi_of_match, &pdev->dev);
- 	if (match) {
- 		u32 num_cs = 1; /* default number of chipselect */
-+		u32 dma_min_bytes;
- 		pdata = match->data;
- 
- 		of_property_read_u32(node, "ti,spi-num-cs", &num_cs);
-@@ -1342,6 +1346,8 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
- 		master->bus_num = bus_num++;
- 		if (of_get_property(node, "ti,pindir-d0-out-d1-in", NULL))
- 			mcspi->pin_dir = MCSPI_PINDIR_D0_OUT_D1_IN;
-+		if (!of_property_read_u32(node, "ti,dma-min-bytes", &dma_min_bytes))
-+			mcspi->dma_min_bytes = (unsigned) dma_min_bytes;
- 	} else {
- 		pdata = dev_get_platdata(&pdev->dev);
- 		master->num_chipselect = pdata->num_cs;
--- 
-1.9.1
-
-
---=-DFaskEiKDBEOMGDyWAmn--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
