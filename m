@@ -1,74 +1,78 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [RFC][PATCH 1/9] usb: hcd: Introduce usb_start/stop_hcd()
-Date: Wed, 18 Mar 2015 15:49:08 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1503181538170.1497-100000@iolanthe.rowland.org>
-References: <1426686963-11613-2-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7: remove ti,hwmod property from pcie
+ phy
+Date: Wed, 18 Mar 2015 13:23:53 -0700
+Message-ID: <20150318202353.GU31346@atomide.com>
+References: <1424422274-27946-1-git-send-email-kishon@ti.com>
+ <1424422274-27946-2-git-send-email-kishon@ti.com>
+ <5509A998.2080509@ti.com>
+ <20150318165706.GQ31346@atomide.com>
+ <5509D3BD.6030004@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426686963-11613-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:38457 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752981AbbCRU2h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 16:28:37 -0400
+Content-Disposition: inline
+In-Reply-To: <5509D3BD.6030004@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, paul@pwsan.com, nsekhar@ti.com, linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, t-kristo@ti.com
 
-On Wed, 18 Mar 2015, Roger Quadros wrote:
-
-> To support OTG we want a mechanism to start and stop
-> the HCD from the OTG state machine. Add usb_start_hcd()
-> and usb_stop_hcd().
+* Grygorii.Strashko@linaro.org <grygorii.strashko@linaro.org> [150318 12:36]:
+> On 03/18/2015 06:57 PM, Tony Lindgren wrote:
+> > * Grygorii Strashko <grygorii.strashko@ti.com> [150318 09:37]:
+> >> As I can see Patch 1 from this series was merged in 4.0-rc4,
+> >> but this patch wasn't. As result, I can see below warning all the time during boot now:
+> >>
+> >> [    0.594591] platform 4a094000.pciephy: Cannot lookup hwmod 'pcie1-phy'
+> >   
+> > OK. Is this needed as a fix for the v4.0-rc series, or can this wait
+> > for v4.1?
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> I think, Yes. These two patches should go all together, because they are
+> interrelated.
 
-There are a few problems in this proposed patch.
+OK applying into omap-for-v4.0/fixes thanks.
 
-> +int usb_start_hcd(struct usb_hcd *hcd)
-> +{
-> +	int retval;
-> +	struct usb_device *rhdev = hcd->self.root_hub;
-> +
-> +	if (hcd->state != HC_STATE_HALT) {
-> +		dev_err(hcd->self.controller, "not starting a running HCD\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	hcd->state = HC_STATE_RUNNING;
-> +	retval = hcd->driver->start(hcd);
-> +	if (retval < 0) {
-> +		dev_err(hcd->self.controller, "startup error %d\n", retval);
-> +		hcd->state = HC_STATE_HALT;
-> +		return retval;
-> +	}
-> +
-> +	/* starting here, usbcore will pay attention to this root hub */
-> +	if ((retval = register_root_hub(hcd)) != 0)
-> +		goto err_register_root_hub;
-
-If the host controller is started more than once, you will end up
-unregistering and re-registering the root hub.  The device core does
-not allow this.  Once a device has been unregistered, you must not try
-to register it again -- you have to allocate a new device and register
-it instead.
-
-Also, although you call the driver's ->start method multiple times, the
-->reset method is called only once, when the controller is first 
-probed.  It's not clear that this will work in a situation where the HC 
-and the UDC share hardware state; after the UDC is stopped it may be 
-necessary to reset the HC before it can run again.
-
-It might be possible to make this work, but I suspect quite a few 
-drivers would need rewriting first.  As another example of the problems 
-you face, consider how stopping a host controller will interact with 
-the driver's PM support (both system suspend and runtime suspend).
-
-It would be a lot simpler to unbind the host controller driver
-completely when switching to device mode and rebind it when switching
-back.  I guess that is the sort of heavy-duty approach you want to
-avoid, but it may be the only practical way forward.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+ 
+> >> On 02/20/2015 10:51 AM, Kishon Vijay Abraham I wrote:
+> >>> Now that we don't have hwmod entry for pcie PHY remove the
+> >>> ti,hwmod property from PCIE PHY's
+> >>>
+> >>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >>> ---
+> >>>    arch/arm/boot/dts/dra7.dtsi |    2 --
+> >>>    1 file changed, 2 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> >>> index 5827fed..18a904d 100644
+> >>> --- a/arch/arm/boot/dts/dra7.dtsi
+> >>> +++ b/arch/arm/boot/dts/dra7.dtsi
+> >>> @@ -1111,7 +1111,6 @@
+> >>>    					      "wkupclk", "refclk",
+> >>>    					      "div-clk", "phy-div";
+> >>>    				#phy-cells = <0>;
+> >>> -				ti,hwmods = "pcie1-phy";
+> >>>    			};
+> >>>    
+> >>>    			pcie2_phy: pciephy@4a095000 {
+> >>> @@ -1130,7 +1129,6 @@
+> >>>    					      "wkupclk", "refclk",
+> >>>    					      "div-clk", "phy-div";
+> >>>    				#phy-cells = <0>;
+> >>> -				ti,hwmods = "pcie2-phy";
+> >>>    				status = "disabled";
+> >>>    			};
+> >>>    		};
+> >>>
+> >>
+> 
+> 
+> -- 
+> regards,
+> -grygorii
