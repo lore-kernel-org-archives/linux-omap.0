@@ -1,113 +1,66 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 29/35] ARM: dts: am4372: merge control module features under scrm node
-Date: Wed, 18 Mar 2015 16:44:14 +0200
-Message-ID: <1426689860-17537-30-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 22/35] ARM: OMAP2+: control: remove API for getting control module base address
+Date: Wed, 18 Mar 2015 16:44:07 +0200
+Message-ID: <1426689860-17537-23-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56523 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56512 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755169AbbCROpc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:45:32 -0400
+	id S964797AbbCROpW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:45:22 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This patch moves all the control module related features under scrm
-node. scm_conf area is provided to support syscon, and also the clocks
-are moved under scm_conf area.
+This shall not be used anymore, as control module driver is converted
+into using regmap.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi |   48 +++++++++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/control.c |    5 -----
+ arch/arm/mach-omap2/control.h |    2 --
+ 2 files changed, 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 1943fc3..f41b82a 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -57,22 +57,6 @@
- 		cache-level = <2>;
- 	};
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 2b54250..a9aee85 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -145,11 +145,6 @@ void __init omap2_set_globals_control(void __iomem *ctrl,
+ 	omap4_ctrl_pad_base = ctrl_pad;
+ }
  
--	am43xx_control_module: control_module@4a002000 {
--		compatible = "syscon";
--		reg = <0x44e10000 0x7f4>;
--	};
+-void __iomem *omap_ctrl_base_get(void)
+-{
+-	return omap2_ctrl_base;
+-}
 -
--	am43xx_pinmux: pinmux@44e10800 {
--		compatible = "ti,am437-padconf", "pinctrl-single";
--		reg = <0x44e10800 0x31c>;
--		#address-cells = <1>;
--		#size-cells = <0>;
--		#interrupt-cells = <1>;
--		interrupt-controller;
--		pinctrl-single,register-width = <32>;
--		pinctrl-single,function-mask = <0xffffffff>;
--	};
--
- 	ocp {
- 		compatible = "ti,am4372-l3-noc", "simple-bus";
- 		#address-cells = <1>;
-@@ -98,12 +82,34 @@
- 		};
+ u8 omap_ctrl_readb(u16 offset)
+ {
+ 	return readb_relaxed(OMAP_CTRL_REGADDR(offset));
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index c1057eb..5353ff4 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -440,7 +440,6 @@
  
- 		scrm: scrm@44e10000 {
--			compatible = "ti,am4-scrm";
--			reg = <0x44e10000 0x2000>;
-+			compatible = "ti,am4-scrm", "simple-bus";
-+			reg = <0x44e10000 0x1000>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0 0x44e10000 0x1000>;
- 
--			scrm_clocks: clocks {
-+			am43xx_pinmux: pinmux@800 {
-+				compatible = "ti,am437-padconf",
-+					     "pinctrl-single";
-+				reg = <0x800 0x31c>;
- 				#address-cells = <1>;
- 				#size-cells = <0>;
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				pinctrl-single,register-width = <32>;
-+				pinctrl-single,function-mask = <0xffffffff>;
-+			};
-+
-+			scm_conf: scm_conf@0 {
-+				compatible = "syscon";
-+				reg = <0x0 0x7fc>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+
-+				scrm_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
- 			};
- 
- 			scrm_clockdomains: clockdomains {
-@@ -933,7 +939,7 @@
- 			clocks = <&dcan0_fck>;
- 			clock-names = "fck";
- 			reg = <0x481cc000 0x2000>;
--			syscon-raminit = <&am43xx_control_module 0x644 0>;
-+			syscon-raminit = <&scm_conf 0x644 0>;
- 			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
- 		};
-@@ -944,7 +950,7 @@
- 			clocks = <&dcan1_fck>;
- 			clock-names = "fck";
- 			reg = <0x481d0000 0x2000>;
--			syscon-raminit = <&am43xx_control_module 0x644 1>;
-+			syscon-raminit = <&scm_conf 0x644 1>;
- 			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
- 		};
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+-extern void __iomem *omap_ctrl_base_get(void);
+ extern u8 omap_ctrl_readb(u16 offset);
+ extern u16 omap_ctrl_readw(u16 offset);
+ extern u32 omap_ctrl_readl(u16 offset);
+@@ -470,7 +469,6 @@ extern void omap2_set_globals_control(void __iomem *ctrl,
+ 				      void __iomem *ctrl_pad);
+ void __init omap3_control_legacy_iomap_init(void);
+ #else
+-#define omap_ctrl_base_get()		0
+ #define omap_ctrl_readb(x)		0
+ #define omap_ctrl_readw(x)		0
+ #define omap_ctrl_readl(x)		0
 -- 
 1.7.9.5
 
