@@ -1,141 +1,125 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 33/35] ARM: dts: omap5: add system control module node
-Date: Wed, 18 Mar 2015 16:44:18 +0200
-Message-ID: <1426689860-17537-34-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 27/35] ARM: dts: am33xx: merge control module features under scrm node
+Date: Wed, 18 Mar 2015 16:44:12 +0200
+Message-ID: <1426689860-17537-28-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43917 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56528 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964823AbbCROpl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:45:41 -0400
+	id S1755184AbbCROpe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:45:34 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Add node for system control module, and move all the existing system
-control IO space users under this new node as its children. A new node
-for scm_conf area is also added.
+This patch moves all the control module related features under scrm
+node. scm_conf area is changed to use syscon, and also the clocks
+are moved under scm_conf area.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/arm/omap/ctrl.txt          |    2 +
- arch/arm/boot/dts/omap5.dtsi                       |   82 +++++++++++++-------
- 2 files changed, 58 insertions(+), 26 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   48 ++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-index 8f2b481..e132026 100644
---- a/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-@@ -22,6 +22,8 @@ Required properties:
- 		"ti,omap3-scrm-wkup"
- 		"ti,omap4-ctrl"
- 		"ti,omap4-ctrl-wkup"
-+		"ti,omap5-ctrl"
-+		"ti,omap5-ctrl-wkup"
- - reg:		Contains Control Module register address range
- 		(base address and length)
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index acd3705..b30e238 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -83,20 +83,6 @@
+ 		};
+ 	};
  
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index b321fdf..ad665bb 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -182,36 +182,66 @@
- 			};
+-	am33xx_control_module: control_module@4a002000 {
+-		compatible = "syscon";
+-		reg = <0x44e10000 0x7fc>;
+-	};
+-
+-	am33xx_pinmux: pinmux@44e10800 {
+-		compatible = "pinctrl-single";
+-		reg = <0x44e10800 0x0238>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		pinctrl-single,register-width = <32>;
+-		pinctrl-single,function-mask = <0x7f>;
+-	};
+-
+ 	/*
+ 	 * XXX: Use a flat representation of the AM33XX interconnect.
+ 	 * The real AM33XX interconnect network is quite complex. Since
+@@ -125,21 +111,35 @@
  		};
  
--		counter32k: counter@4ae04000 {
--			compatible = "ti,omap-counter32k";
--			reg = <0x4ae04000 0x40>;
--			ti,hwmods = "counter_32k";
--		};
-+		scm: scm@4a002000 {
-+			compatible = "ti,omap5-ctrl", "simple-bus";
-+			reg = <0x4a002000 0x800>,
-+			      <0x4a002800 0x800>;
-+			#address-cells = <2>;
+ 		scrm: scrm@44e10000 {
+-			compatible = "ti,am3-scrm";
++			compatible = "ti,am3-scrm", "simple-bus";
+ 			reg = <0x44e10000 0x2000>;
++			#address-cells = <1>;
 +			#size-cells = <1>;
-+			ranges = <0 0 0x4a002000 0x800>,
-+				 <1 0 0x4a002800 0x800>;
++			ranges = <0 0x44e10000 0x2000>;
  
--		omap5_pmx_core: pinmux@4a002840 {
--			compatible = "ti,omap5-padconf", "pinctrl-single";
--			reg = <0x4a002840 0x01b6>;
--			#address-cells = <1>;
--			#size-cells = <0>;
--			#interrupt-cells = <1>;
--			interrupt-controller;
--			pinctrl-single,register-width = <16>;
--			pinctrl-single,function-mask = <0x7fff>;
-+			scm_conf: scm_conf@0,0 {
+-			scrm_clocks: clocks {
++			am33xx_pinmux: pinmux@800 {
++				compatible = "pinctrl-single";
++				reg = <0x800 0x238>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				pinctrl-single,register-width = <32>;
++				pinctrl-single,function-mask = <0x7f>;
+ 			};
+ 
+-			scrm_clockdomains: clockdomains {
++			scm_conf: scm_conf@0 {
 +				compatible = "syscon";
-+				reg = <0 0x0 0x800>;
++				reg = <0x0 0x7fc>;
 +				#address-cells = <1>;
 +				#size-cells = <1>;
-+			};
 +
-+			omap5_pmx_core: pinmux@1,40 {
-+				compatible = "ti,omap5-padconf",
-+					     "pinctrl-single";
-+				reg = <1 0x40 0x01b6>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				pinctrl-single,register-width = <16>;
-+				pinctrl-single,function-mask = <0x7fff>;
-+			};
-+
-+			omap5_padconf_global: omap5_padconf_global@1,5a0 {
-+				compatible = "syscon";
-+				reg = <1 0x5a0 0xec>;
-+			};
- 		};
--		omap5_pmx_wkup: pinmux@4ae0c840 {
--			compatible = "ti,omap5-padconf", "pinctrl-single";
--			reg = <0x4ae0c840 0x0038>;
--			#address-cells = <1>;
--			#size-cells = <0>;
--			#interrupt-cells = <1>;
--			interrupt-controller;
--			pinctrl-single,register-width = <16>;
--			pinctrl-single,function-mask = <0x7fff>;
-+
-+		scm_wkup: scm_wkup@4ae0c000 {
-+			compatible = "ti,omap5-ctrl-wkup", "simple-bus";
-+			reg = <0x4ae0c000 0x800>,
-+			      <0x4ae0c800 0x800>;
-+			#address-cells = <2>;
-+			#size-cells = <1>;
-+			ranges = <0 0 0x4ae0c000 0x800>,
-+				 <1 0 0x4ae0c800 0x800>;
-+
-+			omap5_pmx_wkup: pinmux@1,40 {
-+				compatible = "ti,omap5-padconf",
-+					     "pinctrl-single";
-+				reg = <1 0x40 0x0038>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				#interrupt-cells = <1>;
-+				interrupt-controller;
-+				pinctrl-single,register-width = <16>;
-+				pinctrl-single,function-mask = <0x7fff>;
++				scrm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 			};
+-		};
+ 
+-		cm: syscon@44e10000 {
+-			compatible = "ti,am33xx-controlmodule", "syscon";
+-			reg = <0x44e10000 0x800>;
++			scrm_clockdomains: clockdomains {
 +			};
  		};
  
--		omap5_padconf_global: tisyscon@4a002da0 {
--			compatible = "syscon";
--			reg = <0x4A002da0 0xec>;
-+		counter32k: counter@4ae04000 {
-+			compatible = "ti,omap-counter32k";
-+			reg = <0x4ae04000 0x40>;
-+			ti,hwmods = "counter_32k";
+ 		intc: interrupt-controller@48200000 {
+@@ -350,7 +350,7 @@
+ 			reg = <0x481cc000 0x2000>;
+ 			clocks = <&dcan0_fck>;
+ 			clock-names = "fck";
+-			syscon-raminit = <&am33xx_control_module 0x644 0>;
++			syscon-raminit = <&scm_conf 0x644 0>;
+ 			interrupts = <52>;
+ 			status = "disabled";
  		};
+@@ -361,7 +361,7 @@
+ 			reg = <0x481d0000 0x2000>;
+ 			clocks = <&dcan1_fck>;
+ 			clock-names = "fck";
+-			syscon-raminit = <&am33xx_control_module 0x644 1>;
++			syscon-raminit = <&scm_conf 0x644 1>;
+ 			interrupts = <55>;
+ 			status = "disabled";
+ 		};
+@@ -720,7 +720,7 @@
+ 			 */
+ 			interrupts = <40 41 42 43>;
+ 			ranges;
+-			syscon = <&cm>;
++			syscon = <&scm_conf>;
+ 			status = "disabled";
  
- 		pbias_regulator: pbias_regulator {
+ 			davinci_mdio: mdio@4a101000 {
 -- 
 1.7.9.5
 
