@@ -1,45 +1,221 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 23/35] ARM: OMAP2+: id: cache omap_type value
-Date: Wed, 18 Mar 2015 16:44:08 +0200
-Message-ID: <1426689860-17537-24-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 24/35] ARM: OMAP2+: control: add syscon support for register accesses
+Date: Wed, 18 Mar 2015 16:44:09 +0200
+Message-ID: <1426689860-17537-25-git-send-email-t-kristo@ti.com>
 References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50926 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56518 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964814AbbCROpW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2015 10:45:22 -0400
+	id S1755162AbbCROp2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:45:28 -0400
 In-Reply-To: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-There is no need to read the register with every invocation of the function,
-as the value is constant. Thus, cache the value in a static variable.
+Control module driver needs to support syscon for register accesses, as
+the DT hierarchy for control module driver is going to be changed. All
+the control module related features will be moved under control module
+node, including clocks, pinctrl, and generic configuration register
+access. Temporary iomap is still provided very early in the boot for
+access while syscon is not yet ready.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/id.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/control.c |  101 ++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 84 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 2a2f4d5..1f5949f 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -52,7 +52,10 @@ EXPORT_SYMBOL(omap_rev);
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index a9aee85..edc0f26 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -15,6 +15,8 @@
+ #include <linux/kernel.h>
+ #include <linux/io.h>
+ #include <linux/of_address.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
  
- int omap_type(void)
+ #include "soc.h"
+ #include "iomap.h"
+@@ -33,7 +35,9 @@
+ #define PADCONF_SAVE_DONE		0x1
+ 
+ static void __iomem *omap2_ctrl_base;
++static s16 omap2_ctrl_offset;
+ static void __iomem *omap4_ctrl_pad_base;
++static struct regmap *omap2_ctrl_syscon;
+ 
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ struct omap3_scratchpad {
+@@ -135,7 +139,6 @@ struct omap3_control_regs {
+ static struct omap3_control_regs control_context;
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+ 
+-#define OMAP_CTRL_REGADDR(reg)		(omap2_ctrl_base + (reg))
+ #define OMAP4_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
+ 
+ void __init omap2_set_globals_control(void __iomem *ctrl,
+@@ -147,32 +150,72 @@ void __init omap2_set_globals_control(void __iomem *ctrl,
+ 
+ u8 omap_ctrl_readb(u16 offset)
  {
--	u32 val = 0;
-+	static u32 val = OMAP2_DEVICETYPE_MASK + 1;
+-	return readb_relaxed(OMAP_CTRL_REGADDR(offset));
++	u32 val;
++	u8 byte_offset = offset & 0x3;
 +
-+	if (val < OMAP2_DEVICETYPE_MASK)
-+		return val;
++	val = omap_ctrl_readl(offset);
++
++	return (val >> (byte_offset * 8)) & 0xff;
+ }
  
- 	if (cpu_is_omap24xx()) {
- 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
+ u16 omap_ctrl_readw(u16 offset)
+ {
+-	return readw_relaxed(OMAP_CTRL_REGADDR(offset));
++	u32 val;
++	u16 byte_offset = offset & 0x2;
++
++	val = omap_ctrl_readl(offset);
++
++	return (val >> (byte_offset * 8)) & 0xffff;
+ }
+ 
+ u32 omap_ctrl_readl(u16 offset)
+ {
+-	return readl_relaxed(OMAP_CTRL_REGADDR(offset));
++	u32 val;
++
++	offset &= 0xfffc;
++	if (!omap2_ctrl_syscon)
++		val = readl_relaxed(omap2_ctrl_base + offset);
++	else
++		regmap_read(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
++			    &val);
++
++	return val;
+ }
+ 
+ void omap_ctrl_writeb(u8 val, u16 offset)
+ {
+-	writeb_relaxed(val, OMAP_CTRL_REGADDR(offset));
++	u32 tmp;
++	u8 byte_offset = offset & 0x3;
++
++	tmp = omap_ctrl_readl(offset);
++
++	tmp &= 0xffffffff ^ (0xff << (byte_offset * 8));
++	tmp |= val << (byte_offset * 8);
++
++	omap_ctrl_writel(tmp, offset);
+ }
+ 
+ void omap_ctrl_writew(u16 val, u16 offset)
+ {
+-	writew_relaxed(val, OMAP_CTRL_REGADDR(offset));
++	u32 tmp;
++	u8 byte_offset = offset & 0x2;
++
++	tmp = omap_ctrl_readl(offset);
++
++	tmp &= 0xffffffff ^ (0xffff << (byte_offset * 8));
++	tmp |= val << (byte_offset * 8);
++
++	omap_ctrl_writel(tmp, offset);
+ }
+ 
+ void omap_ctrl_writel(u32 val, u16 offset)
+ {
+-	writel_relaxed(val, OMAP_CTRL_REGADDR(offset));
++	offset &= 0xfffc;
++	if (!omap2_ctrl_syscon)
++		writel_relaxed(val, omap2_ctrl_base + offset);
++	else
++		regmap_write(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
++			     val);
+ }
+ 
+ /*
+@@ -611,7 +654,7 @@ void __init omap3_ctrl_init(void)
+ 
+ struct control_init_data {
+ 	int index;
+-	void __iomem *mem;
++	s16 offset;
+ };
+ 
+ static struct control_init_data ctrl_data = {
+@@ -638,17 +681,15 @@ int __init omap2_control_base_init(void)
+ 	struct device_node *np;
+ 	const struct of_device_id *match;
+ 	struct control_init_data *data;
+-	void __iomem *mem;
+ 
+ 	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+ 		data = (struct control_init_data *)match->data;
+ 
+-		mem = of_iomap(np, 0);
+-		if (!mem)
++		omap2_ctrl_base = of_iomap(np, 0);
++		if (!omap2_ctrl_base)
+ 			return -ENOMEM;
+ 
+-		omap2_ctrl_base = mem;
+-		data->mem = mem;
++		omap2_ctrl_offset = data->offset;
+ 	}
+ 
+ 	return 0;
+@@ -662,17 +703,43 @@ int __init omap2_control_base_init(void)
+  */
+ int __init omap_control_init(void)
+ {
+-	struct device_node *np;
++	struct device_node *np, *scm_conf;
+ 	const struct of_device_id *match;
+ 	const struct omap_prcm_init_data *data;
+ 	int ret;
++	struct regmap *syscon;
+ 
+ 	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+ 		data = match->data;
+ 
+-		ret = omap2_clk_provider_init(np, data->index, NULL, data->mem);
+-		if (ret)
+-			return ret;
++		/*
++		 * Check if we have scm_conf node, if yes, use this to
++		 * access clock registers.
++		 */
++		scm_conf = of_get_child_by_name(np, "scm_conf");
++
++		if (scm_conf) {
++			syscon = syscon_node_to_regmap(scm_conf);
++
++			if (IS_ERR(syscon))
++				return PTR_ERR(syscon);
++
++			omap2_ctrl_syscon = syscon;
++
++			ret = omap2_clk_provider_init(scm_conf, data->index,
++						      syscon, NULL);
++			if (ret)
++				return ret;
++
++			iounmap(omap2_ctrl_base);
++			omap2_ctrl_base = NULL;
++		} else {
++			/* No scm_conf found, direct access */
++			ret = omap2_clk_provider_init(np, data->index, NULL,
++						      omap2_ctrl_base);
++			if (ret)
++				return ret;
++		}
+ 	}
+ 
+ 	return 0;
 -- 
 1.7.9.5
 
