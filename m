@@ -1,149 +1,164 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC][PATCH 0/9] USB: OTG Core functionality
-Date: Wed, 18 Mar 2015 15:55:54 +0200
-Message-ID: <1426686963-11613-1-git-send-email-rogerq@ti.com>
+From: Michael Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 32/35 linux-next] clk: constify of_device_id array
+Date: Wed, 18 Mar 2015 07:15:09 -0700
+Message-ID: <20150318141509.7930.28419@quantum>
+References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
+ <1426535949-26107-1-git-send-email-fabf@skynet.be>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1426535949-26107-1-git-send-email-fabf@skynet.be>
 Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu
-Cc: dan.j.williams@intel.com, peter.chen@freescale.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Fabian Frederick <fabf@skynet.be>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Quoting Fabian Frederick (2015-03-16 12:59:06)
+> of_device_id is always used as const.
+> (See driver.of_match_table and open firmware functions)
+> 
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
 
-[NOTE: RFC only. Not for merge yet.]
+Acked-by: Michael Turquette <mturquette@linaro.org>
 
-This is an attempt to centralize OTG functionality in the kernel.
-Still work in progress but I wanted to get an early feedback
-to avoid major rework. :) 
-
-Why?:
-----
-
-Most of the OTG drivers have been dealing with the OTG state machine
-themselves and there is a scope for code re-use. This has been
-partly addressed by the usb/common/usb-otg-fsm.c but it still
-leaves the instantiation of the state machine and OTG timers
-to the controller drivers. We re-use usb-otg-fsm.c but
-go one step further by instantiating the state machine and timers
-thus making it easier for drivers to implement OTG functionality.
-
-Newer OTG cores support standard host interface (e.g. xHCI?) so
-host and gadget functionality are no longer closely knit like older
-cores. There needs to be a way to co-ordinate the operation of the
-host and gadget in OTG mode. i.e. to stop and start them from a
-central location. This central location should be the USB OTG core.
-
-Host and gadget controllers might be sharing resources and can't
-be always running. One has to be stopped for the other to run.
-This can't be done as of now and can be done from the OTG core.
-
-What?:
------
-
-The OTG core instantiates the OTG Finite State Machine
-per OTG controller and manages starting/stopping the
-host and gadget controllers based on the bus state.
-    
-It provides APIs for the following
-    
-- Registering an OTG capable controller
-struct otg_fsm *usb_otg_register(struct device *parent_dev,
-                                 struct otg_fsm_ops *fsm_ops);
-int usb_otg_unregister(struct device *parent_dev);
-
-- Registering Host controllers to OTG core (used by hcd-core)
-int usb_otg_register_hcd(struct usb_hcd *hcd);
-int usb_otg_unregister_hcd(struct usb_hcd *hcd);
-
-- Registering Gadget controllers to OTG core (used by udc-core)
-int usb_otg_register_gadget(struct usb_gadget *gadget);
-int usb_otg_unregister_gadget(struct usb_gadget *gadget);
-
-- Providing inputs to and kicking the OTG state machine
-void usb_otg_sync_inputs(struct otg_fsm *fsm);
-int usb_otg_kick_fsm(struct device *hcd_gcd_device);
-
-'struct otg_fsm' is the interface to the OTG state machine.
-It contains inputs to the fsm, status of the fsm and operations
-for the OTG controller driver.
-
-Usage model:
------------
-
-- The OTG controller device is assumed to be the parent of
-the host and gadget controller. It must call usb_otg_register()
-before populating the host and gadget devices so that the OTG
-core is aware that it is an OTG device before the host & gadget
-register. The OTG controller must provide struct otg_fsm_ops *
-which will be called by the OTG core depending on OTG bus state.
-
-- The host/gadget core stacks are modified to inform the OTG core
-whenever a new host/gadget device is added. The OTG core then
-checks if the host/gadget is part of the OTG controller and if yes
-then prevents the host/gadget from starting till both host and
-gadget are registered, OTG state machine is running and the
-USB bus state is appropriate to start host/gadget.
- For this APIs have been added to host/gadget stacks to start/stop
-the controllers from the OTG core.
-
-- No modification is needed for the host/gadget controller drivers.
-They must ensure that their start/stop methods can be called repeatedly
-and any shared resources between host & gadget are properly managed.
-The OTG core ensures that both are not started simultaneously.
-
-- The OTG core instantiates one OTG state machine per OTG
-controller and the necessary OTG timers to manage OTG state timeouts.
-The state machine is started when both host & gadget register and
-stopped when either of them unregisters. The controllers are started
-and stopped depending on bus state.
-
-- During the lifetime of the OTG state machine, inputs can be
-provided to it by modifying the appropriate members of 'struct otg_fsm'
-and calling usb_otg_sync_inputs(). This is typically done by the
-OTG controller driver that called usb_otg_register() since it is
-the only external component that has the 'struct otg_fsm' handle.
-
-Pending items:
-- We probably need a otg class.
-- sysfs interface for application OTG inputs and OTG status information
-- resolve symbol dependency for module use.
-- otg driver for dwc3 core to get dual-role working on dra7-evm.
-
-cheers,
--roger
-
-Roger Quadros (9):
-  usb: hcd: Introduce usb_start/stop_hcd()
-  usb: gadget: add usb_gadget_start/stop()
-  usb: otg: add OTG core
-  usb: otg: hub: Notify OTG fsm when A device sets b_hnp_enable
-  usb: hcd: adapt to OTG
-  usb: gadget: udc: adapt to OTG
-  usb: dwc3: adapt to OTG core
-  usb: otg-fsm: Remove unused members in struct otg_fsm
-  usb: otg-fsm: Add documentation for struct otg_fsm
-
- drivers/usb/Makefile              |   1 +
- drivers/usb/common/Makefile       |   1 +
- drivers/usb/common/usb-otg.c      | 732 ++++++++++++++++++++++++++++++++++++++
- drivers/usb/common/usb-otg.h      |  71 ++++
- drivers/usb/core/Kconfig          |   8 +
- drivers/usb/core/hcd.c            | 153 +++++---
- drivers/usb/core/hub.c            |  11 +-
- drivers/usb/dwc3/core.c           | 101 ++++++
- drivers/usb/dwc3/core.h           |   6 +
- drivers/usb/dwc3/platform_data.h  |   1 +
- drivers/usb/gadget/udc/udc-core.c | 172 ++++++++-
- include/linux/usb/gadget.h        |   3 +
- include/linux/usb/hcd.h           |   2 +
- include/linux/usb/otg-fsm.h       |  81 ++++-
- include/linux/usb/usb-otg.h       |  86 +++++
- 15 files changed, 1357 insertions(+), 72 deletions(-)
- create mode 100644 drivers/usb/common/usb-otg.c
- create mode 100644 drivers/usb/common/usb-otg.h
- create mode 100644 include/linux/usb/usb-otg.h
-
--- 
-2.1.0
+> ---
+>  drivers/clk/clk-palmas.c                 | 2 +-
+>  drivers/clk/st/clkgen-fsyn.c             | 2 +-
+>  drivers/clk/st/clkgen-mux.c              | 8 ++++----
+>  drivers/clk/st/clkgen-pll.c              | 4 ++--
+>  drivers/clk/ti/clk-dra7-atl.c            | 2 +-
+>  drivers/clk/ti/clockdomain.c             | 2 +-
+>  drivers/clk/versatile/clk-vexpress-osc.c | 2 +-
+>  7 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
+> index 8d45992..45a535a 100644
+> --- a/drivers/clk/clk-palmas.c
+> +++ b/drivers/clk/clk-palmas.c
+> @@ -161,7 +161,7 @@ static struct palmas_clks_of_match_data palmas_of_clk32kgaudio = {
+>         },
+>  };
+>  
+> -static struct of_device_id palmas_clks_of_match[] = {
+> +static const struct of_device_id palmas_clks_of_match[] = {
+>         {
+>                 .compatible = "ti,palmas-clk32kg",
+>                 .data = &palmas_of_clk32kg,
+> diff --git a/drivers/clk/st/clkgen-fsyn.c b/drivers/clk/st/clkgen-fsyn.c
+> index af94ed8..a917c4c 100644
+> --- a/drivers/clk/st/clkgen-fsyn.c
+> +++ b/drivers/clk/st/clkgen-fsyn.c
+> @@ -1057,7 +1057,7 @@ static struct clk * __init st_clk_register_quadfs_fsynth(
+>         return clk;
+>  }
+>  
+> -static struct of_device_id quadfs_of_match[] = {
+> +static const struct of_device_id quadfs_of_match[] = {
+>         {
+>                 .compatible = "st,stih416-quadfs216",
+>                 .data = &st_fs216c65_416
+> diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
+> index 9a15ec3..fdcff10 100644
+> --- a/drivers/clk/st/clkgen-mux.c
+> +++ b/drivers/clk/st/clkgen-mux.c
+> @@ -341,7 +341,7 @@ static struct clkgena_divmux_data st_divmux_c32odf3 = {
+>         .fb_start_bit_idx = 24,
+>  };
+>  
+> -static struct of_device_id clkgena_divmux_of_match[] = {
+> +static const struct of_device_id clkgena_divmux_of_match[] = {
+>         {
+>                 .compatible = "st,clkgena-divmux-c65-hs",
+>                 .data = &st_divmux_c65hs,
+> @@ -479,7 +479,7 @@ static struct clkgena_prediv_data prediv_c32_data = {
+>         .table = prediv_table16,
+>  };
+>  
+> -static struct of_device_id clkgena_prediv_of_match[] = {
+> +static const struct of_device_id clkgena_prediv_of_match[] = {
+>         { .compatible = "st,clkgena-prediv-c65", .data = &prediv_c65_data },
+>         { .compatible = "st,clkgena-prediv-c32", .data = &prediv_c32_data },
+>         {}
+> @@ -586,7 +586,7 @@ static struct clkgen_mux_data stih407_a9_mux_data = {
+>         .width = 2,
+>  };
+>  
+> -static struct of_device_id mux_of_match[] = {
+> +static const struct of_device_id mux_of_match[] = {
+>         {
+>                 .compatible = "st,stih416-clkgenc-vcc-hd",
+>                 .data = &clkgen_mux_c_vcc_hd_416,
+> @@ -693,7 +693,7 @@ static struct clkgen_vcc_data st_clkgenf_vcc_416 = {
+>         .lock = &clkgenf_lock,
+>  };
+>  
+> -static struct of_device_id vcc_of_match[] = {
+> +static const struct of_device_id vcc_of_match[] = {
+>         { .compatible = "st,stih416-clkgenc", .data = &st_clkgenc_vcc_416 },
+>         { .compatible = "st,stih416-clkgenf", .data = &st_clkgenf_vcc_416 },
+>         {}
+> diff --git a/drivers/clk/st/clkgen-pll.c b/drivers/clk/st/clkgen-pll.c
+> index 29769d7..d204ba8 100644
+> --- a/drivers/clk/st/clkgen-pll.c
+> +++ b/drivers/clk/st/clkgen-pll.c
+> @@ -593,7 +593,7 @@ static struct clk * __init clkgen_odf_register(const char *parent_name,
+>         return clk;
+>  }
+>  
+> -static struct of_device_id c32_pll_of_match[] = {
+> +static const struct of_device_id c32_pll_of_match[] = {
+>         {
+>                 .compatible = "st,plls-c32-a1x-0",
+>                 .data = &st_pll3200c32_a1x_0,
+> @@ -708,7 +708,7 @@ err:
+>  }
+>  CLK_OF_DECLARE(clkgen_c32_pll, "st,clkgen-plls-c32", clkgen_c32_pll_setup);
+>  
+> -static struct of_device_id c32_gpu_pll_of_match[] = {
+> +static const struct of_device_id c32_gpu_pll_of_match[] = {
+>         {
+>                 .compatible = "st,stih415-gpu-pll-c32",
+>                 .data = &st_pll1200c32_gpu_415,
+> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+> index 59bb4b3..d86bc46 100644
+> --- a/drivers/clk/ti/clk-dra7-atl.c
+> +++ b/drivers/clk/ti/clk-dra7-atl.c
+> @@ -294,7 +294,7 @@ static int of_dra7_atl_clk_remove(struct platform_device *pdev)
+>         return 0;
+>  }
+>  
+> -static struct of_device_id of_dra7_atl_clk_match_tbl[] = {
+> +static const struct of_device_id of_dra7_atl_clk_match_tbl[] = {
+>         { .compatible = "ti,dra7-atl", },
+>         {},
+>  };
+> diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+> index b4c5fac..35fe108 100644
+> --- a/drivers/clk/ti/clockdomain.c
+> +++ b/drivers/clk/ti/clockdomain.c
+> @@ -52,7 +52,7 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
+>         }
+>  }
+>  
+> -static struct of_device_id ti_clkdm_match_table[] __initdata = {
+> +static const struct of_device_id ti_clkdm_match_table[] __initconst = {
+>         { .compatible = "ti,clockdomain" },
+>         { }
+>  };
+> diff --git a/drivers/clk/versatile/clk-vexpress-osc.c b/drivers/clk/versatile/clk-vexpress-osc.c
+> index 765f1e0..89c0609 100644
+> --- a/drivers/clk/versatile/clk-vexpress-osc.c
+> +++ b/drivers/clk/versatile/clk-vexpress-osc.c
+> @@ -110,7 +110,7 @@ static int vexpress_osc_probe(struct platform_device *pdev)
+>         return 0;
+>  }
+>  
+> -static struct of_device_id vexpress_osc_of_match[] = {
+> +static const struct of_device_id vexpress_osc_of_match[] = {
+>         { .compatible = "arm,vexpress-osc", },
+>         {}
+>  };
+> -- 
+> 2.1.0
+> 
