@@ -1,298 +1,132 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2.1] ASoC: davinci-mcasp: Set rule constraints if implicit BCLK divider is used
-Date: Thu, 19 Mar 2015 15:11:29 +0200
-Message-ID: <1426770689-16884-1-git-send-email-jsarha@ti.com>
+From: Greg Knight <g.knight@symetrica.com>
+Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
+Date: Thu, 19 Mar 2015 09:16:31 -0400
+Message-ID: <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>
+References: <1426741501.10003.6.camel@midgaarde>
+	<550AC256.4070509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47809 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316AbbCSNLi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 09:11:38 -0400
+Received: from claranet-outbound-smtp02.uk.clara.net ([195.8.89.35]:42307 "EHLO
+	claranet-outbound-smtp02.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754949AbbCSNQg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Mar 2015 09:16:36 -0400
+In-Reply-To: <550AC256.4070509@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: broonie@kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, Jyri Sarha <jsarha@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Greg Knight <g.knight@symetrica.com>, Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Set rule constraints to allow only combinations of sample-rate,
-sample-bits, and channels that can be played/captured with reasonable
-sample-rate accuracy.
+Will refer to that documentation and update the SPI docs before resubmi=
+tting.
 
-The logic with tdm-slots and serializers (=i2s data wires) goes like
-this: The first wire will take all channels up to number of tdm-slots,
-before following wires (if any) are used. If the first wire is used
-fully, the remaining wires share the same clocks and the divider can
-be calculated for the first wire.
+Re; Threshold of 160 is artificial: Believe me, I am more than aware
+of this. SPI runs in any speed from low kHz to multi MHz. The only
+reason I can fathom for having such a high DMA_MIN_BYTES is to
+facilitate high-speed low-volume communication (eg read one byte at a
+time from userspace without buffering.) The reason I'm looking at this
+at all is because we're doing low-speed low-volume communication, for
+which the burn in PIO mode causes severe performance degradation.
+Internally we'd changed it to 20, but I might try 8. I originally
+tried 0, but observed poor behavior for our use cases. DMA_MIN_BYTES
+at 8 would be sensible for our application, but at 160 it is not.
 
-Also, takes the number of tdm-slots into account when implicitly
-selecting the BLCK divider.
+The current solution is for everybody who needs to change their device
+settings to churn that macro, just as 8b66c1474e16 did. Changing that
+values incurs significant risk of excess CPU load (if increased) or
+timing slop (if decreased) to all hardware using the McSPI. Moving the
+param to DT allows those of us working on custom boards to modify the
+value for some hardware without risking the entire ecosystem. Let's
+please not keep a bad solution just because no perfect solution
+exists...
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-This is othetwise the same patch as v2, but I added Peter's ack and
-rebased on top of:
+I think the proper location for this patch might actually be in the
+spidev nodes in DT, rather than at the mcspi level - but I don't
+understand why this does not belong in DT. DT is, after all, where one
+would normally describe the rest of the slave device bindings. A
+sensible value for DMA_MIN_BYTES requires the user to know the CPU
+clock speed alongside the SPI bus speed, and estimate acceptable
+levels of slop in timing. I don't think userspace should need to do
+these computations to avoid excess CPU load; could do it in kernel
+space, or leave it up to DT or kernel parameters.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git topic/davinci
+How about moving the speed to the spidev DT nodes?
 
- sound/soc/davinci/davinci-mcasp.c | 195 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 185 insertions(+), 10 deletions(-)
+Regards,
+Greg
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index d40b392..625cca1 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -27,6 +27,7 @@
- #include <linux/of_platform.h>
- #include <linux/of_device.h>
- #include <linux/platform_data/davinci_asp.h>
-+#include <linux/math64.h>
- 
- #include <sound/asoundef.h>
- #include <sound/core.h>
-@@ -65,6 +66,11 @@ struct davinci_mcasp_context {
- 	bool	pm_state;
- };
- 
-+struct davinci_mcasp_ruledata {
-+	struct davinci_mcasp *mcasp;
-+	int serializers;
-+};
-+
- struct davinci_mcasp {
- 	struct snd_dmaengine_dai_dma_data dma_data[2];
- 	void __iomem *base;
-@@ -99,6 +105,8 @@ struct davinci_mcasp {
- #ifdef CONFIG_PM_SLEEP
- 	struct davinci_mcasp_context context;
- #endif
-+
-+	struct davinci_mcasp_ruledata ruledata[2];
- };
- 
- static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 offset,
-@@ -868,6 +876,30 @@ static int mcasp_dit_hw_param(struct davinci_mcasp *mcasp,
- 	return 0;
- }
- 
-+static int davinci_mcasp_calc_clk_div(struct davinci_mcasp *mcasp,
-+				      unsigned int bclk_freq,
-+				      int *error_ppm)
-+{
-+	int div = mcasp->sysclk_freq / bclk_freq;
-+	int rem = mcasp->sysclk_freq % bclk_freq;
-+
-+	if (rem != 0) {
-+		if (div == 0 ||
-+		    ((mcasp->sysclk_freq / div) - bclk_freq) >
-+		    (bclk_freq - (mcasp->sysclk_freq / (div+1)))) {
-+			div++;
-+			rem = rem - bclk_freq;
-+		}
-+	}
-+	if (error_ppm)
-+		*error_ppm =
-+			(div*1000000 + (int)div64_long(1000000LL*rem,
-+						       (int)bclk_freq))
-+			/div - 1000000;
-+
-+	return div;
-+}
-+
- static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
- 					struct snd_pcm_hw_params *params,
- 					struct snd_soc_dai *cpu_dai)
-@@ -883,16 +915,20 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
- 	 * the machine driver, we need to calculate the ratio.
- 	 */
- 	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
--		unsigned int bclk_freq = snd_soc_params_to_bclk(params);
--		unsigned int div = mcasp->sysclk_freq / bclk_freq;
--		if (mcasp->sysclk_freq % bclk_freq != 0) {
--			if (((mcasp->sysclk_freq / div) - bclk_freq) >
--			    (bclk_freq - (mcasp->sysclk_freq / (div+1))))
--				div++;
--			dev_warn(mcasp->dev,
--				 "Inaccurate BCLK: %u Hz / %u != %u Hz\n",
--				 mcasp->sysclk_freq, div, bclk_freq);
--		}
-+		int channels = params_channels(params);
-+		int rate = params_rate(params);
-+		int sbits = params_width(params);
-+		int ppm, div;
-+
-+		if (channels > mcasp->tdm_slots)
-+			channels = mcasp->tdm_slots;
-+
-+		div = davinci_mcasp_calc_clk_div(mcasp, rate*sbits*channels,
-+						 &ppm);
-+		if (ppm)
-+			dev_info(mcasp->dev, "Sample-rate is off by %d PPM\n",
-+				 ppm);
-+
- 		__davinci_mcasp_set_clkdiv(cpu_dai, 1, div, 0);
- 	}
- 
-@@ -974,6 +1010,108 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
- 	return ret;
- }
- 
-+static const unsigned int davinci_mcasp_dai_rates[] = {
-+	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
-+	88200, 96000, 176400, 192000,
-+};
-+
-+#define DAVINCI_MAX_RATE_ERROR_PPM 1000
-+
-+static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *params,
-+				      struct snd_pcm_hw_rule *rule)
-+{
-+	struct davinci_mcasp_ruledata *rd = rule->private;
-+	int sbits = params_width(params);
-+	int channels = params_channels(params);
-+	unsigned int list[ARRAY_SIZE(davinci_mcasp_dai_rates)];
-+	int i, count = 0;
-+
-+	if (channels > rd->mcasp->tdm_slots)
-+		channels = rd->mcasp->tdm_slots;
-+
-+	for (i = 0; i < ARRAY_SIZE(davinci_mcasp_dai_rates); i++) {
-+		uint bclk_freq = sbits*channels*davinci_mcasp_dai_rates[i];
-+		int ppm;
-+
-+		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-+		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
-+			list[count++] = davinci_mcasp_dai_rates[i];
-+
-+	}
-+	dev_dbg(rd->mcasp->dev, "%d frequencies for %d sbits and %d channels\n",
-+		count, sbits, channels);
-+
-+	return snd_interval_list(hw_param_interval(params, rule->var),
-+				 count, list, 0);
-+}
-+
-+static int davinci_mcasp_hw_rule_samplebits(struct snd_pcm_hw_params *params,
-+					    struct snd_pcm_hw_rule *rule)
-+{
-+	struct davinci_mcasp_ruledata *rd = rule->private;
-+	int channels = params_channels(params);
-+	int rate = params_rate(params);
-+	unsigned int list[4];
-+	int sbits, count = 0;
-+
-+	if (channels > rd->mcasp->tdm_slots)
-+		channels = rd->mcasp->tdm_slots;
-+
-+	for (sbits = 8; sbits <= 32; sbits += 8) {
-+		uint bclk_freq = channels*sbits*rate;
-+		int ppm;
-+
-+		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-+		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
-+			list[count++] = sbits;
-+	}
-+	dev_dbg(rd->mcasp->dev,
-+		"%d possible sample size for %d Hz and %d channels\n",
-+		count, rate, channels);
-+
-+	return snd_interval_list(hw_param_interval(params, rule->var),
-+				 count, list, 0);
-+}
-+
-+static int davinci_mcasp_hw_rule_channels(struct snd_pcm_hw_params *params,
-+					  struct snd_pcm_hw_rule *rule)
-+{
-+	struct davinci_mcasp_ruledata *rd = rule->private;
-+	struct snd_interval *ci =
-+		hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
-+	int sbits = params_width(params);
-+	int rate = params_rate(params);
-+	int max_chan_per_wire = rd->mcasp->tdm_slots < ci->max ?
-+		rd->mcasp->tdm_slots : ci->max;
-+	unsigned int list[ci->max - ci->min + 1];
-+	int c1, c, count = 0;
-+
-+	for (c1 = ci->min; c1 <= max_chan_per_wire; c1++) {
-+		uint bclk_freq = c1*sbits*rate;
-+		int ppm;
-+
-+		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-+		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
-+			/* If we can use all tdm_slots, we can put any
-+			   amount of channels to remaining wires as
-+			   long as they fit in. */
-+			if (c1 == rd->mcasp->tdm_slots) {
-+				for (c = c1; c <= rd->serializers*c1 &&
-+					     c <= ci->max; c++)
-+					list[count++] = c;
-+			} else {
-+				list[count++] = c1;
-+			}
-+		}
-+	}
-+	dev_dbg(rd->mcasp->dev,
-+		"%d possible channel counts for %d Hz and %d sbits\n",
-+		count, rate, sbits);
-+
-+	return snd_interval_list(hw_param_interval(params, rule->var),
-+				 count, list, 0);
-+}
-+
- static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- 				 struct snd_soc_dai *cpu_dai)
- {
-@@ -999,6 +1137,7 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- 		if (mcasp->serial_dir[i] == dir)
- 			max_channels++;
- 	}
-+	mcasp->ruledata[dir].serializers = max_channels;
- 	max_channels *= mcasp->tdm_slots;
- 	/*
- 	 * If the already active stream has less channels than the calculated
-@@ -1013,6 +1152,42 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- 	snd_pcm_hw_constraint_minmax(substream->runtime,
- 				     SNDRV_PCM_HW_PARAM_CHANNELS,
- 				     2, max_channels);
-+
-+	/*
-+	 * If we rely on implicit BCLK divider setting we should
-+	 * set constraints based on what we can provide.
-+	 */
-+	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
-+		int ret;
-+
-+		mcasp->ruledata[dir].mcasp = mcasp;
-+
-+		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-+					  SNDRV_PCM_HW_PARAM_RATE,
-+					  davinci_mcasp_hw_rule_rate,
-+					  &mcasp->ruledata[dir],
-+					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
-+					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
-+		if (ret)
-+			return ret;
-+		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-+					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
-+					  davinci_mcasp_hw_rule_samplebits,
-+					  &mcasp->ruledata[dir],
-+					  SNDRV_PCM_HW_PARAM_RATE,
-+					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
-+		if (ret)
-+			return ret;
-+		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-+					  SNDRV_PCM_HW_PARAM_CHANNELS,
-+					  davinci_mcasp_hw_rule_channels,
-+					  &mcasp->ruledata[dir],
-+					  SNDRV_PCM_HW_PARAM_RATE,
-+					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS, -1);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.9.1
 
+On Thu, Mar 19, 2015 at 8:34 AM, Peter Ujfalusi <peter.ujfalusi@ti.com>=
+ wrote:
+>
+> On 03/19/2015 07:05 AM, Greg Knight wrote:
+> > Hi, Mark,
+> >
+> > I've attached a patch which adds a device-tree field "ti,dma-min-by=
+tes"
+> > which replaces the macro DMA_MIN_BYTES. Adjusting this field addres=
+ses
+> > issues we've had where, in our particular use case, the usleep() in=
+ the
+> > SPI worker thread eats a full 20% of our CPU (AM3359).
+> >
+> > I opted to implement it as a device-tree parameter and keep the ori=
+ginal
+> > value (160) as the default, in order to avoid impacting anyone else=
+=2E
+> >
+> > The patch is attached. Patches 1-2 are an unrelated McASP change (s=
+ee my
+> > other message).
+> >
+> > What is the process for getting this upstreamed?
+>
+> Please follow the guidelines in Documentation/SubmittingPatches. Patc=
+hes as
+> attachments are not preferred since it makes replying/commenting on t=
+he
+> patches hard.
+>
+> Strictly speaking the dma-min-bytes should not be in DT, it is a soft=
+ware
+> parameter for the Linux SPI driver implementation.
+> Also, when changing DT bindings, please update the documentation as w=
+ell (and
+> CC the relevant lists with that).
+>
+> This threshold of 160 bytes in the omap2-mcspi driver is artificial a=
+nyways it
+> is changed from 8 to 160 by this commit:
+> 8b66c13474e16 spi/omap2_mcspi: change default DMA_MIN_BYTES value to =
+160
+>
+> It has been changed because of wl1271, but I'm not sure if banging by=
+tes over
+> the bus when the transfer is less then 160bytes is that great thing. =
+I would
+> guess that the sweet spot is at around the low tens.
+>
+> But if it is really like this that different devices perform better w=
+ith
+> different threshold for choosing between PIO or DMA transfer then thi=
+s setting
+> should come from the slave device and should only affect the transfer=
+ setup
+> when communicating with that device.
+>
+> Probably adding a parameter (optional) to spi_device struct, so drive=
+rs can
+> pass dma_over_poi_threshold?
+> If it is not set, than just use whatever is the default.
+>
+> But I don't think this setting should be in the DT.
+>
+> --
+> P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
