@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] omap legacy boot clean-up for v4.1
-Date: Thu, 19 Mar 2015 16:14:01 -0700
-Message-ID: <46679.9080292278$1426807247@news.gmane.org>
-References: <pull-1426799683-420388>
+Subject: [GIT PULL 1/3] omap device tree changes for v4.1, part1
+Date: Thu, 19 Mar 2015 16:13:59 -0700
+Message-ID: <28400.6338021301$1426807249@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1426799683-420388>
-In-Reply-To: <pull-1426799683-420388>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,45 +19,104 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
-
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/v4.1-legacy
-
-for you to fetch changes up to 01ea0d4247bb3a224a66007e0a1291232c15d61a:
-
-  ARM: OMAP2+: Remove legacy support for omap3 TouchBook (2015-03-16 17:07:26 -0700)
-
-----------------------------------------------------------------
-Drop three omap3 legacy board-*.c files
-
-We want to get omap3 moved over to device tree only based booting.
-
-These three board-*.c files seem to be inactive, so let's attempt
-to drop them now rather than later. With these dropped, we have
-omap3 device tree conversion status in a known state. Then we know
-that we have .dts support for the remaining omap3 board-*.c files,
-or it's being worked on.
-
-By dropping these files now, we can simply revert them if really
-needed for the next few merge cycles if we run into suprises.
-Reverting things later on will not be so easily done.
-
-----------------------------------------------------------------
-Tony Lindgren (3):
-      ARM: OMAP3: Remove legacy support for EMA-Tech Stalker board
-      ARM: OMAP3: Remove legacy support for devkit8000
-      ARM: OMAP2+: Remove legacy support for omap3 TouchBook
-
- arch/arm/mach-omap2/Kconfig                |  18 -
- arch/arm/mach-omap2/Makefile               |   4 -
- arch/arm/mach-omap2/board-devkit8000.c     | 654 -----------------------------
- arch/arm/mach-omap2/board-omap3stalker.c   | 433 -------------------
- arch/arm/mach-omap2/board-omap3touchbook.c | 395 -----------------
- 5 files changed, 1504 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-devkit8000.c
- delete mode 100644 arch/arm/mach-omap2/board-omap3stalker.c
- delete mode 100644 arch/arm/mach-omap2/board-omap3touchbook.c
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCAxM2E3YTZhYzBhMTExOTdlZGNkMGY3
+NTZhMDM1ZjQ3MmI0MmNkZjhiOgoKICBMaW51eCA0LjAtcmMyICgyMDE1LTAzLTAzIDA5OjA0OjU5
+IC0wODAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21h
+cCB0YWdzL3Y0LjEtZHQKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAxMDcwOWMwODU4
+ZDg5NzE2YjEwYjdiYmY2ZDgyNTA0NGYyZjU5NjAyOgoKICBBUk06IGR0czogVXBkYXRlIE5hbm9i
+b25lIGR0cyBmaWxlICgyMDE1LTAzLTE5IDEwOjU5OjI4IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEZXZpY2Ug
+dHJlZSByZWxhdGVkIGNoYW5nZXMgZm9yIG9tYXBzOgoKLSBBZGQgc3VwcG9ydCBmb3IgQ2hpbGlT
+T00KCi0gQWRkIHN1cHBvcnQgZm9yIE9wZW5QYW5kb3JhCgotIEFkZCBzdXBwb3J0IGZvciBCZWFn
+bGVCb2FyZCBOQU5ECgotIEVuYWJsZSBjcnlwdG8gZGV2aWNlcyBmb3Igb21hcDMgZGV2aWNlcwoK
+LSBBZGQgYmluZGluZ3MgZm9yIG9tYXAzIGNhbWVyYSBzdXBwb3J0CgotIFVwZGF0ZXMgZm9yIGFt
+NDM3eCBhbmQgZHJhN3ggYW5kIGRtODE2eCBTb0NzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkZlbGlwZSBCYWxiaSAoMSk6
+CiAgICAgIEFSTTogZHRzOiBhbTQzN3gtaWRrOiBlbmFibGUgaTJjMgoKSC4gTmlrb2xhdXMgU2No
+YWxsZXIgKDMpOgogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9yYTogYWRkIGNvbW1vbiBkZXZp
+Y2UgdHJlZQogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9yYTogYWRkIE9NQVAzNTMwIDYwMCBN
+SHogdmVyc2lvbgogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9yYTogYWRkIERNMzczMCAxIEdI
+eiB2ZXJzaW9uCgpNYXJlayBCZWxpc2tvICgyKToKICAgICAgQVJNOiBkdHM6IG9tYXAzOiBSZW1v
+dmUgYWxsIHJlZmVyZW5jZXMgdG8gdGksY29kZWMgcHJvcGVydHkKICAgICAgRG9jdW1lbnRhdGlv
+bjogb21hcC10d2w0MDMwOiBNb3ZlIHRpLGNvZGVjIHByb3BlcnR5IHRvIG9wdGlvbmFsCgpNYXJr
+IEphY2tzb24gKDEpOgogICAgICBBUk06IGR0czogVXBkYXRlIE5hbm9ib25lIGR0cyBmaWxlCgpN
+YXR0IFBvcnRlciAoMSk6CiAgICAgIERvY3VtZW50YXRpb246IERUOiBvbWFwX3NlcmlhbDogZG9j
+dW1lbnQgbWlzc2luZyBwcm9wZXJ0aWVzIGFuZCBhZGQgYW4gZXhhbXBsZQoKUGFsaSBSb2jDoXIg
+KDQpOgogICAgICBBUk06IGR0czogbjkvbjk1MDogRW5hYmxlIG9tYXAgY3J5cHRvIHN1cHBvcnQK
+ICAgICAgQVJNOiBkdHM6IG45MDA6IEVuYWJsZSBvbWFwIHNoYW0gYW5kIGluY2x1ZGUgZGlyZWN0
+bHkgb21hcDM0eHguZHRzaQogICAgICBBUk06IGR0czogb21hcDMtdGFvMzUzMDogSW5jbHVkZSBk
+aXJlY3RseSBvbWFwMzR4eC5kdHNpCiAgICAgIEFSTTogZHRzOiBSZW1vdmUgZmlsZXMgb21hcDM0
+eHgtaHMuZHRzaSBhbmQgb21hcDM2eHgtaHMuZHRzaQoKUGV0ZXIgVWpmYWx1c2kgKDIpOgogICAg
+ICBBUk06IGR0czogZHJhN3h4LWNsb2NrczogQWRkIGdhdGUgY2xvY2sgZm9yIENMS09VVDIKICAg
+ICAgQVJNOiBkdHM6IGFtNTd4eC1iZWFnbGUteDE1OiBEbyBub3QgaW5jbHVkZSB0aGUgYXRsIGhl
+YWRlcgoKUm9nZXIgUXVhZHJvcyAoMik6CiAgICAgIEFSTTogZHRzOiBvbWFwMy1iZWFnbGU6IEFk
+ZCBOQU5EIGRldmljZQogICAgICBBUk06IGR0czogZHJhN3gtZXZtOiBiZWFnbGUteDE1OiBGaXgg
+VVNCIFBlcmlwaGVyYWwKClJvc3Rpc2xhdiBMaXNvdnkgKDMpOgogICAgICBBUk06IGR0czogQWRk
+IHZlbmRvciBwcmVmaXggZm9yIEdyaW5uCiAgICAgIEFSTTogZHRzOiBhbTMzNXg6IEFkZCBEVFMg
+Zm9yIENoaWxpU09NIG1vZHVsZQogICAgICBBUk06IGR0czogYW0zMzV4OiBBZGQgQ2hpbGlib2Fy
+ZCBEVFMKClNha2FyaSBBaWx1cyAoMyk6CiAgICAgIERvY3VtZW50YXRpb246IERUOiBBZGQgYmlu
+ZGluZ3MgZm9yIG9tYXAzaXNwCiAgICAgIEFSTTogZHRzOiBvbWFwMzogQWRkIERUIGVudHJpZXMg
+Zm9yIE9NQVAgMyBJU1AKICAgICAgQVJNOiBkdHM6IG45NTAsIG45OiBBZGQgcHJpbWFyeSBjYW1l
+cmEgc3VwcG9ydAoKU3VtYW4gQW5uYSAoMSk6CiAgICAgIEFSTTogZHRzOiBEUkE3OiBSZW1vdmUg
+dGksdGltZXItZHNwIGFuZCB0aSx0aW1lci1wd20gcHJvcGVydGllcwoKVG9ueSBMaW5kZ3JlbiAo
+Myk6CiAgICAgIEFSTTogZHRzOiBGaXggdHlwbyBmb3IgZG04MTZ4IHVzYjBfcGlucwogICAgICBB
+Uk06IGR0czogQWRkIGNwcGk0MSBzdXBwb3J0IGZvciBkbTgxNnggTVVTQgogICAgICBBUk06IGR0
+czogUmVtb3ZlIFBJTl9JTlBVVCBmb3IgZG04MTZ4IE1jU1BJCgpWaWduZXNoIFIgKDEpOgogICAg
+ICBBUk06IGR0czogQU00MzcyOiB1cGRhdGUgaGRxIGNvbXBhdGlibGUgcHJvcGVydHkKCiAuLi4v
+ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS90aSxvbWFwM2lzcC50eHQgICAgICB8ICA3MSArKysK
+IC4uLi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NlcmlhbC9vbWFwX3NlcmlhbC50eHQgICAgIHwgIDIw
+ICsKIC4uLi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NvdW5kL29tYXAtdHdsNDAzMC50eHQgICAgIHwg
+ICAzICstCiAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy92ZW5kb3ItcHJlZml4ZXMudHh0ICAgICAg
+ICB8ICAgMSArCiBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICB8ICAgMSArCiBhcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZSAgICAgICAgICAgICAgICAg
+ICAgICAgICB8ICAgNSArLQogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNoaWxpYm9hcmQuZHRz
+ICAgICAgICAgICAgfCAxMTIgKysrKwogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNoaWxpc29t
+LmR0c2kgICAgICAgICAgICAgfCAyMzkgKysrKysrKysKIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1
+eC1uYW5vLmR0cyAgICAgICAgICAgICAgICAgIHwgIDE4ICstCiBhcmNoL2FybS9ib290L2R0cy9h
+bTQzNzIuZHRzaSAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQogYXJjaC9hcm0vYm9vdC9k
+dHMvYW00Mzd4LWlkay1ldm0uZHRzICAgICAgICAgICAgICAgfCAgMjIgKwogYXJjaC9hcm0vYm9v
+dC9kdHMvYW01N3h4LWJlYWdsZS14MTUuZHRzICAgICAgICAgICAgfCAgIDkgKy0KIGFyY2gvYXJt
+L2Jvb3QvZHRzL2RtODE2OC1ldm0uZHRzICAgICAgICAgICAgICAgICAgIHwgIDE0ICstCiBhcmNo
+L2FybS9ib290L2R0cy9kbTgxNnguZHRzaSAgICAgICAgICAgICAgICAgICAgICB8ICA2MCArKwog
+YXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzICAgICAgICAgICAgICAgICAgICAgfCAgIDgg
+KwogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpICAgICAgICAgICAgICAgICAgICAgICAgfCAg
+IDcgLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNzItZXZtLmR0cyAgICAgICAgICAgICAgICAgICAg
+fCAgIDggKwogYXJjaC9hcm0vYm9vdC9kdHMvZHJhN3h4LWNsb2Nrcy5kdHNpICAgICAgICAgICAg
+ICAgfCAgIDggKwogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cyAgICAgICAg
+ICAgICAgfCAgIDEgLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLmR0cyAgICAgICAg
+ICAgICAgICAgfCAgNTMgKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWNtLXQzeDMwLmR0c2kg
+ICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWRldmtpdDgwMDAu
+ZHRzICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWd0YTA0LmR0
+c2kgICAgICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWlnZXAu
+ZHRzaSAgICAgICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWxp
+bGx5LWE4M3guZHRzaSAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAz
+LW45LmR0cyAgICAgICAgICAgICAgICAgICAgIHwgIDM3ICsrCiBhcmNoL2FybS9ib290L2R0cy9v
+bWFwMy1uOTAwLmR0cyAgICAgICAgICAgICAgICAgICB8ICAxNiArLQogYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDMtbjk1MC1uOS5kdHNpICAgICAgICAgICAgICAgfCAgIDIgKy0KIGFyY2gvYXJtL2Jv
+b3QvZHRzL29tYXAzLW45NTAuZHRzICAgICAgICAgICAgICAgICAgIHwgIDM3ICsrCiBhcmNoL2Fy
+bS9ib290L2R0cy9vbWFwMy1vdmVyby1iYXNlLmR0c2kgICAgICAgICAgICB8ICAgMSAtCiBhcmNo
+L2FybS9ib290L2R0cy9vbWFwMy1wYW5kb3JhLTFnaHouZHRzICAgICAgICAgICB8ICA3MCArKysK
+IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLXBhbmRvcmEtNjAwbWh6LmR0cyAgICAgICAgIHwgIDY1
+ICsrKwogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtcGFuZG9yYS1jb21tb24uZHRzaSAgICAgICAg
+fCA2NDAgKysrKysrKysrKysrKysrKysrKysrCiBhcmNoL2FybS9ib290L2R0cy9vbWFwMy10YW8z
+NTMwLmR0c2kgICAgICAgICAgICAgICB8ICAxMiArLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDM0
+eHgtaHMuZHRzaSAgICAgICAgICAgICAgICAgfCAgMTYgLQogYXJjaC9hcm0vYm9vdC9kdHMvb21h
+cDM0eHguZHRzaSAgICAgICAgICAgICAgICAgICAgfCAgMTcgKwogYXJjaC9hcm0vYm9vdC9kdHMv
+b21hcDM2eHgtaHMuZHRzaSAgICAgICAgICAgICAgICAgfCAgMTYgLQogYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDM2eHguZHRzaSAgICAgICAgICAgICAgICAgICAgfCAgMTcgKwogaW5jbHVkZS9kdC1i
+aW5kaW5ncy9tZWRpYS9vbWFwMy1pc3AuaCAgICAgICAgICAgICAgfCAgMjIgKwogMzkgZmlsZXMg
+Y2hhbmdlZCwgMTU2NSBpbnNlcnRpb25zKCspLCA3MCBkZWxldGlvbnMoLSkKIGNyZWF0ZSBtb2Rl
+IDEwMDY0NCBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdGksb21hcDNp
+c3AudHh0CiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNoaWxp
+Ym9hcmQuZHRzCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNo
+aWxpc29tLmR0c2kKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1w
+YW5kb3JhLTFnaHouZHRzCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvb21h
+cDMtcGFuZG9yYS02MDBtaHouZHRzCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDMtcGFuZG9yYS1jb21tb24uZHRzaQogZGVsZXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJt
+L2Jvb3QvZHRzL29tYXAzNHh4LWhzLmR0c2kKIGRlbGV0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9i
+b290L2R0cy9vbWFwMzZ4eC1ocy5kdHNpCiBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9kdC1i
+aW5kaW5ncy9tZWRpYS9vbWFwMy1pc3AuaAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJt
+LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
