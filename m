@@ -1,93 +1,81 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
-Date: Thu, 19 Mar 2015 06:13:41 +0100
-Message-ID: <CAALWOA9=tY3X38O9p-xYabb-AZy7rJBM5AOFYgco_ZmsixOViQ@mail.gmail.com>
-References: <1421192272-20754-1-git-send-email-tony@atomide.com>
- <1421192272-20754-5-git-send-email-tony@atomide.com> <20150117164709.GS18552@atomide.com>
- <CAALWOA-XVrC84=6Xt04m+QaBhweAcp2HVTH7v=QewtJmQLEaWA@mail.gmail.com>
- <20150202160932.GF16250@atomide.com> <20150318000652.GJ31346@atomide.com>
- <CAALWOA9yoS5sdo-A_hdqhkqGqZ-VCg9jZfdavhxskFdE_pA1Sg@mail.gmail.com> <20150318165453.GP31346@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 08/35] clk: ti: fix ti_clk_get_reg_addr error handling
+Date: Thu, 19 Mar 2015 09:14:47 +0200
+Message-ID: <550A7767.6030509@ti.com>
+References: <1424891085-10392-1-git-send-email-t-kristo@ti.com> <1424891085-10392-9-git-send-email-t-kristo@ti.com> <20150306191821.11109.2610@quantum> <20150317183808.GI31346@atomide.com> <550923DB.2020503@ti.com> <20150318170223.GR31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:36773 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188AbbCSFOD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 01:14:03 -0400
-Received: by wibg7 with SMTP id g7so107745744wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 22:14:01 -0700 (PDT)
-In-Reply-To: <20150318165453.GP31346@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34597 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbbCSHPP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 03:15:15 -0400
+In-Reply-To: <20150318170223.GR31346@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> Matthijs van Duin <matthijsvanduin@gmail.com> wrote:
-> 44400500 target 11 vcp
-> 44800100 target 18 vlynq ?
-
-scrap these guesses: I don't think Netra has a vcp module, and I had
-only filled in vlynq based on it being the only remaining target NIU.
-Once the memory ranges for the targets have been determined they
-should be easy to identify conclusively.
-
-On 18 March 2015 at 17:54, Tony Lindgren <tony@atomide.com> wrote:
-> Oh there's a gap here and it goes all the way to 2400.. Is there
-> a gap on am335x too?
-
-There are indeed. See my work-in-progress spreadsheet on its L3
-interconnect: http://goo.gl/miyCQw
-
-As with the memory map, there are some "ghost" modules which I'm
-reasonably sure don't exist, even though they have a target NIU and
-clkctrl registers.
-
-I haven't yet checked which initiator the sole bandwidth regulator on
-subarctic is attached to. Plausible options are SGX, the LCD
-controller, or one of the EDMA TCs.
-
-I also just noticed how *big* its statistics collectors are. o.O  For
-comparison, the ones on netra and centaurus are 0x200 (statcoll 0 and
-3) or 0x400 (statcoll 1 and 2).
-
-
->> 2. Disable all L3 Target NIUs. You will temporarily lose access to all
->> peripherals, OCMC ram, and on subarctic also DDR memory (I think on
->> devices with a DMM you'd retain access to DDR memory). Note that the
->> service network itself isn't considered an L3 target.
+On 03/18/2015 07:02 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [150318 00:06]:
+>> On 03/17/2015 08:38 PM, Tony Lindgren wrote:
+>>> * Mike Turquette <mturquette@linaro.org> [150306 11:18]:
+>>>> Quoting Tero Kristo (2015-02-25 11:04:18)
+>>>>> There is a case where NULL can be a valid return value for
+>>>>> ti_clk_get_reg_addr, specifically the case where both the provider index
+>>>>> and register offsets are zero. In this case, the current error checking
+>>>>> against a NULL pointer will fail. Thus, change the API to return a
+>>>>> ERR_PTR value in an error case, and change all the users of this API to
+>>>>> check against IS_ERR instead.
+>>>>>
+>>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>>> Cc: Michael Turquette <mturquette@linaro.org>
+>>>>
+>>>> Looks good to me.
+>>> ...
+>>>
+>>>>> ---
+>>>>>   drivers/clk/ti/apll.c      |    5 +++--
+>>>>>   drivers/clk/ti/autoidle.c  |    2 +-
+>>>>>   drivers/clk/ti/clk.c       |    7 ++++---
+>>>>>   drivers/clk/ti/divider.c   |    4 ++--
+>>>>>   drivers/clk/ti/dpll.c      |    6 +++---
+>>>>>   drivers/clk/ti/gate.c      |    4 ++--
+>>>>>   drivers/clk/ti/interface.c |    2 +-
+>>>>>   drivers/clk/ti/mux.c       |    4 ++--
+>>>>>   8 files changed, 18 insertions(+), 16 deletions(-)
+>>>
+>>> Can this patch be queued separately by Mike or is there some
+>>> dependency to this series?
+>>
+>> Without this patch, patch #10 in the set causes a boot failure on omap3,
+>> because the specific NULL value is returned for iva2_ck and the clock
+>> register fails. This in turn breaks hwmod registration because iva2_ck is
+>> missing.
 >
-> Hmm well we could that in the kernel using the SRAM code as long as
-> it does not reset the devices.
+> Oh OK.
+>
+>> I would just queue this patch as part of this series to avoid any trouble.
+>
+> Can this patch be applied separately before this series or does
+> it cause other problems? If it can be separated, Mike can maybe put it
+> into an immutable branch that I can merge in too.
 
-If you run with MMU disabled then you'd have to run out of the 64K
-internal SRAM, and catch data aborts since all writes will be
-non-posted. With MMU enabled, locking code and MMU translation tables
-into the (much larger) L2 cache makes more sense.
+Yea, that works also if Mike is okay with it.
 
-I *think* disabling the NIU only blocks access to the module and
-doesn't affect the module operationally. I'd be inclined to put
-external RAM into self-refresh during the procedure just to be sure,
-in case disabling NIUs results in clock gating (which would otherwise
-be hard to notice).
+-Tero
 
-> OK the driver would have to be enabled with interrupts while scanning.
+>
+>>> Other than wondering about the above and the dts related comments,
+>>> this series works for me with PM tests.
+>>
+>> I hope to post a series with the dts related comments fixed later today.
+>
+> Yes I'll take a look, thanks for doing that.
+>
+> Regards,
+>
+> Tony
+>
 
-Polling makes more sense, especially since nothing else can be going
-on at the same time anyway.
-
-
-I still think a separate tool that scrapes as much data as possible
-from the target and pours it into DT form makes more sense than doing
-it in a kernel driver, especially since discovered targets may often
-still need manual identification.  Also, probing discovered targets
-requires you enable the clock(s) they need and if necessary release
-local reset.  Auto-discovery of these associations may also be
-possible, but probably would become a rather lenghy procedure. A
-separate tool can also leave a record of what it's doing in SRAM and
-enable the watchdog to be able to recover from probes that lock up the
-system (and log a warning about them).
-
-Also, on HS devices, it would surprise me if you're allowed to access
-any interconnect registers at all.
-
-Matthijs
