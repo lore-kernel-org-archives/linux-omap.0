@@ -1,146 +1,309 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Thu, 19 Mar 2015 18:07:30 +0200
-Message-ID: <550AF442.5040203@ti.com>
-References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com> <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v2.1] ASoC: davinci-mcasp: Set rule constraints if implicit
+ BCLK divider is used
+Date: Thu, 19 Mar 2015 18:11:21 +0200
+Message-ID: <550AF529.1070105@ti.com>
+References: <1426770689-16884-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56936 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751127AbbCSQHm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Mar 2015 12:07:42 -0400
-In-Reply-To: <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56030 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188AbbCSQLb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 12:11:31 -0400
+In-Reply-To: <1426770689-16884-1-git-send-email-jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Knight <g.knight@symetrica.com>
-Cc: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: broonie@kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-On 03/19/2015 04:34 PM, Greg Knight wrote:
->> SO is it so that the codec's MCLK is coming from McASP AHCLKX (or R)=
- and this
->> clock need to be present all the time? W/o the MCLK the registers ar=
-e not
->> accessible?
->=20
-> Correct, the SGTL5000's I2C registers are not accessible without MCLK=
-=2E
+Please don't take this yet. The SNDRV_PCM_HW_PARAM_SAMPLE_BITS rule does 
+not appear to work as it should. I'll mail a new patch with a mask based 
+constraints for sample formats shortly.
 
-Yeah, according to the datasheet, it needs MCLK in order to communicate=
- with it.
+Best regards,
+Jyri
 
-> From my testing, the clock need only be present when the audio chip i=
-s
-> in use. When not in use, the chip appears perfectly happy to not be
-> clocked.
-
-If you change audio controls while you don't have audio activity, you w=
-ill
-still need to have the MCLK running.
-
-> Is there a better place to pull a ~12MHz clock signal for use as a
-> master clock from an AM335X?
-
-=46or a codec such as the SGTL5000 I would connect a clock, which is ru=
-nning all
-the time. If you take a look at the driver, it enables the clock at pro=
-be and
-leaves it running as long as the driver is loaded.
-
-But AM335x has CLKOUT1,2 outputs as well. They are not high quality clo=
-cks,
-but can be enabled/disabled.
-
->> This will not work in mainline kernel. The McASP is turned off when =
-it is not
->> in use (no audio activity) so the AHCLKX/R is not going to be there =
-on the
->> ball output.
->=20
-> The clock-to-talk hack in the patch enables the AHCLKX line during
-> codec initialization. From my testing, we don't seem to spend much
-> time communicating with the device when we're not using it. Disabling
-> the clock when it's not used should not be a problem.
-
-As I said, this is not going to work in upstream kernel. The McASP is n=
-ot even
-powered up during probe time anymore. It is only powered up when it is =
-needed,
-this means that you will not have clocks for the codec coming from McAS=
-P pin.
-The driver is not designed to support such a use case, when you use one=
- of
-it's clock as a master clock for external chip. In other words the McAS=
-P
-driver is not a clock driver.
-It might be possible to create a clock driver on top of the McASP drive=
-r as
-child, but it is really something which should not be supported.
-
->=20
->> How do you configure the frequency of the AHCLKX/R, this hack only e=
-nables it,
->> so you are going to have _some_ clock going out.
->=20
-> The frequency is the 12 MHz (I think) I get out from AHCLKX without
-> any further configuration; I have not investigated changing that
-> frequency as it suited my needs. But I can look into doing
-> set_clkdiv/set_sysclk during the clock-to-talk enable if that's more
-> appropriate?
+On 03/19/15 15:11, Jyri Sarha wrote:
+> Set rule constraints to allow only combinations of sample-rate,
+> sample-bits, and channels that can be played/captured with reasonable
+> sample-rate accuracy.
 >
->> You should be using set_clkdiv and set_sysclk calls from the machine=
- driver to
->> configure the AHCLKX (we do not have AHCLKR supported in the driver =
-ATM).
->=20
-> So, ehm, the SGTL5000 component logic (is this the machine driver?)
-> should adjust the McASP's clocks? Am I misunderstanding? Would this
-> not impact binding the SGTL5000 to devices that are *not* McASPs/brea=
-k
-> abstraction?
->=20
-> TBH I'm not clear on how the SGTL5000 bindings to other hardware work=
-=2E
+> The logic with tdm-slots and serializers (=i2s data wires) goes like
+> this: The first wire will take all channels up to number of tdm-slots,
+> before following wires (if any) are used. If the first wire is used
+> fully, the remaining wires share the same clocks and the divider can
+> be calculated for the first wire.
+>
+> Also, takes the number of tdm-slots into account when implicitly
+> selecting the BLCK divider.
+>
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+> This is othetwise the same patch as v2, but I added Peter's ack and
+> rebased on top of:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git topic/davinci
+>
+>   sound/soc/davinci/davinci-mcasp.c | 195 ++++++++++++++++++++++++++++++++++++--
+>   1 file changed, 185 insertions(+), 10 deletions(-)
+>
+> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+> index d40b392..625cca1 100644
+> --- a/sound/soc/davinci/davinci-mcasp.c
+> +++ b/sound/soc/davinci/davinci-mcasp.c
+> @@ -27,6 +27,7 @@
+>   #include <linux/of_platform.h>
+>   #include <linux/of_device.h>
+>   #include <linux/platform_data/davinci_asp.h>
+> +#include <linux/math64.h>
+>
+>   #include <sound/asoundef.h>
+>   #include <sound/core.h>
+> @@ -65,6 +66,11 @@ struct davinci_mcasp_context {
+>   	bool	pm_state;
+>   };
+>
+> +struct davinci_mcasp_ruledata {
+> +	struct davinci_mcasp *mcasp;
+> +	int serializers;
+> +};
+> +
+>   struct davinci_mcasp {
+>   	struct snd_dmaengine_dai_dma_data dma_data[2];
+>   	void __iomem *base;
+> @@ -99,6 +105,8 @@ struct davinci_mcasp {
+>   #ifdef CONFIG_PM_SLEEP
+>   	struct davinci_mcasp_context context;
+>   #endif
+> +
+> +	struct davinci_mcasp_ruledata ruledata[2];
+>   };
+>
+>   static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 offset,
+> @@ -868,6 +876,30 @@ static int mcasp_dit_hw_param(struct davinci_mcasp *mcasp,
+>   	return 0;
+>   }
+>
+> +static int davinci_mcasp_calc_clk_div(struct davinci_mcasp *mcasp,
+> +				      unsigned int bclk_freq,
+> +				      int *error_ppm)
+> +{
+> +	int div = mcasp->sysclk_freq / bclk_freq;
+> +	int rem = mcasp->sysclk_freq % bclk_freq;
+> +
+> +	if (rem != 0) {
+> +		if (div == 0 ||
+> +		    ((mcasp->sysclk_freq / div) - bclk_freq) >
+> +		    (bclk_freq - (mcasp->sysclk_freq / (div+1)))) {
+> +			div++;
+> +			rem = rem - bclk_freq;
+> +		}
+> +	}
+> +	if (error_ppm)
+> +		*error_ppm =
+> +			(div*1000000 + (int)div64_long(1000000LL*rem,
+> +						       (int)bclk_freq))
+> +			/div - 1000000;
+> +
+> +	return div;
+> +}
+> +
+>   static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
+>   					struct snd_pcm_hw_params *params,
+>   					struct snd_soc_dai *cpu_dai)
+> @@ -883,16 +915,20 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
+>   	 * the machine driver, we need to calculate the ratio.
+>   	 */
+>   	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
+> -		unsigned int bclk_freq = snd_soc_params_to_bclk(params);
+> -		unsigned int div = mcasp->sysclk_freq / bclk_freq;
+> -		if (mcasp->sysclk_freq % bclk_freq != 0) {
+> -			if (((mcasp->sysclk_freq / div) - bclk_freq) >
+> -			    (bclk_freq - (mcasp->sysclk_freq / (div+1))))
+> -				div++;
+> -			dev_warn(mcasp->dev,
+> -				 "Inaccurate BCLK: %u Hz / %u != %u Hz\n",
+> -				 mcasp->sysclk_freq, div, bclk_freq);
+> -		}
+> +		int channels = params_channels(params);
+> +		int rate = params_rate(params);
+> +		int sbits = params_width(params);
+> +		int ppm, div;
+> +
+> +		if (channels > mcasp->tdm_slots)
+> +			channels = mcasp->tdm_slots;
+> +
+> +		div = davinci_mcasp_calc_clk_div(mcasp, rate*sbits*channels,
+> +						 &ppm);
+> +		if (ppm)
+> +			dev_info(mcasp->dev, "Sample-rate is off by %d PPM\n",
+> +				 ppm);
+> +
+>   		__davinci_mcasp_set_clkdiv(cpu_dai, 1, div, 0);
+>   	}
+>
+> @@ -974,6 +1010,108 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
+>   	return ret;
+>   }
+>
+> +static const unsigned int davinci_mcasp_dai_rates[] = {
+> +	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
+> +	88200, 96000, 176400, 192000,
+> +};
+> +
+> +#define DAVINCI_MAX_RATE_ERROR_PPM 1000
+> +
+> +static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *params,
+> +				      struct snd_pcm_hw_rule *rule)
+> +{
+> +	struct davinci_mcasp_ruledata *rd = rule->private;
+> +	int sbits = params_width(params);
+> +	int channels = params_channels(params);
+> +	unsigned int list[ARRAY_SIZE(davinci_mcasp_dai_rates)];
+> +	int i, count = 0;
+> +
+> +	if (channels > rd->mcasp->tdm_slots)
+> +		channels = rd->mcasp->tdm_slots;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(davinci_mcasp_dai_rates); i++) {
+> +		uint bclk_freq = sbits*channels*davinci_mcasp_dai_rates[i];
+> +		int ppm;
+> +
+> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
+> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
+> +			list[count++] = davinci_mcasp_dai_rates[i];
+> +
+> +	}
+> +	dev_dbg(rd->mcasp->dev, "%d frequencies for %d sbits and %d channels\n",
+> +		count, sbits, channels);
+> +
+> +	return snd_interval_list(hw_param_interval(params, rule->var),
+> +				 count, list, 0);
+> +}
+> +
+> +static int davinci_mcasp_hw_rule_samplebits(struct snd_pcm_hw_params *params,
+> +					    struct snd_pcm_hw_rule *rule)
+> +{
+> +	struct davinci_mcasp_ruledata *rd = rule->private;
+> +	int channels = params_channels(params);
+> +	int rate = params_rate(params);
+> +	unsigned int list[4];
+> +	int sbits, count = 0;
+> +
+> +	if (channels > rd->mcasp->tdm_slots)
+> +		channels = rd->mcasp->tdm_slots;
+> +
+> +	for (sbits = 8; sbits <= 32; sbits += 8) {
+> +		uint bclk_freq = channels*sbits*rate;
+> +		int ppm;
+> +
+> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
+> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
+> +			list[count++] = sbits;
+> +	}
+> +	dev_dbg(rd->mcasp->dev,
+> +		"%d possible sample size for %d Hz and %d channels\n",
+> +		count, rate, channels);
+> +
+> +	return snd_interval_list(hw_param_interval(params, rule->var),
+> +				 count, list, 0);
+> +}
+> +
+> +static int davinci_mcasp_hw_rule_channels(struct snd_pcm_hw_params *params,
+> +					  struct snd_pcm_hw_rule *rule)
+> +{
+> +	struct davinci_mcasp_ruledata *rd = rule->private;
+> +	struct snd_interval *ci =
+> +		hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
+> +	int sbits = params_width(params);
+> +	int rate = params_rate(params);
+> +	int max_chan_per_wire = rd->mcasp->tdm_slots < ci->max ?
+> +		rd->mcasp->tdm_slots : ci->max;
+> +	unsigned int list[ci->max - ci->min + 1];
+> +	int c1, c, count = 0;
+> +
+> +	for (c1 = ci->min; c1 <= max_chan_per_wire; c1++) {
+> +		uint bclk_freq = c1*sbits*rate;
+> +		int ppm;
+> +
+> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
+> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
+> +			/* If we can use all tdm_slots, we can put any
+> +			   amount of channels to remaining wires as
+> +			   long as they fit in. */
+> +			if (c1 == rd->mcasp->tdm_slots) {
+> +				for (c = c1; c <= rd->serializers*c1 &&
+> +					     c <= ci->max; c++)
+> +					list[count++] = c;
+> +			} else {
+> +				list[count++] = c1;
+> +			}
+> +		}
+> +	}
+> +	dev_dbg(rd->mcasp->dev,
+> +		"%d possible channel counts for %d Hz and %d sbits\n",
+> +		count, rate, sbits);
+> +
+> +	return snd_interval_list(hw_param_interval(params, rule->var),
+> +				 count, list, 0);
+> +}
+> +
+>   static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+>   				 struct snd_soc_dai *cpu_dai)
+>   {
+> @@ -999,6 +1137,7 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+>   		if (mcasp->serial_dir[i] == dir)
+>   			max_channels++;
+>   	}
+> +	mcasp->ruledata[dir].serializers = max_channels;
+>   	max_channels *= mcasp->tdm_slots;
+>   	/*
+>   	 * If the already active stream has less channels than the calculated
+> @@ -1013,6 +1152,42 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+>   	snd_pcm_hw_constraint_minmax(substream->runtime,
+>   				     SNDRV_PCM_HW_PARAM_CHANNELS,
+>   				     2, max_channels);
+> +
+> +	/*
+> +	 * If we rely on implicit BCLK divider setting we should
+> +	 * set constraints based on what we can provide.
+> +	 */
+> +	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
+> +		int ret;
+> +
+> +		mcasp->ruledata[dir].mcasp = mcasp;
+> +
+> +		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
+> +					  SNDRV_PCM_HW_PARAM_RATE,
+> +					  davinci_mcasp_hw_rule_rate,
+> +					  &mcasp->ruledata[dir],
+> +					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
+> +					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
+> +		if (ret)
+> +			return ret;
+> +		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
+> +					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
+> +					  davinci_mcasp_hw_rule_samplebits,
+> +					  &mcasp->ruledata[dir],
+> +					  SNDRV_PCM_HW_PARAM_RATE,
+> +					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
+> +		if (ret)
+> +			return ret;
+> +		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
+> +					  SNDRV_PCM_HW_PARAM_CHANNELS,
+> +					  davinci_mcasp_hw_rule_channels,
+> +					  &mcasp->ruledata[dir],
+> +					  SNDRV_PCM_HW_PARAM_RATE,
+> +					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS, -1);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>   	return 0;
+>   }
+>
+>
 
-It works in other HW because the designers connected the SGTL5000's MCL=
-K to a
-clock source which can be controlled or it is running all the time. In =
-your
-case the designers chosen a clock line, which is not working as 'normal=
-' clock.
-
-> Is it safe to assume set_sysclk is always going to adjust the I2S MCL=
-K
-> speed? Please pardon my crude questions, I'm not deeply familiar with
-> the structure of ALSA.
-
-With the setclkdiv/sysclk you can configure the AHCLKX direction and co=
-nfigure
-the divider to be used to generate the clock which goes out, or to divi=
-de down
-the clock which is coming in.
-
-Another issue this hack has is: what happens if for some reason the SGT=
-L5000
-driver loads first? McASP will not enable the AHCLKX so the codec drive=
-r will
-fail reading the CHIP_ID and fails to load. You need to provide a dummy=
- clock
-node to the codec, so that will not fail, but you will not have the MCL=
-K.
-
-> I'll reformat the patches and try from a mainline kernel when I get
-> some spare time.
-
-I'm not sure if this can be accepted, sorry. It is really a hack and th=
-ere are
-too many corner cases where the system can fail.
-
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
