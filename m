@@ -1,53 +1,53 @@
-From: <grygorii.strashko@linaro.org>
-Subject: [PATCH 6/8] gpio: omap: get rid of GPIO_BIT() macro
-Date: Thu, 19 Mar 2015 19:25:42 +0200
-Message-ID: <1426785944-17255-7-git-send-email-grygorii.strashko@linaro.org>
-References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@linaro.org>
+From: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>
+Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
+Date: Thu, 19 Mar 2015 13:28:00 -0400
+Message-ID: <1426786080.13824.23.camel@symus-gk-mint>
+References: <1426741501.10003.6.camel@midgaarde>	<550AC256.4070509@ti.com>
+	 <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>
+	 <550AF7F6.7080200@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <550AF7F6.7080200-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@linaro.org>
+> I think the best thing we could do is to calculate the DMA_MIN_BYTES
+in the
+> driver based on the SPI speed. Something which will give ~160 in the
+speed in
+> which the wl driver is used and something which works best in your
+setup in
+> the speed you are using the SPI bus.
+> The best way is to give some msec as a limit. If the transfer would
+take more
+> then X msec on the bus to be transferred, we will use DMA, if it is
+less than
+> that we fall back to PIO.
+> Yes, the CPU speed is not taken into account, but IMHO the bus speed
+is more
+> 
 
-Now OMAP GPIO driver prepared for GPIO_BIT() macro removing.
-Do it ;)
+Changing DMA_MIN_BYTES to, say, "dma_min_time_ms" sounds reasonable to
+me. I don't know how to compute it completely accurately as some SPI
+implementations I've seen seem to like to inject little delays between
+bytes for some reason, but a reasonable enough estimate should just be
+spi_transfer_time_ms = (bits * 1000) / spi_clock_speed.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
----
- drivers/gpio/gpio-omap.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+I would like to have the ability to configure it without a kernel
+recompile, though. Would a kernel param (module_param) be acceptable for
+this application?
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index b39faa8..dd7934a 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -82,7 +82,6 @@ struct gpio_bank {
- };
- 
- #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
--#define GPIO_BIT(bank, gpio) (BIT(GPIO_INDEX(bank, gpio)))
- #define GPIO_MOD_CTRL_BIT	BIT(0)
- 
- #define BANK_USED(bank) (bank->mod_usage || bank->irq_usage)
-@@ -863,7 +862,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
- 	unsigned offset = d->hwirq;
--	unsigned int irq_mask = GPIO_BIT(bank, gpio);
- 	u32 trigger = irqd_get_trigger_type(d);
- 	unsigned long flags;
- 
-@@ -873,7 +871,7 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 
- 	/* For level-triggered GPIOs, the clearing must be done after
- 	 * the HW source is cleared, thus after the handler has run */
--	if (bank->level_mask & irq_mask) {
-+	if (bank->level_mask & BIT(offset)) {
- 		omap_set_gpio_irqenable(bank, offset, 0);
- 		omap_clear_gpio_irqstatus(bank, offset);
- 	}
--- 
-1.9.1
+You don't happen to know the WL12xx SPI clock speed off the top of your
+head, do you?
+
+Regards,
+Greg
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
