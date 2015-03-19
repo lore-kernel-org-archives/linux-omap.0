@@ -1,132 +1,93 @@
-From: Greg Knight <g.knight@symetrica.com>
-Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
-Date: Thu, 19 Mar 2015 09:16:31 -0400
-Message-ID: <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>
-References: <1426741501.10003.6.camel@midgaarde>
-	<550AC256.4070509@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH] usb: musb: Fix fifo reads for dm816x with musb_dsps
+Date: Thu, 19 Mar 2015 16:30:09 +0300
+Message-ID: <550ACF61.5000909@cogentembedded.com>
+References: <1426718882-27187-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp02.uk.clara.net ([195.8.89.35]:42307 "EHLO
-	claranet-outbound-smtp02.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754949AbbCSNQg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Mar 2015 09:16:36 -0400
-In-Reply-To: <550AC256.4070509@ti.com>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:32973 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbbCSNaN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 09:30:13 -0400
+Received: by ladw1 with SMTP id w1so62058966lad.0
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 06:30:12 -0700 (PDT)
+In-Reply-To: <1426718882-27187-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Greg Knight <g.knight@symetrica.com>, Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, George Cherian <george.cherian@ti.com>
 
-Will refer to that documentation and update the SPI docs before resubmi=
-tting.
+Hello.
 
-Re; Threshold of 160 is artificial: Believe me, I am more than aware
-of this. SPI runs in any speed from low kHz to multi MHz. The only
-reason I can fathom for having such a high DMA_MIN_BYTES is to
-facilitate high-speed low-volume communication (eg read one byte at a
-time from userspace without buffering.) The reason I'm looking at this
-at all is because we're doing low-speed low-volume communication, for
-which the burn in PIO mode causes severe performance degradation.
-Internally we'd changed it to 20, but I might try 8. I originally
-tried 0, but observed poor behavior for our use cases. DMA_MIN_BYTES
-at 8 would be sensible for our application, but at 160 it is not.
+On 3/19/2015 1:48 AM, Tony Lindgren wrote:
 
-The current solution is for everybody who needs to change their device
-settings to churn that macro, just as 8b66c1474e16 did. Changing that
-values incurs significant risk of excess CPU load (if increased) or
-timing slop (if decreased) to all hardware using the McSPI. Moving the
-param to DT allows those of us working on custom boards to modify the
-value for some hardware without risking the entire ecosystem. Let's
-please not keep a bad solution just because no perfect solution
-exists...
+> Looks like dm81xx can only do 32-bit fifo reads like am35x. Let's set
+> up musb-dsps with a custom read_fifo function based on the compatible
+> flag.
 
-I think the proper location for this patch might actually be in the
-spidev nodes in DT, rather than at the mcspi level - but I don't
-understand why this does not belong in DT. DT is, after all, where one
-would normally describe the rest of the slave device bindings. A
-sensible value for DMA_MIN_BYTES requires the user to know the CPU
-clock speed alongside the SPI bus speed, and estimate acceptable
-levels of slop in timing. I don't think userspace should need to do
-these computations to avoid excess CPU load; could do it in kernel
-space, or leave it up to DT or kernel parameters.
+> Otherwise we can get the following errors when starting dhclient on a
+> asix USB Ethernet adapter:
 
-How about moving the speed to the spidev DT nodes?
+> asix 2-1:1.0 eth2: asix_rx_fixup() Bad Header Length 0xffff003c, offset 4
 
-Regards,
-Greg
+> While at it, let's also remove pointless cast of the driver data.
 
+> Cc: Bin Liu <binmlist@gmail.com>
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Cc: George Cherian <george.cherian@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   drivers/usb/musb/musb_dsps.c | 37 ++++++++++++++++++++++++++++++++++++-
+>   1 file changed, 36 insertions(+), 1 deletion(-)
 
-On Thu, Mar 19, 2015 at 8:34 AM, Peter Ujfalusi <peter.ujfalusi@ti.com>=
- wrote:
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -655,6 +655,36 @@ static int dsps_musb_reset(struct musb *musb)
+>   	return !session_restart;
+>   }
 >
-> On 03/19/2015 07:05 AM, Greg Knight wrote:
-> > Hi, Mark,
-> >
-> > I've attached a patch which adds a device-tree field "ti,dma-min-by=
-tes"
-> > which replaces the macro DMA_MIN_BYTES. Adjusting this field addres=
-ses
-> > issues we've had where, in our particular use case, the usleep() in=
- the
-> > SPI worker thread eats a full 20% of our CPU (AM3359).
-> >
-> > I opted to implement it as a device-tree parameter and keep the ori=
-ginal
-> > value (160) as the default, in order to avoid impacting anyone else=
-=2E
-> >
-> > The patch is attached. Patches 1-2 are an unrelated McASP change (s=
-ee my
-> > other message).
-> >
-> > What is the process for getting this upstreamed?
->
-> Please follow the guidelines in Documentation/SubmittingPatches. Patc=
-hes as
-> attachments are not preferred since it makes replying/commenting on t=
-he
-> patches hard.
->
-> Strictly speaking the dma-min-bytes should not be in DT, it is a soft=
-ware
-> parameter for the Linux SPI driver implementation.
-> Also, when changing DT bindings, please update the documentation as w=
-ell (and
-> CC the relevant lists with that).
->
-> This threshold of 160 bytes in the omap2-mcspi driver is artificial a=
-nyways it
-> is changed from 8 to 160 by this commit:
-> 8b66c13474e16 spi/omap2_mcspi: change default DMA_MIN_BYTES value to =
-160
->
-> It has been changed because of wl1271, but I'm not sure if banging by=
-tes over
-> the bus when the transfer is less then 160bytes is that great thing. =
-I would
-> guess that the sweet spot is at around the low tens.
->
-> But if it is really like this that different devices perform better w=
-ith
-> different threshold for choosing between PIO or DMA transfer then thi=
-s setting
-> should come from the slave device and should only affect the transfer=
- setup
-> when communicating with that device.
->
-> Probably adding a parameter (optional) to spi_device struct, so drive=
-rs can
-> pass dma_over_poi_threshold?
-> If it is not set, than just use whatever is the default.
->
-> But I don't think this setting should be in the DT.
->
-> --
-> P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/* Similar to am35x, dm81xx support only 32-bit read operation */
+> +static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+> +{
+> +	void __iomem *fifo = hw_ep->fifo;
+> +	u32		val;
+> +	int		i;
+> +
+> +	/* Read for 32bit-aligned destination address */
+> +	if (likely((0x03 & (unsigned long)dst) == 0) && len >= 4) {
+> +		readsl(fifo, dst, len >> 2);
+> +		dst += len & ~0x03;
+> +		len &= 0x03;
+> +	}
+> +	/*
+> +	 * Now read the remaining 1 to 3 byte or complete length if
+> +	 * unaligned address.
+> +	 */
+
+   This comment seems misplaced, it belongs before the next *if*.
+
+> +	if (len > 4) {
+> +		for (i = 0; i < (len >> 2); i++) {
+> +			*(u32 *)dst = musb_readl(fifo, 0);
+> +			dst += 4;
+> +		}
+
+    Not sure how this is different to using readsl().
+
+> +		len &= 0x03;
+> +	}
+> +	if (len > 0) {
+> +		val = musb_readl(fifo, 0);
+> +		memcpy(dst, &val, len);
+> +	}
+> +}
+> +
+>   static struct musb_platform_ops dsps_ops = {
+>   	.quirks		= MUSB_INDEXED_EP,
+>   	.init		= dsps_musb_init,
+[...]
+
+WBR, Sergei
+
