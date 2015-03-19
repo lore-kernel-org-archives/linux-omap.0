@@ -1,58 +1,44 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 02/35 linux-next] regulator: constify of_device_id array
-Date: Thu, 19 Mar 2015 17:44:04 +0000
-Message-ID: <20150319174404.GY2869@sirena.org.uk>
-References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
- <1426533469-25458-3-git-send-email-fabf@skynet.be>
- <20150317121128.GH28806@sirena.org.uk>
- <1489228275.7513.1426612212420.open-xchange@webmail.nmp.proximus.be>
- <20150317171906.GQ28806@sirena.org.uk>
- <239561179.7761.1426613177885.open-xchange@webmail.nmp.proximus.be>
+From: Greg Knight <g.knight@symetrica.com>
+Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
+Date: Thu, 19 Mar 2015 13:48:08 -0400
+Message-ID: <1426787288.13824.36.camel@symus-gk-mint>
+References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>
+	 <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
+	 <550AF442.5040203@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="wHYmV+hLPeNaasdK"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <239561179.7761.1426613177885.open-xchange@webmail.nmp.proximus.be>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: Tony Lindgren <tony@atomide.com>, Joe Perches <joe@perches.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qg0-f50.google.com ([209.85.192.50]:32929 "EHLO
+	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753117AbbCSRsL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 13:48:11 -0400
+Received: by qgfa8 with SMTP id a8so71997517qgf.0
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 10:48:10 -0700 (PDT)
+In-Reply-To: <550AF442.5040203@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+> For a codec such as the SGTL5000 I would connect a clock, which is
+running all
+> the time. If you take a look at the driver, it enables the clock at
+probe and
+> leaves it running as long as the driver is loaded.
 
---wHYmV+hLPeNaasdK
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Speaking briefly to my "electrical" colleague, he's a bit concerned
+about the extra power load that a crystal oscillator might incur, while
+I'm concerned about audio quality from a source like CLKOUT2.
 
-On Tue, Mar 17, 2015 at 06:26:17PM +0100, Fabian Frederick wrote:
-> > On 17 March 2015 at 18:19 Mark Brown <broonie@kernel.org> wrote:
+Is there a straightforward way we could enable the clock on-demand -
+when we're communicating with the codec/mixer or actually using the
+audio subsystem - while keeping it disabled when not in use? We don't
+expect to be using the audio subsystem frequently.
 
-> > Well, another thing to do if there's no dependencies is to just send
-> > each patch separately - there's no real relationship between the
-> > patches.=A0 This also avoids the issue.
+Worst-case we can set up a GPIO and enable/disable it as needed in
+user-space - acceptable, if annoying, for our application.
 
-> Such trivial updates are generally applied by David or Greg
-> after receiving some ack. That's the reason for the patchset :)
+Thanks,
+Greg
 
-It's pretty disappointing if that's the case, though it might be
-something connected with the submission style - for most of the kernel
-patches would normally be handled directly by the maintainer.
-
---wHYmV+hLPeNaasdK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVCwrjAAoJECTWi3JdVIfQ/WoH/iFg6I3ySnb5LmorKlH0rRrz
-O97ceRT4lsCkEnvwixBkkWOEvueRPNQCAd1xskEp/Sltq/dxUK7KrbH0r9aoqEwk
-AN3lQreYARtEH3d1ahrC94mkhkojVmDYct2hFWlgck1S3FwURaF/JdawAnG5g2If
-ElpbZ7d+bFgch1Cbg9VSbKSz9mycWwzZ2SsfMn5Pz+AfLPZO8d86I2uGLKn1vWzA
-Mqrb0uX4xgumV0NxiS+a6jWZnXeaHZOxFjmFQXvPGyiaui87ybRBNrxZT5z4KbBm
-M3ImpetyXRWzfreJESJeIZJiId6wPlSnxY6pJKr5bDDH+Z6V/DSalRZQH/HRci0=
-=ZQSv
------END PGP SIGNATURE-----
-
---wHYmV+hLPeNaasdK--
