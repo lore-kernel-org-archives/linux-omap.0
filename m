@@ -1,82 +1,126 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 00/35] ARM: OMAP2+: PRCM / SCM cleanups against 4.0-rc1
-Date: Thu, 19 Mar 2015 10:05:00 +0200
-Message-ID: <550A832C.6020804@ti.com>
-References: <1426689860-17537-1-git-send-email-t-kristo@ti.com> <20150319000058.GM11954@valkosipuli.retiisi.org.uk>
+From: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: Re: [RFC][PATCH 3/9] usb: otg: add OTG core
+Date: Thu, 19 Mar 2015 16:26:59 +0800
+Message-ID: <20150319082656.GA4210@shlinux1.ap.freescale.net>
+References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
+ <1426686963-11613-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36418 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129AbbCSIFh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 04:05:37 -0400
-In-Reply-To: <20150319000058.GM11954@valkosipuli.retiisi.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1426686963-11613-4-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 03/19/2015 02:00 AM, Sakari Ailus wrote:
-> Hi Tero,
->
-> On Wed, Mar 18, 2015 at 04:43:45PM +0200, Tero Kristo wrote:
->> Hi,
->>
->> Changes in this set compared to v3:
->>
->> - Changed the SCM module DT node layout based on comments from Tony;
->>    basically the wkup / core are split into their own nodes now. This
->>    applies for omap3, omap4, omap5 and dra7, rest of the SoCs have their
->>    control module integrated as one instance (Patch 26, 30, 33, 34)
->> - Changed the tisyscon node name to scm_conf. This name is more
->>    descriptive for the purpose being used, scm_conf was already used
->>    as an alias (Patch 24, 25, 27, 29)
->> - Rest of the patches have no changes compared to v3.
->>
->> Testing done:
->> - am335x-evm      : boot
->> - am335x-evmsk    : boot
->> - am3517-evm      : boot
->> - am43x-epos-evm  : boot
->> - am437x-gp-evm   : boot
->> - omap3-beagle-xm : boot
->> - omap3-beagle    : boot, suspend-resume (ret/off), cpuidle (ret/off)
->> - am335x-boneblack: boot
->> - am335x-bone     : boot
->> - dra7xx-evm      : boot
->> - omap3-n900      : boot
->> - omap5-uevm      : boot
->> - omap4-panda-es  : boot, suspend-resume (ret), cpuidle (ret)
->> - omap4-panda     : boot
->> - omap2430-sdp    : boot
->> - omap3430-sdp    : boot
->> - omap4-sdp-es23plus: boot
->>
->> Test branch pushed at:
->> - tree: https://github.com/t-kristo/linux-pm.git
->> - branch: 4.0-rc1-prcm-cleanup-v4
->
-> I tried compiling this, but I get a few linker errors:
+On Wed, Mar 18, 2015 at 03:55:57PM +0200, Roger Quadros wrote:
+> The OTG core instantiates the OTG Finite State Machine
+> per OTG controller and manages starting/stopping the
+> host and gadget controllers based on the bus state.
+> 
+> It provides APIs for the following tasks
+> 
+> - Registering an OTG capable controller
+> - Registering Host and Gadget controllers to OTG core
+> - Providing inputs to and kicking the OTG state machine
+> 
+> TODO:
+> - sysfs interface to allow application inputs to OTG state machine
+> - otg class?
+> 
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+> +struct otg_data {
+> +	struct device *dev;	/* HCD & GCD's parent device */
+> +
+> +	struct otg_fsm fsm;
+> +	/* HCD, GCD and usb_otg_state are present in otg_fsm->otg
+> +	 * HCD is bus_to_hcd(fsm->otg->host)
+> +	 * GCD is fsm->otg->gadget
+> +	 */
+> +	struct otg_fsm_ops fsm_ops;	/* private copy for override */
+> +	struct usb_otg otg;
+> +	struct usb_hcd *shared_hcd;	/* if shared HCD registered */
+> +
+> +	/* saved hooks to OTG device */
+> +	int (*start_host)(struct otg_fsm *fsm, int on);
+> +	int (*start_gadget)(struct otg_fsm *fsm, int on);
+> +
+> +	struct list_head list;
+> +
+> +	struct work_struct work;	/* OTG FSM work */
+> +	struct workqueue_struct *wq;
+> +
+> +	struct otg_timer timers[NUM_OTG_FSM_TIMERS];
+> +
+> +	bool fsm_running;
+> +	bool gadget_can_start;		/* OTG FSM says gadget can start */
+> +	bool host_can_start;		/* OTG FSM says host can start */
 
-Right, I always forget about silly people who do things like OMAP3 only 
-builds or something.... Shall be fixed.
+Do not understand above 2 *_can_start flags from the patch, which are set
+only when you really start host/gadget, to prevent host/gadget driver to
+start it out of otg fsm control?
 
--Tero
+Li Jun
+> +
+> +	/* use otg->fsm.lock for serializing access */
+> +};
+> +
+> + * Can be called in IRQ context.
+> + */
+> +void usb_otg_sync_inputs(struct otg_fsm *fsm)
+> +{
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +
+> +	/* Don't kick FSM till it has started */
+> +	if (!otgd->fsm_running)
+> +		return;
+> +
+> +	/* Kick FSM */
+> +	queue_work(otgd->wq, &otgd->work);
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_sync_inputs);
+> +
+> +/**
+> + * usb_otg_kick_fsm - Kick the OTG state machine
+> + * @hcd_gcd_device:	Host/Gadget controller device
+> + *
+> + * Used by USB host/device stack to sync OTG related
+> + * events to the OTG state machine.
+> + * e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
+> + *
+There are quite a few otg fsm variables which should be updated when 
+events/interrupts(b_conn, a_srp_det, ...) occur, how is your plan to
+update them? Still rely on specific controller driver irq handler to
+capture all those events and update them?
 
->
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x47d8): undefined reference to `am33xx_prm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x47f0): undefined reference to `omap44xx_prm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x4808): undefined reference to `omap2xxx_prm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x4838): undefined reference to `omap44xx_prm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x4868): undefined reference to `omap44xx_prm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x4880): undefined reference to `omap44xx_prm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x4898): undefined reference to `omap2xxx_cm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x48c8): undefined reference to `omap4_cm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x48e0): undefined reference to `omap4_cm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x48f8): undefined reference to `am33xx_cm_init'
-> arch/arm/mach-omap2/built-in.o:(.init.data+0x4910): undefined reference to `omap4_cm_init'
->
-> .config attached.
->
-
+Li Jun
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_kick_fsm(struct device *hcd_gcd_device)
+> +{
+> +	struct otg_data *otgd;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(hcd_gcd_device->parent);
+> +	if (!otgd) {
+> +		dev_err(hcd_gcd_device, "%s: invalid host/gadget device\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -ENODEV;
+> +	}
+> +
+> +	mutex_unlock(&otg_list_mutex);
+> +	usb_otg_sync_inputs(&otgd->fsm);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_kick_fsm);
+> -- 
+> 2.1.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
