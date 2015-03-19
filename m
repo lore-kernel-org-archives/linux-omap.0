@@ -1,67 +1,49 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2] ASoC: davinci-mcasp: Set rule
- constraints if implicit BCLK divider is used
-Date: Thu, 19 Mar 2015 09:44:43 +0000
-Message-ID: <20150319094443.GN2869@sirena.org.uk>
-References: <1426755069-28644-1-git-send-email-jsarha@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
+Date: Thu, 19 Mar 2015 09:47:08 +0000
+Message-ID: <20150319094708.GO2869@sirena.org.uk>
+References: <1426741501.10003.6.camel@midgaarde>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6642571121633524656=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1426755069-28644-1-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="lLR1BQqf7txDtYcF"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1426741501.10003.6.camel@midgaarde>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============6642571121633524656==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="95CBLwa+io9O2zXc"
-Content-Disposition: inline
-
-
---95CBLwa+io9O2zXc
+--lLR1BQqf7txDtYcF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Mar 19, 2015 at 10:51:09AM +0200, Jyri Sarha wrote:
-> Set rule constraints to allow only combinations of sample-rate,
-> sample-bits, and channels that can be played/captured with reasonable
-> sample-rate accuracy.
+On Thu, Mar 19, 2015 at 01:05:01AM -0400, Greg Knight wrote:
 
-This doesn't apply against current code, please check and resend.
+> What is the process for getting this upstreamed?
 
---95CBLwa+io9O2zXc
+Please submit the patch following the process in
+Documentation/SubmittingPatches.
+
+--lLR1BQqf7txDtYcF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJVCpqKAAoJECTWi3JdVIfQdo4H/21O1uSPQHy9dvVBPpKzLiGi
-sl6GUUUXrYeVRCoIu+sp3L9NbkYmdn0Ei+hvGaVx2I/nZiGJMQh5HDOm2sy5QCWI
-mgkbCCI4zmbS4Pgh6OO6NYRweGWEepBJIkAetWmsMrswa/saHbNFTSlrguAnIyqZ
-904Kfk02Y25CaRGNmlWVi42bRs/2JUm6aqx40Nl0NSM/t+LKYeVOUxB3vlJZu9YP
-ZW1tA5MCvSHTXOmYFvOVjdxlNXPkLbDWdRbVgnY9mYPkv6m+/ISzCs4HwemOjpZA
-K/fs1CHnO52brxGoDV/0FdCUEiHjK7rMr4on+b13h8TcApBt5RubvdlRzUT6XoM=
-=XsX6
+iQEcBAEBCAAGBQJVCpsbAAoJECTWi3JdVIfQQl4H/3IwcXHu9SE0Aw4Q4BZwZsEA
+Cf263POyp7X7U6dScCFWAc+8UeUpCpsOGrdXNhi8dbEBjS6b3hrV1Wv3oNNmQsk6
+PubkO4Xm7wufqAzvG4Podz4hzQY5Og1W1WLZTdbVgEk71U0AnMVzS/iA5u3rYtKK
+uftkC2XZVSRdS92bo9/6GTYi9iVBXwLIbhNSZPre4HiL67NgXz5YV3vtMFLeYmkY
+DrJrHFmqR/t4tvG4DbXJYqhqw9siUdIsq+1VUafCmATFlx7vNdjyIv+RbDXhtzP0
+s8APVYtuBuNa5fS2r9fvbh+TDqLZOaQ9jlYWlEXY8XPIAE1z2Q43nmvefAXjzxQ=
+=1/AE
 -----END PGP SIGNATURE-----
 
---95CBLwa+io9O2zXc--
-
---===============6642571121633524656==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============6642571121633524656==--
+--lLR1BQqf7txDtYcF--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
