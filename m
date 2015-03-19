@@ -1,80 +1,82 @@
-From: Nikolay Dimitrov <picmaster@mail.bg>
-Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Thu, 19 Mar 2015 20:06:15 +0200
-Message-ID: <550B1017.2000405@mail.bg>
-References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>
- <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
- <550AF442.5040203@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH] usb: musb: Fix fifo reads for dm816x with musb_dsps
+Date: Thu, 19 Mar 2015 21:11:06 +0300
+Message-ID: <550B113A.5060405@cogentembedded.com>
+References: <1426718882-27187-1-git-send-email-tony@atomide.com> <550ACF61.5000909@cogentembedded.com> <550B0C3C.3080107@cogentembedded.com> <20150319175549.GI31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <550AF442.5040203@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Greg Knight <g.knight@symetrica.com>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:36760 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751463AbbCSSLK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 14:11:10 -0400
+Received: by lbblx11 with SMTP id lx11so36759993lbb.3
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 11:11:08 -0700 (PDT)
+In-Reply-To: <20150319175549.GI31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, George Cherian <george.cherian@ti.com>
 
-Hi Peter,
+On 03/19/2015 08:55 PM, Tony Lindgren wrote:
 
-On 03/19/2015 06:07 PM, Peter Ujfalusi wrote:
-> On 03/19/2015 04:34 PM, Greg Knight wrote:
->>> SO is it so that the codec's MCLK is coming from McASP AHCLKX (or R) and this
->>> clock need to be present all the time? W/o the MCLK the registers are not
->>> accessible?
->>
->> Correct, the SGTL5000's I2C registers are not accessible without MCLK.
->
-> Yeah, according to the datasheet, it needs MCLK in order to communicate with it.
->
+>>>> --- a/drivers/usb/musb/musb_dsps.c
+>>>> +++ b/drivers/usb/musb/musb_dsps.c
+>>>> @@ -655,6 +655,36 @@ static int dsps_musb_reset(struct musb *musb)
+>>>>       return !session_restart;
+>>>>   }
+>>>>
+>>>> +/* Similar to am35x, dm81xx support only 32-bit read operation */
+>>>> +static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+>>>> +{
+>>>> +    void __iomem *fifo = hw_ep->fifo;
+>>>> +    u32        val;
+>>>> +    int        i;
+>>>> +
+>>>> +    /* Read for 32bit-aligned destination address */
+>>>> +    if (likely((0x03 & (unsigned long)dst) == 0) && len >= 4) {
+>>>> +        readsl(fifo, dst, len >> 2);
+>>>> +        dst += len & ~0x03;
+>>>> +        len &= 0x03;
+>>>> +    }
+>>>> +    /*
+>>>> +     * Now read the remaining 1 to 3 byte or complete length if
+>>>> +     * unaligned address.
+>>>> +     */
 
-Slight clarification here - I can't find any such reference in the
-SGTL5000 datasheet where it's explicitly written that the I2C bus
-*requires* the MCLK running. Unfortunately, all of us found this
-obscure dependency empirically. One more thing - the codec's I2C works
-with "any" supported MCLK (8-27 MHz), you can even change the clock on
-the fly (not highly recommended, but it works).
+>>>    This comment seems misplaced, it belongs before the next *if*.
 
->>  From my testing, the clock need only be present when the audio chip is
->> in use. When not in use, the chip appears perfectly happy to not be
->> clocked.
->
-> If you change audio controls while you don't have audio activity, you will
-> still need to have the MCLK running.
+>>>> +    if (len > 4) {
+>>>> +        for (i = 0; i < (len >> 2); i++) {
+>>>> +            *(u32 *)dst = musb_readl(fifo, 0);
+>>>> +            dst += 4;
+>>>> +        }
 
-Correct. And this is a big issue. As far as I know, the kernel drivers
-control separately the clock domains, and separately i2c devices, so
-the basic expectation on the kernel side is that there's no connection
-between these 2. In this specific case, because of the SGTL5000's
-implementation, there's a dependency. Right now as I see it, there are
-several ways to resolve it:
+>>>     Not sure how this is different to using readsl().
 
-1. Run the reference clock all the time, so the SGTL5000 codec is
-happy, and DAPM widgets can work as-is. We've been doing this all the
-time - the reference clocks are routinely configured either in the
-bootloader, or in the DTS iomuxc node. While this can work in some
-cases (or until someone touches the same clock or one of its parents
-:D), there are other cases (like battery-powered devices) where people
-would want more aggressive power management, which means controlling
-the reference clock at runtime (see #2).
+>>     Ah, the default implementation of musb_readl() uses __raw_readl().
+>> So you'd probably want to keep this loop, not readsl() call.
 
-2. Add "hacks" in the DAPM widgets that add control to the codec's
-reference clocks. While this seems the preferred route to many, the
-general feeling is that such approach is not very welcome in upstream.
+> Not sure I follow you here..
 
-3. Add explicit support in the kernel's audio subsystem for
-dependencies between i2c devices and clocks, maybe via "DAPM clock
-widget" or something like this. Provided that the DAPM graphs are
-defined properly, this will work out-of-the-box for all use cases,
-without the hacks (until we see even more twisted cases).
+    I just wrongly thought readsl() uses readl() internally. readl() is 
+supposed to swap bytes when needed (BE case), while __raw_readl() is not.
 
-Kind regards,
-Nikolay
+> Also include/asm-generic/io.h readsl()
+> uses __raw_readl()?
+
+    Looking at the arch/arm/include/asm/io.h, readsl() is equivalent to 
+__raw_readsl() too. Forgot about this "asymmetry".
+
+> It seems things work with what I posted, so a readsl() loop, then
+> just read the remaining 1 to 3 bytes.
+
+    In LE mode, there would have been no difference anyway.
+
+> Regards,
+
+> Tony
+
+WBR, Sergei
+
