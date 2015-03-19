@@ -1,93 +1,51 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH] usb: musb: Fix fifo reads for dm816x with musb_dsps
-Date: Thu, 19 Mar 2015 16:30:09 +0300
-Message-ID: <550ACF61.5000909@cogentembedded.com>
-References: <1426718882-27187-1-git-send-email-tony@atomide.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
+Date: Thu, 19 Mar 2015 14:03:49 +0000
+Message-ID: <20150319140349.GT2869@sirena.org.uk>
+References: <1426741501.10003.6.camel@midgaarde>
+ <550AC256.4070509@ti.com>
+ <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:32973 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbbCSNaN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 09:30:13 -0400
-Received: by ladw1 with SMTP id w1so62058966lad.0
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 06:30:12 -0700 (PDT)
-In-Reply-To: <1426718882-27187-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="9hshNW4m6zn79FF/"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>
+Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, George Cherian <george.cherian@ti.com>
 
-Hello.
 
-On 3/19/2015 1:48 AM, Tony Lindgren wrote:
+--9hshNW4m6zn79FF/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Looks like dm81xx can only do 32-bit fifo reads like am35x. Let's set
-> up musb-dsps with a custom read_fifo function based on the compatible
-> flag.
+On Thu, Mar 19, 2015 at 09:16:31AM -0400, Greg Knight wrote:
+> Will refer to that documentation and update the SPI docs before resubmitting.
 
-> Otherwise we can get the following errors when starting dhclient on a
-> asix USB Ethernet adapter:
+Please don't top post on kernel lists, reply in line (deleting any
+unneeded context) so people have context for what you are talking about.
+This makes discussions much easier to follow.
 
-> asix 2-1:1.0 eth2: asix_rx_fixup() Bad Header Length 0xffff003c, offset 4
+--9hshNW4m6zn79FF/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> While at it, let's also remove pointless cast of the driver data.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-> Cc: Bin Liu <binmlist@gmail.com>
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: George Cherian <george.cherian@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   drivers/usb/musb/musb_dsps.c | 37 ++++++++++++++++++++++++++++++++++++-
->   1 file changed, 36 insertions(+), 1 deletion(-)
+iQEcBAEBCAAGBQJVCtdFAAoJECTWi3JdVIfQx/wH/16gNIXX5zqiZJZ3IHqHWTRZ
+myu2u9lq2XQ6DDw54gHbdwgOu0wZZgwLEyYrTcNGqoGgYYi+L9qOl+nD7ht3BQyY
+WA+UIS9eio+vgy5C4TC5SS3UxqyRAu925uNByIQIx/MIjnBRm0iJi25FfcQIfpeU
+RB3mcHjLKwB4IBxWXls/5FjH6RVvlBsnUzcwNaJBfs4HaOSQcrzjWPqAB7/FsTWs
+IQYbN00xUADg7S6p5vr+L8/WodJems6E72700O1VcDw/1y6GETwyyQpJicqnSyEx
+Mq4a8jfNc7+LmN5hebDGg8PUu1UguMjlNU+VaQGIak3xlMw+csQNtRmXrH+JNfU=
+=exft
+-----END PGP SIGNATURE-----
 
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -655,6 +655,36 @@ static int dsps_musb_reset(struct musb *musb)
->   	return !session_restart;
->   }
->
-> +/* Similar to am35x, dm81xx support only 32-bit read operation */
-> +static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
-> +{
-> +	void __iomem *fifo = hw_ep->fifo;
-> +	u32		val;
-> +	int		i;
-> +
-> +	/* Read for 32bit-aligned destination address */
-> +	if (likely((0x03 & (unsigned long)dst) == 0) && len >= 4) {
-> +		readsl(fifo, dst, len >> 2);
-> +		dst += len & ~0x03;
-> +		len &= 0x03;
-> +	}
-> +	/*
-> +	 * Now read the remaining 1 to 3 byte or complete length if
-> +	 * unaligned address.
-> +	 */
-
-   This comment seems misplaced, it belongs before the next *if*.
-
-> +	if (len > 4) {
-> +		for (i = 0; i < (len >> 2); i++) {
-> +			*(u32 *)dst = musb_readl(fifo, 0);
-> +			dst += 4;
-> +		}
-
-    Not sure how this is different to using readsl().
-
-> +		len &= 0x03;
-> +	}
-> +	if (len > 0) {
-> +		val = musb_readl(fifo, 0);
-> +		memcpy(dst, &val, len);
-> +	}
-> +}
-> +
->   static struct musb_platform_ops dsps_ops = {
->   	.quirks		= MUSB_INDEXED_EP,
->   	.init		= dsps_musb_init,
-[...]
-
-WBR, Sergei
-
+--9hshNW4m6zn79FF/--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
