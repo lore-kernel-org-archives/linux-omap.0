@@ -1,179 +1,33 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC][PATCH 0/9] USB: OTG Core functionality
-Date: Thu, 19 Mar 2015 12:31:45 +0200
-Message-ID: <550AA591.2080703@ti.com>
-References: <1426686963-11613-1-git-send-email-rogerq@ti.com> <20150318173726.GS31346@atomide.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH] phy: Add a driver for dm816x USB PHY
+Date: Thu, 19 Mar 2015 12:19:44 +0100
+Message-ID: <CAALWOA-XK=TrQ7Wi4DYxho2vjuPoxHwq=3n7FHUfin3ca6SGZA@mail.gmail.com>
+References: <CADYTM3aBoUvBTe4f75s84J+rGzpvh53syadmcRP=ydRdQ5DTVQ@mail.gmail.com>
+ <20150309212014.GE22341@saruman.tx.rr.com> <20150309212622.GJ5264@atomide.com>
+ <CADYTM3ZW5e5dCQbbaE02o7wxOC26+jo5Ddo+2B4Q6UCAT2pTdQ@mail.gmail.com>
+ <20150309214129.GK5264@atomide.com> <CAALWOA-sdLzUP8_6BKvsDQeAqxCw5-n410u3=W3D5yaCLYChbQ@mail.gmail.com>
+ <20150313193058.GN5264@atomide.com> <CAALWOA_FM71OsvCfPuz4DHwGDEpfxcSB4L+YdoCsJuZkukK2iw@mail.gmail.com>
+ <20150316164951.GR5264@atomide.com> <CAALWOA-oynZi-L=iUrvVCAFQ0bXLSwdqpNV5qKakCdUU0M7rHw@mail.gmail.com>
+ <20150317021919.GA31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150318173726.GS31346-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150317021919.GA31346@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Bin Liu <binmlist@gmail.com>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 18/03/15 19:37, Tony Lindgren wrote:
-> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150318 07:00]:
->> Hi,
->>
->> [NOTE: RFC only. Not for merge yet.]
->>
->> This is an attempt to centralize OTG functionality in the kernel.
->> Still work in progress but I wanted to get an early feedback
->> to avoid major rework. :) 
->>
->> Why?:
->> ----
->>
->> Most of the OTG drivers have been dealing with the OTG state machine
->> themselves and there is a scope for code re-use. This has been
->> partly addressed by the usb/common/usb-otg-fsm.c but it still
->> leaves the instantiation of the state machine and OTG timers
->> to the controller drivers. We re-use usb-otg-fsm.c but
->> go one step further by instantiating the state machine and timers
->> thus making it easier for drivers to implement OTG functionality.
->>
->> Newer OTG cores support standard host interface (e.g. xHCI?) so
->> host and gadget functionality are no longer closely knit like older
->> cores. There needs to be a way to co-ordinate the operation of the
->> host and gadget in OTG mode. i.e. to stop and start them from a
->> central location. This central location should be the USB OTG core.
->>
->> Host and gadget controllers might be sharing resources and can't
->> be always running. One has to be stopped for the other to run.
->> This can't be done as of now and can be done from the OTG core.
->>
->> What?:
->> -----
->>
->> The OTG core instantiates the OTG Finite State Machine
->> per OTG controller and manages starting/stopping the
->> host and gadget controllers based on the bus state.
->>     
->> It provides APIs for the following
->>     
->> - Registering an OTG capable controller
->> struct otg_fsm *usb_otg_register(struct device *parent_dev,
->>                                  struct otg_fsm_ops *fsm_ops);
->> int usb_otg_unregister(struct device *parent_dev);
->>
->> - Registering Host controllers to OTG core (used by hcd-core)
->> int usb_otg_register_hcd(struct usb_hcd *hcd);
->> int usb_otg_unregister_hcd(struct usb_hcd *hcd);
->>
->> - Registering Gadget controllers to OTG core (used by udc-core)
->> int usb_otg_register_gadget(struct usb_gadget *gadget);
->> int usb_otg_unregister_gadget(struct usb_gadget *gadget);
->>
->> - Providing inputs to and kicking the OTG state machine
->> void usb_otg_sync_inputs(struct otg_fsm *fsm);
->> int usb_otg_kick_fsm(struct device *hcd_gcd_device);
->>
->> 'struct otg_fsm' is the interface to the OTG state machine.
->> It contains inputs to the fsm, status of the fsm and operations
->> for the OTG controller driver.
-> 
-> Sounds good to me. I take you're also planning to provide some
-> common /sys/kernel/debug/otg type interfaces for OTG validation
-> tests? For things like SRP etc.
+On 17 March 2015 at 03:19, Tony Lindgren <tony@atomide.com> wrote:
+> Yes so it seem here too, this is dm816x rev c, what do you have?
 
-Yes that's the plan.
+jtag ID reads 0x1b81e02f, so that would be rev 1.1 / rev A.
 
-cheers,
--roger
+> Anyways, I'll add a note that at least rev c does not seems to do
+> anything with USB_CTRL but that we follow what the TI tree is doing
+> in case some other revisions of the hardware use it.
 
-> 
-> Regards,
-> 
-> Tony
->  
->> Usage model:
->> -----------
->>
->> - The OTG controller device is assumed to be the parent of
->> the host and gadget controller. It must call usb_otg_register()
->> before populating the host and gadget devices so that the OTG
->> core is aware that it is an OTG device before the host & gadget
->> register. The OTG controller must provide struct otg_fsm_ops *
->> which will be called by the OTG core depending on OTG bus state.
->>
->> - The host/gadget core stacks are modified to inform the OTG core
->> whenever a new host/gadget device is added. The OTG core then
->> checks if the host/gadget is part of the OTG controller and if yes
->> then prevents the host/gadget from starting till both host and
->> gadget are registered, OTG state machine is running and the
->> USB bus state is appropriate to start host/gadget.
->>  For this APIs have been added to host/gadget stacks to start/stop
->> the controllers from the OTG core.
->>
->> - No modification is needed for the host/gadget controller drivers.
->> They must ensure that their start/stop methods can be called repeatedly
->> and any shared resources between host & gadget are properly managed.
->> The OTG core ensures that both are not started simultaneously.
->>
->> - The OTG core instantiates one OTG state machine per OTG
->> controller and the necessary OTG timers to manage OTG state timeouts.
->> The state machine is started when both host & gadget register and
->> stopped when either of them unregisters. The controllers are started
->> and stopped depending on bus state.
->>
->> - During the lifetime of the OTG state machine, inputs can be
->> provided to it by modifying the appropriate members of 'struct otg_fsm'
->> and calling usb_otg_sync_inputs(). This is typically done by the
->> OTG controller driver that called usb_otg_register() since it is
->> the only external component that has the 'struct otg_fsm' handle.
->>
->> Pending items:
->> - We probably need a otg class.
->> - sysfs interface for application OTG inputs and OTG status information
->> - resolve symbol dependency for module use.
->> - otg driver for dwc3 core to get dual-role working on dra7-evm.
->>
->> cheers,
->> -roger
->>
->> Roger Quadros (9):
->>   usb: hcd: Introduce usb_start/stop_hcd()
->>   usb: gadget: add usb_gadget_start/stop()
->>   usb: otg: add OTG core
->>   usb: otg: hub: Notify OTG fsm when A device sets b_hnp_enable
->>   usb: hcd: adapt to OTG
->>   usb: gadget: udc: adapt to OTG
->>   usb: dwc3: adapt to OTG core
->>   usb: otg-fsm: Remove unused members in struct otg_fsm
->>   usb: otg-fsm: Add documentation for struct otg_fsm
->>
->>  drivers/usb/Makefile              |   1 +
->>  drivers/usb/common/Makefile       |   1 +
->>  drivers/usb/common/usb-otg.c      | 732 ++++++++++++++++++++++++++++++++++++++
->>  drivers/usb/common/usb-otg.h      |  71 ++++
->>  drivers/usb/core/Kconfig          |   8 +
->>  drivers/usb/core/hcd.c            | 153 +++++---
->>  drivers/usb/core/hub.c            |  11 +-
->>  drivers/usb/dwc3/core.c           | 101 ++++++
->>  drivers/usb/dwc3/core.h           |   6 +
->>  drivers/usb/dwc3/platform_data.h  |   1 +
->>  drivers/usb/gadget/udc/udc-core.c | 172 ++++++++-
->>  include/linux/usb/gadget.h        |   3 +
->>  include/linux/usb/hcd.h           |   2 +
->>  include/linux/usb/otg-fsm.h       |  81 ++++-
->>  include/linux/usb/usb-otg.h       |  86 +++++
->>  15 files changed, 1357 insertions(+), 72 deletions(-)
->>  create mode 100644 drivers/usb/common/usb-otg.c
->>  create mode 100644 drivers/usb/common/usb-otg.h
->>  create mode 100644 include/linux/usb/usb-otg.h
->>
->> -- 
->> 2.1.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
+Another idea would be to check if it's nonzero and if so, yell loudly
+in the kernel log that they should mail the linux-omap list ;-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Matthijs
