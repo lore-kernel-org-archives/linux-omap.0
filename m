@@ -1,126 +1,300 @@
-From: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [RFC][PATCH 3/9] usb: otg: add OTG core
-Date: Thu, 19 Mar 2015 16:26:59 +0800
-Message-ID: <20150319082656.GA4210@shlinux1.ap.freescale.net>
-References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
- <1426686963-11613-4-git-send-email-rogerq@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v2] ASoC: davinci-mcasp: Set rule constraints if implicit BCLK divider is used
+Date: Thu, 19 Mar 2015 10:51:09 +0200
+Message-ID: <1426755069-28644-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1426686963-11613-4-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38268 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751928AbbCSIvW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 04:51:22 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: broonie@kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, Jyri Sarha <jsarha@ti.com>
 
-On Wed, Mar 18, 2015 at 03:55:57PM +0200, Roger Quadros wrote:
-> The OTG core instantiates the OTG Finite State Machine
-> per OTG controller and manages starting/stopping the
-> host and gadget controllers based on the bus state.
-> 
-> It provides APIs for the following tasks
-> 
-> - Registering an OTG capable controller
-> - Registering Host and Gadget controllers to OTG core
-> - Providing inputs to and kicking the OTG state machine
-> 
-> TODO:
-> - sysfs interface to allow application inputs to OTG state machine
-> - otg class?
-> 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
-> +struct otg_data {
-> +	struct device *dev;	/* HCD & GCD's parent device */
-> +
-> +	struct otg_fsm fsm;
-> +	/* HCD, GCD and usb_otg_state are present in otg_fsm->otg
-> +	 * HCD is bus_to_hcd(fsm->otg->host)
-> +	 * GCD is fsm->otg->gadget
-> +	 */
-> +	struct otg_fsm_ops fsm_ops;	/* private copy for override */
-> +	struct usb_otg otg;
-> +	struct usb_hcd *shared_hcd;	/* if shared HCD registered */
-> +
-> +	/* saved hooks to OTG device */
-> +	int (*start_host)(struct otg_fsm *fsm, int on);
-> +	int (*start_gadget)(struct otg_fsm *fsm, int on);
-> +
-> +	struct list_head list;
-> +
-> +	struct work_struct work;	/* OTG FSM work */
-> +	struct workqueue_struct *wq;
-> +
-> +	struct otg_timer timers[NUM_OTG_FSM_TIMERS];
-> +
-> +	bool fsm_running;
-> +	bool gadget_can_start;		/* OTG FSM says gadget can start */
-> +	bool host_can_start;		/* OTG FSM says host can start */
+Set rule constraints to allow only combinations of sample-rate,
+sample-bits, and channels that can be played/captured with reasonable
+sample-rate accuracy.
 
-Do not understand above 2 *_can_start flags from the patch, which are set
-only when you really start host/gadget, to prevent host/gadget driver to
-start it out of otg fsm control?
+The logic with tdm-slots and serializers (=i2s data wires) goes like
+this: The first wire will take all channels up to number of tdm-slots,
+before following wires (if any) are used. If the first wire is used
+fully, the remaining wires share the same clocks and the divider can
+be calculated for the first wire.
 
-Li Jun
-> +
-> +	/* use otg->fsm.lock for serializing access */
-> +};
-> +
-> + * Can be called in IRQ context.
-> + */
-> +void usb_otg_sync_inputs(struct otg_fsm *fsm)
-> +{
-> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
-> +
-> +	/* Don't kick FSM till it has started */
-> +	if (!otgd->fsm_running)
-> +		return;
-> +
-> +	/* Kick FSM */
-> +	queue_work(otgd->wq, &otgd->work);
-> +}
-> +EXPORT_SYMBOL_GPL(usb_otg_sync_inputs);
-> +
-> +/**
-> + * usb_otg_kick_fsm - Kick the OTG state machine
-> + * @hcd_gcd_device:	Host/Gadget controller device
-> + *
-> + * Used by USB host/device stack to sync OTG related
-> + * events to the OTG state machine.
-> + * e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
-> + *
-There are quite a few otg fsm variables which should be updated when 
-events/interrupts(b_conn, a_srp_det, ...) occur, how is your plan to
-update them? Still rely on specific controller driver irq handler to
-capture all those events and update them?
+Also, takes the number of tdm-slots into account when implicitly
+selecting the BLCK divider.
 
-Li Jun
-> + * Returns: 0 on success, error value otherwise.
-> + */
-> +int usb_otg_kick_fsm(struct device *hcd_gcd_device)
-> +{
-> +	struct otg_data *otgd;
-> +
-> +	mutex_lock(&otg_list_mutex);
-> +	otgd = usb_otg_device_get_otgd(hcd_gcd_device->parent);
-> +	if (!otgd) {
-> +		dev_err(hcd_gcd_device, "%s: invalid host/gadget device\n",
-> +			__func__);
-> +		mutex_unlock(&otg_list_mutex);
-> +		return -ENODEV;
-> +	}
-> +
-> +	mutex_unlock(&otg_list_mutex);
-> +	usb_otg_sync_inputs(&otgd->fsm);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(usb_otg_kick_fsm);
-> -- 
-> 2.1.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+
+I hope the logic with tdm-slots and serializers is now correct. I do
+not have HW to test multiple serializers case, so please review
+davinci_mcasp_hw_rule_channels() extra carefully.
+
+Best regards,
+Jyri
+
+ sound/soc/davinci/davinci-mcasp.c | 195 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 185 insertions(+), 10 deletions(-)
+
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index de3b155..3b2fb56 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -26,6 +26,7 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_device.h>
++#include <linux/math64.h>
+ 
+ #include <sound/asoundef.h>
+ #include <sound/core.h>
+@@ -64,6 +65,11 @@ struct davinci_mcasp_context {
+ 	u32	*xrsr_regs; /* for serializer configuration */
+ };
+ 
++struct davinci_mcasp_ruledata {
++	struct davinci_mcasp *mcasp;
++	int serializers;
++};
++
+ struct davinci_mcasp {
+ 	struct davinci_pcm_dma_params dma_params[2];
+ 	struct snd_dmaengine_dai_dma_data dma_data[2];
+@@ -98,6 +104,8 @@ struct davinci_mcasp {
+ #ifdef CONFIG_PM_SLEEP
+ 	struct davinci_mcasp_context context;
+ #endif
++
++	struct davinci_mcasp_ruledata ruledata[2];
+ };
+ 
+ static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 offset,
+@@ -855,6 +863,30 @@ static int mcasp_dit_hw_param(struct davinci_mcasp *mcasp,
+ 	return 0;
+ }
+ 
++static int davinci_mcasp_calc_clk_div(struct davinci_mcasp *mcasp,
++				      unsigned int bclk_freq,
++				      int *error_ppm)
++{
++	int div = mcasp->sysclk_freq / bclk_freq;
++	int rem = mcasp->sysclk_freq % bclk_freq;
++
++	if (rem != 0) {
++		if (div == 0 ||
++		    ((mcasp->sysclk_freq / div) - bclk_freq) >
++		    (bclk_freq - (mcasp->sysclk_freq / (div+1)))) {
++			div++;
++			rem = rem - bclk_freq;
++		}
++	}
++	if (error_ppm)
++		*error_ppm =
++			(div*1000000 + (int)div64_long(1000000LL*rem,
++						       (int)bclk_freq))
++			/div - 1000000;
++
++	return div;
++}
++
+ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
+ 					struct snd_pcm_hw_params *params,
+ 					struct snd_soc_dai *cpu_dai)
+@@ -872,16 +904,20 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
+ 	 * the machine driver, we need to calculate the ratio.
+ 	 */
+ 	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
+-		unsigned int bclk_freq = snd_soc_params_to_bclk(params);
+-		unsigned int div = mcasp->sysclk_freq / bclk_freq;
+-		if (mcasp->sysclk_freq % bclk_freq != 0) {
+-			if (((mcasp->sysclk_freq / div) - bclk_freq) >
+-			    (bclk_freq - (mcasp->sysclk_freq / (div+1))))
+-				div++;
+-			dev_warn(mcasp->dev,
+-				 "Inaccurate BCLK: %u Hz / %u != %u Hz\n",
+-				 mcasp->sysclk_freq, div, bclk_freq);
+-		}
++		int channels = params_channels(params);
++		int rate = params_rate(params);
++		int sbits = params_width(params);
++		int ppm, div;
++
++		if (channels > mcasp->tdm_slots)
++			channels = mcasp->tdm_slots;
++
++		div = davinci_mcasp_calc_clk_div(mcasp, rate*sbits*channels,
++						 &ppm);
++		if (ppm)
++			dev_info(mcasp->dev, "Sample-rate is off by %d PPM\n",
++				 ppm);
++
+ 		__davinci_mcasp_set_clkdiv(cpu_dai, 1, div, 0);
+ 	}
+ 
+@@ -973,6 +1009,108 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
+ 	return ret;
+ }
+ 
++static const unsigned int davinci_mcasp_dai_rates[] = {
++	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
++	88200, 96000, 176400, 192000,
++};
++
++#define DAVINCI_MAX_RATE_ERROR_PPM 1000
++
++static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *params,
++				      struct snd_pcm_hw_rule *rule)
++{
++	struct davinci_mcasp_ruledata *rd = rule->private;
++	int sbits = params_width(params);
++	int channels = params_channels(params);
++	unsigned int list[ARRAY_SIZE(davinci_mcasp_dai_rates)];
++	int i, count = 0;
++
++	if (channels > rd->mcasp->tdm_slots)
++		channels = rd->mcasp->tdm_slots;
++
++	for (i = 0; i < ARRAY_SIZE(davinci_mcasp_dai_rates); i++) {
++		uint bclk_freq = sbits*channels*davinci_mcasp_dai_rates[i];
++		int ppm;
++
++		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
++		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
++			list[count++] = davinci_mcasp_dai_rates[i];
++
++	}
++	dev_dbg(rd->mcasp->dev, "%d frequencies for %d sbits and %d channels\n",
++		count, sbits, channels);
++
++	return snd_interval_list(hw_param_interval(params, rule->var),
++				 count, list, 0);
++}
++
++static int davinci_mcasp_hw_rule_samplebits(struct snd_pcm_hw_params *params,
++					    struct snd_pcm_hw_rule *rule)
++{
++	struct davinci_mcasp_ruledata *rd = rule->private;
++	int channels = params_channels(params);
++	int rate = params_rate(params);
++	unsigned int list[4];
++	int sbits, count = 0;
++
++	if (channels > rd->mcasp->tdm_slots)
++		channels = rd->mcasp->tdm_slots;
++
++	for (sbits = 8; sbits <= 32; sbits += 8) {
++		uint bclk_freq = channels*sbits*rate;
++		int ppm;
++
++		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
++		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
++			list[count++] = sbits;
++	}
++	dev_dbg(rd->mcasp->dev,
++		"%d possible sample size for %d Hz and %d channels\n",
++		count, rate, channels);
++
++	return snd_interval_list(hw_param_interval(params, rule->var),
++				 count, list, 0);
++}
++
++static int davinci_mcasp_hw_rule_channels(struct snd_pcm_hw_params *params,
++					  struct snd_pcm_hw_rule *rule)
++{
++	struct davinci_mcasp_ruledata *rd = rule->private;
++	struct snd_interval *ci =
++		hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
++	int sbits = params_width(params);
++	int rate = params_rate(params);
++	int max_chan_per_wire = rd->mcasp->tdm_slots < ci->max ?
++		rd->mcasp->tdm_slots : ci->max;
++	unsigned int list[ci->max - ci->min + 1];
++	int c1, c, count = 0;
++
++	for (c1 = ci->min; c1 <= max_chan_per_wire; c1++) {
++		uint bclk_freq = c1*sbits*rate;
++		int ppm;
++
++		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
++		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
++			/* If we can use all tdm_slots, we can put any
++			   amount of channels to remaining wires as
++			   long as they fit in. */
++			if (c1 == rd->mcasp->tdm_slots) {
++				for (c = c1; c <= rd->serializers*c1 &&
++					     c <= ci->max; c++)
++					list[count++] = c;
++			} else {
++				list[count++] = c1;
++			}
++		}
++	}
++	dev_dbg(rd->mcasp->dev,
++		"%d possible channel counts for %d Hz and %d sbits\n",
++		count, rate, sbits);
++
++	return snd_interval_list(hw_param_interval(params, rule->var),
++				 count, list, 0);
++}
++
+ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+ 				 struct snd_soc_dai *cpu_dai)
+ {
+@@ -998,6 +1136,7 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+ 		if (mcasp->serial_dir[i] == dir)
+ 			max_channels++;
+ 	}
++	mcasp->ruledata[dir].serializers = max_channels;
+ 	max_channels *= mcasp->tdm_slots;
+ 	/*
+ 	 * If the already active stream has less channels than the calculated
+@@ -1012,6 +1151,42 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+ 	snd_pcm_hw_constraint_minmax(substream->runtime,
+ 				     SNDRV_PCM_HW_PARAM_CHANNELS,
+ 				     2, max_channels);
++
++	/*
++	 * If we rely on implicit BCLK divider setting we should
++	 * set constraints based on what we can provide.
++	 */
++	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
++		int ret;
++
++		mcasp->ruledata[dir].mcasp = mcasp;
++
++		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
++					  SNDRV_PCM_HW_PARAM_RATE,
++					  davinci_mcasp_hw_rule_rate,
++					  &mcasp->ruledata[dir],
++					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
++					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
++		if (ret)
++			return ret;
++		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
++					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
++					  davinci_mcasp_hw_rule_samplebits,
++					  &mcasp->ruledata[dir],
++					  SNDRV_PCM_HW_PARAM_RATE,
++					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
++		if (ret)
++			return ret;
++		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
++					  SNDRV_PCM_HW_PARAM_CHANNELS,
++					  davinci_mcasp_hw_rule_channels,
++					  &mcasp->ruledata[dir],
++					  SNDRV_PCM_HW_PARAM_RATE,
++					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS, -1);
++		if (ret)
++			return ret;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
+
