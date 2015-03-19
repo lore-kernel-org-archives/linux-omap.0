@@ -1,64 +1,39 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7: remove ti,hwmod property from pcie
- phy
-Date: Thu, 19 Mar 2015 16:36:33 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503191635100.9480@utopia.booyaka.com>
-References: <1424422274-27946-1-git-send-email-kishon@ti.com> <1424422274-27946-2-git-send-email-kishon@ti.com> <5509A998.2080509@ti.com> <20150318165706.GQ31346@atomide.com> <5509D3BD.6030004@linaro.org> <alpine.DEB.2.02.1503191455020.9480@utopia.booyaka.com>
- <550AEDA1.50109@linaro.org> <alpine.DEB.2.02.1503191541270.9480@utopia.booyaka.com> <20150319160301.GE31346@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 07/10] ARM: dts: n9/n950: Enable omap crypto support
+Date: Thu, 19 Mar 2015 09:43:32 -0700
+Message-ID: <20150319164331.GG31346@atomide.com>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+ <1424958600-18881-8-git-send-email-pali.rohar@gmail.com>
+ <20150228164148.GE4978@amd>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36042 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbbCSQgf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 12:36:35 -0400
-In-Reply-To: <20150319160301.GE31346@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150228164148.GE4978@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, t-kristo@ti.com
 
-On Thu, 19 Mar 2015, Tony Lindgren wrote:
+* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [150228 08:45]:
+> On Thu 2015-02-26 14:49:57, Pali Roh=C3=A1r wrote:
+> > Harmattan system on Nokia N9 and N950 devices uses omap crypto supp=
+ort.
+> > Bootloader on those devices is known that it enables HW crypto supp=
+ort.
+> > This patch just include omap36xx.dtsi directly, so aes and sham is =
+enabled.
+> >=20
+> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>=20
+> Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-> * Paul Walmsley <paul@pwsan.com> [150319 08:46]:
-> > On Thu, 19 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> > 
-> > > On 03/19/2015 04:55 PM, Paul Walmsley wrote:
-> > > > On Wed, 18 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> > > > 
-> > > > > On 03/18/2015 06:57 PM, Tony Lindgren wrote:
-> > > > > > * Grygorii Strashko <grygorii.strashko@ti.com> [150318 09:37]:
-> > > > > > > As I can see Patch 1 from this series was merged in 4.0-rc4,
-> > > > > > > but this patch wasn't. As result, I can see below warning all the time
-> > > > > > > during boot now:
-> > > > > > > 
-> > > > > > > [    0.594591] platform 4a094000.pciephy: Cannot lookup hwmod
-> > > > > > > 'pcie1-phy'
-> > > > > > 
-> > > > > > OK. Is this needed as a fix for the v4.0-rc series, or can this wait
-> > > > > > for v4.1?
-> > > > > 
-> > > > > I think, Yes. These two patches should go all together, because they are
-> > > > > interrelated.
-> > > > 
-> > > > Does the warning result in a functional problem, or is it just a warning?
-> > > > 
-> > > 
-> > > PCE1 PHY device is not registered any more.
-> > 
-> > How does the second patch fix that?
-> 
-> It seems it should be just a warning fix if the pciephy hwmod entries
-> are now gone?
-> 
-> Anyways, I'm planning to send a pull request for  omap-for-v4.0/fixes
-> today. Please let me know ASAP if the $subject patch should be dropped,
-> otherwise I'll send it as it fixes a boot time warning and is already
-> applied.
+I'm picking patches 7 - 10 into omap-for-v4.1/dt branch thanks.
 
-If you want to send it up as a fix, that's fine with me.  But I don't see 
-how that second patch will cause any changes in device registration, as 
-stated.
-
-
-- Paul
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
