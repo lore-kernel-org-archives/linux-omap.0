@@ -1,44 +1,92 @@
-From: Greg Knight <g.knight@symetrica.com>
-Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Thu, 19 Mar 2015 13:48:08 -0400
-Message-ID: <1426787288.13824.36.camel@symus-gk-mint>
-References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>
-	 <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
-	 <550AF442.5040203@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: Fix fifo reads for dm816x with musb_dsps
+Date: Thu, 19 Mar 2015 20:49:48 +0300
+Message-ID: <550B0C3C.3080107@cogentembedded.com>
+References: <1426718882-27187-1-git-send-email-tony@atomide.com> <550ACF61.5000909@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:32929 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117AbbCSRsL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 13:48:11 -0400
-Received: by qgfa8 with SMTP id a8so71997517qgf.0
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 10:48:10 -0700 (PDT)
-In-Reply-To: <550AF442.5040203@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <550ACF61.5000909-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> For a codec such as the SGTL5000 I would connect a clock, which is
-running all
-> the time. If you take a look at the driver, it enables the clock at
-probe and
-> leaves it running as long as the driver is loaded.
+On 03/19/2015 04:30 PM, Sergei Shtylyov wrote:
 
-Speaking briefly to my "electrical" colleague, he's a bit concerned
-about the extra power load that a crystal oscillator might incur, while
-I'm concerned about audio quality from a source like CLKOUT2.
+>> Looks like dm81xx can only do 32-bit fifo reads like am35x. Let's set
+>> up musb-dsps with a custom read_fifo function based on the compatible
+>> flag.
 
-Is there a straightforward way we could enable the clock on-demand -
-when we're communicating with the codec/mixer or actually using the
-audio subsystem - while keeping it disabled when not in use? We don't
-expect to be using the audio subsystem frequently.
+>> Otherwise we can get the following errors when starting dhclient on a
+>> asix USB Ethernet adapter:
 
-Worst-case we can set up a GPIO and enable/disable it as needed in
-user-space - acceptable, if annoying, for our application.
+>> asix 2-1:1.0 eth2: asix_rx_fixup() Bad Header Length 0xffff003c, offset 4
 
-Thanks,
-Greg
+>> While at it, let's also remove pointless cast of the driver data.
 
+>> Cc: Bin Liu <binmlist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Cc: Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Cc: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>>   drivers/usb/musb/musb_dsps.c | 37 ++++++++++++++++++++++++++++++++++++-
+>>   1 file changed, 36 insertions(+), 1 deletion(-)
+
+>> --- a/drivers/usb/musb/musb_dsps.c
+>> +++ b/drivers/usb/musb/musb_dsps.c
+>> @@ -655,6 +655,36 @@ static int dsps_musb_reset(struct musb *musb)
+>>       return !session_restart;
+>>   }
+>>
+>> +/* Similar to am35x, dm81xx support only 32-bit read operation */
+>> +static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+>> +{
+>> +    void __iomem *fifo = hw_ep->fifo;
+>> +    u32        val;
+>> +    int        i;
+>> +
+>> +    /* Read for 32bit-aligned destination address */
+>> +    if (likely((0x03 & (unsigned long)dst) == 0) && len >= 4) {
+>> +        readsl(fifo, dst, len >> 2);
+>> +        dst += len & ~0x03;
+>> +        len &= 0x03;
+>> +    }
+>> +    /*
+>> +     * Now read the remaining 1 to 3 byte or complete length if
+>> +     * unaligned address.
+>> +     */
+
+>    This comment seems misplaced, it belongs before the next *if*.
+
+>> +    if (len > 4) {
+>> +        for (i = 0; i < (len >> 2); i++) {
+>> +            *(u32 *)dst = musb_readl(fifo, 0);
+>> +            dst += 4;
+>> +        }
+
+>     Not sure how this is different to using readsl().
+
+    Ah, the default implementation of musb_readl() uses __raw_readl().
+So you'd probably want to keep this loop, not readsl() call.
+
+>> +        len &= 0x03;
+>> +    }
+>> +    if (len > 0) {
+>> +        val = musb_readl(fifo, 0);
+>> +        memcpy(dst, &val, len);
+>> +    }
+>> +}
+>> +
+>>   static struct musb_platform_ops dsps_ops = {
+>>       .quirks        = MUSB_INDEXED_EP,
+>>       .init        = dsps_musb_init,
+[...]
+
+WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
