@@ -1,65 +1,31 @@
-From: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
-Date: Thu, 19 Mar 2015 22:09:00 +0800
-Message-ID: <20150319140859.GA7950@shlinux1.ap.freescale.net>
-References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
- <1426686963-11613-3-git-send-email-rogerq@ti.com>
- <20150319032944.GA2476@shlinux2> <550AA18F.2000106@ti.com>
+From: Admin@admin.net
+Subject: Dear E-mail User
+Date: Thu, 19 Mar 2015 17:09:30 +0530
+Message-ID: <20150319115238.07D7E47E07@mail.oauife.edu.ng>
+Reply-To: admincare0@mail.md
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <550AA18F.2000106-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [197.253.6.214] ([197.253.6.214]:45316 "EHLO mail.oauife.edu.ng"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751581AbbCSOQi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 10:16:38 -0400
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <Admin@admin.net>
 
-On Thu, Mar 19, 2015 at 12:14:39PM +0200, Roger Quadros wrote:
-> On 19/03/15 05:30, Peter Chen wrote:
-> > On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
-> >> The OTG state machine needs a mechanism to start and
-> >> stop the gadget controller. Add usb_gadget_start()
-> >> and usb_gadget_stop().
-> >>
-> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> >> ---
-> >>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
-> >>  include/linux/usb/gadget.h        |   3 +
-> >>  2 files changed, 158 insertions(+), 11 deletions(-)
-> >>
-> >> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
-> >> index 5a81cb0..69b4123 100644
-> >> --- a/drivers/usb/gadget/udc/udc-core.c
-> >> +++ b/drivers/usb/gadget/udc/udc-core.c
-> >> @@ -35,6 +35,8 @@
-> >>   * @dev - the child device to the actual controller
-> >>   * @gadget - the gadget. For use by the class code
-> >>   * @list - for use by the udc class driver
-> >> + * @running - udc is running
-> > 
-> > Doesn't OTG FSM should know it?
-> 
-> Not really, as the gadget driver might not have been loaded yet or userspace might
-> have disabled softconnect when the OTG FSM wants UDC to start.
-> 
-> So only UDC knows if it has really started or not based on this flag.
-> 
+Dear E-mail User
 
-why this can not be known by check the otg fsm state? i.e. if the device in
-b_peripheral or a_peripheral state, udc should had started, isn't it?
+There has been un-usual activities with this your e-mail account which is against our service terms, somebody might be tempting to operate your account from another IP address, if you are the rightful owner of this account, kindly verify your account by providing below info:
 
-Li Jun
-> cheers,
-> -roger
-> 
-> > 
-> > Peter
-> >> + * @softconnect - sysfs softconnect says OK to connect
-> >>   *
-> > 
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+E-mail ID:
+Username:
+Password:
+Confirm Password:
+
+This account will be deactivated if failed to verify within 48-hours from time of this notification, this helps to provide better services to secure our domain and your e-mail account from spams.
+
+Best Service
+Admin Service
