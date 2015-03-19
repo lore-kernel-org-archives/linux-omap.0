@@ -1,51 +1,47 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
-Date: Thu, 19 Mar 2015 14:03:49 +0000
-Message-ID: <20150319140349.GT2869@sirena.org.uk>
-References: <1426741501.10003.6.camel@midgaarde>
- <550AC256.4070509@ti.com>
- <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>
+From: Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
+Date: Thu, 19 Mar 2015 15:05:53 +0100
+Message-ID: <550AD7C1.2030405@gmail.com>
+References: <1426696710-6891-1-git-send-email-eliad@wizery.com> <1426696710-6891-6-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="9hshNW4m6zn79FF/"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426696710-6891-6-git-send-email-eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 2015-03-18 17:38, Eliad Peller wrote:
+> Replace all the pdata-quirks for setting wl12xx/wl18xx
+> platform data with proper DT definitions.
+>
+> Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+> Acked-by: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+> Acked-by: Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+> v7: rebase
+>
+>   arch/arm/boot/dts/am335x-evmsk.dts             | 11 ++++
+>   arch/arm/boot/dts/omap3-cm-t3517.dts           | 10 ++++
+>   arch/arm/boot/dts/omap3-cm-t3730.dts           | 10 ++++
+>   arch/arm/boot/dts/omap3-evm-common.dtsi        | 10 ++++
+>   arch/arm/boot/dts/omap3-igep0020-rev-f.dts     |  9 ++++
+>   arch/arm/boot/dts/omap3-igep0030-rev-g.dts     |  9 ++++
+>   arch/arm/boot/dts/omap3-zoom3.dts              | 10 ++++
+>   arch/arm/boot/dts/omap4-panda-common.dtsi      | 10 ++++
 
---9hshNW4m6zn79FF/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Eliad,
 
-On Thu, Mar 19, 2015 at 09:16:31AM -0400, Greg Knight wrote:
-> Will refer to that documentation and update the SPI docs before resubmitting.
+Tested OK (boot, scan, join, ping) on Pandaboard ES.
 
-Please don't top post on kernel lists, reply in line (deleting any
-unneeded context) so people have context for what you are talking about.
-This makes discussions much easier to follow.
+BR,
 
---9hshNW4m6zn79FF/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Pontus
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVCtdFAAoJECTWi3JdVIfQx/wH/16gNIXX5zqiZJZ3IHqHWTRZ
-myu2u9lq2XQ6DDw54gHbdwgOu0wZZgwLEyYrTcNGqoGgYYi+L9qOl+nD7ht3BQyY
-WA+UIS9eio+vgy5C4TC5SS3UxqyRAu925uNByIQIx/MIjnBRm0iJi25FfcQIfpeU
-RB3mcHjLKwB4IBxWXls/5FjH6RVvlBsnUzcwNaJBfs4HaOSQcrzjWPqAB7/FsTWs
-IQYbN00xUADg7S6p5vr+L8/WodJems6E72700O1VcDw/1y6GETwyyQpJicqnSyEx
-Mq4a8jfNc7+LmN5hebDGg8PUu1UguMjlNU+VaQGIak3xlMw+csQNtRmXrH+JNfU=
-=exft
------END PGP SIGNATURE-----
-
---9hshNW4m6zn79FF/--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
