@@ -1,41 +1,82 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 06/15] omap3isp: Refactor device configuration structs
- for Device Tree
-Date: Thu, 19 Mar 2015 09:04:03 +0200
-Message-ID: <550A74E3.3070702@compulab.co.il>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi> <1426465570-30295-7-git-send-email-sakari.ailus@iki.fi>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 00/35] ARM: OMAP2+: PRCM / SCM cleanups against 4.0-rc1
+Date: Thu, 19 Mar 2015 10:05:00 +0200
+Message-ID: <550A832C.6020804@ti.com>
+References: <1426689860-17537-1-git-send-email-t-kristo@ti.com> <20150319000058.GM11954@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1426465570-30295-7-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36418 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129AbbCSIFh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 04:05:37 -0400
+In-Reply-To: <20150319000058.GM11954@valkosipuli.retiisi.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 03/16/15 02:26, Sakari Ailus wrote:
-> Make omap3isp configuration data structures more suitable for consumption by
-> the DT by separating the I2C bus information of all the sub-devices in a
-> group and the ISP bus information from each other. The ISP bus information
-> is made a pointer instead of being directly embedded in the struct.
-> 
-> In the case of the DT only the sensor specific information on the ISP bus
-> configuration is retained. The structs are renamed to reflect that.
-> 
-> After this change the structs needed to describe device configuration can be
-> allocated and accessed separately without those needed only in the case of
-> platform data. The platform data related structs can be later removed once
-> the support for platform data can be removed.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
+On 03/19/2015 02:00 AM, Sakari Ailus wrote:
+> Hi Tero,
+>
+> On Wed, Mar 18, 2015 at 04:43:45PM +0200, Tero Kristo wrote:
+>> Hi,
+>>
+>> Changes in this set compared to v3:
+>>
+>> - Changed the SCM module DT node layout based on comments from Tony;
+>>    basically the wkup / core are split into their own nodes now. This
+>>    applies for omap3, omap4, omap5 and dra7, rest of the SoCs have their
+>>    control module integrated as one instance (Patch 26, 30, 33, 34)
+>> - Changed the tisyscon node name to scm_conf. This name is more
+>>    descriptive for the purpose being used, scm_conf was already used
+>>    as an alias (Patch 24, 25, 27, 29)
+>> - Rest of the patches have no changes compared to v3.
+>>
+>> Testing done:
+>> - am335x-evm      : boot
+>> - am335x-evmsk    : boot
+>> - am3517-evm      : boot
+>> - am43x-epos-evm  : boot
+>> - am437x-gp-evm   : boot
+>> - omap3-beagle-xm : boot
+>> - omap3-beagle    : boot, suspend-resume (ret/off), cpuidle (ret/off)
+>> - am335x-boneblack: boot
+>> - am335x-bone     : boot
+>> - dra7xx-evm      : boot
+>> - omap3-n900      : boot
+>> - omap5-uevm      : boot
+>> - omap4-panda-es  : boot, suspend-resume (ret), cpuidle (ret)
+>> - omap4-panda     : boot
+>> - omap2430-sdp    : boot
+>> - omap3430-sdp    : boot
+>> - omap4-sdp-es23plus: boot
+>>
+>> Test branch pushed at:
+>> - tree: https://github.com/t-kristo/linux-pm.git
+>> - branch: 4.0-rc1-prcm-cleanup-v4
+>
+> I tried compiling this, but I get a few linker errors:
 
-For cm-t35 stuff:
+Right, I always forget about silly people who do things like OMAP3 only 
+builds or something.... Shall be fixed.
 
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+-Tero
 
--- 
-Regards,
-Igor.
+>
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x47d8): undefined reference to `am33xx_prm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x47f0): undefined reference to `omap44xx_prm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x4808): undefined reference to `omap2xxx_prm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x4838): undefined reference to `omap44xx_prm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x4868): undefined reference to `omap44xx_prm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x4880): undefined reference to `omap44xx_prm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x4898): undefined reference to `omap2xxx_cm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x48c8): undefined reference to `omap4_cm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x48e0): undefined reference to `omap4_cm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x48f8): undefined reference to `am33xx_cm_init'
+> arch/arm/mach-omap2/built-in.o:(.init.data+0x4910): undefined reference to `omap4_cm_init'
+>
+> .config attached.
+>
+
