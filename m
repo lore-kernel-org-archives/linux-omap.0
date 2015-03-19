@@ -1,74 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7: remove ti,hwmod property from pcie
- phy
-Date: Thu, 19 Mar 2015 16:49:47 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503191647150.9480@utopia.booyaka.com>
-References: <1424422274-27946-1-git-send-email-kishon@ti.com> <1424422274-27946-2-git-send-email-kishon@ti.com> <5509A998.2080509@ti.com> <20150318165706.GQ31346@atomide.com> <5509D3BD.6030004@linaro.org> <alpine.DEB.2.02.1503191455020.9480@utopia.booyaka.com>
- <550AEDA1.50109@linaro.org> <alpine.DEB.2.02.1503191541270.9480@utopia.booyaka.com> <550AF78B.3050202@linaro.org>
+From: Greg Knight <g.knight@symetrica.com>
+Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
+Date: Thu, 19 Mar 2015 13:17:02 -0400
+Message-ID: <1426785422.13824.12.camel@symus-gk-mint>
+References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>
+	 <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
+	 <550AF442.5040203@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36295 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735AbbCSQtt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 12:49:49 -0400
-In-Reply-To: <550AF78B.3050202@linaro.org>
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:32886 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752345AbbCSRRF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 13:17:05 -0400
+Received: by qcbjx9 with SMTP id jx9so33386771qcb.0
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 10:17:04 -0700 (PDT)
+In-Reply-To: <550AF442.5040203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, t-kristo@ti.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 19 Mar 2015, Grygorii.Strashko@linaro.org wrote:
+On Thu, 2015-03-19 at 18:07 +0200, Peter Ujfalusi wrote:
+> Another issue this hack has is: what happens if for some reason the
+> SGTL5000
+> driver loads first? McASP will not enable the AHCLKX so the codec
+> driver will
+> fail reading the CHIP_ID and fails to load. You need to provide a
+> dummy clock
+> node to the codec, so that will not fail, but you will not have the
+> MCLK.
 
-> On 03/19/2015 05:45 PM, Paul Walmsley wrote:
-> > On Thu, 19 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> > 
-> >> On 03/19/2015 04:55 PM, Paul Walmsley wrote:
-> >>> On Wed, 18 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> >>>
-> >>>> On 03/18/2015 06:57 PM, Tony Lindgren wrote:
-> >>>>> * Grygorii Strashko <grygorii.strashko@ti.com> [150318 09:37]:
-> >>>>>> As I can see Patch 1 from this series was merged in 4.0-rc4,
-> >>>>>> but this patch wasn't. As result, I can see below warning all the time
-> >>>>>> during boot now:
-> >>>>>>
-> >>>>>> [    0.594591] platform 4a094000.pciephy: Cannot lookup hwmod
-> >>>>>> 'pcie1-phy'
-> >>>>>
-> >>>>> OK. Is this needed as a fix for the v4.0-rc series, or can this wait
-> >>>>> for v4.1?
-> >>>>
-> >>>> I think, Yes. These two patches should go all together, because they are
-> >>>> interrelated.
-> >>>
-> >>> Does the warning result in a functional problem, or is it just a warning?
-> >>>
-> >>
-> >> PCE1 PHY device is not registered any more.
-> > 
-> > How does the second patch fix that?
-> 
-> I've re-checked it - sorry for disinfo.
-> 
-> PHY devices are created, but omap_device_fail_pm_domain is assigned to them.
-> As result Runtime PM is not working any more.
-> 
-> 
-> [    0.592501] platform 4a094000.pciephy: Cannot lookup hwmod 'pcie1-phy'
-> [    0.597510] pinctrl-single 4a003400.pinmux: 281 pins at pa fc003400 size 1124
-> [    0.602794] ti-pipe3 4a094000.pciephy: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
-> 
-> When ti,hwmods is not present PCI PHY will be added as regular Platform device
-> and Runtime PM will work again.
+Fair enough. The second patch, providing the codec binding to the
+AM3359, may still be applicable, but I couldn't submit it in good
+conscience without rewiring the clock as per your recommendations and
+re-testing. Don't have the time for this in the near future, sadly.
+Sounds like I'll have to come up with a new fix whenever we get around
+to updating kernel on this platform.
 
-OK then it should definitely go up as a fix.  
+I'm not familiar with the kernel clock management - any advice for
+reading material on that? Not clear on what a 'dummy clock' is, etc.
 
-Kishon, for future references, those two patches should have been combined 
-into a single patch.  As it stands now, if someone bisects down to that 
-first patch, it sounds like PM will be at least partially broken.  Too bad 
-I don't have a DRA7xx board where things like this can be tested before 
-being sent upstream.
+Thanks,
+Greg
 
-
-
-- Paul
