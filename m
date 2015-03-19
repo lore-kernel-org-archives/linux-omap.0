@@ -1,291 +1,997 @@
-From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
-Date: Thu, 19 Mar 2015 11:30:01 +0800
-Message-ID: <20150319032944.GA2476@shlinux2>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [RFC][PATCH 3/9] usb: otg: add OTG core
+Date: Thu, 19 Mar 2015 11:40:35 +0800
+Message-ID: <20150319034034.GA7779@shlinux2>
 References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
- <1426686963-11613-3-git-send-email-rogerq@ti.com>
+ <1426686963-11613-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1426686963-11613-3-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1426686963-11613-4-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
-> The OTG state machine needs a mechanism to start and
-> stop the gadget controller. Add usb_gadget_start()
-> and usb_gadget_stop().
+On Wed, Mar 18, 2015 at 03:55:57PM +0200, Roger Quadros wrote:
+> The OTG core instantiates the OTG Finite State Machine
+> per OTG controller and manages starting/stopping the
+> host and gadget controllers based on the bus state.
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> It provides APIs for the following tasks
+> 
+> - Registering an OTG capable controller
+> - Registering Host and Gadget controllers to OTG core
+> - Providing inputs to and kicking the OTG state machine
+> 
+> TODO:
+> - sysfs interface to allow application inputs to OTG state machine
+> - otg class?
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
->  include/linux/usb/gadget.h        |   3 +
->  2 files changed, 158 insertions(+), 11 deletions(-)
+>  drivers/usb/Makefile         |   1 +
+>  drivers/usb/common/Makefile  |   1 +
+>  drivers/usb/common/usb-otg.c | 732 +++++++++++++++++++++++++++++++++++++++++++
+>  drivers/usb/common/usb-otg.h |  71 +++++
+>  drivers/usb/core/Kconfig     |   8 +
+>  include/linux/usb/usb-otg.h  |  86 +++++
+>  6 files changed, 899 insertions(+)
+>  create mode 100644 drivers/usb/common/usb-otg.c
+>  create mode 100644 drivers/usb/common/usb-otg.h
+>  create mode 100644 include/linux/usb/usb-otg.h
 > 
-> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
-> index 5a81cb0..69b4123 100644
-> --- a/drivers/usb/gadget/udc/udc-core.c
-> +++ b/drivers/usb/gadget/udc/udc-core.c
-> @@ -35,6 +35,8 @@
->   * @dev - the child device to the actual controller
->   * @gadget - the gadget. For use by the class code
->   * @list - for use by the udc class driver
-> + * @running - udc is running
-
-Doesn't OTG FSM should know it?
-
-Peter
-> + * @softconnect - sysfs softconnect says OK to connect
->   *
->   * This represents the internal data structure which is used by the UDC-class
->   * to hold information about udc driver and gadget together.
-> @@ -44,6 +46,8 @@ struct usb_udc {
->  	struct usb_gadget		*gadget;
->  	struct device			dev;
->  	struct list_head		list;
-> +	bool				running;
-> +	bool				softconnect;
->  };
+> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
+> index 2f1e2aa..07f59a5 100644
+> --- a/drivers/usb/Makefile
+> +++ b/drivers/usb/Makefile
+> @@ -60,5 +60,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
+>  obj-$(CONFIG_USB_GADGET)	+= gadget/
 >  
->  static struct class *udc_class;
-> @@ -187,7 +191,14 @@ EXPORT_SYMBOL_GPL(usb_gadget_udc_reset);
->   */
->  static inline int usb_gadget_udc_start(struct usb_udc *udc)
->  {
-> -	return udc->gadget->ops->udc_start(udc->gadget, udc->driver);
-> +	int ret;
-> +
-> +	dev_dbg(&udc->dev, "%s\n", __func__);
-> +	ret = udc->gadget->ops->udc_start(udc->gadget, udc->driver);
-> +	if (!ret)
-> +		udc->running = 1;
-> +
-> +	return ret;
->  }
+>  obj-$(CONFIG_USB_COMMON)	+= common/
+> +obj-$(CONFIG_USB_OTG_CORE)	+= common/
 >  
->  /**
-> @@ -204,10 +215,140 @@ static inline int usb_gadget_udc_start(struct usb_udc *udc)
->   */
->  static inline void usb_gadget_udc_stop(struct usb_udc *udc)
->  {
-> +	dev_dbg(&udc->dev, "%s\n", __func__);
->  	udc->gadget->ops->udc_stop(udc->gadget);
-> +	udc->running = 0;
->  }
+>  obj-$(CONFIG_USBIP_CORE)	+= usbip/
+> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+> index ca2f8bd..573fc75 100644
+> --- a/drivers/usb/common/Makefile
+> +++ b/drivers/usb/common/Makefile
+> @@ -7,3 +7,4 @@ usb-common-y			  += common.o
+>  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
 >  
->  /**
-> + * usb_udc_start - Start the usb device controller only if conditions met
-> + * @udc: The UDC to be started
+>  obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
+> +obj-$(CONFIG_USB_OTG_CORE) += usb-otg.o
+> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+> new file mode 100644
+> index 0000000..1433fc9
+> --- /dev/null
+> +++ b/drivers/usb/common/usb-otg.c
+> @@ -0,0 +1,732 @@
+> +/**
+> + * drivers/usb/common/usb-otg.c - USB OTG core
 > + *
-> + * Start the UDC and connect to bus (enable pull) only if the
-> + * following conditions are met
-> + * - UDC is not already running
-> + * - gadget function driver is loaded
-> + * - userspace softconnect says OK to connect
+> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
+> + * Author: Roger Quadros <rogerq@ti.com>
 > + *
-> + * NOTE: udc_lock must be held by caller.
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + *
-> + * Returs 0 on success or not ready to start, else negative errno.
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
 > + */
-> +static int usb_udc_start(struct usb_udc *udc)
-> +{
-> +	int ret;
 > +
-> +	if (udc->running) {
-> +		dev_err(&udc->dev, "%s: not starting as already running\n",
-> +			__func__);
-> +		return -EBUSY;
+> +#include <linux/kernel.h>
+> +#include <linux/list.h>
+> +#include <linux/timer.h>
+> +#include <linux/usb/otg.h>
+> +#include <linux/usb/phy.h>	/* enum usb_otg_state */
+> +#include <linux/usb/gadget.h>
+> +#include <linux/usb/usb-otg.h>
+> +#include <linux/workqueue.h>
+> +
+> +#include "usb-otg.h"
+> +
+> +/* to link timer with callback data */
+> +struct otg_timer {
+> +	struct timer_list timer;
+> +	/* callback data */
+> +	int *timeout_bit;
+> +	struct otg_data *otgd;
+> +};
+> +
+> +struct otg_data {
+> +	struct device *dev;	/* HCD & GCD's parent device */
+> +
+> +	struct otg_fsm fsm;
+> +	/* HCD, GCD and usb_otg_state are present in otg_fsm->otg
+> +	 * HCD is bus_to_hcd(fsm->otg->host)
+> +	 * GCD is fsm->otg->gadget
+> +	 */
+> +	struct otg_fsm_ops fsm_ops;	/* private copy for override */
+> +	struct usb_otg otg;
+> +	struct usb_hcd *shared_hcd;	/* if shared HCD registered */
+> +
+> +	/* saved hooks to OTG device */
+> +	int (*start_host)(struct otg_fsm *fsm, int on);
+> +	int (*start_gadget)(struct otg_fsm *fsm, int on);
+> +
+> +	struct list_head list;
+> +
+> +	struct work_struct work;	/* OTG FSM work */
+> +	struct workqueue_struct *wq;
+> +
+> +	struct otg_timer timers[NUM_OTG_FSM_TIMERS];
+> +
+> +	bool fsm_running;
+> +	bool gadget_can_start;		/* OTG FSM says gadget can start */
+> +	bool host_can_start;		/* OTG FSM says host can start */
+> +
+> +	/* use otg->fsm.lock for serializing access */
+> +};
+
+What's the relationship between struct usb_otg otg and this one?
+
+> +
+> +/* OTG device list */
+> +LIST_HEAD(otg_list);
+> +static DEFINE_MUTEX(otg_list_mutex);
+> +
+> +/**
+> + * check if device is in our OTG list and return
+> + * otg_data, else NULL.
+> + *
+> + * otg_list_mutex must be held.
+> + */
+> +static struct otg_data *usb_otg_device_get_otgd(struct device *parent_dev)
+> +{
+> +	struct otg_data *otgd;
+> +
+> +	list_for_each_entry(otgd, &otg_list, list) {
+> +		if (otgd->dev == parent_dev)
+> +			return otgd;
 > +	}
 > +
-> +	if (udc->driver && udc->softconnect) {
-> +		ret = usb_gadget_udc_start(udc);
+> +	return NULL;
+> +}
+> +
+> +/**
+> + * timer callback to set timeout bit and kick FSM
+> + */
+> +static void set_tmout(unsigned long data)
+> +{
+> +	struct otg_timer *tmr_data;
+> +
+> +	tmr_data = (struct otg_timer *)data;
+> +
+> +	if (tmr_data->timeout_bit)
+> +		*tmr_data->timeout_bit = 1;
+> +
+> +	usb_otg_sync_inputs(&tmr_data->otgd->fsm);
+> +}
+> +
+> +/**
+> + * Initialize one OTG timer with callback, timeout and timeout bit
+> + */
+> +static void otg_timer_init(enum otg_fsm_timer id, struct otg_data *otgd,
+> +			   void (*callback)(unsigned long),
+> +			   unsigned long expires_ms,
+> +			   int *timeout_bit)
+> +{
+> +	struct otg_timer *otgtimer = &otgd->timers[id];
+> +	struct timer_list *timer = &otgtimer->timer;
+> +
+> +	init_timer(timer);
+> +	timer->function = callback;
+> +	timer->expires = jiffies + msecs_to_jiffies(expires_ms);
+> +	timer->data = (unsigned long)otgtimer;
+> +
+
+The timer for TB_DATA_PLS is about 10ms or less, it is not suitable
+for using kernel timer, hrtimer is suitable choice.
+
+> +	otgtimer->timeout_bit = timeout_bit;
+> +	otgtimer->otgd = otgd;
+> +}
+> +
+> +/**
+> + * Initialize standard OTG timers
+> + */
+> +static void usb_otg_init_timers(struct otg_data *otgd)
+> +{
+> +	struct otg_fsm *fsm = &otgd->fsm;
+> +
+> +	otg_timer_init(A_WAIT_VRISE, otgd, set_tmout, TA_WAIT_VRISE, &fsm->a_wait_vrise_tmout);
+> +	otg_timer_init(A_WAIT_VFALL, otgd, set_tmout, TA_WAIT_VFALL, &fsm->a_wait_vfall_tmout);
+> +	otg_timer_init(A_WAIT_BCON, otgd, set_tmout, TA_WAIT_BCON, &fsm->a_wait_bcon_tmout);
+> +	otg_timer_init(A_AIDL_BDIS, otgd, set_tmout, TA_AIDL_BDIS, &fsm->a_aidl_bdis_tmout);
+> +	otg_timer_init(A_BIDL_ADIS, otgd, set_tmout, TA_BIDL_ADIS, &fsm->a_bidl_adis_tmout);
+> +	otg_timer_init(B_ASE0_BRST, otgd, set_tmout, TB_ASE0_BRST, &fsm->b_ase0_brst_tmout);
+> +
+> +	otg_timer_init(B_SE0_SRP, otgd, set_tmout, TB_SE0_SRP, &fsm->b_se0_srp);
+> +	otg_timer_init(B_SRP_FAIL, otgd, set_tmout, TB_SRP_FAIL, &fsm->b_srp_done);
+> +
+> +	otg_timer_init(A_WAIT_ENUM, otgd, set_tmout, TB_SRP_FAIL, NULL);
+> +}
+> +
+> +/**
+> + * OTG FSM ops function to add timer
+> + */
+> +static void usb_otg_add_timer(struct otg_fsm *fsm, enum otg_fsm_timer id)
+> +{
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +	struct timer_list *timer = &otgd->timers[id].timer;
+> +
+> +	if (!otgd->fsm_running)
+> +		return;
+> +
+> +	/* if timer is already active, exit */
+> +	if (timer_pending(timer)) {
+> +		dev_err(otgd->dev, "USB-OTG: Timer %d is already running\n",
+> +			id);
+> +	}
+> +
+> +	add_timer(timer);
+> +}
+> +
+> +/**
+> + * OTG FSM ops function to delete timer
+> + */
+> +static void usb_otg_del_timer(struct otg_fsm *fsm, enum otg_fsm_timer id)
+> +{
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +	struct timer_list *timer = &otgd->timers[id].timer;
+> +
+> +	del_timer(timer);
+> +}
+> +
+> +/**
+> + * OTG FSM ops function to start/stop host
+> + */
+> +static int usb_otg_start_host(struct otg_fsm *fsm, int on)
+> +{
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +	int ret = 0;
+> +	struct usb_hcd *hcd;
+> +
+> +	dev_info(otgd->dev, "%s %d\n", __func__, on);
+> +	if (!fsm->otg->host) {
+> +		WARN_ONCE(1, "OTG FSM running without Host\n");
+> +		return 0;
+> +	}
+> +
+> +	hcd = bus_to_hcd(fsm->otg->host);
+> +	otgd->host_can_start = on;
+> +	if (hcd->shared_hcd && !otgd->shared_hcd) {
+> +		dev_info(otgd->dev, "%s: waiting for Shared HCD to register\n",
+> +			 __func__);
+> +		return 0;
+> +	}
+> +
+> +	/* call OTG device operations */
+> +	if (otgd->start_host) {
+> +		ret = otgd->start_host(fsm, on);
 > +		if (ret)
 > +			return ret;
+> +	}
 > +
-> +		usb_gadget_connect(udc->gadget);
+> +	if (on) {
+> +		usb_start_hcd(hcd);
+> +		if (hcd->shared_hcd)
+> +			usb_start_hcd(hcd->shared_hcd);
+> +	} else {
+> +		if (hcd->shared_hcd)
+> +			usb_stop_hcd(hcd->shared_hcd);
+> +		usb_stop_hcd(hcd);
 > +	}
 > +
 > +	return 0;
 > +}
 > +
 > +/**
-> + * usb_udc_stop - Stop the usb device controller
-> + * @udc: The UDC to be stopped
-> + *
-> + * Disconnect from bus (disable pull) and stop the UDC.
-> + *
-> + * NOTE: udc_lock must be held by caller.
-> + *
-> + * Returs 0 on success, else negative errno.
+> + * OTG FSM ops function to start/stop gadget
 > + */
-> +static int usb_udc_stop(struct usb_udc *udc)
+> +static int usb_otg_start_gadget(struct otg_fsm *fsm, int on)
 > +{
-> +	if (!udc->running) {
-> +		dev_err(&udc->dev, "%s: not stopping as already halted\n",
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +	int ret = 0;
+> +	struct usb_gadget *gadget = fsm->otg->gadget;
+> +
+> +	dev_info(otgd->dev, "%s %d\n", __func__, on);
+> +	if (!gadget) {
+> +		WARN_ONCE(1, "OTG FSM running without Gadget\n");
+> +		return 0;
+> +	}
+> +
+> +	/* call OTG device operations */
+> +	if (otgd->start_gadget) {
+> +		ret = otgd->start_gadget(fsm, on);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	otgd->gadget_can_start = on;
+> +	if (on)
+> +		usb_gadget_start(fsm->otg->gadget);
+> +	else
+> +		usb_gadget_stop(fsm->otg->gadget);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * OTG FSM work function
+> + */
+> +static void usb_otg_work(struct work_struct *work)
+> +{
+> +	struct otg_data *otgd = container_of(work, struct otg_data, work);
+> +
+> +	if (otg_statemachine(&otgd->fsm)) {
+> +		/* state changed. any action ? */
+> +	}
+> +}
+> +
+> +/**
+> + * usb_otg_register() - Register the OTG device to OTG core
+> + * @parent_device:	parent device of Host & Gadget controllers.
+> + * @otg_fsm_ops:	otg state machine ops.
+> + *
+> + * Register parent device that contains both HCD and GCD into
+> + * the USB OTG core. HCD and GCD will be prevented from starting
+> + * till both are available for use.
+> + *
+> + * Return: struct otg_fsm * if success, NULL if error.
+> + */
+> +struct otg_fsm *usb_otg_register(struct device *parent_dev,
+> +				 struct otg_fsm_ops *fsm_ops)
+> +{
+> +	struct otg_data *otgd;
+> +	int ret = 0;
+> +
+> +	if (!parent_dev || !fsm_ops)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	/* already in list? */
+> +	mutex_lock(&otg_list_mutex);
+> +	if (usb_otg_device_get_otgd(parent_dev)) {
+> +		dev_err(parent_dev, "%s: device already in OTG list\n",
+> +			__func__);
+> +		ret = -EINVAL;
+> +		goto unlock;
+> +	}
+> +
+> +	/* allocate and add to list */
+> +	otgd = kzalloc(sizeof(*otgd), GFP_KERNEL);
+> +	if (!otgd) {
+> +		ret = -ENOMEM;
+> +		goto unlock;
+> +	}
+> +
+> +	otgd->dev = parent_dev;
+> +	INIT_WORK(&otgd->work, usb_otg_work);
+> +	otgd->wq = create_singlethread_workqueue("usb_otg");
+> +	if (!otgd->wq) {
+> +		dev_err(parent_dev, "%s: can't create workqueue\n", __func__);
+> +		ret = -ENODEV;
+> +		goto err_wq;
+> +	}
+> +
+> +	usb_otg_init_timers(otgd);
+> +
+> +	/* save original start host/gadget ops */
+> +	otgd->start_host = fsm_ops->start_host;
+> +	otgd->start_gadget = fsm_ops->start_gadget;
+> +	/* create copy of original ops */
+> +	otgd->fsm_ops = *fsm_ops;
+> +	/* override ops */
+> +	otgd->fsm_ops.start_host = usb_otg_start_host;
+> +	otgd->fsm_ops.start_gadget = usb_otg_start_gadget;
+> +	/* FIXME: we ignore caller's timer ops */
+> +	otgd->fsm_ops.add_timer = usb_otg_add_timer;
+> +	otgd->fsm_ops.del_timer = usb_otg_del_timer;
+> +	/* set otg ops */
+> +	otgd->fsm.ops = &otgd->fsm_ops;
+> +	otgd->fsm.otg = &otgd->otg;
+> +
+> +	mutex_init(&otgd->fsm.lock);
+> +
+> +	list_add_tail(&otgd->list, &otg_list);
+> +	mutex_unlock(&otg_list_mutex);
+> +	return &otgd->fsm;
+> +
+> +err_wq:
+> +	kfree(otgd);
+> +unlock:
+> +	mutex_unlock(&otg_list_mutex);
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_register);
+> +
+> +/**
+> + * usb_otg_unregister() - Unregister the OTG device from USB OTG core
+> + * @parent_device:	parent device of Host & Gadget controllers.
+> + *
+> + * Unregister parent OTG deviced from USB OTG core.
+> + * Prevents unregistering till both Host and Gadget controllers
+> + * have unregistered from the OTG core.
+> + *
+> + * Return: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_unregister(struct device *parent_dev)
+> +{
+> +	struct otg_data *otgd;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(parent_dev);
+> +	if (!otgd) {
+> +		dev_err(parent_dev, "%s: device not in OTG list\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* prevent unregister till both host & gadget have unregistered */
+> +	if (otgd->fsm.otg->host || otgd->fsm.otg->gadget) {
+> +		dev_err(parent_dev, "%s: host/gadget still registered\n",
 > +			__func__);
 > +		return -EBUSY;
 > +	}
 > +
-> +	usb_gadget_disconnect(udc->gadget);
-> +	udc->driver->disconnect(udc->gadget);
-> +	usb_gadget_udc_stop(udc);
+> +	/* OTG FSM is halted when host/gadget unregistered */
+> +	destroy_workqueue(otgd->wq);
+> +
+> +	/* remove from otg list */
+> +	list_del(&otgd->list);
+> +	kfree(otgd);
+> +	mutex_unlock(&otg_list_mutex);
 > +
 > +	return 0;
 > +}
+> +EXPORT_SYMBOL_GPL(usb_otg_unregister);
 > +
 > +/**
-> + * usb_gadget_start - start the usb gadget controller
-> + * @gadget: the gadget device to start
-> + *
-> + * This is external API for use by OTG core.
-> + *
-> + * Start the usb device controller and connect to bus (enable pull).
-> + * There is no guarantee that the controller is started
-> + * as we might be missing some dependencies
-> + * i.e. gadget function driver not loaded or softconnect disabled.
+> + * start/kick the OTG FSM if we can
+> + * fsm->lock must be held
 > + */
-> +int usb_gadget_start(struct usb_gadget *gadget)
+> +static void usb_otg_start_fsm(struct otg_fsm *fsm)
 > +{
-> +	int ret;
-> +	struct usb_udc *udc = NULL;
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
 > +
-> +	dev_dbg(&gadget->dev, "%s\n", __func__);
-> +	mutex_lock(&udc_lock);
-> +	list_for_each_entry(udc, &udc_list, list)
-> +		if (udc->gadget == gadget)
-> +			goto found;
+> +	if (otgd->fsm_running)
+> +		goto kick_fsm;
 > +
-> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-> +		__func__);
-> +	mutex_unlock(&udc_lock);
-> +	return -EINVAL;
+> +	if (!fsm->otg->host) {
+> +		dev_info(otgd->dev, "Not starting OTG till Host registers\n");
+> +		return;
+> +	}
 > +
-> +found:
-> +	ret = usb_udc_start(udc);
-> +	mutex_unlock(&udc_lock);
+> +	if (!fsm->otg->gadget) {
+> +		dev_info(otgd->dev, "Not starting OTG till Gadget registers\n");
+> +		return;
+> +	}
 > +
-> +	return ret;
+> +	otgd->fsm_running = true;
+> +kick_fsm:
+> +	queue_work(otgd->wq, &otgd->work);
 > +}
-> +EXPORT_SYMBOL_GPL(usb_gadget_start);
 > +
 > +/**
-> + * usb_gadget_stop - stop the usb gadget
-> + * @gadget: The gadget device we want to stop
-> + *
-> + * This is external API for use by OTG core.
-> + *
-> + * Disconnect from the bus (disable pull) and stop the
-> + * gadget controller.
+> + * stop the OTG FSM. Stops Host & Gadget controllers as well.
+> + * fsm->lock must be held
 > + */
-> +int usb_gadget_stop(struct usb_gadget *gadget)
+> +static void usb_otg_stop_fsm(struct otg_fsm *fsm)
 > +{
-> +	int ret;
-> +	struct usb_udc *udc = NULL;
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +	int i;
 > +
-> +	dev_dbg(&gadget->dev, "%s\n", __func__);
-> +	mutex_lock(&udc_lock);
-> +	list_for_each_entry(udc, &udc_list, list)
-> +		if (udc->gadget == gadget)
-> +			goto found;
+> +	if (!otgd->fsm_running)
+> +		return;
 > +
-> +	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-> +		__func__);
-> +	mutex_unlock(&udc_lock);
-> +	return -EINVAL;
+> +	/* no more new events queued */
+> +	otgd->fsm_running = false;
 > +
-> +found:
-> +	ret = usb_udc_stop(udc);
-> +	mutex_unlock(&udc_lock);
+> +	/* Stop state machine / timers */
+> +	for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
+> +		del_timer_sync(&otgd->timers[i].timer);
+> +
+> +	flush_workqueue(otgd->wq);
+> +
+> +	/* stop host/gadget immediately */
+> +	if (fsm->protocol == PROTO_HOST)
+> +		otg_start_host(fsm, 0);
+> +	else if (fsm->protocol == PROTO_GADGET)
+> +		otg_start_gadget(fsm, 0);
+> +}
+> +
+> +/**
+> + * usb_otg_sync_inputs - Sync OTG inputs with the OTG state machine
+> + * @fsm:	OTG FSM instance
+> + *
+> + * Used by the OTG driver to update the inputs to the OTG
+> + * state machine.
+> + *
+> + * Can be called in IRQ context.
+> + */
+> +void usb_otg_sync_inputs(struct otg_fsm *fsm)
+> +{
+> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> +
+> +	/* Don't kick FSM till it has started */
+> +	if (!otgd->fsm_running)
+> +		return;
+> +
+> +	/* Kick FSM */
+> +	queue_work(otgd->wq, &otgd->work);
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_sync_inputs);
+> +
+> +/**
+> + * usb_otg_kick_fsm - Kick the OTG state machine
+> + * @hcd_gcd_device:	Host/Gadget controller device
+> + *
+> + * Used by USB host/device stack to sync OTG related
+> + * events to the OTG state machine.
+> + * e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
+> + *
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_kick_fsm(struct device *hcd_gcd_device)
+> +{
+> +	struct otg_data *otgd;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(hcd_gcd_device->parent);
+> +	if (!otgd) {
+> +		dev_err(hcd_gcd_device, "%s: invalid host/gadget device\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -ENODEV;
+> +	}
+> +
+> +	mutex_unlock(&otg_list_mutex);
+> +	usb_otg_sync_inputs(&otgd->fsm);
 > +
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(usb_gadget_stop);
+> +EXPORT_SYMBOL_GPL(usb_otg_kick_fsm);
 > +
 > +/**
->   * usb_udc_release - release the usb_udc struct
->   * @dev: the dev member within usb_udc
->   *
-> @@ -278,6 +419,7 @@ int usb_add_gadget_udc_release(struct device *parent, struct usb_gadget *gadget,
->  		goto err3;
->  
->  	udc->gadget = gadget;
-> +	udc->softconnect = 1;	/* connect by default */
->  
->  	mutex_lock(&udc_lock);
->  	list_add_tail(&udc->list, &udc_list);
-> @@ -329,10 +471,8 @@ static void usb_gadget_remove_driver(struct usb_udc *udc)
->  
->  	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
->  
-> -	usb_gadget_disconnect(udc->gadget);
-> -	udc->driver->disconnect(udc->gadget);
-> +	usb_udc_stop(udc);
->  	udc->driver->unbind(udc->gadget);
-> -	usb_gadget_udc_stop(udc);
->  
->  	udc->driver = NULL;
->  	udc->dev.driver = NULL;
-> @@ -378,6 +518,7 @@ EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
->  
->  /* ------------------------------------------------------------------------- */
->  
-> +/* udc_lock must be held */
->  static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
->  {
->  	int ret;
-> @@ -392,12 +533,12 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
->  	ret = driver->bind(udc->gadget, driver);
->  	if (ret)
->  		goto err1;
-> -	ret = usb_gadget_udc_start(udc);
+> + * usb_otg_register_hcd - Register Host controller to OTG core
+> + * @hcd:	Host controller device
+> + *
+> + * This is used by the USB Host stack to register the Host controller
+> + * to the OTG core. Host controller must not be started by the
+> + * caller as it is left upto the OTG state machine to do so.
+> + *
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_register_hcd(struct usb_hcd *hcd)
+> +{
+> +	struct otg_data *otgd;
+> +	struct usb_bus *bus = hcd_to_bus(hcd);
+> +	struct device *otg_dev = bus->controller->parent;
 > +
-> +	ret = usb_udc_start(udc);
->  	if (ret) {
->  		driver->unbind(udc->gadget);
->  		goto err1;
->  	}
-> -	usb_gadget_connect(udc->gadget);
->  
->  	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
->  	return 0;
-> @@ -510,12 +651,15 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
->  	}
->  
->  	if (sysfs_streq(buf, "connect")) {
-> -		usb_gadget_udc_start(udc);
-> -		usb_gadget_connect(udc->gadget);
-> +		mutex_lock(&udc_lock);
-> +		udc->softconnect = 1;
-> +		usb_udc_start(udc);
-> +		mutex_unlock(&udc_lock);
->  	} else if (sysfs_streq(buf, "disconnect")) {
-> -		usb_gadget_disconnect(udc->gadget);
-> -		udc->driver->disconnect(udc->gadget);
-> -		usb_gadget_udc_stop(udc);
-> +		mutex_lock(&udc_lock);
-> +		udc->softconnect = 0;
-> +		usb_udc_stop(udc);
-> +		mutex_unlock(&udc_lock);
->  	} else {
->  		dev_err(dev, "unsupported command '%s'\n", buf);
->  		return -EINVAL;
-> diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-> index e2f00fd..7ada7e6 100644
-> --- a/include/linux/usb/gadget.h
-> +++ b/include/linux/usb/gadget.h
-> @@ -922,6 +922,9 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver);
->   */
->  int usb_gadget_unregister_driver(struct usb_gadget_driver *driver);
->  
-> +int usb_gadget_start(struct usb_gadget *gadget);
-> +int usb_gadget_stop(struct usb_gadget *gadget);
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(otg_dev);
+> +	if (!otgd) {
+> +		dev_err(otg_dev, "%s: device not registered to OTG core\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -EINVAL;
+> +	}
 > +
->  extern int usb_add_gadget_udc_release(struct device *parent,
->  		struct usb_gadget *gadget, void (*release)(struct device *dev));
->  extern int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget);
+> +	mutex_unlock(&otg_list_mutex);
+> +	/* HCD will be started by OTG fsm when needed */
+> +	mutex_lock(&otgd->fsm.lock);
+> +	if (otgd->fsm.otg->host) {
+> +		/* probably a shared hcd ? */
+> +		if (usb_hcd_is_primary_hcd(hcd)) {
+> +			dev_err(otg_dev, "%s: hcd already registered\n",
+> +				__func__);
+> +			goto err;
+> +		}
+> +
+> +		if (hcd->shared_hcd == bus_to_hcd(otgd->fsm.otg->host)) {
+> +			if (otgd->shared_hcd) {
+> +				dev_err(otg_dev, "%s: shared HCD already registered\n",
+> +					__func__);
+> +				goto err;
+> +			}
+> +
+> +			otgd->shared_hcd = hcd;
+> +			dev_info(otg_dev, "USB-OTG: Shared Host %s registered\n",
+> +				 dev_name(bus->controller));
+> +			/* we might be pending a start_host */
+> +			if (otgd->host_can_start)
+> +				usb_otg_start_host(&otgd->fsm, 1);
+> +			goto unlock;
+> +		} else {
+> +			dev_err(otg_dev, "%s: invalid shared hcd\n",
+> +					__func__);
+> +			goto err;
+> +		}
+> +	}
+> +
+> +	otgd->fsm.otg->host = bus;
+> +
+> +	/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+> +	dev_info(otg_dev, "USB-OTG: Primary Host %s registered\n",
+> +		 dev_name(bus->controller));
+> +
+> +unlock:
+> +	/* Kick FSM */
+> +	usb_otg_start_fsm(&otgd->fsm);
+> +	mutex_unlock(&otgd->fsm.lock);
+> +
+> +	return 0;
+> +
+> +err:
+> +	mutex_unlock(&otgd->fsm.lock);
+> +	return -EINVAL;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_register_hcd);
+> +
+> +/**
+> + * usb_otg_unregister_hcd - Unregister Host controller from OTG core
+> + * @hcd:	Host controller device
+> + *
+> + * This is used by the USB Host stack to unregister the Host controller
+> + * from the OTG core. Ensures that Host controller is not running
+> + * on successful return.
+> + *
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_unregister_hcd(struct usb_hcd *hcd)
+> +{
+> +	struct otg_data *otgd;
+> +	struct usb_bus *bus = hcd_to_bus(hcd);
+> +	struct device *otg_dev = bus->controller->parent;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(otg_dev);
+> +	if (!otgd) {
+> +		dev_err(otg_dev, "%s: device not registered to OTG core\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&otg_list_mutex);
+> +
+> +	mutex_lock(&otgd->fsm.lock);
+> +	if (otgd->fsm.otg->host != bus) {
+> +		dev_err(otg_dev, "%s: host wansn't registered with OTG\n",
+> +			__func__);
+> +		mutex_unlock(&otgd->fsm.lock);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* stop FSM & Host */
+> +	usb_otg_stop_fsm(&otgd->fsm);
+> +	otgd->fsm.otg->host = NULL;
+> +
+> +	mutex_unlock(&otgd->fsm.lock);
+> +	dev_info(otg_dev, "USB-OTG: Host %s unregistered\n",
+> +		 dev_name(bus->controller));
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_unregister_hcd);
+> +
+> +/**
+> + * usb_otg_register_gadget - Register Gadget controller to OTG core
+> + * @gadget:	Gadget controller
+> + *
+> + * This is used by the USB Gadget stack to register the Gadget controller
+> + * to the OTG core. Gadget controller must not be started by the
+> + * caller as it is left upto the OTG state machine to do so.
+> + *
+> + * As gadget controller needs to be prevented from starting till other
+> + * conditions are met (i.e. driver loaded, softconnet enabled),
+> + * the gadget stack can use the usb_otg_gadget_can_start() function
+> + * to check if OTG core has given the permission to start the gadget.
+> + *
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_register_gadget(struct usb_gadget *gadget)
+> +{
+> +	struct otg_data *otgd;
+> +	struct device *otg_dev = gadget->dev.parent;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(otg_dev);
+> +	if (!otgd) {
+> +		dev_err(otg_dev, "%s: device not registered to OTG core\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&otg_list_mutex);
+> +
+> +	mutex_lock(&otgd->fsm.lock);
+> +	if (otgd->fsm.otg->gadget) {
+> +		dev_err(otg_dev, "%s: gadget already registered with OTG\n",
+> +			__func__);
+> +		mutex_unlock(&otgd->fsm.lock);
+> +		return -EINVAL;
+> +	}
+> +
+> +	otgd->fsm.otg->gadget = gadget;
+> +	dev_info(otg_dev, "USB-OTG: Gadget %s registered\n",
+> +		 dev_name(&gadget->dev));
+> +
+> +	/* Kick FSM */
+> +	usb_otg_start_fsm(&otgd->fsm);
+> +	mutex_unlock(&otgd->fsm.lock);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_register_gadget);
+> +
+> +/**
+> + * usb_otg_unregister_gadget - Unregister Gadget controller from OTG core
+> + * @gadget:	Gadget controller
+> + *
+> + * This is used by the USB Gadget stack to unregister the Gadget controller
+> + * from the OTG core. Ensures that Gadget controller is not running
+> + * on successful return.
+> + *
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +int usb_otg_unregister_gadget(struct usb_gadget *gadget)
+> +{
+> +	struct otg_data *otgd;
+> +	struct device *otg_dev = gadget->dev.parent;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(otg_dev);
+> +	if (!otgd) {
+> +		dev_err(otg_dev, "%s: device not registered to OTG core\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&otg_list_mutex);
+> +
+> +	mutex_lock(&otgd->fsm.lock);
+> +	if (otgd->fsm.otg->gadget != gadget) {
+> +		dev_err(otg_dev, "%s: gadget wasn't registered with OTG\n",
+> +			__func__);
+> +		mutex_unlock(&otgd->fsm.lock);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Stop FSM & gadget */
+> +	usb_otg_stop_fsm(&otgd->fsm);
+> +	otgd->fsm.otg->gadget = NULL;
+> +	mutex_unlock(&otgd->fsm.lock);
+> +
+> +	dev_info(otg_dev, "USB-OTG: Gadget %s unregistered\n",
+> +		 dev_name(&gadget->dev));
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_unregister_gadget);
+> +
+> +/**
+> + * usb_otg_gadget_can_start - check if Gadget can be started from OTG perspective
+> + * @gadget:	Gadget controller
+> + *
+> + * This is used by the USB Gadget stack to check if Gadget controller
+> + * can be started from the OTG state machines perspective.
+> + * i.e. we're in 'b_peripheral' state.
+> + *
+> + * Returns: 0 on success, error value otherwise.
+> + */
+> +bool usb_otg_gadget_can_start(struct usb_gadget *gadget)
+> +{
+> +	struct otg_data *otgd;
+> +	struct device *otg_dev = gadget->dev.parent;
+> +
+> +	mutex_lock(&otg_list_mutex);
+> +	otgd = usb_otg_device_get_otgd(otg_dev);
+> +	if (!otgd) {
+> +		dev_err(otg_dev, "%s: device not registered to OTG core\n",
+> +			__func__);
+> +		mutex_unlock(&otg_list_mutex);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&otg_list_mutex);
+> +
+> +	return otgd->gadget_can_start;
+> +}
+> +EXPORT_SYMBOL_GPL(usb_otg_gadget_can_start);
+> diff --git a/drivers/usb/common/usb-otg.h b/drivers/usb/common/usb-otg.h
+> new file mode 100644
+> index 0000000..05331f0
+> --- /dev/null
+> +++ b/drivers/usb/common/usb-otg.h
+> @@ -0,0 +1,71 @@
+> +/**
+> + * drivers/usb/common/usb-otg.h - USB OTG core local header
+> + *
+> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
+> + * Author: Roger Quadros <rogerq@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef __DRIVERS_USB_COMMON_USB_OTG_H
+> +#define __DRIVERS_USB_COMMON_USB_OTG_H
+> +
+> +/*
+> + *  A-DEVICE timing constants
+> + */
+> +
+> +/* Wait for VBUS Rise  */
+> +#define TA_WAIT_VRISE        (100)	/* a_wait_vrise: section 7.1.2
+> +					 * a_wait_vrise_tmr: section 7.4.5.1
+> +					 * TA_VBUS_RISE <= 100ms, section 4.4
+> +					 * Table 4-1: Electrical Characteristics
+> +					 * ->DC Electrical Timing
+> +					 */
+> +/* Wait for VBUS Fall  */
+> +#define TA_WAIT_VFALL        (1000)	/* a_wait_vfall: section 7.1.7
+> +					 * a_wait_vfall_tmr: section: 7.4.5.2
+> +					 */
+> +/* Wait for B-Connect */
+> +#define TA_WAIT_BCON         (10000)	/* a_wait_bcon: section 7.1.3
+> +					 * TA_WAIT_BCON: should be between 1100
+> +					 * and 30000 ms, section 5.5, Table 5-1
+> +					 */
+> +/* A-Idle to B-Disconnect */
+> +#define TA_AIDL_BDIS         (5000)	/* a_suspend min 200 ms, section 5.2.1
+> +					 * TA_AIDL_BDIS: section 5.5, Table 5-1
+> +					 */
+> +/* B-Idle to A-Disconnect */
+> +#define TA_BIDL_ADIS         (500)	/* TA_BIDL_ADIS: section 5.2.1
+> +					 * 500ms is used for B switch to host
+> +					 * for safe
+> +					 */
+> +
+> +/*
+> + * B-device timing constants
+> + */
+> +
+> +/* Data-Line Pulse Time*/
+> +#define TB_DATA_PLS          (10)	/* b_srp_init,continue 5~10ms
+> +					 * section:5.1.3
+> +					 */
+> +/* SRP Fail Time  */
+> +#define TB_SRP_FAIL          (6000)	/* b_srp_init,fail time 5~6s
+> +					 * section:5.1.6
+> +					 */
+> +/* A-SE0 to B-Reset  */
+> +#define TB_ASE0_BRST         (155)	/* minimum 155 ms, section:5.3.1 */
+> +/* SE0 Time Before SRP */
+> +#define TB_SE0_SRP           (1000)	/* b_idle,minimum 1s, section:5.1.2 */
+> +/* SSEND time before SRP */
+> +#define TB_SSEND_SRP         (1500)	/* minimum 1.5 sec, section:5.1.2 */
+> +
+> +#define TB_SESS_VLD          (1000)
+> +
+> +#endif /* __DRIVERS_USB_COMMON_USB_OTG_H */
+> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+> index cc0ced0..43a0d2d 100644
+> --- a/drivers/usb/core/Kconfig
+> +++ b/drivers/usb/core/Kconfig
+> @@ -84,3 +84,11 @@ config USB_OTG_FSM
+>  	  Implements OTG Finite State Machine as specified in On-The-Go
+>  	  and Embedded Host Supplement to the USB Revision 2.0 Specification.
+>  
+> +config USB_OTG_CORE
+> +	tristate "USB OTG core"
+> +	depends on USB
+> +	select USB_OTG_FSM
+> +	help
+> +	  Standardize the way OTG is implemented on Linux. The OTG state
+> +	  machine is instantiated here instead of being done in each controller
+> +	  driver.
+> diff --git a/include/linux/usb/usb-otg.h b/include/linux/usb/usb-otg.h
+> new file mode 100644
+> index 0000000..52ab7b1
+> --- /dev/null
+> +++ b/include/linux/usb/usb-otg.h
+> @@ -0,0 +1,86 @@
+> +/**
+> + * include/linux/usb/usb-otg.h - USB OTG core
+> + *
+> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
+> + * Author: Roger Quadros <rogerq@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef __LINUX_USB_OTG_CORE_H
+> +#define __LINUX_USB_OTG_CORE_H
+> +
+> +#include <linux/device.h>
+> +#include <linux/usb.h>
+> +#include <linux/usb/hcd.h>
+> +#include <linux/usb/gadget.h>
+> +#include <linux/usb/otg-fsm.h>
+> +
+> +#if IS_ENABLED(CONFIG_USB_OTG_CORE)
+> +struct otg_fsm *usb_otg_register(struct device *parent_dev,
+> +				 struct otg_fsm_ops *fsm_ops);
+> +int usb_otg_unregister(struct device *parent_dev);
+> +int usb_otg_register_hcd(struct usb_hcd *hcd);
+> +int usb_otg_unregister_hcd(struct usb_hcd *hcd);
+> +int usb_otg_register_gadget(struct usb_gadget *gadget);
+> +int usb_otg_unregister_gadget(struct usb_gadget *gadget);
+> +void usb_otg_sync_inputs(struct otg_fsm *fsm);
+> +int usb_otg_kick_fsm(struct device *hcd_gcd_device);
+> +bool usb_otg_gadget_can_start(struct usb_gadget *gadget);
+> +
+> +#else /* CONFIG_USB_OTG_CORE */
+> +
+> +static inline struct otg_fsm *usb_otg_register(struct device *parent_dev,
+> +					       struct otg_fsm_ops *fsm_ops)
+> +{
+> +	return ERR_PTR(-ENOSYS);
+> +}
+> +
+> +static inline int usb_otg_unregister(struct device *parent_dev)
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +static inline int usb_otg_register_hcd(struct usb_hcd *hcd)
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +int usb_otg_unregister_hcd(struct usb_hcd *hcd)
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +static inline int usb_otg_register_gadget(struct usb_gadget *gadget)
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +static inline int usb_otg_unregister_gadget(struct usb_gadget *gadget)
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +static inline void usb_otg_sync_inputs(struct otg_fsm *fsm)
+> +{
+> +}
+> +
+> +int usb_otg_kick_fsm(struct device *hcd_gcd_device)
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +bool usb_otg_gadget_can_start(struct usb_gadget *gadget)
+> +{
+> +	return true;
+> +}
+> +#endif /* CONFIG_USB_OTG_CORE */
+> +
+> +#endif /* __LINUX_USB_OTG_CORE */
 > -- 
 > 2.1.0
 > 
@@ -294,7 +1000,3 @@ Peter
 
 Best Regards,
 Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
