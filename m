@@ -1,7 +1,7 @@
 From: <grygorii.strashko@linaro.org>
-Subject: [PATCH 1/8] gpio: omap: convert omap_gpio_is_input() to use gpio offset
-Date: Thu, 19 Mar 2015 19:25:37 +0200
-Message-ID: <1426785944-17255-2-git-send-email-grygorii.strashko@linaro.org>
+Subject: [PATCH 2/8] gpio: omap: simplify omap_set_gpio_dataout_x()
+Date: Thu, 19 Mar 2015 19:25:38 +0200
+Message-ID: <1426785944-17255-3-git-send-email-grygorii.strashko@linaro.org>
 References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
 Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
@@ -12,55 +12,57 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <grygorii.strashko@linaro.org>
 
-Convert omap_gpio_is_input() to use GPIO offset instead of mask and,
-in such way, make code simpler and remove few lines of code.
+Both functions omap_set_gpio_dataout_reg() and
+omap_set_gpio_dataout_mask() accept GPIO offset
+as 'gpio' input parameter, so rename it to 'offset' and
+drop usage of GPIO_BIT() macro.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
 ---
- drivers/gpio/gpio-omap.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/gpio/gpio-omap.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 2b2fc4b..ce71239 100644
+index ce71239..7aeee7b 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -472,11 +472,11 @@ static void omap_disable_gpio_module(struct gpio_bank *bank, unsigned offset)
- 	}
+@@ -75,7 +75,7 @@ struct gpio_bank {
+ 	int power_mode;
+ 	bool workaround_enabled;
+ 
+-	void (*set_dataout)(struct gpio_bank *bank, int gpio, int enable);
++	void (*set_dataout)(struct gpio_bank *bank, unsigned gpio, int enable);
+ 	int (*get_context_loss_count)(struct device *dev);
+ 
+ 	struct omap_gpio_reg_offs *regs;
+@@ -119,11 +119,11 @@ static void omap_set_gpio_direction(struct gpio_bank *bank, int gpio,
+ 
+ 
+ /* set data out value using dedicate set/clear register */
+-static void omap_set_gpio_dataout_reg(struct gpio_bank *bank, int gpio,
++static void omap_set_gpio_dataout_reg(struct gpio_bank *bank, unsigned offset,
+ 				      int enable)
+ {
+ 	void __iomem *reg = bank->base;
+-	u32 l = GPIO_BIT(bank, gpio);
++	u32 l = BIT(offset);
+ 
+ 	if (enable) {
+ 		reg += bank->regs->set_dataout;
+@@ -137,11 +137,11 @@ static void omap_set_gpio_dataout_reg(struct gpio_bank *bank, int gpio,
  }
  
--static int omap_gpio_is_input(struct gpio_bank *bank, int mask)
-+static int omap_gpio_is_input(struct gpio_bank *bank, unsigned offset)
+ /* set data out value using mask register */
+-static void omap_set_gpio_dataout_mask(struct gpio_bank *bank, int gpio,
++static void omap_set_gpio_dataout_mask(struct gpio_bank *bank, unsigned offset,
+ 				       int enable)
  {
- 	void __iomem *reg = bank->base + bank->regs->direction;
+ 	void __iomem *reg = bank->base + bank->regs->dataout;
+-	u32 gpio_bit = GPIO_BIT(bank, gpio);
++	u32 gpio_bit = BIT(offset);
+ 	u32 l;
  
--	return readl_relaxed(reg) & mask;
-+	return readl_relaxed(reg) & BIT(offset);
- }
- 
- static void omap_gpio_init_irq(struct gpio_bank *bank, unsigned gpio,
-@@ -519,7 +519,7 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
- 	offset = GPIO_INDEX(bank, gpio);
- 	retval = omap_set_gpio_triggering(bank, offset, type);
- 	omap_gpio_init_irq(bank, gpio, offset);
--	if (!omap_gpio_is_input(bank, BIT(offset))) {
-+	if (!omap_gpio_is_input(bank, offset)) {
- 		spin_unlock_irqrestore(&bank->lock, flags);
- 		return -EINVAL;
- 	}
-@@ -976,12 +976,10 @@ static int omap_gpio_input(struct gpio_chip *chip, unsigned offset)
- static int omap_gpio_get(struct gpio_chip *chip, unsigned offset)
- {
- 	struct gpio_bank *bank;
--	u32 mask;
- 
- 	bank = container_of(chip, struct gpio_bank, chip);
--	mask = (BIT(offset));
- 
--	if (omap_gpio_is_input(bank, mask))
-+	if (omap_gpio_is_input(bank, offset))
- 		return omap_get_gpio_datain(bank, offset);
- 	else
- 		return omap_get_gpio_dataout(bank, offset);
+ 	l = readl_relaxed(reg);
 -- 
 1.9.1
 
