@@ -1,81 +1,62 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 08/35] clk: ti: fix ti_clk_get_reg_addr error handling
-Date: Thu, 19 Mar 2015 09:14:47 +0200
-Message-ID: <550A7767.6030509@ti.com>
-References: <1424891085-10392-1-git-send-email-t-kristo@ti.com> <1424891085-10392-9-git-send-email-t-kristo@ti.com> <20150306191821.11109.2610@quantum> <20150317183808.GI31346@atomide.com> <550923DB.2020503@ti.com> <20150318170223.GR31346@atomide.com>
+Subject: Re: [PATCHv4 23/35] ARM: OMAP2+: id: cache omap_type value
+Date: Thu, 19 Mar 2015 09:23:19 +0200
+Message-ID: <550A7967.5070409@ti.com>
+References: <1426689860-17537-1-git-send-email-t-kristo@ti.com> <1426689860-17537-24-git-send-email-t-kristo@ti.com> <5509C2E0.8010705@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34597 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709AbbCSHPP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 03:15:15 -0400
-In-Reply-To: <20150318170223.GR31346@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60311 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751234AbbCSHXp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Mar 2015 03:23:45 -0400
+In-Reply-To: <5509C2E0.8010705@cogentembedded.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 03/18/2015 07:02 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [150318 00:06]:
->> On 03/17/2015 08:38 PM, Tony Lindgren wrote:
->>> * Mike Turquette <mturquette@linaro.org> [150306 11:18]:
->>>> Quoting Tero Kristo (2015-02-25 11:04:18)
->>>>> There is a case where NULL can be a valid return value for
->>>>> ti_clk_get_reg_addr, specifically the case where both the provider index
->>>>> and register offsets are zero. In this case, the current error checking
->>>>> against a NULL pointer will fail. Thus, change the API to return a
->>>>> ERR_PTR value in an error case, and change all the users of this API to
->>>>> check against IS_ERR instead.
->>>>>
->>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>>> Cc: Michael Turquette <mturquette@linaro.org>
->>>>
->>>> Looks good to me.
->>> ...
->>>
->>>>> ---
->>>>>   drivers/clk/ti/apll.c      |    5 +++--
->>>>>   drivers/clk/ti/autoidle.c  |    2 +-
->>>>>   drivers/clk/ti/clk.c       |    7 ++++---
->>>>>   drivers/clk/ti/divider.c   |    4 ++--
->>>>>   drivers/clk/ti/dpll.c      |    6 +++---
->>>>>   drivers/clk/ti/gate.c      |    4 ++--
->>>>>   drivers/clk/ti/interface.c |    2 +-
->>>>>   drivers/clk/ti/mux.c       |    4 ++--
->>>>>   8 files changed, 18 insertions(+), 16 deletions(-)
->>>
->>> Can this patch be queued separately by Mike or is there some
->>> dependency to this series?
+On 03/18/2015 08:24 PM, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 03/18/2015 05:44 PM, Tero Kristo wrote:
+>
+>> There is no need to read the register with every invocation of the
+>> function,
+>> as the value is constant. Thus, cache the value in a static variable.
+>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/id.c |    5 ++++-
+>>   1 file changed, 4 insertions(+), 1 deletion(-)
+>
+>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>> index 2a2f4d5..1f5949f 100644
+>> --- a/arch/arm/mach-omap2/id.c
+>> +++ b/arch/arm/mach-omap2/id.c
+>> @@ -52,7 +52,10 @@ EXPORT_SYMBOL(omap_rev);
 >>
->> Without this patch, patch #10 in the set causes a boot failure on omap3,
->> because the specific NULL value is returned for iva2_ck and the clock
->> register fails. This in turn breaks hwmod registration because iva2_ck is
->> missing.
+>>   int omap_type(void)
+>>   {
+>> -    u32 val = 0;
+>> +    static u32 val = OMAP2_DEVICETYPE_MASK + 1;
+>> +
+>> +    if (val < OMAP2_DEVICETYPE_MASK)
 >
-> Oh OK.
->
->> I would just queue this patch as part of this series to avoid any trouble.
->
-> Can this patch be applied separately before this series or does
-> it cause other problems? If it can be separated, Mike can maybe put it
-> into an immutable branch that I can merge in too.
+>     <=, perhaps?
 
-Yea, that works also if Mike is okay with it.
+Hmm right, there is something fishy with this patch. Basically either 
+comparison works as the MASK is a shifted value which is always several 
+magnitudes larger than the resulting omap_type value itself. The +1 part 
+in the init value is completely unnecessary though.
 
 -Tero
 
 >
->>> Other than wondering about the above and the dts related comments,
->>> this series works for me with PM tests.
->>
->> I hope to post a series with the dts related comments fixed later today.
+>> +        return val;
+> [...]
 >
-> Yes I'll take a look, thanks for doing that.
->
-> Regards,
->
-> Tony
+> WBR, Sergei
 >
 
