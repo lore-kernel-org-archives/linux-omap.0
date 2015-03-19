@@ -1,81 +1,71 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
-Date: Thu, 19 Mar 2015 14:34:30 +0200
-Message-ID: <550AC256.4070509@ti.com>
-References: <1426741501.10003.6.camel@midgaarde>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
+Date: Thu, 19 Mar 2015 14:56:35 +0200
+Message-ID: <550AC783.8040304@ti.com>
+References: <1426741659.10003.9.camel@midgaarde>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426741501.10003.6.camel@midgaarde>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48982 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752836AbbCSM4u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Mar 2015 08:56:50 -0400
+In-Reply-To: <1426741659.10003.9.camel@midgaarde>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Knight <g.knight@symetrica.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-On 03/19/2015 07:05 AM, Greg Knight wrote:
-> Hi, Mark,
+On 03/19/2015 07:07 AM, Greg Knight wrote:
+> Hi, Mark, Jaroslav,
 >=20
-> I've attached a patch which adds a device-tree field "ti,dma-min-byte=
-s"
-> which replaces the macro DMA_MIN_BYTES. Adjusting this field addresse=
-s
-> issues we've had where, in our particular use case, the usleep() in t=
-he
-> SPI worker thread eats a full 20% of our CPU (AM3359).
->=20
-> I opted to implement it as a device-tree parameter and keep the origi=
-nal
-> value (160) as the default, in order to avoid impacting anyone else.
->=20
-> The patch is attached. Patches 1-2 are an unrelated McASP change (see=
- my
-> other message).
->=20
-> What is the process for getting this upstreamed?
+> I've attached a couple patches to provide support for the Freescale
+> SGTL5000 chip when using the McASP on the AM3359.
 
-Please follow the guidelines in Documentation/SubmittingPatches. Patche=
-s as
-attachments are not preferred since it makes replying/commenting on the
-patches hard.
+It is more correct to say that this is needed in a custom hardware whic=
+h uses
+McASP and SGTL5000 codec.
 
-Strictly speaking the dma-min-bytes should not be in DT, it is a softwa=
-re
-parameter for the Linux SPI driver implementation.
-Also, when changing DT bindings, please update the documentation as wel=
-l (and
-CC the relevant lists with that).
+> This adds an optional hack, "clock-to-talk" to the McASP subsystem wh=
+ich
+> can start AHCLKX/AHCLKR prior to initializing the codec. This is need=
+ed
+> on the SGTL5000, which depends on AHCLKX for its master clock.
 
-This threshold of 160 bytes in the omap2-mcspi driver is artificial any=
-ways it
-is changed from 8 to 160 by this commit:
-8b66c13474e16 spi/omap2_mcspi: change default DMA_MIN_BYTES value to 16=
-0
+SO is it so that the codec's MCLK is coming from McASP AHCLKX (or R) an=
+d this
+clock need to be present all the time? W/o the MCLK the registers are n=
+ot
+accessible?
 
-It has been changed because of wl1271, but I'm not sure if banging byte=
-s over
-the bus when the transfer is less then 160bytes is that great thing. I =
-would
-guess that the sweet spot is at around the low tens.
+> These patches are based off of 3.14.31-ti-r49. What is the process fo=
+r
+> getting these merged?
 
-But if it is really like this that different devices perform better wit=
-h
-different threshold for choosing between PIO or DMA transfer then this =
-setting
-should come from the slave device and should only affect the transfer s=
-etup
-when communicating with that device.
+=46irst off, please send the patches with git send-email so people can =
+comment
+on them.
 
-Probably adding a parameter (optional) to spi_device struct, so drivers=
- can
-pass dma_over_poi_threshold?
-If it is not set, than just use whatever is the default.
+This will not work in mainline kernel. The McASP is turned off when it =
+is not
+in use (no audio activity) so the AHCLKX/R is not going to be there on =
+the
+ball output.
 
-But I don't think this setting should be in the DT.
+How do you configure the frequency of the AHCLKX/R, this hack only enab=
+les it,
+so you are going to have _some_ clock going out.
+
+You should be using set_clkdiv and set_sysclk calls from the machine dr=
+iver to
+configure the AHCLKX (we do not have AHCLKR supported in the driver ATM=
+).
 
 --=20
 P=C3=A9ter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
