@@ -1,309 +1,97 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v2.1] ASoC: davinci-mcasp: Set rule constraints if implicit
- BCLK divider is used
-Date: Thu, 19 Mar 2015 18:11:21 +0200
-Message-ID: <550AF529.1070105@ti.com>
-References: <1426770689-16884-1-git-send-email-jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv4 00/35] ARM: OMAP2+: PRCM / SCM cleanups against 4.0-rc1
+Date: Thu, 19 Mar 2015 09:10:34 -0700
+Message-ID: <20150319161034.GF31346@atomide.com>
+References: <1426689860-17537-1-git-send-email-t-kristo@ti.com>
+ <20150318220702.GA31346@atomide.com>
+ <550A7F3D.3090602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56030 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188AbbCSQLb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 12:11:31 -0400
-In-Reply-To: <1426770689-16884-1-git-send-email-jsarha@ti.com>
+Received: from muru.com ([72.249.23.125]:38632 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751996AbbCSQPP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Mar 2015 12:15:15 -0400
+Content-Disposition: inline
+In-Reply-To: <550A7F3D.3090602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: broonie@kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Please don't take this yet. The SNDRV_PCM_HW_PARAM_SAMPLE_BITS rule does 
-not appear to work as it should. I'll mail a new patch with a mask based 
-constraints for sample formats shortly.
+* Tero Kristo <t-kristo@ti.com> [150319 00:48]:
+> On 03/19/2015 12:07 AM, Tony Lindgren wrote:
+> >
+> >But for dm8168-evm, it fails early on, see below.
+> 
+> Yea seems I forgot to add dm81x support properly. Try this diff:
+> 
+> diff --git a/arch/arm/mach-omap2/cm_common.c
+> b/arch/arm/mach-omap2/cm_common.c
+> index 2582651..23559aa 100644
+> --- a/arch/arm/mach-omap2/cm_common.c
+> +++ b/arch/arm/mach-omap2/cm_common.c
+> @@ -271,6 +271,8 @@ static const struct of_device_id
+> omap_cm_dt_match_table[] __initconst = {
+>  	{ .compatible = "ti,dra7-cm-core", .data = &cm2_data },
+>  	{ .compatible = "ti,am3-prcm", .data = &am3_prcm_data },
+>  	{ .compatible = "ti,am4-prcm", .data = &am4_prcm_data },
+> +	{ .compatible = "ti,dm814-prcm", .data = &am3_prcm_data },
+> +	{ .compatible = "ti,dm816-prcm", .data = &am3_prcm_data },
+>  	{ }
+>  };
 
-Best regards,
-Jyri
+Boots a bit further now with that, but then produces:
 
-On 03/19/15 15:11, Jyri Sarha wrote:
-> Set rule constraints to allow only combinations of sample-rate,
-> sample-bits, and channels that can be played/captured with reasonable
-> sample-rate accuracy.
->
-> The logic with tdm-slots and serializers (=i2s data wires) goes like
-> this: The first wire will take all channels up to number of tdm-slots,
-> before following wires (if any) are used. If the first wire is used
-> fully, the remaining wires share the same clocks and the divider can
-> be calculated for the first wire.
->
-> Also, takes the number of tdm-slots into account when implicitly
-> selecting the BLCK divider.
->
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> This is othetwise the same patch as v2, but I added Peter's ack and
-> rebased on top of:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git topic/davinci
->
->   sound/soc/davinci/davinci-mcasp.c | 195 ++++++++++++++++++++++++++++++++++++--
->   1 file changed, 185 insertions(+), 10 deletions(-)
->
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-> index d40b392..625cca1 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -27,6 +27,7 @@
->   #include <linux/of_platform.h>
->   #include <linux/of_device.h>
->   #include <linux/platform_data/davinci_asp.h>
-> +#include <linux/math64.h>
->
->   #include <sound/asoundef.h>
->   #include <sound/core.h>
-> @@ -65,6 +66,11 @@ struct davinci_mcasp_context {
->   	bool	pm_state;
->   };
->
-> +struct davinci_mcasp_ruledata {
-> +	struct davinci_mcasp *mcasp;
-> +	int serializers;
-> +};
-> +
->   struct davinci_mcasp {
->   	struct snd_dmaengine_dai_dma_data dma_data[2];
->   	void __iomem *base;
-> @@ -99,6 +105,8 @@ struct davinci_mcasp {
->   #ifdef CONFIG_PM_SLEEP
->   	struct davinci_mcasp_context context;
->   #endif
-> +
-> +	struct davinci_mcasp_ruledata ruledata[2];
->   };
->
->   static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 offset,
-> @@ -868,6 +876,30 @@ static int mcasp_dit_hw_param(struct davinci_mcasp *mcasp,
->   	return 0;
->   }
->
-> +static int davinci_mcasp_calc_clk_div(struct davinci_mcasp *mcasp,
-> +				      unsigned int bclk_freq,
-> +				      int *error_ppm)
-> +{
-> +	int div = mcasp->sysclk_freq / bclk_freq;
-> +	int rem = mcasp->sysclk_freq % bclk_freq;
-> +
-> +	if (rem != 0) {
-> +		if (div == 0 ||
-> +		    ((mcasp->sysclk_freq / div) - bclk_freq) >
-> +		    (bclk_freq - (mcasp->sysclk_freq / (div+1)))) {
-> +			div++;
-> +			rem = rem - bclk_freq;
-> +		}
-> +	}
-> +	if (error_ppm)
-> +		*error_ppm =
-> +			(div*1000000 + (int)div64_long(1000000LL*rem,
-> +						       (int)bclk_freq))
-> +			/div - 1000000;
-> +
-> +	return div;
-> +}
-> +
->   static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
->   					struct snd_pcm_hw_params *params,
->   					struct snd_soc_dai *cpu_dai)
-> @@ -883,16 +915,20 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
->   	 * the machine driver, we need to calculate the ratio.
->   	 */
->   	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
-> -		unsigned int bclk_freq = snd_soc_params_to_bclk(params);
-> -		unsigned int div = mcasp->sysclk_freq / bclk_freq;
-> -		if (mcasp->sysclk_freq % bclk_freq != 0) {
-> -			if (((mcasp->sysclk_freq / div) - bclk_freq) >
-> -			    (bclk_freq - (mcasp->sysclk_freq / (div+1))))
-> -				div++;
-> -			dev_warn(mcasp->dev,
-> -				 "Inaccurate BCLK: %u Hz / %u != %u Hz\n",
-> -				 mcasp->sysclk_freq, div, bclk_freq);
-> -		}
-> +		int channels = params_channels(params);
-> +		int rate = params_rate(params);
-> +		int sbits = params_width(params);
-> +		int ppm, div;
-> +
-> +		if (channels > mcasp->tdm_slots)
-> +			channels = mcasp->tdm_slots;
-> +
-> +		div = davinci_mcasp_calc_clk_div(mcasp, rate*sbits*channels,
-> +						 &ppm);
-> +		if (ppm)
-> +			dev_info(mcasp->dev, "Sample-rate is off by %d PPM\n",
-> +				 ppm);
-> +
->   		__davinci_mcasp_set_clkdiv(cpu_dai, 1, div, 0);
->   	}
->
-> @@ -974,6 +1010,108 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
->   	return ret;
->   }
->
-> +static const unsigned int davinci_mcasp_dai_rates[] = {
-> +	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
-> +	88200, 96000, 176400, 192000,
-> +};
-> +
-> +#define DAVINCI_MAX_RATE_ERROR_PPM 1000
-> +
-> +static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *params,
-> +				      struct snd_pcm_hw_rule *rule)
-> +{
-> +	struct davinci_mcasp_ruledata *rd = rule->private;
-> +	int sbits = params_width(params);
-> +	int channels = params_channels(params);
-> +	unsigned int list[ARRAY_SIZE(davinci_mcasp_dai_rates)];
-> +	int i, count = 0;
-> +
-> +	if (channels > rd->mcasp->tdm_slots)
-> +		channels = rd->mcasp->tdm_slots;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(davinci_mcasp_dai_rates); i++) {
-> +		uint bclk_freq = sbits*channels*davinci_mcasp_dai_rates[i];
-> +		int ppm;
-> +
-> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
-> +			list[count++] = davinci_mcasp_dai_rates[i];
-> +
-> +	}
-> +	dev_dbg(rd->mcasp->dev, "%d frequencies for %d sbits and %d channels\n",
-> +		count, sbits, channels);
-> +
-> +	return snd_interval_list(hw_param_interval(params, rule->var),
-> +				 count, list, 0);
-> +}
-> +
-> +static int davinci_mcasp_hw_rule_samplebits(struct snd_pcm_hw_params *params,
-> +					    struct snd_pcm_hw_rule *rule)
-> +{
-> +	struct davinci_mcasp_ruledata *rd = rule->private;
-> +	int channels = params_channels(params);
-> +	int rate = params_rate(params);
-> +	unsigned int list[4];
-> +	int sbits, count = 0;
-> +
-> +	if (channels > rd->mcasp->tdm_slots)
-> +		channels = rd->mcasp->tdm_slots;
-> +
-> +	for (sbits = 8; sbits <= 32; sbits += 8) {
-> +		uint bclk_freq = channels*sbits*rate;
-> +		int ppm;
-> +
-> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
-> +			list[count++] = sbits;
-> +	}
-> +	dev_dbg(rd->mcasp->dev,
-> +		"%d possible sample size for %d Hz and %d channels\n",
-> +		count, rate, channels);
-> +
-> +	return snd_interval_list(hw_param_interval(params, rule->var),
-> +				 count, list, 0);
-> +}
-> +
-> +static int davinci_mcasp_hw_rule_channels(struct snd_pcm_hw_params *params,
-> +					  struct snd_pcm_hw_rule *rule)
-> +{
-> +	struct davinci_mcasp_ruledata *rd = rule->private;
-> +	struct snd_interval *ci =
-> +		hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
-> +	int sbits = params_width(params);
-> +	int rate = params_rate(params);
-> +	int max_chan_per_wire = rd->mcasp->tdm_slots < ci->max ?
-> +		rd->mcasp->tdm_slots : ci->max;
-> +	unsigned int list[ci->max - ci->min + 1];
-> +	int c1, c, count = 0;
-> +
-> +	for (c1 = ci->min; c1 <= max_chan_per_wire; c1++) {
-> +		uint bclk_freq = c1*sbits*rate;
-> +		int ppm;
-> +
-> +		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-> +		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
-> +			/* If we can use all tdm_slots, we can put any
-> +			   amount of channels to remaining wires as
-> +			   long as they fit in. */
-> +			if (c1 == rd->mcasp->tdm_slots) {
-> +				for (c = c1; c <= rd->serializers*c1 &&
-> +					     c <= ci->max; c++)
-> +					list[count++] = c;
-> +			} else {
-> +				list[count++] = c1;
-> +			}
-> +		}
-> +	}
-> +	dev_dbg(rd->mcasp->dev,
-> +		"%d possible channel counts for %d Hz and %d sbits\n",
-> +		count, rate, sbits);
-> +
-> +	return snd_interval_list(hw_param_interval(params, rule->var),
-> +				 count, list, 0);
-> +}
-> +
->   static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
->   				 struct snd_soc_dai *cpu_dai)
->   {
-> @@ -999,6 +1137,7 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
->   		if (mcasp->serial_dir[i] == dir)
->   			max_channels++;
->   	}
-> +	mcasp->ruledata[dir].serializers = max_channels;
->   	max_channels *= mcasp->tdm_slots;
->   	/*
->   	 * If the already active stream has less channels than the calculated
-> @@ -1013,6 +1152,42 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
->   	snd_pcm_hw_constraint_minmax(substream->runtime,
->   				     SNDRV_PCM_HW_PARAM_CHANNELS,
->   				     2, max_channels);
-> +
-> +	/*
-> +	 * If we rely on implicit BCLK divider setting we should
-> +	 * set constraints based on what we can provide.
-> +	 */
-> +	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
-> +		int ret;
-> +
-> +		mcasp->ruledata[dir].mcasp = mcasp;
-> +
-> +		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-> +					  SNDRV_PCM_HW_PARAM_RATE,
-> +					  davinci_mcasp_hw_rule_rate,
-> +					  &mcasp->ruledata[dir],
-> +					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
-> +					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
-> +		if (ret)
-> +			return ret;
-> +		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-> +					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS,
-> +					  davinci_mcasp_hw_rule_samplebits,
-> +					  &mcasp->ruledata[dir],
-> +					  SNDRV_PCM_HW_PARAM_RATE,
-> +					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
-> +		if (ret)
-> +			return ret;
-> +		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-> +					  SNDRV_PCM_HW_PARAM_CHANNELS,
-> +					  davinci_mcasp_hw_rule_channels,
-> +					  &mcasp->ruledata[dir],
-> +					  SNDRV_PCM_HW_PARAM_RATE,
-> +					  SNDRV_PCM_HW_PARAM_SAMPLE_BITS, -1);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->   	return 0;
->   }
->
->
+...
+[    0.278020] omap_hwmod: tptc0 using broken dt data from edma
+[    0.284133] omap_hwmod: tptc1 using broken dt data from edma
+[    0.290207] omap_hwmod: tptc2 using broken dt data from edma
+[    0.296307] omap_hwmod: tptc3 using broken dt data from edma
+[    0.305359] clocksource jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.317206] pinctrl core: initialized pinctrl subsystem
+[    0.339667] NET: Registered protocol family 16
+[    0.349174] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.358130] cpuidle: using governor ladder
+[    0.362433] cpuidle: using governor menu
+[    0.366948] Unable to handle kernel NULL pointer dereference at virtual address 00000040
+[    0.375364] pgd = c0004000
+[    0.378223] [00000040] *pgd=00000000
+[    0.381983] Internal error: Oops: 5 [#1] SMP ARM
+[    0.386803] Modules linked in:
+[    0.390026] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.0.0-rc4-next-20150318-00040-gc5b9bf4-dirty #305
+[    0.399743] Hardware name: Generic ti816x (Flattened Device Tree)
+[    0.406078] task: ed894b80 ti: ed896000 task.ti: ed896000
+[    0.411704] PC is at omap_ctrl_readl+0x48/0x58
+[    0.416347] LR is at omap_type.part.0+0x7c/0xd8
+[    0.421078] pc : [<c0023d60>]    lr : [<c0023bd4>]    psr: 60000113
+[    0.421078] sp : ed897eb0  ip : 00000000  fp : c089f574
+[    0.433022] r10: c0850598  r9 : c089f588  r8 : 00000000
+[    0.438466] r7 : c08537ac  r6 : ed902c00  r5 : 00000000  r4 : c094f03c
+[    0.445246] r3 : 00000040  r2 : c094ebcc  r1 : 00000000  r0 : 00000040
+[    0.452025] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    0.459605] Control: 10c5387d  Table: 80004019  DAC: 00000015
+[    0.465581] Process swapper/0 (pid: 1, stack limit = 0xed896218)
+[    0.471825] Stack: (0xed897eb0 to 0xed898000)
+[    0.476379] 7ea0:                                     c08c4540 c085ea18 c089df40 00000000
+[    0.484854] 7ec0: 00000000 ed902c00 c08537ac c085a208 c089df40 c08a6500 c08b04c4 c0862fdc
+[    0.493327] 7ee0: c089df40 c08c1e30 c08c1e30 c0862c78 c089df40 c08537c8 00000000 c0008b84
+[    0.501801] 7f00: ed894b80 c08fc494 00000000 ed894b80 ed895100 00000004 00000006 00000000
+[    0.510278] 7f20: 00000000 c008a2bc c0850598 ef7fc9d0 ef7fc9cb c005c784 c076c0a0 ef7fc9da
+[    0.518753] 7f40: 00000003 00000003 00000000 c08b5f18 c08b5f20 00000003 c094e780 00000093
+[    0.527226] 7f60: c094e780 c0850598 c089f574 c0850ea0 00000003 00000003 c0850598 ffffffff
+[    0.535699] 7f80: 00000000 00000000 c05d2ca8 00000000 00000000 00000000 00000000 00000000
+[    0.544174] 7fa0: 00000000 c05d2cb0 00000000 c000e910 00000000 00000000 00000000 00000000
+[    0.552649] 7fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    0.561122] 7fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 ffffffff
+[    0.569598] [<c0023d60>] (omap_ctrl_readl) from [<00000000>] (  (null))
+[    0.576471] Code: e28dd00c e49df004 e5921000 e0813003 (e5930000) 
+[    0.582860] ---[ end trace 00a172dd2625b740 ]---
+[    0.587757] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+[    0.587757] 
+[    0.597310] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+[    0.597310] 
 
+Regards,
+
+Tony
