@@ -1,100 +1,46 @@
-From: Mark Jackson <mpfj@newflow.co.uk>
-Subject: [PATCH v2] Update Nanobone dts file
-Date: Thu, 19 Mar 2015 15:07:43 +0000
-Message-ID: <550AE63F.3020800@newflow.co.uk>
+From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7: remove ti,hwmod property from pcie
+ phy
+Date: Thu, 19 Mar 2015 17:39:13 +0200
+Message-ID: <550AEDA1.50109@linaro.org>
+References: <1424422274-27946-1-git-send-email-kishon@ti.com> <1424422274-27946-2-git-send-email-kishon@ti.com> <5509A998.2080509@ti.com> <20150318165706.GQ31346@atomide.com> <5509D3BD.6030004@linaro.org> <alpine.DEB.2.02.1503191455020.9480@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33280 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932AbbCSPjV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 11:39:21 -0400
+Received: by lbnq5 with SMTP id q5so27590795lbn.0
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 08:39:20 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.02.1503191455020.9480@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, t-kristo@ti.com
 
-Update dts file to reflect:-
-* new flash memory layout
-* add missing phy-mode property
-* dual_emac now just a boolean
-* rename mcp to microchip
-* update gpio definition
+On 03/19/2015 04:55 PM, Paul Walmsley wrote:
+> On Wed, 18 Mar 2015, Grygorii.Strashko@linaro.org wrote:
+>
+>> On 03/18/2015 06:57 PM, Tony Lindgren wrote:
+>>> * Grygorii Strashko <grygorii.strashko@ti.com> [150318 09:37]:
+>>>> As I can see Patch 1 from this series was merged in 4.0-rc4,
+>>>> but this patch wasn't. As result, I can see below warning all the time during boot now:
+>>>>
+>>>> [    0.594591] platform 4a094000.pciephy: Cannot lookup hwmod 'pcie1-phy'
+>>>
+>>> OK. Is this needed as a fix for the v4.0-rc series, or can this wait
+>>> for v4.1?
+>>
+>> I think, Yes. These two patches should go all together, because they are
+>> interrelated.
+>
+> Does the warning result in a functional problem, or is it just a warning?
+>
 
-Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
----
- arch/arm/boot/dts/am335x-nano.dts | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+PCE1 PHY device is not registered any more.
 
-diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am335x-nano.dts
-index a346645..5ed4ca6 100644
---- a/arch/arm/boot/dts/am335x-nano.dts
-+++ b/arch/arm/boot/dts/am335x-nano.dts
-@@ -213,7 +213,9 @@
- 	pinctrl-0 = <&i2c0_pins>;
- 
- 	gpio@20 {
--		compatible = "mcp,mcp23017";
-+		compatible = "microchip,mcp23017";
-+		gpio-controller;
-+		#gpio-cells = <2>;
- 		reg = <0x20>;
- 	};
- 
-@@ -222,7 +224,7 @@
- 	};
- 
- 	eeprom@53 {
--		compatible = "mcp,24c02";
-+		compatible = "microchip,24c02";
- 		reg = <0x53>;
- 		pagesize = <8>;
- 	};
-@@ -297,8 +299,8 @@
- 		|            |-->0x004FFFFF-> Kernel end
- 		|            |-->0x00500000-> File system start
- 		|            |
--		|            |-->0x014FFFFF-> File system end
--		|            |-->0x01500000-> User data start
-+		|            |-->0x01FFFFFF-> File system end
-+		|            |-->0x02000000-> User data start
- 		|            |
- 		|            |-->0x03FFFFFF-> User data end
- 		|            |-->0x04000000-> Data storage start
-@@ -327,12 +329,12 @@
- 
- 		partition@4 {
- 			label = "rootfs";
--			reg = <0x00500000 0x01000000>; /* 16MB */
-+			reg = <0x00500000 0x01b00000>; /* 27MB */
- 		};
- 
- 		partition@5 {
- 			label = "user";
--			reg = <0x01500000 0x02b00000>; /* 43MB */
-+			reg = <0x02000000 0x02000000>; /* 32MB */
- 		};
- 
- 		partition@6 {
-@@ -343,7 +345,7 @@
- };
- 
- &mac {
--	dual_emac = <1>;
-+	dual_emac;
- 	status = "okay";
- };
- 
-@@ -353,11 +355,13 @@
- 
- &cpsw_emac0 {
- 	phy_id = <&davinci_mdio>, <0>;
-+	phy-mode = "mii";
- 	dual_emac_res_vlan = <1>;
- };
- 
- &cpsw_emac1 {
- 	phy_id = <&davinci_mdio>, <1>;
-+	phy-mode = "mii";
- 	dual_emac_res_vlan = <2>;
- };
- 
 -- 
-1.9.1
+regards,
+-grygorii
