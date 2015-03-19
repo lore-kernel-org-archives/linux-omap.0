@@ -1,46 +1,66 @@
-From: Greg Knight <g.knight@symetrica.com>
-Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Thu, 19 Mar 2015 13:17:02 -0400
-Message-ID: <1426785422.13824.12.camel@symus-gk-mint>
-References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>
-	 <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
-	 <550AF442.5040203@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f181.google.com ([209.85.216.181]:32886 "EHLO
-	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752345AbbCSRRF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 13:17:05 -0400
-Received: by qcbjx9 with SMTP id jx9so33386771qcb.0
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 10:17:04 -0700 (PDT)
-In-Reply-To: <550AF442.5040203@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: <grygorii.strashko@linaro.org>
+Subject: [PATCH 1/8] gpio: omap: convert omap_gpio_is_input() to use gpio offset
+Date: Thu, 19 Mar 2015 19:25:37 +0200
+Message-ID: <1426785944-17255-2-git-send-email-grygorii.strashko@linaro.org>
+References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2015-03-19 at 18:07 +0200, Peter Ujfalusi wrote:
-> Another issue this hack has is: what happens if for some reason the
-> SGTL5000
-> driver loads first? McASP will not enable the AHCLKX so the codec
-> driver will
-> fail reading the CHIP_ID and fails to load. You need to provide a
-> dummy clock
-> node to the codec, so that will not fail, but you will not have the
-> MCLK.
+From: Grygorii Strashko <grygorii.strashko@linaro.org>
 
-Fair enough. The second patch, providing the codec binding to the
-AM3359, may still be applicable, but I couldn't submit it in good
-conscience without rewiring the clock as per your recommendations and
-re-testing. Don't have the time for this in the near future, sadly.
-Sounds like I'll have to come up with a new fix whenever we get around
-to updating kernel on this platform.
+Convert omap_gpio_is_input() to use GPIO offset instead of mask and,
+in such way, make code simpler and remove few lines of code.
 
-I'm not familiar with the kernel clock management - any advice for
-reading material on that? Not clear on what a 'dummy clock' is, etc.
+Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+---
+ drivers/gpio/gpio-omap.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-Thanks,
-Greg
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 2b2fc4b..ce71239 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -472,11 +472,11 @@ static void omap_disable_gpio_module(struct gpio_bank *bank, unsigned offset)
+ 	}
+ }
+ 
+-static int omap_gpio_is_input(struct gpio_bank *bank, int mask)
++static int omap_gpio_is_input(struct gpio_bank *bank, unsigned offset)
+ {
+ 	void __iomem *reg = bank->base + bank->regs->direction;
+ 
+-	return readl_relaxed(reg) & mask;
++	return readl_relaxed(reg) & BIT(offset);
+ }
+ 
+ static void omap_gpio_init_irq(struct gpio_bank *bank, unsigned gpio,
+@@ -519,7 +519,7 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+ 	offset = GPIO_INDEX(bank, gpio);
+ 	retval = omap_set_gpio_triggering(bank, offset, type);
+ 	omap_gpio_init_irq(bank, gpio, offset);
+-	if (!omap_gpio_is_input(bank, BIT(offset))) {
++	if (!omap_gpio_is_input(bank, offset)) {
+ 		spin_unlock_irqrestore(&bank->lock, flags);
+ 		return -EINVAL;
+ 	}
+@@ -976,12 +976,10 @@ static int omap_gpio_input(struct gpio_chip *chip, unsigned offset)
+ static int omap_gpio_get(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank;
+-	u32 mask;
+ 
+ 	bank = container_of(chip, struct gpio_bank, chip);
+-	mask = (BIT(offset));
+ 
+-	if (omap_gpio_is_input(bank, mask))
++	if (omap_gpio_is_input(bank, offset))
+ 		return omap_get_gpio_datain(bank, offset);
+ 	else
+ 		return omap_get_gpio_dataout(bank, offset);
+-- 
+1.9.1
 
