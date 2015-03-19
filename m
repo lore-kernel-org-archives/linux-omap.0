@@ -1,234 +1,53 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC][PATCH 3/9] usb: otg: add OTG core
-Date: Thu, 19 Mar 2015 12:18:55 +0200
-Message-ID: <550AA28F.6040201@ti.com>
-References: <1426686963-11613-1-git-send-email-rogerq@ti.com> <1426686963-11613-4-git-send-email-rogerq@ti.com> <20150319034034.GA7779@shlinux2>
+Subject: Re: [RFC][PATCH 8/9] usb: otg-fsm: Remove unused members in struct
+ otg_fsm
+Date: Thu, 19 Mar 2015 12:20:47 +0200
+Message-ID: <550AA2FF.8080800@ti.com>
+References: <1426686963-11613-1-git-send-email-rogerq@ti.com> <1426686963-11613-9-git-send-email-rogerq@ti.com> <20150319034620.GB7779@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150319034034.GA7779@shlinux2>
+In-Reply-To: <20150319034620.GB7779@shlinux2>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
 Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 19/03/15 05:40, Peter Chen wrote:
-> On Wed, Mar 18, 2015 at 03:55:57PM +0200, Roger Quadros wrote:
->> The OTG core instantiates the OTG Finite State Machine
->> per OTG controller and manages starting/stopping the
->> host and gadget controllers based on the bus state.
->>
->> It provides APIs for the following tasks
->>
->> - Registering an OTG capable controller
->> - Registering Host and Gadget controllers to OTG core
->> - Providing inputs to and kicking the OTG state machine
->>
->> TODO:
->> - sysfs interface to allow application inputs to OTG state machine
->> - otg class?
+On 19/03/15 05:46, Peter Chen wrote:
+> On Wed, Mar 18, 2015 at 03:56:02PM +0200, Roger Quadros wrote:
+>> These members are not used anywhere so remove them.
 >>
 >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 >> ---
->>  drivers/usb/Makefile         |   1 +
->>  drivers/usb/common/Makefile  |   1 +
->>  drivers/usb/common/usb-otg.c | 732 +++++++++++++++++++++++++++++++++++++++++++
->>  drivers/usb/common/usb-otg.h |  71 +++++
->>  drivers/usb/core/Kconfig     |   8 +
->>  include/linux/usb/usb-otg.h  |  86 +++++
->>  6 files changed, 899 insertions(+)
->>  create mode 100644 drivers/usb/common/usb-otg.c
->>  create mode 100644 drivers/usb/common/usb-otg.h
->>  create mode 100644 include/linux/usb/usb-otg.h
+>>  include/linux/usb/otg-fsm.h | 5 -----
+>>  1 file changed, 5 deletions(-)
 >>
->> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
->> index 2f1e2aa..07f59a5 100644
->> --- a/drivers/usb/Makefile
->> +++ b/drivers/usb/Makefile
->> @@ -60,5 +60,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
->>  obj-$(CONFIG_USB_GADGET)	+= gadget/
+>> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
+>> index b6ba1bf..176c4fc 100644
+>> --- a/include/linux/usb/otg-fsm.h
+>> +++ b/include/linux/usb/otg-fsm.h
+>> @@ -95,11 +95,6 @@ struct otg_fsm {
+>>  	int b_hnp_enable;
+>>  	int a_clr_err;
 >>  
->>  obj-$(CONFIG_USB_COMMON)	+= common/
->> +obj-$(CONFIG_USB_OTG_CORE)	+= common/
+>> -	/* Informative variables */
+>> -	int a_bus_drop_inf;
+>> -	int a_bus_req_inf;
+>> -	int a_clr_err_inf;
+>> -	int b_bus_req_inf;
+>>  	/* Auxilary informative variables */
+>>  	int a_suspend_req_inf;
 >>  
->>  obj-$(CONFIG_USBIP_CORE)	+= usbip/
->> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
->> index ca2f8bd..573fc75 100644
->> --- a/drivers/usb/common/Makefile
->> +++ b/drivers/usb/common/Makefile
->> @@ -7,3 +7,4 @@ usb-common-y			  += common.o
->>  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
->>  
->>  obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
->> +obj-$(CONFIG_USB_OTG_CORE) += usb-otg.o
->> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
->> new file mode 100644
->> index 0000000..1433fc9
->> --- /dev/null
->> +++ b/drivers/usb/common/usb-otg.c
->> @@ -0,0 +1,732 @@
->> +/**
->> + * drivers/usb/common/usb-otg.c - USB OTG core
->> + *
->> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
->> + * Author: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/list.h>
->> +#include <linux/timer.h>
->> +#include <linux/usb/otg.h>
->> +#include <linux/usb/phy.h>	/* enum usb_otg_state */
->> +#include <linux/usb/gadget.h>
->> +#include <linux/usb/usb-otg.h>
->> +#include <linux/workqueue.h>
->> +
->> +#include "usb-otg.h"
->> +
->> +/* to link timer with callback data */
->> +struct otg_timer {
->> +	struct timer_list timer;
->> +	/* callback data */
->> +	int *timeout_bit;
->> +	struct otg_data *otgd;
->> +};
->> +
->> +struct otg_data {
->> +	struct device *dev;	/* HCD & GCD's parent device */
->> +
->> +	struct otg_fsm fsm;
->> +	/* HCD, GCD and usb_otg_state are present in otg_fsm->otg
->> +	 * HCD is bus_to_hcd(fsm->otg->host)
->> +	 * GCD is fsm->otg->gadget
->> +	 */
->> +	struct otg_fsm_ops fsm_ops;	/* private copy for override */
->> +	struct usb_otg otg;
->> +	struct usb_hcd *shared_hcd;	/* if shared HCD registered */
->> +
->> +	/* saved hooks to OTG device */
->> +	int (*start_host)(struct otg_fsm *fsm, int on);
->> +	int (*start_gadget)(struct otg_fsm *fsm, int on);
->> +
->> +	struct list_head list;
->> +
->> +	struct work_struct work;	/* OTG FSM work */
->> +	struct workqueue_struct *wq;
->> +
->> +	struct otg_timer timers[NUM_OTG_FSM_TIMERS];
->> +
->> +	bool fsm_running;
->> +	bool gadget_can_start;		/* OTG FSM says gadget can start */
->> +	bool host_can_start;		/* OTG FSM says host can start */
->> +
->> +	/* use otg->fsm.lock for serializing access */
->> +};
 > 
-> What's the relationship between struct usb_otg otg and this one?
+> But the above are defined at: ch 7.4.4, On-The-Go and Embedded Host
+> Supplement to the USB Revision 2.0 Specification
 
-Did you mean why struct usb_otg otg is there in struct otg_data?
-Just for easy allocation. fsm_ops only contains the pointer to struct usb_otg.
-
-> 
->> +
->> +/* OTG device list */
->> +LIST_HEAD(otg_list);
->> +static DEFINE_MUTEX(otg_list_mutex);
->> +
->> +/**
->> + * check if device is in our OTG list and return
->> + * otg_data, else NULL.
->> + *
->> + * otg_list_mutex must be held.
->> + */
->> +static struct otg_data *usb_otg_device_get_otgd(struct device *parent_dev)
->> +{
->> +	struct otg_data *otgd;
->> +
->> +	list_for_each_entry(otgd, &otg_list, list) {
->> +		if (otgd->dev == parent_dev)
->> +			return otgd;
->> +	}
->> +
->> +	return NULL;
->> +}
->> +
->> +/**
->> + * timer callback to set timeout bit and kick FSM
->> + */
->> +static void set_tmout(unsigned long data)
->> +{
->> +	struct otg_timer *tmr_data;
->> +
->> +	tmr_data = (struct otg_timer *)data;
->> +
->> +	if (tmr_data->timeout_bit)
->> +		*tmr_data->timeout_bit = 1;
->> +
->> +	usb_otg_sync_inputs(&tmr_data->otgd->fsm);
->> +}
->> +
->> +/**
->> + * Initialize one OTG timer with callback, timeout and timeout bit
->> + */
->> +static void otg_timer_init(enum otg_fsm_timer id, struct otg_data *otgd,
->> +			   void (*callback)(unsigned long),
->> +			   unsigned long expires_ms,
->> +			   int *timeout_bit)
->> +{
->> +	struct otg_timer *otgtimer = &otgd->timers[id];
->> +	struct timer_list *timer = &otgtimer->timer;
->> +
->> +	init_timer(timer);
->> +	timer->function = callback;
->> +	timer->expires = jiffies + msecs_to_jiffies(expires_ms);
->> +	timer->data = (unsigned long)otgtimer;
->> +
-> 
-> The timer for TB_DATA_PLS is about 10ms or less, it is not suitable
-> for using kernel timer, hrtimer is suitable choice.
-
-good catch. I will switch to hrtimer then.
-
-> 
->> +	otgtimer->timeout_bit = timeout_bit;
->> +	otgtimer->otgd = otgd;
->> +}
->> +
->> +/**
->> + * Initialize standard OTG timers
->> + */
->> +static void usb_otg_init_timers(struct otg_data *otgd)
->> +{
->> +	struct otg_fsm *fsm = &otgd->fsm;
->> +
->> +	otg_timer_init(A_WAIT_VRISE, otgd, set_tmout, TA_WAIT_VRISE, &fsm->a_wait_vrise_tmout);
->> +	otg_timer_init(A_WAIT_VFALL, otgd, set_tmout, TA_WAIT_VFALL, &fsm->a_wait_vfall_tmout);
->> +	otg_timer_init(A_WAIT_BCON, otgd, set_tmout, TA_WAIT_BCON, &fsm->a_wait_bcon_tmout);
->> +	otg_timer_init(A_AIDL_BDIS, otgd, set_tmout, TA_AIDL_BDIS, &fsm->a_aidl_bdis_tmout);
->> +	otg_timer_init(A_BIDL_ADIS, otgd, set_tmout, TA_BIDL_ADIS, &fsm->a_bidl_adis_tmout);
->> +	otg_timer_init(B_ASE0_BRST, otgd, set_tmout, TB_ASE0_BRST, &fsm->b_ase0_brst_tmout);
->> +
->> +	otg_timer_init(B_SE0_SRP, otgd, set_tmout, TB_SE0_SRP, &fsm->b_se0_srp);
->> +	otg_timer_init(B_SRP_FAIL, otgd, set_tmout, TB_SRP_FAIL, &fsm->b_srp_done);
->> +
->> +	otg_timer_init(A_WAIT_ENUM, otgd, set_tmout, TB_SRP_FAIL, NULL);
->> +}
-
-<snip>
+I can leave them there then but just add a note saying that they are
+not yet used by the OTG FSM.
 
 cheers,
 -roger
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
