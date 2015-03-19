@@ -1,15 +1,15 @@
 From: <grygorii.strashko@linaro.org>
-Subject: [PATCH 3/8] gpio: omap: convert debounce functions switch to use gpio offset
-Date: Thu, 19 Mar 2015 19:25:39 +0200
-Message-ID: <1426785944-17255-4-git-send-email-grygorii.strashko@linaro.org>
+Subject: [RFT OMAP1 PATCH 7/8] gpio: omap: get rid of omap_irq_to_gpio()
+Date: Thu, 19 Mar 2015 19:25:43 +0200
+Message-ID: <1426785944-17255-8-git-send-email-grygorii.strashko@linaro.org>
 References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:33074 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755106AbbCSR0A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 13:26:00 -0400
-Received: by lbnq5 with SMTP id q5so29904417lbn.0
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 10:25:58 -0700 (PDT)
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:35218 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757407AbbCSR0F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 13:26:05 -0400
+Received: by lbcgn8 with SMTP id gn8so57937592lbc.2
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2015 10:26:03 -0700 (PDT)
 In-Reply-To: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,82 +18,66 @@ Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.ke
 
 From: Grygorii Strashko <grygorii.strashko@linaro.org>
 
-Convert debounce functions to use GPIO offset instead of system
-GPIO numbers. This allows to drop unneeded conversations between
-system GPIO <-> GPIO offset which are done in many places and
-many times.
-It is safe to do now because:
-- gpiolib always passes GPIO offset to GPIO controller
-- OMAP GPIO driver converted to use IRQ domain
-
-This is preparation step before removing:
- #define GPIO_INDEX(bank, gpio)
- #define GPIO_BIT(bank, gpio)
- int omap_irq_to_gpio()
+Now OMAP GPIO driver prepared for omap_irq_to_gpio() removing.
+Do it ;)
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
 ---
- drivers/gpio/gpio-omap.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/gpio/gpio-omap.c | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 7aeee7b..2df693b 100644
+index dd7934a..615e950 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -208,13 +208,13 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
- /**
-  * omap2_set_gpio_debounce - low level gpio debounce time
-  * @bank: the gpio bank we're acting upon
-- * @gpio: the gpio number on this @gpio
-+ * @offset: the gpio number on this @bank
-  * @debounce: debounce time to use
-  *
-  * OMAP's debounce time is in 31us steps so we need
-  * to convert and round up to the closest unit.
-  */
--static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
-+static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
- 				    unsigned debounce)
+@@ -89,11 +89,6 @@ struct gpio_bank {
+ 
+ static void omap_gpio_unmask_irq(struct irq_data *d);
+ 
+-static int omap_irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+-{
+-	return bank->chip.base + gpio_irq;
+-}
+-
+ static inline struct gpio_bank *omap_irq_data_get_bank(struct irq_data *d)
  {
- 	void __iomem		*reg;
-@@ -231,7 +231,7 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
- 	else
- 		debounce = (debounce / 0x1f) - 1;
- 
--	l = GPIO_BIT(bank, gpio);
-+	l = BIT(offset);
- 
- 	clk_prepare_enable(bank->dbck);
- 	reg = bank->base + bank->regs->debounce;
-@@ -266,16 +266,16 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
- /**
-  * omap_clear_gpio_debounce - clear debounce settings for a gpio
-  * @bank: the gpio bank we're acting upon
-- * @gpio: the gpio number on this @gpio
-+ * @offset: the gpio number on this @bank
-  *
-  * If a gpio is using debounce, then clear the debounce enable bit and if
-  * this is the only gpio in this bank using debounce, then clear the debounce
-  * time too. The debounce clock will also be disabled when calling this function
-  * if this is the only gpio in the bank using debounce.
-  */
--static void omap_clear_gpio_debounce(struct gpio_bank *bank, unsigned gpio)
-+static void omap_clear_gpio_debounce(struct gpio_bank *bank, unsigned offset)
+ 	struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
+@@ -490,22 +485,21 @@ static void omap_gpio_init_irq(struct gpio_bank *bank, unsigned offset)
+ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
  {
--	u32 gpio_bit = GPIO_BIT(bank, gpio);
-+	u32 gpio_bit = BIT(offset);
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+-	unsigned gpio = 0;
+ 	int retval;
+ 	unsigned long flags;
+-	unsigned offset;
++	unsigned offset = d->hwirq;
  
- 	if (!bank->dbck_flag)
- 		return;
-@@ -659,7 +659,7 @@ static void omap_reset_gpio(struct gpio_bank *bank, int gpio)
- 	omap_set_gpio_irqenable(bank, gpio, 0);
- 	omap_clear_gpio_irqstatus(bank, gpio);
- 	omap_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
--	omap_clear_gpio_debounce(bank, gpio);
-+	omap_clear_gpio_debounce(bank, GPIO_INDEX(bank, gpio));
- }
+ 	if (!BANK_USED(bank))
+ 		pm_runtime_get_sync(bank->dev);
  
- /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
+ #ifdef CONFIG_ARCH_OMAP1
+-	if (d->irq > IH_MPUIO_BASE)
++	if (d->irq > IH_MPUIO_BASE) {
++		unsigned gpio = 0;
+ 		gpio = OMAP_MPUIO(d->irq - IH_MPUIO_BASE);
++		offset = GPIO_INDEX(bank, gpio);
++	}
+ #endif
+ 
+-	if (!gpio)
+-		gpio = omap_irq_to_gpio(bank, d->hwirq);
+-
+ 	if (type & ~IRQ_TYPE_SENSE_MASK)
+ 		return -EINVAL;
+ 
+@@ -514,7 +508,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+ 		return -EINVAL;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+-	offset = GPIO_INDEX(bank, gpio);
+ 	retval = omap_set_gpio_triggering(bank, offset, type);
+ 	omap_gpio_init_irq(bank, offset);
+ 	if (!omap_gpio_is_input(bank, offset)) {
 -- 
 1.9.1
 
