@@ -1,212 +1,93 @@
-From: Greg Knight <g.knight@symetrica.com>
-Subject: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Thu, 19 Mar 2015 01:07:39 -0400
-Message-ID: <1426741659.10003.9.camel@midgaarde>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add minimal support for dm8168-evm
+Date: Thu, 19 Mar 2015 06:13:41 +0100
+Message-ID: <CAALWOA9=tY3X38O9p-xYabb-AZy7rJBM5AOFYgco_ZmsixOViQ@mail.gmail.com>
+References: <1421192272-20754-1-git-send-email-tony@atomide.com>
+ <1421192272-20754-5-git-send-email-tony@atomide.com> <20150117164709.GS18552@atomide.com>
+ <CAALWOA-XVrC84=6Xt04m+QaBhweAcp2HVTH7v=QewtJmQLEaWA@mail.gmail.com>
+ <20150202160932.GF16250@atomide.com> <20150318000652.GJ31346@atomide.com>
+ <CAALWOA9yoS5sdo-A_hdqhkqGqZ-VCg9jZfdavhxskFdE_pA1Sg@mail.gmail.com> <20150318165453.GP31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-6YEoiG07Btkn/evehSgq"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f178.google.com ([209.85.216.178]:35594 "EHLO
-	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129AbbCSFHm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 01:07:42 -0400
-Received: by qcbkw5 with SMTP id kw5so57789930qcb.2
-        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 22:07:41 -0700 (PDT)
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36773 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188AbbCSFOD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 01:14:03 -0400
+Received: by wibg7 with SMTP id g7so107745744wib.1
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2015 22:14:01 -0700 (PDT)
+In-Reply-To: <20150318165453.GP31346@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
+
+> Matthijs van Duin <matthijsvanduin@gmail.com> wrote:
+> 44400500 target 11 vcp
+> 44800100 target 18 vlynq ?
+
+scrap these guesses: I don't think Netra has a vcp module, and I had
+only filled in vlynq based on it being the only remaining target NIU.
+Once the memory ranges for the targets have been determined they
+should be easy to identify conclusively.
+
+On 18 March 2015 at 17:54, Tony Lindgren <tony@atomide.com> wrote:
+> Oh there's a gap here and it goes all the way to 2400.. Is there
+> a gap on am335x too?
+
+There are indeed. See my work-in-progress spreadsheet on its L3
+interconnect: http://goo.gl/miyCQw
+
+As with the memory map, there are some "ghost" modules which I'm
+reasonably sure don't exist, even though they have a target NIU and
+clkctrl registers.
+
+I haven't yet checked which initiator the sole bandwidth regulator on
+subarctic is attached to. Plausible options are SGX, the LCD
+controller, or one of the EDMA TCs.
+
+I also just noticed how *big* its statistics collectors are. o.O  For
+comparison, the ones on netra and centaurus are 0x200 (statcoll 0 and
+3) or 0x400 (statcoll 1 and 2).
 
 
---=-6YEoiG07Btkn/evehSgq
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+>> 2. Disable all L3 Target NIUs. You will temporarily lose access to all
+>> peripherals, OCMC ram, and on subarctic also DDR memory (I think on
+>> devices with a DMM you'd retain access to DDR memory). Note that the
+>> service network itself isn't considered an L3 target.
+>
+> Hmm well we could that in the kernel using the SRAM code as long as
+> it does not reset the devices.
 
-Hi, Mark, Jaroslav,
+If you run with MMU disabled then you'd have to run out of the 64K
+internal SRAM, and catch data aborts since all writes will be
+non-posted. With MMU enabled, locking code and MMU translation tables
+into the (much larger) L2 cache makes more sense.
 
-I've attached a couple patches to provide support for the Freescale
-SGTL5000 chip when using the McASP on the AM3359.
+I *think* disabling the NIU only blocks access to the module and
+doesn't affect the module operationally. I'd be inclined to put
+external RAM into self-refresh during the procedure just to be sure,
+in case disabling NIUs results in clock gating (which would otherwise
+be hard to notice).
 
-This adds an optional hack, "clock-to-talk" to the McASP subsystem which
-can start AHCLKX/AHCLKR prior to initializing the codec. This is needed
-on the SGTL5000, which depends on AHCLKX for its master clock.
+> OK the driver would have to be enabled with interrupts while scanning.
 
-These patches are based off of 3.14.31-ti-r49. What is the process for
-getting these merged?
-
-Patch #3 is a completely unrelated patch in the SPI system, will send
-with different subject.
-
-Thanks,
-Greg
-
---=-6YEoiG07Btkn/evehSgq
-Content-Disposition: attachment;
-	filename*0=0001-davinci-mcasp-add-clock-to-talk-option-to-mcasp-devi.pat;
-	filename*1=ch
-Content-Type: text/x-patch;
-	name="0001-davinci-mcasp-add-clock-to-talk-option-to-mcasp-devi.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From fbcdbfb151d54e6b18c0e04eb5f80dd05527e06b Mon Sep 17 00:00:00 2001
-From: Greg Knight <g.knight@symetrica.com>
-Date: Mon, 23 Feb 2015 19:41:05 -0500
-Subject: [PATCH 1/3] davinci-mcasp: add clock-to-talk option to mcasp
- device-tree which forces enable of AHCLKX/AHCLKR if set. This allows the
- AHCLKX line to operate as a main clock for chips such as the SGTL5000.
-
----
- include/linux/platform_data/davinci_asp.h | 14 +++++++++++++
- sound/soc/davinci/davinci-mcasp.c         | 33 +++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+)
-
-diff --git a/include/linux/platform_data/davinci_asp.h b/include/linux/platform_data/davinci_asp.h
-index 85ad68f..7dee1b2 100644
---- a/include/linux/platform_data/davinci_asp.h
-+++ b/include/linux/platform_data/davinci_asp.h
-@@ -29,6 +29,15 @@ struct davinci_mcasp_pdata {
- 	 * when compared to previous behavior.
- 	 */
- 	unsigned enable_channel_combine:1;
-+
-+	/**
-+	 * If set, we can anticipate device-tree failures during boot
-+	 * if the high-speed clock(s) are not running.
-+	 * Bit 0: Enable AHCLKX at startup
-+	 * Bit 1: Enable AHCLKR at startup
-+	 */
-+	unsigned clock_to_talk:2;
-+
- 	unsigned sram_size_playback;
- 	unsigned sram_size_capture;
- 	struct gen_pool *sram_pool;
-@@ -102,6 +111,11 @@ enum mcbsp_clk_input_pin {
- 	MCBSP_CLKS,
- };
- 
-+enum clock_to_talk_bits {
-+	MCASP_CLOCK_TO_TALK_X = 0,
-+	MCASP_CLOCK_TO_TALK_R
-+};
-+
- #define INACTIVE_MODE	0
- #define TX_MODE		1
- #define RX_MODE		2
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index eeb51f9..d0e6cab 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1326,6 +1326,15 @@ static struct davinci_mcasp_pdata *davinci_mcasp_set_pdata_from_of(
- 	if (ret >= 0)
- 		pdata->sram_size_capture = val;
- 
-+	ret = of_property_read_u32(np, "clock-to-talk", &val);
-+	if (ret >= 0) {
-+		if (val >= 4) {
-+			ret = -EINVAL;
-+			goto nodata;
-+		}
-+		pdata->clock_to_talk = (unsigned) val;
-+	}
-+
- 	return  pdata;
- 
- nodata:
-@@ -1337,6 +1346,21 @@ nodata:
- 	return  pdata;
- }
- 
-+int davinci_mcasp_clock_to_talk_hack(struct davinci_mcasp* mcasp, int which)
-+{
-+	if (which & (1 << MCASP_CLOCK_TO_TALK_R)) {
-+		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE);
-+		mcasp_set_ctl_reg(mcasp, DAVINCI_MCASP_GBLCTLR_REG, RXHCLKRST);
-+		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKR);
-+	}
-+	if (which & (1 << MCASP_CLOCK_TO_TALK_X)) {
-+		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
-+		mcasp_set_ctl_reg(mcasp, DAVINCI_MCASP_GBLCTLR_REG, TXHCLKRST);
-+		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKX);
-+	}
-+	return 0;
-+}
-+
- static int davinci_mcasp_probe(struct platform_device *pdev)
- {
- 	struct davinci_pcm_dma_params *dma_params;
-@@ -1557,6 +1581,15 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 		goto err;
- 	}
- 
-+	if (pdata->clock_to_talk != 0) {
-+		ret = davinci_mcasp_clock_to_talk_hack(mcasp, pdata->clock_to_talk);
-+		dev_dbg(&pdev->dev, "clock to talk: %u\n", pdata->clock_to_talk);
-+		if (ret) {
-+			dev_err(&pdev->dev, "clock to talk hack failed: %d\n", ret);
-+			goto err;
-+		}
-+	}
-+
- 	return 0;
- 
- err:
--- 
-1.9.1
+Polling makes more sense, especially since nothing else can be going
+on at the same time anyway.
 
 
---=-6YEoiG07Btkn/evehSgq
-Content-Disposition: attachment;
-	filename*0=0002-davinci-evm-add-evm_sgtl5000_link-to-bind-the-SGTL50.pat;
-	filename*1=ch
-Content-Type: text/x-patch;
-	name="0002-davinci-evm-add-evm_sgtl5000_link-to-bind-the-SGTL50.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+I still think a separate tool that scrapes as much data as possible
+from the target and pours it into DT form makes more sense than doing
+it in a kernel driver, especially since discovered targets may often
+still need manual identification.  Also, probing discovered targets
+requires you enable the clock(s) they need and if necessary release
+local reset.  Auto-discovery of these associations may also be
+possible, but probably would become a rather lenghy procedure. A
+separate tool can also leave a record of what it's doing in SRAM and
+enable the watchdog to be able to recover from probes that lock up the
+system (and log a warning about them).
 
->From 0cfd020bac9053326c97d273d60864776e7850e8 Mon Sep 17 00:00:00 2001
-From: Greg Knight <g.knight@symetrica.com>
-Date: Mon, 23 Feb 2015 19:41:40 -0500
-Subject: [PATCH 2/3] davinci-evm: add evm_sgtl5000_link to bind the SGTL5000
- chip to the davinci-evm SOM module
+Also, on HS devices, it would surprise me if you're allowed to access
+any interconnect registers at all.
 
----
- sound/soc/davinci/davinci-evm.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index b9010c9..e71975f 100644
---- a/sound/soc/davinci/davinci-evm.c
-+++ b/sound/soc/davinci/davinci-evm.c
-@@ -468,6 +468,15 @@ static struct snd_soc_dai_link dra7xx_evm_link = {
- 		   SND_SOC_DAIFMT_IB_NF,
- };
- 
-+static struct snd_soc_dai_link evm_sgtl5000_link = {
-+	.name           = "Freescale SGTL5000",
-+	.stream_name    = "SGTL",
-+	.codec_dai_name = "sgtl5000",
-+	.ops            = &evm_ops,
-+	.dai_fmt        = SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_I2S |
-+                      SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CONT,
-+};
-+
- static const struct of_device_id davinci_evm_dt_ids[] = {
- 	{
- 		.compatible = "ti,da830-evm-audio",
-@@ -481,6 +490,10 @@ static const struct of_device_id davinci_evm_dt_ids[] = {
- 		.compatible = "ti,dra7xx-evm-audio",
- 		.data = (void *) &dra7xx_evm_link,
- 	},
-+	{
-+		.compatible = "ti,sgtl5000-audio",
-+		.data = &evm_sgtl5000_link
-+	},
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(of, davinci_evm_dt_ids);
--- 
-1.9.1
-
-
---=-6YEoiG07Btkn/evehSgq--
-
+Matthijs
