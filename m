@@ -1,210 +1,132 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 01/35] clk: ti: fix ti_clk_get_reg_addr error handling
-Date: Fri, 20 Mar 2015 20:44:12 +0200
-Message-ID: <1426877086-17131-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 28/35] ARM: dts: am43xx-epos-evm: fix pinmux node layout
+Date: Fri, 20 Mar 2015 20:44:39 +0200
+Message-ID: <1426877086-17131-29-git-send-email-t-kristo@ti.com>
 References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56460 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751784AbbCTSqZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 14:46:25 -0400
 In-Reply-To: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
 Cc: linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
 
-There is a case where NULL can be a valid return value for
-ti_clk_get_reg_addr, specifically the case where both the provider index
-and register offsets are zero. In this case, the current error checking
-against a NULL pointer will fail. Thus, change the API to return a
-ERR_PTR value in an error case, and change all the users of this API to
-check against IS_ERR instead.
+Pinmux node should be a reference to the base one, not a complete re-write
+of it. Having the node like this also prevents modifying the node layout
+in the base am4372.dtsi file, which is needed for control module changes.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Acked-by: Michael Turquette <mturquette@linaro.org>
 ---
- drivers/clk/ti/apll.c      |    5 +++--
- drivers/clk/ti/autoidle.c  |    2 +-
- drivers/clk/ti/clk.c       |    7 ++++---
- drivers/clk/ti/divider.c   |    4 ++--
- drivers/clk/ti/dpll.c      |    6 +++---
- drivers/clk/ti/gate.c      |    4 ++--
- drivers/clk/ti/interface.c |    2 +-
- drivers/clk/ti/mux.c       |    4 ++--
- 8 files changed, 18 insertions(+), 16 deletions(-)
+ arch/arm/boot/dts/am43x-epos-evm.dts |   84 +++++++++++++++++-----------------
+ 1 file changed, 42 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 72d9727..49baf38 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -203,7 +203,7 @@ static void __init of_dra7_apll_setup(struct device_node *node)
- 	ad->control_reg = ti_clk_get_reg_addr(node, 0);
- 	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 257c099..72f01bb 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -69,7 +69,48 @@
+ 		};
+ 	};
  
--	if (!ad->control_reg || !ad->idlest_reg)
-+	if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
- 		goto cleanup;
+-	am43xx_pinmux: pinmux@44e10800 {
++	matrix_keypad: matrix_keypad@0 {
++		compatible = "gpio-matrix-keypad";
++		debounce-delay-ms = <5>;
++		col-scan-delay-us = <2>;
++
++		row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
++			     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
++			     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
++			     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
++
++		col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
++			     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
++			     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
++			     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
++
++		linux,keymap = <0x00000201	/* P1 */
++			0x01000204	/* P4 */
++			0x02000207	/* P7 */
++			0x0300020a	/* NUMERIC_STAR */
++			0x00010202	/* P2 */
++			0x01010205	/* P5 */
++			0x02010208	/* P8 */
++			0x03010200	/* P0 */
++			0x00020203	/* P3 */
++			0x01020206	/* P6 */
++			0x02020209	/* P9 */
++			0x0302020b	/* NUMERIC_POUND */
++			0x00030067	/* UP */
++			0x0103006a	/* RIGHT */
++			0x0203006c	/* DOWN */
++			0x03030069>;	/* LEFT */
++	};
++
++	backlight {
++		compatible = "pwm-backlight";
++		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
++		default-brightness-level = <8>;
++	};
++};
++
++&am43xx_pinmux {
+ 		cpsw_default: cpsw_default {
+ 			pinctrl-single,pins = <
+ 				/* Slave 1 */
+@@ -279,47 +320,6 @@
+ 				0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
+ 			>;
+ 		};
+-	};
+-
+-	matrix_keypad: matrix_keypad@0 {
+-			compatible = "gpio-matrix-keypad";
+-			debounce-delay-ms = <5>;
+-			col-scan-delay-us = <2>;
+-
+-			row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
+-				     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
+-				     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
+-				     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
+-
+-			col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
+-				     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
+-				     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
+-				     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
+-
+-			linux,keymap = <0x00000201	/* P1 */
+-				0x01000204	/* P4 */
+-				0x02000207	/* P7 */
+-				0x0300020a	/* NUMERIC_STAR */
+-				0x00010202	/* P2 */
+-				0x01010205	/* P5 */
+-				0x02010208	/* P8 */
+-				0x03010200	/* P0 */
+-				0x00020203	/* P3 */
+-				0x01020206	/* P6 */
+-				0x02020209	/* P9 */
+-				0x0302020b	/* NUMERIC_POUND */
+-				0x00030067	/* UP */
+-				0x0103006a	/* RIGHT */
+-				0x0203006c	/* DOWN */
+-				0x03030069>;	/* LEFT */
+-		};
+-
+-	backlight {
+-		compatible = "pwm-backlight";
+-		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
+-		brightness-levels = <0 51 53 56 62 75 101 152 255>;
+-		default-brightness-level = <8>;
+-	};
+ };
  
- 	ad->idlest_mask = 0x1;
-@@ -384,7 +384,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
- 	ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
- 	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
- 
--	if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
-+	if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
-+	    IS_ERR(ad->idlest_reg))
- 		goto cleanup;
- 
- 	clk = clk_register(NULL, &clk_hw->hw);
-diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 8912ff8..e75c64c 100644
---- a/drivers/clk/ti/autoidle.c
-+++ b/drivers/clk/ti/autoidle.c
-@@ -119,7 +119,7 @@ int __init of_ti_clk_autoidle_setup(struct device_node *node)
- 	clk->name = node->name;
- 	clk->reg = ti_clk_get_reg_addr(node, 0);
- 
--	if (!clk->reg) {
-+	if (IS_ERR(clk->reg)) {
- 		kfree(clk);
- 		return -EINVAL;
- 	}
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index e22b956..0ebe5c5 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -103,7 +103,8 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
-  * @index: register index from the clock node
-  *
-  * Builds clock register address from device tree information. This
-- * is a struct of type clk_omap_reg.
-+ * is a struct of type clk_omap_reg. Returns a pointer to the register
-+ * address, or a pointer error value in failure.
-  */
- void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
- {
-@@ -121,14 +122,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
- 
- 	if (i == CLK_MAX_MEMMAPS) {
- 		pr_err("clk-provider not found for %s!\n", node->name);
--		return NULL;
-+		return ERR_PTR(-ENOENT);
- 	}
- 
- 	reg->index = i;
- 
- 	if (of_property_read_u32_index(node, "reg", index, &val)) {
- 		pr_err("%s must have reg[%d]!\n", node->name, index);
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 	}
- 
- 	reg->offset = val;
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index 6211893..ff5f117 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -530,8 +530,8 @@ static int __init ti_clk_divider_populate(struct device_node *node,
- 	u32 val;
- 
- 	*reg = ti_clk_get_reg_addr(node, 0);
--	if (!*reg)
--		return -EINVAL;
-+	if (IS_ERR(*reg))
-+		return PTR_ERR(*reg);
- 
- 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
- 		*shift = val;
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 81dc469..11478a5 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -390,18 +390,18 @@ static void __init of_ti_dpll_setup(struct device_node *node,
- #endif
- 	} else {
- 		dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
--		if (!dd->idlest_reg)
-+		if (IS_ERR(dd->idlest_reg))
- 			goto cleanup;
- 
- 		dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
- 	}
- 
--	if (!dd->control_reg || !dd->mult_div1_reg)
-+	if (IS_ERR(dd->control_reg) || IS_ERR(dd->mult_div1_reg))
- 		goto cleanup;
- 
- 	if (dd->autoidle_mask) {
- 		dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
--		if (!dd->autoidle_reg)
-+		if (IS_ERR(dd->autoidle_reg))
- 			goto cleanup;
- 	}
- 
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index d493307..0c6fdfc 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -225,7 +225,7 @@ static void __init _of_ti_gate_clk_setup(struct device_node *node,
- 
- 	if (ops != &omap_gate_clkdm_clk_ops) {
- 		reg = ti_clk_get_reg_addr(node, 0);
--		if (!reg)
-+		if (IS_ERR(reg))
- 			return;
- 
- 		if (!of_property_read_u32(node, "ti,bit-shift", &val))
-@@ -264,7 +264,7 @@ _of_ti_composite_gate_clk_setup(struct device_node *node,
- 		return;
- 
- 	gate->enable_reg = ti_clk_get_reg_addr(node, 0);
--	if (!gate->enable_reg)
-+	if (IS_ERR(gate->enable_reg))
- 		goto cleanup;
- 
- 	of_property_read_u32(node, "ti,bit-shift", &val);
-diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-index 265d91f..c76230d 100644
---- a/drivers/clk/ti/interface.c
-+++ b/drivers/clk/ti/interface.c
-@@ -111,7 +111,7 @@ static void __init _of_ti_interface_clk_setup(struct device_node *node,
- 	u32 val;
- 
- 	reg = ti_clk_get_reg_addr(node, 0);
--	if (!reg)
-+	if (IS_ERR(reg))
- 		return;
- 
- 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index 728e253..5cdeed5 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -210,7 +210,7 @@ static void of_mux_clk_setup(struct device_node *node)
- 
- 	reg = ti_clk_get_reg_addr(node, 0);
- 
--	if (!reg)
-+	if (IS_ERR(reg))
- 		goto cleanup;
- 
- 	of_property_read_u32(node, "ti,bit-shift", &shift);
-@@ -283,7 +283,7 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
- 
- 	mux->reg = ti_clk_get_reg_addr(node, 0);
- 
--	if (!mux->reg)
-+	if (IS_ERR(mux->reg))
- 		goto cleanup;
- 
- 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
+ &mmc1 {
 -- 
 1.7.9.5
+
