@@ -1,109 +1,99 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
-Date: Fri, 20 Mar 2015 13:08:25 +0200
-Message-ID: <550BFFA9.7050400@ti.com>
-References: <1426686963-11613-1-git-send-email-rogerq@ti.com> <1426686963-11613-3-git-send-email-rogerq@ti.com> <20150319032944.GA2476@shlinux2> <550AA18F.2000106@ti.com> <20150319140859.GA7950@shlinux1.ap.freescale.net> <550AE237.8000404@ti.com> <20150320071818.GF7537@shlinux2> <550BEC7F.8050303@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <550BEC7F.8050303@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <peter.chen@freescale.com>
-Cc: Li Jun <b47624@freescale.com>, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH 1/3] of/device: manage resources similar
+ =?iso-8859-1?Q?to=0D?= platform_device_add
+Date: Fri, 20 Mar 2015 11:29:54 +0000
+Message-ID: <20150320112954.A3903C419C2@trevor.secretlab.ca>
+References: <1420651854-17768-1-git-send-email-s-anna@ti.com>
+	<1420651854-17768-2-git-send-email-s-anna@ti.com>
+	<CAL_Jsq+79cnCiww6g8ejki0yT59-N8eucHC3QGMbsXG4DksWuQ@mail.gmail.com>
+	<54B58D5D.5070508@ti.com>
+	<CAL_JsqLW9PRktHntLquohH3x_bPgJrrn2Y2_8RYA_HnKhpTDHg@mail.gmail.com>
+	<54B5A499.7060106@ti.com> <54C17087.7060003@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:34258 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081AbbCTL36 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 07:29:58 -0400
+Received: by wegp1 with SMTP id p1so79726325weg.1
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2015 04:29:57 -0700 (PDT)
+In-Reply-To: <54C17087.7060003@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 20/03/15 11:46, Roger Quadros wrote:
-> On 20/03/15 09:18, Peter Chen wrote:
->> On Thu, Mar 19, 2015 at 04:50:31PM +0200, Roger Quadros wrote:
->>> On 19/03/15 16:09, Li Jun wrote:
->>>> On Thu, Mar 19, 2015 at 12:14:39PM +0200, Roger Quadros wrote:
->>>>> On 19/03/15 05:30, Peter Chen wrote:
->>>>>> On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
->>>>>>> The OTG state machine needs a mechanism to start and
->>>>>>> stop the gadget controller. Add usb_gadget_start()
->>>>>>> and usb_gadget_stop().
->>>>>>>
->>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>>> ---
->>>>>>>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
->>>>>>>  include/linux/usb/gadget.h        |   3 +
->>>>>>>  2 files changed, 158 insertions(+), 11 deletions(-)
->>>>>>>
->>>>>>> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
->>>>>>> index 5a81cb0..69b4123 100644
->>>>>>> --- a/drivers/usb/gadget/udc/udc-core.c
->>>>>>> +++ b/drivers/usb/gadget/udc/udc-core.c
->>>>>>> @@ -35,6 +35,8 @@
->>>>>>>   * @dev - the child device to the actual controller
->>>>>>>   * @gadget - the gadget. For use by the class code
->>>>>>>   * @list - for use by the udc class driver
->>>>>>> + * @running - udc is running
->>>>>>
->>>>>> Doesn't OTG FSM should know it?
->>>>>
->>>>> Not really, as the gadget driver might not have been loaded yet or userspace might
->>>>> have disabled softconnect when the OTG FSM wants UDC to start.
->>>>>
->>>>> So only UDC knows if it has really started or not based on this flag.
->>>>>
->>>>
->>>> why this can not be known by check the otg fsm state? i.e. if the device in
->>>> b_peripheral or a_peripheral state, udc should had started, isn't it?
->>>
->>> If gadget function driver (which is different from UDC driver) is not yet loaded
->>> then we can't start UDC even if otg fsm is in b_peripheral.
->>> Also, if userspace has disabled softconnect we can't start UDC.
->>>
->>> So, b_peripheral != UDC_started.
->>>
->>> I've tried to address this issue by adding the checks in usb_gadget_start().
->>>
->>
->> Ok, maybe we have different understanding for 'B-Device' at software,
->> In spec, it says the Micro-AB receptacle with nothing connected can be
->> 'B-Device', but in fact, we may not enable device mode before loading
->> gadget driver, in chipidea fsm design, if the gadget driver is not
->> loaded, the FSM will not start, and it is at OTG_STATE_UNDEFINED.
+On Thu, 22 Jan 2015 15:49:59 -0600
+, Suman Anna <s-anna@ti.com>
+ wrote:
+> Hi Grant,
 > 
-> Right. I mixed up into thinking that we should respect the softconnect
-> while in OTG mode. It seems that we should ignore it.
+> On 01/13/2015 05:04 PM, Suman Anna wrote:
+> > On 01/13/2015 04:00 PM, Rob Herring wrote:
+> >> On Tue, Jan 13, 2015 at 3:25 PM, Suman Anna <s-anna@ti.com> wrote:
+> >>> Hi Rob,
+> >>>
+> >>> On 01/13/2015 02:38 PM, Rob Herring wrote:
+> >>>> On Wed, Jan 7, 2015 at 11:30 AM, Suman Anna <s-anna@ti.com> wrote:
+> >>>>> Drivers can use of_platform_populate() to create platform devices
+> >>>>> for children of the device main node, and a complementary API
+> >>>>> of_platform_depopulate() is provided to delete these child platform
+> >>>>> devices. The of_platform_depopulate() leverages the platform API
+> >>>>> for performing the cleanup of these devices.
+> >>>>>
+> >>>>> The platform device resources are managed differently between
+> >>>>> of_device_add and platform_device_add, and this asymmetry causes
+> >>>>> a kernel oops in platform_device_del during removal of the resources.
+> >>>>> Manage the platform device resources similar to platform_device_add
+> >>>>> to fix this kernel oops.
+> >>>>
+> >>>> This is a known issue and has been attempted to be fixed before (I
+> >>>> believe there is a revert in mainline). The problem is there are known
+> >>>> devicetrees which have overlapping resources and they will break with
+> >>>> your change.
+> >>>
+> >>> Are you referring to 02bbde7849e6 (Revert "of: use
+> >>> platform_device_add")?
+> >>
+> >> I believe that's the one.
+> >>
+> >>> That one seems to be in registration path, and
+> >>> this crash is in the unregistration path. If so, to fix the crash,
+> >>> should we be skipping the release_resource() for now in
+> >>> platform_device_del for DT nodes, or replace platform_device_unregister
+> >>> with of_device_unregister in of_platform_device_destroy()?
+> >>
+> >> IIRC, the problem is inserting a resource twice on add from 2
+> >> different nodes, not the removal path. Perhaps we could make a
+> >> collision non-fatal for in the DT case.
+> > 
+> > We may be talking two different things here, I understand that this
+> > patch would create an issue with inserting a resource twice in the
+> > devicetrees with overlapping resources (just like the commit that was
+> > reverted above), but the crash is on devices with resources whose
+> > parent, child, sibling pointers have never been initialized (the
+> > of_device_add path does not touch these at all), and get dereferenced in
+> > platform_device_del()->release_resource(). See the following that has a
+> > better explanation [1].
+> > 
+> > regards
+> > Suman
+> > 
+> > [1]
+> > http://lists.infradead.org/pipermail/linux-arm-kernel/2014-July/274412.html
+> > 
+> > 
+> >> Grant may have some ideas on
+> >> what's needed here.
 > 
->>
->> One more thing is we may need to find a place to issue SRP when we
->> load gadget driver, since we may at b_idle  at that time due to host
->> closes the vbus (timeout for a_wait_bcon).
-> 
-> Issuing SRP should be done by the otg-fsm and not udc-core.
-> The udc-core can at the least call usb_otg_kick_fsm() after setting the gadget
-> driver so that otg-fsm knows that we now have a valid gadget and can take
-> necessary action. i.e. change from b_idle to b_srp_init and then to b_peripheral.
+> Ping, any suggestions here? Do we ought to replace
+> platform_device_unregister() with of_device_unregister() similar to the
+> approach taken in 02bbde7849e6 (Revert "of: use platform_device_add")?
 
-To clarify further. Is it right to assume that OTG FSM will not be started till
-both gadget UDC driver _AND_ gadget function driver are loaded?
+Hi Suman,
 
-And it will be stopped when either of them unloads.
+Yes, I think the solution to both problems is to create an
+of_device_unregister() function. It's not the prettiest thing, but I
+think it is for the best.
 
-This simplifies things a lot.
+g.
 
-cheers,
--roger
-
-> 
->>
->> What is the "softconnect" used for? In otg fsm, we use b_bus_req for FSM.
->>
-> I understand now that we shouldn't bother with softconnect when we are in OTG fsm mode.
-> That solves our problem with the running flags.
-> 
-> So now, b_peripheral == UDC_started.
-> 
-> I will address this in v2.
-> 
-> cheers,
-> -roger
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
