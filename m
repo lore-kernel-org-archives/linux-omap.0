@@ -1,80 +1,50 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Fri, 20 Mar 2015 10:05:37 +0200
-Message-ID: <550BD4D1.5080604@ti.com>
-References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>
- <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
- <550AF442.5040203@ti.com> <550B1017.2000405@mail.bg>
+Date: Fri, 20 Mar 2015 10:09:04 +0200
+Message-ID: <550BD5A0.6080400@ti.com>
+References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com>	 <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>	 <550AF442.5040203@ti.com> <1426787288.13824.36.camel@symus-gk-mint>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <550B1017.2000405@mail.bg>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Nikolay Dimitrov <picmaster@mail.bg>, Greg Knight <g.knight@symetrica.com>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45636 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750925AbbCTIJW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 04:09:22 -0400
+In-Reply-To: <1426787288.13824.36.camel@symus-gk-mint>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Knight <g.knight@symetrica.com>
+Cc: Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-T24gMDMvMTkvMjAxNSAwODowNiBQTSwgTmlrb2xheSBEaW1pdHJvdiB3cm90ZToKPiBTbGlnaHQg
-Y2xhcmlmaWNhdGlvbiBoZXJlIC0gSSBjYW4ndCBmaW5kIGFueSBzdWNoIHJlZmVyZW5jZSBpbiB0
-aGUKPiBTR1RMNTAwMCBkYXRhc2hlZXQgd2hlcmUgaXQncyBleHBsaWNpdGx5IHdyaXR0ZW4gdGhh
-dCB0aGUgSTJDIGJ1cwo+ICpyZXF1aXJlcyogdGhlIE1DTEsgcnVubmluZy4gVW5mb3J0dW5hdGVs
-eSwgYWxsIG9mIHVzIGZvdW5kIHRoaXMKPiBvYnNjdXJlIGRlcGVuZGVuY3kgZW1waXJpY2FsbHku
-CgpJdCBpcyBub3Qgc3BlbGxlZCBvdXQgYXMgc3VjaCwgYnV0IGluOgpodHRwOi8vY2FjaGUuZnJl
-ZXNjYWxlLmNvbS9maWxlcy9hbmFsb2cvZG9jL2RhdGFfc2hlZXQvU0dUTDUwMDAucGRmP3BzcGxs
-PTEKYm90dG9tIG9mIHBhZ2U5IChub3RlIDEpIGFuZCB0aGUgcG93ZXIgdXAgc2VxdWVuY2UgaW4g
-cGFnZTEwLiBTZWUgYWxzbyBwYWdlMTMsClJFU0VUIHNlY3Rpb24uCgo+PiBJZiB5b3UgY2hhbmdl
-IGF1ZGlvIGNvbnRyb2xzIHdoaWxlIHlvdSBkb24ndCBoYXZlIGF1ZGlvIGFjdGl2aXR5LCB5b3Ug
-d2lsbAo+PiBzdGlsbCBuZWVkIHRvIGhhdmUgdGhlIE1DTEsgcnVubmluZy4KPiAKPiBDb3JyZWN0
-LiBBbmQgdGhpcyBpcyBhIGJpZyBpc3N1ZS4gQXMgZmFyIGFzIEkga25vdywgdGhlIGtlcm5lbCBk
-cml2ZXJzCj4gY29udHJvbCBzZXBhcmF0ZWx5IHRoZSBjbG9jayBkb21haW5zLCBhbmQgc2VwYXJh
-dGVseSBpMmMgZGV2aWNlcywgc28KPiB0aGUgYmFzaWMgZXhwZWN0YXRpb24gb24gdGhlIGtlcm5l
-bCBzaWRlIGlzIHRoYXQgdGhlcmUncyBubyBjb25uZWN0aW9uCj4gYmV0d2VlbiB0aGVzZSAyLiBJ
-biB0aGlzIHNwZWNpZmljIGNhc2UsIGJlY2F1c2Ugb2YgdGhlIFNHVEw1MDAwJ3MKPiBpbXBsZW1l
-bnRhdGlvbiwgdGhlcmUncyBhIGRlcGVuZGVuY3kuIFJpZ2h0IG5vdyBhcyBJIHNlZSBpdCwgdGhl
-cmUgYXJlCj4gc2V2ZXJhbCB3YXlzIHRvIHJlc29sdmUgaXQ6Cj4gCj4gMS4gUnVuIHRoZSByZWZl
-cmVuY2UgY2xvY2sgYWxsIHRoZSB0aW1lLCBzbyB0aGUgU0dUTDUwMDAgY29kZWMgaXMKPiBoYXBw
-eSwgYW5kIERBUE0gd2lkZ2V0cyBjYW4gd29yayBhcy1pcy4gV2UndmUgYmVlbiBkb2luZyB0aGlz
-IGFsbCB0aGUKPiB0aW1lIC0gdGhlIHJlZmVyZW5jZSBjbG9ja3MgYXJlIHJvdXRpbmVseSBjb25m
-aWd1cmVkIGVpdGhlciBpbiB0aGUKPiBib290bG9hZGVyLCBvciBpbiB0aGUgRFRTIGlvbXV4YyBu
-b2RlLiBXaGlsZSB0aGlzIGNhbiB3b3JrIGluIHNvbWUKPiBjYXNlcyAob3IgdW50aWwgc29tZW9u
-ZSB0b3VjaGVzIHRoZSBzYW1lIGNsb2NrIG9yIG9uZSBvZiBpdHMgcGFyZW50cwo+IDpEKSwgdGhl
-cmUgYXJlIG90aGVyIGNhc2VzIChsaWtlIGJhdHRlcnktcG93ZXJlZCBkZXZpY2VzKSB3aGVyZSBw
-ZW9wbGUKPiB3b3VsZCB3YW50IG1vcmUgYWdncmVzc2l2ZSBwb3dlciBtYW5hZ2VtZW50LCB3aGlj
-aCBtZWFucyBjb250cm9sbGluZwo+IHRoZSByZWZlcmVuY2UgY2xvY2sgYXQgcnVudGltZSAoc2Vl
-ICMyKS4KCk5vdGUgdGhlIHRoZSBjb2RlYyBkcml2ZXIgd2lsbCBlbmFibGUgdGhlIGNsb2NrIGFu
-ZCB3aWxsIG5vdCBsZXQgaXQgdG8gYmUKdHVybmVkIG9mZi4gWW91IG5lZWQgdG8gd29yayBvbiB0
-aGUgY29kZWMgZHJpdmVyIHRvIHNvcnQgdGhpcyBvdXQuCgo+IDIuIEFkZCAiaGFja3MiIGluIHRo
-ZSBEQVBNIHdpZGdldHMgdGhhdCBhZGQgY29udHJvbCB0byB0aGUgY29kZWMncwo+IHJlZmVyZW5j
-ZSBjbG9ja3MuIFdoaWxlIHRoaXMgc2VlbXMgdGhlIHByZWZlcnJlZCByb3V0ZSB0byBtYW55LCB0
-aGUKPiBnZW5lcmFsIGZlZWxpbmcgaXMgdGhhdCBzdWNoIGFwcHJvYWNoIGlzIG5vdCB2ZXJ5IHdl
-bGNvbWUgaW4gdXBzdHJlYW0uCgpTTkRfU09DX0RBUE1fQ0xPQ0tfU1VQUExZKCkKCj4gMy4gQWRk
-IGV4cGxpY2l0IHN1cHBvcnQgaW4gdGhlIGtlcm5lbCdzIGF1ZGlvIHN1YnN5c3RlbSBmb3IKPiBk
-ZXBlbmRlbmNpZXMgYmV0d2VlbiBpMmMgZGV2aWNlcyBhbmQgY2xvY2tzLCBtYXliZSB2aWEgIkRB
-UE0gY2xvY2sKPiB3aWRnZXQiIG9yIHNvbWV0aGluZyBsaWtlIHRoaXMuIFByb3ZpZGVkIHRoYXQg
-dGhlIERBUE0gZ3JhcGhzIGFyZQo+IGRlZmluZWQgcHJvcGVybHksIHRoaXMgd2lsbCB3b3JrIG91
-dC1vZi10aGUtYm94IGZvciBhbGwgdXNlIGNhc2VzLAo+IHdpdGhvdXQgdGhlIGhhY2tzICh1bnRp
-bCB3ZSBzZWUgZXZlbiBtb3JlIHR3aXN0ZWQgY2FzZXMpLgoKVGhpcyBjYW4gYmUgaGFuZGxlZCB3
-aXRoaW4gdGhlIGNvZGVjIGRyaXZlciB3aXRoIHNvbWUgY2hhbmdlcy4gSWYgeW91IGhhdmUKZXh0
-ZXJuYWwgY2xvY2sgd2hpY2ggY2FuIGJlIGVuYWJsZWQvZGlhYmxlZCB3aXRoIGEgR1BJTywgdGhl
-biB5b3UgY2FuIHVzZQp0aGF0LiBXZSBhbHJlYWR5IGhhdmUgYmluZGluZyBmb3IgdGhpcyB0eXBl
-IG9mIGV4dGVybmFsIGNsb2NrcyAoaW4KbGludXgtbmV4dCk6IGxvb2sgZm9yICJncGlvLWdhdGUt
-Y2xvY2siCllvdSBkZWZpbmUgeW91ciBleHRlcm5hbCBHUElPIGNvbnRyb2xsZWQgY2xvY2sgd2l0
-aCB0aGlzIGJpbmRpbmcgYW5kIHVzZSB0aGUKcGhhbmRsZSBpbiB0aGUgY29kZWMgZHJpdmVyLgpD
-aGFuZ2UgdGhlIGNvZGVjIGRyaXZlciB0byBlbmFibGUvZGlzYWJsZSB0aGUgY2xvY2sgd2hlbiBu
-ZWVkZWQuCldoZW4geW91IGRvIG5vdCBoYXZlIGF1ZGlvIGFjdGl2aXR5LCBzZXQgdGhlIHJlZ21h
-cCB0byBjYWNoZSBvbmx5IHNvIGFueQpjaGFuZ2UgaW4gdGhlIGNvbnRyb2xzIHdpbGwgbm90IHJl
-YWNoIHRoZSBIVy4gV2hlbiB5b3UgcG93ZXIgdXAgbmV4dCB0aW1lIHRoZQpyZWdtYXAgd2lsbCBz
-eW5jIHRoZSBjaGFuZ2VzIHRvIHRoZSBjaGlwLCBzbyB5b3Ugd2lsbCBoYXZlIHRoZSBjaGFuZ2Vz
-IGNvbW1pdGVkLgoKLS0gClDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJv
-amVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2Fsc2EtZGV2ZWwK
+Greg,
+
+On 03/19/2015 07:48 PM, Greg Knight wrote:
+>> For a codec such as the SGTL5000 I would connect a clock, which is
+> running all
+>> the time. If you take a look at the driver, it enables the clock at
+> probe and
+>> leaves it running as long as the driver is loaded.
+>=20
+> Speaking briefly to my "electrical" colleague, he's a bit concerned
+> about the extra power load that a crystal oscillator might incur, whi=
+le
+> I'm concerned about audio quality from a source like CLKOUT2.
+>=20
+> Is there a straightforward way we could enable the clock on-demand -
+> when we're communicating with the codec/mixer or actually using the
+> audio subsystem - while keeping it disabled when not in use? We don't
+> expect to be using the audio subsystem frequently.
+>=20
+> Worst-case we can set up a GPIO and enable/disable it as needed in
+> user-space - acceptable, if annoying, for our application.
+
+See my reply to Nikolay.
+
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
