@@ -1,141 +1,80 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v1.1 13/15] v4l: of: Read lane-polarities endpoint property
-Date: Sat, 21 Mar 2015 00:08:15 +0200
-Message-ID: <1426889295-18182-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv5 27/35] ARM: dts: am33xx: add minimal l4 bus layout with
+ control module support
+Date: Fri, 20 Mar 2015 15:35:41 -0700
+Message-ID: <20150320223541.GV31346@atomide.com>
+References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
+ <1426877086-17131-28-git-send-email-t-kristo@ti.com>
+ <550C9490.3070505@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42173 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751251AbbCTWI5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 18:08:57 -0400
-In-Reply-To: <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi>
+Received: from muru.com ([72.249.23.125]:39010 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751164AbbCTWkS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 18:40:18 -0400
+Content-Disposition: inline
+In-Reply-To: <550C9490.3070505@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+To: Suman Anna <s-anna@ti.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Add lane_polarities field to struct v4l2_of_bus_mipi_csi2 and write the
-contents of the lane-polarities property to it. The field tells the polarity
-of the physical lanes starting from the first one. Any unused lanes are
-ignored, i.e. only the polarity of the used lanes is specified.
+* Suman Anna <s-anna@ti.com> [150320 14:44]:
+> On 03/20/2015 01:44 PM, Kristo, Tero wrote:
+> > +			scm: scm@210000 {
+> > +				compatible = "ti,am3-scm", "simple-bus";
+> > +				reg = <0x210000 0x2000>;
+> > +				#address-cells = <1>;
+> > +				#size-cells = <1>;
+> > +				ranges = <0 0x210000 0x2000>;
+> > +
+> > +				am33xx_pinmux: pinmux@800 {
+> > +					compatible = "pinctrl-single";
+> > +					reg = <0x800 0x238>;
+> > +					#address-cells = <1>;
+> > +					#size-cells = <0>;
+> > +					pinctrl-single,register-width = <32>;
+> > +					pinctrl-single,function-mask = <0x7f>;
+> > +				};
+> > +
+> > +				scm_conf: scm_conf@0 {
+> > +					compatible = "syscon";
+> > +					reg = <0x0 0x7fc>;
+> 
+> Hmm, you are consolidating the am33xx_control_module and cm nodes, so is
+> this supposed to be 0x800 or 0x7fc? I would think it should be 0x800.
 
-Also rework reading the "data-lanes" property a little.
+Seems correct to me, it's offset 0, size 0x7fc. So that's the scm_conf
+syscon area before pinctrl-single at 0x44c00000 + 0x210000 + 0.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-since v1:
+The io area for pinctrl-single starts at 0x800, so the scm_conf should
+be before it in the dts file.
 
-- Rename lane-polarity property as lane-polarities.
+> Also, are we ordering the child nodes of scm by node names or addresses.
+> I have to add the wkup_m3 node, and prefer ordering by addresses.
 
- drivers/media/v4l2-core/v4l2-of.c |   41 +++++++++++++++++++++++++++++--------
- include/media/v4l2-of.h           |    3 +++
- 2 files changed, 35 insertions(+), 9 deletions(-)
+Yeah address ordering makes most sense here IMO.
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index b4ed9a9..58e401f 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -19,11 +19,10 @@
- 
- #include <media/v4l2-of.h>
- 
--static void v4l2_of_parse_csi_bus(const struct device_node *node,
--				  struct v4l2_of_endpoint *endpoint)
-+static int v4l2_of_parse_csi_bus(const struct device_node *node,
-+				 struct v4l2_of_endpoint *endpoint)
- {
- 	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
--	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
- 	struct property *prop;
- 	bool have_clk_lane = false;
- 	unsigned int flags = 0;
-@@ -32,16 +31,34 @@ static void v4l2_of_parse_csi_bus(const struct device_node *node,
- 	prop = of_find_property(node, "data-lanes", NULL);
- 	if (prop) {
- 		const __be32 *lane = NULL;
--		int i;
-+		unsigned int i;
- 
--		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
--			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-+		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
-+			lane = of_prop_next_u32(prop, lane, &v);
- 			if (!lane)
- 				break;
-+			bus->data_lanes[i] = v;
- 		}
- 		bus->num_data_lanes = i;
--		while (i--)
--			bus->data_lanes[i] = data_lanes[i];
-+	}
-+
-+	prop = of_find_property(node, "lane-polarities", NULL);
-+	if (prop) {
-+		const __be32 *polarity = NULL;
-+		unsigned int i;
-+
-+		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
-+			polarity = of_prop_next_u32(prop, polarity, &v);
-+			if (!polarity)
-+				break;
-+			bus->lane_polarities[i] = v;
-+		}
-+
-+		if (i < 1 + bus->num_data_lanes /* clock + data */) {
-+			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
-+				node->full_name, 1 + bus->num_data_lanes, i);
-+			return -EINVAL;
-+		}
- 	}
- 
- 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
-@@ -56,6 +73,8 @@ static void v4l2_of_parse_csi_bus(const struct device_node *node,
- 
- 	bus->flags = flags;
- 	endpoint->bus_type = V4L2_MBUS_CSI2;
-+
-+	return 0;
- }
- 
- static void v4l2_of_parse_parallel_bus(const struct device_node *node,
-@@ -127,11 +146,15 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint)
- {
-+	int rval;
-+
- 	of_graph_parse_endpoint(node, &endpoint->base);
- 	endpoint->bus_type = 0;
- 	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
- 
--	v4l2_of_parse_csi_bus(node, endpoint);
-+	rval = v4l2_of_parse_csi_bus(node, endpoint);
-+	if (rval)
-+		return rval;
- 	/*
- 	 * Parse the parallel video bus properties only if none
- 	 * of the MIPI CSI-2 specific properties were found.
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 70fa7b7..2de42c5 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -29,12 +29,15 @@ struct device_node;
-  * @data_lanes: an array of physical data lane indexes
-  * @clock_lane: physical lane index of the clock lane
-  * @num_data_lanes: number of data lanes
-+ * @lane_polarities: polarity of the lanes. The order is the same of
-+ *		   the physical lanes.
-  */
- struct v4l2_of_bus_mipi_csi2 {
- 	unsigned int flags;
- 	unsigned char data_lanes[4];
- 	unsigned char clock_lane;
- 	unsigned short num_data_lanes;
-+	bool lane_polarities[5];
- };
- 
- /**
--- 
-1.7.10.4
+Note that you should follow the TRM "Table 2-2. L4_WKUP Peripheral Memory
+Map" and set up things as separate devices as shown there. Pretty much
+each row in that table is a separate device on the interconnect. That's
+especially true if the device has registers like revision, sysc, syss
+and so on. In that case they can be clocked and idled separately.
 
+So with these changes we follow the hardware mapping, although only
+partially have it populated now for l4_wkup:
+
+l3 (ocp) +-> l4_per  +-> ...
+         |           |-> ...
+         |
+         +-> l4_wkup +-> prcm
+         |           |-> scm 
+	 |           |-> ...
+         |
+         +-> ...     +-> ...
+
+
+Regards,
+
+Tony
