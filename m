@@ -1,159 +1,127 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: [PATCH] ARM: OMAP2: HSMMC: explicit fields to declare cover/card detect pin
-Date: Fri, 20 Mar 2015 15:53:54 +0100
-Message-ID: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
+From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Subject: Re: [PATCH] omapdss: extend pm notifier to handle hibernation
+Date: Fri, 20 Mar 2015 16:57:09 +0200
+Message-ID: <550C3545.8060702@linaro.org>
+References: <1424883836-9119-1-git-send-email-grygorii.strashko@linaro.org> <550C108E.3020907@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:34969 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbbCTOyM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 10:54:12 -0400
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:35687 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439AbbCTO5T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 10:57:19 -0400
+Received: by lbcgn8 with SMTP id gn8so77115044lbc.2
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2015 07:57:18 -0700 (PDT)
+In-Reply-To: <550C108E.3020907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andreas Fenkart <afenkart@gmail.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, kishon@ti.com, linux-fbdev@vger.kernel.org
 
-board-rx51 has no card detect pin in the mmc slot, but can detect that
-the (cell-phone) cover has been removed and the card is accessible.
-The semantics between cover/card detect differ, the gpio on the slot
-informs you after the card has been removed, cover removal does not
-necessarily mean that the card has been removed.
-This means different code paths are necessary. To complete this we
-also want different fields in the platform data for cover and card
-detect. This separation is not pushed all the way down into struct
-omap2_hsmmc_info which is used to initialize the platform data.
-If we did that we had to go over all board files and set the new
-gpio_cod pin to -EINVAL. If we forget one board or some out-of-tree
-archicture forgets that the default '0' is used which is a valid pin
-number.
+Hi Tomi,
 
-Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
----
- arch/arm/mach-omap2/hsmmc.c              | 33 ++++++++++++++++++++++++--------
- drivers/mmc/host/omap_hsmmc.c            | 11 ++++++-----
- include/linux/platform_data/hsmmc-omap.h |  6 ++----
- 3 files changed, 33 insertions(+), 17 deletions(-)
+On 03/20/2015 02:20 PM, Tomi Valkeinen wrote:
+> On 25/02/15 19:03, grygorii.strashko@linaro.org wrote:
+>> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>>
+>> Add handling of missed events in omap_dss_pm_notif which are
+>> needed to support hibernation (suspend to disk).
+>>
+>> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>> ---
+>>   drivers/video/fbdev/omap2/dss/core.c | 4 ++++
+>>   1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/video/fbdev/omap2/dss/core.c b/drivers/video/fbdev/omap2/dss/core.c
+>> index 6b74f73..e60976a 100644
+>> --- a/drivers/video/fbdev/omap2/dss/core.c
+>> +++ b/drivers/video/fbdev/omap2/dss/core.c
+>> @@ -178,11 +178,15 @@ static int omap_dss_pm_notif(struct notifier_block *b, unsigned long v, void *d)
+>>   	DSSDBG("pm notif %lu\n", v);
+>>   
+>>   	switch (v) {
+>> +	case PM_HIBERNATION_PREPARE:
+>>   	case PM_SUSPEND_PREPARE:
+>> +	case PM_RESTORE_PREPARE:
+>>   		DSSDBG("suspending displays\n");
+>>   		return dss_suspend_all_devices();
+>>   
+>>   	case PM_POST_SUSPEND:
+>> +	case PM_POST_HIBERNATION:
+>> +	case PM_POST_RESTORE:
+>>   		DSSDBG("resuming displays\n");
+>>   		return dss_resume_all_devices();
+>>   
+> 
+> Why suspend displays when PM_RESTORE_PREPARE happens? Why resume when
+> PM_POST_RESTORE happens?
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index dc6e79c..9a8611a 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -150,9 +150,13 @@ static int nop_mmc_set_power(struct device *dev, int power_on, int vdd)
- static inline void omap_hsmmc_mux(struct omap_hsmmc_platform_data
- 				  *mmc_controller, int controller_nr)
- {
--	if (gpio_is_valid(mmc_controller->switch_pin) &&
--	    (mmc_controller->switch_pin < OMAP_MAX_GPIO_LINES))
--		omap_mux_init_gpio(mmc_controller->switch_pin,
-+	if (gpio_is_valid(mmc_controller->gpio_cd) &&
-+	    (mmc_controller->gpio_cd < OMAP_MAX_GPIO_LINES))
-+		omap_mux_init_gpio(mmc_controller->gpio_cd,
-+				   OMAP_PIN_INPUT_PULLUP);
-+	if (gpio_is_valid(mmc_controller->gpio_cod) &&
-+	    (mmc_controller->gpio_cod < OMAP_MAX_GPIO_LINES))
-+		omap_mux_init_gpio(mmc_controller->gpio_cod,
- 				   OMAP_PIN_INPUT_PULLUP);
- 	if (gpio_is_valid(mmc_controller->gpio_wp) &&
- 	    (mmc_controller->gpio_wp < OMAP_MAX_GPIO_LINES))
-@@ -250,15 +254,20 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 	mmc->internal_clock = !c->ext_clock;
- 	mmc->reg_offset = 0;
- 
--	mmc->switch_pin = c->gpio_cd;
-+	if (c->cover_only) {
-+		/* detect if mobile phone cover removed */
-+		mmc->gpio_cd = -EINVAL;
-+		mmc->gpio_cod = c->gpio_cd;
-+	} else {
-+		/* card detect pin on the mmc socket itself */
-+		mmc->gpio_cd = c->gpio_cd;
-+		mmc->gpio_cod = -EINVAL;
-+	}
- 	mmc->gpio_wp = c->gpio_wp;
- 
- 	mmc->remux = c->remux;
- 	mmc->init_card = c->init_card;
- 
--	if (c->cover_only)
--		mmc->cover = 1;
--
- 	if (c->nonremovable)
- 		mmc->nonremovable = 1;
- 
-@@ -358,7 +367,15 @@ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
- 		if (!mmc_pdata)
- 			continue;
- 
--		mmc_pdata->switch_pin = c->gpio_cd;
-+		if (c->cover_only) {
-+			/* detect if mobile phone cover removed */
-+			mmc_pdata->gpio_cd = -EINVAL;
-+			mmc_pdata->gpio_cod = c->gpio_cd;
-+		} else {
-+			/* card detect pin on the mmc socket itself */
-+			mmc_pdata->gpio_cd = c->gpio_cd;
-+			mmc_pdata->gpio_cod = -EINVAL;
-+		}
- 		mmc_pdata->gpio_wp = c->gpio_wp;
- 
- 		res = omap_device_register(pdev);
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 053cd38..265391f 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -427,15 +427,15 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
- {
- 	int ret;
- 
--	if (pdata->cover && gpio_is_valid(pdata->switch_pin)) {
--		ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
-+	if (gpio_is_valid(pdata->gpio_cod)) {
-+		ret = mmc_gpio_request_cd(mmc, pdata->gpio_cod, 0);
- 		if (ret)
- 			return ret;
- 
- 		host->get_cover_state = omap_hsmmc_get_cover_state;
- 		mmc_gpio_set_cd_isr(mmc, omap_hsmmc_cover_irq);
--	} else if (!pdata->cover && gpio_is_valid(pdata->switch_pin)) {
--		ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
-+	} else if (gpio_is_valid(pdata->gpio_cd)) {
-+		ret = mmc_gpio_request_cd(mmc, pdata->gpio_cd, 0);
- 		if (ret)
- 			return ret;
- 
-@@ -1932,7 +1932,8 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,dual-volt", NULL))
- 		pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
- 
--	pdata->switch_pin = -EINVAL;
-+	pdata->gpio_cd = -EINVAL;
-+	pdata->gpio_cod = -EINVAL;
- 	pdata->gpio_wp = -EINVAL;
- 
- 	if (of_find_property(np, "ti,non-removable", NULL)) {
-diff --git a/include/linux/platform_data/hsmmc-omap.h b/include/linux/platform_data/hsmmc-omap.h
-index 67bbcf0..8e981be 100644
---- a/include/linux/platform_data/hsmmc-omap.h
-+++ b/include/linux/platform_data/hsmmc-omap.h
-@@ -55,9 +55,6 @@ struct omap_hsmmc_platform_data {
- 	u32 caps;	/* Used for the MMC driver on 2430 and later */
- 	u32 pm_caps;	/* PM capabilities of the mmc */
- 
--	/* switch pin can be for card detect (default) or card cover */
--	unsigned cover:1;
--
- 	/* use the internal clock */
- 	unsigned internal_clock:1;
- 
-@@ -73,7 +70,8 @@ struct omap_hsmmc_platform_data {
- #define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
- 	unsigned features;
- 
--	int switch_pin;			/* gpio (card detect) */
-+	int gpio_cd;			/* gpio (card detect) */
-+	int gpio_cod;			/* gpio (cover detect) */
- 	int gpio_wp;			/* gpio (write protect) */
- 
- 	int (*set_power)(struct device *dev, int power_on, int vdd);
+We have following sequence when system is restored from hibernation:
+- original kernel booted;
+- late_initcall_sync(software_resume);
+  - pm_notifier_call_chain(PM_RESTORE_PREPARE);
+  - freeze_processes
+  - check & read hibernation image
+  - suspend all devices (.freeze())
+  - jump to stored kernel
+  - restore devices
+  ...
+
+So, all devices should be in frozen/suspended state when we will jump to stored kernel
+(device's state should be the same as before creating hib image).
+
+Without this patch I can see a lot of log messages like below:
+
+[    3.642499] Freezing user space processes ... 
+[    3.647029]  mmcblk1boot1: unknown partition table
+[    3.647043] (elapsed 0.000 seconds) done.
+[    3.686414]  mmcblk1boot0: unknown partition table
+[    3.714552] PM: Using 1 thread(s) for decompression.
+[    3.714552] PM: Loading and decompressing image data (144641 pages)...
+[    4.520388] PM: Image loading progress:   0%
+[    5.153715] PM: Image loading progress:  10%
+[    5.847731] PM: Image loading progress:  20%
+[    6.622024] PM: Image loading progress:  30%
+[    7.023830] PM: Image loading progress:  40%
+[    7.455959] PM: Image loading progress:  50%
+[    8.137186] PM: Image loading progress:  60%
+[    8.567899] PM: Image loading progress:  70%
+[    9.670371] PM: Image loading progress:  80%
+[   10.130646] PM: Image loading progress:  90%
+[   10.525035] PM: Image loading progress: 100%
+[   10.529565] PM: Image loading done.
+[   10.533262] PM: Read 578564 kbytes in 6.80 seconds (85.08 MB/s)
+[   10.545313] Suspending console(s) (use no_console_suspend to debug)
+[  193.721284] PM: freeze of devices complete after 7.891 msecs
+[  193.722618] PM: late freeze of devices complete after 1.325 msecs
+[  193.723969] PM: noirq freeze of devices complete after 1.343 msecs
+[  193.724133] Disabling non-boot CPUs ...
+[  193.724792] CPU1: shutdown
+[  193.725387] PM: Creating hibernation image:
+[  193.725387] PM: Need to copy 144499 pages
+[  193.725439] Enabling non-boot CPUs ...
+[  193.725783] CPU1: smp_ops.cpu_die() returned, trying to resuscitate
+[  193.725790] CPU1: Booted secondary processor
+[  193.726069] CPU1 is up
+[  193.743772] PM: noirq restore of devices complete after 17.693 msecs
+[  193.744691] PM: early restore of devices complete after 0.634 msecs
+[  193.951382] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951389] [drm:omap_plane_error_irq] *ERROR* gfx: errors: 00000040
+[  193.951402] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951413] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951424] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951435] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951445] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951455] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951465] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951475] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951484] [drm:omap_crtc_error_irq] *ERROR* tv: errors: 00008000
+[  193.951567] omap_l3_noc 44000000.ocp: L3 application error: target 2 mod:1 (unclearable)
+[  193.951605] omap_l3_noc 44000000.ocp: L3 debug error: target 2 mod:1 (unclearable)
+[  194.293226] ata1: SATA link down (SStatus 0 SControl 300)
+[  194.560684] PM: restore of devices complete after 610.740 msecs
+
 -- 
-2.1.4
-
+regards,
+-grygorii
