@@ -1,191 +1,159 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: am335x: GPMC: reading speed with prefetch mode
-Date: Fri, 20 Mar 2015 16:05:04 +0200
-Message-ID: <550C2910.8020604@ti.com>
-References: <CAGm1_kvgLKxDt_Xy8tdVDfOk46sD0-ybycXZT3tUd-5-=mD8WA@mail.gmail.com>
- <550AD57A.4070701@zonque.org>
- <CAGm1_kvh9cSwjqM0VohXRLN5sTmWLqAjzdj8W0p47FcpM0cKrA@mail.gmail.com>
- <550AF1A8.8030402@gmail.com>
- <CAGm1_ksmOPhJ=esbHJWy1TwfUS0gv35E0pxpPyQw1sjthT93CA@mail.gmail.com>
- <550C146D.40709@ti.com>
- <CAGm1_kvn8Wf=2RX+877eVTZY7FAfK4WN0LOBcFWJZwHhQBZqUA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <u-boot-bounces@lists.denx.de>
-In-Reply-To: <CAGm1_kvn8Wf=2RX+877eVTZY7FAfK4WN0LOBcFWJZwHhQBZqUA@mail.gmail.com>
-List-Unsubscribe: <http://lists.denx.de/mailman/options/u-boot>,
- <mailto:u-boot-request@lists.denx.de?subject=unsubscribe>
-List-Archive: <http://lists.denx.de/pipermail/u-boot/>
-List-Post: <mailto:u-boot@lists.denx.de>
-List-Help: <mailto:u-boot-request@lists.denx.de?subject=help>
-List-Subscribe: <http://lists.denx.de/mailman/listinfo/u-boot>,
- <mailto:u-boot-request@lists.denx.de?subject=subscribe>
-Errors-To: u-boot-bounces@lists.denx.de
-Sender: "U-Boot" <u-boot-bounces@lists.denx.de>
-To: Yegor Yefremov <yegorslists@googlemail.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: Falco Hyfing <hyfinglists@gmail.com>, U-Boot Mailing List <u-boot@lists.denx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tom Rini <trini@konsulko.com>, Daniel Mack <zonque@gmail.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH] ARM: OMAP2: HSMMC: explicit fields to declare cover/card detect pin
+Date: Fri, 20 Mar 2015 15:53:54 +0100
+Message-ID: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:34969 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751731AbbCTOyM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 10:54:12 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andreas Fenkart <afenkart@gmail.com>
 
-+Tony and l-o
+board-rx51 has no card detect pin in the mmc slot, but can detect that
+the (cell-phone) cover has been removed and the card is accessible.
+The semantics between cover/card detect differ, the gpio on the slot
+informs you after the card has been removed, cover removal does not
+necessarily mean that the card has been removed.
+This means different code paths are necessary. To complete this we
+also want different fields in the platform data for cover and card
+detect. This separation is not pushed all the way down into struct
+omap2_hsmmc_info which is used to initialize the platform data.
+If we did that we had to go over all board files and set the new
+gpio_cod pin to -EINVAL. If we forget one board or some out-of-tree
+archicture forgets that the default '0' is used which is a valid pin
+number.
 
-On 20/03/15 15:37, Yegor Yefremov wrote:
-> On Fri, Mar 20, 2015 at 1:37 PM, Roger Quadros <rogerq@ti.com> wrote:
->> On 20/03/15 13:24, Yegor Yefremov wrote:
->>> On Thu, Mar 19, 2015 at 4:56 PM, Daniel Mack <zonque@gmail.com> wrote:
->>>> On 03/19/2015 04:13 PM, Yegor Yefremov wrote:
->>>>> Strange. Have tried with "nand read" command, but still the same
->>>>> result with and without CONFIG_NAND_OMAP_GPMC_PREFETCH :
->>>>>
->>>>> [2.150655 0.001006] NAND read: device 0 offset 0x260000, size 0x1200000
->>>>> [15.978943 13.828288]  18874368 bytes read: OK
->>>>
->>>> What about adding some debug prints to the prefetch setup function and
->>>> see if it is executed at all?
->>>
->>> I2C:   ready
->>> DRAM:  256 MiB
->>> NAND: prefetch enabled
->>> NAND: 256 MiB
->>> MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
->>> Using default environment
->>>
->>> I've added "NAND: prefetch enabled" output for:
->>>
->>> #ifdef CONFIG_NAND_OMAP_GPMC_PREFETCH
->>>         else {
->>>                 printf("NAND: prefetch enabled\n");
->>>                 nand->read_buf = omap_nand_read_prefetch8;
->>>         }
->>> #else
->>>
->>> I've also put printf() into omap_nand_read_prefetch8() just to make
->>> sure it is called - it was called.
->>>
->>> Further ideas?
->>>
->>>>> Daniel, do you have the numbers? Images size and load time? What can I expect?
->>>>
->>>> I don't currently have the setup at hand, sorry. But the number I recall
->>>> from an email conversation back then is: The time from power-on, loading
->>>> SPL, loading U-Boot, leeching a 6MB uImage, jumping into it waiting for
->>>> the console to start dumping the kernel boot messages was less than 5
->>>> seconds in total.
->>>
->>> I Linux I had ti,nand-xfer-type = "polled";. After replacing it with
->>> ti,nand-xfer-type = "prefetch-polled"; I now get
->>>
->>> # dd if=/dev/mtdblock5 of=/dev/null bs=2M count=8
->>> 8+0 records in
->>> 8+0 records out
->>> 16777216 bytes (17 MB) copied, 2.58744 s, 6.5 MB/s
->>>
->>> instead of:
->>>
->>> # dd if=/dev/mtdblock5 of=/dev/null bs=2M count=8
->>> 8+0 records in
->>> 8+0 records out
->>> 16777216 bytes (17 MB) copied, 6.05157 s, 2.8 MB/s
->>>
->>> Do I see it right, that DMA support is not implemented in am33xx.dtsi?
->>
->> DMA support will have to be enabled in the board dts. e.g. am335x-bone.dts.
->>
->> if ti,nand-xfer-type is not specified (like in mainline kernel) then it
->> defaults to prefetch-polled
-> 
-> I get following error:
-> 
-> omap-gpmc 50000000.gpmc: GPMC revision 6.0
-> nand: device found, Manufacturer ID: 0x2c, Chip ID: 0xda
-> nand: Micron MT29F2G08ABAEAWP
-> nand: 256MiB, SLC, page size: 2048, OOB size: 64
-> omap2-nand omap2-nand.0: DMA engine request failed
-> 
-> Kernel: 3.18.1
-> 
-> GPMC config:
-> 
-> &gpmc {
->         pinctrl-names = "default";
->         pinctrl-0 = <&nandflash_pins_s0>;
->         ranges = <0 0 0x08000000 0x10000000>;   /* CS0: NAND */
->         status = "okay";
-> 
->         nand@0,0 {
->                 reg = <0 0 4>; /* CS0, offset 0 */
->                 nand-bus-width = <8>;
->                 ti,nand-ecc-opt = "bch8";
->                 ti,nand-xfer-type = "prefetch-dma";
-> 
->                 gpmc,device-nand = "true";
->                 gpmc,device-width = <1>;
->                 gpmc,sync-clk-ps = <0>;
->                 gpmc,cs-on-ns = <0>;
->                 gpmc,cs-rd-off-ns = <44>;
->                 gpmc,cs-wr-off-ns = <44>;
->                 gpmc,adv-on-ns = <6>;
->                 gpmc,adv-rd-off-ns = <34>;
->                 gpmc,adv-wr-off-ns = <44>;
->                 gpmc,we-on-ns = <0>;
->                 gpmc,we-off-ns = <40>;
->                 gpmc,oe-on-ns = <0>;
->                 gpmc,oe-off-ns = <54>;
->                 gpmc,access-ns = <64>;
->                 gpmc,rd-cycle-ns = <82>;
->                 gpmc,wr-cycle-ns = <82>;
->                 gpmc,wait-on-read = "true";
->                 gpmc,wait-on-write = "true";
->                 gpmc,bus-turnaround-ns = <0>;
->                 gpmc,cycle2cycle-delay-ns = <0>;
->                 gpmc,clk-activation-ns = <0>;
->                 gpmc,wait-monitoring-ns = <0>;
->                 gpmc,wr-access-ns = <40>;
->                 gpmc,wr-data-mux-bus-ns = <0>;
-> 
->                 #address-cells = <1>;
->                 #size-cells = <1>;
->                 elm_id = <&elm>;
->         };
-> };
-> 
-> Any idea?
-> 
-> Btw. where DMA support should be configured? GPMC config has no "dmas"
-> like other components like mmc, uart, USB etc.
+Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+---
+ arch/arm/mach-omap2/hsmmc.c              | 33 ++++++++++++++++++++++++--------
+ drivers/mmc/host/omap_hsmmc.c            | 11 ++++++-----
+ include/linux/platform_data/hsmmc-omap.h |  6 ++----
+ 3 files changed, 33 insertions(+), 17 deletions(-)
 
-I've never tested dma on omap-nand in mainline. We've been solely relying on
-prefetch-polled mode there.
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index dc6e79c..9a8611a 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -150,9 +150,13 @@ static int nop_mmc_set_power(struct device *dev, int power_on, int vdd)
+ static inline void omap_hsmmc_mux(struct omap_hsmmc_platform_data
+ 				  *mmc_controller, int controller_nr)
+ {
+-	if (gpio_is_valid(mmc_controller->switch_pin) &&
+-	    (mmc_controller->switch_pin < OMAP_MAX_GPIO_LINES))
+-		omap_mux_init_gpio(mmc_controller->switch_pin,
++	if (gpio_is_valid(mmc_controller->gpio_cd) &&
++	    (mmc_controller->gpio_cd < OMAP_MAX_GPIO_LINES))
++		omap_mux_init_gpio(mmc_controller->gpio_cd,
++				   OMAP_PIN_INPUT_PULLUP);
++	if (gpio_is_valid(mmc_controller->gpio_cod) &&
++	    (mmc_controller->gpio_cod < OMAP_MAX_GPIO_LINES))
++		omap_mux_init_gpio(mmc_controller->gpio_cod,
+ 				   OMAP_PIN_INPUT_PULLUP);
+ 	if (gpio_is_valid(mmc_controller->gpio_wp) &&
+ 	    (mmc_controller->gpio_wp < OMAP_MAX_GPIO_LINES))
+@@ -250,15 +254,20 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+ 	mmc->internal_clock = !c->ext_clock;
+ 	mmc->reg_offset = 0;
+ 
+-	mmc->switch_pin = c->gpio_cd;
++	if (c->cover_only) {
++		/* detect if mobile phone cover removed */
++		mmc->gpio_cd = -EINVAL;
++		mmc->gpio_cod = c->gpio_cd;
++	} else {
++		/* card detect pin on the mmc socket itself */
++		mmc->gpio_cd = c->gpio_cd;
++		mmc->gpio_cod = -EINVAL;
++	}
+ 	mmc->gpio_wp = c->gpio_wp;
+ 
+ 	mmc->remux = c->remux;
+ 	mmc->init_card = c->init_card;
+ 
+-	if (c->cover_only)
+-		mmc->cover = 1;
+-
+ 	if (c->nonremovable)
+ 		mmc->nonremovable = 1;
+ 
+@@ -358,7 +367,15 @@ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
+ 		if (!mmc_pdata)
+ 			continue;
+ 
+-		mmc_pdata->switch_pin = c->gpio_cd;
++		if (c->cover_only) {
++			/* detect if mobile phone cover removed */
++			mmc_pdata->gpio_cd = -EINVAL;
++			mmc_pdata->gpio_cod = c->gpio_cd;
++		} else {
++			/* card detect pin on the mmc socket itself */
++			mmc_pdata->gpio_cd = c->gpio_cd;
++			mmc_pdata->gpio_cod = -EINVAL;
++		}
+ 		mmc_pdata->gpio_wp = c->gpio_wp;
+ 
+ 		res = omap_device_register(pdev);
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 053cd38..265391f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -427,15 +427,15 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
+ {
+ 	int ret;
+ 
+-	if (pdata->cover && gpio_is_valid(pdata->switch_pin)) {
+-		ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
++	if (gpio_is_valid(pdata->gpio_cod)) {
++		ret = mmc_gpio_request_cd(mmc, pdata->gpio_cod, 0);
+ 		if (ret)
+ 			return ret;
+ 
+ 		host->get_cover_state = omap_hsmmc_get_cover_state;
+ 		mmc_gpio_set_cd_isr(mmc, omap_hsmmc_cover_irq);
+-	} else if (!pdata->cover && gpio_is_valid(pdata->switch_pin)) {
+-		ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
++	} else if (gpio_is_valid(pdata->gpio_cd)) {
++		ret = mmc_gpio_request_cd(mmc, pdata->gpio_cd, 0);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -1932,7 +1932,8 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+ 	if (of_find_property(np, "ti,dual-volt", NULL))
+ 		pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
+ 
+-	pdata->switch_pin = -EINVAL;
++	pdata->gpio_cd = -EINVAL;
++	pdata->gpio_cod = -EINVAL;
+ 	pdata->gpio_wp = -EINVAL;
+ 
+ 	if (of_find_property(np, "ti,non-removable", NULL)) {
+diff --git a/include/linux/platform_data/hsmmc-omap.h b/include/linux/platform_data/hsmmc-omap.h
+index 67bbcf0..8e981be 100644
+--- a/include/linux/platform_data/hsmmc-omap.h
++++ b/include/linux/platform_data/hsmmc-omap.h
+@@ -55,9 +55,6 @@ struct omap_hsmmc_platform_data {
+ 	u32 caps;	/* Used for the MMC driver on 2430 and later */
+ 	u32 pm_caps;	/* PM capabilities of the mmc */
+ 
+-	/* switch pin can be for card detect (default) or card cover */
+-	unsigned cover:1;
+-
+ 	/* use the internal clock */
+ 	unsigned internal_clock:1;
+ 
+@@ -73,7 +70,8 @@ struct omap_hsmmc_platform_data {
+ #define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
+ 	unsigned features;
+ 
+-	int switch_pin;			/* gpio (card detect) */
++	int gpio_cd;			/* gpio (card detect) */
++	int gpio_cod;			/* gpio (cover detect) */
+ 	int gpio_wp;			/* gpio (write protect) */
+ 
+ 	int (*set_power)(struct device *dev, int power_on, int vdd);
+-- 
+2.1.4
 
-someone needs to work on it and test dma support.
-
-looks like the driver is hardcoding the DMA channel
-                sig = OMAP24XX_DMA_GPMC;
-                info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-
-this will have to be fixed.
-I'm not sure what else is missing on DMA side. But you could try to use a
-free channel and see if it works?
-
-Tony any insights?
-
-cheers,
--roger
-
-> 
->                 gpmc: gpmc@50000000 {
->                         compatible = "ti,am3352-gpmc";
->                         ti,hwmods = "gpmc";
->                         ti,no-idle-on-init;
->                         reg = <0x50000000 0x2000>;
->                         interrupts = <100>;
->                         gpmc,num-cs = <7>;
->                         gpmc,num-waitpins = <2>;
->                         #address-cells = <2>;
->                         #size-cells = <1>;
->                         status = "disabled";
->                 };
-> 
-> 
-> Yegor
-> 
