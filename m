@@ -1,122 +1,395 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] omap device tree changes for v4.1, part1
-Date: Thu, 19 Mar 2015 16:13:59 -0700
-Message-ID: <28400.6338021301$1426807249@news.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v3] phy: Add a driver for dm816x USB PHY
+Date: Thu, 19 Mar 2015 17:08:07 -0700
+Message-ID: <1426810087-12567-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ar-005-i203.relay.mailchannels.net ([162.253.144.85]:58157 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750734AbbCTAMz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2015 20:12:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Paul Bolle <pebolle@tiscali.nl>, Rusty Russell <rusty@rustcorp.com.au>
 
-VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCAxM2E3YTZhYzBhMTExOTdlZGNkMGY3
-NTZhMDM1ZjQ3MmI0MmNkZjhiOgoKICBMaW51eCA0LjAtcmMyICgyMDE1LTAzLTAzIDA5OjA0OjU5
-IC0wODAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDov
-L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21h
-cCB0YWdzL3Y0LjEtZHQKCmZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0byAxMDcwOWMwODU4
-ZDg5NzE2YjEwYjdiYmY2ZDgyNTA0NGYyZjU5NjAyOgoKICBBUk06IGR0czogVXBkYXRlIE5hbm9i
-b25lIGR0cyBmaWxlICgyMDE1LTAzLTE5IDEwOjU5OjI4IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEZXZpY2Ug
-dHJlZSByZWxhdGVkIGNoYW5nZXMgZm9yIG9tYXBzOgoKLSBBZGQgc3VwcG9ydCBmb3IgQ2hpbGlT
-T00KCi0gQWRkIHN1cHBvcnQgZm9yIE9wZW5QYW5kb3JhCgotIEFkZCBzdXBwb3J0IGZvciBCZWFn
-bGVCb2FyZCBOQU5ECgotIEVuYWJsZSBjcnlwdG8gZGV2aWNlcyBmb3Igb21hcDMgZGV2aWNlcwoK
-LSBBZGQgYmluZGluZ3MgZm9yIG9tYXAzIGNhbWVyYSBzdXBwb3J0CgotIFVwZGF0ZXMgZm9yIGFt
-NDM3eCBhbmQgZHJhN3ggYW5kIGRtODE2eCBTb0NzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkZlbGlwZSBCYWxiaSAoMSk6
-CiAgICAgIEFSTTogZHRzOiBhbTQzN3gtaWRrOiBlbmFibGUgaTJjMgoKSC4gTmlrb2xhdXMgU2No
-YWxsZXIgKDMpOgogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9yYTogYWRkIGNvbW1vbiBkZXZp
-Y2UgdHJlZQogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9yYTogYWRkIE9NQVAzNTMwIDYwMCBN
-SHogdmVyc2lvbgogICAgICBBUk06IGR0czogb21hcDMtcGFuZG9yYTogYWRkIERNMzczMCAxIEdI
-eiB2ZXJzaW9uCgpNYXJlayBCZWxpc2tvICgyKToKICAgICAgQVJNOiBkdHM6IG9tYXAzOiBSZW1v
-dmUgYWxsIHJlZmVyZW5jZXMgdG8gdGksY29kZWMgcHJvcGVydHkKICAgICAgRG9jdW1lbnRhdGlv
-bjogb21hcC10d2w0MDMwOiBNb3ZlIHRpLGNvZGVjIHByb3BlcnR5IHRvIG9wdGlvbmFsCgpNYXJr
-IEphY2tzb24gKDEpOgogICAgICBBUk06IGR0czogVXBkYXRlIE5hbm9ib25lIGR0cyBmaWxlCgpN
-YXR0IFBvcnRlciAoMSk6CiAgICAgIERvY3VtZW50YXRpb246IERUOiBvbWFwX3NlcmlhbDogZG9j
-dW1lbnQgbWlzc2luZyBwcm9wZXJ0aWVzIGFuZCBhZGQgYW4gZXhhbXBsZQoKUGFsaSBSb2jDoXIg
-KDQpOgogICAgICBBUk06IGR0czogbjkvbjk1MDogRW5hYmxlIG9tYXAgY3J5cHRvIHN1cHBvcnQK
-ICAgICAgQVJNOiBkdHM6IG45MDA6IEVuYWJsZSBvbWFwIHNoYW0gYW5kIGluY2x1ZGUgZGlyZWN0
-bHkgb21hcDM0eHguZHRzaQogICAgICBBUk06IGR0czogb21hcDMtdGFvMzUzMDogSW5jbHVkZSBk
-aXJlY3RseSBvbWFwMzR4eC5kdHNpCiAgICAgIEFSTTogZHRzOiBSZW1vdmUgZmlsZXMgb21hcDM0
-eHgtaHMuZHRzaSBhbmQgb21hcDM2eHgtaHMuZHRzaQoKUGV0ZXIgVWpmYWx1c2kgKDIpOgogICAg
-ICBBUk06IGR0czogZHJhN3h4LWNsb2NrczogQWRkIGdhdGUgY2xvY2sgZm9yIENMS09VVDIKICAg
-ICAgQVJNOiBkdHM6IGFtNTd4eC1iZWFnbGUteDE1OiBEbyBub3QgaW5jbHVkZSB0aGUgYXRsIGhl
-YWRlcgoKUm9nZXIgUXVhZHJvcyAoMik6CiAgICAgIEFSTTogZHRzOiBvbWFwMy1iZWFnbGU6IEFk
-ZCBOQU5EIGRldmljZQogICAgICBBUk06IGR0czogZHJhN3gtZXZtOiBiZWFnbGUteDE1OiBGaXgg
-VVNCIFBlcmlwaGVyYWwKClJvc3Rpc2xhdiBMaXNvdnkgKDMpOgogICAgICBBUk06IGR0czogQWRk
-IHZlbmRvciBwcmVmaXggZm9yIEdyaW5uCiAgICAgIEFSTTogZHRzOiBhbTMzNXg6IEFkZCBEVFMg
-Zm9yIENoaWxpU09NIG1vZHVsZQogICAgICBBUk06IGR0czogYW0zMzV4OiBBZGQgQ2hpbGlib2Fy
-ZCBEVFMKClNha2FyaSBBaWx1cyAoMyk6CiAgICAgIERvY3VtZW50YXRpb246IERUOiBBZGQgYmlu
-ZGluZ3MgZm9yIG9tYXAzaXNwCiAgICAgIEFSTTogZHRzOiBvbWFwMzogQWRkIERUIGVudHJpZXMg
-Zm9yIE9NQVAgMyBJU1AKICAgICAgQVJNOiBkdHM6IG45NTAsIG45OiBBZGQgcHJpbWFyeSBjYW1l
-cmEgc3VwcG9ydAoKU3VtYW4gQW5uYSAoMSk6CiAgICAgIEFSTTogZHRzOiBEUkE3OiBSZW1vdmUg
-dGksdGltZXItZHNwIGFuZCB0aSx0aW1lci1wd20gcHJvcGVydGllcwoKVG9ueSBMaW5kZ3JlbiAo
-Myk6CiAgICAgIEFSTTogZHRzOiBGaXggdHlwbyBmb3IgZG04MTZ4IHVzYjBfcGlucwogICAgICBB
-Uk06IGR0czogQWRkIGNwcGk0MSBzdXBwb3J0IGZvciBkbTgxNnggTVVTQgogICAgICBBUk06IGR0
-czogUmVtb3ZlIFBJTl9JTlBVVCBmb3IgZG04MTZ4IE1jU1BJCgpWaWduZXNoIFIgKDEpOgogICAg
-ICBBUk06IGR0czogQU00MzcyOiB1cGRhdGUgaGRxIGNvbXBhdGlibGUgcHJvcGVydHkKCiAuLi4v
-ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS90aSxvbWFwM2lzcC50eHQgICAgICB8ICA3MSArKysK
-IC4uLi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NlcmlhbC9vbWFwX3NlcmlhbC50eHQgICAgIHwgIDIw
-ICsKIC4uLi9kZXZpY2V0cmVlL2JpbmRpbmdzL3NvdW5kL29tYXAtdHdsNDAzMC50eHQgICAgIHwg
-ICAzICstCiAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy92ZW5kb3ItcHJlZml4ZXMudHh0ICAgICAg
-ICB8ICAgMSArCiBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAgMSArCiBhcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZSAgICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAgNSArLQogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNoaWxpYm9hcmQuZHRz
-ICAgICAgICAgICAgfCAxMTIgKysrKwogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNoaWxpc29t
-LmR0c2kgICAgICAgICAgICAgfCAyMzkgKysrKysrKysKIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1
-eC1uYW5vLmR0cyAgICAgICAgICAgICAgICAgIHwgIDE4ICstCiBhcmNoL2FybS9ib290L2R0cy9h
-bTQzNzIuZHRzaSAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQogYXJjaC9hcm0vYm9vdC9k
-dHMvYW00Mzd4LWlkay1ldm0uZHRzICAgICAgICAgICAgICAgfCAgMjIgKwogYXJjaC9hcm0vYm9v
-dC9kdHMvYW01N3h4LWJlYWdsZS14MTUuZHRzICAgICAgICAgICAgfCAgIDkgKy0KIGFyY2gvYXJt
-L2Jvb3QvZHRzL2RtODE2OC1ldm0uZHRzICAgICAgICAgICAgICAgICAgIHwgIDE0ICstCiBhcmNo
-L2FybS9ib290L2R0cy9kbTgxNnguZHRzaSAgICAgICAgICAgICAgICAgICAgICB8ICA2MCArKwog
-YXJjaC9hcm0vYm9vdC9kdHMvZHJhNy1ldm0uZHRzICAgICAgICAgICAgICAgICAgICAgfCAgIDgg
-KwogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-IDcgLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJhNzItZXZtLmR0cyAgICAgICAgICAgICAgICAgICAg
-fCAgIDggKwogYXJjaC9hcm0vYm9vdC9kdHMvZHJhN3h4LWNsb2Nrcy5kdHNpICAgICAgICAgICAg
-ICAgfCAgIDggKwogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLXhtLmR0cyAgICAgICAg
-ICAgICAgfCAgIDEgLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtYmVhZ2xlLmR0cyAgICAgICAg
-ICAgICAgICAgfCAgNTMgKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWNtLXQzeDMwLmR0c2kg
-ICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWRldmtpdDgwMDAu
-ZHRzICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWd0YTA0LmR0
-c2kgICAgICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWlnZXAu
-ZHRzaSAgICAgICAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWxp
-bGx5LWE4M3guZHRzaSAgICAgICAgICAgIHwgICAxIC0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAz
-LW45LmR0cyAgICAgICAgICAgICAgICAgICAgIHwgIDM3ICsrCiBhcmNoL2FybS9ib290L2R0cy9v
-bWFwMy1uOTAwLmR0cyAgICAgICAgICAgICAgICAgICB8ICAxNiArLQogYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDMtbjk1MC1uOS5kdHNpICAgICAgICAgICAgICAgfCAgIDIgKy0KIGFyY2gvYXJtL2Jv
-b3QvZHRzL29tYXAzLW45NTAuZHRzICAgICAgICAgICAgICAgICAgIHwgIDM3ICsrCiBhcmNoL2Fy
-bS9ib290L2R0cy9vbWFwMy1vdmVyby1iYXNlLmR0c2kgICAgICAgICAgICB8ICAgMSAtCiBhcmNo
-L2FybS9ib290L2R0cy9vbWFwMy1wYW5kb3JhLTFnaHouZHRzICAgICAgICAgICB8ICA3MCArKysK
-IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLXBhbmRvcmEtNjAwbWh6LmR0cyAgICAgICAgIHwgIDY1
-ICsrKwogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtcGFuZG9yYS1jb21tb24uZHRzaSAgICAgICAg
-fCA2NDAgKysrKysrKysrKysrKysrKysrKysrCiBhcmNoL2FybS9ib290L2R0cy9vbWFwMy10YW8z
-NTMwLmR0c2kgICAgICAgICAgICAgICB8ICAxMiArLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDM0
-eHgtaHMuZHRzaSAgICAgICAgICAgICAgICAgfCAgMTYgLQogYXJjaC9hcm0vYm9vdC9kdHMvb21h
-cDM0eHguZHRzaSAgICAgICAgICAgICAgICAgICAgfCAgMTcgKwogYXJjaC9hcm0vYm9vdC9kdHMv
-b21hcDM2eHgtaHMuZHRzaSAgICAgICAgICAgICAgICAgfCAgMTYgLQogYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDM2eHguZHRzaSAgICAgICAgICAgICAgICAgICAgfCAgMTcgKwogaW5jbHVkZS9kdC1i
-aW5kaW5ncy9tZWRpYS9vbWFwMy1pc3AuaCAgICAgICAgICAgICAgfCAgMjIgKwogMzkgZmlsZXMg
-Y2hhbmdlZCwgMTU2NSBpbnNlcnRpb25zKCspLCA3MCBkZWxldGlvbnMoLSkKIGNyZWF0ZSBtb2Rl
-IDEwMDY0NCBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdGksb21hcDNp
-c3AudHh0CiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNoaWxp
-Ym9hcmQuZHRzCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWNo
-aWxpc29tLmR0c2kKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1w
-YW5kb3JhLTFnaHouZHRzCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvb21h
-cDMtcGFuZG9yYS02MDBtaHouZHRzCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDMtcGFuZG9yYS1jb21tb24uZHRzaQogZGVsZXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJt
-L2Jvb3QvZHRzL29tYXAzNHh4LWhzLmR0c2kKIGRlbGV0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9i
-b290L2R0cy9vbWFwMzZ4eC1ocy5kdHNpCiBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9kdC1i
-aW5kaW5ncy9tZWRpYS9vbWFwMy1pc3AuaAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJt
-LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Add a minimal driver for dm816x USB. This makes USB work on dm816x
+without any other changes needed as it can use the existing musb_dsps
+glue layer for the USB controller.
+
+Note that this phy is different from dm814x and am335x.
+
+Cc: Bin Liu <binmlist@gmail.com>
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ .../devicetree/bindings/phy/dm816x-phy.txt         |  24 ++
+ drivers/phy/Kconfig                                |   7 +
+ drivers/phy/Makefile                               |   1 +
+ drivers/phy/phy-dm816x-usb.c                       | 290 +++++++++++++++++++++
+ 4 files changed, 322 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/phy/dm816x-phy.txt
+ create mode 100644 drivers/phy/phy-dm816x-usb.c
+
+diff --git a/Documentation/devicetree/bindings/phy/dm816x-phy.txt b/Documentation/devicetree/bindings/phy/dm816x-phy.txt
+new file mode 100644
+index 0000000..2fe3d11
+--- /dev/null
++++ b/Documentation/devicetree/bindings/phy/dm816x-phy.txt
+@@ -0,0 +1,24 @@
++Device tree binding documentation for am816x USB PHY
++=========================
++
++Required properties:
++- compatible : should be "ti,dm816x-usb-phy"
++- reg : offset and length of the PHY register set.
++- reg-names : name for the phy registers
++- clocks : phandle to the clock
++- clock-names : name of the clock
++- syscon: phandle for the syscon node to access misc registers
++- #phy-cells : from the generic PHY bindings, must be 1
++- syscon: phandle for the syscon node to access misc registers
++
++Example:
++
++usb_phy0: usb-phy@20 {
++	compatible = "ti,dm8168-usb-phy";
++	reg = <0x20 0x8>;
++	reg-names = "phy";
++	clocks = <&main_fapll 6>;
++	clock-names = "refclk";
++	#phy-cells = <0>;
++	syscon = <&scm_conf>;
++};
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 2962de2..08269ea 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -35,6 +35,13 @@ config ARMADA375_USBCLUSTER_PHY
+ 	depends on OF
+ 	select GENERIC_PHY
+ 
++config PHY_DM816X_USB
++	tristate "TI dm816x USB PHY driver"
++	depends on ARCH_OMAP2PLUS
++	select GENERIC_PHY
++	help
++	  Enable this for dm81xx USB to work.
++
+ config PHY_EXYNOS_MIPI_VIDEO
+ 	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
+ 	depends on HAS_IOMEM
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index f080e1b..dab6665 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -5,6 +5,7 @@
+ obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
+ obj-$(CONFIG_PHY_BERLIN_USB)		+= phy-berlin-usb.o
+ obj-$(CONFIG_PHY_BERLIN_SATA)		+= phy-berlin-sata.o
++obj-$(CONFIG_PHY_DM816X_USB)		+= phy-dm816x-usb.o
+ obj-$(CONFIG_ARMADA375_USBCLUSTER_PHY)	+= phy-armada375-usb2.o
+ obj-$(CONFIG_BCM_KONA_USB2_PHY)		+= phy-bcm-kona-usb2.o
+ obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
+diff --git a/drivers/phy/phy-dm816x-usb.c b/drivers/phy/phy-dm816x-usb.c
+new file mode 100644
+index 0000000..7b42555
+--- /dev/null
++++ b/drivers/phy/phy-dm816x-usb.c
+@@ -0,0 +1,290 @@
++/*
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/io.h>
++#include <linux/usb/phy_companion.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/pm_runtime.h>
++#include <linux/delay.h>
++#include <linux/phy/phy.h>
++#include <linux/of_platform.h>
++
++#include <linux/mfd/syscon.h>
++
++/*
++ * TRM has two sets of USB_CTRL registers.. The correct register bits
++ * are in TRM section 24.9.8.2 USB_CTRL Register. The TRM documents the
++ * phy as being SR70LX Synopsys USB 2.0 OTG nanoPHY. It also seems at
++ * least dm816x rev c ignores writes to USB_CTRL register, but the TI
++ * kernel is writing to those so it's possible that later revisions
++ * have worknig USB_CTRL register.
++ *
++ * Also note that At least USB_CTRL register seems to be dm816x specific
++ * according to the TRM. It's possible that USBPHY_CTRL is more generic,
++ * but that would have to be checked against the SR70LX documentation
++ * which does not seem to be publicly available.
++ *
++ * Finally, the phy on dm814x and am335x is different from dm816x.
++ */
++#define DM816X_USB_CTRL_PHYCLKSRC	BIT(8)	/* 1 = PLL ref clock */
++#define DM816X_USB_CTRL_PHYSLEEP1	BIT(1)	/* Enable the first phy */
++#define DM816X_USB_CTRL_PHYSLEEP0	BIT(0)	/* Enable the second phy */
++
++#define DM816X_USBPHY_CTRL_TXRISETUNE	1
++#define DM816X_USBPHY_CTRL_TXVREFTUNE	0xc
++#define DM816X_USBPHY_CTRL_TXPREEMTUNE	0x2
++
++struct dm816x_usb_phy {
++	struct regmap *syscon;
++	struct device *dev;
++	unsigned int instance;
++	struct clk *refclk;
++	struct usb_phy phy;
++	unsigned int usb_ctrl;		/* Shared between phy0 and phy1 */
++	unsigned int usbphy_ctrl;
++};
++
++static int dm816x_usb_phy_set_host(struct usb_otg *otg, struct usb_bus *host)
++{
++	otg->host = host;
++	if (!host)
++		otg->state = OTG_STATE_UNDEFINED;
++
++	return 0;
++}
++
++static int dm816x_usb_phy_set_peripheral(struct usb_otg *otg,
++					 struct usb_gadget *gadget)
++{
++	otg->gadget = gadget;
++	if (!gadget)
++		otg->state = OTG_STATE_UNDEFINED;
++
++	return 0;
++}
++
++static int dm816x_usb_phy_init(struct phy *x)
++{
++	struct dm816x_usb_phy *phy = phy_get_drvdata(x);
++	unsigned int val;
++	int error;
++
++	if (clk_get_rate(phy->refclk) != 24000000)
++		dev_warn(phy->dev, "nonstandard phy refclk\n");
++
++	/* Set PLL ref clock and put phys to sleep */
++	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
++				   DM816X_USB_CTRL_PHYCLKSRC |
++				   DM816X_USB_CTRL_PHYSLEEP1 |
++				   DM816X_USB_CTRL_PHYSLEEP0,
++				   0);
++	regmap_read(phy->syscon, phy->usb_ctrl, &val);
++	if ((val & 3) != 0)
++		dev_info(phy->dev,
++			 "Working dm816x USB_CTRL! (0x%08x)\n",
++			 val);
++
++	/*
++	 * TI kernel sets these values for "symmetrical eye diagram and
++	 * better signal quality" so let's assume somebody checked the
++	 * values with a scope and set them here too.
++	 */
++	regmap_read(phy->syscon, phy->usbphy_ctrl, &val);
++	val |= DM816X_USBPHY_CTRL_TXRISETUNE |
++		DM816X_USBPHY_CTRL_TXVREFTUNE |
++		DM816X_USBPHY_CTRL_TXPREEMTUNE;
++	regmap_write(phy->syscon, phy->usbphy_ctrl, val);
++
++	return 0;
++}
++
++static struct phy_ops ops = {
++	.init		= dm816x_usb_phy_init,
++	.owner		= THIS_MODULE,
++};
++
++static int dm816x_usb_phy_runtime_suspend(struct device *dev)
++{
++	struct dm816x_usb_phy *phy = dev_get_drvdata(dev);
++	unsigned int mask, val;
++	int error = 0;
++
++	mask = BIT(phy->instance);
++	val = ~BIT(phy->instance);
++	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
++				   mask, val);
++	if (error)
++		dev_err(phy->dev, "phy%i failed to power off\n",
++			phy->instance);
++	clk_disable(phy->refclk);
++
++	return 0;
++}
++
++static int dm816x_usb_phy_runtime_resume(struct device *dev)
++{
++	struct dm816x_usb_phy *phy = dev_get_drvdata(dev);
++	unsigned int mask, val;
++	int error;
++
++	error = clk_enable(phy->refclk);
++	if (error)
++		return error;
++
++	/*
++	 * Note that at least dm816x rev c does not seem to do
++	 * anything with the USB_CTRL register. But let's follow
++	 * what the TI tree is doing in case later revisions use
++	 * USB_CTRL.
++	 */
++	mask = BIT(phy->instance);
++	val = BIT(phy->instance);
++	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
++				   mask, val);
++	if (error) {
++		dev_err(phy->dev, "phy%i failed to power on\n",
++			phy->instance);
++		clk_disable(phy->refclk);
++		return error;
++	}
++
++	return 0;
++}
++
++static UNIVERSAL_DEV_PM_OPS(dm816x_usb_phy_pm_ops,
++			    dm816x_usb_phy_runtime_suspend,
++			    dm816x_usb_phy_runtime_resume,
++			    NULL);
++
++#ifdef CONFIG_OF
++static const struct of_device_id dm816x_usb_phy_id_table[] = {
++	{
++		.compatible = "ti,dm8168-usb-phy",
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, dm816x_usb_phy_id_table);
++#endif
++
++static int dm816x_usb_phy_probe(struct platform_device *pdev)
++{
++	struct dm816x_usb_phy *phy;
++	struct resource *res;
++	struct phy *generic_phy;
++	struct phy_provider *phy_provider;
++	struct usb_otg *otg;
++	const struct of_device_id *of_id;
++	const struct usb_phy_data *phy_data;
++	int error;
++
++	of_id = of_match_device(of_match_ptr(dm816x_usb_phy_id_table),
++				&pdev->dev);
++	if (!of_id)
++		return -EINVAL;
++
++	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
++	if (!phy)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENOENT;
++
++	phy->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
++						      "syscon");
++	if (IS_ERR(phy->syscon))
++		return PTR_ERR(phy->syscon);
++
++	/*
++	 * According to sprs614e.pdf, the first usb_ctrl is shared and
++	 * the second instance for usb_ctrl is reserved.. Also the
++	 * register bits are different from earlier TRMs.
++	 */
++	phy->usb_ctrl = 0x20;
++	phy->usbphy_ctrl = (res->start & 0xff) + 4;
++	if (phy->usbphy_ctrl == 0x2c)
++		phy->instance = 1;
++
++	phy_data = of_id->data;
++
++	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
++	if (!otg)
++		return -ENOMEM;
++
++	phy->dev = &pdev->dev;
++	phy->phy.dev = phy->dev;
++	phy->phy.label = "dm8168_usb_phy";
++	phy->phy.otg = otg;
++	phy->phy.type = USB_PHY_TYPE_USB2;
++	otg->set_host = dm816x_usb_phy_set_host;
++	otg->set_peripheral = dm816x_usb_phy_set_peripheral;
++	otg->usb_phy = &phy->phy;
++
++	platform_set_drvdata(pdev, phy);
++
++	phy->refclk = devm_clk_get(phy->dev, "refclk");
++	if (IS_ERR(phy->refclk))
++		return PTR_ERR(phy->refclk);
++	error = clk_prepare(phy->refclk);
++	if (error)
++		return error;
++
++	pm_runtime_enable(phy->dev);
++	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
++	if (IS_ERR(generic_phy))
++		return PTR_ERR(generic_phy);
++
++	phy_set_drvdata(generic_phy, phy);
++
++	phy_provider = devm_of_phy_provider_register(phy->dev,
++						     of_phy_simple_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
++	usb_add_phy_dev(&phy->phy);
++
++	return 0;
++}
++
++static int dm816x_usb_phy_remove(struct platform_device *pdev)
++{
++	struct dm816x_usb_phy *phy = platform_get_drvdata(pdev);
++
++	usb_remove_phy(&phy->phy);
++	pm_runtime_disable(phy->dev);
++	clk_unprepare(phy->refclk);
++
++	return 0;
++}
++
++static struct platform_driver dm816x_usb_phy_driver = {
++	.probe		= dm816x_usb_phy_probe,
++	.remove		= dm816x_usb_phy_remove,
++	.driver		= {
++		.name	= "dm816x-usb-phy",
++		.pm	= &dm816x_usb_phy_pm_ops,
++		.of_match_table = of_match_ptr(dm816x_usb_phy_id_table),
++	},
++};
++
++module_platform_driver(dm816x_usb_phy_driver);
++
++MODULE_ALIAS("platform:dm816x_usb");
++MODULE_AUTHOR("Tony Lindgren <tony@atomide.com>");
++MODULE_DESCRIPTION("dm816x usb phy driver");
++MODULE_LICENSE("GPL v2");
+-- 
+2.1.4
+
