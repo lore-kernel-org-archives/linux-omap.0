@@ -1,150 +1,186 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 20/35] ARM: OMAP4+: PRM: get rid of cpu_is_omap44xx calls from interrupt init
-Date: Fri, 20 Mar 2015 20:44:31 +0200
-Message-ID: <1426877086-17131-21-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 17/35] ARM: OMAP4+: PRM: determine prm_device_inst based on DT compatibility
+Date: Fri, 20 Mar 2015 20:44:28 +0200
+Message-ID: <1426877086-17131-18-git-send-email-t-kristo@ti.com>
 References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56453 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57032 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750997AbbCTSqL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 14:46:11 -0400
+	id S1751445AbbCTSqK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 14:46:10 -0400
 In-Reply-To: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
 Cc: linux-arm-kernel@lists.infradead.org
 
-The compatible DT node is now passed with the prm init, so there is no
-need to do node matching here again. Added a new flag to the init data
-also, to detect default IRQ support for OMAP4. Also, any booting omap4
-DT setup always has a PRM node, so there is no need to check against
-the special case where it would be missing.
+PRM device instance offset is now provided through the prm_init_data.
+This gets rid of some cpu_is_X / soc_is_X calls from PRM core code,
+preparing for PRM to be its own separate driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/prm.h        |    6 +++--
- arch/arm/mach-omap2/prm44xx.c    |   54 +++++++++++++++-----------------------
- arch/arm/mach-omap2/prm_common.c |    2 +-
- 3 files changed, 26 insertions(+), 36 deletions(-)
+ arch/arm/mach-omap2/prcm-common.h |    2 ++
+ arch/arm/mach-omap2/prm44xx.c     |    2 ++
+ arch/arm/mach-omap2/prm_common.c  |   37 ++++++++++++++++++++++++++++++++-----
+ arch/arm/mach-omap2/prminst44xx.c |   18 +++++-------------
+ arch/arm/mach-omap2/prminst44xx.h |    1 +
+ 5 files changed, 42 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 3936e6c..233bc84 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -29,9 +29,11 @@ int omap2_prcm_base_init(void);
-  *
-  * PRM_HAS_IO_WAKEUP: has IO wakeup capability
-  * PRM_HAS_VOLTAGE: has voltage domains
-+ * PRM_IRQ_DEFAULT: use default irq number for PRM irq
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 461bdc4..6ae0b3a 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -524,6 +524,7 @@ struct omap_prcm_irq_setup {
+  * @mem: IO mem pointer for this module
+  * @offset: module base address offset from the IO base
+  * @flags: PRCM module init flags
++ * @device_inst_offset: device instance offset within the module address space
+  * @init: low level PRCM init function for this module
+  * @np: device node for this PRCM module
   */
--#define PRM_HAS_IO_WAKEUP	(1 << 0)
--#define PRM_HAS_VOLTAGE		(1 << 1)
-+#define PRM_HAS_IO_WAKEUP	BIT(0)
-+#define PRM_HAS_VOLTAGE		BIT(1)
-+#define PRM_IRQ_DEFAULT		BIT(2)
- 
- /*
-  * MAX_MODULE_SOFTRESET_WAIT: Maximum microseconds to wait for OMAP
+@@ -532,6 +533,7 @@ struct omap_prcm_init_data {
+ 	void __iomem *mem;
+ 	s16 offset;
+ 	u16 flags;
++	s32 device_inst_offset;
+ 	int (*init)(const struct omap_prcm_init_data *data);
+ 	struct device_node *np;
+ };
 diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 243133c..c35ad0b 100644
+index e3f2d31..a980d245 100644
 --- a/arch/arm/mach-omap2/prm44xx.c
 +++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -703,10 +703,14 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
- };
+@@ -713,6 +713,8 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
+ 	if (!soc_is_dra7xx())
+ 		prm_features |= PRM_HAS_VOLTAGE;
  
-+static const struct omap_prcm_init_data *prm_init_data;
++	omap4_prminst_set_prm_dev_inst(data->device_inst_offset);
 +
- int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
- {
- 	omap_prm_base_init();
- 
-+	prm_init_data = data;
-+
- 	if (data->flags & PRM_HAS_IO_WAKEUP)
- 		prm_features |= PRM_HAS_IO_WAKEUP;
- 
-@@ -718,16 +722,8 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
  	return prm_register(&omap44xx_prm_ll_data);
  }
  
--static const struct of_device_id omap_prm_dt_match_table[] = {
--	{ .compatible = "ti,omap4-prm" },
--	{ .compatible = "ti,omap5-prm" },
--	{ .compatible = "ti,dra7-prm" },
--	{ }
--};
--
- static int omap44xx_prm_late_init(void)
- {
--	struct device_node *np;
- 	int irq_num;
- 
- 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
-@@ -737,31 +733,23 @@ static int omap44xx_prm_late_init(void)
- 	if (!of_have_populated_dt())
- 		return 0;
- 
--	np = of_find_matching_node(NULL, omap_prm_dt_match_table);
--
--	if (!np) {
--		/* Default loaded up with OMAP4 values */
--		if (!cpu_is_omap44xx())
--			return 0;
--	} else {
--		irq_num = of_irq_get(np, 0);
--		/*
--		 * Already have OMAP4 IRQ num. For all other platforms, we need
--		 * IRQ numbers from DT
--		 */
--		if (irq_num < 0 && !cpu_is_omap44xx()) {
--			if (irq_num == -EPROBE_DEFER)
--				return irq_num;
--
--			/* Have nothing to do */
--			return 0;
--		}
--
--		/* Once OMAP4 DT is filled as well */
--		if (irq_num >= 0) {
--			omap4_prcm_irq_setup.irq = irq_num;
--			omap4_prcm_irq_setup.xlate_irq = NULL;
--		}
-+	irq_num = of_irq_get(prm_init_data->np, 0);
-+	/*
-+	 * Already have OMAP4 IRQ num. For all other platforms, we need
-+	 * IRQ numbers from DT
-+	 */
-+	if (irq_num < 0 && !(prm_init_data->flags & PRM_IRQ_DEFAULT)) {
-+		if (irq_num == -EPROBE_DEFER)
-+			return irq_num;
-+
-+		/* Have nothing to do */
-+		return 0;
-+	}
-+
-+	/* Once OMAP4 DT is filled as well */
-+	if (irq_num >= 0) {
-+		omap4_prcm_irq_setup.irq = irq_num;
-+		omap4_prcm_irq_setup.xlate_irq = NULL;
- 	}
- 
- 	omap44xx_prm_enable_io_wakeup();
 diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index ebb24ad..e48241e 100644
+index 96002ef..71732b0 100644
 --- a/arch/arm/mach-omap2/prm_common.c
 +++ b/arch/arm/mach-omap2/prm_common.c
-@@ -669,7 +669,7 @@ static struct omap_prcm_init_data omap4_prm_data __initdata = {
- 	.index = TI_CLKM_PRM,
- 	.init = omap44xx_prm_init,
- 	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
--	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE,
-+	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE | PRM_IRQ_DEFAULT,
+@@ -34,6 +34,9 @@
+ #include "prm3xxx.h"
+ #include "prm33xx.h"
+ #include "prm44xx.h"
++#include "prm54xx.h"
++#include "prm7xx.h"
++#include "prcm43xx.h"
+ #include "common.h"
+ #include "clock.h"
+ #include "cm.h"
+@@ -661,11 +664,35 @@ static struct omap_prcm_init_data am3_prm_data __initdata = {
  };
  #endif
  
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
+-	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
++#ifdef CONFIG_ARCH_OMAP4
+ static struct omap_prcm_init_data omap4_prm_data __initdata = {
+ 	.index = TI_CLKM_PRM,
+ 	.init = omap44xx_prm_init,
++	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
++};
++#endif
++
++#ifdef CONFIG_SOC_OMAP5
++static struct omap_prcm_init_data omap5_prm_data __initdata = {
++	.index = TI_CLKM_PRM,
++	.init = omap44xx_prm_init,
++	.device_inst_offset = OMAP54XX_PRM_DEVICE_INST,
++};
++#endif
++
++#ifdef CONFIG_SOC_DRA7XX
++static struct omap_prcm_init_data dra7_prm_data __initdata = {
++	.index = TI_CLKM_PRM,
++	.init = omap44xx_prm_init,
++	.device_inst_offset = DRA7XX_PRM_DEVICE_INST,
++};
++#endif
++
++#ifdef CONFIG_SOC_AM43XX
++static struct omap_prcm_init_data am4_prm_data __initdata = {
++	.index = TI_CLKM_PRM,
++	.init = omap44xx_prm_init,
++	.device_inst_offset = AM43XX_PRM_DEVICE_INST,
+ };
+ #endif
+ 
+@@ -678,7 +705,7 @@ static const struct of_device_id omap_prcm_dt_match_table[] __initconst = {
+ 	{ .compatible = "ti,am3-prcm", .data = &am3_prm_data },
+ #endif
+ #ifdef CONFIG_SOC_AM43XX
+-	{ .compatible = "ti,am4-prcm", .data = &omap4_prm_data },
++	{ .compatible = "ti,am4-prcm", .data = &am4_prm_data },
+ #endif
+ #ifdef CONFIG_SOC_TI81XX
+ 	{ .compatible = "ti,dm814-prcm", .data = &am3_prm_data },
+@@ -695,11 +722,11 @@ static const struct of_device_id omap_prcm_dt_match_table[] __initconst = {
+ 	{ .compatible = "ti,omap4-scrm", .data = &scrm_data },
+ #endif
+ #ifdef CONFIG_SOC_OMAP5
+-	{ .compatible = "ti,omap5-prm", .data = &omap4_prm_data },
++	{ .compatible = "ti,omap5-prm", .data = &omap5_prm_data },
+ 	{ .compatible = "ti,omap5-scrm", .data = &scrm_data },
+ #endif
+ #ifdef CONFIG_SOC_DRA7XX
+-	{ .compatible = "ti,dra7-prm", .data = &omap4_prm_data },
++	{ .compatible = "ti,dra7-prm", .data = &dra7_prm_data },
+ #endif
+ 	{ }
+ };
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 8adf7b1..c4859c4 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -47,22 +47,14 @@ void omap_prm_base_init(void)
+ 
+ s32 omap4_prmst_get_prm_dev_inst(void)
+ {
+-	if (prm_dev_inst != PRM_INSTANCE_UNKNOWN)
+-		return prm_dev_inst;
+-
+-	/* This cannot be done way early at boot.. as things are not setup */
+-	if (cpu_is_omap44xx())
+-		prm_dev_inst = OMAP4430_PRM_DEVICE_INST;
+-	else if (soc_is_omap54xx())
+-		prm_dev_inst = OMAP54XX_PRM_DEVICE_INST;
+-	else if (soc_is_dra7xx())
+-		prm_dev_inst = DRA7XX_PRM_DEVICE_INST;
+-	else if (soc_is_am43xx())
+-		prm_dev_inst = AM43XX_PRM_DEVICE_INST;
+-
+ 	return prm_dev_inst;
+ }
+ 
++void omap4_prminst_set_prm_dev_inst(s32 dev_inst)
++{
++	prm_dev_inst = dev_inst;
++}
++
+ /* Read a register in a PRM instance */
+ u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
+ {
+diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/prminst44xx.h
+index fb1c9d7..0c03d07 100644
+--- a/arch/arm/mach-omap2/prminst44xx.h
++++ b/arch/arm/mach-omap2/prminst44xx.h
+@@ -14,6 +14,7 @@
+ 
+ #define PRM_INSTANCE_UNKNOWN	-1
+ extern s32 omap4_prmst_get_prm_dev_inst(void);
++void omap4_prminst_set_prm_dev_inst(s32 dev_inst);
+ 
+ /*
+  * In an ideal world, we would not export these low-level functions,
 -- 
 1.7.9.5
 
