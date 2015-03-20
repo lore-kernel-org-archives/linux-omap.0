@@ -1,322 +1,115 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3] ASoC: davinci-mcasp: Set rule constraints if implicit BCLK divider is used
-Date: Fri, 20 Mar 2015 13:31:08 +0200
-Message-ID: <1426851068-26366-1-git-send-email-jsarha@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] drm/omap: tiler: add hibernation callback
+Date: Fri, 20 Mar 2015 13:43:55 +0200
+Message-ID: <550C07FB.3060104@ti.com>
+References: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org> <55099207.3060006@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="tHDsEDjNTVJugDhdmL9AiiTRAKhEF64sD"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40099 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751368AbbCTLbW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 07:31:22 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41049 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751064AbbCTLoE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 07:44:04 -0400
+In-Reply-To: <55099207.3060006@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: broonie@kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, lars@metafoo.de, Jyri Sarha <jsarha@ti.com>
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Cc: David Airlie <airlied@linux.ie>, nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
 
-Set rule constraints to allow only combinations of sample-rate,
-sample-format, and channels counts that can be played/captured with
-reasonable sample-rate accuracy.
+--tHDsEDjNTVJugDhdmL9AiiTRAKhEF64sD
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-The logic with tdm-slots and serializers (=i2s data wires) goes like
-this: The first wire will take all channels up to number of tdm-slots,
-before following wires (if any) are used. If the first wire is used
-fully, the remaining wires share the same clocks and the divider can
-be calculated for the first wire.
+On 18/03/15 16:56, Grygorii.Strashko@linaro.org wrote:
+> Hi All,
+>=20
+> On 02/25/2015 08:08 PM, grygorii.strashko@linaro.org wrote:
+>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>
+>> Setting a dev_pm_ops resume callback but not a set of
+>> hibernation handler means that pm function will not be
+>> called upon hibernation.
+>> Fix this by using SIMPLE_DEV_PM_OPS, which appropriately
+>> assigns the suspend and hibernation handlers and move
+>> omap_dmm_resume under CONFIG_PM_SLEEP to avoid build warnings.
+>>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+>> ---
+>>   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 10 +++-------
+>>   1 file changed, 3 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+>> b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+>> index 56c6055..afb8cfc 100644
+>> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+>> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+>> @@ -941,7 +941,7 @@ error:
+>>   }
+>>   #endif
+>>
+>> -#ifdef CONFIG_PM
+>> +#ifdef CONFIG_PM_SLEEP
+>>   static int omap_dmm_resume(struct device *dev)
+>>   {
+>>       struct tcm_area area;
+>> @@ -965,12 +965,10 @@ static int omap_dmm_resume(struct device *dev)
+>>
+>>       return 0;
+>>   }
+>> -
+>> -static const struct dev_pm_ops omap_dmm_pm_ops =3D {
+>> -    .resume =3D omap_dmm_resume,
+>> -};
+>>   #endif
+>>
+>> +SIMPLE_DEV_PM_OPS(omap_dmm_pm_ops, NULL, omap_dmm_resume);
+>> +
+>>   #if defined(CONFIG_OF)
+>>   static const struct of_device_id dmm_of_match[] =3D {
+>>       { .compatible =3D "ti,omap4-dmm", },
+>> @@ -986,9 +984,7 @@ struct platform_driver omap_dmm_driver =3D {
+>>           .owner =3D THIS_MODULE,
+>>           .name =3D DMM_DRIVER_NAME,
+>>           .of_match_table =3D of_match_ptr(dmm_of_match),
+>> -#ifdef CONFIG_PM
+>>           .pm =3D &omap_dmm_pm_ops,
+>> -#endif
+>>       },
+>>   };
+>>
+>>
+>=20
+> Any comments on this?
 
-Also, takes the number of tdm-slots into account when implicitly
-selecting the BLCK divider.
+Sorry, I missed this. I'll add it to my omapdrm branch.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
-Previous version of the patch:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2015-March/089319.html
+ Tomi
 
-Since v2 I changed the SNDRV_PCM_HW_PARAM_SAMPLE_BITS rule in the to
-SNDRV_PCM_HW_PARAM_FORMAT rule. 
 
-Somehow the constraints with a SNDRV_PCM_HW_PARAM_SAMPLE_BITS rule
-using snd_interval_list() converged to an empty set when ever I tried
-to play a format that could not pass the rule with any channel count
-or rate, resulting all too familiar assertion in alsa-lib. However,
-the direct tampering with SNDRV_PCM_HW_PARAM_FORMAT mask appears to
-work as it should.
 
-In addition to SAMPLE_BITS- to FORMAT-rule change I optimized the rate
-rule a bit so that it does not try the rates that are outside current
-range. According to my tests this does not affect the behavior in any
-other way but slightly speeds up the decision making.
+--tHDsEDjNTVJugDhdmL9AiiTRAKhEF64sD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
- sound/soc/davinci/davinci-mcasp.c | 207 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 197 insertions(+), 10 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index d40b392..76156d18 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -27,6 +27,7 @@
- #include <linux/of_platform.h>
- #include <linux/of_device.h>
- #include <linux/platform_data/davinci_asp.h>
-+#include <linux/math64.h>
- 
- #include <sound/asoundef.h>
- #include <sound/core.h>
-@@ -65,6 +66,11 @@ struct davinci_mcasp_context {
- 	bool	pm_state;
- };
- 
-+struct davinci_mcasp_ruledata {
-+	struct davinci_mcasp *mcasp;
-+	int serializers;
-+};
-+
- struct davinci_mcasp {
- 	struct snd_dmaengine_dai_dma_data dma_data[2];
- 	void __iomem *base;
-@@ -99,6 +105,8 @@ struct davinci_mcasp {
- #ifdef CONFIG_PM_SLEEP
- 	struct davinci_mcasp_context context;
- #endif
-+
-+	struct davinci_mcasp_ruledata ruledata[2];
- };
- 
- static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 offset,
-@@ -868,6 +876,30 @@ static int mcasp_dit_hw_param(struct davinci_mcasp *mcasp,
- 	return 0;
- }
- 
-+static int davinci_mcasp_calc_clk_div(struct davinci_mcasp *mcasp,
-+				      unsigned int bclk_freq,
-+				      int *error_ppm)
-+{
-+	int div = mcasp->sysclk_freq / bclk_freq;
-+	int rem = mcasp->sysclk_freq % bclk_freq;
-+
-+	if (rem != 0) {
-+		if (div == 0 ||
-+		    ((mcasp->sysclk_freq / div) - bclk_freq) >
-+		    (bclk_freq - (mcasp->sysclk_freq / (div+1)))) {
-+			div++;
-+			rem = rem - bclk_freq;
-+		}
-+	}
-+	if (error_ppm)
-+		*error_ppm =
-+			(div*1000000 + (int)div64_long(1000000LL*rem,
-+						       (int)bclk_freq))
-+			/div - 1000000;
-+
-+	return div;
-+}
-+
- static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
- 					struct snd_pcm_hw_params *params,
- 					struct snd_soc_dai *cpu_dai)
-@@ -883,16 +915,20 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
- 	 * the machine driver, we need to calculate the ratio.
- 	 */
- 	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
--		unsigned int bclk_freq = snd_soc_params_to_bclk(params);
--		unsigned int div = mcasp->sysclk_freq / bclk_freq;
--		if (mcasp->sysclk_freq % bclk_freq != 0) {
--			if (((mcasp->sysclk_freq / div) - bclk_freq) >
--			    (bclk_freq - (mcasp->sysclk_freq / (div+1))))
--				div++;
--			dev_warn(mcasp->dev,
--				 "Inaccurate BCLK: %u Hz / %u != %u Hz\n",
--				 mcasp->sysclk_freq, div, bclk_freq);
--		}
-+		int channels = params_channels(params);
-+		int rate = params_rate(params);
-+		int sbits = params_width(params);
-+		int ppm, div;
-+
-+		if (channels > mcasp->tdm_slots)
-+			channels = mcasp->tdm_slots;
-+
-+		div = davinci_mcasp_calc_clk_div(mcasp, rate*sbits*channels,
-+						 &ppm);
-+		if (ppm)
-+			dev_info(mcasp->dev, "Sample-rate is off by %d PPM\n",
-+				 ppm);
-+
- 		__davinci_mcasp_set_clkdiv(cpu_dai, 1, div, 0);
- 	}
- 
-@@ -974,6 +1010,120 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
- 	return ret;
- }
- 
-+static const unsigned int davinci_mcasp_dai_rates[] = {
-+	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
-+	88200, 96000, 176400, 192000,
-+};
-+
-+#define DAVINCI_MAX_RATE_ERROR_PPM 1000
-+
-+static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *params,
-+				      struct snd_pcm_hw_rule *rule)
-+{
-+	struct davinci_mcasp_ruledata *rd = rule->private;
-+	struct snd_interval *ri =
-+		hw_param_interval(params, SNDRV_PCM_HW_PARAM_RATE);
-+	int sbits = params_width(params);
-+	int channels = params_channels(params);
-+	unsigned int list[ARRAY_SIZE(davinci_mcasp_dai_rates)];
-+	int i, count = 0;
-+
-+	if (channels > rd->mcasp->tdm_slots)
-+		channels = rd->mcasp->tdm_slots;
-+
-+	for (i = 0; i < ARRAY_SIZE(davinci_mcasp_dai_rates); i++) {
-+		if (ri->min <= davinci_mcasp_dai_rates[i] &&
-+		    ri->max >= davinci_mcasp_dai_rates[i]) {
-+			uint bclk_freq = sbits*channels*
-+				davinci_mcasp_dai_rates[i];
-+			int ppm;
-+
-+			davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-+			if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM)
-+				list[count++] = davinci_mcasp_dai_rates[i];
-+		}
-+	}
-+	dev_dbg(rd->mcasp->dev,
-+		"%d frequencies (%d-%d) for %d sbits and %d channels\n",
-+		count, ri->min, ri->max, sbits, channels);
-+
-+	return snd_interval_list(hw_param_interval(params, rule->var),
-+				 count, list, 0);
-+}
-+
-+static int davinci_mcasp_hw_rule_format(struct snd_pcm_hw_params *params,
-+					struct snd_pcm_hw_rule *rule)
-+{
-+	struct davinci_mcasp_ruledata *rd = rule->private;
-+	struct snd_mask *fmt = hw_param_mask(params, SNDRV_PCM_HW_PARAM_FORMAT);
-+	struct snd_mask nfmt;
-+	int rate = params_rate(params);
-+	int channels = params_channels(params);
-+	int i, count = 0;
-+
-+	snd_mask_none(&nfmt);
-+
-+	if (channels > rd->mcasp->tdm_slots)
-+		channels = rd->mcasp->tdm_slots;
-+
-+	for (i = 0; i < SNDRV_PCM_FORMAT_LAST; i++) {
-+		if (snd_mask_test(fmt, i)) {
-+			uint bclk_freq = snd_pcm_format_width(i)*channels*rate;
-+			int ppm;
-+
-+			davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-+			if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
-+				snd_mask_set(&nfmt, i);
-+				count++;
-+			}
-+		}
-+	}
-+	dev_dbg(rd->mcasp->dev,
-+		"%d possible sample format for %d Hz and %d channels\n",
-+		count, rate, channels);
-+
-+	return snd_mask_refine(fmt, &nfmt);
-+}
-+
-+static int davinci_mcasp_hw_rule_channels(struct snd_pcm_hw_params *params,
-+					  struct snd_pcm_hw_rule *rule)
-+{
-+	struct davinci_mcasp_ruledata *rd = rule->private;
-+	struct snd_interval *ci =
-+		hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
-+	int sbits = params_width(params);
-+	int rate = params_rate(params);
-+	int max_chan_per_wire = rd->mcasp->tdm_slots < ci->max ?
-+		rd->mcasp->tdm_slots : ci->max;
-+	unsigned int list[ci->max - ci->min + 1];
-+	int c1, c, count = 0;
-+
-+	for (c1 = ci->min; c1 <= max_chan_per_wire; c1++) {
-+		uint bclk_freq = c1*sbits*rate;
-+		int ppm;
-+
-+		davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq, &ppm);
-+		if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
-+			/* If we can use all tdm_slots, we can put any
-+			   amount of channels to remaining wires as
-+			   long as they fit in. */
-+			if (c1 == rd->mcasp->tdm_slots) {
-+				for (c = c1; c <= rd->serializers*c1 &&
-+					     c <= ci->max; c++)
-+					list[count++] = c;
-+			} else {
-+				list[count++] = c1;
-+			}
-+		}
-+	}
-+	dev_dbg(rd->mcasp->dev,
-+		"%d possible channel counts (%d-%d) for %d Hz and %d sbits\n",
-+		count, ci->min, ci->max, rate, sbits);
-+
-+	return snd_interval_list(hw_param_interval(params, rule->var),
-+				 count, list, 0);
-+}
-+
- static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- 				 struct snd_soc_dai *cpu_dai)
- {
-@@ -999,6 +1149,7 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- 		if (mcasp->serial_dir[i] == dir)
- 			max_channels++;
- 	}
-+	mcasp->ruledata[dir].serializers = max_channels;
- 	max_channels *= mcasp->tdm_slots;
- 	/*
- 	 * If the already active stream has less channels than the calculated
-@@ -1013,6 +1164,42 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
- 	snd_pcm_hw_constraint_minmax(substream->runtime,
- 				     SNDRV_PCM_HW_PARAM_CHANNELS,
- 				     2, max_channels);
-+
-+	/*
-+	 * If we rely on implicit BCLK divider setting we should
-+	 * set constraints based on what we can provide.
-+	 */
-+	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
-+		int ret;
-+
-+		mcasp->ruledata[dir].mcasp = mcasp;
-+
-+		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-+					  SNDRV_PCM_HW_PARAM_RATE,
-+					  davinci_mcasp_hw_rule_rate,
-+					  &mcasp->ruledata[dir],
-+					  SNDRV_PCM_HW_PARAM_FORMAT,
-+					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
-+		if (ret)
-+			return ret;
-+		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-+					  SNDRV_PCM_HW_PARAM_FORMAT,
-+					  davinci_mcasp_hw_rule_format,
-+					  &mcasp->ruledata[dir],
-+					  SNDRV_PCM_HW_PARAM_RATE,
-+					  SNDRV_PCM_HW_PARAM_CHANNELS, -1);
-+		if (ret)
-+			return ret;
-+		ret = snd_pcm_hw_rule_add(substream->runtime, 0,
-+					  SNDRV_PCM_HW_PARAM_CHANNELS,
-+					  davinci_mcasp_hw_rule_channels,
-+					  &mcasp->ruledata[dir],
-+					  SNDRV_PCM_HW_PARAM_RATE,
-+					  SNDRV_PCM_HW_PARAM_FORMAT, -1);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.9.1
+iQIcBAEBAgAGBQJVDAf8AAoJEPo9qoy8lh71hc0QALBDBe8uLqDxkdDz2TXBrOeL
+MoxsFTYiDGwbsfzazdIWp/JZkyi65D1lHn2yHfkrRtRedU9fbNWH39ozCCsU7PIg
+s4z9FfD00P8WbbPKz6eHcXK6WmACzNkR8WdafXqS13D57jo+mPR3m0IYX3oQFjhW
+qgNZUY24CMIX6gFMdCQXpqYW05lKBbXZOpoNMSmHd3PamFSAIyrGqU8qlSiArtoj
++KqZgWQQy/PA8eP6tdFs3nh9L7edVA6IaLSdEVglTlisGnVl0uOGa8n24Bo8C2Ks
+c9c0CHcFsl/tP2C5qYabdoAzBFjlp+K3+W7mK9A7p/RC7zc5LVa+nmMvy5pTEd8W
+qKybEWtNGzaNxtLKykYuC8GHCIxh6t09LJd+KjLw6I+cHcr7TbPZaHf1P6FPnFG9
+v9KWD557qyf5TnT9hsUO2nDGpB0OclQ8HzqYcRzZcbitRGsI11oPL8i3fr5vkgx+
+wxIiXtXSagAiwWLClFVl8xWL7VkNc/mP5r/Av0LzuxvewVzxzzstawPAFj86odW4
+Z+SomuLLa9fD7e7+3EnM+FTJR7dqGfLRA40PIoNCXmj5W6tOWeGH/p03ms9QymkJ
+jy3+ct4gvrvNWtZAgcIE6+hVya9Mr6Cnvw5cG1l9/yzjMLEj+24XLHwlGIdc1j26
+ZLoZRnn5D0uLuIgYLei+
+=8gl3
+-----END PGP SIGNATURE-----
 
+--tHDsEDjNTVJugDhdmL9AiiTRAKhEF64sD--
