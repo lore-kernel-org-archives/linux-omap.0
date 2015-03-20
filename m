@@ -1,132 +1,152 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 28/35] ARM: dts: am43xx-epos-evm: fix pinmux node layout
-Date: Fri, 20 Mar 2015 20:44:39 +0200
-Message-ID: <1426877086-17131-29-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 32/35] ARM: OMAP4+: control: remove support for legacy pad read/write
+Date: Fri, 20 Mar 2015 20:44:43 +0200
+Message-ID: <1426877086-17131-33-git-send-email-t-kristo@ti.com>
 References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56460 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56466 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751784AbbCTSqZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 14:46:25 -0400
+	id S1751819AbbCTSqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 14:46:36 -0400
 In-Reply-To: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
 Cc: linux-arm-kernel@lists.infradead.org
 
-Pinmux node should be a reference to the base one, not a complete re-write
-of it. Having the node like this also prevents modifying the node layout
-in the base am4372.dtsi file, which is needed for control module changes.
+omap4_ctrl_pad_readl/writel are no longer used by anybody, so remove
+these. Syscon / pinctrl should be used to access the padconf area
+instead.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts |   84 +++++++++++++++++-----------------
- 1 file changed, 42 insertions(+), 42 deletions(-)
+ arch/arm/mach-omap2/control.c |   24 +-----------------------
+ arch/arm/mach-omap2/control.h |    5 +----
+ arch/arm/mach-omap2/io.c      |   11 ++++-------
+ 3 files changed, 6 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 257c099..72f01bb 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -69,7 +69,48 @@
- 		};
- 	};
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index c673854..5c16953 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -36,7 +36,6 @@
  
--	am43xx_pinmux: pinmux@44e10800 {
-+	matrix_keypad: matrix_keypad@0 {
-+		compatible = "gpio-matrix-keypad";
-+		debounce-delay-ms = <5>;
-+		col-scan-delay-us = <2>;
-+
-+		row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
-+			     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
-+			     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
-+			     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
-+
-+		col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
-+			     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
-+			     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
-+			     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
-+
-+		linux,keymap = <0x00000201	/* P1 */
-+			0x01000204	/* P4 */
-+			0x02000207	/* P7 */
-+			0x0300020a	/* NUMERIC_STAR */
-+			0x00010202	/* P2 */
-+			0x01010205	/* P5 */
-+			0x02010208	/* P8 */
-+			0x03010200	/* P0 */
-+			0x00020203	/* P3 */
-+			0x01020206	/* P6 */
-+			0x02020209	/* P9 */
-+			0x0302020b	/* NUMERIC_POUND */
-+			0x00030067	/* UP */
-+			0x0103006a	/* RIGHT */
-+			0x0203006c	/* DOWN */
-+			0x03030069>;	/* LEFT */
-+	};
-+
-+	backlight {
-+		compatible = "pwm-backlight";
-+		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
-+		brightness-levels = <0 51 53 56 62 75 101 152 255>;
-+		default-brightness-level = <8>;
-+	};
-+};
-+
-+&am43xx_pinmux {
- 		cpsw_default: cpsw_default {
- 			pinctrl-single,pins = <
- 				/* Slave 1 */
-@@ -279,47 +320,6 @@
- 				0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
- 			>;
- 		};
--	};
--
--	matrix_keypad: matrix_keypad@0 {
--			compatible = "gpio-matrix-keypad";
--			debounce-delay-ms = <5>;
--			col-scan-delay-us = <2>;
--
--			row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
--				     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
--				     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
--				     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
--
--			col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
--				     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
--				     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
--				     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
--
--			linux,keymap = <0x00000201	/* P1 */
--				0x01000204	/* P4 */
--				0x02000207	/* P7 */
--				0x0300020a	/* NUMERIC_STAR */
--				0x00010202	/* P2 */
--				0x01010205	/* P5 */
--				0x02010208	/* P8 */
--				0x03010200	/* P0 */
--				0x00020203	/* P3 */
--				0x01020206	/* P6 */
--				0x02020209	/* P9 */
--				0x0302020b	/* NUMERIC_POUND */
--				0x00030067	/* UP */
--				0x0103006a	/* RIGHT */
--				0x0203006c	/* DOWN */
--				0x03030069>;	/* LEFT */
--		};
--
--	backlight {
--		compatible = "pwm-backlight";
--		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
--		brightness-levels = <0 51 53 56 62 75 101 152 255>;
--		default-brightness-level = <8>;
--	};
- };
+ static void __iomem *omap2_ctrl_base;
+ static s16 omap2_ctrl_offset;
+-static void __iomem *omap4_ctrl_pad_base;
+ static struct regmap *omap2_ctrl_syscon;
  
- &mmc1 {
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+@@ -139,13 +138,9 @@ struct omap3_control_regs {
+ static struct omap3_control_regs control_context;
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+ 
+-#define OMAP4_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
+-
+-void __init omap2_set_globals_control(void __iomem *ctrl,
+-				      void __iomem *ctrl_pad)
++void __init omap2_set_globals_control(void __iomem *ctrl)
+ {
+ 	omap2_ctrl_base = ctrl;
+-	omap4_ctrl_pad_base = ctrl_pad;
+ }
+ 
+ u8 omap_ctrl_readb(u16 offset)
+@@ -218,23 +213,6 @@ void omap_ctrl_writel(u32 val, u16 offset)
+ 			     val);
+ }
+ 
+-/*
+- * On OMAP4 control pad are not addressable from control
+- * core base. So the common omap_ctrl_read/write APIs breaks
+- * Hence export separate APIs to manage the omap4 pad control
+- * registers. This APIs will work only for OMAP4
+- */
+-
+-u32 omap4_ctrl_pad_readl(u16 offset)
+-{
+-	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
+-}
+-
+-void omap4_ctrl_pad_writel(u32 val, u16 offset)
+-{
+-	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
+-}
+-
+ #ifdef CONFIG_ARCH_OMAP3
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index 5353ff4..80d2b7d 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -443,11 +443,9 @@
+ extern u8 omap_ctrl_readb(u16 offset);
+ extern u16 omap_ctrl_readw(u16 offset);
+ extern u32 omap_ctrl_readl(u16 offset);
+-extern u32 omap4_ctrl_pad_readl(u16 offset);
+ extern void omap_ctrl_writeb(u8 val, u16 offset);
+ extern void omap_ctrl_writew(u16 val, u16 offset);
+ extern void omap_ctrl_writel(u32 val, u16 offset);
+-extern void omap4_ctrl_pad_writel(u32 val, u16 offset);
+ 
+ extern void omap3_save_scratchpad_contents(void);
+ extern void omap3_clear_scratchpad_contents(void);
+@@ -465,8 +463,7 @@ extern int omap3_ctrl_save_padconf(void);
+ void omap3_ctrl_init(void);
+ int omap2_control_base_init(void);
+ int omap_control_init(void);
+-extern void omap2_set_globals_control(void __iomem *ctrl,
+-				      void __iomem *ctrl_pad);
++void omap2_set_globals_control(void __iomem *ctrl);
+ void __init omap3_control_legacy_iomap_init(void);
+ #else
+ #define omap_ctrl_readb(x)		0
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index c3fa739..6c39cc0 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -443,7 +443,7 @@ void __init omap3_init_early(void)
+ 	/* XXX: remove these once OMAP3 is DT only */
+ 	if (!of_have_populated_dt()) {
+ 		omap2_set_globals_control(
+-			OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE), NULL);
++			OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE));
+ 		omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE));
+ 		omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
+ 				     NULL);
+@@ -631,8 +631,7 @@ void __init omap4430_init_early(void)
+ {
+ 	omap2_set_globals_tap(OMAP443X_CLASS,
+ 			      OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
+-	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
+-				  OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE));
++	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
+ 	omap4xxx_check_revision();
+ 	omap4xxx_check_features();
+@@ -660,8 +659,7 @@ void __init omap5_init_early(void)
+ {
+ 	omap2_set_globals_tap(OMAP54XX_CLASS,
+ 			      OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+-	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
+-				  OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE));
++	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
+ 	omap4_pm_init_early();
+ 	omap2_prcm_base_init();
+@@ -686,8 +684,7 @@ void __init omap5_init_late(void)
+ void __init dra7xx_init_early(void)
+ {
+ 	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
+-	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
+-				  OMAP2_L4_IO_ADDRESS(DRA7XX_CTRL_BASE));
++	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
+ 	omap4_pm_init_early();
+ 	omap2_prcm_base_init();
 -- 
 1.7.9.5
 
