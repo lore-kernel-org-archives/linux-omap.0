@@ -1,229 +1,253 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 11/35] ARM: OMAP2+: clock: move clock provider infrastructure to clock driver
-Date: Fri, 20 Mar 2015 20:44:22 +0200
-Message-ID: <1426877086-17131-12-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 04/35] ARM: OMAP2+: PRM: add generic API for clear_mod_irqs
+Date: Fri, 20 Mar 2015 20:44:15 +0200
+Message-ID: <1426877086-17131-5-git-send-email-t-kristo@ti.com>
 References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56888 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361AbbCTSpu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 14:45:50 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39468 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751426AbbCTSpt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 14:45:49 -0400
 In-Reply-To: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
 Cc: linux-arm-kernel@lists.infradead.org
 
-Splits the clock provider init out of the PRM driver and moves it to
-clock driver. This is needed so that once the PRCM drivers are separated,
-they can logically just access the clock driver not needing to go through
-common PRM code. This would be wrong in the case of control module for
-example.
+OMAP2/3 now use generic API for the prm_clear_mod_irqs, the SoC specific
+implementation details are provided through prm_ll_data.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock.c      |   75 ++++++++++++++++++++++++++++++++------
- arch/arm/mach-omap2/clock.h      |    6 ++-
- arch/arm/mach-omap2/prm_common.c |   36 ++++--------------
- 3 files changed, 76 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c     |   24 +++++++++++-------------
+ arch/arm/mach-omap2/pm34xx.c     |   18 ++++++++----------
+ arch/arm/mach-omap2/prm.h        |    2 ++
+ arch/arm/mach-omap2/prm2xxx.c    |    4 +++-
+ arch/arm/mach-omap2/prm2xxx.h    |    2 --
+ arch/arm/mach-omap2/prm3xxx.c    |    3 ++-
+ arch/arm/mach-omap2/prm3xxx.h    |    1 -
+ arch/arm/mach-omap2/prm_common.c |   21 +++++++++++++++++++++
+ 8 files changed, 47 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 6124db5..3327128 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -23,6 +23,7 @@
- #include <linux/clk-provider.h>
- #include <linux/io.h>
- #include <linux/bitops.h>
-+#include <linux/of_address.h>
- #include <asm/cpu.h>
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index fe01c5a..b1aad7e 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -75,9 +75,9 @@ static int omap2_enter_full_retention(void)
  
- #include <trace/events/power.h>
-@@ -72,32 +73,84 @@ struct ti_clk_features ti_clk_features;
- static bool clkdm_control = true;
+ 	/* Clear old wake-up events */
+ 	/* REVISIT: These write to reserved bits? */
+-	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
+-	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
+-	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
++	omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++	omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++	omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
  
- static LIST_HEAD(clk_hw_omap_clocks);
--void __iomem *clk_memmaps[CLK_MAX_MEMMAPS];
-+static void __iomem *clk_memmaps[CLK_MAX_MEMMAPS];
-+
-+static void clk_memmap_writel(u32 val, void __iomem *reg)
-+{
-+	struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
-+
-+	writel_relaxed(val, clk_memmaps[r->index] + r->offset);
-+}
-+
-+static u32 clk_memmap_readl(void __iomem *reg)
-+{
-+	struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
-+
-+	return readl_relaxed(clk_memmaps[r->index] + r->offset);
-+}
+ 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+@@ -104,18 +104,16 @@ no_sleep:
+ 	clk_enable(osc_ck);
  
- void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg)
+ 	/* clear CORE wake-up events */
+-	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
+-	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++	omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++	omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
+ 
+ 	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
+-	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
++	omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
+ 
+ 	/* MPU domain wake events */
+-	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
+-				    0x1);
++	omap_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET, 0x1);
+ 
+-	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
+-				    0x20);
++	omap_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET, 0x20);
+ 
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
+@@ -143,9 +141,9 @@ static void omap2_enter_mpu_retention(void)
+ 	 * it is in retention mode. */
+ 	if (omap2_allow_mpu_retention()) {
+ 		/* REVISIT: These write to reserved bits? */
+-		omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
+-		omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
+-		omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
++		omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++		omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++		omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
+ 
+ 		/* Try to enter MPU retention */
+ 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 2581329..87b98bf9 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -137,8 +137,8 @@ static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
  {
--	if (clk->flags & MEMMAP_ADDRESSING) {
--		struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
--		writel_relaxed(val, clk_memmaps[r->index] + r->offset);
--	} else {
-+	if (clk->flags & MEMMAP_ADDRESSING)
-+		clk_memmap_writel(val, reg);
-+	else
- 		writel_relaxed(val, reg);
--	}
+ 	int c;
+ 
+-	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
+-					OMAP3430_ST_IO_CHAIN_MASK);
++	c = omap_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
++				    OMAP3430_ST_IO_CHAIN_MASK);
+ 
+ 	return c ? IRQ_HANDLED : IRQ_NONE;
  }
- 
- u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
- {
- 	u32 val;
- 
--	if (clk->flags & MEMMAP_ADDRESSING) {
--		struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
--		val = readl_relaxed(clk_memmaps[r->index] + r->offset);
--	} else {
-+	if (clk->flags & MEMMAP_ADDRESSING)
-+		val = clk_memmap_readl(reg);
-+	else
- 		val = readl_relaxed(reg);
--	}
- 
- 	return val;
- }
- 
-+static struct ti_clk_ll_ops omap_clk_ll_ops = {
-+	.clk_readl = clk_memmap_readl,
-+	.clk_writel = clk_memmap_writel,
-+};
-+
-+/**
-+ * omap2_clk_provider_init - initialize a clock provider
-+ * @match_table: DT device table to match for devices to init
-+ * @np: device node pointer for the this clock provider
-+ * @index: index for the clock provider
-+ * @mem: iomem pointer for the clock provider memory area
-+ *
-+ * Initializes a clock provider module (CM/PRM etc.), registering
-+ * the memory mapping at specified index and initializing the
-+ * low level driver infrastructure. Returns 0 in success.
-+ */
-+int __init omap2_clk_provider_init(struct device_node *np, int index,
-+				   void __iomem *mem)
-+{
-+	ti_clk_ll_ops = &omap_clk_ll_ops;
-+
-+	clk_memmaps[index] = mem;
-+
-+	ti_dt_clk_init_provider(np, index);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap2_clk_legacy_provider_init - initialize a legacy clock provider
-+ * @index: index for the clock provider
-+ * @mem: iomem pointer for the clock provider memory area
-+ *
-+ * Initializes a legacy clock provider memory mapping.
-+ */
-+void __init omap2_clk_legacy_provider_init(int index, void __iomem *mem)
-+{
-+	ti_clk_ll_ops = &omap_clk_ll_ops;
-+
-+	clk_memmaps[index] = mem;
-+}
-+
- /*
-  * OMAP2+ specific clock functions
-  */
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index a56742f..b6433fc 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -271,10 +271,12 @@ extern const struct clksel_rate div_1_3_rates[];
- extern const struct clksel_rate div_1_4_rates[];
- extern const struct clksel_rate div31_1to31_rates[];
- 
--extern void __iomem *clk_memmaps[];
--
- extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
- extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
- 
-+int __init omap2_clk_provider_init(struct device_node *np, int index,
-+				   void __iomem *mem);
-+void __init omap2_clk_legacy_provider_init(int index, void __iomem *mem);
-+
- void __init ti_clk_init_features(void);
- #endif
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 8ec5201..1bfd00e 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -677,25 +677,6 @@ static const struct of_device_id omap_prcm_dt_match_table[] = {
- 	{ }
- };
- 
--static struct clk_hw_omap memmap_dummy_ck = {
--	.flags = MEMMAP_ADDRESSING,
--};
--
--static u32 prm_clk_readl(void __iomem *reg)
--{
--	return omap2_clk_readl(&memmap_dummy_ck, reg);
--}
--
--static void prm_clk_writel(u32 val, void __iomem *reg)
--{
--	omap2_clk_writel(val, &memmap_dummy_ck, reg);
--}
--
--static struct ti_clk_ll_ops omap_clk_ll_ops = {
--	.clk_readl = prm_clk_readl,
--	.clk_writel = prm_clk_writel,
--};
--
- /**
-  * omap_prcm_init - low level init for the PRCM drivers
-  *
-@@ -708,8 +689,7 @@ int __init omap_prcm_init(void)
- 	void __iomem *mem;
- 	const struct of_device_id *match;
- 	const struct omap_prcm_init_data *data;
--
--	ti_clk_ll_ops = &omap_clk_ll_ops;
-+	int ret;
- 
- 	for_each_matching_node_and_match(np, omap_prcm_dt_match_table, &match) {
- 		data = match->data;
-@@ -718,8 +698,9 @@ int __init omap_prcm_init(void)
- 		if (!mem)
- 			return -ENOMEM;
- 
--		clk_memmaps[data->index] = mem;
--		ti_dt_clk_init_provider(np, data->index);
-+		ret = omap2_clk_provider_init(np, data->index, mem);
-+		if (ret)
-+			return ret;
+@@ -152,15 +152,13 @@ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
+ 	 * these are handled in a separate handler to avoid acking
+ 	 * IO events before parsing in mux code
+ 	 */
+-	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
+-					~(OMAP3430_ST_IO_MASK |
+-					  OMAP3430_ST_IO_CHAIN_MASK));
+-	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
+-	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
++	c = omap_prm_clear_mod_irqs(WKUP_MOD, 1, ~(OMAP3430_ST_IO_MASK |
++						   OMAP3430_ST_IO_CHAIN_MASK));
++	c += omap_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
++	c += omap_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
+-		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
+-		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1,
+-						 ~0);
++		c += omap_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
++		c += omap_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, ~0);
  	}
  
- 	return 0;
-@@ -727,11 +708,10 @@ int __init omap_prcm_init(void)
+ 	return c ? IRQ_HANDLED : IRQ_NONE;
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index ba9b933..2a01a58 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -146,6 +146,7 @@ struct prm_ll_data {
+ 	int (*is_hardreset_asserted)(u8 shift, u8 part, s16 prm_mod,
+ 				     u16 offset);
+ 	void (*reset_system)(void);
++	int (*clear_mod_irqs)(s16 module, u8 regs, u32 wkst_mask);
+ };
  
- void __init omap3_prcm_legacy_iomaps_init(void)
+ extern int prm_register(struct prm_ll_data *pld);
+@@ -161,6 +162,7 @@ extern void prm_clear_context_loss_flags_old(u8 part, s16 inst, u16 idx);
+ void omap_prm_reset_system(void);
+ 
+ void omap_prm_reconfigure_io_chain(void);
++int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+ 
+ #endif
+ 
+diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
+index af0f152..bacb05e 100644
+--- a/arch/arm/mach-omap2/prm2xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx.c
+@@ -123,13 +123,14 @@ static void omap2xxx_prm_dpll_reset(void)
+  * Clears wakeup status bits for a given module, so that the device can
+  * re-enter idle.
+  */
+-void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
++static int omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
  {
--	ti_clk_ll_ops = &omap_clk_ll_ops;
--
--	clk_memmaps[TI_CLKM_CM] = cm_base + OMAP3430_IVA2_MOD;
--	clk_memmaps[TI_CLKM_PRM] = prm_base + OMAP3430_IVA2_MOD;
--	clk_memmaps[TI_CLKM_SCRM] = omap_ctrl_base_get();
-+	omap2_clk_legacy_provider_init(TI_CLKM_CM, cm_base + OMAP3430_IVA2_MOD);
-+	omap2_clk_legacy_provider_init(TI_CLKM_PRM,
-+				       prm_base + OMAP3430_IVA2_MOD);
-+	omap2_clk_legacy_provider_init(TI_CLKM_SCRM, omap_ctrl_base_get());
+ 	u32 wkst;
+ 
+ 	wkst = omap2_prm_read_mod_reg(module, regs);
+ 	wkst &= wkst_mask;
+ 	omap2_prm_write_mod_reg(wkst, module, regs);
++	return 0;
  }
  
- static int __init prm_late_init(void)
+ int omap2xxx_clkdm_sleep(struct clockdomain *clkdm)
+@@ -216,6 +217,7 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
+ 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
+ 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
+ 	.reset_system = &omap2xxx_prm_dpll_reset,
++	.clear_mod_irqs = &omap2xxx_prm_clear_mod_irqs,
+ };
+ 
+ int __init omap2xxx_prm_init(void)
+diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
+index 1d51643..9c91f4f 100644
+--- a/arch/arm/mach-omap2/prm2xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx.h
+@@ -124,8 +124,6 @@
+ extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
+ extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
+ 
+-void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+-
+ extern int __init omap2xxx_prm_init(void);
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index 4cc72e8..a444334 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -226,7 +226,7 @@ static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
+  * that any peripheral wake-up events occurring while attempting to
+  * clear the PM_WKST_x are detected and cleared.
+  */
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
++static int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
+ {
+ 	u32 wkst, fclk, iclk, clken;
+ 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
+@@ -664,6 +664,7 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
+ 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
+ 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
+ 	.reset_system = &omap3xxx_prm_dpll3_reset,
++	.clear_mod_irqs = &omap3xxx_prm_clear_mod_irqs,
+ };
+ 
+ int __init omap3xxx_prm_init(void)
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index 856f3c5..5a09a74 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -145,7 +145,6 @@ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 
+ extern int __init omap3xxx_prm_init(void);
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+ void omap3xxx_prm_iva_idle(void);
+ void omap3_prm_reset_modem(void);
+ int omap3xxx_prm_clear_global_cold_reset(void);
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index c5cfaa9..2c2e7ed 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -534,6 +534,27 @@ void omap_prm_reset_system(void)
+ }
+ 
+ /**
++ * omap_prm_clear_mod_irqs - clear wake-up events from PRCM interrupt
++ * @module: PRM module to clear wakeups from
++ * @regs: register to clear
++ * @wkst_mask: wkst bits to clear
++ *
++ * Clears any wakeup events for the module and register set defined.
++ * Uses SoC specific implementation to do the actual wakeup status
++ * clearing.
++ */
++int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
++{
++	if (!prm_ll_data->clear_mod_irqs) {
++		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
++			  __func__);
++		return -EINVAL;
++	}
++
++	return prm_ll_data->clear_mod_irqs(module, regs, wkst_mask);
++}
++
++/**
+  * prm_register - register per-SoC low-level data with the PRM
+  * @pld: low-level per-SoC OMAP PRM data & function pointers to register
+  *
 -- 
 1.7.9.5
 
