@@ -1,64 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv5 27/35] ARM: dts: am33xx: add minimal l4 bus layout with
- control module support
-Date: Fri, 20 Mar 2015 16:30:44 -0700
-Message-ID: <20150320233043.GW31346@atomide.com>
-References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
- <1426877086-17131-28-git-send-email-t-kristo@ti.com>
- <550C9490.3070505@ti.com>
- <20150320223541.GV31346@atomide.com>
- <550CABD9.5060000@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [RFT OMAP1 PATCH 7/8] gpio: omap: get rid of omap_irq_to_gpio()
+Date: Sat, 21 Mar 2015 00:44:46 +0100
+Message-ID: <CABxcv==jKSjWTCDMMUg0vZzpK34tLYnwdJzPw3h6H3oU+6dZ9Q@mail.gmail.com>
+References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
+	<1426785944-17255-8-git-send-email-grygorii.strashko@linaro.org>
+	<CABxcv==mH5tpvW0FOsv30A-aucyZCAKuSo95Y=LW21+EWR4uDA@mail.gmail.com>
+	<550C857F.5060705@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:39021 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751361AbbCTXfV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 19:35:21 -0400
-Content-Disposition: inline
-In-Reply-To: <550CABD9.5060000@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <550C857F.5060705@linaro.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Suman Anna <s-anna@ti.com> [150320 16:24]:
-> On 03/20/2015 05:35 PM, Tony Lindgren wrote:
-> > * Suman Anna <s-anna@ti.com> [150320 14:44]:
-> >> On 03/20/2015 01:44 PM, Kristo, Tero wrote:
-> >>> +			scm: scm@210000 {
-> >>> +				compatible = "ti,am3-scm", "simple-bus";
-> >>> +				reg = <0x210000 0x2000>;
-> >>> +				#address-cells = <1>;
-> >>> +				#size-cells = <1>;
-> >>> +				ranges = <0 0x210000 0x2000>;
-> >>> +
-> >>> +				am33xx_pinmux: pinmux@800 {
-> >>> +					compatible = "pinctrl-single";
-> >>> +					reg = <0x800 0x238>;
-> >>> +					#address-cells = <1>;
-> >>> +					#size-cells = <0>;
-> >>> +					pinctrl-single,register-width = <32>;
-> >>> +					pinctrl-single,function-mask = <0x7f>;
-> >>> +				};
-> >>> +
-> >>> +				scm_conf: scm_conf@0 {
-> >>> +					compatible = "syscon";
-> >>> +					reg = <0x0 0x7fc>;
-> >>
-> >> Hmm, you are consolidating the am33xx_control_module and cm nodes, so is
-> >> this supposed to be 0x800 or 0x7fc? I would think it should be 0x800.
-> > 
-> > Seems correct to me, it's offset 0, size 0x7fc. So that's the scm_conf
-> > syscon area before pinctrl-single at 0x44c00000 + 0x210000 + 0.
-> > 
-> > The io area for pinctrl-single starts at 0x800, so the scm_conf should
-> > be before it in the dts file.
-> 
-> Well, I understand that it is how it was before, but we won't be mapping
-> or covering the last register efuse_sma before the pinctrl cfg
-> registers. Any reason for just leaving out that register?
+Hello Grygorii,
 
-Oh I see yeah that looks like a bug to me.
+On Fri, Mar 20, 2015 at 9:39 PM, Grygorii.Strashko@linaro.org
+<grygorii.strashko@linaro.org> wrote:
+> On 03/20/2015 08:56 PM, Javier Martinez Canillas wrote:
+>> Hello Grygorii,
+>>
+>> On Thu, Mar 19, 2015 at 6:25 PM,  <grygorii.strashko@linaro.org> wrote:
+>>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>>
+>>> Now OMAP GPIO driver prepared for omap_irq_to_gpio() removing.
+>>> Do it ;)
+>>>
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>
+>> I don't have access to OMAP1 boards to test but Tony did it o an
+>> osk5912 and Aaro can confirm that it doesn't cause regressions on
+>> other OMAP1 boards.
+>
+> Thanks. But could you clarify one point to me please?
+> "Aaro can confirm that it doesn't cause regressions on
+> other OMAP1 boards" - Does It mean I can add his Tested-by?
+> Or I still have to wait for his direct reply?
+> Just to avoid any confusions ;)
+>
 
-Tony
+I meant that as far as I know Aaro has access to more OMAP1 systems so
+he should be able to test that no regressions are added for those. But
+I don't know if he would be able to test and I think your cleanups are
+good so that's why I acked the patches.
+
+Sorry for the confusion.
+
+Best regards,
+Javier
