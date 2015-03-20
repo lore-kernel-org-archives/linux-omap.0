@@ -1,137 +1,152 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 2/3] ARM: dts: DRA7: Add bandgap and related thermal nodes
-Date: Fri, 20 Mar 2015 17:51:24 -0400
-Message-ID: <20150320215123.GA7346@developer.amazonguestwifi.org>
-References: <1426880861-9266-1-git-send-email-nm@ti.com>
- <1426880861-9266-3-git-send-email-nm@ti.com>
+From: Petr Kulhavy <petr@barix.com>
+Subject: Re: Serious memory leak in TI EDMA driver (drivers/dma/edma.c)
+Date: Fri, 20 Mar 2015 22:53:44 +0100
+Message-ID: <550C96E8.5080603@barix.com>
+References: <55072E56.7050802@barix.com> <5508205D.7010106@ti.com> <55087A3A.6070300@barix.com> <55098414.9020301@ti.com> <5509EF23.8080404@barix.com> <550C27C3.10406@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1426880861-9266-3-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=iso-8859-2;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:36687 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036AbbCTVxt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 17:53:49 -0400
+Received: by wgra20 with SMTP id a20so99835972wgr.3
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2015 14:53:48 -0700 (PDT)
+In-Reply-To: <550C27C3.10406@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org
+
+Hi Peter,
+
+yes, that is one of the differences to the EVM that the SD card is on=20
+MMCSD1. This is due to the pin multiplexer and other peripherals we're=20
+using.
+
+Your patch is correct, however the edma_callback()  is using the channe=
+l=20
+number parameter for debug messages only. For the actual work=20
+echan->ch_num is used. BTW is that correct? Could there be a mismatch=20
+between the echan->ch_num and the ch_num parameter?
+
+Something else seems to be odd in edma_alloc_chan_resources():
+
+/* Alloc channel resources */
+static int edma_alloc_chan_resources(struct dma_chan *chan)
+{
+         struct edma_chan *echan =3D to_edma_chan(chan);
+         struct device *dev =3D chan->device->dev;
+         int ret;
+         int a_ch_num;
+         LIST_HEAD(descs);
+
+         a_ch_num =3D edma_alloc_channel(echan->ch_num, edma_callback,
+                                         chan, EVENTQ_DEFAULT);
 
 
---fdj2RfSjLxBAspz7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The third parameter to edma_alloc_channel() should be echan, not chan,=20
+since the edma_callback() interprets the callback data parameter as=20
+struct edma_chan *.
 
-On Fri, Mar 20, 2015 at 02:47:40PM -0500, Nishanth Menon wrote:
-> From: Keerthy <j-keerthy@ti.com>
->=20
-> Add bandgap and related thermal nodes. The patch adds 5 thermal
-> sensors. Only one cooling device for mpu as of now. The sensors are
-> the exact same on both dra72 and dra7.
->=20
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Let me know if you find something or if you have an advice for more deb=
+ug.
 
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
+Cheers
+Petr
 
-> ---
->  arch/arm/boot/dts/dra7.dtsi   |   12 ++++++++++++
->  arch/arm/boot/dts/dra72x.dtsi |    9 +++++++++
->  arch/arm/boot/dts/dra74x.dtsi |    9 +++++++++
->  3 files changed, 30 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index eea4a54d6cb3..4b975cc377fd 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -177,6 +177,18 @@
->  			};
->  		};
-> =20
-> +		bandgap: bandgap@4a0021e0 {
-> +			reg =3D <0x4a0021e0 0xc
-> +				0x4a00232c 0xc
-> +				0x4a002380 0x2c
-> +				0x4a0023C0 0x3c
-> +				0x4a002564 0x8
-> +				0x4a002574 0x50>;
-> +				compatible =3D "ti,dra752-bandgap";
-> +				interrupts =3D <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
-> +				#thermal-sensor-cells =3D <1>;
-> +		};
-> +
->  		cm_core_aon: cm_core_aon@4a005000 {
->  			compatible =3D "ti,dra7-cm-core-aon";
->  			reg =3D <0x4a005000 0x2000>;
-> diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-> index e5a3d23a3df1..43bd0709bde9 100644
-> --- a/arch/arm/boot/dts/dra72x.dtsi
-> +++ b/arch/arm/boot/dts/dra72x.dtsi
-> @@ -20,6 +20,11 @@
->  			device_type =3D "cpu";
->  			compatible =3D "arm,cortex-a15";
->  			reg =3D <0>;
-> +
-> +			/* cooling options */
-> +			cooling-min-level =3D <0>;
-> +			cooling-max-level =3D <2>;
-> +			#cooling-cells =3D <2>; /* min followed by max */
->  		};
->  	};
-> =20
-> @@ -27,4 +32,8 @@
->  		compatible =3D "arm,cortex-a15-pmu";
->  		interrupts =3D <GIC_SPI DIRECT_IRQ(131) IRQ_TYPE_LEVEL_HIGH>;
->  	};
-> +
-> +	thermal_zones: thermal-zones {
-> +		#include "omap5-cpu-thermal.dtsi"
-> +	};
->  };
-> diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-> index 10173fab1a15..4f2c870836fe 100644
-> --- a/arch/arm/boot/dts/dra74x.dtsi
-> +++ b/arch/arm/boot/dts/dra74x.dtsi
-> @@ -31,6 +31,11 @@
->  			clock-names =3D "cpu";
-> =20
->  			clock-latency =3D <300000>; /* From omap-cpufreq driver */
-> +
-> +			/* cooling options */
-> +			cooling-min-level =3D <0>;
-> +			cooling-max-level =3D <2>;
-> +			#cooling-cells =3D <2>; /* min followed by max */
->  		};
->  		cpu@1 {
->  			device_type =3D "cpu";
-> @@ -45,6 +50,10 @@
->  			     <GIC_SPI DIRECT_IRQ(132) IRQ_TYPE_LEVEL_HIGH>;
->  	};
-> =20
-> +	thermal_zones: thermal-zones {
-> +		#include "omap5-cpu-thermal.dtsi"
-> +	};
-> +
->  	ocp {
->  		omap_dwc3_4: omap_dwc3_4@48940000 {
->  			compatible =3D "ti,dwc3";
-> --=20
-> 1.7.9.5
->=20
 
---fdj2RfSjLxBAspz7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+On 20.03.2015 14:59, Peter Ujfalusi wrote:
+> Petr,
+>
+> On 03/18/2015 11:33 PM, Petr Kulhavy wrote:
+>> Hi Peter,
+>>
+>> Yes, we do not use DT.
+>> Our board design is very close to the da850evm reference board. So i=
+f you have
+>> a chance of getting hold of it you could try on that one.
+> I have been trying to reproduce this on my OMAP-L138-EVM (da850evm) b=
+ut was
+> not able.
+>
+> There is a big difference in your an my setup: the MMC on my EVM is c=
+onnected
+> to MMC/SD0 interface while in your setup it seams to be connected to =
+MMC/SD1.
+> The DMA requests for MMC/SD0 is eDMA CC0 16/17, while the MMC/SD1 is =
+eDMA CC1
+> 28/29.
+> So they are handled by different channel controllers. I would not rul=
+e out
+> that the support for the second CC has issues.
+> The information from you logs just points to this direction also:
+> You are writing to the MMC, so CC1 ch29 is active most of the time.
+> In your log the channel number sometimes 65565 ((1 << 16) | 29) somet=
+imes it
+> is 29. In my case it is 17 every time.
+> I think there is something funny regarding to how these channels on C=
+C1 are
+> working and this might be causing the leak for you.
+>
+> Unfortunately I do not have HW where I could use any channel on CC1 s=
+o I can
+> not debug this further, but I'll look at the code to see if anything =
+obvious
+> stands out.
+> And something does stand out:
+> arch/arm/common/edma.c: dma_irq_handler()
+> It calls the callback with a wrong interrupt number since it does not=
+ take
+> into account the different CC.
+> Can you try something similar to see if it helps:
+>
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index 6c49887d326e..e1d413c61e9e 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -405,7 +405,8 @@ static irqreturn_t dma_irq_handler(int irq, void =
+*data)
+>   					BIT(slot));
+>   			if (edma_cc[ctlr]->intr_data[channel].callback)
+>   				edma_cc[ctlr]->intr_data[channel].callback(
+> -					channel, EDMA_DMA_COMPLETE,
+> +					EDMA_CTLR_CHAN(ctlr, channel),
+> +					EDMA_DMA_COMPLETE,
+>   					edma_cc[ctlr]->intr_data[channel].data);
+>   		}
+>   	} while (sh_ipr);
+>
 
-iQEcBAEBAgAGBQJVDJZTAAoJEMLUO4d9pOJWjlgH/iB9uRElvrAfDYgAjpc+0PZI
-W+ql8t8iC8B9fYYOy4+vxliYDL6S0JLLDxaoQDOC/oT7yUR6XbEoGczdEM0DHb9K
-ZZAHUQBrTVMvLEYH8wOZcObnz7kfO35Y49wnrfDbkhdpQZQNZeltjRDnmlMK6lgy
-V3v/AGjWigap0D9yOMJdoj29pNa4wUqWcmCAzi/qaALUpFi0mmWljLHts6G7knFf
-hjYt62FMAqux0RM6w23/NnGOEXj9Pa9JqG8TY7cPTKygnja3gCjujGXf66hbC+sB
-+i/QYTYYbCBCbknnyIARBTblw4PBleLhQgUDzMrFfpcoPH9vo0a1g1lEK2Fqwzk=
-=cRyY
------END PGP SIGNATURE-----
+--=20
 
---fdj2RfSjLxBAspz7--
+
+--=20
+Petr Kulhavy, MSc
+System Architect
+
+*BARIX*
+
+petr@barix.com <mailto:petr@barix.com> | Skype: brain.barix
+
+Barix AG, Seefeldstrasse 303 | 8008 Zurich, Switzerland
+T +41 43 43322 11 | www.barix.com <http://www.barix.com>
+
+You have received this email because of your relationship Barix AG and=20
+its affiliated companies. Barix AG and its affiliated companies do not=20
+sell or exchange email addresses, or any other personal contact=20
+information provided by you with any third parties. All email=20
+distributions are managed and controlled by Barix AG and its affiliated=
+=20
+companies.
+Barix AG, Seefeldstr. 303, 8008 Z=FCrich, Switzerland. Company Reg. No:=
+=20
+CH-020.3.023.869-8, VAT Reg. No: CHE-105.687.663.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
