@@ -1,14 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 07/35] ARM: OMAP4+: CM: move omap_cm_base_init under OMAP4 CM driver
-Date: Fri, 20 Mar 2015 20:44:18 +0200
-Message-ID: <1426877086-17131-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 03/35] ARM: OMAP3: PRM: invert the wkst_mask for the prm_clear_mod_irqs
+Date: Fri, 20 Mar 2015 20:44:14 +0200
+Message-ID: <1426877086-17131-4-git-send-email-t-kristo@ti.com>
 References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57018 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57017 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751408AbbCTSpq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751287AbbCTSpq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 20 Mar 2015 14:45:46 -0400
 In-Reply-To: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,87 +16,106 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
 Cc: linux-arm-kernel@lists.infradead.org
 
-There is no need to call this separately from io.c, rather this can be
-done commonly under the CM driver. Also, this patch makes the API static,
-as it is no longer used outside the driver file.
+This makes the API the same as used with OMAP2, and makes it possible
+to implement a generic driver API for the functionality.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cm44xx.h     |    1 -
- arch/arm/mach-omap2/cminst44xx.c |    4 +++-
- arch/arm/mach-omap2/io.c         |    4 ----
- 3 files changed, 3 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c  |   18 +++++++++---------
+ arch/arm/mach-omap2/prm3xxx.c |    8 ++++----
+ arch/arm/mach-omap2/prm3xxx.h |    2 +-
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
-index 728d06a..ad6e263 100644
---- a/arch/arm/mach-omap2/cm44xx.h
-+++ b/arch/arm/mach-omap2/cm44xx.h
-@@ -23,7 +23,6 @@
- #define OMAP4_CM_CLKSTCTRL				0x0000
- #define OMAP4_CM_STATICDEP				0x0004
- 
--void omap_cm_base_init(void);
- int omap4_cm_init(void);
- 
- #endif
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 95a8cff..9319034 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -63,7 +63,7 @@ static void __iomem *_cm_bases[OMAP4_MAX_PRCM_PARTITIONS];
-  * Populates the base addresses of the _cm_bases
-  * array used for read/write of cm module registers.
-  */
--void omap_cm_base_init(void)
-+static void omap_cm_base_init(void)
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 88721df..2581329 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -137,9 +137,8 @@ static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
  {
- 	_cm_bases[OMAP4430_PRM_PARTITION] = prm_base;
- 	_cm_bases[OMAP4430_CM1_PARTITION] = cm_base;
-@@ -516,6 +516,8 @@ static struct cm_ll_data omap4xxx_cm_ll_data = {
+ 	int c;
  
- int __init omap4_cm_init(void)
- {
-+	omap_cm_base_init();
-+
- 	return cm_register(&omap4xxx_cm_ll_data);
+-	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
+-					~(OMAP3430_ST_IO_MASK |
+-					  OMAP3430_ST_IO_CHAIN_MASK));
++	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
++					OMAP3430_ST_IO_CHAIN_MASK);
+ 
+ 	return c ? IRQ_HANDLED : IRQ_NONE;
  }
+@@ -154,13 +153,14 @@ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
+ 	 * IO events before parsing in mux code
+ 	 */
+ 	c = omap3xxx_prm_clear_mod_irqs(WKUP_MOD, 1,
+-					OMAP3430_ST_IO_MASK |
+-					OMAP3430_ST_IO_CHAIN_MASK);
+-	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, 0);
+-	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, 0);
++					~(OMAP3430_ST_IO_MASK |
++					  OMAP3430_ST_IO_CHAIN_MASK));
++	c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
++	c += omap3xxx_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
+-		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, 0);
+-		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, 0);
++		c += omap3xxx_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
++		c += omap3xxx_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1,
++						 ~0);
+ 	}
  
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 5569c2f..364b530 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -623,7 +623,6 @@ void __init am43xx_init_early(void)
- 				  NULL);
- 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
- 	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
--	omap_cm_base_init();
- 	omap3xxx_check_revision();
- 	am33xx_check_features();
- 	omap44xx_prm_init();
-@@ -653,7 +652,6 @@ void __init omap4430_init_early(void)
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
- 			     OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
--	omap_cm_base_init();
- 	omap4xxx_check_revision();
- 	omap4xxx_check_features();
- 	omap4_cm_init();
-@@ -688,7 +686,6 @@ void __init omap5_init_early(void)
- 			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
--	omap_cm_base_init();
- 	omap44xx_prm_init();
- 	omap5xxx_check_revision();
- 	omap4_cm_init();
-@@ -719,7 +716,6 @@ void __init dra7xx_init_early(void)
- 			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
--	omap_cm_base_init();
- 	omap44xx_prm_init();
- 	dra7xxx_check_revision();
- 	omap4_cm_init();
+ 	return c ? IRQ_HANDLED : IRQ_NONE;
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index 5713bbd..4cc72e8 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -217,7 +217,7 @@ static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
+  * omap3xxx_prm_clear_mod_irqs - clear wake-up events from PRCM interrupt
+  * @module: PRM module to clear wakeups from
+  * @regs: register set to clear, 1 or 3
+- * @ignore_bits: wakeup status bits to ignore
++ * @wkst_mask: wkst bits to clear
+  *
+  * The purpose of this function is to clear any wake-up events latched
+  * in the PRCM PM_WKST_x registers. It is possible that a wake-up event
+@@ -226,7 +226,7 @@ static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
+  * that any peripheral wake-up events occurring while attempting to
+  * clear the PM_WKST_x are detected and cleared.
+  */
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
++int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
+ {
+ 	u32 wkst, fclk, iclk, clken;
+ 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
+@@ -238,7 +238,7 @@ int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
+ 
+ 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
+ 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
+-	wkst &= ~ignore_bits;
++	wkst &= wkst_mask;
+ 	if (wkst) {
+ 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
+ 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
+@@ -254,7 +254,7 @@ int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
+ 			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
+ 			omap2_prm_write_mod_reg(wkst, module, wkst_off);
+ 			wkst = omap2_prm_read_mod_reg(module, wkst_off);
+-			wkst &= ~ignore_bits;
++			wkst &= wkst_mask;
+ 			c++;
+ 		}
+ 		omap2_cm_write_mod_reg(iclk, module, iclk_off);
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index ed8a3d8..856f3c5 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -145,7 +145,7 @@ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 
+ extern int __init omap3xxx_prm_init(void);
+-int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
++int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
+ void omap3xxx_prm_iva_idle(void);
+ void omap3_prm_reset_modem(void);
+ int omap3xxx_prm_clear_global_cold_reset(void);
 -- 
 1.7.9.5
 
