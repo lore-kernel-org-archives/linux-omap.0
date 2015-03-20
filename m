@@ -1,131 +1,415 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: dts: OMAP5+: separate the cpu thermal zone
- definition from omap4
-Date: Fri, 20 Mar 2015 17:54:03 -0400
-Message-ID: <20150320215402.GB7346@developer.amazonguestwifi.org>
-References: <1426880861-9266-1-git-send-email-nm@ti.com>
- <1426880861-9266-2-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1426880861-9266-2-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v1.1 14/15] omap3isp: Add support for the Device Tree
+Date: Sat, 21 Mar 2015 00:05:04 +0200
+Message-ID: <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
+References: <2603487.gEIKMl6vV7@avalon>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <2603487.gEIKMl6vV7@avalon>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
+Add the ISP device to omap3 DT include file and add support to the driver to
+use it.
 
---0eh6TmSyL6TZE2Uz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Also obtain information on the external entities and the ISP configuration
+related to them through the Device Tree in addition to the platform data.
 
-On Fri, Mar 20, 2015 at 02:47:39PM -0500, Nishanth Menon wrote:
-> From: Tero Kristo <t-kristo@ti.com>
->=20
-> OMAP4 has a finer counter granularity, which allows for a delay of 1000ms
-> in the thermal zone polling intervals. OMAP5/DRA7 have different counter
-> mechanism, which allows at maximum a 500ms timer. Adjust the cpu thermal
-> zone accordingly for OMAP5/DRA7.
->=20
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+since v1:
 
+- Print endpoint name in debug message when parsing an endpoint.
 
-> ---
->  arch/arm/boot/dts/omap5-cpu-thermal.dtsi |   41 ++++++++++++++++++++++++=
-++++++
->  arch/arm/boot/dts/omap5.dtsi             |    2 +-
->  2 files changed, 42 insertions(+), 1 deletion(-)
->  create mode 100644 arch/arm/boot/dts/omap5-cpu-thermal.dtsi
->=20
-> diff --git a/arch/arm/boot/dts/omap5-cpu-thermal.dtsi b/arch/arm/boot/dts=
-/omap5-cpu-thermal.dtsi
-> new file mode 100644
-> index 000000000000..4a6427c1e47e
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap5-cpu-thermal.dtsi
-> @@ -0,0 +1,41 @@
-> +/*
-> + * Device Tree Source for OMAP4/5 SoC CPU thermal
-> + *
-> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-> + * Contact: Tero Kristo <t-kristo@ti.com>
-> + *
-> + * This file is licensed under the terms of the GNU General Public Licen=
-se
-> + * version 2.  This program is licensed "as is" without any warranty of =
-any
-> + * kind, whether express or implied.
-> + */
-> +
-> +#include <dt-bindings/thermal/thermal.h>
-> +
-> +cpu_thermal: cpu_thermal {
-> +	polling-delay-passive =3D <250>; /* milliseconds */
-> +	polling-delay =3D <500>; /* milliseconds */
-> +
-> +			/* sensor       ID */
-> +	thermal-sensors =3D <&bandgap     0>;
-> +
-> +	cpu_trips: trips {
-> +		cpu_alert0: cpu_alert {
-> +			temperature =3D <100000>; /* millicelsius */
-> +			hysteresis =3D <2000>; /* millicelsius */
-> +			type =3D "passive";
-> +		};
-> +		cpu_crit: cpu_crit {
-> +			temperature =3D <125000>; /* millicelsius */
-> +			hysteresis =3D <2000>; /* millicelsius */
-> +			type =3D "critical";
-> +		};
-> +	};
-> +
-> +	cpu_cooling_maps: cooling-maps {
-> +		map0 {
-> +			trip =3D <&cpu_alert0>;
-> +			cooling-device =3D
-> +				<&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-> +		};
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index ddff674bd05e..e650d4eb59dd 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -67,7 +67,7 @@
->  	};
-> =20
->  	thermal-zones {
-> -		#include "omap4-cpu-thermal.dtsi"
-> +		#include "omap5-cpu-thermal.dtsi"
+- Rename lane-polarity property as lane-polarities.
 
-Can't we simple change the polling value for the omap5 case and reuse
-the omap4 file?
+- Print endpoint name with the interface if the interface is invalid.
 
->  		#include "omap5-gpu-thermal.dtsi"
->  		#include "omap5-core-thermal.dtsi"
->  	};
-> --=20
-> 1.7.9.5
->=20
+- Remove assignment to two variables at the same time.
 
---0eh6TmSyL6TZE2Uz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+- Fix multiple sub-device support in isp_of_parse_nodes().
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+- Put of_node properly in isp_of_parse_nodes() (requires Philipp Zabel's
+  patch "of: Decrement refcount of previous endpoint in
+  of_graph_get_next_endpoint".
 
-iQEcBAEBAgAGBQJVDJbyAAoJEMLUO4d9pOJWNIIIAJRRUoZoHtlDdp5eVf7L6Apc
-P0KkiW7ICKb1mol1gxxn4p9xIMZfAoj4X6NrW3eyZMJkUDEFWxJwVQ3cuzL3a9hp
-RM7AwY728RK8WnbpOCdgK2ZYTRARLI47uzkkFJdg0EgQd/tzP4kBo09viwWzwwbi
-xTqxs0F5Xiu5976kdTdRrrOsANPGz/7TFNGEeAm+N2sXiVXPxwK4t0y2rjts4Qyt
-nuSnw/DxV2CMpZaRLCmJk5n8Tm82Xd2hhjKPV9T0TC5TB0rzslTlbeKPBO1WfBGP
-91/DkdaZZ2YF/GD110DILO86aHTR+gfdfiaceYtjHgLeWIkCKsJ/OUefoGRvCuM=
-=+FTw
------END PGP SIGNATURE-----
+- Rename return value variable rval as ret to be consistent with the rest of
+  the driver.
 
---0eh6TmSyL6TZE2Uz--
+- Read the register offset from the syscom property's first argument.
+
+ drivers/media/platform/omap3isp/isp.c       |  218 +++++++++++++++++++++++++--
+ drivers/media/platform/omap3isp/isp.h       |   11 ++
+ drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
+ 3 files changed, 224 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 992e74c..92a859e 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -64,6 +64,7 @@
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
+ 
+ #include "isp.h"
+ #include "ispreg.h"
+@@ -1991,6 +1992,13 @@ static int isp_register_entities(struct isp_device *isp)
+ 	if (ret < 0)
+ 		goto done;
+ 
++	/*
++	 * Device Tree --- the external sub-devices will be registered
++	 * later. The same goes for the sub-device node registration.
++	 */
++	if (isp->dev->of_node)
++		return 0;
++
+ 	/* Register external entities */
+ 	for (isp_subdev = pdata ? pdata->subdevs : NULL;
+ 	     isp_subdev && isp_subdev->board_info; isp_subdev++) {
+@@ -2016,8 +2024,10 @@ static int isp_register_entities(struct isp_device *isp)
+ 	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
+ 
+ done:
+-	if (ret < 0)
++	if (ret < 0) {
+ 		isp_unregister_entities(isp);
++		v4l2_async_notifier_unregister(&isp->notifier);
++	}
+ 
+ 	return ret;
+ }
+@@ -2232,6 +2242,7 @@ static int isp_remove(struct platform_device *pdev)
+ {
+ 	struct isp_device *isp = platform_get_drvdata(pdev);
+ 
++	v4l2_async_notifier_unregister(&isp->notifier);
+ 	isp_unregister_entities(isp);
+ 	isp_cleanup_modules(isp);
+ 	isp_xclk_cleanup(isp);
+@@ -2243,6 +2254,156 @@ static int isp_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++enum isp_of_phy {
++	ISP_OF_PHY_PARALLEL = 0,
++	ISP_OF_PHY_CSIPHY1,
++	ISP_OF_PHY_CSIPHY2,
++};
++
++static int isp_of_parse_node(struct device *dev, struct device_node *node,
++			     struct isp_async_subdev *isd)
++{
++	struct isp_bus_cfg *buscfg = &isd->bus;
++	struct v4l2_of_endpoint vep;
++	unsigned int i;
++
++	v4l2_of_parse_endpoint(node, &vep);
++
++	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
++		vep.base.port);
++
++	switch (vep.base.port) {
++	case ISP_OF_PHY_PARALLEL:
++		buscfg->interface = ISP_INTERFACE_PARALLEL;
++		buscfg->bus.parallel.data_lane_shift =
++			vep.bus.parallel.data_shift;
++		buscfg->bus.parallel.clk_pol =
++			!!(vep.bus.parallel.flags
++			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
++		buscfg->bus.parallel.hs_pol =
++			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++		buscfg->bus.parallel.vs_pol =
++			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++		buscfg->bus.parallel.fld_pol =
++			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++		buscfg->bus.parallel.data_pol =
++			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++		break;
++
++	case ISP_OF_PHY_CSIPHY1:
++	case ISP_OF_PHY_CSIPHY2:
++		/* FIXME: always assume CSI-2 for now. */
++		switch (vep.base.port) {
++		case ISP_OF_PHY_CSIPHY1:
++			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
++			break;
++		case ISP_OF_PHY_CSIPHY2:
++			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
++			break;
++		}
++		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
++		buscfg->bus.csi2.lanecfg.clk.pol =
++			vep.bus.mipi_csi2.lane_polarities[0];
++		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
++			buscfg->bus.csi2.lanecfg.clk.pol,
++			buscfg->bus.csi2.lanecfg.clk.pos);
++
++		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
++			buscfg->bus.csi2.lanecfg.data[i].pos =
++				vep.bus.mipi_csi2.data_lanes[i];
++			buscfg->bus.csi2.lanecfg.data[i].pol =
++				vep.bus.mipi_csi2.lane_polarities[i + 1];
++			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
++				buscfg->bus.csi2.lanecfg.data[i].pol,
++				buscfg->bus.csi2.lanecfg.data[i].pos);
++		}
++
++		/*
++		 * FIXME: now we assume the CRC is always there.
++		 * Implement a way to obtain this information from the
++		 * sensor. Frame descriptors, perhaps?
++		 */
++		buscfg->bus.csi2.crc = 1;
++		break;
++
++	default:
++		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
++			 vep.base.port);
++		break;
++	}
++
++	return 0;
++}
++
++static int isp_of_parse_nodes(struct device *dev,
++			      struct v4l2_async_notifier *notifier)
++{
++	struct device_node *node;
++
++	notifier->subdevs = devm_kcalloc(
++		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
++	if (!notifier->subdevs)
++		return -ENOMEM;
++
++	while ((node = of_graph_get_next_endpoint(dev->of_node, node)) &&
++	       notifier->num_subdevs < ISP_MAX_SUBDEVS) {
++		struct isp_async_subdev *isd;
++
++		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
++		if (!isd) {
++			of_node_put(node);
++			return -ENOMEM;
++		}
++
++		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
++
++		if (isp_of_parse_node(dev, node, isd)) {
++			of_node_put(node);
++			return -EINVAL;
++		}
++
++		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
++		of_node_put(node);
++		if (!isd->asd.match.of.node) {
++			dev_warn(dev, "bad remote port parent\n");
++			return -EINVAL;
++		}
++
++		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
++		notifier->num_subdevs++;
++	}
++
++	return notifier->num_subdevs;
++}
++
++static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
++				     struct v4l2_subdev *subdev,
++				     struct v4l2_async_subdev *asd)
++{
++	struct isp_device *isp = container_of(async, struct isp_device,
++					      notifier);
++	struct isp_async_subdev *isd =
++		container_of(asd, struct isp_async_subdev, asd);
++	int ret;
++
++	ret = isp_link_entity(isp, &subdev->entity, isd->bus.interface);
++	if (ret < 0)
++		return ret;
++
++	isd->sd = subdev;
++	isd->sd->host_priv = &isd->bus;
++
++	return ret;
++}
++
++static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
++{
++	struct isp_device *isp = container_of(async, struct isp_device,
++					      notifier);
++
++	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
++}
++
+ /*
+  * isp_probe - Probe ISP platform device
+  * @pdev: Pointer to ISP platform device
+@@ -2256,7 +2417,6 @@ static int isp_remove(struct platform_device *pdev)
+  */
+ static int isp_probe(struct platform_device *pdev)
+ {
+-	struct isp_platform_data *pdata = pdev->dev.platform_data;
+ 	struct isp_device *isp;
+ 	struct resource *mem;
+ 	int ret;
+@@ -2268,13 +2428,42 @@ static int isp_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
++	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
++		ret = of_property_read_u32(pdev->dev.of_node, "ti,phy-type",
++					   &isp->phy_type);
++		if (ret)
++			return ret;
++
++		isp->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
++							      "syscon");
++		if (IS_ERR(isp->syscon))
++			return PTR_ERR(isp->syscon);
++
++		ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
++						 &isp->syscon_offset);
++		if (ret)
++			return ret;
++
++		ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
++		if (ret < 0)
++			return ret;
++		ret = v4l2_async_notifier_register(&isp->v4l2_dev,
++						   &isp->notifier);
++		if (ret)
++			return ret;
++	} else {
++		isp->pdata = pdev->dev.platform_data;
++		isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
++		if (IS_ERR(isp->syscon))
++			return PTR_ERR(isp->syscon);
++	}
++
+ 	isp->autoidle = autoidle;
+ 
+ 	mutex_init(&isp->isp_mutex);
+ 	spin_lock_init(&isp->stat_lock);
+ 
+ 	isp->dev = &pdev->dev;
+-	isp->pdata = pdata;
+ 	isp->ref_count = 0;
+ 
+ 	ret = dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
+@@ -2346,6 +2535,11 @@ static int isp_probe(struct platform_device *pdev)
+ 		goto error_isp;
+ 	}
+ 
++	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node) {
++		isp->syscon_offset = isp_res_maps[m].syscon_offset;
++		isp->phy_type = isp_res_maps[m].phy_type;
++	}
++
+ 	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
+ 		isp->mmio_base[i] =
+ 			isp->mmio_base[0] + isp_res_maps[m].offset[i];
+@@ -2358,15 +2552,6 @@ static int isp_probe(struct platform_device *pdev)
+ 	isp->mmio_hist_base_phys =
+ 		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
+ 
+-	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+-	if (IS_ERR(isp->syscon)) {
+-		ret = PTR_ERR(isp->syscon);
+-		goto error_isp;
+-	}
+-
+-	isp->syscon_offset = isp_res_maps[m].syscon_offset;
+-	isp->phy_type = isp_res_maps[m].phy_type;
+-
+ 	/* IOMMU */
+ 	ret = isp_attach_iommu(isp);
+ 	if (ret < 0) {
+@@ -2394,6 +2579,9 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_iommu;
+ 
++	isp->notifier.bound = isp_subdev_notifier_bound;
++	isp->notifier.complete = isp_subdev_notifier_complete;
++
+ 	ret = isp_register_entities(isp);
+ 	if (ret < 0)
+ 		goto error_modules;
+@@ -2429,6 +2617,11 @@ static struct platform_device_id omap3isp_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(platform, omap3isp_id_table);
+ 
++static const struct of_device_id omap3isp_of_table[] = {
++	{ .compatible = "ti,omap3-isp" },
++	{ },
++};
++
+ static struct platform_driver omap3isp_driver = {
+ 	.probe = isp_probe,
+ 	.remove = isp_remove,
+@@ -2436,6 +2629,7 @@ static struct platform_driver omap3isp_driver = {
+ 	.driver = {
+ 		.name = "omap3isp",
+ 		.pm	= &omap3isp_pm_ops,
++		.of_match_table = omap3isp_of_table,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index dcb7d20..431224e 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -18,6 +18,7 @@
+ #define OMAP3_ISP_CORE_H
+ 
+ #include <media/omap3isp.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <linux/clk-provider.h>
+ #include <linux/device.h>
+@@ -178,6 +179,7 @@ struct isp_xclk {
+  */
+ struct isp_device {
+ 	struct v4l2_device v4l2_dev;
++	struct v4l2_async_notifier notifier;
+ 	struct media_device media_dev;
+ 	struct device *dev;
+ 	u32 revision;
+@@ -224,6 +226,15 @@ struct isp_device {
+ 
+ 	unsigned int sbl_resources;
+ 	unsigned int subclk_resources;
++
++#define ISP_MAX_SUBDEVS		8
++	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
++};
++
++struct isp_async_subdev {
++	struct v4l2_subdev *sd;
++	struct isp_bus_cfg bus;
++	struct v4l2_async_subdev asd;
+ };
+ 
+ #define v4l2_dev_to_isp_device(dev) \
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index d91dde1..495447d 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -173,6 +173,13 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ 	unsigned int i;
+ 	u32 reg;
+ 
++	if (!buscfg) {
++		struct isp_async_subdev *isd =
++			container_of(pipe->external->asd,
++				     struct isp_async_subdev, asd);
++		buscfg = &isd->bus;
++	}
++
+ 	if (buscfg->interface == ISP_INTERFACE_CCP2B_PHY1
+ 	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2)
+ 		lanes = &buscfg->bus.ccp2.lanecfg;
+-- 
+1.7.10.4
