@@ -1,27 +1,47 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 6/8] gpio: omap: get rid of GPIO_BIT() macro
-Date: Fri, 20 Mar 2015 09:50:00 -0700
-Message-ID: <550C4FB8.5030700@oracle.com>
-References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org> <1426785944-17255-7-git-send-email-grygorii.strashko@linaro.org>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 0/3] OMAP 3 ISP (and N9/N950 primary camera support)
+ dts changes
+Date: Fri, 20 Mar 2015 18:57:06 +0200
+Message-ID: <20150320165706.GA16613@valkosipuli.retiisi.org.uk>
+References: <1426722625-4132-1-git-send-email-sakari.ailus@iki.fi>
+ <20150319172843.GH31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1426785944-17255-7-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: grygorii.strashko@linaro.org, Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150319172843.GH31346@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com, t-kristo@ti.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 3/19/15 10:25 AM, grygorii.strashko@linaro.org wrote:
-> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->
-> Now OMAP GPIO driver prepared for GPIO_BIT() macro removing.
-> Do it ;)
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
-> ---
+On Thu, Mar 19, 2015 at 10:28:44AM -0700, Tony Lindgren wrote:
+> * Sakari Ailus <sakari.ailus@iki.fi> [150318 16:51]:
+> > Hi folks,
+> > 
+> > Since v1, I've rebased the set on Tero Kristo's PRCM / SCM cleanup patchset
+> > here:
+> > 
+> > <URL:http://www.spinics.net/lists/linux-omap/msg116949.html>
+> > 
+> > v1 can be found here:
+> > 
+> > <URL:http://www.spinics.net/lists/linux-omap/msg116753.html>
+> > 
+> > Changes since v1:
+> > 
+> > - Fixed phy reference (number to name) in the example,
+> > 
+> > - Dropped the first patch. This is already done by Tero's patch "ARM: dts:
+> >   omap3: merge control module features under scrm node".
+> 
+> Applying these into omap-for-v4.1/dt thanks.
 
-Thanks for the cleanup Grygorii.
+Thank you! These patches had been around in some form for way too long
+already. It's great to see them going in finally! :-)
 
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+-- 
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
