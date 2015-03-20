@@ -1,110 +1,109 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC][PATCH 1/9] usb: hcd: Introduce usb_start/stop_hcd()
-Date: Fri, 20 Mar 2015 11:49:08 +0200
-Message-ID: <550BED14.4020104@ti.com>
-References: <Pine.LNX.4.44L0.1503181538170.1497-100000@iolanthe.rowland.org> <550AB538.7090806@ti.com> <20150320063249.GE7537@shlinux2>
+Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
+Date: Fri, 20 Mar 2015 13:08:25 +0200
+Message-ID: <550BFFA9.7050400@ti.com>
+References: <1426686963-11613-1-git-send-email-rogerq@ti.com> <1426686963-11613-3-git-send-email-rogerq@ti.com> <20150319032944.GA2476@shlinux2> <550AA18F.2000106@ti.com> <20150319140859.GA7950@shlinux1.ap.freescale.net> <550AE237.8000404@ti.com> <20150320071818.GF7537@shlinux2> <550BEC7F.8050303@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37235 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321AbbCTJtR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 05:49:17 -0400
-In-Reply-To: <20150320063249.GE7537@shlinux2>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <550BEC7F.8050303@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Chen <peter.chen@freescale.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, balbi@ti.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Li Jun <b47624@freescale.com>, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On 20/03/15 08:32, Peter Chen wrote:
-> On Thu, Mar 19, 2015 at 01:38:32PM +0200, Roger Quadros wrote:
->> On 18/03/15 21:49, Alan Stern wrote:
->>> On Wed, 18 Mar 2015, Roger Quadros wrote:
->>>
->>>> To support OTG we want a mechanism to start and stop
->>>> the HCD from the OTG state machine. Add usb_start_hcd()
->>>> and usb_stop_hcd().
+On 20/03/15 11:46, Roger Quadros wrote:
+> On 20/03/15 09:18, Peter Chen wrote:
+>> On Thu, Mar 19, 2015 at 04:50:31PM +0200, Roger Quadros wrote:
+>>> On 19/03/15 16:09, Li Jun wrote:
+>>>> On Thu, Mar 19, 2015 at 12:14:39PM +0200, Roger Quadros wrote:
+>>>>> On 19/03/15 05:30, Peter Chen wrote:
+>>>>>> On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
+>>>>>>> The OTG state machine needs a mechanism to start and
+>>>>>>> stop the gadget controller. Add usb_gadget_start()
+>>>>>>> and usb_gadget_stop().
+>>>>>>>
+>>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>>>> ---
+>>>>>>>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
+>>>>>>>  include/linux/usb/gadget.h        |   3 +
+>>>>>>>  2 files changed, 158 insertions(+), 11 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
+>>>>>>> index 5a81cb0..69b4123 100644
+>>>>>>> --- a/drivers/usb/gadget/udc/udc-core.c
+>>>>>>> +++ b/drivers/usb/gadget/udc/udc-core.c
+>>>>>>> @@ -35,6 +35,8 @@
+>>>>>>>   * @dev - the child device to the actual controller
+>>>>>>>   * @gadget - the gadget. For use by the class code
+>>>>>>>   * @list - for use by the udc class driver
+>>>>>>> + * @running - udc is running
+>>>>>>
+>>>>>> Doesn't OTG FSM should know it?
+>>>>>
+>>>>> Not really, as the gadget driver might not have been loaded yet or userspace might
+>>>>> have disabled softconnect when the OTG FSM wants UDC to start.
+>>>>>
+>>>>> So only UDC knows if it has really started or not based on this flag.
+>>>>>
 >>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> why this can not be known by check the otg fsm state? i.e. if the device in
+>>>> b_peripheral or a_peripheral state, udc should had started, isn't it?
 >>>
->>> There are a few problems in this proposed patch.
+>>> If gadget function driver (which is different from UDC driver) is not yet loaded
+>>> then we can't start UDC even if otg fsm is in b_peripheral.
+>>> Also, if userspace has disabled softconnect we can't start UDC.
 >>>
->>>> +int usb_start_hcd(struct usb_hcd *hcd)
->>>> +{
->>>> +	int retval;
->>>> +	struct usb_device *rhdev = hcd->self.root_hub;
->>>> +
->>>> +	if (hcd->state != HC_STATE_HALT) {
->>>> +		dev_err(hcd->self.controller, "not starting a running HCD\n");
->>>> +		return -EINVAL;
->>>> +	}
->>>> +
->>>> +	hcd->state = HC_STATE_RUNNING;
->>>> +	retval = hcd->driver->start(hcd);
->>>> +	if (retval < 0) {
->>>> +		dev_err(hcd->self.controller, "startup error %d\n", retval);
->>>> +		hcd->state = HC_STATE_HALT;
->>>> +		return retval;
->>>> +	}
->>>> +
->>>> +	/* starting here, usbcore will pay attention to this root hub */
->>>> +	if ((retval = register_root_hub(hcd)) != 0)
->>>> +		goto err_register_root_hub;
+>>> So, b_peripheral != UDC_started.
 >>>
->>> If the host controller is started more than once, you will end up
->>> unregistering and re-registering the root hub.  The device core does
->>> not allow this.  Once a device has been unregistered, you must not try
->>> to register it again -- you have to allocate a new device and register
->>> it instead.
->>
->> Understood.
->>
+>>> I've tried to address this issue by adding the checks in usb_gadget_start().
 >>>
->>> Also, although you call the driver's ->start method multiple times, the
->>> ->reset method is called only once, when the controller is first 
->>> probed.  It's not clear that this will work in a situation where the HC 
->>> and the UDC share hardware state; after the UDC is stopped it may be 
->>> necessary to reset the HC before it can run again.
 >>
->> Yes, good point.
->>>
->>> It might be possible to make this work, but I suspect quite a few 
->>> drivers would need rewriting first.  As another example of the problems 
->>> you face, consider how stopping a host controller will interact with 
->>> the driver's PM support (both system suspend and runtime suspend).
->>
->> Right. This needs more work than I thought.
->>>
->>> It would be a lot simpler to unbind the host controller driver
->>> completely when switching to device mode and rebind it when switching
->>> back.  I guess that is the sort of heavy-duty approach you want to
->>> avoid, but it may be the only practical way forward.
->>
->> So you mean directly calling usb_add/remove_hcd() from the OTG core?
->> I don't see any issues with that other than it being a heavy-duty operation
->> like you said and hope that it doesn't violate the OTG spec timing.
->>
->> Looking at Figure 5-3: "HNP Sequence of Events (FS)" of the OTG 2.0 spec
->> we have about 150ms (X10) to switch from B-Device detected A connect (b_wait_acon state)
->> to driving bus reset (b_host state). I don't think this should be an issue in modern SoCs
->> but I'm not very sure.
->>
+>> Ok, maybe we have different understanding for 'B-Device' at software,
+>> In spec, it says the Micro-AB receptacle with nothing connected can be
+>> 'B-Device', but in fact, we may not enable device mode before loading
+>> gadget driver, in chipidea fsm design, if the gadget driver is not
+>> loaded, the FSM will not start, and it is at OTG_STATE_UNDEFINED.
 > 
-> It is not related toadd/remove hcd, it is the time from receiving PCD
-> to issue BUS_RESET, the Linux stack can't satisfy OTG spec (150ms) due
-> to there are some de-bounce waitings.
+> Right. I mixed up into thinking that we should respect the softconnect
+> while in OTG mode. It seems that we should ignore it.
+> 
+>>
+>> One more thing is we may need to find a place to issue SRP when we
+>> load gadget driver, since we may at b_idle  at that time due to host
+>> closes the vbus (timeout for a_wait_bcon).
+> 
+> Issuing SRP should be done by the otg-fsm and not udc-core.
+> The udc-core can at the least call usb_otg_kick_fsm() after setting the gadget
+> driver so that otg-fsm knows that we now have a valid gadget and can take
+> necessary action. i.e. change from b_idle to b_srp_init and then to b_peripheral.
 
-OK.
+To clarify further. Is it right to assume that OTG FSM will not be started till
+both gadget UDC driver _AND_ gadget function driver are loaded?
 
-> 
->> In any case I can migrate to the add/remove hcd approach to simplify things.
->>
-> 
-> It should be no problem, we use it more than 1 years.
-> 
+And it will be stopped when either of them unloads.
 
-Good to know this.
+This simplifies things a lot.
 
 cheers,
 -roger
+
+> 
+>>
+>> What is the "softconnect" used for? In otg fsm, we use b_bus_req for FSM.
+>>
+> I understand now that we shouldn't bother with softconnect when we are in OTG fsm mode.
+> That solves our problem with the running flags.
+> 
+> So now, b_peripheral == UDC_started.
+> 
+> I will address this in v2.
+> 
+> cheers,
+> -roger
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
