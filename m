@@ -1,65 +1,60 @@
 From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Subject: Re: [PATCH 5/8] gpio: omap: convert gpio irq functions to use GPIO
- offset
-Date: Fri, 20 Mar 2015 17:06:02 +0200
-Message-ID: <550C375A.5040802@linaro.org>
-References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org> <1426785944-17255-6-git-send-email-grygorii.strashko@linaro.org> <20150319230334.GQ31346@atomide.com>
+Subject: Re: [PATCH 0/8] gpio: omap: cleanup: get rid of system GPIO <-> GPIO
+ offset converseations
+Date: Fri, 20 Mar 2015 17:11:23 +0200
+Message-ID: <550C389B.2020506@linaro.org>
+References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org> <20150319230025.GO31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150319230334.GQ31346@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:35148 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252AbbCTPLc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 11:11:32 -0400
+Received: by lbcgn8 with SMTP id gn8so77439733lbc.2
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2015 08:11:31 -0700 (PDT)
+In-Reply-To: <20150319230025.GO31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On 03/20/2015 01:03 AM, Tony Lindgren wrote:
-> * grygorii.strashko@linaro.org <grygorii.strashko@linaro.org> [150319=
- 10:26]:
+On 03/20/2015 01:00 AM, Tony Lindgren wrote:
+> * grygorii.strashko@linaro.org <grygorii.strashko@linaro.org> [150319 10:26]:
 >> From: Grygorii Strashko <grygorii.strashko@linaro.org>
 >>
->> Convert GPIO IRQ functions to use GPIO offset instead of system
->> GPIO numbers. This allows to drop unneeded conversations between
->> system GPIO <-> GPIO offset which are done in many places and
->> many times.
->> It is safe to do now because:
+>> Now in TI OMAP GPIO driver there are a lot of places where
+>> System GPIO number calculated and then converted to GPIO offset.
+>> What is worse is that in many place such conversation performed twice
+>> or even three times. But actually, we don't need to do that at all, because
 >> - gpiolib always passes GPIO offset to GPIO controller
 >> - OMAP GPIO driver converted to use IRQ domain, so
 >>    struct irq_data->hwirq contains GPIO offset
 >>
->> This is preparation step before removing:
+>> Hence, it is safe to convert all GPIO OMAP functions to use GPIO
+>> offset instead of system GPIO numbers. Also, this allows to remove
+>> unneeded conversations routines
 >>   #define GPIO_INDEX(bank, gpio)
 >>   #define GPIO_BIT(bank, gpio)
 >>   int omap_irq_to_gpio()
-> ...
->
->>   static void omap_gpio_unmask_irq(struct irq_data *d)
->>   {
->>   	struct gpio_bank *bank =3D omap_irq_data_get_bank(d);
->> -	unsigned int gpio =3D omap_irq_to_gpio(bank, d->hwirq);
->> +	unsigned offset =3D d->hwirq;
->>   	unsigned int irq_mask =3D GPIO_BIT(bank, gpio);
->>   	u32 trigger =3D irqd_get_trigger_type(d);
->>   	unsigned long flags;
->
-> This series up to this patch produces a build error that
-> would break git bisect:
->
-> drivers/gpio/gpio-omap.c: In function =E2=80=98omap_gpio_unmask_irq=E2=
-=80=99:
-> drivers/gpio/gpio-omap.c:866:37: error: =E2=80=98gpio=E2=80=99 undecl=
-ared (first use in this function)
->    unsigned int irq_mask =3D GPIO_BIT(bank, gpio);
+> 
+> Right on! This is excellent news. I've tested this set on top of -rc4
+> plus the patch mentioned below, and I'm not seeing regressions on
+> the platforms I tested with. Wake up to smsc911x ping with off-idle
+> still works on omap3.
+> 
+> I only briefly tested on omap1 (osk5912), so I'like to wait for
+> Aaro's ack before this gets merged.
+> 
+> I found one build error, other than that, for the whole series
+> please feel free to add:
+> 
+> Tested-by: Tony Lindgren <tony@atomide.com>
 
-Oh. Thanks for catching that :) - splitting/rebasing issue.
+Thanks Tony. 
+Yep. I'll wait for news from Aaro then will re-send if ok.
 
---=20
+-- 
 regards,
 -grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
