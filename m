@@ -1,287 +1,222 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 30/35] ARM: dts: omap4: add system control module node
-Date: Fri, 20 Mar 2015 08:40:09 +0200
-Message-ID: <550BC0C9.4030305@ti.com>
-References: <1426689860-17537-1-git-send-email-t-kristo@ti.com> <1426689860-17537-31-git-send-email-t-kristo@ti.com> <20150318213000.GX31346@atomide.com> <20150319202533.GL31346@atomide.com>
+Subject: Re: [PATCHv3 08/35] clk: ti: fix ti_clk_get_reg_addr error handling
+Date: Fri, 20 Mar 2015 09:00:46 +0200
+Message-ID: <550BC59E.9010408@ti.com>
+References: <1424891085-10392-1-git-send-email-t-kristo@ti.com> <1424891085-10392-9-git-send-email-t-kristo@ti.com> <20150306191821.11109.2610@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57104 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59592 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750905AbbCTGke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 02:40:34 -0400
-In-Reply-To: <20150319202533.GL31346@atomide.com>
+	id S1750951AbbCTHBO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 03:01:14 -0400
+In-Reply-To: <20150306191821.11109.2610@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>, tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 03/19/2015 10:25 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150318 14:35]:
->> * Tero Kristo <t-kristo@ti.com> [150318 07:45]:
->>> --- a/arch/arm/boot/dts/omap4.dtsi
->>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>> @@ -167,36 +167,65 @@
->>> +		scm: scm@4a002000 {
->>> +			compatible = "ti,omap4-ctrl", "simple-bus";
->>> +			reg = <0x4a002000 0x1000>,
->>> +			      <0x4a100000 0x1000>;
->>> +			#address-cells = <2>;
->>> +			#size-cells = <1>;
->>> +			ranges = <0 0 0x4a002000 0x1000>,
->>> +				 <1 0 0x4a100000 0x1000>;
+On 03/06/2015 09:18 PM, Mike Turquette wrote:
+> Quoting Tero Kristo (2015-02-25 11:04:18)
+>> There is a case where NULL can be a valid return value for
+>> ti_clk_get_reg_addr, specifically the case where both the provider index
+>> and register offsets are zero. In this case, the current error checking
+>> against a NULL pointer will fail. Thus, change the API to return a
+>> ERR_PTR value in an error case, and change all the users of this API to
+>> check against IS_ERR instead.
 >>
->> Oops I still have a bit of an issue with this, sorry I should have
->> been more clear last time.
->>
->> Now it's hard to figure out which children belong to l4_cfg and which
->> ones to l4_wkup. I suggest we set them up as completely separate blocks
->> as that's what they are.
->>
->> Below is an example of what I think things should look like for omap4,
->> maybe take a look at that and see if that makes sense for you?
->>
->> It may need to be patched in separate parts to keep the patches readable
->> though :)
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Cc: Michael Turquette <mturquette@linaro.org>
 >
-> The example I posted has some l4_cfg vs SCM confusion as pointed out by
-> Tero while we chatted about it. Also l4_wkup is a child of l4_cfg on
-> omap4, while on omap5 they are separate.
->
-> Below are some examples of what we came up with that now follows omap4460
-> TRM "Figure 2-1. Interconnect Overview" and "Table 2-3. L4_CFG Memory
-> Space Mapping". Also an example for omap3 is included.
->
-> Tero, maybe just do the minimal changes for now as we don't need to move
-> all of it at once?
+> Looks good to me.
 
-Yes, I will be looking at this today.
+I'll interpret this as an Acked-by, will add this tag to the latest 
+version of the set I will post later today, thanks.
 
 -Tero
 
 >
 > Regards,
+> Mike
 >
-> Tony
->
->
-> Example for omap4.dtsi, which ocp being the l3 interconnect:
->
-> 	ocp {
-> 		compatible = "ti,omap4-l3-noc", "simple-bus";
-> 		#address-cells = <1>;
-> 		#size-cells = <1>;
-> 		ranges;
-> 		ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
-> 		reg = <0x44000000 0x1000>,
-> 		      <0x44800000 0x2000>,
-> 		      <0x45000000 0x1000>;
-> 		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
-> 			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
->
-> 		l4_cfg: l4@4a000000 {
-> 			compatible = "ti,omap4-l4-cfg", "simple-bus";
-> 			#address-cells = <1>;
-> 			#size-cells = <1>;
-> 			ranges = <0 0x4a000000 0x1000000>;
->
-> 			cm1: cm1@4000 {
-> 				compatible = "ti,omap4-cm1";
-> 				reg = <0x4000 0x2000>;
->
-> 				cm1_clocks: clocks {
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 				};
->
-> 				cm1_clockdomains: clockdomains {
-> 				};
-> 			};
->
-> 			cm2: cm2@8000 {
-> 				compatible = "ti,omap4-cm2";
-> 				reg = <0x8000 0x3000>;
->
-> 				cm2_clocks: clocks {
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 				};
->
-> 				cm2_clockdomains: clockdomains {
-> 				};
-> 			};
->
-> 			omap4_scm_core: scm@100000 {
-> 				compatible = "ti,omap4-scm-core", "simple-bus";
-> 				#address-cells = <1>;
-> 				#size-cells = <1>;
-> 				ranges = <0 0x100000 0x1000>;
->
-> 				omap4_pmx_core: pinmux@40 {
-> 					compatible = "ti,omap4-padconf", "pinctrl-single";
-> 					reg = <0x40 0x0196>;
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 					#interrupt-cells = <1>;
-> 					interrupt-controller;
-> 					pinctrl-single,register-width = <16>;
-> 					pinctrl-single,function-mask = <0x7fff>;
-> 				};
->
-> 				omap4_padconf_global: tisyscon@5a0 {
-> 					compatible = "syscon";
-> 					reg = <0x5a0 0x170>;
-> 					#address-cells = <1>;
-> 					#size-cells = <1>;
->
-> 					pbias_regulator: pbias_regulator {
-> 						compatible = "ti,pbias-omap";
-> 						reg = <0x60 0x4>;
-> 						syscon = <&omap4_padconf_global>;
-> 						pbias_mmc_reg: pbias_mmc_omap4 {
-> 							regulator-name = "pbias_mmc_omap4";
-> 							regulator-min-microvolt = <1800000>;
-> 							regulator-max-microvolt = <3000000>;
-> 						};
-> 					};
-> 				};
-> 			};
->
-> 			l4_wkup: l4@300000 {
-> 				compatible = "ti,omap4-l4-wkup", "simple-bus";
-> 				#address-cells = <1>;
-> 				#size-cells = <1>;
-> 				ranges = <0 0x300000 0x40000>;
->
-> 				counter32k: counter@4000 {
-> 					compatible = "ti,omap-counter32k";
-> 					reg = <0x4000 0x20>;
-> 					ti,hwmods = "counter_32k";
-> 				};
->
-> 				prm: prm@6000 {
-> 					compatible = "ti,omap4-prm";
-> 					reg = <0x6000 0x3000>;
-> 					interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
->
-> 					prm_clocks: clocks {
-> 						#address-cells = <1>;
-> 						#size-cells = <0>;
-> 					};
->
-> 					prm_clockdomains: clockdomains {
-> 					};
-> 				};
->
-> 				scrm: scrm@a000 {
-> 					compatible = "ti,omap4-scrm";
-> 					reg = <0xa000 0x2000>;
-> 					#address-cells = <1>;
-> 					#size-cells = <1>;
-> 					ranges = <0 0xa000 0x2000>;
->
-> 					scrm_clocks: clocks {
-> 						#address-cells = <1>;
-> 						#size-cells = <0>;
-> 					};
->
-> 					scrm_clockdomains: clockdomains {
-> 					};
-> 				};
->
-> 				omap4_pmx_wkup: pinmux@1e040 {
-> 					compatible = "ti,omap4-padconf", "pinctrl-single";
-> 					reg = <0x1e040 0x0038>;
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 					#interrupt-cells = <1>;
-> 					interrupt-controller;
-> 					pinctrl-single,register-width = <16>;
-> 					pinctrl-single,function-mask = <0x7fff>;
-> 				};
-> 			};
-> 		};
-> 	...
-> 	};
->
->
-> Example for omap3.dtsi with ocp being the l3 interconnect:
->
-> 	ocp {
-> 		compatible = "ti,omap3-l3-smx", "simple-bus";
-> 		reg = <0x68000000 0x10000>;
-> 		interrupts = <9 10>;
-> 		#address-cells = <1>;
-> 		#size-cells = <1>;
-> 		ranges;
-> 		ti,hwmods = "l3_main";
->
-> 		...
->
-> 		l4_core: l4@48000000 {
-> 			compatible = "ti,omap3-l4-core", "simple-bus";
-> 			#address-cells = <1>;
-> 			#size-cells = <1>;
-> 			ranges = <0 0x48000000 0x1000000>;
->
-> 			scrm: scrm@48002000 {
-> 				compatible = "ti,omap3-scrm", "simple-bus";
-> 				reg = <0x2000 0x2000>;
-> 				#address-cells = <1>;
-> 				#size-cells = <1>;
-> 				ranges = <0 0x2000 0x2000>;
->
-> 				omap3_pmx_core: pinmux@30 {
-> 					compatible = "ti,omap3-padconf", "pinctrl-single";
-> 					reg = <0x30 0x0238>;
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 					#interrupt-cells = <1>;
-> 					interrupt-controller;
-> 					pinctrl-single,register-width = <16>;
-> 					pinctrl-single,function-mask = <0xff1f>;
-> 				};
->
-> 				scm_conf: tisyscon@270 {
-> 					compatible = "syscon";
-> 					reg = <0x270 0x2f0>;
-> 					#address-cells = <1>;
-> 					#size-cells = <1>;
->
-> 					pbias_regulator: pbias_regulator {
-> 						compatible = "ti,pbias-omap";
-> 						reg = <0x2b0 0x4>;
-> 						syscon = <&scm_conf>;
-> 						pbias_mmc_reg: pbias_mmc_omap2430 {
-> 							regulator-name = "pbias_mmc_omap2430";
-> 							regulator-min-microvolt = <1800000>;
-> 							regulator-max-microvolt = <3000000>;
-> 						};
-> 					};
-> 				};
->
-> 				omap3_pmx_wkup: pinmux@a00 {
-> 					compatible = "ti,omap3-padconf", "pinctrl-single";
-> 					reg = <0xa00 0x5c>;
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 					#interrupt-cells = <1>;
-> 					interrupt-controller;
-> 					pinctrl-single,register-width = <16>;
-> 					pinctrl-single,function-mask = <0xff1f>;
-> 				};
->
-> 				scrm_clocks: clocks {
-> 					#address-cells = <1>;
-> 					#size-cells = <0>;
-> 				};
->
-> 				scrm_clockdomains: clockdomains {
-> 				};
-> 			};
-> 		};
-> 		...
-> 	};
->
+>> ---
+>>   drivers/clk/ti/apll.c      |    5 +++--
+>>   drivers/clk/ti/autoidle.c  |    2 +-
+>>   drivers/clk/ti/clk.c       |    7 ++++---
+>>   drivers/clk/ti/divider.c   |    4 ++--
+>>   drivers/clk/ti/dpll.c      |    6 +++---
+>>   drivers/clk/ti/gate.c      |    4 ++--
+>>   drivers/clk/ti/interface.c |    2 +-
+>>   drivers/clk/ti/mux.c       |    4 ++--
+>>   8 files changed, 18 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+>> index 72d9727..49baf38 100644
+>> --- a/drivers/clk/ti/apll.c
+>> +++ b/drivers/clk/ti/apll.c
+>> @@ -203,7 +203,7 @@ static void __init of_dra7_apll_setup(struct device_node *node)
+>>          ad->control_reg = ti_clk_get_reg_addr(node, 0);
+>>          ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
+>>
+>> -       if (!ad->control_reg || !ad->idlest_reg)
+>> +       if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
+>>                  goto cleanup;
+>>
+>>          ad->idlest_mask = 0x1;
+>> @@ -384,7 +384,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
+>>          ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
+>>          ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
+>>
+>> -       if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
+>> +       if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
+>> +           IS_ERR(ad->idlest_reg))
+>>                  goto cleanup;
+>>
+>>          clk = clk_register(NULL, &clk_hw->hw);
+>> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+>> index 8912ff8..e75c64c 100644
+>> --- a/drivers/clk/ti/autoidle.c
+>> +++ b/drivers/clk/ti/autoidle.c
+>> @@ -119,7 +119,7 @@ int __init of_ti_clk_autoidle_setup(struct device_node *node)
+>>          clk->name = node->name;
+>>          clk->reg = ti_clk_get_reg_addr(node, 0);
+>>
+>> -       if (!clk->reg) {
+>> +       if (IS_ERR(clk->reg)) {
+>>                  kfree(clk);
+>>                  return -EINVAL;
+>>          }
+>> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+>> index e22b956..0ebe5c5 100644
+>> --- a/drivers/clk/ti/clk.c
+>> +++ b/drivers/clk/ti/clk.c
+>> @@ -103,7 +103,8 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+>>    * @index: register index from the clock node
+>>    *
+>>    * Builds clock register address from device tree information. This
+>> - * is a struct of type clk_omap_reg.
+>> + * is a struct of type clk_omap_reg. Returns a pointer to the register
+>> + * address, or a pointer error value in failure.
+>>    */
+>>   void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
+>>   {
+>> @@ -121,14 +122,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
+>>
+>>          if (i == CLK_MAX_MEMMAPS) {
+>>                  pr_err("clk-provider not found for %s!\n", node->name);
+>> -               return NULL;
+>> +               return ERR_PTR(-ENOENT);
+>>          }
+>>
+>>          reg->index = i;
+>>
+>>          if (of_property_read_u32_index(node, "reg", index, &val)) {
+>>                  pr_err("%s must have reg[%d]!\n", node->name, index);
+>> -               return NULL;
+>> +               return ERR_PTR(-EINVAL);
+>>          }
+>>
+>>          reg->offset = val;
+>> diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+>> index 6211893..ff5f117 100644
+>> --- a/drivers/clk/ti/divider.c
+>> +++ b/drivers/clk/ti/divider.c
+>> @@ -530,8 +530,8 @@ static int __init ti_clk_divider_populate(struct device_node *node,
+>>          u32 val;
+>>
+>>          *reg = ti_clk_get_reg_addr(node, 0);
+>> -       if (!*reg)
+>> -               return -EINVAL;
+>> +       if (IS_ERR(*reg))
+>> +               return PTR_ERR(*reg);
+>>
+>>          if (!of_property_read_u32(node, "ti,bit-shift", &val))
+>>                  *shift = val;
+>> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+>> index 81dc469..11478a5 100644
+>> --- a/drivers/clk/ti/dpll.c
+>> +++ b/drivers/clk/ti/dpll.c
+>> @@ -390,18 +390,18 @@ static void __init of_ti_dpll_setup(struct device_node *node,
+>>   #endif
+>>          } else {
+>>                  dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
+>> -               if (!dd->idlest_reg)
+>> +               if (IS_ERR(dd->idlest_reg))
+>>                          goto cleanup;
+>>
+>>                  dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
+>>          }
+>>
+>> -       if (!dd->control_reg || !dd->mult_div1_reg)
+>> +       if (IS_ERR(dd->control_reg) || IS_ERR(dd->mult_div1_reg))
+>>                  goto cleanup;
+>>
+>>          if (dd->autoidle_mask) {
+>>                  dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
+>> -               if (!dd->autoidle_reg)
+>> +               if (IS_ERR(dd->autoidle_reg))
+>>                          goto cleanup;
+>>          }
+>>
+>> diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
+>> index d493307..0c6fdfc 100644
+>> --- a/drivers/clk/ti/gate.c
+>> +++ b/drivers/clk/ti/gate.c
+>> @@ -225,7 +225,7 @@ static void __init _of_ti_gate_clk_setup(struct device_node *node,
+>>
+>>          if (ops != &omap_gate_clkdm_clk_ops) {
+>>                  reg = ti_clk_get_reg_addr(node, 0);
+>> -               if (!reg)
+>> +               if (IS_ERR(reg))
+>>                          return;
+>>
+>>                  if (!of_property_read_u32(node, "ti,bit-shift", &val))
+>> @@ -264,7 +264,7 @@ _of_ti_composite_gate_clk_setup(struct device_node *node,
+>>                  return;
+>>
+>>          gate->enable_reg = ti_clk_get_reg_addr(node, 0);
+>> -       if (!gate->enable_reg)
+>> +       if (IS_ERR(gate->enable_reg))
+>>                  goto cleanup;
+>>
+>>          of_property_read_u32(node, "ti,bit-shift", &val);
+>> diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
+>> index 265d91f..c76230d 100644
+>> --- a/drivers/clk/ti/interface.c
+>> +++ b/drivers/clk/ti/interface.c
+>> @@ -111,7 +111,7 @@ static void __init _of_ti_interface_clk_setup(struct device_node *node,
+>>          u32 val;
+>>
+>>          reg = ti_clk_get_reg_addr(node, 0);
+>> -       if (!reg)
+>> +       if (IS_ERR(reg))
+>>                  return;
+>>
+>>          if (!of_property_read_u32(node, "ti,bit-shift", &val))
+>> diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+>> index 728e253..5cdeed5 100644
+>> --- a/drivers/clk/ti/mux.c
+>> +++ b/drivers/clk/ti/mux.c
+>> @@ -210,7 +210,7 @@ static void of_mux_clk_setup(struct device_node *node)
+>>
+>>          reg = ti_clk_get_reg_addr(node, 0);
+>>
+>> -       if (!reg)
+>> +       if (IS_ERR(reg))
+>>                  goto cleanup;
+>>
+>>          of_property_read_u32(node, "ti,bit-shift", &shift);
+>> @@ -283,7 +283,7 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
+>>
+>>          mux->reg = ti_clk_get_reg_addr(node, 0);
+>>
+>> -       if (!mux->reg)
+>> +       if (IS_ERR(mux->reg))
+>>                  goto cleanup;
+>>
+>>          if (!of_property_read_u32(node, "ti,bit-shift", &val))
+>> --
+>> 1.7.9.5
+>>
 
