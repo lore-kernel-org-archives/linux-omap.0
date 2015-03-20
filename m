@@ -1,82 +1,68 @@
-From: Nikolay Dimitrov <picmaster@mail.bg>
-Subject: Re: [alsa-devel] Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Fri, 20 Mar 2015 17:51:52 +0200
-Message-ID: <550C4218.80901@mail.bg>
-References: <1426741659.10003.9.camel@midgaarde>	<550AC783.8040304@ti.com> <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com> <550AF442.5040203@ti.com> <550B1017.2000405@mail.bg> <550BD4D1.5080604@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
+Date: Fri, 20 Mar 2015 09:21:38 -0700
+Message-ID: <20150320162138.GU31346@atomide.com>
+References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
+ <1426696710-6891-6-git-send-email-eliad@wizery.com>
+ <550AD7C1.2030405@gmail.com>
+ <CAB3XZEfpD7YkwdU7OJJaNFy=MnYVY3-fOVxkA48Vu01LzU0GFg@mail.gmail.com>
+ <20150319212505.GN31346@atomide.com>
+ <87h9tgi4sg.fsf@kamboji.qca.qualcomm.com>
+ <20150320153357.GT31346@atomide.com>
+ <87bnjnfz1t.fsf@kamboji.qca.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.mail.bg ([193.201.172.118]:37685 "EHLO mx2.mail.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbbCTPv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 11:51:56 -0400
-In-Reply-To: <550BD4D1.5080604@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87bnjnfz1t.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Greg Knight <g.knight@symetrica.com>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Peter,
+* Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> [150320 08:51]:
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> 
+> > * Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> [150319 23:04]:
+> >> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> >> 
+> >> >> > Tested OK (boot, scan, join, ping) on Pandaboard ES.
+> >> >> >
+> >> >> thanks for testing it!
+> >> >
+> >> > Great. As suggested by Kalle, I'll apply all these into
+> >> > omap-for-v4.1/wl12xx branch and send a pull request for
+> >> > the arm-soc probably on Friday if no issues are found.
+> >> 
+> >> Great, thank you. Just in case you want this:
+> >> 
+> >> Acked-by: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> >
+> > Thanks, I can push out a new branch omap-for-v4.1/wl12xx-v2
+> > with your acks assuming you or somebody else have not
+> > merged the existing omap-for-v4.1/wl12xx branch yet into the
+> > wireless tree?
+> >
+> > In that case I can scrap omap-for-v4.1/wl12xx and then will
+> > reply with a commit that we can consider immutable that can
+> > be merged into various trees as needed in case of merge
+> > conflicts.
+> >
+> > But I'll wait for your confirmation first :)
+> 
+> After John "retired" we actually have two set of trees now: mac80211
+> maintained by Johannes and wireless-drivers maintained by me. I haven't
+> pulled anything from your tree and I'm 100% sure Johannes hasn't either.
+> So green light from me.
 
-On 03/20/2015 10:05 AM, Peter Ujfalusi wrote:
-> On 03/19/2015 08:06 PM, Nikolay Dimitrov wrote:
->> Slight clarification here - I can't find any such reference in the
->> SGTL5000 datasheet where it's explicitly written that the I2C bus
->> *requires* the MCLK running. Unfortunately, all of us found this
->> obscure dependency empirically.
->
-> It is not spelled out as such, but in:
-> http://cache.freescale.com/files/analog/doc/data_sheet/SGTL5000.pdf?pspll=1
-> bottom of page9 (note 1) and the power up sequence in page10. See also page13,
-> RESET section.
->
->>> If you change audio controls while you don't have audio activity, you will
->>> still need to have the MCLK running.
->>
->> Correct. And this is a big issue. As far as I know, the kernel drivers
->> control separately the clock domains, and separately i2c devices, so
->> the basic expectation on the kernel side is that there's no connection
->> between these 2. In this specific case, because of the SGTL5000's
->> implementation, there's a dependency. Right now as I see it, there are
->> several ways to resolve it:
->>
->> 1. Run the reference clock all the time, so the SGTL5000 codec is
->> happy, and DAPM widgets can work as-is. We've been doing this all the
->> time - the reference clocks are routinely configured either in the
->> bootloader, or in the DTS iomuxc node. While this can work in some
->> cases (or until someone touches the same clock or one of its parents
->> :D), there are other cases (like battery-powered devices) where people
->> would want more aggressive power management, which means controlling
->> the reference clock at runtime (see #2).
->
-> Note the the codec driver will enable the clock and will not let it to be
-> turned off. You need to work on the codec driver to sort this out.
->
->> 2. Add "hacks" in the DAPM widgets that add control to the codec's
->> reference clocks. While this seems the preferred route to many, the
->> general feeling is that such approach is not very welcome in upstream.
->
-> SND_SOC_DAPM_CLOCK_SUPPLY()
->
->> 3. Add explicit support in the kernel's audio subsystem for
->> dependencies between i2c devices and clocks, maybe via "DAPM clock
->> widget" or something like this. Provided that the DAPM graphs are
->> defined properly, this will work out-of-the-box for all use cases,
->> without the hacks (until we see even more twisted cases).
->
-> This can be handled within the codec driver with some changes. If you have
-> external clock which can be enabled/diabled with a GPIO, then you can use
-> that. We already have binding for this type of external clocks (in
-> linux-next): look for "gpio-gate-clock"
-> You define your external GPIO controlled clock with this binding and use the
-> phandle in the codec driver.
-> Change the codec driver to enable/disable the clock when needed.
-> When you do not have audio activity, set the regmap to cache only so any
-> change in the controls will not reach the HW. When you power up next time the
-> regmap will sync the changes to the chip, so you will have the changes commited.
+OK, I'll set up the new branch then. I take your ack is for the
+whole series? If it's just for the $subject patch, please let
+me know.
 
-Thanks a lot for your detailed explanation!
+Regards,
 
-Kind regards,
-Nikolay
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
