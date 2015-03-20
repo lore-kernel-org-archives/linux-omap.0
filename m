@@ -1,152 +1,84 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 32/35] ARM: OMAP4+: control: remove support for legacy pad read/write
-Date: Fri, 20 Mar 2015 20:44:43 +0200
-Message-ID: <1426877086-17131-33-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 31/35] ARM: OMAP4: display: convert display to use syscon for dsi muxing
+Date: Fri, 20 Mar 2015 20:44:42 +0200
+Message-ID: <1426877086-17131-32-git-send-email-t-kristo@ti.com>
 References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56466 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751819AbbCTSqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 14:46:36 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:56930 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751784AbbCTSqg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 14:46:36 -0400
 In-Reply-To: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-omap4_ctrl_pad_readl/writel are no longer used by anybody, so remove
-these. Syscon / pinctrl should be used to access the padconf area
-instead.
+The legacy control module APIs will be gone, thus convert the display
+driver to use syscon. This change should eventually be moved to
+display driver from the board directory.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/control.c |   24 +-----------------------
- arch/arm/mach-omap2/control.h |    5 +----
- arch/arm/mach-omap2/io.c      |   11 ++++-------
- 3 files changed, 6 insertions(+), 34 deletions(-)
+ arch/arm/mach-omap2/display.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index c673854..5c16953 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -36,7 +36,6 @@
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 7a050f9..f492ae1 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -26,6 +26,8 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/slab.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
  
- static void __iomem *omap2_ctrl_base;
- static s16 omap2_ctrl_offset;
--static void __iomem *omap4_ctrl_pad_base;
- static struct regmap *omap2_ctrl_syscon;
+ #include <video/omapdss.h>
+ #include "omap_hwmod.h"
+@@ -104,6 +106,10 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initconst = {
+ 	{ "dss_hdmi", "omapdss_hdmi", -1 },
+ };
  
- #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
-@@ -139,13 +138,9 @@ struct omap3_control_regs {
- static struct omap3_control_regs control_context;
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
- 
--#define OMAP4_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
--
--void __init omap2_set_globals_control(void __iomem *ctrl,
--				      void __iomem *ctrl_pad)
-+void __init omap2_set_globals_control(void __iomem *ctrl)
++#define OMAP4_DSIPHY_SYSCON_OFFSET		0x78
++
++static struct regmap *omap4_dsi_mux_syscon;
++
+ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
  {
- 	omap2_ctrl_base = ctrl;
--	omap4_ctrl_pad_base = ctrl_pad;
+ 	u32 enable_mask, enable_shift;
+@@ -124,7 +130,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 		return -ENODEV;
+ 	}
+ 
+-	reg = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
++	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
+ 
+ 	reg &= ~enable_mask;
+ 	reg &= ~pipd_mask;
+@@ -132,7 +138,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 	reg |= (lanes << enable_shift) & enable_mask;
+ 	reg |= (lanes << pipd_shift) & pipd_mask;
+ 
+-	omap4_ctrl_pad_writel(reg, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
++	regmap_write(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, reg);
+ 
+ 	return 0;
  }
+@@ -665,5 +671,10 @@ int __init omapdss_init_of(void)
+ 		return r;
+ 	}
  
- u8 omap_ctrl_readb(u16 offset)
-@@ -218,23 +213,6 @@ void omap_ctrl_writel(u32 val, u16 offset)
- 			     val);
++	/* add DSI info for omap4 */
++	node = of_find_node_by_name(NULL, "omap4_padconf_global");
++	if (node)
++		omap4_dsi_mux_syscon = syscon_node_to_regmap(node);
++
+ 	return 0;
  }
- 
--/*
-- * On OMAP4 control pad are not addressable from control
-- * core base. So the common omap_ctrl_read/write APIs breaks
-- * Hence export separate APIs to manage the omap4 pad control
-- * registers. This APIs will work only for OMAP4
-- */
--
--u32 omap4_ctrl_pad_readl(u16 offset)
--{
--	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
--}
--
--void omap4_ctrl_pad_writel(u32 val, u16 offset)
--{
--	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
--}
--
- #ifdef CONFIG_ARCH_OMAP3
- 
- /**
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 5353ff4..80d2b7d 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -443,11 +443,9 @@
- extern u8 omap_ctrl_readb(u16 offset);
- extern u16 omap_ctrl_readw(u16 offset);
- extern u32 omap_ctrl_readl(u16 offset);
--extern u32 omap4_ctrl_pad_readl(u16 offset);
- extern void omap_ctrl_writeb(u8 val, u16 offset);
- extern void omap_ctrl_writew(u16 val, u16 offset);
- extern void omap_ctrl_writel(u32 val, u16 offset);
--extern void omap4_ctrl_pad_writel(u32 val, u16 offset);
- 
- extern void omap3_save_scratchpad_contents(void);
- extern void omap3_clear_scratchpad_contents(void);
-@@ -465,8 +463,7 @@ extern int omap3_ctrl_save_padconf(void);
- void omap3_ctrl_init(void);
- int omap2_control_base_init(void);
- int omap_control_init(void);
--extern void omap2_set_globals_control(void __iomem *ctrl,
--				      void __iomem *ctrl_pad);
-+void omap2_set_globals_control(void __iomem *ctrl);
- void __init omap3_control_legacy_iomap_init(void);
- #else
- #define omap_ctrl_readb(x)		0
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index c3fa739..6c39cc0 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -443,7 +443,7 @@ void __init omap3_init_early(void)
- 	/* XXX: remove these once OMAP3 is DT only */
- 	if (!of_have_populated_dt()) {
- 		omap2_set_globals_control(
--			OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE), NULL);
-+			OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE));
- 		omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE));
- 		omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
- 				     NULL);
-@@ -631,8 +631,7 @@ void __init omap4430_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP443X_CLASS,
- 			      OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
--				  OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
- 	omap4xxx_check_revision();
- 	omap4xxx_check_features();
-@@ -660,8 +659,7 @@ void __init omap5_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP54XX_CLASS,
- 			      OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
--				  OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
- 	omap2_prcm_base_init();
-@@ -686,8 +684,7 @@ void __init omap5_init_late(void)
- void __init dra7xx_init_early(void)
- {
- 	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
--	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
--				  OMAP2_L4_IO_ADDRESS(DRA7XX_CTRL_BASE));
-+	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
- 	omap2_prcm_base_init();
 -- 
 1.7.9.5
 
