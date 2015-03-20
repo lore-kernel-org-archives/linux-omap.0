@@ -1,56 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
-Date: Fri, 20 Mar 2015 14:58:33 +0200
-Message-ID: <550C1979.5030208@ti.com>
-References: <1426741501.10003.6.camel@midgaarde>	<550AC256.4070509@ti.com>	 <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>	 <550AF7F6.7080200@ti.com> <1426786080.13824.23.camel@symus-gk-mint>
+Date: Fri, 20 Mar 2015 15:10:04 +0200
+Message-ID: <550C1C2C.5080204@ti.com>
+References: <1426741501.10003.6.camel@midgaarde> <550AC256.4070509@ti.com> <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com> <550AF7F6.7080200@ti.com> <1426786080.13824.23.camel@symus-gk-mint> <20150319185129.GZ2869@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426786080.13824.23.camel@symus-gk-mint>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43916 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750871AbbCTNKM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 09:10:12 -0400
+In-Reply-To: <20150319185129.GZ2869@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Greg Knight <g.knight@symetrica.com>
+Cc: linux-spi@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 03/19/2015 07:28 PM, Greg Knight wrote:
-> Changing DMA_MIN_BYTES to, say, "dma_min_time_ms" sounds reasonable t=
-o
-> me. I don't know how to compute it completely accurately as some SPI
-> implementations I've seen seem to like to inject little delays betwee=
-n
-> bytes for some reason, but a reasonable enough estimate should just b=
-e
-> spi_transfer_time_ms =3D (bits * 1000) / spi_clock_speed.
+On 03/19/2015 08:51 PM, Mark Brown wrote:
+> On Thu, Mar 19, 2015 at 01:28:00PM -0400, Greg Knight wrote:
 >=20
-> I would like to have the ability to configure it without a kernel
-> recompile, though. Would a kernel param (module_param) be acceptable =
-for
-> this application?
-
-Or sysfs interface as Mark suggested? But module_param should work as w=
-ell.
-
-> You don't happen to know the WL12xx SPI clock speed off the top of yo=
-ur
-> head, do you?
-
-In case of n900 it is 48000000 (board-rx51-peripherals.c). It is using =
-32bit
-words over SPI.
-
-Based on this and your experience I guess it is possible to come up wit=
-h a
-formula which satisfy both.
-
-> Regards,
-> Greg
+>> Changing DMA_MIN_BYTES to, say, "dma_min_time_ms" sounds reasonable =
+to
+>> me. I don't know how to compute it completely accurately as some SPI
 >=20
+> You probably need both - there's often a hard limit where the FIFO si=
+ze
+> in the hardware becomes a limit for DMA as well as a soft limit on to=
+p
+> of that for performance reasons.
 
+The FIFO is only going to be enabled when the DMA is used for transfer =
+so we
+should have some lower limit for the PIO/DMA threshold. The FIFO in McS=
+PI is a
+tricky one anyways, since it has only one FIFO but several channels and=
+ the
+=46IFO can be enabled for only one channel, if it is enabled for more c=
+hannels
+it is not going to be used by either channel.
 
 --=20
-P=C3=A9ter
+P=E9ter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
