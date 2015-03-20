@@ -1,68 +1,26 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
-Date: Fri, 20 Mar 2015 09:21:38 -0700
-Message-ID: <20150320162138.GU31346@atomide.com>
-References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
- <1426696710-6891-6-git-send-email-eliad@wizery.com>
- <550AD7C1.2030405@gmail.com>
- <CAB3XZEfpD7YkwdU7OJJaNFy=MnYVY3-fOVxkA48Vu01LzU0GFg@mail.gmail.com>
- <20150319212505.GN31346@atomide.com>
- <87h9tgi4sg.fsf@kamboji.qca.qualcomm.com>
- <20150320153357.GT31346@atomide.com>
- <87bnjnfz1t.fsf@kamboji.qca.qualcomm.com>
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH 1/8] gpio: omap: convert omap_gpio_is_input() to use gpio
+ offset
+Date: Fri, 20 Mar 2015 09:42:58 -0700
+Message-ID: <550C4E12.8070204@oracle.com>
+References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org> <1426785944-17255-2-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87bnjnfz1t.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1426785944-17255-2-git-send-email-grygorii.strashko@linaro.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: grygorii.strashko@linaro.org, Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> [150320 08:51]:
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> 
-> > * Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> [150319 23:04]:
-> >> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> >> 
-> >> >> > Tested OK (boot, scan, join, ping) on Pandaboard ES.
-> >> >> >
-> >> >> thanks for testing it!
-> >> >
-> >> > Great. As suggested by Kalle, I'll apply all these into
-> >> > omap-for-v4.1/wl12xx branch and send a pull request for
-> >> > the arm-soc probably on Friday if no issues are found.
-> >> 
-> >> Great, thank you. Just in case you want this:
-> >> 
-> >> Acked-by: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> >
-> > Thanks, I can push out a new branch omap-for-v4.1/wl12xx-v2
-> > with your acks assuming you or somebody else have not
-> > merged the existing omap-for-v4.1/wl12xx branch yet into the
-> > wireless tree?
-> >
-> > In that case I can scrap omap-for-v4.1/wl12xx and then will
-> > reply with a commit that we can consider immutable that can
-> > be merged into various trees as needed in case of merge
-> > conflicts.
-> >
-> > But I'll wait for your confirmation first :)
-> 
-> After John "retired" we actually have two set of trees now: mac80211
-> maintained by Johannes and wireless-drivers maintained by me. I haven't
-> pulled anything from your tree and I'm 100% sure Johannes hasn't either.
-> So green light from me.
+On 3/19/15 10:25 AM, grygorii.strashko@linaro.org wrote:
+> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>
+> Convert omap_gpio_is_input() to use GPIO offset instead of mask and,
+> in such way, make code simpler and remove few lines of code.
+>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+> ---
 
-OK, I'll set up the new branch then. I take your ack is for the
-whole series? If it's just for the $subject patch, please let
-me know.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
