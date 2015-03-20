@@ -1,89 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapdss: extend pm notifier to handle hibernation
-Date: Fri, 20 Mar 2015 14:20:30 +0200
-Message-ID: <550C108E.3020907@ti.com>
-References: <1424883836-9119-1-git-send-email-grygorii.strashko@linaro.org>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
+Date: Fri, 20 Mar 2015 14:58:33 +0200
+Message-ID: <550C1979.5030208@ti.com>
+References: <1426741501.10003.6.camel@midgaarde>	<550AC256.4070509@ti.com>	 <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>	 <550AF7F6.7080200@ti.com> <1426786080.13824.23.camel@symus-gk-mint>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="eQqrOXR1IJHWj8me6rAi0aok3JqKxXSjq"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53820 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751386AbbCTMUh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 08:20:37 -0400
-In-Reply-To: <1424883836-9119-1-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426786080.13824.23.camel@symus-gk-mint>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: grygorii.strashko@linaro.org
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, kishon@ti.com, linux-fbdev@vger.kernel.org
 
---eQqrOXR1IJHWj8me6rAi0aok3JqKxXSjq
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 25/02/15 19:03, grygorii.strashko@linaro.org wrote:
-> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+On 03/19/2015 07:28 PM, Greg Knight wrote:
+> Changing DMA_MIN_BYTES to, say, "dma_min_time_ms" sounds reasonable t=
+o
+> me. I don't know how to compute it completely accurately as some SPI
+> implementations I've seen seem to like to inject little delays betwee=
+n
+> bytes for some reason, but a reasonable enough estimate should just b=
+e
+> spi_transfer_time_ms =3D (bits * 1000) / spi_clock_speed.
 >=20
-> Add handling of missed events in omap_dss_pm_notif which are
-> needed to support hibernation (suspend to disk).
+> I would like to have the ability to configure it without a kernel
+> recompile, though. Would a kernel param (module_param) be acceptable =
+for
+> this application?
+
+Or sysfs interface as Mark suggested? But module_param should work as w=
+ell.
+
+> You don't happen to know the WL12xx SPI clock speed off the top of yo=
+ur
+> head, do you?
+
+In case of n900 it is 48000000 (board-rx51-peripherals.c). It is using =
+32bit
+words over SPI.
+
+Based on this and your experience I guess it is possible to come up wit=
+h a
+formula which satisfy both.
+
+> Regards,
+> Greg
 >=20
-> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
-> ---
->  drivers/video/fbdev/omap2/dss/core.c | 4 ++++
->  1 file changed, 4 insertions(+)
->=20
-> diff --git a/drivers/video/fbdev/omap2/dss/core.c b/drivers/video/fbdev=
-/omap2/dss/core.c
-> index 6b74f73..e60976a 100644
-> --- a/drivers/video/fbdev/omap2/dss/core.c
-> +++ b/drivers/video/fbdev/omap2/dss/core.c
-> @@ -178,11 +178,15 @@ static int omap_dss_pm_notif(struct notifier_bloc=
-k *b, unsigned long v, void *d)
->  	DSSDBG("pm notif %lu\n", v);
-> =20
->  	switch (v) {
-> +	case PM_HIBERNATION_PREPARE:
->  	case PM_SUSPEND_PREPARE:
-> +	case PM_RESTORE_PREPARE:
->  		DSSDBG("suspending displays\n");
->  		return dss_suspend_all_devices();
-> =20
->  	case PM_POST_SUSPEND:
-> +	case PM_POST_HIBERNATION:
-> +	case PM_POST_RESTORE:
->  		DSSDBG("resuming displays\n");
->  		return dss_resume_all_devices();
-> =20
-
-Why suspend displays when PM_RESTORE_PREPARE happens? Why resume when
-PM_POST_RESTORE happens?
-
- Tomi
 
 
-
---eQqrOXR1IJHWj8me6rAi0aok3JqKxXSjq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVDBCOAAoJEPo9qoy8lh711zYP/jhWQktaeuNeo+w4wMY2fpZ7
-Y76VZvOwjfbYmx2TYvlQXhAgeIgX4XRFvfrtJwC5/NkL8726EGw4To2DsndYA/gh
-dep3AcDuGSgmSWfIMh47XqEGG3+74A9iVM9A+rdWf4o8wSdX+9eM+cwKv69nkmcQ
-X26COqSYEksDocuN39cStaGse32yrTvDvALZffJBlowIK81LF+Do3N6NLxiOz8u4
-yvVtzQ2VkxBfP+aK3rMSfWT4EAojFuPMS+rG/O71eOKmmPsGi/jwrAuCAWabcmo3
-gd4zr4qM1LHybSYhYPHybQMRNUmIHSFxNigOplhRtRmhT598+ybhNOO4SFhF2et5
-UEmHPI8GyRlMsbgEki5o74jIzYs91gQv31gv2WIlf9F/j8ApZCEnIhJZtsktlOIR
-pNdXkCxGyBQvs9s8To2e0Qegu0jZv5+eph2mdEHPNzN+xOtARdK73N2WBZgFsjgx
-a/od+NUSWkO30LZqd079iaaUIQBAbdYoGRIPgGuYRRaLkN3l78tQvgx5fcEAYb4h
-81uuaq4T2MEQAHPmZ04s8gJrNEUbjB7je/NrlxNJC8GRYi5WLImQtwHa8WpVpOyr
-DDAZiCbOYxgwGkzjgeed6dT2YXA70dMYAkhPb4KIjVSRveeVEjh6DfywZ2+3JK5E
-5RV259f6aGB7KIzVStMU
-=OQtZ
------END PGP SIGNATURE-----
-
---eQqrOXR1IJHWj8me6rAi0aok3JqKxXSjq--
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
