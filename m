@@ -1,90 +1,56 @@
-From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Subject: Re: [PATCH] drm/omap: tiler: add hibernation callback
-Date: Fri, 20 Mar 2015 16:57:49 +0200
-Message-ID: <550C356D.8060204@linaro.org>
-References: <1424887700-5909-1-git-send-email-grygorii.strashko@linaro.org> <55099207.3060006@linaro.org> <550C07FB.3060104@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v6 2/6] wl12xx: use frequency instead of enumerations for
+ pdata clocks
+Date: Fri, 20 Mar 2015 07:54:18 -0700
+Message-ID: <20150320145417.GR31346@atomide.com>
+References: <1426162154-8716-1-git-send-email-eliad@wizery.com>
+ <20150313150047.GI5264@atomide.com>
+ <CAB3XZEcOytqpJ4pWoemLS3d+DCeA8C75MencDfGn_vhfEYrduw@mail.gmail.com>
+ <3103538.jZ037SODdT@wuerfel>
+ <87lhixphag.fsf@kamboji.qca.qualcomm.com>
+ <20150316151554.GO5264@atomide.com>
+ <87siczg44w.fsf@kamboji.qca.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:36272 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbbCTO56 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 10:57:58 -0400
-Received: by labe2 with SMTP id e2so13709752lab.3
-        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2015 07:57:57 -0700 (PDT)
-In-Reply-To: <550C07FB.3060104@ti.com>
+Received: from muru.com ([72.249.23.125]:38912 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751064AbbCTO65 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 10:58:57 -0400
+Content-Disposition: inline
+In-Reply-To: <87siczg44w.fsf@kamboji.qca.qualcomm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: David Airlie <airlied@linux.ie>, nm@ti.com, sumit.semwal@linaro.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
+To: Kalle Valo <kvalo@codeaurora.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Eliad Peller <eliad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Sekhar Nori <nsekhar@ti.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Luciano Coelho <luca@coelho.fi>
 
-On 03/20/2015 01:43 PM, Tomi Valkeinen wrote:
-> On 18/03/15 16:56, Grygorii.Strashko@linaro.org wrote:
->> Hi All,
->>
->> On 02/25/2015 08:08 PM, grygorii.strashko@linaro.org wrote:
->>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->>>
->>> Setting a dev_pm_ops resume callback but not a set of
->>> hibernation handler means that pm function will not be
->>> called upon hibernation.
->>> Fix this by using SIMPLE_DEV_PM_OPS, which appropriately
->>> assigns the suspend and hibernation handlers and move
->>> omap_dmm_resume under CONFIG_PM_SLEEP to avoid build warnings.
->>>
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
->>> ---
->>>    drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 10 +++-------
->>>    1 file changed, 3 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->>> b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->>> index 56c6055..afb8cfc 100644
->>> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->>> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->>> @@ -941,7 +941,7 @@ error:
->>>    }
->>>    #endif
->>>
->>> -#ifdef CONFIG_PM
->>> +#ifdef CONFIG_PM_SLEEP
->>>    static int omap_dmm_resume(struct device *dev)
->>>    {
->>>        struct tcm_area area;
->>> @@ -965,12 +965,10 @@ static int omap_dmm_resume(struct device *dev)
->>>
->>>        return 0;
->>>    }
->>> -
->>> -static const struct dev_pm_ops omap_dmm_pm_ops = {
->>> -    .resume = omap_dmm_resume,
->>> -};
->>>    #endif
->>>
->>> +SIMPLE_DEV_PM_OPS(omap_dmm_pm_ops, NULL, omap_dmm_resume);
->>> +
->>>    #if defined(CONFIG_OF)
->>>    static const struct of_device_id dmm_of_match[] = {
->>>        { .compatible = "ti,omap4-dmm", },
->>> @@ -986,9 +984,7 @@ struct platform_driver omap_dmm_driver = {
->>>            .owner = THIS_MODULE,
->>>            .name = DMM_DRIVER_NAME,
->>>            .of_match_table = of_match_ptr(dmm_of_match),
->>> -#ifdef CONFIG_PM
->>>            .pm = &omap_dmm_pm_ops,
->>> -#endif
->>>        },
->>>    };
->>>
->>>
->>
->> Any comments on this?
->
-> Sorry, I missed this. I'll add it to my omapdrm branch.
->
-Thanks.
+* Kalle Valo <kvalo@codeaurora.org> [150320 07:01]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> >> I prefer these going through the omap tree. Like Eliad said,
+> >> drivers/net/wireless/ti does not get that many changes nowadays so the
+> >> chances of this patchset conflicting with something is very small.
+> >
+> > OK great. In that case no need to rearrange the patches, I can
+> > apply them into an immutable branch once the pending issues have
+> > been fixed if Kalle acks them.
+> >
+> > To avoid merge conflicts that branch is easiest done against
+> > v4.0-rc4. Kalle and Arnd, does that work for you guys?
+> >
+> > I can also base it on 5b7610f23562 ("ARM: OMAP2+: Fix wl12xx on
+> > dm3730-evm with mainline u-boot") that's on top of -rc2 plus few
+> > other fixes now merged to -rc4 mainline if we need a branch based
+> > on an earlier tag.
+> 
+> Sorry, it seems I forgot to answer this one:
+> 
+> Either baseline is good for me, I can't think of any problems with
+> either one. But please do remember that I'm a new maintainer, I might
+> very well miss something ;)
 
--- 
-regards,
--grygorii
+OK, I'll base it on -rc4 unless Arnd needs something earlier.
+
+Regards,
+
+Tony
