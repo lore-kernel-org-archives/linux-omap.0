@@ -1,152 +1,131 @@
-From: Petr Kulhavy <petr@barix.com>
-Subject: Re: Serious memory leak in TI EDMA driver (drivers/dma/edma.c)
-Date: Fri, 20 Mar 2015 22:53:44 +0100
-Message-ID: <550C96E8.5080603@barix.com>
-References: <55072E56.7050802@barix.com> <5508205D.7010106@ti.com> <55087A3A.6070300@barix.com> <55098414.9020301@ti.com> <5509EF23.8080404@barix.com> <550C27C3.10406@ti.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH 1/3] ARM: dts: OMAP5+: separate the cpu thermal zone
+ definition from omap4
+Date: Fri, 20 Mar 2015 17:54:03 -0400
+Message-ID: <20150320215402.GB7346@developer.amazonguestwifi.org>
+References: <1426880861-9266-1-git-send-email-nm@ti.com>
+ <1426880861-9266-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:36687 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036AbbCTVxt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2015 17:53:49 -0400
-Received: by wgra20 with SMTP id a20so99835972wgr.3
-        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2015 14:53:48 -0700 (PDT)
-In-Reply-To: <550C27C3.10406@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1426880861-9266-2-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org
-
-Hi Peter,
-
-yes, that is one of the differences to the EVM that the SD card is on=20
-MMCSD1. This is due to the pin multiplexer and other peripherals we're=20
-using.
-
-Your patch is correct, however the edma_callback()  is using the channe=
-l=20
-number parameter for debug messages only. For the actual work=20
-echan->ch_num is used. BTW is that correct? Could there be a mismatch=20
-between the echan->ch_num and the ch_num parameter?
-
-Something else seems to be odd in edma_alloc_chan_resources():
-
-/* Alloc channel resources */
-static int edma_alloc_chan_resources(struct dma_chan *chan)
-{
-         struct edma_chan *echan =3D to_edma_chan(chan);
-         struct device *dev =3D chan->device->dev;
-         int ret;
-         int a_ch_num;
-         LIST_HEAD(descs);
-
-         a_ch_num =3D edma_alloc_channel(echan->ch_num, edma_callback,
-                                         chan, EVENTQ_DEFAULT);
 
 
-The third parameter to edma_alloc_channel() should be echan, not chan,=20
-since the edma_callback() interprets the callback data parameter as=20
-struct edma_chan *.
+--0eh6TmSyL6TZE2Uz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Let me know if you find something or if you have an advice for more deb=
-ug.
-
-Cheers
-Petr
-
-
-
-On 20.03.2015 14:59, Peter Ujfalusi wrote:
-> Petr,
->
-> On 03/18/2015 11:33 PM, Petr Kulhavy wrote:
->> Hi Peter,
->>
->> Yes, we do not use DT.
->> Our board design is very close to the da850evm reference board. So i=
-f you have
->> a chance of getting hold of it you could try on that one.
-> I have been trying to reproduce this on my OMAP-L138-EVM (da850evm) b=
-ut was
-> not able.
->
-> There is a big difference in your an my setup: the MMC on my EVM is c=
-onnected
-> to MMC/SD0 interface while in your setup it seams to be connected to =
-MMC/SD1.
-> The DMA requests for MMC/SD0 is eDMA CC0 16/17, while the MMC/SD1 is =
-eDMA CC1
-> 28/29.
-> So they are handled by different channel controllers. I would not rul=
-e out
-> that the support for the second CC has issues.
-> The information from you logs just points to this direction also:
-> You are writing to the MMC, so CC1 ch29 is active most of the time.
-> In your log the channel number sometimes 65565 ((1 << 16) | 29) somet=
-imes it
-> is 29. In my case it is 17 every time.
-> I think there is something funny regarding to how these channels on C=
-C1 are
-> working and this might be causing the leak for you.
->
-> Unfortunately I do not have HW where I could use any channel on CC1 s=
-o I can
-> not debug this further, but I'll look at the code to see if anything =
-obvious
-> stands out.
-> And something does stand out:
-> arch/arm/common/edma.c: dma_irq_handler()
-> It calls the callback with a wrong interrupt number since it does not=
- take
-> into account the different CC.
-> Can you try something similar to see if it helps:
->
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 6c49887d326e..e1d413c61e9e 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -405,7 +405,8 @@ static irqreturn_t dma_irq_handler(int irq, void =
-*data)
->   					BIT(slot));
->   			if (edma_cc[ctlr]->intr_data[channel].callback)
->   				edma_cc[ctlr]->intr_data[channel].callback(
-> -					channel, EDMA_DMA_COMPLETE,
-> +					EDMA_CTLR_CHAN(ctlr, channel),
-> +					EDMA_DMA_COMPLETE,
->   					edma_cc[ctlr]->intr_data[channel].data);
->   		}
->   	} while (sh_ipr);
->
-
---=20
+On Fri, Mar 20, 2015 at 02:47:39PM -0500, Nishanth Menon wrote:
+> From: Tero Kristo <t-kristo@ti.com>
+>=20
+> OMAP4 has a finer counter granularity, which allows for a delay of 1000ms
+> in the thermal zone polling intervals. OMAP5/DRA7 have different counter
+> mechanism, which allows at maximum a 500ms timer. Adjust the cpu thermal
+> zone accordingly for OMAP5/DRA7.
+>=20
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
 
---=20
-Petr Kulhavy, MSc
-System Architect
+> ---
+>  arch/arm/boot/dts/omap5-cpu-thermal.dtsi |   41 ++++++++++++++++++++++++=
+++++++
+>  arch/arm/boot/dts/omap5.dtsi             |    2 +-
+>  2 files changed, 42 insertions(+), 1 deletion(-)
+>  create mode 100644 arch/arm/boot/dts/omap5-cpu-thermal.dtsi
+>=20
+> diff --git a/arch/arm/boot/dts/omap5-cpu-thermal.dtsi b/arch/arm/boot/dts=
+/omap5-cpu-thermal.dtsi
+> new file mode 100644
+> index 000000000000..4a6427c1e47e
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap5-cpu-thermal.dtsi
+> @@ -0,0 +1,41 @@
+> +/*
+> + * Device Tree Source for OMAP4/5 SoC CPU thermal
+> + *
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+> + * Contact: Tero Kristo <t-kristo@ti.com>
+> + *
+> + * This file is licensed under the terms of the GNU General Public Licen=
+se
+> + * version 2.  This program is licensed "as is" without any warranty of =
+any
+> + * kind, whether express or implied.
+> + */
+> +
+> +#include <dt-bindings/thermal/thermal.h>
+> +
+> +cpu_thermal: cpu_thermal {
+> +	polling-delay-passive =3D <250>; /* milliseconds */
+> +	polling-delay =3D <500>; /* milliseconds */
+> +
+> +			/* sensor       ID */
+> +	thermal-sensors =3D <&bandgap     0>;
+> +
+> +	cpu_trips: trips {
+> +		cpu_alert0: cpu_alert {
+> +			temperature =3D <100000>; /* millicelsius */
+> +			hysteresis =3D <2000>; /* millicelsius */
+> +			type =3D "passive";
+> +		};
+> +		cpu_crit: cpu_crit {
+> +			temperature =3D <125000>; /* millicelsius */
+> +			hysteresis =3D <2000>; /* millicelsius */
+> +			type =3D "critical";
+> +		};
+> +	};
+> +
+> +	cpu_cooling_maps: cooling-maps {
+> +		map0 {
+> +			trip =3D <&cpu_alert0>;
+> +			cooling-device =3D
+> +				<&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+> +		};
+> +	};
+> +};
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index ddff674bd05e..e650d4eb59dd 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -67,7 +67,7 @@
+>  	};
+> =20
+>  	thermal-zones {
+> -		#include "omap4-cpu-thermal.dtsi"
+> +		#include "omap5-cpu-thermal.dtsi"
 
-*BARIX*
+Can't we simple change the polling value for the omap5 case and reuse
+the omap4 file?
 
-petr@barix.com <mailto:petr@barix.com> | Skype: brain.barix
+>  		#include "omap5-gpu-thermal.dtsi"
+>  		#include "omap5-core-thermal.dtsi"
+>  	};
+> --=20
+> 1.7.9.5
+>=20
 
-Barix AG, Seefeldstrasse 303 | 8008 Zurich, Switzerland
-T +41 43 43322 11 | www.barix.com <http://www.barix.com>
+--0eh6TmSyL6TZE2Uz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-You have received this email because of your relationship Barix AG and=20
-its affiliated companies. Barix AG and its affiliated companies do not=20
-sell or exchange email addresses, or any other personal contact=20
-information provided by you with any third parties. All email=20
-distributions are managed and controlled by Barix AG and its affiliated=
-=20
-companies.
-Barix AG, Seefeldstr. 303, 8008 Z=FCrich, Switzerland. Company Reg. No:=
-=20
-CH-020.3.023.869-8, VAT Reg. No: CHE-105.687.663.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQEcBAEBAgAGBQJVDJbyAAoJEMLUO4d9pOJWNIIIAJRRUoZoHtlDdp5eVf7L6Apc
+P0KkiW7ICKb1mol1gxxn4p9xIMZfAoj4X6NrW3eyZMJkUDEFWxJwVQ3cuzL3a9hp
+RM7AwY728RK8WnbpOCdgK2ZYTRARLI47uzkkFJdg0EgQd/tzP4kBo09viwWzwwbi
+xTqxs0F5Xiu5976kdTdRrrOsANPGz/7TFNGEeAm+N2sXiVXPxwK4t0y2rjts4Qyt
+nuSnw/DxV2CMpZaRLCmJk5n8Tm82Xd2hhjKPV9T0TC5TB0rzslTlbeKPBO1WfBGP
+91/DkdaZZ2YF/GD110DILO86aHTR+gfdfiaceYtjHgLeWIkCKsJ/OUefoGRvCuM=
+=+FTw
+-----END PGP SIGNATURE-----
+
+--0eh6TmSyL6TZE2Uz--
