@@ -1,222 +1,84 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 08/35] clk: ti: fix ti_clk_get_reg_addr error handling
-Date: Fri, 20 Mar 2015 09:00:46 +0200
-Message-ID: <550BC59E.9010408@ti.com>
-References: <1424891085-10392-1-git-send-email-t-kristo@ti.com> <1424891085-10392-9-git-send-email-t-kristo@ti.com> <20150306191821.11109.2610@quantum>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
+Date: Fri, 20 Mar 2015 15:18:19 +0800
+Message-ID: <20150320071818.GF7537@shlinux2>
+References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
+ <1426686963-11613-3-git-send-email-rogerq@ti.com>
+ <20150319032944.GA2476@shlinux2> <550AA18F.2000106@ti.com>
+ <20150319140859.GA7950@shlinux1.ap.freescale.net> <550AE237.8000404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59592 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750951AbbCTHBO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2015 03:01:14 -0400
-In-Reply-To: <20150306191821.11109.2610@quantum>
+Received: from mail-bn1bn0109.outbound.protection.outlook.com ([157.56.110.109]:47080
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750840AbbCTHT1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2015 03:19:27 -0400
+Content-Disposition: inline
+In-Reply-To: <550AE237.8000404@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Li Jun <b47624@freescale.com>, gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 03/06/2015 09:18 PM, Mike Turquette wrote:
-> Quoting Tero Kristo (2015-02-25 11:04:18)
->> There is a case where NULL can be a valid return value for
->> ti_clk_get_reg_addr, specifically the case where both the provider index
->> and register offsets are zero. In this case, the current error checking
->> against a NULL pointer will fail. Thus, change the API to return a
->> ERR_PTR value in an error case, and change all the users of this API to
->> check against IS_ERR instead.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> Cc: Michael Turquette <mturquette@linaro.org>
->
-> Looks good to me.
+On Thu, Mar 19, 2015 at 04:50:31PM +0200, Roger Quadros wrote:
+> On 19/03/15 16:09, Li Jun wrote:
+> > On Thu, Mar 19, 2015 at 12:14:39PM +0200, Roger Quadros wrote:
+> >> On 19/03/15 05:30, Peter Chen wrote:
+> >>> On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
+> >>>> The OTG state machine needs a mechanism to start and
+> >>>> stop the gadget controller. Add usb_gadget_start()
+> >>>> and usb_gadget_stop().
+> >>>>
+> >>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>>> ---
+> >>>>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
+> >>>>  include/linux/usb/gadget.h        |   3 +
+> >>>>  2 files changed, 158 insertions(+), 11 deletions(-)
+> >>>>
+> >>>> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
+> >>>> index 5a81cb0..69b4123 100644
+> >>>> --- a/drivers/usb/gadget/udc/udc-core.c
+> >>>> +++ b/drivers/usb/gadget/udc/udc-core.c
+> >>>> @@ -35,6 +35,8 @@
+> >>>>   * @dev - the child device to the actual controller
+> >>>>   * @gadget - the gadget. For use by the class code
+> >>>>   * @list - for use by the udc class driver
+> >>>> + * @running - udc is running
+> >>>
+> >>> Doesn't OTG FSM should know it?
+> >>
+> >> Not really, as the gadget driver might not have been loaded yet or userspace might
+> >> have disabled softconnect when the OTG FSM wants UDC to start.
+> >>
+> >> So only UDC knows if it has really started or not based on this flag.
+> >>
+> > 
+> > why this can not be known by check the otg fsm state? i.e. if the device in
+> > b_peripheral or a_peripheral state, udc should had started, isn't it?
+> 
+> If gadget function driver (which is different from UDC driver) is not yet loaded
+> then we can't start UDC even if otg fsm is in b_peripheral.
+> Also, if userspace has disabled softconnect we can't start UDC.
+> 
+> So, b_peripheral != UDC_started.
+> 
+> I've tried to address this issue by adding the checks in usb_gadget_start().
+> 
 
-I'll interpret this as an Acked-by, will add this tag to the latest 
-version of the set I will post later today, thanks.
+Ok, maybe we have different understanding for 'B-Device' at software,
+In spec, it says the Micro-AB receptacle with nothing connected can be
+'B-Device', but in fact, we may not enable device mode before loading
+gadget driver, in chipidea fsm design, if the gadget driver is not
+loaded, the FSM will not start, and it is at OTG_STATE_UNDEFINED.
 
--Tero
+One more thing is we may need to find a place to issue SRP when we
+load gadget driver, since we may at b_idle  at that time due to host
+closes the vbus (timeout for a_wait_bcon).
 
->
-> Regards,
-> Mike
->
->> ---
->>   drivers/clk/ti/apll.c      |    5 +++--
->>   drivers/clk/ti/autoidle.c  |    2 +-
->>   drivers/clk/ti/clk.c       |    7 ++++---
->>   drivers/clk/ti/divider.c   |    4 ++--
->>   drivers/clk/ti/dpll.c      |    6 +++---
->>   drivers/clk/ti/gate.c      |    4 ++--
->>   drivers/clk/ti/interface.c |    2 +-
->>   drivers/clk/ti/mux.c       |    4 ++--
->>   8 files changed, 18 insertions(+), 16 deletions(-)
->>
->> diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
->> index 72d9727..49baf38 100644
->> --- a/drivers/clk/ti/apll.c
->> +++ b/drivers/clk/ti/apll.c
->> @@ -203,7 +203,7 @@ static void __init of_dra7_apll_setup(struct device_node *node)
->>          ad->control_reg = ti_clk_get_reg_addr(node, 0);
->>          ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
->>
->> -       if (!ad->control_reg || !ad->idlest_reg)
->> +       if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
->>                  goto cleanup;
->>
->>          ad->idlest_mask = 0x1;
->> @@ -384,7 +384,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
->>          ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
->>          ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
->>
->> -       if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
->> +       if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
->> +           IS_ERR(ad->idlest_reg))
->>                  goto cleanup;
->>
->>          clk = clk_register(NULL, &clk_hw->hw);
->> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
->> index 8912ff8..e75c64c 100644
->> --- a/drivers/clk/ti/autoidle.c
->> +++ b/drivers/clk/ti/autoidle.c
->> @@ -119,7 +119,7 @@ int __init of_ti_clk_autoidle_setup(struct device_node *node)
->>          clk->name = node->name;
->>          clk->reg = ti_clk_get_reg_addr(node, 0);
->>
->> -       if (!clk->reg) {
->> +       if (IS_ERR(clk->reg)) {
->>                  kfree(clk);
->>                  return -EINVAL;
->>          }
->> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
->> index e22b956..0ebe5c5 100644
->> --- a/drivers/clk/ti/clk.c
->> +++ b/drivers/clk/ti/clk.c
->> @@ -103,7 +103,8 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
->>    * @index: register index from the clock node
->>    *
->>    * Builds clock register address from device tree information. This
->> - * is a struct of type clk_omap_reg.
->> + * is a struct of type clk_omap_reg. Returns a pointer to the register
->> + * address, or a pointer error value in failure.
->>    */
->>   void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
->>   {
->> @@ -121,14 +122,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
->>
->>          if (i == CLK_MAX_MEMMAPS) {
->>                  pr_err("clk-provider not found for %s!\n", node->name);
->> -               return NULL;
->> +               return ERR_PTR(-ENOENT);
->>          }
->>
->>          reg->index = i;
->>
->>          if (of_property_read_u32_index(node, "reg", index, &val)) {
->>                  pr_err("%s must have reg[%d]!\n", node->name, index);
->> -               return NULL;
->> +               return ERR_PTR(-EINVAL);
->>          }
->>
->>          reg->offset = val;
->> diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
->> index 6211893..ff5f117 100644
->> --- a/drivers/clk/ti/divider.c
->> +++ b/drivers/clk/ti/divider.c
->> @@ -530,8 +530,8 @@ static int __init ti_clk_divider_populate(struct device_node *node,
->>          u32 val;
->>
->>          *reg = ti_clk_get_reg_addr(node, 0);
->> -       if (!*reg)
->> -               return -EINVAL;
->> +       if (IS_ERR(*reg))
->> +               return PTR_ERR(*reg);
->>
->>          if (!of_property_read_u32(node, "ti,bit-shift", &val))
->>                  *shift = val;
->> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
->> index 81dc469..11478a5 100644
->> --- a/drivers/clk/ti/dpll.c
->> +++ b/drivers/clk/ti/dpll.c
->> @@ -390,18 +390,18 @@ static void __init of_ti_dpll_setup(struct device_node *node,
->>   #endif
->>          } else {
->>                  dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
->> -               if (!dd->idlest_reg)
->> +               if (IS_ERR(dd->idlest_reg))
->>                          goto cleanup;
->>
->>                  dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
->>          }
->>
->> -       if (!dd->control_reg || !dd->mult_div1_reg)
->> +       if (IS_ERR(dd->control_reg) || IS_ERR(dd->mult_div1_reg))
->>                  goto cleanup;
->>
->>          if (dd->autoidle_mask) {
->>                  dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
->> -               if (!dd->autoidle_reg)
->> +               if (IS_ERR(dd->autoidle_reg))
->>                          goto cleanup;
->>          }
->>
->> diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
->> index d493307..0c6fdfc 100644
->> --- a/drivers/clk/ti/gate.c
->> +++ b/drivers/clk/ti/gate.c
->> @@ -225,7 +225,7 @@ static void __init _of_ti_gate_clk_setup(struct device_node *node,
->>
->>          if (ops != &omap_gate_clkdm_clk_ops) {
->>                  reg = ti_clk_get_reg_addr(node, 0);
->> -               if (!reg)
->> +               if (IS_ERR(reg))
->>                          return;
->>
->>                  if (!of_property_read_u32(node, "ti,bit-shift", &val))
->> @@ -264,7 +264,7 @@ _of_ti_composite_gate_clk_setup(struct device_node *node,
->>                  return;
->>
->>          gate->enable_reg = ti_clk_get_reg_addr(node, 0);
->> -       if (!gate->enable_reg)
->> +       if (IS_ERR(gate->enable_reg))
->>                  goto cleanup;
->>
->>          of_property_read_u32(node, "ti,bit-shift", &val);
->> diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
->> index 265d91f..c76230d 100644
->> --- a/drivers/clk/ti/interface.c
->> +++ b/drivers/clk/ti/interface.c
->> @@ -111,7 +111,7 @@ static void __init _of_ti_interface_clk_setup(struct device_node *node,
->>          u32 val;
->>
->>          reg = ti_clk_get_reg_addr(node, 0);
->> -       if (!reg)
->> +       if (IS_ERR(reg))
->>                  return;
->>
->>          if (!of_property_read_u32(node, "ti,bit-shift", &val))
->> diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
->> index 728e253..5cdeed5 100644
->> --- a/drivers/clk/ti/mux.c
->> +++ b/drivers/clk/ti/mux.c
->> @@ -210,7 +210,7 @@ static void of_mux_clk_setup(struct device_node *node)
->>
->>          reg = ti_clk_get_reg_addr(node, 0);
->>
->> -       if (!reg)
->> +       if (IS_ERR(reg))
->>                  goto cleanup;
->>
->>          of_property_read_u32(node, "ti,bit-shift", &shift);
->> @@ -283,7 +283,7 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
->>
->>          mux->reg = ti_clk_get_reg_addr(node, 0);
->>
->> -       if (!mux->reg)
->> +       if (IS_ERR(mux->reg))
->>                  goto cleanup;
->>
->>          if (!of_property_read_u32(node, "ti,bit-shift", &val))
->> --
->> 1.7.9.5
->>
+What is the "softconnect" used for? In otg fsm, we use b_bus_req for FSM.
 
+-- 
+
+Best Regards,
+Peter Chen
