@@ -1,52 +1,128 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [RFT OMAP1 PATCH 7/8] gpio: omap: get rid of omap_irq_to_gpio()
-Date: Sat, 21 Mar 2015 00:44:46 +0100
-Message-ID: <CABxcv==jKSjWTCDMMUg0vZzpK34tLYnwdJzPw3h6H3oU+6dZ9Q@mail.gmail.com>
-References: <1426785944-17255-1-git-send-email-grygorii.strashko@linaro.org>
-	<1426785944-17255-8-git-send-email-grygorii.strashko@linaro.org>
-	<CABxcv==mH5tpvW0FOsv30A-aucyZCAKuSo95Y=LW21+EWR4uDA@mail.gmail.com>
-	<550C857F.5060705@linaro.org>
+From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
+Date: Sat, 21 Mar 2015 09:30:32 +0800
+Message-ID: <20150321013031.GC19849@shlinux2>
+References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
+ <1426686963-11613-3-git-send-email-rogerq@ti.com>
+ <20150319032944.GA2476@shlinux2> <550AA18F.2000106@ti.com>
+ <20150319140859.GA7950@shlinux1.ap.freescale.net> <550AE237.8000404@ti.com>
+ <20150320071818.GF7537@shlinux2> <550BEC7F.8050303@ti.com>
+ <550BFFA9.7050400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <550C857F.5060705@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <550BFFA9.7050400-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Grygorii,
+On Fri, Mar 20, 2015 at 01:08:25PM +0200, Roger Quadros wrote:
+> On 20/03/15 11:46, Roger Quadros wrote:
+> > On 20/03/15 09:18, Peter Chen wrote:
+> >> On Thu, Mar 19, 2015 at 04:50:31PM +0200, Roger Quadros wrote:
+> >>> On 19/03/15 16:09, Li Jun wrote:
+> >>>> On Thu, Mar 19, 2015 at 12:14:39PM +0200, Roger Quadros wrote:
+> >>>>> On 19/03/15 05:30, Peter Chen wrote:
+> >>>>>> On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
+> >>>>>>> The OTG state machine needs a mechanism to start and
+> >>>>>>> stop the gadget controller. Add usb_gadget_start()
+> >>>>>>> and usb_gadget_stop().
+> >>>>>>>
+> >>>>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> >>>>>>> ---
+> >>>>>>>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
+> >>>>>>>  include/linux/usb/gadget.h        |   3 +
+> >>>>>>>  2 files changed, 158 insertions(+), 11 deletions(-)
+> >>>>>>>
+> >>>>>>> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
+> >>>>>>> index 5a81cb0..69b4123 100644
+> >>>>>>> --- a/drivers/usb/gadget/udc/udc-core.c
+> >>>>>>> +++ b/drivers/usb/gadget/udc/udc-core.c
+> >>>>>>> @@ -35,6 +35,8 @@
+> >>>>>>>   * @dev - the child device to the actual controller
+> >>>>>>>   * @gadget - the gadget. For use by the class code
+> >>>>>>>   * @list - for use by the udc class driver
+> >>>>>>> + * @running - udc is running
+> >>>>>>
+> >>>>>> Doesn't OTG FSM should know it?
+> >>>>>
+> >>>>> Not really, as the gadget driver might not have been loaded yet or userspace might
+> >>>>> have disabled softconnect when the OTG FSM wants UDC to start.
+> >>>>>
+> >>>>> So only UDC knows if it has really started or not based on this flag.
+> >>>>>
+> >>>>
+> >>>> why this can not be known by check the otg fsm state? i.e. if the device in
+> >>>> b_peripheral or a_peripheral state, udc should had started, isn't it?
+> >>>
+> >>> If gadget function driver (which is different from UDC driver) is not yet loaded
+> >>> then we can't start UDC even if otg fsm is in b_peripheral.
+> >>> Also, if userspace has disabled softconnect we can't start UDC.
+> >>>
+> >>> So, b_peripheral != UDC_started.
+> >>>
+> >>> I've tried to address this issue by adding the checks in usb_gadget_start().
+> >>>
+> >>
+> >> Ok, maybe we have different understanding for 'B-Device' at software,
+> >> In spec, it says the Micro-AB receptacle with nothing connected can be
+> >> 'B-Device', but in fact, we may not enable device mode before loading
+> >> gadget driver, in chipidea fsm design, if the gadget driver is not
+> >> loaded, the FSM will not start, and it is at OTG_STATE_UNDEFINED.
+> > 
+> > Right. I mixed up into thinking that we should respect the softconnect
+> > while in OTG mode. It seems that we should ignore it.
+> > 
+> >>
+> >> One more thing is we may need to find a place to issue SRP when we
+> >> load gadget driver, since we may at b_idle  at that time due to host
+> >> closes the vbus (timeout for a_wait_bcon).
+> > 
+> > Issuing SRP should be done by the otg-fsm and not udc-core.
+> > The udc-core can at the least call usb_otg_kick_fsm() after setting the gadget
+> > driver so that otg-fsm knows that we now have a valid gadget and can take
+> > necessary action. i.e. change from b_idle to b_srp_init and then to b_peripheral.
+> 
+> To clarify further. Is it right to assume that OTG FSM will not be started till
+> both gadget UDC driver _AND_ gadget function driver are loaded?
+> 
+> And it will be stopped when either of them unloads.
+> 
+> This simplifies things a lot.
 
-On Fri, Mar 20, 2015 at 9:39 PM, Grygorii.Strashko@linaro.org
-<grygorii.strashko@linaro.org> wrote:
-> On 03/20/2015 08:56 PM, Javier Martinez Canillas wrote:
->> Hello Grygorii,
->>
->> On Thu, Mar 19, 2015 at 6:25 PM,  <grygorii.strashko@linaro.org> wrote:
->>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->>>
->>> Now OMAP GPIO driver prepared for omap_irq_to_gpio() removing.
->>> Do it ;)
->>>
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
->>
->> I don't have access to OMAP1 boards to test but Tony did it o an
->> osk5912 and Aaro can confirm that it doesn't cause regressions on
->> other OMAP1 boards.
->
-> Thanks. But could you clarify one point to me please?
-> "Aaro can confirm that it doesn't cause regressions on
-> other OMAP1 boards" - Does It mean I can add his Tested-by?
-> Or I still have to wait for his direct reply?
-> Just to avoid any confusions ;)
->
+Yes, you are right.
 
-I meant that as far as I know Aaro has access to more OMAP1 systems so
-he should be able to test that no regressions are added for those. But
-I don't know if he would be able to test and I think your cleanups are
-good so that's why I acked the patches.
+> 
+> cheers,
+> -roger
+> 
+> > 
+> >>
+> >> What is the "softconnect" used for? In otg fsm, we use b_bus_req for FSM.
+> >>
+> > I understand now that we shouldn't bother with softconnect when we are in OTG fsm mode.
+> > That solves our problem with the running flags.
+> > 
+> > So now, b_peripheral == UDC_started.
+> > 
+> > I will address this in v2.
+> > 
+> > cheers,
+> > -roger
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
 
-Sorry for the confusion.
+-- 
 
-Best regards,
-Javier
+Best Regards,
+Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
