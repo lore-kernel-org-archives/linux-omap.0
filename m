@@ -1,46 +1,57 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCHv2 0/4] lis3lv02d: update DT binding for use with Nokia N900
-Date: Sat, 21 Mar 2015 21:19:01 +0100
-Message-ID: <1426969145-4478-1-git-send-email-sre@kernel.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eric Piel <eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv2 3/4] Documentation: DT: lis302: update wakeup binding
+Date: Sat, 21 Mar 2015 21:19:04 +0100
+Message-ID: <1426969145-4478-4-git-send-email-sre@kernel.org>
+References: <1426969145-4478-1-git-send-email-sre@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([5.45.105.125]:59432 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751819AbbCUUTj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 21 Mar 2015 16:19:39 -0400
+In-Reply-To: <1426969145-4478-1-git-send-email-sre@kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.or>
 
-Hi,
+From: Sebastian Reichel <sre@kernel.or>
 
-The lis302 has already a DT binding described in [0],
-which descibes misc. hardware properties. The current
-binding does not support all values needed to convert
-the Nokia N900's platform data to DT, though.
+This updated the documentation of the DT binding to
+describe the added wakeup threshold and second wakeup
+engine.
 
-This patchset introduces support for describing inverted
-axis, configuration of second wakeup unit and wakeup
-threshold support.
+It also adds a note, that the axis values may be
+negative.
 
-The series is based on top of v4.0-rc1 and has been
-tested on my Nokia N900.
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ Documentation/devicetree/bindings/misc/lis302.txt | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-[0] Documentation/devicetree/bindings/misc/lis302.txt
-
--- Sebastian
-
-Sebastian Reichel (4):
-  lis3lv02d: DT: use s32 to support negative values
-  lis3lv02d: DT: add wakeup unit 2 and wakeup threshold
-  Documentation: DT: lis302: update wakeup binding
-  DTS: ARM: OMAP3-N900: Add lis3lv02d support
-
- Documentation/devicetree/bindings/misc/lis302.txt |  9 +++-
- arch/arm/boot/dts/omap3-n900.dts                  | 52 +++++++++++++++++++++
- drivers/misc/lis3lv02d/lis3lv02d.c                | 56 +++++++++++++++--------
- 3 files changed, 97 insertions(+), 20 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/misc/lis302.txt b/Documentation/devicetree/bindings/misc/lis302.txt
+index 6def86f..2a19bff 100644
+--- a/Documentation/devicetree/bindings/misc/lis302.txt
++++ b/Documentation/devicetree/bindings/misc/lis302.txt
+@@ -46,11 +46,18 @@ Optional properties for all bus drivers:
+ 				interrupt 2
+  - st,wakeup-{x,y,z}-{lo,hi}:	set wakeup condition on x/y/z axis for
+ 				upper/lower limit
++ - st,wakeup-threshold:		set wakeup threshold
++ - st,wakeup2-{x,y,z}-{lo,hi}:	set wakeup condition on x/y/z axis for
++				upper/lower limit for second wakeup
++				engine.
++ - st,wakeup2-threshold:	set wakeup threshold for second wakeup
++				engine.
+  - st,highpass-cutoff-hz=:	1, 2, 4 or 8 for 1Hz, 2Hz, 4Hz or 8Hz of
+ 				highpass cut-off frequency
+  - st,hipass{1,2}-disable:	disable highpass 1/2.
+  - st,default-rate=:		set the default rate
+- - st,axis-{x,y,z}=:		set the axis to map to the three coordinates
++ - st,axis-{x,y,z}=:		set the axis to map to the three coordinates.
++				Negative values can be used for inverted axis.
+  - st,{min,max}-limit-{x,y,z}	set the min/max limits for x/y/z axis
+ 				(used by self-test)
+ 
 -- 
 2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
