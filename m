@@ -1,128 +1,62 @@
-From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [RFC][PATCH 2/9] usb: gadget: add usb_gadget_start/stop()
-Date: Sat, 21 Mar 2015 09:30:32 +0800
-Message-ID: <20150321013031.GC19849@shlinux2>
-References: <1426686963-11613-1-git-send-email-rogerq@ti.com>
- <1426686963-11613-3-git-send-email-rogerq@ti.com>
- <20150319032944.GA2476@shlinux2> <550AA18F.2000106@ti.com>
- <20150319140859.GA7950@shlinux1.ap.freescale.net> <550AE237.8000404@ti.com>
- <20150320071818.GF7537@shlinux2> <550BEC7F.8050303@ti.com>
- <550BFFA9.7050400@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <550BFFA9.7050400-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHv3 0/2] N900 Modem Speech Support
+Date: Sat, 21 Mar 2015 20:09:15 +0100
+Message-ID: <1426964957-5023-1-git-send-email-sre@kernel.org>
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 20, 2015 at 01:08:25PM +0200, Roger Quadros wrote:
-> On 20/03/15 11:46, Roger Quadros wrote:
-> > On 20/03/15 09:18, Peter Chen wrote:
-> >> On Thu, Mar 19, 2015 at 04:50:31PM +0200, Roger Quadros wrote:
-> >>> On 19/03/15 16:09, Li Jun wrote:
-> >>>> On Thu, Mar 19, 2015 at 12:14:39PM +0200, Roger Quadros wrote:
-> >>>>> On 19/03/15 05:30, Peter Chen wrote:
-> >>>>>> On Wed, Mar 18, 2015 at 03:55:56PM +0200, Roger Quadros wrote:
-> >>>>>>> The OTG state machine needs a mechanism to start and
-> >>>>>>> stop the gadget controller. Add usb_gadget_start()
-> >>>>>>> and usb_gadget_stop().
-> >>>>>>>
-> >>>>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> >>>>>>> ---
-> >>>>>>>  drivers/usb/gadget/udc/udc-core.c | 166 +++++++++++++++++++++++++++++++++++---
-> >>>>>>>  include/linux/usb/gadget.h        |   3 +
-> >>>>>>>  2 files changed, 158 insertions(+), 11 deletions(-)
-> >>>>>>>
-> >>>>>>> diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
-> >>>>>>> index 5a81cb0..69b4123 100644
-> >>>>>>> --- a/drivers/usb/gadget/udc/udc-core.c
-> >>>>>>> +++ b/drivers/usb/gadget/udc/udc-core.c
-> >>>>>>> @@ -35,6 +35,8 @@
-> >>>>>>>   * @dev - the child device to the actual controller
-> >>>>>>>   * @gadget - the gadget. For use by the class code
-> >>>>>>>   * @list - for use by the udc class driver
-> >>>>>>> + * @running - udc is running
-> >>>>>>
-> >>>>>> Doesn't OTG FSM should know it?
-> >>>>>
-> >>>>> Not really, as the gadget driver might not have been loaded yet or userspace might
-> >>>>> have disabled softconnect when the OTG FSM wants UDC to start.
-> >>>>>
-> >>>>> So only UDC knows if it has really started or not based on this flag.
-> >>>>>
-> >>>>
-> >>>> why this can not be known by check the otg fsm state? i.e. if the device in
-> >>>> b_peripheral or a_peripheral state, udc should had started, isn't it?
-> >>>
-> >>> If gadget function driver (which is different from UDC driver) is not yet loaded
-> >>> then we can't start UDC even if otg fsm is in b_peripheral.
-> >>> Also, if userspace has disabled softconnect we can't start UDC.
-> >>>
-> >>> So, b_peripheral != UDC_started.
-> >>>
-> >>> I've tried to address this issue by adding the checks in usb_gadget_start().
-> >>>
-> >>
-> >> Ok, maybe we have different understanding for 'B-Device' at software,
-> >> In spec, it says the Micro-AB receptacle with nothing connected can be
-> >> 'B-Device', but in fact, we may not enable device mode before loading
-> >> gadget driver, in chipidea fsm design, if the gadget driver is not
-> >> loaded, the FSM will not start, and it is at OTG_STATE_UNDEFINED.
-> > 
-> > Right. I mixed up into thinking that we should respect the softconnect
-> > while in OTG mode. It seems that we should ignore it.
-> > 
-> >>
-> >> One more thing is we may need to find a place to issue SRP when we
-> >> load gadget driver, since we may at b_idle  at that time due to host
-> >> closes the vbus (timeout for a_wait_bcon).
-> > 
-> > Issuing SRP should be done by the otg-fsm and not udc-core.
-> > The udc-core can at the least call usb_otg_kick_fsm() after setting the gadget
-> > driver so that otg-fsm knows that we now have a valid gadget and can take
-> > necessary action. i.e. change from b_idle to b_srp_init and then to b_peripheral.
-> 
-> To clarify further. Is it right to assume that OTG FSM will not be started till
-> both gadget UDC driver _AND_ gadget function driver are loaded?
-> 
-> And it will be stopped when either of them unloads.
-> 
-> This simplifies things a lot.
+Hi,
 
-Yes, you are right.
+This patchset contains the missing speech data support for the
+Nokia N900 modem.
 
-> 
-> cheers,
-> -roger
-> 
-> > 
-> >>
-> >> What is the "softconnect" used for? In otg fsm, we use b_bus_req for FSM.
-> >>
-> > I understand now that we shouldn't bother with softconnect when we are in OTG fsm mode.
-> > That solves our problem with the running flags.
-> > 
-> > So now, b_peripheral == UDC_started.
-> > 
-> > I will address this in v2.
-> > 
-> > cheers,
-> > -roger
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
+Userland access goes via /dev/cmt_speech. The API is implemented in
+libcmtspeechdata, which is used by ofono and the freesmartphone.org project.
+Apart from that the device is also used by the phone binaries distributed
+with Maemo. So while this is a new userland ABI for the mainline kernel it
+has been tested in the wild for some years.
+
+Simple Testing of the API can be done by checking out libcmtspeechdata [0],
+building the test tool and executing it. The tool will loop back audio data
+received from the caller.
+
+I have prepared a kernel branch for this patchset, which can be found at [1].
+
+Changes since PATCHv2 [3]:
+ * Change MODULE_LICENSE from "GPL" to "GPL v2"
+ * Add some cleanups suggested by Pavel
+ * Add missing dependency on SSI_PROTOCOL in Kconfig
+
+Changes since PATCHv1 [2]:
+ * Squash cmt-speech patches together
+ * cs_alloc_cmds(): GFP_ATOMIC -> GFP_KERNEL
+ * CS_SET_WAKELINE ioctl: Add sanity check
+
+[0] https://lkml.org/lkml/2015/2/11/526
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git branch/cmt-speech-2
+[2] https://lkml.org/lkml/2015/3/1/282
+[3] https://lkml.org/lkml/2015/3/4/1139
+
+-- Sebastian
+
+Kai Vehmanen (1):
+  HSI: cmt_speech: Add cmt-speech driver
+
+Sebastian Reichel (1):
+  HSI: nokia-modem: Add cmt-speech support
+
+ drivers/hsi/clients/Kconfig          |   12 +-
+ drivers/hsi/clients/Makefile         |    1 +
+ drivers/hsi/clients/cmt_speech.c     | 1456 ++++++++++++++++++++++++++++++++++
+ drivers/hsi/clients/nokia-modem.c    |   32 +-
+ include/uapi/linux/hsi/Kbuild        |    2 +-
+ include/uapi/linux/hsi/cs-protocol.h |  113 +++
+ 6 files changed, 1613 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/hsi/clients/cmt_speech.c
+ create mode 100644 include/uapi/linux/hsi/cs-protocol.h
 
 -- 
-
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.1.4
