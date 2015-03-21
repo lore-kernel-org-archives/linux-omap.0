@@ -1,92 +1,54 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 4/4] DTS: ARM: OMAP3-N900: Add lis3lv02d support
-Date: Sat, 21 Mar 2015 21:19:05 +0100
-Message-ID: <1426969145-4478-5-git-send-email-sre@kernel.org>
-References: <1426969145-4478-1-git-send-email-sre@kernel.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:59489 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751742AbbCUUUR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 21 Mar 2015 16:20:17 -0400
-In-Reply-To: <1426969145-4478-1-git-send-email-sre@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCHv3 0/2] N900 Modem Speech Support
+Date: Sat, 21 Mar 2015 22:38:06 +0100
+Message-ID: <20150321213805.GA20789@earth>
+References: <1426964957-5023-1-git-send-email-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1426964957-5023-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kai Vehmanen <kvcontact@nosignal.fi>, Pavel Machek <pavel@ucw.cz>, Pali Rohar <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.or>
 
-From: Sebastian Reichel <sre@kernel.or>
 
-This adds support for the N900's accelerometer to
-the Nokia N900 DTS file.
+--lrZ03NoBR/3+SXJZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- arch/arm/boot/dts/omap3-n900.dts | 52 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+Hi,
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 6040327..b02a717 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -602,6 +602,58 @@
- 	pinctrl-0 = <&i2c3_pins>;
- 
- 	clock-frequency = <400000>;
-+
-+	lis302dl: lis3lv02d@1d {
-+		compatible = "st,lis3lv02d";
-+		reg = <0x1d>;
-+
-+		Vdd-supply = <&vaux1>;
-+		Vdd_IO-supply = <&vio>;
-+
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <21 20>; /* 181 and 180 */
-+
-+		/* click flags */
-+		st,click-single-x;
-+		st,click-single-y;
-+		st,click-single-z;
-+
-+		/* Limits are 0.5g * value */
-+		st,click-threshold-x = <8>;
-+		st,click-threshold-y = <8>;
-+		st,click-threshold-z = <10>;
-+
-+		/* Click must be longer than time limit */
-+		st,click-time-limit = <9>;
-+
-+		/* Kind of debounce filter */
-+		st,click-latency = <50>;
-+
-+		/* Interrupt line 2 for click detection */
-+		st,irq2-click;
-+
-+		st,wakeup-x-hi;
-+		st,wakeup-y-hi;
-+		st,wakeup-threshold = <(800/18)>; /* millig-value / 18 to get HW values */
-+
-+		st,wakeup2-z-hi;
-+		st,wakeup2-threshold = <(900/18)>; /* millig-value / 18 to get HW values */
-+
-+		st,hipass1-disable;
-+		st,hipass2-disable;
-+
-+		st,axis-x = <1>;    /* LIS3_DEV_X */
-+		st,axis-y = <(-2)>; /* LIS3_INV_DEV_Y */
-+		st,axis-z = <(-3)>; /* LIS3_INV_DEV_Z */
-+
-+		st,min-limit-x = <(-32)>;
-+		st,min-limit-y = <3>;
-+		st,min-limit-z = <3>;
-+
-+		st,max-limit-x = <(-3)>;
-+		st,max-limit-y = <32>;
-+		st,max-limit-z = <32>;
-+	};
- };
- 
- &mmc1 {
--- 
-2.1.4
+On Sat, Mar 21, 2015 at 08:09:15PM +0100, Sebastian Reichel wrote:
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git branch/cmt-speech-2
 
+This should actually be:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git branch/cmt-speech-3
+
+-- Sebastian
+
+--lrZ03NoBR/3+SXJZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVDeS6AAoJENju1/PIO/qanSsQAJMawfHGH0H6UOfwJK2HOFOk
+T4r7ku0H49g43RevAvUYbIGH1/piAf/8RJ8XFA9OtDXAEb7G/jkZ5djIA6WZsoZy
+EyrRdZhby1ZtiG50d/tRt022h+j4gcGejyjqTaj+bmmNJmxTF2yglURkDNQU4R+d
+9ljKeJFJtqNOpCaNEB6zB2t5VezxYi7Y5eY+dTS1H6/q21ERoxroyWMUSXJp/yzf
+mjxr3gkMVaQCAFvm323VD3TYinDokUUY8gwDPrqdkh5So6S3y1ASkiMYLaohxSpw
+j+/OHmeIZfTeRKNV+8/vnItaTd9ELlxocObEWdN62wgHdwvo0esSgCVRv2+S5mae
+2ydEDcD9XXYQa2UxRUBxkz1IbQKUsutJqiC/08YTF184uQo46g41zbd8eDsCfUk/
+x9764sFTtu6uMg1JSzp+UeeRAwA4gec6LDQUzKkEId1VG797dROj6LYNwmFUzT3s
+MjAdVO6uJBwQp7mh2e9iuienDvZl/admwlnf7gcvMWfQAElA8ePJNDNQnIcH/Jof
+lF475Sgl/qRn5R3vOMEb1EoloomOPJ7mumeNRmKe4rAJ2c3y0BU1TDXHOaCormNB
+Pth0ZKfTr7n7QaLJMiR9Nh3Wuy/9mIvNwVhGQ1t2TEHGV9665vo+IhLIzOcDWKPY
+VXeAqZfXjXqNLCk0SxIv
+=6/XG
+-----END PGP SIGNATURE-----
+
+--lrZ03NoBR/3+SXJZ--
