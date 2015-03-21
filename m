@@ -1,46 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] Couple of DRA7 hwmod patches on Timers
-Date: Sat, 21 Mar 2015 19:42:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503211939340.2512@utopia.booyaka.com>
-References: <1426539294-28375-1-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57885 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670AbbCUTmC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Mar 2015 15:42:02 -0400
-In-Reply-To: <1426539294-28375-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHv2 0/4] lis3lv02d: update DT binding for use with Nokia N900
+Date: Sat, 21 Mar 2015 21:19:01 +0100
+Message-ID: <1426969145-4478-1-git-send-email-sre@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eric Piel <eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Suman,
+Hi,
 
-On Mon, 16 Mar 2015, Suman Anna wrote:
+The lis302 has already a DT binding described in [0],
+which descibes misc. hardware properties. The current
+binding does not support all values needed to convert
+the Nokia N900's platform data to DT, though.
 
-> Following are couple of DRA7 hwmod patches for the GPTimers.
-> Patches based on 4.0-rc1.
-> 
-> The first patch adds the data for timers 13 through 16, the DT
-> nodes are already present, and when enabled without the hwmod
-> data triggers a l3_noc interrupt and hangs the kernel boot [1].
-> The boot hang can also be fixed by checking the return status
-> of pm_runtime_get_sync() in the OMAP dmtimer probe, I will post
-> a separate fix for that.
-> 
-> Second patch is a minor fix.
+This patchset introduces support for describing inverted
+axis, configuration of second wakeup unit and wakeup
+threshold support.
 
-Thanks.  Sounds like the first one should go in for v4.0-rc fixes, and the 
-second one can wait for v4.1?  
+The series is based on top of v4.0-rc1 and has been
+tested on my Nokia N900.
 
-If so then could you repost the first fix to include the description of 
-why it should go in early in the patch description ("the DT nodes are 
-already present, and when enabled without the hwmod data triggers a l3_noc 
-interrupt and hangs the kernel boot").  That should avoid anyone 
-questioning why it would go in as a v4.0-rc fix at this point, and should 
-help the -stable crew out.
+[0] Documentation/devicetree/bindings/misc/lis302.txt
 
+-- Sebastian
 
-- Paul
+Sebastian Reichel (4):
+  lis3lv02d: DT: use s32 to support negative values
+  lis3lv02d: DT: add wakeup unit 2 and wakeup threshold
+  Documentation: DT: lis302: update wakeup binding
+  DTS: ARM: OMAP3-N900: Add lis3lv02d support
+
+ Documentation/devicetree/bindings/misc/lis302.txt |  9 +++-
+ arch/arm/boot/dts/omap3-n900.dts                  | 52 +++++++++++++++++++++
+ drivers/misc/lis3lv02d/lis3lv02d.c                | 56 +++++++++++++++--------
+ 3 files changed, 97 insertions(+), 20 deletions(-)
+
+-- 
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
