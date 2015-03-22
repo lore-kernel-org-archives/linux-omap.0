@@ -1,56 +1,67 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Sun, 22 Mar 2015 17:48:03 +0000
-Message-ID: <20150322174803.GL6643@sirena.org.uk>
-References: <1426741659.10003.9.camel@midgaarde>
- <550AC783.8040304@ti.com>
- <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
- <550AF442.5040203@ti.com>
- <1426787288.13824.36.camel@symus-gk-mint>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Patch to parameterize DMA_MIN_BYTES for omap2-mcspi
+Date: Sun, 22 Mar 2015 16:31:46 +0000
+Message-ID: <20150322163146.GI6643@sirena.org.uk>
+References: <1426741501.10003.6.camel@midgaarde>
+ <550AC256.4070509@ti.com>
+ <CAAQQ3un3k-0nY8xaOXKbmCznOk69ZEhbWLd5ZZV1_=rQLOyspg@mail.gmail.com>
+ <550AF7F6.7080200@ti.com>
+ <1426786080.13824.23.camel@symus-gk-mint>
+ <20150319185129.GZ2869@sirena.org.uk>
+ <550C1C2C.5080204@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="0qVF/w3MHQqLSynd"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52282 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999AbbCWE7v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 00:59:51 -0400
+	protocol="application/pgp-signature"; boundary="e5GLnnZ8mDMEwH4V"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1426787288.13824.36.camel@symus-gk-mint>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <550C1C2C.5080204-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Greg Knight <g.knight-+7FPL3kuI1+B+jHODAdFcQ@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg Knight <g.knight@symetrica.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---0qVF/w3MHQqLSynd
+--e5GLnnZ8mDMEwH4V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Mar 19, 2015 at 01:48:08PM -0400, Greg Knight wrote:
+On Fri, Mar 20, 2015 at 03:10:04PM +0200, Peter Ujfalusi wrote:
+> On 03/19/2015 08:51 PM, Mark Brown wrote:
 
-> Is there a straightforward way we could enable the clock on-demand -
-> when we're communicating with the codec/mixer or actually using the
-> audio subsystem - while keeping it disabled when not in use? We don't
-> expect to be using the audio subsystem frequently.
+> > You probably need both - there's often a hard limit where the FIFO size
+> > in the hardware becomes a limit for DMA as well as a soft limit on top
+> > of that for performance reasons.
 
-This is what the clock API is there for - the driver can enable the
-clock whenver it needs it and disable it when it doesn't.
+> The FIFO is only going to be enabled when the DMA is used for transfer so we
+> should have some lower limit for the PIO/DMA threshold. The FIFO in McSPI is a
 
---0qVF/w3MHQqLSynd
+Right, that's pretty much what I'm trying to say.
+
+> tricky one anyways, since it has only one FIFO but several channels and the
+> FIFO can be enabled for only one channel, if it is enabled for more channels
+> it is not going to be used by either channel.
+
+Not sure I follow this - how does this whole multiple channels thing
+work for SPI exactly?
+
+--e5GLnnZ8mDMEwH4V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJVDwBOAAoJECTWi3JdVIfQzvsH/RClqJ2hO7/Tnt1cRQhMfCcY
-2BzTc6NAGKHpG4FUFoZBq4uzxG5S+gWslqDZDpdIjjqZ9OyBcQdjKYXweeBdbJZ9
-9C+eLJh6rh8oTkVAxoa77zOzJjZSuun1l7SMqZ0FtYMK5Tu4csJWEpJ/mq5PCcbf
-vbGIgLIWP451gdmEeSTKtSgPSQcH0GBO16Ecg/epYt9ldeGvCsuaEoP8R7EtWgFP
-e4AbYh/mVQGpJPaDRPiy7NwsTI8U6+1lkpoTxOlNNu9+C+e0tS46PXcdT61shp5r
-WASx/Qx5NQj8ZUMbBoprBq8jhnR+ih1Dzov6jHIwxXznFuW5BcXDOGkzNqEQBZc=
-=VzPW
+iQEcBAEBCAAGBQJVDu5xAAoJECTWi3JdVIfQ9f8H/jXlMXHoNJeQb+FzdD8Mnqax
+u0Uu/zMjKtwKFPzaDd0liGD0kfXdrrlKS8YdrEIrz8C1IAXgvAZckSoVbaW/F1rX
+GovubBZnv+iHOU8AZWwcVnDPJ2TynJfHk2+MtDCjr3Ca6lFGKd5sW70mj0E/GtBF
+Nujx2moD5ZNsHeE1Ys5K3D3FjTW55Ip2kxJoC9dRXrL6qATjkAUp8NIWb62g7Xi3
+mYafUpAxZziSmbRmeNWWQKOnzi75btQv99koQQD0myUB6VmxUx1Kvado1xWysAxz
+SQ7cxudTwSD7lf9MW3V2riG8mmuO8TW0tz28K5dOisfR9B9k3eXy/KBtBxpcJoQ=
+=fcrt
 -----END PGP SIGNATURE-----
 
---0qVF/w3MHQqLSynd--
+--e5GLnnZ8mDMEwH4V--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
