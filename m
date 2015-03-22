@@ -1,42 +1,56 @@
-From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
-Date: Mon, 23 Mar 2015 06:51:58 +0200
-Message-ID: <87twxce2oh.fsf@kamboji.qca.qualcomm.com>
-References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
-	<1426696710-6891-6-git-send-email-eliad@wizery.com>
-	<550AD7C1.2030405@gmail.com>
-	<CAB3XZEfpD7YkwdU7OJJaNFy=MnYVY3-fOVxkA48Vu01LzU0GFg@mail.gmail.com>
-	<20150319212505.GN31346@atomide.com>
-	<87h9tgi4sg.fsf@kamboji.qca.qualcomm.com>
-	<20150320153357.GT31346@atomide.com>
-	<87bnjnfz1t.fsf@kamboji.qca.qualcomm.com>
-	<20150320162138.GU31346@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Patches to bind the SGTL5000 chip to AM33XX McASP
+Date: Sun, 22 Mar 2015 17:48:03 +0000
+Message-ID: <20150322174803.GL6643@sirena.org.uk>
+References: <1426741659.10003.9.camel@midgaarde>
+ <550AC783.8040304@ti.com>
+ <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
+ <550AF442.5040203@ti.com>
+ <1426787288.13824.36.camel@symus-gk-mint>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150320162138.GU31346-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
-	"Fri, 20 Mar 2015 09:21:38 -0700")
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless@vger.kernel.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree@vger.kernel.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="0qVF/w3MHQqLSynd"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52282 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999AbbCWE7v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 00:59:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1426787288.13824.36.camel@symus-gk-mint>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Knight <g.knight@symetrica.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jaroslav Kysela <perex@perex.cz>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
 
->> After John "retired" we actually have two set of trees now: mac80211
->> maintained by Johannes and wireless-drivers maintained by me. I haven't
->> pulled anything from your tree and I'm 100% sure Johannes hasn't either.
->> So green light from me.
->
-> OK, I'll set up the new branch then. I take your ack is for the
-> whole series? If it's just for the $subject patch, please let
-> me know.
+--0qVF/w3MHQqLSynd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It was for the whole series.
+On Thu, Mar 19, 2015 at 01:48:08PM -0400, Greg Knight wrote:
 
--- 
-Kalle Valo
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Is there a straightforward way we could enable the clock on-demand -
+> when we're communicating with the codec/mixer or actually using the
+> audio subsystem - while keeping it disabled when not in use? We don't
+> expect to be using the audio subsystem frequently.
+
+This is what the clock API is there for - the driver can enable the
+clock whenver it needs it and disable it when it doesn't.
+
+--0qVF/w3MHQqLSynd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVDwBOAAoJECTWi3JdVIfQzvsH/RClqJ2hO7/Tnt1cRQhMfCcY
+2BzTc6NAGKHpG4FUFoZBq4uzxG5S+gWslqDZDpdIjjqZ9OyBcQdjKYXweeBdbJZ9
+9C+eLJh6rh8oTkVAxoa77zOzJjZSuun1l7SMqZ0FtYMK5Tu4csJWEpJ/mq5PCcbf
+vbGIgLIWP451gdmEeSTKtSgPSQcH0GBO16Ecg/epYt9ldeGvCsuaEoP8R7EtWgFP
+e4AbYh/mVQGpJPaDRPiy7NwsTI8U6+1lkpoTxOlNNu9+C+e0tS46PXcdT61shp5r
+WASx/Qx5NQj8ZUMbBoprBq8jhnR+ih1Dzov6jHIwxXznFuW5BcXDOGkzNqEQBZc=
+=VzPW
+-----END PGP SIGNATURE-----
+
+--0qVF/w3MHQqLSynd--
