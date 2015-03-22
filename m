@@ -1,126 +1,156 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [Gta04-owner] [PATCH 3/4] usb: phy: twl4030: add support for
- reading restore on ID pin.
-Date: Sun, 22 Mar 2015 17:05:55 +1100
-Message-ID: <20150322170555.5f97f2c2@notabene.brown>
-References: <20150224033730.31400.78200.stgit@notabene.brown>
-	<20150224034037.31400.52748.stgit@notabene.brown>
-	<20150302210431.GH13270@amd>
-	<20150304173551.7cb93917@notabene.brown>
-	<BF76BA84-5DD6-499D-8A00-E787C843BF7F@goldelico.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v1.1 13/15] v4l: of: Read lane-polarities endpoint property
+Date: Sun, 22 Mar 2015 10:46:36 +0200
+Message-ID: <3152371.Am9HJ1ktiF@avalon>
+References: <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi> <1426889295-18182-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/8p1kxH+4L9hvLDtUhxDxOFh"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BF76BA84-5DD6-499D-8A00-E787C843BF7F@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: List for communicating with real GTA04 owners <gta04-owner@goldelico.com>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51020 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663AbbCVIqX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Mar 2015 04:46:23 -0400
+In-Reply-To: <1426889295-18182-1-git-send-email-sakari.ailus@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
 
---Sig_/8p1kxH+4L9hvLDtUhxDxOFh
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Sakari,
 
-On Wed, 4 Mar 2015 07:54:41 +0100 "Dr. H. Nikolaus Schaller"
-<hns@goldelico.com> wrote:
+Thank you for the patch.
+On Saturday 21 March 2015 00:08:15 Sakari Ailus wrote:
+> Add lane_polarities field to struct v4l2_of_bus_mipi_csi2 and write the
+> contents of the lane-polarities property to it. The field tells the polarity
+> of the physical lanes starting from the first one. Any unused lanes are
+> ignored, i.e. only the polarity of the used lanes is specified.
+> 
+> Also rework reading the "data-lanes" property a little.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
->=20
-> Am 04.03.2015 um 07:35 schrieb NeilBrown <neilb@suse.de>:
->=20
-> > On Mon, 2 Mar 2015 22:04:31 +0100 Pavel Machek <pavel@ucw.cz> wrote:
-> >=20
-> >> Hi!
-> >>=20
-> >>> The twl4030 phy can measure, with low precision, the
-> >>> resistance-to-ground of the ID pin.
-> >>>=20
-> >>> Add a function to read the value, and export the result
-> >>> via sysfs.
-> >>>=20
-> >>> If the read fails, which it does sometimes, try again in 50msec.
-> >>>=20
-> >>> Signed-off-by: NeilBrown <neilb@suse.de>
-> >>> ---
-> >>> drivers/phy/phy-twl4030-usb.c |   63 ++++++++++++++++++++++++++++++++=
-+++++++++
-> >>> 1 file changed, 63 insertions(+)
-> >>>=20
-> >>> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-=
-usb.c
-> >>> index 023fe150c7a1..759950898df9 100644
-> >>> --- a/drivers/phy/phy-twl4030-usb.c
-> >>> +++ b/drivers/phy/phy-twl4030-usb.c
-> >>> @@ -374,6 +374,56 @@ static void twl4030_i2c_access(struct twl4030_us=
-b *twl, int on)
-> >>> 	}
-> >>> }
-> >>>=20
-> >>> +enum twl4030_id_status {
-> >>> +	TWL4030_GROUND,
-> >>> +	TWL4030_102K,
-> >>> +	TWL4030_200K,
-> >>> +	TWL4030_440K,
-> >>> +	TWL4030_FLOATING,
-> >>> +	TWL4030_ID_UNKNOWN,
-> >>> +};
-> >>> +static char *twl4030_id_names[] =3D {
-> >>> +	"ground",
-> >>> +	"102k",
-> >>> +	"200k",
-> >>> +	"440k",
-> >>=20
-> >> New /sys files should be documented somewhere...?
-> >=20
-> > Preferably with the code...
-> >=20
-> >>=20
-> >> Does it make sense to change "440k" -> "440KOhm"?
-> >=20
-> > Interesting question.  I prefer to avoid including units in files - bare
-> > numbers is better.  But there is no number to match "floating" unless I=
- spell
-> > it out as "infinity", and wouldn't be helpful.
-> >=20
-> > Certainly "K" would be preferred over "k=E2=80=9C,
->=20
-> The international standard for kilo =3D 1000 is a lower case k.
-> While it is (non-standard) to use K for 1024:
->=20
-> http://en.wikipedia.org/wiki/Kilobyte
->=20
-> So I would keep the string constants lower case to avoid this potential c=
-onfusion.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Yes, I got that backwards, didn't I.
+> ---
+> since v1:
+> 
+> - Rename lane-polarity property as lane-polarities.
+> 
+>  drivers/media/v4l2-core/v4l2-of.c |   41 ++++++++++++++++++++++++++--------
+>  include/media/v4l2-of.h           |    3 +++
+>  2 files changed, 35 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index b4ed9a9..58e401f 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -19,11 +19,10 @@
+> 
+>  #include <media/v4l2-of.h>
+> 
+> -static void v4l2_of_parse_csi_bus(const struct device_node *node,
+> -				  struct v4l2_of_endpoint *endpoint)
+> +static int v4l2_of_parse_csi_bus(const struct device_node *node,
+> +				 struct v4l2_of_endpoint *endpoint)
+>  {
+>  	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+> -	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
+>  	struct property *prop;
+>  	bool have_clk_lane = false;
+>  	unsigned int flags = 0;
+> @@ -32,16 +31,34 @@ static void v4l2_of_parse_csi_bus(const struct
+> device_node *node, prop = of_find_property(node, "data-lanes", NULL);
+>  	if (prop) {
+>  		const __be32 *lane = NULL;
+> -		int i;
+> +		unsigned int i;
+> 
+> -		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
+> -			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
+> +		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
+> +			lane = of_prop_next_u32(prop, lane, &v);
+>  			if (!lane)
+>  				break;
+> +			bus->data_lanes[i] = v;
+>  		}
+>  		bus->num_data_lanes = i;
+> -		while (i--)
+> -			bus->data_lanes[i] = data_lanes[i];
+> +	}
+> +
+> +	prop = of_find_property(node, "lane-polarities", NULL);
+> +	if (prop) {
+> +		const __be32 *polarity = NULL;
+> +		unsigned int i;
+> +
+> +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
+> +			polarity = of_prop_next_u32(prop, polarity, &v);
+> +			if (!polarity)
+> +				break;
+> +			bus->lane_polarities[i] = v;
+> +		}
+> +
+> +		if (i < 1 + bus->num_data_lanes /* clock + data */) {
+> +			pr_warn("%s: too few lane-polarities entries (need %u, got 
+%u)\n",
+> +				node->full_name, 1 + bus->num_data_lanes, i);
+> +			return -EINVAL;
+> +		}
+>  	}
+> 
+>  	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+> @@ -56,6 +73,8 @@ static void v4l2_of_parse_csi_bus(const struct device_node
+> *node,
+> 
+>  	bus->flags = flags;
+>  	endpoint->bus_type = V4L2_MBUS_CSI2;
+> +
+> +	return 0;
+>  }
+> 
+>  static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+> @@ -127,11 +146,15 @@ static void v4l2_of_parse_parallel_bus(const struct
+> device_node *node, int v4l2_of_parse_endpoint(const struct device_node
+> *node,
+>  			   struct v4l2_of_endpoint *endpoint)
+>  {
+> +	int rval;
+> +
+>  	of_graph_parse_endpoint(node, &endpoint->base);
+>  	endpoint->bus_type = 0;
+>  	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
+> 
+> -	v4l2_of_parse_csi_bus(node, endpoint);
+> +	rval = v4l2_of_parse_csi_bus(node, endpoint);
+> +	if (rval)
+> +		return rval;
+>  	/*
+>  	 * Parse the parallel video bus properties only if none
+>  	 * of the MIPI CSI-2 specific properties were found.
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 70fa7b7..2de42c5 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -29,12 +29,15 @@ struct device_node;
+>   * @data_lanes: an array of physical data lane indexes
+>   * @clock_lane: physical lane index of the clock lane
+>   * @num_data_lanes: number of data lanes
+> + * @lane_polarities: polarity of the lanes. The order is the same of
+> + *		   the physical lanes.
+>   */
+>  struct v4l2_of_bus_mipi_csi2 {
+>  	unsigned int flags;
+>  	unsigned char data_lanes[4];
+>  	unsigned char clock_lane;
+>  	unsigned short num_data_lanes;
+> +	bool lane_polarities[5];
+>  };
+> 
+>  /**
 
-I think I'll leave it as lower-case.
-I won't include the word "ohm" - it is very uncommon to have units explicit
-in sysfs attribute values.
+-- 
+Regards,
 
-Thanks,
-NeilBrown
+Laurent Pinchart
 
---Sig_/8p1kxH+4L9hvLDtUhxDxOFh
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIVAwUBVQ5bwznsnt1WYoG5AQIoZBAAmB4M5DAX6gDbnhv5GcXstF2LNFn+91lE
-HieB0ztJvsxhq1uzPBL/TA5uBPe3K+rtiTsPT9EM67iw81+Uo+5pjc2w+0nJRJvg
-0jPTR7RaRXyQWAK9XZA9/NSNTVrpwB1IAPP1tl0ehkHByKZkzpUokCeHipOqciJB
-V66dCGJ1HEvSQizKH66bqwTabAdfwtGwY3tI/ZUNSpcY4Zq8Ft/Nu09dQfljx4y/
-l7xtrnIKNs8YOjRj1AUltkmXdQU6yoNdhxdU5tpkv2IDFkr3uVdkbn1dic2PG8xY
-EqjWTG7AQb0z9K1fTdwGliffHae9/mq66yZKvSAt3gpnay2YnCDL1cgLs9ap8FKT
-v2Cni2sB8CJgX2tzYenr7A8haf3vlO/vwkBUFBPhyWeKlgxLH8q0ELuqqybVZwMH
-41KKLkIJCzwG1xX2TbcQw51HyIDKSkxJKEvq6Onf1qwpuoeowMxlJhU57xSFBVs1
-tsDmHBrcfZld57lp8sxPPxUOslqYtOS/bCPdo4hMn8hkrNumu9ZeXtA1oTPYVoTl
-byd04IefYGRW9y4SAJeucAHUJmXPdT/nIVLqyQOG1gYWPnJ00e5H+NPbZoo19bHP
-2j84aMUk9MF/5hsx8GN+3C4vBK/0A+0DrZBbjV6WwnGKseUyloNezIFnTpSJ1dz3
-W9HxXJOSwMQ=
-=ax10
------END PGP SIGNATURE-----
-
---Sig_/8p1kxH+4L9hvLDtUhxDxOFh--
