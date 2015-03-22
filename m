@@ -1,83 +1,112 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v3] omap-rng: Change RNG_CONFIG_REG to RNG_CONTROL_REG
- when, checking and disabling TRNG
-Date: Mon, 23 Mar 2015 10:42:52 +0530
-Message-ID: <550FA0D4.4070905@ti.com>
-References: <54E6BA01.7090904@analog.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v1.1 14/15] omap3isp: Add support for the Device Tree
+Date: Sun, 22 Mar 2015 22:26:39 +0200
+Message-ID: <3913985.bpC1SiT8Tn@avalon>
+References: <2603487.gEIKMl6vV7@avalon> <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51389 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188AbbCWFNC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 01:13:02 -0400
-In-Reply-To: <54E6BA01.7090904@analog.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Andre Wolokita <andre.wolokita@analog.com>, dsaxena@plexity.net
-Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
 
-Hi Andre,
-On Friday 20 February 2015 10:07 AM, Andre Wolokita wrote:
-> In omap4_rng_init(), a check of bit 10 of the RNG_CONFIG_REG is done to determine
-> whether the RNG is running. This is suspicious firstly due to the use of
-> RNG_CONTROL_ENABLE_TRNG_MASK and secondly because the same mask is written to
-> RNG_CONTROL_REG after configuration of the FROs. Similar suspicious logic is
-> repeated in omap4_rng_cleanup() when RNG_CONTROL_REG masked with
-> RNG_CONTROL_ENABLE_TRNG_MASK is read, the same mask bit is cleared, and then
-> written to RNG_CONFIG_REG. Unless the TRNG is enabled with one bit in RNG_CONTROL
-> and disabled with another in RNG_CONFIG and these bits are mirrored in some way,
-> I believe that the TRNG is not really shutting off, leaving the FROs running
-> indefinitely which, in an extreme case, could lead to degredation of the
-> hardware and potentially reduce the level of entropy generated.
-Yes you are correct. Patch looks good to me.
-It should be RNG_CONTROL_REG
+Hi Sakari,
 
-Acked-by: Lokesh Vutla <lokeshvutla@ti.com>
+Thank you for the patch. This looks good to me, except that there's one last 
+bug I've spotted. Please see below.
 
-Thanks and regards,
-Lokesh
-
+On Saturday 21 March 2015 00:05:04 Sakari Ailus wrote:
+> Add the ISP device to omap3 DT include file and add support to the driver to
+> use it.
 > 
-> Apart from the strange logic, I have reason to suspect that the OMAP4 related
-> code in this driver is driving an Inside Secure IP hardware RNG and strongly
-> suspect that bit 10 of RNG_CONFIG_REG is one of the bits configuring the
-> sampling rate of the FROs. This option is by default set to 0 and is not being
-> set anywhere in omap-rng.c. Reading this bit during omap4_rng_init() will
-> always return 0. It will remain 0 because ~(value of TRNG_MASK in control) will
-> always be 0, because the TRNG is never shut off. This is of course presuming
-> that the OMAP4 features the Inside Secure IP, which I strongly suspect.
+> Also obtain information on the external entities and the ISP configuration
+> related to them through the Device Tree in addition to the platform data.
 > 
-> I'm interested in knowing what the guys at TI think about this, as only they
-> can confirm or deny the detailed structure of these registers.
-> 
-> Signed-off-by: Andre Wolokita <Andre.Wolokita@analog.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 > ---
->  drivers/char/hw_random/omap-rng.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> since v1:
 > 
-> diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-> index d14dcf7..67151cb 100644
-> --- a/drivers/char/hw_random/omap-rng.c
-> +++ b/drivers/char/hw_random/omap-rng.c
-> @@ -236,7 +236,7 @@ static int omap4_rng_init(struct omap_rng_dev *priv)
->         u32 val;
+> - Print endpoint name in debug message when parsing an endpoint.
 > 
->         /* Return if RNG is already running. */
-> -       if (omap_rng_read(priv, RNG_CONFIG_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
-> +       if (omap_rng_read(priv, RNG_CONTROL_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
->                 return 0;
+> - Rename lane-polarity property as lane-polarities.
 > 
->         val = RNG_CONFIG_MIN_REFIL_CYCLES << RNG_CONFIG_MIN_REFIL_CYCLES_SHIFT;
-> @@ -262,7 +262,7 @@ static void omap4_rng_cleanup(struct omap_rng_dev *priv)
+> - Print endpoint name with the interface if the interface is invalid.
 > 
->         val = omap_rng_read(priv, RNG_CONTROL_REG);
->         val &= ~RNG_CONTROL_ENABLE_TRNG_MASK;
-> -       omap_rng_write(priv, RNG_CONFIG_REG, val);
-> +       omap_rng_write(priv, RNG_CONTROL_REG, val);
->  }
+> - Remove assignment to two variables at the same time.
 > 
->  static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
+> - Fix multiple sub-device support in isp_of_parse_nodes().
 > 
+> - Put of_node properly in isp_of_parse_nodes() (requires Philipp Zabel's
+>   patch "of: Decrement refcount of previous endpoint in
+>   of_graph_get_next_endpoint".
+> 
+> - Rename return value variable rval as ret to be consistent with the rest of
+> the driver.
+> 
+> - Read the register offset from the syscom property's first argument.
+> 
+>  drivers/media/platform/omap3isp/isp.c       |  218 ++++++++++++++++++++++--
+>  drivers/media/platform/omap3isp/isp.h       |   11 ++
+>  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
+>  3 files changed, 224 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 992e74c..92a859e 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
 
+[snip]
+
+> +static int isp_of_parse_nodes(struct device *dev,
+> +			      struct v4l2_async_notifier *notifier)
+> +{
+> +	struct device_node *node;
+> +
+> +	notifier->subdevs = devm_kcalloc(
+> +		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> +	if (!notifier->subdevs)
+> +		return -ENOMEM;
+> +
+> +	while ((node = of_graph_get_next_endpoint(dev->of_node, node)) &&
+> +	       notifier->num_subdevs < ISP_MAX_SUBDEVS) {
+
+If the first condition evaluates to true and the second one to false, the loop 
+will be exited without releasing the reference to the DT node. You could just 
+switch the two conditions to fix this.
+
+> +		struct isp_async_subdev *isd;
+> +
+> +		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> +		if (!isd) {
+> +			of_node_put(node);
+> +			return -ENOMEM;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> +
+> +		if (isp_of_parse_node(dev, node, isd)) {
+> +			of_node_put(node);
+> +			return -EINVAL;
+> +		}
+> +
+> +		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+> +		of_node_put(node);
+> +		if (!isd->asd.match.of.node) {
+> +			dev_warn(dev, "bad remote port parent\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+> +		notifier->num_subdevs++;
+> +	}
+> +
+> +	return notifier->num_subdevs;
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
