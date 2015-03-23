@@ -1,112 +1,69 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v1.1 14/15] omap3isp: Add support for the Device Tree
-Date: Sun, 22 Mar 2015 22:26:39 +0200
-Message-ID: <3913985.bpC1SiT8Tn@avalon>
-References: <2603487.gEIKMl6vV7@avalon> <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 27/35] ARM: dts: am33xx: add minimal l4 bus layout with
+ control module support
+Date: Mon, 23 Mar 2015 08:35:35 +0200
+Message-ID: <550FB437.4060206@ti.com>
+References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-28-git-send-email-t-kristo@ti.com> <550C9490.3070505@ti.com> <20150320223541.GV31346@atomide.com> <550CABD9.5060000@ti.com> <20150320233043.GW31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56711 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751388AbbCWGgE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Mar 2015 02:36:04 -0400
+In-Reply-To: <20150320233043.GW31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Sakari,
+On 03/21/2015 01:30 AM, Tony Lindgren wrote:
+> * Suman Anna <s-anna@ti.com> [150320 16:24]:
+>> On 03/20/2015 05:35 PM, Tony Lindgren wrote:
+>>> * Suman Anna <s-anna@ti.com> [150320 14:44]:
+>>>> On 03/20/2015 01:44 PM, Kristo, Tero wrote:
+>>>>> +			scm: scm@210000 {
+>>>>> +				compatible = "ti,am3-scm", "simple-bus";
+>>>>> +				reg = <0x210000 0x2000>;
+>>>>> +				#address-cells = <1>;
+>>>>> +				#size-cells = <1>;
+>>>>> +				ranges = <0 0x210000 0x2000>;
+>>>>> +
+>>>>> +				am33xx_pinmux: pinmux@800 {
+>>>>> +					compatible = "pinctrl-single";
+>>>>> +					reg = <0x800 0x238>;
+>>>>> +					#address-cells = <1>;
+>>>>> +					#size-cells = <0>;
+>>>>> +					pinctrl-single,register-width = <32>;
+>>>>> +					pinctrl-single,function-mask = <0x7f>;
+>>>>> +				};
+>>>>> +
+>>>>> +				scm_conf: scm_conf@0 {
+>>>>> +					compatible = "syscon";
+>>>>> +					reg = <0x0 0x7fc>;
+>>>>
+>>>> Hmm, you are consolidating the am33xx_control_module and cm nodes, so is
+>>>> this supposed to be 0x800 or 0x7fc? I would think it should be 0x800.
+>>>
+>>> Seems correct to me, it's offset 0, size 0x7fc. So that's the scm_conf
+>>> syscon area before pinctrl-single at 0x44c00000 + 0x210000 + 0.
+>>>
+>>> The io area for pinctrl-single starts at 0x800, so the scm_conf should
+>>> be before it in the dts file.
+>>
+>> Well, I understand that it is how it was before, but we won't be mapping
+>> or covering the last register efuse_sma before the pinctrl cfg
+>> registers. Any reason for just leaving out that register?
+>
+> Oh I see yeah that looks like a bug to me.
 
-Thank you for the patch. This looks good to me, except that there's one last 
-bug I've spotted. Please see below.
+Yea thats a bug, I wonder where I got this 7fc. Same issue exists for 
+am43xx also. I can fix this locally in my branch if that is fine.
 
-On Saturday 21 March 2015 00:05:04 Sakari Ailus wrote:
-> Add the ISP device to omap3 DT include file and add support to the driver to
-> use it.
-> 
-> Also obtain information on the external entities and the ISP configuration
-> related to them through the Device Tree in addition to the platform data.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> since v1:
-> 
-> - Print endpoint name in debug message when parsing an endpoint.
-> 
-> - Rename lane-polarity property as lane-polarities.
-> 
-> - Print endpoint name with the interface if the interface is invalid.
-> 
-> - Remove assignment to two variables at the same time.
-> 
-> - Fix multiple sub-device support in isp_of_parse_nodes().
-> 
-> - Put of_node properly in isp_of_parse_nodes() (requires Philipp Zabel's
->   patch "of: Decrement refcount of previous endpoint in
->   of_graph_get_next_endpoint".
-> 
-> - Rename return value variable rval as ret to be consistent with the rest of
-> the driver.
-> 
-> - Read the register offset from the syscom property's first argument.
-> 
->  drivers/media/platform/omap3isp/isp.c       |  218 ++++++++++++++++++++++--
->  drivers/media/platform/omap3isp/isp.h       |   11 ++
->  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
->  3 files changed, 224 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 992e74c..92a859e 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
+-Tero
 
-[snip]
+>
+> Tony
+>
 
-> +static int isp_of_parse_nodes(struct device *dev,
-> +			      struct v4l2_async_notifier *notifier)
-> +{
-> +	struct device_node *node;
-> +
-> +	notifier->subdevs = devm_kcalloc(
-> +		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> +	if (!notifier->subdevs)
-> +		return -ENOMEM;
-> +
-> +	while ((node = of_graph_get_next_endpoint(dev->of_node, node)) &&
-> +	       notifier->num_subdevs < ISP_MAX_SUBDEVS) {
-
-If the first condition evaluates to true and the second one to false, the loop 
-will be exited without releasing the reference to the DT node. You could just 
-switch the two conditions to fix this.
-
-> +		struct isp_async_subdev *isd;
-> +
-> +		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-> +		if (!isd) {
-> +			of_node_put(node);
-> +			return -ENOMEM;
-> +		}
-> +
-> +		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-> +
-> +		if (isp_of_parse_node(dev, node, isd)) {
-> +			of_node_put(node);
-> +			return -EINVAL;
-> +		}
-> +
-> +		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
-> +		of_node_put(node);
-> +		if (!isd->asd.match.of.node) {
-> +			dev_warn(dev, "bad remote port parent\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-> +		notifier->num_subdevs++;
-> +	}
-> +
-> +	return notifier->num_subdevs;
-> +}
-
--- 
-Regards,
-
-Laurent Pinchart
