@@ -1,48 +1,62 @@
-From: Petr Kulhavy <petr@barix.com>
-Subject: [PATCH] EDMA: TI: fixed memory leak when terminating running transfers
-Date: Mon, 23 Mar 2015 16:00:12 +0100
-Message-ID: <1427122812-22657-1-git-send-email-petr@barix.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, trivial@kernel.org, Petr Kulhavy <petr@barix.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 2/4] mmc: core: allow non-blocking form of mmc_claim_host
+Date: Mon, 23 Mar 2015 16:19:57 +0100
+Message-ID: <CAPDyKFr5g4cqei+DnQvUY2qaR0faAg4-2_p-S_ZYPaAhJuAK-Q@mail.gmail.com>
+References: <20150224024023.22719.32436.stgit@notabene.brown>
+	<20150224024223.22719.95786.stgit@notabene.brown>
+	<CAPDyKFrY=DEH0dZvObgXriMoTz9fBbBhOhU3+ZXATUkj=vrpnA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFrY=DEH0dZvObgXriMoTz9fBbBhOhU3+ZXATUkj=vrpnA@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-If edma_terminate_all() was called while a transfer was running (i.e. after
-edma_execute() but before edma_callback()) the echan->edesc was not freed.
+On 23 March 2015 at 10:58, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> On 24 February 2015 at 03:42, NeilBrown <neilb@suse.de> wrote:
+>> Change the handling for the 'abort' flag so that if
+>> it is set, but we can claim the host, then do the claim,
+>> rather than aborting.
+>>
+>> When the abort is async this just means that a race between aborting
+>> an allowing a claim is resolved slightly differently.  Any
+>> code must already be able to handle 'abort' being set just as the host
+>> is claimed.
+>>
+>> This allows extra functionality.  If __mmc_claim_host() is called
+>> with an 'abort' pointer which is initialized to '1', it will effect a
+>> non-blocking 'claim'.
+>>
+>> Signed-off-by: NeilBrown <neil@brown.name>
+>> ---
+>>  drivers/mmc/core/core.c |    3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
+>> index 23f10f72e5f3..541c8903dc6b 100644
+>> --- a/drivers/mmc/core/core.c
+>> +++ b/drivers/mmc/core/core.c
+>> @@ -912,10 +912,11 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t *abort)
+>>                 spin_lock_irqsave(&host->lock, flags);
+>>         }
+>>         set_current_state(TASK_RUNNING);
+>> -       if (!stop) {
+>> +       if (!host->claimed || host->claimer == current) {
+>
+> This seems risky in that regards that it will change the behaviour for
+> the sdio_irq_thread(). Did you check that?
+>
+> I guess we could change the sdio_irq_thread() to read it's
+> sdio_irq_thread_abort value before trying to claim the host?
 
-This was due to the fact that a running transfer is on none of the
-vchan lists: desc_submitted, desc_issued, desc_completed (edma_execute()
-removes it from the desc_issued list), so the vchan_dma_desc_free_list()
-called at the end of edma_terminate_all() didn't find it and didn't free it.
+Ah, that won't work. Since we may be spinning to claim the host and
+the abort value may change dynamically during this time.
 
-This bug was found on an AM1808 based hardware (very similar to da850evm,
-however using the second MMC/SD controller), where intense operations on the SD
-card wasted the device 128MB RAM within a couple of days.
+Another option would be to re-invent mmc_try_claim_host(). Which we
+removed in commit:
+b83e867026ca (mmc: core: remove dead function mmc_try_claim_host)
 
-Signed-off-by: Petr Kulhavy <petr@barix.com>
----
- drivers/dma/edma.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 276157f..1465610 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -260,6 +260,14 @@ static int edma_terminate_all(struct dma_chan *chan)
- 	 */
- 	if (echan->edesc) {
- 		int cyclic = echan->edesc->cyclic;
-+
-+		/*
-+		 * free the running request descriptor
-+		 * since it is on none of the vchan lists
-+		 * desc_submitted, desc_issued, desc_completed
-+		 */
-+		kfree(echan->edesc);
-+
- 		echan->edesc = NULL;
- 		edma_stop(echan->ch_num);
- 		/* Move the cyclic channel back to default queue */
--- 
-1.9.1
+Kind regards
+Uffe
