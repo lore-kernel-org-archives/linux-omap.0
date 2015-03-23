@@ -1,43 +1,96 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dts: OMAP5+: separate the cpu thermal zone definition
- from omap4
-Date: Mon, 23 Mar 2015 12:00:53 -0500
-Message-ID: <551046C5.1080901@ti.com>
-References: <1426880861-9266-1-git-send-email-nm@ti.com> <1426880861-9266-2-git-send-email-nm@ti.com> <20150320215402.GB7346@developer.amazonguestwifi.org> <550FE807.6020107@ti.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCHv2] thermal: add omap3 support
+Date: Mon, 23 Mar 2015 13:55:12 -0400
+Message-ID: <20150323175508.GA28302@developer>
+References: <20150103111146.GB7065@amd>
+ <20150118202824.GB29014@amd>
+ <20150323143149.GA18339@developer.hsd1.ca.comcast.net>
+ <20150323155830.GB13297@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <550FE807.6020107@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Eduardo Valentin <edubezval@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150323155830.GB13297@amd>
+Sender: linux-pm-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 03/23/2015 05:16 AM, Tero Kristo wrote:
-> On 03/20/2015 11:54 PM, Eduardo Valentin wrote:
->> On Fri, Mar 20, 2015 at 02:47:39PM -0500, Nishanth Menon wrote:
->>> From: Tero Kristo <t-kristo@ti.com>
 
-[...]
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> Can't we simple change the polling value for the omap5 case and reuse
->> the omap4 file?
-> 
-> Hmm yea, I posted a patch like this before for o5 and it was queued 
-> already. See:
-> 
-> http://thread.gmane.org/gmane.linux.ports.arm.omap/123729
-> 
-> The dra7 part was missing from this set though, so patches 2/3 do not 
-> directly work with that one and will require some changes similar to the 
-> linked omap4 one.
+On Mon, Mar 23, 2015 at 04:58:30PM +0100, Pavel Machek wrote:
+> On Mon 2015-03-23 10:31:51, Eduardo Valentin wrote:
+> > On Sun, Jan 18, 2015 at 09:28:24PM +0100, Pavel Machek wrote:
+> > >=20
+> > > Add support for omap3430 sensor. Tested on Nokia N900.
+> > >=20
+> > > Fix help text to be closer to english.
+> > >=20
+> > > Ifdefs in ti-bandgap.h are not neccessary, as users have #ifdefs,
+> > > already.
+> > >=20
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >=20
+> > You need to update the driver device tree binding documentation. Please
+> > include an example of its usage there.
+> >=20
+> > Also, a separate patch with the required DT changes is always
+> > welcome.
+>=20
+> I can do it, but can you merge:
+>=20
+> Date: Sun, 18 Jan 2015 21:24:47 +0100
+> From: Pavel Machek <pavel@ucw.cz>
+> Subject: [PATCHv2] ti-soc-thermal: request temperature periodically if
+> hw can't do that itself
+>=20
+>=20
+> Date: Sun, 18 Jan 2015 21:20:51 +0100
+> From: Pavel Machek <pavel@ucw.cz>
+> Subject: [PATCHv2] ti-soc-thermal: implement eocz bit to make driver
+> useful on omap3
+>=20
+> Date: Sun, 18 Jan 2015 21:17:10 +0100
+> From: Pavel Machek <pavel@ucw.cz>
+> Subject: [PATCHv2] cleanup ti-soc-thermal
+>=20
+> First? They are nicely split, as you requested, and I already have too
+> many patches in flight.
+>=20
+> Thanks for the comments, I'll fix them in my local tree.
+> 								Pavel
 
-OK. will do that and as part of that, I will squash up patch 1 and 2
-Since it is needed only when we introduce DRA7 thermal description -
-Apologies on missing the O5 patch.
+Somehow I really thought I already sent those above. I really apologize
+for the inconvenience. It seams like they've fallen into the cracks.
 
 
--- 
-Regards,
-Nishanth Menon
+I will check those and apply accordingly.
+
+>=20
+> --=20
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJVEFNwAAoJEMLUO4d9pOJWmDsH/2dlkDuo4lNVubAQjoFO+iyh
+DyV9o0o121ulZf58XIrzshE7vCbhDytJNdueLM89IOvghHJVMZJVbSGV2IB2WLBn
+0e9POltV8PfOr+R6bhpiYea6YfhusQhr4zephm4Z9jo+EG6/HLYT06ZlUgrFyoou
+czSb12Eg4dGoim1jg3NFxnabVYZjC45VC53l7IMpcOYBoYfpFE8eg9uwh/OYFPZ7
+PAzzgDTv46gF7W2bYfi4DQy1JqTv5GQ/L1SLKbB5BST78IpBIVcdc0vG+3GlaIKg
+JRDHC4/VWIV6h5zeI0nIH/lSQpHUq2OtjvsYBzebc9mj+UCB2y9+gUvfsnR8+Rg=
+=fm3X
+-----END PGP SIGNATURE-----
+
+--6c2NcOVqGQ03X4Wi--
