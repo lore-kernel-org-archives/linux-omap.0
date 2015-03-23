@@ -1,69 +1,119 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 2/4] mmc: core: allow non-blocking form of mmc_claim_host
-Date: Mon, 23 Mar 2015 10:58:24 +0100
-Message-ID: <CAPDyKFrY=DEH0dZvObgXriMoTz9fBbBhOhU3+ZXATUkj=vrpnA@mail.gmail.com>
-References: <20150224024023.22719.32436.stgit@notabene.brown>
-	<20150224024223.22719.95786.stgit@notabene.brown>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: OMAP5+: separate the cpu thermal zone definition
+ from omap4
+Date: Mon, 23 Mar 2015 12:16:39 +0200
+Message-ID: <550FE807.6020107@ti.com>
+References: <1426880861-9266-1-git-send-email-nm@ti.com> <1426880861-9266-2-git-send-email-nm@ti.com> <20150320215402.GB7346@developer.amazonguestwifi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f49.google.com ([209.85.192.49]:36173 "EHLO
-	mail-qg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187AbbCWJ6Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 05:58:25 -0400
-Received: by qgez102 with SMTP id z102so51923759qge.3
-        for <linux-omap@vger.kernel.org>; Mon, 23 Mar 2015 02:58:24 -0700 (PDT)
-In-Reply-To: <20150224024223.22719.95786.stgit@notabene.brown>
+Received: from devils.ext.ti.com ([198.47.26.153]:34447 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093AbbCWKRA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 06:17:00 -0400
+In-Reply-To: <20150320215402.GB7346@developer.amazonguestwifi.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>
+To: Eduardo Valentin <edubezval@gmail.com>, Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 
-On 24 February 2015 at 03:42, NeilBrown <neilb@suse.de> wrote:
-> Change the handling for the 'abort' flag so that if
-> it is set, but we can claim the host, then do the claim,
-> rather than aborting.
+On 03/20/2015 11:54 PM, Eduardo Valentin wrote:
+> On Fri, Mar 20, 2015 at 02:47:39PM -0500, Nishanth Menon wrote:
+>> From: Tero Kristo <t-kristo@ti.com>
+>>
+>> OMAP4 has a finer counter granularity, which allows for a delay of 1000ms
+>> in the thermal zone polling intervals. OMAP5/DRA7 have different counter
+>> mechanism, which allows at maximum a 500ms timer. Adjust the cpu thermal
+>> zone accordingly for OMAP5/DRA7.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
 >
-> When the abort is async this just means that a race between aborting
-> an allowing a claim is resolved slightly differently.  Any
-> code must already be able to handle 'abort' being set just as the host
-> is claimed.
 >
-> This allows extra functionality.  If __mmc_claim_host() is called
-> with an 'abort' pointer which is initialized to '1', it will effect a
-> non-blocking 'claim'.
+>> ---
+>>   arch/arm/boot/dts/omap5-cpu-thermal.dtsi |   41 ++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/omap5.dtsi             |    2 +-
+>>   2 files changed, 42 insertions(+), 1 deletion(-)
+>>   create mode 100644 arch/arm/boot/dts/omap5-cpu-thermal.dtsi
+>>
+>> diff --git a/arch/arm/boot/dts/omap5-cpu-thermal.dtsi b/arch/arm/boot/dts/omap5-cpu-thermal.dtsi
+>> new file mode 100644
+>> index 000000000000..4a6427c1e47e
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/omap5-cpu-thermal.dtsi
+>> @@ -0,0 +1,41 @@
+>> +/*
+>> + * Device Tree Source for OMAP4/5 SoC CPU thermal
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+>> + * Contact: Tero Kristo <t-kristo@ti.com>
+>> + *
+>> + * This file is licensed under the terms of the GNU General Public License
+>> + * version 2.  This program is licensed "as is" without any warranty of any
+>> + * kind, whether express or implied.
+>> + */
+>> +
+>> +#include <dt-bindings/thermal/thermal.h>
+>> +
+>> +cpu_thermal: cpu_thermal {
+>> +	polling-delay-passive = <250>; /* milliseconds */
+>> +	polling-delay = <500>; /* milliseconds */
+>> +
+>> +			/* sensor       ID */
+>> +	thermal-sensors = <&bandgap     0>;
+>> +
+>> +	cpu_trips: trips {
+>> +		cpu_alert0: cpu_alert {
+>> +			temperature = <100000>; /* millicelsius */
+>> +			hysteresis = <2000>; /* millicelsius */
+>> +			type = "passive";
+>> +		};
+>> +		cpu_crit: cpu_crit {
+>> +			temperature = <125000>; /* millicelsius */
+>> +			hysteresis = <2000>; /* millicelsius */
+>> +			type = "critical";
+>> +		};
+>> +	};
+>> +
+>> +	cpu_cooling_maps: cooling-maps {
+>> +		map0 {
+>> +			trip = <&cpu_alert0>;
+>> +			cooling-device =
+>> +				<&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+>> +		};
+>> +	};
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>> index ddff674bd05e..e650d4eb59dd 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -67,7 +67,7 @@
+>>   	};
+>>
+>>   	thermal-zones {
+>> -		#include "omap4-cpu-thermal.dtsi"
+>> +		#include "omap5-cpu-thermal.dtsi"
 >
-> Signed-off-by: NeilBrown <neil@brown.name>
-> ---
->  drivers/mmc/core/core.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-> index 23f10f72e5f3..541c8903dc6b 100644
-> --- a/drivers/mmc/core/core.c
-> +++ b/drivers/mmc/core/core.c
-> @@ -912,10 +912,11 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t *abort)
->                 spin_lock_irqsave(&host->lock, flags);
->         }
->         set_current_state(TASK_RUNNING);
-> -       if (!stop) {
-> +       if (!host->claimed || host->claimer == current) {
+> Can't we simple change the polling value for the omap5 case and reuse
+> the omap4 file?
 
-This seems risky in that regards that it will change the behaviour for
-the sdio_irq_thread(). Did you check that?
+Hmm yea, I posted a patch like this before for o5 and it was queued 
+already. See:
 
-I guess we could change the sdio_irq_thread() to read it's
-sdio_irq_thread_abort value before trying to claim the host?
+http://thread.gmane.org/gmane.linux.ports.arm.omap/123729
 
->                 host->claimed = 1;
->                 host->claimer = current;
->                 host->claim_cnt += 1;
-> +               stop = 0;
->         } else
->                 wake_up(&host->wq);
->         spin_unlock_irqrestore(&host->lock, flags);
+The dra7 part was missing from this set though, so patches 2/3 do not 
+directly work with that one and will require some changes similar to the 
+linked omap4 one.
+
+-Tero
+
 >
->
+>>   		#include "omap5-gpu-thermal.dtsi"
+>>   		#include "omap5-core-thermal.dtsi"
+>>   	};
+>> --
+>> 1.7.9.5
+>>
 
-Kind regards
-Uffe
