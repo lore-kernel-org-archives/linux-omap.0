@@ -1,206 +1,82 @@
-From: <grygorii.strashko@linaro.org>
-Subject: [PATCH v2 5/8] gpio: omap: convert gpio irq functions to use GPIO offset
-Date: Mon, 23 Mar 2015 14:18:27 +0200
-Message-ID: <1427113110-20813-6-git-send-email-grygorii.strashko@linaro.org>
-References: <1427113110-20813-1-git-send-email-grygorii.strashko@linaro.org>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 21/35 linux-next] mfd: constify of_device_id array
+Date: Mon, 23 Mar 2015 12:29:23 +0000
+Message-ID: <20150323122923.GB24804@x1>
+References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
+ <1426533710-25687-1-git-send-email-fabf@skynet.be>
+ <1426533710-25687-2-git-send-email-fabf@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427113110-20813-1-git-send-email-grygorii.strashko@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <1426533710-25687-2-git-send-email-fabf@skynet.be>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@linaro.org>
+To: Fabian Frederick <fabf@skynet.be>
+Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@linaro.org>
+On Mon, 16 Mar 2015, Fabian Frederick wrote:
 
-Convert GPIO IRQ functions to use GPIO offset instead of system
-GPIO numbers. This allows to drop unneeded conversations between
-system GPIO <-> GPIO offset which are done in many places and
-many times.
-It is safe to do now because:
-- gpiolib always passes GPIO offset to GPIO controller
-- OMAP GPIO driver converted to use IRQ domain, so
-  struct irq_data->hwirq contains GPIO offset
+> of_device_id is always used as const.
+> (See driver.of_match_table and open firmware functions)
+>=20
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>  drivers/mfd/hi6421-pmic-core.c | 2 +-
+>  drivers/mfd/rk808.c            | 2 +-
+>  drivers/mfd/twl4030-power.c    | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
 
-This is preparation step before removing:
- #define GPIO_INDEX(bank, gpio)
- #define GPIO_BIT(bank, gpio)
- int omap_irq_to_gpio()
+Applied, thanks.
 
-Tested-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
----
- drivers/gpio/gpio-omap.c | 67 ++++++++++++++++++++++++------------------------
- 1 file changed, 34 insertions(+), 33 deletions(-)
+> diff --git a/drivers/mfd/hi6421-pmic-core.c b/drivers/mfd/hi6421-pmic=
+-core.c
+> index 7210ae2..95b2ff8 100644
+> --- a/drivers/mfd/hi6421-pmic-core.c
+> +++ b/drivers/mfd/hi6421-pmic-core.c
+> @@ -93,7 +93,7 @@ static int hi6421_pmic_remove(struct platform_devic=
+e *pdev)
+>  	return 0;
+>  }
+> =20
+> -static struct of_device_id of_hi6421_pmic_match_tbl[] =3D {
+> +static const struct of_device_id of_hi6421_pmic_match_tbl[] =3D {
+>  	{ .compatible =3D "hisilicon,hi6421-pmic", },
+>  	{ },
+>  };
+> diff --git a/drivers/mfd/rk808.c b/drivers/mfd/rk808.c
+> index 7cf25c7..4b1e439 100644
+> --- a/drivers/mfd/rk808.c
+> +++ b/drivers/mfd/rk808.c
+> @@ -246,7 +246,7 @@ static int rk808_remove(struct i2c_client *client=
+)
+>  	return 0;
+>  }
+> =20
+> -static struct of_device_id rk808_of_match[] =3D {
+> +static const struct of_device_id rk808_of_match[] =3D {
+>  	{ .compatible =3D "rockchip,rk808" },
+>  	{ },
+>  };
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.=
+c
+> index 3935092..f440aed 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -829,7 +829,7 @@ static struct twl4030_power_data osc_off_idle =3D=
+ {
+>  	.board_config		=3D osc_off_rconfig,
+>  };
+> =20
+> -static struct of_device_id twl4030_power_of_match[] =3D {
+> +static const struct of_device_id twl4030_power_of_match[] =3D {
+>  	{
+>  		.compatible =3D "ti,twl4030-power",
+>  	},
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index ff5d54d..628a132 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -549,9 +549,10 @@ static void omap_clear_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 	readl_relaxed(reg);
- }
- 
--static inline void omap_clear_gpio_irqstatus(struct gpio_bank *bank, int gpio)
-+static inline void omap_clear_gpio_irqstatus(struct gpio_bank *bank,
-+					     unsigned offset)
- {
--	omap_clear_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+	omap_clear_gpio_irqbank(bank, BIT(offset));
- }
- 
- static u32 omap_get_gpio_irqbank_mask(struct gpio_bank *bank)
-@@ -612,13 +613,13 @@ static void omap_disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
- 	writel_relaxed(l, reg);
- }
- 
--static inline void omap_set_gpio_irqenable(struct gpio_bank *bank, int gpio,
--					   int enable)
-+static inline void omap_set_gpio_irqenable(struct gpio_bank *bank,
-+					   unsigned offset, int enable)
- {
- 	if (enable)
--		omap_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+		omap_enable_gpio_irqbank(bank, BIT(offset));
- 	else
--		omap_disable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+		omap_disable_gpio_irqbank(bank, BIT(offset));
- }
- 
- /*
-@@ -629,14 +630,16 @@ static inline void omap_set_gpio_irqenable(struct gpio_bank *bank, int gpio,
-  * enabled. When system is suspended, only selected GPIO interrupts need
-  * to have wake-up enabled.
-  */
--static int omap_set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
-+static int omap_set_gpio_wakeup(struct gpio_bank *bank, unsigned offset,
-+				int enable)
- {
--	u32 gpio_bit = GPIO_BIT(bank, gpio);
-+	u32 gpio_bit = BIT(offset);
- 	unsigned long flags;
- 
- 	if (bank->non_wakeup_gpios & gpio_bit) {
- 		dev_err(bank->dev,
--			"Unable to modify wakeup on non-wakeup GPIO%d\n", gpio);
-+			"Unable to modify wakeup on non-wakeup GPIO%d\n",
-+			offset);
- 		return -EINVAL;
- 	}
- 
-@@ -652,22 +655,22 @@ static int omap_set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 	return 0;
- }
- 
--static void omap_reset_gpio(struct gpio_bank *bank, int gpio)
-+static void omap_reset_gpio(struct gpio_bank *bank, unsigned offset)
- {
--	omap_set_gpio_direction(bank, GPIO_INDEX(bank, gpio), 1);
--	omap_set_gpio_irqenable(bank, gpio, 0);
--	omap_clear_gpio_irqstatus(bank, gpio);
--	omap_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
--	omap_clear_gpio_debounce(bank, GPIO_INDEX(bank, gpio));
-+	omap_set_gpio_direction(bank, offset, 1);
-+	omap_set_gpio_irqenable(bank, offset, 0);
-+	omap_clear_gpio_irqstatus(bank, offset);
-+	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
-+	omap_clear_gpio_debounce(bank, offset);
- }
- 
- /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
- static int omap_gpio_wake_enable(struct irq_data *d, unsigned int enable)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
--	unsigned int gpio = omap_irq_to_gpio(bank, d->hwirq);
-+	unsigned offset = d->hwirq;
- 
--	return omap_set_gpio_wakeup(bank, gpio, enable);
-+	return omap_set_gpio_wakeup(bank, offset, enable);
- }
- 
- static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
-@@ -705,7 +708,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- 	spin_lock_irqsave(&bank->lock, flags);
- 	bank->mod_usage &= ~(BIT(offset));
- 	omap_disable_gpio_module(bank, offset);
--	omap_reset_gpio(bank, bank->chip.base + offset);
-+	omap_reset_gpio(bank, offset);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	/*
-@@ -819,14 +822,13 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
- static void omap_gpio_irq_shutdown(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
--	unsigned int gpio = omap_irq_to_gpio(bank, d->hwirq);
- 	unsigned long flags;
--	unsigned offset = GPIO_INDEX(bank, gpio);
-+	unsigned offset = d->hwirq;
- 
- 	spin_lock_irqsave(&bank->lock, flags);
- 	bank->irq_usage &= ~(BIT(offset));
- 	omap_disable_gpio_module(bank, offset);
--	omap_reset_gpio(bank, gpio);
-+	omap_reset_gpio(bank, offset);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	/*
-@@ -840,43 +842,42 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
- static void omap_gpio_ack_irq(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
--	unsigned int gpio = omap_irq_to_gpio(bank, d->hwirq);
-+	unsigned offset = d->hwirq;
- 
--	omap_clear_gpio_irqstatus(bank, gpio);
-+	omap_clear_gpio_irqstatus(bank, offset);
- }
- 
- static void omap_gpio_mask_irq(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
--	unsigned int gpio = omap_irq_to_gpio(bank, d->hwirq);
-+	unsigned offset = d->hwirq;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&bank->lock, flags);
--	omap_set_gpio_irqenable(bank, gpio, 0);
--	omap_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
-+	omap_set_gpio_irqenable(bank, offset, 0);
-+	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
- static void omap_gpio_unmask_irq(struct irq_data *d)
- {
- 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
--	unsigned int gpio = omap_irq_to_gpio(bank, d->hwirq);
--	unsigned int irq_mask = GPIO_BIT(bank, gpio);
-+	unsigned offset = d->hwirq;
- 	u32 trigger = irqd_get_trigger_type(d);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&bank->lock, flags);
- 	if (trigger)
--		omap_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
-+		omap_set_gpio_triggering(bank, offset, trigger);
- 
- 	/* For level-triggered GPIOs, the clearing must be done after
- 	 * the HW source is cleared, thus after the handler has run */
--	if (bank->level_mask & irq_mask) {
--		omap_set_gpio_irqenable(bank, gpio, 0);
--		omap_clear_gpio_irqstatus(bank, gpio);
-+	if (bank->level_mask & BIT(offset)) {
-+		omap_set_gpio_irqenable(bank, offset, 0);
-+		omap_clear_gpio_irqstatus(bank, offset);
- 	}
- 
--	omap_set_gpio_irqenable(bank, gpio, 1);
-+	omap_set_gpio_irqenable(bank, offset, 1);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
--- 
-1.9.1
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
