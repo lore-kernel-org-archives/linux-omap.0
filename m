@@ -1,53 +1,43 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 0/2] Couple of DRA7 hwmod patches on Timers
-Date: Mon, 23 Mar 2015 11:30:13 -0500
-Message-ID: <55103F95.5070100@ti.com>
-References: <1426539294-28375-1-git-send-email-s-anna@ti.com> <alpine.DEB.2.02.1503211939340.2512@utopia.booyaka.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: OMAP5+: separate the cpu thermal zone definition
+ from omap4
+Date: Mon, 23 Mar 2015 12:00:53 -0500
+Message-ID: <551046C5.1080901@ti.com>
+References: <1426880861-9266-1-git-send-email-nm@ti.com> <1426880861-9266-2-git-send-email-nm@ti.com> <20150320215402.GB7346@developer.amazonguestwifi.org> <550FE807.6020107@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51841 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752342AbbCWQak (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Mar 2015 12:30:40 -0400
-In-Reply-To: <alpine.DEB.2.02.1503211939340.2512@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <550FE807.6020107@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Eduardo Valentin <edubezval@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+On 03/23/2015 05:16 AM, Tero Kristo wrote:
+> On 03/20/2015 11:54 PM, Eduardo Valentin wrote:
+>> On Fri, Mar 20, 2015 at 02:47:39PM -0500, Nishanth Menon wrote:
+>>> From: Tero Kristo <t-kristo@ti.com>
 
->> Following are couple of DRA7 hwmod patches for the GPTimers.
->> Patches based on 4.0-rc1.
->>
->> The first patch adds the data for timers 13 through 16, the DT
->> nodes are already present, and when enabled without the hwmod
->> data triggers a l3_noc interrupt and hangs the kernel boot [1].
->> The boot hang can also be fixed by checking the return status
->> of pm_runtime_get_sync() in the OMAP dmtimer probe, I will post
->> a separate fix for that.
->>
->> Second patch is a minor fix.
+[...]
+
+>> Can't we simple change the polling value for the omap5 case and reuse
+>> the omap4 file?
 > 
-> Thanks.  Sounds like the first one should go in for v4.0-rc fixes, and the 
-> second one can wait for v4.1?  
+> Hmm yea, I posted a patch like this before for o5 and it was queued 
+> already. See:
 > 
-> If so then could you repost the first fix to include the description of 
-> why it should go in early in the patch description ("the DT nodes are 
-> already present, and when enabled without the hwmod data triggers a l3_noc 
-> interrupt and hangs the kernel boot").  That should avoid anyone 
-> questioning why it would go in as a v4.0-rc fix at this point, and should 
-> help the -stable crew out.
+> http://thread.gmane.org/gmane.linux.ports.arm.omap/123729
+> 
+> The dra7 part was missing from this set though, so patches 2/3 do not 
+> directly work with that one and will require some changes similar to the 
+> linked omap4 one.
 
-Actually, both of them can be queued for v4.1. Tony has already sent a
-pull request with the fixes [1] in the driver. The driver fixes will
-scale for all SoCs, so will fix this boot issue as well if anyone tries
-to enable these timers.
+OK. will do that and as part of that, I will squash up patch 1 and 2
+Since it is needed only when we introduce DRA7 thermal description -
+Apologies on missing the O5 patch.
 
-regards
-Suman
 
-[1] http://marc.info/?l=linux-omap&m=142661461902725&w=2
-
+-- 
+Regards,
+Nishanth Menon
