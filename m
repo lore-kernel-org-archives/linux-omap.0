@@ -1,77 +1,83 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [alsa-devel] Patches to bind the SGTL5000 chip to AM33XX McASP
-Date: Sun, 22 Mar 2015 17:58:51 +0000
-Message-ID: <20150322175851.GM6643@sirena.org.uk>
-References: <1426741659.10003.9.camel@midgaarde>
- <550AC783.8040304@ti.com>
- <CAAQQ3u=opRm3UzD+bG6aJvhQU2CFmzH4sXzuA=GxDp2d+MMiNg@mail.gmail.com>
- <550AF442.5040203@ti.com>
- <550B1017.2000405@mail.bg>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v3] omap-rng: Change RNG_CONFIG_REG to RNG_CONTROL_REG
+ when, checking and disabling TRNG
+Date: Mon, 23 Mar 2015 10:42:52 +0530
+Message-ID: <550FA0D4.4070905@ti.com>
+References: <54E6BA01.7090904@analog.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="DXTueXWT3Da08pik"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52473 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574AbbCWFD1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 01:03:27 -0400
-Content-Disposition: inline
-In-Reply-To: <550B1017.2000405@mail.bg>
+Received: from devils.ext.ti.com ([198.47.26.153]:51389 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188AbbCWFNC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 01:13:02 -0400
+In-Reply-To: <54E6BA01.7090904@analog.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nikolay Dimitrov <picmaster@mail.bg>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Greg Knight <g.knight@symetrica.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andre Wolokita <andre.wolokita@analog.com>, dsaxena@plexity.net
+Cc: linux-omap@vger.kernel.org, linux-crypto@vger.kernel.org
 
+Hi Andre,
+On Friday 20 February 2015 10:07 AM, Andre Wolokita wrote:
+> In omap4_rng_init(), a check of bit 10 of the RNG_CONFIG_REG is done to determine
+> whether the RNG is running. This is suspicious firstly due to the use of
+> RNG_CONTROL_ENABLE_TRNG_MASK and secondly because the same mask is written to
+> RNG_CONTROL_REG after configuration of the FROs. Similar suspicious logic is
+> repeated in omap4_rng_cleanup() when RNG_CONTROL_REG masked with
+> RNG_CONTROL_ENABLE_TRNG_MASK is read, the same mask bit is cleared, and then
+> written to RNG_CONFIG_REG. Unless the TRNG is enabled with one bit in RNG_CONTROL
+> and disabled with another in RNG_CONFIG and these bits are mirrored in some way,
+> I believe that the TRNG is not really shutting off, leaving the FROs running
+> indefinitely which, in an extreme case, could lead to degredation of the
+> hardware and potentially reduce the level of entropy generated.
+Yes you are correct. Patch looks good to me.
+It should be RNG_CONTROL_REG
 
---DXTueXWT3Da08pik
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Acked-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-On Thu, Mar 19, 2015 at 08:06:15PM +0200, Nikolay Dimitrov wrote:
+Thanks and regards,
+Lokesh
 
-> Correct. And this is a big issue. As far as I know, the kernel drivers
-> control separately the clock domains, and separately i2c devices, so
-> the basic expectation on the kernel side is that there's no connection
-> between these 2. In this specific case, because of the SGTL5000's
+> 
+> Apart from the strange logic, I have reason to suspect that the OMAP4 related
+> code in this driver is driving an Inside Secure IP hardware RNG and strongly
+> suspect that bit 10 of RNG_CONFIG_REG is one of the bits configuring the
+> sampling rate of the FROs. This option is by default set to 0 and is not being
+> set anywhere in omap-rng.c. Reading this bit during omap4_rng_init() will
+> always return 0. It will remain 0 because ~(value of TRNG_MASK in control) will
+> always be 0, because the TRNG is never shut off. This is of course presuming
+> that the OMAP4 features the Inside Secure IP, which I strongly suspect.
+> 
+> I'm interested in knowing what the guys at TI think about this, as only they
+> can confirm or deny the detailed structure of these registers.
+> 
+> Signed-off-by: Andre Wolokita <Andre.Wolokita@analog.com>
+> ---
+>  drivers/char/hw_random/omap-rng.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
+> index d14dcf7..67151cb 100644
+> --- a/drivers/char/hw_random/omap-rng.c
+> +++ b/drivers/char/hw_random/omap-rng.c
+> @@ -236,7 +236,7 @@ static int omap4_rng_init(struct omap_rng_dev *priv)
+>         u32 val;
+> 
+>         /* Return if RNG is already running. */
+> -       if (omap_rng_read(priv, RNG_CONFIG_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
+> +       if (omap_rng_read(priv, RNG_CONTROL_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
+>                 return 0;
+> 
+>         val = RNG_CONFIG_MIN_REFIL_CYCLES << RNG_CONFIG_MIN_REFIL_CYCLES_SHIFT;
+> @@ -262,7 +262,7 @@ static void omap4_rng_cleanup(struct omap_rng_dev *priv)
+> 
+>         val = omap_rng_read(priv, RNG_CONTROL_REG);
+>         val &= ~RNG_CONTROL_ENABLE_TRNG_MASK;
+> -       omap_rng_write(priv, RNG_CONFIG_REG, val);
+> +       omap_rng_write(priv, RNG_CONTROL_REG, val);
+>  }
+> 
+>  static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
+> 
 
-Not really - it's simply that it's the responsibility of the driver for
-the device with the dependency to ensure that the dependency is
-satisfied.  There are no general rules about what the requirements of
-devices are.
-
-> 2. Add "hacks" in the DAPM widgets that add control to the codec's
-> reference clocks. While this seems the preferred route to many, the
-> general feeling is that such approach is not very welcome in upstream.
-
-There is no need for any hacks, we already know when register accesses
-are happening so we can easily add clock enables there (by moving the
-code from the MMIO layer to the generic layer, this is the first device
-with this unusual requirement).
-
-> 3. Add explicit support in the kernel's audio subsystem for
-> dependencies between i2c devices and clocks, maybe via "DAPM clock
-> widget" or something like this. Provided that the DAPM graphs are
-> defined properly, this will work out-of-the-box for all use cases,
-> without the hacks (until we see even more twisted cases).
-
-There's nothing audio specific about the idea of a device needing a
-clock for register access, doing something at the audio level is the
-wrong abstraction layer.
-
---DXTueXWT3Da08pik
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVDwLaAAoJECTWi3JdVIfQY30H/AiOfXLfjqHlIONLcx6Ealdq
-GjI1ziCWrSchVpe4aSDPEknKaZpHBxOXd4+eqFcjGRba8q6gzWn8oEVcrw/f/LPS
-0lqL2uzHcMSRy2mHvjAADIki9PzaxnA/RuUtnV0yhyDywR0tpium/azc1PeNribg
-HmQYZK4RrMLkv6pl7Dr8H+w4FDEDIbX+ZtHhWi6tzDjxf9tsHnZlsVsl6EX+abJ3
-bm2Krqw9Xewy26LMkf40mgCYaNvNqFEwtbmjEi0TDBwmR1twxsrFxYNj7/bR8NWh
-/fs+OaU+Pw4Y+oBM7pGBrwYcmC4SepAgI6jD/7I4rCRe9AEiw7wsJ7hJEOtm5C4=
-=TGyB
------END PGP SIGNATURE-----
-
---DXTueXWT3Da08pik--
