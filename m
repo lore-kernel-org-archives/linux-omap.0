@@ -1,47 +1,42 @@
-From: NeilBrown <neil@brown.name>
-Subject: [PATCH 14/14] twl4030_charger: assume a 'charger' can supply
- maximum current.
-Date: Mon, 23 Mar 2015 10:20:29 +1100
-Message-ID: <20150322232029.23789.35538.stgit@notabene.brown>
-References: <20150322231635.23789.70149.stgit@notabene.brown>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
+Date: Mon, 23 Mar 2015 06:51:58 +0200
+Message-ID: <87twxce2oh.fsf@kamboji.qca.qualcomm.com>
+References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
+	<1426696710-6891-6-git-send-email-eliad@wizery.com>
+	<550AD7C1.2030405@gmail.com>
+	<CAB3XZEfpD7YkwdU7OJJaNFy=MnYVY3-fOVxkA48Vu01LzU0GFg@mail.gmail.com>
+	<20150319212505.GN31346@atomide.com>
+	<87h9tgi4sg.fsf@kamboji.qca.qualcomm.com>
+	<20150320153357.GT31346@atomide.com>
+	<87bnjnfz1t.fsf@kamboji.qca.qualcomm.com>
+	<20150320162138.GU31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58802 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980AbbCVXWd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Mar 2015 19:22:33 -0400
-In-Reply-To: <20150322231635.23789.70149.stgit@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150320162138.GU31346-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> (Tony Lindgren's message of
+	"Fri, 20 Mar 2015 09:21:38 -0700")
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless@vger.kernel.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree@vger.kernel.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: NeilBrown <neilb@suse.de>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, inux-pm@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 
-From: NeilBrown <neilb@suse.de>
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
 
-If it cannot, we will stop pulling more current when voltage drops.
+>> After John "retired" we actually have two set of trees now: mac80211
+>> maintained by Johannes and wireless-drivers maintained by me. I haven't
+>> pulled anything from your tree and I'm 100% sure Johannes hasn't either.
+>> So green light from me.
+>
+> OK, I'll set up the new branch then. I take your ack is for the
+> whole series? If it's just for the $subject patch, please let
+> me know.
 
-Signed-off-by: NeilBrown <neilb@suse.de>
----
- drivers/power/twl4030_charger.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+It was for the whole series.
 
-diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-index d0199495dddc..6f0dc971d84d 100644
---- a/drivers/power/twl4030_charger.c
-+++ b/drivers/power/twl4030_charger.c
-@@ -694,8 +694,10 @@ static void twl4030_bci_usb_work(struct work_struct *data)
- 	struct twl4030_bci *bci = container_of(data, struct twl4030_bci, work);
- 
- 	switch (bci->event) {
--	case USB_EVENT_VBUS:
- 	case USB_EVENT_CHARGER:
-+		bci->usb_cur = USB_MAX_CURRENT;
-+		/* FALL THROUGH */
-+	case USB_EVENT_VBUS:
- 	case USB_EVENT_ENUMERATED:
- 		twl4030_charger_enable_usb(bci, true);
- 		break;
-
-
+-- 
+Kalle Valo
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
