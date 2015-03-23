@@ -1,61 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv2] thermal: add omap3 support
-Date: Mon, 23 Mar 2015 16:58:30 +0100
-Message-ID: <20150323155830.GB13297@amd>
-References: <20150103111146.GB7065@amd>
- <20150118202824.GB29014@amd>
- <20150323143149.GA18339@developer.hsd1.ca.comcast.net>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 0/2] Couple of DRA7 hwmod patches on Timers
+Date: Mon, 23 Mar 2015 11:30:13 -0500
+Message-ID: <55103F95.5070100@ti.com>
+References: <1426539294-28375-1-git-send-email-s-anna@ti.com> <alpine.DEB.2.02.1503211939340.2512@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150323143149.GA18339@developer.hsd1.ca.comcast.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51841 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbbCWQak (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Mar 2015 12:30:40 -0400
+In-Reply-To: <alpine.DEB.2.02.1503211939340.2512@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon 2015-03-23 10:31:51, Eduardo Valentin wrote:
-> On Sun, Jan 18, 2015 at 09:28:24PM +0100, Pavel Machek wrote:
-> > 
-> > Add support for omap3430 sensor. Tested on Nokia N900.
-> > 
-> > Fix help text to be closer to english.
-> > 
-> > Ifdefs in ti-bandgap.h are not neccessary, as users have #ifdefs,
-> > already.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Hi Paul,
+
+>> Following are couple of DRA7 hwmod patches for the GPTimers.
+>> Patches based on 4.0-rc1.
+>>
+>> The first patch adds the data for timers 13 through 16, the DT
+>> nodes are already present, and when enabled without the hwmod
+>> data triggers a l3_noc interrupt and hangs the kernel boot [1].
+>> The boot hang can also be fixed by checking the return status
+>> of pm_runtime_get_sync() in the OMAP dmtimer probe, I will post
+>> a separate fix for that.
+>>
+>> Second patch is a minor fix.
 > 
-> You need to update the driver device tree binding documentation. Please
-> include an example of its usage there.
+> Thanks.  Sounds like the first one should go in for v4.0-rc fixes, and the 
+> second one can wait for v4.1?  
 > 
-> Also, a separate patch with the required DT changes is always
-> welcome.
+> If so then could you repost the first fix to include the description of 
+> why it should go in early in the patch description ("the DT nodes are 
+> already present, and when enabled without the hwmod data triggers a l3_noc 
+> interrupt and hangs the kernel boot").  That should avoid anyone 
+> questioning why it would go in as a v4.0-rc fix at this point, and should 
+> help the -stable crew out.
 
-I can do it, but can you merge:
+Actually, both of them can be queued for v4.1. Tony has already sent a
+pull request with the fixes [1] in the driver. The driver fixes will
+scale for all SoCs, so will fix this boot issue as well if anyone tries
+to enable these timers.
 
-Date: Sun, 18 Jan 2015 21:24:47 +0100
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCHv2] ti-soc-thermal: request temperature periodically if
-hw can't do that itself
+regards
+Suman
 
+[1] http://marc.info/?l=linux-omap&m=142661461902725&w=2
 
-Date: Sun, 18 Jan 2015 21:20:51 +0100
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCHv2] ti-soc-thermal: implement eocz bit to make driver
-useful on omap3
-
-Date: Sun, 18 Jan 2015 21:17:10 +0100
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCHv2] cleanup ti-soc-thermal
-
-First? They are nicely split, as you requested, and I already have too
-many patches in flight.
-
-Thanks for the comments, I'll fix them in my local tree.
-								Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
