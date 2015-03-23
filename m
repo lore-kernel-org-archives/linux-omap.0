@@ -1,72 +1,46 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] OMAP-GPMC driver updates for v4.1
-Date: Mon, 23 Mar 2015 12:32:38 +0200
-Message-ID: <550FEBC6.3000902@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv2] thermal: add omap3 support
+Date: Mon, 23 Mar 2015 12:25:18 +0100
+Message-ID: <20150323112518.GA7871@amd>
+References: <20150103111146.GB7065@amd>
+ <20150118202824.GB29014@amd>
+ <20150313120935.GA27533@amd>
+ <20150313165343.GB30104@developer>
+ <20150314180240.GB4332@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33155 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752144AbbCWKdQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Mar 2015 06:33:16 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37545 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935AbbCWLZW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2015 07:25:22 -0400
+Content-Disposition: inline
+In-Reply-To: <20150314180240.GB4332@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com
 
-Hi Arnd, Hi Olof,
+On Sat 2015-03-14 19:02:40, Pavel Machek wrote:
+> On Fri 2015-03-13 12:53:45, Eduardo Valentin wrote:
+> > 
+> > Hey Pavel,
+> > 
+> > On Fri, Mar 13, 2015 at 01:09:35PM +0100, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > I checked 4.0-rc3 and linux-next as of today, and can not see omap3
+> > > thermal support. Can you apply the patches?
+> > 
+> > Yeah, it should be possible. Apologize, it really fell into the cracks.
+> > 
+> > There is a comment on it though. Please check my concern in you v2.
+> 
+> And there's explanation for that concern :-). Let me know what you
+> need.
 
-Based on Tony's request I will be sending you pull requests for OMAP-GPMC driver
-hence forth. I've sent this earlier on the 9th of March but had missed to copy Olof.
-
-Please pull in these OMAP-GPMC driver fixes for v4.1.
-Patches have been tested for GPMC-NAND on dra7-evm and omap3-beagle.
-
-Thanks.
-
-The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
-
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-
-are available in the git repository at:
-
-  git@github.com:rogerq/linux.git tags/gpmc-omap-for-v4.1
-
-for you to fetch changes up to 4b613e9b4bbe94545a588a100e09006d827a7ebe:
-
-  ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters (2015-03-06 12:55:32 +0200)
-
-----------------------------------------------------------------
-OMAP-GPMC driver fixes for v4.1
-
-* Fixed WAITMONITORINGTIME programming to be based on
-GPMC_CLK instead of GPMC_FCLK. The GPMC clock divider
-programming is fixed for both synchronous and asynchronous
-modes.
-* Allow GPMC's children of default bus type to be populated in
-the device tree.
-* Improved DEBUG output data and format.
-* Prevent writing 1 into reserved bits of GPMC_CONFIG7.
-
-----------------------------------------------------------------
-Robert ABEL (8):
-      ARM OMAP2+ GPMC: don't undef DEBUG
-      ARM OMAP2+ GPMC: add bus children
-      ARM OMAP2+ GPMC: fix debug output alignment
-      ARM OMAP2+ GPMC: change get_gpmc_timing_reg output for DTS
-      ARM OMAP2+ GPMC: always program GPMCFCLKDIVIDER
-      ARM OMAP2+ GPMC: calculate GPMCFCLKDIVIDER based on WAITMONITORINGTIME
-      ARM OMAP2+ GPMC: fix WAITMONITORINGTIME divider bug
-      ARM OMAP2+ GPMC: fix programming/showing reserved timing parameters
-
-Semen Protsenko (2):
-      ARM: OMAP2+: gpmc: Fix writing in gpmc_cs_set_memconf
-      ARM: OMAP2+: gpmc: make gpmc_cs_get_name() static
-
- arch/arm/mach-omap2/gpmc-nand.c    |  18 +++++----
- arch/arm/mach-omap2/gpmc-onenand.c |   4 +-
- arch/arm/mach-omap2/usb-tusb6010.c |   4 +-
- drivers/memory/omap-gpmc.c         | 358 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------
- include/linux/omap-gpmc.h          |   3 +-
- 5 files changed, 305 insertions(+), 82 deletions(-)
+...ping? It would be good to get this into 4.1.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
