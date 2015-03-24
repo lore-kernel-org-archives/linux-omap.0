@@ -1,43 +1,42 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] ARM: omap2plus_defconfig: Enable EXTCON_USB_GPIO
-Date: Tue, 24 Mar 2015 12:19:19 +0200
-Message-ID: <1427192359-19168-1-git-send-email-rogerq@ti.com>
+From: Nikita Kiryanov <nikita@compulab.co.il>
+Subject: Re: [PATCH v7 0/6] wlcore: add device-tree support
+Date: Tue, 24 Mar 2015 13:37:41 +0200
+Message-ID: <55114C85.60703@compulab.co.il>
+References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35468 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042AbbCXKTY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Mar 2015 06:19:24 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1426696710-6891-1-git-send-email-eliad@wizery.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Eliad Peller <eliad@wizery.com>, linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Rob Herring <robh+dt@kernel.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Javier Martinez Canillas <javier@dowhile0.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-We need to enable EXTCON_USB_GPIO_USB and not
-EXTCON_GPIO_USB.
+Hi Eliad,
 
-Fixes: c08a54c0ebeb ("ARM: omap2plus_defconfig: Enable EXTCON_GPIO_USB")
+On 03/18/2015 06:38 PM, Eliad Peller wrote:
+> Add device-tree support to the wlcore (wl12xx/wl18xx)
+> driver.
+>
+> Update the current users to use the bindings instead
+> of pdata-quirks.
+>
+> Finally, remove the deprecated wl12xx_platform_data
+> struct (along with the da850 board file code that
+> still uses it)
 
-Reported-by: Nishant Menon <nm@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/configs/omap2plus_defconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Tested-by: Nikita Kiryanov <nikita@compulab.co.il>
+Tested on am437x-gp-evm with WL1835MODCOM8B
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 04b4c8e..daf9412 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -391,7 +391,7 @@ CONFIG_TI_EDMA=y
- CONFIG_DMA_OMAP=y
- # CONFIG_IOMMU_SUPPORT is not set
- CONFIG_EXTCON=m
--CONFIG_EXTCON_GPIO=m
-+CONFIG_EXTCON_USB_GPIO=m
- CONFIG_EXTCON_PALMAS=m
- CONFIG_TI_EMIF=m
- CONFIG_PWM=y
 -- 
-2.1.0
-
+Regards,
+Nikita Kiryanov
