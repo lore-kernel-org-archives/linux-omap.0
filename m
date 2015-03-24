@@ -1,91 +1,249 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv2] ti-soc-thermal: request temperature periodically if hw
- can't do that itself
-Date: Tue, 24 Mar 2015 12:30:34 -0400
-Message-ID: <20150324163032.GA13813@developer.hsd1.ca.comcast.net>
-References: <20150103114632.GA21883@amd>
- <20150118202447.GA29014@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] clk: ti: Implement FAPLL set_rate for the synthesizer
+Date: Tue, 24 Mar 2015 09:37:35 -0700
+Message-ID: <20150324163734.GY31346@atomide.com>
+References: <1427063726-4248-1-git-send-email-tony@atomide.com>
+ <1427063726-4248-3-git-send-email-tony@atomide.com>
+ <5510143A.8090404@ti.com>
+ <20150323155242.GX31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150118202447.GA29014@amd>
+In-Reply-To: <20150323155242.GX31346@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Jan 18, 2015 at 09:24:47PM +0100, Pavel Machek wrote:
+* Tony Lindgren <tony@atomide.com> [150323 08:58]:
+> * Tero Kristo <t-kristo@ti.com> [150323 06:25]:
+> >=20
+> > This code is generating these compile time warnings for me:
+> >=20
+> >   CC      drivers/clk/ti/fapll.o
+> > drivers/clk/ti/fapll.c: In function =E2=80=98ti_fapll_synth_set_rat=
+e=E2=80=99:
+> > drivers/clk/ti/fapll.c:394:5: warning: =E2=80=98synth_int_div=E2=80=
+=99 may be used
+> > uninitialized in this function [-Wuninitialized]
+> > drivers/clk/ti/fapll.c:373:18: note: =E2=80=98synth_int_div=E2=80=99=
+ was declared here
+> > drivers/clk/ti/fapll.c:400:23: warning: =E2=80=98synth_frac_div=E2=80=
+=99 may be used
+> > uninitialized in this function [-Wuninitialized]
+> > drivers/clk/ti/fapll.c:373:33: note: =E2=80=98synth_frac_div=E2=80=99=
+ was declared here
 >=20
-> When periodic mode is not enabled, it is neccessary to force reads.
->=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Oops thanks will check. I did move this into a separate function
+> to make it more readable, probably happened at that point.
 
-This is a malformed patch. here is patch output (or git am)
-patching file drivers/thermal/ti-soc-thermal/ti-bandgap.c
-patch: **** malformed patch at line 68: (english)
-http://www.livejournal.com/~pavelmachek
+Updated version of this patch below, let me know if you want the
+whole set reposted.
 
+Regards,
 
-I would really recommend you to use git to send your patches to avoid
-such problems. Can you please resend this patch in its proper format?
+Tony
 
+8< -------------------
+=46rom: Tony Lindgren <tony@atomide.com>
+Date: Mon, 16 Mar 2015 18:04:20 -0700
+Subject: [PATCH] clk: ti: Implement FAPLL set_rate for the synthesizer
 
->=20
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/therma=
-l/ti-soc-thermal/ti-bandgap.c
-> index 634b6ce..2fde78c 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> @@ -43,6 +43,8 @@
-> =20
->  #include "ti-bandgap.h"
-> =20
-> +static int ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id);
-> +
->  /***   Helper functions to access registers and their bitfields   ***/
-> =20
->  /**
-> @@ -852,14 +831,21 @@ int ti_bandgap_read_temperature(struct ti_bandgap *=
-bgp, int id,
->  	if (ret)
->  		return ret;
-> =20
-> +	if (!TI_BANDGAP_HAS(bgp, MODE_CONFIG)) {
-> +		ret =3D ti_bandgap_force_single_read(bgp, id);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->  	spin_lock(&bgp->lock);
->  	temp =3D ti_bandgap_read_temp(bgp, id);
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
+We can pretty much get any rate out of the FAPLL because of the fractio=
+nal
+divider. Let's first try just adjusting the post divider, and if that i=
+s
+not enough, then reprogram both the fractional divider and the post div=
+ider.
 
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Let's also add a define for the fixed SYNTH_PHASE_K instead of using 8.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-iQEcBAEBAgAGBQJVEZEoAAoJEMLUO4d9pOJWZBEH/RO08iOBFZT3xGZ6J4rWD46K
-GtKiiW4LYsDUjUytNLriWW20AHOirz87v9e6PBTaPDrhoFRbXuEos0wiRQEY9NtQ
-KVdgInsw3X/EDx6rCS6QN/BAJrN2N+0aNrG/dTr5DqggoY9onjIiOawnkOwf3MzN
-GYyaQRvahz/UZP0sjOebpymwc0eRdPRBC+VTJnnaozXuOdFXvcHKfemHcOvwsYwC
-STmBApQQENWiBJNALIozpRtJHaHLTW0A4kHpVzEz2LXkVvQMBajL+vDe7iul8//k
-bfL2zhPdZfijTH9bHJBtHl85qJlzKMu6RKtMXp1P2R+mr843/4e6MNaO0dKPNxA=
-=Uzz3
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
+--- a/drivers/clk/ti/fapll.c
++++ b/drivers/clk/ti/fapll.c
+@@ -12,6 +12,7 @@
+ #include <linux/clk-provider.h>
+ #include <linux/delay.h>
+ #include <linux/err.h>
++#include <linux/math64.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/clk/ti.h>
+@@ -47,6 +48,8 @@
+ /* Synthesizer frequency register */
+ #define SYNTH_LDFREQ		BIT(31)
+=20
++#define SYNTH_PHASE_K		8
++#define SYNTH_MAX_INT_DIV	0xf
+ #define SYNTH_MAX_DIV_M		0xff
+=20
+ struct fapll_data {
+@@ -204,7 +207,7 @@ static unsigned long ti_fapll_synth_recalc_rate(str=
+uct clk_hw *hw,
+ 	/*
+ 	 * Synth frequency integer and fractional divider.
+ 	 * Note that the phase output K is 8, so the result needs
+-	 * to be multiplied by 8.
++	 * to be multiplied by SYNTH_PHASE_K.
+ 	 */
+ 	if (synth->freq) {
+ 		u32 v, synth_int_div, synth_frac_div, synth_div_freq;
+@@ -215,7 +218,7 @@ static unsigned long ti_fapll_synth_recalc_rate(str=
+uct clk_hw *hw,
+ 		synth_div_freq =3D (synth_int_div * 10000000) + synth_frac_div;
+ 		rate *=3D 10000000;
+ 		do_div(rate, synth_div_freq);
+-		rate *=3D 8;
++		rate *=3D SYNTH_PHASE_K;
+ 	}
+=20
+ 	/* Synth post-divider M */
+@@ -224,11 +227,138 @@ static unsigned long ti_fapll_synth_recalc_rate(=
+struct clk_hw *hw,
+ 	return DIV_ROUND_UP_ULL(rate, synth_div_m);
+ }
+=20
++static unsigned long ti_fapll_synth_get_frac_rate(struct clk_hw *hw,
++						  unsigned long parent_rate)
++{
++	struct fapll_synth *synth =3D to_synth(hw);
++	unsigned long current_rate, frac_rate;
++	u32 post_div_m;
++
++	current_rate =3D ti_fapll_synth_recalc_rate(hw, parent_rate);
++	post_div_m =3D readl_relaxed(synth->div) & SYNTH_MAX_DIV_M;
++	frac_rate =3D current_rate * post_div_m;
++
++	return frac_rate;
++}
++
++static u32 ti_fapll_synth_set_frac_rate(struct fapll_synth *synth,
++					unsigned long rate,
++					unsigned long parent_rate)
++{
++	u32 post_div_m, synth_int_div =3D 0, synth_frac_div =3D 0, v;
++
++	post_div_m =3D DIV_ROUND_UP_ULL((u64)parent_rate * SYNTH_PHASE_K, rat=
+e);
++	post_div_m =3D post_div_m / SYNTH_MAX_INT_DIV;
++	if (post_div_m > SYNTH_MAX_DIV_M)
++		return -EINVAL;
++	if (!post_div_m)
++		post_div_m =3D 1;
++
++	for (; post_div_m < SYNTH_MAX_DIV_M; post_div_m++) {
++		synth_int_div =3D DIV_ROUND_UP_ULL((u64)parent_rate *
++						 SYNTH_PHASE_K *
++						 10000000,
++						 rate * post_div_m);
++		synth_frac_div =3D synth_int_div % 10000000;
++		synth_int_div /=3D 10000000;
++
++		if (synth_int_div <=3D SYNTH_MAX_INT_DIV)
++			break;
++	}
++
++	if (synth_int_div > SYNTH_MAX_INT_DIV)
++		return -EINVAL;
++
++	v =3D readl_relaxed(synth->freq);
++	v &=3D ~0x1fffffff;
++	v |=3D (synth_int_div & SYNTH_MAX_INT_DIV) << 24;
++	v |=3D (synth_frac_div & 0xffffff);
++	v |=3D SYNTH_LDFREQ;
++	writel_relaxed(v, synth->freq);
++
++	return post_div_m;
++}
++
++static long ti_fapll_synth_round_rate(struct clk_hw *hw, unsigned long=
+ rate,
++				      unsigned long *parent_rate)
++{
++	struct fapll_synth *synth =3D to_synth(hw);
++	struct fapll_data *fd =3D synth->fd;
++	unsigned long r;
++
++	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
++		return -EINVAL;
++
++	/* Only post divider m available with no fractional divider? */
++	if (!synth->freq) {
++		unsigned long frac_rate;
++		u32 synth_post_div_m;
++
++		frac_rate =3D ti_fapll_synth_get_frac_rate(hw, *parent_rate);
++		synth_post_div_m =3D DIV_ROUND_UP(frac_rate, rate);
++		r =3D DIV_ROUND_UP(frac_rate, synth_post_div_m);
++		goto out;
++	}
++
++	r =3D *parent_rate * SYNTH_PHASE_K;
++	if (rate > r)
++		goto out;
++
++	r =3D DIV_ROUND_UP_ULL(r, SYNTH_MAX_INT_DIV * SYNTH_MAX_DIV_M);
++	if (rate < r)
++		goto out;
++
++	r =3D rate;
++out:
++	return r;
++}
++
++static int ti_fapll_synth_set_rate(struct clk_hw *hw, unsigned long ra=
+te,
++				   unsigned long parent_rate)
++{
++	struct fapll_synth *synth =3D to_synth(hw);
++	struct fapll_data *fd =3D synth->fd;
++	unsigned long frac_rate, post_rate =3D 0;
++	u32 post_div_m =3D 0, v;
++
++	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
++		return -EINVAL;
++
++	/* Produce the rate with just post divider M? */
++	frac_rate =3D ti_fapll_synth_get_frac_rate(hw, parent_rate);
++	if (frac_rate < rate) {
++		if (!synth->freq)
++			return -EINVAL;
++	} else {
++		post_div_m =3D DIV_ROUND_UP(frac_rate, rate);
++		if (post_div_m && (post_div_m <=3D SYNTH_MAX_DIV_M))
++			post_rate =3D DIV_ROUND_UP(frac_rate, post_div_m);
++		if (!synth->freq && !post_rate)
++			return -EINVAL;
++	}
++
++	/* Need to recalculate the fractional divider? */
++	if ((post_rate !=3D rate) && synth->freq)
++		post_div_m =3D ti_fapll_synth_set_frac_rate(synth,
++							  rate,
++							  parent_rate);
++
++	v =3D readl_relaxed(synth->div);
++	v &=3D ~SYNTH_MAX_DIV_M;
++	v |=3D post_div_m;
++	v |=3D SYNTH_LDMDIV1;
++	writel_relaxed(v, synth->div);
++
++	return 0;
++}
++
+ static struct clk_ops ti_fapll_synt_ops =3D {
+ 	.enable =3D ti_fapll_synth_enable,
+ 	.disable =3D ti_fapll_synth_disable,
+ 	.is_enabled =3D ti_fapll_synth_is_enabled,
+ 	.recalc_rate =3D ti_fapll_synth_recalc_rate,
++	.round_rate =3D ti_fapll_synth_round_rate,
++	.set_rate =3D ti_fapll_synth_set_rate,
+ };
+=20
+ static struct clk * __init ti_fapll_synth_setup(struct fapll_data *fd,
