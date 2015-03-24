@@ -1,48 +1,53 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] tty/serial: omap: fix !wakeirq message
-Date: Tue, 24 Mar 2015 00:15:18 +0100
-Message-ID: <20150323231518.GA1857@kroah.com>
-References: <1427150324-12600-1-git-send-email-rdkehn@yahoo.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/2] EDMA: TI: fixed wrongly initialized data parameter
+ to the edma callback
+Date: Tue, 24 Mar 2015 12:07:01 +0200
+Message-ID: <55113745.3010602@ti.com>
+References: <1427142901-16391-1-git-send-email-petr@barix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53078 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbbCXJik (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2015 05:38:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1427150324-12600-1-git-send-email-rdkehn@yahoo.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59444 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752466AbbCXKHI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2015 06:07:08 -0400
+In-Reply-To: <1427142901-16391-1-git-send-email-petr@barix.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Doug Kehn <rdkehn@yahoo.com>
-Cc: linux-sreial@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+To: Petr Kulhavy <petr@barix.com>, vinod.koul@intel.com
+Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, trivial@kernel.org
 
-On Mon, Mar 23, 2015 at 05:38:44PM -0500, Doug Kehn wrote:
-> When wakeirq is not used/enabled, "no wakeirq for uart0" is output for
-> all TTY as the log message is generated before the port line is
-> initialized.
+On 03/23/2015 10:35 PM, Petr Kulhavy wrote:
+> The "data" parameter passed indirectly to the edma_callback() should be
+> edma_chan and not the dma_chan.
 > 
-> [    0.802656] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-> [    0.811700] omap_uart 44e09000.serial: no wakeirq for uart0
-> [    0.812379] 44e09000.serial: ttyO0 at MMIO 0x44e09000 (irq = 88, base_baud = 3000000) is a OMAP UART0
-> [    1.503622] console [ttyO0] enabled
-> [    1.509836] omap_uart 48022000.serial: no wakeirq for uart0
-> [    1.516118] 48022000.serial: ttyO1 at MMIO 0x48022000 (irq = 89, base_baud = 3000000) is a OMAP UART1
-> [    1.527711] omap_uart 48024000.serial: no wakeirq for uart0
-> [    1.533881] 48024000.serial: ttyO2 at MMIO 0x48024000 (irq = 90, base_baud = 3000000) is a OMAP UART2
-> [    1.545324] omap_uart 481a6000.serial: no wakeirq for uart0
-> [    1.551410] 481a6000.serial: ttyO3 at MMIO 0x481a6000 (irq = 60, base_baud = 3000000) is a OMAP UART3
-> [    1.562946] omap_uart 481a8000.serial: no wakeirq for uart0
-> [    1.569036] 481a8000.serial: ttyO4 at MMIO 0x481a8000 (irq = 61, base_baud = 3000000) is a OMAP UART4
+> This bug was so far harmless since the offset of struct dma_chan within struct
+> edma_chan is 0. However as soon as someone changes struct edma_chan this would
+> cause troubles.
+
+Good catch. This seams to be in the code since the first commit ;)
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> Signed-off-by: Petr Kulhavy <petr@barix.com>
+> ---
+>  drivers/dma/edma.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Fix by moving wakeirq check and dev_info() call to after port line
-> initialization and validation.
+> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+> index 1465610..4c8208b 100644
+> --- a/drivers/dma/edma.c
+> +++ b/drivers/dma/edma.c
+> @@ -813,7 +813,7 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
+>  	LIST_HEAD(descs);
+>  
+>  	a_ch_num = edma_alloc_channel(echan->ch_num, edma_callback,
+> -					chan, EVENTQ_DEFAULT);
+> +					echan, EVENTQ_DEFAULT);
+>  
+>  	if (a_ch_num < 0) {
+>  		ret = -ENODEV;
 > 
-> Patch is against 3.14.36.
 
-That's really old, please make this against a "modern" kernel, like the
-4.0-rc series.
 
-thanks,
-
-greg k-h
