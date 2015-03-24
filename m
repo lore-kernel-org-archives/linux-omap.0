@@ -1,256 +1,76 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 2/3] clk: ti: Implement FAPLL set_rate for the synthesizer
-Date: Tue, 24 Mar 2015 20:53:02 +0200
-Message-ID: <5511B28E.5040800@ti.com>
-References: <1427063726-4248-1-git-send-email-tony@atomide.com> <1427063726-4248-3-git-send-email-tony@atomide.com> <5510143A.8090404@ti.com> <20150323155242.GX31346@atomide.com> <20150324163734.GY31346@atomide.com>
+Subject: [GIT PULL] OMAP2+: TI clock driver changes for 4.1 merge window
+Date: Tue, 24 Mar 2015 21:06:41 +0200
+Message-ID: <5511B5C1.8080705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150324163734.GY31346@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53254 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932547AbbCXTG6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2015 15:06:58 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
 
-On 03/24/2015 06:37 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150323 08:58]:
->> * Tero Kristo <t-kristo@ti.com> [150323 06:25]:
->>>
->>> This code is generating these compile time warnings for me:
->>>
->>>    CC      drivers/clk/ti/fapll.o
->>> drivers/clk/ti/fapll.c: In function =E2=80=98ti_fapll_synth_set_rat=
-e=E2=80=99:
->>> drivers/clk/ti/fapll.c:394:5: warning: =E2=80=98synth_int_div=E2=80=
-=99 may be used
->>> uninitialized in this function [-Wuninitialized]
->>> drivers/clk/ti/fapll.c:373:18: note: =E2=80=98synth_int_div=E2=80=99=
- was declared here
->>> drivers/clk/ti/fapll.c:400:23: warning: =E2=80=98synth_frac_div=E2=80=
-=99 may be used
->>> uninitialized in this function [-Wuninitialized]
->>> drivers/clk/ti/fapll.c:373:33: note: =E2=80=98synth_frac_div=E2=80=99=
- was declared here
->>
->> Oops thanks will check. I did move this into a separate function
->> to make it more readable, probably happened at that point.
->
-> Updated version of this patch below, let me know if you want the
-> whole set reposted.
+Hi Mike,
 
-Yes this is fine, all patches queued for 4.1, thanks!
+Here are the TI clock driver patches meant for 4.1 merge window.
+
+Some simple data fixes, dm81xx FAPLL changes, and a generic TI clock 
+driver register access fix taken from the PRCM/SCM set I have posted to 
+linux-omap list earlier.
 
 -Tero
 
->
-> Regards,
->
-> Tony
->
-> 8< -------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 16 Mar 2015 18:04:20 -0700
-> Subject: [PATCH] clk: ti: Implement FAPLL set_rate for the synthesize=
-r
->
-> We can pretty much get any rate out of the FAPLL because of the fract=
-ional
-> divider. Let's first try just adjusting the post divider, and if that=
- is
-> not enough, then reprogram both the fractional divider and the post d=
-ivider.
->
-> Let's also add a define for the fixed SYNTH_PHASE_K instead of using =
-8.
->
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> --- a/drivers/clk/ti/fapll.c
-> +++ b/drivers/clk/ti/fapll.c
-> @@ -12,6 +12,7 @@
->   #include <linux/clk-provider.h>
->   #include <linux/delay.h>
->   #include <linux/err.h>
-> +#include <linux/math64.h>
->   #include <linux/of.h>
->   #include <linux/of_address.h>
->   #include <linux/clk/ti.h>
-> @@ -47,6 +48,8 @@
->   /* Synthesizer frequency register */
->   #define SYNTH_LDFREQ		BIT(31)
->
-> +#define SYNTH_PHASE_K		8
-> +#define SYNTH_MAX_INT_DIV	0xf
->   #define SYNTH_MAX_DIV_M		0xff
->
->   struct fapll_data {
-> @@ -204,7 +207,7 @@ static unsigned long ti_fapll_synth_recalc_rate(s=
-truct clk_hw *hw,
->   	/*
->   	 * Synth frequency integer and fractional divider.
->   	 * Note that the phase output K is 8, so the result needs
-> -	 * to be multiplied by 8.
-> +	 * to be multiplied by SYNTH_PHASE_K.
->   	 */
->   	if (synth->freq) {
->   		u32 v, synth_int_div, synth_frac_div, synth_div_freq;
-> @@ -215,7 +218,7 @@ static unsigned long ti_fapll_synth_recalc_rate(s=
-truct clk_hw *hw,
->   		synth_div_freq =3D (synth_int_div * 10000000) + synth_frac_div;
->   		rate *=3D 10000000;
->   		do_div(rate, synth_div_freq);
-> -		rate *=3D 8;
-> +		rate *=3D SYNTH_PHASE_K;
->   	}
->
->   	/* Synth post-divider M */
-> @@ -224,11 +227,138 @@ static unsigned long ti_fapll_synth_recalc_rat=
-e(struct clk_hw *hw,
->   	return DIV_ROUND_UP_ULL(rate, synth_div_m);
->   }
->
-> +static unsigned long ti_fapll_synth_get_frac_rate(struct clk_hw *hw,
-> +						  unsigned long parent_rate)
-> +{
-> +	struct fapll_synth *synth =3D to_synth(hw);
-> +	unsigned long current_rate, frac_rate;
-> +	u32 post_div_m;
-> +
-> +	current_rate =3D ti_fapll_synth_recalc_rate(hw, parent_rate);
-> +	post_div_m =3D readl_relaxed(synth->div) & SYNTH_MAX_DIV_M;
-> +	frac_rate =3D current_rate * post_div_m;
-> +
-> +	return frac_rate;
-> +}
-> +
-> +static u32 ti_fapll_synth_set_frac_rate(struct fapll_synth *synth,
-> +					unsigned long rate,
-> +					unsigned long parent_rate)
-> +{
-> +	u32 post_div_m, synth_int_div =3D 0, synth_frac_div =3D 0, v;
-> +
-> +	post_div_m =3D DIV_ROUND_UP_ULL((u64)parent_rate * SYNTH_PHASE_K, r=
-ate);
-> +	post_div_m =3D post_div_m / SYNTH_MAX_INT_DIV;
-> +	if (post_div_m > SYNTH_MAX_DIV_M)
-> +		return -EINVAL;
-> +	if (!post_div_m)
-> +		post_div_m =3D 1;
-> +
-> +	for (; post_div_m < SYNTH_MAX_DIV_M; post_div_m++) {
-> +		synth_int_div =3D DIV_ROUND_UP_ULL((u64)parent_rate *
-> +						 SYNTH_PHASE_K *
-> +						 10000000,
-> +						 rate * post_div_m);
-> +		synth_frac_div =3D synth_int_div % 10000000;
-> +		synth_int_div /=3D 10000000;
-> +
-> +		if (synth_int_div <=3D SYNTH_MAX_INT_DIV)
-> +			break;
-> +	}
-> +
-> +	if (synth_int_div > SYNTH_MAX_INT_DIV)
-> +		return -EINVAL;
-> +
-> +	v =3D readl_relaxed(synth->freq);
-> +	v &=3D ~0x1fffffff;
-> +	v |=3D (synth_int_div & SYNTH_MAX_INT_DIV) << 24;
-> +	v |=3D (synth_frac_div & 0xffffff);
-> +	v |=3D SYNTH_LDFREQ;
-> +	writel_relaxed(v, synth->freq);
-> +
-> +	return post_div_m;
-> +}
-> +
-> +static long ti_fapll_synth_round_rate(struct clk_hw *hw, unsigned lo=
-ng rate,
-> +				      unsigned long *parent_rate)
-> +{
-> +	struct fapll_synth *synth =3D to_synth(hw);
-> +	struct fapll_data *fd =3D synth->fd;
-> +	unsigned long r;
-> +
-> +	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
-> +		return -EINVAL;
-> +
-> +	/* Only post divider m available with no fractional divider? */
-> +	if (!synth->freq) {
-> +		unsigned long frac_rate;
-> +		u32 synth_post_div_m;
-> +
-> +		frac_rate =3D ti_fapll_synth_get_frac_rate(hw, *parent_rate);
-> +		synth_post_div_m =3D DIV_ROUND_UP(frac_rate, rate);
-> +		r =3D DIV_ROUND_UP(frac_rate, synth_post_div_m);
-> +		goto out;
-> +	}
-> +
-> +	r =3D *parent_rate * SYNTH_PHASE_K;
-> +	if (rate > r)
-> +		goto out;
-> +
-> +	r =3D DIV_ROUND_UP_ULL(r, SYNTH_MAX_INT_DIV * SYNTH_MAX_DIV_M);
-> +	if (rate < r)
-> +		goto out;
-> +
-> +	r =3D rate;
-> +out:
-> +	return r;
-> +}
-> +
-> +static int ti_fapll_synth_set_rate(struct clk_hw *hw, unsigned long =
-rate,
-> +				   unsigned long parent_rate)
-> +{
-> +	struct fapll_synth *synth =3D to_synth(hw);
-> +	struct fapll_data *fd =3D synth->fd;
-> +	unsigned long frac_rate, post_rate =3D 0;
-> +	u32 post_div_m =3D 0, v;
-> +
-> +	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
-> +		return -EINVAL;
-> +
-> +	/* Produce the rate with just post divider M? */
-> +	frac_rate =3D ti_fapll_synth_get_frac_rate(hw, parent_rate);
-> +	if (frac_rate < rate) {
-> +		if (!synth->freq)
-> +			return -EINVAL;
-> +	} else {
-> +		post_div_m =3D DIV_ROUND_UP(frac_rate, rate);
-> +		if (post_div_m && (post_div_m <=3D SYNTH_MAX_DIV_M))
-> +			post_rate =3D DIV_ROUND_UP(frac_rate, post_div_m);
-> +		if (!synth->freq && !post_rate)
-> +			return -EINVAL;
-> +	}
-> +
-> +	/* Need to recalculate the fractional divider? */
-> +	if ((post_rate !=3D rate) && synth->freq)
-> +		post_div_m =3D ti_fapll_synth_set_frac_rate(synth,
-> +							  rate,
-> +							  parent_rate);
-> +
-> +	v =3D readl_relaxed(synth->div);
-> +	v &=3D ~SYNTH_MAX_DIV_M;
-> +	v |=3D post_div_m;
-> +	v |=3D SYNTH_LDMDIV1;
-> +	writel_relaxed(v, synth->div);
-> +
-> +	return 0;
-> +}
-> +
->   static struct clk_ops ti_fapll_synt_ops =3D {
->   	.enable =3D ti_fapll_synth_enable,
->   	.disable =3D ti_fapll_synth_disable,
->   	.is_enabled =3D ti_fapll_synth_is_enabled,
->   	.recalc_rate =3D ti_fapll_synth_recalc_rate,
-> +	.round_rate =3D ti_fapll_synth_round_rate,
-> +	.set_rate =3D ti_fapll_synth_set_rate,
->   };
->
->   static struct clk * __init ti_fapll_synth_setup(struct fapll_data *=
-fd,
->
+----------------------------------------------------------------
+
+The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
+
+   Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
+
+are available in the git repository at:
+
+   git@github.com:t-kristo/linux-pm.git for-4.1-clk-ti
+
+for you to fetch changes up to 9089848d9afa34a796988b5b666c2c4e611ccb61:
+
+   clk: ti: Implement FAPLL set_rate for the PLL (2015-03-24 20:26:14 +0200)
+
+----------------------------------------------------------------
+Peter Ujfalusi (2):
+       clk: ti: clk-3xxx: Correct McBSP related DT clock definitions
+       clk: ti: clk-3xxx-legacy: Correct McBSP related clock aliases
+
+Suman Anna (4):
+       clk: ti: OMAP4: Remove the legacy timer DT clock aliases
+       clk: ti: OMAP5: Correct the DT clock aliases for timers
+       clk: ti: DRA7: Correct timer_sys_ck clock aliases for Timers
+       clk: ti: DRA7: Add timer_sys_ck aliases for Timers 13 through 16
+
+Tero Kristo (1):
+       clk: ti: fix ti_clk_get_reg_addr error handling
+
+Tony Lindgren (3):
+       clk: ti: Fix FAPLL recalc_rate for rounding errors
+       clk: ti: Implement FAPLL set_rate for the synthesizer
+       clk: ti: Implement FAPLL set_rate for the PLL
+
+  drivers/clk/ti/apll.c            |    5 +-
+  drivers/clk/ti/autoidle.c        |    2 +-
+  drivers/clk/ti/clk-3xxx-legacy.c |   16 ++-
+  drivers/clk/ti/clk-3xxx.c        |   19 +--
+  drivers/clk/ti/clk-44xx.c        |   11 --
+  drivers/clk/ti/clk-54xx.c        |   22 ++--
+  drivers/clk/ti/clk-7xx.c         |   18 ++-
+  drivers/clk/ti/clk.c             |    7 +-
+  drivers/clk/ti/divider.c         |    4 +-
+  drivers/clk/ti/dpll.c            |    6 +-
+  drivers/clk/ti/fapll.c           |  270 
+++++++++++++++++++++++++++++++++++++--
+  drivers/clk/ti/gate.c            |    4 +-
+  drivers/clk/ti/interface.c       |    2 +-
+  drivers/clk/ti/mux.c             |    4 +-
+  14 files changed, 318 insertions(+), 72 deletions(-)
