@@ -1,42 +1,164 @@
-From: Nikita Kiryanov <nikita@compulab.co.il>
-Subject: Re: [PATCH v7 0/6] wlcore: add device-tree support
-Date: Tue, 24 Mar 2015 13:37:41 +0200
-Message-ID: <55114C85.60703@compulab.co.il>
-References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 0/7] Use DRM component API in tilcdc to connect to
+ tda998x
+Date: Tue, 24 Mar 2015 14:50:48 +0200
+Message-ID: <55115DA8.1000704@ti.com>
+References: <cover.1426668480.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1426696710-6891-1-git-send-email-eliad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Eliad Peller <eliad@wizery.com>, linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Rob Herring <robh+dt@kernel.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Javier Martinez Canillas <javier@dowhile0.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="vQdDQhJwAClRb4uhe4GU6KosPfrMN6uMd"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40877 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752130AbbCXMvM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2015 08:51:12 -0400
+In-Reply-To: <cover.1426668480.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr
 
-Hi Eliad,
+--vQdDQhJwAClRb4uhe4GU6KosPfrMN6uMd
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-On 03/18/2015 06:38 PM, Eliad Peller wrote:
-> Add device-tree support to the wlcore (wl12xx/wl18xx)
-> driver.
->
-> Update the current users to use the bindings instead
-> of pdata-quirks.
->
-> Finally, remove the deprecated wl12xx_platform_data
-> struct (along with the da850 board file code that
-> still uses it)
+Hi,
 
-Tested-by: Nikita Kiryanov <nikita@compulab.co.il>
-Tested on am437x-gp-evm with WL1835MODCOM8B
+On 18/03/15 11:06, Jyri Sarha wrote:
+> I think the patches 1-5 are ready for merging. See the details below.
 
--- 
-Regards,
-Nikita Kiryanov
+I applied these on top of v4.0-rc3, booted up BBB, and loaded the modules=
+=2E After doing that and waiting a few secs:
+
+# ./s-bbb.sh=20
+[   15.237139] sysrq: SysRq : Changing Loglevel
+[   15.241646] sysrq: Loglevel set to 9
+[   15.319762] [drm] Initialized drm 1.1.0 20060810
+[   15.588122] tda998x 0-0070: found TDA19988
+[   15.594824] tilcdc 4830e000.lcdc: bound 0-0070 (ops tda998x_ops [tda99=
+8x])
+[   15.602034] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013)=
+=2E
+[   15.609011] [drm] No driver support for vblank timestamp query.
+[   15.700798] tilcdc 4830e000.lcdc: fb0:  frame buffer device
+[   15.706757] tilcdc 4830e000.lcdc: registered panic notifier
+[   15.712659] [drm] Initialized tilcdc 1.0.0 20121205 on minor 0
+#=20
+# [   25.789364] ------------[ cut here ]------------
+[   25.794315] WARNING: CPU: 0 PID: 50 at drivers/gpu/drm/tilcdc/tilcdc_c=
+rtc.c:269 tilcdc_crtc_mode_set+0x5ec/0x648 [tilcdc]()
+[   25.805999] Modules linked in: tilcdc tda998x drm_kms_helper drm
+[   25.812325] CPU: 0 PID: 50 Comm: kworker/0:2 Not tainted 4.0.0-rc3-000=
+07-g5fbf26ebaf12 #7
+[   25.820893] Hardware name: Generic AM33XX (Flattened Device Tree)
+[   25.827359] Workqueue: events output_poll_execute [drm_kms_helper]
+[   25.833819] Backtrace:=20
+[   25.836439] [<c0013550>] (dump_backtrace) from [<c0013764>] (show_stac=
+k+0x18/0x1c)
+[   25.844380]  r6:c09d4228 r5:c09d4228 r4:00000000 r3:dd3604c0
+[   25.850338] [<c001374c>] (show_stack) from [<c066bbc0>] (dump_stack+0x=
+a4/0xd4)
+[   25.857927] [<c066bb1c>] (dump_stack) from [<c0044d28>] (warn_slowpath=
+_common+0x84/0xc0)
+[   25.866401]  r6:0000010d r5:bf0a010c r4:00000000 r3:dd3604c0
+[   25.872348] [<c0044ca4>] (warn_slowpath_common) from [<c0044e08>] (war=
+n_slowpath_null+0x24/0x2c)
+[   25.881543]  r8:dd500000 r7:0000000f r6:bf0a25f0 r5:dd6b1400 r4:dd4e68=
+00
+[   25.888617] [<c0044de4>] (warn_slowpath_null) from [<bf0a010c>] (tilcd=
+c_crtc_mode_set+0x5ec/0x648 [tilcdc])
+[   25.898849] [<bf09fb20>] (tilcdc_crtc_mode_set [tilcdc]) from [<bf06d8=
+74>] (drm_crtc_helper_set_mode+0x2b0/0x4f0 [drm_kms_helper])
+[   25.911132]  r10:dd4e6bf0 r9:dd4e6800 r8:dd4e2e80 r7:dd6b1400 r6:00000=
+001 r5:dd500000
+[   25.919372]  r4:bf09fb20
+[   25.922061] [<bf06d5c4>] (drm_crtc_helper_set_mode [drm_kms_helper]) f=
+rom [<bf06e450>] (drm_crtc_helper_set_config+0x768/0x9c8 [drm_kms_helper]=
+)
+[   25.935612]  r10:00000000 r9:dd73d980 r8:dd4e6bf0 r7:bf031808 r6:dd4e6=
+be4 r5:dd4e6bd8
+[   25.943827]  r4:dd500000
+[   25.946758] [<bf06dce8>] (drm_crtc_helper_set_config [drm_kms_helper])=
+ from [<bf00dcfc>] (drm_mode_set_config_internal+0x6c/0xf4 [drm])
+[   25.959518]  r10:00000001 r9:00000000 r8:dd4b4b40 r7:dd500000 r6:00000=
+001 r5:00000028
+[   25.967767]  r4:dd4b46c0
+[   25.970558] [<bf00dc90>] (drm_mode_set_config_internal [drm]) from [<b=
+f077a88>] (restore_fbdev_mode+0xe0/0x100 [drm_kms_helper])
+[   25.982672]  r7:dd73d980 r6:00000001 r5:00000028 r4:00000000
+[   25.988698] [<bf0779a8>] (restore_fbdev_mode [drm_kms_helper]) from [<=
+bf0799cc>] (drm_fb_helper_restore_fbdev_mode_unlocked+0x24/0x64 [drm_kms_=
+helper])
+[   26.002884]  r9:dd4e6be4 r8:bf031808 r7:dd4e6800 r6:dd4e6800 r5:dd4b46=
+c0 r4:dd4b4b40
+[   26.011104] [<bf0799a8>] (drm_fb_helper_restore_fbdev_mode_unlocked [d=
+rm_kms_helper]) from [<bf079a2c>] (drm_fb_helper_set_par+0x20/0x3c [drm_k=
+ms_helper])
+[   26.025562]  r6:dd4e6800 r5:dd4b46c0 r4:00000000 r3:00000000
+[   26.031556] [<bf079a0c>] (drm_fb_helper_set_par [drm_kms_helper]) from=
+ [<bf079968>] (drm_fb_helper_hotplug_event+0x90/0xd0 [drm_kms_helper])
+[   26.044753]  r4:dd4b4b40 r3:00000000
+[   26.048557] [<bf0798d8>] (drm_fb_helper_hotplug_event [drm_kms_helper]=
+) from [<bf07a7c4>] (drm_fbdev_cma_hotplug_event+0x18/0x1c [drm_kms_helpe=
+r])
+[   26.062289]  r7:dd4e6a40 r6:00000001 r5:dd4e6c38 r4:dd4e6800
+[   26.068300] [<bf07a7ac>] (drm_fbdev_cma_hotplug_event [drm_kms_helper]=
+) from [<bf0a217c>] (tilcdc_fb_output_poll_changed+0x18/0x1c [tilcdc])
+[   26.081521] [<bf0a2164>] (tilcdc_fb_output_poll_changed [tilcdc]) from=
+ [<bf06f388>] (drm_kms_helper_hotplug_event+0x2c/0x30 [drm_kms_helper])
+[   26.094840] [<bf06f35c>] (drm_kms_helper_hotplug_event [drm_kms_helper=
+]) from [<bf06f448>] (output_poll_execute+0x6c/0x18c [drm_kms_helper])
+[   26.108027]  r4:dd4e6bd8 r3:00000000
+[   26.111809] [<bf06f3dc>] (output_poll_execute [drm_kms_helper]) from [=
+<c005c704>] (process_one_work+0x1e8/0x560)
+[   26.122456]  r10:dfa1b700 r9:00000000 r8:c0a0c0b8 r7:dd51deb0 r6:dfa15=
+7c0 r5:dd4b4d40
+[   26.130696]  r4:dd4e6c38
+[   26.133353] [<c005c51c>] (process_one_work) from [<c005d42c>] (worker_=
+thread+0x160/0x4c4)
+[   26.141914]  r10:dfa157c0 r9:00000008 r8:dd4b4d58 r7:dd4b4d40 r6:c005d=
+304 r5:dfa157f0
+[   26.150153]  r4:dfa157c0
+[   26.152812] [<c005d2cc>] (worker_thread) from [<c0061e38>] (kthread+0x=
+f0/0x110)
+[   26.160465]  r10:00000000 r9:00000000 r8:00000000 r7:c005d2cc r6:dd4b4=
+d40 r5:dd509cc0
+[   26.168704]  r4:00000000
+[   26.171362] [<c0061d48>] (kthread) from [<c000f6d0>] (ret_from_fork+0x=
+14/0x24)
+[   26.178925]  r7:00000000 r6:00000000 r5:c0061d48 r4:dd509cc0
+[   26.184898] ---[ end trace e86278b011364fe4 ]---
+[   26.189766] [drm:drm_crtc_helper_set_config [drm_kms_helper]] *ERROR* =
+failed to set mode on [CRTC:18]
+
+Also running modetest spams with similar warnings.
+
+ Tomi
+
+
+
+--vQdDQhJwAClRb4uhe4GU6KosPfrMN6uMd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJVEV2sAAoJEPo9qoy8lh71dk8P/RX9pVXCR8SI5LCcI57j3F1z
+NYvsTGxLcnxvrnHTSCFTB2+RTg7TGXO3VXDRqE/nswRwAU9C6iyF5tEJOyr/HPqz
+Xlm8hJAB2FuKe00Frs/Kz7QJeTGq9DNH/wm0Z8Hq/Aap8S9cAKEAURf9RGIaiBzK
+XD0CGLatAuGwR3jfQxtIpf3Wc/3uAvnEuknveGYaawm9re/Bi65xD66MpGTrQWzE
+VE6ZBEihGnxJoBe793n065seqqW5CsFEJbxKrIpDxTEfUEsXH1DTLNA1sgQCf48a
+YZfzHF48YCaUbKpH0yVqXtOFbXydhdc8BiTsC+Dho6TFeVNBvP37k3IUjU1NlB8S
+gi9/ajLlmW4quvIntj/SfeS9luPVBvUt5iC8nqymOKpo28DSGXZSeLmhVccuCi4u
+Qza94j6TIinktrBYnEMFqPDSCewX+eF3osNzi11a0+0lwMgAwP71ExQcqLvdjVAp
+piW+4PLfh3bvx/Pg0ZIMsBmVf0TW6AVh9HRgwyE8nwwP9SNfXDMWmBTTmduPebRE
+fwR9UppY9JaonwmSXn+R5utrpe1wviLTzXRGopeF0gCfhiTxtZyupVuI9Sd941uT
+rNxjL9bk23GqEVJTgOL6umPvp/YaY7Vx+BB0Kwoy++8r3yj8FzZaKVeh17KgaLuD
+Kglwna/CfaP6zOU4X8ZB
+=+MpX
+-----END PGP SIGNATURE-----
+
+--vQdDQhJwAClRb4uhe4GU6KosPfrMN6uMd--
