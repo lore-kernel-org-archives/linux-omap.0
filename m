@@ -1,53 +1,43 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/2] EDMA: TI: fixed wrongly initialized data parameter
- to the edma callback
-Date: Tue, 24 Mar 2015 12:07:01 +0200
-Message-ID: <55113745.3010602@ti.com>
-References: <1427142901-16391-1-git-send-email-petr@barix.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable EXTCON_USB_GPIO
+Date: Tue, 24 Mar 2015 12:19:19 +0200
+Message-ID: <1427192359-19168-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59444 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35468 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466AbbCXKHI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Mar 2015 06:07:08 -0400
-In-Reply-To: <1427142901-16391-1-git-send-email-petr@barix.com>
+	id S1752042AbbCXKTY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2015 06:19:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Petr Kulhavy <petr@barix.com>, vinod.koul@intel.com
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, trivial@kernel.org
+To: tony@atomide.com
+Cc: nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On 03/23/2015 10:35 PM, Petr Kulhavy wrote:
-> The "data" parameter passed indirectly to the edma_callback() should be
-> edma_chan and not the dma_chan.
-> 
-> This bug was so far harmless since the offset of struct dma_chan within struct
-> edma_chan is 0. However as soon as someone changes struct edma_chan this would
-> cause troubles.
+We need to enable EXTCON_USB_GPIO_USB and not
+EXTCON_GPIO_USB.
 
-Good catch. This seams to be in the code since the first commit ;)
+Fixes: c08a54c0ebeb ("ARM: omap2plus_defconfig: Enable EXTCON_GPIO_USB")
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reported-by: Nishant Menon <nm@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Signed-off-by: Petr Kulhavy <petr@barix.com>
-> ---
->  drivers/dma/edma.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index 1465610..4c8208b 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -813,7 +813,7 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
->  	LIST_HEAD(descs);
->  
->  	a_ch_num = edma_alloc_channel(echan->ch_num, edma_callback,
-> -					chan, EVENTQ_DEFAULT);
-> +					echan, EVENTQ_DEFAULT);
->  
->  	if (a_ch_num < 0) {
->  		ret = -ENODEV;
-> 
-
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 04b4c8e..daf9412 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -391,7 +391,7 @@ CONFIG_TI_EDMA=y
+ CONFIG_DMA_OMAP=y
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_EXTCON=m
+-CONFIG_EXTCON_GPIO=m
++CONFIG_EXTCON_USB_GPIO=m
+ CONFIG_EXTCON_PALMAS=m
+ CONFIG_TI_EMIF=m
+ CONFIG_PWM=y
+-- 
+2.1.0
 
