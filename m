@@ -1,78 +1,91 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm:
- get rid of the bounce page"
-Date: Tue, 24 Mar 2015 11:13:58 -0500
-Message-ID: <20150324161358.GA694@kahuna>
-References: <20150324004537.GA24816@verge.net.au>
- <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCHv2] ti-soc-thermal: request temperature periodically if hw
+ can't do that itself
+Date: Tue, 24 Mar 2015 12:30:34 -0400
+Message-ID: <20150324163032.GA13813@developer.hsd1.ca.comcast.net>
+References: <20150103114632.GA21883@amd>
+ <20150118202447.GA29014@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49431 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932175AbbCXQOq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Mar 2015 12:14:46 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150118202447.GA29014@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-sh@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, grygorii.strashko@linaro.org, linux-omap@vger.kernel.org
 
-On 09:31-20150324, Ard Biesheuvel wrote:
-> On 24 March 2015 at 01:45, Simon Horman <horms@verge.net.au> wrote:
-> > Hi Ard,
-> >
-> > I have observe what appears to be a build regression in next-20150323
-> > caused by 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page").
-> >
-> > # make
-> > ...
-> > arm-unknown-linux-gnueabi-ld:./arch/arm/kernel/vmlinux.lds:546: syntax error
-> >
-> > I have observed this using the cross-compiler that is available on kernel.org:
-> >
-> > https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.6.3/
-> >
-> > # arm-unknown-linux-gnueabi-gcc --version
-> > arm-unknown-linux-gnueabi-gcc (GCC) 4.6.3
-> > Copyright (C) 2011 Free Software Foundation, Inc.
-> > This is free software; see the source for copying conditions.  There is NO
-> > warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-> >
-> > # arm-unknown-linux-gnueabi-ld --version
-> > GNU ld (GNU Binutils) 2.22
-> > Copyright 2011 Free Software Foundation, Inc.
-> > This program is free software; you may redistribute it under the terms of
-> > the GNU General Public License version 3 or (at your option) a later version.
-> > This program has absolutely no warranty.
-> >
-> 
-> Hi all,
-> 
-> This is fixed now in next-20150324.
-> Sorry for the trouble
 
-I think we now have a new error: (seen with omap2plus_defconfig)
-on next-20150324 :
-./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
-referenced in expression
-make: *** [vmlinux] Error 1
+--yrj/dFKFPuw6o+aM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-cross compiler (from ubuntu 12.04):
-$ arm-linux-gnueabi-ld --version
-GNU ld (GNU Binutils for Ubuntu) 2.22
-Copyright 2011 Free Software Foundation, Inc.
-This program is free software; you may redistribute it under the terms of
-the GNU General Public License version 3 or (at your option) a later version.
-This program has absolutely no warranty.
-$ arm-linux-gnueabi-gcc --version
-arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3
-Copyright (C) 2011 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+On Sun, Jan 18, 2015 at 09:24:47PM +0100, Pavel Machek wrote:
+>=20
+> When periodic mode is not enabled, it is neccessary to force reads.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-next-20150320 was the last kernel which was successfully built
--- 
-Regards,
-Nishanth Menon
+This is a malformed patch. here is patch output (or git am)
+patching file drivers/thermal/ti-soc-thermal/ti-bandgap.c
+patch: **** malformed patch at line 68: (english)
+http://www.livejournal.com/~pavelmachek
+
+
+I would really recommend you to use git to send your patches to avoid
+such problems. Can you please resend this patch in its proper format?
+
+
+>=20
+> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/therma=
+l/ti-soc-thermal/ti-bandgap.c
+> index 634b6ce..2fde78c 100644
+> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> @@ -43,6 +43,8 @@
+> =20
+>  #include "ti-bandgap.h"
+> =20
+> +static int ti_bandgap_force_single_read(struct ti_bandgap *bgp, int id);
+> +
+>  /***   Helper functions to access registers and their bitfields   ***/
+> =20
+>  /**
+> @@ -852,14 +831,21 @@ int ti_bandgap_read_temperature(struct ti_bandgap *=
+bgp, int id,
+>  	if (ret)
+>  		return ret;
+> =20
+> +	if (!TI_BANDGAP_HAS(bgp, MODE_CONFIG)) {
+> +		ret =3D ti_bandgap_force_single_read(bgp, id);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+>  	spin_lock(&bgp->lock);
+>  	temp =3D ti_bandgap_read_temp(bgp, id);
+>=20
+> --=20
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
+
+--yrj/dFKFPuw6o+aM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJVEZEoAAoJEMLUO4d9pOJWZBEH/RO08iOBFZT3xGZ6J4rWD46K
+GtKiiW4LYsDUjUytNLriWW20AHOirz87v9e6PBTaPDrhoFRbXuEos0wiRQEY9NtQ
+KVdgInsw3X/EDx6rCS6QN/BAJrN2N+0aNrG/dTr5DqggoY9onjIiOawnkOwf3MzN
+GYyaQRvahz/UZP0sjOebpymwc0eRdPRBC+VTJnnaozXuOdFXvcHKfemHcOvwsYwC
+STmBApQQENWiBJNALIozpRtJHaHLTW0A4kHpVzEz2LXkVvQMBajL+vDe7iul8//k
+bfL2zhPdZfijTH9bHJBtHl85qJlzKMu6RKtMXp1P2R+mr843/4e6MNaO0dKPNxA=
+=Uzz3
+-----END PGP SIGNATURE-----
+
+--yrj/dFKFPuw6o+aM--
