@@ -1,83 +1,78 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v3 0/7] Use DRM component API in tilcdc to connect to
- tda998x
-Date: Tue, 24 Mar 2015 17:45:10 +0200
-Message-ID: <55118686.6060803@ti.com>
-References: <cover.1426668480.git.jsarha@ti.com> <55115DA8.1000704@ti.com> <55117479.5090701@ti.com> <55117FD0.4000901@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm:
+ get rid of the bounce page"
+Date: Tue, 24 Mar 2015 11:13:58 -0500
+Message-ID: <20150324161358.GA694@kahuna>
+References: <20150324004537.GA24816@verge.net.au>
+ <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45034 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49431 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753396AbbCXPp1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Mar 2015 11:45:27 -0400
-In-Reply-To: <55117FD0.4000901@ti.com>
+	id S932175AbbCXQOq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2015 12:14:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-sh@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, grygorii.strashko@linaro.org, linux-omap@vger.kernel.org
 
-On 03/24/15 17:16, Tomi Valkeinen wrote:
-> On 24/03/15 16:28, Jyri Sarha wrote:
->
->> I tried first with 3.19 and then with 4.0-rc5, checked the boot and then
->> the modetest, but I could not reproduce the trace above.
->>
->> In my config I just have CONFIG_DRM=m and CONFIG_DRM_I2C_NXP_TDA998X=m
->> on top of plain omap2plus_defconfig. Should I take something else?
->>
->> Anyway, I doubt this has anything to do with my patches. Could you give
->> it one more try without my patches?
->
-> 4.0-rc3 works ok for me without your patches. I can run modetest and I
-> get a picture on the monitor.
->
-> Well, not 100% ok. If I run my test app, I get "BUG: sleeping function
-> called from invalid context at drivers/base/power/runtime.c:949".
->
-> With your patches I get the warnings  and I don't get anything on the
-> screen.
->
-> I've attached my kernel config.
->
-> Hmm. The warning comes if tilcdc_crtc_mode_valid() fails (I think). My
-> monitor is not a HDMI monitor. It has native mode 1920x1200@60, which
-> cannot be produced by tilcdc, and on -rc3 the mode picked is 1280x960@60.
->
+On 09:31-20150324, Ard Biesheuvel wrote:
+> On 24 March 2015 at 01:45, Simon Horman <horms@verge.net.au> wrote:
+> > Hi Ard,
+> >
+> > I have observe what appears to be a build regression in next-20150323
+> > caused by 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page").
+> >
+> > # make
+> > ...
+> > arm-unknown-linux-gnueabi-ld:./arch/arm/kernel/vmlinux.lds:546: syntax error
+> >
+> > I have observed this using the cross-compiler that is available on kernel.org:
+> >
+> > https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.6.3/
+> >
+> > # arm-unknown-linux-gnueabi-gcc --version
+> > arm-unknown-linux-gnueabi-gcc (GCC) 4.6.3
+> > Copyright (C) 2011 Free Software Foundation, Inc.
+> > This is free software; see the source for copying conditions.  There is NO
+> > warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> >
+> > # arm-unknown-linux-gnueabi-ld --version
+> > GNU ld (GNU Binutils) 2.22
+> > Copyright 2011 Free Software Foundation, Inc.
+> > This program is free software; you may redistribute it under the terms of
+> > the GNU General Public License version 3 or (at your option) a later version.
+> > This program has absolutely no warranty.
+> >
+> 
+> Hi all,
+> 
+> This is fixed now in next-20150324.
+> Sorry for the trouble
 
-Oh-o. That is the reason then. My HDMI TV also - wrongly - advertises 
-having 1920x1200@60 mode. When that mode produced the error I did not 
-think much of it and tested with other modes.
+I think we now have a new error: (seen with omap2plus_defconfig)
+on next-20150324 :
+./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
+referenced in expression
+make: *** [vmlinux] Error 1
 
-> Maybe this is somehow related? You're using a HDMI TV? What mode does it
-> pick? Is it the native mode?
->
-> Hmm, yes, I think it's related. Enabling debug prints shows:
->
-> [   32.361924] [drm:tilcdc_crtc_mode_valid] Processing mode 1920x1080@60
-> with pixel clock 148500
-> [   32.370850] [drm:tilcdc_crtc_mode_valid] Pruning mode: pixel clock
-> too high
-> [   32.378143] ------------[ cut here ]------------
-> [   32.382993] WARNING: CPU: 0 PID: 50 at
-> drivers/gpu/drm/tilcdc/tilcdc_crtc.c:269
-> tilcdc_crtc_mode_set+0x5ec/0x648 [tilcdc]()
-> [   32.394641] Modules linked in: tilcdc tda998x drm_kms_helper drm
-> [   32.400964] CPU: 0 PID: 50 Comm: kworker/0:2 Not tainted
-> 4.0.0-rc3-00007-g944a1f8a79f1 #16
-> [   32.409617] Hardware name: Generic AM33XX (Flattened Device Tree)
->
-> So maybe your series removes some filtering somewhere, and illegal modes
-> get passed forward?
->
+cross compiler (from ubuntu 12.04):
+$ arm-linux-gnueabi-ld --version
+GNU ld (GNU Binutils for Ubuntu) 2.22
+Copyright 2011 Free Software Foundation, Inc.
+This program is free software; you may redistribute it under the terms of
+the GNU General Public License version 3 or (at your option) a later version.
+This program has absolutely no warranty.
+$ arm-linux-gnueabi-gcc --version
+arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3
+Copyright (C) 2011 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-It indeed looks like that. The actual tilcdc_slave code does not have 
-much much logic in it, but is sounds like the DRM slave encoder API and 
-the DRM external encoder API are not entirely entirely "compatible".
-
-I'll try to track this further.
-
-Thanks,
-Jyri
-
+next-20150320 was the last kernel which was successfully built
+-- 
+Regards,
+Nishanth Menon
