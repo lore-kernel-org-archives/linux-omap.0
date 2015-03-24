@@ -1,102 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Fix the hwmod class for GPTimer4
-Date: Tue, 24 Mar 2015 18:06:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503241805060.16497@utopia.booyaka.com>
-References: <1426539294-28375-1-git-send-email-s-anna@ti.com> <1426539294-28375-3-git-send-email-s-anna@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/2] clk: ti: OMAP3: McBSP clock fixes
+Date: Tue, 24 Mar 2015 20:50:20 +0200
+Message-ID: <5511B1EC.7080406@ti.com>
+References: <1426502458-6124-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1926266864-1427220375=:16497"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58971 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207AbbCXSGQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2015 14:06:16 -0400
-In-Reply-To: <1426539294-28375-3-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1426502458-6124-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, mturquette@linaro.org, sboyd@codeaurora.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 03/16/2015 12:40 PM, Peter Ujfalusi wrote:
+> Hi,
+>
+> This series will fix the following error during boot (both DT and legacy boot):
+> [    0.307739] omap_hwmod: mcbsp2: _wait_target_ready failed: -16
+> [    0.307769] omap_hwmod: mcbsp2: cannot be enabled for reset (3)
+>
+> The clock definitions/aliases for McBSP ports were not correct.
+>
+> In case of DT boot we still have the following warning printed from hwmod:
+> [    0.222900] omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+> [    0.225311] omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+>
+> These are there because mcbsp is using two hwmods in the DT and hwmod prints
+> out a warning for these. In legacy mode we also have 2 hwmods for McBSP2/3.
+> One for the McBSP itself and the other for the sidetone block attached to them.
+> I'll try to look into this one next.
+>
+> Since this series fixes the _wait_target_ready issue, can this be sent for 4.0?
 
---843723315-1926266864-1427220375=:16497
-Content-Type: TEXT/PLAIN; charset=ISO-8859-7
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+I don't think this is a critical fix, the wait_target_ready issue has 
+been around for ages. Queued for 4.1 though, thanks.
 
-On Mon, 16 Mar 2015, Suman Anna wrote:
+-Tero
 
-> GPTimer 4 is a regular timer and not a secure timer, so fix
-> the hwmod to use the correct hwmod class (even though there
-> are no differences in the class definition itself).
->=20
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-
-This one results in compiler warnings:
-
-arch/arm/mach-omap2/omap_hwmod_7xx_data.c:1776:32: warning:=20
-=A1dra7xx_timer_secure_hwmod_class=A2 defined but not used [-Wunused-variab=
-le]
- static struct omap_hwmod_class dra7xx_timer_secure_hwmod_class =3D {
-
-Have queued the following for v4.1.
-
-
-- Paul
-
-From: Suman Anna <s-anna@ti.com>
-Date: Mon, 16 Mar 2015 15:54:54 -0500
-Subject: [PATCH] ARM: DRA7: hwmod: Fix the hwmod class for GPTimer4
-
-GPTimer 4 is a regular timer and not a secure timer, so fix
-the hwmod to use the correct hwmod class (even though there
-are no differences in the class definition itself).
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
-[paul@pwsan.com: dropped dra7xx_timer_secure_hwmod_class and
- dra7xx_timer_secure_sysc to avoid compiler warnings]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap=
-2/omap_hwmod_7xx_data.c
-index d0f03e73add4..701234d8db1b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1763,21 +1763,6 @@ static struct omap_hwmod_class dra7xx_timer_1ms_hwmo=
-d_class =3D {
- =09.sysc=09=3D &dra7xx_timer_1ms_sysc,
- };
-=20
--static struct omap_hwmod_class_sysconfig dra7xx_timer_secure_sysc =3D {
--=09.rev_offs=09=3D 0x0000,
--=09.sysc_offs=09=3D 0x0010,
--=09.sysc_flags=09=3D (SYSC_HAS_EMUFREE | SYSC_HAS_RESET_STATUS |
--=09=09=09   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
--=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--=09=09=09   SIDLE_SMART_WKUP),
--=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
--};
--
--static struct omap_hwmod_class dra7xx_timer_secure_hwmod_class =3D {
--=09.name=09=3D "timer",
--=09.sysc=09=3D &dra7xx_timer_secure_sysc,
--};
--
- static struct omap_hwmod_class_sysconfig dra7xx_timer_sysc =3D {
- =09.rev_offs=09=3D 0x0000,
- =09.sysc_offs=09=3D 0x0010,
-@@ -1841,7 +1826,7 @@ static struct omap_hwmod dra7xx_timer3_hwmod =3D {
- /* timer4 */
- static struct omap_hwmod dra7xx_timer4_hwmod =3D {
- =09.name=09=09=3D "timer4",
--=09.class=09=09=3D &dra7xx_timer_secure_hwmod_class,
-+=09.class=09=09=3D &dra7xx_timer_hwmod_class,
- =09.clkdm_name=09=3D "l4per_clkdm",
- =09.main_clk=09=3D "timer4_gfclk_mux",
- =09.prcm =3D {
---=20
-2.1.4
-
---843723315-1926266864-1427220375=:16497--
+>
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (2):
+>    clk: ti: clk-3xxx: Correct McBSP related DT clock definitions
+>    clk: ti: clk-3xxx-legacy: Correct McBSP related clock aliases
+>
+>   drivers/clk/ti/clk-3xxx-legacy.c | 16 +++++++++-------
+>   drivers/clk/ti/clk-3xxx.c        | 19 +++++++------------
+>   2 files changed, 16 insertions(+), 19 deletions(-)
+>
