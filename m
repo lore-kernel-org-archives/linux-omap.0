@@ -1,58 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv2] ti-soc-thermal: request temperature periodically if hw
- can't do that itself
-Date: Tue, 24 Mar 2015 23:27:04 +0100
-Message-ID: <20150324222704.GA19154@amd>
-References: <20150103114632.GA21883@amd>
- <20150118202447.GA29014@amd>
- <20150324163032.GA13813@developer.hsd1.ca.comcast.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [rtc-linux] [PATCH] rtc: OMAP: Add external 32k clock feature
+Date: Tue, 24 Mar 2015 15:59:16 -0700
+Message-ID: <20150324155916.cfd1b7ab442271466160283f@linux-foundation.org>
+References: <1425375722-13412-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150324163032.GA13813@developer.hsd1.ca.comcast.net>
+In-Reply-To: <1425375722-13412-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org
+To: rtc-linux@googlegroups.com
+Cc: Keerthy <j-keerthy@ti.com>, a.zummo@towertech.it, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue 2015-03-24 12:30:34, Eduardo Valentin wrote:
-> On Sun, Jan 18, 2015 at 09:24:47PM +0100, Pavel Machek wrote:
-> > 
-> > When periodic mode is not enabled, it is neccessary to force reads.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+On Tue, 3 Mar 2015 15:12:02 +0530 Keerthy <j-keerthy@ti.com> wrote:
+
+> Add external 32k clock feature. The internal clock will be gated during suspend.
+> Hence make use of the external 32k clock so that rtc is functional accross
+> suspend/resume.
 > 
-> This is a malformed patch. here is patch output (or git am)
-> patching file drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> patch: **** malformed patch at line 68: (english)
-> http://www.livejournal.com/~pavelmachek
+> ...
+>
+> @@ -446,6 +449,7 @@ static const struct omap_rtc_device_type omap_rtc_default_type = {
+>  
+>  static const struct omap_rtc_device_type omap_rtc_am3352_type = {
+>  	.has_32kclk_en	= true,
+> +	.has_osc_ext_32k = true,
+>  	.has_kicker	= true,
+>  	.has_irqwakeen	= true,
+>  	.has_pmic_mode	= true,
+> @@ -543,7 +547,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+>  	if (rtc->type->has_32kclk_en) {
+>  		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
+>  		rtc_writel(rtc, OMAP_RTC_OSC_REG,
+> -				reg | OMAP_RTC_OSC_32KCLK_EN);
+> +			   reg | OMAP_RTC_OSC_32KCLK_EN);
+> +	}
+> +
+> +	/* Enable External clock as the source */
+> +
+> +	if (rtc->type->has_osc_ext_32k) {
+> +		rtc_writel(rtc, OMAP_RTC_OSC_REG,
+> +			   (OMAP_RTC_OSC_EXT_32K |
+> +			   rtc_read(rtc, OMAP_RTC_OSC_REG)) &
+> +			   (~OMAP_RTC_OSC_OSC32K_GZ));
+>  	}
 
-Sorry about that. You should have fixed [PATCHv3] in your inbox now.
-
-> I would really recommend you to use git to send your patches to avoid
-> such problems. Can you please resend this patch in its proper
-> format?
-
-Done.
-
-I verified that the other 2 patches are ok, by applying them in
-following order:
-
-Subject: [PATCHv3] ti-soc-thermal: request temperature periodically if
-hw can't do that itself
-
-Date: Sun, 18 Jan 2015 21:20:51 +0100
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCHv2] ti-soc-thermal: implement eocz bit to make driver
-useful on omap3
-
-Date: Sun, 18 Jan 2015 21:17:10 +0100
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCHv2] cleanup ti-soc-thermal
-
-Best regards and thanks for patience,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+How do we know that all systems have this external clock and that it
+works OK?
