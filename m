@@ -1,46 +1,128 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 01/10] arm/dts: dra7xx: add 'ti,set-rate-parent' for dss_dss_clk
-Date: Tue, 24 Mar 2015 16:55:01 +0200
-Message-ID: <1427208910-17678-2-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 06/10] arm/dts: dra7.dtsi: add DSS support
+Date: Tue, 24 Mar 2015 16:55:06 +0200
+Message-ID: <1427208910-17678-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1427208910-17678-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427208910-17678-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42393 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474AbbCXO4J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2015 10:56:09 -0400
+In-Reply-To: <1427208910-17678-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org
 
-We need set-rate-parent flags for the display's clock path so that the
-DSS driver can change the clock rate of the PLL.
+DRA7xxx contains a very similar DSS to OMAP5. The main differences are:
 
-This patchs adds the ti,set-rate-parent flag to 'dss_dss_clk' clock
-node, which is only a gate clock, allowing the setting of the clock rate
-to propagate to the PLL.
+* no DSI or RFBI support.
+* 1 or 2 dedicated video PLLs.
+* need to do additional configuration to the DRA7 CONTROL module.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+DRA72xx has only one video PLL, and DRA74xx has two.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/dra7.dtsi   | 38 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra72x.dtsi | 11 +++++++++++
+ arch/arm/boot/dts/dra74x.dtsi | 15 +++++++++++++++
+ 3 files changed, 64 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 4bdcbd61ce47..0d76233840e6 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1451,6 +1451,7 @@
- 		clocks = <&dpll_per_h12x2_ck>;
- 		ti,bit-shift = <8>;
- 		reg = <0x1120>;
-+		ti,set-rate-parent;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 8e50ca3fc102..312ede660b23 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1445,6 +1445,44 @@
+ 			clocks = <&sys_clkin1>;
+ 			status = "disabled";
+ 		};
++
++		dss: dss@58000000 {
++			compatible = "ti,dra7-dss";
++			/* 'reg' defined in dra72x.dtsi and dra74x.dtsi */
++			/* 'clocks' defined in dra72x.dtsi and dra74x.dtsi */
++			status = "disabled";
++			ti,hwmods = "dss_core";
++			/* CTRL_CORE_DSS_PLL_CONTROL */
++			syscon-pll-ctrl = <&scm_conf 0x538>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++
++			dispc@58001000 {
++				compatible = "ti,dra7-dispc";
++				reg = <0x58001000 0x1000>;
++				interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
++				ti,hwmods = "dss_dispc";
++				clocks = <&dss_dss_clk>;
++				clock-names = "fck";
++				/* CTRL_CORE_SMA_SW_1 */
++				syscon-pol = <&scm_conf 0x534>;
++			};
++
++			hdmi: encoder@58060000 {
++				compatible = "ti,dra7-hdmi";
++				reg = <0x58040000 0x200>,
++				      <0x58040200 0x80>,
++				      <0x58040300 0x80>,
++				      <0x58060000 0x19000>;
++				reg-names = "wp", "pll", "phy", "core";
++				interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
++				status = "disabled";
++				ti,hwmods = "dss_hdmi";
++				clocks = <&dss_48mhz_clk>, <&dss_hdmi_clk>;
++				clock-names = "fck", "sys_clk";
++			};
++		};
  	};
+ };
  
- 	dss_hdmi_clk: dss_hdmi_clk {
+diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
+index e5a3d23a3df1..0866866c8e94 100644
+--- a/arch/arm/boot/dts/dra72x.dtsi
++++ b/arch/arm/boot/dts/dra72x.dtsi
+@@ -28,3 +28,14 @@
+ 		interrupts = <GIC_SPI DIRECT_IRQ(131) IRQ_TYPE_LEVEL_HIGH>;
+ 	};
+ };
++
++&dss {
++	reg = <0x58000000 0x80>,
++	      <0x58004054 0x4>,
++	      <0x58004300 0x20>;
++	reg-names = "dss", "pll1_clkctrl", "pll1";
++
++	clocks = <&dss_dss_clk>,
++		 <&dss_video1_clk>;
++	clock-names = "fck", "video1_clk";
++};
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index 10173fab1a15..1a4f4970aaad 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -67,3 +67,18 @@
+ 		};
+ 	};
+ };
++
++&dss {
++	reg = <0x58000000 0x80>,
++	      <0x58004054 0x4>,
++	      <0x58004300 0x20>,
++	      <0x58005054 0x4>,
++	      <0x58005300 0x20>;
++	reg-names = "dss", "pll1_clkctrl", "pll1",
++		    "pll2_clkctrl", "pll2";
++
++	clocks = <&dss_dss_clk>,
++		 <&dss_video1_clk>,
++		 <&dss_video2_clk>;
++	clock-names = "fck", "video1_clk", "video2_clk";
++};
 -- 
 2.3.3
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
