@@ -1,183 +1,73 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 07/10] arm/dts: dra72-evm.dts: add HDMI
-Date: Tue, 24 Mar 2015 16:55:07 +0200
-Message-ID: <1427208910-17678-8-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 04/10] ARM: OMAP: display: change compat names to array
+Date: Tue, 24 Mar 2015 16:55:04 +0200
+Message-ID: <1427208910-17678-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1427208910-17678-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427208910-17678-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42389 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752302AbbCXO4E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2015 10:56:04 -0400
+In-Reply-To: <1427208910-17678-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-DRA72 EVM has a HDMI output. This patch adds the device tree nodes
-required for HDMI.
+Simplify the DSS detection logic by creating a list of the omapdss
+compat strings, instead of checking each separately with an 'if'.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/dra72-evm.dts | 110 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 110 insertions(+)
+ arch/arm/mach-omap2/display.c | 29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 4d8711713610..c752d7aa302d 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -19,6 +19,10 @@
- 		reg = <0x80000000 0x40000000>; /* 1024 MB */
- 	};
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index f492ae147c6a..9868d0bc7805 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -568,25 +568,24 @@ void __init omapdss_early_init_of(void)
  
-+	aliases {
-+		display0 = &hdmi0;
-+	};
-+
- 	evm_3v3: fixedregulator-evm_3v3 {
- 		compatible = "regulator-fixed";
- 		regulator-name = "evm_3v3";
-@@ -35,6 +39,51 @@
- 		compatible = "linux,extcon-usb-gpio";
- 		id-gpio = <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
- 	};
-+
-+	hdmi0: connector {
-+		compatible = "hdmi-connector";
-+		label = "hdmi";
-+
-+		type = "a";
-+
-+		port {
-+			hdmi_connector_in: endpoint {
-+				remote-endpoint = <&tpd12s015_out>;
-+			};
-+		};
-+	};
-+
-+	tpd12s015: encoder {
-+		compatible = "ti,tpd12s015";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tpd12s015_pins>;
-+
-+		gpios = <&pcf_hdmi 4 GPIO_ACTIVE_HIGH>,	/* P4, CT CP HPD */
-+			<&pcf_hdmi 5 GPIO_ACTIVE_HIGH>,	/* P5, LS OE */
-+			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tpd12s015_in: endpoint {
-+					remote-endpoint = <&hdmi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tpd12s015_out: endpoint {
-+					remote-endpoint = <&hdmi_connector_in>;
-+				};
-+			};
-+		};
-+	};
- };
+ }
  
- &dra7_pmx_core {
-@@ -45,6 +94,13 @@
- 		>;
- 	};
- 
-+	i2c5_pins: pinmux_i2c5_pins {
-+		pinctrl-single,pins = <
-+			0x2b4 (PIN_INPUT | MUX_MODE10) /* mcasp1_axr0.i2c5_sda */
-+			0x2b8 (PIN_INPUT | MUX_MODE10) /* mcasp1_axr1.i2c5_scl */
-+		>;
-+	};
-+
- 	nand_default: nand_default {
- 		pinctrl-single,pins = <
- 			0x0	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad0 */
-@@ -144,6 +200,19 @@
- 			0xb8 (PIN_OUTPUT | MUX_MODE1)	/* gpmc_cs2.qspi1_cs0 */
- 		>;
- 	};
-+
-+	hdmi_pins: pinmux_hdmi_pins {
-+		pinctrl-single,pins = <
-+			0x408 (PIN_INPUT | MUX_MODE1) /* i2c2_sda.hdmi1_ddc_scl */
-+			0x40c (PIN_INPUT | MUX_MODE1) /* i2c2_scl.hdmi1_ddc_sda */
-+		>;
-+	};
-+
-+	tpd12s015_pins: pinmux_tpd12s015_pins {
-+		pinctrl-single,pins = <
-+			0x3b8 (PIN_INPUT_PULLDOWN | MUX_MODE14) /* gpio7_12 HPD */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -280,6 +349,27 @@
- 	};
- };
- 
-+&i2c5 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c5_pins>;
-+	clock-frequency = <400000>;
-+
-+	pcf_hdmi: pcf8575@26 {
-+		compatible = "nxp,pcf8575";
-+		reg = <0x26>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		/*
-+		 * initial state is used here to keep the mdio interface
-+		 * selected on RU89 through SEL_VIN4_MUX_S0, VIN2_S1 and
-+		 * VIN2_S0 driven high otherwise Ethernet stops working
-+		 * VIN6_SEL_S0 is low, thus selecting McASP3 over VIN6
-+		 */
-+		lines-initial-states = <0x0f2b>;
-+	};
++static const char * const omapdss_compat_names[] __initconst = {
++	"ti,omap2-dss",
++	"ti,omap3-dss",
++	"ti,omap4-dss",
++	"ti,omap5-dss",
 +};
 +
- &uart1 {
- 	status = "okay";
- };
-@@ -569,3 +659,23 @@
- 		};
- 	};
- };
-+
-+&dss {
-+	status = "ok";
-+
-+	vdda_video-supply = <&ldo5_reg>;
-+};
-+
-+&hdmi {
-+	status = "ok";
-+	vdda-supply = <&ldo3_reg>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hdmi_pins>;
-+
-+	port {
-+		hdmi_out: endpoint {
-+			remote-endpoint = <&tpd12s015_in>;
-+		};
-+	};
-+};
+ struct device_node * __init omapdss_find_dss_of_node(void)
+ {
+ 	struct device_node *node;
++	int i;
+ 
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap2-dss");
+-	if (node)
+-		return node;
+-
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap3-dss");
+-	if (node)
+-		return node;
+-
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap4-dss");
+-	if (node)
+-		return node;
+-
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap5-dss");
+-	if (node)
+-		return node;
++	for (i = 0; i < ARRAY_SIZE(omapdss_compat_names); ++i) {
++		node = of_find_compatible_node(NULL, NULL,
++			omapdss_compat_names[i]);
++		if (node)
++			return node;
++	}
+ 
+ 	return NULL;
+ }
 -- 
 2.3.3
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
