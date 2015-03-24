@@ -1,212 +1,256 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 01/35] clk: ti: fix ti_clk_get_reg_addr error handling
-Date: Tue, 24 Mar 2015 20:51:56 +0200
-Message-ID: <5511B24C.7040607@ti.com>
-References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-2-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH 2/3] clk: ti: Implement FAPLL set_rate for the synthesizer
+Date: Tue, 24 Mar 2015 20:53:02 +0200
+Message-ID: <5511B28E.5040800@ti.com>
+References: <1427063726-4248-1-git-send-email-tony@atomide.com> <1427063726-4248-3-git-send-email-tony@atomide.com> <5510143A.8090404@ti.com> <20150323155242.GX31346@atomide.com> <20150324163734.GY31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52507 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754516AbbCXSw2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2015 14:52:28 -0400
-In-Reply-To: <1426877086-17131-2-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150324163734.GY31346@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
-Cc: linux-arm-kernel@lists.infradead.org
 
-On 03/20/2015 08:44 PM, Tero Kristo wrote:
-> There is a case where NULL can be a valid return value for
-> ti_clk_get_reg_addr, specifically the case where both the provider index
-> and register offsets are zero. In this case, the current error checking
-> against a NULL pointer will fail. Thus, change the API to return a
-> ERR_PTR value in an error case, and change all the users of this API to
-> check against IS_ERR instead.
+On 03/24/2015 06:37 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150323 08:58]:
+>> * Tero Kristo <t-kristo@ti.com> [150323 06:25]:
+>>>
+>>> This code is generating these compile time warnings for me:
+>>>
+>>>    CC      drivers/clk/ti/fapll.o
+>>> drivers/clk/ti/fapll.c: In function =E2=80=98ti_fapll_synth_set_rat=
+e=E2=80=99:
+>>> drivers/clk/ti/fapll.c:394:5: warning: =E2=80=98synth_int_div=E2=80=
+=99 may be used
+>>> uninitialized in this function [-Wuninitialized]
+>>> drivers/clk/ti/fapll.c:373:18: note: =E2=80=98synth_int_div=E2=80=99=
+ was declared here
+>>> drivers/clk/ti/fapll.c:400:23: warning: =E2=80=98synth_frac_div=E2=80=
+=99 may be used
+>>> uninitialized in this function [-Wuninitialized]
+>>> drivers/clk/ti/fapll.c:373:33: note: =E2=80=98synth_frac_div=E2=80=99=
+ was declared here
+>>
+>> Oops thanks will check. I did move this into a separate function
+>> to make it more readable, probably happened at that point.
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Acked-by: Michael Turquette <mturquette@linaro.org>
+> Updated version of this patch below, let me know if you want the
+> whole set reposted.
 
-Queued this patch for 4.1 through ti clock driver.
+Yes this is fine, all patches queued for 4.1, thanks!
 
 -Tero
 
-> ---
->   drivers/clk/ti/apll.c      |    5 +++--
->   drivers/clk/ti/autoidle.c  |    2 +-
->   drivers/clk/ti/clk.c       |    7 ++++---
->   drivers/clk/ti/divider.c   |    4 ++--
->   drivers/clk/ti/dpll.c      |    6 +++---
->   drivers/clk/ti/gate.c      |    4 ++--
->   drivers/clk/ti/interface.c |    2 +-
->   drivers/clk/ti/mux.c       |    4 ++--
->   8 files changed, 18 insertions(+), 16 deletions(-)
 >
-> diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-> index 72d9727..49baf38 100644
-> --- a/drivers/clk/ti/apll.c
-> +++ b/drivers/clk/ti/apll.c
-> @@ -203,7 +203,7 @@ static void __init of_dra7_apll_setup(struct device_node *node)
->   	ad->control_reg = ti_clk_get_reg_addr(node, 0);
->   	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
+> Regards,
 >
-> -	if (!ad->control_reg || !ad->idlest_reg)
-> +	if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
->   		goto cleanup;
+> Tony
 >
->   	ad->idlest_mask = 0x1;
-> @@ -384,7 +384,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
->   	ad->autoidle_reg = ti_clk_get_reg_addr(node, 1);
->   	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
+> 8< -------------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Mon, 16 Mar 2015 18:04:20 -0700
+> Subject: [PATCH] clk: ti: Implement FAPLL set_rate for the synthesize=
+r
 >
-> -	if (!ad->control_reg || !ad->autoidle_reg || !ad->idlest_reg)
-> +	if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
-> +	    IS_ERR(ad->idlest_reg))
->   		goto cleanup;
+> We can pretty much get any rate out of the FAPLL because of the fract=
+ional
+> divider. Let's first try just adjusting the post divider, and if that=
+ is
+> not enough, then reprogram both the fractional divider and the post d=
+ivider.
 >
->   	clk = clk_register(NULL, &clk_hw->hw);
-> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-> index 8912ff8..e75c64c 100644
-> --- a/drivers/clk/ti/autoidle.c
-> +++ b/drivers/clk/ti/autoidle.c
-> @@ -119,7 +119,7 @@ int __init of_ti_clk_autoidle_setup(struct device_node *node)
->   	clk->name = node->name;
->   	clk->reg = ti_clk_get_reg_addr(node, 0);
+> Let's also add a define for the fixed SYNTH_PHASE_K instead of using =
+8.
 >
-> -	if (!clk->reg) {
-> +	if (IS_ERR(clk->reg)) {
->   		kfree(clk);
->   		return -EINVAL;
->   	}
-> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-> index e22b956..0ebe5c5 100644
-> --- a/drivers/clk/ti/clk.c
-> +++ b/drivers/clk/ti/clk.c
-> @@ -103,7 +103,8 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
->    * @index: register index from the clock node
->    *
->    * Builds clock register address from device tree information. This
-> - * is a struct of type clk_omap_reg.
-> + * is a struct of type clk_omap_reg. Returns a pointer to the register
-> + * address, or a pointer error value in failure.
->    */
->   void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
->   {
-> @@ -121,14 +122,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 >
->   	if (i == CLK_MAX_MEMMAPS) {
->   		pr_err("clk-provider not found for %s!\n", node->name);
-> -		return NULL;
-> +		return ERR_PTR(-ENOENT);
+> --- a/drivers/clk/ti/fapll.c
+> +++ b/drivers/clk/ti/fapll.c
+> @@ -12,6 +12,7 @@
+>   #include <linux/clk-provider.h>
+>   #include <linux/delay.h>
+>   #include <linux/err.h>
+> +#include <linux/math64.h>
+>   #include <linux/of.h>
+>   #include <linux/of_address.h>
+>   #include <linux/clk/ti.h>
+> @@ -47,6 +48,8 @@
+>   /* Synthesizer frequency register */
+>   #define SYNTH_LDFREQ		BIT(31)
+>
+> +#define SYNTH_PHASE_K		8
+> +#define SYNTH_MAX_INT_DIV	0xf
+>   #define SYNTH_MAX_DIV_M		0xff
+>
+>   struct fapll_data {
+> @@ -204,7 +207,7 @@ static unsigned long ti_fapll_synth_recalc_rate(s=
+truct clk_hw *hw,
+>   	/*
+>   	 * Synth frequency integer and fractional divider.
+>   	 * Note that the phase output K is 8, so the result needs
+> -	 * to be multiplied by 8.
+> +	 * to be multiplied by SYNTH_PHASE_K.
+>   	 */
+>   	if (synth->freq) {
+>   		u32 v, synth_int_div, synth_frac_div, synth_div_freq;
+> @@ -215,7 +218,7 @@ static unsigned long ti_fapll_synth_recalc_rate(s=
+truct clk_hw *hw,
+>   		synth_div_freq =3D (synth_int_div * 10000000) + synth_frac_div;
+>   		rate *=3D 10000000;
+>   		do_div(rate, synth_div_freq);
+> -		rate *=3D 8;
+> +		rate *=3D SYNTH_PHASE_K;
 >   	}
 >
->   	reg->index = i;
+>   	/* Synth post-divider M */
+> @@ -224,11 +227,138 @@ static unsigned long ti_fapll_synth_recalc_rat=
+e(struct clk_hw *hw,
+>   	return DIV_ROUND_UP_ULL(rate, synth_div_m);
+>   }
 >
->   	if (of_property_read_u32_index(node, "reg", index, &val)) {
->   		pr_err("%s must have reg[%d]!\n", node->name, index);
-> -		return NULL;
-> +		return ERR_PTR(-EINVAL);
->   	}
+> +static unsigned long ti_fapll_synth_get_frac_rate(struct clk_hw *hw,
+> +						  unsigned long parent_rate)
+> +{
+> +	struct fapll_synth *synth =3D to_synth(hw);
+> +	unsigned long current_rate, frac_rate;
+> +	u32 post_div_m;
+> +
+> +	current_rate =3D ti_fapll_synth_recalc_rate(hw, parent_rate);
+> +	post_div_m =3D readl_relaxed(synth->div) & SYNTH_MAX_DIV_M;
+> +	frac_rate =3D current_rate * post_div_m;
+> +
+> +	return frac_rate;
+> +}
+> +
+> +static u32 ti_fapll_synth_set_frac_rate(struct fapll_synth *synth,
+> +					unsigned long rate,
+> +					unsigned long parent_rate)
+> +{
+> +	u32 post_div_m, synth_int_div =3D 0, synth_frac_div =3D 0, v;
+> +
+> +	post_div_m =3D DIV_ROUND_UP_ULL((u64)parent_rate * SYNTH_PHASE_K, r=
+ate);
+> +	post_div_m =3D post_div_m / SYNTH_MAX_INT_DIV;
+> +	if (post_div_m > SYNTH_MAX_DIV_M)
+> +		return -EINVAL;
+> +	if (!post_div_m)
+> +		post_div_m =3D 1;
+> +
+> +	for (; post_div_m < SYNTH_MAX_DIV_M; post_div_m++) {
+> +		synth_int_div =3D DIV_ROUND_UP_ULL((u64)parent_rate *
+> +						 SYNTH_PHASE_K *
+> +						 10000000,
+> +						 rate * post_div_m);
+> +		synth_frac_div =3D synth_int_div % 10000000;
+> +		synth_int_div /=3D 10000000;
+> +
+> +		if (synth_int_div <=3D SYNTH_MAX_INT_DIV)
+> +			break;
+> +	}
+> +
+> +	if (synth_int_div > SYNTH_MAX_INT_DIV)
+> +		return -EINVAL;
+> +
+> +	v =3D readl_relaxed(synth->freq);
+> +	v &=3D ~0x1fffffff;
+> +	v |=3D (synth_int_div & SYNTH_MAX_INT_DIV) << 24;
+> +	v |=3D (synth_frac_div & 0xffffff);
+> +	v |=3D SYNTH_LDFREQ;
+> +	writel_relaxed(v, synth->freq);
+> +
+> +	return post_div_m;
+> +}
+> +
+> +static long ti_fapll_synth_round_rate(struct clk_hw *hw, unsigned lo=
+ng rate,
+> +				      unsigned long *parent_rate)
+> +{
+> +	struct fapll_synth *synth =3D to_synth(hw);
+> +	struct fapll_data *fd =3D synth->fd;
+> +	unsigned long r;
+> +
+> +	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
+> +		return -EINVAL;
+> +
+> +	/* Only post divider m available with no fractional divider? */
+> +	if (!synth->freq) {
+> +		unsigned long frac_rate;
+> +		u32 synth_post_div_m;
+> +
+> +		frac_rate =3D ti_fapll_synth_get_frac_rate(hw, *parent_rate);
+> +		synth_post_div_m =3D DIV_ROUND_UP(frac_rate, rate);
+> +		r =3D DIV_ROUND_UP(frac_rate, synth_post_div_m);
+> +		goto out;
+> +	}
+> +
+> +	r =3D *parent_rate * SYNTH_PHASE_K;
+> +	if (rate > r)
+> +		goto out;
+> +
+> +	r =3D DIV_ROUND_UP_ULL(r, SYNTH_MAX_INT_DIV * SYNTH_MAX_DIV_M);
+> +	if (rate < r)
+> +		goto out;
+> +
+> +	r =3D rate;
+> +out:
+> +	return r;
+> +}
+> +
+> +static int ti_fapll_synth_set_rate(struct clk_hw *hw, unsigned long =
+rate,
+> +				   unsigned long parent_rate)
+> +{
+> +	struct fapll_synth *synth =3D to_synth(hw);
+> +	struct fapll_data *fd =3D synth->fd;
+> +	unsigned long frac_rate, post_rate =3D 0;
+> +	u32 post_div_m =3D 0, v;
+> +
+> +	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
+> +		return -EINVAL;
+> +
+> +	/* Produce the rate with just post divider M? */
+> +	frac_rate =3D ti_fapll_synth_get_frac_rate(hw, parent_rate);
+> +	if (frac_rate < rate) {
+> +		if (!synth->freq)
+> +			return -EINVAL;
+> +	} else {
+> +		post_div_m =3D DIV_ROUND_UP(frac_rate, rate);
+> +		if (post_div_m && (post_div_m <=3D SYNTH_MAX_DIV_M))
+> +			post_rate =3D DIV_ROUND_UP(frac_rate, post_div_m);
+> +		if (!synth->freq && !post_rate)
+> +			return -EINVAL;
+> +	}
+> +
+> +	/* Need to recalculate the fractional divider? */
+> +	if ((post_rate !=3D rate) && synth->freq)
+> +		post_div_m =3D ti_fapll_synth_set_frac_rate(synth,
+> +							  rate,
+> +							  parent_rate);
+> +
+> +	v =3D readl_relaxed(synth->div);
+> +	v &=3D ~SYNTH_MAX_DIV_M;
+> +	v |=3D post_div_m;
+> +	v |=3D SYNTH_LDMDIV1;
+> +	writel_relaxed(v, synth->div);
+> +
+> +	return 0;
+> +}
+> +
+>   static struct clk_ops ti_fapll_synt_ops =3D {
+>   	.enable =3D ti_fapll_synth_enable,
+>   	.disable =3D ti_fapll_synth_disable,
+>   	.is_enabled =3D ti_fapll_synth_is_enabled,
+>   	.recalc_rate =3D ti_fapll_synth_recalc_rate,
+> +	.round_rate =3D ti_fapll_synth_round_rate,
+> +	.set_rate =3D ti_fapll_synth_set_rate,
+>   };
 >
->   	reg->offset = val;
-> diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-> index 6211893..ff5f117 100644
-> --- a/drivers/clk/ti/divider.c
-> +++ b/drivers/clk/ti/divider.c
-> @@ -530,8 +530,8 @@ static int __init ti_clk_divider_populate(struct device_node *node,
->   	u32 val;
+>   static struct clk * __init ti_fapll_synth_setup(struct fapll_data *=
+fd,
 >
->   	*reg = ti_clk_get_reg_addr(node, 0);
-> -	if (!*reg)
-> -		return -EINVAL;
-> +	if (IS_ERR(*reg))
-> +		return PTR_ERR(*reg);
->
->   	if (!of_property_read_u32(node, "ti,bit-shift", &val))
->   		*shift = val;
-> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-> index 81dc469..11478a5 100644
-> --- a/drivers/clk/ti/dpll.c
-> +++ b/drivers/clk/ti/dpll.c
-> @@ -390,18 +390,18 @@ static void __init of_ti_dpll_setup(struct device_node *node,
->   #endif
->   	} else {
->   		dd->idlest_reg = ti_clk_get_reg_addr(node, 1);
-> -		if (!dd->idlest_reg)
-> +		if (IS_ERR(dd->idlest_reg))
->   			goto cleanup;
->
->   		dd->mult_div1_reg = ti_clk_get_reg_addr(node, 2);
->   	}
->
-> -	if (!dd->control_reg || !dd->mult_div1_reg)
-> +	if (IS_ERR(dd->control_reg) || IS_ERR(dd->mult_div1_reg))
->   		goto cleanup;
->
->   	if (dd->autoidle_mask) {
->   		dd->autoidle_reg = ti_clk_get_reg_addr(node, 3);
-> -		if (!dd->autoidle_reg)
-> +		if (IS_ERR(dd->autoidle_reg))
->   			goto cleanup;
->   	}
->
-> diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-> index d493307..0c6fdfc 100644
-> --- a/drivers/clk/ti/gate.c
-> +++ b/drivers/clk/ti/gate.c
-> @@ -225,7 +225,7 @@ static void __init _of_ti_gate_clk_setup(struct device_node *node,
->
->   	if (ops != &omap_gate_clkdm_clk_ops) {
->   		reg = ti_clk_get_reg_addr(node, 0);
-> -		if (!reg)
-> +		if (IS_ERR(reg))
->   			return;
->
->   		if (!of_property_read_u32(node, "ti,bit-shift", &val))
-> @@ -264,7 +264,7 @@ _of_ti_composite_gate_clk_setup(struct device_node *node,
->   		return;
->
->   	gate->enable_reg = ti_clk_get_reg_addr(node, 0);
-> -	if (!gate->enable_reg)
-> +	if (IS_ERR(gate->enable_reg))
->   		goto cleanup;
->
->   	of_property_read_u32(node, "ti,bit-shift", &val);
-> diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-> index 265d91f..c76230d 100644
-> --- a/drivers/clk/ti/interface.c
-> +++ b/drivers/clk/ti/interface.c
-> @@ -111,7 +111,7 @@ static void __init _of_ti_interface_clk_setup(struct device_node *node,
->   	u32 val;
->
->   	reg = ti_clk_get_reg_addr(node, 0);
-> -	if (!reg)
-> +	if (IS_ERR(reg))
->   		return;
->
->   	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-> diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-> index 728e253..5cdeed5 100644
-> --- a/drivers/clk/ti/mux.c
-> +++ b/drivers/clk/ti/mux.c
-> @@ -210,7 +210,7 @@ static void of_mux_clk_setup(struct device_node *node)
->
->   	reg = ti_clk_get_reg_addr(node, 0);
->
-> -	if (!reg)
-> +	if (IS_ERR(reg))
->   		goto cleanup;
->
->   	of_property_read_u32(node, "ti,bit-shift", &shift);
-> @@ -283,7 +283,7 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
->
->   	mux->reg = ti_clk_get_reg_addr(node, 0);
->
-> -	if (!mux->reg)
-> +	if (IS_ERR(mux->reg))
->   		goto cleanup;
->
->   	if (!of_property_read_u32(node, "ti,bit-shift", &val))
->
-
