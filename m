@@ -1,622 +1,342 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 06/15] omap3isp: Refactor device configuration structs for Device Tree
-Date: Thu, 26 Mar 2015 00:57:30 +0200
-Message-ID: <1427324259-18438-7-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH v2 11/15] omap3isp: Replace many MMIO regions by two
+Date: Thu, 26 Mar 2015 00:57:35 +0200
+Message-ID: <1427324259-18438-12-git-send-email-sakari.ailus@iki.fi>
 References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56399 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56425 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752505AbbCYW6j (ORCPT
+	by vger.kernel.org with ESMTP id S1751888AbbCYW6k (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:39 -0400
+	Wed, 25 Mar 2015 18:58:40 -0400
 In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com, Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 
-Make omap3isp configuration data structures more suitable for consumption by
-the DT by separating the I2C bus information of all the sub-devices in a
-group and the ISP bus information from each other. The ISP bus information
-is made a pointer instead of being directly embedded in the struct.
-
-In the case of the DT only the sensor specific information on the ISP bus
-configuration is retained. The structs are renamed to reflect that.
-
-After this change the structs needed to describe device configuration can be
-allocated and accessed separately without those needed only in the case of
-platform data. The platform data related structs can be later removed once
-the support for platform data can be removed.
+The omap3isp MMIO register block is contiguous in the MMIO register space
+apart from the fact that the ISP IOMMU register block is in the middle of
+the area. Ioremap it at two occasions, and keep the rest of the layout of
+the register space internal to the omap3isp driver.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>
-Acked-by: Igor Grinberg <grinberg@compulab.co.il> (for cm-t35)
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-cm-t35.c          |   57 +++++++-----------
- drivers/media/platform/omap3isp/isp.c       |   86 +++++++++++++--------------
- drivers/media/platform/omap3isp/isp.h       |    2 +-
- drivers/media/platform/omap3isp/ispccdc.c   |   26 ++++----
- drivers/media/platform/omap3isp/ispccp2.c   |   22 +++----
- drivers/media/platform/omap3isp/ispcsi2.c   |    8 +--
- drivers/media/platform/omap3isp/ispcsiphy.c |   21 ++++---
- include/media/omap3isp.h                    |   34 +++++------
- 8 files changed, 119 insertions(+), 137 deletions(-)
+ arch/arm/mach-omap2/devices.c         |   66 +------------------
+ arch/arm/mach-omap2/omap34xx.h        |   36 +----------
+ drivers/media/platform/omap3isp/isp.c |  113 +++++++++++++++++----------------
+ drivers/media/platform/omap3isp/isp.h |    4 +-
+ 4 files changed, 66 insertions(+), 153 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 91738a1..b5dfbc1 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -492,51 +492,36 @@ static struct twl4030_platform_data cm_t35_twldata = {
- #include <media/omap3isp.h>
- #include "devices.h"
- 
--static struct i2c_board_info cm_t35_isp_i2c_boardinfo[] = {
-+static struct isp_platform_subdev cm_t35_isp_subdevs[] = {
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index e945957..990338f 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
+ static struct resource omap3isp_resources[] = {
  	{
--		I2C_BOARD_INFO("mt9t001", 0x5d),
--	},
--	{
--		I2C_BOARD_INFO("tvp5150", 0x5c),
--	},
--};
--
--static struct isp_subdev_i2c_board_info cm_t35_isp_primary_subdevs[] = {
--	{
--		.board_info = &cm_t35_isp_i2c_boardinfo[0],
--		.i2c_adapter_id = 3,
--	},
--	{ NULL, 0, },
--};
--
--static struct isp_subdev_i2c_board_info cm_t35_isp_secondary_subdevs[] = {
--	{
--		.board_info = &cm_t35_isp_i2c_boardinfo[1],
-+		.board_info = &(struct i2c_board_info){
-+			I2C_BOARD_INFO("mt9t001", 0x5d)
-+		},
- 		.i2c_adapter_id = 3,
--	},
--	{ NULL, 0, },
--};
--
--static struct isp_v4l2_subdevs_group cm_t35_isp_subdevs[] = {
--	{
--		.subdevs = cm_t35_isp_primary_subdevs,
--		.interface = ISP_INTERFACE_PARALLEL,
--		.bus = {
--			.parallel = {
--				.clk_pol = 1,
-+		.bus = &(struct isp_bus_cfg){
-+			.interface = ISP_INTERFACE_PARALLEL,
-+			.bus = {
-+				.parallel = {
-+					.clk_pol = 1,
-+				},
- 			},
- 		},
+ 		.start		= OMAP3430_ISP_BASE,
+-		.end		= OMAP3430_ISP_END,
++		.end		= OMAP3430_ISP_BASE + 0x12fc,
+ 		.flags		= IORESOURCE_MEM,
  	},
  	{
--		.subdevs = cm_t35_isp_secondary_subdevs,
--		.interface = ISP_INTERFACE_PARALLEL,
--		.bus = {
--			.parallel = {
--				.clk_pol = 0,
-+		.board_info = &(struct i2c_board_info){
-+			I2C_BOARD_INFO("tvp5150", 0x5c),
-+		},
-+		.i2c_adapter_id = 3,
-+		.bus = &(struct isp_bus_cfg){
-+			.interface = ISP_INTERFACE_PARALLEL,
-+			.bus = {
-+				.parallel = {
-+					.clk_pol = 0,
-+				},
- 			},
- 		},
+-		.start		= OMAP3430_ISP_CCP2_BASE,
+-		.end		= OMAP3430_ISP_CCP2_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_CCDC_BASE,
+-		.end		= OMAP3430_ISP_CCDC_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_HIST_BASE,
+-		.end		= OMAP3430_ISP_HIST_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_H3A_BASE,
+-		.end		= OMAP3430_ISP_H3A_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_PREV_BASE,
+-		.end		= OMAP3430_ISP_PREV_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_RESZ_BASE,
+-		.end		= OMAP3430_ISP_RESZ_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_SBL_BASE,
+-		.end		= OMAP3430_ISP_SBL_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
+-		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_CSIPHY2_BASE,
+-		.end		= OMAP3430_ISP_CSIPHY2_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
+-		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
+-		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSIPHY1_BASE,
+-		.end		= OMAP3630_ISP_CSIPHY1_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
+-		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
++		.start		= OMAP3430_ISP_BASE2,
++		.end		= OMAP3430_ISP_BASE2 + 0x0600,
+ 		.flags		= IORESOURCE_MEM,
  	},
--	{ NULL, 0, },
-+	{ 0 },
- };
+ 	{
+diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
+index c0d1b4b..ed0024d 100644
+--- a/arch/arm/mach-omap2/omap34xx.h
++++ b/arch/arm/mach-omap2/omap34xx.h
+@@ -46,39 +46,9 @@
  
- static struct isp_platform_data cm_t35_isp_pdata = {
+ #define OMAP34XX_IC_BASE	0x48200000
+ 
+-#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+-#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
+-#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
+-#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
+-#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
+-#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
+-#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
+-#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+-#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+-#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+-#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
+-#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
+-#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
+-#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
+-#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
+-#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+-
+-#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+-#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+-#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
+-#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
+-#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
+-#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
+-#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
+-#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+-#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+-#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+-#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
+-#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
+-#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
+-#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
+-#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
+-#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
++#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
++#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
++#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
+ 
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
 diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 537377b..1b5c6df 100644
+index 83b4368..992e74c 100644
 --- a/drivers/media/platform/omap3isp/isp.c
 +++ b/drivers/media/platform/omap3isp/isp.c
-@@ -447,7 +447,7 @@ static void isp_core_init(struct isp_device *isp, int idle)
-  */
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
--			       const struct isp_parallel_platform_data *pdata,
-+			       const struct isp_parallel_cfg *parcfg,
- 			       unsigned int shift, unsigned int bridge)
- {
- 	u32 ispctrl_val;
-@@ -462,8 +462,8 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 	switch (input) {
- 	case CCDC_INPUT_PARALLEL:
- 		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
--		ispctrl_val |= pdata->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
--		shift += pdata->data_lane_shift * 2;
-+		ispctrl_val |= parcfg->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
-+		shift += parcfg->data_lane_shift * 2;
- 		break;
- 
- 	case CCDC_INPUT_CSI2A:
-@@ -1809,52 +1809,44 @@ static void isp_unregister_entities(struct isp_device *isp)
+@@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
+ static const struct isp_res_mapping isp_res_maps[] = {
+ 	{
+ 		.isp_rev = ISP_REVISION_2_0,
+-		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+-		       1 << OMAP3_ISP_IOMEM_CCP2 |
+-		       1 << OMAP3_ISP_IOMEM_CCDC |
+-		       1 << OMAP3_ISP_IOMEM_HIST |
+-		       1 << OMAP3_ISP_IOMEM_H3A |
+-		       1 << OMAP3_ISP_IOMEM_PREV |
+-		       1 << OMAP3_ISP_IOMEM_RESZ |
+-		       1 << OMAP3_ISP_IOMEM_SBL |
+-		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
++		.offset = {
++			/* first MMIO area */
++			0x0000, /* base, len 0x0070 */
++			0x0400, /* ccp2, len 0x01f0 */
++			0x0600, /* ccdc, len 0x00a8 */
++			0x0a00, /* hist, len 0x0048 */
++			0x0c00, /* h3a, len 0x0060 */
++			0x0e00, /* preview, len 0x00a0 */
++			0x1000, /* resizer, len 0x00ac */
++			0x1200, /* sbl, len 0x00fc */
++			/* second MMIO area */
++			0x0000, /* csi2a, len 0x0170 */
++			0x0170, /* csiphy2, len 0x000c */
++		},
+ 		.syscon_offset = 0xdc,
+ 		.phy_type = ISP_PHY_TYPE_3430,
+ 	},
+ 	{
+ 		.isp_rev = ISP_REVISION_15_0,
+-		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+-		       1 << OMAP3_ISP_IOMEM_CCP2 |
+-		       1 << OMAP3_ISP_IOMEM_CCDC |
+-		       1 << OMAP3_ISP_IOMEM_HIST |
+-		       1 << OMAP3_ISP_IOMEM_H3A |
+-		       1 << OMAP3_ISP_IOMEM_PREV |
+-		       1 << OMAP3_ISP_IOMEM_RESZ |
+-		       1 << OMAP3_ISP_IOMEM_SBL |
+-		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
++		.offset = {
++			/* first MMIO area */
++			0x0000, /* base, len 0x0070 */
++			0x0400, /* ccp2, len 0x01f0 */
++			0x0600, /* ccdc, len 0x00a8 */
++			0x0a00, /* hist, len 0x0048 */
++			0x0c00, /* h3a, len 0x0060 */
++			0x0e00, /* preview, len 0x00a0 */
++			0x1000, /* resizer, len 0x00ac */
++			0x1200, /* sbl, len 0x00fc */
++			/* second MMIO area */
++			0x0000, /* csi2a, len 0x0170 (1st area) */
++			0x0170, /* csiphy2, len 0x000c */
++			0x01c0, /* csi2a, len 0x0040 (2nd area) */
++			0x0400, /* csi2c, len 0x0170 (1st area) */
++			0x0570, /* csiphy1, len 0x000c */
++			0x05c0, /* csi2c, len 0x0040 (2nd area) */
++		},
+ 		.syscon_offset = 0x2f0,
+ 		.phy_type = ISP_PHY_TYPE_3630,
+ 	},
+@@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
+ 	return 0;
  }
  
+-static int isp_map_mem_resource(struct platform_device *pdev,
+-				struct isp_device *isp,
+-				enum isp_mem_resources res)
+-{
+-	struct resource *mem;
+-
+-	/* request the mem region for the camera registers */
+-
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
+-
+-	/* map the region */
+-	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
+-	if (IS_ERR(isp->mmio_base[res]))
+-		return PTR_ERR(isp->mmio_base[res]);
+-
+-	if (res == OMAP3_ISP_IOMEM_HIST)
+-		isp->mmio_hist_base_phys = mem->start;
+-
+-	return 0;
+-}
+-
  /*
-- * isp_register_subdev_group - Register a group of subdevices
-+ * isp_register_subdev - Register a sub-device
-  * @isp: OMAP3 ISP device
-- * @board_info: I2C subdevs board information array
-+ * @isp_subdev: platform data related to a sub-device
-  *
-- * Register all I2C subdevices in the board_info array. The array must be
-- * terminated by a NULL entry, and the first entry must be the sensor.
-+ * Register an I2C sub-device which has not been registered by other
-+ * means (such as the Device Tree).
-  *
-- * Return a pointer to the sensor media entity if it has been successfully
-+ * Return a pointer to the sub-device if it has been successfully
-  * registered, or NULL otherwise.
-  */
- static struct v4l2_subdev *
--isp_register_subdev_group(struct isp_device *isp,
--		     struct isp_subdev_i2c_board_info *board_info)
-+isp_register_subdev(struct isp_device *isp,
-+		    struct isp_platform_subdev *isp_subdev)
+  * isp_probe - Probe ISP platform device
+  * @pdev: Pointer to ISP platform device
+@@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
  {
--	struct v4l2_subdev *sensor = NULL;
--	unsigned int first;
-+	struct i2c_adapter *adapter;
-+	struct v4l2_subdev *sd;
+ 	struct isp_platform_data *pdata = pdev->dev.platform_data;
+ 	struct isp_device *isp;
++	struct resource *mem;
+ 	int ret;
+ 	int i, m;
  
--	if (board_info->board_info == NULL)
-+	if (isp_subdev->board_info == NULL)
- 		return NULL;
- 
--	for (first = 1; board_info->board_info; ++board_info, first = 0) {
--		struct v4l2_subdev *subdev;
--		struct i2c_adapter *adapter;
--
--		adapter = i2c_get_adapter(board_info->i2c_adapter_id);
--		if (adapter == NULL) {
--			dev_err(isp->dev, "%s: Unable to get I2C adapter %d for "
--				"device %s\n", __func__,
--				board_info->i2c_adapter_id,
--				board_info->board_info->type);
--			continue;
--		}
--
--		subdev = v4l2_i2c_new_subdev_board(&isp->v4l2_dev, adapter,
--				board_info->board_info, NULL);
--		if (subdev == NULL) {
--			dev_err(isp->dev, "%s: Unable to register subdev %s\n",
--				__func__, board_info->board_info->type);
--			continue;
--		}
-+	adapter = i2c_get_adapter(isp_subdev->i2c_adapter_id);
-+	if (adapter == NULL) {
-+		dev_err(isp->dev,
-+			"%s: Unable to get I2C adapter %d for device %s\n",
-+			__func__, isp_subdev->i2c_adapter_id,
-+			isp_subdev->board_info->type);
-+		return NULL;
+@@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
+ 	 *
+ 	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
+ 	 * manually to read the revision before calling __omap3isp_get().
++	 *
++	 * Start by mapping the ISP MMIO area, which is in two pieces.
++	 * The ISP IOMMU is in between. Map both now, and fill in the
++	 * ISP revision specific portions a little later in the
++	 * function.
+ 	 */
+-	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
+-	if (ret < 0)
+-		goto error;
++	for (i = 0; i < 2; i++) {
++		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
++
++		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
++		isp->mmio_base[map_idx] =
++			devm_ioremap_resource(isp->dev, mem);
++		if (IS_ERR(isp->mmio_base[map_idx]))
++			return PTR_ERR(isp->mmio_base[map_idx]);
 +	}
  
--		if (first)
--			sensor = subdev;
-+	sd = v4l2_i2c_new_subdev_board(&isp->v4l2_dev, adapter,
-+				       isp_subdev->board_info, NULL);
-+	if (sd == NULL) {
-+		dev_err(isp->dev, "%s: Unable to register subdev %s\n",
-+			__func__, isp_subdev->board_info->type);
-+		return NULL;
+ 	ret = isp_get_clocks(isp);
+ 	if (ret < 0)
+@@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
+ 		goto error_isp;
  	}
  
--	return sensor;
-+	return sd;
- }
- 
- static int isp_link_entity(
-@@ -1931,7 +1923,7 @@ static int isp_link_entity(
- static int isp_register_entities(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
--	struct isp_v4l2_subdevs_group *subdevs;
-+	struct isp_platform_subdev *isp_subdev;
- 	int ret;
- 
- 	isp->media_dev.dev = isp->dev;
-@@ -1989,17 +1981,23 @@ static int isp_register_entities(struct isp_device *isp)
- 		goto done;
- 
- 	/* Register external entities */
--	for (subdevs = pdata ? pdata->subdevs : NULL;
--	     subdevs && subdevs->subdevs; ++subdevs) {
--		struct v4l2_subdev *sensor;
-+	for (isp_subdev = pdata ? pdata->subdevs : NULL;
-+	     isp_subdev && isp_subdev->board_info; isp_subdev++) {
-+		struct v4l2_subdev *sd;
- 
--		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
--		if (sensor == NULL)
-+		sd = isp_register_subdev(isp, isp_subdev);
+-	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
+-		if (isp_res_maps[m].map & 1 << i) {
+-			ret = isp_map_mem_resource(pdev, isp, i);
+-			if (ret)
+-				goto error_isp;
+-		}
+-	}
++	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
++		isp->mmio_base[i] =
++			isp->mmio_base[0] + isp_res_maps[m].offset[i];
 +
-+		/*
-+		 * No bus information --- this is either a flash or a
-+		 * lens subdev.
-+		 */
-+		if (!sd || !isp_subdev->bus)
- 			continue;
++	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
++		isp->mmio_base[i] =
++			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
++			+ isp_res_maps[m].offset[i];
++
++	isp->mmio_hist_base_phys =
++		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
  
--		sensor->host_priv = subdevs;
-+		sd->host_priv = isp_subdev->bus;
- 
--		ret = isp_link_entity(isp, &sensor->entity, subdevs->interface);
-+		ret = isp_link_entity(isp, &sd->entity,
-+				      isp_subdev->bus->interface);
- 		if (ret < 0)
- 			goto done;
- 	}
+ 	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+ 	if (IS_ERR(isp->syscon)) {
 diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index cfdfc87..b932a6f 100644
+index 03d2129..dcb7d20 100644
 --- a/drivers/media/platform/omap3isp/isp.h
 +++ b/drivers/media/platform/omap3isp/isp.h
-@@ -229,7 +229,7 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe);
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
--			       const struct isp_parallel_platform_data *pdata,
-+			       const struct isp_parallel_cfg *buscfg,
- 			       unsigned int shift, unsigned int bridge);
- 
- struct isp_device *omap3isp_get(struct isp_device *isp);
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 587489a..388f971 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -958,11 +958,11 @@ void omap3isp_ccdc_max_rate(struct isp_ccdc_device *ccdc,
+@@ -99,7 +99,7 @@ struct regmap;
  /*
-  * ccdc_config_sync_if - Set CCDC sync interface configuration
-  * @ccdc: Pointer to ISP CCDC device.
-- * @pdata: Parallel interface platform data (may be NULL)
-+ * @parcfg: Parallel interface platform data (may be NULL)
-  * @data_size: Data size
+  * struct isp_res_mapping - Map ISP io resources to ISP revision.
+  * @isp_rev: ISP_REVISION_x_x
+- * @map: bitmap for enum isp_mem_resources
++ * @offset: register offsets of various ISP sub-blocks
+  * @syscon_offset: offset of the syscon register for 343x / 3630
+  *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
+  *	    from the syscon base address
+@@ -107,7 +107,7 @@ struct regmap;
   */
- static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
--				struct isp_parallel_platform_data *pdata,
-+				struct isp_parallel_cfg *parcfg,
- 				unsigned int data_size)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
-@@ -1000,19 +1000,19 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 		break;
- 	}
- 
--	if (pdata && pdata->data_pol)
-+	if (parcfg && parcfg->data_pol)
- 		syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
- 
--	if (pdata && pdata->hs_pol)
-+	if (parcfg && parcfg->hs_pol)
- 		syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
- 
- 	/* The polarity of the vertical sync signal output by the BT.656
- 	 * decoder is not documented and seems to be active low.
- 	 */
--	if ((pdata && pdata->vs_pol) || ccdc->bt656)
-+	if ((parcfg && parcfg->vs_pol) || ccdc->bt656)
- 		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
- 
--	if (pdata && pdata->fld_pol)
-+	if (parcfg && parcfg->fld_pol)
- 		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
- 
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-@@ -1115,7 +1115,7 @@ static const u32 ccdc_sgbrg_pattern =
- static void ccdc_configure(struct isp_ccdc_device *ccdc)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
--	struct isp_parallel_platform_data *pdata = NULL;
-+	struct isp_parallel_cfg *parcfg = NULL;
- 	struct v4l2_subdev *sensor;
- 	struct v4l2_mbus_framefmt *format;
- 	const struct v4l2_rect *crop;
-@@ -1145,7 +1145,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		if (!ret)
- 			ccdc->bt656 = cfg.type == V4L2_MBUS_BT656;
- 
--		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
-+		parcfg = &((struct isp_bus_cfg *)sensor->host_priv)
- 			->bus.parallel;
- 	}
- 
-@@ -1175,10 +1175,10 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	else
- 		bridge = ISPCTRL_PAR_BRIDGE_DISABLE;
- 
--	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift, bridge);
-+	omap3isp_configure_bridge(isp, ccdc->input, parcfg, shift, bridge);
- 
- 	/* Configure the sync interface. */
--	ccdc_config_sync_if(ccdc, pdata, depth_out);
-+	ccdc_config_sync_if(ccdc, parcfg, depth_out);
- 
- 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
-@@ -2417,11 +2417,11 @@ static int ccdc_link_validate(struct v4l2_subdev *sd,
- 
- 	/* We've got a parallel sensor here. */
- 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
--		struct isp_parallel_platform_data *pdata =
--			&((struct isp_v4l2_subdevs_group *)
-+		struct isp_parallel_cfg *parcfg =
-+			&((struct isp_bus_cfg *)
- 			  media_entity_to_v4l2_subdev(link->source->entity)
- 			  ->host_priv)->bus.parallel;
--		parallel_shift = pdata->data_lane_shift * 2;
-+		parallel_shift = parcfg->data_lane_shift * 2;
- 	} else {
- 		parallel_shift = 0;
- 	}
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index f4aedb3..374a1f4 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -201,14 +201,14 @@ static void ccp2_mem_enable(struct isp_ccp2_device *ccp2, u8 enable)
- /*
-  * ccp2_phyif_config - Initialize CCP2 phy interface config
-  * @ccp2: Pointer to ISP CCP2 device
-- * @pdata: CCP2 platform data
-+ * @buscfg: CCP2 platform data
-  *
-  * Configure the CCP2 physical interface module from platform data.
-  *
-  * Returns -EIO if strobe is chosen in CSI1 mode, or 0 on success.
-  */
- static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
--			     const struct isp_ccp2_platform_data *pdata)
-+			     const struct isp_ccp2_cfg *buscfg)
- {
- 	struct isp_device *isp = to_isp_device(ccp2);
- 	u32 val;
-@@ -218,16 +218,16 @@ static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
- 			    ISPCCP2_CTRL_IO_OUT_SEL | ISPCCP2_CTRL_MODE;
- 	/* Data/strobe physical layer */
- 	BIT_SET(val, ISPCCP2_CTRL_PHY_SEL_SHIFT, ISPCCP2_CTRL_PHY_SEL_MASK,
--		pdata->phy_layer);
-+		buscfg->phy_layer);
- 	BIT_SET(val, ISPCCP2_CTRL_INV_SHIFT, ISPCCP2_CTRL_INV_MASK,
--		pdata->strobe_clk_pol);
-+		buscfg->strobe_clk_pol);
- 	isp_reg_writel(isp, val, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
- 
- 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
- 	if (!(val & ISPCCP2_CTRL_MODE)) {
--		if (pdata->ccp2_mode == ISP_CCP2_MODE_CCP2)
-+		if (buscfg->ccp2_mode == ISP_CCP2_MODE_CCP2)
- 			dev_warn(isp->dev, "OMAP3 CCP2 bus not available\n");
--		if (pdata->phy_layer == ISP_CCP2_PHY_DATA_STROBE)
-+		if (buscfg->phy_layer == ISP_CCP2_PHY_DATA_STROBE)
- 			/* Strobe mode requires CCP2 */
- 			return -EIO;
- 	}
-@@ -347,7 +347,7 @@ static void ccp2_lcx_config(struct isp_ccp2_device *ccp2,
-  */
- static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
- {
--	const struct isp_v4l2_subdevs_group *pdata;
-+	const struct isp_bus_cfg *buscfg;
- 	struct v4l2_mbus_framefmt *format;
- 	struct media_pad *pad;
- 	struct v4l2_subdev *sensor;
-@@ -358,20 +358,20 @@ static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
- 
- 	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
--	pdata = sensor->host_priv;
-+	buscfg = sensor->host_priv;
- 
--	ret = ccp2_phyif_config(ccp2, &pdata->bus.ccp2);
-+	ret = ccp2_phyif_config(ccp2, &buscfg->bus.ccp2);
- 	if (ret < 0)
- 		return ret;
- 
--	ccp2_vp_config(ccp2, pdata->bus.ccp2.vpclk_div + 1);
-+	ccp2_vp_config(ccp2, buscfg->bus.ccp2.vpclk_div + 1);
- 
- 	v4l2_subdev_call(sensor, sensor, g_skip_top_lines, &lines);
- 
- 	format = &ccp2->formats[CCP2_PAD_SINK];
- 
- 	ccp2->if_cfg.data_start = lines;
--	ccp2->if_cfg.crc = pdata->bus.ccp2.crc;
-+	ccp2->if_cfg.crc = buscfg->bus.ccp2.crc;
- 	ccp2->if_cfg.format = format->code;
- 	ccp2->if_cfg.data_size = format->height;
- 
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 09c686d..14d279d 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -548,7 +548,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
- 
- static int csi2_configure(struct isp_csi2_device *csi2)
- {
--	const struct isp_v4l2_subdevs_group *pdata;
-+	const struct isp_bus_cfg *buscfg;
- 	struct isp_device *isp = csi2->isp;
- 	struct isp_csi2_timing_cfg *timing = &csi2->timing[0];
- 	struct v4l2_subdev *sensor;
-@@ -565,14 +565,14 @@ static int csi2_configure(struct isp_csi2_device *csi2)
- 
- 	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
--	pdata = sensor->host_priv;
-+	buscfg = sensor->host_priv;
- 
- 	csi2->frame_skip = 0;
- 	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
- 
--	csi2->ctrl.vp_out_ctrl = pdata->bus.csi2.vpclk_div;
-+	csi2->ctrl.vp_out_ctrl = buscfg->bus.csi2.vpclk_div;
- 	csi2->ctrl.frame_mode = ISP_CSI2_FRAME_IMMEDIATE;
--	csi2->ctrl.ecc_enable = pdata->bus.csi2.crc;
-+	csi2->ctrl.ecc_enable = buscfg->bus.csi2.crc;
- 
- 	timing->ionum = 1;
- 	timing->force_rx_mode = 1;
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index e033f22..4486e9f 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -168,18 +168,18 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
- {
- 	struct isp_csi2_device *csi2 = phy->csi2;
- 	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
--	struct isp_v4l2_subdevs_group *subdevs = pipe->external->host_priv;
-+	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
- 	struct isp_csiphy_lanes_cfg *lanes;
- 	int csi2_ddrclk_khz;
- 	unsigned int used_lanes = 0;
- 	unsigned int i;
- 	u32 reg;
- 
--	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
--	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
--		lanes = &subdevs->bus.ccp2.lanecfg;
-+	if (buscfg->interface == ISP_INTERFACE_CCP2B_PHY1
-+	    || buscfg->interface == ISP_INTERFACE_CCP2B_PHY2)
-+		lanes = &buscfg->bus.ccp2.lanecfg;
- 	else
--		lanes = &subdevs->bus.csi2.lanecfg;
-+		lanes = &buscfg->bus.csi2.lanecfg;
- 
- 	/* Clock and data lanes verification */
- 	for (i = 0; i < phy->num_data_lanes; i++) {
-@@ -203,8 +203,8 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
- 	 * issue since the MPU power domain is forced on whilst the
- 	 * ISP is in use.
- 	 */
--	csiphy_routing_cfg(phy, subdevs->interface, true,
--			   subdevs->bus.ccp2.phy_layer);
-+	csiphy_routing_cfg(phy, buscfg->interface, true,
-+			   buscfg->bus.ccp2.phy_layer);
- 
- 	/* DPHY timing configuration */
- 	/* CSI-2 is DDR and we only count used lanes. */
-@@ -302,11 +302,10 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
- 		struct isp_csi2_device *csi2 = phy->csi2;
- 		struct isp_pipeline *pipe =
- 			to_isp_pipeline(&csi2->subdev.entity);
--		struct isp_v4l2_subdevs_group *subdevs =
--			pipe->external->host_priv;
-+		struct isp_bus_cfg *buscfg = pipe->external->host_priv;
- 
--		csiphy_routing_cfg(phy, subdevs->interface, false,
--				   subdevs->bus.ccp2.phy_layer);
-+		csiphy_routing_cfg(phy, buscfg->interface, false,
-+				   buscfg->bus.ccp2.phy_layer);
- 		csiphy_power_autoswitch_enable(phy, false);
- 		csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
- 		regulator_disable(phy->vdd);
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 398279d..39e0748 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -45,7 +45,7 @@ enum {
+ struct isp_res_mapping {
+ 	u32 isp_rev;
+-	u32 map;
++	u32 offset[OMAP3_ISP_IOMEM_LAST];
+ 	u32 syscon_offset;
+ 	u32 phy_type;
  };
- 
- /**
-- * struct isp_parallel_platform_data - Parallel interface platform data
-+ * struct isp_parallel_cfg - Parallel interface configuration
-  * @data_lane_shift: Data lane shifter
-  *		ISP_LANE_SHIFT_0 - CAMEXT[13:0] -> CAM[13:0]
-  *		ISP_LANE_SHIFT_2 - CAMEXT[13:2] -> CAM[11:0]
-@@ -62,7 +62,7 @@ enum {
-  * @data_pol: Data polarity
-  *		0 - Normal, 1 - One's complement
-  */
--struct isp_parallel_platform_data {
-+struct isp_parallel_cfg {
- 	unsigned int data_lane_shift:2;
- 	unsigned int clk_pol:1;
- 	unsigned int hs_pol:1;
-@@ -105,7 +105,7 @@ struct isp_csiphy_lanes_cfg {
- };
- 
- /**
-- * struct isp_ccp2_platform_data - CCP2 interface platform data
-+ * struct isp_ccp2_cfg - CCP2 interface configuration
-  * @strobe_clk_pol: Strobe/clock polarity
-  *		0 - Non Inverted, 1 - Inverted
-  * @crc: Enable the cyclic redundancy check
-@@ -117,7 +117,7 @@ struct isp_csiphy_lanes_cfg {
-  *		ISP_CCP2_PHY_DATA_STROBE - Data/strobe physical layer
-  * @vpclk_div: Video port output clock control
-  */
--struct isp_ccp2_platform_data {
-+struct isp_ccp2_cfg {
- 	unsigned int strobe_clk_pol:1;
- 	unsigned int crc:1;
- 	unsigned int ccp2_mode:1;
-@@ -127,31 +127,31 @@ struct isp_ccp2_platform_data {
- };
- 
- /**
-- * struct isp_csi2_platform_data - CSI2 interface platform data
-+ * struct isp_csi2_cfg - CSI2 interface configuration
-  * @crc: Enable the cyclic redundancy check
-  * @vpclk_div: Video port output clock control
-  */
--struct isp_csi2_platform_data {
-+struct isp_csi2_cfg {
- 	unsigned crc:1;
- 	unsigned vpclk_div:2;
- 	struct isp_csiphy_lanes_cfg lanecfg;
- };
- 
--struct isp_subdev_i2c_board_info {
--	struct i2c_board_info *board_info;
--	int i2c_adapter_id;
--};
--
--struct isp_v4l2_subdevs_group {
--	struct isp_subdev_i2c_board_info *subdevs;
-+struct isp_bus_cfg {
- 	enum isp_interface_type interface;
- 	union {
--		struct isp_parallel_platform_data parallel;
--		struct isp_ccp2_platform_data ccp2;
--		struct isp_csi2_platform_data csi2;
-+		struct isp_parallel_cfg parallel;
-+		struct isp_ccp2_cfg ccp2;
-+		struct isp_csi2_cfg csi2;
- 	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
- };
- 
-+struct isp_platform_subdev {
-+	struct i2c_board_info *board_info;
-+	int i2c_adapter_id;
-+	struct isp_bus_cfg *bus;
-+};
-+
- struct isp_platform_xclk {
- 	const char *dev_id;
- 	const char *con_id;
-@@ -159,7 +159,7 @@ struct isp_platform_xclk {
- 
- struct isp_platform_data {
- 	struct isp_platform_xclk xclks[2];
--	struct isp_v4l2_subdevs_group *subdevs;
-+	struct isp_platform_subdev *subdevs;
- 	void (*set_constraints)(struct isp_device *isp, bool enable);
- };
- 
 -- 
 1.7.10.4
 
