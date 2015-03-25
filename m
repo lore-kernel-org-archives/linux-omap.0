@@ -1,93 +1,142 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v1.1 14/15] omap3isp: Add support for the Device Tree
-Date: Thu, 26 Mar 2015 00:38:39 +0200
-Message-ID: <20150325223839.GO18321@valkosipuli.retiisi.org.uk>
-References: <2603487.gEIKMl6vV7@avalon>
- <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
- <3913985.bpC1SiT8Tn@avalon>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: omap voltage management
+Date: Wed, 25 Mar 2015 17:47:12 -0500
+Message-ID: <CAGo_u6rjAfzZ9YO0xDFcZQi1Su6fThn8xaKUAJ2xH_jK-Lf8mw@mail.gmail.com>
+References: <CAJ2oMhKGG9YrM4+rVdi2wZP=y4OBmCkw3GjgwBq-HpvtbWyNVg@mail.gmail.com>
+	<20150319202750.GM31346@atomide.com>
+	<CAJ2oMhLTH5ix0-6i=bzyqsGVuhf3aJUY5RhYyDLacdKOTCLNRg@mail.gmail.com>
+	<CAJ2oMhKLL8O2Pngg4=YwLmOMApvnJm9UPUhu+SJ421H72ONhTg@mail.gmail.com>
+	<20150325214725.GC31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3913985.bpC1SiT8Tn@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f179.google.com ([209.85.213.179]:33623 "EHLO
+	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751022AbbCYWrM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2015 18:47:12 -0400
+Received: by ignm3 with SMTP id m3so3340655ign.0
+        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2015 15:47:12 -0700 (PDT)
+In-Reply-To: <20150325214725.GC31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ran Shalit <ranshalit@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi Laurent,
+On Wed, Mar 25, 2015 at 4:47 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Ran Shalit <ranshalit@gmail.com> [150321 12:18]:
+>> On Fri, Mar 20, 2015 at 7:11 AM, Ran Shalit <ranshalit@gmail.com> wrote:
+>> >> We currently are missing dm8148 support from mainline, dm8168
+>> >> does have basic support now. Adding dm8148 will hopefully happen
+>> >> too with time permitting :)
+>> >>
+>> >
+>> > Hi Tony,
+>> >
+>> > What is exactly the "voltage driver" capability ? Does it mean that it
+>> > does not support AVS (feature for power saving) ?
+>> >
+>> > Regards,
+>> > Ran
+>>
+>> Hi Tony,
+>>
+>> Is it AVS or "voltage scaling" (used with cpufreq) ?
+>
+> Nishanth might be able to summarize what all is happening :)
 
-Thanks again for the comments!
+Oh Boy, where do i start?????
 
-On Sun, Mar 22, 2015 at 10:26:39PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch. This looks good to me, except that there's one last 
-> bug I've spotted. Please see below.
-> 
-> On Saturday 21 March 2015 00:05:04 Sakari Ailus wrote:
-> > Add the ISP device to omap3 DT include file and add support to the driver to
-> > use it.
-> > 
-> > Also obtain information on the external entities and the ISP configuration
-> > related to them through the Device Tree in addition to the platform data.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> > since v1:
-> > 
-> > - Print endpoint name in debug message when parsing an endpoint.
-> > 
-> > - Rename lane-polarity property as lane-polarities.
-> > 
-> > - Print endpoint name with the interface if the interface is invalid.
-> > 
-> > - Remove assignment to two variables at the same time.
-> > 
-> > - Fix multiple sub-device support in isp_of_parse_nodes().
-> > 
-> > - Put of_node properly in isp_of_parse_nodes() (requires Philipp Zabel's
-> >   patch "of: Decrement refcount of previous endpoint in
-> >   of_graph_get_next_endpoint".
-> > 
-> > - Rename return value variable rval as ret to be consistent with the rest of
-> > the driver.
-> > 
-> > - Read the register offset from the syscom property's first argument.
-> > 
-> >  drivers/media/platform/omap3isp/isp.c       |  218 ++++++++++++++++++++++--
-> >  drivers/media/platform/omap3isp/isp.h       |   11 ++
-> >  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
-> >  3 files changed, 224 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 992e74c..92a859e 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> 
-> [snip]
-> 
-> > +static int isp_of_parse_nodes(struct device *dev,
-> > +			      struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct device_node *node;
-> > +
-> > +	notifier->subdevs = devm_kcalloc(
-> > +		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> > +	if (!notifier->subdevs)
-> > +		return -ENOMEM;
-> > +
-> > +	while ((node = of_graph_get_next_endpoint(dev->of_node, node)) &&
-> > +	       notifier->num_subdevs < ISP_MAX_SUBDEVS) {
-> 
-> If the first condition evaluates to true and the second one to false, the loop 
-> will be exited without releasing the reference to the DT node. You could just 
-> switch the two conditions to fix this.
+Overall.... quick < 5 min write up:
 
-Oh, I missed this. I'll resend the set.
+PMIC Voltage rail-> voltage domain -> power domain -> clock domain -> clocks IP
+TRM for each OMAP technology IPs should show how this looks like
+
+Voltage domain and voltage rail can be tweaked depending on how the
+frequency of IPs are.
+We do a lot of stuff to save power depending on SoC family.. Some
+places like OMAP5/DRA7 certain features might be originally designed,
+but later descoped due to various other reasons.. anyways..
+
+Lets take OMAP3 and beagleboard as an example
+SMPS1 supplies MPU voltage domain that has MPU power domain and A8 under it
+
+MPU DPLL clocks A8, and you can play around with frequency for it.. as
+we reduce frequency, we can actually operate it at lower voltage -
+these are discrete pairs called OPPs - even though intermediate
+frequencies are possible to function, SoC companies like TI cannot
+test all possible combinations, so do not guarentee functionality at
+intermediate frequencies beyond what is provided in the data sheet.
+
+we let cpufreq control that depending on the various load conditions...
+
+For a specific frequency, the simplest thing is just reduce voltage -
+but can we do better? ofcourse yes. it kinda plays with how SoC
+production wafers behave.. and the silicon process itself.. this is
+where AVS comes into play - AVS (or Adaptive Voltage Scaling) is a set
+of different techniques depending on the SoC and process node, process
+type etc.. but basically, the game is to find the least possible
+voltage for functioning at frequency X, for a specific sample instance
+at a certain point in time. AVS class0, class1, 1.5, 2 and class 3 are
+some of the techniques used, there are aspects of temperature
+compensation on certain SoCs as well. But this just ensures that the
+worst possible usecase can still function at frequency X and tries to
+reduce voltage below the OPP start voltage point (start voltage is
+called nominal voltage in some parts of TI)..
+
+Now, for the specific frequency, you can play further games by
+controlling transistor leakage by providing a bias voltage - this is
+called ABB - which is an SoC internal LDO, which can be controlled as
+well - we can reverse or forward bias depending on vdd (voltage domain
+voltage)
+
+in a nut shell:
+- A8 can operate in multiple frequencies
+- for each frequency X, we can come with a common voltage which works
+on every single silicon for every time for worst case usecase for the
+worst possible conditions - we call this as nominal voltage(Y), this,
+and the tuple (X,Y) is what we define as OPP - which is generic for
+any OMAP3 sample.
+- to do optimization per sample, we now need to tweak Y to lower value
+- this is done along with tweaking ABB. - this ensures that as little
+leakage of transistor at the least voltage is used for achieving
+frequency X.
+
+
+Does the game end there? nope. we can play even more.. Lets say at
+frequency X, we dont have anything to do... ok, we can go to lower
+power state - cpuidle, here we can gate clocks and go into different
+deeper power saving states which trades off with wakeup latency
+times.. at some lower power states, we dont even need the AVS
+optimized voltage anymore.. - the voltage for operating in low power
+state is called retention voltage - only some SoCs+PMIC combination
+have ability to automatically do this since A8 itself is in idle when
+the SoC decides it can achieve this low power state.
+
+
+So voltage driver is a bit of a misnomer...
+- Do we have a common entity that can ensure sequencing of AVS, ABB,
+frequency in the right order in upstream - answer is no.. I did
+attempt to post [1] but folks did not like it yet.. and i have'nt had
+time to respin it - actually I dont really know where to go given that
+maintainers differ in opinions..
+- can we control a smps PMIC power supply? yeah - regulator framework
+and corresponding regulator driver
+- can we control ABB - yep - we have abb regulator driver in upstream
+- can we control frequency - yep - all clock framework stuff
+- what do we need for avs support? - well... VC and VP need to become
+dt only (attempted[2]-but got killed), then AVS smartreflex need to be
+modified to fit into that new framework - again dt-fication pending..
+never got around to it..
+
+my wish list from long time[3] is still waiting...
+
+Hope this helps..
+
+[1] https://lwn.net/Articles/587018/
+[2] https://lkml.org/lkml/2013/5/22/471
+[3] https://plus.google.com/112464029509057661457/posts/gvyZQcNieoq
 
 -- 
+---
 Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Nishanth Menon
