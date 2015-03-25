@@ -1,204 +1,268 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 29/35] ARM: dts: am4372: add minimal l4 bus layout with
- control module support
-Date: Wed, 25 Mar 2015 17:03:52 +0200
-Message-ID: <5512CE58.6050901@ti.com>
-References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-30-git-send-email-t-kristo@ti.com> <5511C4CF.1020601@ti.com> <55127B6C.5020900@ti.com>
+Subject: Re: [PATCHv5 11/35] ARM: OMAP2+: clock: move clock provider
+ infrastructure to clock driver
+Date: Wed, 25 Mar 2015 17:12:41 +0200
+Message-ID: <5512D069.4080906@ti.com>
+References: <1426877086-17131-1-git-send-email-t-kristo@ti.com>
+ <1426877086-17131-12-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40536 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246AbbCYPER (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2015 11:04:17 -0400
-In-Reply-To: <55127B6C.5020900@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1426877086-17131-12-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, sakari.ailus@iki.fi
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 03/25/2015 11:10 AM, Tero Kristo wrote:
-> On 03/24/2015 10:10 PM, Suman Anna wrote:
->> Hi Tero,
->>
->> On 03/20/2015 01:44 PM, Kristo, Tero wrote:
->>> This patch creates an l4_wkup interconnect for AM43xx, and moves some of
->>> the generic peripherals under it. System control module nodes are moved
->>> under this new interconnect also, and the SCM clock layout is changed
->>> to use the renamed SCM nodea as the clock provider.
->>>
->>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>> ---
->>>   Documentation/devicetree/bindings/arm/omap/l4.txt  |    1 +
->>>   .../devicetree/bindings/arm/omap/prcm.txt          |    2 +-
->>>   arch/arm/boot/dts/am4372.dtsi                      |   85
->>> +++++++++++---------
->>>   arch/arm/boot/dts/am43xx-clocks.dtsi               |    2 +-
->>>   arch/arm/mach-omap2/control.c                      |    2 +-
->>>   5 files changed, 53 insertions(+), 39 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/l4.txt
->>> b/Documentation/devicetree/bindings/arm/omap/l4.txt
->>> index d333f0a..941b914 100644
->>> --- a/Documentation/devicetree/bindings/arm/omap/l4.txt
->>> +++ b/Documentation/devicetree/bindings/arm/omap/l4.txt
->>> @@ -7,6 +7,7 @@ Required properties:
->>>              Should be "ti,omap2-l4-wkup" for OMAP2 family l4 wkup bus
->>>              Should be "ti,omap3-l4-core" for OMAP3 family l4 core bus
->>>              Should be "ti,am3-l4-wkup" for AM33xx family l4 wkup bus
->>> +           Should be "ti,am4-l4-wkup" for AM43xx family l4 wkup bus
->>>   - ranges : contains the IO map range for the bus
->>>
->>>   Examples:
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt
->>> b/Documentation/devicetree/bindings/arm/omap/prcm.txt
->>> index c8e2027..8af4f32 100644
->>> --- a/Documentation/devicetree/bindings/arm/omap/prcm.txt
->>> +++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
->>> @@ -12,7 +12,7 @@ Required properties:
->>>           "ti,am3-prcm"
->>>           "ti,am3-scm"
->>>           "ti,am4-prcm"
->>> -        "ti,am4-scrm"
->>> +        "ti,am4-scm"
->>>           "ti,omap2-prcm"
->>>           "ti,omap2-scm"
->>>           "ti,omap3-prm"
->>> diff --git a/arch/arm/boot/dts/am4372.dtsi
->>> b/arch/arm/boot/dts/am4372.dtsi
->>> index 1943fc3..9ed58115 100644
->>> --- a/arch/arm/boot/dts/am4372.dtsi
->>> +++ b/arch/arm/boot/dts/am4372.dtsi
->>> @@ -57,22 +57,6 @@
->>>           cache-level = <2>;
->>>       };
->>>
->>> -    am43xx_control_module: control_module@4a002000 {
->>> -        compatible = "syscon";
->>> -        reg = <0x44e10000 0x7f4>;
->>> -    };
->>> -
->>> -    am43xx_pinmux: pinmux@44e10800 {
->>> -        compatible = "ti,am437-padconf", "pinctrl-single";
->>> -        reg = <0x44e10800 0x31c>;
->>> -        #address-cells = <1>;
->>> -        #size-cells = <0>;
->>> -        #interrupt-cells = <1>;
->>> -        interrupt-controller;
->>> -        pinctrl-single,register-width = <32>;
->>> -        pinctrl-single,function-mask = <0xffffffff>;
->>> -    };
->>> -
->>>       ocp {
->>>           compatible = "ti,am4372-l3-noc", "simple-bus";
->>>           #address-cells = <1>;
->>> @@ -84,29 +68,58 @@
->>>           interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
->>>                    <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
->>>
->>> -        prcm: prcm@44df0000 {
->>> -            compatible = "ti,am4-prcm";
->>> -            reg = <0x44df0000 0x11000>;
->>> -
->>> -            prcm_clocks: clocks {
->>> -                #address-cells = <1>;
->>> -                #size-cells = <0>;
->>> -            };
->>> +        l4_wkup: l4_wkup@44c00000 {
->>> +            compatible = "ti,am4-l4-wkup", "simple-bus";
->>> +            #address-cells = <1>;
->>> +            #size-cells = <1>;
->>> +            ranges = <0 0x44c00000 0x287000>;
->>>
->>> -            prcm_clockdomains: clockdomains {
->>> -            };
->>> -        };
->>> +            prcm: prcm@1f0000 {
->>> +                compatible = "ti,am4-prcm";
->>> +                reg = <0x1f0000 0x11000>;
->>>
->>> -        scrm: scrm@44e10000 {
->>> -            compatible = "ti,am4-scrm";
->>> -            reg = <0x44e10000 0x2000>;
->>> +                prcm_clocks: clocks {
->>> +                    #address-cells = <1>;
->>> +                    #size-cells = <0>;
->>> +                };
->>>
->>> -            scrm_clocks: clocks {
->>> -                #address-cells = <1>;
->>> -                #size-cells = <0>;
->>> +                prcm_clockdomains: clockdomains {
->>> +                };
->>>               };
->>>
->>> -            scrm_clockdomains: clockdomains {
->>> +            scm: scm@210000 {
->>> +                compatible = "ti,am4-scm", "simple-bus";
->>> +                reg = <0x210000 0x1000>;
->>
->> Any reason for choosing a different size here compared to AM335x. Also,
->> the scrm node above has 0x2000 as size. I found that I needed to
->> increase the size to 0x2000 here to accomodate the wkup_m3_ipc node on
->> top of your series. The node uses IPC registers which are part of the
->> Control module, so on AM335x, I added it as a child node of scm, but
->> here to do the same I have to correct the size. Also, there are some
->> DISPPLL related registers at 0x3000 offset within the Control module,
->> not sure where they would fit.
->
-> It looks like I shrank the size of the scm address-space based on
-> current children on it. I'll increase this to 0x4000 to accommodate
-> everything under the SCM. A separate syscon mapping needs to be created
-> for the DISPPLL stuff if required.
+Hi,
 
-Patch has been force updated in the branch now to reflect this. scm_conf 
-node is also size 0x800.
+Tony had a small comment about this patch, so I made a slightly modified 
+version where the direct reg access (not through memmap) is dropped; it 
+is no longer needed as the legacy omap3 clock data was moved under TI 
+clock driver. I force pushed this patch to the v5 branch, the modified 
+patch inlined below. Check the implementation for omap2_clk_readl / 
+omap2_clk_writel, and the updated ti_clk_ll_ops.
 
 -Tero
 
->
-> -Tero
->
->>
->> regards
->> Suman
->>
->>> +                #address-cells = <1>;
->>> +                #size-cells = <1>;
->>> +                ranges = <0 0x210000 0x1000>;
->>> +
->>> +                am43xx_pinmux: pinmux@800 {
->>> +                    compatible = "ti,am437-padconf",
->>> +                             "pinctrl-single";
->>> +                    reg = <0x800 0x31c>;
->>> +                    #address-cells = <1>;
->>> +                    #size-cells = <0>;
->>> +                    #interrupt-cells = <1>;
->>> +                    interrupt-controller;
->>> +                    pinctrl-single,register-width = <32>;
->>> +                    pinctrl-single,function-mask = <0xffffffff>;
->>> +                };
->>> +
->>> +                scm_conf: scm_conf@0 {
->>> +                    compatible = "syscon";
->>> +                    reg = <0x0 0x7fc>;
->>> +                    #address-cells = <1>;
->>> +                    #size-cells = <1>;
->>> +
->>> +                    scm_clocks: clocks {
->>> +                        #address-cells = <1>;
->>> +                        #size-cells = <0>;
->>> +                    };
->>> +                };
->>> +
->>> +                scm_clockdomains: clockdomains {
->>> +                };
->>>               };
->>>           };
->>>
->>
->> [snip]
->>
->
+---
+ From 0fdee64696a7500bb15f07aa3dfd70a3b27e1c94 Mon Sep 17 00:00:00 2001
+From: Tero Kristo <t-kristo@ti.com>
+Date: Wed, 22 Oct 2014 15:15:36 +0300
+Subject: [PATCH 11/35] ARM: OMAP2+: clock: move clock provider 
+infrastructure
+  to clock driver
 
+Splits the clock provider init out of the PRM driver and moves it to
+clock driver. This is needed so that once the PRCM drivers are separated,
+they can logically just access the clock driver not needing to go through
+common PRM code. This would be wrong in the case of control module for
+example.
+
+This patch also removes the legacy direct clk_readl / clk_writel support
+(not going through memmaps) as this is no longer needed.
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+  arch/arm/mach-omap2/clock.c      |   67 
+++++++++++++++++++++++++++++----------
+  arch/arm/mach-omap2/clock.h      |   21 +++++++++---
+  arch/arm/mach-omap2/prm_common.c |   36 +++++---------------
+  3 files changed, 75 insertions(+), 49 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 6124db5..e320850 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -23,6 +23,7 @@
+  #include <linux/clk-provider.h>
+  #include <linux/io.h>
+  #include <linux/bitops.h>
++#include <linux/of_address.h>
+  #include <asm/cpu.h>
+
+  #include <trace/events/power.h>
+@@ -72,30 +73,62 @@ struct ti_clk_features ti_clk_features;
+  static bool clkdm_control = true;
+
+  static LIST_HEAD(clk_hw_omap_clocks);
+-void __iomem *clk_memmaps[CLK_MAX_MEMMAPS];
++static void __iomem *clk_memmaps[CLK_MAX_MEMMAPS];
+
+-void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg)
++void omap2_clk_memmap_writel(u32 val, void __iomem *reg)
+  {
+-	if (clk->flags & MEMMAP_ADDRESSING) {
+-		struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+-		writel_relaxed(val, clk_memmaps[r->index] + r->offset);
+-	} else {
+-		writel_relaxed(val, reg);
+-	}
++	struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
++
++	writel_relaxed(val, clk_memmaps[r->index] + r->offset);
+  }
+
+-u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
++u32 omap2_clk_memmap_readl(void __iomem *reg)
+  {
+-	u32 val;
++	struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+
+-	if (clk->flags & MEMMAP_ADDRESSING) {
+-		struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+-		val = readl_relaxed(clk_memmaps[r->index] + r->offset);
+-	} else {
+-		val = readl_relaxed(reg);
+-	}
++	return readl_relaxed(clk_memmaps[r->index] + r->offset);
++}
++
++static struct ti_clk_ll_ops omap_clk_ll_ops = {
++	.clk_readl = omap2_clk_memmap_readl,
++	.clk_writel = omap2_clk_memmap_writel,
++};
++
++/**
++ * omap2_clk_provider_init - initialize a clock provider
++ * @match_table: DT device table to match for devices to init
++ * @np: device node pointer for the this clock provider
++ * @index: index for the clock provider
++ * @mem: iomem pointer for the clock provider memory area
++ *
++ * Initializes a clock provider module (CM/PRM etc.), registering
++ * the memory mapping at specified index and initializing the
++ * low level driver infrastructure. Returns 0 in success.
++ */
++int __init omap2_clk_provider_init(struct device_node *np, int index,
++				   void __iomem *mem)
++{
++	ti_clk_ll_ops = &omap_clk_ll_ops;
++
++	clk_memmaps[index] = mem;
++
++	ti_dt_clk_init_provider(np, index);
++
++	return 0;
++}
++
++/**
++ * omap2_clk_legacy_provider_init - initialize a legacy clock provider
++ * @index: index for the clock provider
++ * @mem: iomem pointer for the clock provider memory area
++ *
++ * Initializes a legacy clock provider memory mapping.
++ */
++void __init omap2_clk_legacy_provider_init(int index, void __iomem *mem)
++{
++	ti_clk_ll_ops = &omap_clk_ll_ops;
+
+-	return val;
++	clk_memmaps[index] = mem;
+  }
+
+  /*
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index a56742f..ac2c3d6 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -220,8 +220,19 @@ void omap2_clk_print_new_rates(const char 
+*hfclkin_ck_name,
+  			       const char *core_ck_name,
+  			       const char *mpu_ck_name);
+
+-u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg);
+-void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg);
++void omap2_clk_memmap_writel(u32 val, void __iomem *reg);
++u32 omap2_clk_memmap_readl(void __iomem *reg);
++
++static inline u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem 
+*reg)
++{
++	return omap2_clk_memmap_readl(reg);
++}
++
++static inline void omap2_clk_writel(u32 val, struct clk_hw_omap *clk,
++				    void __iomem *reg)
++{
++	omap2_clk_memmap_writel(val, reg);
++}
+
+  extern u16 cpu_mask;
+
+@@ -271,10 +282,12 @@ extern const struct clksel_rate div_1_3_rates[];
+  extern const struct clksel_rate div_1_4_rates[];
+  extern const struct clksel_rate div31_1to31_rates[];
+
+-extern void __iomem *clk_memmaps[];
+-
+  extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+  extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+
++int __init omap2_clk_provider_init(struct device_node *np, int index,
++				   void __iomem *mem);
++void __init omap2_clk_legacy_provider_init(int index, void __iomem *mem);
++
+  void __init ti_clk_init_features(void);
+  #endif
+diff --git a/arch/arm/mach-omap2/prm_common.c 
+b/arch/arm/mach-omap2/prm_common.c
+index 8ec5201..1bfd00e 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -677,25 +677,6 @@ static const struct of_device_id 
+omap_prcm_dt_match_table[] = {
+  	{ }
+  };
+
+-static struct clk_hw_omap memmap_dummy_ck = {
+-	.flags = MEMMAP_ADDRESSING,
+-};
+-
+-static u32 prm_clk_readl(void __iomem *reg)
+-{
+-	return omap2_clk_readl(&memmap_dummy_ck, reg);
+-}
+-
+-static void prm_clk_writel(u32 val, void __iomem *reg)
+-{
+-	omap2_clk_writel(val, &memmap_dummy_ck, reg);
+-}
+-
+-static struct ti_clk_ll_ops omap_clk_ll_ops = {
+-	.clk_readl = prm_clk_readl,
+-	.clk_writel = prm_clk_writel,
+-};
+-
+  /**
+   * omap_prcm_init - low level init for the PRCM drivers
+   *
+@@ -708,8 +689,7 @@ int __init omap_prcm_init(void)
+  	void __iomem *mem;
+  	const struct of_device_id *match;
+  	const struct omap_prcm_init_data *data;
+-
+-	ti_clk_ll_ops = &omap_clk_ll_ops;
++	int ret;
+
+  	for_each_matching_node_and_match(np, omap_prcm_dt_match_table, &match) {
+  		data = match->data;
+@@ -718,8 +698,9 @@ int __init omap_prcm_init(void)
+  		if (!mem)
+  			return -ENOMEM;
+
+-		clk_memmaps[data->index] = mem;
+-		ti_dt_clk_init_provider(np, data->index);
++		ret = omap2_clk_provider_init(np, data->index, mem);
++		if (ret)
++			return ret;
+  	}
+
+  	return 0;
+@@ -727,11 +708,10 @@ int __init omap_prcm_init(void)
+
+  void __init omap3_prcm_legacy_iomaps_init(void)
+  {
+-	ti_clk_ll_ops = &omap_clk_ll_ops;
+-
+-	clk_memmaps[TI_CLKM_CM] = cm_base + OMAP3430_IVA2_MOD;
+-	clk_memmaps[TI_CLKM_PRM] = prm_base + OMAP3430_IVA2_MOD;
+-	clk_memmaps[TI_CLKM_SCRM] = omap_ctrl_base_get();
++	omap2_clk_legacy_provider_init(TI_CLKM_CM, cm_base + OMAP3430_IVA2_MOD);
++	omap2_clk_legacy_provider_init(TI_CLKM_PRM,
++				       prm_base + OMAP3430_IVA2_MOD);
++	omap2_clk_legacy_provider_init(TI_CLKM_SCRM, omap_ctrl_base_get());
+  }
+
+  static int __init prm_late_init(void)
+-- 
+1.7.9.5
