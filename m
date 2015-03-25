@@ -1,48 +1,86 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
-Date: Wed, 25 Mar 2015 14:42:31 -0700
-Message-ID: <20150325214230.GB31346@atomide.com>
-References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
- <1426696710-6891-6-git-send-email-eliad@wizery.com>
- <550AD7C1.2030405@gmail.com>
- <CAB3XZEfpD7YkwdU7OJJaNFy=MnYVY3-fOVxkA48Vu01LzU0GFg@mail.gmail.com>
- <20150319212505.GN31346@atomide.com>
- <87h9tgi4sg.fsf@kamboji.qca.qualcomm.com>
- <20150320153357.GT31346@atomide.com>
- <87bnjnfz1t.fsf@kamboji.qca.qualcomm.com>
- <20150320162138.GU31346@atomide.com>
- <87twxce2oh.fsf@kamboji.qca.qualcomm.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 3/4] mmc: sdio: support switching to 1-bit before
+ turning off clocks
+Date: Thu, 26 Mar 2015 08:49:26 +1100
+Message-ID: <20150326084926.4bc3d55d@notabene.brown>
+References: <20150224024023.22719.32436.stgit@notabene.brown>
+	<20150224024223.22719.91536.stgit@notabene.brown>
+	<CAPDyKFrt-rhsh4XAHma=F083Y-XYxJbGyLUEEh1C6KUni-RZ7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87twxce2oh.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/e1kfbeaxED.reVWb9Zavmbg"; protocol="application/pgp-signature"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFrt-rhsh4XAHma=F083Y-XYxJbGyLUEEh1C6KUni-RZ7g@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neil@brown.name>, linux-omap <linux-omap@vger.kernel.org>, Adrian Hunter <adrian.hunter@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> [150322 21:52]:
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> 
-> >> After John "retired" we actually have two set of trees now: mac80211
-> >> maintained by Johannes and wireless-drivers maintained by me. I haven't
-> >> pulled anything from your tree and I'm 100% sure Johannes hasn't either.
-> >> So green light from me.
+--Sig_/e1kfbeaxED.reVWb9Zavmbg
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 23 Mar 2015 10:10:18 +0100 Ulf Hansson <ulf.hansson@linaro.org> wro=
+te:
+
+> On 24 February 2015 at 03:42, NeilBrown <neilb@suse.de> wrote:
+
+> > @@ -941,8 +947,12 @@ void mmc_release_host(struct mmc_host *host)
 > >
-> > OK, I'll set up the new branch then. I take your ack is for the
-> > whole series? If it's just for the $subject patch, please let
-> > me know.
-> 
-> It was for the whole series.
+> >         WARN_ON(!host->claimed);
+> >
+> > -       if (host->ops->disable && host->claim_cnt =3D=3D 1)
+> > -               host->ops->disable(host);
+> > +       if (host->claim_cnt =3D=3D 1) {
+> > +               if (atomic_read(&host->sdio_narrowed) =3D=3D 1)
+> > +                       atomic_set(&host->sdio_narrowed, 0);
+> > +               if (host->ops->disable)
+> > +                       host->ops->disable(host);
+> > +       }
+>=20
+> As omap_hsmmc in currently the only user of the
+> host_ops->enable|disable() callbacks, I wonder if this approach will
+> work "race-free" for those hosts that don't implement these callbacks?
 
-OK thanks, I've sent of the pull request for arm-soc for this series
-as "[GIT PULL] wireless wl12xx and omap device tree changes for v4.1".
+Hi Ulf,
+ you might have guessed, but to be explicit: I withdraw this patchset.
+I much prefer the other approach that I suggested using runtime PM on
+the mmc_host device and switching to 1-bit more in the pm_runtime_suspend
+function.
 
-Regards,
+As you say, omap_hsmmc is the only user of enable/disable and they were an
+important part of my strategy in this patchset.
+Which raises the question:  what is omap_hsmmc using enable/disable?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+My guess is that it is largely historical - added because omap_hsmmc wanted
+runtime pm before sufficient generic infrastructure was available.
+
+I've tested a patch to remove it, and it seem fine.  I'll post it.
+
+Thanks,
+NeilBrown
+
+
+--Sig_/e1kfbeaxED.reVWb9Zavmbg
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIVAwUBVRMtZznsnt1WYoG5AQLJOw//ej5hR6VErL6zI5uNYcpk1SfTDBm17ktb
+2EvIo38JXwN2FF6uIMsNqbdKEOfJkqAM4LSethhYtLqBeqgurX+7HOXK8r+cdjGO
+aP4JsEQF0w6M6S84nnQ62Eh5c62KcgidCnyFZP7btWv84Ro5nXWp1YsrGgI2uujP
+872BG0oWg79UDGNOrnKBTgV6aSTd7TfjIXwjl3Hy41zZVYLxflF3CzSFfEJThHa0
++XcXS8kRStZFOCb26OulCOxCTBotVUpiTRPQIwuwOqBBggZuwwBNFgbqgmy+fGiR
+ofSWNKIq5tHyX/ofcRvTuBWshJpKBULpryiY7vYuJe9nwhd+o7UttpEHQMaX7fEr
+0l9xUT93wNYKD1qqPh2jkVqK5h5IRQBsVFlNZlTr9LZ2Qk98ZYjQMsiMsuL/zwnz
+ue2mOGa3XIvnOid+a8pnfum9wbT+oJJaiR9TkRZiLVyp4SJVBtMjtA5/rVlc8ZdG
+1Zu1ZrU7mkMCJzF4wTVZ5eE6ht3xZitBRdIf8Igx+l3h2s8fP4tsOShOtSyUBUPT
+F42z7iaSRCZJ6ITsr9DwagodOyMfcl3BNaDgiq2oWSSqXdcm97iABb1Ojo6PdjCM
+/GHZpSmkmqN7StqX5v8+geL/b0V/Qy89iCIkEmnnlkMZGjRrZLh6QralHIyChHuI
+paOz/X/cIXg=
+=aR3D
+-----END PGP SIGNATURE-----
+
+--Sig_/e1kfbeaxED.reVWb9Zavmbg--
