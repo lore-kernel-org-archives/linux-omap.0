@@ -1,197 +1,55 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 03/15] omap3isp: Separate external link creation from platform data parsing
-Date: Thu, 26 Mar 2015 00:57:27 +0200
-Message-ID: <1427324259-18438-4-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH v2 02/15] omap3isp: Avoid a BUG_ON() in media_entity_create_link()
+Date: Thu, 26 Mar 2015 00:57:26 +0200
+Message-ID: <1427324259-18438-3-git-send-email-sakari.ailus@iki.fi>
 References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56382 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56377 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752467AbbCYW6i (ORCPT
+	by vger.kernel.org with ESMTP id S1752464AbbCYW6h (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:38 -0400
+	Wed, 25 Mar 2015 18:58:37 -0400
 In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 
-Move the code which connects the external entity to an ISP entity into a
-separate function. This disconnects it from parsing the platform data.
+If an uninitialised v4l2_subdev struct was passed to
+media_entity_create_link(), one of the BUG_ON()'s in the function will be
+hit since media_entity.num_pads will be zero. Avoid this by checking whether
+the num_pads field is non-zero for the interface.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/omap3isp/isp.c |  143 +++++++++++++++++----------------
- 1 file changed, 72 insertions(+), 71 deletions(-)
+ drivers/media/platform/omap3isp/isp.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 4ab674d..f694615 100644
+index fb193b6..4ab674d 100644
 --- a/drivers/media/platform/omap3isp/isp.c
 +++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1832,6 +1832,77 @@ isp_register_subdev_group(struct isp_device *isp,
- 	return sensor;
- }
- 
-+static int isp_link_entity(
-+	struct isp_device *isp, struct media_entity *entity,
-+	enum isp_interface_type interface)
-+{
-+	struct media_entity *input;
-+	unsigned int flags;
-+	unsigned int pad;
-+	unsigned int i;
-+
-+	/* Connect the sensor to the correct interface module.
-+	 * Parallel sensors are connected directly to the CCDC, while
-+	 * serial sensors are connected to the CSI2a, CCP2b or CSI2c
-+	 * receiver through CSIPHY1 or CSIPHY2.
-+	 */
-+	switch (interface) {
-+	case ISP_INTERFACE_PARALLEL:
-+		input = &isp->isp_ccdc.subdev.entity;
-+		pad = CCDC_PAD_SINK;
-+		flags = 0;
-+		break;
-+
-+	case ISP_INTERFACE_CSI2A_PHY2:
-+		input = &isp->isp_csi2a.subdev.entity;
-+		pad = CSI2_PAD_SINK;
-+		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+		break;
-+
-+	case ISP_INTERFACE_CCP2B_PHY1:
-+	case ISP_INTERFACE_CCP2B_PHY2:
-+		input = &isp->isp_ccp2.subdev.entity;
-+		pad = CCP2_PAD_SINK;
-+		flags = 0;
-+		break;
-+
-+	case ISP_INTERFACE_CSI2C_PHY1:
-+		input = &isp->isp_csi2c.subdev.entity;
-+		pad = CSI2_PAD_SINK;
-+		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+		break;
-+
-+	default:
-+		dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
-+			interface);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Not all interfaces are available on all revisions of the
-+	 * ISP. The sub-devices of those interfaces aren't initialised
-+	 * in such a case. Check this by ensuring the num_pads is
-+	 * non-zero.
-+	 */
-+	if (!input->num_pads) {
-+		dev_err(isp->dev, "%s: invalid input %u\n", entity->name,
-+			interface);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < entity->num_pads; i++) {
-+		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-+			break;
-+	}
-+	if (i == entity->num_pads) {
-+		dev_err(isp->dev, "%s: no source pad in external entity\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	return media_entity_create_link(entity, i, input, pad, flags);
-+}
-+
- static int isp_register_entities(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
-@@ -1895,10 +1966,6 @@ static int isp_register_entities(struct isp_device *isp)
- 	/* Register external entities */
- 	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
- 		struct v4l2_subdev *sensor;
--		struct media_entity *input;
--		unsigned int flags;
--		unsigned int pad;
--		unsigned int i;
- 
- 		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
- 		if (sensor == NULL)
-@@ -1906,73 +1973,7 @@ static int isp_register_entities(struct isp_device *isp)
- 
- 		sensor->host_priv = subdevs;
- 
--		/* Connect the sensor to the correct interface module. Parallel
--		 * sensors are connected directly to the CCDC, while serial
--		 * sensors are connected to the CSI2a, CCP2b or CSI2c receiver
--		 * through CSIPHY1 or CSIPHY2.
--		 */
--		switch (subdevs->interface) {
--		case ISP_INTERFACE_PARALLEL:
--			input = &isp->isp_ccdc.subdev.entity;
--			pad = CCDC_PAD_SINK;
--			flags = 0;
--			break;
--
--		case ISP_INTERFACE_CSI2A_PHY2:
--			input = &isp->isp_csi2a.subdev.entity;
--			pad = CSI2_PAD_SINK;
--			flags = MEDIA_LNK_FL_IMMUTABLE
--			      | MEDIA_LNK_FL_ENABLED;
--			break;
--
--		case ISP_INTERFACE_CCP2B_PHY1:
--		case ISP_INTERFACE_CCP2B_PHY2:
--			input = &isp->isp_ccp2.subdev.entity;
--			pad = CCP2_PAD_SINK;
--			flags = 0;
--			break;
--
--		case ISP_INTERFACE_CSI2C_PHY1:
--			input = &isp->isp_csi2c.subdev.entity;
--			pad = CSI2_PAD_SINK;
--			flags = MEDIA_LNK_FL_IMMUTABLE
--			      | MEDIA_LNK_FL_ENABLED;
--			break;
--
--		default:
--			dev_err(isp->dev, "%s: invalid interface type %u\n",
--				__func__, subdevs->interface);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		/*
--		 * Not all interfaces are available on all revisions
--		 * of the ISP. The sub-devices of those interfaces
--		 * aren't initialised in such a case. Check this by
--		 * ensuring the num_pads is non-zero.
--		 */
--		if (!input->num_pads) {
--			dev_err(isp->dev, "%s: invalid input %u\n",
--				entity->name, subdevs->interface);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		for (i = 0; i < sensor->entity.num_pads; i++) {
--			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
--				break;
--		}
--		if (i == sensor->entity.num_pads) {
--			dev_err(isp->dev,
--				"%s: no source pad in external entity\n",
--				__func__);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		ret = media_entity_create_link(&sensor->entity, i, input, pad,
--					       flags);
-+		ret = isp_link_entity(isp, &sensor->entity, subdevs->interface);
- 		if (ret < 0)
+@@ -1946,6 +1946,19 @@ static int isp_register_entities(struct isp_device *isp)
  			goto done;
- 	}
+ 		}
+ 
++		/*
++		 * Not all interfaces are available on all revisions
++		 * of the ISP. The sub-devices of those interfaces
++		 * aren't initialised in such a case. Check this by
++		 * ensuring the num_pads is non-zero.
++		 */
++		if (!input->num_pads) {
++			dev_err(isp->dev, "%s: invalid input %u\n",
++				entity->name, subdevs->interface);
++			ret = -EINVAL;
++			goto done;
++		}
++
+ 		for (i = 0; i < sensor->entity.num_pads; i++) {
+ 			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
+ 				break;
 -- 
 1.7.10.4
 
