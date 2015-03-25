@@ -1,55 +1,56 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 02/15] omap3isp: Avoid a BUG_ON() in media_entity_create_link()
-Date: Thu, 26 Mar 2015 00:57:26 +0200
-Message-ID: <1427324259-18438-3-git-send-email-sakari.ailus@iki.fi>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH v2 00/15] omap3isp driver DT support
+Date: Thu, 26 Mar 2015 00:57:24 +0200
+Message-ID: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56377 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56370 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752464AbbCYW6h (ORCPT
+	by vger.kernel.org with ESMTP id S1751800AbbCYW6g (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:37 -0400
-In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 25 Mar 2015 18:58:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 
-If an uninitialised v4l2_subdev struct was passed to
-media_entity_create_link(), one of the BUG_ON()'s in the function will be
-hit since media_entity.num_pads will be zero. Avoid this by checking whether
-the num_pads field is non-zero for the interface.
+Hi folks,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Here's an update to the omap3isp DT support patchset. v1 can be found here:
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index fb193b6..4ab674d 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1946,6 +1946,19 @@ static int isp_register_entities(struct isp_device *isp)
- 			goto done;
- 		}
- 
-+		/*
-+		 * Not all interfaces are available on all revisions
-+		 * of the ISP. The sub-devices of those interfaces
-+		 * aren't initialised in such a case. Check this by
-+		 * ensuring the num_pads is non-zero.
-+		 */
-+		if (!input->num_pads) {
-+			dev_err(isp->dev, "%s: invalid input %u\n",
-+				entity->name, subdevs->interface);
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+
- 		for (i = 0; i < sensor->entity.num_pads; i++) {
- 			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
- 				break;
+<URL:http://www.spinics.net/lists/linux-media/msg87733.html>
+
+Changes since v1:
+
+patch 10:
+
+- Add Kconfig dependency to MFD_SYSCON
+
+patch 12:
+
+- Rename "lane-polarity" property as "lane-polarities"
+
+patch 13:
+
+- Add node name to warning print when there are too few lane polarities.
+
+patch 14:
+
+- Fix comment about sub-device node registration in isp_register_entities().
+
+- Add endpoint name to a debug print in isp_of_parse_node().
+
+- Rework isp_of_parse_nodes(). Fixed issue with putting the acquired nodes,
+  and correctly register multiple async sub-devices.
+
+- Rename rval as ret.
+
+- Obtain syscon register index from DT.
+
+Patch 15:
+
+- Fix the number of users.
+
 -- 
-1.7.10.4
+Kind regards,
+Sakari
 
