@@ -1,88 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] wireless wl12xx and omap device tree changes for v4.1
-Date: Wed, 25 Mar 2015 14:40:51 -0700
-Message-ID: <20150325214050.GA31346@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v7 5/6] ARM: dts: add wl12xx/wl18xx bindings
+Date: Wed, 25 Mar 2015 14:42:31 -0700
+Message-ID: <20150325214230.GB31346@atomide.com>
+References: <1426696710-6891-1-git-send-email-eliad@wizery.com>
+ <1426696710-6891-6-git-send-email-eliad@wizery.com>
+ <550AD7C1.2030405@gmail.com>
+ <CAB3XZEfpD7YkwdU7OJJaNFy=MnYVY3-fOVxkA48Vu01LzU0GFg@mail.gmail.com>
+ <20150319212505.GN31346@atomide.com>
+ <87h9tgi4sg.fsf@kamboji.qca.qualcomm.com>
+ <20150320153357.GT31346@atomide.com>
+ <87bnjnfz1t.fsf@kamboji.qca.qualcomm.com>
+ <20150320162138.GU31346@atomide.com>
+ <87twxce2oh.fsf@kamboji.qca.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:39853 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809AbbCYVpO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Mar 2015 17:45:14 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <87twxce2oh.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Pontus Fuchs <pontus.fuchs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Luciano Coelho <luca@coelho.fi>, Eliad Peller <eliad@wizery.com>, Kalle Valo <kvalo@codeaurora.org>, Sekhar Nori <nsekhar@ti.com>
 
-The following changes since commit 06e5801b8cb3fc057d88cb4dc03c0b64b2744cda:
+* Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> [150322 21:52]:
+> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
+> 
+> >> After John "retired" we actually have two set of trees now: mac80211
+> >> maintained by Johannes and wireless-drivers maintained by me. I haven't
+> >> pulled anything from your tree and I'm 100% sure Johannes hasn't either.
+> >> So green light from me.
+> >
+> > OK, I'll set up the new branch then. I take your ack is for the
+> > whole series? If it's just for the $subject patch, please let
+> > me know.
+> 
+> It was for the whole series.
 
-  Linux 4.0-rc4 (2015-03-15 17:38:20 -0700)
+OK thanks, I've sent of the pull request for arm-soc for this series
+as "[GIT PULL] wireless wl12xx and omap device tree changes for v4.1".
 
-are available in the git repository at:
+Regards,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/wl12xx-dt
-
-for you to fetch changes up to 83c3a7d4ac7fdc29a64bf9a5467a36b4c72a1eed:
-
-  wlcore: remove wl12xx_platform_data (2015-03-24 09:48:14 -0700)
-
-----------------------------------------------------------------
-Wireless and omap changes to make wl12xx driver to use device tree
-data instead of platform data from Eliad Peller <eliad@wizery.com>:
-
-- Add device-tree support to the wlcore (wl12xx/wl18xx) driver.
-
-- Update the current users to use the bindings instead of pdata-quirks.
-
-- Finally, remove the deprecated wl12xx_platform_data struct
-
-Note that da850 board file code that still uses the platform data,
-but we have da850.dtsi that can be used instead. So it was decided
-that we should try to remove the wl12xx support from the da850
-board file as suggested by Sekhar Nori <nsekhar@ti.com>. As it's
-the last patch in the series, the last patch can be simply reverted
-if needed.
-
-As this series touches quite a bit of arch code, it was suggested
-by Kalle Valo <kvalo@codeaurora.org> that the whole series should
-be merged via the arm-soc tree.
-
-----------------------------------------------------------------
-Eliad Peller (4):
-      dt: bindings: add TI's wilink wireless device
-      wlcore: add device-tree support
-      ARM: dts: add wl12xx/wl18xx bindings
-      wlcore: remove wl12xx_platform_data
-
-Luciano Coelho (2):
-      wlcore: set irq_trigger in board files instead of hiding behind a quirk
-      wl12xx: use frequency instead of enumerations for pdata clocks
-
- .../devicetree/bindings/net/wireless/ti,wlcore.txt |  47 +++++++++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  11 ++
- arch/arm/boot/dts/omap3-cm-t3517.dts               |  10 ++
- arch/arm/boot/dts/omap3-cm-t3730.dts               |  10 ++
- arch/arm/boot/dts/omap3-evm-common.dtsi            |  10 ++
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts         |   9 ++
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts         |   9 ++
- arch/arm/boot/dts/omap3-zoom3.dts                  |  10 ++
- arch/arm/boot/dts/omap4-panda-common.dtsi          |  10 ++
- arch/arm/boot/dts/omap4-sdp.dts                    |  11 ++
- arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi     |  10 ++
- arch/arm/mach-davinci/Kconfig                      |  11 --
- arch/arm/mach-davinci/board-da850-evm.c            | 112 ---------------------
- arch/arm/mach-omap2/pdata-quirks.c                 |  74 --------------
- drivers/net/wireless/ti/wilink_platform_data.c     |  25 -----
- drivers/net/wireless/ti/wl12xx/main.c              |  63 ++++++++++--
- drivers/net/wireless/ti/wl12xx/wl12xx.h            |  28 ++++++
- drivers/net/wireless/ti/wlcore/boot.c              |   1 -
- drivers/net/wireless/ti/wlcore/debugfs.c           |   2 +-
- drivers/net/wireless/ti/wlcore/main.c              |  31 +++---
- drivers/net/wireless/ti/wlcore/sdio.c              |  63 ++++++++++--
- drivers/net/wireless/ti/wlcore/spi.c               |   6 +-
- drivers/net/wireless/ti/wlcore/wlcore.h            |   5 +-
- drivers/net/wireless/ti/wlcore/wlcore_i.h          |   6 +-
- include/linux/wl12xx.h                             |  49 ---------
- 25 files changed, 311 insertions(+), 312 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
