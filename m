@@ -1,175 +1,192 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP2: HSMMC: explicit fields to declare cover/card
- detect pin
-Date: Wed, 25 Mar 2015 09:32:20 +0100
-Message-ID: <CAPDyKFq3nYPRLC-fKtBQs3g1qJjVA2YKUGP86ZS9fHAmmNkxEQ@mail.gmail.com>
-References: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 29/35] ARM: dts: am4372: add minimal l4 bus layout with
+ control module support
+Date: Wed, 25 Mar 2015 11:10:04 +0200
+Message-ID: <55127B6C.5020900@ti.com>
+References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-30-git-send-email-t-kristo@ti.com> <5511C4CF.1020601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:33039 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469AbbCYIcV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2015 04:32:21 -0400
-Received: by qgfa8 with SMTP id a8so29090578qgf.0
-        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2015 01:32:20 -0700 (PDT)
-In-Reply-To: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56311 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752305AbbCYJKg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Mar 2015 05:10:36 -0400
+In-Reply-To: <5511C4CF.1020601@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Andreas Fenkart <afenkart@gmail.com>
+To: Suman Anna <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 20 March 2015 at 15:53, Andreas Fenkart <afenkart@gmail.com> wrote:
-> board-rx51 has no card detect pin in the mmc slot, but can detect that
-> the (cell-phone) cover has been removed and the card is accessible.
-> The semantics between cover/card detect differ, the gpio on the slot
-> informs you after the card has been removed, cover removal does not
-> necessarily mean that the card has been removed.
-> This means different code paths are necessary. To complete this we
-> also want different fields in the platform data for cover and card
-> detect. This separation is not pushed all the way down into struct
-> omap2_hsmmc_info which is used to initialize the platform data.
-> If we did that we had to go over all board files and set the new
-> gpio_cod pin to -EINVAL. If we forget one board or some out-of-tree
-> archicture forgets that the default '0' is used which is a valid pin
-> number.
+On 03/24/2015 10:10 PM, Suman Anna wrote:
+> Hi Tero,
 >
-> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+> On 03/20/2015 01:44 PM, Kristo, Tero wrote:
+>> This patch creates an l4_wkup interconnect for AM43xx, and moves some of
+>> the generic peripherals under it. System control module nodes are moved
+>> under this new interconnect also, and the SCM clock layout is changed
+>> to use the renamed SCM nodea as the clock provider.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   Documentation/devicetree/bindings/arm/omap/l4.txt  |    1 +
+>>   .../devicetree/bindings/arm/omap/prcm.txt          |    2 +-
+>>   arch/arm/boot/dts/am4372.dtsi                      |   85 +++++++++++---------
+>>   arch/arm/boot/dts/am43xx-clocks.dtsi               |    2 +-
+>>   arch/arm/mach-omap2/control.c                      |    2 +-
+>>   5 files changed, 53 insertions(+), 39 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/l4.txt b/Documentation/devicetree/bindings/arm/omap/l4.txt
+>> index d333f0a..941b914 100644
+>> --- a/Documentation/devicetree/bindings/arm/omap/l4.txt
+>> +++ b/Documentation/devicetree/bindings/arm/omap/l4.txt
+>> @@ -7,6 +7,7 @@ Required properties:
+>>   	       Should be "ti,omap2-l4-wkup" for OMAP2 family l4 wkup bus
+>>   	       Should be "ti,omap3-l4-core" for OMAP3 family l4 core bus
+>>   	       Should be "ti,am3-l4-wkup" for AM33xx family l4 wkup bus
+>> +	       Should be "ti,am4-l4-wkup" for AM43xx family l4 wkup bus
+>>   - ranges : contains the IO map range for the bus
+>>
+>>   Examples:
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+>> index c8e2027..8af4f32 100644
+>> --- a/Documentation/devicetree/bindings/arm/omap/prcm.txt
+>> +++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+>> @@ -12,7 +12,7 @@ Required properties:
+>>   		"ti,am3-prcm"
+>>   		"ti,am3-scm"
+>>   		"ti,am4-prcm"
+>> -		"ti,am4-scrm"
+>> +		"ti,am4-scm"
+>>   		"ti,omap2-prcm"
+>>   		"ti,omap2-scm"
+>>   		"ti,omap3-prm"
+>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+>> index 1943fc3..9ed58115 100644
+>> --- a/arch/arm/boot/dts/am4372.dtsi
+>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>> @@ -57,22 +57,6 @@
+>>   		cache-level = <2>;
+>>   	};
+>>
+>> -	am43xx_control_module: control_module@4a002000 {
+>> -		compatible = "syscon";
+>> -		reg = <0x44e10000 0x7f4>;
+>> -	};
+>> -
+>> -	am43xx_pinmux: pinmux@44e10800 {
+>> -		compatible = "ti,am437-padconf", "pinctrl-single";
+>> -		reg = <0x44e10800 0x31c>;
+>> -		#address-cells = <1>;
+>> -		#size-cells = <0>;
+>> -		#interrupt-cells = <1>;
+>> -		interrupt-controller;
+>> -		pinctrl-single,register-width = <32>;
+>> -		pinctrl-single,function-mask = <0xffffffff>;
+>> -	};
+>> -
+>>   	ocp {
+>>   		compatible = "ti,am4372-l3-noc", "simple-bus";
+>>   		#address-cells = <1>;
+>> @@ -84,29 +68,58 @@
+>>   		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+>>   			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+>>
+>> -		prcm: prcm@44df0000 {
+>> -			compatible = "ti,am4-prcm";
+>> -			reg = <0x44df0000 0x11000>;
+>> -
+>> -			prcm_clocks: clocks {
+>> -				#address-cells = <1>;
+>> -				#size-cells = <0>;
+>> -			};
+>> +		l4_wkup: l4_wkup@44c00000 {
+>> +			compatible = "ti,am4-l4-wkup", "simple-bus";
+>> +			#address-cells = <1>;
+>> +			#size-cells = <1>;
+>> +			ranges = <0 0x44c00000 0x287000>;
+>>
+>> -			prcm_clockdomains: clockdomains {
+>> -			};
+>> -		};
+>> +			prcm: prcm@1f0000 {
+>> +				compatible = "ti,am4-prcm";
+>> +				reg = <0x1f0000 0x11000>;
+>>
+>> -		scrm: scrm@44e10000 {
+>> -			compatible = "ti,am4-scrm";
+>> -			reg = <0x44e10000 0x2000>;
+>> +				prcm_clocks: clocks {
+>> +					#address-cells = <1>;
+>> +					#size-cells = <0>;
+>> +				};
+>>
+>> -			scrm_clocks: clocks {
+>> -				#address-cells = <1>;
+>> -				#size-cells = <0>;
+>> +				prcm_clockdomains: clockdomains {
+>> +				};
+>>   			};
+>>
+>> -			scrm_clockdomains: clockdomains {
+>> +			scm: scm@210000 {
+>> +				compatible = "ti,am4-scm", "simple-bus";
+>> +				reg = <0x210000 0x1000>;
+>
+> Any reason for choosing a different size here compared to AM335x. Also,
+> the scrm node above has 0x2000 as size. I found that I needed to
+> increase the size to 0x2000 here to accomodate the wkup_m3_ipc node on
+> top of your series. The node uses IPC registers which are part of the
+> Control module, so on AM335x, I added it as a child node of scm, but
+> here to do the same I have to correct the size. Also, there are some
+> DISPPLL related registers at 0x3000 offset within the Control module,
+> not sure where they would fit.
 
-Tony, are you fine with this change? I believe I should take it
-through my mmc tree due to that I have other omap_hsmmc patches
-already queued.
+It looks like I shrank the size of the scm address-space based on 
+current children on it. I'll increase this to 0x4000 to accommodate 
+everything under the SCM. A separate syscon mapping needs to be created 
+for the DISPPLL stuff if required.
 
-Kind regards
-Uffe
+-Tero
 
-> ---
->  arch/arm/mach-omap2/hsmmc.c              | 33 ++++++++++++++++++++++++--------
->  drivers/mmc/host/omap_hsmmc.c            | 11 ++++++-----
->  include/linux/platform_data/hsmmc-omap.h |  6 ++----
->  3 files changed, 33 insertions(+), 17 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index dc6e79c..9a8611a 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -150,9 +150,13 @@ static int nop_mmc_set_power(struct device *dev, int power_on, int vdd)
->  static inline void omap_hsmmc_mux(struct omap_hsmmc_platform_data
->                                   *mmc_controller, int controller_nr)
->  {
-> -       if (gpio_is_valid(mmc_controller->switch_pin) &&
-> -           (mmc_controller->switch_pin < OMAP_MAX_GPIO_LINES))
-> -               omap_mux_init_gpio(mmc_controller->switch_pin,
-> +       if (gpio_is_valid(mmc_controller->gpio_cd) &&
-> +           (mmc_controller->gpio_cd < OMAP_MAX_GPIO_LINES))
-> +               omap_mux_init_gpio(mmc_controller->gpio_cd,
-> +                                  OMAP_PIN_INPUT_PULLUP);
-> +       if (gpio_is_valid(mmc_controller->gpio_cod) &&
-> +           (mmc_controller->gpio_cod < OMAP_MAX_GPIO_LINES))
-> +               omap_mux_init_gpio(mmc_controller->gpio_cod,
->                                    OMAP_PIN_INPUT_PULLUP);
->         if (gpio_is_valid(mmc_controller->gpio_wp) &&
->             (mmc_controller->gpio_wp < OMAP_MAX_GPIO_LINES))
-> @@ -250,15 +254,20 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
->         mmc->internal_clock = !c->ext_clock;
->         mmc->reg_offset = 0;
+> regards
+> Suman
 >
-> -       mmc->switch_pin = c->gpio_cd;
-> +       if (c->cover_only) {
-> +               /* detect if mobile phone cover removed */
-> +               mmc->gpio_cd = -EINVAL;
-> +               mmc->gpio_cod = c->gpio_cd;
-> +       } else {
-> +               /* card detect pin on the mmc socket itself */
-> +               mmc->gpio_cd = c->gpio_cd;
-> +               mmc->gpio_cod = -EINVAL;
-> +       }
->         mmc->gpio_wp = c->gpio_wp;
+>> +				#address-cells = <1>;
+>> +				#size-cells = <1>;
+>> +				ranges = <0 0x210000 0x1000>;
+>> +
+>> +				am43xx_pinmux: pinmux@800 {
+>> +					compatible = "ti,am437-padconf",
+>> +						     "pinctrl-single";
+>> +					reg = <0x800 0x31c>;
+>> +					#address-cells = <1>;
+>> +					#size-cells = <0>;
+>> +					#interrupt-cells = <1>;
+>> +					interrupt-controller;
+>> +					pinctrl-single,register-width = <32>;
+>> +					pinctrl-single,function-mask = <0xffffffff>;
+>> +				};
+>> +
+>> +				scm_conf: scm_conf@0 {
+>> +					compatible = "syscon";
+>> +					reg = <0x0 0x7fc>;
+>> +					#address-cells = <1>;
+>> +					#size-cells = <1>;
+>> +
+>> +					scm_clocks: clocks {
+>> +						#address-cells = <1>;
+>> +						#size-cells = <0>;
+>> +					};
+>> +				};
+>> +
+>> +				scm_clockdomains: clockdomains {
+>> +				};
+>>   			};
+>>   		};
+>>
 >
->         mmc->remux = c->remux;
->         mmc->init_card = c->init_card;
+> [snip]
 >
-> -       if (c->cover_only)
-> -               mmc->cover = 1;
-> -
->         if (c->nonremovable)
->                 mmc->nonremovable = 1;
->
-> @@ -358,7 +367,15 @@ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
->                 if (!mmc_pdata)
->                         continue;
->
-> -               mmc_pdata->switch_pin = c->gpio_cd;
-> +               if (c->cover_only) {
-> +                       /* detect if mobile phone cover removed */
-> +                       mmc_pdata->gpio_cd = -EINVAL;
-> +                       mmc_pdata->gpio_cod = c->gpio_cd;
-> +               } else {
-> +                       /* card detect pin on the mmc socket itself */
-> +                       mmc_pdata->gpio_cd = c->gpio_cd;
-> +                       mmc_pdata->gpio_cod = -EINVAL;
-> +               }
->                 mmc_pdata->gpio_wp = c->gpio_wp;
->
->                 res = omap_device_register(pdev);
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 053cd38..265391f 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -427,15 +427,15 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
->  {
->         int ret;
->
-> -       if (pdata->cover && gpio_is_valid(pdata->switch_pin)) {
-> -               ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
-> +       if (gpio_is_valid(pdata->gpio_cod)) {
-> +               ret = mmc_gpio_request_cd(mmc, pdata->gpio_cod, 0);
->                 if (ret)
->                         return ret;
->
->                 host->get_cover_state = omap_hsmmc_get_cover_state;
->                 mmc_gpio_set_cd_isr(mmc, omap_hsmmc_cover_irq);
-> -       } else if (!pdata->cover && gpio_is_valid(pdata->switch_pin)) {
-> -               ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
-> +       } else if (gpio_is_valid(pdata->gpio_cd)) {
-> +               ret = mmc_gpio_request_cd(mmc, pdata->gpio_cd, 0);
->                 if (ret)
->                         return ret;
->
-> @@ -1932,7 +1932,8 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->         if (of_find_property(np, "ti,dual-volt", NULL))
->                 pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
->
-> -       pdata->switch_pin = -EINVAL;
-> +       pdata->gpio_cd = -EINVAL;
-> +       pdata->gpio_cod = -EINVAL;
->         pdata->gpio_wp = -EINVAL;
->
->         if (of_find_property(np, "ti,non-removable", NULL)) {
-> diff --git a/include/linux/platform_data/hsmmc-omap.h b/include/linux/platform_data/hsmmc-omap.h
-> index 67bbcf0..8e981be 100644
-> --- a/include/linux/platform_data/hsmmc-omap.h
-> +++ b/include/linux/platform_data/hsmmc-omap.h
-> @@ -55,9 +55,6 @@ struct omap_hsmmc_platform_data {
->         u32 caps;       /* Used for the MMC driver on 2430 and later */
->         u32 pm_caps;    /* PM capabilities of the mmc */
->
-> -       /* switch pin can be for card detect (default) or card cover */
-> -       unsigned cover:1;
-> -
->         /* use the internal clock */
->         unsigned internal_clock:1;
->
-> @@ -73,7 +70,8 @@ struct omap_hsmmc_platform_data {
->  #define HSMMC_HAS_HSPE_SUPPORT (1 << 2)
->         unsigned features;
->
-> -       int switch_pin;                 /* gpio (card detect) */
-> +       int gpio_cd;                    /* gpio (card detect) */
-> +       int gpio_cod;                   /* gpio (cover detect) */
->         int gpio_wp;                    /* gpio (write protect) */
->
->         int (*set_power)(struct device *dev, int power_on, int vdd);
-> --
-> 2.1.4
->
+
