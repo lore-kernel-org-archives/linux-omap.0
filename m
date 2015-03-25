@@ -1,157 +1,175 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.0-rc5
-Date: Wed, 25 Mar 2015 00:35:36 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503250033380.12345@utopia.booyaka.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP2: HSMMC: explicit fields to declare cover/card
+ detect pin
+Date: Wed, 25 Mar 2015 09:32:20 +0100
+Message-ID: <CAPDyKFq3nYPRLC-fKtBQs3g1qJjVA2YKUGP86ZS9fHAmmNkxEQ@mail.gmail.com>
+References: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:34607 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469AbbCYAfi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2015 20:35:38 -0400
+Received: from mail-qg0-f52.google.com ([209.85.192.52]:33039 "EHLO
+	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752469AbbCYIcV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2015 04:32:21 -0400
+Received: by qgfa8 with SMTP id a8so29090578qgf.0
+        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2015 01:32:20 -0700 (PDT)
+In-Reply-To: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Andreas Fenkart <afenkart@gmail.com>
 
+On 20 March 2015 at 15:53, Andreas Fenkart <afenkart@gmail.com> wrote:
+> board-rx51 has no card detect pin in the mmc slot, but can detect that
+> the (cell-phone) cover has been removed and the card is accessible.
+> The semantics between cover/card detect differ, the gpio on the slot
+> informs you after the card has been removed, cover removal does not
+> necessarily mean that the card has been removed.
+> This means different code paths are necessary. To complete this we
+> also want different fields in the platform data for cover and card
+> detect. This separation is not pushed all the way down into struct
+> omap2_hsmmc_info which is used to initialize the platform data.
+> If we did that we had to go over all board files and set the new
+> gpio_cod pin to -EINVAL. If we forget one board or some out-of-tree
+> archicture forgets that the default '0' is used which is a valid pin
+> number.
+>
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
 
-Here are some basic OMAP test results for Linux v4.0-rc5.
-Logs and other details at:
+Tony, are you fine with this change? I believe I should take it
+through my mmc tree due to that I have other omap_hsmmc patches
+already queued.
 
-    http://www.pwsan.com/omap/testlogs/test_v4.0-rc5/20150324122259/
+Kind regards
+Uffe
 
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL (15/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 3/17): 5912osk, 3517evm, 2420n800
-    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54
-
-Kernel warnings during boot to userspace:
-    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 2/17): 4430es2panda, 4460varsomom
-
-Obsolete Kconfig symbols:
-    FAIL ( 2/20): omap1_defconfig, multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.0-rc4 (06e5801b8cb3fc057d88cb4dc03c0b64b2744cda)):
-   text     data      bss    total  kernel
-     -4        0        0       -4  omap1_defconfig
-     -4      +32        0      +28  omap1_defconfig_1510innovator_only
-     -4      +32        0      +28  omap1_defconfig_5912osk_only
-   -576       -8        0     -584  multi_v7_defconfig
-    -84      +64        0      -20  omap2plus_defconfig
-   -124        0        0     -124  omap2plus_defconfig_2430sdp_only
-    -20      +64        0      +44  omap2plus_defconfig_am33xx_only
-    -84      +64        0      -20  omap2plus_defconfig_am43xx_only
-    -84      +64        0      -20  omap2plus_defconfig_cpupm
-    -84      +64        0      -20  omap2plus_defconfig_dra7xx_only
-    +84        0        0      +84  omap2plus_defconfig_n800_multi_omap2xxx
-    +84        0        0      +84  omap2plus_defconfig_n800_only_a
-    -84      +72        0      -12  omap2plus_defconfig_no_pm
-    -20      +64        0      +44  omap2plus_defconfig_omap2_4_only
-    -20      +64        0      +44  omap2plus_defconfig_omap3_4_only
-    -84      +64        0      -20  omap2plus_defconfig_omap5_only
-   +712        0     -200     +512  rmk_omap3430_ldp_allnoconfig
-   +384       +8        0     +392  rmk_omap3430_ldp_oldconfig
-   +712        0     -232     +480  rmk_omap4430_sdp_allnoconfig
-   +576        0        0     +576  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.0-rc4 (06e5801b8cb3fc057d88cb4dc03c0b64b2744cda))
-  avail  rsrvd   high  freed  board          kconfig
- -117764k -13308k      .  -164k  2420n800       omap2plus_defconfig_n800_only_a
-
-
-The N800 test boot has been skipped for this test run.
+> ---
+>  arch/arm/mach-omap2/hsmmc.c              | 33 ++++++++++++++++++++++++--------
+>  drivers/mmc/host/omap_hsmmc.c            | 11 ++++++-----
+>  include/linux/platform_data/hsmmc-omap.h |  6 ++----
+>  3 files changed, 33 insertions(+), 17 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+> index dc6e79c..9a8611a 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -150,9 +150,13 @@ static int nop_mmc_set_power(struct device *dev, int power_on, int vdd)
+>  static inline void omap_hsmmc_mux(struct omap_hsmmc_platform_data
+>                                   *mmc_controller, int controller_nr)
+>  {
+> -       if (gpio_is_valid(mmc_controller->switch_pin) &&
+> -           (mmc_controller->switch_pin < OMAP_MAX_GPIO_LINES))
+> -               omap_mux_init_gpio(mmc_controller->switch_pin,
+> +       if (gpio_is_valid(mmc_controller->gpio_cd) &&
+> +           (mmc_controller->gpio_cd < OMAP_MAX_GPIO_LINES))
+> +               omap_mux_init_gpio(mmc_controller->gpio_cd,
+> +                                  OMAP_PIN_INPUT_PULLUP);
+> +       if (gpio_is_valid(mmc_controller->gpio_cod) &&
+> +           (mmc_controller->gpio_cod < OMAP_MAX_GPIO_LINES))
+> +               omap_mux_init_gpio(mmc_controller->gpio_cod,
+>                                    OMAP_PIN_INPUT_PULLUP);
+>         if (gpio_is_valid(mmc_controller->gpio_wp) &&
+>             (mmc_controller->gpio_wp < OMAP_MAX_GPIO_LINES))
+> @@ -250,15 +254,20 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+>         mmc->internal_clock = !c->ext_clock;
+>         mmc->reg_offset = 0;
+>
+> -       mmc->switch_pin = c->gpio_cd;
+> +       if (c->cover_only) {
+> +               /* detect if mobile phone cover removed */
+> +               mmc->gpio_cd = -EINVAL;
+> +               mmc->gpio_cod = c->gpio_cd;
+> +       } else {
+> +               /* card detect pin on the mmc socket itself */
+> +               mmc->gpio_cd = c->gpio_cd;
+> +               mmc->gpio_cod = -EINVAL;
+> +       }
+>         mmc->gpio_wp = c->gpio_wp;
+>
+>         mmc->remux = c->remux;
+>         mmc->init_card = c->init_card;
+>
+> -       if (c->cover_only)
+> -               mmc->cover = 1;
+> -
+>         if (c->nonremovable)
+>                 mmc->nonremovable = 1;
+>
+> @@ -358,7 +367,15 @@ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
+>                 if (!mmc_pdata)
+>                         continue;
+>
+> -               mmc_pdata->switch_pin = c->gpio_cd;
+> +               if (c->cover_only) {
+> +                       /* detect if mobile phone cover removed */
+> +                       mmc_pdata->gpio_cd = -EINVAL;
+> +                       mmc_pdata->gpio_cod = c->gpio_cd;
+> +               } else {
+> +                       /* card detect pin on the mmc socket itself */
+> +                       mmc_pdata->gpio_cd = c->gpio_cd;
+> +                       mmc_pdata->gpio_cod = -EINVAL;
+> +               }
+>                 mmc_pdata->gpio_wp = c->gpio_wp;
+>
+>                 res = omap_device_register(pdev);
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 053cd38..265391f 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -427,15 +427,15 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
+>  {
+>         int ret;
+>
+> -       if (pdata->cover && gpio_is_valid(pdata->switch_pin)) {
+> -               ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
+> +       if (gpio_is_valid(pdata->gpio_cod)) {
+> +               ret = mmc_gpio_request_cd(mmc, pdata->gpio_cod, 0);
+>                 if (ret)
+>                         return ret;
+>
+>                 host->get_cover_state = omap_hsmmc_get_cover_state;
+>                 mmc_gpio_set_cd_isr(mmc, omap_hsmmc_cover_irq);
+> -       } else if (!pdata->cover && gpio_is_valid(pdata->switch_pin)) {
+> -               ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
+> +       } else if (gpio_is_valid(pdata->gpio_cd)) {
+> +               ret = mmc_gpio_request_cd(mmc, pdata->gpio_cd, 0);
+>                 if (ret)
+>                         return ret;
+>
+> @@ -1932,7 +1932,8 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+>         if (of_find_property(np, "ti,dual-volt", NULL))
+>                 pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
+>
+> -       pdata->switch_pin = -EINVAL;
+> +       pdata->gpio_cd = -EINVAL;
+> +       pdata->gpio_cod = -EINVAL;
+>         pdata->gpio_wp = -EINVAL;
+>
+>         if (of_find_property(np, "ti,non-removable", NULL)) {
+> diff --git a/include/linux/platform_data/hsmmc-omap.h b/include/linux/platform_data/hsmmc-omap.h
+> index 67bbcf0..8e981be 100644
+> --- a/include/linux/platform_data/hsmmc-omap.h
+> +++ b/include/linux/platform_data/hsmmc-omap.h
+> @@ -55,9 +55,6 @@ struct omap_hsmmc_platform_data {
+>         u32 caps;       /* Used for the MMC driver on 2430 and later */
+>         u32 pm_caps;    /* PM capabilities of the mmc */
+>
+> -       /* switch pin can be for card detect (default) or card cover */
+> -       unsigned cover:1;
+> -
+>         /* use the internal clock */
+>         unsigned internal_clock:1;
+>
+> @@ -73,7 +70,8 @@ struct omap_hsmmc_platform_data {
+>  #define HSMMC_HAS_HSPE_SUPPORT (1 << 2)
+>         unsigned features;
+>
+> -       int switch_pin;                 /* gpio (card detect) */
+> +       int gpio_cd;                    /* gpio (card detect) */
+> +       int gpio_cod;                   /* gpio (cover detect) */
+>         int gpio_wp;                    /* gpio (write protect) */
+>
+>         int (*set_power)(struct device *dev, int power_on, int vdd);
+> --
+> 2.1.4
+>
