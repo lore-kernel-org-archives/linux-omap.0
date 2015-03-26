@@ -1,62 +1,44 @@
-From: Tyler Baker <tyler.baker@linaro.org>
-Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm: get
- rid of the bounce page"
-Date: Thu, 26 Mar 2015 08:29:21 -0700
-Message-ID: <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
-References: <20150324004537.GA24816@verge.net.au>
-	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
-	<20150324161358.GA694@kahuna>
-	<20150326003939.GA25368@verge.net.au>
-	<20150326133631.GB2805@arm.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 1/7] dmaengine: of_dma: Support for DMA routers
+Date: Thu, 26 Mar 2015 21:02:21 +0530
+Message-ID: <20150326153221.GM32683@intel.com>
+References: <1426080210-841-1-git-send-email-peter.ujfalusi@ti.com>
+ <1426080210-841-2-git-send-email-peter.ujfalusi@ti.com>
+ <20150326105018.GJ32683@intel.com>
+ <5513F77A.4030005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:36107 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212AbbCZP3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2015 11:29:22 -0400
-Received: by wibg7 with SMTP id g7so152890764wib.1
-        for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2015 08:29:21 -0700 (PDT)
-In-Reply-To: <20150326133631.GB2805@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5513F77A.4030005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Simon Horman <horms@verge.net.au>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 26 March 2015 at 06:36, Will Deacon <will.deacon@arm.com> wrote:
-> On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
->> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
->> > I think we now have a new error: (seen with omap2plus_defconfig)
->> > on next-20150324 :
->> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
->> > referenced in expression
->> > make: *** [vmlinux] Error 1
->>
->> Thanks, I am seeing that too.
->>
->> My armchair suggestion is that the following should be reverted.
->>
->> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
->> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
->
-> Can you try again with the latest -next please? We've merged an additional
-> patch aimed at sorting this out. Reverting isn't really an option, as
-> there's an awful lot of code that depends on the bounce page removal.
+On Thu, Mar 26, 2015 at 02:11:38PM +0200, Peter Ujfalusi wrote:
+> On 03/26/2015 12:50 PM, Vinod Koul wrote:
+> > On Wed, Mar 11, 2015 at 03:23:24PM +0200, Peter Ujfalusi wrote:
+> >> DMA routers are transparent devices used to mux DMA requests from
+> >> peripherals to DMA controllers. They are used when the SoC integrates more
+> >> devices with DMA requests then their controller can handle.
+> >> DRA7x is one example of such SoC, where the sDMA can hanlde 128 DMA request
+> >> lines, but in SoC level it has 205 DMA requests.
+> >>
+> >> The of_dma_router will be registered as of_dma_controller with special
+> >> xlate function and additional parameters and the code will translate and
+> >> requests a DMA channel from the real DMA controller.
+> >> This way the router can be transparent for the system while remaining generic
+> >> enough to be used in different environments.
+> >>
+> > Looks fine, was expecting a Documentation updates as well, but that can come
+> > as follow up patch too
+> 
+> I have added the DT binding document since this series adds support for
+> routers for platforms booting with DT:
+> 
+> Documentation/devicetree/bindings/dma/dma.txt | 28 ++++++++
+I meant the update to Documnetation/dmanegine/ for routers :)
 
-Here are the kernelci.org -next results[1], if you click the build
-status you can dig down into the build failures. next-20150326 has now
-hit a compiler bug, Arnd mentioned he was looking into this issue.
-
->
-> Will
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
-
-
-[1] http://kernelci.org/job/next/
-
-Tyler
+-- 
+~Vinod
