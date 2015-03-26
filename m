@@ -1,57 +1,84 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: DRA7: Enable Cortex A15 errata 798181
-Date: Wed, 25 Mar 2015 18:32:26 -0500
-Message-ID: <5513458A.50001@ti.com>
-References: <1427325909-7014-1-git-send-email-praneeth@ti.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm:
+ get rid of the bounce page"
+Date: Thu, 26 Mar 2015 09:39:39 +0900
+Message-ID: <20150326003939.GA25368@verge.net.au>
+References: <20150324004537.GA24816@verge.net.au>
+ <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+ <20150324161358.GA694@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427325909-7014-1-git-send-email-praneeth@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Praneeth Bajjuri <praneeth@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150324161358.GA694@kahuna>
+Sender: linux-sh-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-sh@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, grygorii.strashko@linaro.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/25/2015 06:25 PM, Praneeth Bajjuri wrote:
-> ARM errata 798181 is applicable for OMAP5/DRA7 based devices. So enable
-> the same in the build.
-> 
-> DRA7xx is based on Cortex-A15 r2p2 revision.
-> 
-> ARM Errata extract and workaround information is as below.
-> 
-> On Cortex-A15 (r0p0..r3p2) the TLBI*IS/DSB operations are not
-> adequately shooting down all use of the old entries. The
-> ARM_ERRATA_798181 option enables the Linux kernel workaround
-> for this erratum which sends an IPI to the CPUs that are running
-> the same ASID as the one being invalidated.
-> 
-> Signed-off-by: Praneeth Bajjuri <praneeth@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index c7d8d86..3e4b4ae 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -69,6 +69,7 @@ config SOC_DRA7XX
->  	select ARM_GIC
->  	select HAVE_ARM_ARCH_TIMER
->  	select IRQ_CROSSBAR
-> +	select ARM_ERRATA_798181 if SMP
->  
->  config ARCH_OMAP2PLUS
->  	bool
-> 
-Gee thanks and Apologies on missing this patch.
+Hi Nishanth,
 
-Acked-by: Nishanth Menon <nm@ti.com>
+On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
+> On 09:31-20150324, Ard Biesheuvel wrote:
+> > On 24 March 2015 at 01:45, Simon Horman <horms@verge.net.au> wrote:
+> > > Hi Ard,
+> > >
+> > > I have observe what appears to be a build regression in next-20150323
+> > > caused by 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page").
+> > >
+> > > # make
+> > > ...
+> > > arm-unknown-linux-gnueabi-ld:./arch/arm/kernel/vmlinux.lds:546: syntax error
+> > >
+> > > I have observed this using the cross-compiler that is available on kernel.org:
+> > >
+> > > https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.6.3/
+> > >
+> > > # arm-unknown-linux-gnueabi-gcc --version
+> > > arm-unknown-linux-gnueabi-gcc (GCC) 4.6.3
+> > > Copyright (C) 2011 Free Software Foundation, Inc.
+> > > This is free software; see the source for copying conditions.  There is NO
+> > > warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> > >
+> > > # arm-unknown-linux-gnueabi-ld --version
+> > > GNU ld (GNU Binutils) 2.22
+> > > Copyright 2011 Free Software Foundation, Inc.
+> > > This program is free software; you may redistribute it under the terms of
+> > > the GNU General Public License version 3 or (at your option) a later version.
+> > > This program has absolutely no warranty.
+> > >
+> > 
+> > Hi all,
+> > 
+> > This is fixed now in next-20150324.
+> > Sorry for the trouble
+> 
+> I think we now have a new error: (seen with omap2plus_defconfig)
+> on next-20150324 :
+> ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
+> referenced in expression
+> make: *** [vmlinux] Error 1
 
-Seen on DRA7 only builds, so kinda slipped radar a bit.. verified to
-apply on v4.0-rc1
+Thanks, I am seeing that too.
 
--- 
-Regards,
-Nishanth Menon
+My armchair suggestion is that the following should be reverted.
+
+e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
+
+> cross compiler (from ubuntu 12.04):
+> $ arm-linux-gnueabi-ld --version
+> GNU ld (GNU Binutils for Ubuntu) 2.22
+> Copyright 2011 Free Software Foundation, Inc.
+> This program is free software; you may redistribute it under the terms of
+> the GNU General Public License version 3 or (at your option) a later version.
+> This program has absolutely no warranty.
+> $ arm-linux-gnueabi-gcc --version
+> arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3
+> Copyright (C) 2011 Free Software Foundation, Inc.
+> This is free software; see the source for copying conditions.  There is NO
+> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> 
+> next-20150320 was the last kernel which was successfully built
+
+I have also confirmed that.
