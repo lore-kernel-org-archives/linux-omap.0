@@ -1,84 +1,168 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm:
- get rid of the bounce page"
-Date: Thu, 26 Mar 2015 09:39:39 +0900
-Message-ID: <20150326003939.GA25368@verge.net.au>
-References: <20150324004537.GA24816@verge.net.au>
- <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
- <20150324161358.GA694@kahuna>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: stop using .enable and .disable
+ method.
+Date: Thu, 26 Mar 2015 12:18:23 +1100
+Message-ID: <20150326121823.148da0f4@notabene.brown>
+References: <20150325213419.11463.33321.stgit@notabene.brown>
+	<20150325214337.11463.93489.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150324161358.GA694@kahuna>
-Sender: linux-sh-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-sh@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, grygorii.strashko@linaro.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/aqubwoBokYYETH//pVv0M_j"; protocol="application/pgp-signature"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20150325214337.11463.93489.stgit@notabene.brown>
+Sender: linux-mmc-owner@vger.kernel.org
+To: NeilBrown <neil@brown.name>
+Cc: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Chris Ball <chris@printf.net>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+--Sig_/aqubwoBokYYETH//pVv0M_j
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
-> On 09:31-20150324, Ard Biesheuvel wrote:
-> > On 24 March 2015 at 01:45, Simon Horman <horms@verge.net.au> wrote:
-> > > Hi Ard,
-> > >
-> > > I have observe what appears to be a build regression in next-20150323
-> > > caused by 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page").
-> > >
-> > > # make
-> > > ...
-> > > arm-unknown-linux-gnueabi-ld:./arch/arm/kernel/vmlinux.lds:546: syntax error
-> > >
-> > > I have observed this using the cross-compiler that is available on kernel.org:
-> > >
-> > > https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.6.3/
-> > >
-> > > # arm-unknown-linux-gnueabi-gcc --version
-> > > arm-unknown-linux-gnueabi-gcc (GCC) 4.6.3
-> > > Copyright (C) 2011 Free Software Foundation, Inc.
-> > > This is free software; see the source for copying conditions.  There is NO
-> > > warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-> > >
-> > > # arm-unknown-linux-gnueabi-ld --version
-> > > GNU ld (GNU Binutils) 2.22
-> > > Copyright 2011 Free Software Foundation, Inc.
-> > > This program is free software; you may redistribute it under the terms of
-> > > the GNU General Public License version 3 or (at your option) a later version.
-> > > This program has absolutely no warranty.
-> > >
-> > 
-> > Hi all,
-> > 
-> > This is fixed now in next-20150324.
-> > Sorry for the trouble
-> 
-> I think we now have a new error: (seen with omap2plus_defconfig)
-> on next-20150324 :
-> ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
-> referenced in expression
-> make: *** [vmlinux] Error 1
+On Thu, 26 Mar 2015 08:43:37 +1100 NeilBrown <neil@brown.name> wrote:
 
-Thanks, I am seeing that too.
+> enable and disable are only used to get and put
+> runtime pm references.  .set_ios already does this
+> itself, and other drivers just do it in set_ios
+> and .request without using enable/disable.
+>=20
+> So add pm_runtime get/put to omap_hsmmc_request(),
+> and discard the enable/disable methods.
+>=20
+> Signed-off-by: NeilBrown <neil@brown.name>
 
-My armchair suggestion is that the following should be reverted.
+Sorry, that patch wasn't much good.  This one I have really tested properly
+and checked that the 'put' match the 'get's and  that the device to regular=
+ly
+go to sleep as expected.
 
-e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
-06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
+NeilBrown
 
-> cross compiler (from ubuntu 12.04):
-> $ arm-linux-gnueabi-ld --version
-> GNU ld (GNU Binutils for Ubuntu) 2.22
-> Copyright 2011 Free Software Foundation, Inc.
-> This program is free software; you may redistribute it under the terms of
-> the GNU General Public License version 3 or (at your option) a later version.
-> This program has absolutely no warranty.
-> $ arm-linux-gnueabi-gcc --version
-> arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3
-> Copyright (C) 2011 Free Software Foundation, Inc.
-> This is free software; see the source for copying conditions.  There is NO
-> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-> 
-> next-20150320 was the last kernel which was successfully built
 
-I have also confirmed that.
+From: NeilBrown <neil@brown.name>
+Date: Thu, 26 Mar 2015 08:28:43 +1100
+Subject: [PATCH] mmc: omap_hsmmc: stop using .enable and .disable method.
+
+enable and disable are only used to get and put
+runtime pm references.  .set_ios already does this
+itself, and other drivers just do it in set_ios
+and .request without using enable/disable.
+
+So add pm_runtime get/put to omap_hsmmc_request(),
+and discard the enable/disable methods.
+
+Signed-off-by: NeilBrown <neil@brown.name>
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index f84cfb01716d..2cb81538a612 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -882,6 +882,8 @@ static void omap_hsmmc_request_done(struct omap_hsmmc_h=
+ost *host, struct mmc_req
+ 		return;
+ 	host->mrq =3D NULL;
+ 	mmc_request_done(host->mmc, mrq);
++	pm_runtime_mark_last_busy(host->dev);
++	pm_runtime_put_autosuspend(host->dev);
+ }
+=20
+ /*
+@@ -1305,6 +1307,8 @@ static void omap_hsmmc_dma_callback(void *param)
+=20
+ 		host->mrq =3D NULL;
+ 		mmc_request_done(host->mmc, mrq);
++		pm_runtime_mark_last_busy(host->dev);
++		pm_runtime_put_autosuspend(host->dev);
+ 	}
+ }
+=20
+@@ -1537,6 +1541,7 @@ static void omap_hsmmc_request(struct mmc_host *mmc, =
+struct mmc_request *req)
+=20
+ 	BUG_ON(host->req_in_progress);
+ 	BUG_ON(host->dma_ch !=3D -1);
++	pm_runtime_get_sync(host->dev);
+ 	if (host->protect_card) {
+ 		if (host->reqs_blocked < 3) {
+ 			/*
+@@ -1553,6 +1558,8 @@ static void omap_hsmmc_request(struct mmc_host *mmc, =
+struct mmc_request *req)
+ 			req->data->error =3D -EBADF;
+ 		req->cmd->retries =3D 0;
+ 		mmc_request_done(mmc, req);
++		pm_runtime_mark_last_busy(host->dev);
++		pm_runtime_put_autosuspend(host->dev);
+ 		return;
+ 	} else if (host->reqs_blocked)
+ 		host->reqs_blocked =3D 0;
+@@ -1566,6 +1573,8 @@ static void omap_hsmmc_request(struct mmc_host *mmc, =
+struct mmc_request *req)
+ 			req->data->error =3D err;
+ 		host->mrq =3D NULL;
+ 		mmc_request_done(mmc, req);
++		pm_runtime_mark_last_busy(host->dev);
++		pm_runtime_put_autosuspend(host->dev);
+ 		return;
+ 	}
+ 	if (req->sbc && !(host->flags & AUTO_CMD23)) {
+@@ -1778,25 +1787,6 @@ static void omap_hsmmc_conf_bus_power(struct omap_hs=
+mmc_host *host)
+ 	set_sd_bus_power(host);
+ }
+=20
+-static int omap_hsmmc_enable_fclk(struct mmc_host *mmc)
+-{
+-	struct omap_hsmmc_host *host =3D mmc_priv(mmc);
+-
+-	pm_runtime_get_sync(host->dev);
+-
+-	return 0;
+-}
+-
+-static int omap_hsmmc_disable_fclk(struct mmc_host *mmc)
+-{
+-	struct omap_hsmmc_host *host =3D mmc_priv(mmc);
+-
+-	pm_runtime_mark_last_busy(host->dev);
+-	pm_runtime_put_autosuspend(host->dev);
+-
+-	return 0;
+-}
+-
+ static int omap_hsmmc_multi_io_quirk(struct mmc_card *card,
+ 				     unsigned int direction, int blk_size)
+ {
+@@ -1808,8 +1798,6 @@ static int omap_hsmmc_multi_io_quirk(struct mmc_card =
+*card,
+ }
+=20
+ static struct mmc_host_ops omap_hsmmc_ops =3D {
+-	.enable =3D omap_hsmmc_enable_fclk,
+-	.disable =3D omap_hsmmc_disable_fclk,
+ 	.post_req =3D omap_hsmmc_post_req,
+ 	.pre_req =3D omap_hsmmc_pre_req,
+ 	.request =3D omap_hsmmc_request,
+
+--Sig_/aqubwoBokYYETH//pVv0M_j
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIVAwUBVRNeXznsnt1WYoG5AQLA4RAAk4tdtR6RaOaSVkL2Qa3cQAmy3KULpFtA
+0Fg9qho/v2J01ifyHooBWMfseAlc/Fi70UOuMoRHGazkd0l3yW4FA7CLskdoyWxJ
+MjnkAMVHBLPpkv8VYgnDP7E258YizGKCcx/93+X/UZFq/XatGiid2soEF/PEJ0Sr
+qMXB8FxjhX/qLsnTGKe8lN2PhRfztNVidPmqicE5wufTzxlEpwXx8cMM3oMDf9/J
+qt+5uJPO+QYbaQAl1HQnBAmsm9TNCweWe5OLzejwKZXX5yQV0vNyx5R0kloPdk49
+6GwciVA66g/ZI8N96955may+YogUK8DsRye5IsSLI6XirjCUIWxvmCaL/kjVDBMg
+EYcbvRDENCinqfV+5qOB65DGMrSHzM3n8qfuZxA/s73fU9WwwYqzBRj6dM7+wSZt
+6Vf+I0dDPPgLEvKhkYYwbABJUeu09L/DKSok76h6NMa9RkKvRgbZaPjuprdxlR2M
+q2NZRyklhYRHgUKFSb9FrOOgTQpB6J8S9IFhkzmZ+svwVQdDprZhBBDeQniyp45n
+Gd6lWkmstaFNEhnSFyTteJK4MMs7gqfxTC7+nR6bFtMNQuQx3T/j92TVLr0aqEgJ
+XiaQuEf/+UfTodbRDnCXeJlCCHH6mZgkGBcsvGp7Qmdywq1sabe55ep8pxc4qTxQ
+tryMblzS64Q=
+=K0JG
+-----END PGP SIGNATURE-----
+
+--Sig_/aqubwoBokYYETH//pVv0M_j--
