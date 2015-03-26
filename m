@@ -1,43 +1,55 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm:
- get rid of the bounce page"
-Date: Thu, 26 Mar 2015 13:36:31 +0000
-Message-ID: <20150326133631.GB2805@arm.com>
-References: <20150324004537.GA24816@verge.net.au>
- <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
- <20150324161358.GA694@kahuna>
- <20150326003939.GA25368@verge.net.au>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH] ASoC: davinci-evm: drop un-necessary remove function
+Date: Thu, 26 Mar 2015 15:38:25 +0200
+Message-ID: <1427377105-29044-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53436 "EHLO foss.arm.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37588 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751596AbbCZNgf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Mar 2015 09:36:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20150326003939.GA25368@verge.net.au>
+	id S1751807AbbCZNio (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Mar 2015 09:38:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Cc: Nishanth Menon <nm@ti.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, Manish Badarkhe <manishvb@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
-> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
-> > I think we now have a new error: (seen with omap2plus_defconfig)
-> > on next-20150324 :
-> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
-> > referenced in expression
-> > make: *** [vmlinux] Error 1
-> 
-> Thanks, I am seeing that too.
-> 
-> My armchair suggestion is that the following should be reverted.
-> 
-> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
-> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
+From: Manish Badarkhe <manishvb@ti.com>
 
-Can you try again with the latest -next please? We've merged an additional
-patch aimed at sorting this out. Reverting isn't really an option, as
-there's an awful lot of code that depends on the bounce page removal.
+As davinci card gets registered using 'devm_' api
+there is no need to unregister the card in 'remove'
+function.
+Hence drop the 'remove' function.
 
-Will
+Signed-off-by: Manish Badarkhe <manishvb@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ sound/soc/davinci/davinci-evm.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index b6bb594..8c2b9be 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -425,18 +425,8 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int davinci_evm_remove(struct platform_device *pdev)
+-{
+-	struct snd_soc_card *card = platform_get_drvdata(pdev);
+-
+-	snd_soc_unregister_card(card);
+-
+-	return 0;
+-}
+-
+ static struct platform_driver davinci_evm_driver = {
+ 	.probe		= davinci_evm_probe,
+-	.remove		= davinci_evm_remove,
+ 	.driver		= {
+ 		.name	= "davinci_evm",
+ 		.pm	= &snd_soc_pm_ops,
+-- 
+1.9.1
+
