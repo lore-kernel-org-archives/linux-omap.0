@@ -1,80 +1,151 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7: remove ti,hwmod property from pcie
- phy
-Date: Thu, 26 Mar 2015 07:29:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1503260715500.24356@utopia.booyaka.com>
-References: <1424422274-27946-1-git-send-email-kishon@ti.com> <1424422274-27946-2-git-send-email-kishon@ti.com> <5509A998.2080509@ti.com> <20150318165706.GQ31346@atomide.com> <5509D3BD.6030004@linaro.org> <alpine.DEB.2.02.1503191455020.9480@utopia.booyaka.com>
- <550AEDA1.50109@linaro.org> <alpine.DEB.2.02.1503191541270.9480@utopia.booyaka.com> <550AF78B.3050202@linaro.org> <alpine.DEB.2.02.1503191647150.9480@utopia.booyaka.com> <55133C5F.6060702@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: stop using .enable and .disable method.
+Date: Thu, 26 Mar 2015 08:38:00 +0100
+Message-ID: <CAPDyKFoOSn7-fx=8o-DBcYnHeA0vD6Y9CVtx8zbS+9Je2+W2rQ@mail.gmail.com>
+References: <20150325213419.11463.33321.stgit@notabene.brown>
+	<20150325214337.11463.93489.stgit@notabene.brown>
+	<20150326121823.148da0f4@notabene.brown>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:50575 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130AbbCZH3c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2015 03:29:32 -0400
-In-Reply-To: <55133C5F.6060702@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20150326121823.148da0f4@notabene.brown>
+Sender: linux-mmc-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: NeilBrown <neil@brown.name>, Tony Lindgren <tony@atomide.com>, Adrian Hunter <adrian.hunter@intel.com>, Chris Ball <chris@printf.net>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, sumit.semwal@linaro.org, linux-arm-kernel@lists.infradead.org, nm@ti.com, t-kristo@ti.com
 
-On Thu, 26 Mar 2015, Kishon Vijay Abraham I wrote:
+On 26 March 2015 at 02:18, NeilBrown <neilb@suse.de> wrote:
+> On Thu, 26 Mar 2015 08:43:37 +1100 NeilBrown <neil@brown.name> wrote:
+>
+>> enable and disable are only used to get and put
+>> runtime pm references.  .set_ios already does this
+>> itself, and other drivers just do it in set_ios
+>> and .request without using enable/disable.
+>>
+>> So add pm_runtime get/put to omap_hsmmc_request(),
+>> and discard the enable/disable methods.
+>>
+>> Signed-off-by: NeilBrown <neil@brown.name>
+>
+> Sorry, that patch wasn't much good.  This one I have really tested properly
+> and checked that the 'put' match the 'get's and  that the device to regularly
+> go to sleep as expected.
+>
+> NeilBrown
+>
+>
+> From: NeilBrown <neil@brown.name>
+> Date: Thu, 26 Mar 2015 08:28:43 +1100
+> Subject: [PATCH] mmc: omap_hsmmc: stop using .enable and .disable method.
+>
+> enable and disable are only used to get and put
+> runtime pm references.  .set_ios already does this
+> itself, and other drivers just do it in set_ios
+> and .request without using enable/disable.
+>
+> So add pm_runtime get/put to omap_hsmmc_request(),
+> and discard the enable/disable methods.
+>
+> Signed-off-by: NeilBrown <neil@brown.name>
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index f84cfb01716d..2cb81538a612 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -882,6 +882,8 @@ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_req
+>                 return;
+>         host->mrq = NULL;
+>         mmc_request_done(host->mmc, mrq);
+> +       pm_runtime_mark_last_busy(host->dev);
+> +       pm_runtime_put_autosuspend(host->dev);
+>  }
 
-> On Thursday 19 March 2015 10:19 PM, Paul Walmsley wrote:
-> > On Thu, 19 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> >> On 03/19/2015 05:45 PM, Paul Walmsley wrote:
-> >>> On Thu, 19 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> >>>> On 03/19/2015 04:55 PM, Paul Walmsley wrote:
-> >>>>> On Wed, 18 Mar 2015, Grygorii.Strashko@linaro.org wrote:
-> >>>>>> On 03/18/2015 06:57 PM, Tony Lindgren wrote:
-> >>>>>>> * Grygorii Strashko <grygorii.strashko@ti.com> [150318 09:37]:
-> >>>>>>>> As I can see Patch 1 from this series was merged in 4.0-rc4,
-> >>>>>>>> but this patch wasn't. As result, I can see below warning all the time
-> >>>>>>>> during boot now:
-> >>>>>>>>
-> >>>>>>>> [    0.594591] platform 4a094000.pciephy: Cannot lookup hwmod
-> >>>>>>>> 'pcie1-phy'
-> >>>>>>>
-> >>>>>>> OK. Is this needed as a fix for the v4.0-rc series, or can this wait
-> >>>>>>> for v4.1?
-> >>>>>>
-> >>>>>> I think, Yes. These two patches should go all together, because they are
-> >>>>>> interrelated.
-> >>>>>
-> >>>>> Does the warning result in a functional problem, or is it just a warning?
-> >>>>
-> >>>> PCE1 PHY device is not registered any more.
-> >>>
-> >>> How does the second patch fix that?
-> >>
-> >> I've re-checked it - sorry for disinfo.
-> >>
-> >> PHY devices are created, but omap_device_fail_pm_domain is assigned to them.
-> >> As result Runtime PM is not working any more.
-> >>
-> >>
-> >> [    0.592501] platform 4a094000.pciephy: Cannot lookup hwmod 'pcie1-phy'
-> >> [    0.597510] pinctrl-single 4a003400.pinmux: 281 pins at pa fc003400 size 1124
-> >> [    0.602794] ti-pipe3 4a094000.pciephy: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
-> >>
-> >> When ti,hwmods is not present PCI PHY will be added as regular Platform device
-> >> and Runtime PM will work again.
-> > 
-> > OK then it should definitely go up as a fix.  
-> > 
-> > Kishon, for future references, those two patches should have been combined 
-> > into a single patch.  As it stands now, if someone bisects down to that 
-> > first patch, it sounds like PM will be at least partially broken.  Too bad 
-> > I don't have a DRA7xx board where things like this can be tested before 
-> > being sent upstream.
-> 
-> huh.. was under the assumption that patches for device tree and the kernel
-> patches should be separate.
+How about adding a function like this:
 
-Generally that's true, _unless_ separating them will break something 
-between the two patches.  That appears to be the case here.  The important 
-thing is to make sure every single commit builds and functions at least as 
-well as the previous commit - i.e., there should be no regressions.
+_omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_req)
+{
+  mmc_request_done(host->mmc, mrq);
+  pm_runtime_mark_last_busy(host->dev);
+  pm_runtime_put_autosuspend(host->dev);
+}
 
+Then just invoke it from those places were needed?
 
-- Paul
+>
+>  /*
+> @@ -1305,6 +1307,8 @@ static void omap_hsmmc_dma_callback(void *param)
+>
+>                 host->mrq = NULL;
+>                 mmc_request_done(host->mmc, mrq);
+> +               pm_runtime_mark_last_busy(host->dev);
+> +               pm_runtime_put_autosuspend(host->dev);
+>         }
+>  }
+>
+> @@ -1537,6 +1541,7 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>
+>         BUG_ON(host->req_in_progress);
+>         BUG_ON(host->dma_ch != -1);
+> +       pm_runtime_get_sync(host->dev);
+>         if (host->protect_card) {
+>                 if (host->reqs_blocked < 3) {
+>                         /*
+> @@ -1553,6 +1558,8 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>                         req->data->error = -EBADF;
+>                 req->cmd->retries = 0;
+>                 mmc_request_done(mmc, req);
+> +               pm_runtime_mark_last_busy(host->dev);
+> +               pm_runtime_put_autosuspend(host->dev);
+>                 return;
+>         } else if (host->reqs_blocked)
+>                 host->reqs_blocked = 0;
+> @@ -1566,6 +1573,8 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>                         req->data->error = err;
+>                 host->mrq = NULL;
+>                 mmc_request_done(mmc, req);
+> +               pm_runtime_mark_last_busy(host->dev);
+> +               pm_runtime_put_autosuspend(host->dev);
+>                 return;
+>         }
+>         if (req->sbc && !(host->flags & AUTO_CMD23)) {
+> @@ -1778,25 +1787,6 @@ static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
+>         set_sd_bus_power(host);
+>  }
+>
+> -static int omap_hsmmc_enable_fclk(struct mmc_host *mmc)
+> -{
+> -       struct omap_hsmmc_host *host = mmc_priv(mmc);
+> -
+> -       pm_runtime_get_sync(host->dev);
+> -
+> -       return 0;
+> -}
+> -
+> -static int omap_hsmmc_disable_fclk(struct mmc_host *mmc)
+> -{
+> -       struct omap_hsmmc_host *host = mmc_priv(mmc);
+> -
+> -       pm_runtime_mark_last_busy(host->dev);
+> -       pm_runtime_put_autosuspend(host->dev);
+> -
+> -       return 0;
+> -}
+> -
+>  static int omap_hsmmc_multi_io_quirk(struct mmc_card *card,
+>                                      unsigned int direction, int blk_size)
+>  {
+> @@ -1808,8 +1798,6 @@ static int omap_hsmmc_multi_io_quirk(struct mmc_card *card,
+>  }
+>
+>  static struct mmc_host_ops omap_hsmmc_ops = {
+> -       .enable = omap_hsmmc_enable_fclk,
+> -       .disable = omap_hsmmc_disable_fclk,
+>         .post_req = omap_hsmmc_post_req,
+>         .pre_req = omap_hsmmc_pre_req,
+>         .request = omap_hsmmc_request,
+
+Finally, I think you have forgotten to deal with pm_runtime_get|put*()
+in omap_hsmmc_enable_sdio_irq().
+
+Kind regards
+Uffe
