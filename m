@@ -1,39 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH 2/2] bus: ocp2scp: SYNC2 value should be changed
- to 0x6
-Date: Thu, 26 Mar 2015 10:50:35 -0700
-Message-ID: <20150326175035.GC10805@atomide.com>
-References: <1426591491-3685-1-git-send-email-kishon@ti.com>
- <1426591491-3685-2-git-send-email-kishon@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 11/35] ARM: OMAP2+: clock: move clock provider infrastructure
+ to clock driver
+Date: Thu, 26 Mar 2015 20:49:56 +0200
+Message-ID: <551454D4.5020404@ti.com>
+References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-12-git-send-email-t-kristo@ti.com> <5512D069.4080906@ti.com> <20150325231659.GD31346@atomide.com> <5513B426.1070205@ti.com> <5513E59F.3020204@ti.com> <20150326173013.GH31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:40074 "EHLO muru.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43121 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751552AbbCZRyz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Mar 2015 13:54:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1426591491-3685-2-git-send-email-kishon@ti.com>
+	id S1752400AbbCZSuR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Mar 2015 14:50:17 -0400
+In-Reply-To: <20150326173013.GH31346@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, praneeth@ti.com, Arnd Bergmann <arnd@arndb.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, sakari.ailus@iki.fi, linux-arm-kernel@lists.infradead.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [150317 04:25]:
-> As per the TRMs of AM572x, OMAP4430, OMAP4460, OMAP543x, the value of
-> SYNC2 must be set to 0x6 in order to ensure correct operation.
-> 
-> So modified the SYNC2 value of OCP2SCP TIMING register to 0x6 in all the
-> platforms that use OCP2SCP driver except AM437x. Also introduced a new
-> compatible property since we don't want to modify the OCP2SCP TIMING
-> register for AM437x.
+On 03/26/2015 07:30 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [150326 03:55]:
+>> On 03/26/2015 09:24 AM, Tero Kristo wrote:
+>>> On 03/26/2015 01:17 AM, Tony Lindgren wrote:
+>>>> * Tero Kristo <t-kristo@ti.com> [150325 08:12]:
+>>>>>
+>>>>> Splits the clock provider init out of the PRM driver and moves it to
+>>>>> clock driver. This is needed so that once the PRCM drivers are
+>>>>> separated,
+>>>>> they can logically just access the clock driver not needing to go
+>>>>> through
+>>>>> common PRM code. This would be wrong in the case of control module for
+>>>>> example.
+>>>> ...
+>>>>
+>>>>> --- a/arch/arm/mach-omap2/clock.c
+>>>>> +++ b/arch/arm/mach-omap2/clock.c
+>>>> ...
+>>>>> -u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
+>>>>> +u32 omap2_clk_memmap_readl(void __iomem *reg)
+>>>>>   {
+>>>>> -    u32 val;
+>>>>> +    struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+>>>>>
+>>>>> -    if (clk->flags & MEMMAP_ADDRESSING) {
+>>>>> -        struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+>>>>> -        val = readl_relaxed(clk_memmaps[r->index] + r->offset);
+>>>>> -    } else {
+>>>>> -        val = readl_relaxed(reg);
+>>>>> -    }
+>>>>> +    return readl_relaxed(clk_memmaps[r->index] + r->offset);
+>>>>> +}
+>>>>
+>>>> The cast from void __iomem *reg to struct clk_omap_reg *r looks still
+>>>> nasty.. Why don't you add the IO address into struct clk_omap_reg:
+>>>>
+>>>> struct clk_omap_reg {
+>>>>     u16 offset;
+>>>>     u16 index;
+>>>>     struct regmap *regmap;
+>>>>     void __iomem *addr;
+>>>> };
+>>>> ...
+>>>>
+>>>> Then populate it during init and then have the clock code use it
+>>>> directly if available? Then it seems you would not need the
+>>>> static struct clk_iomap *clk_memmaps[CLK_MAX_MEMMAPS] at all?
+>>>
+>>> Doing a change like this should probably be planned, but it is a larger
+>>> modification. Currently none of the low-level clock APIs support this,
+>>> but instead expect a direct iomem pointer against which they can do
+>>> arithmetic operations. The major problem is the companion clocks, which
+>>> just XOR some bits in the registers to get ICLK / IDLEST register offset
+>> >from FCLK.
+>>>
+>>> So, for now, clock code just uses the void __iomem pointer as a storage
+>>> class for struct clk_omap_reg, on which arithmetic operations can be done.
+>
+> Well how about keep the check if (clk->flags & MEMMAP_ADDRESSING) at
+> least? Maybe WARN_ON(!(clk->flags & MEMMAP_ADDRESSING))?
+>
+> Otherwise this could be a nightmare to debug if anything goes wrong.
 
-OK thanks I'll apply both into omap-for-v4.1/fixes-not-urgent as
-it seems we've gotten away with it for quite a few years now, and
-I don't see any specific description of what these fix.
+Yea, adding a warning is a good idea for now, I'll do this update 
+tomorrow morning.
 
-If that's not the case, please let me know.
+-Tero
 
-Regards,
+>
+>> I did this change as a trial, and this is the diff required to get it
+>> working:
+>>
+>>   arch/arm/mach-omap2/clkt_iclk.c |   20 ++++++++---------
+>>   arch/arm/mach-omap2/clock.c     |   47
+>> +++++++++++++++++----------------------
+>>   arch/arm/mach-omap2/clock.h     |    8 +++----
+>>   arch/arm/mach-omap2/clock2430.c |    5 +++--
+>>   arch/arm/mach-omap2/clock34xx.c |   36 ++++++++++++++----------------
+>>   arch/arm/mach-omap2/clock3517.c |   20 ++++++++---------
+>>   arch/arm/mach-omap2/cm.h        |    4 +++-
+>>   arch/arm/mach-omap2/cm2xxx.c    |    9 +++-----
+>>   arch/arm/mach-omap2/cm3xxx.c    |   10 +++------
+>>   drivers/clk/ti/clk.c            |   10 +++++----
+>>   drivers/clk/ti/divider.c        |   24 ++++++++++++++------
+>>   drivers/clk/ti/dpll.c           |   11 ++++-----
+>>   drivers/clk/ti/gate.c           |   21 +++++++++++------
+>>   drivers/clk/ti/interface.c      |    9 ++++----
+>>   drivers/clk/ti/mux.c            |   22 ++++++++++++------
+>>   include/linux/clk/ti.h          |    5 +++--
+>>   16 files changed, 137 insertions(+), 124 deletions(-)
+>>
+>> I think we should probably keep this out of this set now and do this while
+>> moving the OMAP core clock support code under clock driver... just to keep
+>> it more easily manageable.
+>
+> OK fine with me to do that as a follow-up patch.
+>
+> Regards,
+>
+> Tony
+>
 
-Tony
