@@ -1,103 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 4/4] DTS: ARM: OMAP3-N900: Add lis3lv02d support
-Date: Thu, 26 Mar 2015 11:57:32 -0700
-Message-ID: <20150326185732.GD10805@atomide.com>
-References: <1426969145-4478-1-git-send-email-sre@kernel.org>
- <1426969145-4478-5-git-send-email-sre@kernel.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V2 2/2] ARM: dts: am57xx-beagle-x15: Add thermal map to
+ include fan and tmp102
+Date: Thu, 26 Mar 2015 12:03:12 -0700
+Message-ID: <20150326190311.GE10805@atomide.com>
+References: <1427139579-4215-1-git-send-email-nm@ti.com>
+ <1427139579-4215-3-git-send-email-nm@ti.com>
+ <20150324151736.GE29155@developer.hsd1.ca.comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:40084 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752774AbbCZTBw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Mar 2015 15:01:52 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1426969145-4478-5-git-send-email-sre@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150324151736.GE29155-ld4jwAGwUXQP5tpWdHSM3tPlBySK3R6THiGdP5j34PU@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.or>
 
-* Sebastian Reichel <sre@kernel.org> [150321 13:20]:
-> From: Sebastian Reichel <sre@kernel.or>
+* Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150324 08:17]:
+> On Mon, Mar 23, 2015 at 02:39:39PM -0500, Nishanth Menon wrote:
+> > BeagleBoard-X15 has capability for a fan and has an onboard TMP102
+> > temperature sensor as well. This allows us to create a new thermal
+> > zone (called, un-imaginatively "board"), and allows us to use some
+> > active cooling as temperatures start edge upward in the system by
+> > creating a new alert temperature (emperically 50C) for cpu.
+> > 
+> > NOTE: Fan is NOT mounted by default on the platform, in such a case,
+> > all we end up doing is switch on a regulator and leak very minimal
+> > current.
+> > 
+> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 > 
-> This adds support for the N900's accelerometer to
-> the Nokia N900 DTS file.
-> 
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> Acked-by: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-This at least currently does not conflict with anything I have
-queued, so I suggest you try to get Greg to take the whole set:
+Applying both of these into omap-for-v4.1/fixes-not-urgent thanks.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/boot/dts/omap3-n900.dts | 52 ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 52 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index 6040327..b02a717 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -602,6 +602,58 @@
->  	pinctrl-0 = <&i2c3_pins>;
->  
->  	clock-frequency = <400000>;
-> +
-> +	lis302dl: lis3lv02d@1d {
-> +		compatible = "st,lis3lv02d";
-> +		reg = <0x1d>;
-> +
-> +		Vdd-supply = <&vaux1>;
-> +		Vdd_IO-supply = <&vio>;
-> +
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <21 20>; /* 181 and 180 */
-> +
-> +		/* click flags */
-> +		st,click-single-x;
-> +		st,click-single-y;
-> +		st,click-single-z;
-> +
-> +		/* Limits are 0.5g * value */
-> +		st,click-threshold-x = <8>;
-> +		st,click-threshold-y = <8>;
-> +		st,click-threshold-z = <10>;
-> +
-> +		/* Click must be longer than time limit */
-> +		st,click-time-limit = <9>;
-> +
-> +		/* Kind of debounce filter */
-> +		st,click-latency = <50>;
-> +
-> +		/* Interrupt line 2 for click detection */
-> +		st,irq2-click;
-> +
-> +		st,wakeup-x-hi;
-> +		st,wakeup-y-hi;
-> +		st,wakeup-threshold = <(800/18)>; /* millig-value / 18 to get HW values */
-> +
-> +		st,wakeup2-z-hi;
-> +		st,wakeup2-threshold = <(900/18)>; /* millig-value / 18 to get HW values */
-> +
-> +		st,hipass1-disable;
-> +		st,hipass2-disable;
-> +
-> +		st,axis-x = <1>;    /* LIS3_DEV_X */
-> +		st,axis-y = <(-2)>; /* LIS3_INV_DEV_Y */
-> +		st,axis-z = <(-3)>; /* LIS3_INV_DEV_Z */
-> +
-> +		st,min-limit-x = <(-32)>;
-> +		st,min-limit-y = <3>;
-> +		st,min-limit-z = <3>;
-> +
-> +		st,max-limit-x = <(-3)>;
-> +		st,max-limit-y = <32>;
-> +		st,max-limit-z = <32>;
-> +	};
->  };
->  
->  &mmc1 {
-> -- 
-> 2.1.4
-> 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
