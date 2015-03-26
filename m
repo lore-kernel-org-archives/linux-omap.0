@@ -1,55 +1,46 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] ASoC: davinci-evm: drop un-necessary remove function
-Date: Thu, 26 Mar 2015 15:38:25 +0200
-Message-ID: <1427377105-29044-1-git-send-email-jsarha@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 3/7] dmaengine: Add driver for TI DMA crossbar on DRA7x
+Date: Thu, 26 Mar 2015 08:22:04 -0700
+Message-ID: <20150326152204.GF31346@atomide.com>
+References: <1426080210-841-1-git-send-email-peter.ujfalusi@ti.com>
+ <1426080210-841-4-git-send-email-peter.ujfalusi@ti.com>
+ <20150326105603.GK32683@intel.com>
+ <5513FC22.2030304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37588 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751807AbbCZNio (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Mar 2015 09:38:44 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5513FC22.2030304-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, Manish Badarkhe <manishvb@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-From: Manish Badarkhe <manishvb@ti.com>
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [150326 05:32]:
+> On 03/26/2015 12:56 PM, Vinod Koul wrote:
+> >> +
+> >> +static void ti_dma_xbar_free(struct device *dev, void *route_data)
+> >> +{
+> >> +	struct ti_dma_xbar_data *xbar = dev_get_drvdata(dev);
+> >> +	struct ti_dma_xbar_map *map = route_data;
+> >> +
+> >> +	dev_dbg(dev, "Unmapping XBAR%d (was routed to %d)\n",
+> >> +		map->xbar_in, map->xbar_out);
+> >> +
+> >> +	regmap_write(xbar->regmap, map->xbar_out * 2, 0);
+> > just out of curiosity how much do you save using regmap :)
+> 
+> good point, not much I guess. I had it implemented w/o regmap as well, but
+> thought why not use regmap if it is available.
 
-As davinci card gets registered using 'devm_' api
-there is no need to unregister the card in 'remove'
-function.
-Hence drop the 'remove' function.
+Regmap is nice for slow devices and devices in a shared register
+range like the omap syscon general area. For normal use, there's
+quite a bit of overhead with regmap compared to just read/write :)
 
-Signed-off-by: Manish Badarkhe <manishvb@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- sound/soc/davinci/davinci-evm.c | 10 ----------
- 1 file changed, 10 deletions(-)
+Regards,
 
-diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index b6bb594..8c2b9be 100644
---- a/sound/soc/davinci/davinci-evm.c
-+++ b/sound/soc/davinci/davinci-evm.c
-@@ -425,18 +425,8 @@ static int davinci_evm_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
--static int davinci_evm_remove(struct platform_device *pdev)
--{
--	struct snd_soc_card *card = platform_get_drvdata(pdev);
--
--	snd_soc_unregister_card(card);
--
--	return 0;
--}
--
- static struct platform_driver davinci_evm_driver = {
- 	.probe		= davinci_evm_probe,
--	.remove		= davinci_evm_remove,
- 	.driver		= {
- 		.name	= "davinci_evm",
- 		.pm	= &snd_soc_pm_ops,
--- 
-1.9.1
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
