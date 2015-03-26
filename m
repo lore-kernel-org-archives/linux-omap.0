@@ -1,122 +1,103 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 11/35] ARM: OMAP2+: clock: move clock provider infrastructure
- to clock driver
-Date: Thu, 26 Mar 2015 20:49:56 +0200
-Message-ID: <551454D4.5020404@ti.com>
-References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-12-git-send-email-t-kristo@ti.com> <5512D069.4080906@ti.com> <20150325231659.GD31346@atomide.com> <5513B426.1070205@ti.com> <5513E59F.3020204@ti.com> <20150326173013.GH31346@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 4/4] DTS: ARM: OMAP3-N900: Add lis3lv02d support
+Date: Thu, 26 Mar 2015 11:57:32 -0700
+Message-ID: <20150326185732.GD10805@atomide.com>
+References: <1426969145-4478-1-git-send-email-sre@kernel.org>
+ <1426969145-4478-5-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43121 "EHLO arroyo.ext.ti.com"
+Received: from muru.com ([72.249.23.125]:40084 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752400AbbCZSuR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Mar 2015 14:50:17 -0400
-In-Reply-To: <20150326173013.GH31346@atomide.com>
+	id S1752774AbbCZTBw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Mar 2015 15:01:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1426969145-4478-5-git-send-email-sre@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, sakari.ailus@iki.fi, linux-arm-kernel@lists.infradead.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.or>
 
-On 03/26/2015 07:30 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [150326 03:55]:
->> On 03/26/2015 09:24 AM, Tero Kristo wrote:
->>> On 03/26/2015 01:17 AM, Tony Lindgren wrote:
->>>> * Tero Kristo <t-kristo@ti.com> [150325 08:12]:
->>>>>
->>>>> Splits the clock provider init out of the PRM driver and moves it to
->>>>> clock driver. This is needed so that once the PRCM drivers are
->>>>> separated,
->>>>> they can logically just access the clock driver not needing to go
->>>>> through
->>>>> common PRM code. This would be wrong in the case of control module for
->>>>> example.
->>>> ...
->>>>
->>>>> --- a/arch/arm/mach-omap2/clock.c
->>>>> +++ b/arch/arm/mach-omap2/clock.c
->>>> ...
->>>>> -u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
->>>>> +u32 omap2_clk_memmap_readl(void __iomem *reg)
->>>>>   {
->>>>> -    u32 val;
->>>>> +    struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
->>>>>
->>>>> -    if (clk->flags & MEMMAP_ADDRESSING) {
->>>>> -        struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
->>>>> -        val = readl_relaxed(clk_memmaps[r->index] + r->offset);
->>>>> -    } else {
->>>>> -        val = readl_relaxed(reg);
->>>>> -    }
->>>>> +    return readl_relaxed(clk_memmaps[r->index] + r->offset);
->>>>> +}
->>>>
->>>> The cast from void __iomem *reg to struct clk_omap_reg *r looks still
->>>> nasty.. Why don't you add the IO address into struct clk_omap_reg:
->>>>
->>>> struct clk_omap_reg {
->>>>     u16 offset;
->>>>     u16 index;
->>>>     struct regmap *regmap;
->>>>     void __iomem *addr;
->>>> };
->>>> ...
->>>>
->>>> Then populate it during init and then have the clock code use it
->>>> directly if available? Then it seems you would not need the
->>>> static struct clk_iomap *clk_memmaps[CLK_MAX_MEMMAPS] at all?
->>>
->>> Doing a change like this should probably be planned, but it is a larger
->>> modification. Currently none of the low-level clock APIs support this,
->>> but instead expect a direct iomem pointer against which they can do
->>> arithmetic operations. The major problem is the companion clocks, which
->>> just XOR some bits in the registers to get ICLK / IDLEST register offset
->> >from FCLK.
->>>
->>> So, for now, clock code just uses the void __iomem pointer as a storage
->>> class for struct clk_omap_reg, on which arithmetic operations can be done.
->
-> Well how about keep the check if (clk->flags & MEMMAP_ADDRESSING) at
-> least? Maybe WARN_ON(!(clk->flags & MEMMAP_ADDRESSING))?
->
-> Otherwise this could be a nightmare to debug if anything goes wrong.
+* Sebastian Reichel <sre@kernel.org> [150321 13:20]:
+> From: Sebastian Reichel <sre@kernel.or>
+> 
+> This adds support for the N900's accelerometer to
+> the Nokia N900 DTS file.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
 
-Yea, adding a warning is a good idea for now, I'll do this update 
-tomorrow morning.
+This at least currently does not conflict with anything I have
+queued, so I suggest you try to get Greg to take the whole set:
 
--Tero
+Acked-by: Tony Lindgren <tony@atomide.com>
 
->
->> I did this change as a trial, and this is the diff required to get it
->> working:
->>
->>   arch/arm/mach-omap2/clkt_iclk.c |   20 ++++++++---------
->>   arch/arm/mach-omap2/clock.c     |   47
->> +++++++++++++++++----------------------
->>   arch/arm/mach-omap2/clock.h     |    8 +++----
->>   arch/arm/mach-omap2/clock2430.c |    5 +++--
->>   arch/arm/mach-omap2/clock34xx.c |   36 ++++++++++++++----------------
->>   arch/arm/mach-omap2/clock3517.c |   20 ++++++++---------
->>   arch/arm/mach-omap2/cm.h        |    4 +++-
->>   arch/arm/mach-omap2/cm2xxx.c    |    9 +++-----
->>   arch/arm/mach-omap2/cm3xxx.c    |   10 +++------
->>   drivers/clk/ti/clk.c            |   10 +++++----
->>   drivers/clk/ti/divider.c        |   24 ++++++++++++++------
->>   drivers/clk/ti/dpll.c           |   11 ++++-----
->>   drivers/clk/ti/gate.c           |   21 +++++++++++------
->>   drivers/clk/ti/interface.c      |    9 ++++----
->>   drivers/clk/ti/mux.c            |   22 ++++++++++++------
->>   include/linux/clk/ti.h          |    5 +++--
->>   16 files changed, 137 insertions(+), 124 deletions(-)
->>
->> I think we should probably keep this out of this set now and do this while
->> moving the OMAP core clock support code under clock driver... just to keep
->> it more easily manageable.
->
-> OK fine with me to do that as a follow-up patch.
->
-> Regards,
->
-> Tony
->
-
+> ---
+>  arch/arm/boot/dts/omap3-n900.dts | 52 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 52 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 6040327..b02a717 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -602,6 +602,58 @@
+>  	pinctrl-0 = <&i2c3_pins>;
+>  
+>  	clock-frequency = <400000>;
+> +
+> +	lis302dl: lis3lv02d@1d {
+> +		compatible = "st,lis3lv02d";
+> +		reg = <0x1d>;
+> +
+> +		Vdd-supply = <&vaux1>;
+> +		Vdd_IO-supply = <&vio>;
+> +
+> +		interrupt-parent = <&gpio6>;
+> +		interrupts = <21 20>; /* 181 and 180 */
+> +
+> +		/* click flags */
+> +		st,click-single-x;
+> +		st,click-single-y;
+> +		st,click-single-z;
+> +
+> +		/* Limits are 0.5g * value */
+> +		st,click-threshold-x = <8>;
+> +		st,click-threshold-y = <8>;
+> +		st,click-threshold-z = <10>;
+> +
+> +		/* Click must be longer than time limit */
+> +		st,click-time-limit = <9>;
+> +
+> +		/* Kind of debounce filter */
+> +		st,click-latency = <50>;
+> +
+> +		/* Interrupt line 2 for click detection */
+> +		st,irq2-click;
+> +
+> +		st,wakeup-x-hi;
+> +		st,wakeup-y-hi;
+> +		st,wakeup-threshold = <(800/18)>; /* millig-value / 18 to get HW values */
+> +
+> +		st,wakeup2-z-hi;
+> +		st,wakeup2-threshold = <(900/18)>; /* millig-value / 18 to get HW values */
+> +
+> +		st,hipass1-disable;
+> +		st,hipass2-disable;
+> +
+> +		st,axis-x = <1>;    /* LIS3_DEV_X */
+> +		st,axis-y = <(-2)>; /* LIS3_INV_DEV_Y */
+> +		st,axis-z = <(-3)>; /* LIS3_INV_DEV_Z */
+> +
+> +		st,min-limit-x = <(-32)>;
+> +		st,min-limit-y = <3>;
+> +		st,min-limit-z = <3>;
+> +
+> +		st,max-limit-x = <(-3)>;
+> +		st,max-limit-y = <32>;
+> +		st,max-limit-z = <32>;
+> +	};
+>  };
+>  
+>  &mmc1 {
+> -- 
+> 2.1.4
+> 
