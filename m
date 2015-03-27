@@ -1,298 +1,123 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 1/7] dmaengine: of_dma: Support for DMA routers
-Date: Fri, 27 Mar 2015 14:26:47 +0200
-Message-ID: <1427459213-14611-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1427459213-14611-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 11/35] ARM: OMAP2+: clock: move clock provider infrastructure
+ to clock driver
+Date: Fri, 27 Mar 2015 15:06:59 +0200
+Message-ID: <551555F3.2000805@ti.com>
+References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-12-git-send-email-t-kristo@ti.com> <5512D069.4080906@ti.com> <20150325231659.GD31346@atomide.com> <5513B426.1070205@ti.com> <5513E59F.3020204@ti.com> <20150326173013.GH31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427459213-14611-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59287 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752310AbbC0NHU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Mar 2015 09:07:20 -0400
+In-Reply-To: <20150326173013.GH31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, sakari.ailus@iki.fi, linux-arm-kernel@lists.infradead.org
 
-DMA routers are transparent devices used to mux DMA requests from
-peripherals to DMA controllers. They are used when the SoC integrates more
-devices with DMA requests then their controller can handle.
-DRA7x is one example of such SoC, where the sDMA can hanlde 128 DMA request
-lines, but in SoC level it has 205 DMA requests.
+On 03/26/2015 07:30 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [150326 03:55]:
+>> On 03/26/2015 09:24 AM, Tero Kristo wrote:
+>>> On 03/26/2015 01:17 AM, Tony Lindgren wrote:
+>>>> * Tero Kristo <t-kristo@ti.com> [150325 08:12]:
+>>>>>
+>>>>> Splits the clock provider init out of the PRM driver and moves it to
+>>>>> clock driver. This is needed so that once the PRCM drivers are
+>>>>> separated,
+>>>>> they can logically just access the clock driver not needing to go
+>>>>> through
+>>>>> common PRM code. This would be wrong in the case of control module for
+>>>>> example.
+>>>> ...
+>>>>
+>>>>> --- a/arch/arm/mach-omap2/clock.c
+>>>>> +++ b/arch/arm/mach-omap2/clock.c
+>>>> ...
+>>>>> -u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
+>>>>> +u32 omap2_clk_memmap_readl(void __iomem *reg)
+>>>>>   {
+>>>>> -    u32 val;
+>>>>> +    struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+>>>>>
+>>>>> -    if (clk->flags & MEMMAP_ADDRESSING) {
+>>>>> -        struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
+>>>>> -        val = readl_relaxed(clk_memmaps[r->index] + r->offset);
+>>>>> -    } else {
+>>>>> -        val = readl_relaxed(reg);
+>>>>> -    }
+>>>>> +    return readl_relaxed(clk_memmaps[r->index] + r->offset);
+>>>>> +}
+>>>>
+>>>> The cast from void __iomem *reg to struct clk_omap_reg *r looks still
+>>>> nasty.. Why don't you add the IO address into struct clk_omap_reg:
+>>>>
+>>>> struct clk_omap_reg {
+>>>>     u16 offset;
+>>>>     u16 index;
+>>>>     struct regmap *regmap;
+>>>>     void __iomem *addr;
+>>>> };
+>>>> ...
+>>>>
+>>>> Then populate it during init and then have the clock code use it
+>>>> directly if available? Then it seems you would not need the
+>>>> static struct clk_iomap *clk_memmaps[CLK_MAX_MEMMAPS] at all?
+>>>
+>>> Doing a change like this should probably be planned, but it is a larger
+>>> modification. Currently none of the low-level clock APIs support this,
+>>> but instead expect a direct iomem pointer against which they can do
+>>> arithmetic operations. The major problem is the companion clocks, which
+>>> just XOR some bits in the registers to get ICLK / IDLEST register offset
+>> >from FCLK.
+>>>
+>>> So, for now, clock code just uses the void __iomem pointer as a storage
+>>> class for struct clk_omap_reg, on which arithmetic operations can be done.
+>
+> Well how about keep the check if (clk->flags & MEMMAP_ADDRESSING) at
+> least? Maybe WARN_ON(!(clk->flags & MEMMAP_ADDRESSING))?
+>
+> Otherwise this could be a nightmare to debug if anything goes wrong.
 
-The of_dma_router will be registered as of_dma_controller with special
-xlate function and additional parameters and the code will translate and
-requests a DMA channel from the real DMA controller.
-This way the router can be transparent for the system while remaining generic
-enough to be used in different environments.
+Ok, force update pushed to branch now, the patch is basically pretty 
+much to the format where it was before this discussion, with the 
+addition of WARN_ON_ONCE in case MEMMAP_ADDRESSING is missing.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- Documentation/devicetree/bindings/dma/dma.txt | 28 ++++++++
- drivers/dma/dmaengine.c                       |  7 ++
- drivers/dma/of-dma.c                          | 92 +++++++++++++++++++++++++++
- include/linux/dmaengine.h                     | 17 +++++
- include/linux/of_dma.h                        | 21 ++++++
- 5 files changed, 165 insertions(+)
+-Tero
 
-diff --git a/Documentation/devicetree/bindings/dma/dma.txt b/Documentation/devicetree/bindings/dma/dma.txt
-index 82104271e754..f728b978178e 100644
---- a/Documentation/devicetree/bindings/dma/dma.txt
-+++ b/Documentation/devicetree/bindings/dma/dma.txt
-@@ -31,6 +31,34 @@ Example:
- 		dma-requests = <127>;
- 	};
- 
-+* DMA router
-+
-+DMA routers are transparent IP blocks used to route DMA request lines from
-+devices to the DMA controller. Some SoCs (like TI DRA7x) have more peripherals
-+integrated with DMA requests than what the DMA controller can handle directly.
-+
-+Required property:
-+- dma-device:		phandle of the DMA controller. The router is modifying
-+			the DMA requests for this controller.
-+- #dma-cells: 		Must be at least 1. Used to provide DMA router specific
-+			information. See DMA client binding below for more
-+			details.
-+
-+Optional properties:
-+- dma-requests: 	Number of incoming request lines the router can handle.
-+- dma-device
-+	- dma-requests:	The router driver might need to look for this in order
-+			to configure the routing.
-+
-+Example:
-+	sdma_xbar: dma-router@4a002b78 {
-+		compatible = "ti,dra7-dma-crossbar";
-+		reg = <0x4a002b78 0xfc>;
-+		#dma-cells = <1>;
-+		dma-requests = <205>;
-+		ti,dma-safe-map = <0>;
-+		dma-device = <&sdma>;
-+	};
- 
- * DMA client
- 
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index 24967c89f5d4..c7aa232b4a59 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -267,6 +267,13 @@ static void dma_chan_put(struct dma_chan *chan)
- 	/* This channel is not in use anymore, free it */
- 	if (!chan->client_count && chan->device->device_free_chan_resources)
- 		chan->device->device_free_chan_resources(chan);
-+
-+	/* If the channel is used via a DMA request router, free the mapping */
-+	if (chan->router && chan->router->route_free) {
-+		chan->router->route_free(chan->router->dev, chan->route_data);
-+		chan->router = NULL;
-+		chan->route_data = NULL;
-+	}
- }
- 
- enum dma_status dma_sync_wait(struct dma_chan *chan, dma_cookie_t cookie)
-diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
-index cbd4a8aff120..37acdc2cce58 100644
---- a/drivers/dma/of-dma.c
-+++ b/drivers/dma/of-dma.c
-@@ -45,6 +45,53 @@ static struct of_dma *of_dma_find_controller(struct of_phandle_args *dma_spec)
- }
- 
- /**
-+ * of_dma_router_xlate - translation function for router devices
-+ * @dma_spec:	pointer to DMA specifier as found in the device tree
-+ * @of_dma:	pointer to DMA controller data (router information)
-+ *
-+ * The function creates new dma_spec to be passed to the router driver's
-+ * of_dma_route_allocate() function to prepare a dma_spec which will be used
-+ * to request channel from the real DMA controller.
-+ */
-+static struct dma_chan *of_dma_router_xlate(struct of_phandle_args *dma_spec,
-+					    struct of_dma *ofdma)
-+{
-+	struct dma_chan		*chan;
-+	struct of_dma		*ofdma_target;
-+	struct device_node	*dma_target;
-+	struct of_phandle_args	dma_spec_target;
-+	void			*route_data;
-+
-+	dma_target = of_parse_phandle(dma_spec->np, "dma-device", 0);
-+	if (!dma_target) {
-+		pr_err("%s: Can't get target DMA\n", __func__);
-+		return NULL;
-+	}
-+
-+	/* translate the request for the real DMA controller */
-+	memcpy(&dma_spec_target, dma_spec, sizeof(dma_spec_target));
-+	dma_spec_target.np = dma_target;
-+	route_data = ofdma->of_dma_route_allocate(&dma_spec_target, ofdma);
-+
-+	ofdma_target = of_dma_find_controller(&dma_spec_target);
-+	if (!ofdma_target) {
-+		pr_err("%s: Can't get target ofDMA\n", __func__);
-+		return NULL;
-+	}
-+
-+	chan = ofdma_target->of_dma_xlate(&dma_spec_target, ofdma_target);
-+	if (chan) {
-+		chan->router = ofdma->dma_router;
-+		chan->route_data = route_data;
-+	} else {
-+		ofdma->dma_router->route_free(ofdma->dma_router->dev, route_data);
-+	}
-+
-+	of_node_put(dma_target);
-+	return chan;
-+}
-+
-+/**
-  * of_dma_controller_register - Register a DMA controller to DT DMA helpers
-  * @np:			device node of DMA controller
-  * @of_dma_xlate:	translation function which converts a phandle
-@@ -110,6 +157,51 @@ void of_dma_controller_free(struct device_node *np)
- EXPORT_SYMBOL_GPL(of_dma_controller_free);
- 
- /**
-+ * of_dma_router_register - Register a DMA router to DT DMA helpers as a
-+ *			    controller
-+ * @np:				device node of DMA router
-+ * @of_dma_route_allocate:	setup function for the router which need to
-+ *				modify the dma_spec for the DMA controller to
-+ *				use and to set up the requested route.
-+ * @dma_router:			pointer to dma_router structure to be used when
-+ *				the route need to be free up.
-+ *
-+ * Returns 0 on success or appropriate errno value on error.
-+ *
-+ * Allocated memory should be freed with appropriate of_dma_controller_free()
-+ * call.
-+ */
-+int of_dma_router_register(struct device_node *np,
-+			   void *(*of_dma_route_allocate)
-+			   (struct of_phandle_args *, struct of_dma *),
-+			   struct dma_router *dma_router)
-+{
-+	struct of_dma	*ofdma;
-+
-+	if (!np || !of_dma_route_allocate || !dma_router) {
-+		pr_err("%s: not enough information provided\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	ofdma = kzalloc(sizeof(*ofdma), GFP_KERNEL);
-+	if (!ofdma)
-+		return -ENOMEM;
-+
-+	ofdma->of_node = np;
-+	ofdma->of_dma_xlate = of_dma_router_xlate;
-+	ofdma->of_dma_route_allocate = of_dma_route_allocate;
-+	ofdma->dma_router = dma_router;
-+
-+	/* Now queue of_dma controller structure in list */
-+	mutex_lock(&of_dma_lock);
-+	list_add_tail(&ofdma->of_dma_controllers, &of_dma_list);
-+	mutex_unlock(&of_dma_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_dma_router_register);
-+
-+/**
-  * of_dma_match_channel - Check if a DMA specifier matches name
-  * @np:		device node to look for DMA channels
-  * @name:	channel name to be matched
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index ad419757241f..abf63ceabef9 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -222,6 +222,16 @@ struct dma_chan_percpu {
- };
- 
- /**
-+ * struct dma_router - DMA router structure
-+ * @dev: pointer to the DMA router device
-+ * @route_free: function to be called when the route can be disconnected
-+ */
-+struct dma_router {
-+	struct device *dev;
-+	void (*route_free)(struct device *dev, void *route_data);
-+};
-+
-+/**
-  * struct dma_chan - devices supply DMA channels, clients use them
-  * @device: ptr to the dma device who supplies this channel, always !%NULL
-  * @cookie: last cookie value returned to client
-@@ -232,6 +242,8 @@ struct dma_chan_percpu {
-  * @local: per-cpu pointer to a struct dma_chan_percpu
-  * @client_count: how many clients are using this channel
-  * @table_count: number of appearances in the mem-to-mem allocation table
-+ * @router: pointer to the DMA router structure
-+ * @route_data: channel specific data for the router
-  * @private: private data for certain client-channel associations
-  */
- struct dma_chan {
-@@ -247,6 +259,11 @@ struct dma_chan {
- 	struct dma_chan_percpu __percpu *local;
- 	int client_count;
- 	int table_count;
-+
-+	/* DMA router */
-+	struct dma_router *router;
-+	void *route_data;
-+
- 	void *private;
- };
- 
-diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
-index 56bc026c143f..734e449f87c1 100644
---- a/include/linux/of_dma.h
-+++ b/include/linux/of_dma.h
-@@ -23,6 +23,9 @@ struct of_dma {
- 	struct device_node	*of_node;
- 	struct dma_chan		*(*of_dma_xlate)
- 				(struct of_phandle_args *, struct of_dma *);
-+	void			*(*of_dma_route_allocate)
-+				(struct of_phandle_args *, struct of_dma *);
-+	struct dma_router	*dma_router;
- 	void			*of_dma_data;
- };
- 
-@@ -37,12 +40,20 @@ extern int of_dma_controller_register(struct device_node *np,
- 		(struct of_phandle_args *, struct of_dma *),
- 		void *data);
- extern void of_dma_controller_free(struct device_node *np);
-+
-+extern int of_dma_router_register(struct device_node *np,
-+		void *(*of_dma_route_allocate)
-+		(struct of_phandle_args *, struct of_dma *),
-+		 struct dma_router *dma_router);
-+#define of_dma_router_free of_dma_controller_free
-+
- extern struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
- 						     const char *name);
- extern struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
- 		struct of_dma *ofdma);
- extern struct dma_chan *of_dma_xlate_by_chan_id(struct of_phandle_args *dma_spec,
- 		struct of_dma *ofdma);
-+
- #else
- static inline int of_dma_controller_register(struct device_node *np,
- 		struct dma_chan *(*of_dma_xlate)
-@@ -56,6 +67,16 @@ static inline void of_dma_controller_free(struct device_node *np)
- {
- }
- 
-+static inline int of_dma_router_register(struct device_node *np,
-+		void *(*of_dma_route_allocate)
-+		(struct of_phandle_args *, struct of_dma *),
-+		 struct dma_router *dma_router)
-+{
-+	return -ENODEV;
-+}
-+
-+#define of_dma_router_free of_dma_controller_free
-+
- static inline struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
- 						     const char *name)
- {
--- 
-2.3.3
+>
+>> I did this change as a trial, and this is the diff required to get it
+>> working:
+>>
+>>   arch/arm/mach-omap2/clkt_iclk.c |   20 ++++++++---------
+>>   arch/arm/mach-omap2/clock.c     |   47
+>> +++++++++++++++++----------------------
+>>   arch/arm/mach-omap2/clock.h     |    8 +++----
+>>   arch/arm/mach-omap2/clock2430.c |    5 +++--
+>>   arch/arm/mach-omap2/clock34xx.c |   36 ++++++++++++++----------------
+>>   arch/arm/mach-omap2/clock3517.c |   20 ++++++++---------
+>>   arch/arm/mach-omap2/cm.h        |    4 +++-
+>>   arch/arm/mach-omap2/cm2xxx.c    |    9 +++-----
+>>   arch/arm/mach-omap2/cm3xxx.c    |   10 +++------
+>>   drivers/clk/ti/clk.c            |   10 +++++----
+>>   drivers/clk/ti/divider.c        |   24 ++++++++++++++------
+>>   drivers/clk/ti/dpll.c           |   11 ++++-----
+>>   drivers/clk/ti/gate.c           |   21 +++++++++++------
+>>   drivers/clk/ti/interface.c      |    9 ++++----
+>>   drivers/clk/ti/mux.c            |   22 ++++++++++++------
+>>   include/linux/clk/ti.h          |    5 +++--
+>>   16 files changed, 137 insertions(+), 124 deletions(-)
+>>
+>> I think we should probably keep this out of this set now and do this while
+>> moving the OMAP core clock support code under clock driver... just to keep
+>> it more easily manageable.
+>
+> OK fine with me to do that as a follow-up patch.
+>
+> Regards,
+>
+> Tony
+>
+
