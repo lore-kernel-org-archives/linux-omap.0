@@ -1,146 +1,171 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH V2 1/2] ARM: dts: DRA7: Add bandgap and related thermal
- nodes
-Date: Fri, 27 Mar 2015 13:38:07 +0530
-Message-ID: <55150FE7.5090601@ti.com>
-References: <1427139579-4215-1-git-send-email-nm@ti.com> <1427139579-4215-2-git-send-email-nm@ti.com> <5514F27C.7070904@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2] thermal: ti-soc-thermal: dra7: Implement Workaround for Errata i814 - Bandgap Temperature read Dtemp can be corrupted
+Date: Fri, 27 Mar 2015 14:15:01 +0530
+Message-ID: <1427445901-8461-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49707 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51084 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752624AbbC0IIm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Mar 2015 04:08:42 -0400
-In-Reply-To: <5514F27C.7070904@ti.com>
+	id S1753246AbbC0IpX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Mar 2015 04:45:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, tony@atomide.com, bcousson@baylibre.com, edubezval@gmail.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.com
+To: edubezval@gmail.com, rui.zhang@intel.com
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 
+Bandgap Temperature read Dtemp can be corrupted
 
+DESCRIPTION
+        Read accesses to registers listed below can be corrupted due to=
+ incorrect resynchronization between
+        clock domains.
 
-On Friday 27 March 2015 11:32 AM, Keerthy wrote:
->
->
-> On Tuesday 24 March 2015 01:09 AM, Nishanth Menon wrote:
->> From: Keerthy <j-keerthy@ti.com>
->>
->> Add bandgap and related thermal nodes. The patch adds 5 thermal
->> sensors. Only one cooling device for mpu as of now. The sensors are
->> the exact same on both dra72 and dra7. Introduce CPU, GPU, core nodes
->> for the moment as they are direct reuse of OMAP5 entities.
->>
->> NOTE: OMAP4 has a finer counter granularity, which allows for a delay
->> of 1000ms in the thermal zone polling intervals. DRA7 have different
->> counter mechanism, which allows at maximum a 500ms timer. Adjust the
->> cpu thermal zone accordingly for DRA7.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> [t-kristo@ti.com: few reuse from OMAP5 entities]
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->> Changes since V1:
->>     - omap5-cpu-thermal.dtsi dropped
->>     - approach similar to omap5
->>     - added core and gpu thermal dtsi(they can be reused)
->>     - Squashed patch #1 from v1 to patch #2 - this patch.
->>     - Not carrying forward ack due to change
->
-> Thanks for updating Nishanth. Looks good to me.
+        Read access to registers below can be corrupted :
+                =E2=80=A2 CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =
+=3D 0 to 4)
+        =E2=80=A2 CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
 
-Tested on DRA7 EVM.
+WORKAROUND
+        Multiple reads to CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA=
+[9:0]:
+        BGAP_DTEMPMPU/GPU/CORE/DSPEVE/IVA is needed to discard false va=
+lue and read right value:
+                1. Perform two successive reads to BGAP_DTEMP bit field=
+=2E
+                        (a) If read1 returns Val1 and read2 returns Val=
+1, then right value is Val1.
+                        (b) If read1 returns Val1, read 2 returns Val2,=
+ a third read is needed.
+                2. Perform third read
+                        (a) If read3 returns Val2 then right value is V=
+al2.
+                        (b) If read3 returns Val3, then right value is =
+Val3.
 
-Read the temperatures from all the 5 sensors they were sane.
-Loaded the CPU and saw the temperatures rise and fall with increase and 
-decrease in the load.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-Tested-by: Keerthy <j-keerthy@ti.com>
->
-> - Keerthy
->
->>
->> V1: http://marc.info/?t=142688102700006&r=1&w=2
->>
->>   arch/arm/boot/dts/dra7.dtsi   |   23 +++++++++++++++++++++++
->>   arch/arm/boot/dts/dra72x.dtsi |    5 +++++
->>   arch/arm/boot/dts/dra74x.dtsi |    5 +++++
->>   3 files changed, 33 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index eea4a54d6cb3..2d6a7e3e001f 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -177,6 +177,18 @@
->>               };
->>           };
->>
->> +        bandgap: bandgap@4a0021e0 {
->> +            reg = <0x4a0021e0 0xc
->> +                0x4a00232c 0xc
->> +                0x4a002380 0x2c
->> +                0x4a0023C0 0x3c
->> +                0x4a002564 0x8
->> +                0x4a002574 0x50>;
->> +                compatible = "ti,dra752-bandgap";
->> +                interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
->> +                #thermal-sensor-cells = <1>;
->> +        };
->> +
->>           cm_core_aon: cm_core_aon@4a005000 {
->>               compatible = "ti,dra7-cm-core-aon";
->>               reg = <0x4a005000 0x2000>;
->> @@ -1419,6 +1431,17 @@
->>               status = "disabled";
->>           };
->>       };
->> +
->> +    thermal_zones: thermal-zones {
->> +        #include "omap4-cpu-thermal.dtsi"
->> +        #include "omap5-gpu-thermal.dtsi"
->> +        #include "omap5-core-thermal.dtsi"
->> +    };
->> +
->> +};
->> +
->> +&cpu_thermal {
->> +    polling-delay = <500>; /* milliseconds */
->>   };
->>
->>   /include/ "dra7xx-clocks.dtsi"
->> diff --git a/arch/arm/boot/dts/dra72x.dtsi
->> b/arch/arm/boot/dts/dra72x.dtsi
->> index e5a3d23a3df1..6ac8e3601499 100644
->> --- a/arch/arm/boot/dts/dra72x.dtsi
->> +++ b/arch/arm/boot/dts/dra72x.dtsi
->> @@ -20,6 +20,11 @@
->>               device_type = "cpu";
->>               compatible = "arm,cortex-a15";
->>               reg = <0>;
->> +
->> +            /* cooling options */
->> +            cooling-min-level = <0>;
->> +            cooling-max-level = <2>;
->> +            #cooling-cells = <2>; /* min followed by max */
->>           };
->>       };
->>
->> diff --git a/arch/arm/boot/dts/dra74x.dtsi
->> b/arch/arm/boot/dts/dra74x.dtsi
->> index 10173fab1a15..eef981f4bcd5 100644
->> --- a/arch/arm/boot/dts/dra74x.dtsi
->> +++ b/arch/arm/boot/dts/dra74x.dtsi
->> @@ -31,6 +31,11 @@
->>               clock-names = "cpu";
->>
->>               clock-latency = <300000>; /* From omap-cpufreq driver */
->> +
->> +            /* cooling options */
->> +            cooling-min-level = <0>;
->> +            cooling-max-level = <2>;
->> +            #cooling-cells = <2>; /* min followed by max */
->>           };
->>           cpu@1 {
->>               device_type = "cpu";
->>
+Read all the temperatures from the 5 sensors and saw that
+they were sane with time.=20
+
+Ran cpuloadgen and saw that temperatures rising on all the sensors
+and cooled down as soon as the load was reduced.
+
+ .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 37 ++++++++++++++=
++++++++-
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  4 +++
+ 3 files changed, 42 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/dri=
+vers/thermal/ti-soc-thermal/dra752-thermal-data.c
+index a492927..58b5c66 100644
+--- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
++++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+@@ -420,7 +420,8 @@ const struct ti_bandgap_data dra752_data =3D {
+ 			TI_BANDGAP_FEATURE_FREEZE_BIT |
+ 			TI_BANDGAP_FEATURE_TALERT |
+ 			TI_BANDGAP_FEATURE_COUNTER_DELAY |
+-			TI_BANDGAP_FEATURE_HISTORY_BUFFER,
++			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
++			TI_BANDGAP_FEATURE_ERRATA_814,
+ 	.fclock_name =3D "l3instr_ts_gclk_div",
+ 	.div_ck_name =3D "l3instr_ts_gclk_div",
+ 	.conv_table =3D dra752_adc_to_temp,
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/ther=
+mal/ti-soc-thermal/ti-bandgap.c
+index 74c0e34..baf822e 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -119,6 +119,37 @@ exit:
+ }
+=20
+ /**
++ * ti_dra7_bandgap_read_temp() - helper function to read dra7 sensor t=
+emperature
++ * @bgp: pointer to ti_bandgap structure
++ * @reg: desired register (offset) to be read
++ *
++ * Function to read dra7 bandgap sensor temperature. This is done sepa=
+rately
++ * so as to workaround the errata "Bandgap Temperature read Dtemp can =
+be
++ * corrupted" - Errata ID: i814".
++ * Read accesses to registers listed below can be corrupted due to inc=
+orrect
++ * resynchronization between clock domains.
++ * Read access to registers below can be corrupted :
++ * CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =3D 0 to 4)
++ * CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
++ *
++ * Return: the register value.
++ */
++static u32 ti_dra7_bandgap_read_temp(struct ti_bandgap *bgp,  u32 reg)
++{
++	u32 val1, val2;
++
++	val1 =3D ti_bandgap_readl(bgp, reg);
++	val2 =3D ti_bandgap_readl(bgp, reg);
++
++/* If both times we read the same value then that is right */
++	if (val1 =3D=3D val2)
++		return val1;
++
++/* if val1 and val2 are different read it third time */
++	return ti_bandgap_readl(bgp, reg);
++}
++
++/**
+  * ti_bandgap_read_temp() - helper function to read sensor temperature
+  * @bgp: pointer to ti_bandgap structure
+  * @id: bandgap sensor id
+@@ -148,7 +179,11 @@ static u32 ti_bandgap_read_temp(struct ti_bandgap =
+*bgp, int id)
+ 	}
+=20
+ 	/* read temperature */
+-	temp =3D ti_bandgap_readl(bgp, reg);
++	if (TI_BANDGAP_HAS(bgp, ERRATA_814))
++		temp =3D ti_dra7_bandgap_read_temp(bgp, reg);
++	else
++		temp =3D ti_bandgap_readl(bgp, reg);
++
+ 	temp &=3D tsr->bgap_dtemp_mask;
+=20
+ 	if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/ther=
+mal/ti-soc-thermal/ti-bandgap.h
+index b3adf72..b2da3fc 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+@@ -318,6 +318,9 @@ struct ti_temp_sensor {
+  * TI_BANDGAP_FEATURE_HISTORY_BUFFER - used when the bandgap device fe=
+atures
+  *	a history buffer of temperatures.
+  *
++ * TI_BANDGAP_FEATURE_ERRATA_814 - used to workaorund when the bandgap=
+ device
++ *	has Errata 814
++ *
+  * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is capabl=
+e of a
+  *      specific feature (above) or not. Return non-zero, if yes.
+  */
+@@ -331,6 +334,7 @@ struct ti_temp_sensor {
+ #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
+ #define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
+ #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
++#define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
+ #define TI_BANDGAP_HAS(b, f)			\
+ 			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
+=20
+--=20
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
