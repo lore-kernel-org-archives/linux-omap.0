@@ -1,20 +1,19 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 1/8] gpio: omap: convert omap_gpio_is_input() to use
- gpio offset
-Date: Fri, 27 Mar 2015 11:03:30 +0100
-Message-ID: <CACRpkdamuvz-OHoL64AtuZg437eQ_h4=sW9ObJ4ZVDinUBnJ-w@mail.gmail.com>
+Subject: Re: [PATCH v2 2/8] gpio: omap: simplify omap_set_gpio_dataout_x()
+Date: Fri, 27 Mar 2015 11:04:19 +0100
+Message-ID: <CACRpkdbQ+SuPeodW+poD+CmbqVXsLWnYhzafWd+VcZKENqWoxQ@mail.gmail.com>
 References: <1427113110-20813-1-git-send-email-grygorii.strashko@linaro.org>
-	<1427113110-20813-2-git-send-email-grygorii.strashko@linaro.org>
+	<1427113110-20813-3-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:36723 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283AbbC0KDb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2015 06:03:31 -0400
-Received: by obbld8 with SMTP id ld8so15330788obb.3
-        for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2015 03:03:30 -0700 (PDT)
-In-Reply-To: <1427113110-20813-2-git-send-email-grygorii.strashko@linaro.org>
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:36516 "EHLO
+	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752394AbbC0KEU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2015 06:04:20 -0400
+Received: by oicf142 with SMTP id f142so62649678oic.3
+        for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2015 03:04:19 -0700 (PDT)
+In-Reply-To: <1427113110-20813-3-git-send-email-grygorii.strashko@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@linaro.org>
@@ -24,8 +23,10 @@ On Mon, Mar 23, 2015 at 1:18 PM,  <grygorii.strashko@linaro.org> wrote:
 
 > From: Grygorii Strashko <grygorii.strashko@linaro.org>
 >
-> Convert omap_gpio_is_input() to use GPIO offset instead of mask and,
-> in such way, make code simpler and remove few lines of code.
+> Both functions omap_set_gpio_dataout_reg() and
+> omap_set_gpio_dataout_mask() accept GPIO offset
+> as 'gpio' input parameter, so rename it to 'offset' and
+> drop usage of GPIO_BIT() macro.
 >
 > Tested-by: Tony Lindgren <tony@atomide.com>
 > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
