@@ -1,46 +1,146 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 32/35 linux-next] clk: constify of_device_id array
-Date: Fri, 27 Mar 2015 00:19:35 -0700
-Message-ID: <20150327071935.GB18059@codeaurora.org>
-References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
- <1426535949-26107-1-git-send-email-fabf@skynet.be>
- <20150318141509.7930.28419@quantum>
- <386731024.185864.1427020449384.open-xchange@webmail.nmp.proximus.be>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH V2 1/2] ARM: dts: DRA7: Add bandgap and related thermal
+ nodes
+Date: Fri, 27 Mar 2015 13:38:07 +0530
+Message-ID: <55150FE7.5090601@ti.com>
+References: <1427139579-4215-1-git-send-email-nm@ti.com> <1427139579-4215-2-git-send-email-nm@ti.com> <5514F27C.7070904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <386731024.185864.1427020449384.open-xchange@webmail.nmp.proximus.be>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: linux-kernel@vger.kernel.org, Michael Turquette <mturquette@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tero Kristo <t-kristo@ti.com>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liviu Dudau <liviu.dudau@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49707 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752624AbbC0IIm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Mar 2015 04:08:42 -0400
+In-Reply-To: <5514F27C.7070904@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, tony@atomide.com, bcousson@baylibre.com, edubezval@gmail.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.com
 
-On 03/22, Fabian Frederick wrote:
-> 
-> 
-> > On 18 March 2015 at 15:15 Michael Turquette <mturquette@linaro.org> wrote:
-> >
-> >
-> > Quoting Fabian Frederick (2015-03-16 12:59:06)
-> > > of_device_id is always used as const.
-> > > (See driver.of_match_table and open firmware functions)
-> > >
-> > > Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> >
-> > Acked-by: Michael Turquette <mturquette@linaro.org>
-> 
-> Thanks :)
-> 
-> btw, something I forgot to mention in changelog is the __initdata -> __initconst
-> for ti_clkdm_match_table[]
-> 
-> I can send it again with a new changelog if necessary ...
-> 
 
-Did you want us to take this through clk-next? If so please
-resend with the new commit text.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+On Friday 27 March 2015 11:32 AM, Keerthy wrote:
+>
+>
+> On Tuesday 24 March 2015 01:09 AM, Nishanth Menon wrote:
+>> From: Keerthy <j-keerthy@ti.com>
+>>
+>> Add bandgap and related thermal nodes. The patch adds 5 thermal
+>> sensors. Only one cooling device for mpu as of now. The sensors are
+>> the exact same on both dra72 and dra7. Introduce CPU, GPU, core nodes
+>> for the moment as they are direct reuse of OMAP5 entities.
+>>
+>> NOTE: OMAP4 has a finer counter granularity, which allows for a delay
+>> of 1000ms in the thermal zone polling intervals. DRA7 have different
+>> counter mechanism, which allows at maximum a 500ms timer. Adjust the
+>> cpu thermal zone accordingly for DRA7.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> [t-kristo@ti.com: few reuse from OMAP5 entities]
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>> Changes since V1:
+>>     - omap5-cpu-thermal.dtsi dropped
+>>     - approach similar to omap5
+>>     - added core and gpu thermal dtsi(they can be reused)
+>>     - Squashed patch #1 from v1 to patch #2 - this patch.
+>>     - Not carrying forward ack due to change
+>
+> Thanks for updating Nishanth. Looks good to me.
+
+Tested on DRA7 EVM.
+
+Read the temperatures from all the 5 sensors they were sane.
+Loaded the CPU and saw the temperatures rise and fall with increase and 
+decrease in the load.
+
+Tested-by: Keerthy <j-keerthy@ti.com>
+>
+> - Keerthy
+>
+>>
+>> V1: http://marc.info/?t=142688102700006&r=1&w=2
+>>
+>>   arch/arm/boot/dts/dra7.dtsi   |   23 +++++++++++++++++++++++
+>>   arch/arm/boot/dts/dra72x.dtsi |    5 +++++
+>>   arch/arm/boot/dts/dra74x.dtsi |    5 +++++
+>>   3 files changed, 33 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index eea4a54d6cb3..2d6a7e3e001f 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -177,6 +177,18 @@
+>>               };
+>>           };
+>>
+>> +        bandgap: bandgap@4a0021e0 {
+>> +            reg = <0x4a0021e0 0xc
+>> +                0x4a00232c 0xc
+>> +                0x4a002380 0x2c
+>> +                0x4a0023C0 0x3c
+>> +                0x4a002564 0x8
+>> +                0x4a002574 0x50>;
+>> +                compatible = "ti,dra752-bandgap";
+>> +                interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
+>> +                #thermal-sensor-cells = <1>;
+>> +        };
+>> +
+>>           cm_core_aon: cm_core_aon@4a005000 {
+>>               compatible = "ti,dra7-cm-core-aon";
+>>               reg = <0x4a005000 0x2000>;
+>> @@ -1419,6 +1431,17 @@
+>>               status = "disabled";
+>>           };
+>>       };
+>> +
+>> +    thermal_zones: thermal-zones {
+>> +        #include "omap4-cpu-thermal.dtsi"
+>> +        #include "omap5-gpu-thermal.dtsi"
+>> +        #include "omap5-core-thermal.dtsi"
+>> +    };
+>> +
+>> +};
+>> +
+>> +&cpu_thermal {
+>> +    polling-delay = <500>; /* milliseconds */
+>>   };
+>>
+>>   /include/ "dra7xx-clocks.dtsi"
+>> diff --git a/arch/arm/boot/dts/dra72x.dtsi
+>> b/arch/arm/boot/dts/dra72x.dtsi
+>> index e5a3d23a3df1..6ac8e3601499 100644
+>> --- a/arch/arm/boot/dts/dra72x.dtsi
+>> +++ b/arch/arm/boot/dts/dra72x.dtsi
+>> @@ -20,6 +20,11 @@
+>>               device_type = "cpu";
+>>               compatible = "arm,cortex-a15";
+>>               reg = <0>;
+>> +
+>> +            /* cooling options */
+>> +            cooling-min-level = <0>;
+>> +            cooling-max-level = <2>;
+>> +            #cooling-cells = <2>; /* min followed by max */
+>>           };
+>>       };
+>>
+>> diff --git a/arch/arm/boot/dts/dra74x.dtsi
+>> b/arch/arm/boot/dts/dra74x.dtsi
+>> index 10173fab1a15..eef981f4bcd5 100644
+>> --- a/arch/arm/boot/dts/dra74x.dtsi
+>> +++ b/arch/arm/boot/dts/dra74x.dtsi
+>> @@ -31,6 +31,11 @@
+>>               clock-names = "cpu";
+>>
+>>               clock-latency = <300000>; /* From omap-cpufreq driver */
+>> +
+>> +            /* cooling options */
+>> +            cooling-min-level = <0>;
+>> +            cooling-max-level = <2>;
+>> +            #cooling-cells = <2>; /* min followed by max */
+>>           };
+>>           cpu@1 {
+>>               device_type = "cpu";
+>>
