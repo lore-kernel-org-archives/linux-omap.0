@@ -1,35 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3 5/7] dmaengine: omap-dma: Take DMA request number from
- DT if it is available
-Date: Fri, 27 Mar 2015 20:24:46 +0000
-Message-ID: <20150327202446.GB4027@n2100.arm.linux.org.uk>
-References: <1427459213-14611-1-git-send-email-peter.ujfalusi@ti.com>
- <1427459213-14611-6-git-send-email-peter.ujfalusi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: Enable Cortex A15 errata 798181
+Date: Fri, 27 Mar 2015 15:35:00 -0500
+Message-ID: <5515BEF4.7030201@ti.com>
+References: <1427325909-7014-1-git-send-email-praneeth@ti.com> <5513458A.50001@ti.com> <20150326173515.GB10805@atomide.com>
+Reply-To: nm@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1427459213-14611-6-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <20150326173515.GB10805@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, tony@atomide.com, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Praneeth Bajjuri <praneeth@ti.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 27, 2015 at 02:26:51PM +0200, Peter Ujfalusi wrote:
-> +	if (!pdev->dev.of_node || of_property_read_u32(pdev->dev.of_node,
-> +						       "dma-requests",
-> +						       &od->dma_requests)) {
-> +		dev_info(&pdev->dev,
-> +			 "Missing dma-requests property, using %u.\n",
-> +			 OMAP_SDMA_REQUESTS);
-> +		od->dma_requests = OMAP_SDMA_REQUESTS;
-> +	}
-
-Are all OMAPs including OMAP1 being converted to DT?  If not, don't
-introduce noisy printks for which a platform can't do anything about.
-Think about this please - if there's no of_node, then why complain
-about a missing OF property?
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+On 03/26/2015 12:35 PM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [150325 16:32]:
+>> On 03/25/2015 06:25 PM, Praneeth Bajjuri wrote:
+>>> ARM errata 798181 is applicable for OMAP5/DRA7 based devices. So enable
+>>> the same in the build.
+>>>
+>>> DRA7xx is based on Cortex-A15 r2p2 revision.
+>>>
+>>> ARM Errata extract and workaround information is as below.
+>>>
+>>> On Cortex-A15 (r0p0..r3p2) the TLBI*IS/DSB operations are not
+>>> adequately shooting down all use of the old entries. The
+>>> ARM_ERRATA_798181 option enables the Linux kernel workaround
+>>> for this erratum which sends an IPI to the CPUs that are running
+>>> the same ASID as the one being invalidated.
+>>>
+>>> Signed-off-by: Praneeth Bajjuri <praneeth@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/Kconfig |    1 +
+>>>  1 file changed, 1 insertion(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+>>> index c7d8d86..3e4b4ae 100644
+>>> --- a/arch/arm/mach-omap2/Kconfig
+>>> +++ b/arch/arm/mach-omap2/Kconfig
+>>> @@ -69,6 +69,7 @@ config SOC_DRA7XX
+>>>  	select ARM_GIC
+>>>  	select HAVE_ARM_ARCH_TIMER
+>>>  	select IRQ_CROSSBAR
+>>> +	select ARM_ERRATA_798181 if SMP
+>>>  
+>>>  config ARCH_OMAP2PLUS
+>>>  	bool
+>>>
+>> Gee thanks and Apologies on missing this patch.
+>>
+>> Acked-by: Nishanth Menon <nm@ti.com>
+>>
+>> Seen on DRA7 only builds, so kinda slipped radar a bit.. verified to
+>> apply on v4.0-rc1
+> 
+> Is this needed as a fix for v4.0-rc series or can this wait for v4.1?
+I think we can wait till 4.1
