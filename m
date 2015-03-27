@@ -1,123 +1,76 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 11/35] ARM: OMAP2+: clock: move clock provider infrastructure
- to clock driver
-Date: Fri, 27 Mar 2015 15:06:59 +0200
-Message-ID: <551555F3.2000805@ti.com>
-References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <1426877086-17131-12-git-send-email-t-kristo@ti.com> <5512D069.4080906@ti.com> <20150325231659.GD31346@atomide.com> <5513B426.1070205@ti.com> <5513E59F.3020204@ti.com> <20150326173013.GH31346@atomide.com>
+From: Tyler Baker <tyler.baker@linaro.org>
+Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm: get
+ rid of the bounce page"
+Date: Fri, 27 Mar 2015 08:18:54 -0700
+Message-ID: <CANMBJr4hcRC14KUUVJDGNeuT+_e45BPNfNSbzpzY021pq2XwYA@mail.gmail.com>
+References: <20150324004537.GA24816@verge.net.au>
+	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+	<20150324161358.GA694@kahuna>
+	<20150326003939.GA25368@verge.net.au>
+	<20150326133631.GB2805@arm.com>
+	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au>
+	<20150327100612.GB1562@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59287 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752310AbbC0NHU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Mar 2015 09:07:20 -0400
-In-Reply-To: <20150326173013.GH31346@atomide.com>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:37313 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752213AbbC0PSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2015 11:18:55 -0400
+Received: by wiaa2 with SMTP id a2so35652249wia.0
+        for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2015 08:18:54 -0700 (PDT)
+In-Reply-To: <20150327100612.GB1562@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, sakari.ailus@iki.fi, linux-arm-kernel@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Simon Horman <horms@verge.net.au>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 03/26/2015 07:30 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [150326 03:55]:
->> On 03/26/2015 09:24 AM, Tero Kristo wrote:
->>> On 03/26/2015 01:17 AM, Tony Lindgren wrote:
->>>> * Tero Kristo <t-kristo@ti.com> [150325 08:12]:
->>>>>
->>>>> Splits the clock provider init out of the PRM driver and moves it to
->>>>> clock driver. This is needed so that once the PRCM drivers are
->>>>> separated,
->>>>> they can logically just access the clock driver not needing to go
->>>>> through
->>>>> common PRM code. This would be wrong in the case of control module for
->>>>> example.
->>>> ...
->>>>
->>>>> --- a/arch/arm/mach-omap2/clock.c
->>>>> +++ b/arch/arm/mach-omap2/clock.c
->>>> ...
->>>>> -u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
->>>>> +u32 omap2_clk_memmap_readl(void __iomem *reg)
->>>>>   {
->>>>> -    u32 val;
->>>>> +    struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
->>>>>
->>>>> -    if (clk->flags & MEMMAP_ADDRESSING) {
->>>>> -        struct clk_omap_reg *r = (struct clk_omap_reg *)&reg;
->>>>> -        val = readl_relaxed(clk_memmaps[r->index] + r->offset);
->>>>> -    } else {
->>>>> -        val = readl_relaxed(reg);
->>>>> -    }
->>>>> +    return readl_relaxed(clk_memmaps[r->index] + r->offset);
->>>>> +}
->>>>
->>>> The cast from void __iomem *reg to struct clk_omap_reg *r looks still
->>>> nasty.. Why don't you add the IO address into struct clk_omap_reg:
->>>>
->>>> struct clk_omap_reg {
->>>>     u16 offset;
->>>>     u16 index;
->>>>     struct regmap *regmap;
->>>>     void __iomem *addr;
->>>> };
->>>> ...
->>>>
->>>> Then populate it during init and then have the clock code use it
->>>> directly if available? Then it seems you would not need the
->>>> static struct clk_iomap *clk_memmaps[CLK_MAX_MEMMAPS] at all?
->>>
->>> Doing a change like this should probably be planned, but it is a larger
->>> modification. Currently none of the low-level clock APIs support this,
->>> but instead expect a direct iomem pointer against which they can do
->>> arithmetic operations. The major problem is the companion clocks, which
->>> just XOR some bits in the registers to get ICLK / IDLEST register offset
->> >from FCLK.
->>>
->>> So, for now, clock code just uses the void __iomem pointer as a storage
->>> class for struct clk_omap_reg, on which arithmetic operations can be done.
->
-> Well how about keep the check if (clk->flags & MEMMAP_ADDRESSING) at
-> least? Maybe WARN_ON(!(clk->flags & MEMMAP_ADDRESSING))?
->
-> Otherwise this could be a nightmare to debug if anything goes wrong.
-
-Ok, force update pushed to branch now, the patch is basically pretty 
-much to the format where it was before this discussion, with the 
-addition of WARN_ON_ONCE in case MEMMAP_ADDRESSING is missing.
-
--Tero
-
->
->> I did this change as a trial, and this is the diff required to get it
->> working:
+On 27 March 2015 at 03:06, Will Deacon <will.deacon@arm.com> wrote:
+> On Fri, Mar 27, 2015 at 12:25:54AM +0000, Simon Horman wrote:
+>> On Thu, Mar 26, 2015 at 08:29:21AM -0700, Tyler Baker wrote:
+>> > On 26 March 2015 at 06:36, Will Deacon <will.deacon@arm.com> wrote:
+>> > > On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
+>> > >> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
+>> > >> > I think we now have a new error: (seen with omap2plus_defconfig)
+>> > >> > on next-20150324 :
+>> > >> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
+>> > >> > referenced in expression
+>> > >> > make: *** [vmlinux] Error 1
+>> > >>
+>> > >> Thanks, I am seeing that too.
+>> > >>
+>> > >> My armchair suggestion is that the following should be reverted.
+>> > >>
+>> > >> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+>> > >> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
+>> > >
+>> > > Can you try again with the latest -next please? We've merged an additional
+>> > > patch aimed at sorting this out. Reverting isn't really an option, as
+>> > > there's an awful lot of code that depends on the bounce page removal.
+>> >
+>> > Here are the kernelci.org -next results[1], if you click the build
+>> > status you can dig down into the build failures. next-20150326 has now
+>> > hit a compiler bug, Arnd mentioned he was looking into this issue.
 >>
->>   arch/arm/mach-omap2/clkt_iclk.c |   20 ++++++++---------
->>   arch/arm/mach-omap2/clock.c     |   47
->> +++++++++++++++++----------------------
->>   arch/arm/mach-omap2/clock.h     |    8 +++----
->>   arch/arm/mach-omap2/clock2430.c |    5 +++--
->>   arch/arm/mach-omap2/clock34xx.c |   36 ++++++++++++++----------------
->>   arch/arm/mach-omap2/clock3517.c |   20 ++++++++---------
->>   arch/arm/mach-omap2/cm.h        |    4 +++-
->>   arch/arm/mach-omap2/cm2xxx.c    |    9 +++-----
->>   arch/arm/mach-omap2/cm3xxx.c    |   10 +++------
->>   drivers/clk/ti/clk.c            |   10 +++++----
->>   drivers/clk/ti/divider.c        |   24 ++++++++++++++------
->>   drivers/clk/ti/dpll.c           |   11 ++++-----
->>   drivers/clk/ti/gate.c           |   21 +++++++++++------
->>   drivers/clk/ti/interface.c      |    9 ++++----
->>   drivers/clk/ti/mux.c            |   22 ++++++++++++------
->>   include/linux/clk/ti.h          |    5 +++--
->>   16 files changed, 137 insertions(+), 124 deletions(-)
+>> I have confirmed that next-20150326 does not compile without
+>> the following reverted:
 >>
->> I think we should probably keep this out of this set now and do this while
->> moving the OMAP core clock support code under clock driver... just to keep
->> it more easily manageable.
+>> 12eb3e833961 ("ARM: kvm: assert on HYP section boundaries not actual code size")
+>> e60a1fec44a2 ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+>> 06f75a1f6200 ("ARM, arm64: kvm: get rid of the bounce page")
 >
-> OK fine with me to do that as a follow-up patch.
->
-> Regards,
->
-> Tony
->
+> Thanks for testing this and sorry for the continued breakage. Which
+> toolchain did you say you were using? Ard has some more patches trying to
+> fix this, but none of our toolchains seem to tickle the issue.
 
+I am able to reproduce with this toolchain[1].
+
+>
+> Will
+
+
+
+[1] http://releases.linaro.org/12.10/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.7-2012.10-20121022_linux.tar.bz2
+
+Tyler
