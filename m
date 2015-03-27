@@ -1,173 +1,52 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP2: HSMMC: explicit fields to declare cover/card
- detect pin
-Date: Fri, 27 Mar 2015 12:24:32 +0100
-Message-ID: <CAPDyKFp_K2Q88NMoY-B4xU5wX0QxLQ5Ryfwycs1Y4Axbh6Lo8A@mail.gmail.com>
-References: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 2/5] dmaengine: omap-dma: Fix memory leak when terminating running transfer
+Date: Fri, 27 Mar 2015 13:35:52 +0200
+Message-ID: <1427456155-28990-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1427456155-28990-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f53.google.com ([209.85.192.53]:33691 "EHLO
-	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752353AbbC0LYd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2015 07:24:33 -0400
-Received: by qgfa8 with SMTP id a8so123042437qgf.0
-        for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2015 04:24:32 -0700 (PDT)
-In-Reply-To: <1426863234-28409-1-git-send-email-afenkart@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56198 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752477AbbC0Lge (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Mar 2015 07:36:34 -0400
+In-Reply-To: <1427456155-28990-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: vinod.koul@intel.com, linux@arm.linux.org.uk
+Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 20 March 2015 at 15:53, Andreas Fenkart <afenkart@gmail.com> wrote:
-> board-rx51 has no card detect pin in the mmc slot, but can detect that
-> the (cell-phone) cover has been removed and the card is accessible.
-> The semantics between cover/card detect differ, the gpio on the slot
-> informs you after the card has been removed, cover removal does not
-> necessarily mean that the card has been removed.
-> This means different code paths are necessary. To complete this we
-> also want different fields in the platform data for cover and card
-> detect. This separation is not pushed all the way down into struct
-> omap2_hsmmc_info which is used to initialize the platform data.
-> If we did that we had to go over all board files and set the new
-> gpio_cod pin to -EINVAL. If we forget one board or some out-of-tree
-> archicture forgets that the default '0' is used which is a valid pin
-> number.
->
-> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+In omap_dma_start_desc the vdesc->node is removed from the virt-dma
+framework managed lists (to be precise from the desc_issued list).
+If a terminate_all comes before the transfer finishes the omap_desc will
+not be freed up because it is not in any of the lists and we stopped the
+DMA channel so the transfer will not going to complete.
+There is no special sequence for leaking memory when using cyclic (audio)
+transfer: with every start and stop of a cyclic transfer the driver leaks
+struct omap_desc worth of memory.
 
-Thanks! Applied.
+Free up the allocated memory directly in omap_dma_terminate_all() since the
+framework will not going to do that for us.
 
-Kind regards
-Uffe
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: <stable@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>
+---
+ drivers/dma/omap-dma.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> ---
->  arch/arm/mach-omap2/hsmmc.c              | 33 ++++++++++++++++++++++++--------
->  drivers/mmc/host/omap_hsmmc.c            | 11 ++++++-----
->  include/linux/platform_data/hsmmc-omap.h |  6 ++----
->  3 files changed, 33 insertions(+), 17 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index dc6e79c..9a8611a 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -150,9 +150,13 @@ static int nop_mmc_set_power(struct device *dev, int power_on, int vdd)
->  static inline void omap_hsmmc_mux(struct omap_hsmmc_platform_data
->                                   *mmc_controller, int controller_nr)
->  {
-> -       if (gpio_is_valid(mmc_controller->switch_pin) &&
-> -           (mmc_controller->switch_pin < OMAP_MAX_GPIO_LINES))
-> -               omap_mux_init_gpio(mmc_controller->switch_pin,
-> +       if (gpio_is_valid(mmc_controller->gpio_cd) &&
-> +           (mmc_controller->gpio_cd < OMAP_MAX_GPIO_LINES))
-> +               omap_mux_init_gpio(mmc_controller->gpio_cd,
-> +                                  OMAP_PIN_INPUT_PULLUP);
-> +       if (gpio_is_valid(mmc_controller->gpio_cod) &&
-> +           (mmc_controller->gpio_cod < OMAP_MAX_GPIO_LINES))
-> +               omap_mux_init_gpio(mmc_controller->gpio_cod,
->                                    OMAP_PIN_INPUT_PULLUP);
->         if (gpio_is_valid(mmc_controller->gpio_wp) &&
->             (mmc_controller->gpio_wp < OMAP_MAX_GPIO_LINES))
-> @@ -250,15 +254,20 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
->         mmc->internal_clock = !c->ext_clock;
->         mmc->reg_offset = 0;
->
-> -       mmc->switch_pin = c->gpio_cd;
-> +       if (c->cover_only) {
-> +               /* detect if mobile phone cover removed */
-> +               mmc->gpio_cd = -EINVAL;
-> +               mmc->gpio_cod = c->gpio_cd;
-> +       } else {
-> +               /* card detect pin on the mmc socket itself */
-> +               mmc->gpio_cd = c->gpio_cd;
-> +               mmc->gpio_cod = -EINVAL;
-> +       }
->         mmc->gpio_wp = c->gpio_wp;
->
->         mmc->remux = c->remux;
->         mmc->init_card = c->init_card;
->
-> -       if (c->cover_only)
-> -               mmc->cover = 1;
-> -
->         if (c->nonremovable)
->                 mmc->nonremovable = 1;
->
-> @@ -358,7 +367,15 @@ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
->                 if (!mmc_pdata)
->                         continue;
->
-> -               mmc_pdata->switch_pin = c->gpio_cd;
-> +               if (c->cover_only) {
-> +                       /* detect if mobile phone cover removed */
-> +                       mmc_pdata->gpio_cd = -EINVAL;
-> +                       mmc_pdata->gpio_cod = c->gpio_cd;
-> +               } else {
-> +                       /* card detect pin on the mmc socket itself */
-> +                       mmc_pdata->gpio_cd = c->gpio_cd;
-> +                       mmc_pdata->gpio_cod = -EINVAL;
-> +               }
->                 mmc_pdata->gpio_wp = c->gpio_wp;
->
->                 res = omap_device_register(pdev);
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 053cd38..265391f 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -427,15 +427,15 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
->  {
->         int ret;
->
-> -       if (pdata->cover && gpio_is_valid(pdata->switch_pin)) {
-> -               ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
-> +       if (gpio_is_valid(pdata->gpio_cod)) {
-> +               ret = mmc_gpio_request_cd(mmc, pdata->gpio_cod, 0);
->                 if (ret)
->                         return ret;
->
->                 host->get_cover_state = omap_hsmmc_get_cover_state;
->                 mmc_gpio_set_cd_isr(mmc, omap_hsmmc_cover_irq);
-> -       } else if (!pdata->cover && gpio_is_valid(pdata->switch_pin)) {
-> -               ret = mmc_gpio_request_cd(mmc, pdata->switch_pin, 0);
-> +       } else if (gpio_is_valid(pdata->gpio_cd)) {
-> +               ret = mmc_gpio_request_cd(mmc, pdata->gpio_cd, 0);
->                 if (ret)
->                         return ret;
->
-> @@ -1932,7 +1932,8 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->         if (of_find_property(np, "ti,dual-volt", NULL))
->                 pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
->
-> -       pdata->switch_pin = -EINVAL;
-> +       pdata->gpio_cd = -EINVAL;
-> +       pdata->gpio_cod = -EINVAL;
->         pdata->gpio_wp = -EINVAL;
->
->         if (of_find_property(np, "ti,non-removable", NULL)) {
-> diff --git a/include/linux/platform_data/hsmmc-omap.h b/include/linux/platform_data/hsmmc-omap.h
-> index 67bbcf0..8e981be 100644
-> --- a/include/linux/platform_data/hsmmc-omap.h
-> +++ b/include/linux/platform_data/hsmmc-omap.h
-> @@ -55,9 +55,6 @@ struct omap_hsmmc_platform_data {
->         u32 caps;       /* Used for the MMC driver on 2430 and later */
->         u32 pm_caps;    /* PM capabilities of the mmc */
->
-> -       /* switch pin can be for card detect (default) or card cover */
-> -       unsigned cover:1;
-> -
->         /* use the internal clock */
->         unsigned internal_clock:1;
->
-> @@ -73,7 +70,8 @@ struct omap_hsmmc_platform_data {
->  #define HSMMC_HAS_HSPE_SUPPORT (1 << 2)
->         unsigned features;
->
-> -       int switch_pin;                 /* gpio (card detect) */
-> +       int gpio_cd;                    /* gpio (card detect) */
-> +       int gpio_cod;                   /* gpio (cover detect) */
->         int gpio_wp;                    /* gpio (write protect) */
->
->         int (*set_power)(struct device *dev, int power_on, int vdd);
-> --
-> 2.1.4
->
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 1e646d6c8230..6a4c378ee432 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -1002,6 +1002,7 @@ static int omap_dma_terminate_all(struct dma_chan *chan)
+ 	 * c->desc is NULL and exit.)
+ 	 */
+ 	if (c->desc) {
++		omap_dma_desc_free(&c->desc->vd);
+ 		c->desc = NULL;
+ 		/* Avoid stopping the dma twice */
+ 		if (!c->paused)
+-- 
+2.3.3
+
