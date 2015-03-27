@@ -1,52 +1,60 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/5] dmaengine: omap-dma: Fix memory leak when terminating running transfer
-Date: Fri, 27 Mar 2015 13:35:52 +0200
-Message-ID: <1427456155-28990-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/5] dmaengine: edma: fix memory leak when terminating running transfers
+Date: Fri, 27 Mar 2015 13:35:51 +0200
+Message-ID: <1427456155-28990-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1427456155-28990-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56198 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752477AbbC0Lge (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Mar 2015 07:36:34 -0400
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <1427456155-28990-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: vinod.koul@intel.com, linux@arm.linux.org.uk
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Petr Kulhavy <petr@barix.com>, stable@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-In omap_dma_start_desc the vdesc->node is removed from the virt-dma
-framework managed lists (to be precise from the desc_issued list).
-If a terminate_all comes before the transfer finishes the omap_desc will
-not be freed up because it is not in any of the lists and we stopped the
-DMA channel so the transfer will not going to complete.
-There is no special sequence for leaking memory when using cyclic (audio)
-transfer: with every start and stop of a cyclic transfer the driver leaks
-struct omap_desc worth of memory.
+From: Petr Kulhavy <petr@barix.com>
 
-Free up the allocated memory directly in omap_dma_terminate_all() since the
-framework will not going to do that for us.
+If edma_terminate_all() was called while a transfer was running (i.e. after
+edma_execute() but before edma_callback()) the echan->edesc was not freed.
 
+This was due to the fact that a running transfer is on none of the
+vchan lists: desc_submitted, desc_issued, desc_completed (edma_execute()
+removes it from the desc_issued list), so the vchan_dma_desc_free_list()
+called at the end of edma_terminate_all() didn't find it and didn't free it.
+
+This bug was found on an AM1808 based hardware (very similar to da850evm,
+however using the second MMC/SD controller), where intense operations on the SD
+card wasted the device 128MB RAM within a couple of days.
+
+Peter Ujfalusi:
+The issue is even more severe since it affects cyclic (audio) transfers as
+well. In this case starting/stopping audio will results memory leak.
+
+Signed-off-by: Petr Kulhavy <petr@barix.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 CC: <stable@vger.kernel.org>
 CC: <linux-omap@vger.kernel.org>
 ---
- drivers/dma/omap-dma.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma/edma.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 1e646d6c8230..6a4c378ee432 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -1002,6 +1002,7 @@ static int omap_dma_terminate_all(struct dma_chan *chan)
- 	 * c->desc is NULL and exit.)
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 741baa68365c..984c2b12dae3 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -268,6 +268,13 @@ static int edma_terminate_all(struct dma_chan *chan)
  	 */
- 	if (c->desc) {
-+		omap_dma_desc_free(&c->desc->vd);
- 		c->desc = NULL;
- 		/* Avoid stopping the dma twice */
- 		if (!c->paused)
+ 	if (echan->edesc) {
+ 		int cyclic = echan->edesc->cyclic;
++
++		/*
++		 * free the running request descriptor
++		 * since it is not in any of the vdesc lists
++		 */
++		edma_desc_free(&echan->edesc->vdesc);
++
+ 		echan->edesc = NULL;
+ 		edma_stop(echan->ch_num);
+ 		/* Move the cyclic channel back to default queue */
 -- 
 2.3.3
-
