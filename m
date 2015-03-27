@@ -1,79 +1,38 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm:
- get rid of the bounce page"
-Date: Fri, 27 Mar 2015 20:55:09 +0900
-Message-ID: <20150327115505.GA18822@verge.net.au>
-References: <20150324004537.GA24816@verge.net.au>
- <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
- <20150324161358.GA694@kahuna>
- <20150326003939.GA25368@verge.net.au>
- <20150326133631.GB2805@arm.com>
- <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
- <20150327002554.GA5527@verge.net.au>
- <20150327100612.GB1562@arm.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 1/7] dmaengine: of_dma: Support for DMA routers
+Date: Fri, 27 Mar 2015 14:25:29 +0200
+Message-ID: <55154C39.3030602@ti.com>
+References: <1426080210-841-1-git-send-email-peter.ujfalusi@ti.com> <1426080210-841-2-git-send-email-peter.ujfalusi@ti.com> <20150326105018.GJ32683@intel.com> <5513F77A.4030005@ti.com> <20150326153221.GM32683@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150327100612.GB1562@arm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150326153221.GM32683@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 27, 2015 at 10:06:12AM +0000, Will Deacon wrote:
-> On Fri, Mar 27, 2015 at 12:25:54AM +0000, Simon Horman wrote:
-> > On Thu, Mar 26, 2015 at 08:29:21AM -0700, Tyler Baker wrote:
-> > > On 26 March 2015 at 06:36, Will Deacon <will.deacon@arm.com> wrote:
-> > > > On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
-> > > >> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
-> > > >> > I think we now have a new error: (seen with omap2plus_defconfig)
-> > > >> > on next-20150324 :
-> > > >> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
-> > > >> > referenced in expression
-> > > >> > make: *** [vmlinux] Error 1
-> > > >>
-> > > >> Thanks, I am seeing that too.
-> > > >>
-> > > >> My armchair suggestion is that the following should be reverted.
-> > > >>
-> > > >> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
-> > > >> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
-> > > >
-> > > > Can you try again with the latest -next please? We've merged an additional
-> > > > patch aimed at sorting this out. Reverting isn't really an option, as
-> > > > there's an awful lot of code that depends on the bounce page removal.
-> > > 
-> > > Here are the kernelci.org -next results[1], if you click the build
-> > > status you can dig down into the build failures. next-20150326 has now
-> > > hit a compiler bug, Arnd mentioned he was looking into this issue.
-> > 
-> > I have confirmed that next-20150326 does not compile without
-> > the following reverted:
-> > 
-> > 12eb3e833961 ("ARM: kvm: assert on HYP section boundaries not actual code size")
-> > e60a1fec44a2 ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
-> > 06f75a1f6200 ("ARM, arm64: kvm: get rid of the bounce page")
-> 
-> Thanks for testing this and sorry for the continued breakage. Which
-> toolchain did you say you were using? Ard has some more patches trying to
-> fix this, but none of our toolchains seem to tickle the issue.
+On 03/26/2015 05:32 PM, Vinod Koul wrote:
+>> I have added the DT binding document since this series adds support =
+for
+>> routers for platforms booting with DT:
+>>
+>> Documentation/devicetree/bindings/dma/dma.txt | 28 ++++++++
+> I meant the update to Documnetation/dmanegine/ for routers :)
 
-It seems that a fix has emerged (thanks! local testing looks good so far)
-but for the record I am using the arm (32) tool chain for x86_84
-on kernel.org.
+I see. In what form you think we should have the documentation? Is it a=
+dequate
+to lift and adjust the text from the DT binding document here? Should w=
+e have
+a separate file for the router description?
+My concern was and this is why I did not wrote anything under here is t=
+hat the
+code I add is only covers the DT boot case and I'm not planning to add =
+legacy
+support. The ACPI binding can be done in a similar fashion as the DT so=
+ you
+would have a translator driver with ACPI API.
 
-https://www.kernel.org/pub/tools/crosstool/files/bin/x86_64/4.6.3/
-
-# arm-unknown-linux-gnueabi-gcc --version
-arm-unknown-linux-gnueabi-gcc (GCC) 4.6.3
-Copyright (C) 2011 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-# arm-unknown-linux-gnueabi-ld --version
-GNU ld (GNU Binutils) 2.22
-Copyright 2011 Free Software Foundation, Inc.
-This program is free software; you may redistribute it under the terms of
-the GNU General Public License version 3 or (at your option) a later version.
-This program has absolutely no warranty.
+--=20
+P=E9ter
