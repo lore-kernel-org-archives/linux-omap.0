@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap non-urgent fixes for v4.1
-Date: Sat, 28 Mar 2015 09:02:29 -0700
-Message-ID: <8710.82059243253$1427558906@news.gmane.org>
+Subject: [GIT PULL 2/2] omap soc changes for v4.1
+Date: Sat, 28 Mar 2015 09:02:30 -0700
+Message-ID: <42869.1543908373$1427558914@news.gmane.org>
+References: <pull-1427494738-793290>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1427494738-793290>
+In-Reply-To: <pull-1427494738-793290>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,64 +28,44 @@ The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-0
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/v4.1-soc
 
-for you to fetch changes up to 209431eff8afb928d72200c79153165c7d860ca0:
+for you to fetch changes up to a6b188e50a6ad6fa4d2da163a44f21280cea01c2:
 
-  ARM: DRA7: Enable Cortex A15 errata 798181 (2015-03-27 14:38:03 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps that were not considered urgent enough for the -rc cycle.
-
-This is mostly to enable errata 798181 and thermal support for dra7,
-configure ocp2scp for am437x, remove dead code for OMAP4_ERRATA_I688
-and fix build warnings for omap1510 only config.
+  Merge tag 'for-v4.1/omap-hwmod-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v4.1/soc (2015-03-27 10:42:16 -0700)
 
 ----------------------------------------------------------------
-Felipe Balbi (1):
-      MAINTAINERS: add OMAP defconfigs under OMAP SUPPORT
+SoC related changes for omaps. Mostly hwmod related changes via
+Paul Walmsley <paul@pwsan.com>:
 
-Keerthy (1):
-      ARM: dts: DRA7: Add bandgap and related thermal nodes
+OMAP hwmod data changes for AM43xx and DRA7xx for v4.1
 
-Kishon Vijay Abraham I (2):
-      ARM: dts: am4372: Add "ti,am437x-ocp2scp" as compatible string for OCP2SCP
-      bus: ocp2scp: SYNC2 value should be changed to 0x6
+Add support for the AM43xx HDQ/1-wire driver and fix the GPTIMER data
+for DRA7xx.
 
-Nishanth Menon (1):
-      ARM: dts: am57xx-beagle-x15: Add thermal map to include fan and tmp102
+Note that I do not have AM43xx nor DRA7xx boards, and cannot test these
+patches on those platforms.
 
-Paul Walmsley (1):
-      ARM: OMAP1: PM: fix some build warnings on 1510-only Kconfigs
+Basic build, boot, and PM test logs are available at:
 
-Praneeth Bajjuri (1):
-      ARM: DRA7: Enable Cortex A15 errata 798181
+http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v4.1/20150324185246/
 
-Stefan Agner (1):
-      ARM: OMAP2+: remove superfluous NULL pointer check
+----------------------------------------------------------------
+Grygorii Strashko (1):
+      ARM: omap-device: add missed callback for suspend-to-disk
 
-Stefan Hengelein (1):
-      ARM: OMAP4: remove dead kconfig option OMAP4_ERRATA_I688
+Sourav Poddar (1):
+      ARM: OMAP2: hwmod: AM43XX: Add hwmod support for HDQ-1W
+
+Suman Anna (2):
+      ARM: DRA7: hwmod: Add data for GPTimers 13 through 16
+      ARM: DRA7: hwmod: Fix the hwmod class for GPTimer4
 
 Tony Lindgren (1):
-      Merge branch 'omap-for-v4.1/ocp2scp' into omap-for-v4.1/fixes-not-urgent
+      Merge tag 'for-v4.1/omap-hwmod-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v4.1/soc
 
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |  3 +-
- MAINTAINERS                                        |  2 +
- arch/arm/boot/dts/am4372.dtsi                      |  4 +-
- arch/arm/boot/dts/am57xx-beagle-x15.dts            | 49 +++++++++++++++
- arch/arm/boot/dts/dra7.dtsi                        | 23 ++++++++
- arch/arm/boot/dts/dra72x.dtsi                      |  5 ++
- arch/arm/boot/dts/dra74x.dtsi                      |  5 ++
- arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  4 +-
- arch/arm/mach-omap1/pm.c                           | 51 ++++++++--------
- arch/arm/mach-omap2/Kconfig                        | 22 +------
- arch/arm/mach-omap2/common.c                       |  1 -
- arch/arm/mach-omap2/common.h                       |  3 -
- arch/arm/mach-omap2/io.c                           |  2 -
- arch/arm/mach-omap2/mux.c                          |  2 +-
- arch/arm/mach-omap2/omap-secure.h                  |  7 ---
- arch/arm/mach-omap2/omap4-common.c                 | 69 ----------------------
- arch/arm/mach-omap2/sleep44xx.S                    |  2 -
- drivers/bus/omap-ocp2scp.c                         | 34 +++++++++++
- 18 files changed, 151 insertions(+), 137 deletions(-)
+ arch/arm/mach-omap2/omap_device.c          |   3 +
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c |  36 +++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 113 +++++++++++++++++++++++++----
+ arch/arm/mach-omap2/prcm43xx.h             |   1 +
+ 4 files changed, 137 insertions(+), 16 deletions(-)
