@@ -1,34 +1,84 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 1/7] dmaengine: of_dma: Support for DMA routers
-Date: Sat, 28 Mar 2015 02:44:46 +0100
-Message-ID: <201503280244.46961.arnd@arndb.de>
-References: <1427459213-14611-1-git-send-email-peter.ujfalusi@ti.com> <1427459213-14611-2-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap non-urgent fixes for v4.1
+Date: Sat, 28 Mar 2015 09:02:29 -0700
+Message-ID: <6941.82033553279$1427558827@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:49445 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752270AbbC1Bpu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2015 21:45:50 -0400
-In-Reply-To: <1427459213-14611-2-git-send-email-peter.ujfalusi@ti.com>
+Received: from si-002-i40.relay.mailchannels.net ([184.154.112.205]:50486 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751066AbbC1QGx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Mar 2015 12:06:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 27 March 2015, Peter Ujfalusi wrote:
-> +Required property:
-> +- dma-device:          phandle of the DMA controller. The router is modifying
-> +                       the DMA requests for this controller.
+The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
 
-This property seems rather specific to the case at hand, I would expect that
-one might also see routers like this that are connected to more than one
-dma-device, so maybe make it a list?
+  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
 
-It might also be better to name this as 'dma-controllers' or 'dma-masters',
-as it is not entirely obvious (without referencing the binding document)
-whether a dma device refers to the slave or the master.
+are available in the git repository at:
 
-	Arnd
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-0
+
+for you to fetch changes up to 209431eff8afb928d72200c79153165c7d860ca0:
+
+  ARM: DRA7: Enable Cortex A15 errata 798181 (2015-03-27 14:38:03 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps that were not considered urgent enough for the -rc cycle.
+
+This is mostly to enable errata 798181 and thermal support for dra7,
+configure ocp2scp for am437x, remove dead code for OMAP4_ERRATA_I688
+and fix build warnings for omap1510 only config.
+
+----------------------------------------------------------------
+Felipe Balbi (1):
+      MAINTAINERS: add OMAP defconfigs under OMAP SUPPORT
+
+Keerthy (1):
+      ARM: dts: DRA7: Add bandgap and related thermal nodes
+
+Kishon Vijay Abraham I (2):
+      ARM: dts: am4372: Add "ti,am437x-ocp2scp" as compatible string for OCP2SCP
+      bus: ocp2scp: SYNC2 value should be changed to 0x6
+
+Nishanth Menon (1):
+      ARM: dts: am57xx-beagle-x15: Add thermal map to include fan and tmp102
+
+Paul Walmsley (1):
+      ARM: OMAP1: PM: fix some build warnings on 1510-only Kconfigs
+
+Praneeth Bajjuri (1):
+      ARM: DRA7: Enable Cortex A15 errata 798181
+
+Stefan Agner (1):
+      ARM: OMAP2+: remove superfluous NULL pointer check
+
+Stefan Hengelein (1):
+      ARM: OMAP4: remove dead kconfig option OMAP4_ERRATA_I688
+
+Tony Lindgren (1):
+      Merge branch 'omap-for-v4.1/ocp2scp' into omap-for-v4.1/fixes-not-urgent
+
+ .../devicetree/bindings/bus/omap-ocp2scp.txt       |  3 +-
+ MAINTAINERS                                        |  2 +
+ arch/arm/boot/dts/am4372.dtsi                      |  4 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            | 49 +++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                        | 23 ++++++++
+ arch/arm/boot/dts/dra72x.dtsi                      |  5 ++
+ arch/arm/boot/dts/dra74x.dtsi                      |  5 ++
+ arch/arm/boot/dts/omap4-cpu-thermal.dtsi           |  4 +-
+ arch/arm/mach-omap1/pm.c                           | 51 ++++++++--------
+ arch/arm/mach-omap2/Kconfig                        | 22 +------
+ arch/arm/mach-omap2/common.c                       |  1 -
+ arch/arm/mach-omap2/common.h                       |  3 -
+ arch/arm/mach-omap2/io.c                           |  2 -
+ arch/arm/mach-omap2/mux.c                          |  2 +-
+ arch/arm/mach-omap2/omap-secure.h                  |  7 ---
+ arch/arm/mach-omap2/omap4-common.c                 | 69 ----------------------
+ arch/arm/mach-omap2/sleep44xx.S                    |  2 -
+ drivers/bus/omap-ocp2scp.c                         | 34 +++++++++++
+ 18 files changed, 151 insertions(+), 137 deletions(-)
