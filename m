@@ -1,20 +1,57 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 86/86] usb/dwc3: move ids to pci_ids.h
-Date: Sun, 29 Mar 2015 22:42:00 +0200
-Message-ID: <20150329204200.GB5902@kroah.com>
-References: <1427635734-24786-1-git-send-email-mst@redhat.com>
- <1427635734-24786-87-git-send-email-mst@redhat.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes for v4.0-rc cycle
+Date: Sun, 29 Mar 2015 13:59:35 -0700
+Message-ID: <20150329205935.GD13301@localhost>
+References: <20150319204922.GV5140@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:34757 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbbC2U7i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Mar 2015 16:59:38 -0400
+Received: by pacwe9 with SMTP id we9so147443019pac.1
+        for <linux-omap@vger.kernel.org>; Sun, 29 Mar 2015 13:59:37 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1427635734-24786-87-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Peter Neubauer <pneubauer-OUHTSVaU61M6GL+IUqp+Xg@public.gmane.org>, Huang Rui <ray.huang-5C7GfCeVMHo@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20150319204922.GV5140@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Sun, Mar 29, 2015 at 03:43:40PM +0200, Michael S. Tsirkin wrote:
-> Comment says IDs should move to pci_ids.h, let's do it.
+On Thu, Mar 19, 2015 at 01:49:23PM -0700, Tony Lindgren wrote:
+> The following changes since commit 5b7610f235627878617648a99dd1442997f1c889:
+> 
+>   ARM: OMAP2+: Fix wl12xx on dm3730-evm with mainline u-boot (2015-03-06 10:37:34 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/fixes-v4.0-rc4
+> 
+> for you to fetch changes up to 599c376c49323127c9bdbb0fa61a3d4743819bc2:
+> 
+>   ARM: dts: Fix gpio interrupts for dm816x (2015-03-18 13:41:34 -0700)
+> 
+> ----------------------------------------------------------------
+> Fixes for omaps for the -rc cycle:
+> 
+> - Fix a device tree based booting vs legacy booting regression for
+>   omap3 crypto hardware by adding the missing DMA channels.
+> 
+> - Fix /sys/bus/soc/devices/soc0/family for am33xx devices.
+> 
+> - Fix two timer issues that can cause hangs if the timer related
+>   hwmod data is missing like it often initially is for new SoCs.
+> 
+> - Remove pcie hwmods entry from dts as that causes runtime PM to
+>   fail for the PHYs.
+> 
+> - A paper bag type dts configuration fix for dm816x GPIO
+>   interrupts that I just noticed. This is most of the changes
+>   diffstat wise, but as it's a basic feature for connecting
+>   devices and things work otherwise, it should be fixed.
 
-No, please remove the comment, it's not needed in pci_ids.h at all.
+Merged, thanks.
+
+
+-Olof
