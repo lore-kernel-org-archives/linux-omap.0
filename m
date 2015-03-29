@@ -1,38 +1,20 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: [PATCH 65/86] usb/dwc3: comment update
-Date: Sun, 29 Mar 2015 15:42:21 +0200
-Message-ID: <1427635734-24786-66-git-send-email-mst@redhat.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH 86/86] usb/dwc3: move ids to pci_ids.h
+Date: Sun, 29 Mar 2015 22:42:00 +0200
+Message-ID: <20150329204200.GB5902@kroah.com>
 References: <1427635734-24786-1-git-send-email-mst@redhat.com>
+ <1427635734-24786-87-git-send-email-mst@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1427635734-24786-1-git-send-email-mst@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1427635734-24786-87-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Peter Neubauer <pneubauer-OUHTSVaU61M6GL+IUqp+Xg@public.gmane.org>, Huang Rui <ray.huang-5C7GfCeVMHo@public.gmane.org>, Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Header moved from linux/pci_ids.h to uapi/linux/pci_ids.h,
-update comment to list the correct header.
+On Sun, Mar 29, 2015 at 03:43:40PM +0200, Michael S. Tsirkin wrote:
+> Comment says IDs should move to pci_ids.h, let's do it.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- drivers/usb/dwc3/dwc3-pci.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
-index 8d95056..4285d8f 100644
---- a/drivers/usb/dwc3/dwc3-pci.c
-+++ b/drivers/usb/dwc3/dwc3-pci.c
-@@ -24,7 +24,7 @@
- 
- #include "platform_data.h"
- 
--/* FIXME define these in <linux/pci_ids.h> */
-+/* FIXME define these in <uapi/linux/pci_ids.h> */
- #define PCI_VENDOR_ID_SYNOPSYS		0x16c3
- #define PCI_DEVICE_ID_SYNOPSYS_HAPSUSB3	0xabcd
- #define PCI_DEVICE_ID_INTEL_BYT		0x0f37
--- 
-MST
+No, please remove the comment, it's not needed in pci_ids.h at all.
