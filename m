@@ -1,81 +1,51 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] genirq: provide dummy set_irq_wake()
-Date: Mon, 30 Mar 2015 13:06:45 -0500
-Message-ID: <20150330180645.GC9513@saruman.tx.rr.com>
-References: <1427721345-6402-1-git-send-email-rogerq@ti.com>
- <20150330180624.GB9513@saruman.tx.rr.com>
-Reply-To: <balbi@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 14/15] omap3isp: Add support for the Device Tree
+Date: Tue, 31 Mar 2015 00:17:27 +0300
+Message-ID: <20150330211727.GE18321@valkosipuli.retiisi.org.uk>
+References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+ <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
+ <20150330174123.GA2658@earth>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WChQLJJJfbwij+9x"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150330180624.GB9513@saruman.tx.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, tglx@linutronix.de, cw00.choi@samsung.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---WChQLJJJfbwij+9x
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38233 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753041AbbC3VSD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Mar 2015 17:18:03 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20150330174123.GA2658@earth>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, pali.rohar@gmail.com
 
-On Mon, Mar 30, 2015 at 01:06:24PM -0500, Felipe Balbi wrote:
-> On Mon, Mar 30, 2015 at 04:15:45PM +0300, Roger Quadros wrote:
-> > Without this system suspend is broken on systems that have
-> > drivers calling enable/disable_irq_wake() for interrupts based off
-> > the dummy irq hook.
-> > (e.g. drivers/gpio/gpio-pcf857x.c)
-> >=20
-> > http://article.gmane.org/gmane.linux.kernel/1879035
-> >=20
-> > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> > ---
-> >  kernel/irq/dummychip.c | 6 ++++++
-> >  1 file changed, 6 insertions(+)
-> >=20
-> > diff --git a/kernel/irq/dummychip.c b/kernel/irq/dummychip.c
-> > index 988dc58..2405d7a 100644
-> > --- a/kernel/irq/dummychip.c
-> > +++ b/kernel/irq/dummychip.c
-> > @@ -32,6 +32,11 @@ static unsigned int noop_ret(struct irq_data *data)
-> >  	return 0;
-> >  }
-> > =20
-> > +static int noop_int_ret(struct irq_data *data, unsigned int val)
+Hi Sebastian,
+
+On Mon, Mar 30, 2015 at 07:41:23PM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> The code crashed for me on Nokia N900. I found the following
+> problem:
+> 
+> On Thu, Mar 26, 2015 at 12:57:38AM +0200, Sakari Ailus wrote:
+> > [...]
+> > +static int isp_of_parse_nodes(struct device *dev,
+> > +			      struct v4l2_async_notifier *notifier)
 > > +{
-> > +	return 0;
-> > +}
-> > +
->=20
-> isn't this the same as noop_ret ?
+> > +	struct device_node *node;
+> 
+> struct device_node *node = NULL;
+> 
+> to avoid feeding a random pointer into of_graph_get_next_endpoint():
 
-oh no, unsigned versus signed.
+Good catch!
 
---=20
-balbi
+Laurent, could you use a new version of this patch, and send a new pull
+request, or would you prefer an additional patch to fix this?
 
---WChQLJJJfbwij+9x
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-- 
+Kind regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVGZC1AAoJEIaOsuA1yqRETfoP/0Ngs0hp78QEP9JY8ziDYbfx
-hqW4Tcx/oOVedpRrIn9Xdb/h7fXADNxv/SEO6s6HEmViRu9XqgmzffPt/n6jkGnZ
-l4KQPeFlPuvLcSMGo5rohbbCIEJBzD6YIZpVA3oyVyWY6uirsE6UJIGgVg8svxFp
-YIlrMhqvOvNEecdVaX8UB33JZmwZmY4HDW4jBdD0CV9qgT066/1LwyE4r7Fsezk7
-H/ndneRPBKt1q8+SXRC51dGrlcbzaf3alab4BMfrWHttSRHOf1XWceKa7M5Zgtkc
-YidZyxzdJAz0z+N61WOP/KXLcbICwMMm0XkHyecXo926bIYmF+WHQpOWf9bwb8nY
-sCwTgvSXAKCs6VUu9KUNLGu9SmolLoVuelieP1RKtpEWJwNBxOWdXV4KVCMf0fOe
-HsCvD3SK7VPSJfOyUSgBv+8HetuRHhqBbSobPSD0/P1wXWY/8NiQ8VWLFNKJR8t7
-eYAAlrter5xx5ia7BbxvMZUBQ2ZnOBl+Jn1MEwdDIEyeBZlxtSPE5K1QULssNXhF
-C4o9RQMDxDbOYd4XKlyLNqdrD3deEpfYkSBbEkscjnuq54pfwwFkUcu2DWuFkrHK
-RHGY7ApOkfEY83WyBxJZ6dEgp4HJNXCu0Vm9UaT6a3Kg+5JTJhkPpxJdIYBFB9To
-6XJHuo/UgH+i+l9LGj+J
-=4SHz
------END PGP SIGNATURE-----
-
---WChQLJJJfbwij+9x--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
