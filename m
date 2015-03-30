@@ -1,59 +1,62 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 2/5] dmaengine: omap-dma: Fix memory leak when
- terminating running transfer
-Date: Mon, 30 Mar 2015 23:18:45 +0530
-Message-ID: <20150330174845.GM7192@intel.com>
-References: <1427456155-28990-1-git-send-email-peter.ujfalusi@ti.com>
- <1427456155-28990-3-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH RESEND] ARM: dts: OMAP3-N900: Add microphone bias voltages
+Date: Mon, 30 Mar 2015 10:50:52 -0700
+Message-ID: <20150330175051.GK10805@atomide.com>
+References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
+ <55197A12.1050009@bitmer.com>
+ <20150330164237.GJ10805@atomide.com>
+ <55198BA4.5010207@bitmer.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1427456155-28990-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux@arm.linux.org.uk, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <55198BA4.5010207-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 27, 2015 at 01:35:52PM +0200, Peter Ujfalusi wrote:
-> In omap_dma_start_desc the vdesc->node is removed from the virt-dma
-> framework managed lists (to be precise from the desc_issued list).
-> If a terminate_all comes before the transfer finishes the omap_desc will
-> not be freed up because it is not in any of the lists and we stopped the
-> DMA channel so the transfer will not going to complete.
-> There is no special sequence for leaking memory when using cyclic (audio)
-> transfer: with every start and stop of a cyclic transfer the driver leaks
-> struct omap_desc worth of memory.
+* Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org> [150330 10:46]:
+> On 03/30/2015 07:42 PM, Tony Lindgren wrote:
+> > * Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org> [150330 09:31]:
+> >> On 03/01/2015 09:07 PM, Jarkko Nikula wrote:
+> >>> From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> >>>
+> >>> N900 audio recording needs that codec provides bias voltage for integrated
+> >>> digital microphone and headset microphone depending which one is used.
+> >>> Digital microphone uses 2 V bias and it comes from the codec A part. Codec
+> >>> B part drives the headset microphone bias and that is set to 2.5 V.
+> >>>
+> >>> Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> >>> [Jarkko: Headset mic bias changed to 2 (2.5 V) as it was before commit
+> >>> e2e8bfdf6157 ("ASoC: tlv320aic3x: Convert mic bias to a supply widget")]
+> >>> Signed-off-by: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>
+> >>> ---
+> >>>  arch/arm/boot/dts/omap3-n900.dts | 4 ++++
+> >>>  1 file changed, 4 insertions(+)
+> >>>
+> >> Ping?
+> > 
+> > Oops sorry I have missed this one. This looks like a regression fix
+> > for the v4.0-rc series? Should it be cc stable v3.16+ or something?
+> > 
+> Well, there has been regression but finding exactly how far should the
+> fix go didn't look instantly straightforward due all DT, codec driver
+> mic bias etc changes and I ended up not cc'ing stable.
 > 
-> Free up the allocated memory directly in omap_dma_terminate_all() since the
-> framework will not going to do that for us.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: <stable@vger.kernel.org>
-> CC: <linux-omap@vger.kernel.org>
-Applied, thanks
+> But well, I guess first kernel where this commit makes sense is 3.16+
+> due commit f7d0f2a08567 ("ARM: dts: omap3-n900: Add sound support").
+> Although it applies on top of commit 14e3e295b2b9 ("ARM: dts:
+> omap3-n900: Add TLV320AIC3X support") too (3.12+) but not before that.
 
--- 
-~Vinod
+OK I think debian is using v3.16 kernel and that's pretty much the
+first kernel that is usable with dts on many omap3 devices so might
+make sense for that. I can add it if you think it makes sense.
 
-> ---
->  drivers/dma/omap-dma.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index 1e646d6c8230..6a4c378ee432 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -1002,6 +1002,7 @@ static int omap_dma_terminate_all(struct dma_chan *chan)
->  	 * c->desc is NULL and exit.)
->  	 */
->  	if (c->desc) {
-> +		omap_dma_desc_free(&c->desc->vd);
->  		c->desc = NULL;
->  		/* Avoid stopping the dma twice */
->  		if (!c->paused)
-> -- 
-> 2.3.3
-> 
+Regards,
 
--- 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
