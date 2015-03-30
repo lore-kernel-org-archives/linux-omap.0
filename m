@@ -1,53 +1,72 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH RESEND] ARM: dts: OMAP3-N900: Add microphone bias voltages
-Date: Mon, 30 Mar 2015 20:45:08 +0300
-Message-ID: <55198BA4.5010207@bitmer.com>
-References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com> <55197A12.1050009@bitmer.com> <20150330164237.GJ10805@atomide.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 1/5] dmaengine: edma: fix memory leak when terminating
+ running transfers
+Date: Mon, 30 Mar 2015 23:18:27 +0530
+Message-ID: <20150330174827.GL7192@intel.com>
+References: <1427456155-28990-1-git-send-email-peter.ujfalusi@ti.com>
+ <1427456155-28990-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:54672 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753021AbbC3Rp4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Mar 2015 13:45:56 -0400
-In-Reply-To: <20150330164237.GJ10805@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1427456155-28990-2-git-send-email-peter.ujfalusi@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux@arm.linux.org.uk, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Petr Kulhavy <petr@barix.com>, stable@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Pavel Machek <pavel@ucw.cz>
 
-On 03/30/2015 07:42 PM, Tony Lindgren wrote:
-> * Jarkko Nikula <jarkko.nikula@bitmer.com> [150330 09:31]:
->> On 03/01/2015 09:07 PM, Jarkko Nikula wrote:
->>> From: Pavel Machek <pavel@ucw.cz>
->>>
->>> N900 audio recording needs that codec provides bias voltage for integrated
->>> digital microphone and headset microphone depending which one is used.
->>> Digital microphone uses 2 V bias and it comes from the codec A part. Codec
->>> B part drives the headset microphone bias and that is set to 2.5 V.
->>>
->>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->>> [Jarkko: Headset mic bias changed to 2 (2.5 V) as it was before commit
->>> e2e8bfdf6157 ("ASoC: tlv320aic3x: Convert mic bias to a supply widget")]
->>> Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
->>> ---
->>>  arch/arm/boot/dts/omap3-n900.dts | 4 ++++
->>>  1 file changed, 4 insertions(+)
->>>
->> Ping?
+On Fri, Mar 27, 2015 at 01:35:51PM +0200, Peter Ujfalusi wrote:
+> From: Petr Kulhavy <petr@barix.com>
 > 
-> Oops sorry I have missed this one. This looks like a regression fix
-> for the v4.0-rc series? Should it be cc stable v3.16+ or something?
+> If edma_terminate_all() was called while a transfer was running (i.e. after
+> edma_execute() but before edma_callback()) the echan->edesc was not freed.
 > 
-Well, there has been regression but finding exactly how far should the
-fix go didn't look instantly straightforward due all DT, codec driver
-mic bias etc changes and I ended up not cc'ing stable.
-
-But well, I guess first kernel where this commit makes sense is 3.16+
-due commit f7d0f2a08567 ("ARM: dts: omap3-n900: Add sound support").
-Although it applies on top of commit 14e3e295b2b9 ("ARM: dts:
-omap3-n900: Add TLV320AIC3X support") too (3.12+) but not before that.
+> This was due to the fact that a running transfer is on none of the
+> vchan lists: desc_submitted, desc_issued, desc_completed (edma_execute()
+> removes it from the desc_issued list), so the vchan_dma_desc_free_list()
+> called at the end of edma_terminate_all() didn't find it and didn't free it.
+> 
+> This bug was found on an AM1808 based hardware (very similar to da850evm,
+> however using the second MMC/SD controller), where intense operations on the SD
+> card wasted the device 128MB RAM within a couple of days.
+> 
+> Peter Ujfalusi:
+> The issue is even more severe since it affects cyclic (audio) transfers as
+> well. In this case starting/stopping audio will results memory leak.
+> 
+> Signed-off-by: Petr Kulhavy <petr@barix.com>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: <stable@vger.kernel.org>
+> CC: <linux-omap@vger.kernel.org>
+Applied, thanks
 
 -- 
-Jarkko
+~Vinod
+
+> ---
+>  drivers/dma/edma.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+> index 741baa68365c..984c2b12dae3 100644
+> --- a/drivers/dma/edma.c
+> +++ b/drivers/dma/edma.c
+> @@ -268,6 +268,13 @@ static int edma_terminate_all(struct dma_chan *chan)
+>  	 */
+>  	if (echan->edesc) {
+>  		int cyclic = echan->edesc->cyclic;
+> +
+> +		/*
+> +		 * free the running request descriptor
+> +		 * since it is not in any of the vdesc lists
+> +		 */
+> +		edma_desc_free(&echan->edesc->vdesc);
+> +
+>  		echan->edesc = NULL;
+>  		edma_stop(echan->ch_num);
+>  		/* Move the cyclic channel back to default queue */
+> -- 
+> 2.3.3
+> 
+
+-- 
