@@ -1,145 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mfd: twl4030-power: Fix pmic for boards that need AC charger disabled
-Date: Mon, 30 Mar 2015 10:36:14 -0700
-Message-ID: <1427736974-1842-1-git-send-email-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 14/15] omap3isp: Add support for the Device Tree
+Date: Mon, 30 Mar 2015 19:41:23 +0200
+Message-ID: <20150330174123.GA2658@earth>
+References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+ <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:46193 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753672AbbC3Rlx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Mar 2015 13:41:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 
-I noticed the PMIC configuration on 37xx-evm won't actually shut down
-the voltages during off-idle. Turns out 37xx-evm needs the AC charger
-state transitions disabled like we are doing for SDP and LDP in the
-legacy booting case.
 
-Let's fix this for device tree based booting by setting up the quirk
-flag based on the compatible flag. And let's also use the existing
-define for STARTON_CHG.
+--AqsLC8rIMeq19msA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Note that SDP and EVM do not have the PMIC clken wired to gate the
-the oscillator while LDP has.
+Hi,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/twl4030-power.c | 45 ++++++++++++++++++++++++++++++++++++++-------
- include/linux/i2c/twl.h     |  1 +
- 2 files changed, 39 insertions(+), 7 deletions(-)
+The code crashed for me on Nokia N900. I found the following
+problem:
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 3935092..c7929646 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -264,7 +264,9 @@ out:
- 	return err;
- }
- 
--static int twl4030_config_wakeup12_sequence(u8 address)
-+static int
-+twl4030_config_wakeup12_sequence(const struct twl4030_power_data *pdata,
-+				 u8 address)
- {
- 	int err = 0;
- 	u8 data;
-@@ -293,13 +295,14 @@ static int twl4030_config_wakeup12_sequence(u8 address)
- 	if (err)
- 		goto out;
- 
--	if (machine_is_omap_3430sdp() || machine_is_omap_ldp()) {
-+	if (pdata->ac_charger_quirk || machine_is_omap_3430sdp() ||
-+	    machine_is_omap_ldp()) {
- 		/* Disabling AC charger effect on sleep-active transitions */
- 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data,
- 				      R_CFG_P1_TRANSITION);
- 		if (err)
- 			goto out;
--		data &= ~(1<<1);
-+		data &= ~STARTON_CHG;
- 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data,
- 				       R_CFG_P1_TRANSITION);
- 		if (err)
-@@ -459,8 +462,9 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 	return 0;
- }
- 
--static int load_twl4030_script(struct twl4030_script *tscript,
--	       u8 address)
-+static int load_twl4030_script(const struct twl4030_power_data *pdata,
-+			       struct twl4030_script *tscript,
-+			       u8 address)
- {
- 	int err;
- 	static int order;
-@@ -487,7 +491,7 @@ static int load_twl4030_script(struct twl4030_script *tscript,
- 		if (err)
- 			goto out;
- 
--		err = twl4030_config_wakeup12_sequence(address);
-+		err = twl4030_config_wakeup12_sequence(pdata, address);
- 		if (err)
- 			goto out;
- 		order = 1;
-@@ -567,7 +571,7 @@ twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
- 	u8 address = twl4030_start_script_address;
- 
- 	for (i = 0; i < pdata->num; i++) {
--		err = load_twl4030_script(pdata->scripts[i], address);
-+		err = load_twl4030_script(pdata, pdata->scripts[i], address);
- 		if (err)
- 			return err;
- 		address += pdata->scripts[i]->size;
-@@ -829,6 +833,21 @@ static struct twl4030_power_data osc_off_idle = {
- 	.board_config		= osc_off_rconfig,
- };
- 
-+static struct twl4030_power_data omap3_idle_ac_quirk = {
-+	.scripts		= omap3_idle_scripts,
-+	.num			= ARRAY_SIZE(omap3_idle_scripts),
-+	.resource_config	= omap3_idle_rconfig,
-+	.ac_charger_quirk	= true,
-+};
-+
-+static struct twl4030_power_data omap3_idle_ac_quirk_osc_off = {
-+	.scripts		= omap3_idle_scripts,
-+	.num			= ARRAY_SIZE(omap3_idle_scripts),
-+	.resource_config	= omap3_idle_rconfig,
-+	.board_config		= osc_off_rconfig,
-+	.ac_charger_quirk	= true,
-+};
-+
- static struct of_device_id twl4030_power_of_match[] = {
- 	{
- 		.compatible = "ti,twl4030-power",
-@@ -845,6 +864,18 @@ static struct of_device_id twl4030_power_of_match[] = {
- 		.compatible = "ti,twl4030-power-idle-osc-off",
- 		.data = &osc_off_idle,
- 	},
-+	{
-+		.compatible = "ti,twl4030-power-omap3-sdp",
-+		.data = &omap3_idle_ac_quirk,
-+	},
-+	{
-+		.compatible = "ti,twl4030-power-omap3-ldp",
-+		.data = &omap3_idle_ac_quirk_osc_off,
-+	},
-+	{
-+		.compatible = "ti,twl4030-power-omap3-evm",
-+		.data = &omap3_idle_ac_quirk,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 0bc03f1..9ad7828 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -675,6 +675,7 @@ struct twl4030_power_data {
- 	struct twl4030_resconfig *board_config;
- #define TWL4030_RESCONFIG_UNDEF	((u8)-1)
- 	bool use_poweroff;	/* Board is wired for TWL poweroff */
-+	bool ac_charger_quirk;	/* Disable AC charger on board */
- };
- 
- extern int twl4030_remove_script(u8 flags);
--- 
-2.1.4
+On Thu, Mar 26, 2015 at 12:57:38AM +0200, Sakari Ailus wrote:
+> [...]
+> +static int isp_of_parse_nodes(struct device *dev,
+> +			      struct v4l2_async_notifier *notifier)
+> +{
+> +	struct device_node *node;
+
+struct device_node *node = NULL;
+
+to avoid feeding a random pointer into of_graph_get_next_endpoint():
+
+> [...]
+> +	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+> +	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
+> [...]
+
+-- Sebastian
+
+--AqsLC8rIMeq19msA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVGYrAAAoJENju1/PIO/qaJnkP/Aqrzb4SS4iyIjg8DD8NcYp6
+kl8MbY5e9IXqMktydeIBDBijljDG+vhHrejEUQuVOI+/dTWC806Ulc9nEdv6V3nF
+M03HoDBR3J2aWx/B1mx1HGBpshiRCQA+xkZgwiayxNpp81lSu1rUkiwdqYx+yNEv
+EvbE+3oPlc+qSiGIiHQtnvqwUBQnrxnmssocZciZmGzG/jesXzzUweNPIfWt0d6e
+iUAfbA+Xjkge410HXQ84f80h6TlAkwPqAZU2UwHVoTrGdrTfUQED9/V/ubexJDU1
+woaaA0HnCla1Kg43MFDYfGXz1grnGyhOQwZ+7Uql3WeZ3JyxvnD354P17Q3md2mp
+Vk2Noo45j3n2sHS4M44sVlUYd+iWp12rZNr4wS/YakAw2kzR5g+5MupFVrDq0WbB
+6CSJaitRoCOrPxNZtQR9ReK/ZuhzHNLtk/8fHl6n1mol5SiVWHy3i3IoEg0cSB/x
+4mntK3t4FFrQ7Ncz6pB5uygK6+gDdpX/rQlMPJhshrtRX+8sEoaVzrg3JyfXyTmI
+u6rRT8/TytOZD04Z/IdmcBgNmR8euh18l21LcwK+FG58d7qzAtfWxqGQUazHHDwe
+BoQLY6GxAm0yXjSkjTwkethLsCrjsdiOw6g2GFiZHZJHjUqDxzSTZTii7Ohn9Nte
+kp5XwHWnmxQLW6pVew2e
+=PbtZ
+-----END PGP SIGNATURE-----
+
+--AqsLC8rIMeq19msA--
