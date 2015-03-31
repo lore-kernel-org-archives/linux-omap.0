@@ -1,260 +1,387 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 33/34] ARM: dts: dra7: add minimal l4 bus layout with control module support
-Date: Tue, 31 Mar 2015 22:14:26 +0300
-Message-ID: <1427829267-32077-34-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 24/34] ARM: dts: omap24xx: add minimal l4 bus layout with control module support
+Date: Tue, 31 Mar 2015 22:14:17 +0300
+Message-ID: <1427829267-32077-25-git-send-email-t-kristo@ti.com>
 References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32859 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32846 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752849AbbCaTPd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2015 15:15:33 -0400
+	id S1752796AbbCaTPV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 15:15:21 -0400
 In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This patch creates the l4_cfg and l4_wkup interconnects for DRA7, and
-moves some of the generic peripherals under it. System control module
-support is added to the device tree also, and the existing SCM related
-functionality is moved under it.
+This patch creates an l4 / l4-wkup interconnects for omap2420 / omap2430
+SoCs, and moves some of the generic peripherals under it. System control
+module nodes are moved under this new interconnect also, and the SCM
+clock layout is changed to use the new SCM node as the clock provider.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/arm/omap/ctrl.txt          |    1 +
- Documentation/devicetree/bindings/arm/omap/l4.txt  |    2 +
- arch/arm/boot/dts/dra7.dtsi                        |  166 +++++++++++---------
- 3 files changed, 96 insertions(+), 73 deletions(-)
+ Documentation/devicetree/bindings/arm/omap/l4.txt  |   17 ++++
+ .../devicetree/bindings/arm/omap/prcm.txt          |    2 +-
+ arch/arm/boot/dts/omap2420.dtsi                    |   80 +++++++++------
+ arch/arm/boot/dts/omap2430-clocks.dtsi             |    8 +-
+ arch/arm/boot/dts/omap2430.dtsi                    |  107 +++++++++++---------
+ arch/arm/boot/dts/omap24xx-clocks.dtsi             |    6 +-
+ arch/arm/mach-omap2/control.c                      |    7 +-
+ 7 files changed, 140 insertions(+), 87 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/l4.txt
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-index acb68ed..3a4e590 100644
---- a/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-@@ -23,6 +23,7 @@ Required properties:
- 		"ti,omap4-scm-padconf-core"
- 		"ti,omap5-scm-core"
- 		"ti,omap5-scm-padconf-core"
-+		"ti,dra7-scm-core"
- - reg:		Contains Control Module register address range
- 		(base address and length)
- 
 diff --git a/Documentation/devicetree/bindings/arm/omap/l4.txt b/Documentation/devicetree/bindings/arm/omap/l4.txt
-index 2fe4211..b4f8a16 100644
---- a/Documentation/devicetree/bindings/arm/omap/l4.txt
+new file mode 100644
+index 0000000..57569cc8
+--- /dev/null
 +++ b/Documentation/devicetree/bindings/arm/omap/l4.txt
-@@ -10,6 +10,8 @@ Required properties:
- 	       Should be "ti,omap4-l4-wkup" for OMAP4 family l4 wkup bus
- 	       Should be "ti,omap5-l4-cfg" for OMAP5 family l4 cfg bus
- 	       Should be "ti,omap5-l4-wkup" for OMAP5 family l4 wkup bus
-+	       Should be "ti,dra7-l4-cfg" for DRA7 family l4 cfg bus
-+	       Should be "ti,dra7-l4-wkup" for DRA7 family l4 wkup bus
- 	       Should be "ti,am3-l4-wkup" for AM33xx family l4 wkup bus
- 	       Should be "ti,am4-l4-wkup" for AM43xx family l4 wkup bus
- - ranges : contains the IO map range for the bus
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5827fed..8e50ca3 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -94,17 +94,101 @@
- 		interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_SPI DIRECT_IRQ(10) IRQ_TYPE_LEVEL_HIGH>;
+@@ -0,0 +1,17 @@
++L4 interconnect bindings
++
++These bindings describe the OMAP SoCs L4 interconnect bus.
++
++Required properties:
++- compatible : Should be "ti,omap2-l4" for OMAP2 family l4 core bus
++	       Should be "ti,omap2-l4-wkup" for OMAP2 family l4 wkup bus
++- ranges : contains the IO map range for the bus
++
++Examples:
++
++l4: l4@48000000 {
++	compatible "ti,omap2-l4", "simple-bus";
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges = <0 0x48000000 0x100000>;
++};
+diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+index 68f96f8..cce8365 100644
+--- a/Documentation/devicetree/bindings/arm/omap/prcm.txt
++++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+@@ -14,7 +14,7 @@ Required properties:
+ 		"ti,am4-prcm"
+ 		"ti,am4-scrm"
+ 		"ti,omap2-prcm"
+-		"ti,omap2-scrm"
++		"ti,omap2-scm"
+ 		"ti,omap3-prm"
+ 		"ti,omap3-cm"
+ 		"ti,omap3-scrm"
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+index e2b2e93..5b9a376 100644
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -14,47 +14,65 @@
+ 	compatible = "ti,omap2420", "ti,omap2";
  
--		prm: prm@4ae06000 {
--			compatible = "ti,dra7-prm";
--			reg = <0x4ae06000 0x3000>;
--			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-+		l4_cfg: l4@4a000000 {
-+			compatible = "ti,dra7-l4-cfg", "simple-bus";
+ 	ocp {
+-		prcm: prcm@48008000 {
+-			compatible = "ti,omap2-prcm";
+-			reg = <0x48008000 0x1000>;
++		l4: l4@48000000 {
++			compatible = "ti,omap2-l4", "simple-bus";
 +			#address-cells = <1>;
 +			#size-cells = <1>;
-+			ranges = <0 0x4a000000 0x22c000>;
++			ranges = <0 0x48000000 0x100000>;
  
--			prm_clocks: clocks {
-+			scm: scm@2000 {
-+				compatible = "ti,dra7-scm-core", "simple-bus";
-+				reg = <0x2000 0x2000>;
+-			prcm_clocks: clocks {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-			};
++			prcm: prcm@8000 {
++				compatible = "ti,omap2-prcm";
++				reg = <0x8000 0x1000>;
+ 
+-			prcm_clockdomains: clockdomains {
+-			};
+-		};
++				prcm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 
+-		scrm: scrm@48000000 {
+-			compatible = "ti,omap2-scrm";
+-			reg = <0x48000000 0x1000>;
++				prcm_clockdomains: clockdomains {
++				};
++			};
+ 
+-			scrm_clocks: clocks {
++			scm: scm@0 {
++				compatible = "ti,omap2-scm", "simple-bus";
++				reg = <0x0 0x1000>;
  				#address-cells = <1>;
 -				#size-cells = <0>;
 +				#size-cells = <1>;
-+				ranges = <0 0x2000 0x2000>;
++				ranges = <0 0x0 0x1000>;
 +
-+				scm_conf: scm_conf@0 {
++				omap2420_pmx: pinmux@30 {
++					compatible = "ti,omap2420-padconf",
++						     "pinctrl-single";
++					reg = <0x30 0x0113>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					pinctrl-single,register-width = <8>;
++					pinctrl-single,function-mask = <0x3f>;
++				};
++
++				scm_conf: scm_conf@270 {
 +					compatible = "syscon";
-+					reg = <0x0 0x1400>;
++					reg = <0x270 0x100>;
 +					#address-cells = <1>;
 +					#size-cells = <1>;
 +
++					scm_clocks: clocks {
++						#address-cells = <1>;
++						#size-cells = <0>;
++					};
++				};
++
++				scm_clockdomains: clockdomains {
++				};
+ 			};
+ 
+-			scrm_clockdomains: clockdomains {
++			counter32k: counter@4000 {
++				compatible = "ti,omap-counter32k";
++				reg = <0x4000 0x20>;
++				ti,hwmods = "counter_32k";
+ 			};
+ 		};
+ 
+-		counter32k: counter@48004000 {
+-			compatible = "ti,omap-counter32k";
+-			reg = <0x48004000 0x20>;
+-			ti,hwmods = "counter_32k";
+-		};
+-
+-		omap2420_pmx: pinmux@48000030 {
+-			compatible = "ti,omap2420-padconf", "pinctrl-single";
+-			reg = <0x48000030 0x0113>;
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			pinctrl-single,register-width = <8>;
+-			pinctrl-single,function-mask = <0x3f>;
+-		};
+-
+ 		gpio1: gpio@48018000 {
+ 			compatible = "ti,omap2-gpio";
+ 			reg = <0x48018000 0x200>;
+diff --git a/arch/arm/boot/dts/omap2430-clocks.dtsi b/arch/arm/boot/dts/omap2430-clocks.dtsi
+index 805f75d..93fed68 100644
+--- a/arch/arm/boot/dts/omap2430-clocks.dtsi
++++ b/arch/arm/boot/dts/omap2430-clocks.dtsi
+@@ -8,12 +8,12 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-&scrm_clocks {
++&scm_clocks {
+ 	mcbsp3_mux_fck: mcbsp3_mux_fck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+-		reg = <0x02e8>;
++		reg = <0x78>;
+ 	};
+ 
+ 	mcbsp3_fck: mcbsp3_fck {
+@@ -27,7 +27,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <2>;
+-		reg = <0x02e8>;
++		reg = <0x78>;
+ 	};
+ 
+ 	mcbsp4_fck: mcbsp4_fck {
+@@ -41,7 +41,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <4>;
+-		reg = <0x02e8>;
++		reg = <0x78>;
+ 	};
+ 
+ 	mcbsp5_fck: mcbsp5_fck {
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index 0dc8de2..11a7963 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -14,60 +14,73 @@
+ 	compatible = "ti,omap2430", "ti,omap2";
+ 
+ 	ocp {
+-		prcm: prcm@49006000 {
+-			compatible = "ti,omap2-prcm";
+-			reg = <0x49006000 0x1000>;
++		l4_wkup: l4_wkup@49000000 {
++			compatible = "ti,omap2-l4-wkup", "simple-bus";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x49000000 0x31000>;
+ 
+-			prcm_clocks: clocks {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-			};
++			prcm: prcm@6000 {
++				compatible = "ti,omap2-prcm";
++				reg = <0x6000 0x1000>;
+ 
+-			prcm_clockdomains: clockdomains {
+-			};
+-		};
+-
+-		scrm: scrm@49002000 {
+-			compatible = "ti,omap2-scrm";
+-			reg = <0x49002000 0x1000>;
++				prcm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 
+-			scrm_clocks: clocks {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
++				prcm_clockdomains: clockdomains {
++				};
+ 			};
+ 
+-			scrm_clockdomains: clockdomains {
++			scm: scm@2000 {
++				compatible = "ti,omap2-scm", "simple-bus";
++				reg = <0x2000 0x1000>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0x2000 0x1000>;
++
++				omap2430_pmx: pinmux@30 {
++					compatible = "ti,omap2430-padconf",
++						     "pinctrl-single";
++					reg = <0x30 0x0154>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					pinctrl-single,register-width = <8>;
++					pinctrl-single,function-mask = <0x3f>;
++				};
++
++				scm_conf: scm_conf@270 {
++					compatible = "syscon";
++					reg = <0x270 0x240>;
++					#address-cells = <1>;
++					#size-cells = <1>;
++
++					scm_clocks: clocks {
++						#address-cells = <1>;
++						#size-cells = <0>;
++					};
++
 +					pbias_regulator: pbias_regulator {
 +						compatible = "ti,pbias-omap";
-+						reg = <0xe00 0x4>;
++						reg = <0x230 0x4>;
 +						syscon = <&scm_conf>;
-+						pbias_mmc_reg: pbias_mmc_omap5 {
-+							regulator-name = "pbias_mmc_omap5";
++						pbias_mmc_reg: pbias_mmc_omap2430 {
++							regulator-name = "pbias_mmc_omap2430";
 +							regulator-min-microvolt = <1800000>;
 +							regulator-max-microvolt = <3000000>;
 +						};
 +					};
 +				};
 +
-+				dra7_pmx_core: pinmux@1400 {
-+					compatible = "ti,dra7-padconf",
-+						     "pinctrl-single";
-+					reg = <0x1400 0x0464>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					#interrupt-cells = <1>;
-+					interrupt-controller;
-+					pinctrl-single,register-width = <32>;
-+					pinctrl-single,function-mask = <0x3fffffff>;
-+				};
-+			};
-+
-+			cm_core_aon: cm_core_aon@5000 {
-+				compatible = "ti,dra7-cm-core-aon";
-+				reg = <0x5000 0x2000>;
-+
-+				cm_core_aon_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
-+
-+				cm_core_aon_clockdomains: clockdomains {
-+				};
-+			};
-+
-+			cm_core: cm_core@8000 {
-+				compatible = "ti,dra7-cm-core";
-+				reg = <0x8000 0x3000>;
-+
-+				cm_core_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
-+
-+				cm_core_clockdomains: clockdomains {
++				scm_clockdomains: clockdomains {
 +				};
  			};
-+		};
- 
--			prm_clockdomains: clockdomains {
-+		l4_wkup: l4@4ae00000 {
-+			compatible = "ti,dra7-l4-wkup", "simple-bus";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0 0x4ae00000 0x3f000>;
-+
-+			counter32k: counter@4000 {
-+				compatible = "ti,omap-counter32k";
-+				reg = <0x4000 0x40>;
-+				ti,hwmods = "counter_32k";
-+			};
-+
-+			prm: prm@6000 {
-+				compatible = "ti,dra7-prm";
-+				reg = <0x6000 0x3000>;
-+				interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-+
-+				prm_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
-+
-+				prm_clockdomains: clockdomains {
-+				};
- 			};
- 		};
- 
-@@ -177,70 +261,6 @@
- 			};
- 		};
- 
--		cm_core_aon: cm_core_aon@4a005000 {
--			compatible = "ti,dra7-cm-core-aon";
--			reg = <0x4a005000 0x2000>;
--
--			cm_core_aon_clocks: clocks {
--				#address-cells = <1>;
--				#size-cells = <0>;
--			};
--
--			cm_core_aon_clockdomains: clockdomains {
--			};
 -		};
 -
--		cm_core: cm_core@4a008000 {
--			compatible = "ti,dra7-cm-core";
--			reg = <0x4a008000 0x3000>;
--
--			cm_core_clocks: clocks {
--				#address-cells = <1>;
--				#size-cells = <0>;
--			};
--
--			cm_core_clockdomains: clockdomains {
--			};
--		};
--
--		counter32k: counter@4ae04000 {
+-		counter32k: counter@49020000 {
 -			compatible = "ti,omap-counter32k";
--			reg = <0x4ae04000 0x40>;
+-			reg = <0x49020000 0x20>;
 -			ti,hwmods = "counter_32k";
 -		};
 -
--		dra7_ctrl_core: ctrl_core@4a002000 {
--			compatible = "syscon";
--			reg = <0x4a002000 0x6d0>;
--		};
--
--		dra7_ctrl_general: tisyscon@4a002e00 {
--			compatible = "syscon";
--			reg = <0x4a002e00 0x7c>;
--		};
--
--		pbias_regulator: pbias_regulator {
--			compatible = "ti,pbias-omap";
--			reg = <0 0x4>;
--			syscon = <&dra7_ctrl_general>;
--			pbias_mmc_reg: pbias_mmc_omap5 {
--				regulator-name = "pbias_mmc_omap5";
--				regulator-min-microvolt = <1800000>;
--				regulator-max-microvolt = <3000000>;
--			};
--		};
--
--		dra7_pmx_core: pinmux@4a003400 {
--			compatible = "ti,dra7-padconf", "pinctrl-single";
--			reg = <0x4a003400 0x0464>;
+-		omap2430_pmx: pinmux@49002030 {
+-			compatible = "ti,omap2430-padconf", "pinctrl-single";
+-			reg = <0x49002030 0x0154>;
 -			#address-cells = <1>;
 -			#size-cells = <0>;
--			#interrupt-cells = <1>;
--			interrupt-controller;
--			pinctrl-single,register-width = <32>;
--			pinctrl-single,function-mask = <0x3fffffff>;
+-			pinctrl-single,register-width = <8>;
+-			pinctrl-single,function-mask = <0x3f>;
 -		};
 -
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
-@@ -1410,7 +1430,7 @@
- 			compatible = "ti,dra7-d_can";
- 			ti,hwmods = "dcan1";
- 			reg = <0x4ae3c000 0x2000>;
--			syscon-raminit = <&dra7_ctrl_core 0x558 0>;
-+			syscon-raminit = <&scm_conf 0x558 0>;
- 			interrupts = <GIC_SPI 222 IRQ_TYPE_LEVEL_HIGH>;
- 			clocks = <&dcan1_sys_clk_mux>;
- 			status = "disabled";
-@@ -1420,7 +1440,7 @@
- 			compatible = "ti,dra7-d_can";
- 			ti,hwmods = "dcan2";
- 			reg = <0x48480000 0x2000>;
--			syscon-raminit = <&dra7_ctrl_core 0x558 1>;
-+			syscon-raminit = <&scm_conf 0x558 1>;
- 			interrupts = <GIC_SPI 225 IRQ_TYPE_LEVEL_HIGH>;
- 			clocks = <&sys_clkin1>;
- 			status = "disabled";
+-		omap2_scm_general: tisyscon@49002270 {
+-			compatible = "syscon";
+-			reg = <0x49002270 0x240>;
+-		};
+ 
+-		pbias_regulator: pbias_regulator {
+-			compatible = "ti,pbias-omap";
+-			reg = <0x230 0x4>;
+-			syscon = <&omap2_scm_general>;
+-			pbias_mmc_reg: pbias_mmc_omap2430 {
+-				regulator-name = "pbias_mmc_omap2430";
+-				regulator-min-microvolt = <1800000>;
+-				regulator-max-microvolt = <3000000>;
++			counter32k: counter@20000 {
++				compatible = "ti,omap-counter32k";
++				reg = <0x20000 0x20>;
++				ti,hwmods = "counter_32k";
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/omap24xx-clocks.dtsi b/arch/arm/boot/dts/omap24xx-clocks.dtsi
+index a1365ca..63965b8 100644
+--- a/arch/arm/boot/dts/omap24xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap24xx-clocks.dtsi
+@@ -7,13 +7,13 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-&scrm_clocks {
++&scm_clocks {
+ 	mcbsp1_mux_fck: mcbsp1_mux_fck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <2>;
+-		reg = <0x0274>;
++		reg = <0x4>;
+ 	};
+ 
+ 	mcbsp1_fck: mcbsp1_fck {
+@@ -27,7 +27,7 @@
+ 		compatible = "ti,composite-mux-clock";
+ 		clocks = <&func_96m_ck>, <&mcbsp_clks>;
+ 		ti,bit-shift = <6>;
+-		reg = <0x0274>;
++		reg = <0x4>;
+ 	};
+ 
+ 	mcbsp2_fck: mcbsp2_fck {
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 4970c5c..eb592ea 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -661,10 +661,15 @@ static struct control_init_data ctrl_data = {
+ 	.index = TI_CLKM_CTRL,
+ };
+ 
++static const struct control_init_data omap2_ctrl_data = {
++	.index = TI_CLKM_CTRL,
++	.offset = -OMAP2_CONTROL_GENERAL,
++};
++
+ static const struct of_device_id omap_scrm_dt_match_table[] = {
+ 	{ .compatible = "ti,am3-scrm", .data = &ctrl_data },
+ 	{ .compatible = "ti,am4-scrm", .data = &ctrl_data },
+-	{ .compatible = "ti,omap2-scrm", .data = &ctrl_data },
++	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,omap3-scrm", .data = &ctrl_data },
+ 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
+ 	{ }
 -- 
 1.7.9.5
 
