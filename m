@@ -1,123 +1,141 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 00/35] ARM: OMAP2+: PRCM/SCM cleanups against 4.0-rc
-Date: Tue, 31 Mar 2015 17:59:58 +0300
-Message-ID: <551AB66E.7000209@ti.com>
-References: <1426877086-17131-1-git-send-email-t-kristo@ti.com> <20150331001019.GN10805@atomide.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] ti-soc-thermal: implement omap3 support
+Date: Tue, 31 Mar 2015 18:02:54 +0300
+Message-ID: <CANOLnOO4J3RQCJZB0ibkGc5KhvPu+Q1f-bwc8mpxKCPRgjw5PQ@mail.gmail.com>
+References: <20150103114632.GA21883@amd>
+	<20150118202447.GA29014@amd>
+	<20150331084234.GA11712@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47824 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384AbbCaPAI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 11:00:08 -0400
-In-Reply-To: <20150331001019.GN10805@atomide.com>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:34772 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840AbbCaPC4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 11:02:56 -0400
+In-Reply-To: <20150331084234.GA11712@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, sakari.ailus@iki.fi, linux-arm-kernel@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali Rohar <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, edubezval@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org
 
-On 03/31/2015 03:10 AM, Tony Lindgren wrote:
-> Hi Tero,
+On Tue, Mar 31, 2015 at 11:42 AM, Pavel Machek <pavel@ucw.cz> wrote:
 >
-> * Tero Kristo <t-kristo@ti.com> [150320 11:45]:
->> Hi,
->>
->> v5 contains the following changes still:
->>
->> - re-ordered patches a bit, the single clock driver fix moved to beginning
->>    of the set, waiting for a separate merge from Mike
->> - Changed patch #23 to fix the slightly misleading logic (removed the extra +1)
->> - Changed patches #16 and #18 to fix OMAP2/3/4 etc. only builds
->> - Fixed ti81xx boot issues (hopefully, I don't have access to hardware
->>    to test it)
->> - Changed control module DTS layout based on discussions with Tony, this
->>    includes addition of minimal l4 bus (patch #25+)
->>
->> Testing done for v5:
->>   1: am335x-evm      : boot
->>   2: am335x-evmsk    : boot
->>   3: am3517-evm      : boot
->>   4: am43x-epos-evm  : boot
->>   5: am437x-gp-evm   : boot
->>   6: omap3-beagle-xm : boot
->>   7: omap3-beagle    : boot, suspend (ret/off), cpuidle (ret/off)
->>   8: am335x-boneblack: boot
->>   9: am335x-bone     : boot
->> 10: dra7xx-evm      : boot
->> 11: omap3-n900      : boot
->> 12: omap5-uevm      : boot
->> 13: omap4-panda-es  : boot, suspend (ret), cpuidle (ret)
->> 14: omap4-panda     : boot
->> 15: omap2430-sdp    : boot
->> 16: omap3430-sdp    : boot
->> 17: omap4-sdp-es23plus: boot
->>
->> Branch available at:
->> - tree: https://github.com/t-kristo/linux-pm.git
->> - branch: 4.0-rc1-prcm-cleanup-v5
+> This adds support for OMAP3 chips to ti-soc-thermal. As requested by
+> TI people, it is marked unreliable and warning is printed.
 >
-> I found few more issues regarding diff of the dmesg before and after,
-> you may want to diff also dra7 before and after.
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 >
-> Then I just noticed this series won't boot on omap3 with the legacy mode.
-> You can test this by building a uImage with the following command:
->
-> $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
-> 	-n "Linux" -d arch/arm/boot/zImage /tmp/uImage
->
-> Then make sure you're not passing a .dtb file.
->
-> Below is the error I'm getting with debug_ll + earlyprintk enabled.
+> ---
+> ...
+> --- /dev/null
+> +++ b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
+> @@ -0,0 +1,103 @@
+> +/*
+> + * OMAP3 thermal driver.
+> + *
+> + * Copyright (C) 2011-2012 Texas Instruments Inc.
+> + * Copyright (C) 2014 Pavel Machek <pavel@ucw.cz>
+> + *
+> + * This software is licensed under the terms of the GNU General Publ=
+ic
+> + * License version 2, as published by the Free Software Foundation, =
+and
+> + * may be copied, distributed, and modified under those terms.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
+> + *
+> + * Note
+> + * http://www.ti.com/lit/er/sprz278f/sprz278f.pdf "Advisory
+> + * 3.1.1.186 MMC OCP Clock Not Gated When Thermal Sensor Is Used"
+> + *
+> + * Also TI says:
+> + * Just be careful when you try to make thermal policy like decision=
+s
+> + * based on this sensor. Placement of the sensor w.r.t the actual lo=
+gic
+> + * generating heat has to be a factor as well. If you are just looki=
+ng
+> + * for an approximation temperature (thermometerish kind), you might=
+ be
+> + * ok with this. I am not sure we'd find any TI data around this.. j=
+ust a
+> + * heads up.
+> + */
+> +
+> +#include "ti-thermal.h"
+> +#include "ti-bandgap.h"
+> +
+> +/*
+> + * OMAP34XX has one instance of thermal sensor for MPU
+> + * need to describe the individual bit fields
+> + */
+> +static struct temp_sensor_registers
+> +omap34xx_mpu_temp_sensor_registers =3D {
+> +       .temp_sensor_ctrl =3D 0,
+> +       .bgap_soc_mask =3D BIT(8),
+> +       .bgap_eocz_mask =3D BIT(7),
+> +       .bgap_dtemp_mask =3D 0x7f,
+> +
+> +       .bgap_mode_ctrl =3D 0,
+> +       .mode_ctrl_mask =3D BIT(9),
+> +};
+> +
+> +/* Thresholds and limits for OMAP34XX MPU temperature sensor */
+> +static struct temp_sensor_data omap34xx_mpu_temp_sensor_data =3D {
+> +       .min_freq =3D 32768,
+> +       .max_freq =3D 32768,
+> +       .max_temp =3D -99000,
+> +       .min_temp =3D 99000,
 
-Yeah, I forgot to check the legacy boot and of course broke it, kind of 
-annoying to test it atm. >.<
+This looks mixed up. Also, perhaps use -40000 to 125000 to match the
+table below?
 
-Made a simple fix, will repost.
-
--Tero
-
->
-> Regards,
->
-> Tony
->
->
-> [    0.000000] PC is at regmap_read+0x10/0x60
-> [    0.000000] LR is at clk_memmap_readl+0x34/0x54
-> [    0.000000] pc : [<c03f2c88>]    lr : [<c0035694>]    psr: 200001d3
-> [    0.000000] sp : c08d1e90  ip : 00000000  fp : 00000000
-> [    0.000000] r10: c07efaa8  r9 : 00000040  r8 : c601c5c0
-> [    0.000000] r7 : c601bbc0  r6 : c601c5c0  r5 : 00000040  r4 : 00000001
-> [    0.000000] r3 : fa004000  r2 : c08d1ea4  r1 : 00000040  r0 : 00000040
-> [    0.000000] Flags: nzCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> [    0.000000] Control: 10c5387d  Table: 80004019  DAC: 00000015
-> [    0.000000] Process swapper/0 (pid: 0, stack limit = 0xc08d0218)
-> [    0.000000] Stack: (0xc08d1e90 to 0xc08d2000)
-> [    0.000000] 1e80:                                     00000000 c601bbc0 c601c5c0 c0035694
-> [    0.000000] 1ea0: c6001c8c c6001c40 c07f0000 c04d7d78 00000000 00000001 c07efaa8 c04d4dd0
-> [    0.000000] 1ec0: 00000000 00000000 c04d08c4 c115c5bc 600001d3 c601bbc0 00000020 00000001
-> [    0.000000] 1ee0: 00000003 00000013 00000040 c07efaa8 00000000 c04d8284 00000000 c07f0000
-> [    0.000000] 1f00: c094e4e8 c07efaa8 c06683ec c08d1efc c7eff101 00000020 c0951fe4 00000001
-> [    0.000000] 1f20: 00000000 00000000 c0951fcc c7eff140 c0965000 c04d840c 00000013 00000003
-> [    0.000000] 1f40: 00000001 00000000 039457c8 00000040 c601bb80 c0951fcc c0945dac c094e504
-> [    0.000000] 1f60: c08b3280 c08a7694 00000000 c601bb80 c094e4e8 c601bb80 c094e508 c08a77a8
-> [    0.000000] 1f80: c08aa480 00000000 c0965000 ffffffff c08d28c0 c08b3280 c7eff140 c0965000
-> [    0.000000] 1fa0: 00000000 c08aa490 c08aa480 00000000 c0965000 c086f7a4 c08b1e58 c0863aec
-> [    0.000000] 1fc0: ffffffff ffffffff c0863678 00000000 00000000 c08b3280 c0965214 c08d296c
-> [    0.000000] 1fe0: c08b327c c08d7a0c 80004059 411fc083 00000000 8000807c 00000000 00000000
-> [    0.000000] [<c03f2c88>] (regmap_read) from [<c0035694>] (clk_memmap_readl+0x34/0x54)
-> [    0.000000] [<c0035694>] (clk_memmap_readl) from [<c04d7d78>] (ti_clk_divider_recalc_rate+0x20/0xf8)
-> [    0.000000] [<c04d7d78>] (ti_clk_divider_recalc_rate) from [<c04d4dd0>] (clk_register+0x360/0x6f8)
-> [    0.000000] [<c04d4dd0>] (clk_register) from [<c04d8284>] (_register_divider.constprop.5+0xb8/0x120)
-> [    0.000000] [<c04d8284>] (_register_divider.constprop.5) from [<c04d840c>] (ti_clk_register_divider+0x80/0xa4)
-> [    0.000000] [<c04d840c>] (ti_clk_register_divider) from [<c08a7694>] (ti_clk_register_clk+0x88/0x17c)
-> [    0.000000] [<c08a7694>] (ti_clk_register_clk) from [<c08a77a8>] (ti_clk_register_legacy_clks+0x20/0x158)
-> [    0.000000] [<c08a77a8>] (ti_clk_register_legacy_clks) from [<c08aa490>] (omap3430_clk_legacy_init+0x10/0x58)
-> [    0.000000] [<c08aa490>] (omap3430_clk_legacy_init) from [<c086f7a4>] (omap3_sync32k_timer_init+0x8/0x58)
-> [    0.000000] [<c086f7a4>] (omap3_sync32k_timer_init) from [<c0863aec>] (start_kernel+0x238/0x3e8)
-> [    0.000000] [<c0863aec>] (start_kernel) from [<8000807c>] (0x8000807c)
-> [    0.000000] Code: e92d4070 e1a04000 e1a05001 e1a00001 (e594117c)
-> [    0.000000] ---[ end trace cb88537fdc8fa200 ]---
+> +       .hyst_val =3D 5000,
+> +};
+> +
+> +/*
+> + * Temperature values in milli degree celsius
+> + */
+> +static const int
+> +omap34xx_adc_to_temp[128] =3D {
+> +       -40000, -40000, -40000, -40000, -40000, -39000, -38000, -3600=
+0,
+> +       -34000, -32000, -31000, -29000, -28000, -26000, -25000, -2400=
+0,
+> +       -22000, -21000, -19000, -18000, -17000, -15000, -14000, -1200=
+0,
+> +       -11000, -9000, -8000, -7000, -5000, -4000, -2000, -1000, 0000=
+,
+> +       1000, 3000, 4000, 5000, 7000, 8000, 10000, 11000, 13000, 1400=
+0,
+> +       15000, 17000, 18000, 20000, 21000, 22000, 24000, 25000, 27000=
+,
+> +       28000, 30000, 31000, 32000, 34000, 35000, 37000, 38000, 39000=
+,
+> +       41000, 42000, 44000, 45000, 47000, 48000, 49000, 51000, 52000=
+,
+> +       53000, 55000, 56000, 58000, 59000, 60000, 62000, 63000, 65000=
+,
+> +       66000, 67000, 69000, 70000, 72000, 73000, 74000, 76000, 77000=
+,
+> +       79000, 80000, 81000, 83000, 84000, 85000, 87000, 88000, 89000=
+,
+> +       91000, 92000, 94000, 95000, 96000, 98000, 99000, 100000,
+> +       102000, 103000, 105000, 106000, 107000, 109000, 110000, 11100=
+0,
+> +       113000, 114000, 116000, 117000, 118000, 120000, 121000, 12200=
+0,
+> +       124000, 124000, 125000, 125000, 125000, 125000, 125000
+> +};
 >
 
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
