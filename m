@@ -1,72 +1,104 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv3 0/2] N900 Modem Speech Support
-Date: Tue, 31 Mar 2015 22:33:41 +0200
-Message-ID: <20150331203340.GA5450@earth>
-References: <1426964957-5023-1-git-send-email-sre@kernel.org>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm: get
+ rid of the bounce page"
+Date: Tue, 31 Mar 2015 23:39:47 +0200
+Message-ID: <CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+References: <20150324004537.GA24816@verge.net.au>
+	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+	<20150324161358.GA694@kahuna>
+	<20150326003939.GA25368@verge.net.au>
+	<20150326133631.GB2805@arm.com>
+	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au>
+	<20150327100612.GB1562@arm.com>
+	<7hbnj99epe.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1426964957-5023-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:33353 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750836AbbCaVjr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 17:39:47 -0400
+Received: by ignm3 with SMTP id m3so20268805ign.0
+        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2015 14:39:47 -0700 (PDT)
+In-Reply-To: <7hbnj99epe.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-
---MGYHOYXEY6WxJCY8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Sat, Mar 21, 2015 at 08:09:15PM +0100, Sebastian Reichel wrote:
-> This patchset contains the missing speech data support for the
-> Nokia N900 modem.
+On 31 March 2015 at 20:58, Kevin Hilman <khilman@kernel.org> wrote:
+> Will, Ard,
 >
-> [...]
+> Will Deacon <will.deacon@arm.com> writes:
 >
->   HSI: cmt_speech: Add cmt-speech driver
->   HSI: nokia-modem: Add cmt-speech support
->=20
->  drivers/hsi/clients/Kconfig          |   12 +-
->  drivers/hsi/clients/Makefile         |    1 +
->  drivers/hsi/clients/cmt_speech.c     | 1456 ++++++++++++++++++++++++++++=
-++++++
->  drivers/hsi/clients/nokia-modem.c    |   32 +-
->  include/uapi/linux/hsi/Kbuild        |    2 +-
->  include/uapi/linux/hsi/cs-protocol.h |  113 +++
->  6 files changed, 1613 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/hsi/clients/cmt_speech.c
->  create mode 100644 include/uapi/linux/hsi/cs-protocol.h
+>> On Fri, Mar 27, 2015 at 12:25:54AM +0000, Simon Horman wrote:
+>>> On Thu, Mar 26, 2015 at 08:29:21AM -0700, Tyler Baker wrote:
+>>> > On 26 March 2015 at 06:36, Will Deacon <will.deacon@arm.com> wrote:
+>>> > > On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
+>>> > >> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
+>>> > >> > I think we now have a new error: (seen with omap2plus_defconfig)
+>>> > >> > on next-20150324 :
+>>> > >> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
+>>> > >> > referenced in expression
+>>> > >> > make: *** [vmlinux] Error 1
+>>> > >>
+>>> > >> Thanks, I am seeing that too.
+>>> > >>
+>>> > >> My armchair suggestion is that the following should be reverted.
+>>> > >>
+>>> > >> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+>>> > >> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
+>>> > >
+>>> > > Can you try again with the latest -next please? We've merged an additional
+>>> > > patch aimed at sorting this out. Reverting isn't really an option, as
+>>> > > there's an awful lot of code that depends on the bounce page removal.
+>>> >
+>>> > Here are the kernelci.org -next results[1], if you click the build
+>>> > status you can dig down into the build failures. next-20150326 has now
+>>> > hit a compiler bug, Arnd mentioned he was looking into this issue.
+>>>
+>>> I have confirmed that next-20150326 does not compile without
+>>> the following reverted:
+>>>
+>>> 12eb3e833961 ("ARM: kvm: assert on HYP section boundaries not actual code size")
+>>> e60a1fec44a2 ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+>>> 06f75a1f6200 ("ARM, arm64: kvm: get rid of the bounce page")
+>>
+>> Thanks for testing this and sorry for the continued breakage. Which
+>> toolchain did you say you were using? Ard has some more patches trying to
+>> fix this, but none of our toolchains seem to tickle the issue.
+>
+> I've also tested on the default ARM toolchains available with ubuntu[1]
+>
+> Are there any updates on this issue?
+>
 
-I added the patches to my linux-hsi.git for-next branch aimed for
-4.1.
+I think Will and I were both under the impression that this patch
 
--- Sebastian
+https://git.kernel.org/cgit/linux/kernel/git/arm64/linux.git/log/?h=kvm-bounce-page
+
+fixed the issue conclusively.
+
+Could you elaborate on the issue please? What is the error you are
+getting, and can you confirm that is is caused by ld choking on the
+linker script? If not, this is another error than the one we have been
+trying to fix
+
+-- 
+Ard.
 
 
---MGYHOYXEY6WxJCY8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVGwShAAoJENju1/PIO/qaW6cQAI4gTKtou6io7CgSWWLL8XhR
-IwyPWmkzk3B1iCLs0S1yqz63FFCe3sQ6Yk4WvHloBAvLUXRAxi5tTSTnuvB7oVk2
-L6bFxW9o1GOSBnWxtSq7HaaPFZOK93ZC4awQNiEz461K5w43xKuBBpw2c1hAdU4W
-iK+htqKSOWe+bmh5hhMEne4UaKe9YihBqke821hJkrxtN6nYCvsv847KYpiVDt0N
-Ozexj1tvzocAvQTW9lOyNYX7yq8nASMbRGplaDBHEd7jEtmR8FVqAHbM/jE4tp2T
-+ANBldZZNQ+m99uoY0bzJ2foVnCL7EZgyNdtvGlq712vNZCEoxtB9ads0RcyPYde
-qTnAsLivIdLhSwL2XlQpdYwKbZ6Ivbv5y+npeGVvLX63WvH1MdMCIQ6rWlk10Nm5
-82MWYwBxBi9SkIvY72jqdPbG79eco37ogmmPGfZCm0O1zosAxDatLWKPjGy/7akI
-yqJBGGZur6p+2pBiQ4v4T7RsGirFjvR+qwkhU7Zl/a+ptia6tMgTLMGMYm8lFAof
-brIyCLRG4ighPbBUwE+W3MzrLohwf+PfHLl9VL5JYzBmloQA1CpyqLgGNLJVhdEf
-sL31dN1HnULsGc+3Ts3fw/QdFLwBJOhbXhJ6Qm9WVU0BeuTBxWCU1DdwL7/y9BbA
-srvx/natcKS1l1vGt+DB
-=KR0s
------END PGP SIGNATURE-----
-
---MGYHOYXEY6WxJCY8--
+> It ha broken most of the ARM defconfigs in linux-next[2], and since it's
+> been broken for a week now, it is masking other types of issues that we
+> can normally find via automated boot testing.
+>
+> Kevin
+>
+>
+> [1]
+> arm-linux-gnueabihf-gcc (Ubuntu/Linaro 4.8.2-16ubuntu4) 4.8.2
+> arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.3-12ubuntu1) 4.7.3
+>
+> [2] http://kernelci.org/job/next/
