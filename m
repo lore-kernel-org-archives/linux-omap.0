@@ -1,42 +1,39 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH] crypto: omap-sham: Use pm_runtime_irq_safe()
-Date: Tue, 31 Mar 2015 09:52:24 +0530
-Message-ID: <1427775745-4674-2-git-send-email-lokeshvutla@ti.com>
-References: <1427775745-4674-1-git-send-email-lokeshvutla@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCHv2] arm: dts: omap3: Add #iommu-cells to isp and iva iommu
+Date: Tue, 31 Mar 2015 09:33:46 +0300
+Message-ID: <20150331063346.GG18321@valkosipuli.retiisi.org.uk>
+References: <1427765290-4148-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427775745-4674-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, t-kristo@ti.com, lokeshvutla@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41545 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750769AbbCaGdu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 02:33:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1427765290-4148-1-git-send-email-sre@kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-omap_sham_handle_queue() can be called as part of done_task tasklet.
-During this its atomic and any calls to pm functions cannot sleep.
+On Tue, Mar 31, 2015 at 03:28:10AM +0200, Sebastian Reichel wrote:
+> Add missing #iommu-cells property to the isp and iva iommu nodes. This
+> fixes the binding (property is required according to the generic iommu
+> binding) and removes the following kernel warning triggered once the
+> iommu nodes are referenced:
+> 
+> [    0.647521] /ocp/isp@480bc000: could not get #iommu-cells for /ocp/mmu@480bd400
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-But there is a call to pm_runtime_get_sync() (which can sleep) in
-omap_sham_handle_queue(), because of which the following appears:
-" [  116.169969] BUG: scheduling while atomic: kworker/0:2/2676/0x00000100"
+Thanks!
 
-Add pm_runtime_irq_safe() to avoid this.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/crypto/omap-sham.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index ace5852..81ed511 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -1949,6 +1949,7 @@ static int omap_sham_probe(struct platform_device *pdev)
- 	dd->flags |= dd->pdata->flags;
- 
- 	pm_runtime_enable(dev);
-+	pm_runtime_irq_safe(dev);
- 	pm_runtime_get_sync(dev);
- 	rev = omap_sham_read(dd, SHA_REG_REV(dd));
- 	pm_runtime_put_sync(&pdev->dev);
 -- 
-1.9.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
