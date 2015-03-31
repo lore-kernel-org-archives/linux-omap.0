@@ -1,104 +1,100 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm: get
- rid of the bounce page"
-Date: Tue, 31 Mar 2015 23:39:47 +0200
-Message-ID: <CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: Possible regression in next-20150323 due to "ARM, arm64: kvm: get rid of the bounce page"
+Date: Tue, 31 Mar 2015 15:10:33 -0700
+Message-ID: <7h8uec95t2.fsf@deeprootsystems.com>
 References: <20150324004537.GA24816@verge.net.au>
 	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
-	<20150324161358.GA694@kahuna>
-	<20150326003939.GA25368@verge.net.au>
+	<20150324161358.GA694@kahuna> <20150326003939.GA25368@verge.net.au>
 	<20150326133631.GB2805@arm.com>
 	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
-	<20150327002554.GA5527@verge.net.au>
-	<20150327100612.GB1562@arm.com>
+	<20150327002554.GA5527@verge.net.au> <20150327100612.GB1562@arm.com>
 	<7hbnj99epe.fsf@deeprootsystems.com>
+	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:33353 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836AbbCaVjr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 17:39:47 -0400
-Received: by ignm3 with SMTP id m3so20268805ign.0
-        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2015 14:39:47 -0700 (PDT)
-In-Reply-To: <7hbnj99epe.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@kernel.org>
+Content-Type: text/plain
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+	(Ard Biesheuvel's message of "Tue, 31 Mar 2015 23:39:47 +0200")
+Sender: linux-sh-owner@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Will Deacon <will.deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 31 March 2015 at 20:58, Kevin Hilman <khilman@kernel.org> wrote:
-> Will, Ard,
->
-> Will Deacon <will.deacon@arm.com> writes:
->
->> On Fri, Mar 27, 2015 at 12:25:54AM +0000, Simon Horman wrote:
->>> On Thu, Mar 26, 2015 at 08:29:21AM -0700, Tyler Baker wrote:
->>> > On 26 March 2015 at 06:36, Will Deacon <will.deacon@arm.com> wrote:
->>> > > On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
->>> > >> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
->>> > >> > I think we now have a new error: (seen with omap2plus_defconfig)
->>> > >> > on next-20150324 :
->>> > >> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
->>> > >> > referenced in expression
->>> > >> > make: *** [vmlinux] Error 1
->>> > >>
->>> > >> Thanks, I am seeing that too.
->>> > >>
->>> > >> My armchair suggestion is that the following should be reverted.
->>> > >>
->>> > >> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
->>> > >> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
->>> > >
->>> > > Can you try again with the latest -next please? We've merged an additional
->>> > > patch aimed at sorting this out. Reverting isn't really an option, as
->>> > > there's an awful lot of code that depends on the bounce page removal.
->>> >
->>> > Here are the kernelci.org -next results[1], if you click the build
->>> > status you can dig down into the build failures. next-20150326 has now
->>> > hit a compiler bug, Arnd mentioned he was looking into this issue.
->>>
->>> I have confirmed that next-20150326 does not compile without
->>> the following reverted:
->>>
->>> 12eb3e833961 ("ARM: kvm: assert on HYP section boundaries not actual code size")
->>> e60a1fec44a2 ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
->>> 06f75a1f6200 ("ARM, arm64: kvm: get rid of the bounce page")
->>
->> Thanks for testing this and sorry for the continued breakage. Which
->> toolchain did you say you were using? Ard has some more patches trying to
->> fix this, but none of our toolchains seem to tickle the issue.
->
-> I've also tested on the default ARM toolchains available with ubuntu[1]
->
-> Are there any updates on this issue?
->
+Hi Ard,
 
-I think Will and I were both under the impression that this patch
+Ard Biesheuvel <ard.biesheuvel@linaro.org> writes:
 
-https://git.kernel.org/cgit/linux/kernel/git/arm64/linux.git/log/?h=kvm-bounce-page
+[...]
 
-fixed the issue conclusively.
-
-Could you elaborate on the issue please? What is the error you are
-getting, and can you confirm that is is caused by ld choking on the
-linker script? If not, this is another error than the one we have been
-trying to fix
-
--- 
-Ard.
-
-
-
-> It ha broken most of the ARM defconfigs in linux-next[2], and since it's
-> been broken for a week now, it is masking other types of issues that we
-> can normally find via automated boot testing.
+> I think Will and I were both under the impression that this patch
 >
-> Kevin
+> https://git.kernel.org/cgit/linux/kernel/git/arm64/linux.git/log/?h=kvm-bounce-page
 >
->
-> [1]
-> arm-linux-gnueabihf-gcc (Ubuntu/Linaro 4.8.2-16ubuntu4) 4.8.2
-> arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.3-12ubuntu1) 4.7.3
->
-> [2] http://kernelci.org/job/next/
+> fixed the issue conclusively.
+
+Nope, that branch is already part of linux-next, and linux-next still
+fails to compile for 20+ defconfigs[1]
+
+> Could you elaborate on the issue please? What is the error you are
+> getting, and can you confirm that is is caused by ld choking on the
+> linker script? If not, this is another error than the one we have been
+> trying to fix
+
+It's definitely not linker script related.
+
+Using "arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.3-12ubuntu1) 4.7.3",
+here's the error when building for multi_v7_defconfig (full log
+available[2]):
+
+../mm/migrate.c: In function 'migrate_pages':
+../mm/migrate.c:1148:1: internal compiler error: in push_minipool_fix, at config/arm/arm.c:13101
+Please submit a full bug report,
+with preprocessed source if appropriate.
+See <file:///usr/share/doc/gcc-4.7/README.Bugs> for instructions.
+Preprocessed source stored into /tmp/ccO1Nz1m.out file, please attach
+this to your bugreport.
+make[2]: *** [mm/migrate.o] Error 1
+make[2]: Target `__build' not remade because of errors.
+make[1]: *** [mm] Error 2
+
+build bisect points to commit 21f992084aeb[3], but that doesn't revert
+cleanly so I haven't got any further than that yet.
+
+Kevin
+
+[1] http://kernelci.org/build/next/kernel/next-20150331/
+[2] http://storage.kernelci.org/next/next-20150331/arm-multi_v7_defconfig/build.log
+[3] 21f992084aeb777675ba5f9c2dc6663e8a06e467 is the first bad commit
+
+Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Date:   Wed Mar 25 13:02:28 2015 +1100
+
+    page-flags: define behavior of FS/IO-related flags on compound pages
+
+    It seems we don't have compound page on FS/IO path currently.  Use
+    NO_COMPOUND to catch if we have.
+
+    The odd exception is PG_dirty: sound uses compound pages and maps
+    them
+    with PTEs.  NO_COMPOUND triggers VM_BUG_ON() in set_page_dirty() on
+    handling shared fault.  Let's use HEAD for PG_dirty.
+
+    Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+    Cc: Andrea Arcangeli <aarcange@redhat.com>
+    Cc: Hugh Dickins <hughd@google.com>
+    Cc: Dave Hansen <dave.hansen@intel.com>
+    Cc: Mel Gorman <mgorman@suse.de>
+    Cc: Rik van Riel <riel@redhat.com>
+    Cc: Vlastimil Babka <vbabka@suse.cz>
+    Cc: Christoph Lameter <cl@linux.com> 
+    Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+    Cc: Steve Capper <steve.capper@linaro.org>
+    Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+    Cc: Johannes Weiner <hannes@cmpxchg.org>
+    Cc: Michal Hocko <mhocko@suse.cz>
+    Cc: Jerome Marchand <jmarchan@redhat.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+
+:040000 040000 0d621460af1123de8fc33c881ae314c914725afc
+b843f45fb2a1c2537e8c17946d3f8af512cab84d M      include
+bisect run success
