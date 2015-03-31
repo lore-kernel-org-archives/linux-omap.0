@@ -1,59 +1,72 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [PATCH 3.13.y-ckt 055/143] usb: musb: omap2plus bus glue needs USB
- host support
-Date: Tue, 31 Mar 2015 12:47:00 -0700
-Message-ID: <1427831308-1854-56-git-send-email-kamal@canonical.com>
-References: <1427831308-1854-1-git-send-email-kamal@canonical.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv3 0/2] N900 Modem Speech Support
+Date: Tue, 31 Mar 2015 22:33:41 +0200
+Message-ID: <20150331203340.GA5450@earth>
+References: <1426964957-5023-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-team-bounces@lists.ubuntu.com>
-In-Reply-To: <1427831308-1854-1-git-send-email-kamal@canonical.com>
-List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/kernel-team>,
- <mailto:kernel-team-request@lists.ubuntu.com?subject=unsubscribe>
-List-Archive: <https://lists.ubuntu.com/archives/kernel-team>
-List-Post: <mailto:kernel-team@lists.ubuntu.com>
-List-Help: <mailto:kernel-team-request@lists.ubuntu.com?subject=help>
-List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/kernel-team>,
- <mailto:kernel-team-request@lists.ubuntu.com?subject=subscribe>
-Errors-To: kernel-team-bounces@lists.ubuntu.com
-Sender: kernel-team-bounces@lists.ubuntu.com
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Kamal Mostafa <kamal@canonical.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1426964957-5023-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kai Vehmanen <kvcontact-nQfqiRJ1PMYxHbG02/KK1g@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Pali Rohar <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-3.13.11-ckt18 -stable review patch.  If anyone has any objections, please let me know.
 
-------------------
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Arnd Bergmann <arnd@arndb.de>
+Hi,
 
-commit a8d191c8bb2f11a8f381e7cb98f978b7288c1401 upstream.
+On Sat, Mar 21, 2015 at 08:09:15PM +0100, Sebastian Reichel wrote:
+> This patchset contains the missing speech data support for the
+> Nokia N900 modem.
+>
+> [...]
+>
+>   HSI: cmt_speech: Add cmt-speech driver
+>   HSI: nokia-modem: Add cmt-speech support
+>=20
+>  drivers/hsi/clients/Kconfig          |   12 +-
+>  drivers/hsi/clients/Makefile         |    1 +
+>  drivers/hsi/clients/cmt_speech.c     | 1456 ++++++++++++++++++++++++++++=
+++++++
+>  drivers/hsi/clients/nokia-modem.c    |   32 +-
+>  include/uapi/linux/hsi/Kbuild        |    2 +-
+>  include/uapi/linux/hsi/cs-protocol.h |  113 +++
+>  6 files changed, 1613 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/hsi/clients/cmt_speech.c
+>  create mode 100644 include/uapi/linux/hsi/cs-protocol.h
 
-The musb/omap2430.c bus glue driver calls usb_hcd_poll_rh_status,
-which is only available if CONFIG_USB is also set, i.e. we
-are building USB host mode and not just endpoint mode.
+I added the patches to my linux-hsi.git for-next branch aimed for
+4.1.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
----
- drivers/usb/musb/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-- Sebastian
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 57dfc0c..a70f46f 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -74,7 +74,7 @@ config USB_MUSB_TUSB6010
- 
- config USB_MUSB_OMAP2PLUS
- 	tristate "OMAP2430 and onwards"
--	depends on ARCH_OMAP2PLUS
-+	depends on ARCH_OMAP2PLUS && USB
- 	select GENERIC_PHY
- 
- config USB_MUSB_AM35X
--- 
-1.9.1
+
+--MGYHOYXEY6WxJCY8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVGwShAAoJENju1/PIO/qaW6cQAI4gTKtou6io7CgSWWLL8XhR
+IwyPWmkzk3B1iCLs0S1yqz63FFCe3sQ6Yk4WvHloBAvLUXRAxi5tTSTnuvB7oVk2
+L6bFxW9o1GOSBnWxtSq7HaaPFZOK93ZC4awQNiEz461K5w43xKuBBpw2c1hAdU4W
+iK+htqKSOWe+bmh5hhMEne4UaKe9YihBqke821hJkrxtN6nYCvsv847KYpiVDt0N
+Ozexj1tvzocAvQTW9lOyNYX7yq8nASMbRGplaDBHEd7jEtmR8FVqAHbM/jE4tp2T
++ANBldZZNQ+m99uoY0bzJ2foVnCL7EZgyNdtvGlq712vNZCEoxtB9ads0RcyPYde
+qTnAsLivIdLhSwL2XlQpdYwKbZ6Ivbv5y+npeGVvLX63WvH1MdMCIQ6rWlk10Nm5
+82MWYwBxBi9SkIvY72jqdPbG79eco37ogmmPGfZCm0O1zosAxDatLWKPjGy/7akI
+yqJBGGZur6p+2pBiQ4v4T7RsGirFjvR+qwkhU7Zl/a+ptia6tMgTLMGMYm8lFAof
+brIyCLRG4ighPbBUwE+W3MzrLohwf+PfHLl9VL5JYzBmloQA1CpyqLgGNLJVhdEf
+sL31dN1HnULsGc+3Ts3fw/QdFLwBJOhbXhJ6Qm9WVU0BeuTBxWCU1DdwL7/y9BbA
+srvx/natcKS1l1vGt+DB
+=KR0s
+-----END PGP SIGNATURE-----
+
+--MGYHOYXEY6WxJCY8--
