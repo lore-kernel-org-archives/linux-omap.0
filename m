@@ -1,45 +1,79 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 22/34] ARM: OMAP2+: id: cache omap_type value
-Date: Tue, 31 Mar 2015 22:14:15 +0300
-Message-ID: <1427829267-32077-23-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 34/34] ARM: OMAP4+: control: add support for initializing control module via DT
+Date: Tue, 31 Mar 2015 22:14:27 +0300
+Message-ID: <1427829267-32077-35-git-send-email-t-kristo@ti.com>
 References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56454 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752777AbbCaTPL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2015 15:15:11 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41174 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752835AbbCaTPe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 15:15:34 -0400
 In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-There is no need to read the register with every invocation of the function,
-as the value is constant. Thus, cache the value in a static variable.
+OMAP4, OMAP5 and DRA7 now parse DT entries for control module address spaces,
+and set up syscon mappings appropriately. Low level IO init is updated to
+remove the legacy control module mappings for these devices also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/id.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/control.c |    3 +++
+ arch/arm/mach-omap2/io.c      |    6 +++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 2a2f4d5..f8121db 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -52,7 +52,10 @@ EXPORT_SYMBOL(omap_rev);
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index c8565d3..af95a62 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -650,6 +650,9 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
+ 	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,omap3-scm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
++	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
++	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
++	{ .compatible = "ti,dra7-scm-core", .data = &ctrl_data },
+ 	{ }
+ };
  
- int omap_type(void)
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 6c39cc0..7743e367 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -631,8 +631,8 @@ void __init omap4430_init_early(void)
  {
--	u32 val = 0;
-+	static u32 val = OMAP2_DEVICETYPE_MASK;
-+
-+	if (val < OMAP2_DEVICETYPE_MASK)
-+		return val;
- 
- 	if (cpu_is_omap24xx()) {
- 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
+ 	omap2_set_globals_tap(OMAP443X_CLASS,
+ 			      OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
+-	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
++	omap2_control_base_init();
+ 	omap4xxx_check_revision();
+ 	omap4xxx_check_features();
+ 	omap2_prcm_base_init();
+@@ -659,8 +659,8 @@ void __init omap5_init_early(void)
+ {
+ 	omap2_set_globals_tap(OMAP54XX_CLASS,
+ 			      OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+-	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
++	omap2_control_base_init();
+ 	omap4_pm_init_early();
+ 	omap2_prcm_base_init();
+ 	omap5xxx_check_revision();
+@@ -684,8 +684,8 @@ void __init omap5_init_late(void)
+ void __init dra7xx_init_early(void)
+ {
+ 	omap2_set_globals_tap(-1, OMAP2_L4_IO_ADDRESS(DRA7XX_TAP_BASE));
+-	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
++	omap2_control_base_init();
+ 	omap4_pm_init_early();
+ 	omap2_prcm_base_init();
+ 	dra7xxx_check_revision();
 -- 
 1.7.9.5
 
