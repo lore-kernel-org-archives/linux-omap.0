@@ -1,135 +1,53 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 01/25] arm: Use bool function return values of
- true/false not 1/0
-Date: Tue, 31 Mar 2015 17:05:30 +0100
-Message-ID: <20150331170530.0479b9ab@arm.com>
-References: <cover.1427759009.git.joe@perches.com>
- <912ed0ebae3c6a16f58b1452d5ce9226681bc8df.1427759009.git.joe@perches.com>
- <551AC424.9010802@redhat.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: patch "phy: Add a driver for dm816x USB PHY" added to linux-phy
+ tree
+Date: Tue, 31 Mar 2015 22:06:14 +0530
+Message-ID: <551ACCFE.3070703@ti.com>
+References: <20150325233606.GA7549@a0393678ub> <CAALWOA9ZHM6S+7WUffu0LF=9=fEO+PxfERpu=D9JpAbKSo1yNA@mail.gmail.com> <20150326160416.GG31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <551AC424.9010802@redhat.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Russell King <linux@arm.linux.org.uk>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Gleb Natapov <gleb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Joe Perches <joe@perches.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49758 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753007AbbCaQg0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 12:36:26 -0400
+In-Reply-To: <20150326160416.GG31346@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, Bin Liu <binmlist@gmail.com>, pebolle@tiscali.nl, rusty@rustcorp.com.au, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 31 Mar 2015 16:58:28 +0100
-Paolo Bonzini <pbonzini@redhat.com> wrote:
+Hi Tony,
 
-> On 31/03/2015 01:45, Joe Perches wrote:
-> > Use the normal return values for bool functions
-> > 
-> > Signed-off-by: Joe Perches <joe@perches.com>
-> > ---
-> >  arch/arm/include/asm/dma-mapping.h |  8 ++++----
-> >  arch/arm/include/asm/kvm_emulate.h |  2 +-
-> >  arch/arm/mach-omap2/powerdomain.c  | 14 +++++++-------
-> >  3 files changed, 12 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-> > index b52101d..166e1e1 100644
-> > --- a/arch/arm/include/asm/dma-mapping.h
-> > +++ b/arch/arm/include/asm/dma-mapping.h
-> > @@ -151,18 +151,18 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
-> >  	u64 limit, mask;
-> >  
-> >  	if (!dev->dma_mask)
-> > -		return 0;
-> > +		return false;
-> >  
-> >  	mask = *dev->dma_mask;
-> >  
-> >  	limit = (mask + 1) & ~mask;
-> >  	if (limit && size > limit)
-> > -		return 0;
-> > +		return false;
-> >  
-> >  	if ((addr | (addr + size - 1)) & ~mask)
-> > -		return 0;
-> > +		return false;
-> >  
-> > -	return 1;
-> > +	return true;
-> >  }
-> >  
-> >  static inline void dma_mark_clean(void *addr, size_t size) { }
-> > diff --git a/arch/arm/include/asm/kvm_emulate.h b/arch/arm/include/asm/kvm_emulate.h
-> > index a9c80a2..ad200a0 100644
-> > --- a/arch/arm/include/asm/kvm_emulate.h
-> > +++ b/arch/arm/include/asm/kvm_emulate.h
-> > @@ -51,7 +51,7 @@ static inline void vcpu_set_hcr(struct kvm_vcpu *vcpu, unsigned long hcr)
-> >  
-> >  static inline bool vcpu_mode_is_32bit(struct kvm_vcpu *vcpu)
-> >  {
-> > -	return 1;
-> > +	return true;
-> >  }
-> >  
-> >  static inline unsigned long *vcpu_pc(struct kvm_vcpu *vcpu)
-> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> > index 78af6d8..897f9fb 100644
-> > --- a/arch/arm/mach-omap2/powerdomain.c
-> > +++ b/arch/arm/mach-omap2/powerdomain.c
-> > @@ -950,7 +950,7 @@ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
-> >   */
-> >  bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm)
-> >  {
-> > -	return (pwrdm && pwrdm->flags & PWRDM_HAS_HDWR_SAR) ? 1 : 0;
-> > +	return pwrdm && (pwrdm->flags & PWRDM_HAS_HDWR_SAR);
-> >  }
-> >  
-> >  int pwrdm_state_switch_nolock(struct powerdomain *pwrdm)
-> > @@ -1185,24 +1185,24 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
-> >  	if (!pwrdm) {
-> >  		pr_debug("powerdomain: %s: invalid powerdomain pointer\n",
-> >  			 __func__);
-> > -		return 1;
-> > +		return true;
-> >  	}
-> >  
-> >  	if (pwrdm->pwrsts & PWRSTS_OFF)
-> > -		return 1;
-> > +		return true;
-> >  
-> >  	if (pwrdm->pwrsts & PWRSTS_RET) {
-> >  		if (pwrdm->pwrsts_logic_ret & PWRSTS_OFF)
-> > -			return 1;
-> > +			return true;
-> >  
-> >  		for (i = 0; i < pwrdm->banks; i++)
-> >  			if (pwrdm->pwrsts_mem_ret[i] & PWRSTS_OFF)
-> > -				return 1;
-> > +				return true;
-> >  	}
-> >  
-> >  	for (i = 0; i < pwrdm->banks; i++)
-> >  		if (pwrdm->pwrsts_mem_on[i] & PWRSTS_OFF)
-> > -			return 1;
-> > +			return true;
-> >  
-> > -	return 0;
-> > +	return false;
-> >  }
-> > 
-> 
-> Marc/Christoffer, please pick this up yourself.
+On Thursday 26 March 2015 09:34 PM, Tony Lindgren wrote:
+> * Matthijs van Duin <matthijsvanduin@gmail.com> [150326 00:02]:
+>> On 26 March 2015 at 00:36, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>> Let me know if you find any problems with this patch.
+>>
+>> I spotted a minor issue in drivers/phy/Kconfig:
+>>
+>>> +         Enable this for dm81xx USB to work.
+>>
+>> This should say dm816x instead.
+>
+> Yes that's correct, the phy on dm814x seems to be like on am335x,
+> not like on dm816x. Kishon, let me know if you prefer a follow-up
+> patch to fix this.
 
-Given that it touches a range of completely unrelated files, for the
-KVM part:
+No. I've fixed this in my tree
+https://git.kernel.org/cgit/linux/kernel/git/kishon/linux-phy.git/commit
+/?h=next&id=9fa9fd4ffc90582091b8c6219f2054265f71e4ef
+>
+> I'm not seeing the original mail for this thread anywhere for some
+> reason BTW. It does not seem to be in the mailing list archives
+> either, well at least not yet.
 
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+It's an automated mail that is sent to notify the authors and other who are
+explicitly added in the signed-off by section when a patch is being merged in
+the linux-phy tree. So it won't be in the mailing list archives.
 
-	M.
--- 
-Jazz is not dead. It just smells funny.
+But I'm not sure why you didn't receive it :-(
+
+Thanks
+Kishon
