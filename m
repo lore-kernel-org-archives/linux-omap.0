@@ -1,71 +1,159 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [3.13.y-ckt stable] Patch "usb: musb: omap2plus bus glue needs USB host support" has been added to staging queue
-Date: Tue, 31 Mar 2015 11:45:46 -0700
-Message-ID: <1427827546-23453-1-git-send-email-kamal@canonical.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37971 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130AbbCaSpv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 14:45:51 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH V2 linux-next] clk: constify of_device_id array
+Date: Tue, 31 Mar 2015 20:50:42 +0200
+Message-ID: <1427827843-30823-1-git-send-email-fabf@skynet.be>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kamal Mostafa <kamal@canonical.com>, kernel-team@lists.ubuntu.com
 
-This is a note to let you know that I have just added a patch titled
+of_device_id is always used as const.
+(See driver.of_match_table and open firmware functions)
 
-    usb: musb: omap2plus bus glue needs USB host support
+__initdata updated to __initconst for
+static const struct of_device_id ti_clkdm_match_table[]
 
-to the linux-3.13.y-queue branch of the 3.13.y-ckt extended stable tree 
-which can be found at:
-
- http://kernel.ubuntu.com/git?p=ubuntu/linux.git;a=shortlog;h=refs/heads/linux-3.13.y-queue
-
-This patch is scheduled to be released in version 3.13.11-ckt18.
-
-If you, or anyone else, feels it should not be added to this tree, please 
-reply to this email.
-
-For more information about the 3.13.y-ckt tree, see
-https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
-
-Thanks.
--Kamal
-
-------
-
->From d2711f357bc9387a10a1ac2151b3bae75ca5a35e Mon Sep 17 00:00:00 2001
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 8 May 2014 15:52:16 +0200
-Subject: usb: musb: omap2plus bus glue needs USB host support
-
-commit a8d191c8bb2f11a8f381e7cb98f978b7288c1401 upstream.
-
-The musb/omap2430.c bus glue driver calls usb_hcd_poll_rh_status,
-which is only available if CONFIG_USB is also set, i.e. we
-are building USB host mode and not just endpoint mode.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- drivers/usb/musb/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+V2:
+add __initdata -> __initconst in changelog
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 57dfc0c..a70f46f 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -74,7 +74,7 @@ config USB_MUSB_TUSB6010
+ drivers/clk/clk-palmas.c                 | 2 +-
+ drivers/clk/st/clkgen-fsyn.c             | 2 +-
+ drivers/clk/st/clkgen-mux.c              | 8 ++++----
+ drivers/clk/st/clkgen-pll.c              | 4 ++--
+ drivers/clk/ti/clk-dra7-atl.c            | 2 +-
+ drivers/clk/ti/clockdomain.c             | 2 +-
+ drivers/clk/versatile/clk-vexpress-osc.c | 2 +-
+ 7 files changed, 11 insertions(+), 11 deletions(-)
 
- config USB_MUSB_OMAP2PLUS
- 	tristate "OMAP2430 and onwards"
--	depends on ARCH_OMAP2PLUS
-+	depends on ARCH_OMAP2PLUS && USB
- 	select GENERIC_PHY
-
- config USB_MUSB_AM35X
---
+diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
+index 8d45992..45a535a 100644
+--- a/drivers/clk/clk-palmas.c
++++ b/drivers/clk/clk-palmas.c
+@@ -161,7 +161,7 @@ static struct palmas_clks_of_match_data palmas_of_clk32kgaudio = {
+ 	},
+ };
+ 
+-static struct of_device_id palmas_clks_of_match[] = {
++static const struct of_device_id palmas_clks_of_match[] = {
+ 	{
+ 		.compatible = "ti,palmas-clk32kg",
+ 		.data = &palmas_of_clk32kg,
+diff --git a/drivers/clk/st/clkgen-fsyn.c b/drivers/clk/st/clkgen-fsyn.c
+index af94ed8..a917c4c 100644
+--- a/drivers/clk/st/clkgen-fsyn.c
++++ b/drivers/clk/st/clkgen-fsyn.c
+@@ -1057,7 +1057,7 @@ static struct clk * __init st_clk_register_quadfs_fsynth(
+ 	return clk;
+ }
+ 
+-static struct of_device_id quadfs_of_match[] = {
++static const struct of_device_id quadfs_of_match[] = {
+ 	{
+ 		.compatible = "st,stih416-quadfs216",
+ 		.data = &st_fs216c65_416
+diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
+index 9a15ec3..fdcff10 100644
+--- a/drivers/clk/st/clkgen-mux.c
++++ b/drivers/clk/st/clkgen-mux.c
+@@ -341,7 +341,7 @@ static struct clkgena_divmux_data st_divmux_c32odf3 = {
+ 	.fb_start_bit_idx = 24,
+ };
+ 
+-static struct of_device_id clkgena_divmux_of_match[] = {
++static const struct of_device_id clkgena_divmux_of_match[] = {
+ 	{
+ 		.compatible = "st,clkgena-divmux-c65-hs",
+ 		.data = &st_divmux_c65hs,
+@@ -479,7 +479,7 @@ static struct clkgena_prediv_data prediv_c32_data = {
+ 	.table = prediv_table16,
+ };
+ 
+-static struct of_device_id clkgena_prediv_of_match[] = {
++static const struct of_device_id clkgena_prediv_of_match[] = {
+ 	{ .compatible = "st,clkgena-prediv-c65", .data = &prediv_c65_data },
+ 	{ .compatible = "st,clkgena-prediv-c32", .data = &prediv_c32_data },
+ 	{}
+@@ -586,7 +586,7 @@ static struct clkgen_mux_data stih407_a9_mux_data = {
+ 	.width = 2,
+ };
+ 
+-static struct of_device_id mux_of_match[] = {
++static const struct of_device_id mux_of_match[] = {
+ 	{
+ 		.compatible = "st,stih416-clkgenc-vcc-hd",
+ 		.data = &clkgen_mux_c_vcc_hd_416,
+@@ -693,7 +693,7 @@ static struct clkgen_vcc_data st_clkgenf_vcc_416 = {
+ 	.lock = &clkgenf_lock,
+ };
+ 
+-static struct of_device_id vcc_of_match[] = {
++static const struct of_device_id vcc_of_match[] = {
+ 	{ .compatible = "st,stih416-clkgenc", .data = &st_clkgenc_vcc_416 },
+ 	{ .compatible = "st,stih416-clkgenf", .data = &st_clkgenf_vcc_416 },
+ 	{}
+diff --git a/drivers/clk/st/clkgen-pll.c b/drivers/clk/st/clkgen-pll.c
+index 29769d7..d204ba8 100644
+--- a/drivers/clk/st/clkgen-pll.c
++++ b/drivers/clk/st/clkgen-pll.c
+@@ -593,7 +593,7 @@ static struct clk * __init clkgen_odf_register(const char *parent_name,
+ 	return clk;
+ }
+ 
+-static struct of_device_id c32_pll_of_match[] = {
++static const struct of_device_id c32_pll_of_match[] = {
+ 	{
+ 		.compatible = "st,plls-c32-a1x-0",
+ 		.data = &st_pll3200c32_a1x_0,
+@@ -708,7 +708,7 @@ err:
+ }
+ CLK_OF_DECLARE(clkgen_c32_pll, "st,clkgen-plls-c32", clkgen_c32_pll_setup);
+ 
+-static struct of_device_id c32_gpu_pll_of_match[] = {
++static const struct of_device_id c32_gpu_pll_of_match[] = {
+ 	{
+ 		.compatible = "st,stih415-gpu-pll-c32",
+ 		.data = &st_pll1200c32_gpu_415,
+diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+index 59bb4b3..d86bc46 100644
+--- a/drivers/clk/ti/clk-dra7-atl.c
++++ b/drivers/clk/ti/clk-dra7-atl.c
+@@ -294,7 +294,7 @@ static int of_dra7_atl_clk_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct of_device_id of_dra7_atl_clk_match_tbl[] = {
++static const struct of_device_id of_dra7_atl_clk_match_tbl[] = {
+ 	{ .compatible = "ti,dra7-atl", },
+ 	{},
+ };
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+index b4c5fac..35fe108 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -52,7 +52,7 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
+ 	}
+ }
+ 
+-static struct of_device_id ti_clkdm_match_table[] __initdata = {
++static const struct of_device_id ti_clkdm_match_table[] __initconst = {
+ 	{ .compatible = "ti,clockdomain" },
+ 	{ }
+ };
+diff --git a/drivers/clk/versatile/clk-vexpress-osc.c b/drivers/clk/versatile/clk-vexpress-osc.c
+index 765f1e0..89c0609 100644
+--- a/drivers/clk/versatile/clk-vexpress-osc.c
++++ b/drivers/clk/versatile/clk-vexpress-osc.c
+@@ -110,7 +110,7 @@ static int vexpress_osc_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct of_device_id vexpress_osc_of_match[] = {
++static const struct of_device_id vexpress_osc_of_match[] = {
+ 	{ .compatible = "arm,vexpress-osc", },
+ 	{}
+ };
+-- 
 1.9.1
-
