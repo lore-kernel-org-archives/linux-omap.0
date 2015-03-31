@@ -1,159 +1,87 @@
-From: Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH V2 linux-next] clk: constify of_device_id array
-Date: Tue, 31 Mar 2015 20:50:42 +0200
-Message-ID: <1427827843-30823-1-git-send-email-fabf@skynet.be>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Fabian Frederick <fabf@skynet.be>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: Possible regression in next-20150323 due to "ARM,
+ arm64: kvm: get rid of the bounce page"
+Date: Tue, 31 Mar 2015 11:58:21 -0700
+Message-ID: <7hbnj99epe.fsf@deeprootsystems.com>
+References: <20150324004537.GA24816@verge.net.au>
+ <CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+ <20150324161358.GA694@kahuna> <20150326003939.GA25368@verge.net.au>
+ <20150326133631.GB2805@arm.com>
+ <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+ <20150327002554.GA5527@verge.net.au> <20150327100612.GB1562@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150327100612.GB1562@arm.com> (Will Deacon's message of "Fri,
+ 27 Mar 2015 10:06:12 +0000")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Tyler Baker <tyler.baker@linaro.org>, Simon Horman <horms@verge.net.au>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-of_device_id is always used as const.
-(See driver.of_match_table and open firmware functions)
+Will, Ard,
 
-__initdata updated to __initconst for
-static const struct of_device_id ti_clkdm_match_table[]
+Will Deacon <will.deacon@arm.com> writes:
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
-V2:
-add __initdata -> __initconst in changelog
+> On Fri, Mar 27, 2015 at 12:25:54AM +0000, Simon Horman wrote:
+>> On Thu, Mar 26, 2015 at 08:29:21AM -0700, Tyler Baker wrote:
+>> > On 26 March 2015 at 06:36, Will Deacon <will.deacon@arm.com> wrote:
+>> > > On Thu, Mar 26, 2015 at 12:39:39AM +0000, Simon Horman wrote:
+>> > >> On Tue, Mar 24, 2015 at 11:13:58AM -0500, Nishanth Menon wrote:
+>> > >> > I think we now have a new error: (seen with omap2plus_defconfig)
+>> > >> > on next-20150324 :
+>> > >> > ./arch/arm/kernel/vmlinux.lds:677: undefined symbol `__hyp_idmap_size'
+>> > >> > referenced in expression
+>> > >> > make: *** [vmlinux] Error 1
+>> > >>
+>> > >> Thanks, I am seeing that too.
+>> > >>
+>> > >> My armchair suggestion is that the following should be reverted.
+>> > >>
+>> > >> e60a1fec44a2f ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+>> > >> 06f75a1f62000 ("ARM, arm64: kvm: get rid of the bounce page")
+>> > >
+>> > > Can you try again with the latest -next please? We've merged an additional
+>> > > patch aimed at sorting this out. Reverting isn't really an option, as
+>> > > there's an awful lot of code that depends on the bounce page removal.
+>> > 
+>> > Here are the kernelci.org -next results[1], if you click the build
+>> > status you can dig down into the build failures. next-20150326 has now
+>> > hit a compiler bug, Arnd mentioned he was looking into this issue.
+>> 
+>> I have confirmed that next-20150326 does not compile without
+>> the following reverted:
+>> 
+>> 12eb3e833961 ("ARM: kvm: assert on HYP section boundaries not actual code size")
+>> e60a1fec44a2 ("ARM: kvm: implement replacement for ld's LOG2CEIL()")
+>> 06f75a1f6200 ("ARM, arm64: kvm: get rid of the bounce page")
+>
+> Thanks for testing this and sorry for the continued breakage. Which
+> toolchain did you say you were using? Ard has some more patches trying to
+> fix this, but none of our toolchains seem to tickle the issue.
 
- drivers/clk/clk-palmas.c                 | 2 +-
- drivers/clk/st/clkgen-fsyn.c             | 2 +-
- drivers/clk/st/clkgen-mux.c              | 8 ++++----
- drivers/clk/st/clkgen-pll.c              | 4 ++--
- drivers/clk/ti/clk-dra7-atl.c            | 2 +-
- drivers/clk/ti/clockdomain.c             | 2 +-
- drivers/clk/versatile/clk-vexpress-osc.c | 2 +-
- 7 files changed, 11 insertions(+), 11 deletions(-)
+I've also tested on the default ARM toolchains available with ubuntu[1]
 
-diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
-index 8d45992..45a535a 100644
---- a/drivers/clk/clk-palmas.c
-+++ b/drivers/clk/clk-palmas.c
-@@ -161,7 +161,7 @@ static struct palmas_clks_of_match_data palmas_of_clk32kgaudio = {
- 	},
- };
- 
--static struct of_device_id palmas_clks_of_match[] = {
-+static const struct of_device_id palmas_clks_of_match[] = {
- 	{
- 		.compatible = "ti,palmas-clk32kg",
- 		.data = &palmas_of_clk32kg,
-diff --git a/drivers/clk/st/clkgen-fsyn.c b/drivers/clk/st/clkgen-fsyn.c
-index af94ed8..a917c4c 100644
---- a/drivers/clk/st/clkgen-fsyn.c
-+++ b/drivers/clk/st/clkgen-fsyn.c
-@@ -1057,7 +1057,7 @@ static struct clk * __init st_clk_register_quadfs_fsynth(
- 	return clk;
- }
- 
--static struct of_device_id quadfs_of_match[] = {
-+static const struct of_device_id quadfs_of_match[] = {
- 	{
- 		.compatible = "st,stih416-quadfs216",
- 		.data = &st_fs216c65_416
-diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
-index 9a15ec3..fdcff10 100644
---- a/drivers/clk/st/clkgen-mux.c
-+++ b/drivers/clk/st/clkgen-mux.c
-@@ -341,7 +341,7 @@ static struct clkgena_divmux_data st_divmux_c32odf3 = {
- 	.fb_start_bit_idx = 24,
- };
- 
--static struct of_device_id clkgena_divmux_of_match[] = {
-+static const struct of_device_id clkgena_divmux_of_match[] = {
- 	{
- 		.compatible = "st,clkgena-divmux-c65-hs",
- 		.data = &st_divmux_c65hs,
-@@ -479,7 +479,7 @@ static struct clkgena_prediv_data prediv_c32_data = {
- 	.table = prediv_table16,
- };
- 
--static struct of_device_id clkgena_prediv_of_match[] = {
-+static const struct of_device_id clkgena_prediv_of_match[] = {
- 	{ .compatible = "st,clkgena-prediv-c65", .data = &prediv_c65_data },
- 	{ .compatible = "st,clkgena-prediv-c32", .data = &prediv_c32_data },
- 	{}
-@@ -586,7 +586,7 @@ static struct clkgen_mux_data stih407_a9_mux_data = {
- 	.width = 2,
- };
- 
--static struct of_device_id mux_of_match[] = {
-+static const struct of_device_id mux_of_match[] = {
- 	{
- 		.compatible = "st,stih416-clkgenc-vcc-hd",
- 		.data = &clkgen_mux_c_vcc_hd_416,
-@@ -693,7 +693,7 @@ static struct clkgen_vcc_data st_clkgenf_vcc_416 = {
- 	.lock = &clkgenf_lock,
- };
- 
--static struct of_device_id vcc_of_match[] = {
-+static const struct of_device_id vcc_of_match[] = {
- 	{ .compatible = "st,stih416-clkgenc", .data = &st_clkgenc_vcc_416 },
- 	{ .compatible = "st,stih416-clkgenf", .data = &st_clkgenf_vcc_416 },
- 	{}
-diff --git a/drivers/clk/st/clkgen-pll.c b/drivers/clk/st/clkgen-pll.c
-index 29769d7..d204ba8 100644
---- a/drivers/clk/st/clkgen-pll.c
-+++ b/drivers/clk/st/clkgen-pll.c
-@@ -593,7 +593,7 @@ static struct clk * __init clkgen_odf_register(const char *parent_name,
- 	return clk;
- }
- 
--static struct of_device_id c32_pll_of_match[] = {
-+static const struct of_device_id c32_pll_of_match[] = {
- 	{
- 		.compatible = "st,plls-c32-a1x-0",
- 		.data = &st_pll3200c32_a1x_0,
-@@ -708,7 +708,7 @@ err:
- }
- CLK_OF_DECLARE(clkgen_c32_pll, "st,clkgen-plls-c32", clkgen_c32_pll_setup);
- 
--static struct of_device_id c32_gpu_pll_of_match[] = {
-+static const struct of_device_id c32_gpu_pll_of_match[] = {
- 	{
- 		.compatible = "st,stih415-gpu-pll-c32",
- 		.data = &st_pll1200c32_gpu_415,
-diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-index 59bb4b3..d86bc46 100644
---- a/drivers/clk/ti/clk-dra7-atl.c
-+++ b/drivers/clk/ti/clk-dra7-atl.c
-@@ -294,7 +294,7 @@ static int of_dra7_atl_clk_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static struct of_device_id of_dra7_atl_clk_match_tbl[] = {
-+static const struct of_device_id of_dra7_atl_clk_match_tbl[] = {
- 	{ .compatible = "ti,dra7-atl", },
- 	{},
- };
-diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
-index b4c5fac..35fe108 100644
---- a/drivers/clk/ti/clockdomain.c
-+++ b/drivers/clk/ti/clockdomain.c
-@@ -52,7 +52,7 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
- 	}
- }
- 
--static struct of_device_id ti_clkdm_match_table[] __initdata = {
-+static const struct of_device_id ti_clkdm_match_table[] __initconst = {
- 	{ .compatible = "ti,clockdomain" },
- 	{ }
- };
-diff --git a/drivers/clk/versatile/clk-vexpress-osc.c b/drivers/clk/versatile/clk-vexpress-osc.c
-index 765f1e0..89c0609 100644
---- a/drivers/clk/versatile/clk-vexpress-osc.c
-+++ b/drivers/clk/versatile/clk-vexpress-osc.c
-@@ -110,7 +110,7 @@ static int vexpress_osc_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static struct of_device_id vexpress_osc_of_match[] = {
-+static const struct of_device_id vexpress_osc_of_match[] = {
- 	{ .compatible = "arm,vexpress-osc", },
- 	{}
- };
--- 
-1.9.1
+Are there any updates on this issue?
+
+It ha broken most of the ARM defconfigs in linux-next[2], and since it's
+been broken for a week now, it is masking other types of issues that we
+can normally find via automated boot testing.
+
+Kevin
+
+
+[1]
+arm-linux-gnueabihf-gcc (Ubuntu/Linaro 4.8.2-16ubuntu4) 4.8.2
+arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.3-12ubuntu1) 4.7.3
+
+[2] http://kernelci.org/job/next/
