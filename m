@@ -1,53 +1,69 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: patch "phy: Add a driver for dm816x USB PHY" added to linux-phy
- tree
-Date: Tue, 31 Mar 2015 22:06:14 +0530
-Message-ID: <551ACCFE.3070703@ti.com>
-References: <20150325233606.GA7549@a0393678ub> <CAALWOA9ZHM6S+7WUffu0LF=9=fEO+PxfERpu=D9JpAbKSo1yNA@mail.gmail.com> <20150326160416.GG31346@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 1/7] dmaengine: of_dma: Support for DMA routers
+Date: Tue, 31 Mar 2015 19:48:03 +0300
+Message-ID: <551ACFC3.5020003@ti.com>
+References: <1427459213-14611-1-git-send-email-peter.ujfalusi@ti.com> <1427459213-14611-2-git-send-email-peter.ujfalusi@ti.com> <201503280244.46961.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49758 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46562 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753007AbbCaQg0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2015 12:36:26 -0400
-In-Reply-To: <20150326160416.GG31346@atomide.com>
+	id S1751741AbbCaQuJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 12:50:09 -0400
+In-Reply-To: <201503280244.46961.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, Bin Liu <binmlist@gmail.com>, pebolle@tiscali.nl, rusty@rustcorp.com.au, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
 
-Hi Tony,
+On 03/28/2015 03:44 AM, Arnd Bergmann wrote:
+> On Friday 27 March 2015, Peter Ujfalusi wrote:
+>> +Required property:
+>> +- dma-device:          phandle of the DMA controller. The router is=
+ modifying
+>> +                       the DMA requests for this controller.
+>=20
+> This property seems rather specific to the case at hand, I would expe=
+ct that
+> one might also see routers like this that are connected to more than =
+one
+> dma-device, so maybe make it a list?
 
-On Thursday 26 March 2015 09:34 PM, Tony Lindgren wrote:
-> * Matthijs van Duin <matthijsvanduin@gmail.com> [150326 00:02]:
->> On 26 March 2015 at 00:36, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>> Let me know if you find any problems with this patch.
->>
->> I spotted a minor issue in drivers/phy/Kconfig:
->>
->>> +         Enable this for dm81xx USB to work.
->>
->> This should say dm816x instead.
->
-> Yes that's correct, the phy on dm814x seems to be like on am335x,
-> not like on dm816x. Kishon, let me know if you prefer a follow-up
-> patch to fix this.
+Yeah, it is intentional from my part.
+In dra7xx family we actually have two DMA controllers: sDMA and eDMA. T=
+hey
+both have identical crossbar up front but you can not choose the DMA re=
+quest
+to be routed to either eDMA or sDMA. They are always routed to both and=
+ in the
+crossbar you select which signal goes to which DMA request of the given
+controller.
+At the moment I was not aware of different designs (current and future)=
+, but
+it might be possible that a design you described might surface at some =
+point.
+=46or sure, the list will complicate things quite a bit it might requir=
+e
+different API and callbacks at the end. I need to think about this how =
+it is
+going to work best.
 
-No. I've fixed this in my tree
-https://git.kernel.org/cgit/linux/kernel/git/kishon/linux-phy.git/commit
-/?h=next&id=9fa9fd4ffc90582091b8c6219f2054265f71e4ef
->
-> I'm not seeing the original mail for this thread anywhere for some
-> reason BTW. It does not seem to be in the mailing list archives
-> either, well at least not yet.
+> It might also be better to name this as 'dma-controllers' or 'dma-mas=
+ters',
+> as it is not entirely obvious (without referencing the binding docume=
+nt)
+> whether a dma device refers to the slave or the master.
 
-It's an automated mail that is sent to notify the authors and other who are
-explicitly added in the signed-off by section when a patch is being merged in
-the linux-phy tree. So it won't be in the mailing list archives.
+I think the 'dma-masters' sounds much better.
 
-But I'm not sure why you didn't receive it :-(
+PS: I'm out of office this week so do not expect v4 before mid next wee=
+k.
 
-Thanks
-Kishon
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
