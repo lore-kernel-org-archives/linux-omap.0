@@ -1,84 +1,208 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 30/34] ARM: OMAP4: display: convert display to use syscon for dsi muxing
-Date: Tue, 31 Mar 2015 22:14:23 +0300
-Message-ID: <1427829267-32077-31-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 28/34] ARM: dts: am4372: add minimal l4 bus layout with control module support
+Date: Tue, 31 Mar 2015 22:14:21 +0300
+Message-ID: <1427829267-32077-29-git-send-email-t-kristo@ti.com>
 References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41168 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835AbbCaTP3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 15:15:29 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:32851 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752822AbbCaTPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 15:15:22 -0400
 In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-The legacy control module APIs will be gone, thus convert the display
-driver to use syscon. This change should eventually be moved to
-display driver from the board directory.
+This patch creates an l4_wkup interconnect for AM43xx, and moves some of
+the generic peripherals under it. System control module nodes are moved
+under this new interconnect also, and the SCM clock layout is changed
+to use the renamed SCM nodea as the clock provider.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/display.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/arm/omap/l4.txt  |    1 +
+ .../devicetree/bindings/arm/omap/prcm.txt          |    2 +-
+ arch/arm/boot/dts/am4372.dtsi                      |   85 +++++++++++---------
+ arch/arm/boot/dts/am43xx-clocks.dtsi               |    2 +-
+ arch/arm/mach-omap2/control.c                      |    2 +-
+ 5 files changed, 53 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 7a050f9..f492ae1 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -26,6 +26,8 @@
- #include <linux/of.h>
- #include <linux/of_platform.h>
- #include <linux/slab.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/regmap.h>
+diff --git a/Documentation/devicetree/bindings/arm/omap/l4.txt b/Documentation/devicetree/bindings/arm/omap/l4.txt
+index d333f0a..941b914 100644
+--- a/Documentation/devicetree/bindings/arm/omap/l4.txt
++++ b/Documentation/devicetree/bindings/arm/omap/l4.txt
+@@ -7,6 +7,7 @@ Required properties:
+ 	       Should be "ti,omap2-l4-wkup" for OMAP2 family l4 wkup bus
+ 	       Should be "ti,omap3-l4-core" for OMAP3 family l4 core bus
+ 	       Should be "ti,am3-l4-wkup" for AM33xx family l4 wkup bus
++	       Should be "ti,am4-l4-wkup" for AM43xx family l4 wkup bus
+ - ranges : contains the IO map range for the bus
  
- #include <video/omapdss.h>
- #include "omap_hwmod.h"
-@@ -104,6 +106,10 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initconst = {
- 	{ "dss_hdmi", "omapdss_hdmi", -1 },
- };
+ Examples:
+diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+index c8e2027..8af4f32 100644
+--- a/Documentation/devicetree/bindings/arm/omap/prcm.txt
++++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
+@@ -12,7 +12,7 @@ Required properties:
+ 		"ti,am3-prcm"
+ 		"ti,am3-scm"
+ 		"ti,am4-prcm"
+-		"ti,am4-scrm"
++		"ti,am4-scm"
+ 		"ti,omap2-prcm"
+ 		"ti,omap2-scm"
+ 		"ti,omap3-prm"
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 1943fc3..f8a02a2 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -57,22 +57,6 @@
+ 		cache-level = <2>;
+ 	};
  
-+#define OMAP4_DSIPHY_SYSCON_OFFSET		0x78
+-	am43xx_control_module: control_module@4a002000 {
+-		compatible = "syscon";
+-		reg = <0x44e10000 0x7f4>;
+-	};
+-
+-	am43xx_pinmux: pinmux@44e10800 {
+-		compatible = "ti,am437-padconf", "pinctrl-single";
+-		reg = <0x44e10800 0x31c>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		#interrupt-cells = <1>;
+-		interrupt-controller;
+-		pinctrl-single,register-width = <32>;
+-		pinctrl-single,function-mask = <0xffffffff>;
+-	};
+-
+ 	ocp {
+ 		compatible = "ti,am4372-l3-noc", "simple-bus";
+ 		#address-cells = <1>;
+@@ -84,29 +68,58 @@
+ 		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+ 			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+ 
+-		prcm: prcm@44df0000 {
+-			compatible = "ti,am4-prcm";
+-			reg = <0x44df0000 0x11000>;
+-
+-			prcm_clocks: clocks {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-			};
++		l4_wkup: l4_wkup@44c00000 {
++			compatible = "ti,am4-l4-wkup", "simple-bus";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x44c00000 0x287000>;
+ 
+-			prcm_clockdomains: clockdomains {
+-			};
+-		};
++			prcm: prcm@1f0000 {
++				compatible = "ti,am4-prcm";
++				reg = <0x1f0000 0x11000>;
+ 
+-		scrm: scrm@44e10000 {
+-			compatible = "ti,am4-scrm";
+-			reg = <0x44e10000 0x2000>;
++				prcm_clocks: clocks {
++					#address-cells = <1>;
++					#size-cells = <0>;
++				};
+ 
+-			scrm_clocks: clocks {
+-				#address-cells = <1>;
+-				#size-cells = <0>;
++				prcm_clockdomains: clockdomains {
++				};
+ 			};
+ 
+-			scrm_clockdomains: clockdomains {
++			scm: scm@210000 {
++				compatible = "ti,am4-scm", "simple-bus";
++				reg = <0x210000 0x4000>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0x210000 0x4000>;
 +
-+static struct regmap *omap4_dsi_mux_syscon;
++				am43xx_pinmux: pinmux@800 {
++					compatible = "ti,am437-padconf",
++						     "pinctrl-single";
++					reg = <0x800 0x31c>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					#interrupt-cells = <1>;
++					interrupt-controller;
++					pinctrl-single,register-width = <32>;
++					pinctrl-single,function-mask = <0xffffffff>;
++				};
 +
- static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- {
- 	u32 enable_mask, enable_shift;
-@@ -124,7 +130,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 		return -ENODEV;
- 	}
- 
--	reg = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
-+	regmap_read(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, &reg);
- 
- 	reg &= ~enable_mask;
- 	reg &= ~pipd_mask;
-@@ -132,7 +138,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	reg |= (lanes << enable_shift) & enable_mask;
- 	reg |= (lanes << pipd_shift) & pipd_mask;
- 
--	omap4_ctrl_pad_writel(reg, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
-+	regmap_write(omap4_dsi_mux_syscon, OMAP4_DSIPHY_SYSCON_OFFSET, reg);
- 
- 	return 0;
- }
-@@ -665,5 +671,10 @@ int __init omapdss_init_of(void)
- 		return r;
- 	}
- 
-+	/* add DSI info for omap4 */
-+	node = of_find_node_by_name(NULL, "omap4_padconf_global");
-+	if (node)
-+		omap4_dsi_mux_syscon = syscon_node_to_regmap(node);
++				scm_conf: scm_conf@0 {
++					compatible = "syscon";
++					reg = <0x0 0x800>;
++					#address-cells = <1>;
++					#size-cells = <1>;
 +
- 	return 0;
- }
++					scm_clocks: clocks {
++						#address-cells = <1>;
++						#size-cells = <0>;
++					};
++				};
++
++				scm_clockdomains: clockdomains {
++				};
+ 			};
+ 		};
+ 
+@@ -933,7 +946,7 @@
+ 			clocks = <&dcan0_fck>;
+ 			clock-names = "fck";
+ 			reg = <0x481cc000 0x2000>;
+-			syscon-raminit = <&am43xx_control_module 0x644 0>;
++			syscon-raminit = <&scm_conf 0x644 0>;
+ 			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
+ 			status = "disabled";
+ 		};
+@@ -944,7 +957,7 @@
+ 			clocks = <&dcan1_fck>;
+ 			clock-names = "fck";
+ 			reg = <0x481d0000 0x2000>;
+-			syscon-raminit = <&am43xx_control_module 0x644 1>;
++			syscon-raminit = <&scm_conf 0x644 1>;
+ 			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
+ 			status = "disabled";
+ 		};
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index c7dc9da..44869aa 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -7,7 +7,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-&scrm_clocks {
++&scm_clocks {
+ 	sys_clkin_ck: sys_clkin_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 477e2c8..4047784 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -668,7 +668,7 @@ static const struct control_init_data omap2_ctrl_data = {
+ 
+ static const struct of_device_id omap_scrm_dt_match_table[] = {
+ 	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
+-	{ .compatible = "ti,am4-scrm", .data = &ctrl_data },
++	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
+ 	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,omap3-scm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
 -- 
 1.7.9.5
 
