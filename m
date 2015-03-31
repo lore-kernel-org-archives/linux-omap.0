@@ -1,52 +1,117 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 6/7] dmaengine: omap-dma: Remove mapping between virtual
- channels and requests
-Date: Tue, 31 Mar 2015 18:44:30 +0300
-Message-ID: <551AC0DE.40807@ti.com>
-References: <1427459213-14611-1-git-send-email-peter.ujfalusi@ti.com> <1427459213-14611-7-git-send-email-peter.ujfalusi@ti.com> <20150327202230.GA4027@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/25] arm: Use bool function return values of true/false
+ not 1/0
+Date: Tue, 31 Mar 2015 08:54:26 -0700
+Message-ID: <20150331155426.GP10805@atomide.com>
+References: <cover.1427759009.git.joe@perches.com>
+ <912ed0ebae3c6a16f58b1452d5ce9226681bc8df.1427759009.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150327202230.GA4027@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: vinod.koul@intel.com, tony@atomide.com, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kvm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <912ed0ebae3c6a16f58b1452d5ce9226681bc8df.1427759009.git.joe@perches.com>
+Sender: kvm-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Gleb Natapov <gleb@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/27/2015 10:22 PM, Russell King - ARM Linux wrote:
-> On Fri, Mar 27, 2015 at 02:26:52PM +0200, Peter Ujfalusi wrote:
->> Do not direct map the virtual channels to sDMA request number. When =
-the
->> sDMA is behind of a crossbar this direct mapping can cause situation=
-s when
->> certain channel can not be requested since the crossbar request numb=
-er
->> will no longer match with the sDMA request line.
->> The direct mapping for virtual channels with HW request lines will m=
-ake it
->> harder to implement MEM_TO_MEM mode for the driver.
->=20
-> There's no point having 127 virtual DMA channels then... is there?
-> We might as well reduce the number down to a more reasonable set
-> rather than wasting memory.
+* Joe Perches <joe@perches.com> [150330 16:47]:
+> Use the normal return values for bool functions
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-I was also come to the same conclusion. My plan was to change the virtu=
-al DMA
-channels to the same as the sDMA's logical channels.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
->> @@ -1049,7 +1050,6 @@ static int omap_dma_chan_init(struct omap_dmad=
-ev *od, int dma_sig)
->>  		return -ENOMEM;
->> =20
->>  	c->reg_map =3D od->reg_map;
->> -	c->dma_sig =3D dma_sig;
->=20
-> That's the only user of dma_sig in this function.  Why not remove it =
-from
-> the function prototype and its caller?
->=20
-
-
---=20
-P=E9ter
+> ---
+>  arch/arm/include/asm/dma-mapping.h |  8 ++++----
+>  arch/arm/include/asm/kvm_emulate.h |  2 +-
+>  arch/arm/mach-omap2/powerdomain.c  | 14 +++++++-------
+>  3 files changed, 12 insertions(+), 12 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
+> index b52101d..166e1e1 100644
+> --- a/arch/arm/include/asm/dma-mapping.h
+> +++ b/arch/arm/include/asm/dma-mapping.h
+> @@ -151,18 +151,18 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+>  	u64 limit, mask;
+>  
+>  	if (!dev->dma_mask)
+> -		return 0;
+> +		return false;
+>  
+>  	mask = *dev->dma_mask;
+>  
+>  	limit = (mask + 1) & ~mask;
+>  	if (limit && size > limit)
+> -		return 0;
+> +		return false;
+>  
+>  	if ((addr | (addr + size - 1)) & ~mask)
+> -		return 0;
+> +		return false;
+>  
+> -	return 1;
+> +	return true;
+>  }
+>  
+>  static inline void dma_mark_clean(void *addr, size_t size) { }
+> diff --git a/arch/arm/include/asm/kvm_emulate.h b/arch/arm/include/asm/kvm_emulate.h
+> index a9c80a2..ad200a0 100644
+> --- a/arch/arm/include/asm/kvm_emulate.h
+> +++ b/arch/arm/include/asm/kvm_emulate.h
+> @@ -51,7 +51,7 @@ static inline void vcpu_set_hcr(struct kvm_vcpu *vcpu, unsigned long hcr)
+>  
+>  static inline bool vcpu_mode_is_32bit(struct kvm_vcpu *vcpu)
+>  {
+> -	return 1;
+> +	return true;
+>  }
+>  
+>  static inline unsigned long *vcpu_pc(struct kvm_vcpu *vcpu)
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 78af6d8..897f9fb 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -950,7 +950,7 @@ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
+>   */
+>  bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm)
+>  {
+> -	return (pwrdm && pwrdm->flags & PWRDM_HAS_HDWR_SAR) ? 1 : 0;
+> +	return pwrdm && (pwrdm->flags & PWRDM_HAS_HDWR_SAR);
+>  }
+>  
+>  int pwrdm_state_switch_nolock(struct powerdomain *pwrdm)
+> @@ -1185,24 +1185,24 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
+>  	if (!pwrdm) {
+>  		pr_debug("powerdomain: %s: invalid powerdomain pointer\n",
+>  			 __func__);
+> -		return 1;
+> +		return true;
+>  	}
+>  
+>  	if (pwrdm->pwrsts & PWRSTS_OFF)
+> -		return 1;
+> +		return true;
+>  
+>  	if (pwrdm->pwrsts & PWRSTS_RET) {
+>  		if (pwrdm->pwrsts_logic_ret & PWRSTS_OFF)
+> -			return 1;
+> +			return true;
+>  
+>  		for (i = 0; i < pwrdm->banks; i++)
+>  			if (pwrdm->pwrsts_mem_ret[i] & PWRSTS_OFF)
+> -				return 1;
+> +				return true;
+>  	}
+>  
+>  	for (i = 0; i < pwrdm->banks; i++)
+>  		if (pwrdm->pwrsts_mem_on[i] & PWRSTS_OFF)
+> -			return 1;
+> +			return true;
+>  
+> -	return 0;
+> +	return false;
+>  }
+> -- 
+> 2.1.2
+> 
