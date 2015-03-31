@@ -1,76 +1,57 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 01/34] ARM: OMAP2+: PRCM: rename of_prcm_init to omap_prcm_init
-Date: Tue, 31 Mar 2015 22:13:54 +0300
-Message-ID: <1427829267-32077-2-git-send-email-t-kristo@ti.com>
-References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 00/34] ARM: OMAP2+: PRCM+SCM cleanup against 4.0-rc1
+Date: Tue, 31 Mar 2015 22:13:53 +0300
+Message-ID: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41085 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474AbbCaTOf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2015 15:14:35 -0400
-In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56382 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751474AbbCaTOh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 15:14:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This avoids conflicts in the global namespace, and is more descriptive
-of the purpose anyway.
+Hi,
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/io.c         |    2 +-
- arch/arm/mach-omap2/prm.h        |    2 +-
- arch/arm/mach-omap2/prm_common.c |    8 +++++++-
- 3 files changed, 9 insertions(+), 3 deletions(-)
+Decided to post a new version because of the number of minor changes
+compared to v5, just to avoid any misunderstandings:
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index c4871c5..f504f71 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -764,7 +764,7 @@ int __init omap_clk_init(void)
- 	ti_clk_init_features();
- 
- 	if (of_have_populated_dt()) {
--		ret = of_prcm_init();
-+		ret = omap_prcm_init();
- 		if (ret)
- 			return ret;
- 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index b9061a6..ba9b933 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -19,7 +19,7 @@
- extern void __iomem *prm_base;
- extern u16 prm_features;
- extern void omap2_set_globals_prm(void __iomem *prm);
--int of_prcm_init(void);
-+int omap_prcm_init(void);
- void omap3_prcm_legacy_iomaps_init(void);
- # endif
- 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index bfaa7ba..c5cfaa9 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -625,7 +625,13 @@ static struct ti_clk_ll_ops omap_clk_ll_ops = {
- 	.clk_writel = prm_clk_writel,
- };
- 
--int __init of_prcm_init(void)
-+/**
-+ * omap_prcm_init - low level init for the PRCM drivers
-+ *
-+ * Initializes the low level clock infrastructure for PRCM drivers.
-+ * Returns 0 in success, negative error value in failure.
-+ */
-+int __init omap_prcm_init(void)
- {
- 	struct device_node *np;
- 	void __iomem *mem;
--- 
-1.7.9.5
+- dropped patch #1 ("clk: ti: fix ti_clk_get_reg_addr..."), this has been merged
+  through clock tree now
+- fixed scm_conf area size issues on am33xx/am43xx
+- fixed scm area size issue on am43xx
+- fixed size issues on omap3_pmx_core (was 8 bytes short)
+- added warnings on omap2_clk_readl/writel in case legacy access is attempted
+- fixed omap3 legacy boot
+- fixed boot time warning on omap4+ where scm_conf does not contain clocks node
+  yet (these may be added to DT later if support is required)
+- fixed some randconfig warnings
+
+Testing done:
+ 1: am335x-evm      : boot
+ 2: am335x-evmsk    : boot
+ 3: am3517-evm      : boot
+ 4: am43x-epos-evm  : boot
+ 5: am437x-gp-evm   : boot
+ 6: omap3-beagle-xm : boot
+ 7: omap3-beagle    : boot, cpuidle (ret/off), suspend (ret/off), legacy boot
+ 8: am335x-boneblack: boot
+ 9: am335x-bone     : boot
+10: dra7xx-evm      : boot
+11: omap3-n900      : boot
+12: omap5-uevm      : boot
+13: omap4-panda-es  : boot, cpuidle (ret), suspend (ret)
+14: omap4-panda     : boot
+15: omap2430-sdp    : boot
+16: omap3430-sdp    : boot
+17: omap4-sdp-es23plus: boot
+
+New branch also pushed:
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 4.0-rc1-prcm-cleanup-v6
+
+-Tero
 
