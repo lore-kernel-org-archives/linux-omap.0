@@ -1,14 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 05/34] ARM: OMAP4+: PRM: move omap_prm_base_init under OMAP4 PRM driver
-Date: Tue, 31 Mar 2015 22:13:58 +0300
-Message-ID: <1427829267-32077-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 06/34] ARM: OMAP4+: CM: move omap_cm_base_init under OMAP4 CM driver
+Date: Tue, 31 Mar 2015 22:13:59 +0300
+Message-ID: <1427829267-32077-7-git-send-email-t-kristo@ti.com>
 References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56396 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56393 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752683AbbCaTOl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752573AbbCaTOl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 31 Mar 2015 15:14:41 -0400
 In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,63 +17,86 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
 There is no need to call this separately from io.c, rather this can be
-done commonly under the PRM driver.
+done commonly under the CM driver. Also, this patch makes the API static,
+as it is no longer used outside the driver file.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/io.c      |    4 ----
- arch/arm/mach-omap2/prm44xx.c |    2 ++
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/cm44xx.h     |    1 -
+ arch/arm/mach-omap2/cminst44xx.c |    4 +++-
+ arch/arm/mach-omap2/io.c         |    4 ----
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
+index 728d06a..ad6e263 100644
+--- a/arch/arm/mach-omap2/cm44xx.h
++++ b/arch/arm/mach-omap2/cm44xx.h
+@@ -23,7 +23,6 @@
+ #define OMAP4_CM_CLKSTCTRL				0x0000
+ #define OMAP4_CM_STATICDEP				0x0004
+ 
+-void omap_cm_base_init(void);
+ int omap4_cm_init(void);
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 95a8cff..9319034 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -63,7 +63,7 @@ static void __iomem *_cm_bases[OMAP4_MAX_PRCM_PARTITIONS];
+  * Populates the base addresses of the _cm_bases
+  * array used for read/write of cm module registers.
+  */
+-void omap_cm_base_init(void)
++static void omap_cm_base_init(void)
+ {
+ 	_cm_bases[OMAP4430_PRM_PARTITION] = prm_base;
+ 	_cm_bases[OMAP4430_CM1_PARTITION] = cm_base;
+@@ -516,6 +516,8 @@ static struct cm_ll_data omap4xxx_cm_ll_data = {
+ 
+ int __init omap4_cm_init(void)
+ {
++	omap_cm_base_init();
++
+ 	return cm_register(&omap4xxx_cm_ll_data);
+ }
+ 
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index f504f71..5569c2f 100644
+index 5569c2f..364b530 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
 @@ -623,7 +623,6 @@ void __init am43xx_init_early(void)
  				  NULL);
  	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
  	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
--	omap_prm_base_init();
- 	omap_cm_base_init();
+-	omap_cm_base_init();
  	omap3xxx_check_revision();
  	am33xx_check_features();
-@@ -654,7 +653,6 @@ void __init omap4430_init_early(void)
+ 	omap44xx_prm_init();
+@@ -653,7 +652,6 @@ void __init omap4430_init_early(void)
  	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
  			     OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE));
  	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
--	omap_prm_base_init();
- 	omap_cm_base_init();
+-	omap_cm_base_init();
  	omap4xxx_check_revision();
  	omap4xxx_check_features();
-@@ -690,7 +688,6 @@ void __init omap5_init_early(void)
+ 	omap4_cm_init();
+@@ -688,7 +686,6 @@ void __init omap5_init_early(void)
  			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
  	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
  	omap4_pm_init_early();
--	omap_prm_base_init();
- 	omap_cm_base_init();
+-	omap_cm_base_init();
  	omap44xx_prm_init();
  	omap5xxx_check_revision();
-@@ -722,7 +719,6 @@ void __init dra7xx_init_early(void)
+ 	omap4_cm_init();
+@@ -719,7 +716,6 @@ void __init dra7xx_init_early(void)
  			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
  	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
  	omap4_pm_init_early();
--	omap_prm_base_init();
- 	omap_cm_base_init();
+-	omap_cm_base_init();
  	omap44xx_prm_init();
  	dra7xxx_check_revision();
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 1af0137..6f647f6 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -705,6 +705,8 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 
- int __init omap44xx_prm_init(void)
- {
-+	omap_prm_base_init();
-+
- 	if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx())
- 		prm_features |= PRM_HAS_IO_WAKEUP;
- 
+ 	omap4_cm_init();
 -- 
 1.7.9.5
 
