@@ -1,42 +1,55 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 00/25] treewide: Use bool function return values of
- true/false not 1/0
-Date: Mon, 30 Mar 2015 17:14:48 -0700
-Message-ID: <1427760888.14276.37.camel@perches.com>
-References: <cover.1427759009.git.joe@perches.com>
-	 <5519E53B.5040504@schaufler-ca.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5519E53B.5040504@schaufler-ca.com>
-Sender: owner-linux-mm@kvack.org
-To: Casey Schaufler <casey@schaufler-ca.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, kvm@vger.kernel.org, linux-omap@vger.kernel.org, kvm-ppc@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-ide@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-mm@kvack.org, linux-pm@vger.kernel.org, netdev@vger.kernel.org, alsa-devel@alsa-project.org, bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, patches@opensource.wolfsonmicro.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv2] arm: dts: omap3: Add #iommu-cells to isp and iva iommu
+Date: Tue, 31 Mar 2015 03:28:10 +0200
+Message-ID: <1427765290-4148-1-git-send-email-sre@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([5.45.105.125]:39680 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753929AbbCaB2j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Mar 2015 21:28:39 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Sebastian Reichel <sre@kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On Mon, 2015-03-30 at 17:07 -0700, Casey Schaufler wrote:
-> On 3/30/2015 4:45 PM, Joe Perches wrote:
-> > Joe Perches (25):
-> >   arm: Use bool function return values of true/false not 1/0
+Add missing #iommu-cells property to the isp and iva iommu nodes. This
+fixes the binding (property is required according to the generic iommu
+binding) and removes the following kernel warning triggered once the
+iommu nodes are referenced:
 
-[etc...]
+[    0.647521] /ocp/isp@480bc000: could not get #iommu-cells for /ocp/mmu@480bd400
 
-> Why, and why these in particular?
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+Changes since PATCHv1:
 
-bool functions are probably better returning
-bool values instead of 1 and 0.
+ * Also add property to mmu_iva
+---
+ arch/arm/boot/dts/omap3.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Especially when the functions intermix returning
-returning 1/0 and true/false.
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index fe0b293..eb96cf9 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -440,6 +440,7 @@
+ 		};
+ 
+ 		mmu_isp: mmu@480bd400 {
++			#iommu-cells = <0>;
+ 			compatible = "ti,omap2-iommu";
+ 			reg = <0x480bd400 0x80>;
+ 			interrupts = <24>;
+@@ -448,6 +449,7 @@
+ 		};
+ 
+ 		mmu_iva: mmu@5d000000 {
++			#iommu-cells = <0>;
+ 			compatible = "ti,omap2-iommu";
+ 			reg = <0x5d000000 0x80>;
+ 			interrupts = <28>;
+-- 
+2.1.4
 
-(there are only a couple of those though)
-
-These are all the remaining instances in the
-kernel tree.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
