@@ -1,208 +1,66 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 28/34] ARM: dts: am4372: add minimal l4 bus layout with control module support
-Date: Tue, 31 Mar 2015 22:14:21 +0300
-Message-ID: <1427829267-32077-29-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 21/34] ARM: OMAP2+: control: remove API for getting control module base address
+Date: Tue, 31 Mar 2015 22:14:14 +0300
+Message-ID: <1427829267-32077-22-git-send-email-t-kristo@ti.com>
 References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32851 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56451 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752822AbbCaTPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2015 15:15:22 -0400
+	id S1752771AbbCaTPK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 15:15:10 -0400
 In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This patch creates an l4_wkup interconnect for AM43xx, and moves some of
-the generic peripherals under it. System control module nodes are moved
-under this new interconnect also, and the SCM clock layout is changed
-to use the renamed SCM nodea as the clock provider.
+This shall not be used anymore, as control module driver is converted
+into using regmap.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- Documentation/devicetree/bindings/arm/omap/l4.txt  |    1 +
- .../devicetree/bindings/arm/omap/prcm.txt          |    2 +-
- arch/arm/boot/dts/am4372.dtsi                      |   85 +++++++++++---------
- arch/arm/boot/dts/am43xx-clocks.dtsi               |    2 +-
- arch/arm/mach-omap2/control.c                      |    2 +-
- 5 files changed, 53 insertions(+), 39 deletions(-)
+ arch/arm/mach-omap2/control.c |    5 -----
+ arch/arm/mach-omap2/control.h |    2 --
+ 2 files changed, 7 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/l4.txt b/Documentation/devicetree/bindings/arm/omap/l4.txt
-index d333f0a..941b914 100644
---- a/Documentation/devicetree/bindings/arm/omap/l4.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/l4.txt
-@@ -7,6 +7,7 @@ Required properties:
- 	       Should be "ti,omap2-l4-wkup" for OMAP2 family l4 wkup bus
- 	       Should be "ti,omap3-l4-core" for OMAP3 family l4 core bus
- 	       Should be "ti,am3-l4-wkup" for AM33xx family l4 wkup bus
-+	       Should be "ti,am4-l4-wkup" for AM43xx family l4 wkup bus
- - ranges : contains the IO map range for the bus
- 
- Examples:
-diff --git a/Documentation/devicetree/bindings/arm/omap/prcm.txt b/Documentation/devicetree/bindings/arm/omap/prcm.txt
-index c8e2027..8af4f32 100644
---- a/Documentation/devicetree/bindings/arm/omap/prcm.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/prcm.txt
-@@ -12,7 +12,7 @@ Required properties:
- 		"ti,am3-prcm"
- 		"ti,am3-scm"
- 		"ti,am4-prcm"
--		"ti,am4-scrm"
-+		"ti,am4-scm"
- 		"ti,omap2-prcm"
- 		"ti,omap2-scm"
- 		"ti,omap3-prm"
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 1943fc3..f8a02a2 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -57,22 +57,6 @@
- 		cache-level = <2>;
- 	};
- 
--	am43xx_control_module: control_module@4a002000 {
--		compatible = "syscon";
--		reg = <0x44e10000 0x7f4>;
--	};
--
--	am43xx_pinmux: pinmux@44e10800 {
--		compatible = "ti,am437-padconf", "pinctrl-single";
--		reg = <0x44e10800 0x31c>;
--		#address-cells = <1>;
--		#size-cells = <0>;
--		#interrupt-cells = <1>;
--		interrupt-controller;
--		pinctrl-single,register-width = <32>;
--		pinctrl-single,function-mask = <0xffffffff>;
--	};
--
- 	ocp {
- 		compatible = "ti,am4372-l3-noc", "simple-bus";
- 		#address-cells = <1>;
-@@ -84,29 +68,58 @@
- 		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
- 			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
- 
--		prcm: prcm@44df0000 {
--			compatible = "ti,am4-prcm";
--			reg = <0x44df0000 0x11000>;
--
--			prcm_clocks: clocks {
--				#address-cells = <1>;
--				#size-cells = <0>;
--			};
-+		l4_wkup: l4_wkup@44c00000 {
-+			compatible = "ti,am4-l4-wkup", "simple-bus";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0 0x44c00000 0x287000>;
- 
--			prcm_clockdomains: clockdomains {
--			};
--		};
-+			prcm: prcm@1f0000 {
-+				compatible = "ti,am4-prcm";
-+				reg = <0x1f0000 0x11000>;
- 
--		scrm: scrm@44e10000 {
--			compatible = "ti,am4-scrm";
--			reg = <0x44e10000 0x2000>;
-+				prcm_clocks: clocks {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+				};
- 
--			scrm_clocks: clocks {
--				#address-cells = <1>;
--				#size-cells = <0>;
-+				prcm_clockdomains: clockdomains {
-+				};
- 			};
- 
--			scrm_clockdomains: clockdomains {
-+			scm: scm@210000 {
-+				compatible = "ti,am4-scm", "simple-bus";
-+				reg = <0x210000 0x4000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges = <0 0x210000 0x4000>;
-+
-+				am43xx_pinmux: pinmux@800 {
-+					compatible = "ti,am437-padconf",
-+						     "pinctrl-single";
-+					reg = <0x800 0x31c>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					#interrupt-cells = <1>;
-+					interrupt-controller;
-+					pinctrl-single,register-width = <32>;
-+					pinctrl-single,function-mask = <0xffffffff>;
-+				};
-+
-+				scm_conf: scm_conf@0 {
-+					compatible = "syscon";
-+					reg = <0x0 0x800>;
-+					#address-cells = <1>;
-+					#size-cells = <1>;
-+
-+					scm_clocks: clocks {
-+						#address-cells = <1>;
-+						#size-cells = <0>;
-+					};
-+				};
-+
-+				scm_clockdomains: clockdomains {
-+				};
- 			};
- 		};
- 
-@@ -933,7 +946,7 @@
- 			clocks = <&dcan0_fck>;
- 			clock-names = "fck";
- 			reg = <0x481cc000 0x2000>;
--			syscon-raminit = <&am43xx_control_module 0x644 0>;
-+			syscon-raminit = <&scm_conf 0x644 0>;
- 			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
- 		};
-@@ -944,7 +957,7 @@
- 			clocks = <&dcan1_fck>;
- 			clock-names = "fck";
- 			reg = <0x481d0000 0x2000>;
--			syscon-raminit = <&am43xx_control_module 0x644 1>;
-+			syscon-raminit = <&scm_conf 0x644 1>;
- 			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
- 		};
-diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-index c7dc9da..44869aa 100644
---- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-@@ -7,7 +7,7 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--&scrm_clocks {
-+&scm_clocks {
- 	sys_clkin_ck: sys_clkin_ck {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
 diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 477e2c8..4047784 100644
+index 4b40946..202fc72 100644
 --- a/arch/arm/mach-omap2/control.c
 +++ b/arch/arm/mach-omap2/control.c
-@@ -668,7 +668,7 @@ static const struct control_init_data omap2_ctrl_data = {
+@@ -145,11 +145,6 @@ void __init omap2_set_globals_control(void __iomem *ctrl,
+ 	omap4_ctrl_pad_base = ctrl_pad;
+ }
  
- static const struct of_device_id omap_scrm_dt_match_table[] = {
- 	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
--	{ .compatible = "ti,am4-scrm", .data = &ctrl_data },
-+	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
- 	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
- 	{ .compatible = "ti,omap3-scm", .data = &omap2_ctrl_data },
- 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
+-void __iomem *omap_ctrl_base_get(void)
+-{
+-	return omap2_ctrl_base;
+-}
+-
+ u8 omap_ctrl_readb(u16 offset)
+ {
+ 	return readb_relaxed(OMAP_CTRL_REGADDR(offset));
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index c1057eb..5353ff4 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -440,7 +440,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+-extern void __iomem *omap_ctrl_base_get(void);
+ extern u8 omap_ctrl_readb(u16 offset);
+ extern u16 omap_ctrl_readw(u16 offset);
+ extern u32 omap_ctrl_readl(u16 offset);
+@@ -470,7 +469,6 @@ extern void omap2_set_globals_control(void __iomem *ctrl,
+ 				      void __iomem *ctrl_pad);
+ void __init omap3_control_legacy_iomap_init(void);
+ #else
+-#define omap_ctrl_base_get()		0
+ #define omap_ctrl_readb(x)		0
+ #define omap_ctrl_readw(x)		0
+ #define omap_ctrl_readl(x)		0
 -- 
 1.7.9.5
 
