@@ -1,337 +1,256 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 12/34] ARM: OMAP2+: CM: determine CM base address from device tree
-Date: Tue, 31 Mar 2015 22:14:05 +0300
-Message-ID: <1427829267-32077-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 04/34] ARM: OMAP3+: PRM: add common APIs for prm_vp_check/clear_txdone
+Date: Tue, 31 Mar 2015 22:13:57 +0300
+Message-ID: <1427829267-32077-5-git-send-email-t-kristo@ti.com>
 References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56419 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56400 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752705AbbCaTOv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2015 15:14:51 -0400
+	id S1752693AbbCaTOn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2015 15:14:43 -0400
 In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-There is no need to provide the CM base address through a low-level API
-from the low-level IO init, as this information is available through DT.
-Re-routed the parsing function to be called from the CM drivers also to
-simplify the implementation under io.c.
+PRM driver now only exports a generic API for clearing / checking
+VP txdone status.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cm.h          |    1 +
- arch/arm/mach-omap2/cm2xxx.c      |    1 +
- arch/arm/mach-omap2/cm33xx.c      |    1 +
- arch/arm/mach-omap2/cm3xxx.c      |    2 +
- arch/arm/mach-omap2/cm_common.c   |   73 ++++++++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/cminst44xx.c  |    1 +
- arch/arm/mach-omap2/io.c          |   14 +------
- arch/arm/mach-omap2/prcm-common.h |    6 +++
- arch/arm/mach-omap2/prm_common.c  |    1 -
- 9 files changed, 81 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/prm.h          |   14 ++++++++++++++
+ arch/arm/mach-omap2/prm3xxx.c      |    6 ++++--
+ arch/arm/mach-omap2/prm3xxx.h      |    4 ----
+ arch/arm/mach-omap2/prm44xx.c      |    6 ++++--
+ arch/arm/mach-omap2/prm44xx_54xx.h |    4 ----
+ arch/arm/mach-omap2/prm_common.c   |   34 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/vp.h           |    9 ---------
+ arch/arm/mach-omap2/vp3xxx_data.c  |    4 ++--
+ arch/arm/mach-omap2/vp44xx_data.c  |    4 ++--
+ 9 files changed, 60 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index 748ac33..1fe3e6b 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -71,6 +71,7 @@ int omap_cm_module_disable(u8 part, u16 inst, u16 clkctrl_offs);
- extern int cm_register(struct cm_ll_data *cld);
- extern int cm_unregister(struct cm_ll_data *cld);
- int omap_cm_init(void);
-+int omap2_cm_base_init(void);
- 
- # endif
- 
-diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
-index ef62ac9..f18c844 100644
---- a/arch/arm/mach-omap2/cm2xxx.c
-+++ b/arch/arm/mach-omap2/cm2xxx.c
-@@ -395,6 +395,7 @@ static struct cm_ll_data omap2xxx_cm_ll_data = {
- 
- int __init omap2xxx_cm_init(void)
- {
-+	omap2_cm_base_init();
- 	return cm_register(&omap2xxx_cm_ll_data);
- }
- 
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index cc5aac7..221bca3 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -354,6 +354,7 @@ static struct cm_ll_data am33xx_cm_ll_data = {
- 
- int __init am33xx_cm_init(void)
- {
-+	omap2_cm_base_init();
- 	return cm_register(&am33xx_cm_ll_data);
- }
- 
-diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
-index ebead8f..88e6cb6 100644
---- a/arch/arm/mach-omap2/cm3xxx.c
-+++ b/arch/arm/mach-omap2/cm3xxx.c
-@@ -673,6 +673,8 @@ static struct cm_ll_data omap3xxx_cm_ll_data = {
- 
- int __init omap3xxx_cm_init(void)
- {
-+	omap2_clk_legacy_provider_init(TI_CLKM_CM, cm_base + OMAP3430_IVA2_MOD);
-+	omap2_cm_base_init();
- 	return cm_register(&omap3xxx_cm_ll_data);
- }
- 
-diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
-index f3d578b..32af8fc 100644
---- a/arch/arm/mach-omap2/cm_common.c
-+++ b/arch/arm/mach-omap2/cm_common.c
-@@ -36,6 +36,8 @@ void __iomem *cm_base;
- /* cm2_base: base virtual address of the CM2 IP block (OMAP44xx only) */
- void __iomem *cm2_base;
- 
-+#define CM_NO_CLOCKS		0x1
-+
- /**
-  * omap2_set_globals_cm - set the CM/CM2 base addresses (for early use)
-  * @cm: CM base virtual address
-@@ -224,18 +226,79 @@ static struct omap_prcm_init_data cm2_data = {
- 	.index = TI_CLKM_CM2,
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 2a01a58..4e390ec 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -147,6 +147,8 @@ struct prm_ll_data {
+ 				     u16 offset);
+ 	void (*reset_system)(void);
+ 	int (*clear_mod_irqs)(s16 module, u8 regs, u32 wkst_mask);
++	u32 (*vp_check_txdone)(u8 vp_id);
++	void (*vp_clear_txdone)(u8 vp_id);
  };
  
-+static struct omap_prcm_init_data omap2_prcm_data = {
-+	.index = TI_CLKM_CM,
-+	.flags = CM_NO_CLOCKS,
-+};
-+
-+static struct omap_prcm_init_data omap3_cm_data = {
-+	.index = TI_CLKM_CM,
-+
-+	/*
-+	 * IVA2 offset is a negative value, must offset the cm_base address
-+	 * by this to get it to positive side on the iomap
-+	 */
-+	.offset = -OMAP3430_IVA2_MOD,
-+};
-+
-+static struct omap_prcm_init_data am3_prcm_data = {
-+	.index = TI_CLKM_CM,
-+	.flags = CM_NO_CLOCKS,
-+};
-+
-+static struct omap_prcm_init_data am4_prcm_data = {
-+	.index = TI_CLKM_CM,
-+	.flags = CM_NO_CLOCKS,
-+};
-+
- static const struct of_device_id omap_cm_dt_match_table[] = {
--	{ .compatible = "ti,omap3-cm", .data = &cm_data },
-+	{ .compatible = "ti,omap2-prcm", .data = &omap2_prcm_data },
-+	{ .compatible = "ti,omap3-cm", .data = &omap3_cm_data },
- 	{ .compatible = "ti,omap4-cm1", .data = &cm_data },
- 	{ .compatible = "ti,omap4-cm2", .data = &cm2_data },
- 	{ .compatible = "ti,omap5-cm-core-aon", .data = &cm_data },
- 	{ .compatible = "ti,omap5-cm-core", .data = &cm2_data },
- 	{ .compatible = "ti,dra7-cm-core-aon", .data = &cm_data },
- 	{ .compatible = "ti,dra7-cm-core", .data = &cm2_data },
-+	{ .compatible = "ti,am3-prcm", .data = &am3_prcm_data },
-+	{ .compatible = "ti,am4-prcm", .data = &am4_prcm_data },
- 	{ }
- };
+ extern int prm_register(struct prm_ll_data *pld);
+@@ -164,6 +166,18 @@ void omap_prm_reset_system(void);
+ void omap_prm_reconfigure_io_chain(void);
+ int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
  
- /**
-+ * omap2_cm_base_init - initialize iomappings for the CM drivers
-+ *
-+ * Detects and initializes the iomappings for the CM driver, based
-+ * on the DT data. Returns 0 in success, negative error value
-+ * otherwise.
++/*
++ * Voltage Processor (VP) identifiers
 + */
-+int __init omap2_cm_base_init(void)
++#define OMAP3_VP_VDD_MPU_ID	0
++#define OMAP3_VP_VDD_CORE_ID	1
++#define OMAP4_VP_VDD_CORE_ID	0
++#define OMAP4_VP_VDD_IVA_ID	1
++#define OMAP4_VP_VDD_MPU_ID	2
++
++u32 omap_prm_vp_check_txdone(u8 vp_id);
++void omap_prm_vp_clear_txdone(u8 vp_id);
++
+ #endif
+ 
+ 
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index a444334..2b478adc 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -96,7 +96,7 @@ static struct omap3_vp omap3_vp[] = {
+ 
+ #define MAX_VP_ID ARRAY_SIZE(omap3_vp);
+ 
+-u32 omap3_prm_vp_check_txdone(u8 vp_id)
++static u32 omap3_prm_vp_check_txdone(u8 vp_id)
+ {
+ 	struct omap3_vp *vp = &omap3_vp[vp_id];
+ 	u32 irqstatus;
+@@ -106,7 +106,7 @@ u32 omap3_prm_vp_check_txdone(u8 vp_id)
+ 	return irqstatus & vp->tranxdone_status;
+ }
+ 
+-void omap3_prm_vp_clear_txdone(u8 vp_id)
++static void omap3_prm_vp_clear_txdone(u8 vp_id)
+ {
+ 	struct omap3_vp *vp = &omap3_vp[vp_id];
+ 
+@@ -665,6 +665,8 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
+ 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
+ 	.reset_system = &omap3xxx_prm_dpll3_reset,
+ 	.clear_mod_irqs = &omap3xxx_prm_clear_mod_irqs,
++	.vp_check_txdone = &omap3_prm_vp_check_txdone,
++	.vp_clear_txdone = &omap3_prm_vp_clear_txdone,
+ };
+ 
+ int __init omap3xxx_prm_init(void)
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index 5a09a74..55e4c89 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -132,10 +132,6 @@
+ 
+ #ifndef __ASSEMBLER__
+ 
+-/* OMAP3-specific VP functions */
+-u32 omap3_prm_vp_check_txdone(u8 vp_id);
+-void omap3_prm_vp_clear_txdone(u8 vp_id);
+-
+ /*
+  * OMAP3 access functions for voltage controller (VC) and
+  * voltage proccessor (VP) in the PRM.
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index a08a617..1af0137 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -138,7 +138,7 @@ static struct omap4_vp omap4_vp[] = {
+ 	},
+ };
+ 
+-u32 omap4_prm_vp_check_txdone(u8 vp_id)
++static u32 omap4_prm_vp_check_txdone(u8 vp_id)
+ {
+ 	struct omap4_vp *vp = &omap4_vp[vp_id];
+ 	u32 irqstatus;
+@@ -149,7 +149,7 @@ u32 omap4_prm_vp_check_txdone(u8 vp_id)
+ 	return irqstatus & vp->tranxdone_status;
+ }
+ 
+-void omap4_prm_vp_clear_txdone(u8 vp_id)
++static void omap4_prm_vp_clear_txdone(u8 vp_id)
+ {
+ 	struct omap4_vp *vp = &omap4_vp[vp_id];
+ 
+@@ -699,6 +699,8 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
+ 	.deassert_hardreset	= omap4_prminst_deassert_hardreset,
+ 	.is_hardreset_asserted	= omap4_prminst_is_hardreset_asserted,
+ 	.reset_system		= omap4_prminst_global_warm_sw_reset,
++	.vp_check_txdone	= omap4_prm_vp_check_txdone,
++	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
+ };
+ 
+ int __init omap44xx_prm_init(void)
+diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
+index 7143295..a470185 100644
+--- a/arch/arm/mach-omap2/prm44xx_54xx.h
++++ b/arch/arm/mach-omap2/prm44xx_54xx.h
+@@ -26,10 +26,6 @@
+ /* Function prototypes */
+ #ifndef __ASSEMBLER__
+ 
+-/* OMAP4/OMAP5-specific VP functions */
+-u32 omap4_prm_vp_check_txdone(u8 vp_id);
+-void omap4_prm_vp_clear_txdone(u8 vp_id);
+-
+ /*
+  * OMAP4/OMAP5 access functions for voltage controller (VC) and
+  * voltage proccessor (VP) in the PRM.
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 2c2e7ed..79cee11 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -555,6 +555,40 @@ int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
+ }
+ 
+ /**
++ * omap_prm_vp_check_txdone - check voltage processor TX done status
++ *
++ * Checks if voltage processor transmission has been completed.
++ * Returns non-zero if a transmission has completed, 0 otherwise.
++ */
++u32 omap_prm_vp_check_txdone(u8 vp_id)
 +{
-+	struct device_node *np;
-+	const struct of_device_id *match;
-+	struct omap_prcm_init_data *data;
-+	void __iomem *mem;
-+
-+	for_each_matching_node_and_match(np, omap_cm_dt_match_table, &match) {
-+		data = (struct omap_prcm_init_data *)match->data;
-+
-+		mem = of_iomap(np, 0);
-+		if (!mem)
-+			return -ENOMEM;
-+
-+		if (data->index == TI_CLKM_CM)
-+			cm_base = mem + data->offset;
-+
-+		if (data->index == TI_CLKM_CM2)
-+			cm2_base = mem + data->offset;
-+
-+		data->mem = mem;
++	if (!prm_ll_data->vp_check_txdone) {
++		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
++			  __func__);
++		return 0;
 +	}
 +
-+	return 0;
++	return prm_ll_data->vp_check_txdone(vp_id);
 +}
 +
 +/**
-  * omap_cm_init - low level init for the CM drivers
-  *
-  * Initializes the low level clock infrastructure for CM drivers.
-@@ -244,7 +307,6 @@ static const struct of_device_id omap_cm_dt_match_table[] = {
- int __init omap_cm_init(void)
- {
- 	struct device_node *np;
--	void __iomem *mem;
- 	const struct of_device_id *match;
- 	const struct omap_prcm_init_data *data;
- 	int ret;
-@@ -252,11 +314,10 @@ int __init omap_cm_init(void)
- 	for_each_matching_node_and_match(np, omap_cm_dt_match_table, &match) {
- 		data = match->data;
- 
--		mem = of_iomap(np, 0);
--		if (!mem)
--			return -ENOMEM;
-+		if (data->flags & CM_NO_CLOCKS)
-+			continue;
- 
--		ret = omap2_clk_provider_init(np, data->index, mem);
-+		ret = omap2_clk_provider_init(np, data->index, data->mem);
- 		if (ret)
- 			return ret;
- 	}
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 9319034..4aed22d 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -516,6 +516,7 @@ static struct cm_ll_data omap4xxx_cm_ll_data = {
- 
- int __init omap4_cm_init(void)
- {
-+	omap2_cm_base_init();
- 	omap_cm_base_init();
- 
- 	return cm_register(&omap4xxx_cm_ll_data);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 46640c0..b43e09d 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -387,7 +387,6 @@ void __init omap2420_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE), NULL);
- 	omap2xxx_check_revision();
- 	omap2xxx_prm_init();
- 	omap2xxx_cm_init();
-@@ -417,7 +416,6 @@ void __init omap2430_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE), NULL);
- 	omap2xxx_check_revision();
- 	omap2xxx_prm_init();
- 	omap2xxx_cm_init();
-@@ -451,6 +449,8 @@ void __init omap3_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE));
++ * omap_prm_vp_clear_txdone - clears voltage processor TX done status
++ *
++ * Clears the status bit for completed voltage processor transmission
++ * returned by prm_vp_check_txdone.
++ */
++void omap_prm_vp_clear_txdone(u8 vp_id)
++{
++	if (!prm_ll_data->vp_clear_txdone) {
++		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
++			  __func__);
++		return;
++	}
 +
-+	/* XXX: remove this once OMAP3 is DT only */
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE), NULL);
- 	omap3xxx_check_revision();
- 	omap3xxx_check_features();
-@@ -552,7 +552,6 @@ void __init ti814x_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(TI81XX_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE), NULL);
- 	omap3xxx_check_revision();
- 	ti81xx_check_features();
- 	am33xx_prm_init();
-@@ -573,7 +572,6 @@ void __init ti816x_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(TI81XX_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE), NULL);
- 	omap3xxx_check_revision();
- 	ti81xx_check_features();
- 	am33xx_prm_init();
-@@ -596,7 +594,6 @@ void __init am33xx_init_early(void)
- 	omap2_set_globals_control(AM33XX_L4_WK_IO_ADDRESS(AM33XX_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE));
--	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE), NULL);
- 	omap3xxx_check_revision();
- 	am33xx_check_features();
- 	am33xx_prm_init();
-@@ -622,7 +619,6 @@ void __init am43xx_init_early(void)
- 	omap2_set_globals_control(AM33XX_L4_WK_IO_ADDRESS(AM33XX_CTRL_BASE),
- 				  NULL);
- 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
--	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
- 	omap3xxx_check_revision();
- 	am33xx_check_features();
- 	omap44xx_prm_init();
-@@ -649,8 +645,6 @@ void __init omap4430_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
- 				  OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE));
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
--			     OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
- 	omap4xxx_check_revision();
- 	omap4xxx_check_features();
-@@ -682,8 +676,6 @@ void __init omap5_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
- 				  OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE));
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_AON_BASE),
--			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
- 	omap44xx_prm_init();
-@@ -712,8 +704,6 @@ void __init dra7xx_init_early(void)
- 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
- 				  OMAP2_L4_IO_ADDRESS(DRA7XX_CTRL_BASE));
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE));
--	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(DRA7XX_CM_CORE_AON_BASE),
--			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
- 	omap4_pm_init_early();
- 	omap44xx_prm_init();
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index ee38356..9e4dd0b 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -521,9 +521,15 @@ struct omap_prcm_irq_setup {
- /**
-  * struct omap_prcm_init_data - PRCM driver init data
-  * @index: clock memory mapping index to be used
-+ * @mem: IO mem pointer for this module
-+ * @offset: module base address offset from the IO base
-+ * @flags: PRCM module init flags
-  */
- struct omap_prcm_init_data {
- 	int index;
-+	void __iomem *mem;
-+	s16 offset;
-+	u16 flags;
++	prm_ll_data->vp_clear_txdone(vp_id);
++}
++
++/**
+  * prm_register - register per-SoC low-level data with the PRM
+  * @pld: low-level per-SoC OMAP PRM data & function pointers to register
+  *
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 0fdf7080..7e08296 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -21,15 +21,6 @@
+ 
+ struct voltagedomain;
+ 
+-/*
+- * Voltage Processor (VP) identifiers
+- */
+-#define OMAP3_VP_VDD_MPU_ID 0
+-#define OMAP3_VP_VDD_CORE_ID 1
+-#define OMAP4_VP_VDD_CORE_ID 0
+-#define OMAP4_VP_VDD_IVA_ID 1
+-#define OMAP4_VP_VDD_MPU_ID 2
+-
+ /* XXX document */
+ #define VP_IDLE_TIMEOUT		200
+ #define VP_TRANXDONE_TIMEOUT	300
+diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
+index 1914e02..b0590fe 100644
+--- a/arch/arm/mach-omap2/vp3xxx_data.c
++++ b/arch/arm/mach-omap2/vp3xxx_data.c
+@@ -28,8 +28,8 @@
+ #include "prm2xxx_3xxx.h"
+ 
+ static const struct omap_vp_ops omap3_vp_ops = {
+-	.check_txdone = omap3_prm_vp_check_txdone,
+-	.clear_txdone = omap3_prm_vp_clear_txdone,
++	.check_txdone = omap_prm_vp_check_txdone,
++	.clear_txdone = omap_prm_vp_clear_txdone,
  };
  
- extern void omap_prcm_irq_cleanup(void);
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 6cbebbe..9f9c816 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -689,7 +689,6 @@ int __init omap_prcm_init(void)
+ /*
+diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
+index e62f6b0..2448bb9 100644
+--- a/arch/arm/mach-omap2/vp44xx_data.c
++++ b/arch/arm/mach-omap2/vp44xx_data.c
+@@ -28,8 +28,8 @@
+ #include "vp.h"
  
- void __init omap3_prcm_legacy_iomaps_init(void)
- {
--	omap2_clk_legacy_provider_init(TI_CLKM_CM, cm_base + OMAP3430_IVA2_MOD);
- 	omap2_clk_legacy_provider_init(TI_CLKM_PRM,
- 				       prm_base + OMAP3430_IVA2_MOD);
- 	omap2_clk_legacy_provider_init(TI_CLKM_SCRM, omap_ctrl_base_get());
+ static const struct omap_vp_ops omap4_vp_ops = {
+-	.check_txdone = omap4_prm_vp_check_txdone,
+-	.clear_txdone = omap4_prm_vp_clear_txdone,
++	.check_txdone = omap_prm_vp_check_txdone,
++	.clear_txdone = omap_prm_vp_clear_txdone,
+ };
+ 
+ /*
 -- 
 1.7.9.5
 
