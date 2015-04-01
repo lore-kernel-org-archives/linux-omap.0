@@ -1,86 +1,210 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND] ARM: dts: OMAP3-N900: Add microphone bias voltages
-Date: Wed, 1 Apr 2015 12:47:36 -0700
-Message-ID: <20150401194734.GT10805@atomide.com>
-References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
- <55197A12.1050009@bitmer.com>
- <20150330164237.GJ10805@atomide.com>
- <55198BA4.5010207@bitmer.com>
- <20150330175051.GK10805@atomide.com>
- <20150331123233.GA15103@earth>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v4 3/6] Documentation: DT: Document twl4030-madc-battery
+ bindings
+Date: Wed, 1 Apr 2015 22:16:05 +0200
+Message-ID: <20150401201605.GA11421@amd>
+References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
+ <1426022847-30912-4-git-send-email-marek@goldelico.com>
+ <20150311152414.GX5264@atomide.com>
+ <844740CD-C95B-4411-A2C8-4906F58DBEE8@goldelico.com>
+ <20150311164442.GA5264@atomide.com>
+ <20150331072643.GB30788@amd>
+ <BC5A7447-CAD7-4CCE-8F08-8CEFBB5C6905@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:41317 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753052AbbDATvh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Apr 2015 15:51:37 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48153 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753052AbbDAUQJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2015 16:16:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20150331123233.GA15103@earth>
+In-Reply-To: <BC5A7447-CAD7-4CCE-8F08-8CEFBB5C6905@goldelico.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Pavel Machek <pavel@ucw.cz>
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Tony Lindgren <tony@atomide.com>, Marek Belisko <marek@goldelico.com>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-pm@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [150331 05:33]:
-> Hi,
-> 
-> On Mon, Mar 30, 2015 at 10:50:52AM -0700, Tony Lindgren wrote:
-> > * Jarkko Nikula <jarkko.nikula@bitmer.com> [150330 10:46]:
-> > > Well, there has been regression but finding exactly how far should the
-> > > fix go didn't look instantly straightforward due all DT, codec driver
-> > > mic bias etc changes and I ended up not cc'ing stable.
-> > > 
-> > > But well, I guess first kernel where this commit makes sense is 3.16+
-> > > due commit f7d0f2a08567 ("ARM: dts: omap3-n900: Add sound support").
-> > > Although it applies on top of commit 14e3e295b2b9 ("ARM: dts:
-> > > omap3-n900: Add TLV320AIC3X support") too (3.12+) but not before that.
-> > 
-> > OK I think debian is using v3.16 kernel
-> 
-> Yes. It will be used for Debian jessie (not yet released) and the
-> N900 related drivers are enabled in the armmp flavour. Unfortunately
-> it does not work together with thumb using userland because the
-> errata 430973 workaround is not enabled.
-> 
-> See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=768890
+Hi!
 
-Hmm I believe many ARMv8 boards will be randomly oopsing
-with armhf without that. I sort of recall random oopses just
-with running apt-get update on ARMv8 omaps on armhf without that:
+> > As I explained in some other mail, those tables should not be
+> > neccessary at all. They can be computed from li-ion characteristics
+> > and internal resistance, and assumed current during charge and
+> > discharge.
+>=20
+> I already explained that we do not know the charging and discharging
+> current well enough for such a calculation.
+>=20
+> And I explained that the =E2=80=9Cinternal resistance=E2=80=9D is a s=
+ystem (battery + cables +
+> connectors + other circuits) parameter that is not easy to derive or =
+measure
+> and type into the .dts source code.
+>=20
+> At least I have no idea how I should find it out for my boards. While=
+ I can
+> easily determine the curves (and we already have them for the platfor=
+m_data
+> driver).
+>=20
+> Please propose your own code doing that so that we can test if it is
+> better.
 
-http://www.spinics.net/lists/linux-omap/msg108511.html
+So, how does this look?
 
-See also 5c86c5339c56 ("ARM: omap2plus_defconfig: Enable ARM erratum
-430973 for omap3").
+It looks to me like you have cca 0.1 Ohm resistance in your system,
+and are using cca 75mA while discharging, and charge by cca 1.4A. (And
+these are all the coefficients the code should need; rest is battery
+characteristics -- common to all li-ions, and charger characteristics
+-- that will be common to all cellphones. If current can be measured,
+this code should go more precise answers).
 
-I wonder if the ARMv8 revision range might be wrong 430973 in
-kernel or errata? Also I recall that 430973 change to the
-arch/arm/mm/proc-v7-2level.S fixed the issue, this should be
-verified though.
- 
-> I guess it should be tried to change the workaround, so that it does
-> only change the behaviour of affected platforms. Otherwise its a
-> hard decision for distributions to enable the workaround.
+pavel@amd:~/g/tui/ofone$ ./liion_maps
+Charging
+Voltage  4.2 V ; table  100 %  internal voltage 4.18 V current 0.233 A =
+computed  97 %
+Voltage  4.1 V ; table  75 %  internal voltage 4.08 V current 0.233 A c=
+omputed  87 %
+Voltage  4.0 V ; table  55 %  internal voltage 3.93 V current 0.700 A c=
+omputed  69 %
+Voltage  3.9 V ; table  25 %  internal voltage 3.76 V current 1.400 A c=
+omputed  26 %
+Voltage  3.8 V ; table  5 %  internal voltage 3.66 V current 1.400 A co=
+mputed  3 %
+Voltage  3.7 V ; table  2 %  internal voltage 3.56 V current 1.400 A co=
+mputed  2 %
+Voltage  3.6 V ; table  1 %  internal voltage 3.46 V current 1.400 A co=
+mputed  1 %
+Voltage  3.3 V ; table  0 %  internal voltage 3.16 V current 1.400 A co=
+mputed  -1 %
+Badness  395.4861761427434
+Discharging
+Voltage  4.2 V ; table  100 %  internal voltage 4.21 V current -0.075 A=
+ computed  100 %
+Voltage  4.1 V ; table  95 %  internal voltage 4.11 V current -0.075 A =
+computed  91 %
+Voltage  4.0 V ; table  70 %  internal voltage 4.01 V current -0.075 A =
+computed  79 %
+Voltage  3.8 V ; table  50 %  internal voltage 3.81 V current -0.075 A =
+computed  46 %
+Voltage  3.7 V ; table  10 %  internal voltage 3.71 V current -0.075 A =
+computed  3 %
+Voltage  3.6 V ; table  5 %  internal voltage 3.61 V current -0.075 A c=
+omputed  2 %
+Voltage  3.3 V ; table  0 %  internal voltage 3.31 V current -0.075 A c=
+omputed  0 %
+Badness  171.69576218433212
 
-Well we should figure out first why flush BTAC/BTB is needed in
-cpu_v7_switch_mm.. And if what I'm describing above is still
-reproducable.
- 
-> > and that's pretty much the first kernel that is usable with dts on
-> > many omap3 devices so might make sense for that.
-> 
-> DT support for N900's soundcard has been added in 3.16, so before
-> that the audio stuff didn't work at all.
-> 
-> > I can add it if you think it makes sense.
-> 
-> I guess backporting this makes sense because of fewer "broken" DTB
-> files in the wild.
+> > Running below 3.3V.. not really. At that point, the battery is real=
+ly
+> > _empty_, and voltage is going down really really fast.
+>=20
+> It is the diffference between 2% and 0% where a fuel indication might
+> be most important=E2=80=A6
 
-Anyways yeah adding $subject patch into omap-for-v4.0/fixes with
-cc stable v3.16+.
+> > Plus, you are damaging the battery at that point.
+>=20
+> The power controller will shut down - but the driver should report
+> reasonable (but IMHO not necessarily perfect) values until the last
+> moment.
 
-Regards,
+It is tricky to do a good job near 0%... or anywhere else. See for
+example
 
-Tony
+http://cseweb.ucsd.edu/~trosing/lectures/battery.pdf
+
+You start a call, percentage goes down, end a call, it will go
+back up. I'm pretty sure you will not be able to make a call with "5%"
+indication from your code at low battery temperature (say -10C).
+
+Anyway, see above, I think I provide reasonable values even in that ran=
+ge.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+									Pavel
+
+#!/usr/bin/python3
+import math
+
+def percent_internal(v):
+    u =3D 0.0387-(1.4523*(3.7835-v))
+    if u < 0:
+        # Formula above does gives 19.66% for 3.756, and refuses to
+        # work below that. Assume 3.3V is empty battery, and provide
+        # linear dependency below that.
+        u =3D (v - 3.3) * ((3.756 - 3.3) * 19.66)
+        return u
+    return (0.1966+math.sqrt(u))*100
+
+charging =3D [ [4200, 100], [4100, 75], [4000, 55], [3900, 25], [3800, =
+5], [3700, 2], [3600, 1], [3300, 0] ]
+
+discharging =3D [ [4200, 100], [4100, 95], [4000, 70], [3800, 50], [370=
+0, 10], [3600, 5], [3300, 0] ]
+
+# current > 0: charging
+def percent_ohm(v, current):
+    v_int =3D v - current * 0.1
+    print(" internal voltage %1.2f V current %.3f A " % (v_int, current=
+), end=3D'')
+    return percent_internal(v_int)
+
+def percent(v, charging):
+    if charging:
+        # Charger model. Chargers will do constant current then
+        # constant voltage, so current will go down as voltage
+        # approaches 4.2V
+        i =3D 2.8
+        if v >=3D 4.:
+            i =3D i/2
+        if v >=3D 4.05:
+            i =3D i/3
+    else:
+        i =3D -0.15
+
+    # With current forced to 0, we get badness 4014 and 258
+    # 2.5A, sloped: badness 576
+    # +4A -> badness 1293
+    # +3A -> badness 890
+    # +2.5A ->         339
+    # +2.4A -> badness 389
+    # +2.3A -> badness 444   =20
+    # +2.2A -> badness 504
+    # +2A -> badness 634
+    # +1A -> badness 1450
+    # +0.5A -> badness 2865
+    # -0.2A -> badness 252
+    # -0.15A -> badness 251.37
+    # -0.1A -> badness 252
+    # -0.05A -> badness 254
+    i/=3D2
+    return percent_ohm(v, i)
+
+def compute(map, charging):
+    diff =3D 0
+    if charging:
+        print("Charging")
+    else:
+        print("Discharging")
+    for v, p in map:
+        v /=3D 1000.
+        print("Voltage ", v, "V ; table ", p, "% ", end=3D'')
+        p2 =3D percent(v, charging)
+        print("computed ", int(p2), "%")
+        diff +=3D (p-p2)*(p-p2)
+    print("Badness ", diff)
+
+               =20
+#perc =3D percent(volt)
+compute(charging, 1)
+compute(discharging, 0)
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
