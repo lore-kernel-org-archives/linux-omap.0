@@ -1,191 +1,82 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v3 1/4] remoteproc: introduce rproc_get_by_phandle API
-Date: Wed, 1 Apr 2015 14:37:16 -0500
-Message-ID: <1427917039-43206-2-git-send-email-d-gerlach@ti.com>
-References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid
+ ICE in gcc 4.7.3
+Date: Wed, 1 Apr 2015 12:40:07 -0700
+Message-ID: <20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
+References: <20150324004537.GA24816@verge.net.au>
+	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+	<20150324161358.GA694@kahuna>
+	<20150326003939.GA25368@verge.net.au>
+	<20150326133631.GB2805@arm.com>
+	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au>
+	<20150327100612.GB1562@arm.com>
+	<7hbnj99epe.fsf@deeprootsystems.com>
+	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+	<7h8uec95t2.fsf@deeprootsystems.com>
+	<alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
+	<551BBEC5.7070801@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <551BBEC5.7070801@arm.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Kevin Hilman <khilman@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-omap@vger.kernel.org
 
-Allow users of remoteproc the ability to get a handle to an rproc by
-passing a phandle supplied in the user's device tree node. This is
-useful in situations that require manual booting of the rproc.
+On Wed, 01 Apr 2015 10:47:49 +0100 Marc Zyngier <marc.zyngier@arm.com> wrote:
 
-This patch uses the code removed by commit 40e575b1d0b3 ("remoteproc:
-remove the get_by_name/put API") for the ref counting a rproc klist
-code but has rproc_get_by_name replaced with an rproc_get_by_phandle API.
+> > -static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
+> > -			unsigned long private, struct page *page, int force,
+> > -			enum migrate_mode mode)
+> > +static noinline int unmap_and_move(new_page_t get_new_page,
+> > +				   free_page_t put_new_page,
+> > +				   unsigned long private, struct page *page,
+> > +				   int force, enum migrate_mode mode)
+> >  {
+> >  	int rc = 0;
+> >  	int *result = NULL;
+> > 
+> 
+> Ouch. That's really ugly. And on 32bit ARM, we end-up spilling half of
+> the parameters on the stack, which is not going to help performance
+> either (not that this would be useful on 32bit ARM anyway...).
+> 
+> Any chance you could make this dependent on some compiler detection
+> mechanism?
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- Documentation/remoteproc.txt         |  6 +++
- drivers/remoteproc/remoteproc_core.c | 83 ++++++++++++++++++++++++++++++++++++
- include/linux/remoteproc.h           |  2 +
- 3 files changed, 91 insertions(+)
+With my arm compiler (gcc-4.4.4) the patch makes no difference -
+unmap_and_move() isn't being inlined anyway.
 
-diff --git a/Documentation/remoteproc.txt b/Documentation/remoteproc.txt
-index e6469fd..ef0219f 100644
---- a/Documentation/remoteproc.txt
-+++ b/Documentation/remoteproc.txt
-@@ -51,6 +51,12 @@ cost.
-         rproc_shutdown() returns, and users can still use it with a subsequent
-         rproc_boot(), if needed.
+How does this look?
+
+Kevin, could you please retest?  I might have fat-fingered something...
+
+--- a/mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix
++++ a/mm/migrate.c
+@@ -901,10 +901,20 @@ out:
+ }
  
-+  struct rproc *rproc_get_by_phandle(phandle phandle)
-+    - Find an rproc handle using a device tree phandle. Returns the rproc
-+      handle on success, and NULL on failure. This function increments
-+      the remote processor's refcount, so always use rproc_put() to
-+      decrement it back once rproc isn't needed anymore.
-+
- 3. Typical usage
- 
- #include <linux/remoteproc.h>
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 3cd85a63..5a6c192 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -36,6 +36,7 @@
- #include <linux/remoteproc.h>
- #include <linux/iommu.h>
- #include <linux/idr.h>
-+#include <linux/klist.h>
- #include <linux/elf.h>
- #include <linux/crc32.h>
- #include <linux/virtio_ids.h>
-@@ -44,6 +45,17 @@
- 
- #include "remoteproc_internal.h"
- 
-+static void klist_rproc_get(struct klist_node *n);
-+static void klist_rproc_put(struct klist_node *n);
+ /*
++ * gcc-4.7.3 on arm gets an ICE when inlining unmap_and_move().  Work around
++ * it.
++ */
++#if GCC_VERSION == 40703 && defined(CONFIG_ARM)
++#define ICE_noinline noinline
++#else
++#define ICE_noinline
++#endif
 +
 +/*
-+ * klist of the available remote processors.
-+ *
-+ * We need this in order to support rproc lookups (needed by the
-+ * rproc_get_by_phandle()).
-+ */
-+static DEFINE_KLIST(rprocs, klist_rproc_get, klist_rproc_put);
-+
- typedef int (*rproc_handle_resources_t)(struct rproc *rproc,
- 				struct resource_table *table, int len);
- typedef int (*rproc_handle_resource_t)(struct rproc *rproc,
-@@ -1162,6 +1174,71 @@ out:
- }
- EXPORT_SYMBOL(rproc_shutdown);
- 
-+/* will be called when an rproc is added to the rprocs klist */
-+static void klist_rproc_get(struct klist_node *n)
-+{
-+	struct rproc *rproc = container_of(n, struct rproc, node);
-+
-+	get_device(&rproc->dev);
-+}
-+
-+/* will be called when an rproc is removed from the rprocs klist */
-+static void klist_rproc_put(struct klist_node *n)
-+{
-+	struct rproc *rproc = container_of(n, struct rproc, node);
-+
-+	put_device(&rproc->dev);
-+}
-+
-+static struct rproc *next_rproc(struct klist_iter *i)
-+{
-+	struct klist_node *n;
-+
-+	n = klist_next(i);
-+	if (!n)
-+		return NULL;
-+
-+	return container_of(n, struct rproc, node);
-+}
-+
-+/**
-+ * rproc_get_by_phandle() - find a remote processor by phandle
-+ * @phandle: phandle to the rproc
-+ *
-+ * Finds an rproc handle using the remote processor's phandle, and then
-+ * return a handle to the rproc.
-+ *
-+ * Returns the rproc handle on success, and NULL on failure.
-+ *
-+ * This function increments the remote processor's refcount, so always
-+ * use rproc_put() to decrement it back once rproc isn't needed anymore.
-+ *
-+ */
-+struct rproc *rproc_get_by_phandle(phandle phandle)
-+{
-+	struct rproc *rproc;
-+	struct klist_iter i;
-+	struct device_node *np;
-+
-+	np = of_find_node_by_phandle(phandle);
-+	if (!np)
-+		return NULL;
-+
-+	/* find the remote processor, and upref its refcount */
-+	klist_iter_init(&rprocs, &i);
-+	while ((rproc = next_rproc(&i)) != NULL)
-+		if (rproc->dev.parent && rproc->dev.parent->of_node == np) {
-+			get_device(&rproc->dev);
-+			break;
-+		}
-+	klist_iter_exit(&i);
-+
-+	of_node_put(np);
-+
-+	return rproc;
-+}
-+EXPORT_SYMBOL(rproc_get_by_phandle);
-+
- /**
-  * rproc_add() - register a remote processor
-  * @rproc: the remote processor handle to register
-@@ -1191,6 +1268,9 @@ int rproc_add(struct rproc *rproc)
- 	if (ret < 0)
- 		return ret;
- 
-+	/* expose to rproc_get_by_phandle users */
-+	klist_add_tail(&rproc->node, &rprocs);
-+
- 	dev_info(dev, "%s is available\n", rproc->name);
- 
- 	dev_info(dev, "Note: remoteproc is still under development and considered experimental.\n");
-@@ -1380,6 +1460,9 @@ int rproc_del(struct rproc *rproc)
- 	/* Free the copy of the resource table */
- 	kfree(rproc->cached_table);
- 
-+	/* the rproc is downref'ed as soon as it's removed from the klist */
-+	klist_del(&rproc->node);
-+
- 	device_del(&rproc->dev);
- 
- 	return 0;
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 9e7e745..0c7d403 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -41,6 +41,7 @@
- #include <linux/virtio.h>
- #include <linux/completion.h>
- #include <linux/idr.h>
-+#include <linux/of.h>
- 
- /**
-  * struct resource_table - firmware resource table header
-@@ -479,6 +480,7 @@ struct rproc_vdev {
- 	u32 rsc_offset;
- };
- 
-+struct rproc *rproc_get_by_phandle(phandle phandle);
- struct rproc *rproc_alloc(struct device *dev, const char *name,
- 				const struct rproc_ops *ops,
- 				const char *firmware, int len);
--- 
-2.3.0
+  * Obtain the lock on page, remove all ptes and migrate the page
+  * to the newly allocated page in newpage.
+  */
+-static noinline int unmap_and_move(new_page_t get_new_page,
++static ICE_noinline int unmap_and_move(new_page_t get_new_page,
+ 				   free_page_t put_new_page,
+ 				   unsigned long private, struct page *page,
+ 				   int force, enum migrate_mode mode)
+_
+
