@@ -1,62 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] usb: musb: Fix fifo reads for dm816x with musb_dsps
-Date: Wed, 1 Apr 2015 14:44:39 -0700
-Message-ID: <20150401214438.GU10805@atomide.com>
-References: <1426718882-27187-1-git-send-email-tony@atomide.com>
- <20150401143539.b5ad81f576101080848147ca@linux-foundation.org>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid ICE in gcc 4.7.3
+Date: Wed, 01 Apr 2015 14:54:59 -0700
+Message-ID: <7hwq1v4iq4.fsf@deeprootsystems.com>
+References: <20150324004537.GA24816@verge.net.au>
+	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+	<20150324161358.GA694@kahuna> <20150326003939.GA25368@verge.net.au>
+	<20150326133631.GB2805@arm.com>
+	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au> <20150327100612.GB1562@arm.com>
+	<7hbnj99epe.fsf@deeprootsystems.com>
+	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+	<7h8uec95t2.fsf@deeprootsystems.com>
+	<alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
+	<551BBEC5.7070801@arm.com>
+	<20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:41349 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752726AbbDAVsk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Apr 2015 17:48:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20150401143539.b5ad81f576101080848147ca@linux-foundation.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:34122 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbbDAVzC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2015 17:55:02 -0400
+Received: by pdbni2 with SMTP id ni2so67936968pdb.1
+        for <linux-omap@vger.kernel.org>; Wed, 01 Apr 2015 14:55:02 -0700 (PDT)
+In-Reply-To: <20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
+	(Andrew Morton's message of "Wed, 1 Apr 2015 12:40:07 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, George Cherian <george.cherian@ti.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
 
-* Andrew Morton <akpm@linux-foundation.org> [150401 14:36]:
-> On Wed, 18 Mar 2015 15:48:02 -0700 Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > Looks like dm81xx can only do 32-bit fifo reads like am35x. Let's set
-> > up musb-dsps with a custom read_fifo function based on the compatible
-> > flag.
-> > 
-> > Otherwise we can get the following errors when starting dhclient on a
-> > asix USB Ethernet adapter:
-> > 
-> > asix 2-1:1.0 eth2: asix_rx_fixup() Bad Header Length 0xffff003c, offset 4
-> > 
-> > While at it, let's also remove pointless cast of the driver data.
-> 
-> This breaks my i386 allmodconfig build.
-> 
-> > +/* Similar to am35x, dm81xx support only 32-bit read operation */
-> > +static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
-> > +{
-> > +	void __iomem *fifo = hw_ep->fifo;
-> > +	u32		val;
-> > +	int		i;
-> > +
-> > +	/* Read for 32bit-aligned destination address */
-> > +	if (likely((0x03 & (unsigned long)dst) == 0) && len >= 4) {
-> > +		readsl(fifo, dst, len >> 2);
-> 
-> akpm3:/usr/src/linux-4.0-rc6> grep -r readsl arch/x86 
-> akpm3:/usr/src/linux-4.0-rc6> 
+Andrew Morton <akpm@linux-foundation.org> writes:
 
-Yes sorry, the fix is to use ioread32_rep() instead. I already sent a fix
-for that on the 25th as:
+> On Wed, 01 Apr 2015 10:47:49 +0100 Marc Zyngier <marc.zyngier@arm.com> wrote:
+>
+>> > -static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
+>> > -			unsigned long private, struct page *page, int force,
+>> > -			enum migrate_mode mode)
+>> > +static noinline int unmap_and_move(new_page_t get_new_page,
+>> > +				   free_page_t put_new_page,
+>> > +				   unsigned long private, struct page *page,
+>> > +				   int force, enum migrate_mode mode)
+>> >  {
+>> >  	int rc = 0;
+>> >  	int *result = NULL;
+>> > 
+>> 
+>> Ouch. That's really ugly. And on 32bit ARM, we end-up spilling half of
+>> the parameters on the stack, which is not going to help performance
+>> either (not that this would be useful on 32bit ARM anyway...).
+>> 
+>> Any chance you could make this dependent on some compiler detection
+>> mechanism?
+>
+> With my arm compiler (gcc-4.4.4) the patch makes no difference -
+> unmap_and_move() isn't being inlined anyway.
+>
+> How does this look?
+>
+> Kevin, could you please retest?  I might have fat-fingered something...
 
-"[PATCH 1/1] usb: musb: dsps: fix build on i386 when COMPILE_TEST is set"
+Your patch on top of Geert's still compiles fine for me with gcc-4.7.3.
+However, I'm not sure how specific we can be on the versions.  
 
-https://www.marc.info/?l=linux-usb&m=142731859732737&w=1
+/me goes to test a few more compilers...   OK...
 
-Felipe, can you please get that into Linux next?
+ICE: 4.7.1, 4.7.3, 4.8.3
+OK: 4.6.3, 4.9.2, 4.9.3
 
-Regards,
+The diff below[2] on top of yours compiles fine here and at least covers
+the compilers I *know* to trigger the ICE.
 
-Tony
+Kevin
+
+
+[1]
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 25fd7f6291de..6e15ae3248e0 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -901,10 +901,10 @@ out:
+ }
+ 
+ /*
+- * gcc-4.7.3 on arm gets an ICE when inlining unmap_and_move().  Work around
++ * gcc 4.7 and 4.8 on arm gets an ICE when inlining unmap_and_move().  Work around
+  * it.
+  */
+-#if GCC_VERSION == 40703 && defined(CONFIG_ARM)
++#if (GCC_VERSION >= 40700 && GCC_VERSION < 40900) && defined(CONFIG_ARM)
+ #define ICE_noinline noinline
+ #else
+ #define ICE_noinline
