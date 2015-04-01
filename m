@@ -1,67 +1,359 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6 00/34] ARM: OMAP2+: PRCM+SCM cleanup against 4.0-rc1
-Date: Wed, 1 Apr 2015 12:29:03 -0700
-Message-ID: <20150401192902.GS10805@atomide.com>
-References: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v3 4/4] remoteproc/wkup_m3: add a remoteproc driver for TI Wakeup M3
+Date: Wed, 1 Apr 2015 14:37:19 -0500
+Message-ID: <1427917039-43206-5-git-send-email-d-gerlach@ti.com>
+References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:41312 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753144AbbDATdF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Apr 2015 15:33:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1427829267-32077-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Tero Kristo <t-kristo@ti.com> [150331 12:15]:
-> Hi,
-> 
-> Decided to post a new version because of the number of minor changes
-> compared to v5, just to avoid any misunderstandings:
-> 
-> - dropped patch #1 ("clk: ti: fix ti_clk_get_reg_addr..."), this has been merged
->   through clock tree now
-> - fixed scm_conf area size issues on am33xx/am43xx
-> - fixed scm area size issue on am43xx
-> - fixed size issues on omap3_pmx_core (was 8 bytes short)
-> - added warnings on omap2_clk_readl/writel in case legacy access is attempted
-> - fixed omap3 legacy boot
-> - fixed boot time warning on omap4+ where scm_conf does not contain clocks node
->   yet (these may be added to DT later if support is required)
-> - fixed some randconfig warnings
-> 
-> Testing done:
->  1: am335x-evm      : boot
->  2: am335x-evmsk    : boot
->  3: am3517-evm      : boot
->  4: am43x-epos-evm  : boot
->  5: am437x-gp-evm   : boot
->  6: omap3-beagle-xm : boot
->  7: omap3-beagle    : boot, cpuidle (ret/off), suspend (ret/off), legacy boot
->  8: am335x-boneblack: boot
->  9: am335x-bone     : boot
-> 10: dra7xx-evm      : boot
-> 11: omap3-n900      : boot
-> 12: omap5-uevm      : boot
-> 13: omap4-panda-es  : boot, cpuidle (ret), suspend (ret)
-> 14: omap4-panda     : boot
-> 15: omap2430-sdp    : boot
-> 16: omap3430-sdp    : boot
-> 17: omap4-sdp-es23plus: boot
-> 
-> New branch also pushed:
-> tree: https://github.com/t-kristo/linux-pm.git
-> branch: 4.0-rc1-prcm-cleanup-v6
+Add a remoteproc driver to load the firmware and boot a small
+Wakeup M3 processor present on TI AM33xx and AM43xx SoCs. This
+Wakeup M3 remote processor is an integrated Cortex M3 that allows
+the SoC to enter the lowest possible power state by taking control
+from the MPU after it has gone into its own low power state and
+shutting off any additional peripherals.
 
-OK great, this version seems to work for me. I'll merge this into
-omap-for-v4.1/prcm-cleanup and will send a pull request probably
-on Thursday or Friday to arm-soc. Note that it's getting late for
-v4.1 (except for fixes), so no guarantees this will still get in.
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ drivers/remoteproc/Kconfig            |  13 ++
+ drivers/remoteproc/Makefile           |   1 +
+ drivers/remoteproc/wkup_m3_rproc.c    | 249 ++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/wkup_m3.h |  30 ++++
+ 4 files changed, 293 insertions(+)
+ create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
+ create mode 100644 include/linux/platform_data/wkup_m3.h
 
-Regards,
-
-Tony
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index 5e343ba..28c711f 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -41,6 +41,19 @@ config STE_MODEM_RPROC
+ 	  This can be either built-in or a loadable module.
+ 	  If unsure say N.
+ 
++config WKUP_M3_RPROC
++	tristate "AMx3xx Wakeup M3 remoteproc support"
++	depends on SOC_AM33XX || SOC_AM43XX
++	select REMOTEPROC
++	help
++	  Say y here to support Wakeup M3 remote processor on TI AM33xx
++	  and AM43xx family of SoCs.
++
++	  Required for Suspend-to-RAM on AM33xx and AM43xx SoCs. Also needed
++	  for deep CPUIdle states on AM33xx SoCs. Allows for loading of the
++	  firmware onto these remote processors.
++	  If unsure say N.
++
+ config DA8XX_REMOTEPROC
+ 	tristate "DA8xx/OMAP-L13x remoteproc support"
+ 	depends on ARCH_DAVINCI_DA8XX
+diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+index ac2ff75..81b04d1 100644
+--- a/drivers/remoteproc/Makefile
++++ b/drivers/remoteproc/Makefile
+@@ -9,4 +9,5 @@ remoteproc-y				+= remoteproc_virtio.o
+ remoteproc-y				+= remoteproc_elf_loader.o
+ obj-$(CONFIG_OMAP_REMOTEPROC)		+= omap_remoteproc.o
+ obj-$(CONFIG_STE_MODEM_RPROC)	 	+= ste_modem_rproc.o
++obj-$(CONFIG_WKUP_M3_RPROC)		+= wkup_m3_rproc.o
+ obj-$(CONFIG_DA8XX_REMOTEPROC)		+= da8xx_remoteproc.o
+diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
+new file mode 100644
+index 0000000..134ffa7
+--- /dev/null
++++ b/drivers/remoteproc/wkup_m3_rproc.c
+@@ -0,0 +1,249 @@
++/*
++ * TI AMx3 Wakeup M3 Remote Processor driver
++ *
++ * Copyright (C) 2014-2015 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach@ti.com>
++ * Suman Anna <s-anna@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/of_address.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/remoteproc.h>
++
++#include <linux/platform_data/wkup_m3.h>
++
++#include "remoteproc_internal.h"
++
++#define WKUPM3_MEM_MAX	2
++
++/**
++ * struct wkup_m3_mem - WkupM3 internal memory structure
++ * @cpu_addr: MPU virtual address of the memory region
++ * @bus_addr: Bus address used to access the memory region
++ * @dev_addr: Device address from Wakeup M3 view
++ * @size: Size of the memory region
++ */
++struct wkup_m3_mem {
++	void __iomem *cpu_addr;
++	phys_addr_t bus_addr;
++	u32 dev_addr;
++	size_t size;
++};
++
++/**
++ * struct wkup_m3_rproc - WkupM3 remote processor state
++ * @rproc: rproc handle
++ * @pdev: pointer to platform device
++ * @mem: WkupM3 memory information
++ */
++struct wkup_m3_rproc {
++	struct rproc *rproc;
++	struct platform_device *pdev;
++	struct wkup_m3_mem mem[WKUPM3_MEM_MAX];
++};
++
++static int wkup_m3_rproc_start(struct rproc *rproc)
++{
++	struct wkup_m3_rproc *wkupm3 = rproc->priv;
++	struct platform_device *pdev = wkupm3->pdev;
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev_get_platdata(dev);
++
++	if (pdata->deassert_reset(pdev, pdata->reset_name)) {
++		dev_err(dev, "Unable to reset wkup_m3!\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int wkup_m3_rproc_stop(struct rproc *rproc)
++{
++	struct wkup_m3_rproc *wkupm3 = rproc->priv;
++	struct platform_device *pdev = wkupm3->pdev;
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev_get_platdata(dev);
++
++	if (pdata->assert_reset(pdev, pdata->reset_name)) {
++		dev_err(dev, "Unable to assert reset of wkup_m3!\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++{
++	struct wkup_m3_rproc *wkupm3 = rproc->priv;
++	void *va = NULL;
++	int i;
++	u32 offset;
++
++	if (len <= 0)
++		return NULL;
++
++	for (i = 0; i < WKUPM3_MEM_MAX; i++) {
++		if (da >= wkupm3->mem[i].dev_addr && da + len <=
++		    wkupm3->mem[i].dev_addr +  wkupm3->mem[i].size) {
++			offset = da -  wkupm3->mem[i].dev_addr;
++			va = (__force void *)(wkupm3->mem[i].cpu_addr + offset);
++			break;
++		}
++	}
++
++	return va;
++}
++
++static struct rproc_ops wkup_m3_rproc_ops = {
++	.start		= wkup_m3_rproc_start,
++	.stop		= wkup_m3_rproc_stop,
++	.da_to_va	= wkup_m3_rproc_da_to_va,
++};
++
++static const struct of_device_id wkup_m3_rproc_of_match[] = {
++	{ .compatible = "ti,am3352-wkup-m3", },
++	{ .compatible = "ti,am4372-wkup-m3", },
++	{},
++};
++
++static int wkup_m3_rproc_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev->platform_data;
++	const char *mem_names[WKUPM3_MEM_MAX] = { "umem", "dmem" };
++	struct wkup_m3_rproc *wkupm3;
++	const char *fw_name;
++	struct rproc *rproc;
++	struct resource *res;
++	const __be32 *addrp;
++	u32 l4_offset = 0;
++	u64 size;
++	int ret;
++	int i;
++
++	if (!(pdata && pdata->deassert_reset && pdata->assert_reset &&
++	      pdata->reset_name)) {
++		dev_err(dev, "Platform data missing!\n");
++		return -ENODEV;
++	}
++
++	ret = of_property_read_string(dev->of_node, "ti,pm-firmware",
++				      &fw_name);
++	if (ret) {
++		dev_err(dev, "No firmware filename given\n");
++		return -ENODEV;
++	}
++
++	pm_runtime_enable(&pdev->dev);
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
++		goto err;
++	}
++
++	rproc = rproc_alloc(dev, "wkup_m3", &wkup_m3_rproc_ops,
++			    fw_name, sizeof(*wkupm3));
++	if (!rproc) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	wkupm3 = rproc->priv;
++	wkupm3->rproc = rproc;
++	wkupm3->pdev = pdev;
++
++	for (i = 0; i < ARRAY_SIZE(mem_names); i++) {
++		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++						   mem_names[i]);
++		wkupm3->mem[i].cpu_addr = devm_ioremap_resource(dev, res);
++		if (IS_ERR(wkupm3->mem[i].cpu_addr)) {
++			dev_err(&pdev->dev, "devm_ioremap_resource failed for resource %d\n",
++				i);
++			ret = PTR_ERR(wkupm3->mem[i].cpu_addr);
++			goto err;
++		}
++		wkupm3->mem[i].bus_addr = res->start;
++		wkupm3->mem[i].size = resource_size(res);
++		addrp = of_get_address(dev->of_node, i, &size, NULL);
++		if (!strcmp(mem_names[i], "umem"))
++			l4_offset = be32_to_cpu(*addrp);
++		wkupm3->mem[i].dev_addr = be32_to_cpu(*addrp) - l4_offset;
++	}
++
++	dev_set_drvdata(dev, rproc);
++
++	ret = rproc_add(rproc);
++	if (ret) {
++		dev_err(dev, "rproc_add failed\n");
++		goto err_put_rproc;
++	}
++
++	return 0;
++
++err_put_rproc:
++	rproc_put(rproc);
++err:
++	pm_runtime_put_noidle(dev);
++	pm_runtime_disable(dev);
++	return ret;
++}
++
++static int wkup_m3_rproc_remove(struct platform_device *pdev)
++{
++	struct rproc *rproc = platform_get_drvdata(pdev);
++
++	rproc_del(rproc);
++	rproc_put(rproc);
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int wkup_m3_rpm_suspend(struct device *dev)
++{
++	return -EBUSY;
++}
++
++static int wkup_m3_rpm_resume(struct device *dev)
++{
++	return 0;
++}
++#endif
++
++static const struct dev_pm_ops wkup_m3_rproc_pm_ops = {
++	SET_RUNTIME_PM_OPS(wkup_m3_rpm_suspend, wkup_m3_rpm_resume, NULL)
++};
++
++static struct platform_driver wkup_m3_rproc_driver = {
++	.probe = wkup_m3_rproc_probe,
++	.remove = wkup_m3_rproc_remove,
++	.driver = {
++		.name = "wkup_m3_rproc",
++		.of_match_table = wkup_m3_rproc_of_match,
++		.pm = &wkup_m3_rproc_pm_ops,
++	},
++};
++
++module_platform_driver(wkup_m3_rproc_driver);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("TI Wakeup M3 remote processor control driver");
++MODULE_AUTHOR("Dave Gerlach <d-gerlach@ti.com>");
+diff --git a/include/linux/platform_data/wkup_m3.h b/include/linux/platform_data/wkup_m3.h
+new file mode 100644
+index 0000000..3f1d77e
+--- /dev/null
++++ b/include/linux/platform_data/wkup_m3.h
+@@ -0,0 +1,30 @@
++/*
++ * TI Wakeup M3 remote processor platform data
++ *
++ * Copyright (C) 2014-2015 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef _LINUX_PLATFORM_DATA_WKUP_M3_H
++#define _LINUX_PLATFORM_DATA_WKUP_M3_H
++
++struct platform_device;
++
++struct wkup_m3_platform_data {
++	const char *reset_name;
++
++	int (*assert_reset)(struct platform_device *pdev, const char *name);
++	int (*deassert_reset)(struct platform_device *pdev, const char *name);
++};
++
++#endif /* _LINUX_PLATFORM_DATA_WKUP_M3_H */
+-- 
+2.3.0
