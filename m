@@ -1,82 +1,64 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid
- ICE in gcc 4.7.3
-Date: Wed, 1 Apr 2015 12:40:07 -0700
-Message-ID: <20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
-References: <20150324004537.GA24816@verge.net.au>
-	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
-	<20150324161358.GA694@kahuna>
-	<20150326003939.GA25368@verge.net.au>
-	<20150326133631.GB2805@arm.com>
-	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
-	<20150327002554.GA5527@verge.net.au>
-	<20150327100612.GB1562@arm.com>
-	<7hbnj99epe.fsf@deeprootsystems.com>
-	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
-	<7h8uec95t2.fsf@deeprootsystems.com>
-	<alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
-	<551BBEC5.7070801@arm.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v3 0/3] ARM: OMAP2+: wkup_m3_rproc support patches
+Date: Wed, 1 Apr 2015 14:47:07 -0500
+Message-ID: <1427917630-43961-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <551BBEC5.7070801@arm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Kevin Hilman <khilman@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41425 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753303AbbDATrj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Apr 2015 15:47:39 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 
-On Wed, 01 Apr 2015 10:47:49 +0100 Marc Zyngier <marc.zyngier@arm.com> wrote:
+This series adds the mach-omap2 code and DT nodes for v3 of the
+wkup_m3_rproc driver submitted here [1]. pdata-quirks patch requires
+the pdata added with patch 4 of the aforementioned series. Based on
+previous discussion here [2], the wkup_m3 DT node has been moved as a
+child of the l4_wkup as is done for l4_wkup components in Tero Kristo's
+series "PRCM+SCM cleanup against 4.0-rc1" found here [3]. Because of that,
+this series applies cleanly on top of that series in order to leverage the
+l4_wkup parent node introduced there.
 
-> > -static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
-> > -			unsigned long private, struct page *page, int force,
-> > -			enum migrate_mode mode)
-> > +static noinline int unmap_and_move(new_page_t get_new_page,
-> > +				   free_page_t put_new_page,
-> > +				   unsigned long private, struct page *page,
-> > +				   int force, enum migrate_mode mode)
-> >  {
-> >  	int rc = 0;
-> >  	int *result = NULL;
-> > 
-> 
-> Ouch. That's really ugly. And on 32bit ARM, we end-up spilling half of
-> the parameters on the stack, which is not going to help performance
-> either (not that this would be useful on 32bit ARM anyway...).
-> 
-> Any chance you could make this dependent on some compiler detection
-> mechanism?
+In addition to the move of the wkup_m3 node for am33xx, a new patch
+has been added to introduce the wkup_m3 node in the same fashion for
+am43xx as both SoCs use the same configuration. With this change
+support was also added to pdata-quirks for passing reset handlers to
+the driver for the am43xx binding as was already done for am33xx.
 
-With my arm compiler (gcc-4.4.4) the patch makes no difference -
-unmap_and_move() isn't being inlined anyway.
+I have pushed a branch containing all patches for am335x suspend
+here for a big picture view of how all patches fit together with
+these wkup_m3_rproc series [4].
 
-How does this look?
+v2->v3:
+-Change ti,am3353-wkup-m3 compat to ti,am3352-wkup-m3 to reflect
+ binding documentation change
+-Add ti,am4372-wkup-m3 node to am4372 SoC dt file
+-Add am4372 support to pdata-quirks for reset handlers
 
-Kevin, could you please retest?  I might have fat-fingered something...
+Regards,
+Dave
 
---- a/mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix
-+++ a/mm/migrate.c
-@@ -901,10 +901,20 @@ out:
- }
- 
- /*
-+ * gcc-4.7.3 on arm gets an ICE when inlining unmap_and_move().  Work around
-+ * it.
-+ */
-+#if GCC_VERSION == 40703 && defined(CONFIG_ARM)
-+#define ICE_noinline noinline
-+#else
-+#define ICE_noinline
-+#endif
-+
-+/*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-  */
--static noinline int unmap_and_move(new_page_t get_new_page,
-+static ICE_noinline int unmap_and_move(new_page_t get_new_page,
- 				   free_page_t put_new_page,
- 				   unsigned long private, struct page *page,
- 				   int force, enum migrate_mode mode)
-_
+[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg115869.html
+[2] http://www.spinics.net/lists/linux-omap/msg116366.html
+[3] http://www.spinics.net/lists/arm-kernel/msg409842.html
+[4] https://github.com/dgerlach/linux-pm/tree/pm-v4.0-rc5-am335x-suspend
+
+Dave Gerlach (1):
+  ARM: OMAP2+: Use pdata-quirks for wkup_m3 reset management
+
+Suman Anna (2):
+  ARM: dts: AM33xx: Update and move wkup_m3 node to l4 node
+  ARM: dts: AM4372: Add the wkupm3 rproc node
+
+ arch/arm/boot/dts/am33xx.dtsi      | 17 +++++++++--------
+ arch/arm/boot/dts/am4372.dtsi      |  9 +++++++++
+ arch/arm/mach-omap2/pdata-quirks.c | 15 +++++++++++++++
+ 3 files changed, 33 insertions(+), 8 deletions(-)
+
+-- 
+2.3.0
 
