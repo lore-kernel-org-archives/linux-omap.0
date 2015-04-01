@@ -1,218 +1,123 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 1/3] rtc: omap: Unlock and Lock rtc registers before and after register writes
-Date: Wed, 1 Apr 2015 11:24:56 +0530
-Message-ID: <1427867698-1326-2-git-send-email-lokeshvutla@ti.com>
-References: <1427867698-1326-1-git-send-email-lokeshvutla@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427867698-1326-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: a.zummo@towertech.it, rtc-linux@googlegroups.com
-Cc: t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lokeshvutla@ti.com
+From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v4 3/6] Documentation: DT: Document twl4030-madc-battery bindings
+Date: Wed, 1 Apr 2015 10:18:05 +0200
+Message-ID: <BC5A7447-CAD7-4CCE-8F08-8CEFBB5C6905@goldelico.com>
+References: <1426022847-30912-1-git-send-email-marek@goldelico.com> <1426022847-30912-4-git-send-email-marek@goldelico.com> <20150311152414.GX5264@atomide.com> <844740CD-C95B-4411-A2C8-4906F58DBEE8@goldelico.com> <20150311164442.GA5264@atomide.com> <20150331072643.GB30788@amd>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20150331072643.GB30788@amd>
+Sender: linux-pm-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Marek Belisko <marek@goldelico.com>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-RTC module contains a kicker mechanism to prevent any spurious writes
-from changing the register values. This mechanism requires two MMR
-writes to the KICK0 and KICK1 registers with exact data values
-before the kicker lock mechanism is released.
+Hi Pavel,
 
-Currently the driver release the lock in the probe and leaves it enabled
-until the rtc driver removal. This eliminates the idea of preventing
-spurious writes when RTC driver is loaded.
-So implement rtc lock and unlock functions before and after register writes.
+Am 31.03.2015 um 09:26 schrieb Pavel Machek <pavel@ucw.cz>:
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
-- This is as advised by Paul to implement lock and unlock functions in
-  the driver and not to unlock and leave it in probe.
-  The same discussion can be seen here:
-  http://www.mail-archive.com/linux-omap%40vger.kernel.org/msg111588.html
+> Hi!
+>=20
+>>>>> +		io-channels =3D <&twl_madc 1>,
+>>>>> +	                      <&twl_madc 10>,
+>>>>> +			      <&twl_madc 12>;
+>>>>> +		io-channel-names =3D "temp",
+>>>>> +		                   "ichg",
+>>>>> +		                   "vbat";
+>>>>> +	};
+>>>>=20
+>>>> Rather than just making platform_data into device tree properties.=
+=2E
+>>>>=20
+>>>> Can't you hide the these custom properties behind the compatible f=
+lag?
+>>>>=20
+>>>> You can initialize that data in the driver based on the compatible
+>>>> flag and the match data.
+>>>>=20
+>>>> This makes sense if you can group things to similar configurations=
+=2E
+>>>=20
+>>> Maybe I have not completely understood your proposal.
+>>>=20
+>>> Do you mean to go back to have big parameter tables for each device=
+/battery
+>>> combination in the driver code and the compatible flag (e.g. compat=
+ible =3D =93board17=94)
+>>> chooses the right data set for the charging map and channels?
+>>=20
+>> If you can somehow group them, then yes. Not for every board if ther=
+e
+>> are many of them naturally.
+>>=20
+>>> I thought this is what the DT was introduced for - to have the same=
+ driver=20
+>>> code but adapt to different boards depending on hardware variations=
+=2E
+>>=20
+>> Yeah but you also need to consider the issues related to introducing
+>> new device tree properties. The device tree properties introduced
+>> should be generic where possible.
+>>=20
+>>> And batteries have very different characteristics and vary between =
+devices=85
+>>=20
+>> Right. Maybe that has been already agreed on to use capacity-uah for
+>> batteries in general? In that case I have not problem with that as
+>> it's a generic property :)
+>>=20
+>>> The charging maps are depending on the battery type connected to th=
+e twl4030
+>>> and which madc channel is which value is also a little hardware dep=
+endent
+>>> (although the twl4030 doesn=92t give much choice).
+>>=20
+>> Just to consider alternatives before introducing driver specific
+>> property for the maps.. Maybe here you could have few different type
+>> of maps and select something safe by default? Of course it could be =
+this
+>> is higly board specific, I think some devices may be able to run bel=
+ow
+>> 3.3V for example..
+>=20
+> As I explained in some other mail, those tables should not be
+> neccessary at all. They can be computed from li-ion characteristics
+> and internal resistance, and assumed current during charge and
+> discharge.
 
- drivers/rtc/rtc-omap.c | 46 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 38 insertions(+), 8 deletions(-)
+I already explained that we do not know the charging and discharging
+current well enough for such a calculation.
 
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 8e5851a..96cc613 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -156,6 +156,22 @@ static inline void rtc_writel(struct omap_rtc *rtc, unsigned int reg, u32 val)
- 	writel(val, rtc->base + reg);
- }
- 
-+static void rtc_unlock(struct omap_rtc *rtc)
-+{
-+	if (rtc->type->has_kicker) {
-+		rtc_writel(rtc, OMAP_RTC_KICK0_REG, KICK0_VALUE);
-+		rtc_writel(rtc, OMAP_RTC_KICK1_REG, KICK1_VALUE);
-+	}
-+}
-+
-+static void rtc_lock(struct omap_rtc *rtc)
-+{
-+	if (rtc->type->has_kicker) {
-+		rtc_writel(rtc, OMAP_RTC_KICK0_REG, 0);
-+		rtc_writel(rtc, OMAP_RTC_KICK1_REG, 0);
-+	}
-+}
-+
- /*
-  * We rely on the rtc framework to handle locking (rtc->ops_lock),
-  * so the only other requirement is that register accesses which
-@@ -186,7 +202,9 @@ static irqreturn_t rtc_irq(int irq, void *dev_id)
- 
- 	/* alarm irq? */
- 	if (irq_data & OMAP_RTC_STATUS_ALARM) {
-+		rtc_unlock(rtc);
- 		rtc_write(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM);
-+		rtc_lock(rtc);
- 		events |= RTC_IRQF | RTC_AF;
- 	}
- 
-@@ -218,9 +236,11 @@ static int omap_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
- 		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
- 	}
- 	rtc_wait_not_busy(rtc);
-+	rtc_unlock(rtc);
- 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, reg);
- 	if (rtc->type->has_irqwakeen)
- 		rtc_write(rtc, OMAP_RTC_IRQWAKEEN, irqwake_reg);
-+	rtc_lock(rtc);
- 	local_irq_enable();
- 
- 	return 0;
-@@ -293,12 +313,14 @@ static int omap_rtc_set_time(struct device *dev, struct rtc_time *tm)
- 	local_irq_disable();
- 	rtc_wait_not_busy(rtc);
- 
-+	rtc_unlock(rtc);
- 	rtc_write(rtc, OMAP_RTC_YEARS_REG, tm->tm_year);
- 	rtc_write(rtc, OMAP_RTC_MONTHS_REG, tm->tm_mon);
- 	rtc_write(rtc, OMAP_RTC_DAYS_REG, tm->tm_mday);
- 	rtc_write(rtc, OMAP_RTC_HOURS_REG, tm->tm_hour);
- 	rtc_write(rtc, OMAP_RTC_MINUTES_REG, tm->tm_min);
- 	rtc_write(rtc, OMAP_RTC_SECONDS_REG, tm->tm_sec);
-+	rtc_lock(rtc);
- 
- 	local_irq_enable();
- 
-@@ -341,6 +363,7 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	local_irq_disable();
- 	rtc_wait_not_busy(rtc);
- 
-+	rtc_unlock(rtc);
- 	rtc_write(rtc, OMAP_RTC_ALARM_YEARS_REG, alm->time.tm_year);
- 	rtc_write(rtc, OMAP_RTC_ALARM_MONTHS_REG, alm->time.tm_mon);
- 	rtc_write(rtc, OMAP_RTC_ALARM_DAYS_REG, alm->time.tm_mday);
-@@ -362,6 +385,7 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, reg);
- 	if (rtc->type->has_irqwakeen)
- 		rtc_write(rtc, OMAP_RTC_IRQWAKEEN, irqwake_reg);
-+	rtc_lock(rtc);
- 
- 	local_irq_enable();
- 
-@@ -391,6 +415,7 @@ static void omap_rtc_power_off(void)
- 	unsigned long now;
- 	u32 val;
- 
-+	rtc_unlock(rtc);
- 	/* enable pmic_power_en control */
- 	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
- 	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
-@@ -423,6 +448,7 @@ static void omap_rtc_power_off(void)
- 	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
- 	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
- 			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-+	rtc_lock(rtc);
- 
- 	/*
- 	 * Wait for alarm to trigger (within two seconds) and external PMIC to
-@@ -527,10 +553,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 	pm_runtime_get_sync(&pdev->dev);
- 
--	if (rtc->type->has_kicker) {
--		rtc_writel(rtc, OMAP_RTC_KICK0_REG, KICK0_VALUE);
--		rtc_writel(rtc, OMAP_RTC_KICK1_REG, KICK1_VALUE);
--	}
-+	rtc_unlock(rtc);
- 
- 	/*
- 	 * disable interrupts
-@@ -593,6 +616,8 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	if (reg != new_ctrl)
- 		rtc_write(rtc, OMAP_RTC_CTRL_REG, new_ctrl);
- 
-+	rtc_lock(rtc);
-+
- 	device_init_wakeup(&pdev->dev, true);
- 
- 	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-@@ -626,8 +651,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 
- err:
- 	device_init_wakeup(&pdev->dev, false);
--	if (rtc->type->has_kicker)
--		rtc_writel(rtc, OMAP_RTC_KICK0_REG, 0);
-+	rtc_lock(rtc);
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-@@ -646,11 +670,11 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 
- 	device_init_wakeup(&pdev->dev, 0);
- 
-+	rtc_unlock(rtc);
- 	/* leave rtc running, but disable irqs */
- 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
- 
--	if (rtc->type->has_kicker)
--		rtc_writel(rtc, OMAP_RTC_KICK0_REG, 0);
-+	rtc_lock(rtc);
- 
- 	/* Disable the clock/module */
- 	pm_runtime_put_sync(&pdev->dev);
-@@ -666,6 +690,7 @@ static int omap_rtc_suspend(struct device *dev)
- 
- 	rtc->interrupts_reg = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
- 
-+	rtc_unlock(rtc);
- 	/*
- 	 * FIXME: the RTC alarm is not currently acting as a wakeup event
- 	 * source on some platforms, and in fact this enable() call is just
-@@ -675,6 +700,7 @@ static int omap_rtc_suspend(struct device *dev)
- 		enable_irq_wake(rtc->irq_alarm);
- 	else
- 		rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
-+	rtc_lock(rtc);
- 
- 	/* Disable the clock/module */
- 	pm_runtime_put_sync(dev);
-@@ -689,10 +715,12 @@ static int omap_rtc_resume(struct device *dev)
- 	/* Enable the clock/module so that we can access the registers */
- 	pm_runtime_get_sync(dev);
- 
-+	rtc_unlock(rtc);
- 	if (device_may_wakeup(dev))
- 		disable_irq_wake(rtc->irq_alarm);
- 	else
- 		rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, rtc->interrupts_reg);
-+	rtc_lock(rtc);
- 
- 	return 0;
- }
-@@ -709,9 +737,11 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
- 	 * Keep the ALARM interrupt enabled to allow the system to power up on
- 	 * alarm events.
- 	 */
-+	rtc_unlock(rtc);
- 	mask = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
- 	mask &= OMAP_RTC_INTERRUPTS_IT_ALARM;
- 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, mask);
-+	rtc_lock(rtc);
- }
- 
- static struct platform_driver omap_rtc_driver = {
--- 
-1.9.1
+And I explained that the =93internal resistance=94 is a system (battery=
+ + cables +
+connectors + other circuits) parameter that is not easy to derive or me=
+asure
+and type into the .dts source code.
+
+At least I have no idea how I should find it out for my boards. While I=
+ can
+easily determine the curves (and we already have them for the platform_=
+data
+driver).
+
+Please propose your own code doing that so that we can test if it is
+better.
+
+>=20
+> Running below 3.3V.. not really. At that point, the battery is really
+> _empty_, and voltage is going down really really fast.
+
+It is the diffference between 2% and 0% where a fuel indication might
+be most important=85
+
+>=20
+> Plus, you are damaging the battery at that point.
+
+The power controller will shut down - but the driver should report
+reasonable (but IMHO not necessarily perfect) values until the last
+moment.
+
+BR,
+Nikolaus
+
