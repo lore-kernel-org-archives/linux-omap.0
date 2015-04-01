@@ -1,47 +1,52 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid
- ICE in gcc 4.7.3
-Date: Wed, 1 Apr 2015 22:59:50 +0100
-Message-ID: <20150401215950.GC4027@n2100.arm.linux.org.uk>
-References: <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
- <20150327002554.GA5527@verge.net.au>
- <20150327100612.GB1562@arm.com>
- <7hbnj99epe.fsf@deeprootsystems.com>
- <CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
- <7h8uec95t2.fsf@deeprootsystems.com>
- <alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
- <551BBEC5.7070801@arm.com>
- <20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
- <7hwq1v4iq4.fsf@deeprootsystems.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH v4 3/7] drm/tilcdc: Add support for external tda998x
+ encoder
+Date: Wed, 1 Apr 2015 23:20:31 +0100
+Message-ID: <20150401222030.GD4027@n2100.arm.linux.org.uk>
+References: <cover.1427877412.git.jsarha@ti.com>
+ <e22d703d6ee5fe02e8c34b78a63f98a4b2ea1f22.1427877412.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <7hwq1v4iq4.fsf@deeprootsystems.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Kevin Hilman <khilman@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Marc Zyngier <marc.zyngier@arm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+In-Reply-To: <e22d703d6ee5fe02e8c34b78a63f98a4b2ea1f22.1427877412.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 01, 2015 at 02:54:59PM -0700, Kevin Hilman wrote:
-> Your patch on top of Geert's still compiles fine for me with gcc-4.7.3.
-> However, I'm not sure how specific we can be on the versions.  
+On Wed, Apr 01, 2015 at 11:49:27AM +0300, Jyri Sarha wrote:
+> Add support for an external compontised DRM encoder. The external
+> encoder can be connected to tilcdc trough device tree graph binding.
+> The binding document for tilcdc has been updated. The current
+> implementation supports only tda998x encoder.
 > 
-> /me goes to test a few more compilers...   OK...
-> 
-> ICE: 4.7.1, 4.7.3, 4.8.3
-> OK: 4.6.3, 4.9.2, 4.9.3
-> 
-> The diff below[2] on top of yours compiles fine here and at least covers
-> the compilers I *know* to trigger the ICE.
+> To be able to filter out the unsupported video modes the tilcdc driver
+> needs to hijack the external connectors helper functions. The tilcdc
+> installes new helper functions that are otherwise identical to
+> orignals, but the mode_valid() call-back check the mode first localy,
+> before calling the original call-back. The tilcdc dirver restores the
+> original helper functions before it is unbound from the external
+> device.
 
-Interesting.  I'm using stock gcc 4.7.4 here, though I'm not building
--next (only mainline + my tree + arm-soc) and it hasn't shown a problem
-yet.
+This is where the DRM model is weak - we don't really have a way to
+say "this is the set of CRTCs which /can/ be associated with this
+connector, can any of the CRTCs accept this mode?" and eliminate
+modes which fail that check.
 
-I think we need to ask the question: is the bug in stock GCC or Linaro
-GCC?  If it's not in stock GCC, then it's a GCC vendor problem :)
+This problem seems to be one which recurrs, so I wonder if it's
+something which ought to be solved properly.
+
+It's made slightly more difficult because we don't really know which
+connectors could be associated with which CRTCs - that information is
+stored at the encoder level (with the encoders possible_crtcs), and
+I'm not sure we have a way for generic DRM code to know which encoders
+could be associated with which connectors.
 
 -- 
 FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
 according to speedtest.net.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
