@@ -1,28 +1,43 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 2/2] EDMA: TI: fixed wrongly initialized data parameter
- to the edma callback
-Date: Wed, 1 Apr 2015 09:17:02 +0530
-Message-ID: <20150401034701.GV7192@intel.com>
-References: <1427142901-16391-1-git-send-email-petr@barix.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH 2/3] rtc: omap: Update Kconfig for OMAP RTC
+Date: Wed, 1 Apr 2015 11:24:57 +0530
+Message-ID: <1427867698-1326-3-git-send-email-lokeshvutla@ti.com>
+References: <1427867698-1326-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1427142901-16391-1-git-send-email-petr@barix.com>
+In-Reply-To: <1427867698-1326-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Petr Kulhavy <petr@barix.com>
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, trivial@kernel.org
+To: a.zummo@towertech.it, rtc-linux@googlegroups.com
+Cc: t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 23, 2015 at 09:35:01PM +0100, Petr Kulhavy wrote:
-> The "data" parameter passed indirectly to the edma_callback() should be
-> edma_chan and not the dma_chan.
-> 
-> This bug was so far harmless since the offset of struct dma_chan within struct
-> edma_chan is 0. However as soon as someone changes struct edma_chan this would
-> cause troubles.
-Applied now, but do ensure you are using right subsystem anmes for patches.
-I have fixed up now
+RTC is present in AM43xx and DRA7xx also. Updating the Kconfig
+to depend on ARCH_OMAP or ARCH_DAVINCI
 
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ drivers/rtc/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index b5b5c3d..40faf56 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -1121,11 +1121,11 @@ config RTC_DRV_IMXDI
+ 	   will be called "rtc-imxdi".
+ 
+ config RTC_DRV_OMAP
+-	tristate "TI OMAP1"
+-	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX || SOC_AM33XX
++	tristate "TI OMAP Real Time Clock"
++	depends on ARCH_OMAP || ARCH_DAVINCI
+ 	help
+ 	  Say "yes" here to support the on chip real time clock
+-	  present on TI OMAP1, AM33xx and DA8xx/OMAP-L13x.
++	  present on TI OMAP1, AM33xx, DA8xx/OMAP-L13x, AM43xx and DRA7xx.
+ 
+ 	  This driver can also be built as a module, if so, module
+ 	  will be called rtc-omap.
 -- 
-~Vinod
+1.9.1
