@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v3 2/4] remoteproc: add a rproc ops for performing address translation
-Date: Wed, 1 Apr 2015 14:37:17 -0500
-Message-ID: <1427917039-43206-3-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v3 1/4] remoteproc: introduce rproc_get_by_phandle API
+Date: Wed, 1 Apr 2015 14:37:16 -0500
+Message-ID: <1427917039-43206-2-git-send-email-d-gerlach@ti.com>
 References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,114 +12,180 @@ To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-om
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+Allow users of remoteproc the ability to get a handle to an rproc by
+passing a phandle supplied in the user's device tree node. This is
+useful in situations that require manual booting of the rproc.
 
-The rproc_da_to_va API is currently used to perform any device to
-kernel address translations to meet the different needs of the remoteproc
-core/drivers (eg: loading). The functionality is achieved within the
-remoteproc core, and is limited only for carveouts allocated within the
-core.
+This patch uses the code removed by commit 40e575b1d0b3 ("remoteproc:
+remove the get_by_name/put API") for the ref counting a rproc klist
+code but has rproc_get_by_name replaced with an rproc_get_by_phandle API.
 
-A new rproc ops, da_to_va, is added to provide flexibility to platform
-implementations to perform the address translation themselves when the
-above conditions cannot be met by the implementations. The rproc_da_to_va()
-API is extended to invoke this ops if present, and fallback to regular
-processing if the platform implementation cannot provide the translation.
-This will allow any remoteproc implementations to translate addresses for
-dedicated memories like internal memories.
-
-While at this, also update the rproc_da_to_va() documentation since it
-is an exported function.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/remoteproc/remoteproc_core.c | 31 +++++++++++++++++++++++++------
- include/linux/remoteproc.h           |  2 ++
- 2 files changed, 27 insertions(+), 6 deletions(-)
+ Documentation/remoteproc.txt         |  6 +++
+ drivers/remoteproc/remoteproc_core.c | 83 ++++++++++++++++++++++++++++++++++++
+ include/linux/remoteproc.h           |  2 +
+ 3 files changed, 91 insertions(+)
 
+diff --git a/Documentation/remoteproc.txt b/Documentation/remoteproc.txt
+index e6469fd..ef0219f 100644
+--- a/Documentation/remoteproc.txt
++++ b/Documentation/remoteproc.txt
+@@ -51,6 +51,12 @@ cost.
+         rproc_shutdown() returns, and users can still use it with a subsequent
+         rproc_boot(), if needed.
+ 
++  struct rproc *rproc_get_by_phandle(phandle phandle)
++    - Find an rproc handle using a device tree phandle. Returns the rproc
++      handle on success, and NULL on failure. This function increments
++      the remote processor's refcount, so always use rproc_put() to
++      decrement it back once rproc isn't needed anymore.
++
+ 3. Typical usage
+ 
+ #include <linux/remoteproc.h>
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 5a6c192..f1efe62 100644
+index 3cd85a63..5a6c192 100644
 --- a/drivers/remoteproc/remoteproc_core.c
 +++ b/drivers/remoteproc/remoteproc_core.c
-@@ -159,28 +159,46 @@ static void rproc_disable_iommu(struct rproc *rproc)
- 	return;
- }
+@@ -36,6 +36,7 @@
+ #include <linux/remoteproc.h>
+ #include <linux/iommu.h>
+ #include <linux/idr.h>
++#include <linux/klist.h>
+ #include <linux/elf.h>
+ #include <linux/crc32.h>
+ #include <linux/virtio_ids.h>
+@@ -44,6 +45,17 @@
  
--/*
-+/**
-+ * rproc_da_to_va() - lookup the kernel virtual address for a remoteproc address
-+ * @rproc: handle of a remote processor
-+ * @da: remoteproc device address to translate
-+ * @len: length of the memory region @da is pointing to
-+ *
-  * Some remote processors will ask us to allocate them physically contiguous
-  * memory regions (which we call "carveouts"), and map them to specific
-- * device addresses (which are hardcoded in the firmware).
-+ * device addresses (which are hardcoded in the firmware). They may also have
-+ * dedicated memory regions internal to the processors, and use them either
-+ * exclusively or alongside carveouts.
-  *
-  * They may then ask us to copy objects into specific device addresses (e.g.
-  * code/data sections) or expose us certain symbols in other device address
-  * (e.g. their trace buffer).
-  *
-- * This function is an internal helper with which we can go over the allocated
-- * carveouts and translate specific device address to kernel virtual addresses
-- * so we can access the referenced memory.
-+ * This function is a helper function with which we can go over the allocated
-+ * carveouts and translate specific device addresses to kernel virtual addresses
-+ * so we can access the referenced memory. This function also allows to perform
-+ * translations on the internal remoteproc memory regions through a platform
-+ * implementation specific da_to_va ops, if present.
-+ *
-+ * The function returns a valid kernel address on success or NULL on failure.
-  *
-  * Note: phys_to_virt(iommu_iova_to_phys(rproc->domain, da)) will work too,
-  * but only on kernel direct mapped RAM memory. Instead, we're just using
-- * here the output of the DMA API, which should be more correct.
-+ * here the output of the DMA API for the carveouts, which should be more
-+ * correct.
-  */
- void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
- {
- 	struct rproc_mem_entry *carveout;
- 	void *ptr = NULL;
+ #include "remoteproc_internal.h"
  
-+	if (rproc->ops->da_to_va) {
-+		ptr = rproc->ops->da_to_va(rproc, da, len);
-+		if (ptr)
-+			goto out;
-+	}
++static void klist_rproc_get(struct klist_node *n);
++static void klist_rproc_put(struct klist_node *n);
 +
- 	list_for_each_entry(carveout, &rproc->carveouts, node) {
- 		int offset = da - carveout->da;
- 
-@@ -197,6 +215,7 @@ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
- 		break;
- 	}
- 
-+out:
- 	return ptr;
++/*
++ * klist of the available remote processors.
++ *
++ * We need this in order to support rproc lookups (needed by the
++ * rproc_get_by_phandle()).
++ */
++static DEFINE_KLIST(rprocs, klist_rproc_get, klist_rproc_put);
++
+ typedef int (*rproc_handle_resources_t)(struct rproc *rproc,
+ 				struct resource_table *table, int len);
+ typedef int (*rproc_handle_resource_t)(struct rproc *rproc,
+@@ -1162,6 +1174,71 @@ out:
  }
- EXPORT_SYMBOL(rproc_da_to_va);
+ EXPORT_SYMBOL(rproc_shutdown);
+ 
++/* will be called when an rproc is added to the rprocs klist */
++static void klist_rproc_get(struct klist_node *n)
++{
++	struct rproc *rproc = container_of(n, struct rproc, node);
++
++	get_device(&rproc->dev);
++}
++
++/* will be called when an rproc is removed from the rprocs klist */
++static void klist_rproc_put(struct klist_node *n)
++{
++	struct rproc *rproc = container_of(n, struct rproc, node);
++
++	put_device(&rproc->dev);
++}
++
++static struct rproc *next_rproc(struct klist_iter *i)
++{
++	struct klist_node *n;
++
++	n = klist_next(i);
++	if (!n)
++		return NULL;
++
++	return container_of(n, struct rproc, node);
++}
++
++/**
++ * rproc_get_by_phandle() - find a remote processor by phandle
++ * @phandle: phandle to the rproc
++ *
++ * Finds an rproc handle using the remote processor's phandle, and then
++ * return a handle to the rproc.
++ *
++ * Returns the rproc handle on success, and NULL on failure.
++ *
++ * This function increments the remote processor's refcount, so always
++ * use rproc_put() to decrement it back once rproc isn't needed anymore.
++ *
++ */
++struct rproc *rproc_get_by_phandle(phandle phandle)
++{
++	struct rproc *rproc;
++	struct klist_iter i;
++	struct device_node *np;
++
++	np = of_find_node_by_phandle(phandle);
++	if (!np)
++		return NULL;
++
++	/* find the remote processor, and upref its refcount */
++	klist_iter_init(&rprocs, &i);
++	while ((rproc = next_rproc(&i)) != NULL)
++		if (rproc->dev.parent && rproc->dev.parent->of_node == np) {
++			get_device(&rproc->dev);
++			break;
++		}
++	klist_iter_exit(&i);
++
++	of_node_put(np);
++
++	return rproc;
++}
++EXPORT_SYMBOL(rproc_get_by_phandle);
++
+ /**
+  * rproc_add() - register a remote processor
+  * @rproc: the remote processor handle to register
+@@ -1191,6 +1268,9 @@ int rproc_add(struct rproc *rproc)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* expose to rproc_get_by_phandle users */
++	klist_add_tail(&rproc->node, &rprocs);
++
+ 	dev_info(dev, "%s is available\n", rproc->name);
+ 
+ 	dev_info(dev, "Note: remoteproc is still under development and considered experimental.\n");
+@@ -1380,6 +1460,9 @@ int rproc_del(struct rproc *rproc)
+ 	/* Free the copy of the resource table */
+ 	kfree(rproc->cached_table);
+ 
++	/* the rproc is downref'ed as soon as it's removed from the klist */
++	klist_del(&rproc->node);
++
+ 	device_del(&rproc->dev);
+ 
+ 	return 0;
 diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 0c7d403..81b224d 100644
+index 9e7e745..0c7d403 100644
 --- a/include/linux/remoteproc.h
 +++ b/include/linux/remoteproc.h
-@@ -331,11 +331,13 @@ struct rproc;
-  * @start:	power on the device and boot it
-  * @stop:	power off the device
-  * @kick:	kick a virtqueue (virtqueue id given as a parameter)
-+ * @da_to_va:	optional platform hook to perform address translations
-  */
- struct rproc_ops {
- 	int (*start)(struct rproc *rproc);
- 	int (*stop)(struct rproc *rproc);
- 	void (*kick)(struct rproc *rproc, int vqid);
-+	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
- };
+@@ -41,6 +41,7 @@
+ #include <linux/virtio.h>
+ #include <linux/completion.h>
+ #include <linux/idr.h>
++#include <linux/of.h>
  
  /**
+  * struct resource_table - firmware resource table header
+@@ -479,6 +480,7 @@ struct rproc_vdev {
+ 	u32 rsc_offset;
+ };
+ 
++struct rproc *rproc_get_by_phandle(phandle phandle);
+ struct rproc *rproc_alloc(struct device *dev, const char *name,
+ 				const struct rproc_ops *ops,
+ 				const char *firmware, int len);
 -- 
 2.3.0
