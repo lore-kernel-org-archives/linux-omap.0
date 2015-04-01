@@ -1,42 +1,541 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 7/7] drm/tilcdc: Decrement refcount of ep-node from of_graph_get_next_endpoint
-Date: Wed, 1 Apr 2015 11:49:31 +0300
-Message-ID: <01e4da0eb71fb38d0e3c4cc24e44406c61b44b45.1427877412.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v4 3/7] drm/tilcdc: Add support for external tda998x encoder
+Date: Wed, 1 Apr 2015 11:49:27 +0300
+Message-ID: <e22d703d6ee5fe02e8c34b78a63f98a4b2ea1f22.1427877412.git.jsarha@ti.com>
 References: <cover.1427877412.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1427877412.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38857 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbbDAIug (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2015 04:50:36 -0400
+In-Reply-To: <cover.1427877412.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
+Cc: tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk, robdclark@gmail.com, moinejf@free.fr, Jyri Sarha <jsarha@ti.com>
 
-This patch should be dropped/reverterd if/after "of: Decrement refcount
-of previous endpoint in of_graph_get_next_endpoint" patch has been
-merged.
+Add support for an external compontised DRM encoder. The external
+encoder can be connected to tilcdc trough device tree graph binding.
+The binding document for tilcdc has been updated. The current
+implementation supports only tda998x encoder.
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+To be able to filter out the unsupported video modes the tilcdc driver
+needs to hijack the external connectors helper functions. The tilcdc
+installes new helper functions that are otherwise identical to
+orignals, but the mode_valid() call-back check the mode first localy,
+before calling the original call-back. The tilcdc dirver restores the
+original helper functions before it is unbound from the external
+device.
+
+I got the idea and some lines of code from Jean-Francois Moine's
+"drm/tilcdc: Change the interface with the tda998x driver"-patch.
+
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_external.c | 1 +
- 1 file changed, 1 insertion(+)
+ .../devicetree/bindings/drm/tilcdc/tilcdc.txt      |  27 ++++
+ drivers/gpu/drm/tilcdc/Makefile                    |   1 +
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c               |  33 +++++
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c                |  81 +++++++++--
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h                |   5 +
+ drivers/gpu/drm/tilcdc/tilcdc_external.c           | 158 +++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_external.h           |  25 ++++
+ 7 files changed, 317 insertions(+), 13 deletions(-)
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_external.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_external.h
 
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.c b/drivers/gpu/drm/tilcdc/tilcdc_external.c
-index f932f52..7232647 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_external.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_external.c
-@@ -137,6 +137,7 @@ int tilcdc_get_external_components(struct device *dev,
- 		struct device_node *node;
+diff --git a/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt b/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
+index fff10da..2136ee8 100644
+--- a/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
++++ b/Documentation/devicetree/bindings/drm/tilcdc/tilcdc.txt
+@@ -18,6 +18,12 @@ Optional properties:
+  - max-pixelclock: The maximum pixel clock that can be supported
+    by the lcd controller in KHz.
  
- 		node = of_graph_get_remote_port_parent(ep);
-+		of_node_put(ep);
- 		if (!node && !of_device_is_available(node)) {
- 			of_node_put(node);
- 			continue;
++Optional nodes:
++
++ - port/ports: to describe a connection to an external encoder. The
++   binding follows Documentation/devicetree/bindings/graph.txt and
++   suppors a single port with a single endpoint.
++
+ Example:
+ 
+ 	fb: fb@4830e000 {
+@@ -26,4 +32,25 @@ Example:
+ 		interrupt-parent = <&intc>;
+ 		interrupts = <36>;
+ 		ti,hwmods = "lcdc";
++
++		port {
++			lcdc_0: endpoint@0 {
++				remote-endpoint = <&hdmi_0>;
++			};
++		};
++	};
++
++	tda19988: tda19988 {
++		compatible = "nxp,tda998x";
++		reg = <0x70>;
++
++		pinctrl-names = "default", "off";
++		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
++		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
++
++		port {
++			hdmi_0: endpoint@0 {
++				remote-endpoint = <&lcdc_0>;
++			};
++		};
+ 	};
+diff --git a/drivers/gpu/drm/tilcdc/Makefile b/drivers/gpu/drm/tilcdc/Makefile
+index 44485f9..e1f738b 100644
+--- a/drivers/gpu/drm/tilcdc/Makefile
++++ b/drivers/gpu/drm/tilcdc/Makefile
+@@ -7,6 +7,7 @@ tilcdc-y := \
+ 	tilcdc_crtc.o \
+ 	tilcdc_tfp410.o \
+ 	tilcdc_panel.o \
++	tilcdc_external.o \
+ 	tilcdc_drv.o
+ 
+ obj-$(CONFIG_DRM_TILCDC)	+= tilcdc.o
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index c2d5980..7d07733 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -37,6 +37,9 @@ struct tilcdc_crtc {
+ 
+ 	/* for deferred fb unref's: */
+ 	struct drm_flip_work unref_work;
++
++	/* Only set if an external encoder is connected */
++	bool simulate_vesa_sync;
+ };
+ #define to_tilcdc_crtc(x) container_of(x, struct tilcdc_crtc, base)
+ 
+@@ -214,6 +217,28 @@ static bool tilcdc_crtc_mode_fixup(struct drm_crtc *crtc,
+ 		const struct drm_display_mode *mode,
+ 		struct drm_display_mode *adjusted_mode)
+ {
++	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
++
++	if (!tilcdc_crtc->simulate_vesa_sync)
++		return true;
++
++	/*
++	 * tilcdc does not generate VESA-compliant sync but aligns
++	 * VS on the second edge of HS instead of first edge.
++	 * We use adjusted_mode, to fixup sync by aligning both rising
++	 * edges and add HSKEW offset to fix the sync.
++	 */
++	adjusted_mode->hskew = mode->hsync_end - mode->hsync_start;
++	adjusted_mode->flags |= DRM_MODE_FLAG_HSKEW;
++
++	if (mode->flags & DRM_MODE_FLAG_NHSYNC) {
++		adjusted_mode->flags |= DRM_MODE_FLAG_PHSYNC;
++		adjusted_mode->flags &= ~DRM_MODE_FLAG_NHSYNC;
++	} else {
++		adjusted_mode->flags |= DRM_MODE_FLAG_NHSYNC;
++		adjusted_mode->flags &= ~DRM_MODE_FLAG_PHSYNC;
++	}
++
+ 	return true;
+ }
+ 
+@@ -534,6 +559,14 @@ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+ 	tilcdc_crtc->info = info;
+ }
+ 
++void tilcdc_crtc_set_simulate_vesa_sync(struct drm_crtc *crtc,
++					bool simulate_vesa_sync)
++{
++	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
++
++	tilcdc_crtc->simulate_vesa_sync = simulate_vesa_sync;
++}
++
+ void tilcdc_crtc_update_clk(struct drm_crtc *crtc)
+ {
+ 	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index 0f1e099..1876945 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -17,10 +17,13 @@
+ 
+ /* LCDC DRM driver, based on da8xx-fb */
+ 
++#include <linux/component.h>
++
+ #include "tilcdc_drv.h"
+ #include "tilcdc_regs.h"
+ #include "tilcdc_tfp410.h"
+ #include "tilcdc_panel.h"
++#include "tilcdc_external.h"
+ 
+ #include "drm_fb_helper.h"
+ 
+@@ -73,13 +76,6 @@ static int modeset_init(struct drm_device *dev)
+ 		mod->funcs->modeset_init(mod, dev);
+ 	}
+ 
+-	if ((priv->num_encoders == 0) || (priv->num_connectors == 0)) {
+-		/* oh nos! */
+-		dev_err(dev->dev, "no encoders/connectors found\n");
+-		drm_mode_config_cleanup(dev);
+-		return -ENXIO;
+-	}
+-
+ 	dev->mode_config.min_width = 0;
+ 	dev->mode_config.min_height = 0;
+ 	dev->mode_config.max_width = tilcdc_crtc_max_width(priv->crtc);
+@@ -114,6 +110,8 @@ static int tilcdc_unload(struct drm_device *dev)
+ {
+ 	struct tilcdc_drm_private *priv = dev->dev_private;
+ 
++	tilcdc_remove_external_encoders(dev);
++
+ 	drm_fbdev_cma_fini(priv->fbdev);
+ 	drm_kms_helper_poll_fini(dev);
+ 	drm_mode_config_cleanup(dev);
+@@ -164,6 +162,9 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 
+ 	dev->dev_private = priv;
+ 
++	priv->is_componentized =
++		tilcdc_get_external_components(dev->dev, NULL) > 0;
++
+ 	priv->wq = alloc_ordered_workqueue("tilcdc", 0);
+ 	if (!priv->wq) {
+ 		ret = -ENOMEM;
+@@ -253,10 +254,28 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 		goto fail_cpufreq_unregister;
+ 	}
+ 
++	platform_set_drvdata(pdev, dev);
++
++	if (priv->is_componentized) {
++		ret = component_bind_all(dev->dev, dev);
++		if (ret < 0)
++			goto fail_mode_config_cleanup;
++
++		ret = tilcdc_add_external_encoders(dev, &bpp);
++		if (ret < 0)
++			goto fail_component_cleanup;
++	}
++
++	if ((priv->num_encoders == 0) || (priv->num_connectors == 0)) {
++		dev_err(dev->dev, "no encoders/connectors found\n");
++		ret = -ENXIO;
++		goto fail_external_cleanup;
++	}
++
+ 	ret = drm_vblank_init(dev, 1);
+ 	if (ret < 0) {
+ 		dev_err(dev->dev, "failed to initialize vblank\n");
+-		goto fail_mode_config_cleanup;
++		goto fail_external_cleanup;
+ 	}
+ 
+ 	pm_runtime_get_sync(dev->dev);
+@@ -267,9 +286,6 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
+ 		goto fail_vblank_cleanup;
+ 	}
+ 
+-	platform_set_drvdata(pdev, dev);
+-
+-
+ 	list_for_each_entry(mod, &module_list, list) {
+ 		DBG("%s: preferred_bpp: %d", mod->name, mod->preferred_bpp);
+ 		bpp = mod->preferred_bpp;
+@@ -300,6 +316,13 @@ fail_vblank_cleanup:
+ fail_mode_config_cleanup:
+ 	drm_mode_config_cleanup(dev);
+ 
++fail_component_cleanup:
++	if (priv->is_componentized)
++		component_unbind_all(dev->dev, dev);
++
++fail_external_cleanup:
++	tilcdc_remove_external_encoders(dev);
++
+ fail_cpufreq_unregister:
+ 	pm_runtime_disable(dev->dev);
+ #ifdef CONFIG_CPU_FREQ
+@@ -605,20 +628,52 @@ static const struct dev_pm_ops tilcdc_pm_ops = {
+  * Platform driver:
+  */
+ 
++static int tilcdc_bind(struct device *dev)
++{
++	return drm_platform_init(&tilcdc_driver, to_platform_device(dev));
++}
++
++static void tilcdc_unbind(struct device *dev)
++{
++	drm_put_dev(dev_get_drvdata(dev));
++}
++
++static const struct component_master_ops tilcdc_comp_ops = {
++	.bind = tilcdc_bind,
++	.unbind = tilcdc_unbind,
++};
++
+ static int tilcdc_pdev_probe(struct platform_device *pdev)
+ {
++	struct component_match *match = NULL;
++	int ret;
++
+ 	/* bail out early if no DT data: */
+ 	if (!pdev->dev.of_node) {
+ 		dev_err(&pdev->dev, "device-tree data is missing\n");
+ 		return -ENXIO;
+ 	}
+ 
+-	return drm_platform_init(&tilcdc_driver, pdev);
++	ret = tilcdc_get_external_components(&pdev->dev, &match);
++	if (ret < 0)
++		return ret;
++	else if (ret == 0)
++		return drm_platform_init(&tilcdc_driver, pdev);
++	else
++		return component_master_add_with_match(&pdev->dev,
++						       &tilcdc_comp_ops,
++						       match);
+ }
+ 
+ static int tilcdc_pdev_remove(struct platform_device *pdev)
+ {
+-	drm_put_dev(platform_get_drvdata(pdev));
++	struct drm_device *ddev = dev_get_drvdata(&pdev->dev);
++	struct tilcdc_drm_private *priv = ddev->dev_private;
++
++	if (priv->is_componentized)
++		component_master_del(&pdev->dev, &tilcdc_comp_ops);
++	else
++		drm_put_dev(platform_get_drvdata(pdev));
+ 
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index 6336512..ff1c3dd 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -85,6 +85,9 @@ struct tilcdc_drm_private {
+ 
+ 	unsigned int num_connectors;
+ 	struct drm_connector *connectors[8];
++	struct drm_connector_helper_funcs *connector_funcs[8];
++
++	bool is_componentized;
+ };
+ 
+ /* Sub-module for display.  Since we don't know at compile time what panels
+@@ -165,6 +168,8 @@ irqreturn_t tilcdc_crtc_irq(struct drm_crtc *crtc);
+ void tilcdc_crtc_update_clk(struct drm_crtc *crtc);
+ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+ 		const struct tilcdc_panel_info *info);
++void tilcdc_crtc_set_simulate_vesa_sync(struct drm_crtc *crtc,
++					bool simulate_vesa_sync);
+ int tilcdc_crtc_mode_valid(struct drm_crtc *crtc, struct drm_display_mode *mode);
+ int tilcdc_crtc_max_width(struct drm_crtc *crtc);
+ 
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.c b/drivers/gpu/drm/tilcdc/tilcdc_external.c
+new file mode 100644
+index 0000000..f932f52
+--- /dev/null
++++ b/drivers/gpu/drm/tilcdc/tilcdc_external.c
+@@ -0,0 +1,158 @@
++/*
++ * Copyright (C) 2015 Texas Instruments
++ * Author: Jyri Sarha <jsarha@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ */
++
++#include <linux/component.h>
++#include <linux/of_graph.h>
++
++#include "tilcdc_drv.h"
++#include "tilcdc_external.h"
++
++static const struct tilcdc_panel_info panel_info_tda998x = {
++		.ac_bias                = 255,
++		.ac_bias_intrpt         = 0,
++		.dma_burst_sz           = 16,
++		.bpp                    = 16,
++		.fdd                    = 0x80,
++		.tft_alt_mode           = 0,
++		.invert_pxl_clk		= 1,
++		.sync_edge              = 1,
++		.sync_ctrl              = 1,
++		.raster_order           = 0,
++};
++
++static int tilcdc_external_mode_valid(struct drm_connector *connector,
++				      struct drm_display_mode *mode)
++{
++	struct tilcdc_drm_private *priv = connector->dev->dev_private;
++	int ret, i;
++
++	ret = tilcdc_crtc_mode_valid(priv->crtc, mode);
++	if (ret != MODE_OK)
++		return ret;
++
++	for (i = 0; i < priv->num_connectors &&
++		     priv->connectors[i] != connector; i++)
++		;
++
++	BUG_ON(priv->connectors[i] != connector);
++	BUG_ON(!priv->connector_funcs[i]);
++
++	if (!IS_ERR(priv->connector_funcs[i]) &&
++	    priv->connector_funcs[i]->mode_valid)
++		return priv->connector_funcs[i]->mode_valid(connector, mode);
++
++	return MODE_OK;
++}
++
++static int tilcdc_add_external_encoder(struct drm_device *dev, int *bpp,
++				       struct drm_connector *connector)
++{
++	struct tilcdc_drm_private *priv = dev->dev_private;
++	struct drm_connector_helper_funcs *connector_funcs;
++
++	priv->connectors[priv->num_connectors] = connector;
++	priv->encoders[priv->num_encoders++] = connector->encoder;
++
++	/* Only tda998x is supported at the moment. */
++	tilcdc_crtc_set_simulate_vesa_sync(priv->crtc, true);
++	tilcdc_crtc_set_panel_info(priv->crtc, &panel_info_tda998x);
++	*bpp = panel_info_tda998x.bpp;
++
++	connector_funcs = devm_kzalloc(dev->dev, sizeof(*connector_funcs),
++				       GFP_KERNEL);
++	if (!connector_funcs)
++		return -ENOMEM;
++
++	if (connector->helper_private) {
++		priv->connector_funcs[priv->num_connectors] =
++			connector->helper_private;
++		*connector_funcs = *priv->connector_funcs[priv->num_connectors];
++	} else {
++		priv->connector_funcs[priv->num_connectors] = ERR_PTR(-ENOENT);
++	}
++	connector_funcs->mode_valid = tilcdc_external_mode_valid;
++	drm_connector_helper_add(connector, connector_funcs);
++	priv->num_connectors++;
++
++	dev_dbg(dev->dev, "External encoder '%s' connected\n",
++		connector->encoder->name);
++
++	return 0;
++}
++
++int tilcdc_add_external_encoders(struct drm_device *dev, int *bpp)
++{
++	struct tilcdc_drm_private *priv = dev->dev_private;
++	struct drm_connector *connector;
++	int num_internal_connectors = priv->num_connectors;
++
++	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
++		bool found = false;
++		int i, ret;
++
++		for (i = 0; i < num_internal_connectors; i++)
++			if (connector == priv->connectors[i])
++				found = true;
++		if (!found) {
++			ret = tilcdc_add_external_encoder(dev, bpp, connector);
++			if (ret)
++				return ret;
++		}
++	}
++	return 0;
++}
++
++void tilcdc_remove_external_encoders(struct drm_device *dev)
++{
++	struct tilcdc_drm_private *priv = dev->dev_private;
++	int i;
++
++	for (i = 0; i < priv->num_connectors; i++)
++		if (IS_ERR(priv->connector_funcs[i]))
++			drm_connector_helper_add(priv->connectors[i], NULL);
++		else if (priv->connector_funcs[i])
++			drm_connector_helper_add(priv->connectors[i],
++						 priv->connector_funcs[i]);
++}
++
++static int dev_match_of(struct device *dev, void *data)
++{
++	return dev->of_node == data;
++}
++
++int tilcdc_get_external_components(struct device *dev,
++				   struct component_match **match)
++{
++	struct device_node *ep = NULL;
++	int count = 0;
++
++	while ((ep = of_graph_get_next_endpoint(dev->of_node, ep))) {
++		struct device_node *node;
++
++		node = of_graph_get_remote_port_parent(ep);
++		if (!node && !of_device_is_available(node)) {
++			of_node_put(node);
++			continue;
++		}
++
++		dev_dbg(dev, "Subdevice node '%s' found\n", node->name);
++		if (match)
++			component_match_add(dev, match, dev_match_of, node);
++		of_node_put(node);
++		count++;
++	}
++
++	if (count > 1) {
++		dev_err(dev, "Only one external encoder is supported\n");
++		return -EINVAL;
++	}
++
++	return count;
++}
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.h b/drivers/gpu/drm/tilcdc/tilcdc_external.h
+new file mode 100644
+index 0000000..6aabe27
+--- /dev/null
++++ b/drivers/gpu/drm/tilcdc/tilcdc_external.h
+@@ -0,0 +1,25 @@
++/*
++ * Copyright (C) 2015 Texas Instruments
++ * Author: Jyri Sarha <jsarha@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __TILCDC_EXTERNAL_H__
++#define __TILCDC_EXTERNAL_H__
++
++int tilcdc_add_external_encoders(struct drm_device *dev, int *bpp);
++void tilcdc_remove_external_encoders(struct drm_device *dev);
++int tilcdc_get_external_components(struct device *dev,
++				   struct component_match **match);
++#endif /* __TILCDC_SLAVE_H__ */
 -- 
 1.9.1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
