@@ -1,65 +1,73 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] omap3isp: Don't pass uninitialised arguments to
- of_graph_get_next_endpoint()
-Date: Thu, 2 Apr 2015 01:41:38 +0300
-Message-ID: <20150401224138.GE20756@valkosipuli.retiisi.org.uk>
-References: <20150330174123.GA2658@earth>
- <1427757208-1938-1-git-send-email-sakari.ailus@iki.fi>
- <20150331013719.GA1096@earth>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid ICE
+ in gcc 4.7.3
+Date: Thu, 2 Apr 2015 09:17:56 +0200
+Message-ID: <CAMuHMdX95QxqUk7XNnZLWWqZT+0HeL9HzcEkuhevGAp7h6XcQQ@mail.gmail.com>
+References: <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au>
+	<20150327100612.GB1562@arm.com>
+	<7hbnj99epe.fsf@deeprootsystems.com>
+	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+	<7h8uec95t2.fsf@deeprootsystems.com>
+	<alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
+	<551BBEC5.7070801@arm.com>
+	<20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
+	<7hwq1v4iq4.fsf@deeprootsystems.com>
+	<20150401215950.GC4027@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150331013719.GA1096@earth>
-Sender: linux-media-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, pali.rohar@gmail.com, tony@atomide.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20150401215950.GC4027@n2100.arm.linux.org.uk>
+Sender: owner-linux-mm@kvack.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Marc Zyngier <marc.zyngier@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebastian,
+Hi Russell,
 
-On Tue, Mar 31, 2015 at 03:37:20AM +0200, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Tue, Mar 31, 2015 at 02:13:28AM +0300, Sakari Ailus wrote:
-> > isp_of_parse_nodes() passed an uninitialised prev argument to
-> > of_graph_get_next_endpoint(). This is bad, fix it by assigning NULL to it in
-> > the initialisation.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Reported-by: Sebastian Reichel <sre@kernel.org>
-> > ---
-> >  drivers/media/platform/omap3isp/isp.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> > index ff8f633..ff51c4f 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -2338,7 +2338,7 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
-> >  static int isp_of_parse_nodes(struct device *dev,
-> >  			      struct v4l2_async_notifier *notifier)
-> >  {
-> > -	struct device_node *node;
-> > +	struct device_node *node = NULL;
-> >  
-> >  	notifier->subdevs = devm_kcalloc(
-> >  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> 
-> Acked-By: Sebastian Reichel <sre@kernel.org>
-> 
-> Note, that this actually triggered the following stacktrace for me,
-> so you may want to add a Fixes: <commitid> and the stacktrace to the
-> commit message if its not merged with the original commit (relevant
-> for people doing git bisect).
+On Wed, Apr 1, 2015 at 11:59 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Apr 01, 2015 at 02:54:59PM -0700, Kevin Hilman wrote:
+>> Your patch on top of Geert's still compiles fine for me with gcc-4.7.3.
+>> However, I'm not sure how specific we can be on the versions.
+>>
+>> /me goes to test a few more compilers...   OK...
+>>
+>> ICE: 4.7.1, 4.7.3, 4.8.3
+>> OK: 4.6.3, 4.9.2, 4.9.3
+>>
+>> The diff below[2] on top of yours compiles fine here and at least covers
+>> the compilers I *know* to trigger the ICE.
+>
+> Interesting.  I'm using stock gcc 4.7.4 here, though I'm not building
+> -next (only mainline + my tree + arm-soc) and it hasn't shown a problem
+> yet.
 
-Thanks.
+Mainline doesn't fail.
 
-Laurent merged the patch with the original one, and will send a new pull
-request.
+> I think we need to ask the question: is the bug in stock GCC or Linaro
+> GCC?  If it's not in stock GCC, then it's a GCC vendor problem :)
 
--- 
-Regards,
+Can you please try -next (e.g. next-20150320)?
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+make bockw_defconfig
+make mm/migrate.o
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
