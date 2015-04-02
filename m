@@ -1,234 +1,83 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: [PATCHv4] media: i2c/adp1653: devicetree support for adp1653
-Date: Thu, 2 Apr 2015 22:34:17 +0200
-Message-ID: <20150402203417.GA6336@amd>
-References: <20150402143846.GA11687@amd>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid ICE
+ in gcc 4.7.3
+Date: Thu, 2 Apr 2015 14:12:28 -0700
+Message-ID: <CAMAWPa_P5JFQsrL96KPnt0gu=P4O40cGbWkM1j6b6HGy4edErQ@mail.gmail.com>
+References: <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au>
+	<20150327100612.GB1562@arm.com>
+	<7hbnj99epe.fsf@deeprootsystems.com>
+	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+	<7h8uec95t2.fsf@deeprootsystems.com>
+	<alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
+	<551BBEC5.7070801@arm.com>
+	<20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
+	<7hwq1v4iq4.fsf@deeprootsystems.com>
+	<20150402191230.GA24219@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150402143846.GA11687@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150402191230.GA24219@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lina Iyer <lina.iyer@linaro.org>
+Cc: Kevin Hilman <khilman@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Nishanth Menon <nm@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Tyler Baker <tyler.baker@linaro.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Simon Horman <horms@verge.net.au>, Geert Uytterhoeven <geert@linux-m68k.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Apr 2, 2015 at 12:12 PM, Lina Iyer <lina.iyer@linaro.org> wrote:
+> On Wed, Apr 01 2015 at 15:57 -0600, Kevin Hilman wrote:
+>>
+>> Andrew Morton <akpm@linux-foundation.org> writes:
+>>
+>>> On Wed, 01 Apr 2015 10:47:49 +0100 Marc Zyngier <marc.zyngier@arm.com>
+>>> wrote:
+>>>
+>>>> > -static int unmap_and_move(new_page_t get_new_page, free_page_t
+>>>> > put_new_page,
+>>>> > -                     unsigned long private, struct page *page, int
+>>>> > force,
+>>>> > -                     enum migrate_mode mode)
+>>>> > +static noinline int unmap_and_move(new_page_t get_new_page,
+>>>> > +                                free_page_t put_new_page,
+>>>> > +                                unsigned long private, struct page
+>>>> > *page,
+>>>> > +                                int force, enum migrate_mode mode)
+>>>> >  {
+>>>> >       int rc = 0;
+>>>> >       int *result = NULL;
+>>>> >
+>>>>
+>>>> Ouch. That's really ugly. And on 32bit ARM, we end-up spilling half of
+>>>> the parameters on the stack, which is not going to help performance
+>>>> either (not that this would be useful on 32bit ARM anyway...).
+>>>>
+>>>> Any chance you could make this dependent on some compiler detection
+>>>> mechanism?
+>>>
+>>>
+>>> With my arm compiler (gcc-4.4.4) the patch makes no difference -
+>>> unmap_and_move() isn't being inlined anyway.
+>>>
+>>> How does this look?
+>>>
+>>> Kevin, could you please retest?  I might have fat-fingered something...
+>>
+>>
+>> Your patch on top of Geert's still compiles fine for me with gcc-4.7.3.
+>> However, I'm not sure how specific we can be on the versions.
+>>
+>> /me goes to test a few more compilers...   OK...
+>>
+>> ICE: 4.7.1, 4.7.3, 4.8.3
+>> OK: 4.6.3, 4.9.2, 4.9.3
+>>
+>> The diff below[2] on top of yours compiles fine here and at least covers
+>> the compilers I *know* to trigger the ICE.
+>
+>
+> I see ICE on arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.4-2ubuntu1) 4.7.4
+>
 
+Thanks for checking.  I'm assuming my patch fixes it for your since
+that should catch any 4.7.x compiler.
 
-We are moving to device tree support on OMAP3, but that currently
-breaks ADP1653 driver. This adds device tree support, plus required
-documentation.
-
-Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
- 
----
-
-Fixed feedback by Sakari.
-
-Please apply,
- 							Pavel
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/adp1653.txt b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-new file mode 100644
-index 0000000..0fc28a9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-@@ -0,0 +1,37 @@
-+* Analog Devices ADP1653 flash LED driver
-+
-+Required Properties:
-+
-+  - compatible: Must contain be "adi,adp1653"
-+
-+  - reg: I2C slave address
-+
-+  - gpios: References to the GPIO that controls the power for the chip.
-+
-+There are two led outputs available - flash and indicator. One led is
-+represented by one child node, nodes need to be named "flash" and "indicator".
-+
-+Required properties of the LED child node:
-+- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+
-+Required properties of the flash LED child node:
-+
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+
-+Example:
-+
-+	adp1653: led-controller@30 {
-+		compatible = "adi,adp1653";
-+		reg = <0x30>;
-+		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-+
-+		flash {
-+			flash-timeout-us = <500000>;
-+			flash-max-microamp = <320000>;
-+			max-microamp = <50000>;
-+		};
-+		indicator {
-+			max-microamp = <17500>;
-+		};
-+	};
-diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-index 873fe19..6d57b16 100644
---- a/drivers/media/i2c/adp1653.c
-+++ b/drivers/media/i2c/adp1653.c
-@@ -8,6 +8,7 @@
-  * Contributors:
-  *	Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-  *	Tuukka Toivonen <tuukkat76-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-+ *	Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -34,6 +35,8 @@
- #include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/slab.h>
-+#include <linux/of_gpio.h>
-+#include <linux/gpio.h>
- #include <media/adp1653.h>
- #include <media/v4l2-device.h>
- 
-@@ -306,9 +309,17 @@ adp1653_init_device(struct adp1653_flash *flash)
- static int
- __adp1653_set_power(struct adp1653_flash *flash, int on)
- {
--	int ret;
-+	int ret = 0;
-+
-+	if (flash->platform_data->power) {
-+		ret = flash->platform_data->power(&flash->subdev, on);
-+	} else {
-+		gpio_set_value(flash->platform_data->power_gpio, on);
-+		if (on)
-+			/* Some delay is apparently required. */
-+			udelay(20);
-+	}
- 
--	ret = flash->platform_data->power(&flash->subdev, on);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -316,8 +327,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
- 		return 0;
- 
- 	ret = adp1653_init_device(flash);
--	if (ret < 0)
-+	if (ret >= 0)
-+		return ret;
-+
-+	if (flash->platform_data->power)
- 		flash->platform_data->power(&flash->subdev, 0);
-+	else
-+		gpio_set_value(flash->platform_data->power_gpio, 0);
- 
- 	return ret;
- }
-@@ -407,21 +423,76 @@ static int adp1653_resume(struct device *dev)
- 
- #endif /* CONFIG_PM */
- 
-+static int adp1653_of_init(struct i2c_client *client,
-+			   struct adp1653_flash *flash,
-+			   struct device_node *node)
-+{
-+	u32 val;
-+	struct adp1653_platform_data *pd;
-+	enum of_gpio_flags flags;
-+	struct device_node *child;
-+
-+	if (!node)
-+		return -EINVAL;
-+
-+	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
-+	if (!pd)
-+		return -ENOMEM;
-+	flash->platform_data = pd;
-+
-+	child = of_get_child_by_name(node, "flash");
-+	if (!child)
-+		return -EINVAL;
-+	if (of_property_read_u32(child, "flash-timeout-microsec", &val))
-+		return -EINVAL;
-+
-+	pd->max_flash_timeout = val;
-+	if (of_property_read_u32(child, "flash-max-microamp", &val))
-+		return -EINVAL;
-+	pd->max_flash_intensity = val/1000;
-+
-+	if (of_property_read_u32(child, "max-microamp", &val))
-+		return -EINVAL;
-+	pd->max_torch_intensity = val/1000;
-+
-+	child = of_get_child_by_name(node, "indicator");
-+	if (!child)
-+		return -EINVAL;
-+	if (of_property_read_u32(child, "max-microamp", &val))
-+		return -EINVAL;
-+	pd->max_indicator_intensity = val;
-+
-+	if (!of_find_property(node, "gpios", NULL)) {
-+		dev_err(&client->dev, "No gpio node\n");
-+		return -EINVAL;
-+	}
-+
-+	pd->power_gpio = of_get_gpio_flags(node, 0, &flags);
-+	if (pd->power_gpio < 0) {
-+		dev_err(&client->dev, "Error getting GPIO\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+
- static int adp1653_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *devid)
- {
- 	struct adp1653_flash *flash;
- 	int ret;
- 
--	/* we couldn't work without platform data */
--	if (client->dev.platform_data == NULL)
--		return -ENODEV;
--
- 	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
- 	if (flash == NULL)
- 		return -ENOMEM;
- 
- 	flash->platform_data = client->dev.platform_data;
-+	if (client->dev.of_node) {
-+		ret = adp1653_of_init(client, flash, client->dev.of_node);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	mutex_init(&flash->power_lock);
- 
-@@ -442,6 +513,7 @@ static int adp1653_probe(struct i2c_client *client,
- 	return 0;
- 
- free_and_quit:
-+	dev_err(&client->dev, "adp1653: failed to register device\n");
- 	v4l2_ctrl_handler_free(&flash->ctrls);
- 	return ret;
- }
-@@ -464,7 +536,7 @@ static const struct i2c_device_id adp1653_id_table[] = {
- };
- MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
- 
--static struct dev_pm_ops adp1653_pm_ops = {
-+static const struct dev_pm_ops adp1653_pm_ops = {
- 	.suspend	= adp1653_suspend,
- 	.resume		= adp1653_resume,
- };
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
