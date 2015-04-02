@@ -1,53 +1,97 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v8 0/4] hwspinlock core & omap dt support
-Date: Thu, 2 Apr 2015 11:40:14 -0500
-Message-ID: <551D70EE.307@ti.com>
-References: <1425520876-37826-1-git-send-email-s-anna@ti.com> <CAK=WgbY1Gbc+b1YtHafUyph6P60fees1ND_K5OE=9MXuqszbOg@mail.gmail.com> <5509F4E7.6070607@ti.com>
+From: Lina Iyer <lina.iyer@linaro.org>
+Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid
+ ICE in gcc 4.7.3
+Date: Thu, 2 Apr 2015 13:12:30 -0600
+Message-ID: <20150402191230.GA24219@linaro.org>
+References: <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+ <20150327002554.GA5527@verge.net.au>
+ <20150327100612.GB1562@arm.com>
+ <7hbnj99epe.fsf@deeprootsystems.com>
+ <CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+ <7h8uec95t2.fsf@deeprootsystems.com>
+ <alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
+ <551BBEC5.7070801@arm.com>
+ <20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
+ <7hwq1v4iq4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46052 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750876AbbDBQkp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Apr 2015 12:40:45 -0400
-In-Reply-To: <5509F4E7.6070607@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7hwq1v4iq4.fsf@deeprootsystems.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Nishanth Menon <nm@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Tyler Baker <tyler.baker@linaro.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Simon Horman <horms@verge.net.au>, Geert Uytterhoeven <geert@linux-m68k.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Bjorn Andersson <bjorn.andersson@sonymobile.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Mark,
-
-On 03/18/2015 04:57 PM, Suman Anna wrote:
-> Hi Mark,
-> 
-> On 03/12/2015 04:24 AM, Ohad Ben-Cohen wrote:
->> Hi Suman,
+On Wed, Apr 01 2015 at 15:57 -0600, Kevin Hilman wrote:
+>Andrew Morton <akpm@linux-foundation.org> writes:
+>
+>> On Wed, 01 Apr 2015 10:47:49 +0100 Marc Zyngier <marc.zyngier@arm.com> wrote:
 >>
->> On Thu, Mar 5, 2015 at 4:01 AM, Suman Anna <s-anna@ti.com> wrote:
->>> This is the latest version of the hwspinlock dt support series,
->>> rebased onto v4.0-rc1 and addressing the long discussion on the
->>> bindings in v7 [1]. I really hope that this series can make it
->>> into 4.1.
+>>> > -static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
+>>> > -			unsigned long private, struct page *page, int force,
+>>> > -			enum migrate_mode mode)
+>>> > +static noinline int unmap_and_move(new_page_t get_new_page,
+>>> > +				   free_page_t put_new_page,
+>>> > +				   unsigned long private, struct page *page,
+>>> > +				   int force, enum migrate_mode mode)
+>>> >  {
+>>> >  	int rc = 0;
+>>> >  	int *result = NULL;
+>>> >
+>>>
+>>> Ouch. That's really ugly. And on 32bit ARM, we end-up spilling half of
+>>> the parameters on the stack, which is not going to help performance
+>>> either (not that this would be useful on 32bit ARM anyway...).
+>>>
+>>> Any chance you could make this dependent on some compiler detection
+>>> mechanism?
 >>
->> From a quick glance this looks great, thanks!
+>> With my arm compiler (gcc-4.4.4) the patch makes no difference -
+>> unmap_and_move() isn't being inlined anyway.
 >>
->>> Mark,
->>> Can you please provide your Acked-by for the binding documents
->>> so that Ohad can pick up the patches for the next merge window?
+>> How does this look?
 >>
->> That would be perfect. Once we'll have it I could move forward with
->> this towards 4.1.
-> 
-> Gentle reminder. Can you please provide your ack on the bindings in this
-> series (Patches 1 & 3) for Ohad to queue up the series for 4.1.
-> 
+>> Kevin, could you please retest?  I might have fat-fingered something...
+>
+>Your patch on top of Geert's still compiles fine for me with gcc-4.7.3.
+>However, I'm not sure how specific we can be on the versions.
+>
+>/me goes to test a few more compilers...   OK...
+>
+>ICE: 4.7.1, 4.7.3, 4.8.3
+>OK: 4.6.3, 4.9.2, 4.9.3
+>
+>The diff below[2] on top of yours compiles fine here and at least covers
+>the compilers I *know* to trigger the ICE.
 
-Ping again, if you can provide your ack on these bindings and the qcom
-hwmutex bindings, then Ohad can pick up both the series for 4.1. Both
-series are blocked on getting the binding acks.
+I see ICE on 
+arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.4-2ubuntu1) 4.7.4
 
-regards
-Suman
-
+>
+>Kevin
+>
+>
+>[1]
+>diff --git a/mm/migrate.c b/mm/migrate.c
+>index 25fd7f6291de..6e15ae3248e0 100644
+>--- a/mm/migrate.c
+>+++ b/mm/migrate.c
+>@@ -901,10 +901,10 @@ out:
+> }
+>
+> /*
+>- * gcc-4.7.3 on arm gets an ICE when inlining unmap_and_move().  Work around
+>+ * gcc 4.7 and 4.8 on arm gets an ICE when inlining unmap_and_move().  Work around
+>  * it.
+>  */
+>-#if GCC_VERSION == 40703 && defined(CONFIG_ARM)
+>+#if (GCC_VERSION >= 40700 && GCC_VERSION < 40900) && defined(CONFIG_ARM)
+> #define ICE_noinline noinline
+> #else
+> #define ICE_noinline
+>
+>_______________________________________________
+>linux-arm-kernel mailing list
+>linux-arm-kernel@lists.infradead.org
+>http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
