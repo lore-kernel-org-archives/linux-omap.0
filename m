@@ -1,97 +1,129 @@
-From: Lina Iyer <lina.iyer@linaro.org>
-Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid
- ICE in gcc 4.7.3
-Date: Thu, 2 Apr 2015 13:12:30 -0600
-Message-ID: <20150402191230.GA24219@linaro.org>
-References: <CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
- <20150327002554.GA5527@verge.net.au>
- <20150327100612.GB1562@arm.com>
- <7hbnj99epe.fsf@deeprootsystems.com>
- <CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
- <7h8uec95t2.fsf@deeprootsystems.com>
- <alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
- <551BBEC5.7070801@arm.com>
- <20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
- <7hwq1v4iq4.fsf@deeprootsystems.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCHv3] media: i2c/adp1653: devicetree support for adp1653
+Date: Thu, 2 Apr 2015 22:30:44 +0200
+Message-ID: <20150402203043.GB29963@amd>
+References: <20150402143846.GA11687@amd>
+ <20150402161453.GH20756@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <7hwq1v4iq4.fsf@deeprootsystems.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Kevin Hilman <khilman@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Nishanth Menon <nm@ti.com>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Tyler Baker <tyler.baker@linaro.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Simon Horman <horms@verge.net.au>, Geert Uytterhoeven <geert@linux-m68k.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20150402161453.GH20756-S+BSfZ9RZZmRSg0ZkenSGLdO1Tsj/99ntUK59QYPAWc@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 01 2015 at 15:57 -0600, Kevin Hilman wrote:
->Andrew Morton <akpm@linux-foundation.org> writes:
->
->> On Wed, 01 Apr 2015 10:47:49 +0100 Marc Zyngier <marc.zyngier@arm.com> wrote:
->>
->>> > -static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
->>> > -			unsigned long private, struct page *page, int force,
->>> > -			enum migrate_mode mode)
->>> > +static noinline int unmap_and_move(new_page_t get_new_page,
->>> > +				   free_page_t put_new_page,
->>> > +				   unsigned long private, struct page *page,
->>> > +				   int force, enum migrate_mode mode)
->>> >  {
->>> >  	int rc = 0;
->>> >  	int *result = NULL;
->>> >
->>>
->>> Ouch. That's really ugly. And on 32bit ARM, we end-up spilling half of
->>> the parameters on the stack, which is not going to help performance
->>> either (not that this would be useful on 32bit ARM anyway...).
->>>
->>> Any chance you could make this dependent on some compiler detection
->>> mechanism?
->>
->> With my arm compiler (gcc-4.4.4) the patch makes no difference -
->> unmap_and_move() isn't being inlined anyway.
->>
->> How does this look?
->>
->> Kevin, could you please retest?  I might have fat-fingered something...
->
->Your patch on top of Geert's still compiles fine for me with gcc-4.7.3.
->However, I'm not sure how specific we can be on the versions.
->
->/me goes to test a few more compilers...   OK...
->
->ICE: 4.7.1, 4.7.3, 4.8.3
->OK: 4.6.3, 4.9.2, 4.9.3
->
->The diff below[2] on top of yours compiles fine here and at least covers
->the compilers I *know* to trigger the ICE.
+Hi!
 
-I see ICE on 
-arm-linux-gnueabi-gcc (Ubuntu/Linaro 4.7.4-2ubuntu1) 4.7.4
+> Hi Pawel,
+> 
+> My apologies for the very late reply.
+> 
+> On Thu, Apr 02, 2015 at 04:38:46PM +0200, Pavel Machek wrote:
+> > 
+> > 
+> > We are moving to device tree support on OMAP3, but that currently
+> > breaks ADP1653 driver. This adds device tree support, plus required
+> > documentation.
+> > 
+> > Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> > 
+> > ---
+> > 
+> > I'm not sure if it is device tree or media framework, either everyone
+> > waits for someone else, or noone really cares.
+> 
+> Neither. Some people are unfortuantely very busy with many other things as
+> well. :-P
 
->
->Kevin
->
->
->[1]
->diff --git a/mm/migrate.c b/mm/migrate.c
->index 25fd7f6291de..6e15ae3248e0 100644
->--- a/mm/migrate.c
->+++ b/mm/migrate.c
->@@ -901,10 +901,10 @@ out:
-> }
->
-> /*
->- * gcc-4.7.3 on arm gets an ICE when inlining unmap_and_move().  Work around
->+ * gcc 4.7 and 4.8 on arm gets an ICE when inlining unmap_and_move().  Work around
->  * it.
->  */
->-#if GCC_VERSION == 40703 && defined(CONFIG_ARM)
->+#if (GCC_VERSION >= 40700 && GCC_VERSION < 40900) && defined(CONFIG_ARM)
-> #define ICE_noinline noinline
-> #else
-> #define ICE_noinline
->
->_______________________________________________
->linux-arm-kernel mailing list
->linux-arm-kernel@lists.infradead.org
->http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Well.. Being busy is ok. Nitpicking is also ok. But both at the same
+time... is not good. 
+
+> > Andrew, can you just merge it?
+> > 
+> > Please apply,
+> 
+> Please wait just a while.
+> 
+> I think we can merge this eventually through the linux-media tree, but
+> please first see the comments below.
+> 
+
+> > +Required properties of the flash LED child node:
+> > +
+> > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> 
+> The documentation says that the maximum value is used if these values are
+> not specified. I think I'd make these optional.
+
+I'd rather not: when you make a typo in dts, it would supply maximum
+available current, potentially damaging the LED. You will not be able
+to tell brightness difference with naked eye...
+
+> >  __adp1653_set_power(struct adp1653_flash *flash, int on)
+> >  {
+> > -	int ret;
+> > +	int ret = 0;
+> > +
+> > +	if (flash->platform_data->power) {
+> > +		ret = flash->platform_data->power(&flash->subdev, on);
+> 
+> The power() callback should be dropped. It's controlling a GPIO. But that
+> can be done later on. The alternative is a patch before this one.
+
+I'd prefer to do it later; we want to keep functionality on N900
+without DTS, too.
+
+> >  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+> >  	if (flash == NULL)
+> >  		return -ENOMEM;
+> >  
+> >  	flash->platform_data = client->dev.platform_data;
+> > +	if (!flash->platform_data) {
+> 
+> I'd check whether dev->of_node is non-NULL instead.
+
+Ok.
+
+> > @@ -438,10 +510,10 @@ static int adp1653_probe(struct i2c_client *client,
+> >  		goto free_and_quit;
+> >  
+> >  	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> > -
+> 
+> I rather liked the newline here. Please don't remove it. :-)
+
+Ok.
+
+> > @@ -464,7 +536,7 @@ static const struct i2c_device_id adp1653_id_table[] = {
+> >  };
+> >  MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
+> >  
+> > -static struct dev_pm_ops adp1653_pm_ops = {
+> > +static const struct dev_pm_ops adp1653_pm_ops = {
+> >  	.suspend	= adp1653_suspend,
+> >  	.resume		= adp1653_resume,
+> >  };
+> >  
+> > 
+> 
+> A corresponding change to the N900 dts would be very nice.
+
+Corresponding change to the dts will come in separate patch. Or do you
+have n900 for testing?
+
+> I think you're missing change to adp1653_i2c_driver.driver.of_match_table.
+
+It actually worked for me, which means device tree somehow does it
+magic.
+
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
