@@ -1,50 +1,46 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 13/14] ASoC: migor: use clkdev_create()
-Date: Fri, 03 Apr 2015 18:13:29 +0100
-Message-ID: <E1Ye59t-0001Bl-8o@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 14/14] clk: s2mps11: use clkdev_create()
+Date: Fri, 03 Apr 2015 18:13:34 +0100
+Message-ID: <E1Ye59y-0001Bq-DQ@rmk-PC.arm.linux.org.uk>
 References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33808 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbbDCRNg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 13:13:36 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
+List-Id: linux-omap@vger.kernel.org
 
 clkdev_create() is a shorter way to write clkdev_alloc() followed by
 clkdev_add().  Use this instead.
 
-Acked-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- sound/soc/sh/migor.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/clk/clk-s2mps11.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/sound/soc/sh/migor.c b/sound/soc/sh/migor.c
-index 82f582344fe7..672bcd4c252b 100644
---- a/sound/soc/sh/migor.c
-+++ b/sound/soc/sh/migor.c
-@@ -162,12 +162,11 @@ static int __init migor_init(void)
- 	if (ret < 0)
- 		return ret;
+diff --git a/drivers/clk/clk-s2mps11.c b/drivers/clk/clk-s2mps11.c
+index bfa1e64e267d..9b13a303d3f8 100644
+--- a/drivers/clk/clk-s2mps11.c
++++ b/drivers/clk/clk-s2mps11.c
+@@ -242,14 +242,12 @@ static int s2mps11_clk_probe(struct platform_device *pdev)
+ 			goto err_reg;
+ 		}
  
--	siumckb_lookup = clkdev_alloc(&siumckb_clk, "siumckb_clk", NULL);
-+	siumckb_lookup = clkdev_create(&siumckb_clk, "siumckb_clk", NULL);
- 	if (!siumckb_lookup) {
- 		ret = -ENOMEM;
- 		goto eclkdevalloc;
+-		s2mps11_clk->lookup = clkdev_alloc(s2mps11_clk->clk,
++		s2mps11_clk->lookup = clkdev_create(s2mps11_clk->clk,
+ 					s2mps11_name(s2mps11_clk), NULL);
+ 		if (!s2mps11_clk->lookup) {
+ 			ret = -ENOMEM;
+ 			goto err_lup;
+ 		}
+-
+-		clkdev_add(s2mps11_clk->lookup);
  	}
--	clkdev_add(siumckb_lookup);
  
- 	/* Port number used on this machine: port B */
- 	migor_snd_device = platform_device_alloc("soc-audio", 1);
+ 	for (i = 0; i < S2MPS11_CLKS_NUM; i++) {
 -- 
 1.8.3.1
-
