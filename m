@@ -1,112 +1,50 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 08/14] SH: use clkdev_add_table()
-Date: Fri, 03 Apr 2015 18:13:03 +0100
-Message-ID: <E1Ye59T-0001BR-KY@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 09/14] ARM: lpc32xx: convert to use clkdev_add_table()
+Date: Fri, 03 Apr 2015 18:13:08 +0100
+Message-ID: <E1Ye59Y-0001BV-NY@rmk-PC.arm.linux.org.uk>
 References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33785 "EHLO
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33789 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597AbbDCRNN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 13:13:13 -0400
+	with ESMTP id S1753856AbbDCRNP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 13:13:15 -0400
 In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: Roland Stigge <stigge@antcom.de>
 
 We have always had an efficient way of registering a table of clock
 lookups - it's called clkdev_add_table().  However, some people seem
 to really love writing inefficient and unnecessary code.
 
-Convert SH to use the correct interface.
+Convert LPC32xx to use the correct interface.
 
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/sh/kernel/cpu/sh4a/clock-sh7734.c | 3 +--
- arch/sh/kernel/cpu/sh4a/clock-sh7757.c | 4 ++--
- arch/sh/kernel/cpu/sh4a/clock-sh7785.c | 4 ++--
- arch/sh/kernel/cpu/sh4a/clock-sh7786.c | 4 ++--
- arch/sh/kernel/cpu/sh4a/clock-shx3.c   | 4 ++--
- 5 files changed, 9 insertions(+), 10 deletions(-)
+ arch/arm/mach-lpc32xx/clock.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
-index 1fdf1ee672de..7f54bf2f453d 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
-@@ -246,8 +246,7 @@ int __init arch_clk_init(void)
- 	for (i = 0; i < ARRAY_SIZE(main_clks); i++)
- 		ret |= clk_register(main_clks[i]);
+diff --git a/arch/arm/mach-lpc32xx/clock.c b/arch/arm/mach-lpc32xx/clock.c
+index dd5d6f532e8c..661c8f4b2310 100644
+--- a/arch/arm/mach-lpc32xx/clock.c
++++ b/arch/arm/mach-lpc32xx/clock.c
+@@ -1238,10 +1238,7 @@ static struct clk_lookup lookups[] = {
  
+ static int __init clk_init(void)
+ {
+-	int i;
+-
 -	for (i = 0; i < ARRAY_SIZE(lookups); i++)
 -		clkdev_add(&lookups[i]);
 +	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
  
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
-index 9a28fdb36387..e40ec2c97ad1 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
-@@ -141,8 +141,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
-index 17d0ea55a5a2..8eb6e62340c9 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
-@@ -164,8 +164,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
-index bec2a83f1ba5..5e50e7ebeff0 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
-@@ -179,8 +179,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-shx3.c b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
-index 9a49a44f6f94..605221d1448a 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-shx3.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
-@@ -138,8 +138,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+ 	/*
+ 	 * Setup muxed SYSCLK for HCLK PLL base -this selects the
 -- 
 1.8.3.1
 
