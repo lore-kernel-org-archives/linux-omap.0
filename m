@@ -1,67 +1,91 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] wireless wl12xx and omap device tree changes for v4.1
-Date: Fri, 3 Apr 2015 13:22:01 -0700
-Message-ID: <20150403202201.GX23023@localhost>
-References: <20150325214050.GA31346@atomide.com>
- <20150403201122.GW23023@localhost>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCHv6] media: i2c/adp1653: Documentation for devicetree support
+ for adp1653
+Date: Fri, 3 Apr 2015 22:26:24 +0200
+Message-ID: <20150403202624.GA4308@amd>
+References: <20150402143846.GA11687@amd>
+ <20150402203417.GA6336@amd>
+ <20150403083353.GA21070@amd>
+ <20150403113216.GK20756@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:33912 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbbDCUWE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 16:22:04 -0400
-Received: by pactp5 with SMTP id tp5so125723838pac.1
-        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2015 13:22:03 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150403201122.GW23023@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150403113216.GK20756@valkosipuli.retiisi.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Andrew Morton <akpm@osdl.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, galak@codeaurora.org, bcousson@baylibre.com, m.chehab@samsung.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Luciano Coelho <luca@coelho.fi>, Eliad Peller <eliad@wizery.com>, Kalle Valo <kvalo@codeaurora.org>, Sekhar Nori <nsekhar@ti.com>
 
-On Fri, Apr 03, 2015 at 01:11:22PM -0700, Olof Johansson wrote:
-> Hi,
+
+Documentation for adp1653 binding.
+
+---
+
+> Please split this as Javier suggested. I'd think both could go through
+> the media-tree unless someone objects.
+
+Please apply.
+
+> > +  - power-gpios: Reference to the GPIO that controls the power for the chip.
 > 
-> On Wed, Mar 25, 2015 at 02:40:51PM -0700, Tony Lindgren wrote:
-> > The following changes since commit 06e5801b8cb3fc057d88cb4dc03c0b64b2744cda:
-> > 
-> >   Linux 4.0-rc4 (2015-03-15 17:38:20 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/wl12xx-dt
-> > 
-> > for you to fetch changes up to 83c3a7d4ac7fdc29a64bf9a5467a36b4c72a1eed:
-> > 
-> >   wlcore: remove wl12xx_platform_data (2015-03-24 09:48:14 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Wireless and omap changes to make wl12xx driver to use device tree
-> > data instead of platform data from Eliad Peller <eliad@wizery.com>:
-> > 
-> > - Add device-tree support to the wlcore (wl12xx/wl18xx) driver.
-> > 
-> > - Update the current users to use the bindings instead of pdata-quirks.
-> > 
-> > - Finally, remove the deprecated wl12xx_platform_data struct
-> > 
-> > Note that da850 board file code that still uses the platform data,
-> > but we have da850.dtsi that can be used instead. So it was decided
-> > that we should try to remove the wl12xx support from the da850
-> > board file as suggested by Sekhar Nori <nsekhar@ti.com>. As it's
-> > the last patch in the series, the last patch can be simply reverted
-> > if needed.
-> > 
-> > As this series touches quite a bit of arch code, it was suggested
-> > by Kalle Valo <kvalo@codeaurora.org> that the whole series should
-> > be merged via the arm-soc tree.
-> 
-> I'm happy to merge this, but -rc4 is newer than anything else we have. Can you
-> respin on -rc2? Unless there's a need for -rc4, of course.
+> You're using power-gpios in documentation only.
 
-Nevermind, we've already got -rc4 elsewhere, so I'll just catch this branch up
-too.
+Which is ok, because generic code adds "-gpios" itself.
 
+> The spec refers to this by "EN". How about "en-gpios" instead? This
+> definitely isn't about power, but about resetting the chip. It gets the
+> power through another pin.
 
--Olof
+It controls power of the chip. Noone gets _power_ through gpios,
+hopefully. Yes, I can rename it. "en-gpios" is too ugly to
+live. Sebastian suggested "enable". Hope that's okay with you.
+
+									Pavel
+
+new file mode 100644
+index 0000000..da9934a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
+@@ -0,0 +1,37 @@
++* Analog Devices ADP1653 flash LED driver
++
++Required Properties:
++
++  - compatible: Must contain be "adi,adp1653"
++
++  - reg: I2C slave address
++
++  - power-gpios: Reference to the GPIO that controls the power for the chip.
++
++There are two LED outputs available - flash and indicator. One LED is
++represented by one child node, nodes need to be named "flash" and "indicator".
++
++Required properties of the LED child node:
++- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
++
++Required properties of the flash LED child node:
++
++- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
++- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
++
++Example:
++
++	adp1653: led-controller@30 {
++		compatible = "adi,adp1653";
++		reg = <0x30>;
++		power-gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
++
++		flash {
++			flash-timeout-us = <500000>;
++			flash-max-microamp = <320000>;
++			max-microamp = <50000>;
++		};
++		indicator {
++			max-microamp = <17500>;
++		};
++	};
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
