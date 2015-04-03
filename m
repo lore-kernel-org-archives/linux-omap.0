@@ -1,105 +1,129 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/1] usb: musb: dsps: fix build on i386 when COMPILE_TEST
- is set
-Date: Fri, 3 Apr 2015 10:14:14 -0500
-Message-ID: <20150403151403.GA5503@saruman.tx.rr.com>
-References: <1427318317-13927-1-git-send-email-tony@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: ARM errata 430973 on multi platform kernels (was: OMAP3-N900: Add
+ microphone bias voltages)
+Date: Fri, 3 Apr 2015 18:35:54 +0200
+Message-ID: <20150403163553.GA16247@earth>
+References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
+ <55197A12.1050009@bitmer.com>
+ <20150330164237.GJ10805@atomide.com>
+ <55198BA4.5010207@bitmer.com>
+ <20150330175051.GK10805@atomide.com>
+ <20150331123233.GA15103@earth>
+ <20150401194734.GT10805@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39584 "EHLO bear.ext.ti.com"
+Received: from mail.kernel.org ([198.145.29.136]:41050 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752582AbbDCPPT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Apr 2015 11:15:19 -0400
+	id S1751617AbbDCQgZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Apr 2015 12:36:25 -0400
 Content-Disposition: inline
-In-Reply-To: <1427318317-13927-1-git-send-email-tony@atomide.com>
+In-Reply-To: <20150401194734.GT10805@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
---xXmbgvnjoT4axfJE
-Content-Type: text/plain; charset=utf-8
+
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Greg,
+Hi,
 
-On Wed, Mar 25, 2015 at 02:18:37PM -0700, Tony Lindgren wrote:
-> Commit 3e457371f436 ("usb: musb: Fix fifo reads for dm816x with musb_dsps=
-")
-> fixed a USB error on dm816x, but introduced a new build error on i386
-> when COMPILE_TEST is set:
+On Wed, Apr 01, 2015 at 12:47:36PM -0700, Tony Lindgren wrote:
+> > > OK I think debian is using v3.16 kernel
+> >=20
+> > Yes. It will be used for Debian jessie (not yet released) and the
+> > N900 related drivers are enabled in the armmp flavour. Unfortunately
+> > it does not work together with thumb using userland because the
+> > errata 430973 workaround is not enabled.
+> >=20
+> > See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D768890
 >=20
-> drivers/usb/musb/musb_dsps.c: In function =E2=80=98dsps_read_fifo32=E2=80=
-=99:
-> drivers/usb/musb/musb_dsps.c:624:3: error: implicit declaration of functi=
-on
-> =E2=80=98readsl=E2=80=99 [-Werror=3Dimplicit-function-declaration]
-> readsl(fifo, dst, len >> 2);
+> Hmm I believe many ARMv8 boards will be randomly oopsing
+> with armhf without that. I sort of recall random oopses just
+> with running apt-get update on ARMv8 omaps on armhf without that:
+
+Since I don't know of any ARMv8 omaps, I will read ARMv8 as ARMv7.
+
+And yes, for armhf userland one gets random oopses at least on the
+Nokia N900. AFAIK this is not true for all ARMv7 processors
+(especially non omaps), though.
+
+> http://www.spinics.net/lists/linux-omap/msg108511.html
 >=20
-> Let's fix this by using ioread32_rep() instead of readsl() as that's
-> more portable.
+> See also 5c86c5339c56 ("ARM: omap2plus_defconfig: Enable ARM erratum
+> 430973 for omap3").
+
+For me the random oopses occur without this config flag and are
+fixed by it. The workaround is not very suitable for multi platform
+kernels, though, since its enabled also for unaffected platforms.
+
+As far as I can see the CONFIG_ARM_ERRATA_430973 flag is checked
+in proc-v7.S and in proc-v7-2level.S. I think the first file is
+irrelevant, since it can be fixed later (see workaround in
+nokia_n900_legacy_init in pdata-quirks.c).
+
+So basically the problem comes down to proc-v7-2level.S
+
+> I wonder if the ARMv8 revision range might be wrong 430973 in
+> kernel or errata?
+
+what revision range? I think the errata is enabled unconditionally
+or disabled completly.
+
+> Also I recall that 430973 change to the
+> arch/arm/mm/proc-v7-2level.S fixed the issue, this should be
+> verified though.
+
+If I understand the errata correctly the BTAC/BTB flushing is
+important. It would be nice if it could be limited to affected
+devices, though.
+
+> > I guess it should be tried to change the workaround, so that it does
+> > only change the behaviour of affected platforms. Otherwise its a
+> > hard decision for distributions to enable the workaround.
 >=20
-> Fixes: 3e457371f436 ("usb: musb: Fix fifo reads for dm816x with musb_dsps=
-")
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Cc: Bin Liu <binmlist@gmail.com>
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Well we should figure out first why flush BTAC/BTB is needed in
+> cpu_v7_switch_mm.. And if what I'm describing above is still
+> reproducable.
 
-Can you apply this one directly ? It fixes a build error on i386.
+Reading the help text in the kernel the flushing is the actual
+workaround. The other changes only make it possible to do the
+flushing.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Maybe an option would be to provide two cpu_v7_switch_mm
+implementations (one with the errata and one without). Then
+the system can start with the simple implementation. Once
+the boot as progressed far enough to know, that the hardware
+is affected by the errata, it could switch to the implementation
+with the flushing.
 
-> ---
->  drivers/usb/musb/musb_dsps.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 2c0750e..8e089c1 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -661,7 +661,7 @@ static void dsps_read_fifo32(struct musb_hw_ep *hw_ep=
-, u16 len, u8 *dst)
->  	void __iomem *fifo =3D hw_ep->fifo;
-> =20
->  	if (len >=3D 4) {
-> -		readsl(fifo, dst, len >> 2);
-> +		ioread32_rep(fifo, dst, len >> 2);
->  		dst +=3D len & ~0x03;
->  		len &=3D 0x03;
->  	}
-> --=20
-> 2.1.4
->=20
+-- Sebastian
 
---=20
-balbi
-
---xXmbgvnjoT4axfJE
+--y0ulUmNC+osPPQO6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVHq5GAAoJEIaOsuA1yqRE3zoQALWsYrrfpIFfCZ+WwaDXp0Ja
-mJ55tTD8kDzVIcAw4Swx2K1jGWm7BWkVaaueLSFtgKSmk+Yey2pESc3knEOvMO9l
-qPibTDaJG54LP//n1asEL7xWx4+Sji9/9DyHaFyWnFCD7FuCZzZmEadGXKmNxuTF
-wTYU6ZoD3LxyrvpL+w4zOKiZg3sAyjchf8APaYA+/rUo9oF4D1F8ZoV9Pl743cIh
-qSSdC+9019k76hAIher9NWuB+lrgBQYUvUQqmG8F0PDUb9SlDm1a0wnQhCK1gMtv
-QrrKGdcJQYrFiD+nWBRvlSU7vsMF+ZWIQeP4t1boBkjqbL4y+pnb+vjFczXodrbl
-okcIFvCAz2sYHD6wsI7vt4ghPIb8lXcIiJ5CkxNekBOB5qK9dlPow4A06A2xHsAI
-d2NANU/bMUyPeVxU/2SsY+ljXa4HYVappsI4dsh9Ie8qtv1qb8CJR2QCEZ/yQtvc
-6FcUq+sWEQurx+xa6mQitCS14KSnTCpfdreKY7SKAXuKo8IQYogJlOFgaGUWVXC+
-OS967BkXvUfpqsULtU8pGTj64UDvdO9y3yXxQJQv2b8tQbLeEug6/k8iYr1wDl8r
-ql/7ugJoKqG7oya13rxOpzJmTYchHTIjdJbb8Lr3ncLHZjdXK44FxDGCtEtnSMpo
-hPiA4oo2oZ93Xmeh/Qw+
-=kddj
+iQIcBAEBCgAGBQJVHsFnAAoJENju1/PIO/qaM10QAITsKf2AOVPcUXQ6LzJW7rVq
+GI/mNf7rGFETZHWVZ6kjbz4tOxVaHW7dcOdHdzo0usSYKJPG3YQBoppXi7ZEjRvF
+GCnu5IipQv4F72B5aKHKwRSbUkpCTdFj67oI3/15VvlgQ6J3MdMLLhtkqoZUl8wU
+A1ihvv7hYu+GYPAdMgOtypofeeTM/1cEvziadXN7tH92BCOSnmFkNPejH9Eefu6T
+abAAp+eYs2YE81saJDPLcs+oi5teebWL2PIHVbYyc/72LFzxBecZz4TRz041p9oD
+UZGxSWo1MwZi7kEc6hIPp+bZsXuca0CPdLcUtX6p0Lp4YesP31oT7DHqeeQeHW3i
+3JTETNT4iNPb2cDBGgjcBY0KGnn71kgKWLVNUJNs3twVpJc54cflks3fI9SFqiVH
+nQX8NZvTB5a/c1FHcVsph/dkOkR/JkaOT8jbzlI3jKBZc3nn+pSP3UMys43Aeyff
+6NW3sAceDN6pv+5mUMh9oOhFHdgTP7uNWY0/wPmM+rUaj/qG/8dr+FOhBu0o1iGc
+KB8LDWk+tucwTXP9p7sTsiiu9R1gSMfuc30tHglGd5s4b8UrQ3s6NMEGMpvw6Dk5
+ZDtRoN/EQwVRqaHhs0Ownq69tQ8LjSIatraXMStczkQK1rwZEFKmgnaCWK6q3h7P
+ArLhVsurYo+ahbtvo+Yt
+=vp3e
 -----END PGP SIGNATURE-----
 
---xXmbgvnjoT4axfJE--
+--y0ulUmNC+osPPQO6--
