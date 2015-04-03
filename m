@@ -1,73 +1,105 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv4] media: i2c/adp1653: devicetree support for adp1653
-Date: Fri, 3 Apr 2015 16:22:56 +0200
-Message-ID: <20150403142256.GA13595@earth>
-References: <20150402143846.GA11687@amd>
- <20150402203417.GA6336@amd>
- <CABxcv=nfg_D9HvXUd4PBFJ5a1XST=PCDEZCjkTtbu_u7cc1+ug@mail.gmail.com>
- <20150403082129.GA10671@amd>
- <CABxcv=mVdw7QkUWSqa1=VRJD+mHCU3dP09SBxVERs1NWUBeWiA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/1] usb: musb: dsps: fix build on i386 when COMPILE_TEST
+ is set
+Date: Fri, 3 Apr 2015 10:14:14 -0500
+Message-ID: <20150403151403.GA5503@saruman.tx.rr.com>
+References: <1427318317-13927-1-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39584 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752582AbbDCPPT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Apr 2015 11:15:19 -0400
 Content-Disposition: inline
-In-Reply-To: <CABxcv=mVdw7QkUWSqa1=VRJD+mHCU3dP09SBxVERs1NWUBeWiA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, sakari.ailus@iki.fi, m.chehab@samsung.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+In-Reply-To: <1427318317-13927-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
+--xXmbgvnjoT4axfJE
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Greg,
 
-On Fri, Apr 03, 2015 at 10:49:12AM +0200, Javier Martinez Canillas wrote:
-> >> The convention nowadays is to not use unnamed DT properties for GPIOs
-> >> but instead use a prefix that explains what those GPIOs are used for.
-> >> So something like "power-gpios" or "power-gpio" (if there is only one
-> >> GPIO) will be more suitable. Please take a look to
-> >> Documentation/gpio/board.txt for more details.
-> >
-> > Ok. Actually, reading docs below, "power-gpio" will not work, and it
-> > needs to be "power-gpios", right?
-> >
+On Wed, Mar 25, 2015 at 02:18:37PM -0700, Tony Lindgren wrote:
+> Commit 3e457371f436 ("usb: musb: Fix fifo reads for dm816x with musb_dsps=
+")
+> fixed a USB error on dm816x, but introduced a new build error on i386
+> when COMPILE_TEST is set:
 >=20
-> No, the documentation is not updated. People used <function>-gpio so
-> at the end it was added as another supported suffix, see commit:
-> dd34c37aa3e8 ("gpio: of: Allow -gpio suffix for property names").
+> drivers/usb/musb/musb_dsps.c: In function =E2=80=98dsps_read_fifo32=E2=80=
+=99:
+> drivers/usb/musb/musb_dsps.c:624:3: error: implicit declaration of functi=
+on
+> =E2=80=98readsl=E2=80=99 [-Werror=3Dimplicit-function-declaration]
+> readsl(fifo, dst, len >> 2);
 >=20
-> But I guess it doesn't matter if -gpio or -gpios is used.
+> Let's fix this by using ioread32_rep() instead of readsl() as that's
+> more portable.
+>=20
+> Fixes: 3e457371f436 ("usb: musb: Fix fifo reads for dm816x with musb_dsps=
+")
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Cc: Bin Liu <binmlist@gmail.com>
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I suggest to use enable-gpio(s), since the pin is called "enable" in
-the datasheet.
+Can you apply this one directly ? It fixes a build error on i386.
 
--- Sebastian
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 
---ZPt4rx8FFjLCG7dd
+> ---
+>  drivers/usb/musb/musb_dsps.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 2c0750e..8e089c1 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -661,7 +661,7 @@ static void dsps_read_fifo32(struct musb_hw_ep *hw_ep=
+, u16 len, u8 *dst)
+>  	void __iomem *fifo =3D hw_ep->fifo;
+> =20
+>  	if (len >=3D 4) {
+> -		readsl(fifo, dst, len >> 2);
+> +		ioread32_rep(fifo, dst, len >> 2);
+>  		dst +=3D len & ~0x03;
+>  		len &=3D 0x03;
+>  	}
+> --=20
+> 2.1.4
+>=20
+
+--=20
+balbi
+
+--xXmbgvnjoT4axfJE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJVHqI9AAoJENju1/PIO/qalVMQAIDWCNYtcN335qxzf1IYiwY7
-jWvD03JZ1uKYPHvGl9MvBBHN1KzUPV+d/hCJ7q0PMDk5bcyIl3q2lROKbCKD6aZX
-fK0VZTpu9aKcid+nUGkAvSNlwhUywjXOTAgkGZwgxmaQQIkf3YE68mIfa6Y6wRNR
-x7FvP8kgjkx6VgbdzS8EXgystaYVUeYoDVBkawj2ztRrpkOyoFravKQBdrTyLn/0
-qATNGTiRyv1jjXT0jB0aorJo5EwQ/Xl/9csTQRCqrBnQtmFQ1EP9tOzbXzK19cYU
-xqIkyYx8bO2DKHPE5HjAZnEitt/Gdzc7pbyIV8gDdgY8lU7OT0LPC/CzdK1OOA30
-gssIWChugj/NGd73wALOZHT2i2LxBBdkKIQlLX0fB5ojZJ1AAVZw8AnfyC9leaZ5
-TAYS6YtfWLBiol8eQwNu8wKNGh5AwaxYZ5TFStCpNmV0XAiGtQ5xog9Oab2Ao0fU
-j/8FDfvmaz8WTncuxq0nH7qhhqL+ytjj5N39mhHAxPS0lsfhBnfIfLOwWHGOc9xf
-C/Ob5sXdu/RqXrI4+NL0jQ+jPn8jtc2Gsv/2lrJLl0fSpnPouM+qvujGAEGSU0gM
-ldbMw68qYy3kE1qc47vS13XsUfDWndDgDOG48Tv1WdsaRY27GpjZTtYjCUJ22j8S
-xGSNSBIAu7T75d1WDeRl
-=MRdo
+iQIcBAEBAgAGBQJVHq5GAAoJEIaOsuA1yqRE3zoQALWsYrrfpIFfCZ+WwaDXp0Ja
+mJ55tTD8kDzVIcAw4Swx2K1jGWm7BWkVaaueLSFtgKSmk+Yey2pESc3knEOvMO9l
+qPibTDaJG54LP//n1asEL7xWx4+Sji9/9DyHaFyWnFCD7FuCZzZmEadGXKmNxuTF
+wTYU6ZoD3LxyrvpL+w4zOKiZg3sAyjchf8APaYA+/rUo9oF4D1F8ZoV9Pl743cIh
+qSSdC+9019k76hAIher9NWuB+lrgBQYUvUQqmG8F0PDUb9SlDm1a0wnQhCK1gMtv
+QrrKGdcJQYrFiD+nWBRvlSU7vsMF+ZWIQeP4t1boBkjqbL4y+pnb+vjFczXodrbl
+okcIFvCAz2sYHD6wsI7vt4ghPIb8lXcIiJ5CkxNekBOB5qK9dlPow4A06A2xHsAI
+d2NANU/bMUyPeVxU/2SsY+ljXa4HYVappsI4dsh9Ie8qtv1qb8CJR2QCEZ/yQtvc
+6FcUq+sWEQurx+xa6mQitCS14KSnTCpfdreKY7SKAXuKo8IQYogJlOFgaGUWVXC+
+OS967BkXvUfpqsULtU8pGTj64UDvdO9y3yXxQJQv2b8tQbLeEug6/k8iYr1wDl8r
+ql/7ugJoKqG7oya13rxOpzJmTYchHTIjdJbb8Lr3ncLHZjdXK44FxDGCtEtnSMpo
+hPiA4oo2oZ93Xmeh/Qw+
+=kddj
 -----END PGP SIGNATURE-----
 
---ZPt4rx8FFjLCG7dd--
+--xXmbgvnjoT4axfJE--
