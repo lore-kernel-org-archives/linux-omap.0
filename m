@@ -1,46 +1,25 @@
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 14/14] clk: s2mps11: use clkdev_create()
-Date: Fri, 03 Apr 2015 18:13:34 +0100
-Message-ID: <E1Ye59y-0001Bq-DQ@rmk-PC.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/14] Fix fallout from per-user struct clk patches
+Date: Fri, 3 Apr 2015 18:16:37 +0100
+Message-ID: <20150403171637.GA29798@n2100.arm.linux.org.uk>
 References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, Daniel Mack <daniel@zonque.org>, Gregory Clement <gregory.clement@free-electrons.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Jason Cooper <jason@lakedaemon.net>, Kevin Hilman <khilman@deeprootsystems.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Mike Turquette <mturquette@linaro.org>, Robert Jarzmik <robert.jarzmik@free.fr>, Roland Stigge <stigge@antcom.de>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Takashi Iwai <tiwai@suse.de>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-clkdev_create() is a shorter way to write clkdev_alloc() followed by
-clkdev_add().  Use this instead.
+On Fri, Apr 03, 2015 at 06:11:49PM +0100, Russell King - ARM Linux wrote:
+> Sorry for posting this soo close to the 4.1 merge window, I had
+> completely forgotten about this chunk of work I did earlier this
+> month.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/clk/clk-s2mps11.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Correction - earlier _last_ month - 1st/2nd March to be exact.
 
-diff --git a/drivers/clk/clk-s2mps11.c b/drivers/clk/clk-s2mps11.c
-index bfa1e64e267d..9b13a303d3f8 100644
---- a/drivers/clk/clk-s2mps11.c
-+++ b/drivers/clk/clk-s2mps11.c
-@@ -242,14 +242,12 @@ static int s2mps11_clk_probe(struct platform_device *pdev)
- 			goto err_reg;
- 		}
- 
--		s2mps11_clk->lookup = clkdev_alloc(s2mps11_clk->clk,
-+		s2mps11_clk->lookup = clkdev_create(s2mps11_clk->clk,
- 					s2mps11_name(s2mps11_clk), NULL);
- 		if (!s2mps11_clk->lookup) {
- 			ret = -ENOMEM;
- 			goto err_lup;
- 		}
--
--		clkdev_add(s2mps11_clk->lookup);
- 	}
- 
- 	for (i = 0; i < S2MPS11_CLKS_NUM; i++) {
 -- 
-1.8.3.1
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
