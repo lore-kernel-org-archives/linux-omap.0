@@ -1,39 +1,42 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/2] omap non-urgent fixes for v4.1
-Date: Fri, 3 Apr 2015 13:41:00 -0700
-Message-ID: <20150403204100.GC23023@localhost>
-References: <5516d200.e267440a.7bab.fffff2bdSMTPIN_ADDED_BROKEN@mx.google.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: ARM errata 430973 on multi platform kernels (was: OMAP3-N900:
+ Add microphone bias voltages)
+Date: Fri, 3 Apr 2015 22:42:46 +0200
+Message-ID: <20150403204246.GB13009@amd>
+References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
+ <55197A12.1050009@bitmer.com>
+ <20150330164237.GJ10805@atomide.com>
+ <55198BA4.5010207@bitmer.com>
+ <20150330175051.GK10805@atomide.com>
+ <20150331123233.GA15103@earth>
+ <20150401194734.GT10805@atomide.com>
+ <20150403163553.GA16247@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:33590 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120AbbDCUlD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 16:41:03 -0400
-Received: by pdbnk13 with SMTP id nk13so51791837pdb.0
-        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2015 13:41:02 -0700 (PDT)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47131 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635AbbDCUms (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 16:42:48 -0400
 Content-Disposition: inline
-In-Reply-To: <5516d200.e267440a.7bab.fffff2bdSMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <20150403163553.GA16247@earth>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Sat, Mar 28, 2015 at 09:02:29AM -0700, Tony Lindgren wrote:
-> The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
-> 
->   Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-0
-> 
-> for you to fetch changes up to 209431eff8afb928d72200c79153165c7d860ca0:
-> 
->   ARM: DRA7: Enable Cortex A15 errata 798181 (2015-03-27 14:38:03 -0700)
-> 
+Hi!
 
-Merged, thanks.
+> Maybe an option would be to provide two cpu_v7_switch_mm
+> implementations (one with the errata and one without). Then
+> the system can start with the simple implementation. Once
+> the boot as progressed far enough to know, that the hardware
+> is affected by the errata, it could switch to the implementation
+> with the flushing.
 
-
--Olof
+Actually... we should start with the slow&safe option, and then switch
+to faster implementation if workaround is not needed.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
