@@ -1,58 +1,39 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv3] media: i2c/adp1653: devicetree support for adp1653
-Date: Fri, 3 Apr 2015 22:29:53 +0200
-Message-ID: <20150403202953.GA5116@amd>
-References: <20150402143846.GA11687@amd>
- <20150402161453.GH20756@valkosipuli.retiisi.org.uk>
- <20150402203043.GB29963@amd>
- <20150402234823.GI20756@valkosipuli.retiisi.org.uk>
- <20150403082344.GA14721@amd>
- <20150403112355.GJ20756@valkosipuli.retiisi.org.uk>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/2] omap non-urgent fixes for v4.1
+Date: Fri, 3 Apr 2015 13:41:00 -0700
+Message-ID: <20150403204100.GC23023@localhost>
+References: <5516d200.e267440a.7bab.fffff2bdSMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46980 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbbDCU3z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 16:29:55 -0400
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:33590 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120AbbDCUlD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 16:41:03 -0400
+Received: by pdbnk13 with SMTP id nk13so51791837pdb.0
+        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2015 13:41:02 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20150403112355.GJ20756@valkosipuli.retiisi.org.uk>
+In-Reply-To: <5516d200.e267440a.7bab.fffff2bdSMTPIN_ADDED_BROKEN@mx.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Andrew Morton <akpm@osdl.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, galak@codeaurora.org, bcousson@baylibre.com, m.chehab@samsung.com, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri 2015-04-03 14:23:56, Sakari Ailus wrote:
-> Hi Pavel,
+On Sat, Mar 28, 2015 at 09:02:29AM -0700, Tony Lindgren wrote:
+> The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
 > 
-> On Fri, Apr 03, 2015 at 10:23:44AM +0200, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > Hi Pawel,
-> > 
-> > I'm still Pavel. v, not w.
+>   Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
 > 
-> I know too many Pawels. Sorry about that. :-)
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-0
+> 
+> for you to fetch changes up to 209431eff8afb928d72200c79153165c7d860ca0:
+> 
+>   ARM: DRA7: Enable Cortex A15 errata 798181 (2015-03-27 14:38:03 -0700)
 > 
 
-> > I guess it uses adp1653_id_table. I'd hade to add redundand
-> > information, because if it would just mask the errors if the code
-> > changed...
-> 
-> Indeed, that's true. This is comparing "adp1653" vs. comparing
-> "adi,adp1653". I think I still prefer the latter since it's got also the
-> vendor prefix included.
-> 
-> Suppose we change this later and someone misspelled the vendor prefix ---
-> their board would break.
+Merged, thanks.
 
-Suppose we do what you suggest. That does not fix the problem, since
-code will still match the "adp1653" in case someone misspells it.
 
-If you want to change how i2c device matching works, well, you can do
-it, but my patch is not right place to do that.
-
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-Olof
