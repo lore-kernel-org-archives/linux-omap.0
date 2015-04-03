@@ -1,106 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: OMAP DRA7xx display-related hwmod data
- changes for v4.1
-Date: Fri, 3 Apr 2015 19:54:57 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1504031953150.19540@utopia.booyaka.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] wireless wl12xx and omap device tree changes for v4.1
+Date: Fri, 3 Apr 2015 13:11:22 -0700
+Message-ID: <20150403201122.GW23023@localhost>
+References: <20150325214050.GA31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58120 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751617AbbDCTy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 15:54:58 -0400
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:33958 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751AbbDCULY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2015 16:11:24 -0400
+Received: by pdbni2 with SMTP id ni2so131249880pdb.1
+        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2015 13:11:24 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150325214050.GA31346@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Luciano Coelho <luca@coelho.fi>, Eliad Peller <eliad@wizery.com>, Kalle Valo <kvalo@codeaurora.org>, Sekhar Nori <nsekhar@ti.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-Hi Tony
+On Wed, Mar 25, 2015 at 02:40:51PM -0700, Tony Lindgren wrote:
+> The following changes since commit 06e5801b8cb3fc057d88cb4dc03c0b64b2744cda:
+> 
+>   Linux 4.0-rc4 (2015-03-15 17:38:20 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/wl12xx-dt
+> 
+> for you to fetch changes up to 83c3a7d4ac7fdc29a64bf9a5467a36b4c72a1eed:
+> 
+>   wlcore: remove wl12xx_platform_data (2015-03-24 09:48:14 -0700)
+> 
+> ----------------------------------------------------------------
+> Wireless and omap changes to make wl12xx driver to use device tree
+> data instead of platform data from Eliad Peller <eliad@wizery.com>:
+> 
+> - Add device-tree support to the wlcore (wl12xx/wl18xx) driver.
+> 
+> - Update the current users to use the bindings instead of pdata-quirks.
+> 
+> - Finally, remove the deprecated wl12xx_platform_data struct
+> 
+> Note that da850 board file code that still uses the platform data,
+> but we have da850.dtsi that can be used instead. So it was decided
+> that we should try to remove the wl12xx support from the da850
+> board file as suggested by Sekhar Nori <nsekhar@ti.com>. As it's
+> the last patch in the series, the last patch can be simply reverted
+> if needed.
+> 
+> As this series touches quite a bit of arch code, it was suggested
+> by Kalle Valo <kvalo@codeaurora.org> that the whole series should
+> be merged via the arm-soc tree.
 
-The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
-
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.1/omap-hwmod-b
-
-for you to fetch changes up to 0d75ebdd3230b3d085812df80ec54138828cc76a:
-
-  ARM: DRA7: hwmod: set DSS submodule parent hwmods (2015-04-03 13:15:07 -0600)
-
-- ----------------------------------------------------------------
-OMAP DRA7xx display-related hwmod data changes for v4.1
-
-Add DMM hwmod data for DRA7xx, and set the parent hwmods fields
-appropriately for the DRA7xx DSS submodules as we've done for
-other OMAP devices.
-
-Note that I do not have a DRA7xx board, and thus cannot boot-test
-these patches.
-
-Basic build, boot, and PM idle test logs are available at:
-
-http://www.pwsan.com/omap/testlogs/omap-hwmod-b-for-v4.1/20150403123702/
-
-- ----------------------------------------------------------------
-Tomi Valkeinen (2):
-      ARM: DRA7: hwmod: add DMM hwmod description
-      ARM: DRA7: hwmod: set DSS submodule parent hwmods
-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 32 +++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+I'm happy to merge this, but -rc4 is newer than anything else we have. Can you
+respin on -rc2? Unless there's a need for -rc4, of course.
 
 
+Thanks,
 
-vmlinux object size
-(delta in bytes from test_v4.0-rc1 (c517d838eb7d07bbe9507871fab3931deccff539)):
-   text     data      bss    total  kernel
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-      0     +192        0     +192  multi_v7_defconfig
-      0     +216        0     +216  omap2plus_defconfig
-      0        0        0        0  omap2plus_defconfig_2430sdp_only
-      0        0        0        0  omap2plus_defconfig_am33xx_only
-      0        0        0        0  omap2plus_defconfig_am43xx_only
-      0     +224        0     +224  omap2plus_defconfig_cpupm
-      0     +192        0     +192  omap2plus_defconfig_dra7xx_only
-      0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
-      0        0        0        0  omap2plus_defconfig_n800_only_a
-      0     +192        0     +192  omap2plus_defconfig_no_pm
-      0        0        0        0  omap2plus_defconfig_omap2_4_only
-      0        0        0        0  omap2plus_defconfig_omap3_4_only
-      0        0        0        0  omap2plus_defconfig_omap5_only
-      0        0        0        0  rmk_omap3430_ldp_allnoconfig
-      0        0        0        0  rmk_omap3430_ldp_oldconfig
-     +8        0       -8        0  rmk_omap4430_sdp_allnoconfig
-      0        0        0        0  rmk_omap4430_sdp_oldconfig
 
-Boot-time memory difference
-(delta in bytes from test_v4.0-rc1 (c517d838eb7d07bbe9507871fab3931deccff539))
-  avail  rsrvd   high  freed  board          kconfig
-    -4k     4k      .      .  4460pandaes    omap2plus_defconfig
-   -12k    12k      .      .  4460varsomom   omap2plus_defconfig
-    -4k     4k      .      .  5430es2sbct54  omap2plus_defconfig
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVHu+NAAoJEMePsQ0LvSpLdvcP/A2Vh1CtCdVWA95K+QovF4uG
-aC+ZSMXkjrr7Widr28wtfjMYvO3N6UW5uzoPcbgrWQOEMNa/9qMYXRWd/KIL8nOP
-Hoy2NZy2y5p3j+GRsnSTftSuyXcpvSUvvSRUFxR/o0LNwo+HuNjNJ+tuenFDqZUy
-LIp8AUn+4bu0WlXVJsq1aDOZdI+nvmHifvMEIjAXQM38QaXdP8xDDdaaPiNPnznT
-a9TsOPzSrkXfrS4q+QtaVtWoc6LlAtPTqO9Ss+xRpxTU/67DLIf6zQBnBuH6ZwHL
-vV3J97IC97CIg7KYzYrGfT3KjBx307R7Yo0pK6lVbRgJVG9ZweJEnZa332+tlJ1z
-neiZ5pS4JZv4tXpB3TpTSe1QRUBMyNCecvSVsJQ4zL1IiFYsqI360selASPaQCrI
-xKZZOVBl3H23MxDtob7AfS2sv34m9aqGuT7KNMPjBlwkRuAyx6kE1ZmZNSyMgtts
-wJmTkklx15HV4BrnT18Y4w8CmTQCVEzQFRDqGoVPCL/UVK/0VefxAvDmjFNwMVck
-JjXN9TAfbOp6zXwS/AwhdjtSZEHOSETeKbh2rOEp90mWV0kYgFTZf303AmAsIu+S
-TwKeMrT3Zby+2WNzMu8kV/RjHRbxamO2GE8exWZCnZqwn8wqIw0Y8McelFyBre8F
-A4Niw8T1XPDR6XYY3tij
-=Tutb
------END PGP SIGNATURE-----
+-Olof
