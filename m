@@ -1,78 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/14] ARM: omap2: use clkdev_add_alias()
-Date: Fri, 3 Apr 2015 16:50:04 -0700
-Message-ID: <20150403235003.GF18048@atomide.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH 10/14] ARM: orion: use clkdev_create()
+Date: Sat, 4 Apr 2015 02:17:29 +0200
+Message-ID: <20150404001729.GA14824@lunn.ch>
 References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
- <E1Ye59o-0001Bh-3u@rmk-PC.arm.linux.org.uk>
+ <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:41781 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117AbbDCXx6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Apr 2015 19:53:58 -0400
+Return-path: <linux-sh-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <E1Ye59o-0001Bh-3u@rmk-PC.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
 To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Gregory Clement <gregory.clement@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+List-Id: linux-omap@vger.kernel.org
 
-* Russell King <rmk+kernel@arm.linux.org.uk> [150403 10:14]:
-> When creating aliases of existing clkdev clocks, use clkdev_add_alias()
-> isntead of open coding the lookup and clk_lookup creation.
+On Fri, Apr 03, 2015 at 06:13:13PM +0100, Russell King wrote:
+> clkdev_create() is a shorter way to write clkdev_alloc() followed by
+> clkdev_add().  Use this instead.
 > 
 > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Andrew Lunn <andrew@lunn.ch>
+
+	  Andrew
 
 > ---
->  arch/arm/mach-omap2/omap_device.c | 24 +++++++++---------------
->  1 file changed, 9 insertions(+), 15 deletions(-)
+>  arch/arm/plat-orion/common.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index be9541e18650..521c32e7778e 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -47,7 +47,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
->  		       const char *clk_name)
+> diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+> index f5b00f41c4f6..2235081a04ee 100644
+> --- a/arch/arm/plat-orion/common.c
+> +++ b/arch/arm/plat-orion/common.c
+> @@ -28,11 +28,7 @@
+>  void __init orion_clkdev_add(const char *con_id, const char *dev_id,
+>  			     struct clk *clk)
 >  {
->  	struct clk *r;
-> -	struct clk_lookup *l;
-> +	int rc;
->  
->  	if (!clk_alias || !clk_name)
->  		return;
-> @@ -62,21 +62,15 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
->  		return;
->  	}
->  
-> -	r = clk_get(NULL, clk_name);
-> -	if (IS_ERR(r)) {
-> -		dev_err(&od->pdev->dev,
-> -			"clk_get for %s failed\n", clk_name);
-> -		return;
-> +	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
-> +	if (rc) {
-> +		if (rc == -ENODEV || rc == -ENOMEM)
-> +			dev_err(&od->pdev->dev,
-> +				"clkdev_alloc for %s failed\n", clk_alias);
-> +		else
-> +			dev_err(&od->pdev->dev,
-> +				"clk_get for %s failed\n", clk_name);
->  	}
+> -	struct clk_lookup *cl;
 > -
-> -	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev->dev));
-> -	if (!l) {
-> -		dev_err(&od->pdev->dev,
-> -			"clkdev_alloc for %s failed\n", clk_alias);
-> -		return;
-> -	}
-> -
-> -	clkdev_add(l);
+> -	cl = clkdev_alloc(clk, con_id, dev_id);
+> -	if (cl)
+> -		clkdev_add(cl);
+> +	clkdev_create(clk, con_id, "%s", dev_id);
 >  }
 >  
->  /**
+>  /* Create clkdev entries for all orion platforms except kirkwood.
 > -- 
 > 1.8.3.1
 > 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
