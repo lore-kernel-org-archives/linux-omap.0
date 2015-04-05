@@ -1,44 +1,47 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: am335x crypto module clocks
-Date: Sun, 5 Apr 2015 06:17:58 +0200
-Message-ID: <CAALWOA8Zno6pTfWRZpacgWm83m4=1+uvTmyREG9Nc+C2MZjK1w@mail.gmail.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Sun, 05 Apr 2015 10:23:26 +0300
+Message-ID: <5520E2EE.4080302@gmail.com>
+References: <55197A12.1050009@bitmer.com> <20150330164237.GJ10805@atomide.com> <55198BA4.5010207@bitmer.com> <20150330175051.GK10805@atomide.com> <20150331123233.GA15103@earth> <20150401194734.GT10805@atomide.com> <20150403163553.GA16247@earth> <551F0F50.1030701@gmail.com> <20150403221517.GX10805@atomide.com> <551F186B.90608@gmail.com> <20150403225212.GY10805@atomide.com> <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:38599 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759AbbDEESU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2015 00:18:20 -0400
-Received: by wiun10 with SMTP id n10so4582135wiu.1
-        for <linux-omap@vger.kernel.org>; Sat, 04 Apr 2015 21:18:18 -0700 (PDT)
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:33215 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750746AbbDEHXb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2015 03:23:31 -0400
+Received: by wgin8 with SMTP id n8so5269161wgi.0
+        for <linux-omap@vger.kernel.org>; Sun, 05 Apr 2015 00:23:30 -0700 (PDT)
+In-Reply-To: <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-Hi all,
 
-To my surprise, the am335x clock tree (am33xx-clocks.dtsi) currently
-lists the functional clock of the AES accelerator and other crypto
-modules to be the (max 26 MHz) main osc. This struck me as rather
-unlikely, since the AES module is clocked much higher on other
-devices, and such a slow clock would condemn it to being slower than a
-software AES implementation.  As usual the TRM is silent on the crypto
-accelerators and their clock management, but I did some preliminary
-tests.
 
-The AES module turned out far from slow.  I actually had a lot of
-trouble keeping the module continuously fed with data with a simple
-non-dma test from userspace, since for most modes of operation the AES
-module could even keep pace with a tight loop using 128-bit neon
-load/store without even checking its status register for readiness.
+On  5.04.2015 07:13, Matthijs van Duin wrote:
+> I would actually suggest clearing IBE if it set on Cortex-A8 r2 or
+> later processors and a secure monitor call is available to do so
+> (there is on the DM814x and AM335x, dunno about the 37xx), also for
+> performance reasons: BTB invalidates are quite expensive instructions
+> (when enabled).
 
-Although I haven't been able to get obtain a very reliable measurement
-yet as a result, it appears to be clocked at ~200 MHz. This also
-matches the fact that it is hooked up to the L3F (which would be
-rather pointless if it had a separate low-rate fck).
+There is (or should be) SM call, it is explained in 36xx TRM(SWPU177AA) 
+as well, 26.4.1, "Booting Overview". Though I wonder why SMC is needed 
+to write ACR on non-HS devices. A simple MRC should suffice, unless I 
+miss something.
 
-It seems very likely to me the other crypto modules will also have a
-unified fck/ick (L3F for the hash accelerator, L4LS for the RNG and
-PKA). This should preferably still be double-checked of course.
+Clearing the IBE bit on devices that don't need erratum 430973 
+workaround, along with enabling that workaround in kernel is the best 
+approach IMO. That way we will gain both stability on cores that need 
+the workaround (like on N900 and the other devices with p1) and won't 
+lose performance on cores that are not affected.
 
-Matthijs
+>
+> Matthijs
+>
+
+Regards,
+Ivo
