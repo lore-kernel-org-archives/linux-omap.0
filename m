@@ -1,92 +1,86 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Sun, 5 Apr 2015 15:39:34 +0200
-Message-ID: <20150405133934.GC9186@earth>
-References: <55198BA4.5010207@bitmer.com>
- <20150330175051.GK10805@atomide.com>
- <20150331123233.GA15103@earth>
- <20150401194734.GT10805@atomide.com>
- <20150403163553.GA16247@earth>
- <551F0F50.1030701@gmail.com>
- <20150403221517.GX10805@atomide.com>
- <551F186B.90608@gmail.com>
- <20150403225212.GY10805@atomide.com>
- <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
+Subject: Re: ARM errata 430973 on multi platform kernels (was: OMAP3-N900:
+ Add microphone bias voltages)
+Date: Sun, 5 Apr 2015 15:45:28 +0200
+Message-ID: <20150405134528.GD9186@earth>
+References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
+ <CAOCHtYjCtmJNrkD0x78bm9b7hNvTKsZD2C2m5N=nR7p73R4zcg@mail.gmail.com>
+ <20150405130045.GB9186@earth>
+ <201504051526.14575@pali>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="hOcCNbCCxyk/YU74"
+	protocol="application/pgp-signature"; boundary="BRE3mIcgqKzpedwo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:38132 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.136]:38214 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751078AbbDENkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 5 Apr 2015 09:40:05 -0400
+	id S1751320AbbDENp7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 5 Apr 2015 09:45:59 -0400
 Content-Disposition: inline
-In-Reply-To: <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
+In-Reply-To: <201504051526.14575@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
---hOcCNbCCxyk/YU74
-Content-Type: text/plain; charset=us-ascii
+--BRE3mIcgqKzpedwo
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, Apr 05, 2015 at 06:13:47AM +0200, Matthijs van Duin wrote:
-> On 4 April 2015 at 00:52, Tony Lindgren <tony@atomide.com> wrote:
-> > Right, it affects n900 for sure. My point is that it also seems to
-> > affect 37xx versions not listed to suffer from this issue.
+On Sun, Apr 05, 2015 at 03:26:14PM +0200, Pali Roh=E1r wrote:
+> > > > Yes so it seems, and the bootloaders should really set it.
+> > > > It's also disabled for multiplatform builds.
+> > >=20
+> > > These are now done in u-boot as of: v2015.04-rc4
+> > >=20
+> > > http://git.denx.de/?p=3Du-boot.git;a=3Dcommit;h=3Dc6f90e1418a84fe5
+> > > fa463b38403bd1845cb6a59c
+> >=20
+> > Seems like "include/configs/nokia_rx51.h" has been forgotten.
+> > Note, that the kernel must still be able to enable the bit
+> > itself (in case NOLO is used without u-boot).
 >=20
-> They shouldn't... erratum 430973 only affected Cortex-A8 r1, and the
-> dm37xx should have an r3p2 right?
+> You must not expect that bootloader set something. Nokia N900 has=20
+> closed and signed bootloader which cannot be easily replaced and=20
+> or fixed.
 >=20
-> A word of caution though: at least on the DM814x and AM335x, secure
-> ROM sets bit 6 (IBE) in the Auxiliary Control Register, thereby
-> enabling BTB invalidate instructions (which normally execute as nops).
-> This is presumably a leftover of the erratum 430973 workaround, but it
-> means there is a risk of running afoul of erratum 687067 if BTB
-> invalidate by MVA instructions are actually used.
->=20
-> I would actually suggest clearing IBE if it set on Cortex-A8 r2 or
-> later processors and a secure monitor call is available to do so
-> (there is on the DM814x and AM335x, dunno about the 37xx), also for
-> performance reasons: BTB invalidates are quite expensive instructions
-> (when enabled).
+> For N900 there is U-Boot but it does not support lot of things=20
+> (load kernel via usb or serial) so for developers it is better to=20
+> use original Nokia bootloader.
 
-So if I understand the issue correct, it would be ok to enable the
-430973 workaround in cpu_v7_switch_mm for arm multiplatform kernels
-(mcr p15, 0, r2, c7, c5, 6 @ flush BTAC/BTB). On unaffected
-Cortex-A8 platforms the IBE bit should be unset (resulting in a nop
-instead of the BTB flush).
+Yes, I'm aware of that. I think having the IBE bit set in u-boot has
+advantages nevertheless. I think the kernel can't enable the bit
+sufficiently early if its compiled in thumb-mode itself
+(CONFIG_THUMB2_KERNEL).
 
-So assuming, that the same is true for non Cortex-A8 platforms: Can
-the workaround simply be enabled by default if CPU_V7 is selected?
+So I suggest to enable the IBE bit in the kernel (that part is
+already done) *and* in u-boot.
 
 -- Sebastian
 
---hOcCNbCCxyk/YU74
+--BRE3mIcgqKzpedwo
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJVITsTAAoJENju1/PIO/qag48P/i89fvzVnWNkLeDLXMt2TDB9
-my0QaMTuwEUcb42dFH4xy+IerRSsWp7imMevWbMjNJeEbt+EdDoWdFC1luVVtoUt
-VG8v3QxU//u2xkKV2tUtvtLjzimQQ5Pmbyl0IazXlB1+u4Rm477lxhjWIxGYOon9
-zaj1sMS8Vjg6BFS5lUJUM8KwFH4fi/ASB6XUR/zgkldgw2uTr+2D+eVqf7ff1bBV
-LWnXv5v5r0VgnU4XtU3iRsoeYsSun4PL7p85w2On/ZcszckuMgKj2B95IlqNpGEz
-yAE5sRRQ6IaM4pnKgbkAfWVQ2VarICqARl0iaGjVCbzKbnrdZqSwLHFx3jQdH1jS
-ucJQrW+WH7rM3jiW2lK08RgGQAz3ckl5wzZ5KV+jkktivJq6zsziH8mSlMtg/1DZ
-pd5gkkzwRov+tI6V7pzBVgkyc96oVlWeehbXHxbHHo8hCtjuEHtQ6ycBjSd9hnOZ
-pmSeGF9nqFQjd7PR5d3SVk6YWfTfyhBwmKy5A+jpxbQgYgOyLW/L6e+FsEoKjhfP
-b2RVuoDDDNt/NzYQjcpNdkbBxywm0daeMEV6ENo6PzgcWIvp289BZnv5sb0GkB+V
-Tyi1IBnME/dvxHl1IxggKwkSYrEef0e4fMo6VUrmUSuobsElR7NuwjbtVEmC8+8m
-V+0DK8n5WIFCZQ+aXuq9
-=3/SU
+iQIcBAEBCgAGBQJVITx4AAoJENju1/PIO/qap7wP/32vyCSoRJ6VtmypxR2tUJzL
+U2VEyFdDNed/O1TqB9mDzycCdhYuXIyQc+8dAXWaDiFDxeZ/9eKN7ECU4SlJNeTF
+gW5NHF/NkkbMv2n3NFtamV0IqRxgci4hN05tOorwSAutZkjDY1L6ZVwooOarX3Fa
+WP5wuPlFN0DcoONeSpLbH/rUxdZaaSeUXzf6YXFfD7PGVpumWyqvgySOU1ldqbi9
+7HeZNX0FWf+cWpipwPDf7RHqeUFpeuuq1PTMV/N/7/h5wPdRwzsuJv45YmA1i4sd
+9pTm3q1axE74c7fHOOx1jpr9Nx2fXSiMXKz7/0InORPbTWu9AgcgDi2VBTGySSAG
+zJQ4Fyi+PZzeUMPQdIfMsR+i5T6CD8riE+X2mqyjGwEm93+AENPjzc9abMjOPb5L
+gQvUp/Owe/L6tDiz1TmDIVNPjX28TJ1Wge687xi1/T6JTfahYhHSzpkQTROLWKtC
+8XM3Sj9dBAe+wrkTrXPr4aws9mOK1DzW8W8enkaULZE6mWJU75EQZCqKm3caCdpi
+u/8K/T/qtRdw9YOVJdccDvD8WnlDIeUezMYukHraWyWL5V3jKmbphIqa0Eet3Gdr
+HYynQ1j6+JoPAswoxs8FF86kprP4qw9DpRqHWyFbsY4JKoNwA0ma9scg3l+Y1m+Q
+JwVnR+mqk1BA//KfNYVL
+=eMnt
 -----END PGP SIGNATURE-----
 
---hOcCNbCCxyk/YU74--
+--BRE3mIcgqKzpedwo--
