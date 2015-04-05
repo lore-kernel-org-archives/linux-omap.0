@@ -1,45 +1,45 @@
-From: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCHv6] media: i2c/adp1653: Documentation for devicetree
- support for adp1653
-Date: Sat, 4 Apr 2015 23:03:07 +0300
-Message-ID: <20150404200307.GS20756@valkosipuli.retiisi.org.uk>
-References: <20150402143846.GA11687@amd>
- <20150402203417.GA6336@amd>
- <20150403083353.GA21070@amd>
- <20150403113216.GK20756@valkosipuli.retiisi.org.uk>
- <20150403202624.GA4308@amd>
- <20150403213655.GO20756@valkosipuli.retiisi.org.uk>
- <20150404074337.GA31064@amd>
- <20150404102435.GR20756@valkosipuli.retiisi.org.uk>
- <20150404171116.GA15025@Nokia-N900>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Sun, 5 Apr 2015 06:13:47 +0200
+Message-ID: <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
+References: <55197A12.1050009@bitmer.com> <20150330164237.GJ10805@atomide.com>
+ <55198BA4.5010207@bitmer.com> <20150330175051.GK10805@atomide.com>
+ <20150331123233.GA15103@earth> <20150401194734.GT10805@atomide.com>
+ <20150403163553.GA16247@earth> <551F0F50.1030701@gmail.com>
+ <20150403221517.GX10805@atomide.com> <551F186B.90608@gmail.com> <20150403225212.GY10805@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150404171116.GA15025@Nokia-N900>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:33440 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719AbbDEEOJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2015 00:14:09 -0400
+Received: by wiax7 with SMTP id x7so2904513wia.0
+        for <linux-omap@vger.kernel.org>; Sat, 04 Apr 2015 21:14:08 -0700 (PDT)
+In-Reply-To: <20150403225212.GY10805@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-On Sat, Apr 04, 2015 at 07:11:16PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > enable-gpios: Specifier of the GPIO connected to EN pin
-> > 
-> > I can make the changes if you're ok with that, otherwise please send v7. Then
-> > I'll apply that to my tree.
-> 
-> I'm ok with that.
+On 4 April 2015 at 00:52, Tony Lindgren <tony@atomide.com> wrote:
+> Right, it affects n900 for sure. My point is that it also seems to
+> affect 37xx versions not listed to suffer from this issue.
 
-Thanks. The patch is applied here:
+They shouldn't... erratum 430973 only affected Cortex-A8 r1, and the
+dm37xx should have an r3p2 right?
 
-	git://linuxtv.org/sailus/media_tree.git, branch adp1653
+A word of caution though: at least on the DM814x and AM335x, secure
+ROM sets bit 6 (IBE) in the Auxiliary Control Register, thereby
+enabling BTB invalidate instructions (which normally execute as nops).
+This is presumably a leftover of the erratum 430973 workaround, but it
+means there is a risk of running afoul of erratum 687067 if BTB
+invalidate by MVA instructions are actually used.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus-X3B1VOXEql0@public.gmane.org	XMPP: sailus-PCDdDYkjdNMDXYZnReoRVg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would actually suggest clearing IBE if it set on Cortex-A8 r2 or
+later processors and a secure monitor call is available to do so
+(there is on the DM814x and AM335x, dunno about the 37xx), also for
+performance reasons: BTB invalidates are quite expensive instructions
+(when enabled).
+
+Matthijs
