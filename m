@@ -1,44 +1,44 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
-Date: Sun, 5 Apr 2015 15:20:34 +0100
-Message-ID: <20150405142034.GG4027@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
- <E1Ye59O-0001BJ-Gq@rmk-PC.arm.linux.org.uk>
- <36620233.VbNiGUfDRt@avalon>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Sun, 5 Apr 2015 18:50:38 +0200
+Message-ID: <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com>
+References: <55197A12.1050009@bitmer.com> <20150330164237.GJ10805@atomide.com>
+ <55198BA4.5010207@bitmer.com> <20150330175051.GK10805@atomide.com>
+ <20150331123233.GA15103@earth> <20150401194734.GT10805@atomide.com>
+ <20150403163553.GA16247@earth> <551F0F50.1030701@gmail.com>
+ <20150403221517.GX10805@atomide.com> <551F186B.90608@gmail.com>
+ <20150403225212.GY10805@atomide.com> <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
+ <5520E2EE.4080302@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:37334 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590AbbDEOUq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2015 10:20:46 -0400
-Content-Disposition: inline
-In-Reply-To: <36620233.VbNiGUfDRt@avalon>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:37628 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010AbbDEQvA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2015 12:51:00 -0400
+Received: by wiaa2 with SMTP id a2so14698322wia.0
+        for <linux-omap@vger.kernel.org>; Sun, 05 Apr 2015 09:50:59 -0700 (PDT)
+In-Reply-To: <5520E2EE.4080302@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, sakari.ailus@iki.fi
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
-> Hi Russell,
-> 
-> Thank you for the patch;
-> 
-> On Friday 03 April 2015 18:12:58 Russell King wrote:
-> > No merged platform supplies xclks via platform data.  As we want to
-> > slightly change the clkdev interface, rather than fixing this unused
-> > code, remove it instead.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> with one caveat though : it conflicts with patches queued for v4.1 in the 
-> media tree. I'll post a rebased version in a reply to your e-mail. How would 
-> you like to handle the conflict ?
+On 5 April 2015 at 09:23, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> wrote:
+> Though I wonder why SMC is needed to write ACR on non-HS devices. A simple
+> MRC should suffice, unless I miss something.
 
-How bad is the conflict?
+Public-world access to ACR varies per bit:
+bit 1 (L2EN) is documented as banked, but at least on r3p2 turns out
+to be common r/w.
+bits 30-31 are secure read-only and public RAZ.
+remaining bits are secure read/write and public read-only.
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+The net effect is that doing an MRC from public world will only modify
+the L2EN bit.
+
+There's no bit in the non-secure access control register to affect all
+of this, so GP vs HS doesn't matter here (from a CPU point of view; it
+may matter for the availability of SM calls obviously).
+
+Matthijs
