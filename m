@@ -1,60 +1,77 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v4 6/6] power: twl4030_madc_battery: Add missing
- MODULE_ALIAS
-Date: Mon, 6 Apr 2015 19:45:15 +0200
-Message-ID: <20150406174515.GF18145@earth>
-References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
- <1426022847-30912-7-git-send-email-marek@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Mon, 6 Apr 2015 10:42:45 -0700
+Message-ID: <20150406174245.GJ18048@atomide.com>
+References: <551F186B.90608@gmail.com>
+ <20150403225212.GY10805@atomide.com>
+ <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
+ <5520E2EE.4080302@gmail.com>
+ <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com>
+ <5521A438.1070008@gmail.com>
+ <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
+ <20150406151939.GG18048@atomide.com>
+ <20150406154037.GI18048@atomide.com>
+ <5522BEEF.2000405@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ChQOR20MqfxkMJg9"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:40922 "EHLO mail.kernel.org"
+Received: from muru.com ([72.249.23.125]:42397 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292AbbDFRpq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Apr 2015 13:45:46 -0400
+	id S1752784AbbDFRqc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Apr 2015 13:46:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1426022847-30912-7-git-send-email-marek@goldelico.com>
+In-Reply-To: <5522BEEF.2000405@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: bcousson@baylibre.com, tony@atomide.com, dbaryshkov@gmail.com, dwmw2@infradead.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [150406 10:15]:
+> On  6.04.2015 18:40, Tony Lindgren wrote:
+> >
+> >Oops sorry, wrong numbers for errata above.. s/458693/430973/, here's
+> >a better version:
+> >
+> >1. For cortex-a8 revisions affected by 430973, we can do a custom
+> >    cpu_v7_switch_mm function that always does flush BTAC/BTB.
+> >
+> 
+> Why custom function, if IBE bit is zero, BTB invalidate instruction is a
+> NOP. Do you think that "mcr p15, 0, r2, c7, c5, 6" executed as a NOP will
+> put so much overhead, that it deserves a custom function?
 
---ChQOR20MqfxkMJg9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hmm but it still seems to do something also on cortex-a8 r3p2 that
+is supposedly not affected by 430973.. Based on my tests so far, at least
+armhf running cpuburn-a8 in the background and doing apt-get update
+segfaults constantly without flush BTAC/BTB. This seems to be the case
+no matter how the aux ctrl reg bits are set.. This should be reproducable
+on any pandboard xm BTW.
+ 
+> >2. For HS cortex-a8 processors other than n900 affected by 430973,
+> >    we need to implement functions similar to rx51_secure_update_aux_cr,
+> >    the bootrom on n900 is different from TI HS omaps so the SMC call
+> >    numbering may be different.
+> >
+> >3. For later cortex-a8 processors not affected by 430973, we need
+> >    to clear IBE bit to avoid erratum 687067.
+> >
+> 
+> Maybe it should be implemented something like:
+> 
+> 1. if Cortex-A8, always execute invalidate BTB instruction in
+>    cpu_v7_switch_mm
 
-Hi,
+This part still seems to need more investigating for why it's still
+needed also r3p2 as I describe above. Otherwise we may be hiding some
+other bug.
+ 
+> 2. For Cortex-A8 revisions affected by 430973, set IBE bit to 1, set it
+>    to 0 for all others. That should happen as soon as possible,
+>    otherwise kernel may crash on affected revisions if thumb-
+>    compiled.
 
-On Tue, Mar 10, 2015 at 10:27:27PM +0100, Marek Belisko wrote:
-> Without MODULE_ALIAS twl4030_madc_battery won't get loaded
-> automatically.
+Yes this makes sense.
 
-Thanks, pulled.
+Regards,
 
--- Sebastian
-
---ChQOR20MqfxkMJg9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVIsYrAAoJENju1/PIO/qa86cQAIIVO1XGLAFAM+RgIXlRYMpU
-ue/SBF4/eW7M3MqLHnAhmZ+BklwE3d5ZXTxZwBjj0RHve6peKE0zLQ7f+Stp6m0E
-baJs/fuaiGf0K9d+qTe4XFJdiRCPm1iEH0yR1pbsnoDbGutbdSgj/kyU4fRgBjzP
-/14syUpQNIk1/wMYuvRl/j3LhlemVoMpWxHWgjfPnGfzM29gq5Bq73mkgMgqL6Hb
-AQTgUvWNcgF9Svc2JtMTl4DkgK2D3vd863277Zk4w9psY7beJ4+qAejUkNvYkwOG
-3PtcT0Xqutv0GCYsd3m2tro8X2ivI9bU4lxT3cQXjIi8Pu60VWGTyIoPOcmDkQOe
-P+HtpxKoxUFYrna0VE4wsoc81JhzRGp/a8kjaVjEziwDNFd/NRSNk7rh7CTFfq7L
-y9ApNf0ASfCQETrZFvZNbslP0Ag1ZeMn/FC5X+bwUm2BDyPnaJJP6fsVmC3iTG7y
-EVsgL6PjQnahsifArQpfWY1ZKquYHwdu6RbPvsLrMxqJPr/FXJGmXfRmJ52l9+qc
-LmgWd4VYD3z59p5Omb66seJNx8I64gl1chzDf3iyAo60tABxtEpKiq+30thGMyTL
-7cwe6yTY5ZUDVqWK/KFLcbD9ESebF1Hl3R0FwmCjVhEOJurnEsW7KudMleW510Pe
-U8lqgxPhbDUiu3WgV0C3
-=9D7f
------END PGP SIGNATURE-----
-
---ChQOR20MqfxkMJg9--
+Tony
