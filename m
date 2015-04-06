@@ -1,116 +1,73 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Mon, 06 Apr 2015 20:14:23 +0300
-Message-ID: <5522BEEF.2000405@gmail.com>
-References: <551F0F50.1030701@gmail.com> <20150403221517.GX10805@atomide.com> <551F186B.90608@gmail.com> <20150403225212.GY10805@atomide.com> <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com> <5520E2EE.4080302@gmail.com> <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com> <5521A438.1070008@gmail.com> <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com> <20150406151939.GG18048@atomide.com> <20150406154037.GI18048@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: ARM errata 430973 on multi platform kernels (was: OMAP3-N900:
+ Add microphone bias voltages)
+Date: Mon, 6 Apr 2015 19:38:15 +0200
+Message-ID: <20150406173815.GD18145@earth>
+References: <1425236828-28349-1-git-send-email-jarkko.nikula@bitmer.com>
+ <201504051526.14575@pali>
+ <20150405134528.GD9186@earth>
+ <201504051552.10522@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="P+33d92oIH25kiaB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:34136 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840AbbDFRO0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2015 13:14:26 -0400
-Received: by widjs5 with SMTP id js5so25640283wid.1
-        for <linux-omap@vger.kernel.org>; Mon, 06 Apr 2015 10:14:25 -0700 (PDT)
-In-Reply-To: <20150406154037.GI18048@atomide.com>
+Received: from mail.kernel.org ([198.145.29.136]:40602 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891AbbDFRiq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Apr 2015 13:38:46 -0400
+Content-Disposition: inline
+In-Reply-To: <201504051552.10522@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
+--P+33d92oIH25kiaB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On  6.04.2015 18:40, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150406 08:24]:
->> * Matthijs van Duin <matthijsvanduin@gmail.com> [150405 16:53]:
->>> Cortex-A8 errata doc states in its workaround for erratum 430973:
->>>
->>>> By default, the BTB Invalidate instruction is treated as a NOP on Cortex-A8.
->>>> However, it is possible to enable the BTB Invalidate instruction such that it
->>>> actually does a full invalidate of the BTB by setting the IBE bit (bit 6) in
->>>> the CP15 Auxiliary Control Register. As a consequence of erratum 687067, the
->>>> L1 System Array Debug Register should be cleared to 0 before the IBE bit is
->>>> set using the following code sequence:
->>>> MOV r1, #0
->>>> MCR p15, 0, r1, c15, c1, 0            ; write instruction data 0 register
->>>> MRC p15, 0, R1, c1, c0, 1             ; read Aux Ctl Register
->>>> ORR R1, R1 #(1 << 6)                  ; set IBE to 1
->>>> MCR p15, 0, R1, c1, c0, 1             ; write Aux Ctl Register
->>>> The above code needs to be executed in Secure state. ARM Limited recommends
->>>> that this code is added to the boot monitor.
->>>
->>> The 430973 workaround code in proc-v7.S will do absolutely nothing if
->>> executed in non-secure state. Ditto for the 458693 workaround, and the
->>> 460075 workaround should trigger an undefined instruction exception.
->>> Maybe linux is started in secure mode on some targets and this code
->>> was written for one of those?
->>
->> That's only for HS omaps, for those we currently only do it in the
->> nokia_n900_legacy_init that calls rx51_secure_update_aux_cr.
->>
->>> I scanned DM814x secure ROM for any (ARM or Thumb) write to
->>> Instruction L1 System Array Debug Register 0, but I found none, hence
->>> my warning to watch out for erratum 687067.
->>
->> OK
->>
->>> Adding the full set of BTB invalidates while making sure IBE is
->>> disabled on sufficiently recent Cortex-A8 revisions would be optimal
->>> for the Cortex-A8. But, apparently (based on the description of the
->>> ARMv7 CPUID registers) there are also processors which only require
->>> BTB invalidates when code is modified, but not when context-switching,
->>> so there may be performance considerations there...
->>
->> Attempting to summarize all that's been discussed.. It sounds like we
->> need the following implemented:
->>
->> 1. For cortex-a8 revisions affected by 458693, we can do a custom
->>     cpu_v7_switch_mm function that always does flush BTAC/BTB.
->>
->> 2. For HS cortex-a8 processors other than n900 affected by 458693,
->>     we need to implement functions similar to rx51_secure_update_aux_cr,
->>     the bootrom on n900 is different from TI HS omaps so the SMC call
->>     numbering may be different.
->>
->> 3. For later cortex-a8 processors not affected by 458693, we need
->>     to clear IBE bit to avoid erratum 687067.
->
-> Oops sorry, wrong numbers for errata above.. s/458693/430973/, here's
-> a better version:
->
-> 1. For cortex-a8 revisions affected by 430973, we can do a custom
->     cpu_v7_switch_mm function that always does flush BTAC/BTB.
->
+Hi,
 
-Why custom function, if IBE bit is zero, BTB invalidate instruction is a 
-NOP. Do you think that "mcr p15, 0, r2, c7, c5, 6" executed as a NOP 
-will put so much overhead, that it deserves a custom function?
+On Sun, Apr 05, 2015 at 03:52:10PM +0200, Pali Roh=E1r wrote:
+> > So I suggest to enable the IBE bit in the kernel (that part is
+> > already done) *and* in u-boot.
+> >=20
+> > -- Sebastian
+>=20
+> Yes. Code for both (U-Boot and linux kernel) exists and are=20
+> already included.
+>=20
+> In linux kernel code is since 3.14-rc6 and in U-Boot code is=20
+> there since beginning of Nokia N900 support (2013.04) directly in=20
+> board code.
 
-> 2. For HS cortex-a8 processors other than n900 affected by 430973,
->     we need to implement functions similar to rx51_secure_update_aux_cr,
->     the bootrom on n900 is different from TI HS omaps so the SMC call
->     numbering may be different.
->
-> 3. For later cortex-a8 processors not affected by 430973, we need
->     to clear IBE bit to avoid erratum 687067.
->
+ah. I wasn't aware, that u-boot already sets the IBE bit on the N900.
+Thanks for the information.
 
-Maybe it should be implemented something like:
+-- Sebastian
 
-1. if Cortex-A8, always execute invalidate BTB instruction in
-    cpu_v7_switch_mm
+--P+33d92oIH25kiaB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-2. For Cortex-A8 revisions affected by 430973, set IBE bit to 1, set it
-    to 0 for all others. That should happen as soon as possible,
-    otherwise kernel may crash on affected revisions if thumb-
-    compiled.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> Regards,
->
-> Tony
->
+iQIcBAEBCgAGBQJVIsSFAAoJENju1/PIO/qaZDsP/1G3KyvNnoev+eSFtI1t4NIk
+JW3oJnrSeltLBU8cctN5xAWrTdOrAKMNjH5DXRKAOuvs8u+ZjkCtlv3sHUiEbQaU
+KQbrM4Of7XYItfYRhK/4pE1uagYaj9I6dGQsMUikGfm6LjLyjYjKauKQDmSqXBOg
+YWbKC/kteZ+Uiyh6pfKO80Z7UsTCXpoPlsOKyTpJ9z6a1dzkGsDc6gzM3hd3zL/p
++J9aJ/f/miRNzRbe+1RJrt6CLJWq6MZpGJcyQkhcT/uMgE93GF9fuh83hzZexSDc
+Ot/yObUj0D0yUMZtpiAzaJyY2ZY15t0aQ21bdQzlxg7boNarBCcaBBU5083HKGJE
+O1Vw35UCLTD0JjvgqK9C6O9khY1RH5qzzN1Dx0qKhc69xS+jGidZ9bzAfFH/B6ll
+WFN2O+tu84j5DsYDxGvYvEqQaNLVBw6zR+iHdEW9SCFOkKhgnRCb58skjmGwOgGE
+AeKA0hYMgIuEublxyrSJjSjhfuNaO5XFyWHf++X/XbSK6txG2DUh2k0hRronI4FX
+DBwAwqSnxkRZrZSnihPvQ9eVJ2M4XmXAmGpZtV96jG195PLLkbT7D9tshD7X4yIJ
++fI6C+jYamxd5bfb8Ely9SA9djFysUPW1qukjGN+zb0YtQVGzn+fH0YhHA+DlbZy
+rl+jk2mA4nWfsv6NEKcH
+=soY3
+-----END PGP SIGNATURE-----
 
-Regards,
-
-Ivo
+--P+33d92oIH25kiaB--
