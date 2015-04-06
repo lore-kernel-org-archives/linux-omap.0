@@ -1,73 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Mon, 6 Apr 2015 08:24:03 -0700
-Message-ID: <20150406152402.GH18048@atomide.com>
-References: <20150330175051.GK10805@atomide.com>
- <20150331123233.GA15103@earth>
- <20150401194734.GT10805@atomide.com>
- <20150403163553.GA16247@earth>
- <551F0F50.1030701@gmail.com>
- <20150403221517.GX10805@atomide.com>
- <551F186B.90608@gmail.com>
- <20150403225212.GY10805@atomide.com>
- <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
- <20150405133934.GC9186@earth>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: LDP: next-20150402: twl4030 regression?
+Date: Mon, 6 Apr 2015 10:27:50 -0500
+Message-ID: <20150406152750.GE11160@saruman.tx.rr.com>
+References: <5522886D.5050409@ti.com>
+ <20150406134541.GE6023@sirena.org.uk>
+ <55228FE0.2040702@ti.com>
+ <20150406135829.GH4027@n2100.arm.linux.org.uk>
+ <20150406150127.GF6023@sirena.org.uk>
+ <5522A391.6080503@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:42336 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753142AbbDFP1t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Apr 2015 11:27:49 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="a+b56+3nqLzpiR9O"
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150405133934.GC9186@earth>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5522A391.6080503@ti.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-* Sebastian Reichel <sre@kernel.org> [150405 06:40]:
-> Hi,
-> 
-> On Sun, Apr 05, 2015 at 06:13:47AM +0200, Matthijs van Duin wrote:
-> > On 4 April 2015 at 00:52, Tony Lindgren <tony@atomide.com> wrote:
-> > > Right, it affects n900 for sure. My point is that it also seems to
-> > > affect 37xx versions not listed to suffer from this issue.
-> > 
-> > They shouldn't... erratum 430973 only affected Cortex-A8 r1, and the
-> > dm37xx should have an r3p2 right?
-> > 
-> > A word of caution though: at least on the DM814x and AM335x, secure
-> > ROM sets bit 6 (IBE) in the Auxiliary Control Register, thereby
-> > enabling BTB invalidate instructions (which normally execute as nops).
-> > This is presumably a leftover of the erratum 430973 workaround, but it
-> > means there is a risk of running afoul of erratum 687067 if BTB
-> > invalidate by MVA instructions are actually used.
-> > 
-> > I would actually suggest clearing IBE if it set on Cortex-A8 r2 or
-> > later processors and a secure monitor call is available to do so
-> > (there is on the DM814x and AM335x, dunno about the 37xx), also for
-> > performance reasons: BTB invalidates are quite expensive instructions
-> > (when enabled).
-> 
-> So if I understand the issue correct, it would be ok to enable the
-> 430973 workaround in cpu_v7_switch_mm for arm multiplatform kernels
-> (mcr p15, 0, r2, c7, c5, 6 @ flush BTAC/BTB). On unaffected
-> Cortex-A8 platforms the IBE bit should be unset (resulting in a nop
-> instead of the BTB flush).
+--a+b56+3nqLzpiR9O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Well we only want to enable for cortex-a8 revisions affected by
-430973, so a custom cpu_v7_switch_mm seems like the way to go there.
+Hi,
 
-And then we need checks for clearing IBE for unaffected cortex-a8
-revisions. I'll check to today if I have IBE bit set on the systems
-where I'm seeing issues that should not be affected by 430973.
- 
-> So assuming, that the same is true for non Cortex-A8 platforms: Can
-> the workaround simply be enabled by default if CPU_V7 is selected?
+On Mon, Apr 06, 2015 at 10:17:37AM -0500, Nishanth Menon wrote:
+> On 04/06/2015 10:01 AM, Mark Brown wrote:
+> > On Mon, Apr 06, 2015 at 02:58:29PM +0100, Russell King - ARM Linux wrot=
+e:
+> >> On Mon, Apr 06, 2015 at 08:53:36AM -0500, Nishanth Menon wrote:
+> >=20
+> >>>> at least a description of the problem you're seeing and some attempt=
+ at
+> >=20
+> >>> Test was a simple boot test. There seems to be a lockdep reported at =
+the
+> >>> very least in the log provided (see
+> >>> https://github.com/nmenon/kernel-test-logs/blob/next-20150402/omap2pl=
+us_defconfig/ldp.txt#L488
+> >>> ).
+> >=20
+> >> I think what Mark is trying to say is to include a fuller description =
+of
+> >> the problem, and don't expect people to fire up their web browser to g=
+et
+> >> a basic overview of what the problem is.
+> >=20
+> > Yes, indeed.  I hadn't actually opened the links, I might've got round
+> > to it later on.
+> >=20
+> >> My guess is that the problem _appears_ to be that someone's added a ca=
+ll
+> >> to debug_check_no_locks_held() into schedule_hrtimeout_range_clock()
+> >> without considering what this means.
+> >=20
+> >> What it means is that you can't now use usleep_range() from within any
+> >> driver probe function - which is absolutely absurd.
+> >=20
+> > I can't think of any regulator side changes which might be relevant in
+> > that period.  It's possible that there might be something in the MFD I
+> > guess.
+> >=20
+>=20
+> Ran a few tests since my original email..
+>=20
+> 6261b06de565baafa590e58a531a1a5522cea0b6 ("regulator: Defer lookup of
+> supply to regulator_get") was the only patch that was introduced in
+> the interval. there seems nothing in mfd either.
+>=20
+> I still have the following in my log.. trying to further down.
 
-It should be enabled conditionally.
+I noticed a similar warning with AM437x SK
 
-Regards,
+--=20
+balbi
 
-Tony
+--a+b56+3nqLzpiR9O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVIqX2AAoJEIaOsuA1yqREhVcQAJ4BHB+MkkMMMZ0FfEx1bXlF
+OcTL1InW4zJ8dTnvrbsjufre0w986n1vYfG86kPUp/wVu3TBeK0u/UNlGgBAtSpO
+ZIWnZiJ+JurD7uWGvmnkJJwtgKQ2neykCZMFg2EzReaKKYv0i4FEdbTQvV6tqsZP
+UbcdgcGEZWRtg2GZ6owbxV3+kwZyzmDaSmu9NqQhQLu5fy6W9ubxcCD+4JW3eQdd
+gHW+R0+Mr3I2F3XZsdWeWlE5vMfuuu5vdvsrSshiEZ2MpKm9/xPvKapveCMFmaHb
+j+8GeXz5YFXAvRTG+Q/zXizFS5dnoiFp1ZNHvOeaFWPwnq+xLqzmOW8uOydV+7T5
+OfVqHULZqJVtuQluqvavjkfsLIKeGRDjnoU3a8JCYnUvPgNzbSwPGaJ0o+rl8gOC
+pI/6OF0x1XvZE9PWX1ZY++W78U7nLnoOmfwhTfHy/mLrCiJzVv9769DB7uHq7ije
+dWPmM9lL41upLm9ZwU4s3FHMm66Ixo3mGITUje7Tr0T08bABlkfYgGXFJjFsQDRR
+2Fbod5hZyvrViFmHreYFFUHq/tAtRUSFIxhYzWUWZELej/bgV79NF/Nlnn2BfIhU
+LSbROeLHoI3WYh1kOAoR8ek3wivs6w3+5V33WlUkhpPROabfQBS+xSZM6sPPVul0
+egsHQn/xuQ4QNNBFxOpS
+=XVDT
+-----END PGP SIGNATURE-----
+
+--a+b56+3nqLzpiR9O--
