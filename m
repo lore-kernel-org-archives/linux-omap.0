@@ -1,60 +1,60 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 1/6] power: twl4030-madc-battery: Convert to iio
- consumer.
-Date: Mon, 6 Apr 2015 19:39:27 +0200
-Message-ID: <20150406173927.GE18145@earth>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v4 6/6] power: twl4030_madc_battery: Add missing
+ MODULE_ALIAS
+Date: Mon, 6 Apr 2015 19:45:15 +0200
+Message-ID: <20150406174515.GF18145@earth>
 References: <1426022847-30912-1-git-send-email-marek@goldelico.com>
- <1426022847-30912-2-git-send-email-marek@goldelico.com>
+ <1426022847-30912-7-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ep0oHQY+/Gbo/zt0"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="ChQOR20MqfxkMJg9"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:40922 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751292AbbDFRpq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Apr 2015 13:45:46 -0400
 Content-Disposition: inline
-In-Reply-To: <1426022847-30912-2-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+In-Reply-To: <1426022847-30912-7-git-send-email-marek@goldelico.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: bcousson@baylibre.com, tony@atomide.com, dbaryshkov@gmail.com, dwmw2@infradead.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, hns@goldelico.com
 
 
---ep0oHQY+/Gbo/zt0
+--ChQOR20MqfxkMJg9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi,
 
-On Tue, Mar 10, 2015 at 10:27:22PM +0100, Marek Belisko wrote:
-> Because of added iio error handling private data allocation was
-> converted to managed to simplify code.
+On Tue, Mar 10, 2015 at 10:27:27PM +0100, Marek Belisko wrote:
+> Without MODULE_ALIAS twl4030_madc_battery won't get loaded
+> automatically.
 
-Thanks, pulled (only PATCH 1/6 for now).
+Thanks, pulled.
 
 -- Sebastian
 
---ep0oHQY+/Gbo/zt0
+--ChQOR20MqfxkMJg9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJVIsTPAAoJENju1/PIO/qacLUP/i1pgrAJeevpRUYF5+cJ/8uS
-3069C5RB78jD7cPJu3gMnttD2pDlg6ZU51KdR6AU+UIivOvBYv0kRsbAxYPHV6gj
-h//7Bw2/1ZUIuPeN1z2myQt9BwTwlyUE3zrjfp4QPJ0CxzUKSdOq16tBYnKGWLCi
-3Lx+Y7TIZt9yRYvQqAe9qHpxEAUGuND4ZkJaNDBCn/LgD8cVAd3hcROwSrzh88fZ
-QqB+BHeEYrFx+ERa31KVc4STbYZHd6gzSBnVEk/k14N+PMSnr9rmNMNAR9odmJM7
-ljcsIIlbmcGYvGZdkom+7z9cwoblN9uFeZh7P08AGGUn7mYzz4CqvH8w3BbRn9lY
-zbHHVM8vnKaquQXXeiUbmUIOigUz8N5zKXn1WXY1xrDTxrHx/V0PPhmnOWYNt99S
-Mk9sUtXaN43aGhRjDti3Jwbv+jyodMeMhY0/NqZcOPF7nz8twrx9pmJ1of3zkDWt
-+rWjeHT5PeZhVTfie+bIRw4e7ghTUEBjmD2xIfD3jDtvqrA7DxuGWvlG0iWcEqPY
-O6maNlvLK8pDTq1d62oFABIvHCU5hMtfrv8iQHqenZ/Hsj3sWU2VBRcgbnlx3ezD
-TMxH1yWrF25OuZlMGvOuKCxYA/BIMzgKstI42QzDJMEIYUqheRBYCB8ItHKkSTlR
-TCSi59ZV4f3Tpe5doLJq
-=5skP
+iQIcBAEBCgAGBQJVIsYrAAoJENju1/PIO/qa86cQAIIVO1XGLAFAM+RgIXlRYMpU
+ue/SBF4/eW7M3MqLHnAhmZ+BklwE3d5ZXTxZwBjj0RHve6peKE0zLQ7f+Stp6m0E
+baJs/fuaiGf0K9d+qTe4XFJdiRCPm1iEH0yR1pbsnoDbGutbdSgj/kyU4fRgBjzP
+/14syUpQNIk1/wMYuvRl/j3LhlemVoMpWxHWgjfPnGfzM29gq5Bq73mkgMgqL6Hb
+AQTgUvWNcgF9Svc2JtMTl4DkgK2D3vd863277Zk4w9psY7beJ4+qAejUkNvYkwOG
+3PtcT0Xqutv0GCYsd3m2tro8X2ivI9bU4lxT3cQXjIi8Pu60VWGTyIoPOcmDkQOe
+P+HtpxKoxUFYrna0VE4wsoc81JhzRGp/a8kjaVjEziwDNFd/NRSNk7rh7CTFfq7L
+y9ApNf0ASfCQETrZFvZNbslP0Ag1ZeMn/FC5X+bwUm2BDyPnaJJP6fsVmC3iTG7y
+EVsgL6PjQnahsifArQpfWY1ZKquYHwdu6RbPvsLrMxqJPr/FXJGmXfRmJ52l9+qc
+LmgWd4VYD3z59p5Omb66seJNx8I64gl1chzDf3iyAo60tABxtEpKiq+30thGMyTL
+7cwe6yTY5ZUDVqWK/KFLcbD9ESebF1Hl3R0FwmCjVhEOJurnEsW7KudMleW510Pe
+U8lqgxPhbDUiu3WgV0C3
+=9D7f
 -----END PGP SIGNATURE-----
 
---ep0oHQY+/Gbo/zt0--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--ChQOR20MqfxkMJg9--
