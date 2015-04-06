@@ -1,71 +1,77 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Mon, 6 Apr 2015 20:14:30 +0200
-Message-ID: <CAALWOA93+ohYJ7Q06H4gVMywzP5=RC3uBkUVXjWMriRBoHzXKQ@mail.gmail.com>
-References: <551F186B.90608@gmail.com> <20150403225212.GY10805@atomide.com>
- <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
- <5520E2EE.4080302@gmail.com> <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com>
- <5521A438.1070008@gmail.com> <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
- <20150406151939.GG18048@atomide.com> <20150406154037.GI18048@atomide.com>
- <5522BEEF.2000405@gmail.com> <20150406174245.GJ18048@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: LDP: next-20150402: twl4030 regression?
+Date: Mon, 6 Apr 2015 13:45:22 -0500
+Message-ID: <5522D442.9090905@ti.com>
+References: <5522886D.5050409@ti.com> <20150406134541.GE6023@sirena.org.uk> <55228FE0.2040702@ti.com> <20150406135829.GH4027@n2100.arm.linux.org.uk> <20150406150127.GF6023@sirena.org.uk> <5522A391.6080503@ti.com> <20150406152750.GE11160@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:37527 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbbDFSOw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2015 14:14:52 -0400
-Received: by wiaa2 with SMTP id a2so43245779wia.0
-        for <linux-omap@vger.kernel.org>; Mon, 06 Apr 2015 11:14:51 -0700 (PDT)
-In-Reply-To: <20150406174245.GJ18048@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20150406152750.GE11160@saruman.tx.rr.com>
+Sender: linux-next-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Mark Brown <broonie@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [150406 10:15]:
-> Why custom function, if IBE bit is zero, BTB invalidate instruction is a
-> NOP. Do you think that "mcr p15, 0, r2, c7, c5, 6" executed as a NOP will
-> put so much overhead, that it deserves a custom function?
+On 04/06/2015 10:27 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Apr 06, 2015 at 10:17:37AM -0500, Nishanth Menon wrote:
+>> On 04/06/2015 10:01 AM, Mark Brown wrote:
+>>> On Mon, Apr 06, 2015 at 02:58:29PM +0100, Russell King - ARM Linux wrote:
+>>>> On Mon, Apr 06, 2015 at 08:53:36AM -0500, Nishanth Menon wrote:
+>>>
+>>>>>> at least a description of the problem you're seeing and some attempt at
+>>>
+>>>>> Test was a simple boot test. There seems to be a lockdep reported at the
+>>>>> very least in the log provided (see
+>>>>> https://github.com/nmenon/kernel-test-logs/blob/next-20150402/omap2plus_defconfig/ldp.txt#L488
+>>>>> ).
+>>>
+>>>> I think what Mark is trying to say is to include a fuller description of
+>>>> the problem, and don't expect people to fire up their web browser to get
+>>>> a basic overview of what the problem is.
+>>>
+>>> Yes, indeed.  I hadn't actually opened the links, I might've got round
+>>> to it later on.
+>>>
+>>>> My guess is that the problem _appears_ to be that someone's added a call
+>>>> to debug_check_no_locks_held() into schedule_hrtimeout_range_clock()
+>>>> without considering what this means.
+>>>
+>>>> What it means is that you can't now use usleep_range() from within any
+>>>> driver probe function - which is absolutely absurd.
+>>>
+>>> I can't think of any regulator side changes which might be relevant in
+>>> that period.  It's possible that there might be something in the MFD I
+>>> guess.
+>>>
+>>
+>> Ran a few tests since my original email..
+>>
+>> 6261b06de565baafa590e58a531a1a5522cea0b6 ("regulator: Defer lookup of
+>> supply to regulator_get") was the only patch that was introduced in
+>> the interval. there seems nothing in mfd either.
+>>
+>> I still have the following in my log.. trying to further down.
+> 
+> I noticed a similar warning with AM437x SK
+> 
+posting intermediate debug results:
 
-Executing them as nop is Cortex-A8 specific. On other ARMv7 CPUs, BTB
-invalidation on context switch may be unnecessary yet expensive.
+I did a bisect on the merge commits to identify which tree the
+regression got introduced, looks like it is the merge from akpm tree -
+I have not yet looked deeper.
 
-In general I think you'll want a version with and one without BTB
-flushing, and select depending on CPUID (ID_MMFR1, bits 28-31), with
-overrides for known processor issues (i.e. the cortex-a8 has a wrong
-value there in all cases: it reports value 2, while it should be
-treated as 1 or 4 depending on cpu revision).
+b58a6c0b0808 Merge branch 'akpm-current/current'
+---> FAIL http://paste.ubuntu.org.cn/2540641
 
+ef31288bdf44 Merge remote-tracking branch 'livepatching/for-next'
+--> OK -> http://paste.ubuntu.org.cn/2540778
 
-On 6 April 2015 at 19:42, Tony Lindgren <tony@atomide.com> wrote:
-> Hmm but it still seems to do something also on cortex-a8 r3p2 that
-> is supposedly not affected by 430973.. Based on my tests so far, at least
-> armhf running cpuburn-a8 in the background and doing apt-get update
-> segfaults constantly without flush BTAC/BTB. This seems to be the case
-> no matter how the aux ctrl reg bits are set..
+Felipe, could you confirm on your end as well on SK (my fs does not
+use systemd unfortunately)?
 
-That sounds.... really odd.  The TRM is fairly explicit about BTB
-flush executing as nop when IBE is not set. Of course the TRM is not
-exactly flawless, but still...
-
-
->> 2. For Cortex-A8 revisions affected by 430973, set IBE bit to 1, set it
->>    to 0 for all others.
-
-Note btw that erratum 687067 affects *all* Cortex-A8 revisions, so
-there's a bit of a catch-22 there. The proper workaround for it
-(zeroing some particular debug register) can only be done in secure
-privileged mode, and there's no straightforward way to check whether
-this has been done.
-
-However, it only affects BTB invalidate by MVA, afaik BTB invalidate
-all is safe.
-
->>  That should happen as soon as possible,
->>  otherwise kernel may crash on affected revisions if thumb-compiled.
-
-The right place to do this to be honest would be in the bootloader,
-but I guess that's not always convenient to arrange...
-
-Matthijs
+-- 
+Regards,
+Nishanth Menon
