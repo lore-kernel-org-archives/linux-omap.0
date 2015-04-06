@@ -1,83 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Mon, 6 Apr 2015 08:19:40 -0700
-Message-ID: <20150406151939.GG18048@atomide.com>
-References: <20150403163553.GA16247@earth>
+Date: Mon, 6 Apr 2015 08:24:03 -0700
+Message-ID: <20150406152402.GH18048@atomide.com>
+References: <20150330175051.GK10805@atomide.com>
+ <20150331123233.GA15103@earth>
+ <20150401194734.GT10805@atomide.com>
+ <20150403163553.GA16247@earth>
  <551F0F50.1030701@gmail.com>
  <20150403221517.GX10805@atomide.com>
  <551F186B.90608@gmail.com>
  <20150403225212.GY10805@atomide.com>
  <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
- <5520E2EE.4080302@gmail.com>
- <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com>
- <5521A438.1070008@gmail.com>
- <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
+ <20150405133934.GC9186@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:42328 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:42336 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752877AbbDFPX0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Apr 2015 11:23:26 -0400
+	id S1753142AbbDFP1t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Apr 2015 11:27:49 -0400
 Content-Disposition: inline
-In-Reply-To: <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
+In-Reply-To: <20150405133934.GC9186@earth>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [150405 16:53]:
-> Cortex-A8 errata doc states in its workaround for erratum 430973:
+* Sebastian Reichel <sre@kernel.org> [150405 06:40]:
+> Hi,
 > 
-> > By default, the BTB Invalidate instruction is treated as a NOP on Cortex-A8.
-> > However, it is possible to enable the BTB Invalidate instruction such that it
-> > actually does a full invalidate of the BTB by setting the IBE bit (bit 6) in
-> > the CP15 Auxiliary Control Register. As a consequence of erratum 687067, the
-> > L1 System Array Debug Register should be cleared to 0 before the IBE bit is
-> > set using the following code sequence:
-> > MOV r1, #0
-> > MCR p15, 0, r1, c15, c1, 0            ; write instruction data 0 register
-> > MRC p15, 0, R1, c1, c0, 1             ; read Aux Ctl Register
-> > ORR R1, R1 #(1 << 6)                  ; set IBE to 1
-> > MCR p15, 0, R1, c1, c0, 1             ; write Aux Ctl Register
-> > The above code needs to be executed in Secure state. ARM Limited recommends
-> > that this code is added to the boot monitor.
+> On Sun, Apr 05, 2015 at 06:13:47AM +0200, Matthijs van Duin wrote:
+> > On 4 April 2015 at 00:52, Tony Lindgren <tony@atomide.com> wrote:
+> > > Right, it affects n900 for sure. My point is that it also seems to
+> > > affect 37xx versions not listed to suffer from this issue.
+> > 
+> > They shouldn't... erratum 430973 only affected Cortex-A8 r1, and the
+> > dm37xx should have an r3p2 right?
+> > 
+> > A word of caution though: at least on the DM814x and AM335x, secure
+> > ROM sets bit 6 (IBE) in the Auxiliary Control Register, thereby
+> > enabling BTB invalidate instructions (which normally execute as nops).
+> > This is presumably a leftover of the erratum 430973 workaround, but it
+> > means there is a risk of running afoul of erratum 687067 if BTB
+> > invalidate by MVA instructions are actually used.
+> > 
+> > I would actually suggest clearing IBE if it set on Cortex-A8 r2 or
+> > later processors and a secure monitor call is available to do so
+> > (there is on the DM814x and AM335x, dunno about the 37xx), also for
+> > performance reasons: BTB invalidates are quite expensive instructions
+> > (when enabled).
 > 
-> The 430973 workaround code in proc-v7.S will do absolutely nothing if
-> executed in non-secure state. Ditto for the 458693 workaround, and the
-> 460075 workaround should trigger an undefined instruction exception.
-> Maybe linux is started in secure mode on some targets and this code
-> was written for one of those?
+> So if I understand the issue correct, it would be ok to enable the
+> 430973 workaround in cpu_v7_switch_mm for arm multiplatform kernels
+> (mcr p15, 0, r2, c7, c5, 6 @ flush BTAC/BTB). On unaffected
+> Cortex-A8 platforms the IBE bit should be unset (resulting in a nop
+> instead of the BTB flush).
 
-That's only for HS omaps, for those we currently only do it in the
-nokia_n900_legacy_init that calls rx51_secure_update_aux_cr.
+Well we only want to enable for cortex-a8 revisions affected by
+430973, so a custom cpu_v7_switch_mm seems like the way to go there.
 
-> I scanned DM814x secure ROM for any (ARM or Thumb) write to
-> Instruction L1 System Array Debug Register 0, but I found none, hence
-> my warning to watch out for erratum 687067.
-
-OK
+And then we need checks for clearing IBE for unaffected cortex-a8
+revisions. I'll check to today if I have IBE bit set on the systems
+where I'm seeing issues that should not be affected by 430973.
  
-> Adding the full set of BTB invalidates while making sure IBE is
-> disabled on sufficiently recent Cortex-A8 revisions would be optimal
-> for the Cortex-A8. But, apparently (based on the description of the
-> ARMv7 CPUID registers) there are also processors which only require
-> BTB invalidates when code is modified, but not when context-switching,
-> so there may be performance considerations there...
+> So assuming, that the same is true for non Cortex-A8 platforms: Can
+> the workaround simply be enabled by default if CPU_V7 is selected?
 
-Attempting to summarize all that's been discussed.. It sounds like we
-need the following implemented:
-
-1. For cortex-a8 revisions affected by 458693, we can do a custom
-   cpu_v7_switch_mm function that always does flush BTAC/BTB.
-
-2. For HS cortex-a8 processors other than n900 affected by 458693,
-   we need to implement functions similar to rx51_secure_update_aux_cr,
-   the bootrom on n900 is different from TI HS omaps so the SMC call
-   numbering may be different.
-
-3. For later cortex-a8 processors not affected by 458693, we need
-   to clear IBE bit to avoid erratum 687067.
+It should be enabled conditionally.
 
 Regards,
 
