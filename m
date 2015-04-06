@@ -1,103 +1,94 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: LDP: next-20150402: twl4030 regression?
-Date: Mon, 6 Apr 2015 10:27:50 -0500
-Message-ID: <20150406152750.GE11160@saruman.tx.rr.com>
-References: <5522886D.5050409@ti.com>
- <20150406134541.GE6023@sirena.org.uk>
- <55228FE0.2040702@ti.com>
- <20150406135829.GH4027@n2100.arm.linux.org.uk>
- <20150406150127.GF6023@sirena.org.uk>
- <5522A391.6080503@ti.com>
-Reply-To: <balbi@ti.com>
+From: Ryan <ryanphilips19@googlemail.com>
+Subject: Re: omap voltage management
+Date: Mon, 6 Apr 2015 21:06:29 +0530
+Message-ID: <CANMsd00+fRi=gwXh-jdXQ0NhxPzzUf4-DHY8k8ZK1LBni0YFYQ@mail.gmail.com>
+References: <CAJ2oMhKGG9YrM4+rVdi2wZP=y4OBmCkw3GjgwBq-HpvtbWyNVg@mail.gmail.com>
+	<20150319202750.GM31346@atomide.com>
+	<CAJ2oMhLTH5ix0-6i=bzyqsGVuhf3aJUY5RhYyDLacdKOTCLNRg@mail.gmail.com>
+	<CAJ2oMhKLL8O2Pngg4=YwLmOMApvnJm9UPUhu+SJ421H72ONhTg@mail.gmail.com>
+	<20150325214725.GC31346@atomide.com>
+	<CAGo_u6rjAfzZ9YO0xDFcZQi1Su6fThn8xaKUAJ2xH_jK-Lf8mw@mail.gmail.com>
+	<CANMsd02X43ZpL3PkLJKYKXtTutfi9t=-CUYvxET0DA1jgVm7DA@mail.gmail.com>
+	<551BF6EA.6060900@ti.com>
+	<CANMsd02ULXNRT7fpX=Ry+AADosY2OAbdTxGKb2WhJnMXv2zVwQ@mail.gmail.com>
+	<55228570.9040504@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a+b56+3nqLzpiR9O"
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5522A391.6080503@ti.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-next@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:36581 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752891AbbDFPga (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2015 11:36:30 -0400
+Received: by igblo3 with SMTP id lo3so23885548igb.1
+        for <linux-omap@vger.kernel.org>; Mon, 06 Apr 2015 08:36:29 -0700 (PDT)
+In-Reply-To: <55228570.9040504@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Ran Shalit <ranshalit@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
---a+b56+3nqLzpiR9O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Nishanth,
 
-Hi,
+On Mon, Apr 6, 2015 at 6:39 PM, Nishanth Menon <nm@ti.com> wrote:
+> On 04/06/2015 06:42 AM, Ryan wrote:
+>>
+>> On Wed, Apr 1, 2015 at 7:17 PM, Nishanth Menon <nm@ti.com> wrote:
+>>>
+>>> On 04/01/2015 08:18 AM, Ryan wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> I would like to ask a related question here
+>>>
+>>> Please try not to top post :).
+>>>
+>>>>
+>>>> If i use performance governor alone - constantly running at the
+>>>> highest frequency. Does the smart reflex still has a role to play?
+>>>
+>>> Yes. cpufreq governor are just policies - cpufreq policies just
+>>> selects a frequency to run the CPU from a list of frequencies. for
+>>> each frequency to be achieved, there is ABB, AVS configuration needed
+>>> (strategy specific to SoC).
+>>
+>>
+>> I was trying to find out where exactly the voltages for core and IVA
+>> are set in the code.
+>
+>
+> The generic layer for dvfs is yet to be implemented in k.org.
+>
 
-On Mon, Apr 06, 2015 at 10:17:37AM -0500, Nishanth Menon wrote:
-> On 04/06/2015 10:01 AM, Mark Brown wrote:
-> > On Mon, Apr 06, 2015 at 02:58:29PM +0100, Russell King - ARM Linux wrot=
-e:
-> >> On Mon, Apr 06, 2015 at 08:53:36AM -0500, Nishanth Menon wrote:
-> >=20
-> >>>> at least a description of the problem you're seeing and some attempt=
- at
-> >=20
-> >>> Test was a simple boot test. There seems to be a lockdep reported at =
-the
-> >>> very least in the log provided (see
-> >>> https://github.com/nmenon/kernel-test-logs/blob/next-20150402/omap2pl=
-us_defconfig/ldp.txt#L488
-> >>> ).
-> >=20
-> >> I think what Mark is trying to say is to include a fuller description =
-of
-> >> the problem, and don't expect people to fire up their web browser to g=
-et
-> >> a basic overview of what the problem is.
-> >=20
-> > Yes, indeed.  I hadn't actually opened the links, I might've got round
-> > to it later on.
-> >=20
-> >> My guess is that the problem _appears_ to be that someone's added a ca=
-ll
-> >> to debug_check_no_locks_held() into schedule_hrtimeout_range_clock()
-> >> without considering what this means.
-> >=20
-> >> What it means is that you can't now use usleep_range() from within any
-> >> driver probe function - which is absolutely absurd.
-> >=20
-> > I can't think of any regulator side changes which might be relevant in
-> > that period.  It's possible that there might be something in the MFD I
-> > guess.
-> >=20
->=20
-> Ran a few tests since my original email..
->=20
-> 6261b06de565baafa590e58a531a1a5522cea0b6 ("regulator: Defer lookup of
-> supply to regulator_get") was the only patch that was introduced in
-> the interval. there seems nothing in mfd either.
->=20
-> I still have the following in my log.. trying to further down.
+I am using a older TI Kernel. I thought this will a good starting
+point to understand
+as the platform i am working on uses this. if you could provide some pointers
+on who initiates the voltage transition and how for each freq. It
+would be highly helpful. I did add prints and start tracing
+It became too complex for me to fully get a understanding.
 
-I noticed a similar warning with AM437x SK
+http://git.omapzoom.org/?p=kernel/omap.git;a=tree;h=refs/heads/p-android-omap-3.0;hb=refs/heads/p-android-omap-3.0
 
---=20
-balbi
+>> Are they set whenever for every frequency change? - I see that the
+>
+>
+> yes.
+>
+>> table is divided into OPP50, OPP100 and
+>> so on but was not able to trace the entire path.
+>>
 
---a+b56+3nqLzpiR9O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Say if i use a lower freq (OPP50) - Apart from MPU - Should both core
+and iva voltages should
+also be set to opp50 voltages as listed in omap446x_vdd_core_volt_data
+and omap446x_vdd_core_volt_data?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVIqX2AAoJEIaOsuA1yqREhVcQAJ4BHB+MkkMMMZ0FfEx1bXlF
-OcTL1InW4zJ8dTnvrbsjufre0w986n1vYfG86kPUp/wVu3TBeK0u/UNlGgBAtSpO
-ZIWnZiJ+JurD7uWGvmnkJJwtgKQ2neykCZMFg2EzReaKKYv0i4FEdbTQvV6tqsZP
-UbcdgcGEZWRtg2GZ6owbxV3+kwZyzmDaSmu9NqQhQLu5fy6W9ubxcCD+4JW3eQdd
-gHW+R0+Mr3I2F3XZsdWeWlE5vMfuuu5vdvsrSshiEZ2MpKm9/xPvKapveCMFmaHb
-j+8GeXz5YFXAvRTG+Q/zXizFS5dnoiFp1ZNHvOeaFWPwnq+xLqzmOW8uOydV+7T5
-OfVqHULZqJVtuQluqvavjkfsLIKeGRDjnoU3a8JCYnUvPgNzbSwPGaJ0o+rl8gOC
-pI/6OF0x1XvZE9PWX1ZY++W78U7nLnoOmfwhTfHy/mLrCiJzVv9769DB7uHq7ije
-dWPmM9lL41upLm9ZwU4s3FHMm66Ixo3mGITUje7Tr0T08bABlkfYgGXFJjFsQDRR
-2Fbod5hZyvrViFmHreYFFUHq/tAtRUSFIxhYzWUWZELej/bgV79NF/Nlnn2BfIhU
-LSbROeLHoI3WYh1kOAoR8ek3wivs6w3+5V33WlUkhpPROabfQBS+xSZM6sPPVul0
-egsHQn/xuQ4QNNBFxOpS
-=XVDT
------END PGP SIGNATURE-----
-
---a+b56+3nqLzpiR9O--
+>> Also, does smartreflex framework uses the same path to change the
+>> voltages (omap446x_vdd_core_volt_data,
+>> omap446x_vdd_core_volt_data)
+>
+>
+> 4460 on Panda-es does not have an implementation yet.
+> --
+> Regards,
+> Nishanth Menon
+>
