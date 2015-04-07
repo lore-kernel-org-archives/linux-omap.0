@@ -1,27 +1,29 @@
 From: Eduardo Valentin <edubezval@gmail.com>
 Subject: Re: [PATCHv2] ti-soc-thermal: implement omap3 support
-Date: Tue, 7 Apr 2015 11:57:31 -0700
-Message-ID: <20150407185718.GA4203@localhost.localdomain>
+Date: Tue, 7 Apr 2015 12:09:08 -0700
+Message-ID: <20150407190907.GB4203@localhost.localdomain>
 References: <20150103114632.GA21883@amd>
  <20150118202447.GA29014@amd>
  <20150331084234.GA11712@amd>
  <20150402144907.GB11687@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="CUfgB8w4ZwR/yMy5"
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20150402144907.GB11687@amd>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
 Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---tThc/1wpZn/ma/RB
+--CUfgB8w4ZwR/yMy5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+
+Hi Pavel,
 
 On Thu, Apr 02, 2015 at 04:49:07PM +0200, Pavel Machek wrote:
 >=20
@@ -35,6 +37,15 @@ On Thu, Apr 02, 2015 at 04:49:07PM +0200, Pavel Machek wrote:
 >=20
 > Patch is against thermal linus tree, please apply so that it has
 > chance for 4.1.
+
+I thought of accepting this one the way it and amending the message
+myself, but you missed the DT example.=20
+
+Actually it is bests, as I already mention, that you send the patch
+together with the DT changes too.=20
+
+Can you please resend this one with the following (minor) changes:
+
 >=20
 > v2: fixed min/max temp
 >=20
@@ -200,12 +211,12 @@ l/ti-soc-thermal/ti-bandgap.c
 > +	if (TI_BANDGAP_HAS(bgp, UNRELIABLE))
 > +		dev_warn(&pdev->dev,
 > +			 "OMAP3 thermal sensor is unreliable and normally unneccessary\n");
-		For now we have only one unreliable sensor. But once one
-		is in, I am pretty sure other people will ask for more
-		:-). Therefore, I am accepting this patch but with the
-		message like this:
+
+1. Change this message to be more generic:
+
 +		dev_warn(&pdev->dev,
 +			 "This OMAP thermal sensor is unreliable. You've been warned\n");
+
 
 > +
 >  	if (TI_BANDGAP_HAS(bgp, TSHUT)) {
@@ -265,6 +276,13 @@ p, int id, void *data);
 >    - "ti,omap4430-bandgap" : for OMAP4430 bandgap
 >    - "ti,omap4460-bandgap" : for OMAP4460 bandgap
 >    - "ti,omap4470-bandgap" : for OMAP4470 bandgap
+
+2. Add an example of OMAP3 configuration in the example section.
+You have forgotten to add an example. Please send a version that fully
+updates the documentation.
+
+3. Also send the proposed DT changes in a separated patch so we can
+review everything together. And test too.
 >=20
 >=20
 > --=20
@@ -272,20 +290,20 @@ p, int id, void *data);
 > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
 log.html
 
---tThc/1wpZn/ma/RB
+--CUfgB8w4ZwR/yMy5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQEcBAEBAgAGBQJVJCiBAAoJEMLUO4d9pOJWbBAH/i9cZMSZTSyCA1x9x16SypJG
-hFm7BvsVREiXmR5mnpgcZwo4riDaRn4ZJLPsH2W8fb7hTWBAMKnqLzf4SsGJiV22
-1h7vpXGSok0Q0O4Pa838QYdhwm39ixAxLADOlbMQaUwUWVgqvrcLLTBM245WUnxs
-LG4hAZL19kbdFau84YhgyoNTysd+AvA8m4EjiKjZmzADjxOnyy6xlq3DBU5SXyNA
-TVUb2ZhMso4FsYCR58g8b/ZqA1diyRhJWsfTdS3guM+yyjwtLdsuJno3aX/E1D1S
-5ZqxoiASECQRMHTFi1j4M3YiBln/czlkpIvfjN29+prMChdT2J9BAdNMkdoftdI=
-=FGrt
+iQEcBAEBAgAGBQJVJCtMAAoJEMLUO4d9pOJWXpMIAJOaar3/82mZWCgaOob0k8vd
+Vl/DIdnMdaQ9r0oFP9sx+eZh0tuYKI0Mx7C0HNkC1dXjW9+VriXn3L7W+iXd6mJ1
+zBQsoiJwJUcsOltK/kOB0UpLIrICtBlwa1n6M7nfWMMJ9K7FIrOsq53oLWwLu/7U
+gbUfKzY/ygAXECa6Gpq6ZyDNjkm87hNu4dVLILpSNKIwZ/ZsuvKAmkeXbDH3Hc9h
+KbHffQOJnwkKav/aAkQBuC9szk8/KEdbQMvYyg97NBBM5kwpGvfLXk9hIXz5wxn8
+e2ghahgUXcL5TkAou3XBZr0C0uUVxRdOqtzqiXSgWb4uXmB3FH5cbVLaQYClbLc=
+=JD8S
 -----END PGP SIGNATURE-----
 
---tThc/1wpZn/ma/RB--
+--CUfgB8w4ZwR/yMy5--
