@@ -1,41 +1,69 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 06/14] clkdev: add clkdev_create() helper
-Date: Tue, 07 Apr 2015 16:09:39 -0700
-Message-ID: <552463B3.4040804@codeaurora.org>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye59J-0001BF-CZ@rmk-PC.arm.linux.org.uk> <5522EA55.5080804@codeaurora.org> <20150407124342.GJ4027@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH] mm/migrate: Mark unmap_and_move() "noinline" to avoid ICE in gcc 4.7.3
+Date: Tue, 07 Apr 2015 16:27:44 -0700
+Message-ID: <7hiod7o6xb.fsf@deeprootsystems.com>
+References: <20150324004537.GA24816@verge.net.au>
+	<CAKv+Gu-0jPk=KQ4gY32ELc+BVbe=1QdcrwQ+Pb=RkdwO9K3Vkw@mail.gmail.com>
+	<20150324161358.GA694@kahuna> <20150326003939.GA25368@verge.net.au>
+	<20150326133631.GB2805@arm.com>
+	<CANMBJr68dsbYvvHUzy6U4m4fEM6nq8dVHBH4kLQ=0c4QNOhLPQ@mail.gmail.com>
+	<20150327002554.GA5527@verge.net.au> <20150327100612.GB1562@arm.com>
+	<7hbnj99epe.fsf@deeprootsystems.com>
+	<CAKv+Gu_ZHZFm-1eXn+r7fkEHOxqSmj+Q+Mmy7k6LK531vSfAjQ@mail.gmail.com>
+	<7h8uec95t2.fsf@deeprootsystems.com>
+	<alpine.DEB.2.10.1504011130030.14762@ayla.of.borg>
+	<551BBEC5.7070801@arm.com>
+	<20150401124007.20c440cc43a482f698f461b8@linux-foundation.org>
+	<7hwq1v4iq4.fsf@deeprootsystems.com>
+	<CAMAWPa_YEJDQc=_60_sPqzwLYN8Yefzcko_rydxrt8oOCq20gw@mail.gmail.com>
+	<20150407131740.ac8a856537fecb1b5d142f5f@linux-foundation.org>
+	<7hpp7fo92b.fsf@deeprootsystems.com>
+	<20150407155310.a3e9dfb6d929a968c4bfc286@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20150407124342.GJ4027@n2100.arm.linux.org.uk>
-Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Content-Type: text/plain
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20150407155310.a3e9dfb6d929a968c4bfc286@linux-foundation.org>
+	(Andrew Morton's message of "Tue, 7 Apr 2015 15:53:10 -0700")
+Sender: owner-linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Simon Horman <horms@verge.net.au>, Tyler Baker <tyler.baker@linaro.org>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Magnus Damm <magnus.damm@gmail.com>, "grygorii.strashko@linaro.org" <grygorii.strashko@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Development <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/07/15 05:43, Russell King - ARM Linux wrote:
-> On Mon, Apr 06, 2015 at 01:19:33PM -0700, Stephen Boyd wrote:
->> On 04/03/15 10:12, Russell King wrote:
->>> @@ -316,6 +329,29 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
->>>  }
->>>  EXPORT_SYMBOL(clkdev_alloc);
->>>  
->>> +/**
->>> + * clkdev_create - allocate and add a clkdev lookup structure
->>> + * @clk: struct clk to associate with all clk_lookups
->>> + * @con_id: connection ID string on device
->>> + * @dev_fmt: format string describing device name
->>> + *
->>> + * Returns a clk_lookup structure, which can be later unregistered and
->>> + * freed.
->> Please add that this returns NULL on failure.
-> Will do, but please remember that _I'm_ taking the clkdev patches through
-> my tree, as I'm the maintainer for clkdev.  Thanks.
+Andrew Morton <akpm@linux-foundation.org> writes:
+
+> On Tue, 07 Apr 2015 15:41:32 -0700 Kevin Hilman <khilman@kernel.org> wrote:
 >
+>> Andrew Morton <akpm@linux-foundation.org> writes:
+>> 
+>> > On Tue, 7 Apr 2015 10:57:52 -0700 Kevin Hilman <khilman@kernel.org> wrote:
+>> >
+>> >> > The diff below[2] on top of yours compiles fine here and at least covers
+>> >> > the compilers I *know* to trigger the ICE.
+>> >> 
+>> >> I see my fix in your mmots since last Thurs (4/2), but it's not in
+>> >> mmotm (last updated today) so today's linux-next still has the ICE for
+>> >> anything other than gcc-4.7.3.   Just checking to see when you plan to
+>> >> update mmotm.
+>> >
+>> > It should all be there today?
+>> 
+>> Nope.  
+>
+> huh, I swear I did an mmotm yesterday.
 
-Sounds good to me. Thanks.
+Well, based on the timestamp of the mmotm dir on ozlabs, it appears you
+did.  That's why I was confused why the gcc-473 patches from mmots aren't
+there.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+> Let me see if I can sort out the watchdog mess and produce something
+> releasable...
 
+OK, thanks.
+
+Kevin
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
