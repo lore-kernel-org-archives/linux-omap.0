@@ -1,48 +1,49 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
-Date: Tue, 07 Apr 2015 12:42:52 +0300
-Message-ID: <1894989.AGoQvgsks0@avalon>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <36620233.VbNiGUfDRt@avalon> <20150405142034.GG4027@n2100.arm.linux.org.uk>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias() prototype in linux/clk.h
+Date: Tue, 07 Apr 2015 12:05:19 +0200
+Message-ID: <871tjws17k.fsf@free.fr>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+	<E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk> <87lhi8rrmd.fsf@free.fr>
+	<5522D8B5.7050205@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20150405142034.GG4027@n2100.arm.linux.org.uk>
 Sender: linux-sh-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, sakari.ailus@iki.fi
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>, alsa-devel@alsa-project.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Russell,
+Stephen Boyd <sboyd@codeaurora.org> writes:
 
-On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
-> On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
-> > Hi Russell,
-> > 
-> > Thank you for the patch;
-> > 
-> > On Friday 03 April 2015 18:12:58 Russell King wrote:
-> > > No merged platform supplies xclks via platform data.  As we want to
-> > > slightly change the clkdev interface, rather than fixing this unused
-> > > code, remove it instead.
-> > > 
-> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > with one caveat though : it conflicts with patches queued for v4.1 in the
-> > media tree. I'll post a rebased version in a reply to your e-mail. How
-> > would you like to handle the conflict ?
-> 
-> How bad is the conflict?
+> On 04/04/15 05:43, Robert Jarzmik wrote:
+>> Russell King <rmk+kernel@arm.linux.org.uk> writes:
+>>
+>>> clk_add_alias() is provided by clkdev, and is not part of the clk API.
+>>> Howver, it is prototyped in two locations: linux/clkdev.h and
+>>> linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
+>>> version in linux/clk.h.
+>>>
+>>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>> Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+>>
+>> Actually, this serie fixes a regression I've seen in linux-next, and which was
+>> triggering the Oops in [1] on lubbock. With your serie, the kernel boots fine.
+>>
+>>
+>
+> Is this with the lubbock_defconfig? Is it a regression in 4.0-rc series
+> or is it due to some pending -next patches interacting with the per-user
+> clock patches? It looks like the latter because __clk_get_hw() should be
+> inlined on lubbock_defconfig where CONFIG_COMMON_CLK=n.
 
-It's not too bad, it's mostly a context-related conflict. There are two 
-additional lines to remove (plus the associated comment) from isp_xclk_init(), 
-as your patch makes a loop now terminate with if (condition) continue;. Those 
-two lines could be removed later, keeping them doesn't break anything.
+It's upon linux-next and the "not yet pulled" pxa tree merged :
+ - http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/331119.html
+I think it will appear once arm-soc has been prepared for linux-next and pulled.
+
+This specific merge window will shift pxa architecture to common clock
+framework, that's why I saw the regression.
+
+Cheers.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Robert
