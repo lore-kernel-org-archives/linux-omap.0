@@ -1,172 +1,63 @@
 From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2] thermal: ti-soc-thermal: dra7: Implement Workaround
- for Errata i814 - Bandgap Temperature read Dtemp can be corrupted
-Date: Tue, 7 Apr 2015 08:50:04 +0530
-Message-ID: <55234CE4.5070901@ti.com>
-References: <1427445901-8461-1-git-send-email-j-keerthy@ti.com>
+Subject: Re: [rtc-linux] [PATCH] rtc: OMAP: Add external 32k clock feature
+Date: Tue, 7 Apr 2015 08:59:41 +0530
+Message-ID: <55234F25.5060708@ti.com>
+References: <1425375722-13412-1-git-send-email-j-keerthy@ti.com> <20150324155916.cfd1b7ab442271466160283f@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1427445901-8461-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com, rui.zhang@intel.com
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150324155916.cfd1b7ab442271466160283f@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, rtc-linux@googlegroups.com
+Cc: Keerthy <j-keerthy@ti.com>, a.zummo@towertech.it, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Eduardo,
+Hi Andrew,
 
-On Friday 27 March 2015 02:15 PM, Keerthy wrote:
-> Bandgap Temperature read Dtemp can be corrupted
+Apologies for replying late.
+
+On Wednesday 25 March 2015 04:29 AM, Andrew Morton wrote:
+> On Tue, 3 Mar 2015 15:12:02 +0530 Keerthy <j-keerthy@ti.com> wrote:
 >
-> DESCRIPTION
->          Read accesses to registers listed below can be corrupted due=
- to incorrect resynchronization between
->          clock domains.
+>> Add external 32k clock feature. The internal clock will be gated during suspend.
+>> Hence make use of the external 32k clock so that rtc is functional accross
+>> suspend/resume.
+>>
+>> ...
+>>
+>> @@ -446,6 +449,7 @@ static const struct omap_rtc_device_type omap_rtc_default_type = {
+>>
+>>   static const struct omap_rtc_device_type omap_rtc_am3352_type = {
+>>   	.has_32kclk_en	= true,
+>> +	.has_osc_ext_32k = true,
+>>   	.has_kicker	= true,
+>>   	.has_irqwakeen	= true,
+>>   	.has_pmic_mode	= true,
+>> @@ -543,7 +547,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+>>   	if (rtc->type->has_32kclk_en) {
+>>   		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
+>>   		rtc_writel(rtc, OMAP_RTC_OSC_REG,
+>> -				reg | OMAP_RTC_OSC_32KCLK_EN);
+>> +			   reg | OMAP_RTC_OSC_32KCLK_EN);
+>> +	}
+>> +
+>> +	/* Enable External clock as the source */
+>> +
+>> +	if (rtc->type->has_osc_ext_32k) {
+>> +		rtc_writel(rtc, OMAP_RTC_OSC_REG,
+>> +			   (OMAP_RTC_OSC_EXT_32K |
+>> +			   rtc_read(rtc, OMAP_RTC_OSC_REG)) &
+>> +			   (~OMAP_RTC_OSC_OSC32K_GZ));
+>>   	}
 >
->          Read access to registers below can be corrupted :
->                  =E2=80=A2 CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n =
-(n =3D 0 to 4)
->          =E2=80=A2 CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
->
-> WORKAROUND
->          Multiple reads to CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/=
-IVA[9:0]:
->          BGAP_DTEMPMPU/GPU/CORE/DSPEVE/IVA is needed to discard false=
- value and read right value:
->                  1. Perform two successive reads to BGAP_DTEMP bit fi=
-eld.
->                          (a) If read1 returns Val1 and read2 returns =
-Val1, then right value is Val1.
->                          (b) If read1 returns Val1, read 2 returns Va=
-l2, a third read is needed.
->                  2. Perform third read
->                          (a) If read3 returns Val2 then right value i=
-s Val2.
->                          (b) If read3 returns Val3, then right value =
-is Val3.
+> How do we know that all systems have this external clock and that it
+> works OK?
 >
 
-A gentle ping on this.
+AM335 and AM43X have the external clock feature which we choose using 
+RTC_OSC_REG. I verified it works OK by seeing the RTC seconds ticking 
+even after switching the source to the external 32k Clock.
 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->
-> Read all the temperatures from the 5 sensors and saw that
-> they were sane with time.
->
-> Ran cpuloadgen and saw that temperatures rising on all the sensors
-> and cooled down as soon as the load was reduced.
->
->   .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
->   drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 37 +++++++++++=
-++++++++++-
->   drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  4 +++
->   3 files changed, 42 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/d=
-rivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-> index a492927..58b5c66 100644
-> --- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-> +++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-> @@ -420,7 +420,8 @@ const struct ti_bandgap_data dra752_data =3D {
->   			TI_BANDGAP_FEATURE_FREEZE_BIT |
->   			TI_BANDGAP_FEATURE_TALERT |
->   			TI_BANDGAP_FEATURE_COUNTER_DELAY |
-> -			TI_BANDGAP_FEATURE_HISTORY_BUFFER,
-> +			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
-> +			TI_BANDGAP_FEATURE_ERRATA_814,
->   	.fclock_name =3D "l3instr_ts_gclk_div",
->   	.div_ck_name =3D "l3instr_ts_gclk_div",
->   	.conv_table =3D dra752_adc_to_temp,
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/th=
-ermal/ti-soc-thermal/ti-bandgap.c
-> index 74c0e34..baf822e 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> @@ -119,6 +119,37 @@ exit:
->   }
->
->   /**
-> + * ti_dra7_bandgap_read_temp() - helper function to read dra7 sensor=
- temperature
-> + * @bgp: pointer to ti_bandgap structure
-> + * @reg: desired register (offset) to be read
-> + *
-> + * Function to read dra7 bandgap sensor temperature. This is done se=
-parately
-> + * so as to workaround the errata "Bandgap Temperature read Dtemp ca=
-n be
-> + * corrupted" - Errata ID: i814".
-> + * Read accesses to registers listed below can be corrupted due to i=
-ncorrect
-> + * resynchronization between clock domains.
-> + * Read access to registers below can be corrupted :
-> + * CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =3D 0 to 4)
-> + * CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
-> + *
-> + * Return: the register value.
-> + */
-> +static u32 ti_dra7_bandgap_read_temp(struct ti_bandgap *bgp,  u32 re=
-g)
-> +{
-> +	u32 val1, val2;
-> +
-> +	val1 =3D ti_bandgap_readl(bgp, reg);
-> +	val2 =3D ti_bandgap_readl(bgp, reg);
-> +
-> +/* If both times we read the same value then that is right */
-> +	if (val1 =3D=3D val2)
-> +		return val1;
-> +
-> +/* if val1 and val2 are different read it third time */
-> +	return ti_bandgap_readl(bgp, reg);
-> +}
-> +
-> +/**
->    * ti_bandgap_read_temp() - helper function to read sensor temperat=
-ure
->    * @bgp: pointer to ti_bandgap structure
->    * @id: bandgap sensor id
-> @@ -148,7 +179,11 @@ static u32 ti_bandgap_read_temp(struct ti_bandga=
-p *bgp, int id)
->   	}
->
->   	/* read temperature */
-> -	temp =3D ti_bandgap_readl(bgp, reg);
-> +	if (TI_BANDGAP_HAS(bgp, ERRATA_814))
-> +		temp =3D ti_dra7_bandgap_read_temp(bgp, reg);
-> +	else
-> +		temp =3D ti_bandgap_readl(bgp, reg);
-> +
->   	temp &=3D tsr->bgap_dtemp_mask;
->
->   	if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/th=
-ermal/ti-soc-thermal/ti-bandgap.h
-> index b3adf72..b2da3fc 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> @@ -318,6 +318,9 @@ struct ti_temp_sensor {
->    * TI_BANDGAP_FEATURE_HISTORY_BUFFER - used when the bandgap device=
- features
->    *	a history buffer of temperatures.
->    *
-> + * TI_BANDGAP_FEATURE_ERRATA_814 - used to workaorund when the bandg=
-ap device
-> + *	has Errata 814
-> + *
->    * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is cap=
-able of a
->    *      specific feature (above) or not. Return non-zero, if yes.
->    */
-> @@ -331,6 +334,7 @@ struct ti_temp_sensor {
->   #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
->   #define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
->   #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
-> +#define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
->   #define TI_BANDGAP_HAS(b, f)			\
->   			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
->
->
+Regards,
+Keerthy
