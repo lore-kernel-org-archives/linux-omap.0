@@ -1,76 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 03/10] ARM: DRA7: hwmod: set DSS submodule parent hwmods
-Date: Tue, 7 Apr 2015 15:16:50 +0300
-Message-ID: <5523CAB2.30807@ti.com>
-References: <1427208910-17678-1-git-send-email-tomi.valkeinen@ti.com> <1427208910-17678-4-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1504031902470.19540@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias()
+ prototype in linux/clk.h
+Date: Tue, 7 Apr 2015 13:42:25 +0100
+Message-ID: <20150407124225.GI4027@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+ <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk>
+ <87lhi8rrmd.fsf@free.fr>
+ <5522D8B5.7050205@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="v4EkQNKc8Ar5u2oHV9MGM0w75WSO8qG1B"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37734 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753415AbbDGMRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Apr 2015 08:17:18 -0400
-In-Reply-To: <alpine.DEB.2.02.1504031902470.19540@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5522D8B5.7050205@codeaurora.org>
+Sender: linux-media-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>, alsa-devel@alsa-project.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
 
---v4EkQNKc8Ar5u2oHV9MGM0w75WSO8qG1B
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Mon, Apr 06, 2015 at 12:04:21PM -0700, Stephen Boyd wrote:
+> On 04/04/15 05:43, Robert Jarzmik wrote:
+> > Russell King <rmk+kernel@arm.linux.org.uk> writes:
+> >
+> >> clk_add_alias() is provided by clkdev, and is not part of the clk API.
+> >> Howver, it is prototyped in two locations: linux/clkdev.h and
+> >> linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
+> >> version in linux/clk.h.
+> >>
+> >> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> >
+> > Actually, this serie fixes a regression I've seen in linux-next, and which was
+> > triggering the Oops in [1] on lubbock. With your serie, the kernel boots fine.
+> >
+> >
+> 
+> Is this with the lubbock_defconfig? Is it a regression in 4.0-rc series
+> or is it due to some pending -next patches interacting with the per-user
+> clock patches? It looks like the latter because __clk_get_hw() should be
+> inlined on lubbock_defconfig where CONFIG_COMMON_CLK=n.
 
-On 03/04/15 22:03, Paul Walmsley wrote:
-> On Tue, 24 Mar 2015, Tomi Valkeinen wrote:
->=20
->> Set DSS core hwmod as the parent for all the DSS submodules.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->=20
-> Thanks, queued.  Will send a pull request for this to Tony today, but i=
-t =20
-> may not make it for v4.1. =20
->=20
-> Note that I cannot boot test this since I do not have a DRA7xx board.
+It's a regression with anything that uses clk_add_alias() or which
+open codes the aliasing of clocks, or registration of clocks into
+clkdev.  It's quite nasty.
 
-As I mentioned in the reply to the pull request, we can't cherry pick
-this patch, we need the HDCP clock.
+The problem is that the way you updated clkdev, by adding __clk_get_hw()
+at clk_get() time, the struct clk which we're passing in there could
+well have been already clk_put()'d, and therefore freed, and no longer
+valid.
 
-This series should be changed so that the HDCP clock is handled in the
-beginning of the series to keep bisect working. I'll do that for the
-next version, which I probably would need to do in any case as Tero's
-series is still under work.
+It's a regression ever since the per-user clk patches went in, caused
+_entirely_ by those patches.
 
-Or if we want to get DRA7 DSS support in earlier, we could just use my
-earlier simple patch which enables the HDCP clock.
-
- Tomi
-
-
-
---v4EkQNKc8Ar5u2oHV9MGM0w75WSO8qG1B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJVI8qyAAoJEPo9qoy8lh71TVAP+wUvf4U+tApJj5JHGh6RgMMk
-r38p2ZRl4N0b83m3vEZZYJRl/2UyvyL/jwPh+KWlVvDdgjHjXLCmXyQPPHr4cA/B
-7C1Sg/QH6aXAckq2ldw/RD0AmWufkP581uqrDlYMh9MVNV8kRwV0QwP1kNPQLb4P
-dOZ1FQpr6urf4MPJECfD2CrB2rbE6gCLAwV1N3SSRWeupeS6eoz0+TjsJxFGyIKI
-nj7/XtuSFUCs5+xoId0iBFXN5XiJLqUbUm0mSNDvqCvA9z7CA0DYhkEKSCi8vPSs
-e53lzJIfY6Rx+K2P5wtavZXQz3otcNXJiHEZpjZ8KyQK74P1Y2wBJwwIMlkARg7g
-oUIzcVWgEK1FktqacsB/fdJtYWIuOSl7yiSSFHMbH/NWLvyQG/8O4CR6zOOioAeR
-9maaqja4bABgLpfqv9p9ReOQtIa2R/jjyXyIZIVKqURsMu4X/DqyZhtMipTO3Hfw
-mTqI+A+YIqppWAtWTD81pv4ZJrY0Lz5cO2PjkCpTd95AWD3M5/qHu3r6T7eXaQ6Q
-QKCdDCfUjymRXGZmyLPqTKZegPoPE8lnM9U2wW7KYTZm68mW1rQoLLQf50UD+qSC
-pnLWfP1M0C3PwQYgOQyoovMNvMWfoV1Rg/Wq10lpuO83D5E1SpDLs0Fyhkeu/SDc
-AKA15y1Z5L6B+KWi59ct
-=1q/v
------END PGP SIGNATURE-----
-
---v4EkQNKc8Ar5u2oHV9MGM0w75WSO8qG1B--
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
