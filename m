@@ -1,71 +1,59 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: [PATCH 10/14] ARM: orion: use clkdev_create()
-Date: Tue, 07 Apr 2015 16:20:39 +0200
-Message-ID: <5523E7B7.9010005@free-electrons.com>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk> <20150404001729.GA14824@lunn.ch> <5523D985.60800@free-electrons.com> <20150407140117.GN4027@n2100.arm.linux.org.uk>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
+Date: Tue, 07 Apr 2015 17:38:41 +0300
+Message-ID: <1734484.Zgs1aYnH8A@avalon>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <1894989.AGoQvgsks0@avalon> <20150407124536.GK4027@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20150407140117.GN4027@n2100.arm.linux.org.uk>
+In-Reply-To: <20150407124536.GK4027@n2100.arm.linux.org.uk>
 Sender: linux-sh-owner@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Andrew Lunn <andrew@lunn.ch>, alsa-devel@alsa-project.org, Jason Cooper <jason@lakedaemon.net>, linux-sh@vger.kernel.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, sakari.ailus@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
 Hi Russell,
 
-On 07/04/2015 16:01, Russell King - ARM Linux wrote:
-> On Tue, Apr 07, 2015 at 03:20:05PM +0200, Gregory CLEMENT wrote:
->> Hi Andrew, Russell,
->>
->> On 04/04/2015 02:17, Andrew Lunn wrote:
->>> On Fri, Apr 03, 2015 at 06:13:13PM +0100, Russell King wrote:
->>>> clkdev_create() is a shorter way to write clkdev_alloc() followed by
->>>> clkdev_add().  Use this instead.
->>>>
->>>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->>>
->>> Acked-by: Andrew Lunn <andrew@lunn.ch>
->>
->> This change makes sens however what about Thomas' comment: removing
->> orion_clkdev_add() entirely and directly using lkdev_create() all over
->> the place:
->> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/327294.html
->>
->> Then what would be the path for this patch?
->>
->> As there is a dependency on the 6th patch of this series: "clkdev: add
->> clkdev_create() helper" which should be merged through the clk tree, I
->> think the best option is that this patch would be also managed by the
->> clk tree maintainer (I added them in CC).
-> 
-> Let me remind people that clkdev is *NOT* part of clk, and that I'm the
-> maintainer for clkdev.
+On Tuesday 07 April 2015 13:45:36 Russell King - ARM Linux wrote:
+> On Tue, Apr 07, 2015 at 12:42:52PM +0300, Laurent Pinchart wrote:
+> > On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
+> > > On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
+> > > > Hi Russell,
+> > > > 
+> > > > Thank you for the patch;
+> > > > 
+> > > > On Friday 03 April 2015 18:12:58 Russell King wrote:
+> > > > > No merged platform supplies xclks via platform data.  As we want to
+> > > > > slightly change the clkdev interface, rather than fixing this unused
+> > > > > code, remove it instead.
+> > > > > 
+> > > > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > > > 
+> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > 
+> > > > with one caveat though : it conflicts with patches queued for v4.1 in
+> > > > the media tree. I'll post a rebased version in a reply to your e-mail.
+> > > > How would you like to handle the conflict ?
+> > > 
+> > > How bad is the conflict?
+> > 
+> > It's not too bad, it's mostly a context-related conflict. There are two
+> > additional lines to remove (plus the associated comment) from
+> > isp_xclk_init(), as your patch makes a loop now terminate with if
+> > (condition) continue;. Those two lines could be removed later, keeping
+> > them doesn't break anything.
+>
+> I think it's fine to take it through the media tree as the series doesn't
+> have any dependencies on this patch.  It was merely attempting to get rid
+> of stuff so that we could move closer to clkdev dealing with a clk_hw
+> rather than a struct clk - but I never made it that far with the series.
+> Maybe at a later date... :)
 
-Sorry for the confusion, I quickly had a look on the MAINTAINERS file and
-didn't realized that the drivers/clk/clkdev.c file was not part of clk
-(even if actually it was mentioned).
-
-> 
-> I'm getting rather pissed off with people taking work away from me, even
-> when I'm named in the MAINTAINERS file.  These patches are going through
-> my tree unless there's a good reason for them not to.  They are _not_
-> going through the clk tree.
-
-So, as you are going to take care of all the patches it is even simpler.
-You can take this one too: in mvebu there is no change on this file for
-this release so there won't be any conflict.
-
-Thanks,
-
-Gregory
-
-
-
+:-) I'll take the patch and send a pull request.
 
 -- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Regards,
+
+Laurent Pinchart
+
