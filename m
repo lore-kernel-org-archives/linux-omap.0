@@ -1,79 +1,48 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [rtc-linux] [PATCH] rtc: OMAP: Add external 32k clock feature
-Date: Tue, 07 Apr 2015 10:06:52 +0300
-Message-ID: <5523820C.2010709@compulab.co.il>
-References: <1425375722-13412-1-git-send-email-j-keerthy@ti.com> <20150324155916.cfd1b7ab442271466160283f@linux-foundation.org> <55234F25.5060708@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
+Date: Tue, 07 Apr 2015 12:42:52 +0300
+Message-ID: <1894989.AGoQvgsks0@avalon>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <36620233.VbNiGUfDRt@avalon> <20150405142034.GG4027@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:54809 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751528AbbDGHG4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Apr 2015 03:06:56 -0400
-In-Reply-To: <55234F25.5060708@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20150405142034.GG4027@n2100.arm.linux.org.uk>
+Sender: linux-sh-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, sakari.ailus@iki.fi
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <a0393675@ti.com>, Andrew Morton <akpm@linux-foundation.org>, rtc-linux@googlegroups.com
-Cc: Keerthy <j-keerthy@ti.com>, a.zummo@towertech.it, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
+Hello Russell,
 
-On 04/07/15 06:29, Keerthy wrote:
-> Hi Andrew,
+On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
+> On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
+> > Hi Russell,
+> > 
+> > Thank you for the patch;
+> > 
+> > On Friday 03 April 2015 18:12:58 Russell King wrote:
+> > > No merged platform supplies xclks via platform data.  As we want to
+> > > slightly change the clkdev interface, rather than fixing this unused
+> > > code, remove it instead.
+> > > 
+> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > with one caveat though : it conflicts with patches queued for v4.1 in the
+> > media tree. I'll post a rebased version in a reply to your e-mail. How
+> > would you like to handle the conflict ?
 > 
-> Apologies for replying late.
-> 
-> On Wednesday 25 March 2015 04:29 AM, Andrew Morton wrote:
->> On Tue, 3 Mar 2015 15:12:02 +0530 Keerthy <j-keerthy@ti.com> wrote:
->>
->>> Add external 32k clock feature. The internal clock will be gated during suspend.
->>> Hence make use of the external 32k clock so that rtc is functional accross
->>> suspend/resume.
->>>
->>> ...
->>>
->>> @@ -446,6 +449,7 @@ static const struct omap_rtc_device_type omap_rtc_default_type = {
->>>
->>>   static const struct omap_rtc_device_type omap_rtc_am3352_type = {
->>>       .has_32kclk_en    = true,
->>> +    .has_osc_ext_32k = true,
->>>       .has_kicker    = true,
->>>       .has_irqwakeen    = true,
->>>       .has_pmic_mode    = true,
->>> @@ -543,7 +547,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->>>       if (rtc->type->has_32kclk_en) {
->>>           reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
->>>           rtc_writel(rtc, OMAP_RTC_OSC_REG,
->>> -                reg | OMAP_RTC_OSC_32KCLK_EN);
->>> +               reg | OMAP_RTC_OSC_32KCLK_EN);
->>> +    }
->>> +
->>> +    /* Enable External clock as the source */
->>> +
->>> +    if (rtc->type->has_osc_ext_32k) {
->>> +        rtc_writel(rtc, OMAP_RTC_OSC_REG,
->>> +               (OMAP_RTC_OSC_EXT_32K |
->>> +               rtc_read(rtc, OMAP_RTC_OSC_REG)) &
->>> +               (~OMAP_RTC_OSC_OSC32K_GZ));
->>>       }
->>
->> How do we know that all systems have this external clock and that it
->> works OK?
->>
-> 
-> AM335 and AM43X have the external clock feature which we choose using
-> RTC_OSC_REG. I verified it works OK by seeing the RTC seconds ticking
-> even after switching the source to the external 32k Clock.
+> How bad is the conflict?
 
-AFAIU, this is related to the external (outside of SoC) oscillator, right?
-If so, there is a possibility to not assemble it on the board (at least
-on AM335) and use the internal clock source instead.
-There are dozens of boards out there that do not have the external
-oscillator assembled.
-
-Am I missing something?
+It's not too bad, it's mostly a context-related conflict. There are two 
+additional lines to remove (plus the associated comment) from isp_xclk_init(), 
+as your patch makes a loop now terminate with if (condition) continue;. Those 
+two lines could be removed later, keeping them doesn't break anything.
 
 -- 
 Regards,
-Igor.
+
+Laurent Pinchart
+
