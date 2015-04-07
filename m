@@ -1,9 +1,8 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Mon, 6 Apr 2015 19:23:13 -0700
-Message-ID: <20150407022312.GK18048@atomide.com>
-References: <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
- <5520E2EE.4080302@gmail.com>
+Date: Tue, 7 Apr 2015 05:12:33 +0200
+Message-ID: <20150407031233.GA16189@earth>
+References: <5520E2EE.4080302@gmail.com>
  <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com>
  <5521A438.1070008@gmail.com>
  <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
@@ -12,87 +11,69 @@ References: <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
  <5522BEEF.2000405@gmail.com>
  <20150406174245.GJ18048@atomide.com>
  <CAALWOA93+ohYJ7Q06H4gVMywzP5=RC3uBkUVXjWMriRBoHzXKQ@mail.gmail.com>
+ <20150407022312.GK18048@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:42500 "EHLO muru.com"
+Received: from mail.kernel.org ([198.145.29.136]:34373 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752988AbbDGC07 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Apr 2015 22:26:59 -0400
+	id S1752688AbbDGDNE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Apr 2015 23:13:04 -0400
 Content-Disposition: inline
-In-Reply-To: <CAALWOA93+ohYJ7Q06H4gVMywzP5=RC3uBkUVXjWMriRBoHzXKQ@mail.gmail.com>
+In-Reply-To: <20150407022312.GK18048@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [150406 11:15]:
-> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [150406 10:15]:
-> > Why custom function, if IBE bit is zero, BTB invalidate instruction is a
-> > NOP. Do you think that "mcr p15, 0, r2, c7, c5, 6" executed as a NOP will
-> > put so much overhead, that it deserves a custom function?
-> 
-> Executing them as nop is Cortex-A8 specific. On other ARMv7 CPUs, BTB
-> invalidation on context switch may be unnecessary yet expensive.
-> 
-> In general I think you'll want a version with and one without BTB
-> flushing, and select depending on CPUID (ID_MMFR1, bits 28-31), with
-> overrides for known processor issues (i.e. the cortex-a8 has a wrong
-> value there in all cases: it reports value 2, while it should be
-> treated as 1 or 4 depending on cpu revision).
-> 
-> 
-> On 6 April 2015 at 19:42, Tony Lindgren <tony@atomide.com> wrote:
-> > Hmm but it still seems to do something also on cortex-a8 r3p2 that
-> > is supposedly not affected by 430973.. Based on my tests so far, at least
-> > armhf running cpuburn-a8 in the background and doing apt-get update
-> > segfaults constantly without flush BTAC/BTB. This seems to be the case
-> > no matter how the aux ctrl reg bits are set..
-> 
-> That sounds.... really odd.  The TRM is fairly explicit about BTB
-> flush executing as nop when IBE is not set. Of course the TRM is not
-> exactly flawless, but still...
 
-Oops, sorry user error.. I was trying to clear IBE as a banked register
-like L2 enable bit and of course it did not get cleared.. Clearing it
-with a smc call really clears it. And in that case my test case seems to
-work reliably on r3p2 without erratum 430973 enabled. 
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Anyways, if the bootloader enables IBE bit, then the kernel must also
-always enable the erratum 430973 flush BTAC/BTB parts on all cortex-a8.
+Hi,
 
-Or else the kernel must clear the IBE bit based on the version, which
-may be trickier with all the SoC and vendor specific smc calls.
- 
-> >> 2. For Cortex-A8 revisions affected by 430973, set IBE bit to 1, set it
-> >>    to 0 for all others.
-> 
-> Note btw that erratum 687067 affects *all* Cortex-A8 revisions, so
-> there's a bit of a catch-22 there. The proper workaround for it
-> (zeroing some particular debug register) can only be done in secure
-> privileged mode, and there's no straightforward way to check whether
-> this has been done.
-> 
-> However, it only affects BTB invalidate by MVA, afaik BTB invalidate
-> all is safe.
+On Mon, Apr 06, 2015 at 07:23:13PM -0700, Tony Lindgren wrote:
+> I'm now thinking the kernel should just always set the 430973 specific
+> cpu_v7_switch_mm for all cortex-a8 if IBE bit is set. That avoids
+> the whole mess of early SoC detection and smc calls. And if IBE bit
+> is not set, then we just use the regular cpu_v7_switch_mm.
+>
+> This will work as long as we can read the aux ctrl register IBE
+> bit using mrc, which I believe is the case for all cortex-a8 based
+> omap variants.
 
-I'm now thinking the kernel should just always set the 430973 specific
-cpu_v7_switch_mm for all cortex-a8 if IBE bit is set. That avoids
-the whole mess of early SoC detection and smc calls. And if IBE bit
-is not set, then we jsut use the rgular cpu_v7_switch_mm.
+If I understood it correctly we can simply call the BTB flush on
+cortex-a8 if IBE bit is not set, since it would be translated as
+nop.
 
-This will work as long as we can read the aux ctrl register IBE
-bit using mrc, which I believe is the case for all cortex-a8 based
-omap variants.
- 
-> >>  That should happen as soon as possible,
-> >>  otherwise kernel may crash on affected revisions if thumb-compiled.
-> 
-> The right place to do this to be honest would be in the bootloader,
-> but I guess that's not always convenient to arrange...
+So it should be safe to include the call on all cortex-a8 based
+cpus. We may need a non-BTB-flushing function for non-cortex-a8
+based cpus, though.
 
-Yeah I agree.
+-- Sebastian
 
-Regards,
+--cNdxnHkX5QqsyA0e
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVI0seAAoJENju1/PIO/qa8NAP/iPMTvtOPWt4zTWItMZIJDKA
+1kjwMMAm+lqDd9s68ZXkKIseQqHSqFVm+UonLoQ4yQ7pyUs7MjY+ld/XXAH+FFpY
+4OIIgjdstUP6hKd1qnyZBcoVb/+QCxDVbJjxSaHrKgGI47x8LzGcZ/4kdMceIaOw
+PuQB9V3wbjQBbPMv49euzpQU95dUYhajzEhkIqqDufEurlmbdFdcgalvzXmdICAS
+2+RgCoF7IwRB97EBjZ0g/i5HvRDY3hb/kdyWHcEDXdnA4c1YnqU/5XGU8KixUizW
+iM6sd9JxXBQT1QG7M4JYbVCK12TYrRw4aBc3bDLWKw7y3btyDQSW7InVdkmJFmAz
+wyj9jX/z4uhkReAECwlZ0sm7MDxIMQn3dSU5CPggmdtqDPZ4cMfWPIDAiTm+1Mse
+lMjFrqwNYj5qX3iiArf6olHp7t76D/eB6N6HqyNjrsHaHuJzzhFp6wJfOmfMODUN
+rOrKHTLP8UpdEI805VvyWTRGbT3GIWX376dRi45UMbOmJFy7HpZxrIKs2yN1vsPV
+2ltArHarV77fbGd5YUuSC/C6trOQ/x4fBrxV+fyMuNH5w+UYLrhmKEwFZXzQ+QqC
+Aad1f5h6PpTQsOD1wMzkzMezOikfw4hFY8JHWvYVNjfWn4azeVzmajK83qDUnGc7
+kuvGIHu2Bk8B1HdT8ton
+=SGFU
+-----END PGP SIGNATURE-----
+
+--cNdxnHkX5QqsyA0e--
