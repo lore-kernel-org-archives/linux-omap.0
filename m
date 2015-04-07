@@ -1,89 +1,173 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: Re: [PATCH 10/14] ARM: orion: use clkdev_create()
-Date: Tue, 07 Apr 2015 15:20:05 +0200
-Message-ID: <5523D985.60800@free-electrons.com>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk> <20150404001729.GA14824@lunn.ch>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Tue, 7 Apr 2015 14:57:13 +0100
+Message-ID: <20150407135713.GL4027@n2100.arm.linux.org.uk>
+References: <20150403225212.GY10805@atomide.com>
+ <CAALWOA-h5SdnGhbckJ+x0efijmNaQxX-8ULjn_J=mCb-UJMeoQ@mail.gmail.com>
+ <5520E2EE.4080302@gmail.com>
+ <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com>
+ <5521A438.1070008@gmail.com>
+ <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
+ <20150406151939.GG18048@atomide.com>
+ <20150406154037.GI18048@atomide.com>
+ <5522BEEF.2000405@gmail.com>
+ <20150406174245.GJ18048@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20150404001729.GA14824@lunn.ch>
-Sender: linux-sh-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>, Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, Jason Cooper <jason@lakedaemon.net>, linux-sh@vger.kernel.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:41174 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755031AbbDGN5b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2015 09:57:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20150406174245.GJ18048@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Matthijs van Duin <matthijsvanduin@gmail.com>
 
-Hi Andrew, Russell,
-
-On 04/04/2015 02:17, Andrew Lunn wrote:
-> On Fri, Apr 03, 2015 at 06:13:13PM +0100, Russell King wrote:
->> clkdev_create() is a shorter way to write clkdev_alloc() followed by
->> clkdev_add().  Use this instead.
->>
->> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On Mon, Apr 06, 2015 at 10:42:45AM -0700, Tony Lindgren wrote:
+> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [150406 10:15]:
+> > On  6.04.2015 18:40, Tony Lindgren wrote:
+> > >
+> > >Oops sorry, wrong numbers for errata above.. s/458693/430973/, here's
+> > >a better version:
+> > >
+> > >1. For cortex-a8 revisions affected by 430973, we can do a custom
+> > >    cpu_v7_switch_mm function that always does flush BTAC/BTB.
+> > >
+> > 
+> > Why custom function, if IBE bit is zero, BTB invalidate instruction is a
+> > NOP. Do you think that "mcr p15, 0, r2, c7, c5, 6" executed as a NOP will
+> > put so much overhead, that it deserves a custom function?
 > 
-> Acked-by: Andrew Lunn <andrew@lunn.ch>
-
-This change makes sens however what about Thomas' comment: removing
-orion_clkdev_add() entirely and directly using lkdev_create() all over
-the place:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/327294.html
-
-Then what would be the path for this patch?
-
-As there is a dependency on the 6th patch of this series: "clkdev: add
-clkdev_create() helper" which should be merged through the clk tree, I
-think the best option is that this patch would be also managed by the
-clk tree maintainer (I added them in CC).
-
-
-Thanks,
-
-Gregory
-
-
+> Hmm but it still seems to do something also on cortex-a8 r3p2 that
+> is supposedly not affected by 430973.. Based on my tests so far, at least
+> armhf running cpuburn-a8 in the background and doing apt-get update
+> segfaults constantly without flush BTAC/BTB. This seems to be the case
+> no matter how the aux ctrl reg bits are set.. This should be reproducable
+> on any pandboard xm BTW.
+>  
+> > >2. For HS cortex-a8 processors other than n900 affected by 430973,
+> > >    we need to implement functions similar to rx51_secure_update_aux_cr,
+> > >    the bootrom on n900 is different from TI HS omaps so the SMC call
+> > >    numbering may be different.
+> > >
+> > >3. For later cortex-a8 processors not affected by 430973, we need
+> > >    to clear IBE bit to avoid erratum 687067.
+> > >
+> > 
+> > Maybe it should be implemented something like:
+> > 
+> > 1. if Cortex-A8, always execute invalidate BTB instruction in
+> >    cpu_v7_switch_mm
 > 
-> 	  Andrew
+> This part still seems to need more investigating for why it's still
+> needed also r3p2 as I describe above. Otherwise we may be hiding some
+> other bug.
+>  
+> > 2. For Cortex-A8 revisions affected by 430973, set IBE bit to 1, set it
+> >    to 0 for all others. That should happen as soon as possible,
+> >    otherwise kernel may crash on affected revisions if thumb-
+> >    compiled.
 > 
->> ---
->>  arch/arm/plat-orion/common.c | 6 +-----
->>  1 file changed, 1 insertion(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
->> index f5b00f41c4f6..2235081a04ee 100644
->> --- a/arch/arm/plat-orion/common.c
->> +++ b/arch/arm/plat-orion/common.c
->> @@ -28,11 +28,7 @@
->>  void __init orion_clkdev_add(const char *con_id, const char *dev_id,
->>  			     struct clk *clk)
->>  {
->> -	struct clk_lookup *cl;
->> -
->> -	cl = clkdev_alloc(clk, con_id, dev_id);
->> -	if (cl)
->> -		clkdev_add(cl);
->> +	clkdev_create(clk, con_id, "%s", dev_id);
->>  }
->>  
->>  /* Create clkdev entries for all orion platforms except kirkwood.
->> -- 
->> 1.8.3.1
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+> Yes this makes sense.
+
+Well, one thing we can do is to tweak the proc-v7*.S such that we detect
+Cortex-A8 separately, and only execute the BTB flush for CA8 processors
+if the errata is enabled.  Something like this (untested):
+
+diff --git a/arch/arm/mm/proc-v7-2level.S b/arch/arm/mm/proc-v7-2level.S
+index bc86be205c04..fa385140715f 100644
+--- a/arch/arm/mm/proc-v7-2level.S
++++ b/arch/arm/mm/proc-v7-2level.S
+@@ -37,15 +37,18 @@
+  *	It is assumed that:
+  *	- we are not using split page tables
+  */
+-ENTRY(cpu_v7_switch_mm)
++ENTRY(cpu_ca8_switch_mm)
+ #ifdef CONFIG_MMU
+ 	mov	r2, #0
+-	mmid	r1, r1				@ get mm->context.id
+-	ALT_SMP(orr	r0, r0, #TTB_FLAGS_SMP)
+-	ALT_UP(orr	r0, r0, #TTB_FLAGS_UP)
+ #ifdef CONFIG_ARM_ERRATA_430973
+ 	mcr	p15, 0, r2, c7, c5, 6		@ flush BTAC/BTB
+ #endif
++#endif
++ENTRY(cpu_v7_switch_mm)
++#ifdef CONFIG_MMU
++	mmid	r1, r1				@ get mm->context.id
++	ALT_SMP(orr	r0, r0, #TTB_FLAGS_SMP)
++	ALT_UP(orr	r0, r0, #TTB_FLAGS_UP)
+ #ifdef CONFIG_PID_IN_CONTEXTIDR
+ 	mrc	p15, 0, r2, c13, c0, 1		@ read current context ID
+ 	lsr	r2, r2, #8			@ extract the PID
+@@ -61,6 +64,7 @@ ENTRY(cpu_v7_switch_mm)
+ #endif
+ 	bx	lr
+ ENDPROC(cpu_v7_switch_mm)
++ENDPROC(cpu_ca8_switch_mm)
+ 
+ /*
+  *	cpu_v7_set_pte_ext(ptep, pte)
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index b1d19ea5e1af..6bec3cfbea39 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -153,6 +153,21 @@ ENDPROC(cpu_v7_do_resume)
+ #endif
+ 
+ /*
++ * Cortex-A8
++ */
++	globl_equ	cpu_ca8_proc_init,	cpu_v7_proc_init
++	globl_equ	cpu_ca8_proc_fin,	cpu_v7_proc_fin
++	globl_equ	cpu_ca8_reset,		cpu_v7_reset
++	globl_equ	cpu_ca8_do_idle,	cpu_v7_do_idle
++	globl_equ	cpu_ca8_dcache_clean_area, cpu_v7_dcache_clean_area
++	globl_equ	cpu_ca8_set_pte_ext,	cpu_v7_set_pte_ext
++	globl_equ	cpu_ca8_suspend_size,	cpu_v7_suspend_size
++#ifdef CONFIG_ARM_CPU_SUSPEND
++	globl_equ	cpu_ca8_do_suspend,	cpu_v7_do_suspend
++	globl_equ	cpu_ca8_do_resume,	cpu_v7_do_resume
++#endif
++
++/*
+  * Cortex-A9 processor functions
+  */
+ 	globl_equ	cpu_ca9mp_proc_init,	cpu_v7_proc_init
+@@ -471,7 +486,10 @@ __v7_setup_stack:
+ 
+ 	@ define struct processor (see <asm/proc-fns.h> and proc-macros.S)
+ 	define_processor_functions v7, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
++#ifndef CONFIG_ARM_LPAE
++	define_processor_functions ca8, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
+ 	define_processor_functions ca9mp, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
++#endif
+ #ifdef CONFIG_CPU_PJ4B
+ 	define_processor_functions pj4b, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
+ #endif
+@@ -527,6 +545,16 @@ __v7_ca9mp_proc_info:
+ 	__v7_proc __v7_ca9mp_proc_info, __v7_ca9mp_setup, proc_fns = ca9mp_processor_functions
+ 	.size	__v7_ca9mp_proc_info, . - __v7_ca9mp_proc_info
+ 
++	/*
++	 * ARM Ltd. Cortex A8 processor.
++	 */
++	.type	__v7_ca8_proc_info, #object
++__v7_ca8_proc_info:
++	.long	0x410fc080
++	.long	0xff0ffff0
++	__v7_proc __v7_ca8mp_proc_info, proc_fns = ca8_processor_functions
++	.size	__v7_ca8_proc_info, . - __v7_ca8_proc_info
++
+ #endif	/* CONFIG_ARM_LPAE */
+ 
+ 	/*
 
 
 -- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
