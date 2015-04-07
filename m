@@ -1,309 +1,226 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv2] ti-soc-thermal: implement omap3 support
-Date: Tue, 7 Apr 2015 12:09:08 -0700
-Message-ID: <20150407190907.GB4203@localhost.localdomain>
-References: <20150103114632.GA21883@amd>
- <20150118202447.GA29014@amd>
- <20150331084234.GA11712@amd>
- <20150402144907.GB11687@amd>
+Subject: Re: [PATCH v2] thermal: ti-soc-thermal: dra7: Implement Workaround
+ for Errata i814 - Bandgap Temperature read Dtemp can be corrupted
+Date: Tue, 7 Apr 2015 13:05:18 -0700
+Message-ID: <20150407200516.GD4203@localhost.localdomain>
+References: <1427445901-8461-1-git-send-email-j-keerthy@ti.com>
+ <55234CE4.5070901@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CUfgB8w4ZwR/yMy5"
+	protocol="application/pgp-signature"; boundary="JBi0ZxuS5uaEhkUZ"
 Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150402144907.GB11687@amd>
+In-Reply-To: <55234CE4.5070901@ti.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org
+To: Keerthy <a0393675@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---CUfgB8w4ZwR/yMy5
-Content-Type: text/plain; charset=us-ascii
+--JBi0ZxuS5uaEhkUZ
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Pavel,
+Hello K,
 
-On Thu, Apr 02, 2015 at 04:49:07PM +0200, Pavel Machek wrote:
+On Tue, Apr 07, 2015 at 08:50:04AM +0530, Keerthy wrote:
+> Hi Eduardo,
 >=20
+> On Friday 27 March 2015 02:15 PM, Keerthy wrote:
+> >Bandgap Temperature read Dtemp can be corrupted
+> >
+> >DESCRIPTION
+> >         Read accesses to registers listed below can be corrupted due to=
+ incorrect resynchronization between
+> >         clock domains.
+> >
+> >         Read access to registers below can be corrupted :
+> >                 =E2=80=A2 CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =
+=3D 0 to 4)
+> >         =E2=80=A2 CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
+> >
+> >WORKAROUND
+> >         Multiple reads to CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA=
+[9:0]:
+> >         BGAP_DTEMPMPU/GPU/CORE/DSPEVE/IVA is needed to discard false va=
+lue and read right value:
+> >                 1. Perform two successive reads to BGAP_DTEMP bit field.
+> >                         (a) If read1 returns Val1 and read2 returns Val=
+1, then right value is Val1.
+> >                         (b) If read1 returns Val1, read 2 returns Val2,=
+ a third read is needed.
+> >                 2. Perform third read
+> >                         (a) If read3 returns Val2 then right value is V=
+al2.
+> >                         (b) If read3 returns Val3, then right value is =
+Val3.
+
+The third read description (b) is misleading/confusing. Does it mean
+third read value is always correct or do we need to compare against val1
+and val2? if val3 !=3D val2 && val3 !=3D val1, which one is correct? none?
+
+> >
 >=20
-> This adds support for OMAP3 chips to ti-soc-thermal. As requested by
-> TI people, it is marked unreliable and warning is printed.
+
+Thanks for the detailed errata description.
+
+> A gentle ping on this.
 >=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> ---
->=20
-> Patch is against thermal linus tree, please apply so that it has
-> chance for 4.1.
 
-I thought of accepting this one the way it and amending the message
-myself, but you missed the DT example.=20
+Sorry for the late answer. (minor) Comment below:
 
-Actually it is bests, as I already mention, that you send the patch
-together with the DT changes too.=20
+> >Signed-off-by: Keerthy <j-keerthy@ti.com>
+> >---
+> >
+> >Read all the temperatures from the 5 sensors and saw that
+> >they were sane with time.
+> >
+> >Ran cpuloadgen and saw that temperatures rising on all the sensors
+> >and cooled down as soon as the load was reduced.
+> >
+> >  .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
+> >  drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 37 ++++++++++++++=
++++++++-
+> >  drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  4 +++
+> >  3 files changed, 42 insertions(+), 2 deletions(-)
+> >
+> >diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/driv=
+ers/thermal/ti-soc-thermal/dra752-thermal-data.c
+> >index a492927..58b5c66 100644
+> >--- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+> >+++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+> >@@ -420,7 +420,8 @@ const struct ti_bandgap_data dra752_data =3D {
+> >  			TI_BANDGAP_FEATURE_FREEZE_BIT |
+> >  			TI_BANDGAP_FEATURE_TALERT |
+> >  			TI_BANDGAP_FEATURE_COUNTER_DELAY |
+> >-			TI_BANDGAP_FEATURE_HISTORY_BUFFER,
+> >+			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
+> >+			TI_BANDGAP_FEATURE_ERRATA_814,
+> >  	.fclock_name =3D "l3instr_ts_gclk_div",
+> >  	.div_ck_name =3D "l3instr_ts_gclk_div",
+> >  	.conv_table =3D dra752_adc_to_temp,
+> >diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/therm=
+al/ti-soc-thermal/ti-bandgap.c
+> >index 74c0e34..baf822e 100644
+> >--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> >+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> >@@ -119,6 +119,37 @@ exit:
+> >  }
+> >
+> >  /**
+> >+ * ti_dra7_bandgap_read_temp() - helper function to read dra7 sensor te=
+mperature
+> >+ * @bgp: pointer to ti_bandgap structure
+> >+ * @reg: desired register (offset) to be read
+> >+ *
+> >+ * Function to read dra7 bandgap sensor temperature. This is done separ=
+ately
+> >+ * so as to workaround the errata "Bandgap Temperature read Dtemp can be
+> >+ * corrupted" - Errata ID: i814".
+> >+ * Read accesses to registers listed below can be corrupted due to inco=
+rrect
+> >+ * resynchronization between clock domains.
+> >+ * Read access to registers below can be corrupted :
+> >+ * CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =3D 0 to 4)
+> >+ * CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
+> >+ *
+> >+ * Return: the register value.
+> >+ */
+> >+static u32 ti_dra7_bandgap_read_temp(struct ti_bandgap *bgp,  u32 reg)
 
-Can you please resend this one with the following (minor) changes:
+Are you sure this bug affects only DRA7? I would prefer you name this
+not specific to soc version. Maybe bind it to the errata:
 
->=20
-> v2: fixed min/max temp
->=20
-> diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-=
-soc-thermal/Kconfig
-> index bd4c7be..d414c2d 100644
-> --- a/drivers/thermal/ti-soc-thermal/Kconfig
-> +++ b/drivers/thermal/ti-soc-thermal/Kconfig
-> @@ -21,6 +21,21 @@ config TI_THERMAL
->  	  This includes trip points definitions, extrapolation rules and
->  	  CPU cooling device bindings.
-> =20
-> +config OMAP3_THERMAL
-> +	bool "Texas Instruments OMAP3 thermal support"
-> +	depends on TI_SOC_THERMAL
-> +	depends on ARCH_OMAP3
-> +	help
-> +	  If you say yes here you get thermal support for the Texas Instruments
-> +	  OMAP3 SoC family. The current chips supported are:
-> +	   - OMAP3430
-> +
-> +	  OMAP3 chips normally don't need thermal management, and sensors in
-> +	  this generation are not accurate, nor they are very close to
-> +	  the important hotspots.
-> +
-> +	  Say 'N' here.
-> +
->  config OMAP4_THERMAL
->  	bool "Texas Instruments OMAP4 thermal support"
->  	depends on TI_SOC_THERMAL
-> diff --git a/drivers/thermal/ti-soc-thermal/Makefile b/drivers/thermal/ti=
--soc-thermal/Makefile
-> index 1226b24..0f89bdf 100644
-> --- a/drivers/thermal/ti-soc-thermal/Makefile
-> +++ b/drivers/thermal/ti-soc-thermal/Makefile
-> @@ -2,5 +2,6 @@ obj-$(CONFIG_TI_SOC_THERMAL)		+=3D ti-soc-thermal.o
->  ti-soc-thermal-y			:=3D ti-bandgap.o
->  ti-soc-thermal-$(CONFIG_TI_THERMAL)	+=3D ti-thermal-common.o
->  ti-soc-thermal-$(CONFIG_DRA752_THERMAL)	+=3D dra752-thermal-data.o
-> +ti-soc-thermal-$(CONFIG_OMAP3_THERMAL)	+=3D omap3-thermal-data.o
->  ti-soc-thermal-$(CONFIG_OMAP4_THERMAL)	+=3D omap4-thermal-data.o
->  ti-soc-thermal-$(CONFIG_OMAP5_THERMAL)	+=3D omap5-thermal-data.o
-> diff --git a/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c b/driver=
-s/thermal/ti-soc-thermal/omap3-thermal-data.c
-> new file mode 100644
-> index 0000000..86a4e2d
-> --- /dev/null
-> +++ b/drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
-> @@ -0,0 +1,103 @@
-> +/*
-> + * OMAP3 thermal driver.
-> + *
-> + * Copyright (C) 2011-2012 Texas Instruments Inc.
-> + * Copyright (C) 2014 Pavel Machek <pavel@ucw.cz>
-> + *
-> + * This software is licensed under the terms of the GNU General Public
-> + * License version 2, as published by the Free Software Foundation, and
-> + * may be copied, distributed, and modified under those terms.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + *
-> + * Note
-> + * http://www.ti.com/lit/er/sprz278f/sprz278f.pdf "Advisory
-> + * 3.1.1.186 MMC OCP Clock Not Gated When Thermal Sensor Is Used"
-> + *
-> + * Also TI says:
-> + * Just be careful when you try to make thermal policy like decisions
-> + * based on this sensor. Placement of the sensor w.r.t the actual logic
-> + * generating heat has to be a factor as well. If you are just looking
-> + * for an approximation temperature (thermometerish kind), you might be
-> + * ok with this. I am not sure we'd find any TI data around this.. just a
-> + * heads up.
-> + */
-> +
-> +#include "ti-thermal.h"
-> +#include "ti-bandgap.h"
-> +
-> +/*
-> + * OMAP34XX has one instance of thermal sensor for MPU
-> + * need to describe the individual bit fields
-> + */
-> +static struct temp_sensor_registers
-> +omap34xx_mpu_temp_sensor_registers =3D {
-> +	.temp_sensor_ctrl =3D 0,
-> +	.bgap_soc_mask =3D BIT(8),
-> +	.bgap_eocz_mask =3D BIT(7),
-> +	.bgap_dtemp_mask =3D 0x7f,
-> +
-> +	.bgap_mode_ctrl =3D 0,
-> +	.mode_ctrl_mask =3D BIT(9),
-> +};
-> +
-> +/* Thresholds and limits for OMAP34XX MPU temperature sensor */
-> +static struct temp_sensor_data omap34xx_mpu_temp_sensor_data =3D {
-> +	.min_freq =3D 32768,
-> +	.max_freq =3D 32768,
-> +	.max_temp =3D 125000,
-> +	.min_temp =3D -40000,
-> +	.hyst_val =3D 5000,
-> +};
-> +
-> +/*
-> + * Temperature values in milli degree celsius
-> + */
-> +static const int
-> +omap34xx_adc_to_temp[128] =3D {
-> +	-40000, -40000, -40000, -40000, -40000, -39000, -38000, -36000,
-> +	-34000, -32000, -31000,	-29000, -28000, -26000, -25000, -24000,
-> +	-22000, -21000, -19000, -18000, -17000, -15000,	-14000, -12000,
-> +	-11000, -9000, -8000, -7000, -5000, -4000, -2000, -1000, 0000,
-> +	1000, 3000, 4000, 5000, 7000, 8000, 10000, 11000, 13000, 14000,
-> +	15000, 17000, 18000, 20000, 21000, 22000, 24000, 25000, 27000,
-> +	28000, 30000, 31000, 32000, 34000, 35000, 37000, 38000, 39000,
-> +	41000, 42000, 44000, 45000, 47000, 48000, 49000, 51000, 52000,
-> +	53000, 55000, 56000, 58000, 59000, 60000, 62000, 63000, 65000,
-> +	66000, 67000, 69000, 70000, 72000, 73000, 74000, 76000, 77000,
-> +	79000, 80000, 81000, 83000, 84000, 85000, 87000, 88000, 89000,
-> +	91000, 92000, 94000, 95000, 96000, 98000, 99000, 100000,
-> +	102000, 103000, 105000, 106000, 107000, 109000, 110000, 111000,
-> +	113000, 114000, 116000, 117000, 118000, 120000, 121000, 122000,
-> +	124000, 124000, 125000, 125000, 125000, 125000,	125000
-> +};
-> +
-> +/* OMAP34XX data */
-> +const struct ti_bandgap_data omap34xx_data =3D {
-> +	.features =3D TI_BANDGAP_FEATURE_CLK_CTRL | TI_BANDGAP_FEATURE_UNRELIAB=
-LE,
-> +	.fclock_name =3D "ts_fck",
-> +	.div_ck_name =3D "ts_fck",
-> +	.conv_table =3D omap34xx_adc_to_temp,
-> +	.adc_start_val =3D 0,
-> +	.adc_end_val =3D 127,
-> +	.expose_sensor =3D ti_thermal_expose_sensor,
-> +	.remove_sensor =3D ti_thermal_remove_sensor,
-> +
-> +	.sensors =3D {
-> +		{
-> +		.registers =3D &omap34xx_mpu_temp_sensor_registers,
-> +		.ts_data =3D &omap34xx_mpu_temp_sensor_data,
-> +		.domain =3D "cpu",
-> +		.slope =3D 0,
-> +		.constant =3D 20000,
-> +		.slope_pcb =3D 0,
-> +		.constant_pcb =3D 20000,
-> +		.register_cooling =3D NULL,
-> +		.unregister_cooling =3D NULL,
-> +		},
-> +	},
-> +	.sensor_count =3D 1,
-> +};
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/therma=
-l/ti-soc-thermal/ti-bandgap.c
-> index 63e2f5c..a58610d 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> @@ -1200,6 +1195,10 @@ int ti_bandgap_probe(struct platform_device *pdev)
->  	}
->  	bgp->dev =3D &pdev->dev;
-> =20
-> +	if (TI_BANDGAP_HAS(bgp, UNRELIABLE))
-> +		dev_warn(&pdev->dev,
-> +			 "OMAP3 thermal sensor is unreliable and normally unneccessary\n");
++static u32 ti_i814_bandgap_read_temp(struct ti_bandgap *bgp,  u32 reg)
 
-1. Change this message to be more generic:
+> >+{
+> >+	u32 val1, val2;
+> >+
+> >+	val1 =3D ti_bandgap_readl(bgp, reg);
+> >+	val2 =3D ti_bandgap_readl(bgp, reg);
+> >+
+> >+/* If both times we read the same value then that is right */
 
-+		dev_warn(&pdev->dev,
-+			 "This OMAP thermal sensor is unreliable. You've been warned\n");
+Please, indent the comments too.
 
+> >+	if (val1 =3D=3D val2)
+> >+		return val1;
+> >+
+> >+/* if val1 and val2 are different read it third time */
 
-> +
->  	if (TI_BANDGAP_HAS(bgp, TSHUT)) {
->  		ret =3D ti_bandgap_tshut_init(bgp, pdev);
->  		if (ret) {
-> @@ -1505,6 +1504,12 @@ static SIMPLE_DEV_PM_OPS(ti_bandgap_dev_pm_ops, ti=
-_bandgap_suspend,
->  #endif
-> =20
->  static const struct of_device_id of_ti_bandgap_match[] =3D {
-> +#ifdef CONFIG_OMAP3_THERMAL
-> +	{
-> +		.compatible =3D "ti,omap34xx-bandgap",
-> +		.data =3D (void *)&omap34xx_data,
-> +	},
-> +#endif
->  #ifdef CONFIG_OMAP4_THERMAL
->  	{
->  		.compatible =3D "ti,omap4430-bandgap",
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/therma=
-l/ti-soc-thermal/ti-bandgap.h
-> index b3adf72..15878a1 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> @@ -331,6 +331,7 @@ struct ti_temp_sensor {
->  #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
->  #define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
->  #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
-> +#define TI_BANDGAP_FEATURE_UNRELIABLE		BIT(10)
->  #define TI_BANDGAP_HAS(b, f)			\
->  			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
-> =20
-> @@ -384,6 +385,12 @@ int ti_bandgap_set_sensor_data(struct ti_bandgap *bg=
-p, int id, void *data);
->  void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
->  int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
-> =20
-> +#ifdef CONFIG_OMAP3_THERMAL
-> +extern const struct ti_bandgap_data omap34xx_data;
-> +#else
-> +#define omap34xx_data					NULL
-> +#endif
-> +
->  #ifdef CONFIG_OMAP4_THERMAL
->  extern const struct ti_bandgap_data omap4430_data;
->  extern const struct ti_bandgap_data omap4460_data;
-> diff --git a/Documentation/devicetree/bindings/thermal/ti_soc_thermal.txt=
- b/Documentation/devicetree/bindings/thermal/ti_soc_thermal.txt
-> index 0c9222d..3cf8a3b 100644
-> --- a/Documentation/devicetree/bindings/thermal/ti_soc_thermal.txt
-> +++ b/Documentation/devicetree/bindings/thermal/ti_soc_thermal.txt
-> @@ -10,6 +10,7 @@ to the silicon temperature.
-> =20
->  Required properties:
->  - compatible : Should be:
-> +  - "ti,omap34xx-bandgap" : for OMAP34xx bandgap
->    - "ti,omap4430-bandgap" : for OMAP4430 bandgap
->    - "ti,omap4460-bandgap" : for OMAP4460 bandgap
->    - "ti,omap4470-bandgap" : for OMAP4470 bandgap
+ditto.
 
-2. Add an example of OMAP3 configuration in the example section.
-You have forgotten to add an example. Please send a version that fully
-updates the documentation.
+> >+	return ti_bandgap_readl(bgp, reg);
 
-3. Also send the proposed DT changes in a separated patch so we can
-review everything together. And test too.
->=20
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
+Actually, if I understood the errata description correctly, you need to:
+1. read a third time (val3)
+2. compare val3 against val2, and return val2 if they are same
 
---CUfgB8w4ZwR/yMy5
+If they are different, the errata is not clear. Can you please clarify?
+
+> >+}
+> >+
+> >+/**
+> >   * ti_bandgap_read_temp() - helper function to read sensor temperature
+> >   * @bgp: pointer to ti_bandgap structure
+> >   * @id: bandgap sensor id
+> >@@ -148,7 +179,11 @@ static u32 ti_bandgap_read_temp(struct ti_bandgap *=
+bgp, int id)
+> >  	}
+> >
+> >  	/* read temperature */
+> >-	temp =3D ti_bandgap_readl(bgp, reg);
+> >+	if (TI_BANDGAP_HAS(bgp, ERRATA_814))
+> >+		temp =3D ti_dra7_bandgap_read_temp(bgp, reg);
+> >+	else
+> >+		temp =3D ti_bandgap_readl(bgp, reg);
+> >+
+> >  	temp &=3D tsr->bgap_dtemp_mask;
+> >
+> >  	if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
+> >diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/therm=
+al/ti-soc-thermal/ti-bandgap.h
+> >index b3adf72..b2da3fc 100644
+> >--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+> >+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+> >@@ -318,6 +318,9 @@ struct ti_temp_sensor {
+> >   * TI_BANDGAP_FEATURE_HISTORY_BUFFER - used when the bandgap device fe=
+atures
+> >   *	a history buffer of temperatures.
+> >   *
+> >+ * TI_BANDGAP_FEATURE_ERRATA_814 - used to workaorund when the bandgap =
+device
+> >+ *	has Errata 814
+> >+ *
+> >   * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is capabl=
+e of a
+> >   *      specific feature (above) or not. Return non-zero, if yes.
+> >   */
+> >@@ -331,6 +334,7 @@ struct ti_temp_sensor {
+> >  #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
+> >  #define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
+> >  #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
+> >+#define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
+> >  #define TI_BANDGAP_HAS(b, f)			\
+> >  			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
+> >
+> >
+
+--JBi0ZxuS5uaEhkUZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQEcBAEBAgAGBQJVJCtMAAoJEMLUO4d9pOJWXpMIAJOaar3/82mZWCgaOob0k8vd
-Vl/DIdnMdaQ9r0oFP9sx+eZh0tuYKI0Mx7C0HNkC1dXjW9+VriXn3L7W+iXd6mJ1
-zBQsoiJwJUcsOltK/kOB0UpLIrICtBlwa1n6M7nfWMMJ9K7FIrOsq53oLWwLu/7U
-gbUfKzY/ygAXECa6Gpq6ZyDNjkm87hNu4dVLILpSNKIwZ/ZsuvKAmkeXbDH3Hc9h
-KbHffQOJnwkKav/aAkQBuC9szk8/KEdbQMvYyg97NBBM5kwpGvfLXk9hIXz5wxn8
-e2ghahgUXcL5TkAou3XBZr0C0uUVxRdOqtzqiXSgWb4uXmB3FH5cbVLaQYClbLc=
-=JD8S
+iQEcBAEBAgAGBQJVJDhaAAoJEMLUO4d9pOJWwsEIAJXn1vnACu7sXsdVsjH9lt1r
+5MvxTWLqpDr58UC8ztM2aVOQi6lbL5OOmIwZ1SXFLuzrjwBM4tWOdTVz5WzleCw7
+2E2Xzryf15B1vGaRDwj0tT6qIEWtIiExIUnOfoE4XAOQ2GsLdWNxfipXNhDaZQNc
+WoXOG2IJOrMyEnEKQh34SSb3GzlcmEgVkLPg95HXT0k3oVsqgiih2htwx1bW1GN9
+dEFUWrnbvKYjcroAtt1hVpaXxcKcNQXCAwrVMlbJRrY4dvpM9XpxqAqJugIuaRbd
+Vq6a4Ip6AsFtNxmyIAUH2zMm2wHsCOzCAaq5ZdqXKDpB9Lafv+3w7FdWjwGleEo=
+=/NfX
 -----END PGP SIGNATURE-----
 
---CUfgB8w4ZwR/yMy5--
+--JBi0ZxuS5uaEhkUZ--
