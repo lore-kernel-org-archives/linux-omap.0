@@ -1,190 +1,263 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 8/8] ARM: DTS: dra7x: Integrate sDMA crossbar
-Date: Wed, 8 Apr 2015 16:14:52 +0300
-Message-ID: <1428498892-28471-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 3/8] dmaengine: Add driver for TI DMA crossbar on DRA7x
+Date: Wed, 8 Apr 2015 16:14:47 +0300
+Message-ID: <1428498892-28471-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de
+Cc: nm@ti.com, devicetree@vger.kernel.org, arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, robh+dt@kernel.org, grant.likely@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The sDMA requests are routed through the DMA crossbar and without the
-crossbar only peripherals using DMA request 0-127 can be used.
+The DRA7x has more peripherals with DMA requests than the sDMA can handle:
+205 vs 127. All DMA requests are routed through the DMA crossbar, which can
+be configured to route selected incoming DMA requests to specific sDMA
+request.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 57 ++++++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 24 deletions(-)
+ drivers/dma/Kconfig           |   4 +
+ drivers/dma/Makefile          |   1 +
+ drivers/dma/ti-dma-crossbar.c | 185 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 190 insertions(+)
+ create mode 100644 drivers/dma/ti-dma-crossbar.c
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5332b57b4950..a2f4aa01984f 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -303,6 +303,15 @@
- 			dma-requests = <127>;
- 		};
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index 91eced044321..33a7401597be 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -234,6 +234,9 @@ config TI_EDMA
+ 	  Enable support for the TI EDMA controller. This DMA
+ 	  engine is found on TI DaVinci and AM33xx parts.
  
-+		sdma_xbar: dma-router@4a002b78 {
-+			compatible = "ti,dra7-dma-crossbar";
-+			reg = <0x4a002b78 0xfc>;
-+			#dma-cells = <1>;
-+			dma-requests = <205>;
-+			ti,dma-safe-map = <0>;
-+			dma-masters = <&sdma>;
-+		};
++config TI_DMA_CROSSBAR
++	bool
 +
- 		gpio1: gpio@4ae10000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4ae10000 0x200>;
-@@ -398,7 +407,7 @@
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 49>, <&sdma 50>;
-+			dmas = <&sdma_xbar 49>, <&sdma_xbar 50>;
- 			dma-names = "tx", "rx";
- 		};
+ config ARCH_HAS_ASYNC_TX_FIND_CHANNEL
+ 	bool
  
-@@ -409,7 +418,7 @@
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 51>, <&sdma 52>;
-+			dmas = <&sdma_xbar 51>, <&sdma_xbar 52>;
- 			dma-names = "tx", "rx";
- 		};
+@@ -319,6 +322,7 @@ config DMA_OMAP
+ 	depends on ARCH_OMAP
+ 	select DMA_ENGINE
+ 	select DMA_VIRTUAL_CHANNELS
++	select TI_DMA_CROSSBAR if SOC_DRA7XX
  
-@@ -420,7 +429,7 @@
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 53>, <&sdma 54>;
-+			dmas = <&sdma_xbar 53>, <&sdma_xbar 54>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -431,7 +440,7 @@
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
-                         status = "disabled";
--			dmas = <&sdma 55>, <&sdma 56>;
-+			dmas = <&sdma_xbar 55>, <&sdma_xbar 56>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -442,7 +451,7 @@
- 			ti,hwmods = "uart5";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 63>, <&sdma 64>;
-+			dmas = <&sdma_xbar 63>, <&sdma_xbar 64>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -453,7 +462,7 @@
- 			ti,hwmods = "uart6";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 79>, <&sdma 80>;
-+			dmas = <&sdma_xbar 79>, <&sdma_xbar 80>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -862,7 +871,7 @@
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
--			dmas = <&sdma 61>, <&sdma 62>;
-+			dmas = <&sdma_xbar 61>, <&sdma_xbar 62>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 			pbias-supply = <&pbias_mmc_reg>;
-@@ -874,7 +883,7 @@
- 			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
--			dmas = <&sdma 47>, <&sdma 48>;
-+			dmas = <&sdma_xbar 47>, <&sdma_xbar 48>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 		};
-@@ -885,7 +894,7 @@
- 			interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc3";
- 			ti,needs-special-reset;
--			dmas = <&sdma 77>, <&sdma 78>;
-+			dmas = <&sdma_xbar 77>, <&sdma_xbar 78>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 		};
-@@ -896,7 +905,7 @@
- 			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc4";
- 			ti,needs-special-reset;
--			dmas = <&sdma 57>, <&sdma 58>;
-+			dmas = <&sdma_xbar 57>, <&sdma_xbar 58>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 		};
-@@ -1041,14 +1050,14 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi1";
- 			ti,spi-num-cs = <4>;
--			dmas = <&sdma 35>,
--			       <&sdma 36>,
--			       <&sdma 37>,
--			       <&sdma 38>,
--			       <&sdma 39>,
--			       <&sdma 40>,
--			       <&sdma 41>,
--			       <&sdma 42>;
-+			dmas = <&sdma_xbar 35>,
-+			       <&sdma_xbar 36>,
-+			       <&sdma_xbar 37>,
-+			       <&sdma_xbar 38>,
-+			       <&sdma_xbar 39>,
-+			       <&sdma_xbar 40>,
-+			       <&sdma_xbar 41>,
-+			       <&sdma_xbar 42>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1",
- 				    "tx2", "rx2", "tx3", "rx3";
- 			status = "disabled";
-@@ -1062,10 +1071,10 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi2";
- 			ti,spi-num-cs = <2>;
--			dmas = <&sdma 43>,
--			       <&sdma 44>,
--			       <&sdma 45>,
--			       <&sdma 46>;
-+			dmas = <&sdma_xbar 43>,
-+			       <&sdma_xbar 44>,
-+			       <&sdma_xbar 45>,
-+			       <&sdma_xbar 46>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
-@@ -1078,7 +1087,7 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi3";
- 			ti,spi-num-cs = <2>;
--			dmas = <&sdma 15>, <&sdma 16>;
-+			dmas = <&sdma_xbar 15>, <&sdma_xbar 16>;
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-@@ -1091,7 +1100,7 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi4";
- 			ti,spi-num-cs = <1>;
--			dmas = <&sdma 70>, <&sdma 71>;
-+			dmas = <&sdma_xbar 70>, <&sdma_xbar 71>;
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
+ config DMA_BCM2835
+ 	tristate "BCM2835 DMA engine support"
+diff --git a/drivers/dma/Makefile b/drivers/dma/Makefile
+index 7e8301cb489d..19ac70b8af0a 100644
+--- a/drivers/dma/Makefile
++++ b/drivers/dma/Makefile
+@@ -38,6 +38,7 @@ obj-$(CONFIG_EP93XX_DMA) += ep93xx_dma.o
+ obj-$(CONFIG_DMA_SA11X0) += sa11x0-dma.o
+ obj-$(CONFIG_MMP_TDMA) += mmp_tdma.o
+ obj-$(CONFIG_DMA_OMAP) += omap-dma.o
++obj-$(CONFIG_TI_DMA_CROSSBAR) += ti-dma-crossbar.o
+ obj-$(CONFIG_DMA_BCM2835) += bcm2835-dma.o
+ obj-$(CONFIG_MMP_PDMA) += mmp_pdma.o
+ obj-$(CONFIG_DMA_JZ4740) += dma-jz4740.o
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+new file mode 100644
+index 000000000000..5cb1eb7e86d2
+--- /dev/null
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -0,0 +1,185 @@
++/*
++ *  Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
++ *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/list.h>
++#include <linux/io.h>
++#include <linux/idr.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/of_dma.h>
++
++#define TI_XBAR_OUTPUTS	127
++#define TI_XBAR_INPUTS	256
++
++static DEFINE_IDR(map_idr);
++
++struct ti_dma_xbar_data {
++	void __iomem *iomem;
++
++	struct dma_router dmarouter;
++
++	uint safe_val; /* Value to rest the crossbar lines */
++	uint xbar_requests; /* number of DMA requests connected to XBAR */
++	uint dma_requests; /* number of DMA requests forwarded to DMA */
++};
++
++struct ti_dma_xbar_map {
++	int xbar_in;
++	int xbar_out;
++};
++
++static inline void ti_dma_xbar_write(void __iomem *iomem, int xbar, int val)
++{
++	writew_relaxed(val, iomem + (xbar * 2));
++}
++
++static void ti_dma_xbar_free(struct device *dev, void *route_data)
++{
++	struct ti_dma_xbar_data *xbar = dev_get_drvdata(dev);
++	struct ti_dma_xbar_map *map = route_data;
++
++	dev_dbg(dev, "Unmapping XBAR%d (was routed to %d)\n",
++		map->xbar_in, map->xbar_out);
++
++	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
++	idr_remove(&map_idr, map->xbar_out);
++	kfree(map);
++}
++
++static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
++					struct of_dma *ofdma)
++{
++	struct platform_device *pdev = of_find_device_by_node(ofdma->of_node);
++	struct ti_dma_xbar_data *xbar = platform_get_drvdata(pdev);
++	struct ti_dma_xbar_map *map;
++
++	if (dma_spec->args[0] >= xbar->xbar_requests) {
++		dev_err(&pdev->dev, "Invalid XBAR request number: %d\n",
++			dma_spec->args[0]);
++		return NULL;
++	}
++
++	dma_spec->np = of_parse_phandle(ofdma->of_node, "dma-masters", 0);
++	if (!dma_spec->np) {
++		dev_err(&pdev->dev, "Can't get DMA master\n");
++		return NULL;
++	}
++
++	map = kzalloc(sizeof(*map), GFP_KERNEL);
++	if (!map)
++		return NULL;
++
++	map->xbar_out = idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
++				  GFP_KERNEL);
++	map->xbar_in = dma_spec->args[0];
++
++	/* The DMA request is 1 based in sDMA */
++	dma_spec->args[0] = map->xbar_out + 1;
++
++	dev_dbg(&pdev->dev, "Mapping XBAR%d to DMA%d\n",
++		map->xbar_in, map->xbar_out);
++
++	ti_dma_xbar_write(xbar->iomem, map->xbar_out, map->xbar_in);
++
++	return map;
++}
++
++static int ti_dma_xbar_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *dma_node;
++	struct ti_dma_xbar_data *xbar;
++	struct resource *res;
++	void __iomem *iomem;
++	int i, ret;
++
++	if (!node)
++		return -ENODEV;
++
++	dma_node = of_parse_phandle(node, "dma-masters", 0);
++	if (!dma_node) {
++		dev_err(&pdev->dev, "Can't get DMA master node\n");
++		return -ENODEV;
++	}
++
++	xbar = devm_kzalloc(&pdev->dev, sizeof(*xbar), GFP_KERNEL);
++	if (!xbar)
++		return -ENOMEM;
++
++	if (of_property_read_u32(dma_node, "dma-requests",
++				 &xbar->dma_requests)) {
++		dev_info(&pdev->dev,
++			 "Missing XBAR output information, using %u.\n",
++			 TI_XBAR_OUTPUTS);
++		xbar->dma_requests = TI_XBAR_OUTPUTS;
++	}
++	of_node_put(dma_node);
++
++	if (of_property_read_u32(node, "dma-requests", &xbar->xbar_requests)) {
++		dev_info(&pdev->dev,
++			 "Missing XBAR input information, using %u.\n",
++			 TI_XBAR_INPUTS);
++		xbar->xbar_requests = TI_XBAR_INPUTS;
++	}
++
++	if (of_property_read_u32(node, "ti,dma-safe-map", &xbar->safe_val))
++		xbar->safe_val = 0;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
++				     dev_name(&pdev->dev)))
++		return -ENODEV;
++
++	iomem = devm_ioremap(&pdev->dev, res->start, resource_size(res));
++	if (!iomem)
++		return -ENOMEM;
++
++	xbar->iomem = iomem;
++
++	xbar->dmarouter.dev = &pdev->dev;
++	xbar->dmarouter.route_free = ti_dma_xbar_free;
++
++	platform_set_drvdata(pdev, xbar);
++
++	ret = of_dma_router_register(node, ti_dma_xbar_route_allocate,
++				     &xbar->dmarouter);
++	if (ret)
++		return -ENODEV;
++
++	/* Reset the crossbar */
++	for (i = 0; i < xbar->dma_requests; i++)
++		ti_dma_xbar_write(xbar->iomem, i, xbar->safe_val);
++
++	return 0;
++}
++
++static const struct of_device_id ti_dma_xbar_match[] = {
++	{ .compatible = "ti,dra7-dma-crossbar" },
++	{},
++};
++
++static struct platform_driver ti_dma_xbar_driver = {
++	.driver = {
++		.name = "ti-dma-crossbar",
++		.of_match_table = of_match_ptr(ti_dma_xbar_match),
++	},
++	.probe	= ti_dma_xbar_probe,
++};
++
++int omap_dmaxbar_init(void)
++{
++	return platform_driver_register(&ti_dma_xbar_driver);
++}
++arch_initcall(omap_dmaxbar_init);
 -- 
 2.3.5
