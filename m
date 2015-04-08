@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/2] ARM: dts: am57xx-beagle-x15: Fix RTC aliases
-Date: Wed, 8 Apr 2015 18:56:27 -0500
-Message-ID: <1428537387-18776-3-git-send-email-nm@ti.com>
+Subject: [PATCH 1/2] ARM: dts: am57xx-beagle-x15: Fix IRQ type for mcp7941x
+Date: Wed, 8 Apr 2015 18:56:26 -0500
+Message-ID: <1428537387-18776-2-git-send-email-nm@ti.com>
 References: <1428537387-18776-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,51 +12,44 @@ To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousso
 Cc: Grygorii Strashko <Grygorii.Strashko@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-With commit bc078316d86c ("ARM: dts: DRA7: Add node for RTC"), we now
-have AM57xx RTC register itself as alias 0 even before DS1307 or TPS
-rtc drivers are loaded up. However, since neither TPS, nor AM57xx RTC
-are capable of being backedup by battery, we would like to maintain
-the "primary" rtc as mcp79410 rtc device.
+From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 
-This also generates the following warnings in the bootlog highlighting
-the issue:
-[    5.895445] rtc-ds1307 2-006f: /aliases ID 0 not available
-...
-[    6.476285] palmas-rtc 48070000.i2c:tps659038@58:tps659038_rtc: /aliases ID 1 not available
+The interrupt polarity provided in devicetree is used to configure
+the interrupt controller(ARM GIC), however, it seems that we have an
+inverter at the GIC boundary inside AM57xx which inverts the signal
+input from sys_irq external interrupt source.
 
-So, add proper aliases to ensure that RTC order is always consistent
-to userspace immaterial of probe order.
+Further, as per GIC distributor TRM,
+http://infocenter.arm.com/help/topic/com.arm.doc.ddi0438d/BGBHIACJ.html#BABJFCFB
+ARM GIC distributor does not support IRQ trigger type
+IRQ_TYPE_LEVEL_LOW, and only rising or level high signals.
 
+However, for some reason, the current configuration(which gets ignored
+by GIC driver) functions on some platforms, however, on few platforms
+results in infinite interrupts hogging the system down.
+
+Switch over to rising edge for GIC configuration which is also aligned
+with trigger point from the RTC chip and the internal inversion.
+
+Fixes: 5a0f93c6576a ("ARM: dts: Add am57xx-beagle-x15")
+Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/boot/dts/am57xx-beagle-x15.dts |    1 +
- arch/arm/boot/dts/dra7.dtsi             |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am57xx-beagle-x15.dts |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 57279e3b439b..6837f44db534 100644
+index fe141c47d647..57279e3b439b 100644
 --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
 +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -18,6 +18,7 @@
- 	aliases {
- 		rtc0 = &mcp_rtc;
- 		rtc1 = &tps659038_rtc;
-+		rtc2 = &rtc;
- 	};
+@@ -455,7 +455,7 @@
+ 	mcp_rtc: rtc@6f {
+ 		compatible = "microchip,mcp7941x";
+ 		reg = <0x6f>;
+-		interrupts = <GIC_SPI 2 IRQ_TYPE_LEVEL_LOW>;  /* IRQ_SYS_1N */
++		interrupts = <GIC_SPI 2 IRQ_TYPE_EDGE_RISING>;  /* IRQ_SYS_1N */
  
- 	memory {
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5332b57b4950..0f73fea9f5c3 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1203,7 +1203,7 @@
- 			status = "disabled";
- 		};
- 
--		rtc@48838000 {
-+		rtc: rtc@48838000 {
- 			compatible = "ti,am3352-rtc";
- 			reg = <0x48838000 0x100>;
- 			interrupts = <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>,
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&mcp79410_pins_default>;
 -- 
 1.7.9.5
