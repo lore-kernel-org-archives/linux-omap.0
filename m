@@ -1,287 +1,294 @@
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH v4 3/8] dmaengine: Add driver for TI DMA crossbar on DRA7x
-Date: Wed, 8 Apr 2015 17:23:49 +0200
-Message-ID: <20150408152349.GD26727@lukather>
+Subject: Re: [PATCH v4 1/8] dmaengine: of_dma: Support for DMA routers
+Date: Wed, 8 Apr 2015 17:42:51 +0200
+Message-ID: <20150408154251.GE26727@lukather>
 References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com>
- <1428498892-28471-4-git-send-email-peter.ujfalusi@ti.com>
+ <1428498892-28471-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iVCmgExH7+hIHJ1A"
+	protocol="application/pgp-signature"; boundary="xA/XKXTdy9G3iaIz"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1428498892-28471-4-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1428498892-28471-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
 
---iVCmgExH7+hIHJ1A
+--xA/XKXTdy9G3iaIz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Apr 08, 2015 at 04:14:47PM +0300, Peter Ujfalusi wrote:
-> The DRA7x has more peripherals with DMA requests than the sDMA can handle:
-> 205 vs 127. All DMA requests are routed through the DMA crossbar, which c=
-an
-> be configured to route selected incoming DMA requests to specific sDMA
-> request.
+On Wed, Apr 08, 2015 at 04:14:45PM +0300, Peter Ujfalusi wrote:
+> DMA routers are transparent devices used to mux DMA requests from
+> peripherals to DMA controllers. They are used when the SoC integrates more
+> devices with DMA requests then their controller can handle.
+> DRA7x is one example of such SoC, where the sDMA can hanlde 128 DMA reque=
+st
+> lines, but in SoC level it has 205 DMA requests.
+>=20
+> The of_dma_router will be registered as of_dma_controller with special
+> xlate function and additional parameters. The driver for the router is
+> responsible to craft the dma_spec (in the of_dma_route_allocate callback)
+> which can be used to requests a DMA channel from the real DMA controller.
+> This way the router can be transparent for the system while remaining gen=
+eric
+> enough to be used in different environments.
 >=20
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
->  drivers/dma/Kconfig           |   4 +
->  drivers/dma/Makefile          |   1 +
->  drivers/dma/ti-dma-crossbar.c | 185 ++++++++++++++++++++++++++++++++++++=
+>  Documentation/devicetree/bindings/dma/dma.txt | 28 +++++++++
+>  drivers/dma/dmaengine.c                       |  7 +++
+>  drivers/dma/of-dma.c                          | 86 +++++++++++++++++++++=
 ++++++
->  3 files changed, 190 insertions(+)
->  create mode 100644 drivers/dma/ti-dma-crossbar.c
+>  include/linux/dmaengine.h                     | 17 ++++++
+>  include/linux/of_dma.h                        | 21 +++++++
+>  5 files changed, 159 insertions(+)
+
+Can that be moved to a header / C file of its own?
+
+There's a lot of various code already in dmaengine.h and dmaengine.c,
+it would be really great to avoid adding more random stuff in there.
+
 >=20
-> diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-> index 91eced044321..33a7401597be 100644
-> --- a/drivers/dma/Kconfig
-> +++ b/drivers/dma/Kconfig
-> @@ -234,6 +234,9 @@ config TI_EDMA
->  	  Enable support for the TI EDMA controller. This DMA
->  	  engine is found on TI DaVinci and AM33xx parts.
+> diff --git a/Documentation/devicetree/bindings/dma/dma.txt b/Documentatio=
+n/devicetree/bindings/dma/dma.txt
+> index 82104271e754..6312fb00ce8d 100644
+> --- a/Documentation/devicetree/bindings/dma/dma.txt
+> +++ b/Documentation/devicetree/bindings/dma/dma.txt
+> @@ -31,6 +31,34 @@ Example:
+>  		dma-requests =3D <127>;
+>  	};
 > =20
-> +config TI_DMA_CROSSBAR
-> +	bool
+> +* DMA router
 > +
->  config ARCH_HAS_ASYNC_TX_FIND_CHANNEL
->  	bool
+> +DMA routers are transparent IP blocks used to route DMA request lines fr=
+om
+> +devices to the DMA controller. Some SoCs (like TI DRA7x) have more perip=
+herals
+> +integrated with DMA requests than what the DMA controller can handle dir=
+ectly.
+> +
+> +Required property:
+> +- dma-masters:		phandle of the DMA controller or list of phandles for
+> +			the DMA controllers the router can direct the signal to.
+> +- #dma-cells: 		Must be at least 1. Used to provide DMA router specific
+> +			information. See DMA client binding below for more
+> +			details.
+> +
+> +Optional properties:
+> +- dma-requests: 	Number of incoming request lines the router can handle.
+> +- In the node pointed by the dma-masters:
+> +	- dma-requests:	The router driver might need to look for this in order
+> +			to configure the routing.
+> +
+> +Example:
+> +	sdma_xbar: dma-router@4a002b78 {
+> +		compatible =3D "ti,dra7-dma-crossbar";
+> +		reg =3D <0x4a002b78 0xfc>;
+> +		#dma-cells =3D <1>;
+> +		dma-requests =3D <205>;
+> +		ti,dma-safe-map =3D <0>;
+> +		dma-masters =3D <&sdma>;
+> +	};
 > =20
-> @@ -319,6 +322,7 @@ config DMA_OMAP
->  	depends on ARCH_OMAP
->  	select DMA_ENGINE
->  	select DMA_VIRTUAL_CHANNELS
-> +	select TI_DMA_CROSSBAR if SOC_DRA7XX
+>  * DMA client
 > =20
->  config DMA_BCM2835
->  	tristate "BCM2835 DMA engine support"
-> diff --git a/drivers/dma/Makefile b/drivers/dma/Makefile
-> index 7e8301cb489d..19ac70b8af0a 100644
-> --- a/drivers/dma/Makefile
-> +++ b/drivers/dma/Makefile
-> @@ -38,6 +38,7 @@ obj-$(CONFIG_EP93XX_DMA) +=3D ep93xx_dma.o
->  obj-$(CONFIG_DMA_SA11X0) +=3D sa11x0-dma.o
->  obj-$(CONFIG_MMP_TDMA) +=3D mmp_tdma.o
->  obj-$(CONFIG_DMA_OMAP) +=3D omap-dma.o
-> +obj-$(CONFIG_TI_DMA_CROSSBAR) +=3D ti-dma-crossbar.o
->  obj-$(CONFIG_DMA_BCM2835) +=3D bcm2835-dma.o
->  obj-$(CONFIG_MMP_PDMA) +=3D mmp_pdma.o
->  obj-$(CONFIG_DMA_JZ4740) +=3D dma-jz4740.o
-> diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-> new file mode 100644
-> index 000000000000..5cb1eb7e86d2
-> --- /dev/null
-> +++ b/drivers/dma/ti-dma-crossbar.c
-> @@ -0,0 +1,185 @@
-> +/*
-> + *  Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
-> + *  Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+> index 24967c89f5d4..c7aa232b4a59 100644
+> --- a/drivers/dma/dmaengine.c
+> +++ b/drivers/dma/dmaengine.c
+> @@ -267,6 +267,13 @@ static void dma_chan_put(struct dma_chan *chan)
+>  	/* This channel is not in use anymore, free it */
+>  	if (!chan->client_count && chan->device->device_free_chan_resources)
+>  		chan->device->device_free_chan_resources(chan);
+> +
+> +	/* If the channel is used via a DMA request router, free the mapping */
+> +	if (chan->router && chan->router->route_free) {
+> +		chan->router->route_free(chan->router->dev, chan->route_data);
+> +		chan->router =3D NULL;
+> +		chan->route_data =3D NULL;
+> +	}
+>  }
+> =20
+>  enum dma_status dma_sync_wait(struct dma_chan *chan, dma_cookie_t cookie)
+> diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
+> index cbd4a8aff120..98b3b61624f0 100644
+> --- a/drivers/dma/of-dma.c
+> +++ b/drivers/dma/of-dma.c
+> @@ -45,6 +45,47 @@ static struct of_dma *of_dma_find_controller(struct of=
+_phandle_args *dma_spec)
+>  }
+> =20
+>  /**
+> + * of_dma_router_xlate - translation function for router devices
+> + * @dma_spec:	pointer to DMA specifier as found in the device tree
+> + * @of_dma:	pointer to DMA controller data (router information)
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
+> + * The function creates new dma_spec to be passed to the router driver's
+> + * of_dma_route_allocate() function to prepare a dma_spec which will be =
+used
+> + * to request channel from the real DMA controller.
 > + */
-> +#include <linux/slab.h>
-> +#include <linux/err.h>
-> +#include <linux/init.h>
-> +#include <linux/list.h>
-> +#include <linux/io.h>
-> +#include <linux/idr.h>
-> +#include <linux/of_address.h>
-> +#include <linux/of_device.h>
-> +#include <linux/of_dma.h>
-> +
-> +#define TI_XBAR_OUTPUTS	127
-> +#define TI_XBAR_INPUTS	256
-> +
-> +static DEFINE_IDR(map_idr);
-> +
-> +struct ti_dma_xbar_data {
-> +	void __iomem *iomem;
-> +
-> +	struct dma_router dmarouter;
-> +
-> +	uint safe_val; /* Value to rest the crossbar lines */
-> +	uint xbar_requests; /* number of DMA requests connected to XBAR */
-> +	uint dma_requests; /* number of DMA requests forwarded to DMA */
-> +};
-> +
-> +struct ti_dma_xbar_map {
-> +	int xbar_in;
-> +	int xbar_out;
-> +};
-> +
-> +static inline void ti_dma_xbar_write(void __iomem *iomem, int xbar, int =
-val)
+> +static struct dma_chan *of_dma_router_xlate(struct of_phandle_args *dma_=
+spec,
+> +					    struct of_dma *ofdma)
 > +{
-> +	writew_relaxed(val, iomem + (xbar * 2));
-
-Silently casting val (an integer) to a u16 isn't really nice I
-guess. At least you could be upfront about it in the prototype.
-
-> +}
+> +	struct dma_chan		*chan;
+> +	struct of_dma		*ofdma_target;
+> +	struct of_phandle_args	dma_spec_target;
+> +	void			*route_data;
 > +
-> +static void ti_dma_xbar_free(struct device *dev, void *route_data)
-> +{
-> +	struct ti_dma_xbar_data *xbar =3D dev_get_drvdata(dev);
-> +	struct ti_dma_xbar_map *map =3D route_data;
+> +	/* translate the request for the real DMA controller */
+> +	memcpy(&dma_spec_target, dma_spec, sizeof(dma_spec_target));
+> +	route_data =3D ofdma->of_dma_route_allocate(&dma_spec_target, ofdma);
 > +
-> +	dev_dbg(dev, "Unmapping XBAR%d (was routed to %d)\n",
-> +		map->xbar_in, map->xbar_out);
-> +
-> +	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
-> +	idr_remove(&map_idr, map->xbar_out);
-> +	kfree(map);
-> +}
-> +
-> +static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
-> +					struct of_dma *ofdma)
-> +{
-> +	struct platform_device *pdev =3D of_find_device_by_node(ofdma->of_node);
-> +	struct ti_dma_xbar_data *xbar =3D platform_get_drvdata(pdev);
-> +	struct ti_dma_xbar_map *map;
-> +
-> +	if (dma_spec->args[0] >=3D xbar->xbar_requests) {
-> +		dev_err(&pdev->dev, "Invalid XBAR request number: %d\n",
-> +			dma_spec->args[0]);
+> +	ofdma_target =3D of_dma_find_controller(&dma_spec_target);
+> +	if (!ofdma_target)
 > +		return NULL;
+> +
+> +	chan =3D ofdma_target->of_dma_xlate(&dma_spec_target, ofdma_target);
+> +	if (chan) {
+> +		chan->router =3D ofdma->dma_router;
+> +		chan->route_data =3D route_data;
+> +	} else {
+> +		ofdma->dma_router->route_free(ofdma->dma_router->dev, route_data);
+
+This line is over 80 characters.
+
 > +	}
 > +
-> +	dma_spec->np =3D of_parse_phandle(ofdma->of_node, "dma-masters", 0);
-> +	if (!dma_spec->np) {
-> +		dev_err(&pdev->dev, "Can't get DMA master\n");
-> +		return NULL;
-> +	}
-> +
-> +	map =3D kzalloc(sizeof(*map), GFP_KERNEL);
-> +	if (!map)
-> +		return NULL;
-
-You're leaking dma_spec->np.
-
-> +
-> +	map->xbar_out =3D idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
-> +				  GFP_KERNEL);
-> +	map->xbar_in =3D dma_spec->args[0];
-> +
-> +	/* The DMA request is 1 based in sDMA */
-> +	dma_spec->args[0] =3D map->xbar_out + 1;
-> +
-> +	dev_dbg(&pdev->dev, "Mapping XBAR%d to DMA%d\n",
-> +		map->xbar_in, map->xbar_out);
-> +
-> +	ti_dma_xbar_write(xbar->iomem, map->xbar_out, map->xbar_in);
-> +
-> +	return map;
+> +	/*
+> +	 * Need to put the node back since the ofdma->of_dma_route_allocate
+> +	 * has taken it for generating the new, translated dma_spec
+> +	 */
+> +	of_node_put(dma_spec_target.np);
+> +	return chan;
 > +}
 > +
-> +static int ti_dma_xbar_probe(struct platform_device *pdev)
+> +/**
+>   * of_dma_controller_register - Register a DMA controller to DT DMA help=
+ers
+>   * @np:			device node of DMA controller
+>   * @of_dma_xlate:	translation function which converts a phandle
+> @@ -110,6 +151,51 @@ void of_dma_controller_free(struct device_node *np)
+>  EXPORT_SYMBOL_GPL(of_dma_controller_free);
+> =20
+>  /**
+> + * of_dma_router_register - Register a DMA router to DT DMA helpers as a
+> + *			    controller
+> + * @np:				device node of DMA router
+> + * @of_dma_route_allocate:	setup function for the router which need to
+> + *				modify the dma_spec for the DMA controller to
+> + *				use and to set up the requested route.
+> + * @dma_router:			pointer to dma_router structure to be used when
+> + *				the route need to be free up.
+> + *
+> + * Returns 0 on success or appropriate errno value on error.
+> + *
+> + * Allocated memory should be freed with appropriate of_dma_controller_f=
+ree()
+> + * call.
+> + */
+> +int of_dma_router_register(struct device_node *np,
+> +			   void *(*of_dma_route_allocate)
+> +			   (struct of_phandle_args *, struct of_dma *),
+> +			   struct dma_router *dma_router)
 > +{
-> +	struct device_node *node =3D pdev->dev.of_node;
-> +	struct device_node *dma_node;
-> +	struct ti_dma_xbar_data *xbar;
-> +	struct resource *res;
-> +	void __iomem *iomem;
-> +	int i, ret;
+> +	struct of_dma	*ofdma;
 > +
-> +	if (!node)
-> +		return -ENODEV;
-> +
-> +	dma_node =3D of_parse_phandle(node, "dma-masters", 0);
-> +	if (!dma_node) {
-> +		dev_err(&pdev->dev, "Can't get DMA master node\n");
-> +		return -ENODEV;
+> +	if (!np || !of_dma_route_allocate || !dma_router) {
+> +		pr_err("%s: not enough information provided\n", __func__);
+> +		return -EINVAL;
 > +	}
 > +
-> +	xbar =3D devm_kzalloc(&pdev->dev, sizeof(*xbar), GFP_KERNEL);
-> +	if (!xbar)
+> +	ofdma =3D kzalloc(sizeof(*ofdma), GFP_KERNEL);
+> +	if (!ofdma)
 > +		return -ENOMEM;
 
-And here too.
+Is that expected that you allocate through kzalloc, but never have a
+matching free function implemented?
 
-> +	if (of_property_read_u32(dma_node, "dma-requests",
-> +				 &xbar->dma_requests)) {
-> +		dev_info(&pdev->dev,
-> +			 "Missing XBAR output information, using %u.\n",
-> +			 TI_XBAR_OUTPUTS);
-> +		xbar->dma_requests =3D TI_XBAR_OUTPUTS;
-> +	}
-> +	of_node_put(dma_node);
+> +	ofdma->of_node =3D np;
+> +	ofdma->of_dma_xlate =3D of_dma_router_xlate;
+> +	ofdma->of_dma_route_allocate =3D of_dma_route_allocate;
+> +	ofdma->dma_router =3D dma_router;
 > +
-> +	if (of_property_read_u32(node, "dma-requests", &xbar->xbar_requests)) {
-> +		dev_info(&pdev->dev,
-> +			 "Missing XBAR input information, using %u.\n",
-> +			 TI_XBAR_INPUTS);
-> +		xbar->xbar_requests =3D TI_XBAR_INPUTS;
-> +	}
+> +	/* Now queue of_dma controller structure in list */
+> +	mutex_lock(&of_dma_lock);
+> +	list_add_tail(&ofdma->of_dma_controllers, &of_dma_list);
+> +	mutex_unlock(&of_dma_lock);
 > +
-> +	if (of_property_read_u32(node, "ti,dma-safe-map", &xbar->safe_val))
-> +		xbar->safe_val =3D 0;
-> +
-> +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res)
-> +		return -ENODEV;
-> +
-> +	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
-> +				     dev_name(&pdev->dev)))
-> +		return -ENODEV;
-> +
-> +	iomem =3D devm_ioremap(&pdev->dev, res->start, resource_size(res));
-> +	if (!iomem)
-> +		return -ENOMEM;
-
-You can use devm_ioremap_resource here.
-
-> +	xbar->iomem =3D iomem;
-> +
-> +	xbar->dmarouter.dev =3D &pdev->dev;
-> +	xbar->dmarouter.route_free =3D ti_dma_xbar_free;
-> +
-> +	platform_set_drvdata(pdev, xbar);
-> +
-> +	ret =3D of_dma_router_register(node, ti_dma_xbar_route_allocate,
-> +				     &xbar->dmarouter);
-> +	if (ret)
-> +		return -ENODEV;
-
-Starting here, I'd expect that your driver can be used....
-
-> +
-> +	/* Reset the crossbar */
-> +	for (i =3D 0; i < xbar->dma_requests; i++)
-> +		ti_dma_xbar_write(xbar->iomem, i, xbar->safe_val);
-
-=2E.. however, the hardware doesn't seem ready. Isn't it a race?
-
-
 > +	return 0;
 > +}
+> +EXPORT_SYMBOL_GPL(of_dma_router_register);
 > +
-> +static const struct of_device_id ti_dma_xbar_match[] =3D {
-> +	{ .compatible =3D "ti,dra7-dma-crossbar" },
-> +	{},
+> +/**
+>   * of_dma_match_channel - Check if a DMA specifier matches name
+>   * @np:		device node to look for DMA channels
+>   * @name:	channel name to be matched
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index ad419757241f..abf63ceabef9 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -222,6 +222,16 @@ struct dma_chan_percpu {
+>  };
+> =20
+>  /**
+> + * struct dma_router - DMA router structure
+> + * @dev: pointer to the DMA router device
+> + * @route_free: function to be called when the route can be disconnected
+> + */
+> +struct dma_router {
+> +	struct device *dev;
+> +	void (*route_free)(struct device *dev, void *route_data);
 > +};
 > +
-> +static struct platform_driver ti_dma_xbar_driver =3D {
-> +	.driver =3D {
-> +		.name =3D "ti-dma-crossbar",
-> +		.of_match_table =3D of_match_ptr(ti_dma_xbar_match),
-> +	},
-> +	.probe	=3D ti_dma_xbar_probe,
-> +};
+> +/**
+>   * struct dma_chan - devices supply DMA channels, clients use them
+>   * @device: ptr to the dma device who supplies this channel, always !%NU=
+LL
+>   * @cookie: last cookie value returned to client
+> @@ -232,6 +242,8 @@ struct dma_chan_percpu {
+>   * @local: per-cpu pointer to a struct dma_chan_percpu
+>   * @client_count: how many clients are using this channel
+>   * @table_count: number of appearances in the mem-to-mem allocation table
+> + * @router: pointer to the DMA router structure
+> + * @route_data: channel specific data for the router
+>   * @private: private data for certain client-channel associations
+>   */
+>  struct dma_chan {
+> @@ -247,6 +259,11 @@ struct dma_chan {
+>  	struct dma_chan_percpu __percpu *local;
+>  	int client_count;
+>  	int table_count;
 > +
-> +int omap_dmaxbar_init(void)
-> +{
-> +	return platform_driver_register(&ti_dma_xbar_driver);
-> +}
-> +arch_initcall(omap_dmaxbar_init);
+> +	/* DMA router */
+> +	struct dma_router *router;
+> +	void *route_data;
+> +
+>  	void *private;
+>  };
+> =20
+> diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+> index 56bc026c143f..734e449f87c1 100644
+> --- a/include/linux/of_dma.h
+> +++ b/include/linux/of_dma.h
+> @@ -23,6 +23,9 @@ struct of_dma {
+>  	struct device_node	*of_node;
+>  	struct dma_chan		*(*of_dma_xlate)
+>  				(struct of_phandle_args *, struct of_dma *);
+> +	void			*(*of_dma_route_allocate)
+> +				(struct of_phandle_args *, struct of_dma *);
+> +	struct dma_router	*dma_router;
+
+I don't really see why this is really tied to the device tree.
+
+Couldn't we use the device_alloc_chan_resources to do that?
 
 Thanks,
 Maxime
@@ -291,26 +298,26 @@ Maxime Ripard, Free Electrons
 Embedded Linux, Kernel and Android engineering
 http://free-electrons.com
 
---iVCmgExH7+hIHJ1A
+--xA/XKXTdy9G3iaIz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVJUgFAAoJEBx+YmzsjxAg+z0P/itU07/W23Ad4LdqSi482rOj
-rUR5Nm/ui0rK+aJcRLL/nskybcD+XdpNskX1wsWeqgAge66nQllMQrN8DlCDfGLx
-9DXbbEYsbJlzvXFPqgz0H5IiFLkinvTguXO4ptTMR5Z83e/Vc8aczSawpNPlXSgS
-82HEINAhNxZujydU8OTBqnVp6E020aE/TKKnkOoGoULOe8YdLZdoJOZOa9UZK5/2
-JjLFQyCtUx33tSTCxZi6NoZTUpmLwZKSDirn9opNeFuGfisw5dGsJGHD96olLhvr
-15DUSHJKWFpCjlnErhnJSCQ74Q7lXYvKiX35gC2vf4OTNOmZBrYX0OOLC8WbI1tl
-twOkVWG49nWhQl4uX3P/fDxkNnoROyJ+O8lbEff3soJ8NuSrKlRUqm5TPDPmzlRn
-+ustTfy1FH12q52/9jN3zF0v5XGSl5u/FbqKBJ6SCOOviz3wTM2ncWaGeBCq9fAZ
-Nyuxgy73ftcJUpw/5/PvzWmd3Tnx4i106Lcjwm6EJbn/ofqYHWFkjqnryviVAiYz
-VGtd1wcrYfRvrKgaD8nPWeQLrr6jE2Kj3SzSbJegtn6myvX4XkQX6OMta/iGos2f
-5rpydU/hyalcGN5n3ldN/mjFnu6JcWL9dcrcHMMLeAjr87XOJrFjgGVhL18Bafii
-i6d25NUx1s/V/XwZMR4L
-=ba92
+iQIcBAEBAgAGBQJVJUx7AAoJEBx+YmzsjxAgevgP/1D5CHAXWmOjCXLmvt37/nw+
+yVf+7H1DtR+ZMJm+UBOu02i42I7psPrA7eS/29RDgadZo7k5D9Bf5X8Bd8wQmlSK
+4hvqUvFkA8F1pfUsqFLctcHDkHU8JiNkJ1Z/RNilcCqCWis45mu2rKwKsjF5PTch
+jORF5QzPNQh+/2HW2I5J10dZWv52DrIifq5aAKAvuFJ3GRjNIHcAVClxOjLrQBd1
+bYBpMxugR+tTq72LwSfeIMq5tUhQkepXRqNdejNalZDs72zHmdiyquFBnwp6K2eH
+yBPSqW6GQbmrcWfe0JjOVzAgXY1Q2cq84fQopFIBgSL2KYFepJYQ8N7wC5TZbjMH
+Sv6+EL/0SovMR6cPoHv04/Z5jd2FcJv26gqz7CqGtzzKMjEV1b2QuDbSfKvwg4co
+FvsJ4vgesMi6b8rs1XnuLRoq7lXbUvEzKI8NZBLVJHFO/UlSPBA/Ctl2zu9kA67m
+ZGxUkXikrAX8aa7SwydKBwvKtjXlAHUMnq+GWjW2WXC3ktiDSga4Qjj316xXwQXS
+UBgav88yqhxH+B5YIaYHYY6PVMBaClq/Vcy7KE4BQ0BjpOTpvXlmp+pJlPeXQ1dz
+KmlXZLltXHgpM7D6Vj9M8PYK8H0yhSvJ6f3NYoUewahbF8O+9rZPSxZGgrVTrdtM
+7JC2dwsG2oxzOYwYXUJR
+=7qwu
 -----END PGP SIGNATURE-----
 
---iVCmgExH7+hIHJ1A--
+--xA/XKXTdy9G3iaIz--
