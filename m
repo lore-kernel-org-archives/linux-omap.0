@@ -1,120 +1,74 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 1/8] dmaengine: of_dma: Support for DMA routers
-Date: Thu, 9 Apr 2015 11:24:58 +0300
-Message-ID: <5526375A.7090708@ti.com>
-References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com> <1428498892-28471-2-git-send-email-peter.ujfalusi@ti.com> <20150408154251.GE26727@lukather>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: OMAP: 4.0-rc7: dma_async_device_register issue
+Date: Thu, 9 Apr 2015 10:42:15 +0200
+Message-ID: <CAGm1_kuo2KSK7d=SNY_w6m3Medu_Vvj-YRwkZfTJUKQ4+G7=fQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42468 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932657AbbDIIZp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Apr 2015 04:25:45 -0400
-In-Reply-To: <20150408154251.GE26727@lukather>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:36687 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932474AbbDIImh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2015 04:42:37 -0400
+Received: by pdea3 with SMTP id a3so145681500pde.3
+        for <linux-omap@vger.kernel.org>; Thu, 09 Apr 2015 01:42:37 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>
 
-On 04/08/2015 06:42 PM, Maxime Ripard wrote:
->> ---
->>  Documentation/devicetree/bindings/dma/dma.txt | 28 +++++++++
->>  drivers/dma/dmaengine.c                       |  7 +++
->>  drivers/dma/of-dma.c                          | 86 ++++++++++++++++=
-+++++++++++
->>  include/linux/dmaengine.h                     | 17 ++++++
->>  include/linux/of_dma.h                        | 21 +++++++
->>  5 files changed, 159 insertions(+)
->=20
-> Can that be moved to a header / C file of its own?
->=20
-> There's a lot of various code already in dmaengine.h and dmaengine.c,
-> it would be really great to avoid adding more random stuff in there.
+I see this during the boot:
 
-This patch adds the core support for DMA signal routers. It adds fairly=
- small
-amount of generic code to the core to achieve this. I don't think it wo=
-uld be
-better to create let's say of-dma-router.c and .h just for this and exp=
-ort
-functions from of-dma.c to be used outside of the file.
+platform musb-hdrc.1.auto: Driver musb-hdrc requests probe deferral
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 1 at drivers/dma/dmaengine.c:863
+dma_async_device_register+0x2a8/0x4d8()
+this driver doesn't support generic slave capabilities reporting
+Modules linked in:
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.0.0-rc7 #1
+Hardware name: Generic AM33XX (Flattened Device Tree)
+[<c0015ce4>] (unwind_backtrace) from [<c0012370>] (show_stack+0x10/0x14)
+[<c0012370>] (show_stack) from [<c05f7a2c>] (dump_stack+0x84/0x9c)
+[<c05f7a2c>] (dump_stack) from [<c003d868>] (warn_slowpath_common+0x7c/0xb8)
+[<c003d868>] (warn_slowpath_common) from [<c003d8d4>]
+(warn_slowpath_fmt+0x30/0x40)
+[<c003d8d4>] (warn_slowpath_fmt) from [<c02dd5f8>]
+(dma_async_device_register+0x2a8/0x4d8)
+[<c02dd5f8>] (dma_async_device_register) from [<c02e1a14>]
+(cppi41_dma_probe+0x3f4/0x470)
+[<c02e1a14>] (cppi41_dma_probe) from [<c032152c>] (platform_drv_probe+0x44/0xa4)
+[<c032152c>] (platform_drv_probe) from [<c031fc48>]
+(driver_probe_device+0x104/0x23c)
+[<c031fc48>] (driver_probe_device) from [<c031e27c>]
+(bus_for_each_drv+0x64/0x98)
+[<c031e27c>] (bus_for_each_drv) from [<c031fb10>] (device_attach+0x74/0x8c)
+[<c031fb10>] (device_attach) from [<c031f1f4>] (bus_probe_device+0x88/0xb0)
+[<c031f1f4>] (bus_probe_device) from [<c031d56c>] (device_add+0x378/0x520)
+[<c031d56c>] (device_add) from [<c045c588>]
+(of_platform_device_create_pdata+0xe8/0x144)
+[<c045c588>] (of_platform_device_create_pdata) from [<c045c6cc>]
+(of_platform_bus_create+0xdc/0x18c)
+[<c045c6cc>] (of_platform_bus_create) from [<c045c8a8>]
+(of_platform_populate+0x5c/0xac)
+[<c045c8a8>] (of_platform_populate) from [<c0402a7c>]
+(am335x_child_probe+0x28/0x44)
+[<c0402a7c>] (am335x_child_probe) from [<c032152c>]
+(platform_drv_probe+0x44/0xa4)
+[<c032152c>] (platform_drv_probe) from [<c031fc48>]
+(driver_probe_device+0x104/0x23c)
+[<c031fc48>] (driver_probe_device) from [<c031fe58>] (__driver_attach+0x94/0x98)
+[<c031fe58>] (__driver_attach) from [<c031e1d0>] (bus_for_each_dev+0x6c/0xa0)
+[<c031e1d0>] (bus_for_each_dev) from [<c031f46c>] (bus_add_driver+0x144/0x1f0)
+[<c031f46c>] (bus_add_driver) from [<c03205b0>] (driver_register+0x78/0xf8)
+[<c03205b0>] (driver_register) from [<c0008b84>] (do_one_initcall+0x80/0x1dc)
+[<c0008b84>] (do_one_initcall) from [<c087fd88>]
+(kernel_init_freeable+0x110/0x1d8)
+[<c087fd88>] (kernel_init_freeable) from [<c05f472c>] (kernel_init+0x8/0xec)
+[<c05f472c>] (kernel_init) from [<c000e910>] (ret_from_fork+0x14/0x24)
+---[ end trace e3462ce3acfe8469 ]---
 
->> +	chan =3D ofdma_target->of_dma_xlate(&dma_spec_target, ofdma_target=
-);
->> +	if (chan) {
->> +		chan->router =3D ofdma->dma_router;
->> +		chan->route_data =3D route_data;
->> +	} else {
->> +		ofdma->dma_router->route_free(ofdma->dma_router->dev, route_data)=
-;
->=20
-> This line is over 80 characters.
+So far I could only find this patch, but it is
+drivers/dma/qcom_bam_dma.c related: https://lkml.org/lkml/2015/3/5/324
 
-Oh, true.
+My DTS: https://github.com/visionsystemsgmbh/onrisc_br_bsp/blob/master/board/vscom/dts/3.15/onrisc-baltos-ir-5221.dts
 
->> +int of_dma_router_register(struct device_node *np,
->> +			   void *(*of_dma_route_allocate)
->> +			   (struct of_phandle_args *, struct of_dma *),
->> +			   struct dma_router *dma_router)
->> +{
->> +	struct of_dma	*ofdma;
->> +
->> +	if (!np || !of_dma_route_allocate || !dma_router) {
->> +		pr_err("%s: not enough information provided\n", __func__);
->> +		return -EINVAL;
->> +	}
->> +
->> +	ofdma =3D kzalloc(sizeof(*ofdma), GFP_KERNEL);
->> +	if (!ofdma)
->> +		return -ENOMEM;
->=20
-> Is that expected that you allocate through kzalloc, but never have a
-> matching free function implemented?
-
-The free is via the of_dma_router_free() in case the router is removed
-runtime, which is unlikely to happen since it will cause all DMA reques=
-t to fail.
-
->> diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
->> index 56bc026c143f..734e449f87c1 100644
->> --- a/include/linux/of_dma.h
->> +++ b/include/linux/of_dma.h
->> @@ -23,6 +23,9 @@ struct of_dma {
->>  	struct device_node	*of_node;
->>  	struct dma_chan		*(*of_dma_xlate)
->>  				(struct of_phandle_args *, struct of_dma *);
->> +	void			*(*of_dma_route_allocate)
->> +				(struct of_phandle_args *, struct of_dma *);
->> +	struct dma_router	*dma_router;
->=20
-> I don't really see why this is really tied to the device tree.
-
-The signal router is not a DMA device, it is represented in the device =
-tree
-and the code will do the needed translation, which is transparent for t=
-he DMA
-clients and also for the DMA controllers. Neither should know about the=
- signal
-router.
-Similar translation can be done for ACPI.
-
-> Couldn't we use the device_alloc_chan_resources to do that?
-
-Not really. The router itself is not a DMA controller. The routing need=
- to be
-configured before the device_alloc_chan_resources can be called for the=
- real
-DMA controller. The signal router (core part + the HW driver) need to p=
-repare
-the route and do the translation so the filter function of the DMA driv=
-er can
-validate the translated request.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yegor
