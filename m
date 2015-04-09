@@ -1,68 +1,125 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCHv7] media: i2c/adp1653: fix includes
-Date: Thu, 9 Apr 2015 14:59:27 +0200
-Message-ID: <20150409125927.GC12339@atrey.karlin.mff.cuni.cz>
-References: <20150404074337.GA31064@amd>
- <20150404102435.GR20756@valkosipuli.retiisi.org.uk>
- <20150404171116.GA15025@Nokia-N900>
- <20150404200307.GS20756@valkosipuli.retiisi.org.uk>
- <20150409074238.GA22603@amd>
- <20150409091017.GA4526@earth>
- <20150409112943.GA31173@amd>
- <20150409121913.GB18713@earth>
- <20150409123155.GB9563@amd>
- <CABxcv=mB=LqO2paGfYq1jCbky=kudT-mS8cJ-pPwdqZYQLeO4A@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP: 4.0-rc7: dma_async_device_register issue
+Date: Thu, 9 Apr 2015 08:37:03 -0500
+Message-ID: <20150409133703.GA4149@saruman.tx.rr.com>
+References: <CAGm1_kuo2KSK7d=SNY_w6m3Medu_Vvj-YRwkZfTJUKQ4+G7=fQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Kj7319i9nmIyA2yE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:35914 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753797AbbDIM7c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2015 08:59:32 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:56761 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752833AbbDINiM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Apr 2015 09:38:12 -0400
 Content-Disposition: inline
-In-Reply-To: <CABxcv=mB=LqO2paGfYq1jCbky=kudT-mS8cJ-pPwdqZYQLeO4A@mail.gmail.com>
+In-Reply-To: <CAGm1_kuo2KSK7d=SNY_w6m3Medu_Vvj-YRwkZfTJUKQ4+G7=fQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>, Andrew Morton <akpm@osdl.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, m.chehab@samsung.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, mchehab@osg.samsung.com, hverkuil@xs4all.nl
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Thursday 09 April 2015 14:43:59 Javier Martinez Canillas wrote:
-> Hello Pavel,
->=20
-> >
-> > diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp165=
-3.c
-> > index d703636..7107ac2 100644
-> > --- a/drivers/media/i2c/adp1653.c
-> > +++ b/drivers/media/i2c/adp1653.c
-> > @@ -35,8 +35,8 @@
-> >  #include <linux/module.h>
-> >  #include <linux/i2c.h>
-> >  #include <linux/slab.h>
-> > -#include <linux/of_gpio.h>
-> > -#include <linux/gpio.h>
-> > +#include <linux/of.h>
-> > +#include <linux/gpio/consumer.h>
-> >  #include <media/adp1653.h>
-> >  #include <media/v4l2-device.h>
-> >
->=20
-> Please re-spin your previous patch and submit it properly.
->=20
-> Best regards,
-> Javier
+--Kj7319i9nmIyA2yE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi all! What about stopping this meaningless discussion about resending
-full patch series when everybody know how to fix is quickly in editor
-(e.g with sed under 5s) and not wasting another 10 minutes to generate
-new unified diff sent via SMTP protocol?
+Hi,
+
+On Thu, Apr 09, 2015 at 10:42:15AM +0200, Yegor Yefremov wrote:
+> I see this during the boot:
+>=20
+> platform musb-hdrc.1.auto: Driver musb-hdrc requests probe deferral
+> ------------[ cut here ]------------
+> WARNING: CPU: 0 PID: 1 at drivers/dma/dmaengine.c:863
+> dma_async_device_register+0x2a8/0x4d8()
+> this driver doesn't support generic slave capabilities reporting
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.0.0-rc7 #1
+> Hardware name: Generic AM33XX (Flattened Device Tree)
+> [<c0015ce4>] (unwind_backtrace) from [<c0012370>] (show_stack+0x10/0x14)
+> [<c0012370>] (show_stack) from [<c05f7a2c>] (dump_stack+0x84/0x9c)
+> [<c05f7a2c>] (dump_stack) from [<c003d868>] (warn_slowpath_common+0x7c/0x=
+b8)
+> [<c003d868>] (warn_slowpath_common) from [<c003d8d4>]
+> (warn_slowpath_fmt+0x30/0x40)
+> [<c003d8d4>] (warn_slowpath_fmt) from [<c02dd5f8>]
+> (dma_async_device_register+0x2a8/0x4d8)
+> [<c02dd5f8>] (dma_async_device_register) from [<c02e1a14>]
+> (cppi41_dma_probe+0x3f4/0x470)
+> [<c02e1a14>] (cppi41_dma_probe) from [<c032152c>] (platform_drv_probe+0x4=
+4/0xa4)
+> [<c032152c>] (platform_drv_probe) from [<c031fc48>]
+> (driver_probe_device+0x104/0x23c)
+> [<c031fc48>] (driver_probe_device) from [<c031e27c>]
+> (bus_for_each_drv+0x64/0x98)
+> [<c031e27c>] (bus_for_each_drv) from [<c031fb10>] (device_attach+0x74/0x8=
+c)
+> [<c031fb10>] (device_attach) from [<c031f1f4>] (bus_probe_device+0x88/0xb=
+0)
+> [<c031f1f4>] (bus_probe_device) from [<c031d56c>] (device_add+0x378/0x520)
+> [<c031d56c>] (device_add) from [<c045c588>]
+> (of_platform_device_create_pdata+0xe8/0x144)
+> [<c045c588>] (of_platform_device_create_pdata) from [<c045c6cc>]
+> (of_platform_bus_create+0xdc/0x18c)
+> [<c045c6cc>] (of_platform_bus_create) from [<c045c8a8>]
+> (of_platform_populate+0x5c/0xac)
+> [<c045c8a8>] (of_platform_populate) from [<c0402a7c>]
+> (am335x_child_probe+0x28/0x44)
+> [<c0402a7c>] (am335x_child_probe) from [<c032152c>]
+> (platform_drv_probe+0x44/0xa4)
+> [<c032152c>] (platform_drv_probe) from [<c031fc48>]
+> (driver_probe_device+0x104/0x23c)
+> [<c031fc48>] (driver_probe_device) from [<c031fe58>] (__driver_attach+0x9=
+4/0x98)
+> [<c031fe58>] (__driver_attach) from [<c031e1d0>] (bus_for_each_dev+0x6c/0=
+xa0)
+> [<c031e1d0>] (bus_for_each_dev) from [<c031f46c>] (bus_add_driver+0x144/0=
+x1f0)
+> [<c031f46c>] (bus_add_driver) from [<c03205b0>] (driver_register+0x78/0xf=
+8)
+> [<c03205b0>] (driver_register) from [<c0008b84>] (do_one_initcall+0x80/0x=
+1dc)
+> [<c0008b84>] (do_one_initcall) from [<c087fd88>]
+> (kernel_init_freeable+0x110/0x1d8)
+> [<c087fd88>] (kernel_init_freeable) from [<c05f472c>] (kernel_init+0x8/0x=
+ec)
+> [<c05f472c>] (kernel_init) from [<c000e910>] (ret_from_fork+0x14/0x24)
+> ---[ end trace e3462ce3acfe8469 ]---
+>=20
+> So far I could only find this patch, but it is
+> drivers/dma/qcom_bam_dma.c related: https://lkml.org/lkml/2015/3/5/324
+>=20
+> My DTS: https://github.com/visionsystemsgmbh/onrisc_br_bsp/blob/master/bo=
+ard/vscom/dts/3.15/onrisc-baltos-ir-5221.dts
+
+try this patch:
+
+https://marc.info/?l=3Dlinux-usb&m=3D142851161717345&w=3D2
 
 --=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+balbi
+
+--Kj7319i9nmIyA2yE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVJoB/AAoJEIaOsuA1yqRE/C4P/AtOMGWTQAp3azj9ZelQU1+J
+iVCsJ7Aa28eyxyaARfLdB+v5/x8P2SqWMb2g9tteT1WvUUMgMiAcVRiica2Ky/DL
+6P8Gr9bG44NNlSvPUnnXziTPGmt04WAiPFVPcBcNGv5UuXpknAvvRCHpDUu/QFBu
+C1s/N3amrYAVLKqAkaa1BxCwU4N8cMlYSOtIGLx7a9sArVSE78hNzIwPjMAYSkgl
+wEU2sWT10qv3JONuigBfI58zJvFFnqv/83OaUKt71s3RlSYPOfJZoi/Y4zc0a18f
+lALoykdO9aKdlq39EsljG4/frDJ2LjmaP2z/70QaUh35Rw6gA36u4BvhJNQwIyNm
+D2/QlxIQDe9rJ1ckUi4FnYGnVF0BrResfPrgnYwPMQQgLInoVqXasgLZkFRNPvTu
+P3au3YnWwMOhrJ7OSZEnEGn6HAczJ+FmW5ioTt28DzrQqsUSzoGe8F5t3NV1LSc9
+adlq55NcoanYDeOto0mGc3bu+wF78fUNPD/2k7GVl6ZPI415XgME86nYbeXD3kOZ
+uu7M5HNS6p/eb47unmYYpRNJhCSozGxjdxQrfXa3FWaExkt33zfapWa91ocxuWh+
+BBircCqACrOj1vjWBFV9J4y/Twnh0DryWI3fGddX2mUSWlDeq9BlPpEV6BvwROFx
+f3ypqeSH5UaL0cyZ5k6c
+=itQE
+-----END PGP SIGNATURE-----
+
+--Kj7319i9nmIyA2yE--
