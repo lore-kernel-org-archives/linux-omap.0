@@ -1,74 +1,72 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: OMAP: 4.0-rc7: dma_async_device_register issue
-Date: Thu, 9 Apr 2015 10:42:15 +0200
-Message-ID: <CAGm1_kuo2KSK7d=SNY_w6m3Medu_Vvj-YRwkZfTJUKQ4+G7=fQ@mail.gmail.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv7] media: i2c/adp1653: Devicetree support for adp1653
+Date: Thu, 9 Apr 2015 11:10:17 +0200
+Message-ID: <20150409091017.GA4526@earth>
+References: <20150402203417.GA6336@amd>
+ <20150403083353.GA21070@amd>
+ <20150403113216.GK20756@valkosipuli.retiisi.org.uk>
+ <20150403202624.GA4308@amd>
+ <20150403213655.GO20756@valkosipuli.retiisi.org.uk>
+ <20150404074337.GA31064@amd>
+ <20150404102435.GR20756@valkosipuli.retiisi.org.uk>
+ <20150404171116.GA15025@Nokia-N900>
+ <20150404200307.GS20756@valkosipuli.retiisi.org.uk>
+ <20150409074238.GA22603@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:36687 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932474AbbDIImh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2015 04:42:37 -0400
-Received: by pdea3 with SMTP id a3so145681500pde.3
-        for <linux-omap@vger.kernel.org>; Thu, 09 Apr 2015 01:42:37 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150409074238.GA22603@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>
 
-I see this during the boot:
 
-platform musb-hdrc.1.auto: Driver musb-hdrc requests probe deferral
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 1 at drivers/dma/dmaengine.c:863
-dma_async_device_register+0x2a8/0x4d8()
-this driver doesn't support generic slave capabilities reporting
-Modules linked in:
-CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.0.0-rc7 #1
-Hardware name: Generic AM33XX (Flattened Device Tree)
-[<c0015ce4>] (unwind_backtrace) from [<c0012370>] (show_stack+0x10/0x14)
-[<c0012370>] (show_stack) from [<c05f7a2c>] (dump_stack+0x84/0x9c)
-[<c05f7a2c>] (dump_stack) from [<c003d868>] (warn_slowpath_common+0x7c/0xb8)
-[<c003d868>] (warn_slowpath_common) from [<c003d8d4>]
-(warn_slowpath_fmt+0x30/0x40)
-[<c003d8d4>] (warn_slowpath_fmt) from [<c02dd5f8>]
-(dma_async_device_register+0x2a8/0x4d8)
-[<c02dd5f8>] (dma_async_device_register) from [<c02e1a14>]
-(cppi41_dma_probe+0x3f4/0x470)
-[<c02e1a14>] (cppi41_dma_probe) from [<c032152c>] (platform_drv_probe+0x44/0xa4)
-[<c032152c>] (platform_drv_probe) from [<c031fc48>]
-(driver_probe_device+0x104/0x23c)
-[<c031fc48>] (driver_probe_device) from [<c031e27c>]
-(bus_for_each_drv+0x64/0x98)
-[<c031e27c>] (bus_for_each_drv) from [<c031fb10>] (device_attach+0x74/0x8c)
-[<c031fb10>] (device_attach) from [<c031f1f4>] (bus_probe_device+0x88/0xb0)
-[<c031f1f4>] (bus_probe_device) from [<c031d56c>] (device_add+0x378/0x520)
-[<c031d56c>] (device_add) from [<c045c588>]
-(of_platform_device_create_pdata+0xe8/0x144)
-[<c045c588>] (of_platform_device_create_pdata) from [<c045c6cc>]
-(of_platform_bus_create+0xdc/0x18c)
-[<c045c6cc>] (of_platform_bus_create) from [<c045c8a8>]
-(of_platform_populate+0x5c/0xac)
-[<c045c8a8>] (of_platform_populate) from [<c0402a7c>]
-(am335x_child_probe+0x28/0x44)
-[<c0402a7c>] (am335x_child_probe) from [<c032152c>]
-(platform_drv_probe+0x44/0xa4)
-[<c032152c>] (platform_drv_probe) from [<c031fc48>]
-(driver_probe_device+0x104/0x23c)
-[<c031fc48>] (driver_probe_device) from [<c031fe58>] (__driver_attach+0x94/0x98)
-[<c031fe58>] (__driver_attach) from [<c031e1d0>] (bus_for_each_dev+0x6c/0xa0)
-[<c031e1d0>] (bus_for_each_dev) from [<c031f46c>] (bus_add_driver+0x144/0x1f0)
-[<c031f46c>] (bus_add_driver) from [<c03205b0>] (driver_register+0x78/0xf8)
-[<c03205b0>] (driver_register) from [<c0008b84>] (do_one_initcall+0x80/0x1dc)
-[<c0008b84>] (do_one_initcall) from [<c087fd88>]
-(kernel_init_freeable+0x110/0x1d8)
-[<c087fd88>] (kernel_init_freeable) from [<c05f472c>] (kernel_init+0x8/0xec)
-[<c05f472c>] (kernel_init) from [<c000e910>] (ret_from_fork+0x14/0x24)
----[ end trace e3462ce3acfe8469 ]---
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-So far I could only find this patch, but it is
-drivers/dma/qcom_bam_dma.c related: https://lkml.org/lkml/2015/3/5/324
+Hi,
 
-My DTS: https://github.com/visionsystemsgmbh/onrisc_br_bsp/blob/master/board/vscom/dts/3.15/onrisc-baltos-ir-5221.dts
+On Thu, Apr 09, 2015 at 09:42:38AM +0200, Pavel Machek wrote:
+> [...]
+> +#include <linux/of_gpio.h>
+> +#include <linux/gpio.h>
+> [...]
 
-Yegor
+This should probably be
+
+#include <linux/of.h>
+#include <linux/gpio/consumer.h>
+
+-- Sebastian
+
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVJkH0AAoJENju1/PIO/qafC4P/3We2KzaNAxENPh00J5HWwfU
+5cowtsS0OaKQHleBXQfTa18voVeRJhDwFDhle4DLAPkOu1tNUn/xlomjYhrUqaOh
+tlwX4u/Mn78KmSuU3k9cKaNi/DSYf24judZU4zT/jrAUd6jv48w/sqtTdvrXb6gz
+iCb1/kINGGEPGTDCliQHlHkb2E7/fxSX/3X/yYDH9k778LPs/FbcAdYwarsuAuiJ
+qLwIKSjSAoV8Yn8+he4aQMrPcf91gDrloGFydVVY0r1GeZ4ZBEYVpc7LSglLklav
+aYuqe1sHHOO8pfaCynodZ6IVJ9oyVqxSDjJQG9kA+L7U9uUVsgynbqhDJH0jstdg
+sKPfGJwtFQ5dPIeYt2yHQQEyN36IdOxRYHEHaBrkbtL6rWV8WYXagg5LIGzywWeM
+EJv7enfn2UuxJ06PUzKiGgaa2DIYniE1B2m3PtUpvT2HirM6mKwFIBCgRPWza987
+Fgb/IJShXnQEMIY17LJ8HaHHzFGLS1Bu/k0YuV2XFhWADuIoa2Of4v2Sdi9qUbMj
+wEr+57bEUoRKgzXdtEmT45dLMIc9B8L5aZDP6a58hQ2RTkbsPI97KbhPCCzK9CdB
+oCPGqouZqbAqEjJs2biBMDu3HX0m+p0hvBezbqp8bjtFRvC0Es8hOZkdoUtlce8r
+NqOdtHshvWIsNmGl3iXJ
+=0Mxe
+-----END PGP SIGNATURE-----
+
+--XsQoSWH+UP9D9v3l--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
