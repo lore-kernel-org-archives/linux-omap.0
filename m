@@ -1,48 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/2] arm: boot: dts: am437x-sk: reduce col-scan-delay-us
-Date: Thu, 9 Apr 2015 10:59:27 -0500
-Message-ID: <1428595167-10050-2-git-send-email-balbi@ti.com>
-References: <1428595167-10050-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: patch "phy: Add a driver for dm816x USB PHY" added to linux-phy
+ tree
+Date: Thu, 9 Apr 2015 11:22:28 -0700
+Message-ID: <20150409182228.GS18048@atomide.com>
+References: <20150325233606.GA7549@a0393678ub>
+ <CAALWOA9ZHM6S+7WUffu0LF=9=fEO+PxfERpu=D9JpAbKSo1yNA@mail.gmail.com>
+ <20150326160416.GG31346@atomide.com>
+ <551ACCFE.3070703@ti.com>
+ <20150331165133.GR10805@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1428595167-10050-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:43325 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753006AbbDIS0G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Apr 2015 14:26:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20150331165133.GR10805@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, Bin Liu <binmlist@gmail.com>, pebolle@tiscali.nl, rusty@rustcorp.com.au, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The new AM437x SK Beta boards have removed the
-large capacitors on the gpio-matrix column lines
-which means we can reduce col-scan-delay-us to 5us
-without loosing functionality.
+* Tony Lindgren <tony@atomide.com> [150331 09:56]:
+> * Kishon Vijay Abraham I <kishon@ti.com> [150331 09:37]:
+> > Hi Tony,
+> > 
+> > On Thursday 26 March 2015 09:34 PM, Tony Lindgren wrote:
+> > >* Matthijs van Duin <matthijsvanduin@gmail.com> [150326 00:02]:
+> > >>On 26 March 2015 at 00:36, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> > >>>Let me know if you find any problems with this patch.
+> > >>
+> > >>I spotted a minor issue in drivers/phy/Kconfig:
+> > >>
+> > >>>+         Enable this for dm81xx USB to work.
+> > >>
+> > >>This should say dm816x instead.
+> > >
+> > >Yes that's correct, the phy on dm814x seems to be like on am335x,
+> > >not like on dm816x. Kishon, let me know if you prefer a follow-up
+> > >patch to fix this.
+> > 
+> > No. I've fixed this in my tree
+> > https://git.kernel.org/cgit/linux/kernel/git/kishon/linux-phy.git/commit
+> > /?h=next&id=9fa9fd4ffc90582091b8c6219f2054265f71e4ef
+> 
+> OK thanks!
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/am437x-sk-evm.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Kishon, looks like your next branch is not getting merged into
+Linux next for some reason?
 
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 58dc1cd58bdd..37ce7b1bf07f 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -49,7 +49,7 @@
- 		pinctrl-0 = <&matrix_keypad_pins>;
- 
- 		debounce-delay-ms = <5>;
--		col-scan-delay-us = <1500>;
-+		col-scan-delay-us = <5>;
- 
- 		row-gpios = <&gpio5 5 GPIO_ACTIVE_HIGH		/* Bank5, pin5 */
- 				&gpio5 6 GPIO_ACTIVE_HIGH>;	/* Bank5, pin6 */
--- 
-2.3.0
+Regards,
+
+Tony
