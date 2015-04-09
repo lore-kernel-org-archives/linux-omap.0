@@ -1,204 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 8/8] ARM: DTS: dra7x: Integrate sDMA crossbar
-Date: Thu, 9 Apr 2015 08:18:46 -0700
-Message-ID: <20150409151846.GR18048@atomide.com>
-References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
- <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Thu, 9 Apr 2015 16:30:33 +0100
+Message-ID: <20150409153033.GR4027@n2100.arm.linux.org.uk>
+References: <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
+ <20150406151939.GG18048@atomide.com>
+ <20150406154037.GI18048@atomide.com>
+ <5522BEEF.2000405@gmail.com>
+ <20150406174245.GJ18048@atomide.com>
+ <20150407135713.GL4027@n2100.arm.linux.org.uk>
+ <20150407152207.GM18048@atomide.com>
+ <20150408230658.GO4027@n2100.arm.linux.org.uk>
+ <20150409134843.GQ4027@n2100.arm.linux.org.uk>
+ <20150409150918.GP18048@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:46358 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754949AbbDIPan (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2015 11:30:43 -0400
 Content-Disposition: inline
-In-Reply-To: <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
+In-Reply-To: <20150409150918.GP18048@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [150409 02:37]:
-> The sDMA requests are routed through the DMA crossbar and without the
-> crossbar only peripherals using DMA request 0-127 can be used.
-
-I assume this can be merged separately from the driver
-changes?
-
-Otherwise we'll have the same kind of "flag day" mess with
-the IRQ crossbar..
-
-Regards,
-
-Tony
- 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  arch/arm/boot/dts/dra7.dtsi | 57 ++++++++++++++++++++++++++-------------------
->  1 file changed, 33 insertions(+), 24 deletions(-)
+On Thu, Apr 09, 2015 at 08:09:19AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150409 06:49]:
+> > On Thu, Apr 09, 2015 at 12:06:58AM +0100, Russell King - ARM Linux wrote:
+> > > On Tue, Apr 07, 2015 at 08:22:08AM -0700, Tony Lindgren wrote:
+> > > > Works for me. The above needs the following fix folded in to build:
+> > > > 
+> > > > --- a/arch/arm/mm/proc-v7.S
+> > > > +++ b/arch/arm/mm/proc-v7.S
+> > > > @@ -532,7 +532,7 @@ __v7_ca9mp_proc_info:
+> > > >  __v7_ca8_proc_info:
+> > > >  	.long	0x410fc080
+> > > >  	.long	0xff0ffff0
+> > > > -	__v7_proc __v7_ca8mp_proc_info, proc_fns = ca8_processor_functions
+> > > > +	__v7_proc __v7_ca8_proc_info, __v7_setup, proc_fns = ca8_processor_functions
+> > > >  	.size	__v7_ca8_proc_info, . - __v7_ca8_proc_info
+> > > >  
+> > > >  #endif	/* CONFIG_ARM_LPAE */
+> > > 
+> > > Thanks, merged into the original patch.
+> > 
+> > Do you want to give me an ack for this, thanks?
 > 
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 5332b57b4950..a2f4aa01984f 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -303,6 +303,15 @@
->  			dma-requests = <127>;
->  		};
->  
-> +		sdma_xbar: dma-router@4a002b78 {
-> +			compatible = "ti,dra7-dma-crossbar";
-> +			reg = <0x4a002b78 0xfc>;
-> +			#dma-cells = <1>;
-> +			dma-requests = <205>;
-> +			ti,dma-safe-map = <0>;
-> +			dma-masters = <&sdma>;
-> +		};
-> +
->  		gpio1: gpio@4ae10000 {
->  			compatible = "ti,omap4-gpio";
->  			reg = <0x4ae10000 0x200>;
-> @@ -398,7 +407,7 @@
->  			ti,hwmods = "uart1";
->  			clock-frequency = <48000000>;
->  			status = "disabled";
-> -			dmas = <&sdma 49>, <&sdma 50>;
-> +			dmas = <&sdma_xbar 49>, <&sdma_xbar 50>;
->  			dma-names = "tx", "rx";
->  		};
->  
-> @@ -409,7 +418,7 @@
->  			ti,hwmods = "uart2";
->  			clock-frequency = <48000000>;
->  			status = "disabled";
-> -			dmas = <&sdma 51>, <&sdma 52>;
-> +			dmas = <&sdma_xbar 51>, <&sdma_xbar 52>;
->  			dma-names = "tx", "rx";
->  		};
->  
-> @@ -420,7 +429,7 @@
->  			ti,hwmods = "uart3";
->  			clock-frequency = <48000000>;
->  			status = "disabled";
-> -			dmas = <&sdma 53>, <&sdma 54>;
-> +			dmas = <&sdma_xbar 53>, <&sdma_xbar 54>;
->  			dma-names = "tx", "rx";
->  		};
->  
-> @@ -431,7 +440,7 @@
->  			ti,hwmods = "uart4";
->  			clock-frequency = <48000000>;
->                          status = "disabled";
-> -			dmas = <&sdma 55>, <&sdma 56>;
-> +			dmas = <&sdma_xbar 55>, <&sdma_xbar 56>;
->  			dma-names = "tx", "rx";
->  		};
->  
-> @@ -442,7 +451,7 @@
->  			ti,hwmods = "uart5";
->  			clock-frequency = <48000000>;
->  			status = "disabled";
-> -			dmas = <&sdma 63>, <&sdma 64>;
-> +			dmas = <&sdma_xbar 63>, <&sdma_xbar 64>;
->  			dma-names = "tx", "rx";
->  		};
->  
-> @@ -453,7 +462,7 @@
->  			ti,hwmods = "uart6";
->  			clock-frequency = <48000000>;
->  			status = "disabled";
-> -			dmas = <&sdma 79>, <&sdma 80>;
-> +			dmas = <&sdma_xbar 79>, <&sdma_xbar 80>;
->  			dma-names = "tx", "rx";
->  		};
->  
-> @@ -862,7 +871,7 @@
->  			ti,hwmods = "mmc1";
->  			ti,dual-volt;
->  			ti,needs-special-reset;
-> -			dmas = <&sdma 61>, <&sdma 62>;
-> +			dmas = <&sdma_xbar 61>, <&sdma_xbar 62>;
->  			dma-names = "tx", "rx";
->  			status = "disabled";
->  			pbias-supply = <&pbias_mmc_reg>;
-> @@ -874,7 +883,7 @@
->  			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
->  			ti,hwmods = "mmc2";
->  			ti,needs-special-reset;
-> -			dmas = <&sdma 47>, <&sdma 48>;
-> +			dmas = <&sdma_xbar 47>, <&sdma_xbar 48>;
->  			dma-names = "tx", "rx";
->  			status = "disabled";
->  		};
-> @@ -885,7 +894,7 @@
->  			interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
->  			ti,hwmods = "mmc3";
->  			ti,needs-special-reset;
-> -			dmas = <&sdma 77>, <&sdma 78>;
-> +			dmas = <&sdma_xbar 77>, <&sdma_xbar 78>;
->  			dma-names = "tx", "rx";
->  			status = "disabled";
->  		};
-> @@ -896,7 +905,7 @@
->  			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
->  			ti,hwmods = "mmc4";
->  			ti,needs-special-reset;
-> -			dmas = <&sdma 57>, <&sdma 58>;
-> +			dmas = <&sdma_xbar 57>, <&sdma_xbar 58>;
->  			dma-names = "tx", "rx";
->  			status = "disabled";
->  		};
-> @@ -1041,14 +1050,14 @@
->  			#size-cells = <0>;
->  			ti,hwmods = "mcspi1";
->  			ti,spi-num-cs = <4>;
-> -			dmas = <&sdma 35>,
-> -			       <&sdma 36>,
-> -			       <&sdma 37>,
-> -			       <&sdma 38>,
-> -			       <&sdma 39>,
-> -			       <&sdma 40>,
-> -			       <&sdma 41>,
-> -			       <&sdma 42>;
-> +			dmas = <&sdma_xbar 35>,
-> +			       <&sdma_xbar 36>,
-> +			       <&sdma_xbar 37>,
-> +			       <&sdma_xbar 38>,
-> +			       <&sdma_xbar 39>,
-> +			       <&sdma_xbar 40>,
-> +			       <&sdma_xbar 41>,
-> +			       <&sdma_xbar 42>;
->  			dma-names = "tx0", "rx0", "tx1", "rx1",
->  				    "tx2", "rx2", "tx3", "rx3";
->  			status = "disabled";
-> @@ -1062,10 +1071,10 @@
->  			#size-cells = <0>;
->  			ti,hwmods = "mcspi2";
->  			ti,spi-num-cs = <2>;
-> -			dmas = <&sdma 43>,
-> -			       <&sdma 44>,
-> -			       <&sdma 45>,
-> -			       <&sdma 46>;
-> +			dmas = <&sdma_xbar 43>,
-> +			       <&sdma_xbar 44>,
-> +			       <&sdma_xbar 45>,
-> +			       <&sdma_xbar 46>;
->  			dma-names = "tx0", "rx0", "tx1", "rx1";
->  			status = "disabled";
->  		};
-> @@ -1078,7 +1087,7 @@
->  			#size-cells = <0>;
->  			ti,hwmods = "mcspi3";
->  			ti,spi-num-cs = <2>;
-> -			dmas = <&sdma 15>, <&sdma 16>;
-> +			dmas = <&sdma_xbar 15>, <&sdma_xbar 16>;
->  			dma-names = "tx0", "rx0";
->  			status = "disabled";
->  		};
-> @@ -1091,7 +1100,7 @@
->  			#size-cells = <0>;
->  			ti,hwmods = "mcspi4";
->  			ti,spi-num-cs = <1>;
-> -			dmas = <&sdma 70>, <&sdma 71>;
-> +			dmas = <&sdma_xbar 70>, <&sdma_xbar 71>;
->  			dma-names = "tx0", "rx0";
->  			status = "disabled";
->  		};
-> -- 
-> 2.3.5
+> The patch below works for me:
 > 
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> 
+> I'm wondering if this and the follow-up patch should be tagged
+> cc: stable?
+> 
+> They together fix apps segfaulting both with and without 430973
+> for some common use cases for distro kernels.
+
+If we do, I'll want to merge both patches together...  For the time being,
+I'll queue it without the stable tag.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
