@@ -1,49 +1,45 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 8/8] ARM: DTS: dra7x: Integrate sDMA crossbar
-Date: Thu, 9 Apr 2015 12:12:07 -0700
-Message-ID: <20150409191206.GU18048@atomide.com>
-References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
- <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
- <20150409151846.GR18048@atomide.com>
- <5526C9E5.4070601@ti.com>
- <20150409190126.GT18048@atomide.com>
- <5526CD6A.8010300@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 3/3] ARM: multi_v7_defconfig: Enable generic SoC internal OMAP regulators
+Date: Thu, 9 Apr 2015 16:15:21 -0500
+Message-ID: <1428614121-3374-4-git-send-email-nm@ti.com>
+References: <1428614121-3374-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5526CD6A.8010300-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57230 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756182AbbDIVQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Apr 2015 17:16:09 -0400
+In-Reply-To: <1428614121-3374-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Nishanth Menon <nm@ti.com>
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [150409 12:07]:
-> On 04/09/2015 10:01 PM, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [150409 11:55]:
-> >> On 04/09/2015 06:18 PM, Tony Lindgren wrote:
-> >>> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [150409 02:37]:
-> >>>> The sDMA requests are routed through the DMA crossbar and without the
-> >>>> crossbar only peripherals using DMA request 0-127 can be used.
-> >>>
-> >>> I assume this can be merged separately from the driver
-> >>> changes?
-> >>
-> >> Unfortunately not. We need to have the drivers in place for the DTS changes to
-> >> work.
-> > 
-> > Right but just merging the driver changes presumably won't
-> > break things?
-> 
-> No, they will not break anything. We just do not have control over the DMA
-> crossbar (in a same way as we don't have control right now).
+ABB and PBIAS are internal LDO control regulators that are needed for
+maintaining proper functionality of OMAP architecture SoCs. Enable the
+same.
 
-OK good to hear.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/configs/multi_v7_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
+diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+index f48dfa7787dc..b86ff6e957a0 100644
+--- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -363,8 +363,10 @@ CONFIG_REGULATOR_MAX8907=y
+ CONFIG_REGULATOR_MAX8973=y
+ CONFIG_REGULATOR_MAX77686=y
+ CONFIG_REGULATOR_PALMAS=y
++CONFIG_REGULATOR_PBIAS=y
+ CONFIG_REGULATOR_S2MPS11=y
+ CONFIG_REGULATOR_S5M8767=y
++CONFIG_REGULATOR_TI_ABB=y
+ CONFIG_REGULATOR_TPS51632=y
+ CONFIG_REGULATOR_TPS62360=y
+ CONFIG_REGULATOR_TPS65090=y
+-- 
+1.7.9.5
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
