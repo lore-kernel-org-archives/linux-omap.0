@@ -1,51 +1,204 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: am335x crypto module clocks
-Date: Thu, 9 Apr 2015 08:13:39 -0700
-Message-ID: <20150409151338.GQ18048@atomide.com>
-References: <CAALWOA8Zno6pTfWRZpacgWm83m4=1+uvTmyREG9Nc+C2MZjK1w@mail.gmail.com>
+Subject: Re: [PATCH v5 8/8] ARM: DTS: dra7x: Integrate sDMA crossbar
+Date: Thu, 9 Apr 2015 08:18:46 -0700
+Message-ID: <20150409151846.GR18048@atomide.com>
+References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
+ <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:43267 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753830AbbDIPRQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Apr 2015 11:17:16 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAALWOA8Zno6pTfWRZpacgWm83m4=1+uvTmyREG9Nc+C2MZjK1w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>, Tero Kristo <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [150404 21:26]:
-> Hi all,
-> 
-> To my surprise, the am335x clock tree (am33xx-clocks.dtsi) currently
-> lists the functional clock of the AES accelerator and other crypto
-> modules to be the (max 26 MHz) main osc. This struck me as rather
-> unlikely, since the AES module is clocked much higher on other
-> devices, and such a slow clock would condemn it to being slower than a
-> software AES implementation.  As usual the TRM is silent on the crypto
-> accelerators and their clock management, but I did some preliminary
-> tests.
-> 
-> The AES module turned out far from slow.  I actually had a lot of
-> trouble keeping the module continuously fed with data with a simple
-> non-dma test from userspace, since for most modes of operation the AES
-> module could even keep pace with a tight loop using 128-bit neon
-> load/store without even checking its status register for readiness.
-> 
-> Although I haven't been able to get obtain a very reliable measurement
-> yet as a result, it appears to be clocked at ~200 MHz. This also
-> matches the fact that it is hooked up to the L3F (which would be
-> rather pointless if it had a separate low-rate fck).
-> 
-> It seems very likely to me the other crypto modules will also have a
-> unified fck/ick (L3F for the hash accelerator, L4LS for the RNG and
-> PKA). This should preferably still be double-checked of course.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [150409 02:37]:
+> The sDMA requests are routed through the DMA crossbar and without the
+> crossbar only peripherals using DMA request 0-127 can be used.
 
-Tero, got any ideas about this one?
+I assume this can be merged separately from the driver
+changes?
+
+Otherwise we'll have the same kind of "flag day" mess with
+the IRQ crossbar..
 
 Regards,
 
 Tony
+ 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/boot/dts/dra7.dtsi | 57 ++++++++++++++++++++++++++-------------------
+>  1 file changed, 33 insertions(+), 24 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 5332b57b4950..a2f4aa01984f 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -303,6 +303,15 @@
+>  			dma-requests = <127>;
+>  		};
+>  
+> +		sdma_xbar: dma-router@4a002b78 {
+> +			compatible = "ti,dra7-dma-crossbar";
+> +			reg = <0x4a002b78 0xfc>;
+> +			#dma-cells = <1>;
+> +			dma-requests = <205>;
+> +			ti,dma-safe-map = <0>;
+> +			dma-masters = <&sdma>;
+> +		};
+> +
+>  		gpio1: gpio@4ae10000 {
+>  			compatible = "ti,omap4-gpio";
+>  			reg = <0x4ae10000 0x200>;
+> @@ -398,7 +407,7 @@
+>  			ti,hwmods = "uart1";
+>  			clock-frequency = <48000000>;
+>  			status = "disabled";
+> -			dmas = <&sdma 49>, <&sdma 50>;
+> +			dmas = <&sdma_xbar 49>, <&sdma_xbar 50>;
+>  			dma-names = "tx", "rx";
+>  		};
+>  
+> @@ -409,7 +418,7 @@
+>  			ti,hwmods = "uart2";
+>  			clock-frequency = <48000000>;
+>  			status = "disabled";
+> -			dmas = <&sdma 51>, <&sdma 52>;
+> +			dmas = <&sdma_xbar 51>, <&sdma_xbar 52>;
+>  			dma-names = "tx", "rx";
+>  		};
+>  
+> @@ -420,7 +429,7 @@
+>  			ti,hwmods = "uart3";
+>  			clock-frequency = <48000000>;
+>  			status = "disabled";
+> -			dmas = <&sdma 53>, <&sdma 54>;
+> +			dmas = <&sdma_xbar 53>, <&sdma_xbar 54>;
+>  			dma-names = "tx", "rx";
+>  		};
+>  
+> @@ -431,7 +440,7 @@
+>  			ti,hwmods = "uart4";
+>  			clock-frequency = <48000000>;
+>                          status = "disabled";
+> -			dmas = <&sdma 55>, <&sdma 56>;
+> +			dmas = <&sdma_xbar 55>, <&sdma_xbar 56>;
+>  			dma-names = "tx", "rx";
+>  		};
+>  
+> @@ -442,7 +451,7 @@
+>  			ti,hwmods = "uart5";
+>  			clock-frequency = <48000000>;
+>  			status = "disabled";
+> -			dmas = <&sdma 63>, <&sdma 64>;
+> +			dmas = <&sdma_xbar 63>, <&sdma_xbar 64>;
+>  			dma-names = "tx", "rx";
+>  		};
+>  
+> @@ -453,7 +462,7 @@
+>  			ti,hwmods = "uart6";
+>  			clock-frequency = <48000000>;
+>  			status = "disabled";
+> -			dmas = <&sdma 79>, <&sdma 80>;
+> +			dmas = <&sdma_xbar 79>, <&sdma_xbar 80>;
+>  			dma-names = "tx", "rx";
+>  		};
+>  
+> @@ -862,7 +871,7 @@
+>  			ti,hwmods = "mmc1";
+>  			ti,dual-volt;
+>  			ti,needs-special-reset;
+> -			dmas = <&sdma 61>, <&sdma 62>;
+> +			dmas = <&sdma_xbar 61>, <&sdma_xbar 62>;
+>  			dma-names = "tx", "rx";
+>  			status = "disabled";
+>  			pbias-supply = <&pbias_mmc_reg>;
+> @@ -874,7 +883,7 @@
+>  			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
+>  			ti,hwmods = "mmc2";
+>  			ti,needs-special-reset;
+> -			dmas = <&sdma 47>, <&sdma 48>;
+> +			dmas = <&sdma_xbar 47>, <&sdma_xbar 48>;
+>  			dma-names = "tx", "rx";
+>  			status = "disabled";
+>  		};
+> @@ -885,7 +894,7 @@
+>  			interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
+>  			ti,hwmods = "mmc3";
+>  			ti,needs-special-reset;
+> -			dmas = <&sdma 77>, <&sdma 78>;
+> +			dmas = <&sdma_xbar 77>, <&sdma_xbar 78>;
+>  			dma-names = "tx", "rx";
+>  			status = "disabled";
+>  		};
+> @@ -896,7 +905,7 @@
+>  			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
+>  			ti,hwmods = "mmc4";
+>  			ti,needs-special-reset;
+> -			dmas = <&sdma 57>, <&sdma 58>;
+> +			dmas = <&sdma_xbar 57>, <&sdma_xbar 58>;
+>  			dma-names = "tx", "rx";
+>  			status = "disabled";
+>  		};
+> @@ -1041,14 +1050,14 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "mcspi1";
+>  			ti,spi-num-cs = <4>;
+> -			dmas = <&sdma 35>,
+> -			       <&sdma 36>,
+> -			       <&sdma 37>,
+> -			       <&sdma 38>,
+> -			       <&sdma 39>,
+> -			       <&sdma 40>,
+> -			       <&sdma 41>,
+> -			       <&sdma 42>;
+> +			dmas = <&sdma_xbar 35>,
+> +			       <&sdma_xbar 36>,
+> +			       <&sdma_xbar 37>,
+> +			       <&sdma_xbar 38>,
+> +			       <&sdma_xbar 39>,
+> +			       <&sdma_xbar 40>,
+> +			       <&sdma_xbar 41>,
+> +			       <&sdma_xbar 42>;
+>  			dma-names = "tx0", "rx0", "tx1", "rx1",
+>  				    "tx2", "rx2", "tx3", "rx3";
+>  			status = "disabled";
+> @@ -1062,10 +1071,10 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "mcspi2";
+>  			ti,spi-num-cs = <2>;
+> -			dmas = <&sdma 43>,
+> -			       <&sdma 44>,
+> -			       <&sdma 45>,
+> -			       <&sdma 46>;
+> +			dmas = <&sdma_xbar 43>,
+> +			       <&sdma_xbar 44>,
+> +			       <&sdma_xbar 45>,
+> +			       <&sdma_xbar 46>;
+>  			dma-names = "tx0", "rx0", "tx1", "rx1";
+>  			status = "disabled";
+>  		};
+> @@ -1078,7 +1087,7 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "mcspi3";
+>  			ti,spi-num-cs = <2>;
+> -			dmas = <&sdma 15>, <&sdma 16>;
+> +			dmas = <&sdma_xbar 15>, <&sdma_xbar 16>;
+>  			dma-names = "tx0", "rx0";
+>  			status = "disabled";
+>  		};
+> @@ -1091,7 +1100,7 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "mcspi4";
+>  			ti,spi-num-cs = <1>;
+> -			dmas = <&sdma 70>, <&sdma 71>;
+> +			dmas = <&sdma_xbar 70>, <&sdma_xbar 71>;
+>  			dma-names = "tx0", "rx0";
+>  			status = "disabled";
+>  		};
+> -- 
+> 2.3.5
+> 
