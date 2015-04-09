@@ -1,128 +1,117 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 3/8] dmaengine: Add driver for TI DMA crossbar on DRA7x
-Date: Thu, 9 Apr 2015 11:09:07 +0300
-Message-ID: <552633A3.3070909@ti.com>
-References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com> <1428498892-28471-4-git-send-email-peter.ujfalusi@ti.com> <20150408152349.GD26727@lukather>
+Subject: Re: [PATCH v4 1/8] dmaengine: of_dma: Support for DMA routers
+Date: Thu, 9 Apr 2015 11:24:58 +0300
+Message-ID: <5526375A.7090708@ti.com>
+References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com> <1428498892-28471-2-git-send-email-peter.ujfalusi@ti.com> <20150408154251.GE26727@lukather>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35656 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754988AbbDIIK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2015 04:10:26 -0400
-In-Reply-To: <20150408152349.GD26727@lukather>
+Received: from bear.ext.ti.com ([192.94.94.41]:42468 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932657AbbDIIZp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Apr 2015 04:25:45 -0400
+In-Reply-To: <20150408154251.GE26727@lukather>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Maxime Ripard <maxime.ripard@free-electrons.com>
 Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de
 
->> +static inline void ti_dma_xbar_write(void __iomem *iomem, int xbar,=
- int val)
->> +{
->> +	writew_relaxed(val, iomem + (xbar * 2));
+On 04/08/2015 06:42 PM, Maxime Ripard wrote:
+>> ---
+>>  Documentation/devicetree/bindings/dma/dma.txt | 28 +++++++++
+>>  drivers/dma/dmaengine.c                       |  7 +++
+>>  drivers/dma/of-dma.c                          | 86 ++++++++++++++++=
++++++++++++
+>>  include/linux/dmaengine.h                     | 17 ++++++
+>>  include/linux/of_dma.h                        | 21 +++++++
+>>  5 files changed, 159 insertions(+)
 >=20
-> Silently casting val (an integer) to a u16 isn't really nice I
-> guess. At least you could be upfront about it in the prototype.
+> Can that be moved to a header / C file of its own?
+>=20
+> There's a lot of various code already in dmaengine.h and dmaengine.c,
+> it would be really great to avoid adding more random stuff in there.
 
-The value in val is guarantied not to overflow the u16, but sure, I can=
- change
-this.
+This patch adds the core support for DMA signal routers. It adds fairly=
+ small
+amount of generic code to the core to achieve this. I don't think it wo=
+uld be
+better to create let's say of-dma-router.c and .h just for this and exp=
+ort
+functions from of-dma.c to be used outside of the file.
 
->> +	dma_spec->np =3D of_parse_phandle(ofdma->of_node, "dma-masters", 0=
+>> +	chan =3D ofdma_target->of_dma_xlate(&dma_spec_target, ofdma_target=
 );
->> +	if (!dma_spec->np) {
->> +		dev_err(&pdev->dev, "Can't get DMA master\n");
->> +		return NULL;
->> +	}
->> +
->> +	map =3D kzalloc(sizeof(*map), GFP_KERNEL);
->> +	if (!map)
->> +		return NULL;
->=20
-> You're leaking dma_spec->np.
-
-If kzalloc fails we have other things to worry about, but true, I'll
-restructure the code to avoid leaking the node.
-
->> +	dma_node =3D of_parse_phandle(node, "dma-masters", 0);
->> +	if (!dma_node) {
->> +		dev_err(&pdev->dev, "Can't get DMA master node\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	xbar =3D devm_kzalloc(&pdev->dev, sizeof(*xbar), GFP_KERNEL);
->> +	if (!xbar)
->> +		return -ENOMEM;
->=20
-> And here too.
-
-same here, I'll change the code to not leak.
-
->=20
->> +	if (of_property_read_u32(dma_node, "dma-requests",
->> +				 &xbar->dma_requests)) {
->> +		dev_info(&pdev->dev,
->> +			 "Missing XBAR output information, using %u.\n",
->> +			 TI_XBAR_OUTPUTS);
->> +		xbar->dma_requests =3D TI_XBAR_OUTPUTS;
->> +	}
->> +	of_node_put(dma_node);
->> +
->> +	if (of_property_read_u32(node, "dma-requests", &xbar->xbar_request=
-s)) {
->> +		dev_info(&pdev->dev,
->> +			 "Missing XBAR input information, using %u.\n",
->> +			 TI_XBAR_INPUTS);
->> +		xbar->xbar_requests =3D TI_XBAR_INPUTS;
->> +	}
->> +
->> +	if (of_property_read_u32(node, "ti,dma-safe-map", &xbar->safe_val)=
-)
->> +		xbar->safe_val =3D 0;
->> +
->> +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +	if (!res)
->> +		return -ENODEV;
->> +
->> +	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size=
-(res),
->> +				     dev_name(&pdev->dev)))
->> +		return -ENODEV;
->> +
->> +	iomem =3D devm_ioremap(&pdev->dev, res->start, resource_size(res))=
+>> +	if (chan) {
+>> +		chan->router =3D ofdma->dma_router;
+>> +		chan->route_data =3D route_data;
+>> +	} else {
+>> +		ofdma->dma_router->route_free(ofdma->dma_router->dev, route_data)=
 ;
->> +	if (!iomem)
+>=20
+> This line is over 80 characters.
+
+Oh, true.
+
+>> +int of_dma_router_register(struct device_node *np,
+>> +			   void *(*of_dma_route_allocate)
+>> +			   (struct of_phandle_args *, struct of_dma *),
+>> +			   struct dma_router *dma_router)
+>> +{
+>> +	struct of_dma	*ofdma;
+>> +
+>> +	if (!np || !of_dma_route_allocate || !dma_router) {
+>> +		pr_err("%s: not enough information provided\n", __func__);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	ofdma =3D kzalloc(sizeof(*ofdma), GFP_KERNEL);
+>> +	if (!ofdma)
 >> +		return -ENOMEM;
 >=20
-> You can use devm_ioremap_resource here.
+> Is that expected that you allocate through kzalloc, but never have a
+> matching free function implemented?
 
-I tend to forgot about this...
+The free is via the of_dma_router_free() in case the router is removed
+runtime, which is unlikely to happen since it will cause all DMA reques=
+t to fail.
 
->> +	xbar->iomem =3D iomem;
->> +
->> +	xbar->dmarouter.dev =3D &pdev->dev;
->> +	xbar->dmarouter.route_free =3D ti_dma_xbar_free;
->> +
->> +	platform_set_drvdata(pdev, xbar);
->> +
->> +	ret =3D of_dma_router_register(node, ti_dma_xbar_route_allocate,
->> +				     &xbar->dmarouter);
->> +	if (ret)
->> +		return -ENODEV;
+>> diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+>> index 56bc026c143f..734e449f87c1 100644
+>> --- a/include/linux/of_dma.h
+>> +++ b/include/linux/of_dma.h
+>> @@ -23,6 +23,9 @@ struct of_dma {
+>>  	struct device_node	*of_node;
+>>  	struct dma_chan		*(*of_dma_xlate)
+>>  				(struct of_phandle_args *, struct of_dma *);
+>> +	void			*(*of_dma_route_allocate)
+>> +				(struct of_phandle_args *, struct of_dma *);
+>> +	struct dma_router	*dma_router;
 >=20
-> Starting here, I'd expect that your driver can be used....
->=20
->> +
->> +	/* Reset the crossbar */
->> +	for (i =3D 0; i < xbar->dma_requests; i++)
->> +		ti_dma_xbar_write(xbar->iomem, i, xbar->safe_val);
->=20
-> ... however, the hardware doesn't seem ready. Isn't it a race?
+> I don't really see why this is really tied to the device tree.
 
-True, will change the order.
+The signal router is not a DMA device, it is represented in the device =
+tree
+and the code will do the needed translation, which is transparent for t=
+he DMA
+clients and also for the DMA controllers. Neither should know about the=
+ signal
+router.
+Similar translation can be done for ACPI.
 
-Thanks,
+> Couldn't we use the device_alloc_chan_resources to do that?
+
+Not really. The router itself is not a DMA controller. The routing need=
+ to be
+configured before the device_alloc_chan_resources can be called for the=
+ real
+DMA controller. The signal router (core part + the HW driver) need to p=
+repare
+the route and do the translation so the filter function of the DMA driv=
+er can
+validate the translated request.
+
+--=20
 P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
