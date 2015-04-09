@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 4/8] dmaengine: omap-dma: Use defines for dma channels and request count
-Date: Thu, 9 Apr 2015 12:35:50 +0300
-Message-ID: <1428572154-3548-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 6/8] dmaengine: omap-dma: Remove mapping between virtual channels and requests
+Date: Thu, 9 Apr 2015 12:35:52 +0300
+Message-ID: <1428572154-3548-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,45 +12,71 @@ To: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk
 Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
 
-Instead of magic numbers in the code, use define for number of logical DMA
-channels and DMA requests.
+Do not direct map the virtual channels to sDMA request number. When the
+sDMA is behind of a crossbar this direct mapping can cause situations when
+certain channel can not be requested since the crossbar request number
+will no longer match with the sDMA request line.
+The direct mapping for virtual channels with HW request lines will make it
+harder to implement MEM_TO_MEM mode for the driver.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/omap-dma.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/dma/omap-dma.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 167dbaf65742..4065963fbffb 100644
+index 211c9c1edf08..b19b9ee8f1d1 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -22,6 +22,9 @@
+@@ -593,6 +593,7 @@ static void omap_dma_free_chan_resources(struct dma_chan *chan)
+ 	omap_free_dma(c->dma_ch);
  
- #include "virt-dma.h"
+ 	dev_dbg(od->ddev.dev, "freeing channel for %u\n", c->dma_sig);
++	c->dma_sig = 0;
+ }
  
-+#define OMAP_SDMA_REQUESTS	127
-+#define OMAP_SDMA_CHANNELS	32
-+
- struct omap_dmadev {
- 	struct dma_device ddev;
- 	spinlock_t lock;
-@@ -33,7 +36,7 @@ struct omap_dmadev {
- 	bool legacy;
- 	spinlock_t irq_lock;
- 	uint32_t irq_enable_mask;
--	struct omap_chan *lch_map[32];
-+	struct omap_chan *lch_map[OMAP_SDMA_CHANNELS];
- };
+ static size_t omap_dma_sg_size(struct omap_sg *sg)
+@@ -1041,7 +1042,7 @@ static int omap_dma_resume(struct dma_chan *chan)
+ 	return 0;
+ }
  
- struct omap_chan {
-@@ -1116,7 +1119,7 @@ static int omap_dma_probe(struct platform_device *pdev)
+-static int omap_dma_chan_init(struct omap_dmadev *od, int dma_sig)
++static int omap_dma_chan_init(struct omap_dmadev *od)
+ {
+ 	struct omap_chan *c;
  
- 	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
+@@ -1050,7 +1051,6 @@ static int omap_dma_chan_init(struct omap_dmadev *od, int dma_sig)
+ 		return -ENOMEM;
  
--	for (i = 0; i < 127; i++) {
-+	for (i = 0; i < OMAP_SDMA_REQUESTS; i++) {
- 		rc = omap_dma_chan_init(od, i);
+ 	c->reg_map = od->reg_map;
+-	c->dma_sig = dma_sig;
+ 	c->vc.desc_free = omap_dma_desc_free;
+ 	vchan_init(&c->vc, &od->ddev);
+ 	INIT_LIST_HEAD(&c->node);
+@@ -1130,7 +1130,7 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	for (i = 0; i < od->dma_requests; i++) {
+-		rc = omap_dma_chan_init(od, i);
++		rc = omap_dma_chan_init(od);
  		if (rc) {
  			omap_dma_free(od);
+ 			return rc;
+@@ -1221,10 +1221,14 @@ static struct platform_driver omap_dma_driver = {
+ bool omap_dma_filter_fn(struct dma_chan *chan, void *param)
+ {
+ 	if (chan->device->dev->driver == &omap_dma_driver.driver) {
++		struct omap_dmadev *od = to_omap_dma_dev(chan->device);
+ 		struct omap_chan *c = to_omap_dma_chan(chan);
+ 		unsigned req = *(unsigned *)param;
+ 
+-		return req == c->dma_sig;
++		if (req <= od->dma_requests) {
++			c->dma_sig = req;
++			return true;
++		}
+ 	}
+ 	return false;
+ }
 -- 
 2.3.5
