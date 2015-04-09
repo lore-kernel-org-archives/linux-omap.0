@@ -1,82 +1,60 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 6/8] dmaengine: omap-dma: Remove mapping between virtual channels and requests
-Date: Thu, 9 Apr 2015 12:35:52 +0300
-Message-ID: <1428572154-3548-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 5/8] dmaengine: omap-dma: Take DMA request number from DT if it is available
+Date: Thu, 9 Apr 2015 12:35:51 +0300
+Message-ID: <1428572154-3548-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46415 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964969AbbDIJg6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Apr 2015 05:36:58 -0400
 In-Reply-To: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk
 Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
-List-Id: linux-omap@vger.kernel.org
 
-Do not direct map the virtual channels to sDMA request number. When the
-sDMA is behind of a crossbar this direct mapping can cause situations when
-certain channel can not be requested since the crossbar request number
-will no longer match with the sDMA request line.
-The direct mapping for virtual channels with HW request lines will make it
-harder to implement MEM_TO_MEM mode for the driver.
+Use the dma-requests property from DT to get the number of DMA requests.
+In case of legacy boot or failure to find the property, use the default
+127 as number of requests.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/omap-dma.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/dma/omap-dma.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 211c9c1edf08..b19b9ee8f1d1 100644
+index 4065963fbffb..211c9c1edf08 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -593,6 +593,7 @@ static void omap_dma_free_chan_resources(struct dma_chan *chan)
- 	omap_free_dma(c->dma_ch);
+@@ -34,6 +34,7 @@ struct omap_dmadev {
+ 	const struct omap_dma_reg *reg_map;
+ 	struct omap_system_dma_plat_info *plat;
+ 	bool legacy;
++	unsigned dma_requests;
+ 	spinlock_t irq_lock;
+ 	uint32_t irq_enable_mask;
+ 	struct omap_chan *lch_map[OMAP_SDMA_CHANNELS];
+@@ -1119,7 +1120,16 @@ static int omap_dma_probe(struct platform_device *pdev)
  
- 	dev_dbg(od->ddev.dev, "freeing channel for %u\n", c->dma_sig);
-+	c->dma_sig = 0;
- }
+ 	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
  
- static size_t omap_dma_sg_size(struct omap_sg *sg)
-@@ -1041,7 +1042,7 @@ static int omap_dma_resume(struct dma_chan *chan)
- 	return 0;
- }
- 
--static int omap_dma_chan_init(struct omap_dmadev *od, int dma_sig)
-+static int omap_dma_chan_init(struct omap_dmadev *od)
- {
- 	struct omap_chan *c;
- 
-@@ -1050,7 +1051,6 @@ static int omap_dma_chan_init(struct omap_dmadev *od, int dma_sig)
- 		return -ENOMEM;
- 
- 	c->reg_map = od->reg_map;
--	c->dma_sig = dma_sig;
- 	c->vc.desc_free = omap_dma_desc_free;
- 	vchan_init(&c->vc, &od->ddev);
- 	INIT_LIST_HEAD(&c->node);
-@@ -1130,7 +1130,7 @@ static int omap_dma_probe(struct platform_device *pdev)
- 	}
- 
- 	for (i = 0; i < od->dma_requests; i++) {
--		rc = omap_dma_chan_init(od, i);
-+		rc = omap_dma_chan_init(od);
+-	for (i = 0; i < OMAP_SDMA_REQUESTS; i++) {
++	od->dma_requests = OMAP_SDMA_REQUESTS;
++	if (pdev->dev.of_node && of_property_read_u32(pdev->dev.of_node,
++						      "dma-requests",
++						      &od->dma_requests)) {
++		dev_info(&pdev->dev,
++			 "Missing dma-requests property, using %u.\n",
++			 OMAP_SDMA_REQUESTS);
++	}
++
++	for (i = 0; i < od->dma_requests; i++) {
+ 		rc = omap_dma_chan_init(od, i);
  		if (rc) {
  			omap_dma_free(od);
- 			return rc;
-@@ -1221,10 +1221,14 @@ static struct platform_driver omap_dma_driver = {
- bool omap_dma_filter_fn(struct dma_chan *chan, void *param)
- {
- 	if (chan->device->dev->driver == &omap_dma_driver.driver) {
-+		struct omap_dmadev *od = to_omap_dma_dev(chan->device);
- 		struct omap_chan *c = to_omap_dma_chan(chan);
- 		unsigned req = *(unsigned *)param;
- 
--		return req == c->dma_sig;
-+		if (req <= od->dma_requests) {
-+			c->dma_sig = req;
-+			return true;
-+		}
- 	}
- 	return false;
- }
 -- 
 2.3.5
+
