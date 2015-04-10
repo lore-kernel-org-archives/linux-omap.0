@@ -1,46 +1,31 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [rtc-linux] [PATCH] rtc: OMAP: Add external 32k clock feature
-Date: Sat, 11 Apr 2015 00:23:55 +0200
-Message-ID: <20150410222355.GE20669@piout.net>
-References: <1425375722-13412-1-git-send-email-j-keerthy@ti.com>
- <20150324155916.cfd1b7ab442271466160283f@linux-foundation.org>
- <55234F25.5060708@ti.com>
- <5523820C.2010709@compulab.co.il>
- <5527894E.9000807@ti.com>
- <20150410133730.8f84b2894efcf1bde075048f@linux-foundation.org>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v3] ARM: AM43xx: hwmod: add VPFE hwmod entries
+Date: Fri, 10 Apr 2015 23:34:23 +0100
+Message-ID: <CA+V-a8vx=A8qQh4CtD7tjFwgBmkFPX7sUVuak8e4rH9N39gwfA@mail.gmail.com>
+References: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com>
+ <20150128193247.GH2570@ti.com> <alpine.DEB.2.02.1502102310010.3767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:46205 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751560AbbDJWX7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Apr 2015 18:23:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20150410133730.8f84b2894efcf1bde075048f@linux-foundation.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1502102310010.3767@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Darren Etheridge <detheridge@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: rtc-linux@googlegroups.com
-Cc: Keerthy <a0393675@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Keerthy <j-keerthy@ti.com>, a.zummo@towertech.it, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 10/04/2015 at 13:37:30 -0700, Andrew Morton wrote :
-> Is there any way in which we can get all systems working properly?  If
-> there's no way of auto-detecting an external oscillator then perhaps a
-> module parameter is needed.  If so, it would be better if the driver
-> were to default to internal oscillator (ie: current behaviour), and the
-> module parameter selects the external oscillator.  This way, existing
-> systems are unaffected by the kernel upgrade.
-> 
+Hi Paul,
 
-Actually, I would use the common clock framework, allowing to chose
-between the internal and an external clock source by using the "clocks"
-property. This would also allow to have the correct reference count on
-that 32k internal clock. It may not matter now but for example, not
-doing so became a problem on at91.
+On Tue, Feb 10, 2015 at 11:10 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Wed, 28 Jan 2015, Benoit Parrot wrote:
+>
+>> Suspend/resume is functional with this patch.
+>>
+>> Tested-by: Benoit Parrot <bparrot@ti.com>
+>
+> Thanks folks, queued for v3.21.
+>
+>
+I see that this patch is not into linux-next yet.
 
-As a fallback, if no clocks property is available, I would use the
-internal 32k to keep DT ABI backward compatibility.
-
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Cheers,
+--Prabhakar Lad
