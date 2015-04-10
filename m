@@ -1,58 +1,61 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] [media] omap4iss: avoid broken OMAP4 dependency
-Date: Fri, 10 Apr 2015 22:20:20 +0200
-Message-ID: <3292592.cickJMVhRq@wuerfel>
+From: "Lad, Prabhakar" <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: add DT nodes for ov2659 sensor
+Date: Fri, 10 Apr 2015 21:22:23 +0100
+Message-ID: <CA+V-a8u-Y7M9ynJDD05=XeMjZMsb_0Utd-TuwJzEuRziPksvGQ@mail.gmail.com>
+References: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com>
+ <20150316221740.GQ12397@atomide.com> <CA+V-a8uWqjze32ukOGonQAACByPmW6WDbpFrA9EFipnNJeD58A@mail.gmail.com>
+ <20150317022344.GB31346@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150317022344.GB31346-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, LAK <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The omap4iss driver uses an interface that used to be provided
-by OMAP4 but has now been removed and replaced with a WARN_ON(1)
-statement, which likely broke the iss_csiphy code at runtime.
+Hi Tony,
 
-It also broke compiling the driver when CONFIG_ARCH_OMAP2PLUS
-is set, which is implied by OMAP4:
+On Tue, Mar 17, 2015 at 2:23 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> * Lad, Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150316 18:20]:
+>> Hi Tony,
+>>
+>> On Mon, Mar 16, 2015 at 10:17 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>> > * Lad Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150312 16:38]:
+>> >> From: "Lad, Prabhakar" <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> >>
+>> >> this patch does the following:
+>> >> 1: adds DT node for fixed oscillator.
+>> >> 2: adds DT node entries for ov2659 sensor
+>> >> 3: adds remote-endpoint entry for VPFE.
+>> >>
+>> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> >
+>> > Applying into omap-for-v4.1/dt thanks.
+>> >
+>> I would like to get this one in via media tree to avoid dependency
+>> as I am still waiting for Acks from DT maintainers for the sensor
+>> driver.
+>
+> OK dropping it.
+>
+>> If I can get your Ack on this I'll queue it up along with sensor
+>> driver via media tree.
+>
+> Sorry the chances are too big for pointless merge conflicts with
+> these files with constant patching going on.
+>
+> Please just resend this patch alone again to me later on once the
+> driver changes are merged into Linux next and on their way to the
+> mainline kernel.
+>
+the sensor driver is now present in linux-next and the same patch
+applies cleanly, can you pick up the same or do you want me to
+resend the patch ?
 
-drivers/staging/media/omap4iss/iss_csiphy.c: In function 'omap4iss_csiphy_config':
-drivers/staging/media/omap4iss/iss_csiphy.c:167:2: error: implicit declaration of function 'omap4_ctrl_pad_writel' [-Werror=implicit-function-declaration]
-  omap4_ctrl_pad_writel(cam_rx_ctrl,
-
-In turn, this broke ARM allyesconfig builds. Replacing the
-omap4_ctrl_pad_writel call with WARN_ON(1) won't make the
-situation any worse than it already is, but fixes the build
-problem.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: efde234674d9 ("ARM: OMAP4+: control: remove support for legacy pad read/write")
----
-diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c b/drivers/staging/media/omap4iss/iss_csiphy.c
-index 7c3d55d811ef..24f56ed90ac3 100644
---- a/drivers/staging/media/omap4iss/iss_csiphy.c
-+++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-
-@@ -140,9 +140,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
- 	 * - bit [18] : CSIPHY1 CTRLCLK enable
- 	 * - bit [17:16] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
- 	 */
--	cam_rx_ctrl = omap4_ctrl_pad_readl(
--			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
--
-+	cam_rx_ctrl = WARN_ON(1);
- 
- 	if (subdevs->interface == ISS_INTERFACE_CSI2A_PHY1) {
- 		cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-@@ -166,8 +164,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
- 		cam_rx_ctrl |= OMAP4_CAMERARX_CSI22_CTRLCLKEN_MASK;
- 	}
- 
--	omap4_ctrl_pad_writel(cam_rx_ctrl,
--		 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-+	WARN_ON(1);
- 
- 	/* Reset used lane count */
- 	csi2->phy->used_data_lanes = 0;
+Cheers,
+--Prabhakar Lad
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
