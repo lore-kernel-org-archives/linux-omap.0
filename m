@@ -1,94 +1,257 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Thu, 9 Apr 2015 18:44:08 -0500
-Message-ID: <55270EC8.2080900@ti.com>
-References: <CAALWOA_-RkkgvrxZ32U6WFAZ4Wo5hkkaeo9VNBq48JwMVvkMvw@mail.gmail.com> <5521A438.1070008@gmail.com> <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com> <20150406151939.GG18048@atomide.com> <20150406154037.GI18048@atomide.com> <5522BEEF.2000405@gmail.com> <20150406174245.GJ18048@atomide.com> <CAALWOA93+ohYJ7Q06H4gVMywzP5=RC3uBkUVXjWMriRBoHzXKQ@mail.gmail.com> <20150407022312.GK18048@atomide.com> <CANOLnOMyNesvA2nGC2uMnmYGLBQkU1dnfG1rBg1UWeGMrpHFzQ@mail.gmail.com> <20150409224446.GV18048@atomide.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v2] thermal: ti-soc-thermal: dra7: Implement Workaround
+ for Errata i814 - Bandgap Temperature read Dtemp can be corrupted
+Date: Fri, 10 Apr 2015 11:02:05 +0530
+Message-ID: <55276055.20902@ti.com>
+References: <1427445901-8461-1-git-send-email-j-keerthy@ti.com> <55234CE4.5070901@ti.com> <20150407200516.GD4203@localhost.localdomain> <5524AD87.7040406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37336 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754791AbbDIXqn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Apr 2015 19:46:43 -0400
-In-Reply-To: <20150409224446.GV18048@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5524AD87.7040406@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Keerthy <j-keerthy@ti.com>, rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 04/09/2015 05:44 PM, Tony Lindgren wrote:
-> * Grazvydas Ignotas <notasas@gmail.com> [150409 15:37]:
->> On Tue, Apr 7, 2015 at 5:23 AM, Tony Lindgren <tony@atomide.com> wrote:
->>> * Matthijs van Duin <matthijsvanduin@gmail.com> [150406 11:15]:
->>>>
->>>> On 6 April 2015 at 19:42, Tony Lindgren <tony@atomide.com> wrote:
->>>>> Hmm but it still seems to do something also on cortex-a8 r3p2 that
->>>>> is supposedly not affected by 430973.. Based on my tests so far, at least
->>>>> armhf running cpuburn-a8 in the background and doing apt-get update
->>>>> segfaults constantly without flush BTAC/BTB. This seems to be the case
->>>>> no matter how the aux ctrl reg bits are set..
->>>>
->>>> That sounds.... really odd.  The TRM is fairly explicit about BTB
->>>> flush executing as nop when IBE is not set. Of course the TRM is not
->>>> exactly flawless, but still...
+
+
+On Wednesday 08 April 2015 09:54 AM, Keerthy wrote:
+> Hi Eduardo,
+>
+> Thanks for the review comments.
+>
+> On Wednesday 08 April 2015 01:35 AM, Eduardo Valentin wrote:
+>> Hello K,
+>>
+>> On Tue, Apr 07, 2015 at 08:50:04AM +0530, Keerthy wrote:
+>>> Hi Eduardo,
 >>>
->>> Oops, sorry user error.. I was trying to clear IBE as a banked register
->>> like L2 enable bit and of course it did not get cleared.. Clearing it
->>> with a smc call really clears it. And in that case my test case seems to
->>> work reliably on r3p2 without erratum 430973 enabled.
+>>> On Friday 27 March 2015 02:15 PM, Keerthy wrote:
+>>>> Bandgap Temperature read Dtemp can be corrupted
+>>>>
+>>>> DESCRIPTION
+>>>>          Read accesses to registers listed below can be corrupted
+>>>> due to incorrect resynchronization between
+>>>>          clock domains.
+>>>>
+>>>>          Read access to registers below can be corrupted :
+>>>>                  =E2=80=A2 CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA=
+_n (n =3D 0
+>>>> to 4)
+>>>>          =E2=80=A2 CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
+>>>>
+>>>> WORKAROUND
+>>>>          Multiple reads to
+>>>> CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA[9:0]:
+>>>>          BGAP_DTEMPMPU/GPU/CORE/DSPEVE/IVA is needed to discard
+>>>> false value and read right value:
+>>>>                  1. Perform two successive reads to BGAP_DTEMP bit
+>>>> field.
+>>>>                          (a) If read1 returns Val1 and read2 retur=
+ns
+>>>> Val1, then right value is Val1.
+>>>>                          (b) If read1 returns Val1, read 2 returns
+>>>> Val2, a third read is needed.
+>>>>                  2. Perform third read
+>>>>                          (a) If read3 returns Val2 then right valu=
+e
+>>>> is Val2.
+>>>>                          (b) If read3 returns Val3, then right val=
+ue
+>>>> is Val3.
 >>
->> May I ask how do you perform the smc call? I wanted to clear IBE too
->> to experiment, but it just hangs my board, even if I just write back
->> the same value. Here is what I do:
+>> The third read description (b) is misleading/confusing. Does it mean
+>> third read value is always correct or do we need to compare against =
+val1
+>> and val2? if val3 !=3D val2 && val3 !=3D val1, which one is correct?=
+ none?
+>
+> That is all is given in the errata description. Seems to assume third
+> one is right value always.
+
+Got a confirmation from the designer that synchronization shall be=20
+complete by third read hence it is the right value irrespective of the=20
+first and second..
+
+>
 >>
->>         asm ("mrc p15, 0, %0, c1, c0, 1" : "=r"(val));
+>>>>
+>>>
 >>
->>         asm (".arch_extension sec\n\t"
->>              "mov r0,  %0\n"
->>              "mov r12, #3\n"
->>              "smc #0\n"
->>              :: "r"(val) : "r0", "r12");
+>> Thanks for the detailed errata description.
 >>
->> I just run this from a sysfs write handler, does it need to be run on
->> SRAM or something?
-> 
-> Best done in the bootloader.. I just hacked it into the restore from
-
-I recently did that in u-boot:
-
-http://git.denx.de/?p=u-boot.git;a=commitdiff;h=5902f4ce0f2bd1411e40dc0ece3598a0fc19b2ae
-
-http://git.denx.de/?p=u-boot.git;a=blob;f=arch/arm/cpu/armv7/omap3/board.c;h=b064c0cc834356b33e14e0f36774108fa6a6c580;hb=HEAD#l428
-
-I believe it should be scalable to other SoCs as well (weak function
-that may be overriden as needed). Hope that helps.
-
-> off-idle to test, see below. But for that you naturally need to have
-> a device with working idle and it's usable for just testing for lazy
-> people.
-> 
-> Regards,
-> 
-> Tony
-> 
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -516,6 +516,7 @@ l2_inv_gp:
->  	ldr	r4, scratchpad_base
->  	ldr	r3, [r4,#0xBC]
->  	ldr	r0, [r3,#4]
-> +	bic	r0, r1, #(1 << 6)
->  	mov	r12, #0x3
->  	smc	#0			@ Call SMI monitor (smieq)
->  	ldr	r4, scratchpad_base
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
--- 
-Regards,
-Nishanth Menon
+>>> A gentle ping on this.
+>>>
+>>
+>> Sorry for the late answer. (minor) Comment below:
+>>
+>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>>> ---
+>>>>
+>>>> Read all the temperatures from the 5 sensors and saw that
+>>>> they were sane with time.
+>>>>
+>>>> Ran cpuloadgen and saw that temperatures rising on all the sensors
+>>>> and cooled down as soon as the load was reduced.
+>>>>
+>>>>   .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
+>>>>   drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 37
+>>>> +++++++++++++++++++++-
+>>>>   drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  4 +++
+>>>>   3 files changed, 42 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+>>>> b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+>>>> index a492927..58b5c66 100644
+>>>> --- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+>>>> +++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
+>>>> @@ -420,7 +420,8 @@ const struct ti_bandgap_data dra752_data =3D {
+>>>>               TI_BANDGAP_FEATURE_FREEZE_BIT |
+>>>>               TI_BANDGAP_FEATURE_TALERT |
+>>>>               TI_BANDGAP_FEATURE_COUNTER_DELAY |
+>>>> -            TI_BANDGAP_FEATURE_HISTORY_BUFFER,
+>>>> +            TI_BANDGAP_FEATURE_HISTORY_BUFFER |
+>>>> +            TI_BANDGAP_FEATURE_ERRATA_814,
+>>>>       .fclock_name =3D "l3instr_ts_gclk_div",
+>>>>       .div_ck_name =3D "l3instr_ts_gclk_div",
+>>>>       .conv_table =3D dra752_adc_to_temp,
+>>>> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>>>> b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>>>> index 74c0e34..baf822e 100644
+>>>> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>>>> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+>>>> @@ -119,6 +119,37 @@ exit:
+>>>>   }
+>>>>
+>>>>   /**
+>>>> + * ti_dra7_bandgap_read_temp() - helper function to read dra7
+>>>> sensor temperature
+>>>> + * @bgp: pointer to ti_bandgap structure
+>>>> + * @reg: desired register (offset) to be read
+>>>> + *
+>>>> + * Function to read dra7 bandgap sensor temperature. This is done
+>>>> separately
+>>>> + * so as to workaround the errata "Bandgap Temperature read Dtemp
+>>>> can be
+>>>> + * corrupted" - Errata ID: i814".
+>>>> + * Read accesses to registers listed below can be corrupted due t=
+o
+>>>> incorrect
+>>>> + * resynchronization between clock domains.
+>>>> + * Read access to registers below can be corrupted :
+>>>> + * CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =3D 0 to 4)
+>>>> + * CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
+>>>> + *
+>>>> + * Return: the register value.
+>>>> + */
+>>>> +static u32 ti_dra7_bandgap_read_temp(struct ti_bandgap *bgp,  u32=
+ reg)
+>>
+>> Are you sure this bug affects only DRA7? I would prefer you name thi=
+s
+>> not specific to soc version. Maybe bind it to the errata:
+>
+> AFAIK it is impacting DRA7 not sure of OMAP5 and OMAP4. Okay I can na=
+me
+> it on the errata number. Yeah makes sense too. If other versions tend=
+ to
+> have this then we can just add this errata feature to them also.
+>
+>>
+>> +static u32 ti_i814_bandgap_read_temp(struct ti_bandgap *bgp,  u32 r=
+eg)
+>>
+>>>> +{
+>>>> +    u32 val1, val2;
+>>>> +
+>>>> +    val1 =3D ti_bandgap_readl(bgp, reg);
+>>>> +    val2 =3D ti_bandgap_readl(bgp, reg);
+>>>> +
+>>>> +/* If both times we read the same value then that is right */
+>>
+>> Please, indent the comments too.
+>
+> Okay.
+>
+>>
+>>>> +    if (val1 =3D=3D val2)
+>>>> +        return val1;
+>>>> +
+>>>> +/* if val1 and val2 are different read it third time */
+>>
+>> ditto.
+>
+> Okay
+>
+>>
+>>>> +    return ti_bandgap_readl(bgp, reg);
+>>
+>> Actually, if I understood the errata description correctly, you need=
+ to:
+>> 1. read a third time (val3)
+>> 2. compare val3 against val2, and return val2 if they are same
+>>
+>> If they are different, the errata is not clear. Can you please clari=
+fy?
+>
+> 2. Perform third read
+> (a) If read3 returns Val2 then right value is Val2.
+> (b) If read3 returns Val3, then right value is Val3.
+>
+> Which means errata assumes third value is the good value no matter wh=
+at.
+>
+>>
+>>>> +}
+>>>> +
+>>>> +/**
+>>>>    * ti_bandgap_read_temp() - helper function to read sensor
+>>>> temperature
+>>>>    * @bgp: pointer to ti_bandgap structure
+>>>>    * @id: bandgap sensor id
+>>>> @@ -148,7 +179,11 @@ static u32 ti_bandgap_read_temp(struct
+>>>> ti_bandgap *bgp, int id)
+>>>>       }
+>>>>
+>>>>       /* read temperature */
+>>>> -    temp =3D ti_bandgap_readl(bgp, reg);
+>>>> +    if (TI_BANDGAP_HAS(bgp, ERRATA_814))
+>>>> +        temp =3D ti_dra7_bandgap_read_temp(bgp, reg);
+>>>> +    else
+>>>> +        temp =3D ti_bandgap_readl(bgp, reg);
+>>>> +
+>>>>       temp &=3D tsr->bgap_dtemp_mask;
+>>>>
+>>>>       if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
+>>>> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+>>>> b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+>>>> index b3adf72..b2da3fc 100644
+>>>> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+>>>> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
+>>>> @@ -318,6 +318,9 @@ struct ti_temp_sensor {
+>>>>    * TI_BANDGAP_FEATURE_HISTORY_BUFFER - used when the bandgap
+>>>> device features
+>>>>    *    a history buffer of temperatures.
+>>>>    *
+>>>> + * TI_BANDGAP_FEATURE_ERRATA_814 - used to workaorund when the
+>>>> bandgap device
+>>>> + *    has Errata 814
+>>>> + *
+>>>>    * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is
+>>>> capable of a
+>>>>    *      specific feature (above) or not. Return non-zero, if yes=
+=2E
+>>>>    */
+>>>> @@ -331,6 +334,7 @@ struct ti_temp_sensor {
+>>>>   #define TI_BANDGAP_FEATURE_FREEZE_BIT        BIT(7)
+>>>>   #define TI_BANDGAP_FEATURE_COUNTER_DELAY    BIT(8)
+>>>>   #define TI_BANDGAP_FEATURE_HISTORY_BUFFER    BIT(9)
+>>>> +#define TI_BANDGAP_FEATURE_ERRATA_814        BIT(10)
+>>>>   #define TI_BANDGAP_HAS(b, f)            \
+>>>>               ((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
+>>>>
+>>>>
+>
+> -Keerthy
