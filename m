@@ -1,63 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: patch "phy: Add a driver for dm816x USB PHY" added to linux-phy
- tree
-Date: Fri, 10 Apr 2015 07:27:42 -0700
-Message-ID: <20150410142742.GW18048@atomide.com>
-References: <20150325233606.GA7549@a0393678ub>
- <CAALWOA9ZHM6S+7WUffu0LF=9=fEO+PxfERpu=D9JpAbKSo1yNA@mail.gmail.com>
- <20150326160416.GG31346@atomide.com>
- <551ACCFE.3070703@ti.com>
- <20150331165133.GR10805@atomide.com>
- <20150409182228.GS18048@atomide.com>
- <5527BF7F.20108@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [RFC PATCH] ARM: omap2plus_defconfig: Switch over to using 8250 driver
+Date: Fri, 10 Apr 2015 13:18:13 -0500
+Message-ID: <1428689893-14605-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:43486 "EHLO muru.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58422 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755697AbbDJObR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Apr 2015 10:31:17 -0400
-Content-Disposition: inline
-In-Reply-To: <5527BF7F.20108@ti.com>
+	id S1754924AbbDJSSR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Apr 2015 14:18:17 -0400
+Received: from dflxv15.itg.ti.com ([128.247.5.124])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id t3AIIG7s004721
+	for <linux-omap@vger.kernel.org>; Fri, 10 Apr 2015 13:18:16 -0500
+Received: from DLEE71.ent.ti.com (dlee71.ent.ti.com [157.170.170.114])
+	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id t3AIIFBH030822
+	for <linux-omap@vger.kernel.org>; Fri, 10 Apr 2015 13:18:15 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, Bin Liu <binmlist@gmail.com>, pebolle@tiscali.nl, rusty@rustcorp.com.au, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-* Kishon Vijay Abraham I <kishon@ti.com> [150410 05:19]:
-> Hi Tony,
-> 
-> On Thursday 09 April 2015 11:52 PM, Tony Lindgren wrote:
-> >* Tony Lindgren <tony@atomide.com> [150331 09:56]:
-> >>* Kishon Vijay Abraham I <kishon@ti.com> [150331 09:37]:
-> >>>Hi Tony,
-> >>>
-> >>>On Thursday 26 March 2015 09:34 PM, Tony Lindgren wrote:
-> >>>>* Matthijs van Duin <matthijsvanduin@gmail.com> [150326 00:02]:
-> >>>>>On 26 March 2015 at 00:36, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> >>>>>>Let me know if you find any problems with this patch.
-> >>>>>
-> >>>>>I spotted a minor issue in drivers/phy/Kconfig:
-> >>>>>
-> >>>>>>+         Enable this for dm81xx USB to work.
-> >>>>>
-> >>>>>This should say dm816x instead.
-> >>>>
-> >>>>Yes that's correct, the phy on dm814x seems to be like on am335x,
-> >>>>not like on dm816x. Kishon, let me know if you prefer a follow-up
-> >>>>patch to fix this.
-> >>>
-> >>>No. I've fixed this in my tree
-> >>>https://git.kernel.org/cgit/linux/kernel/git/kishon/linux-phy.git/commit
-> >>>/?h=next&id=9fa9fd4ffc90582091b8c6219f2054265f71e4ef
-> >>
-> >>OK thanks!
-> >
-> >Kishon, looks like your next branch is not getting merged into
-> >Linux next for some reason?
-> 
-> Greg merged it just now. So you should start seeing tomorrow.
+8250 driver should be relatively feature complete. It can co-exist
+with omap-serial driver, so just enable 8250 OMAP layer driver and
+route all ttyOx references to ttySx through the standard 8250 driver
+to ensure no breakage of userspace occurs.
 
-OK thanks!
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Current upstream next-20150410 status: (all boards pass without this patch)
+Test is a basic boot test (using omap2plus_defconfig ofcourse)..
 
-Tony
+Ofcourse:
+[    0.001035] WARNING: Your 'console=ttyO0' has been replaced by 'ttyS0'
+does not help userspace when they are not able to dynamically handle switch.
+
+Just curious if folks feel we are ready for this switch yet...
+
+ttyS-change
+ 1:                     am335x-evm: BOOT: PASS: http://paste.ubuntu.org.cn/2551733
+ 2:                      am335x-sk: BOOT: FAIL: http://paste.ubuntu.org.cn/2551734
+ 3:                     am3517-evm: BOOT: FAIL: http://paste.ubuntu.org.cn/2551735
+ 4:                      am37x-evm: BOOT: FAIL: http://paste.ubuntu.org.cn/2551736
+ 5:                      am437x-sk: BOOT: FAIL: http://paste.ubuntu.org.cn/2551737
+ 6:                    am43xx-epos: BOOT: FAIL: http://paste.ubuntu.org.cn/2551738
+ 7:                   am43xx-gpevm: BOOT: PASS: http://paste.ubuntu.org.cn/2551739
+ 8:                 BeagleBoard-XM: BOOT: FAIL: http://paste.ubuntu.org.cn/2551740
+ 9:            beagleboard-vanilla: BOOT: FAIL: http://paste.ubuntu.org.cn/2551741
+10:               beaglebone-black: BOOT: PASS: http://paste.ubuntu.org.cn/2551742
+11:                     beaglebone: BOOT: FAIL: http://paste.ubuntu.org.cn/2551743
+12:                     craneboard: BOOT: FAIL: http://paste.ubuntu.org.cn/2551744
+13:                     dra72x-evm: BOOT: FAIL: http://paste.ubuntu.org.cn/2551745
+14:                     dra7xx-evm: BOOT: FAIL: http://paste.ubuntu.org.cn/2551746
+15:         OMAP3430-Labrador(LDP): BOOT: FAIL: http://paste.ubuntu.org.cn/2551747
+16:                           n900: BOOT: FAIL: http://paste.ubuntu.org.cn/2551748
+17:                      omap5-evm: BOOT: FAIL: http://paste.ubuntu.org.cn/2551749
+18:                  pandaboard-es: BOOT: FAIL: http://paste.ubuntu.org.cn/2551750
+19:             pandaboard-vanilla: BOOT: FAIL: http://paste.ubuntu.org.cn/2551751
+20:                        sdp2430: BOOT: FAIL: http://paste.ubuntu.org.cn/2551752
+21:                        sdp3430: BOOT: FAIL: http://paste.ubuntu.org.cn/2551753
+22:                        sdp4430: BOOT: FAIL: http://paste.ubuntu.org.cn/2551754
+TOTAL = 22 boards, Booted Boards = 3, No Boot boards = 19
+
+ arc/arm/configs/omap2plus_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 9ff7b54b2a83..6ef76856ac8e 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -220,6 +220,8 @@ CONFIG_SERIAL_8250_MANY_PORTS=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+ CONFIG_SERIAL_8250_DETECT_IRQ=y
+ CONFIG_SERIAL_8250_RSA=y
++CONFIG_SERIAL_8250_OMAP=y
++CONFIG_SERIAL_8250_OMAP_TTYO_FIXUP=y
+ CONFIG_SERIAL_OF_PLATFORM=y
+ CONFIG_SERIAL_OMAP=y
+ CONFIG_SERIAL_OMAP_CONSOLE=y
+-- 
+1.7.9.5
+
