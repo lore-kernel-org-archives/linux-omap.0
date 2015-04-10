@@ -1,169 +1,150 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2] thermal: ti-soc-thermal: dra7: Implement Workaround for Errata i814 - Bandgap Temperature read Dtemp can be corrupted
-Date: Fri, 10 Apr 2015 12:06:30 +0530
-Message-ID: <1428647790-6585-1-git-send-email-j-keerthy@ti.com>
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH v4 1/8] dmaengine: of_dma: Support for DMA routers
+Date: Fri, 10 Apr 2015 09:40:58 +0200
+Message-ID: <20150410074058.GN26727@lukather>
+References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com>
+ <1428498892-28471-2-git-send-email-peter.ujfalusi@ti.com>
+ <20150408154251.GE26727@lukather>
+ <5526375A.7090708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: edubezval@gmail.com, rui.zhang@intel.com
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, j-keerthy@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/TUrtqMIkCP4YtJm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5526375A.7090708@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-Bandgap Temperature read Dtemp can be corrupted
 
-DESCRIPTION
-        Read accesses to registers listed below can be corrupted due to=
- incorrect resynchronization between
-        clock domains.
+--/TUrtqMIkCP4YtJm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-        Read access to registers below can be corrupted :
-                =E2=80=A2 CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =
-=3D 0 to 4)
-        =E2=80=A2 CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
+On Thu, Apr 09, 2015 at 11:24:58AM +0300, Peter Ujfalusi wrote:
+> On 04/08/2015 06:42 PM, Maxime Ripard wrote:
+> >> ---
+> >>  Documentation/devicetree/bindings/dma/dma.txt | 28 +++++++++
+> >>  drivers/dma/dmaengine.c                       |  7 +++
+> >>  drivers/dma/of-dma.c                          | 86 ++++++++++++++++++=
++++++++++
+> >>  include/linux/dmaengine.h                     | 17 ++++++
+> >>  include/linux/of_dma.h                        | 21 +++++++
+> >>  5 files changed, 159 insertions(+)
+> >=20
+> > Can that be moved to a header / C file of its own?
+> >=20
+> > There's a lot of various code already in dmaengine.h and dmaengine.c,
+> > it would be really great to avoid adding more random stuff in there.
+>=20
+> This patch adds the core support for DMA signal routers. It adds
+> fairly small amount of generic code to the core to achieve this. I
+> don't think it would be better to create let's say of-dma-router.c
+> and .h just for this and export functions from of-dma.c to be used
+> outside of the file.
 
-WORKAROUND
-        Multiple reads to CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA=
-[9:0]:
-        BGAP_DTEMPMPU/GPU/CORE/DSPEVE/IVA is needed to discard false va=
-lue and read right value:
-                1. Perform two successive reads to BGAP_DTEMP bit field=
-=2E
-                        (a) If read1 returns Val1 and read2 returns Val=
-1, then right value is Val1.
-                        (b) If read1 returns Val1, read 2 returns Val2,=
- a third read is needed.
-                2. Perform third read
-                        (a) If read3 returns Val2 then right value is V=
-al2.
-                        (b) If read3 returns Val3, then right value is =
-Val3.
+A lot of "a fairly small amount of generic code" has been added over
+time, and we ended up in the current situation.
 
-        The above in gist means if val1 and val2 are the same then we c=
-an go ahead with that value
-        else we need a third read which will be right since synchroniza=
-tion will be complete by then.
+It's a bit sad if we just end up moving this just after it got merged,
+especially if it doesn't have any kind of dependency on any of the
+core function.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+> >> +int of_dma_router_register(struct device_node *np,
+> >> +			   void *(*of_dma_route_allocate)
+> >> +			   (struct of_phandle_args *, struct of_dma *),
+> >> +			   struct dma_router *dma_router)
+> >> +{
+> >> +	struct of_dma	*ofdma;
+> >> +
+> >> +	if (!np || !of_dma_route_allocate || !dma_router) {
+> >> +		pr_err("%s: not enough information provided\n", __func__);
+> >> +		return -EINVAL;
+> >> +	}
+> >> +
+> >> +	ofdma =3D kzalloc(sizeof(*ofdma), GFP_KERNEL);
+> >> +	if (!ofdma)
+> >> +		return -ENOMEM;
+> >=20
+> > Is that expected that you allocate through kzalloc, but never have a
+> > matching free function implemented?
+>=20
+> The free is via the of_dma_router_free() in case the router is removed
+> runtime, which is unlikely to happen since it will cause all DMA request =
+to fail.
 
-Changes in V2:
+Ok.
 
-  * Added more details in the description part.
-  * Indented the comments.
-  * Renamed ti_dra7_bandgap_read_temp to ti_errata814_bandgap_read_temp=
-=2E
+> >> diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+> >> index 56bc026c143f..734e449f87c1 100644
+> >> --- a/include/linux/of_dma.h
+> >> +++ b/include/linux/of_dma.h
+> >> @@ -23,6 +23,9 @@ struct of_dma {
+> >>  	struct device_node	*of_node;
+> >>  	struct dma_chan		*(*of_dma_xlate)
+> >>  				(struct of_phandle_args *, struct of_dma *);
+> >> +	void			*(*of_dma_route_allocate)
+> >> +				(struct of_phandle_args *, struct of_dma *);
+> >> +	struct dma_router	*dma_router;
+> >=20
+> > I don't really see why this is really tied to the device tree.
+>=20
+> The signal router is not a DMA device, it is represented in the device tr=
+ee
+> and the code will do the needed translation, which is transparent for the=
+ DMA
+> clients and also for the DMA controllers. Neither should know about the s=
+ignal
+> router.
 
- .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 37 ++++++++++++++=
-+++++++-
- drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  4 +++
- 3 files changed, 42 insertions(+), 2 deletions(-)
+Yeah, I got that part, and we do agree on that.
 
-diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/dri=
-vers/thermal/ti-soc-thermal/dra752-thermal-data.c
-index a492927..58b5c66 100644
---- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-@@ -420,7 +420,8 @@ const struct ti_bandgap_data dra752_data =3D {
- 			TI_BANDGAP_FEATURE_FREEZE_BIT |
- 			TI_BANDGAP_FEATURE_TALERT |
- 			TI_BANDGAP_FEATURE_COUNTER_DELAY |
--			TI_BANDGAP_FEATURE_HISTORY_BUFFER,
-+			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
-+			TI_BANDGAP_FEATURE_ERRATA_814,
- 	.fclock_name =3D "l3instr_ts_gclk_div",
- 	.div_ck_name =3D "l3instr_ts_gclk_div",
- 	.conv_table =3D dra752_adc_to_temp,
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/ther=
-mal/ti-soc-thermal/ti-bandgap.c
-index 74c0e34..94acd80 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -119,6 +119,37 @@ exit:
- }
-=20
- /**
-+ * ti_errata814_bandgap_read_temp() - helper function to read dra7 sen=
-sor temperature
-+ * @bgp: pointer to ti_bandgap structure
-+ * @reg: desired register (offset) to be read
-+ *
-+ * Function to read dra7 bandgap sensor temperature. This is done sepa=
-rately
-+ * so as to workaround the errata "Bandgap Temperature read Dtemp can =
-be
-+ * corrupted" - Errata ID: i814".
-+ * Read accesses to registers listed below can be corrupted due to inc=
-orrect
-+ * resynchronization between clock domains.
-+ * Read access to registers below can be corrupted :
-+ * CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =3D 0 to 4)
-+ * CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
-+ *
-+ * Return: the register value.
-+ */
-+static u32 ti_errata814_bandgap_read_temp(struct ti_bandgap *bgp,  u32=
- reg)
-+{
-+	u32 val1, val2;
-+
-+	val1 =3D ti_bandgap_readl(bgp, reg);
-+	val2 =3D ti_bandgap_readl(bgp, reg);
-+
-+	/* If both times we read the same value then that is right */
-+	if (val1 =3D=3D val2)
-+		return val1;
-+
-+	/* if val1 and val2 are different read it third time */
-+	return ti_bandgap_readl(bgp, reg);
-+}
-+
-+/**
-  * ti_bandgap_read_temp() - helper function to read sensor temperature
-  * @bgp: pointer to ti_bandgap structure
-  * @id: bandgap sensor id
-@@ -148,7 +179,11 @@ static u32 ti_bandgap_read_temp(struct ti_bandgap =
-*bgp, int id)
- 	}
-=20
- 	/* read temperature */
--	temp =3D ti_bandgap_readl(bgp, reg);
-+	if (TI_BANDGAP_HAS(bgp, ERRATA_814))
-+		temp =3D ti_errata814_bandgap_read_temp(bgp, reg);
-+	else
-+		temp =3D ti_bandgap_readl(bgp, reg);
-+
- 	temp &=3D tsr->bgap_dtemp_mask;
-=20
- 	if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/ther=
-mal/ti-soc-thermal/ti-bandgap.h
-index b3adf72..b2da3fc 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-@@ -318,6 +318,9 @@ struct ti_temp_sensor {
-  * TI_BANDGAP_FEATURE_HISTORY_BUFFER - used when the bandgap device fe=
-atures
-  *	a history buffer of temperatures.
-  *
-+ * TI_BANDGAP_FEATURE_ERRATA_814 - used to workaorund when the bandgap=
- device
-+ *	has Errata 814
-+ *
-  * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is capabl=
-e of a
-  *      specific feature (above) or not. Return non-zero, if yes.
-  */
-@@ -331,6 +334,7 @@ struct ti_temp_sensor {
- #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
- #define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
- #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
-+#define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
- #define TI_BANDGAP_HAS(b, f)			\
- 			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
-=20
+> Similar translation can be done for ACPI.
+
+But this argument is exactly why it shouldn't be tied to the device
+tree. We wouldn't like to re-do all this all over again for ACPI,
+while your code seems to just handle that very well, wouldn't we?
+
+> > Couldn't we use the device_alloc_chan_resources to do that?
+>=20
+> Not really. The router itself is not a DMA controller. The routing
+> need to be configured before the device_alloc_chan_resources can be
+> called for the real DMA controller. The signal router (core part +
+> the HW driver) need to prepare the route and do the translation so
+> the filter function of the DMA driver can validate the translated
+> request.
+
+Ah, yes, hence why you need a custom xlate function. Got it, thanks!
+
+Maxime
+
 --=20
-1.9.1
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
 
+--/TUrtqMIkCP4YtJm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVJ36KAAoJEBx+YmzsjxAgpTsQAJXBAGIZJvdVA4g6CZHrCUQ8
++RUDiPrXR1YzI6hCz96sYJoLlNQZWrbAxUr6XaK5ydj4MeOachnA/BfHn1bErKkS
+444Sk+GE5IPZLrpvklWcVopLqxuRyoOMNM5PpIB0d2qeWP4agbHd3Q2RDKHonpJb
+eN8Wl1rXFapz6/ElYnLsm9bZof5fy7OQHPTW9AM7qXsuLeb+TG7U/trOA4dZgr4u
+Ow5XH7re/QsomnfisTOsivAx2eX2KC2PIlGm+RKh59dQ+YepEz6wFJid7C0BipVT
+NW80/7tfLJq+RzJeuVzyqN5cxIKNaCG0m3h8QAuKFp7qupj1U9h9xb+wIgOFljsy
+hnvmw8F49yXY/IpVUGeuXUCUIcY5jrBaP2U/akLy9lszyOE4FNFBwnSlnrahUein
+gjFJzJRH9ZARQAhP27orwG7VwdmNSSd8wl+TK4Ngfk/cG7JFWTk4Gw/NpeiDJsys
+yLxMWI2JnAv1EcZXg7TvWjePFPG0yiyhsYM1/MKfpDGb+WnTd19e+MfjNKP7PNKR
+YMYZsxshbERRnNCsqpYPgbkpj9DMB/p6u7aRP6hC3ej6Nb68UZ8aktKHWZlMknOZ
+RB5rAHfeO8GjCe6gA+Yo2wgk+cJ5bqEwA1fN3EwC278w35cuVn+4m5nqGBzmf3mD
+jQQ+acg1qIUKYeysswf6
+=UuNd
+-----END PGP SIGNATURE-----
+
+--/TUrtqMIkCP4YtJm--
