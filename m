@@ -1,86 +1,55 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [rtc-linux] [PATCH] rtc: OMAP: Add external 32k clock feature
-Date: Fri, 10 Apr 2015 13:56:54 +0530
-Message-ID: <5527894E.9000807@ti.com>
-References: <1425375722-13412-1-git-send-email-j-keerthy@ti.com> <20150324155916.cfd1b7ab442271466160283f@linux-foundation.org> <55234F25.5060708@ti.com> <5523820C.2010709@compulab.co.il>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: patch "phy: Add a driver for dm816x USB PHY" added to linux-phy
+ tree
+Date: Fri, 10 Apr 2015 17:48:07 +0530
+Message-ID: <5527BF7F.20108@ti.com>
+References: <20150325233606.GA7549@a0393678ub> <CAALWOA9ZHM6S+7WUffu0LF=9=fEO+PxfERpu=D9JpAbKSo1yNA@mail.gmail.com> <20150326160416.GG31346@atomide.com> <551ACCFE.3070703@ti.com> <20150331165133.GR10805@atomide.com> <20150409182228.GS18048@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37956 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40489 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755237AbbDJI1j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Apr 2015 04:27:39 -0400
-In-Reply-To: <5523820C.2010709@compulab.co.il>
+	id S1755964AbbDJMSW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Apr 2015 08:18:22 -0400
+In-Reply-To: <20150409182228.GS18048@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>, Andrew Morton <akpm@linux-foundation.org>, rtc-linux@googlegroups.com
-Cc: Keerthy <j-keerthy@ti.com>, a.zummo@towertech.it, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, Bin Liu <binmlist@gmail.com>, pebolle@tiscali.nl, rusty@rustcorp.com.au, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+Hi Tony,
 
-On Tuesday 07 April 2015 12:36 PM, Igor Grinberg wrote:
-> Hi,
->
-> On 04/07/15 06:29, Keerthy wrote:
->> Hi Andrew,
->>
->> Apologies for replying late.
->>
->> On Wednesday 25 March 2015 04:29 AM, Andrew Morton wrote:
->>> On Tue, 3 Mar 2015 15:12:02 +0530 Keerthy <j-keerthy@ti.com> wrote:
+On Thursday 09 April 2015 11:52 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150331 09:56]:
+>> * Kishon Vijay Abraham I <kishon@ti.com> [150331 09:37]:
+>>> Hi Tony,
 >>>
->>>> Add external 32k clock feature. The internal clock will be gated during suspend.
->>>> Hence make use of the external 32k clock so that rtc is functional accross
->>>> suspend/resume.
+>>> On Thursday 26 March 2015 09:34 PM, Tony Lindgren wrote:
+>>>> * Matthijs van Duin <matthijsvanduin@gmail.com> [150326 00:02]:
+>>>>> On 26 March 2015 at 00:36, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>>>> Let me know if you find any problems with this patch.
+>>>>>
+>>>>> I spotted a minor issue in drivers/phy/Kconfig:
+>>>>>
+>>>>>> +         Enable this for dm81xx USB to work.
+>>>>>
+>>>>> This should say dm816x instead.
 >>>>
->>>> ...
->>>>
->>>> @@ -446,6 +449,7 @@ static const struct omap_rtc_device_type omap_rtc_default_type = {
->>>>
->>>>    static const struct omap_rtc_device_type omap_rtc_am3352_type = {
->>>>        .has_32kclk_en    = true,
->>>> +    .has_osc_ext_32k = true,
->>>>        .has_kicker    = true,
->>>>        .has_irqwakeen    = true,
->>>>        .has_pmic_mode    = true,
->>>> @@ -543,7 +547,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->>>>        if (rtc->type->has_32kclk_en) {
->>>>            reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
->>>>            rtc_writel(rtc, OMAP_RTC_OSC_REG,
->>>> -                reg | OMAP_RTC_OSC_32KCLK_EN);
->>>> +               reg | OMAP_RTC_OSC_32KCLK_EN);
->>>> +    }
->>>> +
->>>> +    /* Enable External clock as the source */
->>>> +
->>>> +    if (rtc->type->has_osc_ext_32k) {
->>>> +        rtc_writel(rtc, OMAP_RTC_OSC_REG,
->>>> +               (OMAP_RTC_OSC_EXT_32K |
->>>> +               rtc_read(rtc, OMAP_RTC_OSC_REG)) &
->>>> +               (~OMAP_RTC_OSC_OSC32K_GZ));
->>>>        }
+>>>> Yes that's correct, the phy on dm814x seems to be like on am335x,
+>>>> not like on dm816x. Kishon, let me know if you prefer a follow-up
+>>>> patch to fix this.
 >>>
->>> How do we know that all systems have this external clock and that it
->>> works OK?
->>>
+>>> No. I've fixed this in my tree
+>>> https://git.kernel.org/cgit/linux/kernel/git/kishon/linux-phy.git/commit
+>>> /?h=next&id=9fa9fd4ffc90582091b8c6219f2054265f71e4ef
 >>
->> AM335 and AM43X have the external clock feature which we choose using
->> RTC_OSC_REG. I verified it works OK by seeing the RTC seconds ticking
->> even after switching the source to the external 32k Clock.
+>> OK thanks!
 >
-> AFAIU, this is related to the external (outside of SoC) oscillator, right?
-> If so, there is a possibility to not assemble it on the board (at least
-> on AM335) and use the internal clock source instead.
+> Kishon, looks like your next branch is not getting merged into
+> Linux next for some reason?
 
-Yes. The register 'OMAP_RTC_OSC_REG' is part of the RTC IP register set
-so i assumed that it would be with the RTCs of those particular SoCs.
+Greg merged it just now. So you should start seeing tomorrow.
 
-> There are dozens of boards out there that do not have the external
-> oscillator assembled.
->
-> Am I missing something?
->
-
-Regards,
-Keerthy
+Cheers
+Kishon
