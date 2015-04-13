@@ -1,67 +1,46 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon
-Date: Sun, 12 Apr 2015 17:48:56 +0300
-Message-ID: <7568783.Noo5L2SBz3@avalon>
-References: <3292592.cickJMVhRq@wuerfel> <1428841693-15109-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150412143109.GP20756@valkosipuli.retiisi.org.uk>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [RFC PATCH] ARM: omap2plus_defconfig: Switch over to using 8250
+ driver
+Date: Mon, 13 Apr 2015 09:43:05 +0200
+Message-ID: <552B7389.5000505@linutronix.de>
+References: <1428689893-14605-1-git-send-email-nm@ti.com> <55282737.8060407@hurleysoftware.com> <552967A0.9080804@ti.com> <552978B2.6000604@hurleysoftware.com> <5529BAE7.4080808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44347 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895AbbDLOsi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Apr 2015 10:48:38 -0400
-In-Reply-To: <20150412143109.GP20756@valkosipuli.retiisi.org.uk>
+Received: from www.linutronix.de ([62.245.132.108]:58284 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbbDMHnJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Apr 2015 03:43:09 -0400
+In-Reply-To: <5529BAE7.4080808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sekhar Nori <nsekhar@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Hi Sakari,
-
-Thank you for the review.
-
-On Sunday 12 April 2015 17:31:09 Sakari Ailus wrote:
-> On Sun, Apr 12, 2015 at 03:28:13PM +0300, Laurent Pinchart wrote:
-> > diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
-> > b/drivers/staging/media/omap4iss/iss_csiphy.c index 7c3d55d..748607f
-> > 100644
-> > --- a/drivers/staging/media/omap4iss/iss_csiphy.c
-> > +++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-> > @@ -13,6 +13,7 @@
-> > 
-> >  #include <linux/delay.h>
-> >  #include <linux/device.h>
-> > +#include <linux/regmap.h>
-> > 
-> >  #include "../../../../arch/arm/mach-omap2/control.h"
-> > 
-> > @@ -140,9 +141,11 @@ int omap4iss_csiphy_config(struct iss_device *iss,
-> >  	 * - bit [18] : CSIPHY1 CTRLCLK enable
-> >  	 * - bit [17:16] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
-> >  	 */
-> > -	cam_rx_ctrl = omap4_ctrl_pad_readl(
-> > -			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-> > -
-> > +	/*
-> > +	 * TODO: When implementing DT support specify the CONTROL_CAMERA_RX
-> > +	 * register offset in the syscon property instead of hardcoding it.
-> > +	 */
-> > +	regmap_read(iss->syscon, 0x68, &cam_rx_ctrl);
+On 04/12/2015 02:23 AM, Nishanth Menon wrote:
+>> I think for the moment we should just freeze omap-serial and let
+>> most of userspace catch up first; a lot of the official and
+>> unofficial vender support is still stuck in 3.14. By the time,
+>> 3.19+ is de rigueur we'll hopefully have figured out the ttyS
+>> sharing and how to migrate without breaking userspace.
+>>
 > 
-> Do you use platform data now? I guess the address is the same on all SoCs
-> that use the OMAP 4 ISS?
+> How about the folks stuck on older distros like Maemo N900?
 
-Yes I use platform data for now. The address is the same on all SoCs on which 
-I've tested the driver, which is a single SoC :-) I'll research that when 
-implementing DT bindings.
+By the time I was thinking about this, I ended up with this:
+a) replace ttyOx with ttySx for the kernel console we it does not end
+   up dark and add a warning. This works right now however the warning
+   might been longer but then if one does not read it it might not
+   matter at all.
+b) add symlink udev rule so ttySx nodes becomes ttyOx one, too
 
-> Acked-by: Sakari Alius <sakari.ailus@iki.fi>
+a) was mainly for people not aware of the defconfig change who end up
+with the new driver without any knowledge.
+b) was mainly for people for people using some kind of "pre-created"
+image where you are not sure which kernel they have. They still could
+use the old driver or they might have switched to the new one. This
+udev rule should make sure there at least a getty on serial after the
+complete boot.
 
-Thank you.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Sebastian
