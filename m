@@ -1,46 +1,66 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [RFC PATCH] ARM: omap2plus_defconfig: Switch over to using 8250
- driver
-Date: Mon, 13 Apr 2015 09:43:05 +0200
-Message-ID: <552B7389.5000505@linutronix.de>
-References: <1428689893-14605-1-git-send-email-nm@ti.com> <55282737.8060407@hurleysoftware.com> <552967A0.9080804@ti.com> <552978B2.6000604@hurleysoftware.com> <5529BAE7.4080808@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCHv7] media: i2c/adp1653: fix includes
+Date: Mon, 13 Apr 2015 10:32:16 +0200
+Message-ID: <CABxcv==j=GLq0o6Shr32-81-6o0z4mSMOm7c_4Q1e+rQBgdEKQ@mail.gmail.com>
+References: <20150404074337.GA31064@amd>
+	<20150404102435.GR20756@valkosipuli.retiisi.org.uk>
+	<20150404171116.GA15025@Nokia-N900>
+	<20150404200307.GS20756@valkosipuli.retiisi.org.uk>
+	<20150409074238.GA22603@amd>
+	<20150409091017.GA4526@earth>
+	<20150409112943.GA31173@amd>
+	<20150409121913.GB18713@earth>
+	<20150409123155.GB9563@amd>
+	<CABxcv=mB=LqO2paGfYq1jCbky=kudT-mS8cJ-pPwdqZYQLeO4A@mail.gmail.com>
+	<20150409125927.GC12339@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:58284 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917AbbDMHnJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Apr 2015 03:43:09 -0400
-In-Reply-To: <5529BAE7.4080808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150409125927.GC12339@atrey.karlin.mff.cuni.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>, Andrew Morton <akpm@osdl.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, ivo.g.dimitrov.75@gmail.com, Patrik Bachan <patrikbachan@gmail.com>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, m.chehab@samsung.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, mchehab@osg.samsung.com, hverkuil@xs4all.nl
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 04/12/2015 02:23 AM, Nishanth Menon wrote:
->> I think for the moment we should just freeze omap-serial and let
->> most of userspace catch up first; a lot of the official and
->> unofficial vender support is still stuck in 3.14. By the time,
->> 3.19+ is de rigueur we'll hopefully have figured out the ttyS
->> sharing and how to migrate without breaking userspace.
+Hello Pali,
+
+On Thu, Apr 9, 2015 at 2:59 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com> =
+wrote:
+> On Thursday 09 April 2015 14:43:59 Javier Martinez Canillas wrote:
 >>
-> 
-> How about the folks stuck on older distros like Maemo N900?
+>> Please re-spin your previous patch and submit it properly.
+>>
+>> Best regards,
+>> Javier
+>
+> Hi all! What about stopping this meaningless discussion about resendi=
+ng
+> full patch series when everybody know how to fix is quickly in editor
+> (e.g with sed under 5s) and not wasting another 10 minutes to generat=
+e
+> new unified diff sent via SMTP protocol?
+>
 
-By the time I was thinking about this, I ended up with this:
-a) replace ttyOx with ttySx for the kernel console we it does not end
-   up dark and add a warning. This works right now however the warning
-   might been longer but then if one does not read it it might not
-   matter at all.
-b) add symlink udev rule so ttySx nodes becomes ttyOx one, too
+No, there is a reason why we have written rules on how patches should
+be submitted. Everyone in the kernel community is expected to optimize
+their workflow according to these rules to make life easier for people
+reviewing and merging the patches.
 
-a) was mainly for people not aware of the defconfig change who end up
-with the new driver without any knowledge.
-b) was mainly for people for people using some kind of "pre-created"
-image where you are not sure which kernel they have. They still could
-use the old driver or they might have switched to the new one. This
-udev rule should make sure there at least a getty on serial after the
-complete boot.
+As you said now someone has to fix this using an editor and that is an
+error prone process. Besides, why it would take 10 minutes to generate
+a proper patch-set? git is very good on this regard (i.e: git commit
+---fixup && git rebase -i && git format-patch && git send-email).
 
-Sebastian
+I won't argue anymore but I find very sad that people who have been in
+the kernel community for years don't follow the basic rules we have
+documented it. So I wonder why we have the documentation in the first
+place and how can we expect newcomers to follow if even experienced
+kernel hackers don't.
+
+> --
+> Pali Roh=C3=A1r
+> pali.rohar@gmail.com
+
+Best regards,
+Javier
