@@ -1,89 +1,90 @@
-From: Rajendra Nayak <rnayak@codeaurora.org>
-Subject: [RFC 5/5] drivers: sh: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
-Date: Tue, 14 Apr 2015 19:04:33 +0530
-Message-ID: <1429018473-21865-6-git-send-email-rnayak@codeaurora.org>
-References: <1429018473-21865-1-git-send-email-rnayak@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1429018473-21865-1-git-send-email-rnayak@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: rjw@rjwysocki.net, ssantosh@kernel.org, tony@atomide.com, khilman@deeprootsystems.com, nsekhar@ti.com, magnus.damm@gmail.com
-Cc: linux-arm-msm@vger.kernel.org, inux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: Re: [PATCH] genirq: provide dummy set_irq_wake()
+Date: Tue, 14 Apr 2015 16:02:23 +0200
+Message-ID: <552D1DEF.6080303@free-electrons.com>
+References: <1427721345-6402-1-git-send-email-rogerq@ti.com> <552CE847.7060103@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from down.free-electrons.com ([37.187.137.238]:45461 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753464AbbDNOC0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Apr 2015 10:02:26 -0400
+In-Reply-To: <552CE847.7060103@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tglx@linutronix.de, cw00.choi@samsung.com, balbi@ti.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-USE_PM_CLK_RUNTIME_OPS is introduced so we don't repeat the same code
-to do runtime_suspend and runtime_resume across users of PM clocks.
-Use it to remove the boilerplate code.
+Hi Roger,
 
-Signed-off-by: Rajendra Nayak <rnayak@codeaurora.org>
----
- drivers/sh/pm_runtime.c | 47 ++---------------------------------------------
- 1 file changed, 2 insertions(+), 45 deletions(-)
+On 14/04/2015 12:13, Roger Quadros wrote:
+> Hi Thomas,
+> 
+> On 30/03/15 16:15, Roger Quadros wrote:
+>> Without this system suspend is broken on systems that have
+>> drivers calling enable/disable_irq_wake() for interrupts based off
+>> the dummy irq hook.
+>> (e.g. drivers/gpio/gpio-pcf857x.c)
+>>
+>> http://article.gmane.org/gmane.linux.kernel/1879035
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> Any comments on this patch?
 
-diff --git a/drivers/sh/pm_runtime.c b/drivers/sh/pm_runtime.c
-index cd4c293..e0fd1e0 100644
---- a/drivers/sh/pm_runtime.c
-+++ b/drivers/sh/pm_runtime.c
-@@ -20,58 +20,15 @@
- #include <linux/bitmap.h>
- #include <linux/slab.h>
- 
--#ifdef CONFIG_PM
--static int sh_pm_runtime_suspend(struct device *dev)
--{
--	int ret;
--
--	ret = pm_generic_runtime_suspend(dev);
--	if (ret) {
--		dev_err(dev, "failed to suspend device\n");
--		return ret;
--	}
--
--	ret = pm_clk_suspend(dev);
--	if (ret) {
--		dev_err(dev, "failed to suspend clock\n");
--		pm_generic_runtime_resume(dev);
--		return ret;
--	}
--
--	return 0;
--}
--
--static int sh_pm_runtime_resume(struct device *dev)
--{
--	int ret;
--
--	ret = pm_clk_resume(dev);
--	if (ret) {
--		dev_err(dev, "failed to resume clock\n");
--		return ret;
--	}
--
--	return pm_generic_runtime_resume(dev);
--}
--
- static struct dev_pm_domain default_pm_domain = {
- 	.ops = {
--		.runtime_suspend = sh_pm_runtime_suspend,
--		.runtime_resume = sh_pm_runtime_resume,
-+		USE_PM_CLK_RUNTIME_OPS
- 		USE_PLATFORM_PM_SLEEP_OPS
- 	},
- };
- 
--#define DEFAULT_PM_DOMAIN_PTR	(&default_pm_domain)
--
--#else
--
--#define DEFAULT_PM_DOMAIN_PTR	NULL
--
--#endif /* CONFIG_PM */
--
- static struct pm_clk_notifier_block platform_bus_notifier = {
--	.pm_domain = DEFAULT_PM_DOMAIN_PTR,
-+	.pm_domain = &default_pm_domain,
- 	.con_ids = { NULL, },
- };
- 
+I read the url you pointed and I wonder why, at then end, did
+you choose to add a dummy set_irq_wake() instead of using
+IRQCHIP_SKIP_SET_WAKE ?
+
+Thanks,
+
+Gregory
+
+
+> 
+> cheers,
+> -roger
+> 
+>> ---
+>>  kernel/irq/dummychip.c | 6 ++++++
+>>  1 file changed, 6 insertions(+)
+>>
+>> diff --git a/kernel/irq/dummychip.c b/kernel/irq/dummychip.c
+>> index 988dc58..2405d7a 100644
+>> --- a/kernel/irq/dummychip.c
+>> +++ b/kernel/irq/dummychip.c
+>> @@ -32,6 +32,11 @@ static unsigned int noop_ret(struct irq_data *data)
+>>  	return 0;
+>>  }
+>>  
+>> +static int noop_int_ret(struct irq_data *data, unsigned int val)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>>  /*
+>>   * Generic no controller implementation
+>>   */
+>> @@ -57,5 +62,6 @@ struct irq_chip dummy_irq_chip = {
+>>  	.irq_ack	= noop,
+>>  	.irq_mask	= noop,
+>>  	.irq_unmask	= noop,
+>> +	.irq_set_wake	= noop_int_ret,
+>>  };
+>>  EXPORT_SYMBOL_GPL(dummy_irq_chip);
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
 -- 
-QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member
-of Code Aurora Forum, hosted by The Linux Foundation
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
