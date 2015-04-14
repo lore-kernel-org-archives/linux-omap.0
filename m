@@ -1,168 +1,141 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC][PATCH v2 00/13] USB: OTG/DRD Core functionality
-Date: Tue, 14 Apr 2015 13:41:47 +0300
-Message-ID: <1429008120-5395-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [RFC][PATCH v2 04/13] usb: gadget: add usb_gadget_start/stop()
+Date: Tue, 14 Apr 2015 13:41:51 +0300
+Message-ID: <1429008120-5395-5-git-send-email-rogerq@ti.com>
+References: <1429008120-5395-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu
-Cc: dan.j.williams@intel.com, peter.chen@freescale.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429008120-5395-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
+Cc: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is an attempt to centralize OTG/Dual-role functionality in the kernel.
-As of now I've got Dual-role functionality working pretty reliably on
-dra7-evm. xhci side of things for OTG/DRD use are fixed in
-http://thread.gmane.org/gmane.linux.kernel/1923161
+The OTG state machine needs a mechanism to start and
+stop the gadget controller. Add usb_gadget_start()
+and usb_gadget_stop().
 
-Changelog:
----------
-v2
-- Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
-the host controller
-- added dual-role-device (DRD) state machine which is a much simpler
-mode of operation when compared to OTG. Here we don't support fancy
-OTG features like HNP, SRP, on the fly role-swap. The mode of operation
-is determined based on ID pin (cable type) and the role doesn't change
-till the cable type changes.
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/gadget/udc/udc-core.c | 74 +++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/gadget.h        |  3 ++
+ 2 files changed, 77 insertions(+)
 
-Why?:
-----
-
-Most of the OTG drivers have been dealing with the OTG state machine
-themselves and there is a scope for code re-use. This has been
-partly addressed by the usb/common/usb-otg-fsm.c but it still
-leaves the instantiation of the state machine and OTG timers
-to the controller drivers. We re-use usb-otg-fsm.c but
-go one step further by instantiating the state machine and timers
-thus making it easier for drivers to implement OTG functionality.
-
-Newer OTG cores support standard host interface (e.g. xHCI?) so
-host and gadget functionality are no longer closely knit like older
-cores. There needs to be a way to co-ordinate the operation of the
-host and gadget in OTG mode. i.e. to stop and start them from a
-central location. This central location should be the USB OTG core.
-
-Host and gadget controllers might be sharing resources and can't
-be always running. One has to be stopped for the other to run.
-This can't be done as of now and can be done from the OTG core.
-
-What?:
------
-
-The OTG core instantiates the OTG/DRD Finite State Machine
-per OTG controller and manages starting/stopping the
-host and gadget controllers based on the bus state.
-    
-It provides APIs for the following
-    
-- Registering an OTG capable controller
-struct otg_fsm *usb_otg_register(struct device *parent_dev,
-                                 struct otg_fsm_ops *fsm_ops,
-				 bool drd_only);
-int usb_otg_unregister(struct device *parent_dev);
-
-- Registering Host controllers to OTG core (used by hcd-core)
-int usb_otg_register_hcd(struct usb_hcd *hcd);
-int usb_otg_unregister_hcd(struct usb_hcd *hcd);
-
-- Registering Gadget controllers to OTG core (used by udc-core)
-int usb_otg_register_gadget(struct usb_gadget *gadget);
-int usb_otg_unregister_gadget(struct usb_gadget *gadget);
-
-- Providing inputs to and kicking the OTG state machine
-void usb_otg_sync_inputs(struct otg_fsm *fsm);
-int usb_otg_kick_fsm(struct device *hcd_gcd_device);
-
-'struct otg_fsm' is the interface to the OTG state machine.
-It contains inputs to the fsm, status of the fsm and operations
-for the OTG controller driver.
-
-Usage model:
------------
-
-- The OTG controller device is assumed to be the parent of
-the host and gadget controller. It must call usb_otg_register()
-before populating the host and gadget devices so that the OTG
-core is aware that it is an OTG device before the host & gadget
-register. The OTG controller must provide struct otg_fsm_ops *
-which will be called by the OTG core depending on OTG bus state.
-
-- The host/gadget core stacks are modified to inform the OTG core
-whenever a new host/gadget device is added. The OTG core then
-checks if the host/gadget is part of the OTG controller and if yes
-then prevents the host/gadget from starting till both host and
-gadget are registered, OTG state machine is running and the
-USB bus state is appropriate to start host/gadget.
- For this APIs have been added to host/gadget stacks to start/stop
-the controllers from the OTG core.
-
-- No modification is needed for the host/gadget controller drivers.
-They must ensure that their start/stop methods can be called repeatedly
-and any shared resources between host & gadget are properly managed.
-The OTG core ensures that both are not started simultaneously.
-
-- The OTG core instantiates one OTG state machine per OTG
-controller and the necessary OTG timers to manage OTG state timeouts.
-The state machine is started when both host & gadget register and
-stopped when either of them unregisters. The controllers are started
-and stopped depending on bus state.
-
-- During the lifetime of the OTG state machine, inputs can be
-provided to it by modifying the appropriate members of 'struct otg_fsm'
-and calling usb_otg_sync_inputs(). This is typically done by the
-OTG controller driver that called usb_otg_register() since it is
-the only external component that has the 'struct otg_fsm' handle.
-
-Pending items:
-- We probably need a otg class.
-- sysfs interface for application OTG inputs and OTG status information
-- resolve symbol dependency for module use.
-
---
-cheers,
--roger
-
-Roger Quadros (13):
-  usb: otg-fsm: Add documentation for struct otg_fsm
-  usb: otg-fsm: support multiple instances
-  usb: otg-fsm: Prevent build warning "VDBG" redefined
-  usb: gadget: add usb_gadget_start/stop()
-  usb: otg: add OTG core
-  usb: hcd: Add hcd add/remove functions for OTG use
-  usb: otg: Add dual-role device (DRD) support
-  usb: otg: hub: Notify OTG fsm when A device sets b_hnp_enable
-  usb: gadget: udc: adapt to OTG
-  udc-core: fix lock circular dependency on udc_lock
-  usb: add "dual-role" mode to dr_mode device tree helper
-  usb: dwc3: add dual-role support
-  ARM: dts: dra7x-evm: Enable dual-role for usb1
-
- Documentation/devicetree/bindings/usb/generic.txt |   2 +-
- arch/arm/boot/dts/dra7-evm.dts                    |   2 +-
- arch/arm/boot/dts/dra72-evm.dts                   |   2 +-
- drivers/usb/Makefile                              |   1 +
- drivers/usb/common/Makefile                       |   1 +
- drivers/usb/common/common.c                       |   1 +
- drivers/usb/common/usb-otg-fsm.c                  |  19 +-
- drivers/usb/common/usb-otg.c                      | 902 ++++++++++++++++++++++
- drivers/usb/common/usb-otg.h                      |  71 ++
- drivers/usb/core/Kconfig                          |   8 +
- drivers/usb/core/hcd.c                            |  24 +-
- drivers/usb/core/hub.c                            |  11 +-
- drivers/usb/dwc3/core.c                           | 146 +++-
- drivers/usb/dwc3/core.h                           |   6 +
- drivers/usb/dwc3/platform_data.h                  |   1 +
- drivers/usb/gadget/udc/udc-core.c                 | 119 ++-
- include/linux/usb/gadget.h                        |   3 +
- include/linux/usb/hcd.h                           |   3 +
- include/linux/usb/otg-fsm.h                       | 104 ++-
- include/linux/usb/otg.h                           |   1 +
- include/linux/usb/usb-otg.h                       |  95 +++
- 21 files changed, 1476 insertions(+), 46 deletions(-)
- create mode 100644 drivers/usb/common/usb-otg.c
- create mode 100644 drivers/usb/common/usb-otg.h
- create mode 100644 include/linux/usb/usb-otg.h
-
+diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
+index 5a81cb0..3aa5dd5 100644
+--- a/drivers/usb/gadget/udc/udc-core.c
++++ b/drivers/usb/gadget/udc/udc-core.c
+@@ -187,6 +187,7 @@ EXPORT_SYMBOL_GPL(usb_gadget_udc_reset);
+  */
+ static inline int usb_gadget_udc_start(struct usb_udc *udc)
+ {
++	dev_dbg(&udc->dev, "%s\n", __func__);
+ 	return udc->gadget->ops->udc_start(udc->gadget, udc->driver);
+ }
+ 
+@@ -204,10 +205,83 @@ static inline int usb_gadget_udc_start(struct usb_udc *udc)
+  */
+ static inline void usb_gadget_udc_stop(struct usb_udc *udc)
+ {
++	dev_dbg(&udc->dev, "%s\n", __func__);
+ 	udc->gadget->ops->udc_stop(udc->gadget);
+ }
+ 
+ /**
++ * usb_gadget_start - start the usb gadget controller and connect to bus
++ * @gadget: the gadget device to start
++ *
++ * This is external API for use by OTG core.
++ *
++ * Start the usb device controller and connect to bus (enable pull).
++ */
++int usb_gadget_start(struct usb_gadget *gadget)
++{
++	int ret;
++	struct usb_udc *udc = NULL;
++
++	dev_dbg(&gadget->dev, "%s\n", __func__);
++	mutex_lock(&udc_lock);
++	list_for_each_entry(udc, &udc_list, list)
++		if (udc->gadget == gadget)
++			goto found;
++
++	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++		__func__);
++	mutex_unlock(&udc_lock);
++	return -EINVAL;
++
++found:
++	ret = usb_gadget_udc_start(udc);
++	if (ret)
++		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
++			ret);
++	else
++		usb_gadget_connect(udc->gadget);
++
++	mutex_unlock(&udc_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(usb_gadget_start);
++
++/**
++ * usb_gadget_stop - disconnect from bus and stop the usb gadget
++ * @gadget: The gadget device we want to stop
++ *
++ * This is external API for use by OTG core.
++ *
++ * Disconnect from the bus (disable pull) and stop the
++ * gadget controller.
++ */
++int usb_gadget_stop(struct usb_gadget *gadget)
++{
++	struct usb_udc *udc = NULL;
++
++	dev_dbg(&gadget->dev, "%s\n", __func__);
++	mutex_lock(&udc_lock);
++	list_for_each_entry(udc, &udc_list, list)
++		if (udc->gadget == gadget)
++			goto found;
++
++	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++		__func__);
++	mutex_unlock(&udc_lock);
++	return -EINVAL;
++
++found:
++	usb_gadget_disconnect(udc->gadget);
++	udc->driver->disconnect(udc->gadget);
++	usb_gadget_udc_stop(udc);
++	mutex_unlock(&udc_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_gadget_stop);
++
++/**
+  * usb_udc_release - release the usb_udc struct
+  * @dev: the dev member within usb_udc
+  *
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index e2f00fd..7ada7e6 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -922,6 +922,9 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver);
+  */
+ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver);
+ 
++int usb_gadget_start(struct usb_gadget *gadget);
++int usb_gadget_stop(struct usb_gadget *gadget);
++
+ extern int usb_add_gadget_udc_release(struct device *parent,
+ 		struct usb_gadget *gadget, void (*release)(struct device *dev));
+ extern int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget);
 -- 
 2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
