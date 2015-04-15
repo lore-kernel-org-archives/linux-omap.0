@@ -1,82 +1,77 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC PATCH 10/35] ARM: OMAP2+: hwmod: export hwmod APIs for driver use
-Date: Wed, 15 Apr 2015 15:52:57 +0300
-Message-ID: <1429102402-5276-11-git-send-email-t-kristo@ti.com>
+Subject: [RFC PATCH 05/35] ARM: OMAP2+: hwmod: add support for rerouting hwmod links
+Date: Wed, 15 Apr 2015 15:52:52 +0300
+Message-ID: <1429102402-5276-6-git-send-email-t-kristo@ti.com>
 References: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42508 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42499 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755382AbbDOMwt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Apr 2015 08:52:49 -0400
+	id S1755318AbbDOMwo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Apr 2015 08:52:44 -0400
 In-Reply-To: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 
-These are required for providing hwmod data in late boot through a module.
+If a hwmod with same name is already registered, reroute the links to
+use the existing one rather than fail. This is needed when hwmod data
+is made into a separate module, and for example, l3 bus is already
+registered under different hwmod. The late module init will use
+an l3 dummy hwmod instead, which will be rerouted to use the real
+l3 hwmod.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   14 ++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.h |    5 ++++-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d20179a..1f2b659 100644
+index 939161e..4fc42c9 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3234,6 +3234,11 @@ static void __init *memblock_alloc(int size)
- 	return memblock_virt_alloc(size, 0);
- }
- 
-+static void *kzalloc_alloc(int size)
-+{
-+	return kzalloc(size, GFP_KERNEL);
-+}
+@@ -2797,6 +2797,8 @@ static int __init _add_link(struct omap_hwmod_ocp_if *oi)
+  */
+ static int __init _register_link(struct omap_hwmod_ocp_if *oi)
+ {
++	struct omap_hwmod *oh;
 +
- /**
-  * omap_hwmod_register_links - register an array of hwmod links
-  * @ois: pointer to an array of omap_hwmod_ocp_if to register
-@@ -3276,6 +3281,14 @@ int omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
- 	return 0;
- }
+ 	if (!oi || !oi->master || !oi->slave || !oi->user)
+ 		return -EINVAL;
  
-+int omap_hwmod_register_links_late(struct omap_hwmod_ocp_if **ois)
-+{
-+	soc_ops.memalloc = kzalloc_alloc;
-+
-+	return omap_hwmod_register_links(ois);
-+}
-+EXPORT_SYMBOL(omap_hwmod_register_links_late);
-+
- /**
-  * _ensure_mpu_hwmod_is_setup - ensure the MPU SS hwmod is init'ed and set up
-  * @oh: pointer to the hwmod currently being set up (usually not the MPU)
-@@ -3344,6 +3357,7 @@ int omap_hwmod_setup_all(void)
- 	return 0;
- }
- omap_core_initcall(omap_hwmod_setup_all);
-+EXPORT_SYMBOL(omap_hwmod_setup_all);
+@@ -2810,11 +2812,27 @@ static int __init _register_link(struct omap_hwmod_ocp_if *oi)
+ 	 * Register the connected hwmods, if they haven't been
+ 	 * registered already
+ 	 */
+-	if (oi->master->_state != _HWMOD_STATE_REGISTERED)
+-		_register(oi->master);
++	if (oi->master->_state != _HWMOD_STATE_REGISTERED) {
++		oh = _lookup(oi->master->name);
++		if (oh) {
++			pr_debug("%s: remapping %s to %08x\n", __func__,
++				 oh->name, (u32)oh);
++			oi->master = oh;
++		} else {
++			_register(oi->master);
++		}
++	}
  
- /**
-  * omap_hwmod_enable - enable an omap_hwmod
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 6da0524..9612add 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -755,6 +755,9 @@ extern int ti81xx_hwmod_init(void);
- extern int dra7xx_hwmod_init(void);
- int am43xx_hwmod_init(void);
+-	if (oi->slave->_state != _HWMOD_STATE_REGISTERED)
+-		_register(oi->slave);
++	if (oi->slave->_state != _HWMOD_STATE_REGISTERED) {
++		oh = _lookup(oi->slave->name);
++		if (oh) {
++			pr_debug("%s: remapping %s to %08x\n", __func__,
++				 oh->name, (u32)oh);
++			oi->slave = oh;
++		} else {
++			_register(oi->slave);
++		}
++	}
  
--extern int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois);
-+int omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois);
-+int omap_hwmod_register_links_late(struct omap_hwmod_ocp_if **ios);
-+
-+int omap_hwmod_setup_all(void);
+ 	_add_link(oi);
  
- #endif
 -- 
 1.7.9.5
 
