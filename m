@@ -1,55 +1,74 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC PATCH 31/35] ARM: dts: omap3: split l3-smx node out of ocp bus node
-Date: Wed, 15 Apr 2015 15:53:18 +0300
-Message-ID: <1429102402-5276-32-git-send-email-t-kristo@ti.com>
-References: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC][PATCH v2 05/13] usb: otg: add OTG core
+Date: Wed, 15 Apr 2015 16:24:33 +0300
+Message-ID: <552E6691.3020908@ti.com>
+References: <1429008120-5395-1-git-send-email-rogerq@ti.com>	 <1429008120-5395-6-git-send-email-rogerq@ti.com> <1429090149.16771.19.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42536 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932101AbbDOMxV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Apr 2015 08:53:21 -0400
-In-Reply-To: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429090149.16771.19.camel@x220>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 
-ocp bus node will be needed for hwmod data module init, so it can't be
-reserved by l3-smx driver. Thus, split l3-smx as its own separate node
-under the ocp bus, and add a new compatible string for the l3-bus.
+On 15/04/15 12:29, Paul Bolle wrote:
+> (This will go into a minor detail. That's probably not what you want
+> when posting an RFC. But this patch got caught by an email filter I use
+> and a future, non-RFC, version will get caught too. So I decided to
+> bother you with this now.)
+> 
+> On Tue, 2015-04-14 at 13:41 +0300, Roger Quadros wrote:
+>> --- a/drivers/usb/common/Makefile
+>> +++ b/drivers/usb/common/Makefile
+> 
+>> +obj-$(CONFIG_USB_OTG_CORE) += usb-otg.o
+> 
+> This creates a module usb-otg.ko if CONFIG_USB_OTG_CORE is 'm', built
+> from just usb-otg.c.
+> 
+>> --- /dev/null
+>> +++ b/drivers/usb/common/usb-otg.c
+> 
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_register);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_unregister);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_sync_inputs);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_kick_fsm);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_register_hcd);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_unregister_hcd);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_register_gadget);
+> 
+>> +EXPORT_SYMBOL_GPL(usb_otg_unregister_gadget);
+>  
+>> +EXPORT_SYMBOL_GPL(usb_otg_fsm_to_dev);
+> 
+> This code adds no MODULE_LICENSE() macro in this patch and usb-otg.ko
+> will carry no license field. So I think the loading of that module
+> (triggered by loading another module that uses one of the exported
+> symbols, I suppose) taints the kernel. Am I correct?
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/boot/dts/omap3.dtsi |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+Right. I will fix this. Thanks.
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 3fdc84f..4ff8685 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -79,13 +79,17 @@
- 	 * hierarchy.
- 	 */
- 	ocp {
--		compatible = "ti,omap3-l3-smx", "simple-bus";
--		reg = <0x68000000 0x10000>;
--		interrupts = <9 10>;
-+		compatible = "simple-bus", "ti,omap3-l3";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges;
--		ti,hwmods = "l3_main";
-+
-+		l3_smx: l3_smx@68000000 {
-+			compatible = "ti,omap3-l3-smx";
-+			reg = <0x68000000 0x10000>;
-+			interrupts = <9 10>;
-+			ti,hwmods = "l3_main";
-+		};
- 
- 		aes: aes@480c5000 {
- 			compatible = "ti,omap3-aes";
--- 
-1.7.9.5
+cheers,
+-roger
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
