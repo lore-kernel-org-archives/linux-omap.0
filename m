@@ -1,125 +1,78 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC PATCH 09/35] ARM: OMAP2+: hwmod: move omap_hwmod_init_postsetup to hwmod driver
-Date: Wed, 15 Apr 2015 15:52:56 +0300
-Message-ID: <1429102402-5276-10-git-send-email-t-kristo@ti.com>
+Subject: [RFC PATCH 12/35] ARM: OMAP2+: dma: change DMA iomap to use hwmod pointers instead of pdata
+Date: Wed, 15 Apr 2015 15:52:59 +0300
+Message-ID: <1429102402-5276-13-git-send-email-t-kristo@ti.com>
 References: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35741 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755371AbbDOMwt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Apr 2015 08:52:49 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:47040 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754408AbbDOMwx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2015 08:52:53 -0400
 In-Reply-To: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 
-Previously this function was incorrectly implemented under low level
-IO init. However, this API will be needed for late hwmod data module
-init also, so move it to the generic hwmod codebase, and export the
-function also for module use.
+This makes it possible to do the iomapping before driver probe. Driver
+probe requires access to the DMA IO mapping already, so if it is
+allocated after omap_device_build, it is too late and causes a crash.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/io.c         |   20 --------------------
- arch/arm/mach-omap2/omap_hwmod.c |   38 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.h |    2 ++
- 3 files changed, 40 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/dma.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index c4871c5..c2b80b8 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -351,26 +351,6 @@ static int __init _omap2_init_reprogram_sdrc(void)
- 	return v;
- }
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index e1a56d8..3ff450b 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -225,13 +225,24 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	struct platform_device			*pdev;
+ 	struct omap_system_dma_plat_info	p;
+ 	struct omap_dma_dev_attr		*d;
+-	struct resource				*mem;
++	struct resource				mem;
+ 	char					*name = "omap_dma_system";
++	int					r;
  
--static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
--{
--	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
--}
--
--static void __init omap_hwmod_init_postsetup(void)
--{
--	u8 postsetup_state;
--
--	/* Set the default postsetup state for all hwmods */
--#ifdef CONFIG_PM
--	postsetup_state = _HWMOD_STATE_IDLE;
--#else
--	postsetup_state = _HWMOD_STATE_ENABLED;
--#endif
--	omap_hwmod_for_each(_set_hwmod_postsetup_state, &postsetup_state);
--
--	omap_pm_if_early_init();
--}
--
- static void __init __maybe_unused omap_common_late_init(void)
- {
- 	omap_mux_late_init();
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 6e7b541..d20179a 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3879,6 +3879,44 @@ ohsps_unlock:
- }
+ 	p = dma_plat_info;
+ 	p.dma_attr = (struct omap_dma_dev_attr *)oh->dev_attr;
+ 	p.errata = configure_dma_errata();
  
- /**
-+ * _set_hwmod_postsetup_state - set postsetup state for a single hwmod
-+ * @oh: hwmod to set postsetup state for
-+ * @data: postsetup state
-+ *
-+ * Wrapper function for setting the postsetup state for a single hwmod.
-+ * Forces return value to zero, so that we don't bail out with an error
-+ * value returned from omap_hwmod_set_postsetup_state(); with hwmod data
-+ * split to module + early init portions, the postsetup init will be
-+ * called twice for some hwmods, but we still want to setup the state for
-+ * all and not abort with the first hwmod complaining about its postsetup
-+ * state being set already. Returns 0 always.
-+ */
-+static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
-+{
-+	omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
-+	return 0;
-+}
++	r = omap_hwmod_get_resource_byname(oh, IORESOURCE_MEM, NULL, &mem);
++	if (r)
++		return -ENXIO;
 +
-+/**
-+ * omap_hwmod_init_postsetup - initialize postsetup state for all hwmods
-+ *
-+ * Sets the hwmod postsetup state for all hwmods based on PM configuration.
-+ */
-+void omap_hwmod_init_postsetup(void)
-+{
-+	u8 postsetup_state;
++	dma_base = ioremap(mem.start, mem.end - mem.start);
++	if (!dma_base) {
++		pr_err("%s: ioremap fail\n", __func__);
++		return -ENOMEM;
++	}
 +
-+	/* Set the default postsetup state for all hwmods */
-+#ifdef CONFIG_PM
-+	postsetup_state = _HWMOD_STATE_IDLE;
-+#else
-+	postsetup_state = _HWMOD_STATE_ENABLED;
-+#endif
-+	omap_hwmod_for_each(_set_hwmod_postsetup_state, &postsetup_state);
-+}
-+EXPORT_SYMBOL(omap_hwmod_init_postsetup);
-+
-+/**
-  * omap_hwmod_get_context_loss_count - get lost context count
-  * @oh: struct omap_hwmod *
-  *
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index fe75d38..6da0524 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -729,6 +729,8 @@ int omap_hwmod_for_each_by_class(const char *classname,
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
- int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 	pdev = omap_device_build(name, 0, oh, &p, sizeof(p));
+ 	if (IS_ERR(pdev)) {
+ 		pr_err("%s: Can't build omap_device for %s:%s.\n",
+@@ -242,18 +253,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	omap_dma_dev_info.res = pdev->resource;
+ 	omap_dma_dev_info.num_res = pdev->num_resources;
  
-+void omap_hwmod_init_postsetup(void);
-+
- extern void __init omap_hwmod_init(void);
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!mem) {
+-		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
+-		return -EINVAL;
+-	}
+-
+-	dma_base = ioremap(mem->start, resource_size(mem));
+-	if (!dma_base) {
+-		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+-		return -ENOMEM;
+-	}
+-
+ 	d = oh->dev_attr;
  
- const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
+ 	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
 -- 
 1.7.9.5
 
