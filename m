@@ -1,141 +1,65 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC PATCH 02/35] clk: ti: gate/interface: add support for clk_ops->disable_unused
-Date: Wed, 15 Apr 2015 15:52:49 +0300
-Message-ID: <1429102402-5276-3-git-send-email-t-kristo@ti.com>
+Subject: [RFC PATCH 03/35] ARM: OMAP2: n8x0: remove __initdata declarations from code
+Date: Wed, 15 Apr 2015 15:52:50 +0300
+Message-ID: <1429102402-5276-4-git-send-email-t-kristo@ti.com>
 References: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35724 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755111AbbDOMwi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Apr 2015 08:52:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:47020 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755140AbbDOMwj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2015 08:52:39 -0400
 In-Reply-To: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 
-While executing clk_disable_unused during boot, the dflt clk operations
-to disable the clocks include usecounting mechanism for clockdomains,
-which is indexed badly in case a direct clock disable call is made. This
-can potentially cause the underlying clockdomain to be disabled in
-certain cases. Fixed by adding a separate disable_unused clk_ops, which
-does not access the clockdomain functionality at all, and won't mess up
-the usecounting.
+Parts of the n8x0 board support code is needed during pdata registration,
+which will be moved later in the boot. Thus, it can't reside under __initdata
+section anymore and must be moved out of it.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock.c |   27 +++++++++++++++++++++------
- drivers/clk/ti/composite.c  |    1 +
- drivers/clk/ti/gate.c       |    2 ++
- drivers/clk/ti/interface.c  |    1 +
- include/linux/clk/ti.h      |    1 +
- 5 files changed, 26 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-n8x0.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 6124db5..2b096c7 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -345,15 +345,12 @@ err:
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index b6443a4..d03a333 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -153,7 +153,7 @@ static struct omap2_mcspi_device_config p54spi_mcspi_config = {
+ 	.turbo_mode	= 0,
+ };
+ 
+-static struct spi_board_info n800_spi_board_info[] __initdata = {
++static struct spi_board_info n800_spi_board_info[] = {
+ 	{
+ 		.modalias	= "p54spi",
+ 		.bus_num	= 2,
+@@ -569,11 +569,11 @@ static int n8x0_menelaus_late_init(struct device *dev)
  }
+ #endif
  
- /**
-- * omap2_dflt_clk_disable - disable a clock in the hardware
-+ * omap2_dflt_clk_disable_ll - low level disable a clock in the hardware
-  * @hw: struct clk_hw * of the clock to disable
-  *
-- * Disable the clock @hw in the hardware, and call into the OMAP
-- * clockdomain code to "disable" the corresponding clockdomain if all
-- * clocks/hwmods in that clockdomain are now disabled.  No return
-- * value.
-+ * Disable the clock @hw in the hardware. No return value.
+-struct menelaus_platform_data n8x0_menelaus_platform_data __initdata = {
++struct menelaus_platform_data n8x0_menelaus_platform_data = {
+ 	.late_init = n8x0_menelaus_late_init,
+ };
+ 
+-struct aic3x_pdata n810_aic33_data __initdata = {
++struct aic3x_pdata n810_aic33_data = {
+ 	.gpio_reset = 118,
+ };
+ 
+@@ -593,7 +593,7 @@ omap_late_initcall(n8x0_late_initcall);
+  * Legacy init pdata init for n8x0. Note that we want to follow the
+  * I2C bus numbering starting at 0 for device tree like other omaps.
   */
--void omap2_dflt_clk_disable(struct clk_hw *hw)
-+void omap2_dflt_clk_disable_ll(struct clk_hw *hw)
+-void * __init n8x0_legacy_init(void)
++void *n8x0_legacy_init(void)
  {
- 	struct clk_hw_omap *clk;
- 	u32 v;
-@@ -376,6 +373,24 @@ void omap2_dflt_clk_disable(struct clk_hw *hw)
- 		v &= ~(1 << clk->enable_bit);
- 	omap2_clk_writel(v, clk, clk->enable_reg);
- 	/* No OCP barrier needed here since it is a disable operation */
-+}
-+
-+/**
-+ * omap2_dflt_clk_disable - disable a clock in the hardware
-+ * @hw: struct clk_hw * of the clock to disable
-+ *
-+ * Disable the clock @hw in the hardware, and call into the OMAP
-+ * clockdomain code to "disable" the corresponding clockdomain if all
-+ * clocks/hwmods in that clockdomain are now disabled.  No return
-+ * value.
-+ */
-+void omap2_dflt_clk_disable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk;
-+
-+	clk = to_clk_hw_omap(hw);
-+
-+	omap2_dflt_clk_disable_ll(hw);
- 
- 	if (clkdm_control && clk->clkdm)
- 		clkdm_clk_disable(clk->clkdm, hw->clk);
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index 3654f61..9e10191 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -57,6 +57,7 @@ static const struct clk_ops ti_composite_divider_ops = {
- static const struct clk_ops ti_composite_gate_ops = {
- 	.enable		= &omap2_dflt_clk_enable,
- 	.disable	= &omap2_dflt_clk_disable,
-+	.disable_unused	= &omap2_dflt_clk_disable_ll,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
- };
- 
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index d493307..e2d4d1e 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -41,6 +41,7 @@ static const struct clk_ops omap_gate_clk_ops = {
- 	.init		= &omap2_init_clk_clkdm,
- 	.enable		= &omap2_dflt_clk_enable,
- 	.disable	= &omap2_dflt_clk_disable,
-+	.disable_unused	= &omap2_dflt_clk_disable_ll,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
- };
- 
-@@ -48,6 +49,7 @@ static const struct clk_ops omap_gate_clk_hsdiv_restore_ops = {
- 	.init		= &omap2_init_clk_clkdm,
- 	.enable		= &omap36xx_gate_clk_enable_with_hsdiv_restore,
- 	.disable	= &omap2_dflt_clk_disable,
-+	.disable_unused	= &omap2_dflt_clk_disable_ll,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
- };
- 
-diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-index 265d91f..c037259 100644
---- a/drivers/clk/ti/interface.c
-+++ b/drivers/clk/ti/interface.c
-@@ -29,6 +29,7 @@ static const struct clk_ops ti_interface_clk_ops = {
- 	.init		= &omap2_init_clk_clkdm,
- 	.enable		= &omap2_dflt_clk_enable,
- 	.disable	= &omap2_dflt_clk_disable,
-+	.disable_unused	= &omap2_dflt_clk_disable_ll,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
- };
- 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6784400..c8c0543 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -306,6 +306,7 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
- int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
- 				    unsigned long parent_rate, u8 index);
- int omap2_dflt_clk_enable(struct clk_hw *hw);
-+void omap2_dflt_clk_disable_ll(struct clk_hw *hw);
- void omap2_dflt_clk_disable(struct clk_hw *hw);
- int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
- void omap3_clk_lock_dpll5(void);
+ 	board_check_revision();
+ 	spi_register_board_info(n800_spi_board_info,
 -- 
 1.7.9.5
 
