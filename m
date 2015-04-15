@@ -1,56 +1,55 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC PATCH 35/35] HACK: remove omap3 hwmod external dependencies
-Date: Wed, 15 Apr 2015 15:53:22 +0300
-Message-ID: <1429102402-5276-36-git-send-email-t-kristo@ti.com>
+Subject: [RFC PATCH 31/35] ARM: dts: omap3: split l3-smx node out of ocp bus node
+Date: Wed, 15 Apr 2015 15:53:18 +0300
+Message-ID: <1429102402-5276-32-git-send-email-t-kristo@ti.com>
 References: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47091 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755418AbbDOMx3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2015 08:53:29 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42536 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932101AbbDOMxV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Apr 2015 08:53:21 -0400
 In-Reply-To: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
 
-This is a hack in a sense that this is a temporary trial patch to verify
-the module functionality for omap3. The external dependencies should
-be removed all at once for all platforms when the support is added for all.
+ocp bus node will be needed for hwmod data module init, so it can't be
+reserved by l3-smx driver. Thus, split l3-smx as its own separate node
+under the ocp bus, and add a new compatible string for the l3-bus.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +-
- .../mach-omap2/omap_hwmod_common_ipblock_data.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap3.dtsi |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-index c6c6384..7ba20ee 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-@@ -275,7 +275,7 @@ struct omap_hwmod_class_sysconfig omap2_hdq1w_sysc = {
- struct omap_hwmod_class omap2_hdq1w_class = {
- 	.name	= "hdq1w",
- 	.sysc	= &omap2_hdq1w_sysc,
--	.reset	= &omap_hdq1w_reset,
-+	//.reset	= &omap_hdq1w_reset,
- };
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 3fdc84f..4ff8685 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -79,13 +79,17 @@
+ 	 * hierarchy.
+ 	 */
+ 	ocp {
+-		compatible = "ti,omap3-l3-smx", "simple-bus";
+-		reg = <0x68000000 0x10000>;
+-		interrupts = <9 10>;
++		compatible = "simple-bus", "ti,omap3-l3";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges;
+-		ti,hwmods = "l3_main";
++
++		l3_smx: l3_smx@68000000 {
++			compatible = "ti,omap3-l3-smx";
++			reg = <0x68000000 0x10000>;
++			interrupts = <9 10>;
++			ti,hwmods = "l3_main";
++		};
  
- struct omap_hwmod_irq_info omap2_hdq1w_mpu_irqs[] = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_common_ipblock_data.c
-index f21664d..cd1c4a7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_common_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_ipblock_data.c
-@@ -30,7 +30,7 @@ static struct omap_hwmod_class_sysconfig omap2_dss_sysc = {
- struct omap_hwmod_class omap2_dss_hwmod_class = {
- 	.name	= "dss",
- 	.sysc	= &omap2_dss_sysc,
--	.reset	= omap_dss_reset,
-+	//.reset	= omap_dss_reset,
- };
- 
- /*
+ 		aes: aes@480c5000 {
+ 			compatible = "ti,omap3-aes";
 -- 
 1.7.9.5
 
