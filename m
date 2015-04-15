@@ -1,106 +1,120 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 1/8] dmaengine: of_dma: Support for DMA routers
-Date: Wed, 15 Apr 2015 11:36:55 +0300
-Message-ID: <552E2327.4050203@ti.com>
-References: <1428498892-28471-1-git-send-email-peter.ujfalusi@ti.com> <1428498892-28471-2-git-send-email-peter.ujfalusi@ti.com> <20150408154251.GE26727@lukather> <5526375A.7090708@ti.com> <20150410074058.GN26727@lukather>
+From: Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] genirq: provide dummy set_irq_wake()
+Date: Wed, 15 Apr 2015 10:51:15 +0200
+Message-ID: <552E2683.8090107@free-electrons.com>
+References: <1427721345-6402-1-git-send-email-rogerq@ti.com> <552CE847.7060103@ti.com> <552D1DEF.6080303@free-electrons.com> <552E1C4A.7060503@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34645 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751909AbbDOIhs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Apr 2015 04:37:48 -0400
-In-Reply-To: <20150410074058.GN26727@lukather>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <552E1C4A.7060503-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de
 
-On 04/10/2015 10:40 AM, Maxime Ripard wrote:
-> On Thu, Apr 09, 2015 at 11:24:58AM +0300, Peter Ujfalusi wrote:
->> On 04/08/2015 06:42 PM, Maxime Ripard wrote:
->>>> ---
->>>>  Documentation/devicetree/bindings/dma/dma.txt | 28 +++++++++
->>>>  drivers/dma/dmaengine.c                       |  7 +++
->>>>  drivers/dma/of-dma.c                          | 86 ++++++++++++++=
-+++++++++++++
->>>>  include/linux/dmaengine.h                     | 17 ++++++
->>>>  include/linux/of_dma.h                        | 21 +++++++
->>>>  5 files changed, 159 insertions(+)
->>>
->>> Can that be moved to a header / C file of its own?
->>>
->>> There's a lot of various code already in dmaengine.h and dmaengine.=
-c,
->>> it would be really great to avoid adding more random stuff in there=
-=2E
+Hi Roger,
+
+On 15/04/2015 10:07, Roger Quadros wrote:
+> Hi Gregory,
+> 
+> On 14/04/15 17:02, Gregory CLEMENT wrote:
+>> Hi Roger,
 >>
->> This patch adds the core support for DMA signal routers. It adds
->> fairly small amount of generic code to the core to achieve this. I
->> don't think it would be better to create let's say of-dma-router.c
->> and .h just for this and export functions from of-dma.c to be used
->> outside of the file.
->=20
-> A lot of "a fairly small amount of generic code" has been added over
-> time, and we ended up in the current situation.
+>> On 14/04/2015 12:13, Roger Quadros wrote:
+>>> Hi Thomas,
+>>>
+>>> On 30/03/15 16:15, Roger Quadros wrote:
+>>>> Without this system suspend is broken on systems that have
+>>>> drivers calling enable/disable_irq_wake() for interrupts based off
+>>>> the dummy irq hook.
+>>>> (e.g. drivers/gpio/gpio-pcf857x.c)
+>>>>
+>>>> http://article.gmane.org/gmane.linux.kernel/1879035
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>>>
+>>> Any comments on this patch?
+>>
+>> I read the url you pointed and I wonder why, at then end, did
+>> you choose to add a dummy set_irq_wake() instead of using
+>> IRQCHIP_SKIP_SET_WAKE ?
+> 
+> You mean like this?
+> 
+> diff --git a/kernel/irq/dummychip.c b/kernel/irq/dummychip.c
+> index 988dc58..2feb6fe 100644
+> --- a/kernel/irq/dummychip.c
+> +++ b/kernel/irq/dummychip.c
+> @@ -57,5 +57,6 @@ struct irq_chip dummy_irq_chip = {
+>  	.irq_ack	= noop,
+>  	.irq_mask	= noop,
+>  	.irq_unmask	= noop,
+> +	.flags		= IRQCHIP_SKIP_SET_WAKE,
+>  };
+>  EXPORT_SYMBOL_GPL(dummy_irq_chip);
 
-So that we have fairly good dmaengine core? If people using the code, t=
-hey
-will eventually fix things, add new features. When dmaengine came to ex=
-istence
-we did not had DMA routers, now that the SoCs are getting even more
-complicated they are coming (in case of DRA7x, it is already here).
 
-> It's a bit sad if we just end up moving this just after it got merged=
-,
-> especially if it doesn't have any kind of dependency on any of the
-> core function.
+Yes exactly.
 
-This provides core functionality to handle DMA signal routers via DT. I=
-t does
-depend on the DT DMA parsing core code as it integrates with it.
+> 
+> This works as well and is better. I'll post a v2.
 
->> The signal router is not a DMA device, it is represented in the devi=
-ce tree
->> and the code will do the needed translation, which is transparent fo=
-r the DMA
->> clients and also for the DMA controllers. Neither should know about =
-the signal
->> router.
->=20
-> Yeah, I got that part, and we do agree on that.
->=20
->> Similar translation can be done for ACPI.
->=20
-> But this argument is exactly why it shouldn't be tied to the device
-> tree. We wouldn't like to re-do all this all over again for ACPI,
-> while your code seems to just handle that very well, wouldn't we?
 
-The data structures used by the DT and ACPI layers are different. Under=
-neath
-DT and ACPI we do not have enough information on how to handle the DMA =
-signal
-router. If you happen to have multiple DMA controllers in the system fo=
-r
-example how would you tell how the routers are connected?
-In DRA7x we have sDMA and eDMA controllers. Both have similar DMA cross=
-bar. It
-is only possible to know the hierarchy of the components via DT. I'm su=
-re this
-is the same for ACPI. You take away the ACPI layer and you loose the to=
-pology
-of the system.
-Probably with huge architectural change in the dmaengine core (and thus=
- with
-all the drivers) this might be possible, but I don't think that is a va=
-lid
-route to take.
+Thanks,
 
---=20
-P=E9ter
+Gregory
+
+> 
+> cheers,
+> -roger
+> 
+>>>
+>>>> ---
+>>>>  kernel/irq/dummychip.c | 6 ++++++
+>>>>  1 file changed, 6 insertions(+)
+>>>>
+>>>> diff --git a/kernel/irq/dummychip.c b/kernel/irq/dummychip.c
+>>>> index 988dc58..2405d7a 100644
+>>>> --- a/kernel/irq/dummychip.c
+>>>> +++ b/kernel/irq/dummychip.c
+>>>> @@ -32,6 +32,11 @@ static unsigned int noop_ret(struct irq_data *data)
+>>>>  	return 0;
+>>>>  }
+>>>>  
+>>>> +static int noop_int_ret(struct irq_data *data, unsigned int val)
+>>>> +{
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>>  /*
+>>>>   * Generic no controller implementation
+>>>>   */
+>>>> @@ -57,5 +62,6 @@ struct irq_chip dummy_irq_chip = {
+>>>>  	.irq_ack	= noop,
+>>>>  	.irq_mask	= noop,
+>>>>  	.irq_unmask	= noop,
+>>>> +	.irq_set_wake	= noop_int_ret,
+>>>>  };
+>>>>  EXPORT_SYMBOL_GPL(dummy_irq_chip);
+>>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>>
+> 
+
+
+-- 
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
