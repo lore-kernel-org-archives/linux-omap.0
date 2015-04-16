@@ -1,17 +1,17 @@
 From: NeilBrown <neil@brown.name>
-Subject: [PATCH 6/6] phy: twl4030-usb: add extcon to report cable
- connections.
+Subject: [PATCH 5/6] phy: twl4030-usb: add support for reading resistor on
+ ID pin.
 Date: Thu, 16 Apr 2015 18:03:04 +1000
-Message-ID: <20150416080304.23307.44749.stgit@notabene.brown>
+Message-ID: <20150416080304.23307.41913.stgit@notabene.brown>
 References: <20150416075945.23307.24424.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41620 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:41610 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933644AbbDPIFt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Apr 2015 04:05:49 -0400
+	id S933628AbbDPIFk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Apr 2015 04:05:40 -0400
 In-Reply-To: <20150416075945.23307.24424.stgit@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,116 +20,145 @@ Cc: NeilBrown <neilb@suse.de>, linux-kernel@vger.kernel.org, GTA04 owners <gta04
 
 From: NeilBrown <neilb@suse.de>
 
+The twl4030 phy can measure, with low precision, the
+resistance-to-ground of the ID pin.
+
+Add a function to read the value, and export the result
+via sysfs.
+
+If the read fails, which it does sometimes, try again in 50msec.
+
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- drivers/phy/phy-twl4030-usb.c |   67 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
+ .../ABI/testing/sysfs-platform-twl4030-usb         |   22 +++++++
+ drivers/phy/phy-twl4030-usb.c                      |   63 ++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
 
+diff --git a/Documentation/ABI/testing/sysfs-platform-twl4030-usb b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+index 512c51be64ae..425d23676f8a 100644
+--- a/Documentation/ABI/testing/sysfs-platform-twl4030-usb
++++ b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+@@ -6,3 +6,25 @@ Description:
+ 	Possible values: "on", "off".
+ 
+ 	Changes are notified via select/poll.
++
++What: /sys/bus/platform/devices/*twl4030-usb/id
++Description:
++	Read-only report on measurement of USB-OTG ID pin.
++
++	The ID pin may be floating, grounded, or pulled to
++	ground by a resistor.
++
++	A very course grained reading of the resistance is
++	available.  The numbers given in kilo-ohms are roughly
++	the center-point of the detected range.
++
++	Possible values are:
++		ground
++		102k
++		200k
++		440k
++		floating
++		unknown
++
++	"unknown" indicates a problem with trying to detect
++	the resistance.
 diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 1d6f3e70193e..c42153d43ec2 100644
+index 3a707dd14238..1d6f3e70193e 100644
 --- a/drivers/phy/phy-twl4030-usb.c
 +++ b/drivers/phy/phy-twl4030-usb.c
-@@ -40,6 +40,7 @@
- #include <linux/regulator/consumer.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-+#include <linux/extcon.h>
- 
- /* Register defines */
- 
-@@ -173,6 +174,9 @@ struct twl4030_usb {
- 	enum omap_musb_vbus_id_status linkstat;
- 	bool			vbus_supplied;
- 
-+	/* cable connection */
-+	struct extcon_dev	edev;
-+
- 	struct delayed_work	id_workaround_work;
- };
- 
-@@ -592,6 +596,54 @@ static ssize_t twl4030_usb_id_show(struct device *dev,
+@@ -379,6 +379,56 @@ static void twl4030_i2c_access(struct twl4030_usb *twl, int on)
+ 	}
  }
- static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
  
-+static const char *usb_cables[] = {
-+	"USB", /* id is floating */
-+	"Charger-downstream", /* id is floating and D+ shorted to D- */
-+	"USB-Host", /* id is ground */
-+	"USB-ACA", /* "Accessory Charger Adapter" id is something else */
-+	NULL
++enum twl4030_id_status {
++	TWL4030_GROUND,
++	TWL4030_102K,
++	TWL4030_200K,
++	TWL4030_440K,
++	TWL4030_FLOATING,
++	TWL4030_ID_UNKNOWN,
 +};
-+enum {
-+	TWL_CABLE_USB,
-+	TWL_CABLE_CHARGER,	/* Not used - twl4030 can detect charger,
-+				 * but driver cannot yet */
-+	TWL_CABLE_OTG,
-+	TWL_CABLE_ACA,
++static char *twl4030_id_names[] = {
++	"ground",
++	"102k",
++	"200k",
++	"440k",
++	"floating",
++	"unknown"
 +};
-+static u32 all_exclusive[] =  {0xFFFFFFFF, 0};
 +
-+static void twl4030_usb_report_cable(struct twl4030_usb *twl)
++enum twl4030_id_status twl4030_get_id(struct twl4030_usb *twl)
 +{
-+	enum twl4030_id_status sts;
++	int ret;
 +
-+	if (!cable_present(twl->linkstat)) {
-+		extcon_set_state(&twl->edev, 0);
-+		return;
++	pm_runtime_get_sync(twl->dev);
++	if (twl->usb_mode == T2_USB_MODE_ULPI)
++		twl4030_i2c_access(twl, 1);
++	ret = twl4030_usb_read(twl, ULPI_OTG_CTRL);
++	if (ret < 0 || !(ret & ULPI_OTG_ID_PULLUP)) {
++		/* Need pull-up to read ID */
++		twl4030_usb_set_bits(twl, ULPI_OTG_CTRL,
++				     ULPI_OTG_ID_PULLUP);
++		mdelay(50);
++	}
++	ret = twl4030_usb_read(twl, ID_STATUS);
++	if (ret < 0 || (ret & 0x1f) == 0) {
++		mdelay(50);
++		ret = twl4030_usb_read(twl, ID_STATUS);
 +	}
 +
-+	sts = twl4030_get_id(twl);
++	if (twl->usb_mode == T2_USB_MODE_ULPI)
++		twl4030_i2c_access(twl, 0);
++	pm_runtime_put_autosuspend(twl->dev);
 +
-+	switch (sts) {
-+	case TWL4030_FLOATING: /* USB downstream */
-+		extcon_update_state(&twl->edev,
-+				    1<<TWL_CABLE_USB,
-+				    1<<TWL_CABLE_USB);
-+		break;
-+	case TWL4030_GROUND: /* USB host */
-+		extcon_update_state(&twl->edev,
-+				    1<<TWL_CABLE_OTG,
-+				    1<<TWL_CABLE_OTG);
-+		break;
-+	default: /* Some resistor */
-+		extcon_update_state(&twl->edev,
-+				    1<<TWL_CABLE_ACA,
-+				    1<<TWL_CABLE_ACA);
-+		/* An ACA should set port to 'host' mode */
-+		twl->linkstat = OMAP_MUSB_ID_GROUND;
-+		break;
-+	}
++	if (ret < 0)
++		return TWL4030_ID_UNKNOWN;
++	ret = ffs(ret) - 1;
++	if (ret < TWL4030_GROUND || ret > TWL4030_FLOATING)
++		return TWL4030_ID_UNKNOWN;
++
++	return ret;
 +}
++
+ static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+ {
+ 	u8 pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+@@ -532,6 +582,16 @@ static ssize_t twl4030_usb_vbus_show(struct device *dev,
+ }
+ static DEVICE_ATTR(vbus, 0444, twl4030_usb_vbus_show, NULL);
+ 
++static ssize_t twl4030_usb_id_show(struct device *dev,
++				   struct device_attribute *attr,
++				   char *buf)
++{
++	struct twl4030_usb *twl = dev_get_drvdata(dev);
++	return scnprintf(buf, PAGE_SIZE, "%s\n",
++			 twl4030_id_names[twl4030_get_id(twl)]);
++}
++static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
 +
  static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
  {
  	struct twl4030_usb *twl = _twl;
-@@ -628,6 +680,7 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
- 			pm_runtime_put_autosuspend(twl->dev);
- 		}
- 		omap_musb_mailbox(status);
-+		twl4030_usb_report_cable(twl);
- 	}
- 
- 	/* don't schedule during sleep - irq works right then */
-@@ -766,6 +819,20 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	}
- 	usb_add_phy_dev(&twl->phy);
- 
-+	twl->edev.name = devm_kasprintf(twl->dev, GFP_KERNEL, "%s-usb",
-+					dev_name(twl->dev->parent));
-+	twl->edev.supported_cable = usb_cables;
-+	twl->edev.mutually_exclusive = all_exclusive;
-+	twl->edev.print_name = NULL; /* why would you change this? */
-+	twl->edev.print_state = NULL; /* probably want to change this */
-+
-+	twl->edev.dev.parent = &pdev->dev;
-+	err = extcon_dev_register(&twl->edev);
-+	if (err) {
-+		dev_err(&pdev->dev, "register extcon failed\n");
-+		return err;
-+	}
-+
+@@ -709,6 +769,8 @@ static int twl4030_usb_probe(struct platform_device *pdev)
  	platform_set_drvdata(pdev, twl);
  	if (device_create_file(&pdev->dev, &dev_attr_vbus))
  		dev_warn(&pdev->dev, "could not create sysfs file\n");
++	if (device_create_file(&pdev->dev, &dev_attr_id))
++		dev_warn(&pdev->dev, "could not create sysfs file\n");
+ 
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+ 
+@@ -753,6 +815,7 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+ 	pm_runtime_get_sync(twl->dev);
+ 	cancel_delayed_work(&twl->id_workaround_work);
+ 	device_remove_file(twl->dev, &dev_attr_vbus);
++	device_remove_file(twl->dev, &dev_attr_id);
+ 
+ 	/* set transceiver mode to power on defaults */
+ 	twl4030_usb_set_mode(twl, -1);
 
 
