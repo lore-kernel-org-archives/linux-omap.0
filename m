@@ -1,79 +1,81 @@
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH v3] ARM: AM43xx: hwmod: add VPFE hwmod entries
-Date: Thu, 16 Apr 2015 15:44:10 +0100
-Message-ID: <CA+V-a8vP=1jF2a791BTK9A75rWEYnhw_T55qaxh6e57DpzcXQw@mail.gmail.com>
-References: <1422260488-380-1-git-send-email-prabhakar.csengg@gmail.com>
- <20150128193247.GH2570@ti.com> <alpine.DEB.2.02.1502102310010.3767@utopia.booyaka.com>
- <CA+V-a8vx=A8qQh4CtD7tjFwgBmkFPX7sUVuak8e4rH9N39gwfA@mail.gmail.com>
- <alpine.DEB.2.02.1504102248590.19540@utopia.booyaka.com> <CA+V-a8uw7AM0HWtNgKT6otj1xF502Msn-=a5WzbSYjT0xM8Epw@mail.gmail.com>
- <alpine.DEB.2.02.1504102302290.19540@utopia.booyaka.com> <CA+V-a8vTKiaJqttuvfU-NHznF=TghH5Fbzqwo8AcCRccn7DJgg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Thu, 16 Apr 2015 09:08:58 -0700
+Message-ID: <20150416160858.GH18048@atomide.com>
+References: <CAALWOA_0r1syy4nPBOvf1evhd5_oX=LWjdZAsQGAoGk8OoXTwg@mail.gmail.com>
+ <20150406151939.GG18048@atomide.com>
+ <20150406154037.GI18048@atomide.com>
+ <5522BEEF.2000405@gmail.com>
+ <20150406174245.GJ18048@atomide.com>
+ <20150407135713.GL4027@n2100.arm.linux.org.uk>
+ <20150407152207.GM18048@atomide.com>
+ <20150408230658.GO4027@n2100.arm.linux.org.uk>
+ <20150409134843.GQ4027@n2100.arm.linux.org.uk>
+ <20150415163108.GB2033@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:33024 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933614AbbDPOom (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2015 10:44:42 -0400
-In-Reply-To: <CA+V-a8vTKiaJqttuvfU-NHznF=TghH5Fbzqwo8AcCRccn7DJgg@mail.gmail.com>
+Received: from muru.com ([72.249.23.125]:44930 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753380AbbDPQMP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Apr 2015 12:12:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20150415163108.GB2033@earth>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Parrot <bparrot@ti.com>, Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Darren Etheridge <detheridge@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+* Sebastian Reichel <sre@kernel.org> [150415 09:32]:
+> Hi,
+> 
+> On Thu, Apr 09, 2015 at 02:48:43PM +0100, Russell King - ARM Linux wrote:
+> > On Thu, Apr 09, 2015 at 12:06:58AM +0100, Russell King - ARM Linux wrote:
+> > > On Tue, Apr 07, 2015 at 08:22:08AM -0700, Tony Lindgren wrote:
+> > > > Works for me. The above needs the following fix folded in to build:
+> > > > 
+> > > > --- a/arch/arm/mm/proc-v7.S
+> > > > +++ b/arch/arm/mm/proc-v7.S
+> > > > @@ -532,7 +532,7 @@ __v7_ca9mp_proc_info:
+> > > >  __v7_ca8_proc_info:
+> > > >  	.long	0x410fc080
+> > > >  	.long	0xff0ffff0
+> > > > -	__v7_proc __v7_ca8mp_proc_info, proc_fns = ca8_processor_functions
+> > > > +	__v7_proc __v7_ca8_proc_info, __v7_setup, proc_fns = ca8_processor_functions
+> > > >  	.size	__v7_ca8_proc_info, . - __v7_ca8_proc_info
+> > > >  
+> > > >  #endif	/* CONFIG_ARM_LPAE */
+> > > 
+> > > Thanks, merged into the original patch.
+> > 
+> > Do you want to give me an ack for this, thanks?
+> 
+> I tried to test this together with Tony's follow up patch, but I get
+> this after applying the patch to v4.0:
+> 
+> sre@earth ~/src/linux [430973-fix] % make -j4
+>   CHK     include/config/kernel.release
+>   CHK     include/generated/uapi/linux/version.h
+>   CHK     include/generated/utsrelease.h
+> make[1]: 'include/generated/mach-types.h' is up to date.
+>   CALL    scripts/checksyscalls.sh
+>   CHK     include/generated/compile.h
+>   AS      arch/arm/mm/proc-v7.o
+> arch/arm/mm/proc-v7.S: Assembler messages:
+> arch/arm/mm/proc-v7.S:535: Error: invalid operands (*ABS* and .text sections) for `|'
+> arch/arm/mm/proc-v7.S:535: Error: invalid operands (*ABS* and .text sections) for `|'
+> scripts/Makefile.build:294: recipe for target 'arch/arm/mm/proc-v7.o' failed
+> make[1]: *** [arch/arm/mm/proc-v7.o] Error 1
+> Makefile:947: recipe for target 'arch/arm/mm' failed
+> make: *** [arch/arm/mm] Error 2
+> make: *** Waiting for unfinished jobs....
 
-On Sat, Apr 11, 2015 at 10:19 AM, Lad, Prabhakar
-<prabhakar.csengg@gmail.com> wrote:
-> On Sat, Apr 11, 2015 at 12:03 AM, Paul Walmsley <paul@pwsan.com> wrote:
->> On Fri, 10 Apr 2015, Lad, Prabhakar wrote:
->>
->>> On Fri, Apr 10, 2015 at 11:51 PM, Paul Walmsley <paul@pwsan.com> wrote:
->>> > Hi Prabhakar
->>> >
->>> > On Fri, 10 Apr 2015, Lad, Prabhakar wrote:
->>> >
->>> >> Hi Paul,
->>> >>
->>> >> On Tue, Feb 10, 2015 at 11:10 PM, Paul Walmsley <paul@pwsan.com> wrote:
->>> >> > On Wed, 28 Jan 2015, Benoit Parrot wrote:
->>> >> >
->>> >> >> Suspend/resume is functional with this patch.
->>> >> >>
->>> >> >> Tested-by: Benoit Parrot <bparrot@ti.com>
->>> >> >
->>> >> > Thanks folks, queued for v3.21.
->>> >> >
->>> >> >
->>> >> I see that this patch is not into linux-next yet.
->>> >
->>> > thanks for the ping.  This slipped through the cracks here due to the
->>> > kernel version number change from 3.21 to 4.1 :-(  Sorry about that; I
->>> > will requeue for either 4.1-rc or 4.2.
->>> >
->>> > Unfortunately I don't have an AM43xx board.  Is suspend/resume broken
->>> > without this patch?  If so, then v4.1-rc seems like the appropriate
->>> > target.
->>> >
->>> there is kernel soft crashes without this patch, so this needs to go
->>> in for v4.1-rc.
->>
->> Could you provide some further detail?  Does it crash during boot, or
->> during suspend, or ... ?  Also could you describe what you mean by "soft
->> crash" ?
->>
-> with patch [1] applied and VPFE being enabled and this patch missing
-> (ARM: AM43xx: hwmod: add VPFE hwmod entries) I have attached the
-> boot log.
-> By soft crash I meant it doesn't get hung :)
->
-> With the above patch (ARM: AM43xx: hwmod: add VPFE hwmod entries)
-> applied all goes well.
->
->
-> [1] https://lkml.org/lkml/2015/3/12/1001
->
+Maybe test the version in Linux next:
 
-Any update on this ?
+a6d746789825 ("ARM: proc-v7: avoid errata 430973 workaround for non-Cortex A8 CPUs")
 
-Cheers,
---Prabhakar Lad
+And then apply my patch on top.
+
+Regards,
+
+Tony
