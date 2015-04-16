@@ -1,101 +1,105 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC][PATCH v2 02/13] usb: otg-fsm: support multiple instances
-Date: Thu, 16 Apr 2015 14:58:20 +0300
-Message-ID: <552FA3DC.90709@ti.com>
-References: <1429008120-5395-1-git-send-email-rogerq@ti.com> <1429008120-5395-3-git-send-email-rogerq@ti.com> <20150416113559.GB3181@shlinux2>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RFC][PATCH v2 03/13] usb: otg-fsm: Prevent build warning "VDBG"
+ redefined
+Date: Thu, 16 Apr 2015 14:59:12 +0300
+Message-ID: <552FA410.4030508@ti.com>
+References: <1429008120-5395-1-git-send-email-rogerq@ti.com> <1429008120-5395-4-git-send-email-rogerq@ti.com> <20150416114152.GC3181@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150416113559.GB3181@shlinux2>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41857 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753230AbbDPL7V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2015 07:59:21 -0400
+In-Reply-To: <20150416114152.GC3181@shlinux2>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Chen <peter.chen@freescale.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 16/04/15 14:36, Peter Chen wrote:
-> On Tue, Apr 14, 2015 at 01:41:49PM +0300, Roger Quadros wrote:
->> Move the state_changed variable into struct otg_fsm
->> so that we can support multiple instances.
+On 16/04/15 14:41, Peter Chen wrote:
+> On Tue, Apr 14, 2015 at 01:41:50PM +0300, Roger Quadros wrote:
+>> If usb/otg-fsm.h and usb/composite.h are included together
+>> then it results in the build warning [1].
+>>
+>> Prevent that by moving the VDBG defination into the
+>> usb-otg-fsm.c file where it is used.
+>>
+>> Also get rid of MPC_LOC which doesn't seem to be used
+>> by anyone.
+>>
+>> [1] - warning fixed by this patch:
+>>
+>>    In file included from drivers/usb/dwc3/core.h:33,
+>>                     from drivers/usb/dwc3/ep0.c:33:
+>>    include/linux/usb/otg-fsm.h:30:1: warning: "VDBG" redefined
+>>    In file included from drivers/usb/dwc3/ep0.c:31:
+>>    include/linux/usb/composite.h:615:1: warning: this is the location of the previous definition
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/usb/common/usb-otg-fsm.c |  9 +++++++++
+>>  include/linux/usb/otg-fsm.h      | 15 ---------------
+>>  2 files changed, 9 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+>> index 0caa37b..35f311a 100644
+>> --- a/drivers/usb/common/usb-otg-fsm.c
+>> +++ b/drivers/usb/common/usb-otg-fsm.c
+>> @@ -30,6 +30,15 @@
+>>  #include <linux/usb/otg.h>
+>>  #include <linux/usb/otg-fsm.h>
+>>  
+>> +#undef VDBG
+>> +
+>> +#ifdef VERBOSE
+>> +#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
+>> +				 __func__, ## args)
+>> +#else
+>> +#define VDBG(stuff...)	do {} while (0)
+>> +#endif
+>> +
 > 
-> OTG device has only one port. See 3.1.1.
-> If you go to pass OTG Certification, the lab requires that there is only
-> one port at your board.
-> 
+> It is obsolete too, we may use dev_vdbg instead of it.
 
-We're not breaking OTG compliance by this ;).
-Moreover this structure is not limited to OTG but for DRD (dual-role) use as well.
-We can have multiple DRD ports per board.
+ok, we need to add 'struct device *' to 'struct otg_fsm' then.
 
 cheers,
 -roger
 
->>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->> ---
->>  drivers/usb/common/usb-otg-fsm.c | 10 ++++------
->>  include/linux/usb/otg-fsm.h      |  1 +
->>  2 files changed, 5 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
->> index 1736bbe..0caa37b 100644
->> --- a/drivers/usb/common/usb-otg-fsm.c
->> +++ b/drivers/usb/common/usb-otg-fsm.c
->> @@ -61,8 +61,6 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
->>  	return 0;
->>  }
->>  
->> -static int state_changed;
->> -
->>  /* Called when leaving a state.  Do state clean up jobs here */
->>  static void otg_leave_state(struct otg_fsm *fsm, enum usb_otg_state old_state)
+> 
+>>  /* Change USB protocol when there is a protocol change */
+>>  static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
 >>  {
->> @@ -123,7 +121,7 @@ static void otg_leave_state(struct otg_fsm *fsm, enum usb_otg_state old_state)
->>  /* Called when entering a state */
->>  static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->>  {
->> -	state_changed = 1;
->> +	fsm->state_changed = 1;
->>  	if (fsm->otg->state == new_state)
->>  		return 0;
->>  	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
->> @@ -255,7 +253,7 @@ int otg_statemachine(struct otg_fsm *fsm)
->>  	mutex_lock(&fsm->lock);
->>  
->>  	state = fsm->otg->state;
->> -	state_changed = 0;
->> +	fsm->state_changed = 0;
->>  	/* State machine state change judgement */
->>  
->>  	switch (state) {
->> @@ -368,7 +366,7 @@ int otg_statemachine(struct otg_fsm *fsm)
->>  	}
->>  	mutex_unlock(&fsm->lock);
->>  
->> -	VDBG("quit statemachine, changed = %d\n", state_changed);
->> -	return state_changed;
->> +	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
->> +	return fsm->state_changed;
->>  }
->>  EXPORT_SYMBOL_GPL(otg_statemachine);
 >> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
->> index c5b74c5..85a9150 100644
+>> index 85a9150..73136aa 100644
 >> --- a/include/linux/usb/otg-fsm.h
 >> +++ b/include/linux/usb/otg-fsm.h
->> @@ -183,6 +183,7 @@ struct otg_fsm {
->>  	/* Current usb protocol used: 0:undefine; 1:host; 2:client */
->>  	int protocol;
->>  	struct mutex lock;
->> +	bool state_changed;
->>  };
+>> @@ -21,21 +21,6 @@
+>>  #include <linux/mutex.h>
+>>  #include <linux/errno.h>
 >>  
->>  struct otg_fsm_ops {
+>> -#undef VERBOSE
+>> -
+>> -#ifdef VERBOSE
+>> -#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
+>> -				 __func__, ## args)
+>> -#else
+>> -#define VDBG(stuff...)	do {} while (0)
+>> -#endif
+>> -
+>> -#ifdef VERBOSE
+>> -#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
+>> -#else
+>> -#define MPC_LOC do {} while (0)
+>> -#endif
+>> -
+>>  #define PROTO_UNDEF	(0)
+>>  #define PROTO_HOST	(1)
+>>  #define PROTO_GADGET	(2)
 >> -- 
 >> 2.1.0
 >>
 > 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
