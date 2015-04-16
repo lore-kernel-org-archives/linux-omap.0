@@ -1,42 +1,60 @@
-From: pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] omap: i2c: Add calls for pinctrl state select
-Date: Thu, 16 Apr 2015 19:04:56 +0200
-Message-ID: <1429203896-27381-1-git-send-email-pascal.huerst@gmail.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Subject: Re: AM335x OMAP2 common clock external fixed-clock registration
+Date: Thu, 16 Apr 2015 22:37:19 +0200
+Message-ID: <55301D7F.30708@gmail.com>
+References: <20150414211734.GA28974@deathray> <552E0688.1020903@ti.com> <20150415140945.GA30787@deathray> <552EB152.7050306@ti.com> <20150415194707.GA11007@deathray> <CAPtuhTggHctp5ArGPEuKn2GuPzb-WnKv2_CzPrHzq8hwOR5Aqw@mail.gmail.com> <20150415205136.GA3399@deathray> <552F3B60.8050703@ti.com> <20150416161756.GA27590@deathray>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150416161756.GA27590@deathray>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Welling <mwelling@ieee.org>, Tero Kristo <t-kristo@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On 16.04.2015 18:17, Michael Welling wrote:
+> On Thu, Apr 16, 2015 at 07:32:32AM +0300, Tero Kristo wrote:
+>> On 04/15/2015 11:51 PM, Michael Welling wrote:
+>>> On Wed, Apr 15, 2015 at 01:45:53PM -0700, Mike Turquette wrote:
+>>>> On Wed, Apr 15, 2015 at 12:47 PM, Michael Welling <mwelling@ieee.org> wrote:
+[...]
+>>>>> There is still an issue with the si5351.
+>>>>>
+>>>>> I had to comment out the clk_put here for the frequency to show up:
+>>>>> http://lxr.free-electrons.com/source/drivers/clk/clk-si5351.c#L1133
+>>>>>
+>>>>> Ideas?
+>>>>
+>>>> What is the most recent upstream commit that you are based on?
+>>>
+>>> I am working from 4.0.0-rc7.
+>>>
+>>> 7b43b47373d40d557cd7e1a84a0bd8ebc4d745ab
+>>
+>> Hmm, I wonder why si5351 calls clk_put immediately after of_clk_get
+>> in the first place, as far as I understand this destroys the clock
+>> handle, which is still being used later in the code.
+>
+> Not sure how this ever worked. This has been in the code since the
+> initial commit.
 
-This adds calls to pinctrl subsystem in order to switch pin states
-on suspend/resume if you provide a "sleep" state in DT.
----
- drivers/i2c/busses/i2c-omap.c | 4 ++++
- 1 file changed, 4 insertions(+)
+The reason it worked before may be related with recent rework of
+clk_put() itself and clk cookies instead of pointers. I lost track on
+the recent clk subsystem changes here, sorry.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 0e89419..6b5d4bd 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1423,6 +1423,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- 		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
- 	}
+However, droping the clk immediately surely isn't right.
+The thing is, we can remove the clk_put() just because there is no
+_remove() for that driver. I remember that back in the days the driver
+was mainlined, clk removal wasn't too easy.
 
-+	pinctrl_pm_select_sleep_state(dev);
-+
- 	return 0;
- }
+FWIW, as soon as _remove() support will be added by someone, we'll have
+to rethink passing struct clk* by platform_data or at least
+double-check if we ever used [of_]clk_get() to obtain it.
 
-@@ -1431,6 +1433,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+Mind to send a patch removing the clk_put() on !IS_ERR and add a proper
+error path instead? While of_clk_get() is the only calls that need
+cleanup on error in si5351_dt_parse() we should probably move that
+calls to the end of this function. Otherwise we'd also have to cleanup
+on every of_parse_foo() failure.
 
-+	pinctrl_pm_select_default_state(dev);
-+
- 	if (!_dev->regs)
- 		return 0;
-
---
-1.9.3
+Sebastian
