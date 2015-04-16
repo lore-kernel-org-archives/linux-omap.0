@@ -1,178 +1,114 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2] thermal: ti-soc-thermal: dra7: Implement Workaround
- for Errata i814 - Bandgap Temperature read Dtemp can be corrupted
-Date: Thu, 16 Apr 2015 13:19:07 +0530
-Message-ID: <552F6973.8050500@ti.com>
-References: <1428647790-6585-1-git-send-email-j-keerthy@ti.com>
+From: NeilBrown <neil@brown.name>
+Subject: [PATCH 1/6] phy: twl4030-usb: make runtime pm more reliable.
+Date: Thu, 16 Apr 2015 18:03:04 +1000
+Message-ID: <20150416080304.23307.91491.stgit@notabene.brown>
+References: <20150416075945.23307.24424.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1428647790-6585-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com, rui.zhang@intel.com
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, "Kristo, Tero" <t-kristo@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:41555 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752642AbbDPIEz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Apr 2015 04:04:55 -0400
+In-Reply-To: <20150416075945.23307.24424.stgit@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, NeilBrown <neilb@suse.de>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
+
+From: NeilBrown <neilb@suse.de>
+
+A construct like:
+
+        if (pm_runtime_suspended(twl->dev))
+               pm_runtime_get_sync(twl->dev);
+
+is against the spirit of the runtime_pm interface as it
+makes the internal refcounting useless.
+
+In this case it is also racy, particularly as 'put_autosuspend'
+is used to drop a reference.
+When that happens a timer is started and the device is
+runtime-suspended after the timeout.
+If the above code runs in this window, the device will not be
+found to be suspended so no pm_runtime reference is taken.
+When the timer expires the device will be suspended, which is
+against the intention of the code.
+
+So be more direct is taking and dropping references.
+If twl->linkstat is VBUS_VALID or ID_GROUND, then hold a
+pm_runtime reference, otherwise don't.
+Define "cable_present()" to test for this condition.
+
+Tested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+---
+ drivers/phy/phy-twl4030-usb.c |   29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+index bc42d6a8939f..3078f80bf520 100644
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -144,6 +144,16 @@
+ #define PMBR1				0x0D
+ #define GPIO_USB_4PIN_ULPI_2430C	(3 << 0)
+ 
++/*
++ * If VBUS is valid or ID is ground, then we know a
++ * cable is present and we need to be runtime-enabled
++ */
++static inline bool cable_present(enum omap_musb_vbus_id_status stat)
++{
++	return stat == OMAP_MUSB_VBUS_VALID ||
++		stat == OMAP_MUSB_ID_GROUND;
++}
++
+ struct twl4030_usb {
+ 	struct usb_phy		phy;
+ 	struct device		*dev;
+@@ -536,8 +546,10 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 
+ 	mutex_lock(&twl->lock);
+ 	if (status >= 0 && status != twl->linkstat) {
++		status_changed =
++			cable_present(twl->linkstat) !=
++			cable_present(status);
+ 		twl->linkstat = status;
+-		status_changed = true;
+ 	}
+ 	mutex_unlock(&twl->lock);
+ 
+@@ -553,15 +565,11 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
+ 		 * starts to handle softconnect right.
+ 		 */
+-		if ((status == OMAP_MUSB_VBUS_VALID) ||
+-		    (status == OMAP_MUSB_ID_GROUND)) {
+-			if (pm_runtime_suspended(twl->dev))
+-				pm_runtime_get_sync(twl->dev);
++		if (cable_present(status)) {
++			pm_runtime_get_sync(twl->dev);
+ 		} else {
+-			if (pm_runtime_active(twl->dev)) {
+-				pm_runtime_mark_last_busy(twl->dev);
+-				pm_runtime_put_autosuspend(twl->dev);
+-			}
++			pm_runtime_mark_last_busy(twl->dev);
++			pm_runtime_put_autosuspend(twl->dev);
+ 		}
+ 		omap_musb_mailbox(status);
+ 	}
+@@ -767,6 +775,9 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+ 
+ 	/* disable complete OTG block */
+ 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
++
++	if (cable_present(twl->linkstat))
++		pm_runtime_put_noidle(twl->dev);
+ 	pm_runtime_mark_last_busy(twl->dev);
+ 	pm_runtime_put(twl->dev);
+ 
 
 
-
-On Friday 10 April 2015 12:06 PM, Keerthy wrote:
-> Bandgap Temperature read Dtemp can be corrupted
->
-> DESCRIPTION
->          Read accesses to registers listed below can be corrupted due=
- to incorrect resynchronization between
->          clock domains.
->
->          Read access to registers below can be corrupted :
->                  =E2=80=A2 CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n =
-(n =3D 0 to 4)
->          =E2=80=A2 CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
->
-> WORKAROUND
->          Multiple reads to CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/=
-IVA[9:0]:
->          BGAP_DTEMPMPU/GPU/CORE/DSPEVE/IVA is needed to discard false=
- value and read right value:
->                  1. Perform two successive reads to BGAP_DTEMP bit fi=
-eld.
->                          (a) If read1 returns Val1 and read2 returns =
-Val1, then right value is Val1.
->                          (b) If read1 returns Val1, read 2 returns Va=
-l2, a third read is needed.
->                  2. Perform third read
->                          (a) If read3 returns Val2 then right value i=
-s Val2.
->                          (b) If read3 returns Val3, then right value =
-is Val3.
->
->          The above in gist means if val1 and val2 are the same then w=
-e can go ahead with that value
->          else we need a third read which will be right since synchron=
-ization will be complete by then.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-
-A Gentle ping on this. This has the comments fixed.
-
->
-> Changes in V2:
->
->    * Added more details in the description part.
->    * Indented the comments.
->    * Renamed ti_dra7_bandgap_read_temp to ti_errata814_bandgap_read_t=
-emp.
->
->   .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
->   drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 37 +++++++++++=
-++++++++++-
->   drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  4 +++
->   3 files changed, 42 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/d=
-rivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-> index a492927..58b5c66 100644
-> --- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-> +++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-> @@ -420,7 +420,8 @@ const struct ti_bandgap_data dra752_data =3D {
->   			TI_BANDGAP_FEATURE_FREEZE_BIT |
->   			TI_BANDGAP_FEATURE_TALERT |
->   			TI_BANDGAP_FEATURE_COUNTER_DELAY |
-> -			TI_BANDGAP_FEATURE_HISTORY_BUFFER,
-> +			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
-> +			TI_BANDGAP_FEATURE_ERRATA_814,
->   	.fclock_name =3D "l3instr_ts_gclk_div",
->   	.div_ck_name =3D "l3instr_ts_gclk_div",
->   	.conv_table =3D dra752_adc_to_temp,
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/th=
-ermal/ti-soc-thermal/ti-bandgap.c
-> index 74c0e34..94acd80 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> @@ -119,6 +119,37 @@ exit:
->   }
->
->   /**
-> + * ti_errata814_bandgap_read_temp() - helper function to read dra7 s=
-ensor temperature
-> + * @bgp: pointer to ti_bandgap structure
-> + * @reg: desired register (offset) to be read
-> + *
-> + * Function to read dra7 bandgap sensor temperature. This is done se=
-parately
-> + * so as to workaround the errata "Bandgap Temperature read Dtemp ca=
-n be
-> + * corrupted" - Errata ID: i814".
-> + * Read accesses to registers listed below can be corrupted due to i=
-ncorrect
-> + * resynchronization between clock domains.
-> + * Read access to registers below can be corrupted :
-> + * CTRL_CORE_DTEMP_MPU/GPU/CORE/DSPEVE/IVA_n (n =3D 0 to 4)
-> + * CTRL_CORE_TEMP_SENSOR_MPU/GPU/CORE/DSPEVE/IVA_n
-> + *
-> + * Return: the register value.
-> + */
-> +static u32 ti_errata814_bandgap_read_temp(struct ti_bandgap *bgp,  u=
-32 reg)
-> +{
-> +	u32 val1, val2;
-> +
-> +	val1 =3D ti_bandgap_readl(bgp, reg);
-> +	val2 =3D ti_bandgap_readl(bgp, reg);
-> +
-> +	/* If both times we read the same value then that is right */
-> +	if (val1 =3D=3D val2)
-> +		return val1;
-> +
-> +	/* if val1 and val2 are different read it third time */
-> +	return ti_bandgap_readl(bgp, reg);
-> +}
-> +
-> +/**
->    * ti_bandgap_read_temp() - helper function to read sensor temperat=
-ure
->    * @bgp: pointer to ti_bandgap structure
->    * @id: bandgap sensor id
-> @@ -148,7 +179,11 @@ static u32 ti_bandgap_read_temp(struct ti_bandga=
-p *bgp, int id)
->   	}
->
->   	/* read temperature */
-> -	temp =3D ti_bandgap_readl(bgp, reg);
-> +	if (TI_BANDGAP_HAS(bgp, ERRATA_814))
-> +		temp =3D ti_errata814_bandgap_read_temp(bgp, reg);
-> +	else
-> +		temp =3D ti_bandgap_readl(bgp, reg);
-> +
->   	temp &=3D tsr->bgap_dtemp_mask;
->
->   	if (TI_BANDGAP_HAS(bgp, FREEZE_BIT))
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.h b/drivers/th=
-ermal/ti-soc-thermal/ti-bandgap.h
-> index b3adf72..b2da3fc 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.h
-> @@ -318,6 +318,9 @@ struct ti_temp_sensor {
->    * TI_BANDGAP_FEATURE_HISTORY_BUFFER - used when the bandgap device=
- features
->    *	a history buffer of temperatures.
->    *
-> + * TI_BANDGAP_FEATURE_ERRATA_814 - used to workaorund when the bandg=
-ap device
-> + *	has Errata 814
-> + *
->    * TI_BANDGAP_HAS(b, f) - macro to check if a bandgap device is cap=
-able of a
->    *      specific feature (above) or not. Return non-zero, if yes.
->    */
-> @@ -331,6 +334,7 @@ struct ti_temp_sensor {
->   #define TI_BANDGAP_FEATURE_FREEZE_BIT		BIT(7)
->   #define TI_BANDGAP_FEATURE_COUNTER_DELAY	BIT(8)
->   #define TI_BANDGAP_FEATURE_HISTORY_BUFFER	BIT(9)
-> +#define TI_BANDGAP_FEATURE_ERRATA_814		BIT(10)
->   #define TI_BANDGAP_HAS(b, f)			\
->   			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
->
->
