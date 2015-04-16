@@ -1,8 +1,7 @@
 From: NeilBrown <neil@brown.name>
-Subject: [PATCH 3/6] phy: twl4030-usb: remove incorrect
- pm_runtime_get_sync() in probe function.
+Subject: [PATCH 4/6] phy: twl4030-usb: add ABI documentation
 Date: Thu, 16 Apr 2015 18:03:04 +1000
-Message-ID: <20150416080304.23307.55760.stgit@notabene.brown>
+Message-ID: <20150416080304.23307.7824.stgit@notabene.brown>
 References: <20150416075945.23307.24424.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,28 +13,28 @@ To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-The USB phy should initialize with power-off, and will be powered on
-by the USB system when a cable connection is detected.
+From: NeilBrown <neilb@suse.de>
 
-Having this pm_runtime_get_sync() during probe causes the phy to
-*always* be powered on.
-Removing it returns to sensible power management.
+This driver device one local attribute: vbus.
+Describe that in Documentation/ABI/testing/sysfs-platform/twl4030-usb.
 
-Fixes: 96be39ab34b77c6f6f5cd6ae03aac6c6449ee5c4
 Signed-off-by: NeilBrown <neil@brown.name>
 ---
- drivers/phy/phy-twl4030-usb.c |    1 -
- 1 file changed, 1 deletion(-)
+ .../ABI/testing/sysfs-platform-twl4030-usb         |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-twl4030-usb
 
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 590c2b1c1a94..3a707dd14238 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -715,7 +715,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	pm_runtime_use_autosuspend(&pdev->dev);
- 	pm_runtime_set_autosuspend_delay(&pdev->dev, 2000);
- 	pm_runtime_enable(&pdev->dev);
--	pm_runtime_get_sync(&pdev->dev);
- 
- 	/* Our job is to use irqs and status from the power module
- 	 * to keep the transceiver disabled when nothing's connected.
+diff --git a/Documentation/ABI/testing/sysfs-platform-twl4030-usb b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+new file mode 100644
+index 000000000000..512c51be64ae
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+@@ -0,0 +1,8 @@
++What: /sys/bus/platform/devices/*twl4030-usb/vbus
++Description:
++	Read-only status reporting if VBUS (approx 5V)
++	is being supplied by the USB bus.
++
++	Possible values: "on", "off".
++
++	Changes are notified via select/poll.
