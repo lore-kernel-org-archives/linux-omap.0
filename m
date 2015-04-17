@@ -1,51 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: AM335x OMAP2 common clock external fixed-clock registration
-Date: Fri, 17 Apr 2015 11:18:33 +0100
-Message-ID: <20150417101833.GU4027@n2100.arm.linux.org.uk>
-References: <20150415194707.GA11007@deathray>
- <CAPtuhTggHctp5ArGPEuKn2GuPzb-WnKv2_CzPrHzq8hwOR5Aqw@mail.gmail.com>
- <20150415205136.GA3399@deathray>
- <552F3B60.8050703@ti.com>
- <20150416161756.GA27590@deathray>
- <55301D7F.30708@gmail.com>
- <20150416220918.GA6057@deathray>
- <55304486.5020404@gmail.com>
- <20150417020048.GA27174@deathray>
- <5530CE63.9070508@gmail.com>
+From: <gregkh@linuxfoundation.org>
+Subject: Patch "dmaengine: omap-dma: Fix memory leak when terminating running transfer" has been added to the 3.10-stable tree
+Date: Fri, 17 Apr 2015 14:26:00 +0200
+Message-ID: <142927356010580@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5530CE63.9070508@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Michael Welling <mwelling@ieee.org>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Mack <daniel@zonque.org>
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: peter.ujfalusi@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, vinod.koul@intel.com
+Cc: stable@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 17, 2015 at 11:12:03AM +0200, Sebastian Hesselbarth wrote:
-> On 17.04.2015 04:00, Michael Welling wrote:
-> >On Fri, Apr 17, 2015 at 01:23:50AM +0200, Sebastian Hesselbarth wrote:
-> >>On 17.04.2015 00:09, Michael Welling wrote:
-> >>>On Thu, Apr 16, 2015 at 10:37:19PM +0200, Sebastian Hesselbarth wrote:
-> >>>>On 16.04.2015 18:17, Michael Welling wrote:
-> [...]
-> >>>What would be the proper error path?
-> >>>What cleanup is required?
-> >>
-> >>A proper error path would be to release any claimed resource
-> >>on any error. If you look at the code, the only resources that
-> >>need to be released are the two clocks in question.
-> >
-> >So for every error return in the probe function and in the of si5351_dt_parse
-> >it needs to clk_put first right?
-> 
-> Not quite. The driver should clk_put() every clock that it called a
-> [of_]clk_get() for. The thing is that clocks can be passed by
-> platform_data and we never claim them.
 
-I've always said clocks (as in struct clk) should never be passed through
-platform data.
+This is a note to let you know that I've just added the patch titled
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+    dmaengine: omap-dma: Fix memory leak when terminating running transfer
+
+to the 3.10-stable tree which can be found at:
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+
+The filename of the patch is:
+     dmaengine-omap-dma-fix-memory-leak-when-terminating-running-transfer.patch
+and it can be found in the queue-3.10 subdirectory.
+
+If you, or anyone else, feels it should not be added to the stable tree,
+please let <stable@vger.kernel.org> know about it.
+
+
+>From 02d88b735f5a60f04dbf6d051b76e1877a0d0844 Mon Sep 17 00:00:00 2001
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Date: Fri, 27 Mar 2015 13:35:52 +0200
+Subject: dmaengine: omap-dma: Fix memory leak when terminating running transfer
+
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
+
+In omap_dma_start_desc the vdesc->node is removed from the virt-dma
+framework managed lists (to be precise from the desc_issued list).
+If a terminate_all comes before the transfer finishes the omap_desc will
+not be freed up because it is not in any of the lists and we stopped the
+DMA channel so the transfer will not going to complete.
+There is no special sequence for leaking memory when using cyclic (audio)
+transfer: with every start and stop of a cyclic transfer the driver leaks
+struct omap_desc worth of memory.
+
+Free up the allocated memory directly in omap_dma_terminate_all() since the
+framework will not going to do that for us.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: <linux-omap@vger.kernel.org>
+Signed-off-by: Vinod Koul <vinod.koul@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ drivers/dma/omap-dma.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -487,6 +487,7 @@ static int omap_dma_terminate_all(struct
+ 	 * c->desc is NULL and exit.)
+ 	 */
+ 	if (c->desc) {
++		omap_dma_desc_free(&c->desc->vd);
+ 		c->desc = NULL;
+ 		/* Avoid stopping the dma twice */
+ 		if (!c->paused)
+
+
+Patches currently in stable-queue which might be from peter.ujfalusi@ti.com are
+
+queue-3.10/dmaengine-omap-dma-fix-memory-leak-when-terminating-running-transfer.patch
