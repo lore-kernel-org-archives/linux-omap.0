@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 3.10 19/34] dmaengine: omap-dma: Fix memory leak when terminating running transfer
-Date: Fri, 17 Apr 2015 15:28:51 +0200
-Message-ID: <20150417132554.950483153@linuxfoundation.org>
-References: <20150417132553.751904098@linuxfoundation.org>
+Subject: [PATCH 3.14 24/43] dmaengine: omap-dma: Fix memory leak when terminating running transfer
+Date: Fri, 17 Apr 2015 15:28:58 +0200
+Message-ID: <20150417132557.075841890@linuxfoundation.org>
+References: <20150417132556.014766917@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150417132553.751904098@linuxfoundation.org>
+In-Reply-To: <20150417132556.014766917@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-3.10-stable review patch.  If anyone has any objections, please let me know.
+3.14-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
