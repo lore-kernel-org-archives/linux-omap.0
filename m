@@ -1,27 +1,31 @@
 From: <gregkh@linuxfoundation.org>
-Subject: Patch "dmaengine: omap-dma: Fix memory leak when terminating running transfer" has been added to the 3.10-stable tree
-Date: Fri, 17 Apr 2015 14:26:00 +0200
-Message-ID: <142927356010580@kroah.com>
+Subject: Patch "dmaengine: omap-dma: Fix memory leak when terminating running transfer" has been added to the 3.14-stable tree
+Date: Fri, 17 Apr 2015 14:26:11 +0200
+Message-ID: <142927357163240@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60220 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753517AbbDQM0j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2015 08:26:39 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: peter.ujfalusi@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, vinod.koul@intel.com
 Cc: stable@vger.kernel.org, stable-commits@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
 
 This is a note to let you know that I've just added the patch titled
 
     dmaengine: omap-dma: Fix memory leak when terminating running transfer
 
-to the 3.10-stable tree which can be found at:
+to the 3.14-stable tree which can be found at:
     http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
 
 The filename of the patch is:
      dmaengine-omap-dma-fix-memory-leak-when-terminating-running-transfer.patch
-and it can be found in the queue-3.10 subdirectory.
+and it can be found in the queue-3.14 subdirectory.
 
 If you, or anyone else, feels it should not be added to the stable tree,
 please let <stable@vger.kernel.org> know about it.
@@ -71,4 +75,4 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 Patches currently in stable-queue which might be from peter.ujfalusi@ti.com are
 
-queue-3.10/dmaengine-omap-dma-fix-memory-leak-when-terminating-running-transfer.patch
+queue-3.14/dmaengine-omap-dma-fix-memory-leak-when-terminating-running-transfer.patch
