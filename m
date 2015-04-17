@@ -1,53 +1,51 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 3.19 063/101] dmaengine: omap-dma: Fix memory leak when terminating running transfer
-Date: Fri, 17 Apr 2015 15:28:51 +0200
-Message-ID: <20150417132517.119927941@linuxfoundation.org>
-References: <20150417132514.379828774@linuxfoundation.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH v2 06/13] usb: hcd: Add hcd add/remove functions
+ for OTG use
+Date: Fri, 17 Apr 2015 10:03:53 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1504170958440.1319-100000@iolanthe.rowland.org>
+References: <5530B46F.6010400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20150417132514.379828774@linuxfoundation.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5530B46F.6010400@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Peter Chen <peter.chen@freescale.com>, gregkh@linuxfoundation.org, balbi@ti.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-3.19-stable review patch.  If anyone has any objections, please let me know.
+On Fri, 17 Apr 2015, Roger Quadros wrote:
 
-------------------
+> On 17/04/15 05:18, Peter Chen wrote:
+> > On Tue, Apr 14, 2015 at 01:41:53PM +0300, Roger Quadros wrote:
+> >> The existing usb_add/remove_hcd() functionality
+> >> remains unchanged for non-OTG devices. For OTG
+> >> devices they only register the HCD with the OTG core.
+> >>
+> >> Introduce _usb_add/remove_hcd() for use by OTG core.
+> >> These functions actually add/remove the HCD.
+> > 
+> > Would you please explain why additional _usb_add/remove_hcd are needed?
+> 
+> It is to differentiate if the add/remove_hcd was called by the
+> HCD drivers or by the OTG core as we want to behave a bit differently
+> in both cases.
+> When called by HCD drivers, we want to defer the add/remove if it is an
+> OTG device. When called by OTG core, we don't want to defer the add/remove.
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+I don't understand this.  Why do you want to defer the add/remove if 
+the device is OTG?  Don't host controller drivers expect these things 
+to execute synchronously?
 
-commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
+For example, what happens if you rmmod the HCD?  If the remove call
+gets deferred, then when it finally runs it will try to call back into
+HCD code that has already been unloaded from memory!
 
-In omap_dma_start_desc the vdesc->node is removed from the virt-dma
-framework managed lists (to be precise from the desc_issued list).
-If a terminate_all comes before the transfer finishes the omap_desc will
-not be freed up because it is not in any of the lists and we stopped the
-DMA channel so the transfer will not going to complete.
-There is no special sequence for leaking memory when using cyclic (audio)
-transfer: with every start and stop of a cyclic transfer the driver leaks
-struct omap_desc worth of memory.
+> HCD drivers use usb_add/remove_hcd()
+> OTG core uses _usb_add/remove_hcd()
 
-Free up the allocated memory directly in omap_dma_terminate_all() since the
-framework will not going to do that for us.
+How about a more explicit naming scheme?
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: <linux-omap@vger.kernel.org>
-Signed-off-by: Vinod Koul <vinod.koul@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+	HC drivers use usb_add/remove_hcd()
+	OTG core uses usb_otg_add/remove_hcd()
 
----
- drivers/dma/omap-dma.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -978,6 +978,7 @@ static int omap_dma_terminate_all(struct
- 	 * c->desc is NULL and exit.)
- 	 */
- 	if (c->desc) {
-+		omap_dma_desc_free(&c->desc->vd);
- 		c->desc = NULL;
- 		/* Avoid stopping the dma twice */
- 		if (!c->paused)
+Alan Stern
