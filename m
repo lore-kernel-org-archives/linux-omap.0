@@ -1,183 +1,290 @@
-From: Michael Welling <mwelling@ieee.org>
-Subject: Re: AM335x OMAP2 common clock external fixed-clock registration
-Date: Fri, 17 Apr 2015 11:59:08 -0500
-Message-ID: <20150417165908.GA23647@deathray>
-References: <20150415194707.GA11007@deathray>
- <CAPtuhTggHctp5ArGPEuKn2GuPzb-WnKv2_CzPrHzq8hwOR5Aqw@mail.gmail.com>
- <20150415205136.GA3399@deathray>
- <552F3B60.8050703@ti.com>
- <20150416161756.GA27590@deathray>
- <55301D7F.30708@gmail.com>
- <20150416220918.GA6057@deathray>
- <55304486.5020404@gmail.com>
- <20150417020048.GA27174@deathray>
- <5530CE63.9070508@gmail.com>
+From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Subject: Re: [RFC/RFT PATCH 2/2] gpio: omap: ensure that runtime pm will disable
+ unused gpio banks
+Date: Fri, 17 Apr 2015 20:32:06 +0300
+Message-ID: <55314396.20907@linaro.org>
+References: <1425670017-19598-1-git-send-email-grygorii.strashko@linaro.org> <1425670017-19598-2-git-send-email-grygorii.strashko@linaro.org> <20150306231513.GB2651@atomide.com> <20150319230326.GP31346@atomide.com> <20150416162941.GI18048@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5530CE63.9070508@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Mack <daniel@zonque.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:32896 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932908AbbDQRcL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2015 13:32:11 -0400
+Received: by layy10 with SMTP id y10so85713979lay.0
+        for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2015 10:32:09 -0700 (PDT)
+In-Reply-To: <20150416162941.GI18048@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, ssantosh@kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 
-On Fri, Apr 17, 2015 at 11:12:03AM +0200, Sebastian Hesselbarth wrote:
-> On 17.04.2015 04:00, Michael Welling wrote:
-> >On Fri, Apr 17, 2015 at 01:23:50AM +0200, Sebastian Hesselbarth wrote:
-> >>On 17.04.2015 00:09, Michael Welling wrote:
-> >>>On Thu, Apr 16, 2015 at 10:37:19PM +0200, Sebastian Hesselbarth wrote:
-> >>>>On 16.04.2015 18:17, Michael Welling wrote:
-> [...]
-> >>>What would be the proper error path?
-> >>>What cleanup is required?
-> >>
-> >>A proper error path would be to release any claimed resource
-> >>on any error. If you look at the code, the only resources that
-> >>need to be released are the two clocks in question.
-> >
-> >So for every error return in the probe function and in the of si5351_dt_parse
-> >it needs to clk_put first right?
+Hi Tony,
+On 04/16/2015 07:29 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150319 16:08]:
+>> * Tony Lindgren <tony@atomide.com> [150307 00:08]:
+>>> * grygorii.strashko@linaro.org <grygorii.strashko@linaro.org> [150306 11:27]:
+>>>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>>>
+>>>> Now there are two points related to Runtime PM usage:
+>>>> 1) bank state doesn't need to be checked in places where
+>>>> Rintime PM is used, bacause Runtime PM maintains its
+>>>> own usage counter:
+>>>>        if (!BANK_USED(bank))
+>>>>                 pm_runtime_get_sync(bank->dev);
+>>>> so, it's safe to drop such checks.
+>>>>
+>>>> 2) There is a call of pm_runtime_get_sync() in omap_gpio_irq_type(),
+>>>> but no corresponding put. As result, GPIO devices could be
+>>>> powered on forever if at least one GPIO was used as IRQ.
+>>>> Hence, allow powering off GPIO banks by adding missed
+>>>> pm_runtime_put(bank->dev) at the end of omap_gpio_irq_type().
+>>>
+>>> Nice to see this happening, but I think before merging this we need
+>>> to test to be sure that the pm_runtime calls actually match.. I'm
+>>> not convinced right now.. We may still have uninitialized entry
+>>> points similar to 3d009c8c61f9 ("gpio: omap: Fix bad device
+>>> access with setup_irq()").
+>>
+>> OK so I finally got around testing this along with your bank
+>> removal set. Looks like this patch causes a regression at least
+>> with n900 keyboard LEDs with off-idle. The LED won't come back
+>> on after restore from off-idle. Anyways, now we have something
+>> reproducable :) So I'll try to debug it further at some point,
+>> might be few days before I get to it.
 > 
-> Not quite. The driver should clk_put() every clock that it called a
-> [of_]clk_get() for. The thing is that clocks can be passed by
-> platform_data and we never claim them.
->
+> Sorry for the delay, finally got around to this one :)
+> 
+> Here's what I came up with, only lightly tested so far. Note that
+> we need to keep the PM runtime per bank, not per GPIO. Will repost
+> a proper patch after some more testing.
 
-Should the ones from the platform data be claimed?
- 
-> >See attached patch to see if we are on the same page.
-> 
-> Adding a .remove() function needs more care because of the pdata passed
-> clocks. I admit that back when the driver was introduced clk_put()
-> wasn't really necessary at all.
-> 
+I've had a opposite idea actually ;) - use Runtime PM on per-gpio basis as
+it maintains all needed counters inside and we can be sure that
+PM runtime callbacks will be called once per bank.
+Also, I've thought about moving the code from omap_enable_gpio_module()
+into Runtime PM callbacks.
+So, final goal - get rid of BANK_USED & LINE_USED.
 
-Is it necessary now?
+Were you able to identify broken calls sequence?
 
-> [...]
-> >>>Here is what the kernel reports with debugging off:
-> >>
-> >>Do you have any measurement equipment to check what is actually set?
-> >
-> >Yes, I have an oscilloscope here at my desk.
-> >The reported numbers do not always correspond to the actual output in some
-> >cases.
-> 
-> is "not always correspond" close or way off the requested frequency?
-> 
+Also, Pay attention pls, that omap2_gpio_prepare_for/resume_after_idle()
+will be most probably a NOP now.
 
-Both.
+> 
+> This should not cause any functional changes, mostly just removal
+> of code that can all be done in omap_enable/disable_gpio_module.
 
-> Stability is an issue that I am aware of. Neither the datasheet nor the
-> appnote were clear about any order the clocks should be set or how long
-> we should wait between changing pll/ms/clkout parameters.
->
-> SiLabs suggests to configure all clocks at once and never change them
-> later, at least that is what you can read from the public documents.
-> The drivers you mention below can however reveal some steps that have
-> to be taken care of before and after changing parameters.
-> 
 
-The drivers were not provided we wrote them and they do nothing but write
-the registers with the raw values provided from the SiLab clock generator
-software.
-
-> >The ms2 output has appeared to stop working all together sometime whilest
-> >testing. I may have to solder a new chip on there.
-> >
-> >Could misconfiguration damage the chip?
 > 
-> You should know that a lot of things can damage a chip and
-> misconfiguration is among them, yes. I cannot tell if that
-> is the cause though.
->
-
-Well I did something to the chip.
- 
-> [...]
-> >>Is there any way to try out a less recent kernel, let's say two or
-> >>three releases before 4.0?
-> >
-> >Could you provide a specific version that you think has the best chances of
-> >working?
-> 
-> My guess with 2-3 releases before 4.0 was because somewhere in between
-> clk API must have switched from passing struct clk pointers to clk
-> cookies.
-> 
-> [...]
-> 
-> From your patch (that you should inline next time please):
-> 
-> @@ -1129,11 +1130,21 @@ static int si5351_dt_parse(struct i2c_client
-> *client,
->  		return -ENOMEM;
-> 
->  	pdata->clk_xtal = of_clk_get(np, 0);
-> -	if (!IS_ERR(pdata->clk_xtal))
-> -		clk_put(pdata->clk_xtal);
-> -	pdata->clk_clkin = of_clk_get(np, 1);
-> -	if (!IS_ERR(pdata->clk_clkin))
-> -		clk_put(pdata->clk_clkin);
-> +	if (IS_ERR(pdata->clk_xtal)) {
-> +		dev_err(&client->dev,
-> +			"xtal clock not speficied\n");
-> +		return -ENODEV;
-> +	}
+> 8< -------------------------
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -86,6 +86,7 @@ struct gpio_bank {
+>   #define BANK_USED(bank) (bank->mod_usage || bank->irq_usage)
+>   #define LINE_USED(line, offset) (line & (BIT(offset)))
+>   
+> +static void omap_reset_gpio(struct gpio_bank *bank, unsigned offset);
+>   static void omap_gpio_unmask_irq(struct irq_data *d);
+>   
+>   static inline struct gpio_bank *omap_irq_data_get_bank(struct irq_data *d)
+> @@ -419,8 +420,16 @@ static int omap_set_gpio_triggering(struct gpio_bank *bank, int gpio,
+>   	return 0;
+>   }
+>   
+> -static void omap_enable_gpio_module(struct gpio_bank *bank, unsigned offset)
+> +static void omap_enable_gpio_module(struct gpio_bank *bank, unsigned offset,
+> +				    bool is_irq)
+>   {
+> +	unsigned long flags;
 > +
-> +	if (variant == SI5351_VARIANT_C) {
-> +		pdata->clk_clkin = of_clk_get(np, 1);
-> +		if (IS_ERR(pdata->clk_clkin)) {
-> +			dev_err(&client->dev,
-> +				"clkin clock not speficied\n");
-> +			ret = -ENODEV;
-> +			goto err_put_clk_of;
-> +		}
+> +	/* PM runtime is per bank, not per GPIO line */
+> +	if (!BANK_USED(bank))
+> +		pm_runtime_get_sync(bank->dev);
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+>   	if (bank->regs->pinctrl) {
+>   		void __iomem *reg = bank->base + bank->regs->pinctrl;
+>   
+> @@ -438,11 +447,30 @@ static void omap_enable_gpio_module(struct gpio_bank *bank, unsigned offset)
+>   		writel_relaxed(ctrl, reg);
+>   		bank->context.ctrl = ctrl;
+>   	}
+> +
+> +	if (is_irq) {
+> +		omap_set_gpio_direction(bank, offset, 1);
+> +		bank->irq_usage |= BIT(offset);
+> +	} else {
+> +		omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+> +		bank->mod_usage |= BIT(offset);
 > +	}
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+>   }
+>   
+> -static void omap_disable_gpio_module(struct gpio_bank *bank, unsigned offset)
+> +static void omap_disable_gpio_module(struct gpio_bank *bank, unsigned offset,
+> +				     bool is_irq)
+>   {
+>   	void __iomem *base = bank->base;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&bank->lock, flags);
+> +	if (is_irq)
+> +		bank->irq_usage &= ~(BIT(offset));
+> +	else
+> +		bank->mod_usage &= ~(BIT(offset));
+> +
+> +	omap_reset_gpio(bank, offset);
+>   
+>   	if (bank->regs->wkup_en &&
+>   	    !LINE_USED(bank->mod_usage, offset) &&
+> @@ -463,6 +491,11 @@ static void omap_disable_gpio_module(struct gpio_bank *bank, unsigned offset)
+>   		writel_relaxed(ctrl, reg);
+>   		bank->context.ctrl = ctrl;
+>   	}
+> +	spin_unlock_irqrestore(&bank->lock, flags);
+> +
+> +	/* PM runtime is per bank, not per GPIO line */
+> +	if (!BANK_USED(bank))
+> +		pm_runtime_put(bank->dev);
+>   }
+>   
+>   static int omap_gpio_is_input(struct gpio_bank *bank, unsigned offset)
+> @@ -472,15 +505,6 @@ static int omap_gpio_is_input(struct gpio_bank *bank, unsigned offset)
+>   	return readl_relaxed(reg) & BIT(offset);
+>   }
+>   
+> -static void omap_gpio_init_irq(struct gpio_bank *bank, unsigned offset)
+> -{
+> -	if (!LINE_USED(bank->mod_usage, offset)) {
+> -		omap_enable_gpio_module(bank, offset);
+> -		omap_set_gpio_direction(bank, offset, 1);
+> -	}
+> -	bank->irq_usage |= BIT(offset);
+> -}
+> -
+>   static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+>   {
+>   	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+> @@ -488,9 +512,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+>   	unsigned long flags;
+>   	unsigned offset = d->hwirq;
+>   
+> -	if (!BANK_USED(bank))
+> -		pm_runtime_get_sync(bank->dev);
+> -
+>   	if (type & ~IRQ_TYPE_SENSE_MASK)
+>   		return -EINVAL;
+>   
+> @@ -498,13 +519,9 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+>   		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+>   		return -EINVAL;
+>   
+> +	omap_enable_gpio_module(bank, offset, true);
+>   	spin_lock_irqsave(&bank->lock, flags);
+>   	retval = omap_set_gpio_triggering(bank, offset, type);
+> -	omap_gpio_init_irq(bank, offset);
+> -	if (!omap_gpio_is_input(bank, offset)) {
+> -		spin_unlock_irqrestore(&bank->lock, flags);
+> -		return -EINVAL;
+> -	}
+>   	spin_unlock_irqrestore(&bank->lock, flags);
+>   
+>   	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+> @@ -659,26 +676,8 @@ static int omap_gpio_wake_enable(struct irq_data *d, unsigned int enable)
+>   static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+>   {
+>   	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+> -	unsigned long flags;
+>   
+> -	/*
+> -	 * If this is the first gpio_request for the bank,
+> -	 * enable the bank module.
+> -	 */
+> -	if (!BANK_USED(bank))
+> -		pm_runtime_get_sync(bank->dev);
+> -
+> -	spin_lock_irqsave(&bank->lock, flags);
+> -	/* Set trigger to none. You need to enable the desired trigger with
+> -	 * request_irq() or set_irq_type(). Only do this if the IRQ line has
+> -	 * not already been requested.
+> -	 */
+> -	if (!LINE_USED(bank->irq_usage, offset)) {
+> -		omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+> -		omap_enable_gpio_module(bank, offset);
+> -	}
+> -	bank->mod_usage |= BIT(offset);
+> -	spin_unlock_irqrestore(&bank->lock, flags);
+> +	omap_enable_gpio_module(bank, offset, false);
+>   
+>   	return 0;
+>   }
+> @@ -686,20 +685,8 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+>   static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+>   {
+>   	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(&bank->lock, flags);
+> -	bank->mod_usage &= ~(BIT(offset));
+> -	omap_disable_gpio_module(bank, offset);
+> -	omap_reset_gpio(bank, offset);
+> -	spin_unlock_irqrestore(&bank->lock, flags);
+>   
+> -	/*
+> -	 * If this is the last gpio to be freed in the bank,
+> -	 * disable the bank module.
+> -	 */
+> -	if (!BANK_USED(bank))
+> -		pm_runtime_put(bank->dev);
+> +	omap_disable_gpio_module(bank, offset, false);
+>   }
+>   
+>   /*
+> @@ -788,15 +775,9 @@ exit:
+>   static unsigned int omap_gpio_irq_startup(struct irq_data *d)
+>   {
+>   	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+> -	unsigned long flags;
+>   	unsigned offset = d->hwirq;
+>   
+> -	if (!BANK_USED(bank))
+> -		pm_runtime_get_sync(bank->dev);
+> -
+> -	spin_lock_irqsave(&bank->lock, flags);
+> -	omap_gpio_init_irq(bank, offset);
+> -	spin_unlock_irqrestore(&bank->lock, flags);
+> +	omap_enable_gpio_module(bank, offset, true);
+>   	omap_gpio_unmask_irq(d);
+>   
+>   	return 0;
+> @@ -805,21 +786,9 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
+>   static void omap_gpio_irq_shutdown(struct irq_data *d)
+>   {
+>   	struct gpio_bank *bank = omap_irq_data_get_bank(d);
+> -	unsigned long flags;
+>   	unsigned offset = d->hwirq;
+>   
+> -	spin_lock_irqsave(&bank->lock, flags);
+> -	bank->irq_usage &= ~(BIT(offset));
+> -	omap_disable_gpio_module(bank, offset);
+> -	omap_reset_gpio(bank, offset);
+> -	spin_unlock_irqrestore(&bank->lock, flags);
+> -
+> -	/*
+> -	 * If this is the last IRQ to be freed in the bank,
+> -	 * disable the bank module.
+> -	 */
+> -	if (!BANK_USED(bank))
+> -		pm_runtime_put(bank->dev);
+> +	omap_disable_gpio_module(bank, offset, true);
+>   }
+>   
+>   static void omap_gpio_ack_irq(struct irq_data *d)
 > 
-> Basically, yes. But as I said, if you move that to the end of
-> si5351_dt_parse() you won't have to add
-> 
-> @ -1143,14 +1154,16 @@ static int si5351_dt_parse(struct i2c_client *client,
->  		if (num >= 2) {
->  			dev_err(&client->dev,
->  				"invalid pll %d on pll-source prop\n", num);
-> -			return -EINVAL;
-> +			ret = -EINVAL;
-> +			goto err_put_clk_of;
->  		}
-> 
-> this to each of the sanity checks. Claiming the clock resources at
-> the end saves you from tearing down the resources on each error above.
-> 
 
-Sure I can move it down put it seems counterintuitive to parse parameters that
-rely on the clocks before they are determined to be specified.
 
-> Another thing is that you now require VARIANT_C devices to always
-> pass both, xtal and clkin. I can live with it until we find somebody
-> who actually uses C-type devices with only one clock input connected.
-> 
-
-Okay I did not realize that the C variant could run with one or the other.
-
-> Adding a .remove() function to si5351 definitely needs more care with
-> respect to claimed and pdata passed clocks. I am not sure we should
-> go for it before we haven't ruled out the other issues.
->
-
-Okay. Either way we should probably open a new thread because this is not
-an issue with the processor support. Let me know how you want to proceed.
-
-It looks like this chip is used on the dove-cubox:
-http://lxr.free-electrons.com/source/arch/arm/boot/dts/dove-cubox.dts#L77
-
-I wonder if this issue effects that board as well.
-
-Any one out there want with one of these board want to test it?
-
-It looks like the clock is used for a audio master clock so it may sound
-pretty funny when playing audio. :)
-
-> Sebastian
+-- 
+regards,
+-grygorii
