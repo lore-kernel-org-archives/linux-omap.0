@@ -1,87 +1,117 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 4/6] phy: twl4030-usb: add ABI documentation
-Date: Sat, 18 Apr 2015 08:34:02 +1000
-Message-ID: <20150418083402.5b626011@notabene.brown>
-References: <20150416075945.23307.24424.stgit@notabene.brown>
-	<20150416080304.23307.7824.stgit@notabene.brown>
-	<20150417221436.GA11429@amd>
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+Subject: Re: [PATCH 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Sun, 19 Apr 2015 14:13:04 +0200
+Message-ID: <7408975.lBcgZIN9hf@diego>
+References: <1429255769-13639-1-git-send-email-boris.brezillon@free-electrons.com> <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/S7jxHtlN.TgXiPXo609GpxP"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150417221436.GA11429@amd>
+In-Reply-To: <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: NeilBrown <neil@brown.name>, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Mikko Perttunen <mikko.perttunen@kapsi.fi>, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, Emilio =?ISO-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/S7jxHtlN.TgXiPXo609GpxP
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Boris,
 
-On Sat, 18 Apr 2015 00:14:36 +0200 Pavel Machek <pavel@ucw.cz> wrote:
+Am Freitag, 17. April 2015, 09:29:28 schrieb Boris Brezillon:
+> Clock rates are stored in an unsigned long field, but ->round_rate()
+> (which returns a rounded rate from a requested one) returns a long
+> value (errors are reported using negative error codes), which can lead
+> to long overflow if the clock rate exceed 2Ghz.
+> 
+> Change ->round_rate() prototype to return 0 or an error code, and pass the
+> requested rate as a pointer so that it can be adjusted depending on
+> hardware capabilities.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> ---
 
-> On Thu 2015-04-16 18:03:04, NeilBrown wrote:
-> > From: NeilBrown <neilb@suse.de>
-> >=20
-> > This driver device one local attribute: vbus.
-> > Describe that in Documentation/ABI/testing/sysfs-platform/twl4030-usb.
-> >=20
-> > Signed-off-by: NeilBrown <neil@brown.name>
-> > ---
-> >  .../ABI/testing/sysfs-platform-twl4030-usb         |    8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> >  create mode 100644 Documentation/ABI/testing/sysfs-platform-twl4030-usb
-> >=20
-> > diff --git a/Documentation/ABI/testing/sysfs-platform-twl4030-usb b/Doc=
-umentation/ABI/testing/sysfs-platform-twl4030-usb
-> > new file mode 100644
-> > index 000000000000..512c51be64ae
-> > --- /dev/null
-> > +++ b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
-> > @@ -0,0 +1,8 @@
-> > +What: /sys/bus/platform/devices/*twl4030-usb/vbus
-> > +Description:
-> > +	Read-only status reporting if VBUS (approx 5V)
-> > +	is being supplied by the USB bus.
-> > +
-> > +	Possible values: "on", "off".
->=20
-> Would bit be better to have values "0" and "1"? Kernel usually does
-> that for booleans...
+On a rk3288-veyron-pinky with the fix described below:
+Tested-by: Heiko Stuebner <heiko@sntech.de>
 
-1/ The code  already uses "on" and "off", so changing would be an ABI
-breakage.
 
-2/ No it doesn't.
- For modules params, the kernel uses "Y" and "N"
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index fa5a00e..1462ddc 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -1640,8 +1643,10 @@ static struct clk_core *clk_calc_new_rates(struct
+> clk_core *clk, &parent_hw);
+>  		parent = parent_hw ? parent_hw->core : NULL;
+>  	} else if (clk->ops->round_rate) {
+> -		new_rate = clk->ops->round_rate(clk->hw, rate,
+> -						&best_parent_rate);
+> +		if (clk->ops->round_rate(clk->hw, &new_rate,
+> +					 &best_parent_rate))
+> +			return NULL;
+> +
+>  		if (new_rate < min_rate || new_rate > max_rate)
+>  			return NULL;
+>  	} else if (!parent || !(clk->flags & CLK_SET_RATE_PARENT)) {
 
-  git grep '? "on" : "off"'  | wc
+This is using new_rate uninitialized when calling into the round_rate
+callback. Which in turn pushed my PLLs up to 2.2GHz :-)
 
- find 172 matches.
+I guess you'll need something like the following:
 
-NeilBrown
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index db4e4b2..afc7733 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -1605,6 +1605,7 @@ static struct clk_core *clk_calc_new_rates(struct clk_core *clk,
+ 						    &parent_hw);
+ 		parent = parent_hw ? parent_hw->core : NULL;
+ 	} else if (clk->ops->round_rate) {
++		new_rate = rate;
+ 		if (clk->ops->round_rate(clk->hw, &new_rate,
+ 					 &best_parent_rate))
+ 			return NULL;
 
---Sig_/S7jxHtlN.TgXiPXo609GpxP
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
 
-iQIVAwUBVTGKWjnsnt1WYoG5AQJkdA//VMLH28j3P7pE6U9O81VHZtFJjM7mrDcL
-X72CbtGa7QqyVbgjUtXnRXDFYa7Ds9i8DBdQ5ZaNn8NJk0uLfT62nRHQ0PSlT7Do
-32ffVIYzDbaW/iVJ+5tU2EUfWufL8Tjn+Oyy09tA2NqIh9LUgNhDtaSIesB37N2Q
-9l/RBE8ptTGyzhIjmFEG+FmbWzzjz3zog89cZUlJPalui7/0iWM9P+PLmVG/vO9E
-MM5S0jbA6UWwe5X6oVJIp/S5SUMbdIbwtwRq2mNv/MA59G+/6+ZbUFlbiD53sz0S
-BPlIQSVNBCSLNDNn9yXpxx8SO0naX89yLSw0aN8ump8tCwpjgg8pqdEKTaoUNz+R
-YurrTrhccaegcoGFwBj/yznaWwyG4nMWH4sGDn3FPXcQFROUOf5QEkA4AzG/hgNU
-Z/URS0pWuG9w0kHqQPpOH1+lKIbd+I8ZmzZvnVz1CM00ip5OU6cvJUw2xrsf5/qr
-77SkIADQGQMPFouJK6erZN+WrhXe36ZuB3M+H0OEoNhONpF4i3pTqXJWBGnZo04M
-Sj74MDqv+IeU6A7A88KB1820igrqbo/d1YdRnr2Cc5BP52Oym0g4XqIF03U1cbVc
-ddNSPY6tGkABuuoIH0A712OGFmSA+8ViNfM74yh/fYcQEh2YJgivGjHhTSzW8YS9
-MKFZf2xPAEg=
-=rBbX
------END PGP SIGNATURE-----
 
---Sig_/S7jxHtlN.TgXiPXo609GpxP--
+> diff --git a/drivers/clk/rockchip/clk-pll.c b/drivers/clk/rockchip/clk-pll.c
+> index f8d3baf..bd408ef 100644
+> --- a/drivers/clk/rockchip/clk-pll.c
+> +++ b/drivers/clk/rockchip/clk-pll.c
+> @@ -63,8 +63,8 @@ static const struct rockchip_pll_rate_table
+> *rockchip_get_pll_settings( return NULL;
+>  }
+> 
+> -static long rockchip_pll_round_rate(struct clk_hw *hw,
+> -			    unsigned long drate, unsigned long *prate)
+> +static int rockchip_pll_round_rate(struct clk_hw *hw,
+> +			    unsigned long *drate, unsigned long *prate)
+>  {
+>  	struct rockchip_clk_pll *pll = to_rockchip_clk_pll(hw);
+>  	const struct rockchip_pll_rate_table *rate_table = pll->rate_table;
+> @@ -72,12 +72,15 @@ static long rockchip_pll_round_rate(struct clk_hw *hw,
+> 
+>  	/* Assumming rate_table is in descending order */
+>  	for (i = 0; i < pll->rate_count; i++) {
+> -		if (drate >= rate_table[i].rate)
+> -			return rate_table[i].rate;
+> +		if (*drate >= rate_table[i].rate) {
+> +			*drate = rate_table[i].rate;
+> +			return 0;
+> +		}
+>  	}
+> 
+>  	/* return minimum supported value */
+> -	return rate_table[i - 1].rate;
+> +	*drate = rate_table[i - 1].rate;
+> +	return 0;
+>  }
+> 
+>  /*
+
+The rockchip-part:
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+
+
+And as I've stumbled onto this recently too, the clock-maintainership has
+expanded to Stephen Boyd and linux-clk@vger.kernel.org .
+
+
+Heiko
