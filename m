@@ -1,22 +1,23 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Fscking OMAP
-Date: Mon, 20 Apr 2015 17:04:00 +0100
-Message-ID: <20150420160400.GX4027@n2100.arm.linux.org.uk>
+Date: Mon, 20 Apr 2015 09:25:16 -0700
+Message-ID: <20150420162515.GK18048@atomide.com>
 References: <20150420154912.GW4027@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:42152 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829AbbDTQEJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2015 12:04:09 -0400
+Received: from muru.com ([72.249.23.125]:45874 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751429AbbDTQ2U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Apr 2015 12:28:20 -0400
 Content-Disposition: inline
 In-Reply-To: <20150420154912.GW4027@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 
-On Mon, Apr 20, 2015 at 04:49:13PM +0100, Russell King - ARM Linux wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [150420 08:50]:
 > Guys,
 > 
 > If you're going to introduce a dependency on some infrastructure which
@@ -36,19 +37,40 @@ On Mon, Apr 20, 2015 at 04:49:13PM +0100, Russell King - ARM Linux wrote:
 > my day today investigating why their platforms no longer boot in DT
 > mode.
 
-Let's be clear about how this needs to be fixed:
+Ouch, yeah missing dependencies are a pain to debug.
 
-1. OMAP must select MFD_SYSCON in its Kconfig when DT is enabled, since
-   OMAP silently fails to boot when this symbol is not enabled.
+Looks like we get MFD_SYSCON selected with omap2plus_defconfig,
+but that's not always the case like you pointed out.
 
-2. omap_clk_init() really needs to have some diagnostic printk()s in
-   it to indicate when something like omap_control_init() fails.
+Does the patch below fix the issue for you?
 
-3. omap_clk_init() probably should _not_ return immediately when one
-   of the children (such as omap_control_init) fails to initialise, as
-   omitting the clocks pretty much ensures that the kernel will BUG()
-   a few moments later in the timer code.
+Regards,
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Tony
+
+8< -----------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 20 Apr 2015 09:23:25 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix booting with configs that don't have MFD_SYSCON
+
+With the recent changes omaps have developed a dependency to MFD_SYSCON.
+This is used for system control module generic register area and some
+clocks.
+
+We do have it selected in omap2plus_defconfig, but targeted config
+files may not have it selected. Let's make sure it's selected like
+few other ARM platforms are already doing.
+
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -81,6 +81,7 @@ config ARCH_OMAP2PLUS
+ 	select GENERIC_IRQ_CHIP
+ 	select MACH_OMAP_GENERIC
+ 	select MEMORY
++	select MFD_SYSCON
+ 	select OMAP_DM_TIMER
+ 	select OMAP_GPMC
+ 	select PINCTRL
