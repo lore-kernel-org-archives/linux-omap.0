@@ -1,62 +1,54 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC][PATCH v2 06/13] usb: hcd: Add hcd add/remove functions
- for OTG use
-Date: Mon, 20 Apr 2015 10:00:36 +0300
-Message-ID: <5534A414.4070401@ti.com>
-References: <Pine.LNX.4.44L0.1504170958440.1319-100000@iolanthe.rowland.org>
+Subject: Re: [RFC][PATCH v2 00/13] USB: OTG/DRD Core functionality
+Date: Mon, 20 Apr 2015 10:28:12 +0300
+Message-ID: <5534AA8C.1070400@ti.com>
+References: <1429008120-5395-1-git-send-email-rogerq@ti.com> <20150420030531.GA30878@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1504170958440.1319-100000@iolanthe.rowland.org>
+In-Reply-To: <20150420030531.GA30878@shlinux2>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Peter Chen <peter.chen@freescale.com>, gregkh@linuxfoundation.org, balbi@ti.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Peter Chen <peter.chen@freescale.com>
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, stern@rowland.harvard.edu, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, macpaul@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 17/04/15 17:03, Alan Stern wrote:
-> On Fri, 17 Apr 2015, Roger Quadros wrote:
-> 
->> On 17/04/15 05:18, Peter Chen wrote:
->>> On Tue, Apr 14, 2015 at 01:41:53PM +0300, Roger Quadros wrote:
->>>> The existing usb_add/remove_hcd() functionality
->>>> remains unchanged for non-OTG devices. For OTG
->>>> devices they only register the HCD with the OTG core.
->>>>
->>>> Introduce _usb_add/remove_hcd() for use by OTG core.
->>>> These functions actually add/remove the HCD.
->>>
->>> Would you please explain why additional _usb_add/remove_hcd are needed?
->>
->> It is to differentiate if the add/remove_hcd was called by the
->> HCD drivers or by the OTG core as we want to behave a bit differently
->> in both cases.
->> When called by HCD drivers, we want to defer the add/remove if it is an
->> OTG device. When called by OTG core, we don't want to defer the add/remove.
-> 
-> I don't understand this.  Why do you want to defer the add/remove if 
-> the device is OTG?  Don't host controller drivers expect these things 
-> to execute synchronously?
+Hi Peter,
 
-Sorry for the wrong information. We actually defer only the add as the
-OTG state machine might not yet be in Host ready mode.
-The remove is always synchronous and we ensure that the HCD is removed
-when usb_otg_unregister_hcd() returns.
+On 20/04/15 06:05, Peter Chen wrote:
+> On Tue, Apr 14, 2015 at 01:41:47PM +0300, Roger Quadros wrote:
+>> This is an attempt to centralize OTG/Dual-role functionality in the kernel.
+>> As of now I've got Dual-role functionality working pretty reliably on
+>> dra7-evm. xhci side of things for OTG/DRD use are fixed in
+>> http://thread.gmane.org/gmane.linux.kernel/1923161
+> 
+> Hi Roger,
+> 
+> Currently, there are two main problems for DRD/OTG framework.
+> 
+> - For multi-platform supports, we may define CONFIG_USB_OTG, but the
+> gadget should not add its otg descriptor to its configuration
+> descriptors if it does not support one of otg features (SRP/HNP/ADP).
+> Macpaul Lin's patch set [1] is the right way to do it.
 
-> 
-> For example, what happens if you rmmod the HCD?  If the remove call
-> gets deferred, then when it finally runs it will try to call back into
-> HCD code that has already been unloaded from memory!
-> 
->> HCD drivers use usb_add/remove_hcd()
->> OTG core uses _usb_add/remove_hcd()
-> 
-> How about a more explicit naming scheme?
-> 
-> 	HC drivers use usb_add/remove_hcd()
-> 	OTG core uses usb_otg_add/remove_hcd()
+Agreed. That check (whether OTG descriptor can be added and which version
+of it) has to be done at runtime and it must be added only if hardware
+supports OTG _and_ kernel OTG support is enabled.
 
-Yes, this is better.
+> - We are lack of framework to handle OTG (DRD) switch, it is great you
+> are designing it. The main problem for this framework is how to handle
+> DRD/OTG FSM unify. My thought is we add two paths for them separate.
+> For easy, I suggest if the platform supports one of otg features, then
+> it goes to fully otg fsm, else it goes to simply otg fsm (like your drd 
+> fsm). If you agree with it too, you may not need to add another "dr_mode"
+> value.
+
+It would be nice that way but unfortunately it does't work in all cases.
+e.g. What if the SoC itself supports all OTG features but the board is not
+designed for OTG. Or the product designer simply is not interested in full OTG
+support but just dual-role. So we need some flexibility for the
+device tree/platform-data to specify that. This is where a new
+"dr_mode" == "dual-role" is needed.
 
 cheers,
 -roger
