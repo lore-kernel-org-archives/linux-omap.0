@@ -1,69 +1,91 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2] drivers/rtc/rtc-ds1307.c: Enable the mcp794xx alarm after programming time
-Date: Mon, 20 Apr 2015 19:51:34 -0500
-Message-ID: <1429577494-15087-1-git-send-email-nm@ti.com>
+From: Peter Chen <Peter.Chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: RE: [RFC][PATCH v2 00/13] USB: OTG/DRD Core functionality
+Date: Tue, 21 Apr 2015 06:04:39 +0000
+Message-ID: <BY1PR0301MB0855ACDA4337AE3FC7F616E081EF0@BY1PR0301MB0855.namprd03.prod.outlook.com>
+References: <1429008120-5395-1-git-send-email-rogerq@ti.com>
+ <20150420030531.GA30878@shlinux2> <5534AA8C.1070400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
-Cc: nm@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5534AA8C.1070400-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Jun.Li-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <Jun.Li-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "macpaul-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <macpaul-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Alarm interrupt enable register is at offset 0x7, while the time
-registers for the alarm follow that. When we program Alarm interrupt
-enable prior to programming the time, it is possible that previous
-time value could be close or match at the time of alarm enable
-resulting in interrupt trigger which is unexpected (and does not match
-the time we expect it to trigger).
-
-To prevent this scenario from occuring, program the ALM0_EN bit only
-after the alarm time is appropriately programmed.
-
-Ofcourse, I2C programming is non-atomic, so there are loopholes where
-the interrupt wont trigger if the time requested is in the past at
-the time of programming the ALM0_EN bit. However, we will not have
-unexpected interrupts while the time is programmed after the interrupt
-are enabled.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Changes in v2:
-	- minor typo fix in comments
-	- merged up code that I missed committing in
-
-V1: https://patchwork.kernel.org/patch/6245041/
-
- drivers/rtc/rtc-ds1307.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-index 4ffabb322a9a..3cd4783375a5 100644
---- a/drivers/rtc/rtc-ds1307.c
-+++ b/drivers/rtc/rtc-ds1307.c
-@@ -742,17 +742,17 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
- 	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
- 	/* Set alarm match: second, minute, hour, day, date, month. */
- 	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
--
--	if (t->enabled)
--		regs[0] |= MCP794XX_BIT_ALM0_EN;
--	else
--		regs[0] &= ~MCP794XX_BIT_ALM0_EN;
-+	/* Disable interrupt. We will not enable until completely programmed */
-+	regs[0] &= ~MCP794XX_BIT_ALM0_EN;
  
- 	ret = ds1307->write_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
- 	if (ret < 0)
- 		return ret;
+> 
+> On 20/04/15 06:05, Peter Chen wrote:
+> > On Tue, Apr 14, 2015 at 01:41:47PM +0300, Roger Quadros wrote:
+> >> This is an attempt to centralize OTG/Dual-role functionality in the kernel.
+> >> As of now I've got Dual-role functionality working pretty reliably on
+> >> dra7-evm. xhci side of things for OTG/DRD use are fixed in
+> >> http://thread.gmane.org/gmane.linux.kernel/1923161
+> >
+> > Hi Roger,
+> >
+> > Currently, there are two main problems for DRD/OTG framework.
+> >
+> > - For multi-platform supports, we may define CONFIG_USB_OTG, but the
+> > gadget should not add its otg descriptor to its configuration
+> > descriptors if it does not support one of otg features (SRP/HNP/ADP).
+> > Macpaul Lin's patch set [1] is the right way to do it.
+> 
+> Agreed. That check (whether OTG descriptor can be added and which version
+> of it) has to be done at runtime and it must be added only if hardware supports
+> OTG _and_ kernel OTG support is enabled.
+> 
+
+Ok, let's put this patch set in mainline first, since your patch set may need some
+information from it.
  
--	return 0;
-+	if (!t->enabled)
-+		return 0;
-+	regs[0] |= MCP794XX_BIT_ALM0_EN;
-+	return i2c_smbus_write_byte_data(client, MCP794XX_REG_CONTROL, regs[0]);
- }
- 
- static int mcp794xx_alarm_irq_enable(struct device *dev, unsigned int enabled)
--- 
-1.7.9.5
+> > - We are lack of framework to handle OTG (DRD) switch, it is great you
+> > are designing it. The main problem for this framework is how to handle
+> > DRD/OTG FSM unify. My thought is we add two paths for them separate.
+> > For easy, I suggest if the platform supports one of otg features, then
+> > it goes to fully otg fsm, else it goes to simply otg fsm (like your
+> > drd fsm). If you agree with it too, you may not need to add another
+> "dr_mode"
+> > value.
+> 
+> It would be nice that way but unfortunately it does't work in all cases.
+> e.g. What if the SoC itself supports all OTG features but the board is not
+> designed for OTG. Or the product designer simply is not interested in full OTG
+> support but just dual-role. So we need some flexibility for the device
+> tree/platform-data to specify that. This is where a new "dr_mode" == "dual-
+> role" is needed.
+> 
+
+Since "dr_mode" has been widely used now, if we add a new property for it,  we
+need to change all drivers.
+
+Your OTG/DRD framework needs to (partial) use otg fsm, and we will not teach old
+driver to use it since there are some driver related stuffs.
+
+SRP/HNP/ADP support can be board level capabilities, and we may consider the
+otg device which does not support otg fsm (hardware finishes fsm). So I suggest
+we have below properties at dts:
+
+- otg-support /* fully otg support */
+- otg-fsm-support /* fully otg fsm support */
+- otg-ver /* eh & otg supplement version */
+- adp-support /* board adp support */ 
+- srp-support /* board srp support */
+- hnp-support /* board hnp support */
+
+Currently, if CONFIG_USB_OTG and CONFIG_USB_OTG_FSM are enabled, we will
+have otg fsm code (usb-otg-fsm.c).
+
+if (otg-support & otg-fsm-support)
+	this device has fully otg support, and will follow full otg fsm transitions. 
+else
+	this device is drd, and will follow simple otg fsm transtions. 
+
+Peter
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
