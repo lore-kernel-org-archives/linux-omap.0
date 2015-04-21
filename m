@@ -1,155 +1,150 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.0
-Date: Tue, 21 Apr 2015 18:33:23 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1504211832450.8677@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: Fix omap3 off idle power consumption
+ creeping up
+Date: Tue, 21 Apr 2015 14:47:18 -0700
+Message-ID: <20150421214718.GN18048@atomide.com>
+References: <1429632619-23474-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:52081 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbbDUSdX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2015 14:33:23 -0400
+Received: from muru.com ([72.249.23.125]:46073 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933546AbbDUVuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Apr 2015 17:50:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1429632619-23474-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>
 
+* Tony Lindgren <tony@atomide.com> [150421 09:24]:
+> If we use a combination of VMODE and I2C4 for retention modes,
+> eventually the off idle power consumption will creep up by about
+> 23mW, even during off mode with I2C4 always staying enabled.
+> 
+> Looks like the only way to fix the extra power consumption is to
+> disable I2C4 usage by setting SEL_VMODE for both off idle and
+> retention idle. Let's also update the comments accordingly.
 
-Here are some basic OMAP test results for Linux v4.0.
-Logs and other details at:
+Thanks Nishanth for pointing me to the related SmartReflex I2C4
+erratum. No need to disable I2C4 with the SREN workaround :)
 
-    http://www.pwsan.com/omap/testlogs/test_v4.0/20150421081056/
+Better patch below, presumably this only affects omap3?
 
+Regards,
 
-Test summary
-------------
+Tony
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+8< ------------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 21 Apr 2015 14:31:23 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix omap3 off idle power consumption creeping up
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
+If we use a combination of VMODE and I2C4 for retention modes,
+eventually the off idle power consumption will creep up by about
+23mW, even during off mode with I2C4 always staying enabled.
 
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+Turns out this is because of erratum 2.11 "Extra Power Consumed
+When Repeated Start Operation Mode Is Enabled on I2C Interface
+Dedicated for Smart Reflex (I2C4)" as pointed out by Nishanth
+Menon <nm@ti.com>.
 
-Build warnings from toolchain: uImage:
-    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+Let's fix the issue by adding i2c_cfg_clear_mask for the bits
+to clear when initializing the I2C4 adapter so we can clear
+SREN bit that drives the I2C4 lines low otherwise when there
+is no traffic.
 
-Build warnings from toolchain: uImage+dtb:
-    (none)
+Fixes: 3b8c4ebb7630 ("ARM: OMAP3: Fix idle mode signaling for
+sys_clkreq and sys_off_mode")
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Build warnings from toolchain: zImage:
-    FAIL (15/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 2/17): 4430es2panda, 4460varsomom
-
-Obsolete Kconfig symbols:
-    FAIL ( 2/20): omap1_defconfig, multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.0-rc7 (f22e6e847115abc3a0e2ad7bb18d243d42275af1)):
-   text     data      bss    total  kernel
-   +148       -8        0     +140  omap1_defconfig
-   +148        0        0     +148  omap1_defconfig_1510innovator_only
-   +180        0        0     +180  omap1_defconfig_5912osk_only
-    -48    -1520        0    -1568  multi_v7_defconfig
-    +96        0        0      +96  omap2plus_defconfig
-    +92        0        0      +92  omap2plus_defconfig_2430sdp_only
-    +96        0        0      +96  omap2plus_defconfig_am33xx_only
-    +96       +8        0     +104  omap2plus_defconfig_am43xx_only
-    +96       +8        0     +104  omap2plus_defconfig_cpupm
-    +96       +8        0     +104  omap2plus_defconfig_dra7xx_only
-    +92        0        0      +92  omap2plus_defconfig_n800_multi_omap2xxx
-    +92        0        0      +92  omap2plus_defconfig_n800_only_a
-    +96        0        0      +96  omap2plus_defconfig_no_pm
-    +96       +8        0     +104  omap2plus_defconfig_omap2_4_only
-    +96       +8        0     +104  omap2plus_defconfig_omap3_4_only
-    +96        0        0      +96  omap2plus_defconfig_omap5_only
-    +48        0      +16      +64  rmk_omap3430_ldp_allnoconfig
-    -32        0        0      -32  rmk_omap3430_ldp_oldconfig
-    +48        0      +16      +64  rmk_omap4430_sdp_allnoconfig
-    +60        0        0      +60  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.0-rc7 (f22e6e847115abc3a0e2ad7bb18d243d42275af1))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
-
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -112,6 +112,7 @@
+ #define OMAP3430_VC_CMD_ONLP_SHIFT			16
+ #define OMAP3430_VC_CMD_RET_SHIFT			8
+ #define OMAP3430_VC_CMD_OFF_SHIFT			0
++#define OMAP3430_SREN_MASK				(1 << 4)
+ #define OMAP3430_HSEN_MASK				(1 << 3)
+ #define OMAP3430_MCODE_MASK				(0x7 << 0)
+ #define OMAP3430_VALID_MASK				(1 << 24)
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -316,7 +316,8 @@ static void __init omap3_vc_init_pmic_signaling(struct voltagedomain *voltdm)
+ 	 * idle. And we can also scale voltages to zero for off-idle.
+ 	 * Note that no actual voltage scaling during off-idle will
+ 	 * happen unless the board specific twl4030 PMIC scripts are
+-	 * loaded.
++	 * loaded. See also omap_vc_i2c_init for comments regarding
++	 * erratum 2.11.
+ 	 */
+ 	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
+ 	if (!(val & OMAP3430_PRM_VOLTCTRL_SEL_OFF)) {
+@@ -704,9 +705,16 @@ static void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
+ 		return;
+ 	}
+ 
++	/*
++	 * Note that for omap3 OMAP3430_SREN_MASK clears SREN to work around
++	 * erratum 2.11 "Extra Power Consumed When Repeated Start Operation
++	 * Mode Is Enabled on I2C Interface Dedicated for Smart Reflex (I2C4)".
++	 * Otherwise I2C4 eventually leads into about 23mW extran power being
++	 * consumed even during off idle using VMODE.
++	 */
+ 	i2c_high_speed = voltdm->pmic->i2c_high_speed;
+ 	if (i2c_high_speed)
+-		voltdm->rmw(vc->common->i2c_cfg_hsen_mask,
++		voltdm->rmw(vc->common->i2c_cfg_clear_mask,
+ 			    vc->common->i2c_cfg_hsen_mask,
+ 			    vc->common->i2c_cfg_reg);
+ 
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -34,6 +34,7 @@ struct voltagedomain;
+  * @cmd_ret_shift: RET field shift in PRM_VC_CMD_VAL_* register
+  * @cmd_off_shift: OFF field shift in PRM_VC_CMD_VAL_* register
+  * @i2c_cfg_reg: I2C configuration register offset
++ * @i2c_cfg_clear_mask: high-speed mode bit clear mask in I2C config register
+  * @i2c_cfg_hsen_mask: high-speed mode bit field mask in I2C config register
+  * @i2c_mcode_mask: MCODE field mask for I2C config register
+  *
+@@ -52,6 +53,7 @@ struct omap_vc_common {
+ 	u8 cmd_ret_shift;
+ 	u8 cmd_off_shift;
+ 	u8 i2c_cfg_reg;
++	u8 i2c_cfg_clear_mask;
+ 	u8 i2c_cfg_hsen_mask;
+ 	u8 i2c_mcode_mask;
+ };
+--- a/arch/arm/mach-omap2/vc3xxx_data.c
++++ b/arch/arm/mach-omap2/vc3xxx_data.c
+@@ -28,6 +28,7 @@
+ /*
+  * VC data common to 34xx/36xx chips
+  * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
++ * Note that we must clear SREN to work around erratum 2.11.
+  */
+ static struct omap_vc_common omap3_vc_common = {
+ 	.bypass_val_reg	 = OMAP3_PRM_VC_BYPASS_VAL_OFFSET,
+@@ -40,6 +41,7 @@ static struct omap_vc_common omap3_vc_common = {
+ 	.cmd_onlp_shift	 = OMAP3430_VC_CMD_ONLP_SHIFT,
+ 	.cmd_ret_shift	 = OMAP3430_VC_CMD_RET_SHIFT,
+ 	.cmd_off_shift	 = OMAP3430_VC_CMD_OFF_SHIFT,
++	.i2c_cfg_clear_mask = OMAP3430_SREN_MASK,
+ 	.i2c_cfg_hsen_mask = OMAP3430_HSEN_MASK,
+ 	.i2c_cfg_reg	 = OMAP3_PRM_VC_I2C_CFG_OFFSET,
+ 	.i2c_mcode_mask	 = OMAP3430_MCODE_MASK,
+--- a/arch/arm/mach-omap2/vc44xx_data.c
++++ b/arch/arm/mach-omap2/vc44xx_data.c
+@@ -42,6 +42,7 @@ static const struct omap_vc_common omap4_vc_common = {
+ 	.cmd_ret_shift = OMAP4430_RET_SHIFT,
+ 	.cmd_off_shift = OMAP4430_OFF_SHIFT,
+ 	.i2c_cfg_reg = OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET,
++	.i2c_cfg_clear_mask = 0,
+ 	.i2c_cfg_hsen_mask = OMAP4430_HSMODEEN_MASK,
+ 	.i2c_mcode_mask	 = OMAP4430_HSMCODE_MASK,
+ };
