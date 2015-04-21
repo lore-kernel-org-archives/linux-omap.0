@@ -1,52 +1,75 @@
 From: Luis Henriques <luis.henriques@canonical.com>
-Subject: [PATCH 3.16.y-ckt 126/144] dmaengine: omap-dma: Fix memory leak when terminating running transfer
-Date: Tue, 21 Apr 2015 16:31:51 +0100
-Message-ID: <1429630329-21748-127-git-send-email-luis.henriques@canonical.com>
+Subject: [PATCH 3.16.y-ckt 125/144] dmaengine: edma: fix memory leak when
+ terminating running transfers
+Date: Tue, 21 Apr 2015 16:31:50 +0100
+Message-ID: <1429630329-21748-126-git-send-email-luis.henriques@canonical.com>
 References: <1429630329-21748-1-git-send-email-luis.henriques@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-team-bounces@lists.ubuntu.com>
 In-Reply-To: <1429630329-21748-1-git-send-email-luis.henriques@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/kernel-team>,
+ <mailto:kernel-team-request@lists.ubuntu.com?subject=unsubscribe>
+List-Archive: <https://lists.ubuntu.com/archives/kernel-team>
+List-Post: <mailto:kernel-team@lists.ubuntu.com>
+List-Help: <mailto:kernel-team-request@lists.ubuntu.com?subject=help>
+List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/kernel-team>,
+ <mailto:kernel-team-request@lists.ubuntu.com?subject=subscribe>
+Errors-To: kernel-team-bounces@lists.ubuntu.com
+Sender: kernel-team-bounces@lists.ubuntu.com
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Luis Henriques <luis.henriques@canonical.com>
+Cc: Petr Kulhavy <petr@barix.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
 3.16.7-ckt10 -stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Petr Kulhavy <petr@barix.com>
 
-commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
+commit 5ca9e7ce6eebec53362ff779264143860ccf68cd upstream.
 
-In omap_dma_start_desc the vdesc->node is removed from the virt-dma
-framework managed lists (to be precise from the desc_issued list).
-If a terminate_all comes before the transfer finishes the omap_desc will
-not be freed up because it is not in any of the lists and we stopped the
-DMA channel so the transfer will not going to complete.
-There is no special sequence for leaking memory when using cyclic (audio)
-transfer: with every start and stop of a cyclic transfer the driver leaks
-struct omap_desc worth of memory.
+If edma_terminate_all() was called while a transfer was running (i.e. after
+edma_execute() but before edma_callback()) the echan->edesc was not freed.
 
-Free up the allocated memory directly in omap_dma_terminate_all() since the
-framework will not going to do that for us.
+This was due to the fact that a running transfer is on none of the
+vchan lists: desc_submitted, desc_issued, desc_completed (edma_execute()
+removes it from the desc_issued list), so the vchan_dma_desc_free_list()
+called at the end of edma_terminate_all() didn't find it and didn't free it.
 
+This bug was found on an AM1808 based hardware (very similar to da850evm,
+however using the second MMC/SD controller), where intense operations on the SD
+card wasted the device 128MB RAM within a couple of days.
+
+Peter Ujfalusi:
+The issue is even more severe since it affects cyclic (audio) transfers as
+well. In this case starting/stopping audio will results memory leak.
+
+Signed-off-by: Petr Kulhavy <petr@barix.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 CC: <linux-omap@vger.kernel.org>
 Signed-off-by: Vinod Koul <vinod.koul@intel.com>
+[ luis: backported to 3.16: adjusted context ]
 Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
- drivers/dma/omap-dma.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma/edma.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index b19f04f4390b..2e63234a9e7f 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -979,6 +979,7 @@ static int omap_dma_terminate_all(struct omap_chan *c)
- 	 * c->desc is NULL and exit.)
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index d08c4dedef35..3c58df963e06 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -256,6 +256,12 @@ static int edma_terminate_all(struct edma_chan *echan)
+ 	 * echan->edesc is NULL and exit.)
  	 */
- 	if (c->desc) {
-+		omap_dma_desc_free(&c->desc->vd);
- 		c->desc = NULL;
- 		/* Avoid stopping the dma twice */
- 		if (!c->paused)
+ 	if (echan->edesc) {
++		/*
++		 * free the running request descriptor
++		 * since it is not in any of the vdesc lists
++		 */
++		edma_desc_free(&echan->edesc->vdesc);
++
+ 		echan->edesc = NULL;
+ 		edma_stop(echan->ch_num);
+ 	}
