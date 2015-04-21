@@ -1,109 +1,69 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC][PATCH v2 00/13] USB: OTG/DRD Core functionality
-Date: Tue, 21 Apr 2015 10:34:01 +0300
-Message-ID: <5535FD69.6070900@ti.com>
-References: <1429008120-5395-1-git-send-email-rogerq@ti.com> <20150420030531.GA30878@shlinux2> <5534AA8C.1070400@ti.com> <BY1PR0301MB0855ACDA4337AE3FC7F616E081EF0@BY1PR0301MB0855.namprd03.prod.outlook.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [RFC 0/5] PM / clock_ops: provide default runtime ops and cleanup users
+Date: Tue, 21 Apr 2015 10:01:03 +0200
+Message-ID: <CAMuHMdX3-Ces57VcpyXEJBSUB07ZtpcCiN8ZpiStGcQnDEHt4A@mail.gmail.com>
+References: <1429018473-21865-1-git-send-email-rnayak@codeaurora.org>
+	<7hfv7ue68c.fsf@deeprootsystems.com>
+	<55358AE5.1070900@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BY1PR0301MB0855ACDA4337AE3FC7F616E081EF0@BY1PR0301MB0855.namprd03.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <Peter.Chen@freescale.com>
-Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "balbi@ti.com" <balbi@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Jun.Li@freescale.com" <Jun.Li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "macpaul@gmail.com" <macpaul@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <55358AE5.1070900@oracle.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: santosh shilimkar <santosh.shilimkar@oracle.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Rajendra Nayak <rnayak@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Magnus Damm <magnus.damm@gmail.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, inux-arm-kernel@lists.infradead.org, Linux PM list <linux-pm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 21/04/15 09:04, Peter Chen wrote:
->  
+On Tue, Apr 21, 2015 at 1:25 AM, santosh shilimkar
+<santosh.shilimkar@oracle.com> wrote:
+> On 4/20/2015 4:21 PM, Kevin Hilman wrote:
 >>
->> On 20/04/15 06:05, Peter Chen wrote:
->>> On Tue, Apr 14, 2015 at 01:41:47PM +0300, Roger Quadros wrote:
->>>> This is an attempt to centralize OTG/Dual-role functionality in the kernel.
->>>> As of now I've got Dual-role functionality working pretty reliably on
->>>> dra7-evm. xhci side of things for OTG/DRD use are fixed in
->>>> http://thread.gmane.org/gmane.linux.kernel/1923161
->>>
->>> Hi Roger,
->>>
->>> Currently, there are two main problems for DRD/OTG framework.
->>>
->>> - For multi-platform supports, we may define CONFIG_USB_OTG, but the
->>> gadget should not add its otg descriptor to its configuration
->>> descriptors if it does not support one of otg features (SRP/HNP/ADP).
->>> Macpaul Lin's patch set [1] is the right way to do it.
+>> Rajendra Nayak <rnayak@codeaurora.org> writes:
 >>
->> Agreed. That check (whether OTG descriptor can be added and which version
->> of it) has to be done at runtime and it must be added only if hardware supports
->> OTG _and_ kernel OTG support is enabled.
+>>> Most users of PM clocks do the exact same thing in runtime callbacks.
 >>
-> 
-> Ok, let's put this patch set in mainline first, since your patch set may need some
-> information from it.
->  
->>> - We are lack of framework to handle OTG (DRD) switch, it is great you
->>> are designing it. The main problem for this framework is how to handle
->>> DRD/OTG FSM unify. My thought is we add two paths for them separate.
->>> For easy, I suggest if the platform supports one of otg features, then
->>> it goes to fully otg fsm, else it goes to simply otg fsm (like your
->>> drd fsm). If you agree with it too, you may not need to add another
->> "dr_mode"
->>> value.
 >>
->> It would be nice that way but unfortunately it does't work in all cases.
->> e.g. What if the SoC itself supports all OTG features but the board is not
->> designed for OTG. Or the product designer simply is not interested in full OTG
->> support but just dual-role. So we need some flexibility for the device
->> tree/platform-data to specify that. This is where a new "dr_mode" == "dual-
->> role" is needed.
+>> Probably because they were all copied from mach-davinci. ;)
 >>
-> 
-> Since "dr_mode" has been widely used now, if we add a new property for it,  we
-> need to change all drivers.
-> 
-> Your OTG/DRD framework needs to (partial) use otg fsm, and we will not teach old
-> driver to use it since there are some driver related stuffs.
+> Yep. ;-)
 
-fair enough. Let's not change dr_mode then and decide based on other parameters.
+If you're interested in the history, I did some digging last year:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-March/242352.html
 
-> 
-> SRP/HNP/ADP support can be board level capabilities, and we may consider the
-> otg device which does not support otg fsm (hardware finishes fsm). So I suggest
-> we have below properties at dts:
-> 
-> - otg-support /* fully otg support */
-> - otg-fsm-support /* fully otg fsm support */
+>>> Provide default callbacks and cleanup the existing users
+>>> (keystone/davinci/omap1/sh)
+>>
+>>
+>> Very nice cleanup, Thanks!
 
-what is the difference between otg-support and otg-fsm-support?
+Note that the new code always has a dev_pm_domain, while the old code had it
+conditionally on CONFIG_PM.
 
-> - otg-ver /* eh & otg supplement version */
+I don't think that matters much, as we seem to be having more and more
+systems that rely on CONFIG_PM=y...
 
-we can get otg version from the OTG controller. What exactly is the
-otg-ver in dts for?
+>> For the series:
+>>
+>> Reviewed-by: Kevin Hilman <khilman@linaro.org>
+>>
+> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
 
-> - adp-support /* board adp support */ 
-> - srp-support /* board srp support */
-> - hnp-support /* board hnp support */
+Looks good to me, and works fine on (pre-Clock Domain) r8a7791/koelsch
+and r8a7740/armadillo-legacy (with PM Domains, but still relying on the
+drivers/sh/pm_runtime.c hack for devices in the C5 "always on" domain).
 
-So if these options are not provided in DTS but the OTG core supports them then
-we keep the respective feature disabled?
-Won't this need dts change for existing boards?
+This code is no longer used in multiplatform kernels on shmobile boards
+with real PM Domains.
 
-Instead how about having disable flags instead.
- - adp-disable	/* board doesn't support adp */
- - srp-disable	/* board doesn't support srp */
- - hnp-disable	/* board doesn't support hnp */
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Now, if the flags are not provided in dts we use the OTG core's flags.
+Gr{oetje,eeting}s,
 
-> 
-> Currently, if CONFIG_USB_OTG and CONFIG_USB_OTG_FSM are enabled, we will
-> have otg fsm code (usb-otg-fsm.c).
-> 
-> if (otg-support & otg-fsm-support)
-> 	this device has fully otg support, and will follow full otg fsm transitions. 
-> else
-> 	this device is drd, and will follow simple otg fsm transtions. 
-> 
+                        Geert
 
-cheers,
--roger
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
