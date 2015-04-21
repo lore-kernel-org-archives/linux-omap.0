@@ -1,24 +1,24 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.0-rc7
-Date: Tue, 21 Apr 2015 17:20:52 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1504211718590.8677@utopia.booyaka.com>
+Subject: OMAP baseline test results for v4.0
+Date: Tue, 21 Apr 2015 18:33:23 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1504211832450.8677@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:51534 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:52081 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932861AbbDURUx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2015 13:20:53 -0400
+	with ESMTP id S1751082AbbDUSdX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2015 14:33:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
-Here are some basic OMAP test results for Linux v4.0-rc7.
+Here are some basic OMAP test results for Linux v4.0.
 Logs and other details at:
 
-    http://www.pwsan.com/omap/testlogs/test_v4.0-rc7/20150421071440/
+    http://www.pwsan.com/omap/testlogs/test_v4.0/20150421081056/
 
 
 Test summary
@@ -81,27 +81,27 @@ Build warnings from toolchain: zImage:
 		  rmk_omap4430_sdp_oldconfig, multi_v7_defconfig
 
 Boot to userspace:
-    FAIL ( 2/17): 2430sdp, 2420n800
+    FAIL ( 1/17): 2430sdp
     skip ( 2/17): 5912osk, 3517evm
-    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
 		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
 		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54
+		  5430es2sbct54, 2420n800
 
 Kernel warnings during boot to userspace:
     FAIL ( 3/17): 4430es2panda, 4460varsomom, cmt3517
 
 PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
+    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
+    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
 
 PM: chip retention via dynamic idle:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
+    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
+    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
 
 PM: chip off (except CORE, due to errata) via suspend:
     Pass ( 1/ 1): 3730beaglexm
@@ -125,31 +125,31 @@ Obsolete Kconfig symbols:
 
 
 vmlinux object size
-(delta in bytes from test_v4.0-rc6 (e42391cd048809d903291d07f86ed3934ce138e9)):
+(delta in bytes from test_v4.0-rc7 (f22e6e847115abc3a0e2ad7bb18d243d42275af1)):
    text     data      bss    total  kernel
-  +1079     +120        0    +1199  omap1_defconfig
-  +1079      +72        0    +1151  omap1_defconfig_1510innovator_only
-  +1079      +80        0    +1159  omap1_defconfig_5912osk_only
-   +915      +72        0     +987  multi_v7_defconfig
-   +743     +176        0     +919  omap2plus_defconfig
-  +4743     +168        0    +4911  omap2plus_defconfig_2430sdp_only
-   +679     +136        0     +815  omap2plus_defconfig_am33xx_only
-   +679     +200        0     +879  omap2plus_defconfig_am43xx_only
-   +743     +168        0     +911  omap2plus_defconfig_cpupm
-   +743     +208        0     +951  omap2plus_defconfig_dra7xx_only
-   +629     +144        0     +773  omap2plus_defconfig_n800_multi_omap2xxx
-   +629     +152        0     +781  omap2plus_defconfig_n800_only_a
-  +4839     +200        0    +5039  omap2plus_defconfig_no_pm
-   +743     +176        0     +919  omap2plus_defconfig_omap2_4_only
-   +747     +208        0     +955  omap2plus_defconfig_omap3_4_only
-   +679     +208        0     +887  omap2plus_defconfig_omap5_only
-   +664     +112     -128     +648  rmk_omap3430_ldp_allnoconfig
- +33743    +4672     +512   +38927  rmk_omap3430_ldp_oldconfig
-   +664     +112     -128     +648  rmk_omap4430_sdp_allnoconfig
-   +831     +136        0     +967  rmk_omap4430_sdp_oldconfig
+   +148       -8        0     +140  omap1_defconfig
+   +148        0        0     +148  omap1_defconfig_1510innovator_only
+   +180        0        0     +180  omap1_defconfig_5912osk_only
+    -48    -1520        0    -1568  multi_v7_defconfig
+    +96        0        0      +96  omap2plus_defconfig
+    +92        0        0      +92  omap2plus_defconfig_2430sdp_only
+    +96        0        0      +96  omap2plus_defconfig_am33xx_only
+    +96       +8        0     +104  omap2plus_defconfig_am43xx_only
+    +96       +8        0     +104  omap2plus_defconfig_cpupm
+    +96       +8        0     +104  omap2plus_defconfig_dra7xx_only
+    +92        0        0      +92  omap2plus_defconfig_n800_multi_omap2xxx
+    +92        0        0      +92  omap2plus_defconfig_n800_only_a
+    +96        0        0      +96  omap2plus_defconfig_no_pm
+    +96       +8        0     +104  omap2plus_defconfig_omap2_4_only
+    +96       +8        0     +104  omap2plus_defconfig_omap3_4_only
+    +96        0        0      +96  omap2plus_defconfig_omap5_only
+    +48        0      +16      +64  rmk_omap3430_ldp_allnoconfig
+    -32        0        0      -32  rmk_omap3430_ldp_oldconfig
+    +48        0      +16      +64  rmk_omap4430_sdp_allnoconfig
+    +60        0        0      +60  rmk_omap4430_sdp_oldconfig
 
 Boot-time memory difference
-(delta in bytes from test_v4.0-rc6 (e42391cd048809d903291d07f86ed3934ce138e9))
+(delta in bytes from test_v4.0-rc7 (f22e6e847115abc3a0e2ad7bb18d243d42275af1))
   avail  rsrvd   high  freed  board          kconfig
-      .      .      .    -4k  am335xbone     omap2plus_defconfig_am33xx_only
+  (no differences)
 
