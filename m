@@ -1,44 +1,20 @@
 From: Luis Henriques <luis.henriques@canonical.com>
-Subject: [3.16.y-ckt stable] Patch "dmaengine: omap-dma: Fix memory leak when terminating running transfer" has been added to staging queue
-Date: Tue, 21 Apr 2015 16:24:01 +0100
-Message-ID: <1429629841-20302-1-git-send-email-luis.henriques@canonical.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:56882 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755221AbbDUPYE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2015 11:24:04 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH 3.16.y-ckt 126/144] dmaengine: omap-dma: Fix memory leak when terminating running transfer
+Date: Tue, 21 Apr 2015 16:31:51 +0100
+Message-ID: <1429630329-21748-127-git-send-email-luis.henriques@canonical.com>
+References: <1429630329-21748-1-git-send-email-luis.henriques@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1429630329-21748-1-git-send-email-luis.henriques@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Luis Henriques <luis.henriques@canonical.com>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Luis Henriques <luis.henriques@canonical.com>, kernel-team@lists.ubuntu.com
 
-This is a note to let you know that I have just added a patch titled
+3.16.7-ckt10 -stable review patch.  If anyone has any objections, please let me know.
 
-    dmaengine: omap-dma: Fix memory leak when terminating running transfer
+------------------
 
-to the linux-3.16.y-queue branch of the 3.16.y-ckt extended stable tree 
-which can be found at:
-
- http://kernel.ubuntu.com/git?p=ubuntu/linux.git;a=shortlog;h=refs/heads/linux-3.16.y-queue
-
-This patch is scheduled to be released in version 3.16.7-ckt10.
-
-If you, or anyone else, feels it should not be added to this tree, please 
-reply to this email.
-
-For more information about the 3.16.y-ckt tree, see
-https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
-
-Thanks.
--Luis
-
-------
-
->From 61086ac62002ddaee5bfa7a34b0de8a3df018308 Mon Sep 17 00:00:00 2001
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Date: Fri, 27 Mar 2015 13:35:52 +0200
-Subject: dmaengine: omap-dma: Fix memory leak when terminating running
- transfer
 
 commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
 
