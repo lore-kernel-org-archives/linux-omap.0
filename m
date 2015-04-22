@@ -1,127 +1,172 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2] drivers/rtc/rtc-ds1307.c: Enable the mcp794xx alarm
- after programming time
-Date: Tue, 21 Apr 2015 18:58:43 -0500
-Message-ID: <5536E433.90103@ti.com>
-References: <1429577494-15087-1-git-send-email-nm@ti.com> <20150421234139.GF8539@piout.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: Fix omap3 off idle power consumption
+ creeping up
+Date: Tue, 21 Apr 2015 18:00:26 -0700
+Message-ID: <20150422010026.GO18048@atomide.com>
+References: <1429632619-23474-1-git-send-email-tony@atomide.com>
+ <20150421214718.GN18048@atomide.com>
+ <20150421221227.GA9919@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150421234139.GF8539@piout.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:46092 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933709AbbDVBD0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Apr 2015 21:03:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20150421221227.GA9919@kahuna>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Tero Kristo <t-kristo@ti.com>
 
-On 04/21/2015 06:41 PM, Alexandre Belloni wrote:
-> Hi,
-> 
-> On 20/04/2015 at 19:51:34 -0500, Nishanth Menon wrote :
->> Alarm interrupt enable register is at offset 0x7, while the time
->> registers for the alarm follow that. When we program Alarm interrupt
->> enable prior to programming the time, it is possible that previous
->> time value could be close or match at the time of alarm enable
->> resulting in interrupt trigger which is unexpected (and does not match
->> the time we expect it to trigger).
->>
->> To prevent this scenario from occuring, program the ALM0_EN bit only
->> after the alarm time is appropriately programmed.
->>
->> Ofcourse, I2C programming is non-atomic, so there are loopholes where
->> the interrupt wont trigger if the time requested is in the past at
->> the time of programming the ALM0_EN bit. However, we will not have
->> unexpected interrupts while the time is programmed after the interrupt
->> are enabled.
->>
-> 
-> Do you have more details about the issue you are trying to solve?
-Testcase: rtctest /dev/rtc0
-waveform capture: http://goo.gl/S8Z54x
-Corresponding decode: http://pastebin.ubuntu.com/10863880/
+* Nishanth Menon <nm@ti.com> [150421 15:13]:
+> On 14:47-20150421, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [150421 09:24]:
+> > > If we use a combination of VMODE and I2C4 for retention modes,
+> > > eventually the off idle power consumption will creep up by about
+> > > 23mW, even during off mode with I2C4 always staying enabled.
+> > > 
+> > > Looks like the only way to fix the extra power consumption is to
+> > > disable I2C4 usage by setting SEL_VMODE for both off idle and
+> > > retention idle. Let's also update the comments accordingly.
+> > 
+> > Thanks Nishanth for pointing me to the related SmartReflex I2C4
+> > erratum. No need to disable I2C4 with the SREN workaround :)
+> > 
+> > Better patch below, presumably this only affects omap3?
+>
+> SREN applies to both OMAP3 and 4 - so, the patch looks right.
 
-> 
-> Consider the following use case: a platform is setting the RTC alarm
-> before going to suspend to ram. Before your patch, it may be woken up
-^^ precisely what I am trying to solve.
+Oh OK, I was missing setting the clear bit for omap4. I've added
+it now.
+ 
+> > If we use a combination of VMODE and I2C4 for retention modes,
+> > eventually the off idle power consumption will creep up by about
+> > 23mW, even during off mode with I2C4 always staying enabled.
+> > 
+> > Turns out this is because of erratum 2.11 "Extra Power Consumed
+> I suggest using the unique ID
+>
+> i531 - that remains constant across SoCs.
 
-> quite quickly, before expected. After your patch, it may never wake at
-> all.
+OK thanks, updated patch below.
 
-Why is that so? when set alarm is requested for time X, you want
-interrupt at time X, not an interrupt for previous configured RTC
-alarm time!
-
-If the time X is > the point when ALM0 is programmed, then you will
-get an interrupt.
-
-If you get an interrupt (like my screenshot shows) because the new
-value has not yet been programmed (just because we enabled interrupt
-before programming time), it is unexpected event and wrong!
-
-Another scenario: Take the following time points A < B < C < D
-we program at time (A), an interrupt for time (C).
-but at time B, we intiate a new time request for time (D).
-if we happen to send the first ALM0EN at time C (before programming
-D), you will generate an interrupt, but before the irq handler can
-handle (since we are doing burst i2c), we program D which clears the
-irq status (as can be seen in waveform).
-
-This does not make sense for a predictable behavior! Yeah, it will
-wakeup quickly, but when we go and read irqstatus (ALM0IF), it will be
-0 and nothing will get reported to rtc subsystem. So:
-a) we woke up at a time not requested - this is wrong
-b) our irq handler has nothing to handle! - this is wrong as well.
-
-in short, the behavior you are asking for is quiet the wrong behavior!
-
-> 
-> 
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->> Changes in v2:
->> 	- minor typo fix in comments
->> 	- merged up code that I missed committing in
->>
->> V1: https://patchwork.kernel.org/patch/6245041/
->>
->>  drivers/rtc/rtc-ds1307.c |   12 ++++++------
->>  1 file changed, 6 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
->> index 4ffabb322a9a..3cd4783375a5 100644
->> --- a/drivers/rtc/rtc-ds1307.c
->> +++ b/drivers/rtc/rtc-ds1307.c
->> @@ -742,17 +742,17 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
->>  	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
->>  	/* Set alarm match: second, minute, hour, day, date, month. */
->>  	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
->> -
->> -	if (t->enabled)
->> -		regs[0] |= MCP794XX_BIT_ALM0_EN;
->> -	else
->> -		regs[0] &= ~MCP794XX_BIT_ALM0_EN;
->> +	/* Disable interrupt. We will not enable until completely programmed */
->> +	regs[0] &= ~MCP794XX_BIT_ALM0_EN;
->>  
->>  	ret = ds1307->write_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
->>  	if (ret < 0)
->>  		return ret;
->>  
->> -	return 0;
->> +	if (!t->enabled)
->> +		return 0;
->> +	regs[0] |= MCP794XX_BIT_ALM0_EN;
->> +	return i2c_smbus_write_byte_data(client, MCP794XX_REG_CONTROL, regs[0]);
->>  }
->>  
->>  static int mcp794xx_alarm_irq_enable(struct device *dev, unsigned int enabled)
->> -- 
->> 1.7.9.5
->>
-> 
-
-
--- 
 Regards,
-Nishanth Menon
+
+Tony
+
+8< ------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 21 Apr 2015 14:31:23 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix omap off idle power consumption creeping up
+
+If we use a combination of VMODE and I2C4 for retention modes,
+eventually the off idle power consumption will creep up by about
+23mW, even during off mode with I2C4 always staying enabled.
+
+Turns out this is because of erratum i531 "Extra Power Consumed
+When Repeated Start Operation Mode Is Enabled on I2C Interface
+Dedicated for Smart Reflex (I2C4)" as pointed out by Nishanth
+Menon <nm@ti.com>.
+
+Let's fix the issue by adding i2c_cfg_clear_mask for the bits
+to clear when initializing the I2C4 adapter so we can clear
+SREN bit that drives the I2C4 lines low otherwise when there
+is no traffic.
+
+Fixes: 3b8c4ebb7630 ("ARM: OMAP3: Fix idle mode signaling for
+sys_clkreq and sys_off_mode")
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -112,6 +112,7 @@
+ #define OMAP3430_VC_CMD_ONLP_SHIFT			16
+ #define OMAP3430_VC_CMD_RET_SHIFT			8
+ #define OMAP3430_VC_CMD_OFF_SHIFT			0
++#define OMAP3430_SREN_MASK				(1 << 4)
+ #define OMAP3430_HSEN_MASK				(1 << 3)
+ #define OMAP3430_MCODE_MASK				(0x7 << 0)
+ #define OMAP3430_VALID_MASK				(1 << 24)
+--- a/arch/arm/mach-omap2/prm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
+@@ -35,6 +35,7 @@
+ #define OMAP4430_GLOBAL_WARM_SW_RST_SHIFT				1
+ #define OMAP4430_GLOBAL_WUEN_MASK					(1 << 16)
+ #define OMAP4430_HSMCODE_MASK						(0x7 << 0)
++#define OMAP4430_SRMODEEN_MASK						(1 << 4)
+ #define OMAP4430_HSMODEEN_MASK						(1 << 3)
+ #define OMAP4430_HSSCLL_SHIFT						24
+ #define OMAP4430_ICEPICK_RST_SHIFT					9
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -316,7 +316,8 @@ static void __init omap3_vc_init_pmic_signaling(struct voltagedomain *voltdm)
+ 	 * idle. And we can also scale voltages to zero for off-idle.
+ 	 * Note that no actual voltage scaling during off-idle will
+ 	 * happen unless the board specific twl4030 PMIC scripts are
+-	 * loaded.
++	 * loaded. See also omap_vc_i2c_init for comments regarding
++	 * erratum i531.
+ 	 */
+ 	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
+ 	if (!(val & OMAP3430_PRM_VOLTCTRL_SEL_OFF)) {
+@@ -704,9 +705,16 @@ static void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
+ 		return;
+ 	}
+ 
++	/*
++	 * Note that for omap3 OMAP3430_SREN_MASK clears SREN to work around
++	 * erratum i531 "Extra Power Consumed When Repeated Start Operation
++	 * Mode Is Enabled on I2C Interface Dedicated for Smart Reflex (I2C4)".
++	 * Otherwise I2C4 eventually leads into about 23mW extran power being
++	 * consumed even during off idle using VMODE.
++	 */
+ 	i2c_high_speed = voltdm->pmic->i2c_high_speed;
+ 	if (i2c_high_speed)
+-		voltdm->rmw(vc->common->i2c_cfg_hsen_mask,
++		voltdm->rmw(vc->common->i2c_cfg_clear_mask,
+ 			    vc->common->i2c_cfg_hsen_mask,
+ 			    vc->common->i2c_cfg_reg);
+ 
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -34,6 +34,7 @@ struct voltagedomain;
+  * @cmd_ret_shift: RET field shift in PRM_VC_CMD_VAL_* register
+  * @cmd_off_shift: OFF field shift in PRM_VC_CMD_VAL_* register
+  * @i2c_cfg_reg: I2C configuration register offset
++ * @i2c_cfg_clear_mask: high-speed mode bit clear mask in I2C config register
+  * @i2c_cfg_hsen_mask: high-speed mode bit field mask in I2C config register
+  * @i2c_mcode_mask: MCODE field mask for I2C config register
+  *
+@@ -52,6 +53,7 @@ struct omap_vc_common {
+ 	u8 cmd_ret_shift;
+ 	u8 cmd_off_shift;
+ 	u8 i2c_cfg_reg;
++	u8 i2c_cfg_clear_mask;
+ 	u8 i2c_cfg_hsen_mask;
+ 	u8 i2c_mcode_mask;
+ };
+--- a/arch/arm/mach-omap2/vc3xxx_data.c
++++ b/arch/arm/mach-omap2/vc3xxx_data.c
+@@ -40,6 +40,7 @@ static struct omap_vc_common omap3_vc_common = {
+ 	.cmd_onlp_shift	 = OMAP3430_VC_CMD_ONLP_SHIFT,
+ 	.cmd_ret_shift	 = OMAP3430_VC_CMD_RET_SHIFT,
+ 	.cmd_off_shift	 = OMAP3430_VC_CMD_OFF_SHIFT,
++	.i2c_cfg_clear_mask = OMAP3430_SREN_MASK,
+ 	.i2c_cfg_hsen_mask = OMAP3430_HSEN_MASK,
+ 	.i2c_cfg_reg	 = OMAP3_PRM_VC_I2C_CFG_OFFSET,
+ 	.i2c_mcode_mask	 = OMAP3430_MCODE_MASK,
+--- a/arch/arm/mach-omap2/vc44xx_data.c
++++ b/arch/arm/mach-omap2/vc44xx_data.c
+@@ -42,6 +42,7 @@ static const struct omap_vc_common omap4_vc_common = {
+ 	.cmd_ret_shift = OMAP4430_RET_SHIFT,
+ 	.cmd_off_shift = OMAP4430_OFF_SHIFT,
+ 	.i2c_cfg_reg = OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET,
++	.i2c_cfg_clear_mask = OMAP4430_SRMODEEN_MASK,
+ 	.i2c_cfg_hsen_mask = OMAP4430_HSMODEEN_MASK,
+ 	.i2c_mcode_mask	 = OMAP4430_HSMCODE_MASK,
+ };
