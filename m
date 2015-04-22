@@ -1,54 +1,46 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 5/5] ASoC: omap-hdmi-audio: Fix invalid combination of
- DM_INH and CA
-Date: Wed, 22 Apr 2015 20:33:13 +0100
-Message-ID: <20150422193313.GH22845@sirena.org.uk>
-References: <cover.1429705991.git.jsarha@ti.com>
- <79f95cefe5f69f90698520adab90ce83b8539bf8.1429705991.git.jsarha@ti.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: [BUG?] drivers: net:ethernet: cpsw: add support for VLAN
+Date: Thu, 23 Apr 2015 00:28:22 +0200
+Message-ID: <1429741702.29353.28.camel@mars>
+Reply-To: chf.fritz@googlemail.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="ihETVmeDfwOC2qSl"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52659 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756668AbbDVTdS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2015 15:33:18 -0400
-Content-Disposition: inline
-In-Reply-To: <79f95cefe5f69f90698520adab90ce83b8539bf8.1429705991.git.jsarha@ti.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:34774 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753766AbbDVW20 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2015 18:28:26 -0400
+Received: by wicmx19 with SMTP id mx19so4516616wic.1
+        for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2015 15:28:25 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, misael.lopez@ti.com
+To: Mugunthan V N <mugunthanvnm@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi,
 
---ihETVmeDfwOC2qSl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ has commit 3b72c2fe0c6bbec42e ("drivers: net:ethernet: cpsw: add
+support for VLAN") introduced a bug by defining CPSW_VLAN_AWARE as
+BIT(1) instead of BIT(2)?
 
-On Wed, Apr 22, 2015 at 04:23:01PM +0300, Jyri Sarha wrote:
-> From: Misael Lopez Cruz <misael.lopez@ti.com>
->=20
-> DM_INH =3D 1 (stereo downmix prohibited) and CA =3D 0x00 (Channel
-> Allocation: FR, FL) is an invalid combination according to the
-> HDMI Compliance Test 7.31 "Audio InfoFrame".
++#define CPSW_VLAN_AWARE		BIT(1)
+<snip>
+ 	/* switch to vlan unaware mode */
+-	cpsw_ale_control_set(priv->ale, 0, ALE_VLAN_AWARE, 0);
++	cpsw_ale_control_set(priv->ale, priv->host_port, ALE_VLAN_AWARE,
++			     CPSW_ALE_VLAN_AWARE);
++	control_reg = readl(&priv->regs->control);
++	control_reg |= CPSW_VLAN_AWARE;
++	writel(control_reg, &priv->regs->control);
 
-Acked-by: Mark Brown <broonie@kernel.org>
+See TRM [1] page 1980 (14.5.1.2 CONTROL Register), there bit
+CPSW_VLAN_AWARE is number 2.
 
---ihETVmeDfwOC2qSl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I didn't do any tests, just stumbled upon.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+[1]: http://www.ti.com/lit/ug/spruh73l/spruh73l.pdf
 
-iQEcBAEBCAAGBQJVN/d5AAoJECTWi3JdVIfQ1B0H/RH1CMCOvjHT11HvPlHGbq3q
-pWbWilp+CkrdaNu2T7rPbHj2yP++zhNohGPFAiadxOSixt8VBXEWArJFnFN/9aBC
-i6wcKu68JZw13aA6MPj7yHim5wmCSSeJ9IhBVZ1Ja3Lm8SU3fy/t1ESx22NZqCCf
-dI5iGiXZaFZ/Z1KML+G+gzcSCHCcn8bHFffZVG0FdMkItED0aOEl01RQuI0DYnFh
-7AfhTgBngELmoMW2LFcz8Y5515Oi+r0UKtm7gQ3mAtxXHAg4AnT//18zpTifxPSU
-glS8gTAvy5xHUFghp5ZnoGY3SgAMa06n1oJuou5BHVBvNBLKPYQUGKVcilSOvYg=
-=02az
------END PGP SIGNATURE-----
+Thanks
+ -- Christoph
 
---ihETVmeDfwOC2qSl--
