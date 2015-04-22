@@ -1,105 +1,76 @@
-From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Subject: Re: [PATCH V2] drivers/rtc/rtc-ds1307.c: Enable the mcp794xx alarm
- after programming time
-Date: Wed, 22 Apr 2015 16:26:01 +0300
-Message-ID: <5537A169.206@linaro.org>
-References: <1429577494-15087-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/1] gpio: omap: Fix PM runtime issue and remove most
+ BANK_USED macros
+Date: Wed, 22 Apr 2015 09:20:02 -0500
+Message-ID: <20150422142002.GA22596@saruman.tx.rr.com>
+References: <1429632533-23285-1-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:33612 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756400AbbDVN0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2015 09:26:06 -0400
-Received: by lbbzk7 with SMTP id zk7so180058840lbb.0
-        for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2015 06:26:05 -0700 (PDT)
-In-Reply-To: <1429577494-15087-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1429632533-23285-1-git-send-email-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@linaro.org>, Javier Martinez Canillas <jmartinez@softcrates.net>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
 
-Hi,
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 04/21/2015 03:51 AM, Nishanth Menon wrote:
-> Alarm interrupt enable register is at offset 0x7, while the time
-> registers for the alarm follow that. When we program Alarm interrupt
-> enable prior to programming the time, it is possible that previous
-> time value could be close or match at the time of alarm enable
-> resulting in interrupt trigger which is unexpected (and does not match
-> the time we expect it to trigger).
-> 
-> To prevent this scenario from occuring, program the ALM0_EN bit only
-> after the alarm time is appropriately programmed.
-> 
-> Ofcourse, I2C programming is non-atomic, so there are loopholes where
-> the interrupt wont trigger if the time requested is in the past at
-> the time of programming the ALM0_EN bit. However, we will not have
-> unexpected interrupts while the time is programmed after the interrupt
-> are enabled.
+On Tue, Apr 21, 2015 at 09:08:53AM -0700, Tony Lindgren wrote:
+> Looks like omap_gpio_irq_type can return early at several places
+> leaving a GPIO bank enabled without doing pm_runtime_put if wrong
+> GPIO arguments are passed.
+>=20
+> Instead of adding more complicated BANK_USED macros, let's fix the
+> issue properly. We can pass is_irq flag to omap_enable_gpio_module
+> and omap_disble_gpio_module. And with that we can remove all the
+> similar code elsewhere to get rid of most BANK_USED macros.
+>=20
+> Note that the reason for the BANK_USED macro is that we need to manage
+> PM runtime on per GPIO bank basis. In the long run we want to move to
+> using PM runtime counts for each GPIO line to determine if a GPIO
+> bank is used. Once we have a solution for omap_enable_gpio_module
+> and omap_disable_gpio_module, we can remove the remaining BANK_USED
+> macros.
+>=20
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
+> Cc: Javier Martinez Canillas <jmartinez@softcrates.net>
+> Cc: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I think it will be nice if you will mention that you going to follow
-vendor recommendations - AN1491 Configuring the MCP794XX RTCC Family
-http://ww1.microchip.com/downloads/en/AppNotes/01491A.pdf
-;)
-"Also, it is recommended that the alarm registers be loaded
-before the alarm is enabled."
+looks ok to my eyes.
 
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> Changes in v2:
-> 	- minor typo fix in comments
-> 	- merged up code that I missed committing in
-> 
-> V1: https://patchwork.kernel.org/patch/6245041/
-> 
->   drivers/rtc/rtc-ds1307.c |   12 ++++++------
->   1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-> index 4ffabb322a9a..3cd4783375a5 100644
-> --- a/drivers/rtc/rtc-ds1307.c
-> +++ b/drivers/rtc/rtc-ds1307.c
-> @@ -742,17 +742,17 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
->   	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
->   	/* Set alarm match: second, minute, hour, day, date, month. */
->   	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
-> -
-> -	if (t->enabled)
-> -		regs[0] |= MCP794XX_BIT_ALM0_EN;
-> -	else
-> -		regs[0] &= ~MCP794XX_BIT_ALM0_EN;
-> +	/* Disable interrupt. We will not enable until completely programmed */
-> +	regs[0] &= ~MCP794XX_BIT_ALM0_EN;
->   
->   	ret = ds1307->write_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
->   	if (ret < 0)
->   		return ret;
->   
-> -	return 0;
-> +	if (!t->enabled)
-> +		return 0;
-> +	regs[0] |= MCP794XX_BIT_ALM0_EN;
-> +	return i2c_smbus_write_byte_data(client, MCP794XX_REG_CONTROL, regs[0]);
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-So, It seems, that right sequence should be:
-- disable alarmX
-- read alarmX regs
-- configure alarmX regs
-- load alarmX regs
-- enable alarmX
+--=20
+balbi
 
-More over, looks like, alarm/alarm IRQ should be enabled/disabled separately from set_alarm/RTC_ALM_SET
-by RTC_AIE_ON, RTC_AIE_OFF. Should it?
+--sdtB3X0nJg68CQEu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->   }
->   
->   static int mcp794xx_alarm_irq_enable(struct device *dev, unsigned int enabled)
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iQIcBAEBAgAGBQJVN64SAAoJEIaOsuA1yqRE3f8P/1SK95u0gCkfieFT5CG9wnuh
+mzXaBs0zLJO9IGuu2vv89CPgGwdtm5q8kv/0WYmwBN9NTkIApMfxyzIZ1Ao8H5aI
+ZX6uM46yRwrpbaeVsWUn7sB99XJEIz1CDYq4awRl51J2EQlfF2oUfOAzqD4EMOPq
+XEj2cdBx2yE/gQWFClUY2mxCgqSGQhvHcT5Q8KABE+hMVu21cS6gitZ4ge7X+9EO
+e0cceLGSVyhOiPUR0Yt6uCcmwLz9Q7+4koCyTvnSPuH8rzcaNV2Mm40gFr0ItFEd
+RDWoigsGjMSjYsOOkaWN2jKKW8V7VSchodefgD8HoLjej5LfsxdCs1yJFbSVr6sX
+LWqf1fZMJyMrtHtl4pN5yHrKU4usFQIQYpbdLksON9U3LmYWE2WPZMJ3U0cZZ0fn
+yw3t0u+UXbqRLDNofVgcbQs17Zvb0qlWfWGtFyjV/cmpc8bsnf1Ov/ERBdhEpA8w
+yJ7g3Oy22tyPynGDno82Bdp4bxvtxMsuTJTTgkREkdH3Btsl0Yf0qqm1rBzaND0S
+Stuy4R1qA7YFBrXNRryI3ymNPZvqFvD+YYBQsQU67c11Lp0gTpgmNq5qxmnb9vGh
+aldWn2u8tIY4691OglEnLG6rMBa/7LkmcwS26oVOryOMwoy7C651kEm9Hjw5Qk2+
+B0Lgv8qDJpZ00knko7k6
+=4tDk
+-----END PGP SIGNATURE-----
 
--- 
-regards,
--grygorii
+--sdtB3X0nJg68CQEu--
