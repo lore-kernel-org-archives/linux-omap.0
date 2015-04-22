@@ -1,201 +1,146 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: Fix omap3 off idle power consumption
- creeping up
-Date: Tue, 21 Apr 2015 21:09:18 -0500
-Message-ID: <553702CE.2030308@ti.com>
-References: <1429632619-23474-1-git-send-email-tony@atomide.com> <20150421214718.GN18048@atomide.com> <20150421221227.GA9919@kahuna> <20150422010026.GO18048@atomide.com>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [RFC][PATCH v2 00/13] USB: OTG/DRD Core functionality
+Date: Wed, 22 Apr 2015 10:17:24 +0800
+Message-ID: <20150422021723.GB2680@shlinux2>
+References: <1429008120-5395-1-git-send-email-rogerq@ti.com>
+ <20150420030531.GA30878@shlinux2> <5534AA8C.1070400@ti.com>
+ <BY1PR0301MB0855ACDA4337AE3FC7F616E081EF0@BY1PR0301MB0855.namprd03.prod.outlook.com>
+ <5535FD69.6070900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50656 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753798AbbDVCJx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Apr 2015 22:09:53 -0400
-In-Reply-To: <20150422010026.GO18048@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5535FD69.6070900@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "balbi@ti.com" <balbi@ti.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Jun.Li@freescale.com" <Jun.Li@freescale.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "macpaul@gmail.com" <macpaul@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Tero Kristo <t-kristo@ti.com>
 
-On 04/21/2015 08:00 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [150421 15:13]:
->> On 14:47-20150421, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [150421 09:24]:
->>>> If we use a combination of VMODE and I2C4 for retention modes,
->>>> eventually the off idle power consumption will creep up by about
->>>> 23mW, even during off mode with I2C4 always staying enabled.
->>>>
->>>> Looks like the only way to fix the extra power consumption is to
->>>> disable I2C4 usage by setting SEL_VMODE for both off idle and
->>>> retention idle. Let's also update the comments accordingly.
->>>
->>> Thanks Nishanth for pointing me to the related SmartReflex I2C4
->>> erratum. No need to disable I2C4 with the SREN workaround :)
->>>
->>> Better patch below, presumably this only affects omap3?
->>
->> SREN applies to both OMAP3 and 4 - so, the patch looks right.
+On Tue, Apr 21, 2015 at 10:34:01AM +0300, Roger Quadros wrote:
+> On 21/04/15 09:04, Peter Chen wrote:
+> >  
+> >>
+> >> On 20/04/15 06:05, Peter Chen wrote:
+> >>> On Tue, Apr 14, 2015 at 01:41:47PM +0300, Roger Quadros wrote:
+> >>>> This is an attempt to centralize OTG/Dual-role functionality in the kernel.
+> >>>> As of now I've got Dual-role functionality working pretty reliably on
+> >>>> dra7-evm. xhci side of things for OTG/DRD use are fixed in
+> >>>> http://thread.gmane.org/gmane.linux.kernel/1923161
+> >>>
+> >>> Hi Roger,
+> >>>
+> >>> Currently, there are two main problems for DRD/OTG framework.
+> >>>
+> >>> - For multi-platform supports, we may define CONFIG_USB_OTG, but the
+> >>> gadget should not add its otg descriptor to its configuration
+> >>> descriptors if it does not support one of otg features (SRP/HNP/ADP).
+> >>> Macpaul Lin's patch set [1] is the right way to do it.
+> >>
+> >> Agreed. That check (whether OTG descriptor can be added and which version
+> >> of it) has to be done at runtime and it must be added only if hardware supports
+> >> OTG _and_ kernel OTG support is enabled.
+> >>
+> > 
+> > Ok, let's put this patch set in mainline first, since your patch set may need some
+> > information from it.
+> >  
+> >>> - We are lack of framework to handle OTG (DRD) switch, it is great you
+> >>> are designing it. The main problem for this framework is how to handle
+> >>> DRD/OTG FSM unify. My thought is we add two paths for them separate.
+> >>> For easy, I suggest if the platform supports one of otg features, then
+> >>> it goes to fully otg fsm, else it goes to simply otg fsm (like your
+> >>> drd fsm). If you agree with it too, you may not need to add another
+> >> "dr_mode"
+> >>> value.
+> >>
+> >> It would be nice that way but unfortunately it does't work in all cases.
+> >> e.g. What if the SoC itself supports all OTG features but the board is not
+> >> designed for OTG. Or the product designer simply is not interested in full OTG
+> >> support but just dual-role. So we need some flexibility for the device
+> >> tree/platform-data to specify that. This is where a new "dr_mode" == "dual-
+> >> role" is needed.
+> >>
+> > 
+> > Since "dr_mode" has been widely used now, if we add a new property for it,  we
+> > need to change all drivers.
+> > 
+> > Your OTG/DRD framework needs to (partial) use otg fsm, and we will not teach old
+> > driver to use it since there are some driver related stuffs.
 > 
-> Oh OK, I was missing setting the clear bit for omap4. I've added
-> it now.
->  
->>> If we use a combination of VMODE and I2C4 for retention modes,
->>> eventually the off idle power consumption will creep up by about
->>> 23mW, even during off mode with I2C4 always staying enabled.
->>>
->>> Turns out this is because of erratum 2.11 "Extra Power Consumed
->> I suggest using the unique ID
->>
->> i531 - that remains constant across SoCs.
+> fair enough. Let's not change dr_mode then and decide based on other parameters.
 > 
-> OK thanks, updated patch below.
+> > 
+> > SRP/HNP/ADP support can be board level capabilities, and we may consider the
+> > otg device which does not support otg fsm (hardware finishes fsm). So I suggest
+> > we have below properties at dts:
+> > 
+> > - otg-support /* fully otg support */
+> > - otg-fsm-support /* fully otg fsm support */
 > 
-> Regards,
-> 
-> Tony
-> 
-> 8< ------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 21 Apr 2015 14:31:23 -0700
-> Subject: [PATCH] ARM: OMAP2+: Fix omap off idle power consumption creeping up
-> 
-> If we use a combination of VMODE and I2C4 for retention modes,
-> eventually the off idle power consumption will creep up by about
-> 23mW, even during off mode with I2C4 always staying enabled.
-> 
-> Turns out this is because of erratum i531 "Extra Power Consumed
-> When Repeated Start Operation Mode Is Enabled on I2C Interface
-> Dedicated for Smart Reflex (I2C4)" as pointed out by Nishanth
-> Menon <nm@ti.com>.
-> 
-> Let's fix the issue by adding i2c_cfg_clear_mask for the bits
-> to clear when initializing the I2C4 adapter so we can clear
-> SREN bit that drives the I2C4 lines low otherwise when there
-> is no traffic.
-> 
-> Fixes: 3b8c4ebb7630 ("ARM: OMAP3: Fix idle mode signaling for
-> sys_clkreq and sys_off_mode")
-> Cc: Kevin Hilman <khilman@kernel.org>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> @@ -112,6 +112,7 @@
->  #define OMAP3430_VC_CMD_ONLP_SHIFT			16
->  #define OMAP3430_VC_CMD_RET_SHIFT			8
->  #define OMAP3430_VC_CMD_OFF_SHIFT			0
-> +#define OMAP3430_SREN_MASK				(1 << 4)
->  #define OMAP3430_HSEN_MASK				(1 << 3)
->  #define OMAP3430_MCODE_MASK				(0x7 << 0)
->  #define OMAP3430_VALID_MASK				(1 << 24)
-> --- a/arch/arm/mach-omap2/prm-regbits-44xx.h
-> +++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
-> @@ -35,6 +35,7 @@
->  #define OMAP4430_GLOBAL_WARM_SW_RST_SHIFT				1
->  #define OMAP4430_GLOBAL_WUEN_MASK					(1 << 16)
->  #define OMAP4430_HSMCODE_MASK						(0x7 << 0)
-> +#define OMAP4430_SRMODEEN_MASK						(1 << 4)
->  #define OMAP4430_HSMODEEN_MASK						(1 << 3)
->  #define OMAP4430_HSSCLL_SHIFT						24
->  #define OMAP4430_ICEPICK_RST_SHIFT					9
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -316,7 +316,8 @@ static void __init omap3_vc_init_pmic_signaling(struct voltagedomain *voltdm)
->  	 * idle. And we can also scale voltages to zero for off-idle.
->  	 * Note that no actual voltage scaling during off-idle will
->  	 * happen unless the board specific twl4030 PMIC scripts are
-> -	 * loaded.
-> +	 * loaded. See also omap_vc_i2c_init for comments regarding
-> +	 * erratum i531.
->  	 */
->  	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
->  	if (!(val & OMAP3430_PRM_VOLTCTRL_SEL_OFF)) {
-> @@ -704,9 +705,16 @@ static void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
->  		return;
->  	}
->  
-> +	/*
-> +	 * Note that for omap3 OMAP3430_SREN_MASK clears SREN to work around
-> +	 * erratum i531 "Extra Power Consumed When Repeated Start Operation
-> +	 * Mode Is Enabled on I2C Interface Dedicated for Smart Reflex (I2C4)".
-> +	 * Otherwise I2C4 eventually leads into about 23mW extran power being
-nitpick: extran ;)
+> what is the difference between otg-support and otg-fsm-support?
 
-> +	 * consumed even during off idle using VMODE.
-> +	 */
->  	i2c_high_speed = voltdm->pmic->i2c_high_speed;
->  	if (i2c_high_speed)
-> -		voltdm->rmw(vc->common->i2c_cfg_hsen_mask,
-> +		voltdm->rmw(vc->common->i2c_cfg_clear_mask,
->  			    vc->common->i2c_cfg_hsen_mask,
->  			    vc->common->i2c_cfg_reg);
->  
-> --- a/arch/arm/mach-omap2/vc.h
-> +++ b/arch/arm/mach-omap2/vc.h
-> @@ -34,6 +34,7 @@ struct voltagedomain;
->   * @cmd_ret_shift: RET field shift in PRM_VC_CMD_VAL_* register
->   * @cmd_off_shift: OFF field shift in PRM_VC_CMD_VAL_* register
->   * @i2c_cfg_reg: I2C configuration register offset
-> + * @i2c_cfg_clear_mask: high-speed mode bit clear mask in I2C config register
->   * @i2c_cfg_hsen_mask: high-speed mode bit field mask in I2C config register
->   * @i2c_mcode_mask: MCODE field mask for I2C config register
->   *
-> @@ -52,6 +53,7 @@ struct omap_vc_common {
->  	u8 cmd_ret_shift;
->  	u8 cmd_off_shift;
->  	u8 i2c_cfg_reg;
-> +	u8 i2c_cfg_clear_mask;
->  	u8 i2c_cfg_hsen_mask;
->  	u8 i2c_mcode_mask;
->  };
-> --- a/arch/arm/mach-omap2/vc3xxx_data.c
-> +++ b/arch/arm/mach-omap2/vc3xxx_data.c
-> @@ -40,6 +40,7 @@ static struct omap_vc_common omap3_vc_common = {
->  	.cmd_onlp_shift	 = OMAP3430_VC_CMD_ONLP_SHIFT,
->  	.cmd_ret_shift	 = OMAP3430_VC_CMD_RET_SHIFT,
->  	.cmd_off_shift	 = OMAP3430_VC_CMD_OFF_SHIFT,
-> +	.i2c_cfg_clear_mask = OMAP3430_SREN_MASK,
+Like I mentioned at above, the hardware finishes HNP/SRP which does not
+use otg fsm code (usb-otg-fsm.c), most of legacy otg platforms (musb?)
+use this way, for these platforms, only need to set otg-support = 1
 
-I know that the prminst rmw current code does:
-v &= ~mask;
-v |= bits;
-and not
-v &= ~mask;
-v |= (bits & mask);
-but to maintain legacy behavior in case the PRCM cleanup sequences
-change anything..
+For platforms which software finishes HNP/SRP using otg fsm code, need
+to set both flags.
 
-	.i2c_cfg_clear_mask = OMAP3430_SREN_MASK | OMAP3430_HSEN_MASK,
-?
-or
-		voltdm->rmw(vc->common->i2c_cfg_clear_mask |
-  			    vc->common->i2c_cfg_hsen_mask,
-  			    vc->common->i2c_cfg_hsen_mask,
-  			    vc->common->i2c_cfg_reg);
+For platforms which only do role switch through id pin, do not need to
+set both.
 
-no strong feelings though...
+> 
+> > - otg-ver /* eh & otg supplement version */
+> 
+> we can get otg version from the OTG controller. What exactly is the
+> otg-ver in dts for?
 
->  	.i2c_cfg_hsen_mask = OMAP3430_HSEN_MASK,
->  	.i2c_cfg_reg	 = OMAP3_PRM_VC_I2C_CFG_OFFSET,
->  	.i2c_mcode_mask	 = OMAP3430_MCODE_MASK,
-> --- a/arch/arm/mach-omap2/vc44xx_data.c
-> +++ b/arch/arm/mach-omap2/vc44xx_data.c
-> @@ -42,6 +42,7 @@ static const struct omap_vc_common omap4_vc_common = {
->  	.cmd_ret_shift = OMAP4430_RET_SHIFT,
->  	.cmd_off_shift = OMAP4430_OFF_SHIFT,
->  	.i2c_cfg_reg = OMAP4_PRM_VC_CFG_I2C_MODE_OFFSET,
-> +	.i2c_cfg_clear_mask = OMAP4430_SRMODEEN_MASK,
->  	.i2c_cfg_hsen_mask = OMAP4430_HSMODEEN_MASK,
->  	.i2c_mcode_mask	 = OMAP4430_HSMCODE_MASK,
->  };
+Since most of otg stuffs are software's, eg, for otg descriptor, we will
+only use otg 2.0 descriptor when both CONFIG_USB_OTG20 and otg-ver = 20
+are set.
+
+> 
+> > - adp-support /* board adp support */ 
+> > - srp-support /* board srp support */
+> > - hnp-support /* board hnp support */
+> 
+> So if these options are not provided in DTS but the OTG core supports them then
+> we keep the respective feature disabled?
+
+Yes.
+
+> Won't this need dts change for existing boards?
+
+Does you know any dts based platform supports hnp/srp?
+For chipidea platform, currently, we depends on kernel
+configurations (CONFIG_USB_OTG_FSM), but it is incorrect way.
+
+> 
+> Instead how about having disable flags instead.
+>  - adp-disable	/* board doesn't support adp */
+>  - srp-disable	/* board doesn't support srp */
+>  - hnp-disable	/* board doesn't support hnp */
+> 
+> Now, if the flags are not provided in dts we use the OTG core's flags.
 > 
 
-otherwise, please feel to add:
-Reviewed-by: Nishanth Menon <nm@ti.com>
+How the OTG core's know if it supports these?
+
+> > 
+> > Currently, if CONFIG_USB_OTG and CONFIG_USB_OTG_FSM are enabled, we will
+> > have otg fsm code (usb-otg-fsm.c).
+> > 
+> > if (otg-support & otg-fsm-support)
+> > 	this device has fully otg support, and will follow full otg fsm transitions. 
+> > else
+> > 	this device is drd, and will follow simple otg fsm transtions. 
+> > 
+> 
+> cheers,
+> -roger
+> 
 
 -- 
-Regards,
-Nishanth Menon
+
+Best Regards,
+Peter Chen
