@@ -1,112 +1,115 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: omap-dma: Add support for memcpy
-Date: Wed, 22 Apr 2015 10:34:29 +0300
-Message-ID: <1429688069-31765-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v5 0/8] dmaengine/dra7x: DMA router (crossbar support)
+Date: Wed, 22 Apr 2015 10:38:27 +0300
+Message-ID: <55374FF3.1030003@ti.com>
+References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, linux@arm.linux.org.uk
-Cc: tony@atomide.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dan.j.williams@intel.com
+To: vinod.koul@intel.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
 
-The sDMA controller is capable of performing memory copy operation. It need
-to be configured to software triggered mode and without HW synchronization.
-The sDMA can copy data which is aligned to 8, 16 or 32 bits.
+On 04/09/2015 12:35 PM, Peter Ujfalusi wrote:
+> Vinod: is it OK if I send the Documnetation/dmanegine/ update a bit l=
+ater when
+> I have finished it?
+>=20
+> Changes since v4:
+> - Comments from Maxime Ripard addressed:
+>  - long line fixed in of-dma.c
+>  - node leaks has been fixed in ti-dma-crossbar
+>  - Using devm_ioremap_resource() in ti-dma-crossbar
+>  - u16 casting has been addressed
+> - Router drivers are expected to return with ERR_PTR in case their
+>   of_dma_route_allocate() callback fails.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 51 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
+Are there more comments I need to address with this series?
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 36e6a299af5c..1dfc71c90123 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -366,7 +366,7 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
- 	struct omap_sg *sg = d->sg + idx;
- 	unsigned cxsa, cxei, cxfi;
- 
--	if (d->dir == DMA_DEV_TO_MEM) {
-+	if (d->dir == DMA_DEV_TO_MEM || d->dir == DMA_MEM_TO_MEM) {
- 		cxsa = CDSA;
- 		cxei = CDEI;
- 		cxfi = CDFI;
-@@ -412,7 +412,7 @@ static void omap_dma_start_desc(struct omap_chan *c)
- 	if (dma_omap1())
- 		omap_dma_chan_write(c, CCR2, d->ccr >> 16);
- 
--	if (d->dir == DMA_DEV_TO_MEM) {
-+	if (d->dir == DMA_DEV_TO_MEM || d->dir == DMA_MEM_TO_MEM) {
- 		cxsa = CSSA;
- 		cxei = CSEI;
- 		cxfi = CSFI;
-@@ -957,6 +957,51 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 	return vchan_tx_prep(&c->vc, &d->vd, flags);
- }
- 
-+static struct dma_async_tx_descriptor *omap_dma_prep_dma_memcpy(
-+	struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
-+	size_t len, unsigned long tx_flags)
-+{
-+	struct omap_chan *c = to_omap_dma_chan(chan);
-+	struct omap_desc *d;
-+	uint8_t data_type;
-+
-+	d = kzalloc(sizeof(*d) + sizeof(d->sg[0]), GFP_ATOMIC);
-+	if (!d)
-+		return NULL;
-+
-+	data_type = __ffs((src | dest | len));
-+	if (data_type > CSDP_DATA_TYPE_32)
-+		data_type = CSDP_DATA_TYPE_32;
-+
-+	d->dir = DMA_MEM_TO_MEM;
-+	d->dev_addr = src;
-+	d->fi = 0;
-+	d->es = data_type;
-+	d->sg[0].en = len / BIT(data_type);
-+	d->sg[0].fn = 1;
-+	d->sg[0].addr = dest;
-+	d->sglen = 1;
-+	d->ccr = c->ccr;
-+	d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_POSTINC;
-+
-+	d->cicr = CICR_DROP_IE;
-+	if (tx_flags & DMA_PREP_INTERRUPT)
-+		d->cicr |= CICR_FRAME_IE;
-+
-+	d->csdp = data_type;
-+
-+	if (dma_omap1()) {
-+		d->cicr |= CICR_TOUT_IE;
-+		d->csdp |= CSDP_DST_PORT_EMIFF | CSDP_SRC_PORT_EMIFF;
-+	} else {
-+		d->csdp |= CSDP_DST_PACKED | CSDP_SRC_PACKED;
-+		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
-+		d->csdp |= CSDP_DST_BURST_64 | CSDP_SRC_BURST_64;
-+	}
-+
-+	return vchan_tx_prep(&c->vc, &d->vd, tx_flags);
-+}
-+
- static int omap_dma_slave_config(struct dma_chan *chan, struct dma_slave_config *cfg)
- {
- 	struct omap_chan *c = to_omap_dma_chan(chan);
-@@ -1102,12 +1147,14 @@ static int omap_dma_probe(struct platform_device *pdev)
- 
- 	dma_cap_set(DMA_SLAVE, od->ddev.cap_mask);
- 	dma_cap_set(DMA_CYCLIC, od->ddev.cap_mask);
-+	dma_cap_set(DMA_MEMCPY, od->ddev.cap_mask);
- 	od->ddev.device_alloc_chan_resources = omap_dma_alloc_chan_resources;
- 	od->ddev.device_free_chan_resources = omap_dma_free_chan_resources;
- 	od->ddev.device_tx_status = omap_dma_tx_status;
- 	od->ddev.device_issue_pending = omap_dma_issue_pending;
- 	od->ddev.device_prep_slave_sg = omap_dma_prep_slave_sg;
- 	od->ddev.device_prep_dma_cyclic = omap_dma_prep_dma_cyclic;
-+	od->ddev.device_prep_dma_memcpy = omap_dma_prep_dma_memcpy;
- 	od->ddev.device_config = omap_dma_slave_config;
- 	od->ddev.device_pause = omap_dma_pause;
- 	od->ddev.device_resume = omap_dma_resume;
--- 
-2.3.5
+Thanks,
+P=E9ter
+
+> Changes since v3:
+> - Comments from Russell:
+>  - Warnings removed in case of non DT boot when taking the DMA reques=
+t number
+>  - Reduced the number of channels presented to DMAengine
+>  - removed the dma_sig parameter from omap_dma_chan_init()
+> - Comments from Arnd:
+>  - dma-device property renamed to dma-masters
+>  - Allow list of phandes in dma-masters
+>=20
+> Changes since v2:
+> - not using regmap for the TI crossbar driver.
+>=20
+> Changes since v1:
+> - Comments from Russell King and  Paul Bolle addressed:
+>  - Use the added defined in the omap-dma changes
+>  - MODULE_* removed from the ti-dma-crossbar driver.
+> - DMA router documentation: do not limit the #dma-cells to be the sam=
+e as the
+>   dma controller's #dma-cells. It might be possible to have a router =
+which needs
+>   more information than the DMA controller (direct request pairing fo=
+r example)
+> - Use defines in the ti-dma-crossbar driver
+> - Binding document for the ti-dma-crossbar driver
+>=20
+> Intro mail from v1:
+>=20
+> The series adds support for DMA router type of devices. They are used=
+ in SoCs
+> which has more peripherals with DMA request lines than the DMA contro=
+ller can
+> handle.
+> The router itself is not part of the DMA controller and it's operatio=
+n should be
+> transparent (as it is in the HW) for the SW stack.
+>=20
+> This series takes into accound the comments Sricharan received for hi=
+s version
+> of the crossbar driver:
+> https://lkml.org/lkml/2014/3/7/199
+>=20
+> This implementation is not tied to any DMA driver so it is possible t=
+o use the
+> framework by other vendors, also ACPI version of binding can be easy =
+enough to
+> be added.
+>=20
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (8):
+>   dmaengine: of_dma: Support for DMA routers
+>   Documentation: devicetree: dma: Binding documentation for TI DMA
+>     crossbar
+>   dmaengine: Add driver for TI DMA crossbar on DRA7x
+>   dmaengine: omap-dma: Use defines for dma channels and request count
+>   dmaengine: omap-dma: Take DMA request number from DT if it is
+>     available
+>   dmaengine: omap-dma: Remove mapping between virtual channels and
+>     requests
+>   dmaengine: omap-dma: Reduce the number of virtual channels
+>   ARM: DTS: dra7x: Integrate sDMA crossbar
+>=20
+>  Documentation/devicetree/bindings/dma/dma.txt      |  28 +++
+>  .../devicetree/bindings/dma/ti-dma-crossbar.txt    |  52 ++++++
+>  arch/arm/boot/dts/dra7.dtsi                        |  57 ++++---
+>  drivers/dma/Kconfig                                |   4 +
+>  drivers/dma/Makefile                               |   1 +
+>  drivers/dma/dmaengine.c                            |   7 +
+>  drivers/dma/of-dma.c                               |  89 ++++++++++
+>  drivers/dma/omap-dma.c                             |  29 +++-
+>  drivers/dma/ti-dma-crossbar.c                      | 188 +++++++++++=
+++++++++++
+>  include/linux/dmaengine.h                          |  17 ++
+>  include/linux/of_dma.h                             |  21 +++
+>  11 files changed, 463 insertions(+), 30 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/dma/ti-dma-cros=
+sbar.txt
+>  create mode 100644 drivers/dma/ti-dma-crossbar.c
+>=20
