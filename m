@@ -1,66 +1,146 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH] omap: i2c: Add calls for pinctrl state select
-Date: Thu, 23 Apr 2015 13:31:13 +0200
-Message-ID: <20150423113113.GA19918@katana>
-References: <1429283277-28161-1-git-send-email-pascal.huerst@gmail.com>
- <20150422081240.GH1511@katana>
- <553760D4.4020506@gmail.com>
- <20150422102830.GA1523@katana>
- <55377C9E.5090904@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2] drivers/rtc/rtc-ds1307.c: Enable the mcp794xx alarm
+ after programming time
+Date: Thu, 23 Apr 2015 08:11:41 -0500
+Message-ID: <5538EF8D.5050209@ti.com>
+References: <1429577494-15087-1-git-send-email-nm@ti.com> <5537A169.206@linaro.org> <55383625.3070108@ti.com> <5538C6C2.5010508@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55377C9E.5090904-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5538C6C2.5010508@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
 List-Id: linux-omap@vger.kernel.org
 
-
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Apr 22, 2015 at 12:49:02PM +0200, Pascal Huerst wrote:
+On 04/23/2015 05:17 AM, Grygorii.Strashko@linaro.org wrote:
+> On 04/23/2015 03:00 AM, Nishanth Menon wrote:
+>> On 04/22/2015 08:26 AM, Grygorii.Strashko@linaro.org wrote:
+>>> Hi,
+>>>
+>>> On 04/21/2015 03:51 AM, Nishanth Menon wrote:
+>>>> Alarm interrupt enable register is at offset 0x7, while the time
+>>>> registers for the alarm follow that. When we program Alarm interru=
+pt
+>>>> enable prior to programming the time, it is possible that previous
+>>>> time value could be close or match at the time of alarm enable
+>>>> resulting in interrupt trigger which is unexpected (and does not m=
+atch
+>>>> the time we expect it to trigger).
+>>>>
+>>>> To prevent this scenario from occuring, program the ALM0_EN bit on=
+ly
+>>>> after the alarm time is appropriately programmed.
+>>>>
+>>>> Ofcourse, I2C programming is non-atomic, so there are loopholes wh=
+ere
+>>>> the interrupt wont trigger if the time requested is in the past at
+>>>> the time of programming the ALM0_EN bit. However, we will not have
+>>>> unexpected interrupts while the time is programmed after the inter=
+rupt
+>>>> are enabled.
+>>>
+>>> I think it will be nice if you will mention that you going to follo=
+w
+>>> vendor recommendations - AN1491 Configuring the MCP794XX RTCC Famil=
+y
+>>> http://ww1.microchip.com/downloads/en/AppNotes/01491A.pdf
+>>> ;)
+>>> "Also, it is recommended that the alarm registers be loaded
+>>> before the alarm is enabled."
+>>>
+>>
+>> Hmm... i did not know that existed, thanks for digging it up.. that
+>> teaches me to look for docs before putting a scope/LA on the board
+>> (not that I regret doing that)... That said, reading the app note, I
+>> kind of realized:
+>> a) that playing with ST bit for programming time is not done, but
+>> then, that implies that oscillator will have to be restarted (upto a
+>> few seconds for certain crystals).. but that said, it does not seem
+>> mandatory or seem to (yet seen) functional issues...
+>>
+>> b) We dont have flexibility yet to describe if we do indeed have a
+>> backup battery or not - VBATEN should be set only if we have a backu=
+p
+>> battery on the platform :( - on some it might even be optional thank=
+s
+>> to certain compliance requirements of shipping boards internationall=
+y
+>> and general "unlike" of lithium ion in cargo hold..
+>>
+>> c) we dont have capability to control the alarm polarity in the driv=
+er
+>> which, by the way, we probably should also control OUT polarity (whe=
+n
+>> ALARM is not asserted)..
+>>
+>> d) we dont have support for external 32k oscillator(X1 only) instead
+>> of assuming we always have a 32k crystal(X1 and X2)...
+>>
+>> Ugghhh... more cleaning up to do for the future..
+>>
+>> that said, the sequence it does recommend (in page 4):
+>> The following steps show how the Alarm 0 is config-
+>> ured. Alarm 1 can be configured in the same manner.
+>> 1.    Write 0x23 to the Alarm0 Seconds register
+>> [0x0A].
+>> 2.    Write 0x47 to the Alarm0 Minutes register
+>> [0x0B].
+>> 3.    Write 0x71 to the Alarm0 Hours register [0x0C]
+>> =96 11 hours in 12-hour format.
+>> 4.    Write 0x72 to the Alarm0 Day register [0x0D] =96
+>> Tuesday + Alarm Polarity Low + Match on all.
+>> The Alarm0 Interrupt Flag is also cleared.
+>> 5.    Write 0x14 to the Alarm0 Date register [0x0E].
+>> 6.    Write 0x08 to the Alarm0 Month register [0x0F].
+>> With all the Alarm0 registers set we can now activate
+>> the Alarm0 on the Control register.
+>> 7.    Write 0x10 to the Control register [0x07] =96
+>> Alarm0 enabled no CLKOUT, Alarm1 disabled
+>>
+>> before this patch we do ( http://pastebin.ubuntu.com/10863880/)
+>> 	CONTROL r[7] =3D 0x90 (OUT=3D1, ALM0EN=3D1)
+>> 	OSCTRIM r[8] =3D 0x00
+>> 	EEUNLOCK r[9] =3D 0x00
+>> 	ALM0SEC r[A] =3D 0x01
+>> 	ALM0MIN r[B] =3D 0x45
+>> 	ALM0HOUR r[C] =3D 0x23
+>> 	ALM0WKDAY r[D] =3D 0x75 <-ALMOIF is cleared
+>> 	ALM0DATE r[E] =3D 0x09
+>> 	ALM0MTH r[F] =3D 0x04
+>> 	RSRVED r[10] =3D 0x01
+>>
+>> with this patch, we do:
+>> burst(	CONTROL r[7] =3D 0x80 (OUT=3D1)
+>> 	OSCTRIM r[8] =3D 0x00
+>> 	EEUNLOCK r[9] =3D 0x00
+>> 	ALM0SEC r[A] =3D 0x01
+>> 	ALM0MIN r[B] =3D 0x45
+>> 	ALM0HOUR r[C] =3D 0x23
+>> 	ALM0WKDAY r[D] =3D 0x75 <-ALMOIF is cleared
+>> 	ALM0DATE r[E] =3D 0x09
+>> 	ALM0MTH r[F] =3D 0x04
+>> 	RSRVED r[10] =3D 0x01
+>> )
+>> 	CONTROL r[7] =3D 0x90 (OUT=3D1, ALM0EN=3D1)
+>>
+>> Which is slightly unoptimal way of what the app note recommends. - a=
+s
+>> I mentioned earlier in this thread, I will try and do optimizations =
+in
+>> a later patch.
+>>
+>> Given that Andrew had picked up this patch, I dont see a reason to
+>> respin this yet. but will include the app note for future patches -
+>> thanks for pointing it out to me.
 >=20
->=20
-> On 22.04.2015 12:28, Wolfram Sang wrote:
-> > I assume you have a different kernel config where something is enabled
-> > which includes the pinctrl-stuff in another include which is included
-> > by these drivers. Although, my .config was arm-allyesconfig. Can you
-> > send yours?
->=20
-> Sure. See below.
+> ^^ Up to you. Np, Always yours!
 
-Thanks. device.h includes pinctrl/devinfo.h which includes
-pinctrl/consumer.h iff CONFIG_PINCTRL is enabled. So, seems my
-build-system didn't pick allyesconfig but another config with PINCTRL
-disabled. Will fix the st driver now, thanks for reporting!
+Considering the narrow focus of the current patch (which does fix an
+issue that it attempts to), can I get an Ack?
 
 
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVONgBAAoJEBQN5MwUoCm2ngoP/iCpsWrJiQ8Wvu0k39Y4X8b1
-rpG7ND3R7njlgQZUCSbCCflmPdNFsTsLfZjbw3DjWRyqlus2VsNkyoyKFTM11bOU
-nBQHdbxu5KyvOe+cVX+tJpPY0KuNSS4nfpCckpa62HYzwNRXvEuI3kBwPSdE3UnZ
-G3Wf5+JS/M7EV7a7cZGxRROiQpeEEl7EOCMrw+7okraY/vY6E5Y2Nz5py3IsipHd
-mC4lwOKCiQHbCRMtfUXFU5lzFatSxDS7yx0MiLxOg4t1oGYVeDRD2UcCoH2nRp3D
-dvHIQwuRZgSXgzZUUbXwf5lWY8fbWHzdHD62q8jt3gXI7SN3bCG8MbGXwKQY5o4c
-0pI2atS79s5+YtRvv5lJd862WXd0ht2RONLess2fEoYRsYID/JB4teeBA7VKsjXY
-UMlBZQr+pKRwYgFBVE2ckZmLOT5gY+9ZLGVTlaEX0Z+bJLTV4Sa+Ln2Nmq1EEMzc
-GFWcnsZsjAXEpk9DIa6FutzlVvZLWkcJq8lIbYiilzmV43hweRf4T2/XYzFTyRqN
-1stpHbxIVwvFO8HlIS9k9E85gbE4q9pQpqbuV4IHpcaEGXNcEMGmiiF4AU4LYJ+t
-e6ueDIg6cKoRb+GJ9yM/hjQHsFo65vSKZ/yt5rVPGkp/fVh3XN3qjFdGEoH7dxRh
-UZzpktX+Q/kkVbKJnYHW
-=siIk
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
+--=20
+Regards,
+Nishanth Menon
