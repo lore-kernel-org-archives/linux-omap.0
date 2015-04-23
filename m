@@ -1,105 +1,72 @@
 From: Rajendra Nayak <rnayak@codeaurora.org>
-Subject: [PATCH 1/5] PM / clock_ops: Provide default runtime ops to users
-Date: Thu, 23 Apr 2015 14:03:09 +0530
-Message-ID: <1429777993-11702-2-git-send-email-rnayak@codeaurora.org>
+Subject: [PATCH 4/5] arm: davinci: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+Date: Thu, 23 Apr 2015 14:03:12 +0530
+Message-ID: <1429777993-11702-5-git-send-email-rnayak@codeaurora.org>
 References: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org>
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-sh-owner@vger.kernel.org>
 In-Reply-To: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org>
-Sender: linux-pm-owner@vger.kernel.org
+Sender: linux-sh-owner@vger.kernel.org
 To: rjw@rjwysocki.net, ssantosh@kernel.org, tony@atomide.com, khilman@kernel.org, nsekhar@ti.com, magnus.damm@gmail.com, geert@linux-m68k.org
 Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-Most users of PM clocks do the extact same things in the runtime
-suspend/resume callbacks. Provide them USE_PM_CLK_RUNTIME_OPS so
-as to avoid/remove boilerplate code.
+USE_PM_CLK_RUNTIME_OPS is introduced so we don't repeat the same code
+to do runtime_suspend and runtime_resume across users of PM clocks.
+Use it to remove the boilerplate code.
 
 Signed-off-by: Rajendra Nayak <rnayak@codeaurora.org>
 Reviewed-by: Kevin Hilman <khilman@linaro.org>
 Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
 Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/base/power/clock_ops.c | 38 ++++++++++++++++++++++++++++++++++++++
- include/linux/pm_clock.h       | 10 ++++++++++
- 2 files changed, 48 insertions(+)
+ arch/arm/mach-davinci/pm_domain.c | 32 +-------------------------------
+ 1 file changed, 1 insertion(+), 31 deletions(-)
 
-diff --git a/drivers/base/power/clock_ops.c b/drivers/base/power/clock_ops.c
-index 7fdd017..8abea66 100644
---- a/drivers/base/power/clock_ops.c
-+++ b/drivers/base/power/clock_ops.c
-@@ -15,6 +15,7 @@
- #include <linux/clkdev.h>
- #include <linux/slab.h>
- #include <linux/err.h>
-+#include <linux/pm_runtime.h>
+diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
+index 641edc3..78eac2c 100644
+--- a/arch/arm/mach-davinci/pm_domain.c
++++ b/arch/arm/mach-davinci/pm_domain.c
+@@ -14,39 +14,9 @@
+ #include <linux/pm_clock.h>
+ #include <linux/platform_device.h>
  
- #ifdef CONFIG_PM
- 
-@@ -367,6 +368,43 @@ static int pm_clk_notify(struct notifier_block *nb,
- 	return 0;
- }
- 
-+int pm_clk_runtime_suspend(struct device *dev)
-+{
-+	int ret;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	ret = pm_generic_runtime_suspend(dev);
-+	if (ret) {
-+		dev_err(dev, "failed to suspend device\n");
-+		return ret;
-+	}
-+
-+	ret = pm_clk_suspend(dev);
-+	if (ret) {
-+		dev_err(dev, "failed to suspend clock\n");
-+		pm_generic_runtime_resume(dev);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+int pm_clk_runtime_resume(struct device *dev)
-+{
-+	int ret;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	ret = pm_clk_resume(dev);
-+	if (ret) {
-+		dev_err(dev, "failed to resume clock\n");
-+		return ret;
-+	}
-+
-+	return pm_generic_runtime_resume(dev);
-+}
-+
- #else /* !CONFIG_PM */
- 
- /**
-diff --git a/include/linux/pm_clock.h b/include/linux/pm_clock.h
-index 0b00396..25266c6 100644
---- a/include/linux/pm_clock.h
-+++ b/include/linux/pm_clock.h
-@@ -20,6 +20,16 @@ struct pm_clk_notifier_block {
- 
- struct clk;
- 
-+#ifdef CONFIG_PM
-+extern int pm_clk_runtime_suspend(struct device *dev);
-+extern int pm_clk_runtime_resume(struct device *dev);
-+#define USE_PM_CLK_RUNTIME_OPS \
-+	.runtime_suspend = pm_clk_runtime_suspend, \
-+	.runtime_resume = pm_clk_runtime_resume,
-+#else
-+#define USE_PM_CLK_RUNTIME_OPS
-+#endif
-+
- #ifdef CONFIG_PM_CLK
- static inline bool pm_clk_no_clocks(struct device *dev)
- {
+-#ifdef CONFIG_PM
+-static int davinci_pm_runtime_suspend(struct device *dev)
+-{
+-	int ret;
+-
+-	dev_dbg(dev, "%s\n", __func__);
+-
+-	ret = pm_generic_runtime_suspend(dev);
+-	if (ret)
+-		return ret;
+-
+-	ret = pm_clk_suspend(dev);
+-	if (ret) {
+-		pm_generic_runtime_resume(dev);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-static int davinci_pm_runtime_resume(struct device *dev)
+-{
+-	dev_dbg(dev, "%s\n", __func__);
+-
+-	pm_clk_resume(dev);
+-	return pm_generic_runtime_resume(dev);
+-}
+-#endif
+-
+ static struct dev_pm_domain davinci_pm_domain = {
+ 	.ops = {
+-		SET_RUNTIME_PM_OPS(davinci_pm_runtime_suspend,
+-				   davinci_pm_runtime_resume, NULL)
++		USE_PM_CLK_RUNTIME_OPS
+ 		USE_PLATFORM_PM_SLEEP_OPS
+ 	},
+ };
 -- 
 QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member
 of Code Aurora Forum, hosted by The Linux Foundation
