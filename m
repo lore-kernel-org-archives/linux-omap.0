@@ -1,146 +1,65 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2] drivers/rtc/rtc-ds1307.c: Enable the mcp794xx alarm
- after programming time
-Date: Thu, 23 Apr 2015 08:11:41 -0500
-Message-ID: <5538EF8D.5050209@ti.com>
-References: <1429577494-15087-1-git-send-email-nm@ti.com> <5537A169.206@linaro.org> <55383625.3070108@ti.com> <5538C6C2.5010508@linaro.org>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: core: add missing pm event in mmc_pm_notify to fix
+ hib restore
+Date: Thu, 23 Apr 2015 15:19:15 +0200
+Message-ID: <CAPDyKFqA5Wvod_0J-52FJ9Vktt1kdq7H7c9UcX-daJ0hazWU+Q@mail.gmail.com>
+References: <1429785823-16939-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5538C6C2.5010508@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:36344 "EHLO
+	mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966068AbbDWNTQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2015 09:19:16 -0400
+Received: by qku63 with SMTP id 63so9916379qku.3
+        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2015 06:19:16 -0700 (PDT)
+In-Reply-To: <1429785823-16939-1-git-send-email-grygorii.strashko@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@linaro.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-On 04/23/2015 05:17 AM, Grygorii.Strashko@linaro.org wrote:
-> On 04/23/2015 03:00 AM, Nishanth Menon wrote:
->> On 04/22/2015 08:26 AM, Grygorii.Strashko@linaro.org wrote:
->>> Hi,
->>>
->>> On 04/21/2015 03:51 AM, Nishanth Menon wrote:
->>>> Alarm interrupt enable register is at offset 0x7, while the time
->>>> registers for the alarm follow that. When we program Alarm interru=
-pt
->>>> enable prior to programming the time, it is possible that previous
->>>> time value could be close or match at the time of alarm enable
->>>> resulting in interrupt trigger which is unexpected (and does not m=
-atch
->>>> the time we expect it to trigger).
->>>>
->>>> To prevent this scenario from occuring, program the ALM0_EN bit on=
-ly
->>>> after the alarm time is appropriately programmed.
->>>>
->>>> Ofcourse, I2C programming is non-atomic, so there are loopholes wh=
-ere
->>>> the interrupt wont trigger if the time requested is in the past at
->>>> the time of programming the ALM0_EN bit. However, we will not have
->>>> unexpected interrupts while the time is programmed after the inter=
-rupt
->>>> are enabled.
->>>
->>> I think it will be nice if you will mention that you going to follo=
-w
->>> vendor recommendations - AN1491 Configuring the MCP794XX RTCC Famil=
-y
->>> http://ww1.microchip.com/downloads/en/AppNotes/01491A.pdf
->>> ;)
->>> "Also, it is recommended that the alarm registers be loaded
->>> before the alarm is enabled."
->>>
->>
->> Hmm... i did not know that existed, thanks for digging it up.. that
->> teaches me to look for docs before putting a scope/LA on the board
->> (not that I regret doing that)... That said, reading the app note, I
->> kind of realized:
->> a) that playing with ST bit for programming time is not done, but
->> then, that implies that oscillator will have to be restarted (upto a
->> few seconds for certain crystals).. but that said, it does not seem
->> mandatory or seem to (yet seen) functional issues...
->>
->> b) We dont have flexibility yet to describe if we do indeed have a
->> backup battery or not - VBATEN should be set only if we have a backu=
-p
->> battery on the platform :( - on some it might even be optional thank=
-s
->> to certain compliance requirements of shipping boards internationall=
-y
->> and general "unlike" of lithium ion in cargo hold..
->>
->> c) we dont have capability to control the alarm polarity in the driv=
-er
->> which, by the way, we probably should also control OUT polarity (whe=
-n
->> ALARM is not asserted)..
->>
->> d) we dont have support for external 32k oscillator(X1 only) instead
->> of assuming we always have a 32k crystal(X1 and X2)...
->>
->> Ugghhh... more cleaning up to do for the future..
->>
->> that said, the sequence it does recommend (in page 4):
->> The following steps show how the Alarm 0 is config-
->> ured. Alarm 1 can be configured in the same manner.
->> 1.    Write 0x23 to the Alarm0 Seconds register
->> [0x0A].
->> 2.    Write 0x47 to the Alarm0 Minutes register
->> [0x0B].
->> 3.    Write 0x71 to the Alarm0 Hours register [0x0C]
->> =96 11 hours in 12-hour format.
->> 4.    Write 0x72 to the Alarm0 Day register [0x0D] =96
->> Tuesday + Alarm Polarity Low + Match on all.
->> The Alarm0 Interrupt Flag is also cleared.
->> 5.    Write 0x14 to the Alarm0 Date register [0x0E].
->> 6.    Write 0x08 to the Alarm0 Month register [0x0F].
->> With all the Alarm0 registers set we can now activate
->> the Alarm0 on the Control register.
->> 7.    Write 0x10 to the Control register [0x07] =96
->> Alarm0 enabled no CLKOUT, Alarm1 disabled
->>
->> before this patch we do ( http://pastebin.ubuntu.com/10863880/)
->> 	CONTROL r[7] =3D 0x90 (OUT=3D1, ALM0EN=3D1)
->> 	OSCTRIM r[8] =3D 0x00
->> 	EEUNLOCK r[9] =3D 0x00
->> 	ALM0SEC r[A] =3D 0x01
->> 	ALM0MIN r[B] =3D 0x45
->> 	ALM0HOUR r[C] =3D 0x23
->> 	ALM0WKDAY r[D] =3D 0x75 <-ALMOIF is cleared
->> 	ALM0DATE r[E] =3D 0x09
->> 	ALM0MTH r[F] =3D 0x04
->> 	RSRVED r[10] =3D 0x01
->>
->> with this patch, we do:
->> burst(	CONTROL r[7] =3D 0x80 (OUT=3D1)
->> 	OSCTRIM r[8] =3D 0x00
->> 	EEUNLOCK r[9] =3D 0x00
->> 	ALM0SEC r[A] =3D 0x01
->> 	ALM0MIN r[B] =3D 0x45
->> 	ALM0HOUR r[C] =3D 0x23
->> 	ALM0WKDAY r[D] =3D 0x75 <-ALMOIF is cleared
->> 	ALM0DATE r[E] =3D 0x09
->> 	ALM0MTH r[F] =3D 0x04
->> 	RSRVED r[10] =3D 0x01
->> )
->> 	CONTROL r[7] =3D 0x90 (OUT=3D1, ALM0EN=3D1)
->>
->> Which is slightly unoptimal way of what the app note recommends. - a=
-s
->> I mentioned earlier in this thread, I will try and do optimizations =
-in
->> a later patch.
->>
->> Given that Andrew had picked up this patch, I dont see a reason to
->> respin this yet. but will include the app note for future patches -
->> thanks for pointing it out to me.
->=20
-> ^^ Up to you. Np, Always yours!
+On 23 April 2015 at 12:43,  <grygorii.strashko@linaro.org> wrote:
+> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+>
+> The PM_RESTORE_PREPARE is not handled now in mmc_pm_notify(),
+> as result mmc_rescan() could be scheduled and executed at
+> late hibernation restore stages when MMC device is suspended
+> already - which, in turn, will lead to system crash on TI dra7-evm board:
+>
+> WARNING: CPU: 0 PID: 3188 at drivers/bus/omap_l3_noc.c:148 l3_interrupt_handler+0x258/0x374()
+> 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER1_P3 (Idle): Data Access in User mode during Functional access
+>
+> Hence, add missed PM_RESTORE_PREPARE PM event in mmc_pm_notify().
+>
+> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 
-Considering the narrow focus of the current patch (which does fix an
-issue that it attempts to), can I get an Ack?
+Huh, that was an old bug you found. :-)
 
+I have applied it for fixes and added the below fixes tag.
 
---=20
-Regards,
-Nishanth Menon
+Fixes: 4c2ef25fe0b8 (mmc: fix all hangs related to mmc/sd card
+insert/removal during suspend/resume)
+
+Thanks and kind regards!
+Uffe
+
+> ---
+>  drivers/mmc/core/core.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
+> index c296bc0..92e7671 100644
+> --- a/drivers/mmc/core/core.c
+> +++ b/drivers/mmc/core/core.c
+> @@ -2651,6 +2651,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
+>         switch (mode) {
+>         case PM_HIBERNATION_PREPARE:
+>         case PM_SUSPEND_PREPARE:
+> +       case PM_RESTORE_PREPARE:
+>                 spin_lock_irqsave(&host->lock, flags);
+>                 host->rescan_disable = 1;
+>                 spin_unlock_irqrestore(&host->lock, flags);
+> --
+> 1.9.1
+>
