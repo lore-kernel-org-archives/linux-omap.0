@@ -1,61 +1,33 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: [patch added to the 3.12 stable tree] dmaengine: omap-dma: Fix memory leak when terminating running transfer
-Date: Thu, 23 Apr 2015 09:21:11 +0200
-Message-ID: <1429773689-26866-33-git-send-email-jslaby@suse.cz>
-References: <1429773689-26866-1-git-send-email-jslaby@suse.cz>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ip4-83-240-67-251.cust.nbox.cz ([83.240.67.251]:38993 "EHLO
-	ip4-83-240-18-248.cust.nbox.cz" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756075AbbDWHVd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Apr 2015 03:21:33 -0400
-In-Reply-To: <1429773689-26866-1-git-send-email-jslaby@suse.cz>
-Sender: linux-omap-owner@vger.kernel.org
+From: Rajendra Nayak <rnayak@codeaurora.org>
+Subject: [PATCH 0/5] PM / clock_ops: provide default runtime ops and cleanup users
+Date: Thu, 23 Apr 2015 14:03:08 +0530
+Message-ID: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, ssantosh@kernel.org, tony@atomide.com, khilman@kernel.org, nsekhar@ti.com, magnus.damm@gmail.com, geert@linux-m68k.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Jiri Slaby <jslaby@suse.cz>
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Most users of PM clocks do the exact same thing in runtime callbacks.
+Provide default callbacks and cleanup the existing users (keystone/davinci
+/omap1/sh)
 
-This patch has been added to the 3.12 stable tree. If you have any
-objections, please let us know.
+Rajendra Nayak (5):
+  PM / clock_ops: Provide default runtime ops to users
+  arm: keystone: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+  arm: omap1: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+  arm: davinci: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+  drivers: sh: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
 
-===============
+ arch/arm/mach-davinci/pm_domain.c  | 32 +-------------------------
+ arch/arm/mach-keystone/pm_domain.c | 33 +-------------------------
+ arch/arm/mach-omap1/pm_bus.c       | 37 ++----------------------------
+ drivers/base/power/clock_ops.c     | 38 ++++++++++++++++++++++++++++++
+ drivers/sh/pm_runtime.c            | 47 ++------------------------------------
+ include/linux/pm_clock.h           | 10 ++++++++
+ 6 files changed, 54 insertions(+), 143 deletions(-)
 
-commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
-
-In omap_dma_start_desc the vdesc->node is removed from the virt-dma
-framework managed lists (to be precise from the desc_issued list).
-If a terminate_all comes before the transfer finishes the omap_desc will
-not be freed up because it is not in any of the lists and we stopped the
-DMA channel so the transfer will not going to complete.
-There is no special sequence for leaking memory when using cyclic (audio)
-transfer: with every start and stop of a cyclic transfer the driver leaks
-struct omap_desc worth of memory.
-
-Free up the allocated memory directly in omap_dma_terminate_all() since the
-framework will not going to do that for us.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: <linux-omap@vger.kernel.org>
-Signed-off-by: Vinod Koul <vinod.koul@intel.com>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
----
- drivers/dma/omap-dma.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index ec3fc4fd9160..b94a37630e36 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -487,6 +487,7 @@ static int omap_dma_terminate_all(struct omap_chan *c)
- 	 * c->desc is NULL and exit.)
- 	 */
- 	if (c->desc) {
-+		omap_dma_desc_free(&c->desc->vd);
- 		c->desc = NULL;
- 		/* Avoid stopping the dma twice */
- 		if (!c->paused)
 -- 
-2.3.5
+QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member
+of Code Aurora Forum, hosted by The Linux Foundation
 
