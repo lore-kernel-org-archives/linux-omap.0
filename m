@@ -1,55 +1,82 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2] drivers/rtc/rtc-ds1307.c: Enable the mcp794xx alarm
- after programming time
-Date: Wed, 22 Apr 2015 19:04:52 -0500
-Message-ID: <55383724.2080806@ti.com>
-References: <1429577494-15087-1-git-send-email-nm@ti.com> <20150421234139.GF8539@piout.net> <5536E433.90103@ti.com> <20150422010925.GH8539@piout.net> <55370073.3060809@ti.com> <20150422113053.GI8539@piout.net>
+Subject: Re: [PATCH v2] omap: i2c: Add calls for pinctrl state select
+Date: Wed, 22 Apr 2015 19:32:26 -0500
+Message-ID: <55383D9A.4020302@ti.com>
+References: <1429693667-28942-1-git-send-email-pascal.huerst@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150422113053.GI8539@piout.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58097 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965965AbbDWAcd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2015 20:32:33 -0400
+In-Reply-To: <1429693667-28942-1-git-send-email-pascal.huerst@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: pascal.huerst@gmail.com, wsa@the-dreams.de
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 
-On 04/22/2015 06:30 AM, Alexandre Belloni wrote:
+few nitpicks:
+i2c: omap:  in $subject instead of omap: i2c:
+I usually would do:
+git log --no-merges --oneline drivers/i2c/busses/i2c-omap.c
+and look for common usage.
 
-Apologies on a tardy response, got dragged into another issue and got
-cooped up in lab whole day.
-
-> On 21/04/2015 at 20:59:15 -0500, Nishanth Menon wrote :
->>>> Why is that so? when set alarm is requested for time X, you want
->>>> interrupt at time X, not an interrupt for previous configured RTC
->>>> alarm time!
->>>>
->>>
->>> You expect at least an interrupt.
->>
->> And you will get an interrupt if the event occurs before the i2c burst
->> starts. Once the i2cburst does start, you are committing to the new time.
->>
+On 04/22/2015 04:07 AM, pascal.huerst@gmail.com wrote:
+> From: Pascal Huerst <pascal.huerst@gmail.com>
 > 
-> You mean that even if ALM0EN is set after ALM0IF was set to 1, it will
-> trigger the interrupt? I had a look at the MFP output block diagram
-> would let me think that this is the case. I was thinking otherwise
-> before. If that is so, then indeed, your patch is OK.
-At least based on my testing it seems to be the case, and as you can
-see in the block diagram, the ALM0EN mux comes after ALM0IF.. agreed
-that I am not sure the mux to have some internal buffers/latches etc..
-dont have access to rtl to make more comments.
+> This adds calls to pinctrl subsystem in order to switch pin states
+> on suspend/resume if you provide a "sleep" state in DT.
+> 
+> Signed-off-by: Pascal Huerst <pascal.huerst@gmail.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 0e89419..8261941 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -38,6 +38,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/i2c-omap.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+> 
+>  /* I2C controller revisions */
+>  #define OMAP_I2C_OMAP1_REV_2		0x20
+> @@ -1423,6 +1424,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+>  		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
+>  	}
+> 
+> +	pinctrl_pm_select_sleep_state(dev);
+> +
+>  	return 0;
+>  }
+> 
+> @@ -1431,6 +1434,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>  	struct platform_device *pdev = to_platform_device(dev);
+>  	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> 
+> +	pinctrl_pm_select_default_state(dev);
+> +
+>  	if (!_dev->regs)
+>  		return 0;
+> 
+> --
+> 2.1.0
+> 
+Build tested with omap2plus_defconfig on linus master (27cf3a16b253)
+and next-20150422
+While I do understand that the sleep state and default states are
+optional - might be nice to state it in commit message (as a result of
+which we dont do error checks).
 
-> 
-> My concern was about the time between ds1307->write_block_data() and
-> i2c_smbus_write_byte_data() which actually calls cond_sched().
-> 
-> I fully agree that your patch doesn't change the behaviour for the other
-> cases you presented and further clean up is to be done in a separate set
-> of patches.
-> 
-
-Can I take this as an Acked-by?
+Would you think adding relevant documentation in
+Documentation/devicetree/bindings/i2c/i2c-omap.txt might be good as
+well? I mean, folks should know looking at dt documentation that this
+bus driver does indeed support this option..
 
 -- 
 Regards,
