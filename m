@@ -1,50 +1,42 @@
-From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Subject: Re: [PATCH] mmc: core: add missing pm event in mmc_pm_notify to fix
- hib restore
-Date: Fri, 24 Apr 2015 13:52:15 +0300
-Message-ID: <553A205F.6020608@linaro.org>
-References: <1429785823-16939-1-git-send-email-grygorii.strashko@linaro.org> <CAPDyKFqA5Wvod_0J-52FJ9Vktt1kdq7H7c9UcX-daJ0hazWU+Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/5] PM / clock_ops: provide default runtime ops and cleanup users
+Date: Fri, 24 Apr 2015 16:41:49 +0200
+Message-ID: <2234398.3O5UMXvvlN@vostro.rjw.lan>
+References: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFqA5Wvod_0J-52FJ9Vktt1kdq7H7c9UcX-daJ0hazWU+Q@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Grygorii Strashko <grygorii.strashko@linaro.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@codeaurora.org>
+Cc: ssantosh@kernel.org, tony@atomide.com, khilman@kernel.org, nsekhar@ti.com, magnus.damm@gmail.com, geert@linux-m68k.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/23/2015 04:19 PM, Ulf Hansson wrote:
-> On 23 April 2015 at 12:43,  <grygorii.strashko@linaro.org> wrote:
->> From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
->>
->> The PM_RESTORE_PREPARE is not handled now in mmc_pm_notify(),
->> as result mmc_rescan() could be scheduled and executed at
->> late hibernation restore stages when MMC device is suspended
->> already - which, in turn, will lead to system crash on TI dra7-evm board:
->>
->> WARNING: CPU: 0 PID: 3188 at drivers/bus/omap_l3_noc.c:148 l3_interrupt_handler+0x258/0x374()
->> 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER1_P3 (Idle): Data Access in User mode during Functional access
->>
->> Hence, add missed PM_RESTORE_PREPARE PM event in mmc_pm_notify().
->>
->> Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
+On Thursday, April 23, 2015 02:03:08 PM Rajendra Nayak wrote:
+> Most users of PM clocks do the exact same thing in runtime callbacks.
+> Provide default callbacks and cleanup the existing users (keystone/davinci
+> /omap1/sh)
 > 
-> Huh, that was an old bug you found. :-)
-
-oh yes. it's happened thanks to HW issue on my board which
-generates a flood of SDCD IRQs :)
-
-It's the worst case ever to track wrong/missed PM notifiers (
-
+> Rajendra Nayak (5):
+>   PM / clock_ops: Provide default runtime ops to users
+>   arm: keystone: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+>   arm: omap1: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+>   arm: davinci: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
+>   drivers: sh: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
 > 
-> I have applied it for fixes and added the below fixes tag.
-> 
-> Fixes: 4c2ef25fe0b8 (mmc: fix all hangs related to mmc/sd card
-> insert/removal during suspend/resume)
+>  arch/arm/mach-davinci/pm_domain.c  | 32 +-------------------------
+>  arch/arm/mach-keystone/pm_domain.c | 33 +-------------------------
+>  arch/arm/mach-omap1/pm_bus.c       | 37 ++----------------------------
+>  drivers/base/power/clock_ops.c     | 38 ++++++++++++++++++++++++++++++
+>  drivers/sh/pm_runtime.c            | 47 ++------------------------------------
+>  include/linux/pm_clock.h           | 10 ++++++++
+>  6 files changed, 54 insertions(+), 143 deletions(-)
 
-Thanks. 
+It is not particularly clear to me who is supposed to apply this series, but
+I can do that if people don't have problems with that.
+
 
 -- 
-regards,
--grygorii
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
