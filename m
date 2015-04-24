@@ -1,48 +1,61 @@
-From: Jack Mitchell <jack.mitchell@eumx.net>
-Subject: Re: Enabling IPU on OMAP44xx
-Date: Fri, 24 Apr 2015 20:29:16 +0100
-Message-ID: <553A998C.7060508@eumx.net>
-References: <553A6D80.1080307@communistcode.co.uk> <553A8CBE.7010505@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 12/15] dt: bindings: Add lane-polarity property to
+ endpoint nodes
+Date: Fri, 24 Apr 2015 22:49:33 +0300
+Message-ID: <20150424194933.GF27451@valkosipuli.retiisi.org.uk>
+References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+ <1427324259-18438-13-git-send-email-sakari.ailus@iki.fi>
+ <20150424194100.GG24270@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:58205 "EHLO owm.eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031295AbbDXTsI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Apr 2015 15:48:08 -0400
-In-Reply-To: <553A8CBE.7010505@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150424194100.GG24270@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Benoit Parrot <bparrot@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Jack Mitchell <ml@communistcode.co.uk>, linux-omap@vger.kernel.org
 
+Hi Benoit,
 
+On Fri, Apr 24, 2015 at 02:41:00PM -0500, Benoit Parrot wrote:
+> Sakari Ailus <sakari.ailus@iki.fi> wrote on Thu [2015-Mar-26 00:57:36 +0200]:
+> > Add lane-polarity property to endpoint nodes. This essentially tells that
+> > the order of the differential signal wires is inverted.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
+> >  1 file changed, 6 insertions(+)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > index 571b4c6..9cd2a36 100644
+> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > @@ -106,6 +106,12 @@ Optional endpoint properties
+> >  - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
+> >    instance, this is the actual frequency of the bus, not bits per clock per
+> >    lane value. An array of 64-bit unsigned integers.
+> > +- lane-polarities: an array of polarities of the lanes starting from the clock
+> > +  lane and followed by the data lanes in the same order as in data-lanes.
+> > +  Valid values are 0 (normal) and 1 (inverted). The length of the array
+> > +  should be the combined length of data-lanes and clock-lanes properties.
+> > +  If the lane-polarities property is omitted, the value must be interpreted
+> > +  as 0 (normal). This property is valid for serial busses only.
+> >  
+> 
+> I am interested in this functionality.
+> But I do have the following question.
+> If the lane-polarities property is not specified, shouldn't the
+> relevant struct member (bus->lane_polarities[i]) be set to 0?
 
-On 24/04/15 19:34, Nishanth Menon wrote:
-> On 04/24/2015 11:21 AM, Jack Mitchell wrote:
->> I've been fighting for a week with trying to get the IPU booted over
->> remoteproc on an OMAP4470. I feel like I've got most of the way there
-> we do not have support for OMAP4470 on git.kernel.org.
->
-> If you are interested in TI vendor kernel support, please use e2e.ti.com.
->
-> ...
->
+This is done in the caller function; endpoint->bus is zeroed in
+v4l2_of_parse_endpoint(). I believe reading rest of the properties relies on
+the same.
 
-Hi Nishanth,
+-- 
+Kind regards,
 
-I understand; and booting an omap4470 isn't the issue, I've hacked in 
-the support for booting it as it's basically the same as 4460; which is 
-supported. It's the IPU that I'm trying to get working, which is the 
-same across all the 44xx omap SoCs, right? I'm using the latest mainline 
-and the logs I posted are from the git HEAD early this morning.
-
-I'm not looking for offical support, just pointers to people who may 
-have been using mainline and the IPU, the support seems to be in there 
-but none of the plumbing so I assume someone is probably using it 
-otherwise it's dead code.
-
-Cheers,
-Jack.
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
