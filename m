@@ -1,216 +1,243 @@
-From: Jack Mitchell <ml@communistcode.co.uk>
-Subject: Enabling IPU on OMAP44xx
-Date: Fri, 24 Apr 2015 17:21:20 +0100
-Message-ID: <553A6D80.1080307@communistcode.co.uk>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] bus: omap_l3_noc: Fix master id address decoding for OMAP5
+Date: Fri, 24 Apr 2015 12:54:20 -0500
+Message-ID: <1429898060-51944-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040202000908000405010004"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:58128 "EHLO owm.eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753565AbbDXROD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Apr 2015 13:14:03 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:35022 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964938AbbDXRyq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2015 13:54:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>, Nishanth Menon <nm@ti.com>
 
-This is a multi-part message in MIME format.
---------------040202000908000405010004
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+The L3 Error handling on OMAP5 for the most part is very similar
+to that of OMAP4, and had leveraged common data structures and
+register layout definitions so far. Upon closer inspection, there
+are a few minor differences causing an incorrect decoding and
+reporting of the master NIU upon an error:
 
-I've been fighting for a week with trying to get the IPU booted over 
-remoteproc on an OMAP4470. I feel like I've got most of the way there 
-but I don't get a response from the first kick after boot. Has anyone 
-ever had the IPU booted on mainline? Dmesg from remoteproce boot is as 
-below:
+  1. The L3_TARG_STDERRLOG_MSTADDR.STDERRLOG_MSTADDR occupies
+     11 bits on OMAP5 as against 8 bits on OMAP4, with the master
+     NIU connID encoded in the 6 MSBs of the STDERRLOG_MSTADDR
+     field.
+  2. The CLK3 FlagMux component has 1 input source on OMAP4 and 3
+     input sources on OMAP5. The common DEBUGSS source is at a
+     different input on each SoC.
 
-[   47.430084]  remoteproc0: ipu_c0 is available
-[   47.431274]  remoteproc0: Note: remoteproc is still under development 
-and considered experimental.
-[   47.445312]  remoteproc0: THE BINARY FORMAT IS NOT YET FINALIZED, and 
-backward compatibility isn't yet guaranteed.
-[   47.869476]  remoteproc0: unsupported resource 5
-[   47.876831]  remoteproc0: registered virtio0 (type 7)
-[   47.882385]  remoteproc0: unsupported resource 5
-[   47.888244] cma: cma_alloc(cma c1211f98, count 3, align 2)
-[   47.897613] cma: cma_alloc(): returned deda7990
-[   47.902465] cma: cma_alloc(cma c1211f98, count 3, align 2)
-[   47.908813] cma: cma_alloc(): returned deda7a20
-[   47.913604]  remoteproc0: powering up ipu_c0
-[   47.967895]  remoteproc0: Booting fw image ducati-m3-core0.xem3, size 
-14862876
-[   47.983947] omap-iommu 55082000.mmu: 55082000.mmu: version 2.1
-[   47.990112] cma: cma_alloc(cma c1211f98, count 1536, align 8)
-[   47.997894] cma: cma_alloc(): returned deda9400
-[   48.022949] cma: cma_alloc(cma c1211f98, count 58880, align 8)
-[   48.047454] cma: cma_alloc(): returned dedb6c00
-[   48.762756] cma: cma_alloc(cma c1211f98, count 256, align 8)
-[   48.769165] cma: cma_alloc(): returned defbc400
-[   48.779113]  remoteproc0: unsupported resource 5
-[   48.887756] omap-rproc omap-rproc.1: JACK1
-[   48.893157] omap-rproc omap-rproc.1: JACK2
-[   48.893157] omap-rproc omap-rproc.1: JACK3
-[   48.901794] omap-rproc omap-rproc.1: JACK4
-[   48.906097]  remoteproc0: remote processor ipu_c0 is now up
-[   48.912231] cma: cma_alloc(cma c1211f98, count 64, align 6)
-[   48.922851] cma: cma_alloc(): returned deda8200
-[   48.929321] virtio_rpmsg_bus virtio0: rpmsg host is online
+Fix the above issues by using a OMAP5-specific compatible property
+and using SoC-specific data where there are differences.
 
-What I would expect next (as is the case on my 3.4 TI vendor kernel) is 
-something like:
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
 
-[   13.647338] virtio_rpmsg_bus virtio0: rpmsg host is online
-[   15.996520] omap-rproc omap-rproc.1: received echo reply from ipu_c0
-[   15.996887] virtio_rpmsg_bus virtio0: creating channel rpmsg-dce addr 
-0x2a
-[   16.000335] virtio_rpmsg_bus virtio0: creating channel rpmsg-omx1 
-addr 0x3c
-[   16.000732] rpmsg_omx rpmsg-omx1: new OMX connection srv channel: 
-1025 -> 60!
-[   16.000915] virtio_rpmsg_bus virtio0: creating channel omaprpc addr 0x3b
+Some validation traces by adding couple of traces and intentionally
+creating L3 errors from DSP & IPU by accessing invalid Timers
 
-I imagine the echo reply is remoteproc, but the other stuff is maybe 
-omapdce?
+Before Patch:
+OMAP4 [Correct]
+IPU accessing Timer4
+[   46.548095] flagmux = 1, err_reg = 0x8000 err_src = 0xf
+[   46.553344] mstaddr = 0x44 mask = 0xfc masterid = 0x11
+[   46.553955] ------------[ cut here ]------------
+[   46.563171] WARNING: CPU: 0 PID: 4 at drivers/bus/omap_l3_noc.c:149 l3_interrupt_handler+0x280/0x388()
+[   46.564941] 44000000.ocp:L3 Custom Error: MASTER DucatiM3 TARGET L4PER3 (Idle): Data Access in User mode during 
+Functional access
 
-The patch that I've hacked together to get this far is attached. I had 
-to comment out some of the zero checking parts as it was failing, saying 
-that the reserved memory was not zeroed; could this be the iommu that 
-isn't translating properly?
+DSP accessing Timer5:
+[  114.018524] flagmux = 0, err_reg = 0x4 err_src = 0x2
+[  114.023498] mstaddr = 0x20 mask = 0xfc masterid = 0x8
+[  114.028564] ------------[ cut here ]------------
+[  114.033233] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:149 l3_interrupt_handler+0x280/0x388()
+[  114.042572] 44000000.ocp:L3 Custom Error: MASTER DSP TARGET ABE (Idle): Data Access in Supervisor mode during Functional 
+access
 
-Any input at all on the subject would be much appreciated!
+OMAP5 [Incorrect]
+IPU accessing Timer4:
+[   29.579306] flagmux = 1, err_reg = 0x8000 err_src = 0xf
+[   29.584550] mstaddr = 0x220 mask = 0xfc masterid = 0x8
+[   29.589705] ------------[ cut here ]------------
+[   29.594345] WARNING: CPU: 0 PID: 61 at drivers/bus/omap_l3_noc.c:149 l3_interrupt_handler+0x280/0x388()
+[   29.603774] 44000000.ocp:L3 Custom Error: MASTER DSP TARGET L4PER3 (Idle): Data Access in User mode during Functional 
+access
 
-Cheers,
-Jack.
+DSP accessing Timer5:
+[   21.347105] flagmux = 0, err_reg = 0x4 err_src = 0x2
+[   21.352091] mstaddr = 0x100 mask = 0xfc masterid = 0x0
+[   21.357250] ------------[ cut here ]------------
+[   21.361896] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:149 l3_interrupt_handler+0x280/0x388()
+[   21.371242] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET ABE (Idle): Data Access in Supervisor mode during Functional 
+access
 
---------------040202000908000405010004
-Content-Type: text/x-patch;
- name="ipu_rproc.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ipu_rproc.patch"
+After Patch:
+OMAP4 same as above
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index f5e68a7..b628498 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -4792,7 +4792,7 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap44xx_l4_per__i2c4,
- 	&omap44xx_l3_main_2__ipu,
- 	&omap44xx_l3_main_2__iss,
--	/* &omap44xx_iva__sl2if, */
-+	&omap44xx_iva__sl2if,
- 	&omap44xx_l3_main_2__iva,
- 	&omap44xx_l4_wkup__kbd,
- 	&omap44xx_l4_cfg__mailbox,
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index af11511..ad4eacf 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -14,9 +14,11 @@
- #include <linux/kernel.h>
- #include <linux/of_platform.h>
- #include <linux/ti_wilink_st.h>
-+#include <linux/dma-contiguous.h>
- 
- #include <linux/platform_data/pinctrl-single.h>
- #include <linux/platform_data/iommu-omap.h>
-+#include <linux/platform_data/remoteproc-omap.h>
- 
- #include "common.h"
- #include "common-board-devices.h"
-@@ -243,6 +245,55 @@ static void __init nokia_n900_legacy_init(void)
- 	}
+OMAP5 [Corrected]
+IPU accessing Timer4
+[   67.896693] flagmux = 1, err_reg = 0x8000 err_src = 0xf
+[   67.901940] mstaddr = 0x220 mask = 0x7e0 masterid = 0x11
+[   67.907275] ------------[ cut here ]------------
+[   67.911924] WARNING: CPU: 0 PID: 61 at drivers/bus/omap_l3_noc.c:149 l3_interrupt_handler+0x280/0x388()
+[   67.921357] 44000000.ocp:L3 Custom Error: MASTER DucatiM3 TARGET L4PER3 (Idle): Data Access in User mode during 
+Functional access
+
+DSP accessing Timer5
+[   24.452565] flagmux = 0, err_reg = 0x4 err_src = 0x2
+[   24.457552] mstaddr = 0x100 mask = 0x7e0 masterid = 0x8
+[   24.462798] ------------[ cut here ]------------
+[   24.467449] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:149 l3_interrupt_handler+0x280/0x388()
+[   24.476795] 44000000.ocp:L3 Custom Error: MASTER DSP TARGET ABE (Idle): Data Access in Supervisor mode during Functional
+ access
+
+
+ .../devicetree/bindings/arm/omap/l3-noc.txt        |  1 +
+ arch/arm/boot/dts/omap5.dtsi                       |  2 +-
+ drivers/bus/omap_l3_noc.c                          |  5 ++-
+ drivers/bus/omap_l3_noc.h                          | 52 ++++++++++++++++------
+ 4 files changed, 44 insertions(+), 16 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+index 974624ea68f6..161448da959d 100644
+--- a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
++++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
+@@ -6,6 +6,7 @@ provided by Arteris.
+ Required properties:
+ - compatible : Should be "ti,omap3-l3-smx" for OMAP3 family
+                Should be "ti,omap4-l3-noc" for OMAP4 family
++               Should be "ti,omap5-l3-noc" for OMAP5 family
+ 	       Should be "ti,dra7-l3-noc" for DRA7 family
+                Should be "ti,am4372-l3-noc" for AM43 family
+ - reg:	Contains L3 register address range for each noc domain.
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index efe5f737f39b..7d24ae0306b5 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -128,7 +128,7 @@
+ 	 * hierarchy.
+ 	 */
+ 	ocp {
+-		compatible = "ti,omap4-l3-noc", "simple-bus";
++		compatible = "ti,omap5-l3-noc", "simple-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges;
+diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+index 11f7982cbdb3..ebee57d715d2 100644
+--- a/drivers/bus/omap_l3_noc.c
++++ b/drivers/bus/omap_l3_noc.c
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP L3 Interconnect error handling driver
+  *
+- * Copyright (C) 2011-2014 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2011-2015 Texas Instruments Incorporated - http://www.ti.com/
+  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *	Sricharan <r.sricharan@ti.com>
+  *
+@@ -233,7 +233,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
  }
  
-+static struct platform_device omap4_ducati = {
-+        .name   = "omap-rproc",
-+        .id     = 1,
+ static const struct of_device_id l3_noc_match[] = {
+-	{.compatible = "ti,omap4-l3-noc", .data = &omap_l3_data},
++	{.compatible = "ti,omap4-l3-noc", .data = &omap4_l3_data},
++	{.compatible = "ti,omap5-l3-noc", .data = &omap5_l3_data},
+ 	{.compatible = "ti,dra7-l3-noc", .data = &dra_l3_data},
+ 	{.compatible = "ti,am4372-l3-noc", .data = &am4372_l3_data},
+ 	{},
+diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
+index 95254585db86..3ba40db7380b 100644
+--- a/drivers/bus/omap_l3_noc.h
++++ b/drivers/bus/omap_l3_noc.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP L3 Interconnect  error handling driver header
+  *
+- * Copyright (C) 2011-2014 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2011-2015 Texas Instruments Incorporated - http://www.ti.com/
+  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *	sricharan <r.sricharan@ti.com>
+  *
+@@ -175,16 +175,14 @@ static struct l3_flagmux_data omap_l3_flagmux_clk2 = {
+ };
+ 
+ 
+-static struct l3_target_data omap_l3_target_data_clk3[] = {
+-	{0x0100, "EMUSS",},
+-	{0x0300, "DEBUG SOURCE",},
+-	{0x0,	"HOST CLK3",},
++static struct l3_target_data omap4_l3_target_data_clk3[] = {
++	{0x0100, "DEBUGSS",},
+ };
+ 
+-static struct l3_flagmux_data omap_l3_flagmux_clk3 = {
++static struct l3_flagmux_data omap4_l3_flagmux_clk3 = {
+ 	.offset = 0x0200,
+-	.l3_targ = omap_l3_target_data_clk3,
+-	.num_targ_data = ARRAY_SIZE(omap_l3_target_data_clk3),
++	.l3_targ = omap4_l3_target_data_clk3,
++	.num_targ_data = ARRAY_SIZE(omap4_l3_target_data_clk3),
+ };
+ 
+ static struct l3_masters_data omap_l3_masters[] = {
+@@ -215,21 +213,49 @@ static struct l3_masters_data omap_l3_masters[] = {
+ 	{ 0x32, "USBHOSTFS"}
+ };
+ 
+-static struct l3_flagmux_data *omap_l3_flagmux[] = {
++static struct l3_flagmux_data *omap4_l3_flagmux[] = {
+ 	&omap_l3_flagmux_clk1,
+ 	&omap_l3_flagmux_clk2,
+-	&omap_l3_flagmux_clk3,
++	&omap4_l3_flagmux_clk3,
+ };
+ 
+-static const struct omap_l3 omap_l3_data = {
+-	.l3_flagmux = omap_l3_flagmux,
+-	.num_modules = ARRAY_SIZE(omap_l3_flagmux),
++static const struct omap_l3 omap4_l3_data = {
++	.l3_flagmux = omap4_l3_flagmux,
++	.num_modules = ARRAY_SIZE(omap4_l3_flagmux),
+ 	.l3_masters = omap_l3_masters,
+ 	.num_masters = ARRAY_SIZE(omap_l3_masters),
+ 	/* The 6 MSBs of register field used to distinguish initiator */
+ 	.mst_addr_mask = 0xFC,
+ };
+ 
++/* OMAP5 data */
++static struct l3_target_data omap5_l3_target_data_clk3[] = {
++	{0x0100, "L3INSTR",},
++	{0x0300, "DEBUGSS",},
++	{0x0,	 "HOSTCLK3",},
 +};
 +
-+static struct omap_rproc_pdata omap4_rproc_data[] = {
-+        {
-+                .name           = "ipu_c0",
-+                .firmware       = "ducati-m3-core0.xem3",
-+                .mbox_name      = "mbox_ipu",
-+                .oh_name        = "ipu",
-+                .oh_name_opt    = "iss",
-+                .set_bootaddr   = omap_ctrl_write_dsp_boot_addr,
-+		.device_enable  = omap_device_enable,
-+        },
++static struct l3_flagmux_data omap5_l3_flagmux_clk3 = {
++	.offset = 0x0200,
++	.l3_targ = omap5_l3_target_data_clk3,
++	.num_targ_data = ARRAY_SIZE(omap5_l3_target_data_clk3),
 +};
 +
-+static struct omap_iommu_arch_data omap4_ipu_iommu = {
-+        .name = "55082000.mmu",
++static struct l3_flagmux_data *omap5_l3_flagmux[] = {
++	&omap_l3_flagmux_clk1,
++	&omap_l3_flagmux_clk2,
++	&omap5_l3_flagmux_clk3,
 +};
 +
-+static void __init custboard_legacy_init(void)
-+{
-+	omap4_ducati.dev.archdata.iommu = &omap4_ipu_iommu;
-+	platform_device_register(&omap4_ducati);
++static const struct omap_l3 omap5_l3_data = {
++	.l3_flagmux = omap5_l3_flagmux,
++	.num_modules = ARRAY_SIZE(omap5_l3_flagmux),
++	.l3_masters = omap_l3_masters,
++	.num_masters = ARRAY_SIZE(omap_l3_masters),
++	/* The 6 MSBs of register field used to distinguish initiator */
++	.mst_addr_mask = 0x7E0,
++};
 +
-+	platform_device_add_data(&omap4_ducati,
-+                                 &omap4_rproc_data,
-+                                 sizeof(struct omap_rproc_pdata));
-+
-+}
-+
- static void __init omap3_tao3530_legacy_init(void)
- {
- 	hsmmc2_internal_input_clk();
-@@ -361,6 +412,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "technexion,omap3-tao3530", omap3_tao3530_legacy_init, },
- #endif
- #ifdef CONFIG_SOC_OMAP5
-+	{ "company,board", custboard_legacy_init, },
-+#endif
-+#ifdef CONFIG_SOC_OMAP5
- 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
- #endif
- 	{ /* sentinel */ },
+ /* DRA7 data */
+ static struct l3_target_data dra_l3_target_data_clk1[] = {
+ 	{0x2a00, "AES1",},
+-- 
+2.3.5
 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index a3d6138..1e445c5 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -276,10 +276,10 @@ rproc_parse_vring(struct rproc_vdev *rvdev, struct fw_rsc_vdev *rsc, int i)
- 				i, vring->da, vring->num, vring->align);
- 
- 	/* make sure reserved bytes are zeroes */
--	if (vring->reserved) {
-+/*	if (vring->reserved) {
- 		dev_err(dev, "vring rsc has non zero reserved bytes\n");
- 		return -EINVAL;
--	}
-+	}*/
- 
- 	/* verify queue size and vring alignment are sane */
- 	if (!vring->num || !vring->align) {
-@@ -514,10 +514,10 @@ static int rproc_handle_devmem(struct rproc *rproc, struct fw_rsc_devmem *rsc,
- 	}
- 
- 	/* make sure reserved bytes are zeroes */
--	if (rsc->reserved) {
-+/*	if (rsc->reserved) {
- 		dev_err(dev, "devmem rsc has non zero reserved bytes\n");
- 		return -EINVAL;
--	}
-+	}*/
- 
- 	mapping = kzalloc(sizeof(*mapping), GFP_KERNEL);
- 	if (!mapping) {
-@@ -587,10 +587,10 @@ static int rproc_handle_carveout(struct rproc *rproc,
- 	}
- 
- 	/* make sure reserved bytes are zeroes */
--	if (rsc->reserved) {
-+/*	if (rsc->reserved) {
- 		dev_err(dev, "carveout rsc has non zero reserved bytes\n");
- 		return -EINVAL;
--	}
-+	}*/
- 
- 	dev_dbg(dev, "carveout rsc: da %x, pa %x, len %x, flags %x\n",
- 			rsc->da, rsc->pa, rsc->len, rsc->flags);
-
---------------040202000908000405010004--
