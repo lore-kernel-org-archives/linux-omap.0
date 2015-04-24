@@ -1,48 +1,48 @@
-From: Jack Mitchell <ml@communistcode.co.uk>
-Subject: Re: Enabling IPU on OMAP44xx
-Date: Fri, 24 Apr 2015 20:31:30 +0100
-Message-ID: <553A9A12.5020404@communistcode.co.uk>
-References: <553A6D80.1080307@communistcode.co.uk> <553A8CBE.7010505@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] bus: omap_l3_noc: Fix master id address decoding for OMAP5
+Date: Fri, 24 Apr 2015 14:38:39 -0500
+Message-ID: <CAGo_u6rgZhkRZSjpXuvBz5frYByUDtzFrAQFaPB7rxT8hLYBPw@mail.gmail.com>
+References: <1429898060-51944-1-git-send-email-s-anna@ti.com>
+	<553A8C68.5080903@ti.com>
+	<553A951A.1080905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:55366 "EHLO owm.eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755669AbbDXTbg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Apr 2015 15:31:36 -0400
-In-Reply-To: <553A8CBE.7010505@ti.com>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:33592 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966963AbbDXTik (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2015 15:38:40 -0400
+In-Reply-To: <553A951A.1080905@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Jack Mitchell <ml@communistcode.co.uk>, linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+On Fri, Apr 24, 2015 at 2:10 PM, Suman Anna <s-anna@ti.com> wrote:
+> On 04/24/2015 01:33 PM, Nishanth Menon wrote:
+>> On 04/24/2015 12:54 PM, Suman Anna wrote:
+
+...
+>>> -static struct l3_target_data omap_l3_target_data_clk3[] = {
+>>> -    {0x0100, "EMUSS",},
+>>> -    {0x0300, "DEBUG SOURCE",},
+>>> -    {0x0,   "HOST CLK3",},
+^^ this was HOST CLK3
 
 
-
-On 24/04/15 19:34, Nishanth Menon wrote:
-> On 04/24/2015 11:21 AM, Jack Mitchell wrote:
->> I've been fighting for a week with trying to get the IPU booted over
->> remoteproc on an OMAP4470. I feel like I've got most of the way there
-> we do not have support for OMAP4470 on git.kernel.org.
+..
+>>>
+>>> +/* OMAP5 data */
+>>> +static struct l3_target_data omap5_l3_target_data_clk3[] = {
+>>> +    {0x0100, "L3INSTR",},
+>>> +    {0x0300, "DEBUGSS",},
+>>> +    {0x0,    "HOSTCLK3",},
+>>
+>> "HOST CLK"
 >
-> If you are interested in TI vendor kernel support, please use e2e.ti.com.
->
-> ...
->
+> Why? I followed the convention used for the other two HOST CLKs for the
 
-Hi Nishanth,
-
-I understand; and booting an omap4470 isn't the issue, I've hacked in 
-the support for booting it as it's basically the same as 4460; which is 
-supported. It's the IPU that I'm trying to get working, which is the 
-same across all the 44xx omap SoCs, right? I'm using the latest mainline 
-and the logs I posted are from the git HEAD early this morning.
-
-I'm not looking for offical support, just pointers to people who may 
-have been using mainline and the IPU, the support seems to be in there 
-but none of the plumbing so I assume someone is probably using it 
-otherwise it's dead code.
-
-Cheers,
-Jack.
-
-
+so asked, if it should be HOST<space>CLK3
+--
+Regards,
+Nishanth Menon
