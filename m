@@ -1,57 +1,48 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 2/3] watchdog: omap: put struct watchdog_device into
- driver data
-Date: Fri, 24 Apr 2015 21:10:59 +0200
-Message-ID: <20150424191059.GW19431@pengutronix.de>
-References: <1429868913-24049-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1429868913-24049-3-git-send-email-u.kleine-koenig@pengutronix.de>
- <20150424144448.GC5692@saruman.tx.rr.com>
+From: Jack Mitchell <ml@communistcode.co.uk>
+Subject: Re: Enabling IPU on OMAP44xx
+Date: Fri, 24 Apr 2015 20:31:30 +0100
+Message-ID: <553A9A12.5020404@communistcode.co.uk>
+References: <553A6D80.1080307@communistcode.co.uk> <553A8CBE.7010505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45614 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757650AbbDXTLE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2015 15:11:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20150424144448.GC5692@saruman.tx.rr.com>
+Received: from eumx.net ([91.82.101.43]:55366 "EHLO owm.eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755669AbbDXTbg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Apr 2015 15:31:36 -0400
+In-Reply-To: <553A8CBE.7010505@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, Lokesh Vutla <lokeshvutla@ti.com>, kernel@pengutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>, Jack Mitchell <ml@communistcode.co.uk>, linux-omap@vger.kernel.org
 
-Hello Felipe,
 
-On Fri, Apr 24, 2015 at 09:44:48AM -0500, Felipe Balbi wrote:
-> On Fri, Apr 24, 2015 at 11:48:32AM +0200, Uwe Kleine-K=F6nig wrote:
-> > This way only a single allocation is needed (per device). Also this
-> > stops making use of watchdog_{set,get}_drvdata.
->=20
-> And this is better because ... ?
-a single allocation is better because AFAIK it takes less memory to
-allocate a + b bytes in a single piece than in two.
 
-watchdog_{set,get}_drvdata seems ugly to me. Judging from the other
-frameworks I know better than wdog I'd say there is no need for these
-functions. I didn't know if I should be more explicit about my view in
-the commitlog and if so how.
+On 24/04/15 19:34, Nishanth Menon wrote:
+> On 04/24/2015 11:21 AM, Jack Mitchell wrote:
+>> I've been fighting for a week with trying to get the IPU booted over
+>> remoteproc on an OMAP4470. I feel like I've got most of the way there
+> we do not have support for OMAP4470 on git.kernel.org.
+>
+> If you are interested in TI vendor kernel support, please use e2e.ti.com.
+>
+> ...
+>
 
-Also I didn't check other wdog drivers, but using this style of
-embedding the "framework struct" into driver data is a common idiom for
-uart and gpio drivers for example.
+Hi Nishanth,
 
-Best regards
-Uwe
+I understand; and booting an omap4470 isn't the issue, I've hacked in 
+the support for booting it as it's basically the same as 4460; which is 
+supported. It's the IPU that I'm trying to get working, which is the 
+same across all the 44xx omap SoCs, right? I'm using the latest mainline 
+and the logs I posted are from the git HEAD early this morning.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm not looking for offical support, just pointers to people who may 
+have been using mainline and the IPU, the support seems to be in there 
+but none of the plumbing so I assume someone is probably using it 
+otherwise it's dead code.
+
+Cheers,
+Jack.
+
+
