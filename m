@@ -1,73 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP1: Fix OSK5912 wake-up key by removing useless CONFIG_PM defines
-Date: Thu, 23 Apr 2015 17:11:23 -0700
-Message-ID: <1429834283-29683-1-git-send-email-tony@atomide.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [BUG?] drivers: net:ethernet: cpsw: add support for VLAN
+Date: Fri, 24 Apr 2015 11:27:06 +0530
+Message-ID: <5539DB32.3050203@ti.com>
+References: <1429741702.29353.28.camel@mars>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tkt-001-i372.relay.mailchannels.net ([174.136.5.173]:40942 "EHLO
-	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754157AbbDXAOX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2015 20:14:23 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:49189 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754626AbbDXF5e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Apr 2015 01:57:34 -0400
+In-Reply-To: <1429741702.29353.28.camel@mars>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: chf.fritz@googlemail.com, Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The wake-up key does not depend on CONFIG_PM, that just keeps it
-from getting compiled producing the following warning:
+On Thursday 23 April 2015 03:58 AM, Christoph Fritz wrote:
+> Hi,
+> 
+>  has commit 3b72c2fe0c6bbec42e ("drivers: net:ethernet: cpsw: add
+> support for VLAN") introduced a bug by defining CPSW_VLAN_AWARE as
+> BIT(1) instead of BIT(2)?
+> 
+> +#define CPSW_VLAN_AWARE		BIT(1)
+> <snip>
+>  	/* switch to vlan unaware mode */
+> -	cpsw_ale_control_set(priv->ale, 0, ALE_VLAN_AWARE, 0);
+> +	cpsw_ale_control_set(priv->ale, priv->host_port, ALE_VLAN_AWARE,
+> +			     CPSW_ALE_VLAN_AWARE);
+> +	control_reg = readl(&priv->regs->control);
+> +	control_reg |= CPSW_VLAN_AWARE;
+> +	writel(control_reg, &priv->regs->control);
+> 
+> See TRM [1] page 1980 (14.5.1.2 CONTROL Register), there bit
+> CPSW_VLAN_AWARE is number 2.
+> 
+> I didn't do any tests, just stumbled upon.
+> 
+> [1]: http://www.ti.com/lit/ug/spruh73l/spruh73l.pdf
+> 
 
-board-osk.c:513:7: warning: unused variable =E2=80=98ret=E2=80=99 [-Wun=
-used-variable]
+Its bug in TRM, will check with TRM team and update here.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap1/board-osk.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Regards
+Mugunthan V N
 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/boar=
-d-osk.c
-index 7436d4c..8d65309d 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -441,13 +441,11 @@ static struct spi_board_info __initdata mistral_b=
-oardinfo[] =3D { {
- 	.chip_select		=3D 0,
- } };
-=20
--#ifdef	CONFIG_PM
- static irqreturn_t
- osk_mistral_wake_interrupt(int irq, void *ignored)
- {
- 	return IRQ_HANDLED;
- }
--#endif
-=20
- static void __init osk_mistral_init(void)
- {
-@@ -515,7 +513,7 @@ static void __init osk_mistral_init(void)
-=20
- 		gpio_direction_input(OMAP_MPUIO(2));
- 		irq_set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
--#ifdef	CONFIG_PM
-+
- 		/* share the IRQ in case someone wants to use the
- 		 * button for more than wakeup from system sleep.
- 		 */
-@@ -529,7 +527,6 @@ static void __init osk_mistral_init(void)
- 				ret);
- 		} else
- 			enable_irq_wake(irq);
--#endif
- 	} else
- 		printk(KERN_ERR "OSK+Mistral: wakeup button is awol\n");
-=20
---=20
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
