@@ -1,62 +1,59 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] bus: omap_l3_noc: Fix master id address decoding for
- OMAP5
-Date: Fri, 24 Apr 2015 14:55:52 -0500
-Message-ID: <553A9FC8.8060405@ti.com>
-References: <1429898060-51944-1-git-send-email-s-anna@ti.com>	<553A8C68.5080903@ti.com>	<553A951A.1080905@ti.com> <CAGo_u6rgZhkRZSjpXuvBz5frYByUDtzFrAQFaPB7rxT8hLYBPw@mail.gmail.com> <553A9F8B.7010205@ti.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH 1a/3] watchdog: omap: clearify device tree documentation
+Date: Fri, 24 Apr 2015 22:20:50 +0200
+Message-ID: <1429906850-5420-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <20150424190207.GU19431@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49575 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932921AbbDXT4T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Apr 2015 15:56:19 -0400
-In-Reply-To: <553A9F8B.7010205@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150424190207.GU19431-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 04/24/2015 02:54 PM, Suman Anna wrote:
-> On 04/24/2015 02:38 PM, Nishanth Menon wrote:
->> On Fri, Apr 24, 2015 at 2:10 PM, Suman Anna <s-anna@ti.com> wrote:
->>> On 04/24/2015 01:33 PM, Nishanth Menon wrote:
->>>> On 04/24/2015 12:54 PM, Suman Anna wrote:
->>
->> ...
->>>>> -static struct l3_target_data omap_l3_target_data_clk3[] = {
->>>>> -    {0x0100, "EMUSS",},
->>>>> -    {0x0300, "DEBUG SOURCE",},
->>>>> -    {0x0,   "HOST CLK3",},
->> ^^ this was HOST CLK3
->> ..
->>>>>
->>>>> +/* OMAP5 data */
->>>>> +static struct l3_target_data omap5_l3_target_data_clk3[] = {
->>>>> +    {0x0100, "L3INSTR",},
->>>>> +    {0x0300, "DEBUGSS",},
->>>>> +    {0x0,    "HOSTCLK3",},
->>>>
->>>> "HOST CLK"
->>>
->>> Why? I followed the convention used for the other two HOST CLKs for the
->>
->> so asked, if it should be HOST<space>CLK3
-> 
-> Aah ok, you missed the trailing number before. In anycase, this was
+ti,hwmods doesn't belong into the compatible section but is a property
+on it's own. Also reformat the section of required properties to match =
+the
+usual style of dt binding documents.
 
-Sorry about that..
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+---
+Hello Felipe,
 
-> intentional to match HOSTCLK1 and HOSTCLK2 on OMAP4/5. Overall, the
-> names are somewhat non-standard, some use underscores and some others
-> strip out the underscore and do not use any spaces in between either.
-> "HOST CLK3" would be the only one to use a space for OMAP4, so I got rid
-> of it, so hope that's ok with you.
+what about this patch before the previously sent patch 1?
 
-would have been nice to cover that in commit message. no biggie for me.
+Best regards
+Uwe
 
+ Documentation/devicetree/bindings/watchdog/omap-wdt.txt | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
--- 
-Regards,
-Nishanth Menon
+diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt b/=
+Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+index c227970671ea..597e19d18dca 100644
+--- a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
++++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
+@@ -1,10 +1,8 @@
+ TI Watchdog Timer (WDT) Controller for OMAP
+=20
+ Required properties:
+-compatible:
+-- "ti,omap3-wdt" for OMAP3
+-- "ti,omap4-wdt" for OMAP4
+-- ti,hwmods: Name of the hwmod associated to the WDT
++- compatible : "ti,omap3-wdt" for OMAP3 or "ti,omap4-wdt" for OMAP4
++- ti,hwmods : Name of the hwmod associated to the WDT
+=20
+ Examples:
+=20
+--=20
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdo=
+g" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
