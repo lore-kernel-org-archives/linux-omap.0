@@ -1,50 +1,58 @@
 From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 0/5] PM / clock_ops: provide default runtime ops and cleanup
- users
-Date: Fri, 24 Apr 2015 08:34:33 -0700
-Message-ID: <553A6289.4040001@oracle.com>
-References: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org> <2234398.3O5UMXvvlN@vostro.rjw.lan>
+Subject: Re: [PATCH] gpio: omap: Allow building as a loadable module
+Date: Fri, 24 Apr 2015 08:40:17 -0700
+Message-ID: <553A63E1.1060407@oracle.com>
+References: <1429833382-28532-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <2234398.3O5UMXvvlN@vostro.rjw.lan>
-Sender: linux-sh-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rajendra Nayak <rnayak@codeaurora.org>
-Cc: ssantosh@kernel.org, tony@atomide.com, khilman@kernel.org, nsekhar@ti.com, magnus.damm@gmail.com, geert@linux-m68k.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:47825 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755570AbbDXPld (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2015 11:41:33 -0400
+In-Reply-To: <1429833382-28532-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Grygorii Strashko <grygorii.strashko@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>
 
-On 4/24/2015 7:41 AM, Rafael J. Wysocki wrote:
-> On Thursday, April 23, 2015 02:03:08 PM Rajendra Nayak wrote:
->> Most users of PM clocks do the exact same thing in runtime callbacks.
->> Provide default callbacks and cleanup the existing users (keystone/davinci
->> /omap1/sh)
->>
->> Rajendra Nayak (5):
->>    PM / clock_ops: Provide default runtime ops to users
->>    arm: keystone: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
->>    arm: omap1: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
->>    arm: davinci: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
->>    drivers: sh: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
->>
->>   arch/arm/mach-davinci/pm_domain.c  | 32 +-------------------------
->>   arch/arm/mach-keystone/pm_domain.c | 33 +-------------------------
->>   arch/arm/mach-omap1/pm_bus.c       | 37 ++----------------------------
->>   drivers/base/power/clock_ops.c     | 38 ++++++++++++++++++++++++++++++
->>   drivers/sh/pm_runtime.c            | 47 ++------------------------------------
->>   include/linux/pm_clock.h           | 10 ++++++++
->>   6 files changed, 54 insertions(+), 143 deletions(-)
+On 4/23/2015 4:56 PM, Tony Lindgren wrote:
+> We currently get all kinds of errors building the omap gpio driver
+> as a module starting with:
 >
-> It is not particularly clear to me who is supposed to apply this series, but
-> I can do that if people don't have problems with that.
+> undefined reference to `omap2_gpio_resume_after_idle'
+> undefined reference to `omap2_gpio_prepare_for_idle'
+> ...
 >
+> Let's fix the issue by adding inline functions to the header.
+> Note that we can now also remove the two unused functions for
+> omap_set_gpio_debounce and omap_set_gpio_debounce_time.
 >
-I am fine by that given dependency with first patch.
-Another way is, you pick up the first patch and give us an
-immutable branch.
+> Then doing rmmod on the module produces further warnings
+> because of missing exit related functions. Let's add those.
+>
+> And finally, we can make the Kconfig entry just a tristate
+> option that's selected for omaps.
+>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   drivers/gpio/Kconfig                    |  2 +-
+>   drivers/gpio/gpio-omap.c                | 24 ++++++++++++++++++++++++
+>   include/linux/platform_data/gpio-omap.h | 12 ++++++++++--
+>   3 files changed, 35 insertions(+), 3 deletions(-)
+>
+That platform header needs serious clean-up and we now
+add two more inlines there.
 
-Either way is fine by me.
+But, being able to use gpio as loadable module
+might be good enough reason to take this one.
 
+Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
 
-Regards,
-Santosh
