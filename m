@@ -1,71 +1,56 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: Re: [PATCH v2 12/15] dt: bindings: Add lane-polarity property to
- endpoint nodes
-Date: Fri, 24 Apr 2015 14:53:02 -0500
-Message-ID: <20150424195302.GA12032@ti.com>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
- <1427324259-18438-13-git-send-email-sakari.ailus@iki.fi>
- <20150424194100.GG24270@ti.com>
- <20150424194933.GF27451@valkosipuli.retiisi.org.uk>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] bus: omap_l3_noc: Fix master id address decoding for
+ OMAP5
+Date: Fri, 24 Apr 2015 14:54:51 -0500
+Message-ID: <553A9F8B.7010205@ti.com>
+References: <1429898060-51944-1-git-send-email-s-anna@ti.com>	<553A8C68.5080903@ti.com>	<553A951A.1080905@ti.com> <CAGo_u6rgZhkRZSjpXuvBz5frYByUDtzFrAQFaPB7rxT8hLYBPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39138 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932225AbbDXTxS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2015 15:53:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20150424194933.GF27451@valkosipuli.retiisi.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32932 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030735AbbDXTzQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Apr 2015 15:55:16 -0400
+In-Reply-To: <CAGo_u6rgZhkRZSjpXuvBz5frYByUDtzFrAQFaPB7rxT8hLYBPw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Sakari Ailus <sakari.ailus@iki.fi> wrote on Fri [2015-Apr-24 22:49:33 +0300]:
-> Hi Benoit,
+On 04/24/2015 02:38 PM, Nishanth Menon wrote:
+> On Fri, Apr 24, 2015 at 2:10 PM, Suman Anna <s-anna@ti.com> wrote:
+>> On 04/24/2015 01:33 PM, Nishanth Menon wrote:
+>>> On 04/24/2015 12:54 PM, Suman Anna wrote:
 > 
-> On Fri, Apr 24, 2015 at 02:41:00PM -0500, Benoit Parrot wrote:
-> > Sakari Ailus <sakari.ailus@iki.fi> wrote on Thu [2015-Mar-26 00:57:36 +0200]:
-> > > Add lane-polarity property to endpoint nodes. This essentially tells that
-> > > the order of the differential signal wires is inverted.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > >  Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > index 571b4c6..9cd2a36 100644
-> > > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > @@ -106,6 +106,12 @@ Optional endpoint properties
-> > >  - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
-> > >    instance, this is the actual frequency of the bus, not bits per clock per
-> > >    lane value. An array of 64-bit unsigned integers.
-> > > +- lane-polarities: an array of polarities of the lanes starting from the clock
-> > > +  lane and followed by the data lanes in the same order as in data-lanes.
-> > > +  Valid values are 0 (normal) and 1 (inverted). The length of the array
-> > > +  should be the combined length of data-lanes and clock-lanes properties.
-> > > +  If the lane-polarities property is omitted, the value must be interpreted
-> > > +  as 0 (normal). This property is valid for serial busses only.
-> > >  
-> > 
-> > I am interested in this functionality.
-> > But I do have the following question.
-> > If the lane-polarities property is not specified, shouldn't the
-> > relevant struct member (bus->lane_polarities[i]) be set to 0?
+> ...
+>>>> -static struct l3_target_data omap_l3_target_data_clk3[] = {
+>>>> -    {0x0100, "EMUSS",},
+>>>> -    {0x0300, "DEBUG SOURCE",},
+>>>> -    {0x0,   "HOST CLK3",},
+> ^^ this was HOST CLK3
+> ..
+>>>>
+>>>> +/* OMAP5 data */
+>>>> +static struct l3_target_data omap5_l3_target_data_clk3[] = {
+>>>> +    {0x0100, "L3INSTR",},
+>>>> +    {0x0300, "DEBUGSS",},
+>>>> +    {0x0,    "HOSTCLK3",},
+>>>
+>>> "HOST CLK"
+>>
+>> Why? I followed the convention used for the other two HOST CLKs for the
 > 
-> This is done in the caller function; endpoint->bus is zeroed in
-> v4l2_of_parse_endpoint(). I believe reading rest of the properties relies on
-> the same.
+> so asked, if it should be HOST<space>CLK3
 
-Dang, missed that.
-Sorry for the noise.
+Aah ok, you missed the trailing number before. In anycase, this was
+intentional to match HOSTCLK1 and HOSTCLK2 on OMAP4/5. Overall, the
+names are somewhat non-standard, some use underscores and some others
+strip out the underscore and do not use any spaces in between either.
+"HOST CLK3" would be the only one to use a space for OMAP4, so I got rid
+of it, so hope that's ok with you.
 
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+regards
+Suman
+
+
