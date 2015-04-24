@@ -1,32 +1,92 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] gpio: omap: Fix regression for MPUIO interrupts
-Date: Fri, 24 Apr 2015 08:29:28 -0700
-Message-ID: <553A6158.1050705@oracle.com>
-References: <1429833257-28188-1-git-send-email-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/5] arm: omap1: remove boilerplate code and use
+ USE_PM_CLK_RUNTIME_OPS
+Date: Fri, 24 Apr 2015 08:31:57 -0700
+Message-ID: <20150424153156.GS18048@atomide.com>
+References: <1429777993-11702-1-git-send-email-rnayak@codeaurora.org>
+ <1429777993-11702-4-git-send-email-rnayak@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1429833257-28188-1-git-send-email-tony@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Grygorii Strashko <grygorii.strashko@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1429777993-11702-4-git-send-email-rnayak@codeaurora.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@codeaurora.org>
+Cc: rjw@rjwysocki.net, ssantosh@kernel.org, khilman@kernel.org, nsekhar@ti.com, magnus.damm@gmail.com, geert@linux-m68k.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 4/23/2015 4:54 PM, Tony Lindgren wrote:
-> At some point with all the GPIO clean-up we've broken the
-> MPUIO interrupts. Those are just a little bit different from
-> the GPIO interrupts, so we can fix it up just by setting
-> different irqchip functions for it. And then we can just
-> remove all old code trying to do the same.
->
-> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Javier Martinez Canillas <javier@dowhile0.org>
-> Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Santosh Shilimkar <ssantosh@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+* Rajendra Nayak <rnayak@codeaurora.org> [150423 01:34]:
+> USE_PM_CLK_RUNTIME_OPS is introduced so we don't repeat the same code
+> to do runtime_suspend and runtime_resume across users of PM clocks.
+> Use it to remove the boilerplate code.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@codeaurora.org>
+> Reviewed-by: Kevin Hilman <khilman@linaro.org>
+> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
 > ---
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+>  arch/arm/mach-omap1/pm_bus.c | 37 ++-----------------------------------
+>  1 file changed, 2 insertions(+), 35 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
+> index c40e209..667c163 100644
+> --- a/arch/arm/mach-omap1/pm_bus.c
+> +++ b/arch/arm/mach-omap1/pm_bus.c
+> @@ -21,48 +21,15 @@
+>  
+>  #include "soc.h"
+>  
+> -#ifdef CONFIG_PM
+> -static int omap1_pm_runtime_suspend(struct device *dev)
+> -{
+> -	int ret;
+> -
+> -	dev_dbg(dev, "%s\n", __func__);
+> -
+> -	ret = pm_generic_runtime_suspend(dev);
+> -	if (ret)
+> -		return ret;
+> -
+> -	ret = pm_clk_suspend(dev);
+> -	if (ret) {
+> -		pm_generic_runtime_resume(dev);
+> -		return ret;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> -static int omap1_pm_runtime_resume(struct device *dev)
+> -{
+> -	dev_dbg(dev, "%s\n", __func__);
+> -
+> -	pm_clk_resume(dev);
+> -	return pm_generic_runtime_resume(dev);
+> -}
+> -
+>  static struct dev_pm_domain default_pm_domain = {
+>  	.ops = {
+> -		.runtime_suspend = omap1_pm_runtime_suspend,
+> -		.runtime_resume = omap1_pm_runtime_resume,
+> +		USE_PM_CLK_RUNTIME_OPS
+>  		USE_PLATFORM_PM_SLEEP_OPS
+>  	},
+>  };
+> -#define OMAP1_PM_DOMAIN (&default_pm_domain)
+> -#else
+> -#define OMAP1_PM_DOMAIN NULL
+> -#endif /* CONFIG_PM */
+>  
+>  static struct pm_clk_notifier_block platform_bus_notifier = {
+> -	.pm_domain = OMAP1_PM_DOMAIN,
+> +	.pm_domain = &default_pm_domain,
+>  	.con_ids = { "ick", "fck", NULL, },
+>  };
+>  
+> -- 
+> QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member
+> of Code Aurora Forum, hosted by The Linux Foundation
+> 
