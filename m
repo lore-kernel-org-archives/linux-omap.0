@@ -1,42 +1,41 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: n900 in 4.1-rc0
-Date: Sun, 26 Apr 2015 12:20:46 +0200
-Message-ID: <20150426102046.GA4340@amd>
-References: <20150416093234.GA17423@amd>
- <CANMBJr5G2RpS1sw3N8FYitqzqFu8a2Gqj__i_742FZrMYuusOA@mail.gmail.com>
+From: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: [PATCH 1a/3] watchdog: omap: clearify device tree documentation
+Date: Sun, 26 Apr 2015 08:29:20 -0700
+Message-ID: <553D0450.6050403@roeck-us.net>
+References: <20150424190207.GU19431@pengutronix.de> <1429906850-5420-1-git-send-email-u.kleine-koenig@pengutronix.de> <20150425021024.GA14963@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANMBJr5G2RpS1sw3N8FYitqzqFu8a2Gqj__i_742FZrMYuusOA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tyler Baker <tyler.baker@linaro.org>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, tony@atomide.com, Kevin's boot bot <khilman@kernel.org>, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150425021024.GA14963-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, =?windows-1252?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On 04/24/2015 07:10 PM, Felipe Balbi wrote:
+> On Fri, Apr 24, 2015 at 10:20:50PM +0200, Uwe Kleine-K=F6nig wrote:
+>> ti,hwmods doesn't belong into the compatible section but is a proper=
+ty
+>> on it's own. Also reformat the section of required properties to mat=
+ch the
+>> usual style of dt binding documents.
+>>
+>> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+>
+> looks great to me, thanks
+>
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>
 
-> > Just tried booting 4.1-rc0 on n900 (commit
-> > 34c9a0ffc75ad25b6a60f61e27c4a4b1189b8085) and it is broken.
-> >
-> > Any ideas?
-> 
-> Looks like DT and legacy booting are working fine in our
-> labs. [0][1]
+Reviewed-by: and Acked-by: are mutually exclusive.
 
-Interesting web pages, thanks.
+Guenter
 
-I noticed that legacy booting indicates broken today, but... Is there
-list of your targets somewhere?
-
-Best regards,
-									Pavel
-
-
-
-> [0] http://kernelci.org/boot/omap3-n900/
-> [1] http://kernelci.org/boot/omap3-n900,legacy/
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdo=
+g" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
