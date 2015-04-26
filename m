@@ -1,98 +1,61 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1a/3] watchdog: omap: clearify device tree documentation
-Date: Fri, 24 Apr 2015 21:10:24 -0500
-Message-ID: <20150425021024.GA14963@saruman.tx.rr.com>
-References: <20150424190207.GU19431@pengutronix.de>
- <1429906850-5420-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: twl4030_charger: need changes to get probed?
+Date: Sun, 26 Apr 2015 12:13:59 +0200
+Message-ID: <20150426101359.GA3933@amd>
+References: <20150224043341.4243.23291.stgit@notabene.brown>
+ <CANOLnONUtfF1UwgW3O5fkAX30UMznZXwbtPkqPFDLR4jFdNqow@mail.gmail.com>
+ <20150306224034.GA20559@amd>
+ <201503062356.06110@pali>
+ <CANOLnONc3+F=e3VfYZyGCtnzMOHV3GrX6cUSV1G4WJDPrgGFSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1429906850-5420-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+In-Reply-To: <CANOLnONc3+F=e3VfYZyGCtnzMOHV3GrX6cUSV1G4WJDPrgGFSg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, ivo.g.dimitrov.75@gmail.com, Samuel Ortiz <sameo@linux.intel.com>, khilman@kernel.org, NeilBrown <neilb@suse.de>, sre@debian.org, linux-pm@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, sre@ring0.de, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi!
 
-On Fri, Apr 24, 2015 at 10:20:50PM +0200, Uwe Kleine-K=F6nig wrote:
-> ti,hwmods doesn't belong into the compatible section but is a property
-> on it's own. Also reformat the section of required properties to match the
-> usual style of dt binding documents.
->=20
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> >> Ok, but:
+> >>
+> >> 1) Why is the twl4030-bci enabled in n900's dts, then
+> >>
+> >
+> > maybe it is bug in n900 dts...
+> >
+> > Grazvydas, is there some runtime check if twl4030/twl5030 chip
+> > has charger or not? or do we need to explicitly disable device
+> > twl4030-bci in DT?
+> 
+> Actually from looking at the schematics, it looks like the charger
+> pins are still there but all connected to ground. So it probably has
+> the charger after all, it's just not connected or used.
+> 
+> I'm not aware or any registers for direct detection, and indirect
+> detection is difficult because BCI mostly disables itself when no
+> charger is connected and most registers read as 0 or have old values
+> from last charging session (which will never happen on n900).
+> 
+> There is IDCODE register on twl4030 itself, but it's documented as not
+> meaningful when accessed over i2c (when is it meaningful then??).
+> 
+> drivers/mfd/twl-core.c has a i2c_device_id table of various twl4030
+> variants, some of which have no charger. N900 has GAIA/twl5030, which
+> differs from twl4030 only by vaux2 regulator according to that file.
+> N900's old board files specify 5030, but .dts does not.
 
-looks great to me, thanks
+I have enabled the (not-too-useful) twl4030 charger on my n900, and
+it seems to break boot with kernels
+34c9a0ffc75ad25b6a60f61e27c4a4b1189b8085 and newer.
 
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
-> ---
-> Hello Felipe,
->=20
-> what about this patch before the previously sent patch 1?
->=20
-> Best regards
-> Uwe
->=20
->  Documentation/devicetree/bindings/watchdog/omap-wdt.txt | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt b/Do=
-cumentation/devicetree/bindings/watchdog/omap-wdt.txt
-> index c227970671ea..597e19d18dca 100644
-> --- a/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-> +++ b/Documentation/devicetree/bindings/watchdog/omap-wdt.txt
-> @@ -1,10 +1,8 @@
->  TI Watchdog Timer (WDT) Controller for OMAP
-> =20
->  Required properties:
-> -compatible:
-> -- "ti,omap3-wdt" for OMAP3
-> -- "ti,omap4-wdt" for OMAP4
-> -- ti,hwmods: Name of the hwmod associated to the WDT
-> +- compatible : "ti,omap3-wdt" for OMAP3 or "ti,omap4-wdt" for OMAP4
-> +- ti,hwmods : Name of the hwmod associated to the WDT
-> =20
->  Examples:
-> =20
-> --=20
-> 2.1.4
->=20
-
---=20
-balbi
-
---pWyiEgJYm5f9v55/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVOveQAAoJEIaOsuA1yqREL0gP/34NgRMjYSMyHQO8DchbdLJ7
-L9XsBtm/6JEVrlye/wGl+dTa/iNLXrF1Eb8nrqc36gUsXIO6snhVzS6+5fzL+QWh
-qrzIJtfRbYdYNjIvbduUmNLZ0OmJZV12I7GxpvebgTnEamDVJ05QuP/twVm5gVkL
-rq7kN2xspX5IplMuewC2pvxYXn2EfrhkFVwTfmdo3nKZ/y6GESq6eZgo9kWlh7ob
-p47lehxFrqJdmqVDWKok15hbfkOSWaQ8jib5RqtwxkeKMr7PKp8A7JFLJt6plNBe
-z6KA1C7bdDQp3MKy3I8PQB4PxAdroPgYmgcbztM3WFy4IL/Uj1M9kr6y/1DKlen6
-7MQQ4rMI1eJMSX6luKVBwLQnMPy5Tqh9fUvhCNhukRJFxcDih0+W27xxVI0wqIr2
-ax8vafSHsOEk8DK/57OO4/UyYjJc18V0OSNvatt2PWr4aTGQIM+ILu1Q7JHFMsKR
-N8cd8G0lUguE86vaSicEBETm6EcezfYyHGHLEkyqn9DSLh6908CnC+CA0rIE1zY9
-PSgNLh1swvvwr0qyCNDXuMp0oiGAsfYA0NU1JtHl/HfI4XgQR2dseREJpkjtg2gm
-ITQK160CIW6hm4SUBY0aPIZ5bNWIGI8N20DcyzZSxch3uWTaMArUFVN9cFD7C00H
-APhT8A0FQXgonbic1dF+
-=qbg9
------END PGP SIGNATURE-----
-
---pWyiEgJYm5f9v55/--
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll probably not have time to investigate it further (charger not
+connected to anything is not too useful), but maybe Neil wants to test
+on his phone...?
+									
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
