@@ -1,57 +1,56 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 0/3] Introduce SET_NOIRQ_SYSTEM_SLEEP_PM_OPS and use it
-Date: Mon, 27 Apr 2015 13:27:10 -0700
-Message-ID: <553E9B9E.4080401@oracle.com>
-References: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, linux-pm@vger.kernel.org
-Cc: ulf.hansson@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 3.12 33/83] dmaengine: omap-dma: Fix memory leak when terminating running transfer
+Date: Mon, 27 Apr 2015 23:32:04 +0200
+Message-ID: <c38aa9bba28f912bf2eaea861c0ddf541af75606.1430159990.git.jslaby@suse.cz>
+References: <3426bb8de3a655aa6668e92ee92eb35f0db86582.1430159990.git.jslaby@suse.cz>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <3426bb8de3a655aa6668e92ee92eb35f0db86582.1430159990.git.jslaby@suse.cz>
+In-Reply-To: <cover.1430159990.git.jslaby@suse.cz>
+References: <cover.1430159990.git.jslaby@suse.cz>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Jiri Slaby <jslaby@suse.cz>
 List-Id: linux-omap@vger.kernel.org
 
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
+3.12-stable review patch.  If anyone has any objections, please let me know.
 
-On 4/27/2015 11:24 AM, grygorii.strashko@linaro.org wrote:
-> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->
-> While working on suspend-to-disk functionality on TI dra7-evm (DRA7xx SoC)
-> i've found that the most common problem I have to dial with is absence
-> of corresponding PM callbacks in drivers and, in particular, noirq callbacks.
-> So, I've fixed one driver first
-> commit 6248015d6867 "ARM: omap-device: add missed callback for suspend-to-disk"
-> but then found another one which need to be fixed too (omap_l3_noc.c).
-> At this moment I decided to make my life easier and added new macro
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS using the same approach as for the existing
-> SET_SYSTEM_SLEEP_PM_OPS macro.
->
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS: defined for CONFIG_PM_SLEEP and
-> assigns ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
-> function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
-> ->restore_noirq.
->
-> Further two patches reuse this newly introduced macro.
->
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS, defined for CONFIG_PM_SLEEP, will
->      point ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
->      function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
->      ->restore_noirq.
->
-[...]
+===============
 
->
-> Grygorii Strashko (3):
->    PM / Sleep: Add macro to define common noirq system PM callbacks
->    bus: omap_l3_noc: add missed callbacks for suspend-to-disk
->    ARM: omap-device: use SET_NOIRQ_SYSTEM_SLEEP_PM_OPS
->
->   arch/arm/mach-omap2/omap_device.c |  7 ++-----
->   drivers/bus/omap_l3_noc.c         |  4 ++--
->   include/linux/pm.h                | 12 ++++++++++++
->   3 files changed, 16 insertions(+), 7 deletions(-)
->
-Looks fine to me.....
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
+
+In omap_dma_start_desc the vdesc->node is removed from the virt-dma
+framework managed lists (to be precise from the desc_issued list).
+If a terminate_all comes before the transfer finishes the omap_desc will
+not be freed up because it is not in any of the lists and we stopped the
+DMA channel so the transfer will not going to complete.
+There is no special sequence for leaking memory when using cyclic (audio)
+transfer: with every start and stop of a cyclic transfer the driver leaks
+struct omap_desc worth of memory.
+
+Free up the allocated memory directly in omap_dma_terminate_all() since the
+framework will not going to do that for us.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: <linux-omap@vger.kernel.org>
+Signed-off-by: Vinod Koul <vinod.koul@intel.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ drivers/dma/omap-dma.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index ec3fc4fd9160..b94a37630e36 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -487,6 +487,7 @@ static int omap_dma_terminate_all(struct omap_chan *c)
+ 	 * c->desc is NULL and exit.)
+ 	 */
+ 	if (c->desc) {
++		omap_dma_desc_free(&c->desc->vd);
+ 		c->desc = NULL;
+ 		/* Avoid stopping the dma twice */
+ 		if (!c->paused)
+-- 
+2.3.5
