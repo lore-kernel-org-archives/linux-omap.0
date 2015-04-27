@@ -1,7 +1,7 @@
 From: <grygorii.strashko@linaro.org>
-Subject: [PATCH 2/3] bus: omap_l3_noc: add missed callbacks for suspend-to-disk
-Date: Mon, 27 Apr 2015 21:24:31 +0300
-Message-ID: <1430159072-31440-3-git-send-email-grygorii.strashko@linaro.org>
+Subject: [PATCH 1/3] PM / Sleep: Add macro to define common noirq system PM callbacks
+Date: Mon, 27 Apr 2015 21:24:30 +0300
+Message-ID: <1430159072-31440-2-git-send-email-grygorii.strashko@linaro.org>
 References: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
@@ -12,8 +12,13 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 
-Add missed callbacks needed for proper supporting of suspend-to-disk
-by using recently introduced macro SET_NOIRQ_SYSTEM_SLEEP_PM_OPS.
+The same approach is used as for the existing SET_SYSTEM_SLEEP_PM_OPS,
+but for noirq callbacks.
+
+New SET_NOIRQ_SYSTEM_SLEEP_PM_OPS, defined for CONFIG_PM_SLEEP, will
+point ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
+function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
+->restore_noirq.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Nishanth Menon <nm@ti.com>
@@ -21,30 +26,31 @@ Cc: Kevin Hilman <khilman@linaro.org>
 Cc: Santosh Shilimkar <ssantosh@kernel.org>
 Signed-off-by: Grygorii Strashko <Grygorii.Strashko@linaro.org>
 ---
- drivers/bus/omap_l3_noc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pm.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 11f7982..6ae3884 100644
---- a/drivers/bus/omap_l3_noc.c
-+++ b/drivers/bus/omap_l3_noc.c
-@@ -300,7 +300,7 @@ static int omap_l3_probe(struct platform_device *pdev)
- 	return ret;
- }
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 2d29c64..4890743 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -342,6 +342,18 @@ struct dev_pm_ops {
+ #define SET_LATE_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
+ #endif
  
--#ifdef	CONFIG_PM
-+#ifdef	CONFIG_PM_SLEEP
- 
- /**
-  * l3_resume_noirq() - resume function for l3_noc
-@@ -346,7 +346,7 @@ static int l3_resume_noirq(struct device *dev)
- }
- 
- static const struct dev_pm_ops l3_dev_pm_ops = {
--	.resume_noirq		= l3_resume_noirq,
-+	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(NULL, l3_resume_noirq)
- };
- 
- #define L3_DEV_PM_OPS (&l3_dev_pm_ops)
++#ifdef CONFIG_PM_SLEEP
++#define SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
++	.suspend_noirq = suspend_fn, \
++	.resume_noirq = resume_fn, \
++	.freeze_noirq = suspend_fn, \
++	.thaw_noirq = resume_fn, \
++	.poweroff_noirq = suspend_fn, \
++	.restore_noirq = resume_fn,
++#else
++#define SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
++#endif
++
+ #ifdef CONFIG_PM
+ #define SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn) \
+ 	.runtime_suspend = suspend_fn, \
 -- 
 1.9.1
