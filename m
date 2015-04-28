@@ -1,16 +1,16 @@
 From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH v2] omap: i2c: Add calls for pinctrl state select
-Date: Tue, 28 Apr 2015 08:11:12 -0500
-Message-ID: <553F86F0.8000107@ti.com>
+Date: Tue, 28 Apr 2015 08:11:29 -0500
+Message-ID: <553F8701.4000501@ti.com>
 References: <1429693667-28942-1-git-send-email-pascal.huerst@gmail.com> <55383D9A.4020302@ti.com> <553F696A.8060408@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44565 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965423AbbD1NLV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2015 09:11:21 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:54444 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965446AbbD1NLh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Apr 2015 09:11:37 -0400
 In-Reply-To: <553F696A.8060408@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -40,8 +40,8 @@ On 04/28/2015 06:05 AM, Pascal Huerst wrote:
 > right? Otherwise, I would say we should add documentation for all
 > devices, so it is consistent.
 
-that is probably good since drivers may or maynot support support the
-sleep configuration.
+that is probably good since drivers may or maynot support the sleep
+configuration.
 
 
 -- 
