@@ -1,80 +1,64 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 0/5] PM / clock_ops: provide default runtime ops and
- cleanup users
-Date: Tue, 28 Apr 2015 09:46:19 +0900
-Message-ID: <20150428004618.GA1807@verge.net.au>
-References: <553A6289.4040001@oracle.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/3] Introduce SET_NOIRQ_SYSTEM_SLEEP_PM_OPS and use it
+Date: Tue, 28 Apr 2015 09:40:39 +0200
+Message-ID: <CAPDyKFqOTkuJkefVjxyPq0pFfszWbnhnRpQ8DJTr_qoW3=C_Wg@mail.gmail.com>
+References: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <553A6289.4040001@oracle.com>
- <CAMuHMdWMjULD8jQDA-U6tumnCd=Q7jhZ2koha4CKU-K50tJXmw@mail.gmail.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>, santosh shilimkar <santosh.shilimkar@oracle.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rajendra Nayak <rnayak@codeaurora.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Magnus Damm <magnus.damm@gmail.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux PM list <linux-pm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 24, 2015 at 04:51:03PM +0200, Geert Uytterhoeven wrote:
-> On Fri, Apr 24, 2015 at 4:41 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, April 23, 2015 02:03:08 PM Rajendra Nayak wrote:
-> >> Most users of PM clocks do the exact same thing in runtime callbacks.
-> >> Provide default callbacks and cleanup the existing users (keystone/davinci
-> >> /omap1/sh)
-> >>
-> >> Rajendra Nayak (5):
-> >>   PM / clock_ops: Provide default runtime ops to users
-> >>   arm: keystone: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
-> >>   arm: omap1: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
-> >>   arm: davinci: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
-> >>   drivers: sh: remove boilerplate code and use USE_PM_CLK_RUNTIME_OPS
-> >>
-> >>  arch/arm/mach-davinci/pm_domain.c  | 32 +-------------------------
-> >>  arch/arm/mach-keystone/pm_domain.c | 33 +-------------------------
-> >>  arch/arm/mach-omap1/pm_bus.c       | 37 ++----------------------------
-> >>  drivers/base/power/clock_ops.c     | 38 ++++++++++++++++++++++++++++++
-> >>  drivers/sh/pm_runtime.c            | 47 ++------------------------------------
-> >>  include/linux/pm_clock.h           | 10 ++++++++
-> >>  6 files changed, 54 insertions(+), 143 deletions(-)
-> >
-> > It is not particularly clear to me who is supposed to apply this series, but
-> > I can do that if people don't have problems with that.
-> 
-> All later patches depend on the first patch.
-> 
-> For shmobile, Simon has queued up changes for drivers/sh/pm_runtime.c,
-> but I think they don't conflict with this series.
+On 27 April 2015 at 20:24,  <grygorii.strashko@linaro.org> wrote:
+> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>
+> While working on suspend-to-disk functionality on TI dra7-evm (DRA7xx SoC)
+> i've found that the most common problem I have to dial with is absence
+> of corresponding PM callbacks in drivers and, in particular, noirq callbacks.
+> So, I've fixed one driver first
+> commit 6248015d6867 "ARM: omap-device: add missed callback for suspend-to-disk"
+> but then found another one which need to be fixed too (omap_l3_noc.c).
+> At this moment I decided to make my life easier and added new macro
+> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS using the same approach as for the existing
+> SET_SYSTEM_SLEEP_PM_OPS macro.
+>
+> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS: defined for CONFIG_PM_SLEEP and
+> assigns ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
+> function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
+> ->restore_noirq.
+>
+> Further two patches reuse this newly introduced macro.
+>
+> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS, defined for CONFIG_PM_SLEEP, will
+>     point ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
+>     function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
+>     ->restore_noirq.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Kevin Hilman <khilman@linaro.org>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+>
+> Grygorii Strashko (3):
+>   PM / Sleep: Add macro to define common noirq system PM callbacks
+>   bus: omap_l3_noc: add missed callbacks for suspend-to-disk
+>   ARM: omap-device: use SET_NOIRQ_SYSTEM_SLEEP_PM_OPS
+>
+>  arch/arm/mach-omap2/omap_device.c |  7 ++-----
+>  drivers/bus/omap_l3_noc.c         |  4 ++--
+>  include/linux/pm.h                | 12 ++++++++++++
+>  3 files changed, 16 insertions(+), 7 deletions(-)
+>
+> --
+> 1.9.1
+>
 
-Yes, that is the case. I have some patches (from Geert) queued up for v4.1.
-I have confirmed that they do not conflict with the shmobile (last) patch
-if this series.
+For the patchset.
 
-<details>
-The patches are in the sh-drivers-for-v4.1 branch of my renesas tree; I
-rebased them yesterday; they should hit next today if there is a next
-today; I plan to send a pull request to Linus in the not to distant future;
-and I envisage they should end up in v4.1-rc2 or rc3.  </details>
+Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-On Fri, Apr 24, 2015 at 08:34:33AM -0700, santosh shilimkar wrote:
-> On 4/24/2015 7:41 AM, Rafael J. Wysocki wrote:
-> >On Thursday, April 23, 2015 02:03:08 PM Rajendra Nayak wrote:
-
-[snip]
-
-> >It is not particularly clear to me who is supposed to apply this series, but
-> >I can do that if people don't have problems with that.
-> >
-> >
-> I am fine by that given dependency with first patch.
-> Another way is, you pick up the first patch and give us an
-> immutable branch.
-> 
-> Either way is fine by me.
-
-Likewise.
-
-Here is an ack for the shmobile (last) patch if you decide to take it
-through your tree.
-
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
-
+Kind regards
+Uffe
