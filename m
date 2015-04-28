@@ -1,49 +1,58 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 0/3] Introduce SET_NOIRQ_SYSTEM_SLEEP_PM_OPS and use it
-Date: Tue, 28 Apr 2015 08:40:04 -0700
-Message-ID: <7hr3r4w9bf.fsf@linaro.org>
-References: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Tue, 28 Apr 2015 19:11:10 +0100
+Message-ID: <20150428181109.GA4027@n2100.arm.linux.org.uk>
+References: <20150407135713.GL4027@n2100.arm.linux.org.uk>
+ <20150407152207.GM18048@atomide.com>
+ <20150408230658.GO4027@n2100.arm.linux.org.uk>
+ <20150409134843.GQ4027@n2100.arm.linux.org.uk>
+ <20150415163108.GB2033@earth>
+ <20150416160858.GH18048@atomide.com>
+ <20150417184156.GA3326@earth>
+ <20150420234032.GM18048@atomide.com>
+ <20150423102542.GZ4027@n2100.arm.linux.org.uk>
+ <CAALWOA_3wfn=K3qt9MzWYXMGTM7mZvqY03Biqk5T2wVF4uMVxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
-	(grygorii strashko's message of "Mon, 27 Apr 2015 21:24:29 +0300")
-Sender: linux-pm-owner@vger.kernel.org
-To: grygorii.strashko@linaro.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, linux-pm@vger.kernel.org, ulf.hansson@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:60632 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030316AbbD1SLV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2015 14:11:21 -0400
+Content-Disposition: inline
+In-Reply-To: <CAALWOA_3wfn=K3qt9MzWYXMGTM7mZvqY03Biqk5T2wVF4uMVxQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-<grygorii.strashko@linaro.org> writes:
+On Fri, Apr 24, 2015 at 10:54:29AM +0200, Matthijs van Duin wrote:
+> On 23 April 2015 at 12:25, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > And you can't detect whether you're running in secure mode or not.
+> 
+> If not, you get an undefined instruction exception, which you could trap.
+> 
+> This may not be convenient, but "can't detect" is an overstatement.
 
-> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->
-> While working on suspend-to-disk functionality on TI dra7-evm (DRA7xx SoC)
-> i've found that the most common problem I have to dial with is absence
-> of corresponding PM callbacks in drivers and, in particular, noirq callbacks.
-> So, I've fixed one driver first
-> commit 6248015d6867 "ARM: omap-device: add missed callback for suspend-to-disk"
-> but then found another one which need to be fixed too (omap_l3_noc.c).
-> At this moment I decided to make my life easier and added new macro
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS using the same approach as for the existing
-> SET_SYSTEM_SLEEP_PM_OPS macro.
->
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS: defined for CONFIG_PM_SLEEP and
-> assigns ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
-> function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
-> ->restore_noirq.
->
-> Further two patches reuse this newly introduced macro.
->
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS, defined for CONFIG_PM_SLEEP, will
->     point ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
->     function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
->     ->restore_noirq.
+It's these kinds of statements that really piss me off.
 
-For the series:
+At this stage in the boot, there's no memory allocators.  There's no
+MMU.  There's really not very much.  There's no guarantee that the
+location where the vectors are is writable on all platforms.
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
+It's pretty much _impossible_ to do generically.
 
-And for the omap_device changes:
+"Can't detect" is _not_ an overstatement.  It's a statement that I'm
+giving you through my experience and knowledge of the Linux kernel,
+the ARM archtecture, the capabilities of the platforms we have to
+deal with, and how we want the kernel to work.
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+Sure, we _can_ detect it if (and only if) we code specifically for a
+platform which has RAM at the CPU vector location.  Unfortunately,
+that's a _very_ small proportion which approximates a number very
+close to zero.
 
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
