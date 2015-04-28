@@ -1,29 +1,49 @@
-From: Mikko Perttunen <mikko.perttunen@kapsi.fi>
-Subject: Re: [PATCH 1/2] clk: change clk_ops' ->round_rate() prototype
-Date: Tue, 28 Apr 2015 18:11:28 +0300
-Message-ID: <553FA320.4040006@kapsi.fi>
-References: <1429255769-13639-1-git-send-email-boris.brezillon@free-electrons.com> <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 0/3] Introduce SET_NOIRQ_SYSTEM_SLEEP_PM_OPS and use it
+Date: Tue, 28 Apr 2015 08:40:04 -0700
+Message-ID: <7hr3r4w9bf.fsf@linaro.org>
+References: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, =?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarr>
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
+	(grygorii strashko's message of "Mon, 27 Apr 2015 21:24:29 +0300")
+Sender: linux-pm-owner@vger.kernel.org
+To: grygorii.strashko@linaro.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, linux-pm@vger.kernel.org, ulf.hansson@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The series
+<grygorii.strashko@linaro.org> writes:
 
-Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>
+> While working on suspend-to-disk functionality on TI dra7-evm (DRA7xx SoC)
+> i've found that the most common problem I have to dial with is absence
+> of corresponding PM callbacks in drivers and, in particular, noirq callbacks.
+> So, I've fixed one driver first
+> commit 6248015d6867 "ARM: omap-device: add missed callback for suspend-to-disk"
+> but then found another one which need to be fixed too (omap_l3_noc.c).
+> At this moment I decided to make my life easier and added new macro
+> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS using the same approach as for the existing
+> SET_SYSTEM_SLEEP_PM_OPS macro.
+>
+> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS: defined for CONFIG_PM_SLEEP and
+> assigns ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
+> function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
+> ->restore_noirq.
+>
+> Further two patches reuse this newly introduced macro.
+>
+> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS, defined for CONFIG_PM_SLEEP, will
+>     point ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
+>     function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
+>     ->restore_noirq.
 
-on Jetson-TK1.
+For the series:
 
-I rebased my cpufreq series on top of this and everything's working well 
-now. :)
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
 
-Thanks,
-Mikko.
+And for the omap_device changes:
 
-On 04/17/2015 10:29 AM, Boris Brezillon wrote:
-> ...
+Acked-by: Kevin Hilman <khilman@linaro.org>
+
