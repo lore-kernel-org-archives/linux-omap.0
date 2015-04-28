@@ -1,64 +1,95 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/3] Introduce SET_NOIRQ_SYSTEM_SLEEP_PM_OPS and use it
-Date: Tue, 28 Apr 2015 09:40:39 +0200
-Message-ID: <CAPDyKFqOTkuJkefVjxyPq0pFfszWbnhnRpQ8DJTr_qoW3=C_Wg@mail.gmail.com>
-References: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
+From: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] omap: i2c: Add calls for pinctrl state select
+Date: Tue, 28 Apr 2015 13:05:14 +0200
+Message-ID: <553F696A.8060408@gmail.com>
+References: <1429693667-28942-1-git-send-email-pascal.huerst@gmail.com> <55383D9A.4020302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1430159072-31440-1-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55383D9A.4020302-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 27 April 2015 at 20:24,  <grygorii.strashko@linaro.org> wrote:
-> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->
-> While working on suspend-to-disk functionality on TI dra7-evm (DRA7xx SoC)
-> i've found that the most common problem I have to dial with is absence
-> of corresponding PM callbacks in drivers and, in particular, noirq callbacks.
-> So, I've fixed one driver first
-> commit 6248015d6867 "ARM: omap-device: add missed callback for suspend-to-disk"
-> but then found another one which need to be fixed too (omap_l3_noc.c).
-> At this moment I decided to make my life easier and added new macro
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS using the same approach as for the existing
-> SET_SYSTEM_SLEEP_PM_OPS macro.
->
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS: defined for CONFIG_PM_SLEEP and
-> assigns ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
-> function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
-> ->restore_noirq.
->
-> Further two patches reuse this newly introduced macro.
->
-> SET_NOIRQ_SYSTEM_SLEEP_PM_OPS, defined for CONFIG_PM_SLEEP, will
->     point ->suspend_noirq, ->freeze_noirq and ->poweroff_noirq to the same
->     function. Vice versa happens for ->resume_noirq, ->thaw_noirq and
->     ->restore_noirq.
->
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Kevin Hilman <khilman@linaro.org>
-> Cc: Santosh Shilimkar <ssantosh@kernel.org>
->
-> Grygorii Strashko (3):
->   PM / Sleep: Add macro to define common noirq system PM callbacks
->   bus: omap_l3_noc: add missed callbacks for suspend-to-disk
->   ARM: omap-device: use SET_NOIRQ_SYSTEM_SLEEP_PM_OPS
->
->  arch/arm/mach-omap2/omap_device.c |  7 ++-----
->  drivers/bus/omap_l3_noc.c         |  4 ++--
->  include/linux/pm.h                | 12 ++++++++++++
->  3 files changed, 16 insertions(+), 7 deletions(-)
->
-> --
-> 1.9.1
->
 
-For the patchset.
 
-Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+On 23.04.2015 02:32, Nishanth Menon wrote:
+> few nitpicks:
+> i2c: omap:  in $subject instead of omap: i2c:
+> I usually would do:
+> git log --no-merges --oneline drivers/i2c/busses/i2c-omap.c
+> and look for common usage.
 
-Kind regards
-Uffe
+Aargh, thanks for pointing that out, I'll fix that.
+
+> On 04/22/2015 04:07 AM, pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
+>> From: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>
+>> This adds calls to pinctrl subsystem in order to switch pin states
+>> on suspend/resume if you provide a "sleep" state in DT.
+>>
+>> Signed-off-by: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/i2c/busses/i2c-omap.c | 5 +++++
+>>  1 file changed, 5 insertions(+)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index 0e89419..8261941 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -38,6 +38,7 @@
+>>  #include <linux/slab.h>
+>>  #include <linux/i2c-omap.h>
+>>  #include <linux/pm_runtime.h>
+>> +#include <linux/pinctrl/consumer.h>
+>>
+>>  /* I2C controller revisions */
+>>  #define OMAP_I2C_OMAP1_REV_2		0x20
+>> @@ -1423,6 +1424,8 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+>>  		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
+>>  	}
+>>
+>> +	pinctrl_pm_select_sleep_state(dev);
+>> +
+>>  	return 0;
+>>  }
+>>
+>> @@ -1431,6 +1434,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>>  	struct platform_device *pdev = to_platform_device(dev);
+>>  	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+>>
+>> +	pinctrl_pm_select_default_state(dev);
+>> +
+>>  	if (!_dev->regs)
+>>  		return 0;
+>>
+>> --
+>> 2.1.0
+>>
+> Build tested with omap2plus_defconfig on linus master (27cf3a16b253)
+> and next-20150422
+> While I do understand that the sleep state and default states are
+> optional - might be nice to state it in commit message (as a result of
+> which we dont do error checks).
+
+Thanks for testing. I'll fix the commit message and send in v3.
+
+> Would you think adding relevant documentation in
+> Documentation/devicetree/bindings/i2c/i2c-omap.txt might be good as
+> well? I mean, folks should know looking at dt documentation that this
+> bus driver does indeed support this option..
+
+I'm not sure about that. Actually this is all handled by the pinctrl
+subsystem, so I would guess that documentation belongs there, since in:
+
+Documentation/devicetree/bindings/i2c/i2c-at91.txt
+Documentation/devicetree/bindings/i2c/i2c-nomadik.txt
+
+is no documentation about that as well. But there is documentation in:
+
+Documentation/pinctrl.txt
+
+right? Otherwise, I would say we should add documentation for all
+devices, so it is consistent.
