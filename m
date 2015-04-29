@@ -1,112 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Wed, 29 Apr 2015 07:40:12 -0700
-Message-ID: <20150429144011.GB24469@atomide.com>
-References: <20150407152207.GM18048@atomide.com>
- <20150408230658.GO4027@n2100.arm.linux.org.uk>
- <20150409134843.GQ4027@n2100.arm.linux.org.uk>
- <20150415163108.GB2033@earth>
- <20150416160858.GH18048@atomide.com>
- <20150417184156.GA3326@earth>
- <20150420234032.GM18048@atomide.com>
- <20150423102542.GZ4027@n2100.arm.linux.org.uk>
- <20150423141727.GQ18048@atomide.com>
- <20150428181300.GB4027@n2100.arm.linux.org.uk>
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: [RFC/RFT PATCH 2/2] gpio: omap: ensure that runtime pm will disable
+ unused gpio banks
+Date: Wed, 29 Apr 2015 07:59:04 -0700
+Message-ID: <5540F1B8.5030407@oracle.com>
+References: <1425670017-19598-1-git-send-email-grygorii.strashko@linaro.org> <1425670017-19598-2-git-send-email-grygorii.strashko@linaro.org> <20150306231513.GB2651@atomide.com> <20150319230326.GP31346@atomide.com> <20150416162941.GI18048@atomide.com> <55314396.20907@linaro.org> <20150429143320.GA24469@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:47943 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031707AbbD2OkQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Apr 2015 10:40:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20150428181300.GB4027@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20150429143320.GA24469@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, ssantosh@kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [150428 11:14]:
-> On Thu, Apr 23, 2015 at 07:17:28AM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150423 03:26]:
-> > > However, I don't think anyone is willing to say that they have a
-> > > solution to this problem - obviously, you can't build OMAP as a
-> > > non-multiplatform kernel anymore, so in effect you can never have
-> > > the kernel enable this errata.  And you can't detect whether you're
-> > > running in secure mode or not.
-> > > 
-> > > We could do the "only write the bit if it was originally clear" but
-> > > we still have the problem that doing so may cause other people
-> > > regressions.
-> > 
-> > How about we keep the bit writing part !multiplatform conditional
-> > (or even remove it) but always do the flush for ca-8?
-> > 
-> > Then we could also do a warning for a misconfigured ca-8 later on.
-> 
-> Yes, we could do this - we'll have to rely on the boot loader doing
-> the right thing and setting this bit appropriately.  For those
-> platforms where this doesn't apply, I don't see any solution as (iirc)
-> OMAP now requires MULTIPLATFORM to be enabled.
-
-OK, here's an updated patch. I've kept Sebastian's Tested-by as we know
-the init part is a nop on n900 that he tested with.
+On 4/29/15 7:33 AM, Tony Lindgren wrote:
+> * Grygorii.Strashko@linaro.org <grygorii.strashko@linaro.org> [150417 10:33]:
+>> Hi Tony,
+>> On 04/16/2015 07:29 PM, Tony Lindgren wrote:
+>>> * Tony Lindgren <tony@atomide.com> [150319 16:08]:
+>>>> * Tony Lindgren <tony@atomide.com> [150307 00:08]:
+>>>>> * grygorii.strashko@linaro.org <grygorii.strashko@linaro.org> [150306 11:27]:
+>>>>>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
+>>>>>>
+>>>>>> Now there are two points related to Runtime PM usage:
+>>>>>> 1) bank state doesn't need to be checked in places where
+>>>>>> Rintime PM is used, bacause Runtime PM maintains its
+>>>>>> own usage counter:
+>>>>>>         if (!BANK_USED(bank))
+>>>>>>                  pm_runtime_get_sync(bank->dev);
+>>>>>> so, it's safe to drop such checks.
+>>>>>>
+>>>>>> 2) There is a call of pm_runtime_get_sync() in omap_gpio_irq_type(),
+>>>>>> but no corresponding put. As result, GPIO devices could be
+>>>>>> powered on forever if at least one GPIO was used as IRQ.
+>>>>>> Hence, allow powering off GPIO banks by adding missed
+>>>>>> pm_runtime_put(bank->dev) at the end of omap_gpio_irq_type().
+>>>>>
+>>>>> Nice to see this happening, but I think before merging this we need
+>>>>> to test to be sure that the pm_runtime calls actually match.. I'm
+>>>>> not convinced right now.. We may still have uninitialized entry
+>>>>> points similar to 3d009c8c61f9 ("gpio: omap: Fix bad device
+>>>>> access with setup_irq()").
+>>>>
+>>>> OK so I finally got around testing this along with your bank
+>>>> removal set. Looks like this patch causes a regression at least
+>>>> with n900 keyboard LEDs with off-idle. The LED won't come back
+>>>> on after restore from off-idle. Anyways, now we have something
+>>>> reproducable :) So I'll try to debug it further at some point,
+>>>> might be few days before I get to it.
+>>>
+>>> Sorry for the delay, finally got around to this one :)
+>>>
+>>> Here's what I came up with, only lightly tested so far. Note that
+>>> we need to keep the PM runtime per bank, not per GPIO. Will repost
+>>> a proper patch after some more testing.
+>>
+>> I've had a opposite idea actually ;) - use Runtime PM on per-gpio basis as
+>> it maintains all needed counters inside and we can be sure that
+>> PM runtime callbacks will be called once per bank.
+>
+> Sorry looks like I missed this email earlier, the mail got buried
+> in all the threads in my inbox.
+>
+> Anyways, we still need per bank pm runtime for a while until we
+> can make it per GPIO.
+>
+>> Also, I've thought about moving the code from omap_enable_gpio_module()
+>> into Runtime PM callbacks.
+>> So, final goal - get rid of BANK_USED & LINE_USED.
+>>
+>> Were you able to identify broken calls sequence?
+>
+> No, but it breaks things for omap3 off idle. And then I noticed all
+> the duplicate code as discussed in the newer thread.
+>
+>> Also, Pay attention pls, that omap2_gpio_prepare_for/resume_after_idle()
+>> will be most probably a NOP now.
+>
+> Looks like we can't do that change yet, it breaks omap3 off idle.
+>
+The issue is across OMAPs. Those stupid debounce clocks won't let the
+GPIO block to idle. They are called optional clocks but actually they
+aren't.
 
 Regards,
-
-Tony
-
-8< ---------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 27 Apr 2015 10:18:14 -0700
-Subject: [PATCH] ARM: mm: Fix Cortex-A8 erratum 430973 segfaults for bootloaders and multiarch
-
-Looks like apps can be made to segfault easily on armhf distros
-just by running cpuburn-a8 in the background, then starting apt
-get update unless erratum 430973 workaround is enabled. This happens
-on r3p2 also, which has 430973 fixed in hardware.
-
-Turns out the reason for this is some bootloaders incorrectly
-setting the auxilary register IBE bit, which probably causes us
-to hit erratum 687067 on Cortex-A8 later than r1p2.
-
-If the bootloader incorrectly sets the IBE bit in the auxilary control
-register for Cortex-A8 revisions with 430973 fixed in hardware, we
-need to call flush BTAC/BTB to avoid segfaults probably caused by
-erratum 687067. So let's flush BTAC/BTB unconditionally for Cortex-A8.
-It won't do anything unless the IBE bit is set.
-
-Note that we keep the erratum 430973 Kconfig option still around and
-disabled for multiarch as it may be unsafe to enable for some secure
-SoC. It is known safe to be enabled for n900, but won't do anything
-on n900 as the IBE bit needs to be set with SMC.
-
-Also note that SoCs probably should also add checks and print warnings
-for the misconfigured IBE bit depending on the Cortex-A8 revision
-so the bootloaders can be fixed Cortex-A8 revisions later than
-r1p2 to not set the IBE bit.
-
-Tested-By: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mm/proc-v7-2level.S
-+++ b/arch/arm/mm/proc-v7-2level.S
-@@ -36,14 +36,16 @@
-  *
-  *	It is assumed that:
-  *	- we are not using split page tables
-+ *
-+ *	Note that we always need to flush BTAC/BTB if IBE is set
-+ *	even on Cortex-A8 revisions not affected by 430973.
-+ *	If IBE is not set, the flush BTAC/BTB won't do anything.
-  */
- ENTRY(cpu_ca8_switch_mm)
- #ifdef CONFIG_MMU
- 	mov	r2, #0
--#ifdef CONFIG_ARM_ERRATA_430973
- 	mcr	p15, 0, r2, c7, c5, 6		@ flush BTAC/BTB
- #endif
--#endif
- ENTRY(cpu_v7_switch_mm)
- #ifdef CONFIG_MMU
- 	mmid	r1, r1				@ get mm->context.id
+Santosh
