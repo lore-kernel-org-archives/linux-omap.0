@@ -1,88 +1,100 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [RFC/RFT PATCH 2/2] gpio: omap: ensure that runtime pm will disable
- unused gpio banks
-Date: Wed, 29 Apr 2015 07:59:04 -0700
-Message-ID: <5540F1B8.5030407@oracle.com>
-References: <1425670017-19598-1-git-send-email-grygorii.strashko@linaro.org> <1425670017-19598-2-git-send-email-grygorii.strashko@linaro.org> <20150306231513.GB2651@atomide.com> <20150319230326.GP31346@atomide.com> <20150416162941.GI18048@atomide.com> <55314396.20907@linaro.org> <20150429143320.GA24469@atomide.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 0/4] remoteproc: Introduce wkup_m3_rproc driver
+Date: Wed, 29 Apr 2015 11:05:23 -0500
+Message-ID: <55410143.1080209@ti.com>
+References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150429143320.GA24469@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, ssantosh@kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1427917039-43206-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 4/29/15 7:33 AM, Tony Lindgren wrote:
-> * Grygorii.Strashko@linaro.org <grygorii.strashko@linaro.org> [150417 10:33]:
->> Hi Tony,
->> On 04/16/2015 07:29 PM, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [150319 16:08]:
->>>> * Tony Lindgren <tony@atomide.com> [150307 00:08]:
->>>>> * grygorii.strashko@linaro.org <grygorii.strashko@linaro.org> [150306 11:27]:
->>>>>> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->>>>>>
->>>>>> Now there are two points related to Runtime PM usage:
->>>>>> 1) bank state doesn't need to be checked in places where
->>>>>> Rintime PM is used, bacause Runtime PM maintains its
->>>>>> own usage counter:
->>>>>>         if (!BANK_USED(bank))
->>>>>>                  pm_runtime_get_sync(bank->dev);
->>>>>> so, it's safe to drop such checks.
->>>>>>
->>>>>> 2) There is a call of pm_runtime_get_sync() in omap_gpio_irq_type(),
->>>>>> but no corresponding put. As result, GPIO devices could be
->>>>>> powered on forever if at least one GPIO was used as IRQ.
->>>>>> Hence, allow powering off GPIO banks by adding missed
->>>>>> pm_runtime_put(bank->dev) at the end of omap_gpio_irq_type().
->>>>>
->>>>> Nice to see this happening, but I think before merging this we need
->>>>> to test to be sure that the pm_runtime calls actually match.. I'm
->>>>> not convinced right now.. We may still have uninitialized entry
->>>>> points similar to 3d009c8c61f9 ("gpio: omap: Fix bad device
->>>>> access with setup_irq()").
->>>>
->>>> OK so I finally got around testing this along with your bank
->>>> removal set. Looks like this patch causes a regression at least
->>>> with n900 keyboard LEDs with off-idle. The LED won't come back
->>>> on after restore from off-idle. Anyways, now we have something
->>>> reproducable :) So I'll try to debug it further at some point,
->>>> might be few days before I get to it.
->>>
->>> Sorry for the delay, finally got around to this one :)
->>>
->>> Here's what I came up with, only lightly tested so far. Note that
->>> we need to keep the PM runtime per bank, not per GPIO. Will repost
->>> a proper patch after some more testing.
->>
->> I've had a opposite idea actually ;) - use Runtime PM on per-gpio basis as
->> it maintains all needed counters inside and we can be sure that
->> PM runtime callbacks will be called once per bank.
->
-> Sorry looks like I missed this email earlier, the mail got buried
-> in all the threads in my inbox.
->
-> Anyways, we still need per bank pm runtime for a while until we
-> can make it per GPIO.
->
->> Also, I've thought about moving the code from omap_enable_gpio_module()
->> into Runtime PM callbacks.
->> So, final goal - get rid of BANK_USED & LINE_USED.
->>
->> Were you able to identify broken calls sequence?
->
-> No, but it breaks things for omap3 off idle. And then I noticed all
-> the duplicate code as discussed in the newer thread.
->
->> Also, Pay attention pls, that omap2_gpio_prepare_for/resume_after_idle()
->> will be most probably a NOP now.
->
-> Looks like we can't do that change yet, it breaks omap3 off idle.
->
-The issue is across OMAPs. Those stupid debounce clocks won't let the
-GPIO block to idle. They are called optional clocks but actually they
-aren't.
+Hi Ohad,
 
-Regards,
-Santosh
+On 04/01/2015 02:37 PM, Dave Gerlach wrote:
+> Hi,
+> This patch series is version three of the series to add a
+> wkup_m3_rproc driver for TI AM335x SoCs. This family of SoCs
+> contains an ARM Cortex M3 coprocessor that is responsible for
+> low-level power tasks that cannot be handled by the main ARM
+> Cortex A8 so firmware running from the CM3 can be used instead.
+> This driver handles loading of the firmware and reset of the CM3
+> once it is booted.
+> 
+> The previous version of this series can be found here [1].
+> I have pushed a branch based on v4.0-rc5 containing the entire
+> am335x suspend series here for a higher level view of the entire
+> series of patch sets here [2]. This series depends on "remoteproc:
+> add IOMMU hardware capability flag" which is currently queued
+> here [3].
+> 
+> Based on comments on the DT node included in the "ARM: OMAP2+:
+> wkup_m3_rproc support patches" series (v3 of that will immediately
+> follow this series) the DT node moved under a different parent
+> node so some changes to the driver were necessary to calculate proper
+> device addresses for firmware loading.
+> 
+> This series also now includes a patch to introduce an
+> rproc_get_by_phandle API to the remoteproc core so that users of
+> this wkup_m3_rproc driver are able to get a handle to the rproc
+> and boot it as the rproc must be booted directly by the user.
+> An example user, wkup_m3_ipc, can be seen in previously mentioned
+> branch at [2].
+> 
+> v2 -> v3:
+> -Modify wkup_m3_rproc driver to properly handle device address
+>  based on new DT location in l4_wkup node.
+> -In binding doc, change ti,am3352-wkup-m3 from am3353-wkup_m3 to match
+>  other am3352 compats
+> -General cleanup of address representation in wkup_m3_rproc driver
+> -Includes rproc_get_by_phandle patch now
+> 
+> The driver expects to load firmware am335x-pm-firmware.elf from
+> /lib/firmware which is found here [4].
+> 
+> Regards,
+> Dave
+> 
+> [1] http://www.spinics.net/lists/linux-omap/msg116364.html
+> [2] https://github.com/dgerlach/linux-pm/tree/pm-v4.0-rc5-am335x-suspend
+> [3] https://git.kernel.org/cgit/linux/kernel/git/ohad/remoteproc.git/commit/?h=for-next&id=315491e5d6ee66838a18a8ca0c14e6ffb376e48c
+> [4] https://git.ti.com/ti-cm3-pm-firmware/amx3-cm3/commits/next-upstream
+> 
+> Dave Gerlach (3):
+>   remoteproc: introduce rproc_get_by_phandle API
+>   Documentation: dt: add bindings for TI Wakeup M3 processor
+>   remoteproc/wkup_m3: add a remoteproc driver for TI Wakeup M3
+> 
+> Suman Anna (1):
+>   remoteproc: add a rproc ops for performing address translation
+
+Ping, do you have any comments on this series? This is the core
+dependency for achieving suspend/resume and cpuidle on AM335x and AM437x
+SoCs. I am hoping to have this series make 4.2.
+
+regards
+Suman
+
+> 
+>  .../bindings/remoteproc/wkup_m3_rproc.txt          |  52 +++++
+>  Documentation/remoteproc.txt                       |   6 +
+>  drivers/remoteproc/Kconfig                         |  13 ++
+>  drivers/remoteproc/Makefile                        |   1 +
+>  drivers/remoteproc/remoteproc_core.c               | 114 +++++++++-
+>  drivers/remoteproc/wkup_m3_rproc.c                 | 249 +++++++++++++++++++++
+>  include/linux/platform_data/wkup_m3.h              |  30 +++
+>  include/linux/remoteproc.h                         |   4 +
+>  8 files changed, 463 insertions(+), 6 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+>  create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
+>  create mode 100644 include/linux/platform_data/wkup_m3.h
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
