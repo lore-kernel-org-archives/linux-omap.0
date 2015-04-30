@@ -1,100 +1,208 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/4] remoteproc: Introduce wkup_m3_rproc driver
-Date: Wed, 29 Apr 2015 11:05:23 -0500
-Message-ID: <55410143.1080209@ti.com>
-References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427917039-43206-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Eyal Reizer <eyalreizer@gmail.com>
+Subject: [PATCH] am437x-gp-evm: add wilink8 support
+Date: Thu, 30 Apr 2015 12:15:07 +0300
+Message-ID: <1430385307-4395-1-git-send-email-eyalr@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:33020 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801AbbD3JPR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2015 05:15:17 -0400
+Received: by wgin8 with SMTP id n8so55132493wgi.0
+        for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2015 02:15:16 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org
+Cc: Eyal Reizer <eyalr@ti.com>
 
-Hi Ohad,
+enable mmc3 used for wlan and uart3 used for bluetooth
 
-On 04/01/2015 02:37 PM, Dave Gerlach wrote:
-> Hi,
-> This patch series is version three of the series to add a
-> wkup_m3_rproc driver for TI AM335x SoCs. This family of SoCs
-> contains an ARM Cortex M3 coprocessor that is responsible for
-> low-level power tasks that cannot be handled by the main ARM
-> Cortex A8 so firmware running from the CM3 can be used instead.
-> This driver handles loading of the firmware and reset of the CM3
-> once it is booted.
-> 
-> The previous version of this series can be found here [1].
-> I have pushed a branch based on v4.0-rc5 containing the entire
-> am335x suspend series here for a higher level view of the entire
-> series of patch sets here [2]. This series depends on "remoteproc:
-> add IOMMU hardware capability flag" which is currently queued
-> here [3].
-> 
-> Based on comments on the DT node included in the "ARM: OMAP2+:
-> wkup_m3_rproc support patches" series (v3 of that will immediately
-> follow this series) the DT node moved under a different parent
-> node so some changes to the driver were necessary to calculate proper
-> device addresses for firmware loading.
-> 
-> This series also now includes a patch to introduce an
-> rproc_get_by_phandle API to the remoteproc core so that users of
-> this wkup_m3_rproc driver are able to get a handle to the rproc
-> and boot it as the rproc must be booted directly by the user.
-> An example user, wkup_m3_ipc, can be seen in previously mentioned
-> branch at [2].
-> 
-> v2 -> v3:
-> -Modify wkup_m3_rproc driver to properly handle device address
->  based on new DT location in l4_wkup node.
-> -In binding doc, change ti,am3352-wkup-m3 from am3353-wkup_m3 to match
->  other am3352 compats
-> -General cleanup of address representation in wkup_m3_rproc driver
-> -Includes rproc_get_by_phandle patch now
-> 
-> The driver expects to load firmware am335x-pm-firmware.elf from
-> /lib/firmware which is found here [4].
-> 
-> Regards,
-> Dave
-> 
-> [1] http://www.spinics.net/lists/linux-omap/msg116364.html
-> [2] https://github.com/dgerlach/linux-pm/tree/pm-v4.0-rc5-am335x-suspend
-> [3] https://git.kernel.org/cgit/linux/kernel/git/ohad/remoteproc.git/commit/?h=for-next&id=315491e5d6ee66838a18a8ca0c14e6ffb376e48c
-> [4] https://git.ti.com/ti-cm3-pm-firmware/amx3-cm3/commits/next-upstream
-> 
-> Dave Gerlach (3):
->   remoteproc: introduce rproc_get_by_phandle API
->   Documentation: dt: add bindings for TI Wakeup M3 processor
->   remoteproc/wkup_m3: add a remoteproc driver for TI Wakeup M3
-> 
-> Suman Anna (1):
->   remoteproc: add a rproc ops for performing address translation
+configure the gpios used for wlan and bluetooth controls
 
-Ping, do you have any comments on this series? This is the core
-dependency for achieving suspend/resume and cpuidle on AM335x and AM437x
-SoCs. I am hoping to have this series make 4.2.
+add fixed voltage regulator used for wlan power control
 
-regards
-Suman
+Configure shared transport support for uart3
 
-> 
->  .../bindings/remoteproc/wkup_m3_rproc.txt          |  52 +++++
->  Documentation/remoteproc.txt                       |   6 +
->  drivers/remoteproc/Kconfig                         |  13 ++
->  drivers/remoteproc/Makefile                        |   1 +
->  drivers/remoteproc/remoteproc_core.c               | 114 +++++++++-
->  drivers/remoteproc/wkup_m3_rproc.c                 | 249 +++++++++++++++++++++
->  include/linux/platform_data/wkup_m3.h              |  30 +++
->  include/linux/remoteproc.h                         |   4 +
->  8 files changed, 463 insertions(+), 6 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
->  create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
->  create mode 100644 include/linux/platform_data/wkup_m3.h
-> 
+Signed-off-by: Eyal Reizer <eyalr@ti.com>
+---
+ arch/arm/boot/dts/am437x-gp-evm.dts  |  114 ++++++++++++++++++++++++++++++++++
+ include/dt-bindings/pinctrl/am43xx.h |    1 +
+ 2 files changed, 115 insertions(+)
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 26956cb..2b2f715 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -21,6 +21,7 @@
+ 
+ 	aliases {
+ 		display0 = &lcd0;
++		serial3 = &uart3;
+ 	};
+ 
+ 	vmmcsd_fixed: fixedregulator-sd {
+@@ -42,6 +43,15 @@
+ 		gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
+ 	};
+ 
++	vmmcwl_fixed: fixedregulator-mmcwl {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcwl_fixed";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		gpio = <&gpio1 20 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++	};
++
+ 	backlight {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
+@@ -106,9 +116,25 @@
+ 			};
+ 		};
+ 	};
++
++	kim {
++		compatible = "kim";
++		nshutdown_gpio = <48>; /* Bank1, pin16 */
++		dev_name = "/dev/ttyS3";
++		flow_cntrl = <1>;
++		baud_rate = <3000000>;
++	};
++
++	btwilink {
++		compatible = "btwilink";
++	};
+ };
+ 
+ &am43xx_pinmux {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&wlan_pins_default>;
++	pinctrl-1 = <&wlan_pins_sleep>;
++
+ 	i2c0_pins: i2c0_pins {
+ 		pinctrl-single,pins = <
+ 			0x188 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)  /* i2c0_sda.i2c0_sda */
+@@ -340,6 +366,53 @@
+ 			0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)  /* cam1_data7 mode 0*/
+ 		>;
+ 	};
++
++	mmc3_pins_default: pinmux_mmc3_pins_default {
++		pinctrl-single,pins = <
++			0x8c (PIN_INPUT_PULLUP | MUX_MODE3)      /* gpmc_clk.mmc2_clk */
++			0x88 (PIN_INPUT_PULLUP | MUX_MODE3)      /* gpmc_csn3.mmc2_cmd */
++			0x44 (PIN_INPUT_PULLUP | MUX_MODE3)      /* gpmc_a1.mmc2_dat0 */
++			0x48 (PIN_INPUT_PULLUP | MUX_MODE3)      /* gpmc_a2.mmc2_dat1 */
++			0x4c (PIN_INPUT_PULLUP | MUX_MODE3)      /* gpmc_a3.mmc2_dat2 */
++			0x78 (PIN_INPUT_PULLUP | MUX_MODE3)      /* gpmc_be1n.mmc2_dat3 */
++		>;
++	};
++
++	mmc3_pins_sleep: pinmux_mmc3_pins_sleep {
++		pinctrl-single,pins = <
++			0x8c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_clk.mmc2_clk */
++			0x88 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_csn3.mmc2_cmd */
++			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a1.mmc2_dat0 */
++			0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a2.mmc2_dat1 */
++			0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a3.mmc2_dat2 */
++			0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* gpmc_be1n.mmc2_dat3 */
++		>;
++	};
++
++	wlan_pins_default: pinmux_wlan_pins_default {
++		pinctrl-single,pins = <
++			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* gpmc_a4.gpio1_20 WL_EN */
++			0x5c (PIN_INPUT | WAKEUP_ENABLE | MUX_MODE7)	/* gpmc_a7.gpio1_23 WL_IRQ*/
++			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* gpmc_a0.gpio1_16 BT_EN*/
++		>;
++	};
++
++	wlan_pins_sleep: pinmux_wlan_pins_sleep {
++		pinctrl-single,pins = <
++			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* gpmc_a4.gpio1_20 WL_EN */
++			0x5c (PIN_INPUT | WAKEUP_ENABLE | MUX_MODE7)	/* gpmc_a7.gpio1_23 WL_IRQ*/
++			0x40 (PIN_OUTPUT_PULLUP | MUX_MODE7)		/* gpmc_a0.gpio1_16 BT_EN*/
++		>;
++	};
++
++	uart3_pins: uart3_pins {
++		pinctrl-single,pins = <
++			0x228 (PIN_INPUT | MUX_MODE0)		/* uart3_rxd.uart3_rxd */
++			0x22c (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* uart3_txd.uart3_txd */
++			0x230 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart3_ctsn.uart3_ctsn */
++			0x234 (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* uart3_rtsn.uart3_rtsn */
++		>;
++	};
+ };
+ 
+ &i2c0 {
+@@ -446,6 +519,10 @@
+ 	status = "okay";
+ };
+ 
++&gpio1 {
++	status = "okay";
++};
++
+ &gpio3 {
+ 	status = "okay";
+ };
+@@ -468,6 +545,43 @@
+ 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+ };
+ 
++&mmc3 {
++	status = "okay";
++	/* these are on the crossbar and are outlined in the
++	   xbar-event-map element */
++	dmas = <&edma 30
++		&edma 31>;
++	dma-names = "tx", "rx";
++	vmmc-supply = <&vmmcwl_fixed>;
++	bus-width = <4>;
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&mmc3_pins_default>;
++	pinctrl-1 = <&mmc3_pins_sleep>;
++	cap-power-off-card;
++	keep-power-in-suspend;
++	ti,non-removable;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	wlcore: wlcore@0 {
++		compatible = "ti,wl1835";
++		reg = <2>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <23 IRQ_TYPE_LEVEL_HIGH>;
++	};
++};
++
++&edma {
++	ti,edma-xbar-event-map = /bits/ 16 <1 30
++					    2 31>;
++};
++
++&uart3 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins>;
++};
++
+ &usb2_phy1 {
+ 	status = "okay";
+ };
+diff --git a/include/dt-bindings/pinctrl/am43xx.h b/include/dt-bindings/pinctrl/am43xx.h
+index 5f4d0189..b00bbc9 100644
+--- a/include/dt-bindings/pinctrl/am43xx.h
++++ b/include/dt-bindings/pinctrl/am43xx.h
+@@ -21,6 +21,7 @@
+ #define SLEWCTRL_SLOW		(1 << 19)
+ #define SLEWCTRL_FAST		0
+ #define DS0_PULL_UP_DOWN_EN	(1 << 27)
++#define WAKEUP_ENABLE		(1 << 29)
+ 
+ #define PIN_OUTPUT		(PULL_DISABLE)
+ #define PIN_OUTPUT_PULLUP	(PULL_UP)
+-- 
+1.7.9.5
+
