@@ -1,202 +1,138 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH] ARM: OMAP2+: PRM: Fix am437x module reset
-Date: Fri, 1 May 2015 14:27:02 -0500
-Message-ID: <1430508422-64913-1-git-send-email-d-gerlach@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 06/12] usb: musb: Remove ifdefs for TX DMA for musb_host.c
+Date: Fri,  1 May 2015 12:29:32 -0700
+Message-ID: <1430508578-5208-7-git-send-email-tony@atomide.com>
+References: <1430508578-5208-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42255 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbbEAT1i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2015 15:27:38 -0400
+Received: from tkt-001-i373.relay.mailchannels.net ([174.136.5.175]:2365 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751087AbbEATaG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2015 15:30:06 -0400
+In-Reply-To: <1430508578-5208-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Suman Anna <s-anna@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Bin Liu <b-liu@ti.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-When moving to using the OMAP4+ PRM driver on am437x, we switched
-to using all omap4 ops for module reset management. However, reset
-register layout on am437x is more similar to am335x than omap4 because
-of the the need for an st_shift for the *_RST bits in certain *_RSTST
-registers, like WKUP_PROC_LRST in the PRCM_RM_WKUP_RSTST. Without this
-we cannot bring the Wakeup M3 IP out of reset.
+We can remove the ifdefs by setting up helper functions for
+mentor DMA and cppi/tusb DMA.
 
-Because of this, we must use the am33xx prm ops for the hardreset
-functionality while continuing to use all other omap4 ops. To accomplish
-this we split out the common portion of omap44xx_prm_init and add an
-am437x_prm_init to register the prm_ll_data struct specific to am437x.
+Note that I've kept the existing formatting as otherwise this
+patch becomes pretty much unreadable.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c   |  6 +++---
- arch/arm/mach-omap2/prm33xx.c      | 14 +++++++-------
- arch/arm/mach-omap2/prm33xx.h      |  7 +++++++
- arch/arm/mach-omap2/prm44xx.c      | 32 +++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/prm44xx_54xx.h |  1 +
- arch/arm/mach-omap2/prm_common.c   |  2 +-
- 6 files changed, 50 insertions(+), 12 deletions(-)
+ drivers/usb/musb/musb_host.c | 61 ++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 48 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 982380b..4b13882 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3924,9 +3924,9 @@ void __init omap_hwmod_init(void)
- 		soc_ops.enable_module = _omap4_enable_module;
- 		soc_ops.disable_module = _omap4_disable_module;
- 		soc_ops.wait_target_ready = _omap4_wait_target_ready;
--		soc_ops.assert_hardreset = _omap4_assert_hardreset;
--		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
--		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
-+		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
-+		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
-+		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
- 		soc_ops.init_clkdm = _init_clkdm;
- 	} else if (cpu_is_ti816x() || soc_is_am33xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index dcb5001..0a43bfe 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -64,8 +64,8 @@ static u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx)
-  * 0 if the (sub)module hardreset line is not currently asserted, or
-  * -EINVAL upon parameter error.
-  */
--static int am33xx_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
--					    u16 rstctrl_offs)
-+int am33xx_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
-+				     u16 rstctrl_offs)
- {
- 	u32 v;
- 
-@@ -90,8 +90,8 @@ static int am33xx_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
-  * place the submodule into reset.  Returns 0 upon success or -EINVAL
-  * upon an argument error.
-  */
--static int am33xx_prm_assert_hardreset(u8 shift, u8 part, s16 inst,
--				       u16 rstctrl_offs)
-+int am33xx_prm_assert_hardreset(u8 shift, u8 part, s16 inst,
-+				u16 rstctrl_offs)
- {
- 	u32 mask = 1 << shift;
- 
-@@ -119,9 +119,9 @@ static int am33xx_prm_assert_hardreset(u8 shift, u8 part, s16 inst,
-  * -EINVAL upon an argument error, -EEXIST if the submodule was already out
-  * of reset, or -EBUSY if the submodule did not exit reset promptly.
-  */
--static int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part,
--					 s16 inst, u16 rstctrl_offs,
--					 u16 rstst_offs)
-+int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part,
-+				  s16 inst, u16 rstctrl_offs,
-+				  u16 rstst_offs)
- {
- 	int c;
- 	u32 mask = 1 << st_shift;
-diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-index 2bc4ec5..2754e9f 100644
---- a/arch/arm/mach-omap2/prm33xx.h
-+++ b/arch/arm/mach-omap2/prm33xx.h
-@@ -120,5 +120,12 @@
- #ifndef __ASSEMBLER__
- int am33xx_prm_init(const struct omap_prcm_init_data *data);
- 
-+int am33xx_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
-+				     u16 rstctrl_offs);
-+int am33xx_prm_assert_hardreset(u8 shift, u8 part, s16 inst,
-+				u16 rstctrl_offs);
-+int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part,
-+				  s16 inst, u16 rstctrl_offs,
-+				  u16 rstst_offs);
- #endif /* ASSEMBLER */
- #endif
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 4541700..3fc6971 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -24,6 +24,7 @@
- #include "iomap.h"
- #include "common.h"
- #include "vp.h"
-+#include "prm33xx.h"
- #include "prm44xx.h"
- #include "prm-regbits-44xx.h"
- #include "prcm44xx.h"
-@@ -705,7 +706,7 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 
- static const struct omap_prcm_init_data *prm_init_data;
- 
--int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
-+static void omap44xx_prm_init_common(const struct omap_prcm_init_data *data)
- {
- 	omap_prm_base_init();
- 
-@@ -718,7 +719,11 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
- 		prm_features |= PRM_HAS_VOLTAGE;
- 
- 	omap4_prminst_set_prm_dev_inst(data->device_inst_offset);
-+}
- 
-+int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
-+{
-+	omap44xx_prm_init_common(data);
- 	return prm_register(&omap44xx_prm_ll_data);
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index df982b9..fc036ed 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -617,23 +617,22 @@ musb_rx_reinit(struct musb *musb, struct musb_qh *qh, struct musb_hw_ep *ep)
+ 	ep->rx_reinit = 0;
  }
  
-@@ -762,3 +767,28 @@ static void __exit omap44xx_prm_exit(void)
- 	prm_unregister(&omap44xx_prm_ll_data);
- }
- __exitcall(omap44xx_prm_exit);
+-static bool musb_tx_dma_program(struct dma_controller *dma,
++static int musb_tx_dma_set_mode_mentor(struct dma_controller *dma,
+ 		struct musb_hw_ep *hw_ep, struct musb_qh *qh,
+-		struct urb *urb, u32 offset, u32 length)
++		struct urb *urb, u32 offset,
++		u32 *length, u8 *mode)
+ {
+ 	struct dma_channel	*channel = hw_ep->tx_channel;
+ 	void __iomem		*epio = hw_ep->regs;
+ 	u16			pkt_size = qh->maxpacket;
+ 	u16			csr;
+-	u8			mode;
+ 
+-#if defined(CONFIG_USB_INVENTRA_DMA) || defined(CONFIG_USB_UX500_DMA)
+-	if (length > channel->max_len)
+-		length = channel->max_len;
++	if (*length > channel->max_len)
++		*length = channel->max_len;
+ 
+ 	csr = musb_readw(epio, MUSB_TXCSR);
+-	if (length > pkt_size) {
+-		mode = 1;
++	if (*length > pkt_size) {
++		*mode = 1;
+ 		csr |= MUSB_TXCSR_DMAMODE | MUSB_TXCSR_DMAENAB;
+ 		/* autoset shouldn't be set in high bandwidth */
+ 		/*
+@@ -649,15 +648,28 @@ static bool musb_tx_dma_program(struct dma_controller *dma,
+ 					can_bulk_split(hw_ep->musb, qh->type)))
+ 			csr |= MUSB_TXCSR_AUTOSET;
+ 	} else {
+-		mode = 0;
++		*mode = 0;
+ 		csr &= ~(MUSB_TXCSR_AUTOSET | MUSB_TXCSR_DMAMODE);
+ 		csr |= MUSB_TXCSR_DMAENAB; /* against programmer's guide */
+ 	}
+ 	channel->desired_mode = mode;
+ 	musb_writew(epio, MUSB_TXCSR, csr);
+-#else
 +
-+#ifdef CONFIG_SOC_AM43XX
-+static struct prm_ll_data am43xx_prm_ll_data = {
-+	.read_reset_sources = &omap44xx_prm_read_reset_sources,
-+	.was_any_context_lost_old = &omap44xx_prm_was_any_context_lost_old,
-+	.clear_context_loss_flags_old = &omap44xx_prm_clear_context_loss_flags_old,
-+	.late_init = &omap44xx_prm_late_init,
-+	.assert_hardreset	= am33xx_prm_assert_hardreset,
-+	.deassert_hardreset	= am33xx_prm_deassert_hardreset,
-+	.is_hardreset_asserted	= am33xx_prm_is_hardreset_asserted,
-+	.reset_system		= omap4_prminst_global_warm_sw_reset,
-+};
-+
-+int __init am43xx_prm_init(const struct omap_prcm_init_data *data)
-+{
-+	omap44xx_prm_init_common(data);
-+	return prm_register(&am43xx_prm_ll_data);
++	return 0;
 +}
 +
-+static void __exit am43xx_prm_exit(void)
++static int musb_tx_dma_set_mode_cppi_tusb(struct dma_controller *dma,
++					  struct musb_hw_ep *hw_ep,
++					  struct musb_qh *qh,
++					  struct urb *urb,
++					  u32 offset,
++					  u32 *length,
++					  u8 *mode)
 +{
-+	prm_unregister(&am43xx_prm_ll_data);
++	struct dma_channel *channel = hw_ep->tx_channel;
++
+ 	if (!is_cppi_enabled(hw_ep->musb) && !tusb_dma_omap(hw_ep->musb))
+-		return false;
++		return -ENODEV;
+ 
+ 	channel->actual_len = 0;
+ 
+@@ -665,8 +677,28 @@ static bool musb_tx_dma_program(struct dma_controller *dma,
+ 	 * TX uses "RNDIS" mode automatically but needs help
+ 	 * to identify the zero-length-final-packet case.
+ 	 */
+-	mode = (urb->transfer_flags & URB_ZERO_PACKET) ? 1 : 0;
+-#endif
++	*mode = (urb->transfer_flags & URB_ZERO_PACKET) ? 1 : 0;
++
++	return 0;
 +}
-+__exitcall(am43xx_prm_exit);
-+#endif /* CONFIG_SOC_AM43XX */
-diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
-index 3f139eb..3e90d6a 100644
---- a/arch/arm/mach-omap2/prm44xx_54xx.h
-+++ b/arch/arm/mach-omap2/prm44xx_54xx.h
-@@ -36,6 +36,7 @@ extern u32 omap4_prm_vcvp_read(u8 offset);
- extern void omap4_prm_vcvp_write(u32 val, u8 offset);
- extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
++
++static bool musb_tx_dma_program(struct dma_controller *dma,
++		struct musb_hw_ep *hw_ep, struct musb_qh *qh,
++		struct urb *urb, u32 offset, u32 length)
++{
++	struct dma_channel	*channel = hw_ep->tx_channel;
++	u16			pkt_size = qh->maxpacket;
++	u8			mode;
++	int			res;
++
++	if (musb_dma_inventra(hw_ep->musb) || musb_dma_ux500(hw_ep->musb))
++		res = musb_tx_dma_set_mode_mentor(dma, hw_ep, qh, urb,
++						 offset, &length, &mode);
++	else
++		res = musb_tx_dma_set_mode_cppi_tusb(dma, hw_ep, qh, urb,
++						     offset, &length, &mode);
++	if (res)
++		return false;
  
-+int __init am43xx_prm_init(const struct omap_prcm_init_data *data);
- int __init omap44xx_prm_init(const struct omap_prcm_init_data *data);
+ 	qh->segsize = length;
  
- #endif
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 7add799..730fd24 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -694,7 +694,7 @@ static struct omap_prcm_init_data dra7_prm_data __initdata = {
- #ifdef CONFIG_SOC_AM43XX
- static struct omap_prcm_init_data am4_prm_data __initdata = {
- 	.index = TI_CLKM_PRM,
--	.init = omap44xx_prm_init,
-+	.init = am43xx_prm_init,
- 	.device_inst_offset = AM43XX_PRM_DEVICE_INST,
- };
- #endif
+@@ -678,6 +710,9 @@ static bool musb_tx_dma_program(struct dma_controller *dma,
+ 
+ 	if (!dma->channel_program(channel, pkt_size, mode,
+ 			urb->transfer_dma + offset, length)) {
++		void __iomem *epio = hw_ep->regs;
++		u16 csr;
++
+ 		dma->channel_release(channel);
+ 		hw_ep->tx_channel = NULL;
+ 
 -- 
-2.3.6
+2.1.4
 
