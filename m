@@ -1,138 +1,307 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/12] usb: musb: Remove ifdefs for TX DMA for musb_host.c
-Date: Fri,  1 May 2015 12:29:32 -0700
-Message-ID: <1430508578-5208-7-git-send-email-tony@atomide.com>
+Subject: [PATCH 11/12] usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part5
+Date: Fri,  1 May 2015 12:29:37 -0700
+Message-ID: <1430508578-5208-12-git-send-email-tony@atomide.com>
 References: <1430508578-5208-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tkt-001-i373.relay.mailchannels.net ([174.136.5.175]:2365 "EHLO
+Received: from ftx-008-i770.relay.mailchannels.net ([50.61.143.70]:11201 "EHLO
 	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751087AbbEATaG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2015 15:30:06 -0400
+	with ESMTP id S1751504AbbEATaK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2015 15:30:10 -0400
 In-Reply-To: <1430508578-5208-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
 Cc: Bin Liu <b-liu@ti.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-We can remove the ifdefs by setting up helper functions for
-mentor DMA and cppi/tusb DMA.
-
-Note that I've kept the existing formatting as otherwise this
-patch becomes pretty much unreadable.
+Remove ifdefs for musb_host_rx to get closer to building in
+all the DMA drivers.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_host.c | 61 ++++++++++++++++++++++++++++++++++----------
- 1 file changed, 48 insertions(+), 13 deletions(-)
+ drivers/usb/musb/musb_host.c | 254 ++++++++++++++++++++++++-------------------
+ 1 file changed, 140 insertions(+), 114 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index df982b9..fc036ed 100644
+index bc671c5..39ebe0b 100644
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -617,23 +617,22 @@ musb_rx_reinit(struct musb *musb, struct musb_qh *qh, struct musb_hw_ep *ep)
- 	ep->rx_reinit = 0;
+@@ -1661,6 +1661,122 @@ static int musb_rx_dma_inventra_cppi41(struct dma_controller *dma,
+ 
+ 	return done;
  }
- 
--static bool musb_tx_dma_program(struct dma_controller *dma,
-+static int musb_tx_dma_set_mode_mentor(struct dma_controller *dma,
- 		struct musb_hw_ep *hw_ep, struct musb_qh *qh,
--		struct urb *urb, u32 offset, u32 length)
-+		struct urb *urb, u32 offset,
-+		u32 *length, u8 *mode)
- {
- 	struct dma_channel	*channel = hw_ep->tx_channel;
- 	void __iomem		*epio = hw_ep->regs;
- 	u16			pkt_size = qh->maxpacket;
- 	u16			csr;
--	u8			mode;
- 
--#if defined(CONFIG_USB_INVENTRA_DMA) || defined(CONFIG_USB_UX500_DMA)
--	if (length > channel->max_len)
--		length = channel->max_len;
-+	if (*length > channel->max_len)
-+		*length = channel->max_len;
- 
- 	csr = musb_readw(epio, MUSB_TXCSR);
--	if (length > pkt_size) {
--		mode = 1;
-+	if (*length > pkt_size) {
-+		*mode = 1;
- 		csr |= MUSB_TXCSR_DMAMODE | MUSB_TXCSR_DMAENAB;
- 		/* autoset shouldn't be set in high bandwidth */
- 		/*
-@@ -649,15 +648,28 @@ static bool musb_tx_dma_program(struct dma_controller *dma,
- 					can_bulk_split(hw_ep->musb, qh->type)))
- 			csr |= MUSB_TXCSR_AUTOSET;
- 	} else {
--		mode = 0;
-+		*mode = 0;
- 		csr &= ~(MUSB_TXCSR_AUTOSET | MUSB_TXCSR_DMAMODE);
- 		csr |= MUSB_TXCSR_DMAENAB; /* against programmer's guide */
- 	}
- 	channel->desired_mode = mode;
- 	musb_writew(epio, MUSB_TXCSR, csr);
--#else
 +
-+	return 0;
-+}
-+
-+static int musb_tx_dma_set_mode_cppi_tusb(struct dma_controller *dma,
++/* Disadvantage of using mode 1:
++ *	It's basically usable only for mass storage class; essentially all
++ *	other protocols also terminate transfers on short packets.
++ *
++ * Details:
++ *	An extra IN token is sent at the end of the transfer (due to AUTOREQ)
++ *	If you try to use mode 1 for (transfer_buffer_length - 512), and try
++ *	to use the extra IN token to grab the last packet using mode 0, then
++ *	the problem is that you cannot be sure when the device will send the
++ *	last packet and RxPktRdy set. Sometimes the packet is recd too soon
++ *	such that it gets lost when RxCSR is re-set at the end of the mode 1
++ *	transfer, while sometimes it is recd just a little late so that if you
++ *	try to configure for mode 0 soon after the mode 1 transfer is
++ *	completed, you will find rxcount 0. Okay, so you might think why not
++ *	wait for an interrupt when the pkt is recd. Well, you won't get any!
++ */
++static int musb_rx_dma_in_inventra_cppi41(struct dma_controller *dma,
 +					  struct musb_hw_ep *hw_ep,
 +					  struct musb_qh *qh,
 +					  struct urb *urb,
-+					  u32 offset,
-+					  u32 *length,
-+					  u8 *mode)
++					  size_t len,
++					  u8 iso_err)
 +{
-+	struct dma_channel *channel = hw_ep->tx_channel;
++	struct musb *musb = hw_ep->musb;
++	void __iomem *epio = hw_ep->regs;
++	struct dma_channel *channel = hw_ep->rx_channel;
++	u16 rx_count, val;
++	int length, pipe, done;
++	dma_addr_t buf;
 +
- 	if (!is_cppi_enabled(hw_ep->musb) && !tusb_dma_omap(hw_ep->musb))
--		return false;
-+		return -ENODEV;
- 
- 	channel->actual_len = 0;
- 
-@@ -665,8 +677,28 @@ static bool musb_tx_dma_program(struct dma_controller *dma,
- 	 * TX uses "RNDIS" mode automatically but needs help
- 	 * to identify the zero-length-final-packet case.
- 	 */
--	mode = (urb->transfer_flags & URB_ZERO_PACKET) ? 1 : 0;
--#endif
-+	*mode = (urb->transfer_flags & URB_ZERO_PACKET) ? 1 : 0;
++	rx_count = musb_readw(epio, MUSB_RXCOUNT);
++	pipe = urb->pipe;
 +
-+	return 0;
-+}
++	if (usb_pipeisoc(pipe)) {
++		int d_status = 0;
++		struct usb_iso_packet_descriptor *d;
 +
-+static bool musb_tx_dma_program(struct dma_controller *dma,
-+		struct musb_hw_ep *hw_ep, struct musb_qh *qh,
-+		struct urb *urb, u32 offset, u32 length)
-+{
-+	struct dma_channel	*channel = hw_ep->tx_channel;
-+	u16			pkt_size = qh->maxpacket;
-+	u8			mode;
-+	int			res;
++		d = urb->iso_frame_desc + qh->iso_idx;
 +
-+	if (musb_dma_inventra(hw_ep->musb) || musb_dma_ux500(hw_ep->musb))
-+		res = musb_tx_dma_set_mode_mentor(dma, hw_ep, qh, urb,
-+						 offset, &length, &mode);
++		if (iso_err) {
++			d_status = -EILSEQ;
++			urb->error_count++;
++		}
++		if (rx_count > d->length) {
++			if (d_status == 0) {
++				d_status = -EOVERFLOW;
++				urb->error_count++;
++			}
++			dev_dbg(musb->controller, "** OVERFLOW %d into %d\n",
++				rx_count, d->length);
++
++			length = d->length;
++		} else
++			length = rx_count;
++		d->status = d_status;
++		buf = urb->transfer_dma + d->offset;
++	} else {
++		length = rx_count;
++		buf = urb->transfer_dma + urb->actual_length;
++	}
++
++	channel->desired_mode = 0;
++#ifdef USE_MODE1
++	/* because of the issue below, mode 1 will
++	 * only rarely behave with correct semantics.
++	 */
++	if ((urb->transfer_flags & URB_SHORT_NOT_OK)
++	    && (urb->transfer_buffer_length - urb->actual_length)
++	    > qh->maxpacket)
++		channel->desired_mode = 1;
++	if (rx_count < hw_ep->max_packet_sz_rx) {
++		length = rx_count;
++		channel->desired_mode = 0;
++	} else {
++		length = urb->transfer_buffer_length;
++	}
++#endif
++
++	/* See comments above on disadvantages of using mode 1 */
++	val = musb_readw(epio, MUSB_RXCSR);
++	val &= ~MUSB_RXCSR_H_REQPKT;
++
++	if (channel->desired_mode == 0)
++		val &= ~MUSB_RXCSR_H_AUTOREQ;
 +	else
-+		res = musb_tx_dma_set_mode_cppi_tusb(dma, hw_ep, qh, urb,
-+						     offset, &length, &mode);
-+	if (res)
-+		return false;
- 
- 	qh->segsize = length;
- 
-@@ -678,6 +710,9 @@ static bool musb_tx_dma_program(struct dma_controller *dma,
- 
- 	if (!dma->channel_program(channel, pkt_size, mode,
- 			urb->transfer_dma + offset, length)) {
-+		void __iomem *epio = hw_ep->regs;
-+		u16 csr;
++		val |= MUSB_RXCSR_H_AUTOREQ;
++	val |= MUSB_RXCSR_DMAENAB;
 +
- 		dma->channel_release(channel);
- 		hw_ep->tx_channel = NULL;
++	/* autoclear shouldn't be set in high bandwidth */
++	if (qh->hb_mult == 1)
++		val |= MUSB_RXCSR_AUTOCLEAR;
++
++	musb_writew(epio, MUSB_RXCSR, MUSB_RXCSR_H_WZC_BITS | val);
++
++	/* REVISIT if when actual_length != 0,
++	 * transfer_buffer_length needs to be
++	 * adjusted first...
++	 */
++	done = dma->channel_program(channel, qh->maxpacket,
++				   channel->desired_mode,
++				   buf, length);
++
++	if (!done) {
++		dma->channel_release(channel);
++		hw_ep->rx_channel = NULL;
++		channel = NULL;
++		val = musb_readw(epio, MUSB_RXCSR);
++		val &= ~(MUSB_RXCSR_DMAENAB
++			 | MUSB_RXCSR_H_AUTOREQ
++			 | MUSB_RXCSR_AUTOCLEAR);
++		musb_writew(epio, MUSB_RXCSR, val);
++	}
++
++	return done;
++}
+ #else
+ static inline int musb_rx_dma_inventra_cppi41(struct dma_controller *dma,
+ 					      struct musb_hw_ep *hw_ep,
+@@ -1670,6 +1786,16 @@ static inline int musb_rx_dma_inventra_cppi41(struct dma_controller *dma,
+ {
+ 	return false;
+ }
++
++static inline int musb_rx_dma_in_inventra_cppi41(struct dma_controller *dma,
++						 struct musb_hw_ep *hw_ep,
++						 struct musb_qh *qh,
++						 struct urb *urb,
++						 size_t len,
++						 u8 iso_err)
++{
++	return false;
++}
+ #endif
  
+ /*
+@@ -1859,121 +1985,21 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		/* we are expecting IN packets */
+ 		if ((musb_dma_inventra(musb) || musb_dma_ux500(musb) ||
+ 		    musb_dma_cppi41(musb)) && dma) {
+-			struct dma_controller	*c;
+-			u16			rx_count;
+-			int			ret, length;
+-			dma_addr_t		buf;
+-
+-			rx_count = musb_readw(epio, MUSB_RXCOUNT);
+-
+-			dev_dbg(musb->controller, "RX%d count %d, buffer 0x%llx len %d/%d\n",
+-					epnum, rx_count,
+-					(unsigned long long) urb->transfer_dma
+-					+ urb->actual_length,
+-					qh->offset,
+-					urb->transfer_buffer_length);
+-
+-			c = musb->dma_controller;
+-
+-			if (usb_pipeisoc(pipe)) {
+-				int d_status = 0;
+-				struct usb_iso_packet_descriptor *d;
+-
+-				d = urb->iso_frame_desc + qh->iso_idx;
+-
+-				if (iso_err) {
+-					d_status = -EILSEQ;
+-					urb->error_count++;
+-				}
+-				if (rx_count > d->length) {
+-					if (d_status == 0) {
+-						d_status = -EOVERFLOW;
+-						urb->error_count++;
+-					}
+-					dev_dbg(musb->controller, "** OVERFLOW %d into %d\n",\
+-					    rx_count, d->length);
+-
+-					length = d->length;
+-				} else
+-					length = rx_count;
+-				d->status = d_status;
+-				buf = urb->transfer_dma + d->offset;
+-			} else {
+-				length = rx_count;
+-				buf = urb->transfer_dma +
+-						urb->actual_length;
+-			}
+-
+-			dma->desired_mode = 0;
+-#ifdef USE_MODE1
+-			/* because of the issue below, mode 1 will
+-			 * only rarely behave with correct semantics.
+-			 */
+-			if ((urb->transfer_flags &
+-						URB_SHORT_NOT_OK)
+-				&& (urb->transfer_buffer_length -
+-						urb->actual_length)
+-					> qh->maxpacket)
+-				dma->desired_mode = 1;
+-			if (rx_count < hw_ep->max_packet_sz_rx) {
+-				length = rx_count;
+-				dma->desired_mode = 0;
+-			} else {
+-				length = urb->transfer_buffer_length;
+-			}
+-#endif
+-
+-/* Disadvantage of using mode 1:
+- *	It's basically usable only for mass storage class; essentially all
+- *	other protocols also terminate transfers on short packets.
+- *
+- * Details:
+- *	An extra IN token is sent at the end of the transfer (due to AUTOREQ)
+- *	If you try to use mode 1 for (transfer_buffer_length - 512), and try
+- *	to use the extra IN token to grab the last packet using mode 0, then
+- *	the problem is that you cannot be sure when the device will send the
+- *	last packet and RxPktRdy set. Sometimes the packet is recd too soon
+- *	such that it gets lost when RxCSR is re-set at the end of the mode 1
+- *	transfer, while sometimes it is recd just a little late so that if you
+- *	try to configure for mode 0 soon after the mode 1 transfer is
+- *	completed, you will find rxcount 0. Okay, so you might think why not
+- *	wait for an interrupt when the pkt is recd. Well, you won't get any!
+- */
+-
+-			val = musb_readw(epio, MUSB_RXCSR);
+-			val &= ~MUSB_RXCSR_H_REQPKT;
+-
+-			if (dma->desired_mode == 0)
+-				val &= ~MUSB_RXCSR_H_AUTOREQ;
++			dev_dbg(hw_ep->musb->controller,
++				"RX%d count %d, buffer 0x%llx len %d/%d\n",
++				epnum, musb_readw(epio, MUSB_RXCOUNT),
++				(unsigned long long) urb->transfer_dma
++				+ urb->actual_length,
++				qh->offset,
++				urb->transfer_buffer_length);
++
++			done = musb_rx_dma_in_inventra_cppi41(c, hw_ep, qh,
++							      urb, xfer_len,
++							      iso_err);
++			if (done)
++				goto finish;
+ 			else
+-				val |= MUSB_RXCSR_H_AUTOREQ;
+-			val |= MUSB_RXCSR_DMAENAB;
+-
+-			/* autoclear shouldn't be set in high bandwidth */
+-			if (qh->hb_mult == 1)
+-				val |= MUSB_RXCSR_AUTOCLEAR;
+-
+-			musb_writew(epio, MUSB_RXCSR,
+-				MUSB_RXCSR_H_WZC_BITS | val);
+-
+-			/* REVISIT if when actual_length != 0,
+-			 * transfer_buffer_length needs to be
+-			 * adjusted first...
+-			 */
+-			ret = c->channel_program(
+-				dma, qh->maxpacket,
+-				dma->desired_mode, buf, length);
+-
+-			if (!ret) {
+-				c->channel_release(dma);
+-				hw_ep->rx_channel = NULL;
+-				dma = NULL;
+-				val = musb_readw(epio, MUSB_RXCSR);
+-				val &= ~(MUSB_RXCSR_DMAENAB
+-					| MUSB_RXCSR_H_AUTOREQ
+-					| MUSB_RXCSR_AUTOCLEAR);
+-				musb_writew(epio, MUSB_RXCSR, val);
+-			}
++				dev_err(musb->controller, "error: rx_dma failed\n");
+ 		}
+ 
+ 		if (!dma) {
 -- 
 2.1.4
 
