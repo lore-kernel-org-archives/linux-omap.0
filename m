@@ -1,65 +1,52 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 00/12] MUSB patches to select all DMA drivers
-Date: Fri,  1 May 2015 12:29:26 -0700
-Message-ID: <1430508578-5208-1-git-send-email-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 08/12] usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part2
+Date: Fri,  1 May 2015 12:29:34 -0700
+Message-ID: <1430508578-5208-9-git-send-email-tony@atomide.com>
+References: <1430508578-5208-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from tkt-001-i374.relay.mailchannels.net ([174.136.5.177]:52852 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751885AbbEATf6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2015 15:35:58 -0400
+In-Reply-To: <1430508578-5208-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Bin Liu <b-liu@ti.com>, George Cherian <george.cherian@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi all,
+Remove ifdefs for musb_host_rx to get closer to building in
+all the DMA drivers.
 
-Here are few patches that allow building in all the MUSB DMA
-drivers for distros. This also allows us to get rid of most
-of the ifdefs, and also simplifies the musb_host_rx monster
-function a bit.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/usb/musb/musb_host.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Regards,
-
-Tony
-
-Tony Lindgren (12):
-  usb: musb: Fix up DMA related macros
-  usb: musb: Set up function pointers for DMA
-  usb: musb: Get rid of the DMA ifdefs for musb_core.c
-  usb: musb: Remove DMA ifdef for musb_gadget.c short_packet
-  usb: musb: Remove the rest of DMA related ifdefs in musb_gadget.c
-  usb: musb: Remove ifdefs for TX DMA for musb_host.c
-  usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part1
-  usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part2
-  usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part3
-  usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part4
-  usb: musb: Remove ifdefs for musb_host_rx in musb_host.c part5
-  usb: musb: Allow building in all the DMA code
-
- drivers/usb/musb/Kconfig         |  38 ++-
- drivers/usb/musb/am35x.c         |   6 +-
- drivers/usb/musb/blackfin.c      |   5 +
- drivers/usb/musb/cppi_dma.c      |   9 +-
- drivers/usb/musb/da8xx.c         |   6 +-
- drivers/usb/musb/davinci.c       |   7 +-
- drivers/usb/musb/jz4740.c        |   6 +-
- drivers/usb/musb/musb_core.c     |  29 ++-
- drivers/usb/musb/musb_core.h     |   5 +
- drivers/usb/musb/musb_cppi41.c   |   8 +-
- drivers/usb/musb/musb_dma.h      |  67 +++++-
- drivers/usb/musb/musb_dsps.c     |   6 +-
- drivers/usb/musb/musb_gadget.c   |  52 ++--
- drivers/usb/musb/musb_host.c     | 509 ++++++++++++++++++++++++---------------
- drivers/usb/musb/musbhsdma.c     |   9 +-
- drivers/usb/musb/omap2430.c      |   5 +
- drivers/usb/musb/tusb6010.c      |   8 +-
- drivers/usb/musb/tusb6010.h      |   6 -
- drivers/usb/musb/tusb6010_omap.c |   9 +-
- drivers/usb/musb/ux500.c         |   6 +-
- drivers/usb/musb/ux500_dma.c     |   8 +-
- 21 files changed, 509 insertions(+), 295 deletions(-)
-
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 75d50c8..739da2a 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -1734,9 +1734,8 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 	 */
+ 
+ 	/* FIXME this is _way_ too much in-line logic for Mentor DMA */
+-
+-#if !defined(CONFIG_USB_INVENTRA_DMA) && !defined(CONFIG_USB_UX500_DMA)
+-	if (rx_csr & MUSB_RXCSR_H_REQPKT)  {
++	if (!musb_dma_inventra(musb) && !musb_dma_ux500(musb) &&
++	    (rx_csr & MUSB_RXCSR_H_REQPKT)) {
+ 		/* REVISIT this happened for a while on some short reads...
+ 		 * the cleanup still needs investigation... looks bad...
+ 		 * and also duplicates dma cleanup code above ... plus,
+@@ -1757,7 +1756,7 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 		musb_writew(epio, MUSB_RXCSR,
+ 				MUSB_RXCSR_H_WZC_BITS | rx_csr);
+ 	}
+-#endif
++
+ 	if (dma && (rx_csr & MUSB_RXCSR_DMAENAB)) {
+ 		xfer_len = dma->actual_len;
+ 
 -- 
 2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
