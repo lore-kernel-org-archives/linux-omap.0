@@ -1,117 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/2] ARM: OMAP3: Add support for configuring MMC pins as GPIO pins
-Date: Fri,  1 May 2015 18:05:51 -0700
-Message-ID: <1430528752-316-2-git-send-email-tony@atomide.com>
-References: <1430528752-316-1-git-send-email-tony@atomide.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: ARM errata 430973 on multi platform kernels
+Date: Sat, 2 May 2015 08:51:38 +0200
+Message-ID: <CAALWOA-3_4jpdwY-D07i1_Q0Q2sLsYXSEoJXX7+stnXBZR7yqg@mail.gmail.com>
+References: <20150407135713.GL4027@n2100.arm.linux.org.uk> <20150407152207.GM18048@atomide.com>
+ <20150408230658.GO4027@n2100.arm.linux.org.uk> <20150409134843.GQ4027@n2100.arm.linux.org.uk>
+ <20150415163108.GB2033@earth> <20150416160858.GH18048@atomide.com>
+ <20150417184156.GA3326@earth> <20150420234032.GM18048@atomide.com>
+ <20150423102542.GZ4027@n2100.arm.linux.org.uk> <CAALWOA_3wfn=K3qt9MzWYXMGTM7mZvqY03Biqk5T2wVF4uMVxQ@mail.gmail.com>
+ <20150428181109.GA4027@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ftx-008-i767.relay.mailchannels.net ([50.61.143.67]:3055 "EHLO
-	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751375AbbEBBGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 May 2015 21:06:08 -0400
-In-Reply-To: <1430528752-316-1-git-send-email-tony@atomide.com>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:33457 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbbEBGwA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 May 2015 02:52:00 -0400
+Received: by wgin8 with SMTP id n8so106996744wgi.0
+        for <linux-omap@vger.kernel.org>; Fri, 01 May 2015 23:51:59 -0700 (PDT)
+In-Reply-To: <20150428181109.GA4027@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tim Nordell <tim.nordell@logicpd.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Some devices are using the MMC1 pins 4..8 as GPIO pins, and in
-this case they need to be configured for 1.8V IO voltage if not
-done by the bootloader as otherwise some devices like smsc911x
-won't work properly.
+On 28 April 2015 at 20:11, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> "Can't detect" is _not_ an overstatement.  It's a statement that I'm
+> giving you through my experience and knowledge of the Linux kernel,
+> the ARM archtecture, the capabilities of the platforms we have to
+> deal with, and how we want the kernel to work.
+>
+> Sure, we _can_ detect it if (and only if) we code specifically for a
+> platform which has RAM at the CPU vector location.  Unfortunately,
+> that's a _very_ small proportion which approximates a number very
+> close to zero.
 
-Let's also make sure this register is saved and restored for
-idle.
+Sorry, I clearly had never adequately appreciated how much of a luxury
+it is to be targeting only a limited range of platforms, or the burden
+of the constraints imposed by needing to support the bewildering
+diversity out there.
 
-Cc: Tim Nordell <tim.nordell@logicpd.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/control.c      |  3 +++
- arch/arm/mach-omap2/control.h      |  3 +++
- arch/arm/mach-omap2/pdata-quirks.c | 22 ++++++++++++++++++++++
- 3 files changed, 28 insertions(+)
+However, your objection isn't quite valid either since any ARM cpu
+supporting the security extensions also supports changing the vector
+base address.
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index af95a62..f008930 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -112,6 +112,7 @@ struct omap3_control_regs {
- 	u32 csirxfe;
- 	u32 iva2_bootaddr;
- 	u32 iva2_bootmod;
-+	u32 wkup_ctrl;
- 	u32 debobs_0;
- 	u32 debobs_1;
- 	u32 debobs_2;
-@@ -455,6 +456,7 @@ void omap3_control_save_context(void)
- 			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
- 	control_context.iva2_bootmod =
- 			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
-+	control_context.wkup_ctrl = omap_ctrl_readl(OMAP34XX_CONTROL_WKUP_CTRL);
- 	control_context.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(0));
- 	control_context.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(1));
- 	control_context.debobs_2 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(2));
-@@ -512,6 +514,7 @@ void omap3_control_restore_context(void)
- 					OMAP343X_CONTROL_IVA2_BOOTADDR);
- 	omap_ctrl_writel(control_context.iva2_bootmod,
- 					OMAP343X_CONTROL_IVA2_BOOTMOD);
-+	omap_ctrl_writel(control_context.wkup_ctrl, OMAP34XX_CONTROL_WKUP_CTRL);
- 	omap_ctrl_writel(control_context.debobs_0, OMAP343X_CONTROL_DEBOBS(0));
- 	omap_ctrl_writel(control_context.debobs_1, OMAP343X_CONTROL_DEBOBS(1));
- 	omap_ctrl_writel(control_context.debobs_2, OMAP343X_CONTROL_DEBOBS(2));
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 80d2b7d..ec406bc 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -231,6 +231,9 @@
- #define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
- 
- /* 34xx GENERAL_WKUP register offsets */
-+#define OMAP34XX_CONTROL_WKUP_CTRL	(OMAP343X_CONTROL_GENERAL_WKUP - 0x4)
-+#define OMAP36XX_GPIO_IO_PWRDNZ		BIT(6)
-+
- #define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
- 						0x008 + (i))
- #define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index af11511..a74612b 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -44,6 +44,27 @@ static void __init omap2420_n8x0_legacy_init(void)
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP3
-+/*
-+ * Configures GPIOs 126 to 129 to 1.8V mode instead of 3.0V
-+ * mode for MMC1 in case bootloader did not configure things.
-+ * Note that if the pins are used for MMC1, pbias-regulator
-+ * manages the IO voltage.
-+ */
-+static void __init omap3_gpio126_129(void)
-+{
-+	u32 reg;
-+
-+	reg = omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
-+	reg &= ~OMAP343X_PBIASLITEVMODE1;
-+	reg |= OMAP343X_PBIASLITEPWRDNZ1;
-+	omap_ctrl_writel(reg, OMAP343X_CONTROL_PBIAS_LITE);
-+	if (cpu_is_omap3630()) {
-+		reg = omap_ctrl_readl(OMAP34XX_CONTROL_WKUP_CTRL);
-+		reg |= OMAP36XX_GPIO_IO_PWRDNZ;
-+		omap_ctrl_writel(reg, OMAP34XX_CONTROL_WKUP_CTRL);
-+	}
-+}
-+
- static void __init hsmmc2_internal_input_clk(void)
- {
- 	u32 reg;
-@@ -356,6 +377,7 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
- 	{ "isee,omap3-igep0020-rev-f", omap3_igep0020_rev_f_legacy_init, },
- 	{ "isee,omap3-igep0030-rev-g", omap3_igep0030_rev_g_legacy_init, },
-+	{ "logicpd,dm3730-torpedo-devkit", omap3_gpio126_129, },
- 	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
- 	{ "ti,am3517-evm", am3517_evm_legacy_init, },
- 	{ "technexion,omap3-tao3530", omap3_tao3530_legacy_init, },
--- 
-2.1.4
-
+Matthijs
