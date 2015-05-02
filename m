@@ -1,47 +1,42 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Sat, 2 May 2015 08:51:38 +0200
-Message-ID: <CAALWOA-3_4jpdwY-D07i1_Q0Q2sLsYXSEoJXX7+stnXBZR7yqg@mail.gmail.com>
-References: <20150407135713.GL4027@n2100.arm.linux.org.uk> <20150407152207.GM18048@atomide.com>
- <20150408230658.GO4027@n2100.arm.linux.org.uk> <20150409134843.GQ4027@n2100.arm.linux.org.uk>
- <20150415163108.GB2033@earth> <20150416160858.GH18048@atomide.com>
- <20150417184156.GA3326@earth> <20150420234032.GM18048@atomide.com>
- <20150423102542.GZ4027@n2100.arm.linux.org.uk> <CAALWOA_3wfn=K3qt9MzWYXMGTM7mZvqY03Biqk5T2wVF4uMVxQ@mail.gmail.com>
- <20150428181109.GA4027@n2100.arm.linux.org.uk>
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v8 0/4] hwspinlock core & omap dt support
+Date: Sat, 2 May 2015 10:55:30 +0300
+Message-ID: <CAK=WgbZORkMU9rREVDEd1K7mkdp=DLsyy5eLAd4W+0aDzJP65A@mail.gmail.com>
+References: <1425520876-37826-1-git-send-email-s-anna@ti.com>
+ <CAK=WgbY1Gbc+b1YtHafUyph6P60fees1ND_K5OE=9MXuqszbOg@mail.gmail.com>
+ <5509F4E7.6070607@ti.com> <551D70EE.307@ti.com> <20150416093130.GH2866@leverpostej>
+ <CAK=WgbYJAnc_DFbqc3nJfYGWfqk4Krgi_BuJ=UXUNHHA-hvzKw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:33457 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbbEBGwA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 May 2015 02:52:00 -0400
-Received: by wgin8 with SMTP id n8so106996744wgi.0
-        for <linux-omap@vger.kernel.org>; Fri, 01 May 2015 23:51:59 -0700 (PDT)
-In-Reply-To: <20150428181109.GA4027@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAK=WgbYJAnc_DFbqc3nJfYGWfqk4Krgi_BuJ=UXUNHHA-hvzKw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Bjorn Andersson <bjorn.andersson-/MT0OVThwyLZJqsBc5GL+g@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tim Bird <tbird20d-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 28 April 2015 at 20:11, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> "Can't detect" is _not_ an overstatement.  It's a statement that I'm
-> giving you through my experience and knowledge of the Linux kernel,
-> the ARM archtecture, the capabilities of the platforms we have to
-> deal with, and how we want the kernel to work.
+On Thu, Apr 16, 2015 at 1:28 PM, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> wrote:
+> On Thu, Apr 16, 2015 at 12:31 PM, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wrote:
+> > Hi,
+> >
+> > Apologies for the delay on this.
+> >
+> >> > Gentle reminder. Can you please provide your ack on the bindings in this
+> >> > series (Patches 1 & 3) for Ohad to queue up the series for 4.1.
+> >> >
+> >>
+> >> Ping again, if you can provide your ack on these bindings and the qcom
+> >> hwmutex bindings, then Ohad can pick up both the series for 4.1. Both
+> >> series are blocked on getting the binding acks.
+> >
+> > Both the bindings look sane to me, so for patches 1 and 3:
+> >
+> > Acked-by: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 >
-> Sure, we _can_ detect it if (and only if) we code specifically for a
-> platform which has RAM at the CPU vector location.  Unfortunately,
-> that's a _very_ small proportion which approximates a number very
-> close to zero.
+> Great, thanks a lot Mark!
 
-Sorry, I clearly had never adequately appreciated how much of a luxury
-it is to be targeting only a limited range of platforms, or the burden
-of the constraints imposed by needing to support the bewildering
-diversity out there.
-
-However, your objection isn't quite valid either since any ARM cpu
-supporting the security extensions also supports changing the vector
-base address.
-
-Matthijs
+All 4 patches in this series have been applied, thanks!
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
