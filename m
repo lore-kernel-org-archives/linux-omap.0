@@ -1,83 +1,124 @@
-From: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] am335x-evm: add bluetooth support
-Date: Sun,  3 May 2015 15:19:29 +0300
-Message-ID: <1430655569-27849-2-git-send-email-eyalr@ti.com>
-References: <1430655569-27849-1-git-send-email-eyalr@ti.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430655569-27849-1-git-send-email-eyalr-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+From: Eyal Reizer <eyalreizer@gmail.com>
+Subject: [PATCH 1/2] am335x-evm: add mmc3 and wlan definitions to dts
+Date: Sun,  3 May 2015 15:19:28 +0300
+Message-ID: <1430655569-27849-1-git-send-email-eyalr@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:37883 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751263AbbECMTp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 May 2015 08:19:45 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Eyal Reizer <eyalr@ti.com>, Arik Nemtsov <arik@wizery.com>, Eliad Peller <eliad@wizery.com>
 
-From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+This includes the wlan regulator, pinmux, DMA
+and wlcore bindings.
 
-uart1 is used for shared transport (used for multiplexing
-bluetooth and nfc data). add the needed muxes and definitions.
-
-Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Arik Nemtsov <arik@wizery.com>
+Signed-off-by: Eliad Peller <eliad@wizery.com>
+Signed-off-by: Eyal Reizer <eyalr@ti.com>
 ---
- arch/arm/boot/dts/am335x-evm.dts |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts |   65 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 0f398fa..5968cde 100644
+index 6634251..0f398fa 100644
 --- a/arch/arm/boot/dts/am335x-evm.dts
 +++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -135,6 +135,18 @@
- 		};
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ #include "am33xx.dtsi"
++#include <dt-bindings/interrupt-controller/irq.h>
+ 
+ / {
+ 	model = "TI AM335x EVM";
+@@ -38,6 +39,20 @@
+ 		regulator-boot-on;
  	};
  
-+	kim {
-+		compatible = "kim";
-+		nshutdown_gpio = <117>; /* Bank3, pin21 */
-+		dev_name = "/dev/ttyS1";
-+		flow_cntrl = <1>;
-+		baud_rate = <3000000>;
++	wlan_en_reg: fixedregulator@2 {
++		compatible = "regulator-fixed";
++		regulator-name = "wlan-en-regulator";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++
++		/* WLAN_EN GPIO for this board - Bank1, pin16 */
++		gpio = <&gpio1 16 0>;
++
++		/* WLAN card specific delay */
++		startup-delay-us = <70000>;
++		enable-active-high;
 +	};
 +
-+	btwilink {
-+		compatible = "btwilink";
-+	};
-+
- 	sound {
- 		compatible = "ti,da830-evm-audio";
- 		ti,model = "AM335x-EVM";
-@@ -191,6 +203,15 @@
+ 	matrix_keypad: matrix_keypad@0 {
+ 		compatible = "gpio-matrix-keypad";
+ 		debounce-delay-ms = <5>;
+@@ -266,6 +281,25 @@
  		>;
  	};
  
-+	uart1_pins: pinmux_uart1_pins {
++	mmc3_pins: pinmux_mmc3_pins {
 +		pinctrl-single,pins = <
-+			0x178 (PIN_INPUT | MUX_MODE0)		/* uart1_ctsn.uart1_ctsn */
-+			0x17C (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart1_rtsn.uart1_rtsn */
-+			0x180 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart1_rxd.uart1_rxd */
-+			0x184 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart1_txd.uart1_txd */
++			0x44 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a1.mmc2_dat0, INPUT_PULLUP | MODE3 */
++			0x48 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a2.mmc2_dat1, INPUT_PULLUP | MODE3 */
++			0x4C (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a3.mmc2_dat2, INPUT_PULLUP | MODE3 */
++			0x78 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_ben1.mmc2_dat3, INPUT_PULLUP | MODE3 */
++			0x88 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_csn3.mmc2_cmd, INPUT_PULLUP | MODE3 */
++			0x8C (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_clk.mmc2_clk, INPUT_PULLUP | MODE3 */
 +		>;
 +	};
 +
- 	clkout2_pin: pinmux_clkout2_pin {
++	wlan_pins: pinmux_wlan_pins {
++		pinctrl-single,pins = <
++			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a0.gpio1_16 */
++			0x19C (PIN_INPUT | MUX_MODE7)		/* mcasp0_ahclkr.gpio3_17 */
++			0x1AC (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* mcasp0_ahclkx.gpio3_21 */
++		>;
++	};
++
+ 	lcd_pins_s0: lcd_pins_s0 {
  		pinctrl-single,pins = <
- 			0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
-@@ -357,6 +378,13 @@
- 	status = "okay";
+ 			0x20 (PIN_OUTPUT | MUX_MODE1)		/* gpmc_ad8.lcd_data23 */
+@@ -665,6 +699,37 @@
+ 	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
  };
  
-+&uart1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart1_pins>;
-+
++&mmc3 {
++	/* these are on the crossbar and are outlined in the
++	   xbar-event-map element */
++	dmas = <&edma 12
++		&edma 13>;
++	dma-names = "tx", "rx";
 +	status = "okay";
++	vmmc-supply = <&wlan_en_reg>;
++	bus-width = <4>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc3_pins &wlan_pins>;
++	ti,non-removable;
++	ti,needs-special-hs-handling;
++	cap-power-off-card;
++	keep-power-in-suspend;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	wlcore: wlcore@0 {
++		compatible = "ti,wl1835";
++		reg = <2>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
++	};
 +};
 +
- &i2c0 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c0_pins>;
++&edma {
++	ti,edma-xbar-event-map = /bits/ 16 <1 12
++					    2 13>;
++};
++
+ &sham {
+ 	status = "okay";
+ };
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
