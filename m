@@ -1,121 +1,171 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM errata 430973 on multi platform kernels
-Date: Mon, 4 May 2015 07:24:13 -0700
-Message-ID: <20150504142413.GE24469@atomide.com>
-References: <20150408230658.GO4027@n2100.arm.linux.org.uk>
- <20150409134843.GQ4027@n2100.arm.linux.org.uk>
- <20150415163108.GB2033@earth>
- <20150416160858.GH18048@atomide.com>
- <20150417184156.GA3326@earth>
- <20150420234032.GM18048@atomide.com>
- <20150423102542.GZ4027@n2100.arm.linux.org.uk>
- <20150423141727.GQ18048@atomide.com>
- <20150428181300.GB4027@n2100.arm.linux.org.uk>
- <20150429144011.GB24469@atomide.com>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix pmic for boards that need AC
+ charger disabled
+Date: Mon, 4 May 2015 07:32:14 -0700
+Message-ID: <20150504143213.GF24469@atomide.com>
+References: <1427736974-1842-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:48937 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751212AbbEDOYQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 May 2015 10:24:16 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150429144011.GB24469@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1427736974-1842-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Tony Lindgren <tony@atomide.com> [150429 07:42]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150428 11:14]:
-> > On Thu, Apr 23, 2015 at 07:17:28AM -0700, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [150423 03:26]:
-> > > > However, I don't think anyone is willing to say that they have a
-> > > > solution to this problem - obviously, you can't build OMAP as a
-> > > > non-multiplatform kernel anymore, so in effect you can never have
-> > > > the kernel enable this errata.  And you can't detect whether you're
-> > > > running in secure mode or not.
-> > > > 
-> > > > We could do the "only write the bit if it was originally clear" but
-> > > > we still have the problem that doing so may cause other people
-> > > > regressions.
-> > > 
-> > > How about we keep the bit writing part !multiplatform conditional
-> > > (or even remove it) but always do the flush for ca-8?
-> > > 
-> > > Then we could also do a warning for a misconfigured ca-8 later on.
-> > 
-> > Yes, we could do this - we'll have to rely on the boot loader doing
-> > the right thing and setting this bit appropriately.  For those
-> > platforms where this doesn't apply, I don't see any solution as (iirc)
-> > OMAP now requires MULTIPLATFORM to be enabled.
+Hi Lee,
+
+* Tony Lindgren <tony@atomide.com> [150330 10:41]:
+> I noticed the PMIC configuration on 37xx-evm won't actually shut down
+> the voltages during off-idle. Turns out 37xx-evm needs the AC charger
+> state transitions disabled like we are doing for SDP and LDP in the
+> legacy booting case.
 > 
-> OK, here's an updated patch. I've kept Sebastian's Tested-by as we know
-> the init part is a nop on n900 that he tested with.
+> Let's fix this for device tree based booting by setting up the quirk
+> flag based on the compatible flag. And let's also use the existing
+> define for STARTON_CHG.
+> 
+> Note that SDP and EVM do not have the PMIC clken wired to gate the
+> the oscillator while LDP has.
 
-I've posted this updated version into Russell's patch system:
+Looks like this fix is still pending?
 
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8353/1
+Seems to require a minor update for the const changes, updated
+version below.
 
 Regards,
 
 Tony
+
+8< ------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 27 Apr 2015 10:18:14 -0700
+Subject: [PATCH] mfd: twl4030-power: Fix pmic for boards that need AC charger
+ disabled
+
+I noticed the PMIC configuration on 37xx-evm won't actually shut down
+the voltages during off-idle. Turns out 37xx-evm needs the AC charger
+state transitions disabled like we are doing for SDP and LDP in the
+legacy booting case.
+
+Let's fix this for device tree based booting by setting up the quirk
+flag based on the compatible flag. And let's also use the existing
+define for STARTON_CHG.
+
+Note that SDP and EVM do not have the PMIC clken wired to gate the
+the oscillator while LDP has.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -264,7 +264,9 @@ out:
+ 	return err;
+ }
  
-> 8< ---------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 27 Apr 2015 10:18:14 -0700
-> Subject: [PATCH] ARM: mm: Fix Cortex-A8 erratum 430973 segfaults for bootloaders and multiarch
-> 
-> Looks like apps can be made to segfault easily on armhf distros
-> just by running cpuburn-a8 in the background, then starting apt
-> get update unless erratum 430973 workaround is enabled. This happens
-> on r3p2 also, which has 430973 fixed in hardware.
-> 
-> Turns out the reason for this is some bootloaders incorrectly
-> setting the auxilary register IBE bit, which probably causes us
-> to hit erratum 687067 on Cortex-A8 later than r1p2.
-> 
-> If the bootloader incorrectly sets the IBE bit in the auxilary control
-> register for Cortex-A8 revisions with 430973 fixed in hardware, we
-> need to call flush BTAC/BTB to avoid segfaults probably caused by
-> erratum 687067. So let's flush BTAC/BTB unconditionally for Cortex-A8.
-> It won't do anything unless the IBE bit is set.
-> 
-> Note that we keep the erratum 430973 Kconfig option still around and
-> disabled for multiarch as it may be unsafe to enable for some secure
-> SoC. It is known safe to be enabled for n900, but won't do anything
-> on n900 as the IBE bit needs to be set with SMC.
-> 
-> Also note that SoCs probably should also add checks and print warnings
-> for the misconfigured IBE bit depending on the Cortex-A8 revision
-> so the bootloaders can be fixed Cortex-A8 revisions later than
-> r1p2 to not set the IBE bit.
-> 
-> Tested-By: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/arch/arm/mm/proc-v7-2level.S
-> +++ b/arch/arm/mm/proc-v7-2level.S
-> @@ -36,14 +36,16 @@
->   *
->   *	It is assumed that:
->   *	- we are not using split page tables
-> + *
-> + *	Note that we always need to flush BTAC/BTB if IBE is set
-> + *	even on Cortex-A8 revisions not affected by 430973.
-> + *	If IBE is not set, the flush BTAC/BTB won't do anything.
->   */
->  ENTRY(cpu_ca8_switch_mm)
->  #ifdef CONFIG_MMU
->  	mov	r2, #0
-> -#ifdef CONFIG_ARM_ERRATA_430973
->  	mcr	p15, 0, r2, c7, c5, 6		@ flush BTAC/BTB
->  #endif
-> -#endif
->  ENTRY(cpu_v7_switch_mm)
->  #ifdef CONFIG_MMU
->  	mmid	r1, r1				@ get mm->context.id
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-static int twl4030_config_wakeup12_sequence(u8 address)
++static int
++twl4030_config_wakeup12_sequence(const struct twl4030_power_data *pdata,
++				 u8 address)
+ {
+ 	int err = 0;
+ 	u8 data;
+@@ -293,13 +295,14 @@ static int twl4030_config_wakeup12_sequence(u8 address)
+ 	if (err)
+ 		goto out;
+ 
+-	if (machine_is_omap_3430sdp() || machine_is_omap_ldp()) {
++	if (pdata->ac_charger_quirk || machine_is_omap_3430sdp() ||
++	    machine_is_omap_ldp()) {
+ 		/* Disabling AC charger effect on sleep-active transitions */
+ 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data,
+ 				      R_CFG_P1_TRANSITION);
+ 		if (err)
+ 			goto out;
+-		data &= ~(1<<1);
++		data &= ~STARTON_CHG;
+ 		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data,
+ 				       R_CFG_P1_TRANSITION);
+ 		if (err)
+@@ -459,8 +462,9 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+ 	return 0;
+ }
+ 
+-static int load_twl4030_script(struct twl4030_script *tscript,
+-	       u8 address)
++static int load_twl4030_script(const struct twl4030_power_data *pdata,
++			       struct twl4030_script *tscript,
++			       u8 address)
+ {
+ 	int err;
+ 	static int order;
+@@ -487,7 +491,7 @@ static int load_twl4030_script(struct twl4030_script *tscript,
+ 		if (err)
+ 			goto out;
+ 
+-		err = twl4030_config_wakeup12_sequence(address);
++		err = twl4030_config_wakeup12_sequence(pdata, address);
+ 		if (err)
+ 			goto out;
+ 		order = 1;
+@@ -567,7 +571,7 @@ twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
+ 	u8 address = twl4030_start_script_address;
+ 
+ 	for (i = 0; i < pdata->num; i++) {
+-		err = load_twl4030_script(pdata->scripts[i], address);
++		err = load_twl4030_script(pdata, pdata->scripts[i], address);
+ 		if (err)
+ 			return err;
+ 		address += pdata->scripts[i]->size;
+@@ -829,6 +833,21 @@ static struct twl4030_power_data osc_off_idle = {
+ 	.board_config		= osc_off_rconfig,
+ };
+ 
++static struct twl4030_power_data omap3_idle_ac_quirk = {
++	.scripts		= omap3_idle_scripts,
++	.num			= ARRAY_SIZE(omap3_idle_scripts),
++	.resource_config	= omap3_idle_rconfig,
++	.ac_charger_quirk	= true,
++};
++
++static struct twl4030_power_data omap3_idle_ac_quirk_osc_off = {
++	.scripts		= omap3_idle_scripts,
++	.num			= ARRAY_SIZE(omap3_idle_scripts),
++	.resource_config	= omap3_idle_rconfig,
++	.board_config		= osc_off_rconfig,
++	.ac_charger_quirk	= true,
++};
++
+ static const struct of_device_id twl4030_power_of_match[] = {
+ 	{
+ 		.compatible = "ti,twl4030-power",
+@@ -845,6 +864,18 @@ static const struct of_device_id twl4030_power_of_match[] = {
+ 		.compatible = "ti,twl4030-power-idle-osc-off",
+ 		.data = &osc_off_idle,
+ 	},
++	{
++		.compatible = "ti,twl4030-power-omap3-sdp",
++		.data = &omap3_idle_ac_quirk,
++	},
++	{
++		.compatible = "ti,twl4030-power-omap3-ldp",
++		.data = &omap3_idle_ac_quirk_osc_off,
++	},
++	{
++		.compatible = "ti,twl4030-power-omap3-evm",
++		.data = &omap3_idle_ac_quirk,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -675,6 +675,7 @@ struct twl4030_power_data {
+ 	struct twl4030_resconfig *board_config;
+ #define TWL4030_RESCONFIG_UNDEF	((u8)-1)
+ 	bool use_poweroff;	/* Board is wired for TWL poweroff */
++	bool ac_charger_quirk;	/* Disable AC charger on board */
+ };
+ 
+ extern int twl4030_remove_script(u8 flags);
