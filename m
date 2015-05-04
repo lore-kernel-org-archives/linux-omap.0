@@ -1,29 +1,51 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v5 8/8] ARM: DTS: dra7x: Integrate sDMA crossbar
-Date: Mon, 4 May 2015 11:10:46 +0530
-Message-ID: <20150504054046.GZ3521@localhost>
-References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
- <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+Subject: EDMA oftree entry for AM335x
+Date: Mon, 4 May 2015 08:43:23 +0200
+Message-ID: <20150504064323.GU15254@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19577 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751530AbbEDFkL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 May 2015 01:40:11 -0400
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48058 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001AbbEDGn1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2015 02:43:27 -0400
 Content-Disposition: inline
-In-Reply-To: <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 09, 2015 at 12:35:54PM +0300, Peter Ujfalusi wrote:
-> The sDMA requests are routed through the DMA crossbar and without the
-> crossbar only peripherals using DMA request 0-127 can be used.
-> 
-Need an ACK from ARM folks before I apply this and the DT ones too please
+Hi,
 
+since 5e863c561, I get this warning for an AM335x board:
+
+  omap_hwmod: tptc0 using broken dt data from edma
+  omap_hwmod: tptc1 using broken dt data from edma
+  omap_hwmod: tptc2 using broken dt data from edma
+
+It seems like the code in arch/arm/mach-omap2/omap_hwmod.c expects the oftree
+entry to look differently than what we currently have in
+arch/arm/boot/dts/am33xx.dtsi:
+
+  edma: edma@49000000 {
+          compatible = "ti,edma3";
+          ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";    <==========
+          reg =   <0x49000000 0x10000>,
+                  <0x44e10f90 0x40>;
+          interrupts = <12 13 14>;
+          #dma-cells = <1>;
+  };
+
+The patch description says the device should be split into more devices instead
+of specifying several ti,hwmods entries, but unfortunately the Documentation
+still suggests the above format in Documentation/devicetree/bindings/dma/ti-edma.txt.
+
+How would a correct entry look like?
+
+Thanks,
+rsc
 -- 
-~Vinod
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
