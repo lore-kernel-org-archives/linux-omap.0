@@ -1,334 +1,214 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] am437x-gp-evm: add wilink8 support
-Date: Mon, 04 May 2015 07:01:33 -0400
-Message-ID: <5547518D.3000702@hurleysoftware.com>
-References: <1430385307-4395-1-git-send-email-eyalr@ti.com> <55460A5D.9040500@hurleysoftware.com> <8665E2433BC68541A24DFFCA87B70F5B2365F50E@DFRE01.ent.ti.com> <55462200.5020401@hurleysoftware.com> <8665E2433BC68541A24DFFCA87B70F5B2365F5E7@DFRE01.ent.ti.com>
+From: "Reizer, Eyal" <eyalr@ti.com>
+Subject: RE: [PATCH] am437x-gp-evm: add wilink8 support
+Date: Mon, 4 May 2015 11:57:13 +0000
+Message-ID: <8665E2433BC68541A24DFFCA87B70F5B2365FD6F@DFRE01.ent.ti.com>
+References: <1430385307-4395-1-git-send-email-eyalr@ti.com>
+ <55460A5D.9040500@hurleysoftware.com>
+ <8665E2433BC68541A24DFFCA87B70F5B2365F50E@DFRE01.ent.ti.com>
+ <55462200.5020401@hurleysoftware.com>
+ <8665E2433BC68541A24DFFCA87B70F5B2365F5E7@DFRE01.ent.ti.com>
+ <5547518D.3000702@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:34358 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751983AbbEDLBg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2015 07:01:36 -0400
-Received: by qgfi89 with SMTP id i89so63435788qgf.1
-        for <linux-omap@vger.kernel.org>; Mon, 04 May 2015 04:01:35 -0700 (PDT)
-In-Reply-To: <8665E2433BC68541A24DFFCA87B70F5B2365F5E7@DFRE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47774 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752051AbbEDL5q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2015 07:57:46 -0400
+In-Reply-To: <5547518D.3000702@hurleysoftware.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reizer, Eyal" <eyalr@ti.com>, Eyal Reizer <eyalreizer@gmail.com>
+To: Peter Hurley <peter@hurleysoftware.com>, Eyal Reizer <eyalreizer@gmail.com>
 Cc: "tony@atomide.com" <tony@atomide.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "galak@codeaurora.org" <galak@codeaurora.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 05/03/2015 09:44 AM, Reizer, Eyal wrote:
-> Hi Peter,
-> 
->> -----Original Message-----
->> From: Peter Hurley [mailto:peter@hurleysoftware.com]
->> Sent: Sunday, May 03, 2015 4:26 PM
->> To: Reizer, Eyal; Eyal Reizer
->> Cc: tony@atomide.com; robh+dt@kernel.org; pawel.moll@arm.com;
->> mark.rutland@arm.com; ijc+devicetree@hellion.org.uk;
->> galak@codeaurora.org; linux@arm.linux.org.uk; linux-omap@vger.kernel.org
->> Subject: Re: [PATCH] am437x-gp-evm: add wilink8 support
->>
->> On 05/03/2015 08:47 AM, Reizer, Eyal wrote:
->>> Hi Peter,
->>>
->>>> -----Original Message-----
->>>> From: Peter Hurley [mailto:peter@hurleysoftware.com]
->>>> Sent: Sunday, May 03, 2015 2:46 PM
->>>> To: Eyal Reizer
->>>> Cc: tony@atomide.com; robh+dt@kernel.org; pawel.moll@arm.com;
->>>> mark.rutland@arm.com; ijc+devicetree@hellion.org.uk;
->>>> galak@codeaurora.org; linux@arm.linux.org.uk;
->>>> linux-omap@vger.kernel.org; Reizer, Eyal
->>>> Subject: Re: [PATCH] am437x-gp-evm: add wilink8 support
->>>>
->>>> Hi Eyal,
->>>>
->>>> On 04/30/2015 05:15 AM, Eyal Reizer wrote:
->>>>> enable mmc3 used for wlan and uart3 used for bluetooth
->>>>>
->>>>> configure the gpios used for wlan and bluetooth controls
->>>>>
->>>>> add fixed voltage regulator used for wlan power control
->>>>>
->>>>> Configure shared transport support for uart3
->>>>>
->>>>> Signed-off-by: Eyal Reizer <eyalr@ti.com>
->>>>> ---
->>>>>  arch/arm/boot/dts/am437x-gp-evm.dts  |  114
->>>> ++++++++++++++++++++++++++++++++++
->>>>>  include/dt-bindings/pinctrl/am43xx.h |    1 +
->>>>>  2 files changed, 115 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> index 26956cb..2b2f715 100644
->>>>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
->>>>> @@ -21,6 +21,7 @@
->>>>>
->>>>>  	aliases {
->>>>>  		display0 = &lcd0;
->>>>> +		serial3 = &uart3;
->>>>>  	};
->>>>>
->>>>>  	vmmcsd_fixed: fixedregulator-sd {
->>>>> @@ -42,6 +43,15 @@
->>>>>  		gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
->>>>>  	};
->>>>>
->>>>> +	vmmcwl_fixed: fixedregulator-mmcwl {
->>>>> +		compatible = "regulator-fixed";
->>>>> +		regulator-name = "vmmcwl_fixed";
->>>>> +		regulator-min-microvolt = <1800000>;
->>>>> +		regulator-max-microvolt = <1800000>;
->>>>> +		gpio = <&gpio1 20 GPIO_ACTIVE_HIGH>;
->>>>> +		enable-active-high;
->>>>> +	};
->>>>> +
->>>>>  	backlight {
->>>>>  		compatible = "pwm-backlight";
->>>>>  		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>; @@
->>>> -106,9 +116,25 @@
->>>>>  			};
->>>>>  		};
->>>>>  	};
->>>>> +
->>>>> +	kim {
->>>>> +		compatible = "kim";
->>>>> +		nshutdown_gpio = <48>; /* Bank1, pin16 */
->>>>> +		dev_name = "/dev/ttyS3";
->>>>> +		flow_cntrl = <1>;
->>>>> +		baud_rate = <3000000>;
->>>>> +	};
->>>>> +
->>>>> +	btwilink {
->>>>> +		compatible = "btwilink";
->>>>> +	};
->>>>
->>>> I'd really like to see TI working _with_ the Linux kernel bluetooth
->>>> stack, rather than working *around* it.
->>>>
->>>> The st_kim driver is really a mess, and wilink8 has no other channels
->>>> but BT, which the hci_ll BT protocol driver already handles.
->>>>
->>>
->>> Wilink8 has both Bluetooth as well as GPS using the same UART.
->>
->> Oh, great!
->>
->> What part is that? I've been all over the TI products search and have only
->> found the WL183x and WL180x series, neither of which support GPS.
->>
-> 
-> See the below link.
-> http://www.jorjin.com.tw/#!wg7871-bn/c246o
-
-Oh, so this isn't a part that can actually be plugged into the
-dedicated COM8 header?
-
-IOW, the only existing h/w for that header is bluetooth only.
-
->>> So the shared transport is needed also for working with the kernel
->> Bluetooth stack.
-
-Not true.
-The kernel bluetooth stack runs fine on wilink8, by simply enabling
-the BT_EN gpio.
-
-Moreover, if this patch goes upstream, all _future_ users will be forced
-to use st_kim, even though they only have bluetooth-only h/w.
-
->>> The st_kim driver indeed needs some rework and it will be looked at
->> regardless.
->>> Still we want to have wilink8 Bluetooth functional in upstream with the
->> driver that is there today.
-
-That's trivially possible without the kim/btwilink hunk above (eg., with
-userspace sysfs gpio).
-
-Regards,
-Peter Hurley
-
-
->>>
->>>>
->>>>>  };
->>>>>
->>>>>  &am43xx_pinmux {
->>>>> +	pinctrl-names = "default", "sleep";
->>>>> +	pinctrl-0 = <&wlan_pins_default>;
->>>>> +	pinctrl-1 = <&wlan_pins_sleep>;
->>>>> +
->>>>>  	i2c0_pins: i2c0_pins {
->>>>>  		pinctrl-single,pins = <
->>>>>  			0x188 (PIN_INPUT_PULLUP | SLEWCTRL_FAST |
->>>> MUX_MODE0)  /*
->>>>> i2c0_sda.i2c0_sda */ @@ -340,6 +366,53 @@
->>>>>  			0x204 (DS0_PULL_UP_DOWN_EN | INPUT_EN |
->>>> MUX_MODE7)  /* cam1_data7 mode 0*/
->>>>>  		>;
->>>>>  	};
->>>>> +
->>>>> +	mmc3_pins_default: pinmux_mmc3_pins_default {
->>>>> +		pinctrl-single,pins = <
->>>>> +			0x8c (PIN_INPUT_PULLUP | MUX_MODE3)      /*
->>>> gpmc_clk.mmc2_clk */
->>>>> +			0x88 (PIN_INPUT_PULLUP | MUX_MODE3)      /*
->>>> gpmc_csn3.mmc2_cmd */
->>>>> +			0x44 (PIN_INPUT_PULLUP | MUX_MODE3)      /*
->>>> gpmc_a1.mmc2_dat0 */
->>>>> +			0x48 (PIN_INPUT_PULLUP | MUX_MODE3)      /*
->>>> gpmc_a2.mmc2_dat1 */
->>>>> +			0x4c (PIN_INPUT_PULLUP | MUX_MODE3)      /*
->>>> gpmc_a3.mmc2_dat2 */
->>>>> +			0x78 (PIN_INPUT_PULLUP | MUX_MODE3)      /*
->>>> gpmc_be1n.mmc2_dat3 */
->>>>> +		>;
->>>>> +	};
->>>>> +
->>>>> +	mmc3_pins_sleep: pinmux_mmc3_pins_sleep {
->>>>> +		pinctrl-single,pins = <
->>>>> +			0x8c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/*
->>>> gpmc_clk.mmc2_clk */
->>>>> +			0x88 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/*
->>>> gpmc_csn3.mmc2_cmd */
->>>>> +			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/*
->>>> gpmc_a1.mmc2_dat0 */
->>>>> +			0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/*
->>>> gpmc_a2.mmc2_dat1 */
->>>>> +			0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/*
->>>> gpmc_a3.mmc2_dat2 */
->>>>> +			0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/*
->>>> gpmc_be1n.mmc2_dat3 */
->>>>> +		>;
->>>>> +	};
->>>>> +
->>>>> +	wlan_pins_default: pinmux_wlan_pins_default {
->>>>> +		pinctrl-single,pins = <
->>>>> +			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)
->>>> 		/* gpmc_a4.gpio1_20 WL_EN */
->>>>> +			0x5c (PIN_INPUT | WAKEUP_ENABLE | MUX_MODE7)
->>>> 	/* gpmc_a7.gpio1_23 WL_IRQ*/
->>>>> +			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)
->>>> 		/* gpmc_a0.gpio1_16 BT_EN*/
->>>>> +		>;
->>>>> +	};
->>>>> +
->>>>> +	wlan_pins_sleep: pinmux_wlan_pins_sleep {
->>>>> +		pinctrl-single,pins = <
->>>>> +			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)
->>>> 		/* gpmc_a4.gpio1_20 WL_EN */
->>>>> +			0x5c (PIN_INPUT | WAKEUP_ENABLE | MUX_MODE7)
->>>> 	/* gpmc_a7.gpio1_23 WL_IRQ*/
->>>>> +			0x40 (PIN_OUTPUT_PULLUP | MUX_MODE7)
->>>> 	/* gpmc_a0.gpio1_16 BT_EN*/
->>>>> +		>;
->>>>> +	};
->>>>> +
->>>>> +	uart3_pins: uart3_pins {
->>>>> +		pinctrl-single,pins = <
->>>>> +			0x228 (PIN_INPUT | MUX_MODE0)		/*
->>>> uart3_rxd.uart3_rxd */
->>>>> +			0x22c (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /*
->>>> uart3_txd.uart3_txd */
->>>>> +			0x230 (PIN_INPUT_PULLUP | MUX_MODE0)	/*
->>>> uart3_ctsn.uart3_ctsn */
->>>>> +			0x234 (PIN_OUTPUT_PULLDOWN | MUX_MODE0) /*
->>>> uart3_rtsn.uart3_rtsn */
->>>>> +		>;
->>>>> +	};
->>>>>  };
->>>>>
->>>>>  &i2c0 {
->>>>> @@ -446,6 +519,10 @@
->>>>>  	status = "okay";
->>>>>  };
->>>>>
->>>>> +&gpio1 {
->>>>> +	status = "okay";
->>>>> +};
->>>>> +
->>>>>  &gpio3 {
->>>>>  	status = "okay";
->>>>>  };
->>>>> @@ -468,6 +545,43 @@
->>>>>  	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;  };
->>>>>
->>>>> +&mmc3 {
->>>>> +	status = "okay";
->>>>> +	/* these are on the crossbar and are outlined in the
->>>>> +	   xbar-event-map element */
->>>>> +	dmas = <&edma 30
->>>>> +		&edma 31>;
->>>>> +	dma-names = "tx", "rx";
->>>>> +	vmmc-supply = <&vmmcwl_fixed>;
->>>>> +	bus-width = <4>;
->>>>> +	pinctrl-names = "default", "sleep";
->>>>> +	pinctrl-0 = <&mmc3_pins_default>;
->>>>> +	pinctrl-1 = <&mmc3_pins_sleep>;
->>>>
->>>> So the wilink8 module is the only thing that can be plugged into the
->>>> camera header?
->>>>
->>>> I think all this really needs to go into a DT overlay.
->>>>
->>>
->>> Am437x-evm has a dedicated com8 connector used for connecting the
->> wilink8 module.
->>> It is not using the camera header.
->>>
->>>> Regards,
->>>> Peter Hurley
->>>>
->>>>
->>>>> +	cap-power-off-card;
->>>>> +	keep-power-in-suspend;
->>>>> +	ti,non-removable;
->>>>> +
->>>>> +	#address-cells = <1>;
->>>>> +	#size-cells = <0>;
->>>>> +	wlcore: wlcore@0 {
->>>>> +		compatible = "ti,wl1835";
->>>>> +		reg = <2>;
->>>>> +		interrupt-parent = <&gpio1>;
->>>>> +		interrupts = <23 IRQ_TYPE_LEVEL_HIGH>;
->>>>> +	};
->>>>> +};
->>>>> +
->>>>> +&edma {
->>>>> +	ti,edma-xbar-event-map = /bits/ 16 <1 30
->>>>> +					    2 31>;
->>>>> +};
->>>>> +
->>>>> +&uart3 {
->>>>> +	status = "okay";
->>>>> +	pinctrl-names = "default";
->>>>> +	pinctrl-0 = <&uart3_pins>;
->>>>> +};
->>>>> +
->>>>>  &usb2_phy1 {
->>>>>  	status = "okay";
->>>>>  };
->>>>> diff --git a/include/dt-bindings/pinctrl/am43xx.h
->>>>> b/include/dt-bindings/pinctrl/am43xx.h
->>>>> index 5f4d0189..b00bbc9 100644
->>>>> --- a/include/dt-bindings/pinctrl/am43xx.h
->>>>> +++ b/include/dt-bindings/pinctrl/am43xx.h
->>>>> @@ -21,6 +21,7 @@
->>>>>  #define SLEWCTRL_SLOW		(1 << 19)
->>>>>  #define SLEWCTRL_FAST		0
->>>>>  #define DS0_PULL_UP_DOWN_EN	(1 << 27)
->>>>> +#define WAKEUP_ENABLE		(1 << 29)
->>>>>
->>>>>  #define PIN_OUTPUT		(PULL_DISABLE)
->>>>>  #define PIN_OUTPUT_PULLUP	(PULL_UP)
->>>>
->>>
-> 
-> Best Regards,
-> Eyal
-> 
-
+SGkgUGV0ZXIsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGV0ZXIg
+SHVybGV5IFttYWlsdG86cGV0ZXJAaHVybGV5c29mdHdhcmUuY29tXQ0KPiBTZW50OiBNb25kYXks
+IE1heSAwNCwgMjAxNSAyOjAyIFBNDQo+IFRvOiBSZWl6ZXIsIEV5YWw7IEV5YWwgUmVpemVyDQo+
+IENjOiB0b255QGF0b21pZGUuY29tOyByb2JoK2R0QGtlcm5lbC5vcmc7IHBhd2VsLm1vbGxAYXJt
+LmNvbTsNCj4gbWFyay5ydXRsYW5kQGFybS5jb207IGlqYytkZXZpY2V0cmVlQGhlbGxpb24ub3Jn
+LnVrOw0KPiBnYWxha0Bjb2RlYXVyb3JhLm9yZzsgbGludXhAYXJtLmxpbnV4Lm9yZy51azsgbGlu
+dXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gYW00Mzd4LWdw
+LWV2bTogYWRkIHdpbGluazggc3VwcG9ydA0KPiANCj4gT24gMDUvMDMvMjAxNSAwOTo0NCBBTSwg
+UmVpemVyLCBFeWFsIHdyb3RlOg0KPiA+IEhpIFBldGVyLA0KPiA+DQo+ID4+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IFBldGVyIEh1cmxleSBbbWFpbHRvOnBldGVyQGh1
+cmxleXNvZnR3YXJlLmNvbV0NCj4gPj4gU2VudDogU3VuZGF5LCBNYXkgMDMsIDIwMTUgNDoyNiBQ
+TQ0KPiA+PiBUbzogUmVpemVyLCBFeWFsOyBFeWFsIFJlaXplcg0KPiA+PiBDYzogdG9ueUBhdG9t
+aWRlLmNvbTsgcm9iaCtkdEBrZXJuZWwub3JnOyBwYXdlbC5tb2xsQGFybS5jb207DQo+ID4+IG1h
+cmsucnV0bGFuZEBhcm0uY29tOyBpamMrZGV2aWNldHJlZUBoZWxsaW9uLm9yZy51azsNCj4gPj4g
+Z2FsYWtAY29kZWF1cm9yYS5vcmc7IGxpbnV4QGFybS5saW51eC5vcmcudWs7DQo+ID4+IGxpbnV4
+LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIGFtNDM3eC1n
+cC1ldm06IGFkZCB3aWxpbms4IHN1cHBvcnQNCj4gPj4NCj4gPj4gT24gMDUvMDMvMjAxNSAwODo0
+NyBBTSwgUmVpemVyLCBFeWFsIHdyb3RlOg0KPiA+Pj4gSGkgUGV0ZXIsDQo+ID4+Pg0KPiA+Pj4+
+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+Pj4gRnJvbTogUGV0ZXIgSHVybGV5IFtt
+YWlsdG86cGV0ZXJAaHVybGV5c29mdHdhcmUuY29tXQ0KPiA+Pj4+IFNlbnQ6IFN1bmRheSwgTWF5
+IDAzLCAyMDE1IDI6NDYgUE0NCj4gPj4+PiBUbzogRXlhbCBSZWl6ZXINCj4gPj4+PiBDYzogdG9u
+eUBhdG9taWRlLmNvbTsgcm9iaCtkdEBrZXJuZWwub3JnOyBwYXdlbC5tb2xsQGFybS5jb207DQo+
+ID4+Pj4gbWFyay5ydXRsYW5kQGFybS5jb207IGlqYytkZXZpY2V0cmVlQGhlbGxpb24ub3JnLnVr
+Ow0KPiA+Pj4+IGdhbGFrQGNvZGVhdXJvcmEub3JnOyBsaW51eEBhcm0ubGludXgub3JnLnVrOw0K
+PiA+Pj4+IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyBSZWl6ZXIsIEV5YWwNCj4gPj4+PiBT
+dWJqZWN0OiBSZTogW1BBVENIXSBhbTQzN3gtZ3AtZXZtOiBhZGQgd2lsaW5rOCBzdXBwb3J0DQo+
+ID4+Pj4NCj4gPj4+PiBIaSBFeWFsLA0KPiA+Pj4+DQo+ID4+Pj4gT24gMDQvMzAvMjAxNSAwNTox
+NSBBTSwgRXlhbCBSZWl6ZXIgd3JvdGU6DQo+ID4+Pj4+IGVuYWJsZSBtbWMzIHVzZWQgZm9yIHds
+YW4gYW5kIHVhcnQzIHVzZWQgZm9yIGJsdWV0b290aA0KPiA+Pj4+Pg0KPiA+Pj4+PiBjb25maWd1
+cmUgdGhlIGdwaW9zIHVzZWQgZm9yIHdsYW4gYW5kIGJsdWV0b290aCBjb250cm9scw0KPiA+Pj4+
+Pg0KPiA+Pj4+PiBhZGQgZml4ZWQgdm9sdGFnZSByZWd1bGF0b3IgdXNlZCBmb3Igd2xhbiBwb3dl
+ciBjb250cm9sDQo+ID4+Pj4+DQo+ID4+Pj4+IENvbmZpZ3VyZSBzaGFyZWQgdHJhbnNwb3J0IHN1
+cHBvcnQgZm9yIHVhcnQzDQo+ID4+Pj4+DQo+ID4+Pj4+IFNpZ25lZC1vZmYtYnk6IEV5YWwgUmVp
+emVyIDxleWFsckB0aS5jb20+DQo+ID4+Pj4+IC0tLQ0KPiA+Pj4+PiAgYXJjaC9hcm0vYm9vdC9k
+dHMvYW00Mzd4LWdwLWV2bS5kdHMgIHwgIDExNA0KPiA+Pj4+ICsrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysNCj4gPj4+Pj4gIGluY2x1ZGUvZHQtYmluZGluZ3MvcGluY3RybC9hbTQz
+eHguaCB8ICAgIDEgKw0KPiA+Pj4+PiAgMiBmaWxlcyBjaGFuZ2VkLCAxMTUgaW5zZXJ0aW9ucygr
+KQ0KPiA+Pj4+Pg0KPiA+Pj4+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW00Mzd4
+LWdwLWV2bS5kdHMNCj4gPj4+Pj4gYi9hcmNoL2FybS9ib290L2R0cy9hbTQzN3gtZ3AtZXZtLmR0
+cw0KPiA+Pj4+PiBpbmRleCAyNjk1NmNiLi4yYjJmNzE1IDEwMDY0NA0KPiA+Pj4+PiAtLS0gYS9h
+cmNoL2FybS9ib290L2R0cy9hbTQzN3gtZ3AtZXZtLmR0cw0KPiA+Pj4+PiArKysgYi9hcmNoL2Fy
+bS9ib290L2R0cy9hbTQzN3gtZ3AtZXZtLmR0cw0KPiA+Pj4+PiBAQCAtMjEsNiArMjEsNyBAQA0K
+PiA+Pj4+Pg0KPiA+Pj4+PiAgCWFsaWFzZXMgew0KPiA+Pj4+PiAgCQlkaXNwbGF5MCA9ICZsY2Qw
+Ow0KPiA+Pj4+PiArCQlzZXJpYWwzID0gJnVhcnQzOw0KPiA+Pj4+PiAgCX07DQo+ID4+Pj4+DQo+
+ID4+Pj4+ICAJdm1tY3NkX2ZpeGVkOiBmaXhlZHJlZ3VsYXRvci1zZCB7IEBAIC00Miw2ICs0Mywx
+NSBAQA0KPiA+Pj4+PiAgCQlncGlvID0gPCZncGlvNSA3IEdQSU9fQUNUSVZFX0hJR0g+Ow0KPiA+
+Pj4+PiAgCX07DQo+ID4+Pj4+DQo+ID4+Pj4+ICsJdm1tY3dsX2ZpeGVkOiBmaXhlZHJlZ3VsYXRv
+ci1tbWN3bCB7DQo+ID4+Pj4+ICsJCWNvbXBhdGlibGUgPSAicmVndWxhdG9yLWZpeGVkIjsNCj4g
+Pj4+Pj4gKwkJcmVndWxhdG9yLW5hbWUgPSAidm1tY3dsX2ZpeGVkIjsNCj4gPj4+Pj4gKwkJcmVn
+dWxhdG9yLW1pbi1taWNyb3ZvbHQgPSA8MTgwMDAwMD47DQo+ID4+Pj4+ICsJCXJlZ3VsYXRvci1t
+YXgtbWljcm92b2x0ID0gPDE4MDAwMDA+Ow0KPiA+Pj4+PiArCQlncGlvID0gPCZncGlvMSAyMCBH
+UElPX0FDVElWRV9ISUdIPjsNCj4gPj4+Pj4gKwkJZW5hYmxlLWFjdGl2ZS1oaWdoOw0KPiA+Pj4+
+PiArCX07DQo+ID4+Pj4+ICsNCj4gPj4+Pj4gIAliYWNrbGlnaHQgew0KPiA+Pj4+PiAgCQljb21w
+YXRpYmxlID0gInB3bS1iYWNrbGlnaHQiOw0KPiA+Pj4+PiAgCQlwd21zID0gPCZlY2FwMCAwIDUw
+MDAwIFBXTV9QT0xBUklUWV9JTlZFUlRFRD47IEBADQo+ID4+Pj4gLTEwNiw5ICsxMTYsMjUgQEAN
+Cj4gPj4+Pj4gIAkJCX07DQo+ID4+Pj4+ICAJCX07DQo+ID4+Pj4+ICAJfTsNCj4gPj4+Pj4gKw0K
+PiA+Pj4+PiArCWtpbSB7DQo+ID4+Pj4+ICsJCWNvbXBhdGlibGUgPSAia2ltIjsNCj4gPj4+Pj4g
+KwkJbnNodXRkb3duX2dwaW8gPSA8NDg+OyAvKiBCYW5rMSwgcGluMTYgKi8NCj4gPj4+Pj4gKwkJ
+ZGV2X25hbWUgPSAiL2Rldi90dHlTMyI7DQo+ID4+Pj4+ICsJCWZsb3dfY250cmwgPSA8MT47DQo+
+ID4+Pj4+ICsJCWJhdWRfcmF0ZSA9IDwzMDAwMDAwPjsNCj4gPj4+Pj4gKwl9Ow0KPiA+Pj4+PiAr
+DQo+ID4+Pj4+ICsJYnR3aWxpbmsgew0KPiA+Pj4+PiArCQljb21wYXRpYmxlID0gImJ0d2lsaW5r
+IjsNCj4gPj4+Pj4gKwl9Ow0KPiA+Pj4+DQo+ID4+Pj4gSSdkIHJlYWxseSBsaWtlIHRvIHNlZSBU
+SSB3b3JraW5nIF93aXRoXyB0aGUgTGludXgga2VybmVsIGJsdWV0b290aA0KPiA+Pj4+IHN0YWNr
+LCByYXRoZXIgdGhhbiB3b3JraW5nICphcm91bmQqIGl0Lg0KPiA+Pj4+DQo+ID4+Pj4gVGhlIHN0
+X2tpbSBkcml2ZXIgaXMgcmVhbGx5IGEgbWVzcywgYW5kIHdpbGluazggaGFzIG5vIG90aGVyDQo+
+ID4+Pj4gY2hhbm5lbHMgYnV0IEJULCB3aGljaCB0aGUgaGNpX2xsIEJUIHByb3RvY29sIGRyaXZl
+ciBhbHJlYWR5IGhhbmRsZXMuDQo+ID4+Pj4NCj4gPj4+DQo+ID4+PiBXaWxpbms4IGhhcyBib3Ro
+IEJsdWV0b290aCBhcyB3ZWxsIGFzIEdQUyB1c2luZyB0aGUgc2FtZSBVQVJULg0KPiA+Pg0KPiA+
+PiBPaCwgZ3JlYXQhDQo+ID4+DQo+ID4+IFdoYXQgcGFydCBpcyB0aGF0PyBJJ3ZlIGJlZW4gYWxs
+IG92ZXIgdGhlIFRJIHByb2R1Y3RzIHNlYXJjaCBhbmQgaGF2ZQ0KPiA+PiBvbmx5IGZvdW5kIHRo
+ZSBXTDE4M3ggYW5kIFdMMTgweCBzZXJpZXMsIG5laXRoZXIgb2Ygd2hpY2ggc3VwcG9ydCBHUFMu
+DQo+ID4+DQo+ID4NCj4gPiBTZWUgdGhlIGJlbG93IGxpbmsuDQo+ID4gaHR0cDovL3d3dy5qb3Jq
+aW4uY29tLnR3LyMhd2c3ODcxLWJuL2MyNDZvDQo+IA0KPiBPaCwgc28gdGhpcyBpc24ndCBhIHBh
+cnQgdGhhdCBjYW4gYWN0dWFsbHkgYmUgcGx1Z2dlZCBpbnRvIHRoZSBkZWRpY2F0ZWQgQ09NOA0K
+PiBoZWFkZXI/DQo+IA0KPiBJT1csIHRoZSBvbmx5IGV4aXN0aW5nIGgvdyBmb3IgdGhhdCBoZWFk
+ZXIgaXMgYmx1ZXRvb3RoIG9ubHkuDQo+IA0KPiA+Pj4gU28gdGhlIHNoYXJlZCB0cmFuc3BvcnQg
+aXMgbmVlZGVkIGFsc28gZm9yIHdvcmtpbmcgd2l0aCB0aGUga2VybmVsDQo+ID4+IEJsdWV0b290
+aCBzdGFjay4NCj4gDQo+IE5vdCB0cnVlLg0KPiBUaGUga2VybmVsIGJsdWV0b290aCBzdGFjayBy
+dW5zIGZpbmUgb24gd2lsaW5rOCwgYnkgc2ltcGx5IGVuYWJsaW5nIHRoZSBCVF9FTg0KPiBncGlv
+Lg0KPiANCj4gTW9yZW92ZXIsIGlmIHRoaXMgcGF0Y2ggZ29lcyB1cHN0cmVhbSwgYWxsIF9mdXR1
+cmVfIHVzZXJzIHdpbGwgYmUgZm9yY2VkIHRvIHVzZQ0KPiBzdF9raW0sIGV2ZW4gdGhvdWdoIHRo
+ZXkgb25seSBoYXZlIGJsdWV0b290aC1vbmx5IGgvdy4NCj4gDQo+ID4+PiBUaGUgc3Rfa2ltIGRy
+aXZlciBpbmRlZWQgbmVlZHMgc29tZSByZXdvcmsgYW5kIGl0IHdpbGwgYmUgbG9va2VkIGF0DQo+
+ID4+IHJlZ2FyZGxlc3MuDQo+ID4+PiBTdGlsbCB3ZSB3YW50IHRvIGhhdmUgd2lsaW5rOCBCbHVl
+dG9vdGggZnVuY3Rpb25hbCBpbiB1cHN0cmVhbSB3aXRoDQo+ID4+PiB0aGUNCj4gPj4gZHJpdmVy
+IHRoYXQgaXMgdGhlcmUgdG9kYXkuDQo+IA0KPiBUaGF0J3MgdHJpdmlhbGx5IHBvc3NpYmxlIHdp
+dGhvdXQgdGhlIGtpbS9idHdpbGluayBodW5rIGFib3ZlIChlZy4sIHdpdGgNCj4gdXNlcnNwYWNl
+IHN5c2ZzIGdwaW8pLg0KPiANCg0KT0ssIFVuZGVyc3Rvb2QuDQpJIHdpbGwgcmVtb3ZlIHRoZSBr
+aW0vYnR3aWxpbmsgcGFydCBmcm9tIHRoZSBkZXZpY2UgdHJlZSBwYXRjaCwgbGVhdmluZyBvbmx5
+IHdsYW4gYW5kIHVhcnQgcGluIG11eGluZyBhbmQgc3VibWl0IGEgdjIuDQoNCkJlc3QgUmVnYXJk
+cywNCkV5YWwNCg0KPiANCj4gDQo+ID4+Pg0KPiA+Pj4+DQo+ID4+Pj4+ICB9Ow0KPiA+Pj4+Pg0K
+PiA+Pj4+PiAgJmFtNDN4eF9waW5tdXggew0KPiA+Pj4+PiArCXBpbmN0cmwtbmFtZXMgPSAiZGVm
+YXVsdCIsICJzbGVlcCI7DQo+ID4+Pj4+ICsJcGluY3RybC0wID0gPCZ3bGFuX3BpbnNfZGVmYXVs
+dD47DQo+ID4+Pj4+ICsJcGluY3RybC0xID0gPCZ3bGFuX3BpbnNfc2xlZXA+Ow0KPiA+Pj4+PiAr
+DQo+ID4+Pj4+ICAJaTJjMF9waW5zOiBpMmMwX3BpbnMgew0KPiA+Pj4+PiAgCQlwaW5jdHJsLXNp
+bmdsZSxwaW5zID0gPA0KPiA+Pj4+PiAgCQkJMHgxODggKFBJTl9JTlBVVF9QVUxMVVAgfCBTTEVX
+Q1RSTF9GQVNUIHwNCj4gPj4+PiBNVVhfTU9ERTApICAvKg0KPiA+Pj4+PiBpMmMwX3NkYS5pMmMw
+X3NkYSAqLyBAQCAtMzQwLDYgKzM2Niw1MyBAQA0KPiA+Pj4+PiAgCQkJMHgyMDQgKERTMF9QVUxM
+X1VQX0RPV05fRU4gfCBJTlBVVF9FTiB8DQo+ID4+Pj4gTVVYX01PREU3KSAgLyogY2FtMV9kYXRh
+NyBtb2RlIDAqLw0KPiA+Pj4+PiAgCQk+Ow0KPiA+Pj4+PiAgCX07DQo+ID4+Pj4+ICsNCj4gPj4+
+Pj4gKwltbWMzX3BpbnNfZGVmYXVsdDogcGlubXV4X21tYzNfcGluc19kZWZhdWx0IHsNCj4gPj4+
+Pj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwNCj4gPj4+Pj4gKwkJCTB4OGMgKFBJTl9JTlBV
+VF9QVUxMVVAgfCBNVVhfTU9ERTMpDQo+IC8qDQo+ID4+Pj4gZ3BtY19jbGsubW1jMl9jbGsgKi8N
+Cj4gPj4+Pj4gKwkJCTB4ODggKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTMpDQo+IC8qDQo+
+ID4+Pj4gZ3BtY19jc24zLm1tYzJfY21kICovDQo+ID4+Pj4+ICsJCQkweDQ0IChQSU5fSU5QVVRf
+UFVMTFVQIHwgTVVYX01PREUzKQ0KPiAvKg0KPiA+Pj4+IGdwbWNfYTEubW1jMl9kYXQwICovDQo+
+ID4+Pj4+ICsJCQkweDQ4IChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUzKQ0KPiAvKg0KPiA+
+Pj4+IGdwbWNfYTIubW1jMl9kYXQxICovDQo+ID4+Pj4+ICsJCQkweDRjIChQSU5fSU5QVVRfUFVM
+TFVQIHwgTVVYX01PREUzKQ0KPiAvKg0KPiA+Pj4+IGdwbWNfYTMubW1jMl9kYXQyICovDQo+ID4+
+Pj4+ICsJCQkweDc4IChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUzKQ0KPiAvKg0KPiA+Pj4+
+IGdwbWNfYmUxbi5tbWMyX2RhdDMgKi8NCj4gPj4+Pj4gKwkJPjsNCj4gPj4+Pj4gKwl9Ow0KPiA+
+Pj4+PiArDQo+ID4+Pj4+ICsJbW1jM19waW5zX3NsZWVwOiBwaW5tdXhfbW1jM19waW5zX3NsZWVw
+IHsNCj4gPj4+Pj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwNCj4gPj4+Pj4gKwkJCTB4OGMg
+KFBJTl9JTlBVVF9QVUxMRE9XTiB8DQo+IE1VWF9NT0RFNykJLyoNCj4gPj4+PiBncG1jX2Nsay5t
+bWMyX2NsayAqLw0KPiA+Pj4+PiArCQkJMHg4OCAoUElOX0lOUFVUX1BVTExET1dOIHwNCj4gTVVY
+X01PREU3KQkvKg0KPiA+Pj4+IGdwbWNfY3NuMy5tbWMyX2NtZCAqLw0KPiA+Pj4+PiArCQkJMHg0
+NCAoUElOX0lOUFVUX1BVTExET1dOIHwNCj4gTVVYX01PREU3KQkvKg0KPiA+Pj4+IGdwbWNfYTEu
+bW1jMl9kYXQwICovDQo+ID4+Pj4+ICsJCQkweDQ4IChQSU5fSU5QVVRfUFVMTERPV04gfA0KPiBN
+VVhfTU9ERTcpCS8qDQo+ID4+Pj4gZ3BtY19hMi5tbWMyX2RhdDEgKi8NCj4gPj4+Pj4gKwkJCTB4
+NGMgKFBJTl9JTlBVVF9QVUxMRE9XTiB8DQo+IE1VWF9NT0RFNykJLyoNCj4gPj4+PiBncG1jX2Ez
+Lm1tYzJfZGF0MiAqLw0KPiA+Pj4+PiArCQkJMHg3OCAoUElOX0lOUFVUX1BVTExET1dOIHwNCj4g
+TVVYX01PREU3KQkvKg0KPiA+Pj4+IGdwbWNfYmUxbi5tbWMyX2RhdDMgKi8NCj4gPj4+Pj4gKwkJ
+PjsNCj4gPj4+Pj4gKwl9Ow0KPiA+Pj4+PiArDQo+ID4+Pj4+ICsJd2xhbl9waW5zX2RlZmF1bHQ6
+IHBpbm11eF93bGFuX3BpbnNfZGVmYXVsdCB7DQo+ID4+Pj4+ICsJCXBpbmN0cmwtc2luZ2xlLHBp
+bnMgPSA8DQo+ID4+Pj4+ICsJCQkweDUwIChQSU5fT1VUUFVUX1BVTExET1dOIHwNCj4gTVVYX01P
+REU3KQ0KPiA+Pj4+IAkJLyogZ3BtY19hNC5ncGlvMV8yMCBXTF9FTiAqLw0KPiA+Pj4+PiArCQkJ
+MHg1YyAoUElOX0lOUFVUIHwgV0FLRVVQX0VOQUJMRSB8DQo+IE1VWF9NT0RFNykNCj4gPj4+PiAJ
+LyogZ3BtY19hNy5ncGlvMV8yMyBXTF9JUlEqLw0KPiA+Pj4+PiArCQkJMHg0MCAoUElOX09VVFBV
+VF9QVUxMRE9XTiB8DQo+IE1VWF9NT0RFNykNCj4gPj4+PiAJCS8qIGdwbWNfYTAuZ3BpbzFfMTYg
+QlRfRU4qLw0KPiA+Pj4+PiArCQk+Ow0KPiA+Pj4+PiArCX07DQo+ID4+Pj4+ICsNCj4gPj4+Pj4g
+Kwl3bGFuX3BpbnNfc2xlZXA6IHBpbm11eF93bGFuX3BpbnNfc2xlZXAgew0KPiA+Pj4+PiArCQlw
+aW5jdHJsLXNpbmdsZSxwaW5zID0gPA0KPiA+Pj4+PiArCQkJMHg1MCAoUElOX09VVFBVVF9QVUxM
+RE9XTiB8DQo+IE1VWF9NT0RFNykNCj4gPj4+PiAJCS8qIGdwbWNfYTQuZ3BpbzFfMjAgV0xfRU4g
+Ki8NCj4gPj4+Pj4gKwkJCTB4NWMgKFBJTl9JTlBVVCB8IFdBS0VVUF9FTkFCTEUgfA0KPiBNVVhf
+TU9ERTcpDQo+ID4+Pj4gCS8qIGdwbWNfYTcuZ3BpbzFfMjMgV0xfSVJRKi8NCj4gPj4+Pj4gKwkJ
+CTB4NDAgKFBJTl9PVVRQVVRfUFVMTFVQIHwgTVVYX01PREU3KQ0KPiA+Pj4+IAkvKiBncG1jX2Ew
+LmdwaW8xXzE2IEJUX0VOKi8NCj4gPj4+Pj4gKwkJPjsNCj4gPj4+Pj4gKwl9Ow0KPiA+Pj4+PiAr
+DQo+ID4+Pj4+ICsJdWFydDNfcGluczogdWFydDNfcGlucyB7DQo+ID4+Pj4+ICsJCXBpbmN0cmwt
+c2luZ2xlLHBpbnMgPSA8DQo+ID4+Pj4+ICsJCQkweDIyOCAoUElOX0lOUFVUIHwgTVVYX01PREUw
+KQ0KPiAJLyoNCj4gPj4+PiB1YXJ0M19yeGQudWFydDNfcnhkICovDQo+ID4+Pj4+ICsJCQkweDIy
+YyAoUElOX09VVFBVVF9QVUxMRE9XTiB8DQo+IE1VWF9NT0RFMCkgLyoNCj4gPj4+PiB1YXJ0M190
+eGQudWFydDNfdHhkICovDQo+ID4+Pj4+ICsJCQkweDIzMCAoUElOX0lOUFVUX1BVTExVUCB8IE1V
+WF9NT0RFMCkNCj4gCS8qDQo+ID4+Pj4gdWFydDNfY3Rzbi51YXJ0M19jdHNuICovDQo+ID4+Pj4+
+ICsJCQkweDIzNCAoUElOX09VVFBVVF9QVUxMRE9XTiB8DQo+IE1VWF9NT0RFMCkgLyoNCj4gPj4+
+PiB1YXJ0M19ydHNuLnVhcnQzX3J0c24gKi8NCj4gPj4+Pj4gKwkJPjsNCj4gPj4+Pj4gKwl9Ow0K
+PiA+Pj4+PiAgfTsNCj4gPj4+Pj4NCj4gPj4+Pj4gICZpMmMwIHsNCj4gPj4+Pj4gQEAgLTQ0Niw2
+ICs1MTksMTAgQEANCj4gPj4+Pj4gIAlzdGF0dXMgPSAib2theSI7DQo+ID4+Pj4+ICB9Ow0KPiA+
+Pj4+Pg0KPiA+Pj4+PiArJmdwaW8xIHsNCj4gPj4+Pj4gKwlzdGF0dXMgPSAib2theSI7DQo+ID4+
+Pj4+ICt9Ow0KPiA+Pj4+PiArDQo+ID4+Pj4+ICAmZ3BpbzMgew0KPiA+Pj4+PiAgCXN0YXR1cyA9
+ICJva2F5IjsNCj4gPj4+Pj4gIH07DQo+ID4+Pj4+IEBAIC00NjgsNiArNTQ1LDQzIEBADQo+ID4+
+Pj4+ICAJY2QtZ3Bpb3MgPSA8JmdwaW8wIDYgR1BJT19BQ1RJVkVfSElHSD47ICB9Ow0KPiA+Pj4+
+Pg0KPiA+Pj4+PiArJm1tYzMgew0KPiA+Pj4+PiArCXN0YXR1cyA9ICJva2F5IjsNCj4gPj4+Pj4g
+KwkvKiB0aGVzZSBhcmUgb24gdGhlIGNyb3NzYmFyIGFuZCBhcmUgb3V0bGluZWQgaW4gdGhlDQo+
+ID4+Pj4+ICsJICAgeGJhci1ldmVudC1tYXAgZWxlbWVudCAqLw0KPiA+Pj4+PiArCWRtYXMgPSA8
+JmVkbWEgMzANCj4gPj4+Pj4gKwkJJmVkbWEgMzE+Ow0KPiA+Pj4+PiArCWRtYS1uYW1lcyA9ICJ0
+eCIsICJyeCI7DQo+ID4+Pj4+ICsJdm1tYy1zdXBwbHkgPSA8JnZtbWN3bF9maXhlZD47DQo+ID4+
+Pj4+ICsJYnVzLXdpZHRoID0gPDQ+Ow0KPiA+Pj4+PiArCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
+dCIsICJzbGVlcCI7DQo+ID4+Pj4+ICsJcGluY3RybC0wID0gPCZtbWMzX3BpbnNfZGVmYXVsdD47
+DQo+ID4+Pj4+ICsJcGluY3RybC0xID0gPCZtbWMzX3BpbnNfc2xlZXA+Ow0KPiA+Pj4+DQo+ID4+
+Pj4gU28gdGhlIHdpbGluazggbW9kdWxlIGlzIHRoZSBvbmx5IHRoaW5nIHRoYXQgY2FuIGJlIHBs
+dWdnZWQgaW50bw0KPiA+Pj4+IHRoZSBjYW1lcmEgaGVhZGVyPw0KPiA+Pj4+DQo+ID4+Pj4gSSB0
+aGluayBhbGwgdGhpcyByZWFsbHkgbmVlZHMgdG8gZ28gaW50byBhIERUIG92ZXJsYXkuDQo+ID4+
+Pj4NCj4gPj4+DQo+ID4+PiBBbTQzN3gtZXZtIGhhcyBhIGRlZGljYXRlZCBjb204IGNvbm5lY3Rv
+ciB1c2VkIGZvciBjb25uZWN0aW5nIHRoZQ0KPiA+PiB3aWxpbms4IG1vZHVsZS4NCj4gPj4+IEl0
+IGlzIG5vdCB1c2luZyB0aGUgY2FtZXJhIGhlYWRlci4NCj4gPj4+DQo+ID4+Pj4gUmVnYXJkcywN
+Cj4gPj4+PiBQZXRlciBIdXJsZXkNCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+ICsJY2FwLXBvd2Vy
+LW9mZi1jYXJkOw0KPiA+Pj4+PiArCWtlZXAtcG93ZXItaW4tc3VzcGVuZDsNCj4gPj4+Pj4gKwl0
+aSxub24tcmVtb3ZhYmxlOw0KPiA+Pj4+PiArDQo+ID4+Pj4+ICsJI2FkZHJlc3MtY2VsbHMgPSA8
+MT47DQo+ID4+Pj4+ICsJI3NpemUtY2VsbHMgPSA8MD47DQo+ID4+Pj4+ICsJd2xjb3JlOiB3bGNv
+cmVAMCB7DQo+ID4+Pj4+ICsJCWNvbXBhdGlibGUgPSAidGksd2wxODM1IjsNCj4gPj4+Pj4gKwkJ
+cmVnID0gPDI+Ow0KPiA+Pj4+PiArCQlpbnRlcnJ1cHQtcGFyZW50ID0gPCZncGlvMT47DQo+ID4+
+Pj4+ICsJCWludGVycnVwdHMgPSA8MjMgSVJRX1RZUEVfTEVWRUxfSElHSD47DQo+ID4+Pj4+ICsJ
+fTsNCj4gPj4+Pj4gK307DQo+ID4+Pj4+ICsNCj4gPj4+Pj4gKyZlZG1hIHsNCj4gPj4+Pj4gKwl0
+aSxlZG1hLXhiYXItZXZlbnQtbWFwID0gL2JpdHMvIDE2IDwxIDMwDQo+ID4+Pj4+ICsJCQkJCSAg
+ICAyIDMxPjsNCj4gPj4+Pj4gK307DQo+ID4+Pj4+ICsNCj4gPj4+Pj4gKyZ1YXJ0MyB7DQo+ID4+
+Pj4+ICsJc3RhdHVzID0gIm9rYXkiOw0KPiA+Pj4+PiArCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
+dCI7DQo+ID4+Pj4+ICsJcGluY3RybC0wID0gPCZ1YXJ0M19waW5zPjsNCj4gPj4+Pj4gK307DQo+
+ID4+Pj4+ICsNCj4gPj4+Pj4gICZ1c2IyX3BoeTEgew0KPiA+Pj4+PiAgCXN0YXR1cyA9ICJva2F5
+IjsNCj4gPj4+Pj4gIH07DQo+ID4+Pj4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2R0LWJpbmRpbmdz
+L3BpbmN0cmwvYW00M3h4LmgNCj4gPj4+Pj4gYi9pbmNsdWRlL2R0LWJpbmRpbmdzL3BpbmN0cmwv
+YW00M3h4LmgNCj4gPj4+Pj4gaW5kZXggNWY0ZDAxODkuLmIwMGJiYzkgMTAwNjQ0DQo+ID4+Pj4+
+IC0tLSBhL2luY2x1ZGUvZHQtYmluZGluZ3MvcGluY3RybC9hbTQzeHguaA0KPiA+Pj4+PiArKysg
+Yi9pbmNsdWRlL2R0LWJpbmRpbmdzL3BpbmN0cmwvYW00M3h4LmgNCj4gPj4+Pj4gQEAgLTIxLDYg
+KzIxLDcgQEANCj4gPj4+Pj4gICNkZWZpbmUgU0xFV0NUUkxfU0xPVwkJKDEgPDwgMTkpDQo+ID4+
+Pj4+ICAjZGVmaW5lIFNMRVdDVFJMX0ZBU1QJCTANCj4gPj4+Pj4gICNkZWZpbmUgRFMwX1BVTExf
+VVBfRE9XTl9FTgkoMSA8PCAyNykNCj4gPj4+Pj4gKyNkZWZpbmUgV0FLRVVQX0VOQUJMRQkJKDEg
+PDwgMjkpDQo+ID4+Pj4+DQo+ID4+Pj4+ICAjZGVmaW5lIFBJTl9PVVRQVVQJCShQVUxMX0RJU0FC
+TEUpDQo+ID4+Pj4+ICAjZGVmaW5lIFBJTl9PVVRQVVRfUFVMTFVQCShQVUxMX1VQKQ0KPiA+Pj4+
+DQo+ID4+Pg0KPiA+DQo+ID4gQmVzdCBSZWdhcmRzLA0KPiA+IEV5YWwNCj4gPg0KDQo=
