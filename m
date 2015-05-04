@@ -1,136 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PRM: Fix am437x module reset
-Date: Mon, 4 May 2015 10:19:26 -0700
-Message-ID: <20150504171926.GQ24469@atomide.com>
-References: <1430508422-64913-1-git-send-email-d-gerlach@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/4] Enable SPARSE_IRQ for omap1
+Date: Mon,  4 May 2015 12:52:18 -0700
+Message-ID: <1430769142-3921-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:49032 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751306AbbEDRTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 May 2015 13:19:30 -0400
-Content-Disposition: inline
-In-Reply-To: <1430508422-64913-1-git-send-email-d-gerlach@ti.com>
+Received: from ftx-008-i771.relay.mailchannels.net ([50.61.143.71]:32559 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750977AbbEDTwd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2015 15:52:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Suman Anna <s-anna@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-* Dave Gerlach <d-gerlach@ti.com> [150501 12:28]:
-> When moving to using the OMAP4+ PRM driver on am437x, we switched
-> to using all omap4 ops for module reset management. However, reset
-> register layout on am437x is more similar to am335x than omap4 because
-> of the the need for an st_shift for the *_RST bits in certain *_RSTST
-> registers, like WKUP_PROC_LRST in the PRCM_RM_WKUP_RSTST. Without this
-> we cannot bring the Wakeup M3 IP out of reset.
-> 
-> Because of this, we must use the am33xx prm ops for the hardreset
-> functionality while continuing to use all other omap4 ops. To accomplish
-> this we split out the common portion of omap44xx_prm_init and add an
-> am437x_prm_init to register the prm_ll_data struct specific to am437x.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c   |  6 +++---
->  arch/arm/mach-omap2/prm33xx.c      | 14 +++++++-------
->  arch/arm/mach-omap2/prm33xx.h      |  7 +++++++
->  arch/arm/mach-omap2/prm44xx.c      | 32 +++++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/prm44xx_54xx.h |  1 +
->  arch/arm/mach-omap2/prm_common.c   |  2 +-
->  6 files changed, 50 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 982380b..4b13882 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -3924,9 +3924,9 @@ void __init omap_hwmod_init(void)
->  		soc_ops.enable_module = _omap4_enable_module;
->  		soc_ops.disable_module = _omap4_disable_module;
->  		soc_ops.wait_target_ready = _omap4_wait_target_ready;
-> -		soc_ops.assert_hardreset = _omap4_assert_hardreset;
-> -		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
-> -		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
-> +		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
-> +		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
-> +		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
->  		soc_ops.init_clkdm = _init_clkdm;
->  	} else if (cpu_is_ti816x() || soc_is_am33xx()) {
->  		soc_ops.enable_module = _omap4_enable_module;
+Hi all,
 
-Can't the above just become then:
+Here are few patches to enable SPARSE_IRQ on omap1.
 
-		...
-	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
-		...
-	} else if (cpu_is_ti816x() || soc_is_am33xx() || soc_is_am43xx()) {
-		...
-	}
+Note that after this set removing the users for irqs.h
+and making omap1 use the clock framework are needed to
+get close to multiarch booting on omap1.
 
-> --- a/arch/arm/mach-omap2/prm44xx.c
-> +++ b/arch/arm/mach-omap2/prm44xx.c
-> @@ -24,6 +24,7 @@
->  #include "iomap.h"
->  #include "common.h"
->  #include "vp.h"
-> +#include "prm33xx.h"
->  #include "prm44xx.h"
->  #include "prm-regbits-44xx.h"
->  #include "prcm44xx.h"
-> @@ -705,7 +706,7 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
->  
->  static const struct omap_prcm_init_data *prm_init_data;
->  
-> -int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
-> +static void omap44xx_prm_init_common(const struct omap_prcm_init_data *data)
->  {
->  	omap_prm_base_init();
->  
-> @@ -718,7 +719,11 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
->  		prm_features |= PRM_HAS_VOLTAGE;
->  
->  	omap4_prminst_set_prm_dev_inst(data->device_inst_offset);
-> +}
->  
-> +int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
-> +{
-> +	omap44xx_prm_init_common(data);
->  	return prm_register(&omap44xx_prm_ll_data);
->  }
->  
-> @@ -762,3 +767,28 @@ static void __exit omap44xx_prm_exit(void)
->  	prm_unregister(&omap44xx_prm_ll_data);
->  }
->  __exitcall(omap44xx_prm_exit);
-> +
-> +#ifdef CONFIG_SOC_AM43XX
-> +static struct prm_ll_data am43xx_prm_ll_data = {
-> +	.read_reset_sources = &omap44xx_prm_read_reset_sources,
-> +	.was_any_context_lost_old = &omap44xx_prm_was_any_context_lost_old,
-> +	.clear_context_loss_flags_old = &omap44xx_prm_clear_context_loss_flags_old,
-> +	.late_init = &omap44xx_prm_late_init,
-> +	.assert_hardreset	= am33xx_prm_assert_hardreset,
-> +	.deassert_hardreset	= am33xx_prm_deassert_hardreset,
-> +	.is_hardreset_asserted	= am33xx_prm_is_hardreset_asserted,
-> +	.reset_system		= omap4_prminst_global_warm_sw_reset,
-> +};
-> +
-> +int __init am43xx_prm_init(const struct omap_prcm_init_data *data)
-> +{
-> +	omap44xx_prm_init_common(data);
-> +	return prm_register(&am43xx_prm_ll_data);
-> +}
-> +
-> +static void __exit am43xx_prm_exit(void)
-> +{
-> +	prm_unregister(&am43xx_prm_ll_data);
-> +}
-> +__exitcall(am43xx_prm_exit);
+These are against v4.1-rc1, and also require the MPUIO fix:
 
-I think you can similarly just move this to use prm33xx.c instead of
-prm44xx.c and keep the functions static that way?
+[PATCH] gpio: omap: Fix regression for MPUIO interrupts
 
 Regards,
 
 Tony
+
+Tony Lindgren (4):
+  ARM: OMAP1: Move UART defines to prepare for sparse IRQ
+  ARM: OMAP1: Switch to use generic irqchip in preparation for sparse
+    IRQ
+  ARM: omap1: Switch to use MULTI_IRQ
+  ARM: OMAP1: Change interrupt numbering for sparse IRQ
+
+ arch/arm/Kconfig                               |   2 +
+ arch/arm/mach-omap1/ams-delta-fiq-handler.S    |   3 +-
+ arch/arm/mach-omap1/board-ams-delta.c          |   1 +
+ arch/arm/mach-omap1/board-fsample.c            |   1 +
+ arch/arm/mach-omap1/board-generic.c            |   1 +
+ arch/arm/mach-omap1/board-h2.c                 |   1 +
+ arch/arm/mach-omap1/board-h3.c                 |   1 +
+ arch/arm/mach-omap1/board-htcherald.c          |   1 +
+ arch/arm/mach-omap1/board-innovator.c          |   1 +
+ arch/arm/mach-omap1/board-nokia770.c           |   1 +
+ arch/arm/mach-omap1/board-osk.c                |   1 +
+ arch/arm/mach-omap1/board-palmte.c             |   1 +
+ arch/arm/mach-omap1/board-palmtt.c             |   1 +
+ arch/arm/mach-omap1/board-palmz71.c            |   1 +
+ arch/arm/mach-omap1/board-perseus2.c           |   1 +
+ arch/arm/mach-omap1/board-sx1.c                |   1 +
+ arch/arm/mach-omap1/board-voiceblue.c          |   1 +
+ arch/arm/mach-omap1/common.h                   |   5 +-
+ arch/arm/mach-omap1/dma.c                      |   2 +-
+ arch/arm/mach-omap1/i2c.c                      |   3 +-
+ arch/arm/mach-omap1/include/mach/entry-macro.S |  39 ------
+ arch/arm/mach-omap1/include/mach/irqs.h        | 124 ++++++++++---------
+ arch/arm/mach-omap1/include/mach/serial.h      |   5 -
+ arch/arm/mach-omap1/include/mach/soc.h         |   4 +
+ arch/arm/mach-omap1/irq.c                      | 157 +++++++++++++++----------
+ arch/arm/mach-omap1/timer.c                    |   4 +-
+ arch/arm/plat-omap/dma.c                       |   4 +
+ include/uapi/linux/serial_reg.h                |   3 +
+ 28 files changed, 190 insertions(+), 180 deletions(-)
+ delete mode 100644 arch/arm/mach-omap1/include/mach/entry-macro.S
+
+-- 
+2.1.4
+
