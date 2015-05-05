@@ -1,12 +1,13 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.1-rc1
-Date: Tue, 5 May 2015 08:44:24 -0700
-Message-ID: <20150505154423.GD21061@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 0/2] ARM: AM43xx: PRM: fix reset handling issues
+Date: Tue, 5 May 2015 11:32:26 -0500
+Message-ID: <5548F09A.10401@ti.com>
+References: <1430832785-1976-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
+In-Reply-To: <1430832785-1976-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,84 +17,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, s-anna@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
+Tero,
+On 05/05/2015 08:33 AM, Tero Kristo wrote:
+> Hi,
+> 
+> The work done for consolidating PRM code introduced a reset issue
+> on AM43xx which is visible at least with wkup-m3, and prevents
+> taking the wkup-m3 core out from reset. Fixed by passing all the
+> relevant PRCM data from hwmod data, which was previously partly
+> omitted on OMAP4+ case.
+> 
+> This set also removes some redundant AM33xx hwmod code and just
+> re-uses the OMAP4+ version of the same.
+> 
+> Thanks to Dave Gerlach and Anna Suman for reporting this. Dave, care
+> to give this patch set a try to see if it fixes the problem you see?
+> 
 
-  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
+Thanks for fixing this up, I swapped these patches for my reset patch on my
+suspend branch [1] and tested the following:
 
-are available in the git repository at:
+am335x-gp-evm: boot and firmware loaded, suspend/resume multiple cycles
+am437x-gp-evm: boot and firmware loaded, suspend/resume multiple cycles
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-rc1
+Patches look fine to me.
 
-for you to fetch changes up to e7309c2673a389a495fcfad70376d3bae8b9bc89:
+Regards,
+Dave
 
-  bus: omap_l3_noc: Fix master id address decoding for OMAP5 (2015-05-04 10:21:01 -0700)
+[1] https://github.com/dgerlach/linux-pm/tree/pm-ds0-v4.1-rc1-WIP
 
-----------------------------------------------------------------
-Fixes for omaps, mostly a fix for power power consumption
-creeping up during idle, and two l3-noc device fixes:
-
-- Fix power consumption creeping up with I2C4 staying on
-- Fix n900 microphone bias voltages
-- Fix dra7 l3-noc for host clock
-- Fix omap5 l3-noc id address decoding
-
-The rest are all just minor dts fixes:
-
-- Fix changed EXTCON_USB_GPIO_USB in defconfig
-- Fix missing isp and iva #iommu-cells property
-- Various beagle x15 dts fixes for pre-production changes
-- Fix am437x-sk display dts entries
-
-----------------------------------------------------------------
-Felipe Balbi (2):
-      ARM: dts: am437x-sk: fix for new newhaven display module revision
-      ARM: dts: am437x-sk: reduce col-scan-delay-us
-
-Grygorii Strashko (1):
-      ARM: dts: am57xx-beagle-x15: Fix IRQ type for mcp7941x
-
-Illia Smyrnov (1):
-      bus: omap_l3_noc: Fix offset for DRA7 CLK1_HOST_CLK1_2 instance
-
-Nishanth Menon (4):
-      ARM: dts: am57xx-beagle-x15: Fix RTC aliases
-      ARM: dts: am57xx-beagle-x15: Switch UART mux pins
-      ARM: dts: am57xx-beagle-x15: Switch GPIO fan number
-      ARM: dts: dra7: Fix efuse register size for ABB
-
-Pavel Machek (1):
-      ARM: dts: OMAP3-N900: Add microphone bias voltages
-
-Roger Quadros (1):
-      ARM: omap2plus_defconfig: Enable EXTCON_USB_GPIO
-
-Sebastian Reichel (1):
-      ARM: dts: omap3: Add #iommu-cells to isp and iva iommu
-
-Suman Anna (1):
-      bus: omap_l3_noc: Fix master id address decoding for OMAP5
-
-Tony Lindgren (1):
-      ARM: OMAP2+: Fix omap off idle power consumption creeping up
-
- .../devicetree/bindings/arm/omap/l3-noc.txt        |  1 +
- arch/arm/boot/dts/am437x-sk-evm.dts                |  4 +-
- arch/arm/boot/dts/am57xx-beagle-x15.dts            | 11 +++--
- arch/arm/boot/dts/dra7.dtsi                        | 10 ++--
- arch/arm/boot/dts/omap3-n900.dts                   |  4 ++
- arch/arm/boot/dts/omap3.dtsi                       |  2 +
- arch/arm/boot/dts/omap5.dtsi                       |  2 +-
- arch/arm/configs/omap2plus_defconfig               |  2 +-
- arch/arm/mach-omap2/prm-regbits-34xx.h             |  1 +
- arch/arm/mach-omap2/prm-regbits-44xx.h             |  1 +
- arch/arm/mach-omap2/vc.c                           | 12 ++++-
- arch/arm/mach-omap2/vc.h                           |  2 +
- arch/arm/mach-omap2/vc3xxx_data.c                  |  1 +
- arch/arm/mach-omap2/vc44xx_data.c                  |  1 +
- drivers/bus/omap_l3_noc.c                          |  5 +-
- drivers/bus/omap_l3_noc.h                          | 54 ++++++++++++++++------
- 16 files changed, 81 insertions(+), 32 deletions(-)
+> Testing done:
+> - am335x-bone: boot
+> - am437x-gp-evm: boot
+> - omap4-panda-es: boot, suspend/resume, cpuidle
+> 
+> -Tero
+> 
