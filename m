@@ -1,86 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] Drop more omap3 legacy board-*.c files for v4.2
-Date: Tue, 5 May 2015 10:00:21 -0700
-Message-ID: <20150505170020.GF21061@atomide.com>
-References: <1430769717-4088-1-git-send-email-tony@atomide.com>
- <20150505145407.GK18002@pali>
- <20150505150638.GC21061@atomide.com>
- <201505051839.36882@pali>
+Subject: Re: [RFC PATCH 00/35] ARM: OMAP2+: hwmod data module support
+Date: Tue, 5 May 2015 08:59:05 -0700
+Message-ID: <20150505155905.GE21061@atomide.com>
+References: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:49317 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:49252 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752350AbbEERAY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 May 2015 13:00:24 -0400
+	id S2993486AbbEEP7I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 May 2015 11:59:08 -0400
 Content-Disposition: inline
-In-Reply-To: <201505051839.36882@pali>
+In-Reply-To: <1429102402-5276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150505 09:41]:
-> On Tuesday 05 May 2015 17:06:38 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150505 07:55]:
-> > > On Tuesday 05 May 2015 07:43:08 Tony Lindgren wrote:
-> > > > * Arnd Bergmann <arnd@arndb.de> [150505 03:56]:
-> > > > > On Monday 04 May 2015 13:01:54 Tony Lindgren wrote:
-> > > > > > For dropping the remaining omap3 legacy boot support,
-> > > > > > we still have the following board-*.c files:
-> > > > > >=20
-> > > > > > BOARD                   REASON NEEDED
-> > > > > > board-ldp.c             Still used in RMKs boot test
-> > > > > > system board-omap3logic.c      Getting a .dts file
-> > > > > > for v4.2 board-omap3pandora.c    Got a .dts file for
-> > > > > > v4.1 board-rx51-*.c          Needs /proc/atags
-> > > > > > support for user space
-> > > > > >=20
-> > > > > > I'm hoping we can drop those for v4.3 merge window,
-> > > > > > then keep the platform data around for one more merge
-> > > > > > window in case of reverting needed, then drop the
-> > > > > > platform data too for v4.4 if no issues needing
-> > > > > > reverting are found.
-> > > > >=20
-> > > > > Sounds great. Has there been a conclusion about what to
-> > > > > do for the rx51 /proc/atags support?
-> > > >=20
-> > > > I believe we just need to enable /proc/atags also for
-> > > > device tree based booting if CONFIG_ARM_ATAG_DTB_COMPAT.
-> > > > Pali may have more info on that.
-> > > >=20
-> > > > Then looks like Pali's two patches for showing the
-> > > > revision are still pending in thread "[PATCH v2 0/2] ARM:
-> > > > /proc/cpuinfo: DT: Add support for Revision":
-> > > >=20
-> > > > http://www.spinics.net/lists/arm-kernel/msg401535.html
-> > >=20
-> > > I think I already sent all need patches to ML. But I did not
-> > > check if you merged them or not. I did not get any new
-> > > comments for them for a while and right now I do not have
-> > > time for looking at it again.
-> >=20
-> > Oh OK, do you have link to the /proc/atags patch somewhere?
-> >=20
-> > Maybe Arnd and Nico can pick them up and sort out how we
-> > should queue them with Russell?
-> >=20
->=20
-> https://lkml.org/lkml/2015/1/26/648
+* Tero Kristo <t-kristo@ti.com> [150415 05:53]:
+> Hi,
+> 
+> This RFC provides support for moving hwmod data into separate modules
+> which can be registered later during boot. Only system critical parts
+> of the hwmod data remain in omap_hwmod_*_early_data.c file, rest are
+> moved into omap_hwmod_*_late_data.c. The late data can alternatively
+> be built into a module, or built-in to kernel image, in which case
+> the system behaves pretty much the same way as it does currently. Use
+> kconfig option OMAP_HWMOD_DATA_MODULES to control the behavior. If
+> this approach is something that is seen feasible to follow, rest of
+> the SoCs can be converted in similar manner, and eventually all the
+> hwmod code should be moved under some driver (drivers/bus/ maybe?)
 
-Hmm looks like you should resend all your pending four patches
-properly with the people mentioned above in Cc to the LAKML
-and linux-omap.. Assuming something will happen to them when
-the patches are buried into a middle of some old threads does
-not work well.. Best to just follow das protokoll und whine and
-follow up until the patches get merged :)
+Interesting to see what it would take to move some of this into
+loadable modules or /lib/firmware. I think we should queue the fixes
+and anything that makes it easier to initialized hwmods in stages.
+Then we should wait on the __init changes until there's a clear use
+case.
+
+Meanwhile, to me it seems we can make 81xx/am33x/am437x at least
+device tree only for the hwmod with the following two changes:
+
+1. Add parsing for the sysc syss properties along the lines of
+   the RFC patches posted by Felipe few months back.
+
+2. Set up the .clkctrl register as a gate clock that gets parsed
+   from the dts files.
+
+And then we can also start moving to generic power domains and
+simple-pm-bus.
+
+> This RFC set only provides support for omap3 hwmod data split. Please
+> note that you probably must use ramdisk rootfs to load the hwmod data
+> module itself from, as most of the system devices are not initialized
+> in the early boot.
+
+The problem with this is and firmware related approaches is
+not having the complete set of boot devices like we all know :)
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
