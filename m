@@ -1,15 +1,15 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 0/3] Drop more omap3 legacy board-*.c files for v4.2
-Date: Tue, 5 May 2015 16:54:07 +0200
-Message-ID: <20150505145407.GK18002@pali>
-References: <1430769717-4088-1-git-send-email-tony@atomide.com>
- <2213391.JZ0TJA9KXB@wuerfel> <20150505144308.GA21061@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: EDMA oftree entry for AM335x
+Date: Tue, 5 May 2015 07:58:28 -0700
+Message-ID: <20150505145828.GB21061@atomide.com>
+References: <20150504064323.GU15254@pengutronix.de>
+ <20150504141103.GD24469@atomide.com> <5548CB54.1040302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150505144308.GA21061@atomide.com>
+In-Reply-To: <5548CB54.1040302@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,47 +19,114 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Robert Schwebel <r.schwebel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlc2RheSAwNSBNYXkgMjAxNSAwNzo0MzowOCBUb255IExpbmRncmVuIHdyb3RlOgo+ICog
-QXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4gWzE1MDUwNSAwMzo1Nl06Cj4gPiBPbiBNb25k
-YXkgMDQgTWF5IDIwMTUgMTM6MDE6NTQgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ID4gCj4gPiA+
-IEZvciBkcm9wcGluZyB0aGUgcmVtYWluaW5nIG9tYXAzIGxlZ2FjeSBib290IHN1cHBvcnQsIHdl
-IHN0aWxsCj4gPiA+IGhhdmUgdGhlIGZvbGxvd2luZyBib2FyZC0qLmMgZmlsZXM6Cj4gPiA+IAo+
-ID4gPiBCT0FSRCAgICAgICAgICAgICAgICAgICBSRUFTT04gTkVFREVECj4gPiA+IGJvYXJkLWxk
-cC5jICAgICAgICAgICAgIFN0aWxsIHVzZWQgaW4gUk1LcyBib290IHRlc3Qgc3lzdGVtCj4gPiA+
-IGJvYXJkLW9tYXAzbG9naWMuYyAgICAgIEdldHRpbmcgYSAuZHRzIGZpbGUgZm9yIHY0LjIKPiA+
-ID4gYm9hcmQtb21hcDNwYW5kb3JhLmMgICAgR290IGEgLmR0cyBmaWxlIGZvciB2NC4xCj4gPiA+
-IGJvYXJkLXJ4NTEtKi5jICAgICAgICAgIE5lZWRzIC9wcm9jL2F0YWdzIHN1cHBvcnQgZm9yIHVz
-ZXIgc3BhY2UKPiA+ID4gCj4gPiA+IEknbSBob3Bpbmcgd2UgY2FuIGRyb3AgdGhvc2UgZm9yIHY0
-LjMgbWVyZ2Ugd2luZG93LCB0aGVuIGtlZXAKPiA+ID4gdGhlIHBsYXRmb3JtIGRhdGEgYXJvdW5k
-IGZvciBvbmUgbW9yZSBtZXJnZSB3aW5kb3cgaW4gY2FzZSBvZgo+ID4gPiByZXZlcnRpbmcgbmVl
-ZGVkLCB0aGVuIGRyb3AgdGhlIHBsYXRmb3JtIGRhdGEgdG9vIGZvciB2NC40Cj4gPiA+IGlmIG5v
-IGlzc3VlcyBuZWVkaW5nIHJldmVydGluZyBhcmUgZm91bmQuCj4gPiAKPiA+IFNvdW5kcyBncmVh
-dC4gSGFzIHRoZXJlIGJlZW4gYSBjb25jbHVzaW9uIGFib3V0IHdoYXQgdG8gZG8gZm9yIHRoZQo+
-ID4gcng1MSAvcHJvYy9hdGFncyBzdXBwb3J0Pwo+IAo+IEkgYmVsaWV2ZSB3ZSBqdXN0IG5lZWQg
-dG8gZW5hYmxlIC9wcm9jL2F0YWdzIGFsc28gZm9yIGRldmljZSB0cmVlCj4gYmFzZWQgYm9vdGlu
-ZyBpZiBDT05GSUdfQVJNX0FUQUdfRFRCX0NPTVBBVC4gUGFsaSBtYXkgaGF2ZSBtb3JlCj4gaW5m
-byBvbiB0aGF0Lgo+IAo+IFRoZW4gbG9va3MgbGlrZSBQYWxpJ3MgdHdvIHBhdGNoZXMgZm9yIHNo
-b3dpbmcgdGhlIHJldmlzaW9uIGFyZQo+IHN0aWxsIHBlbmRpbmcgaW4gdGhyZWFkICJbUEFUQ0gg
-djIgMC8yXSBBUk06IC9wcm9jL2NwdWluZm86IERUOgo+IEFkZCBzdXBwb3J0IGZvciBSZXZpc2lv
-biI6Cj4gCj4gaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9hcm0ta2VybmVsL21zZzQwMTUz
-NS5odG1sCj4gCj4gUmVnYXJkcywKPiAKPiBUb255CgpJIHRoaW5rIEkgYWxyZWFkeSBzZW50IGFs
-bCBuZWVkIHBhdGNoZXMgdG8gTUwuIEJ1dCBJIGRpZCBub3QgY2hlY2sgaWYKeW91IG1lcmdlZCB0
-aGVtIG9yIG5vdC4gSSBkaWQgbm90IGdldCBhbnkgbmV3IGNvbW1lbnRzIGZvciB0aGVtIGZvciBh
-CndoaWxlIGFuZCByaWdodCBub3cgSSBkbyBub3QgaGF2ZSB0aW1lIGZvciBsb29raW5nIGF0IGl0
-IGFnYWluLgoKSSdtIGFnYWluc3QgcmVtb3ZpbmcgYm9hcmQtcng1MSouYyBmaWxlcyBiZWZvcmUg
-L3Byb2MvY3B1aW5mbyBhbmQKL3Byb2MvYXRhZ3Mgd2lsbCBiZSBhdmFpbGFibGUgYWxzbyBmb3Ig
-RFQgYm9vdGVkIG1hY2hpbmUuLi4KClBsdXMgdGhlcmUgd2VyZSBzb21lIG90aGVyIHJlZ3Jlc3Np
-b24gZm9yIERUIGJvb3RlZCBOOTAwIChub3Qgb25seSAvcHJvYwpmaWxlcyksIGJ1dCBJIGRvIG5v
-dCByZW1lbWJlciB0aGVtIG5vdy4gSSBzZW50IG1vcmUgZW1haWxzIHdoZXJlIEkKd3JvdGUgaXQu
-IE1heWJlIGl0IGlzIGZpeGVkLCBtYXliZSBub3QsIGp1c3Qgc2VhcmNoIGludG8gYXJjaGl2ZSBm
-b3IgbXkKZW1haWxzLgoKSSBjYW4gdHJ5IHRvIGZpbmQgc29tZSB0aW1lIGF0IHRoZSB3ZWVrZW5k
-ICh0aGlzIG9yIG5leHQpIHRvIHRlc3QKNC4xLXJjKiBrZXJuZWwgb24gTjkwMCBhbmQgcmVwb3J0
-IHdoYXQgaXMgd29ya2luZy4uLgoKVGhhbmtzIQoKLS0gClBhbGkgUm9ow6FyCnBhbGkucm9oYXJA
-Z21haWwuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
-ZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1hcm0ta2VybmVsCg==
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [150505 06:54]:
+> On 05/04/2015 05:11 PM, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > Adding Peter to Cc as well.
+> > 
+> > * Robert Schwebel <r.schwebel@pengutronix.de> [150503 23:44]:
+> >> Hi,
+> >>
+> >> since 5e863c561, I get this warning for an AM335x board:
+> >>
+> >>   omap_hwmod: tptc0 using broken dt data from edma
+> >>   omap_hwmod: tptc1 using broken dt data from edma
+> >>   omap_hwmod: tptc2 using broken dt data from edma
+> >>
+> >> It seems like the code in arch/arm/mach-omap2/omap_hwmod.c expects the oftree
+> >> entry to look differently than what we currently have in
+> >> arch/arm/boot/dts/am33xx.dtsi:
+> >>
+> >>   edma: edma@49000000 {
+> >>           compatible = "ti,edma3";
+> >>           ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";    <==========
+> >>           reg =   <0x49000000 0x10000>,
+> >>                   <0x44e10f90 0x40>;
+> >>           interrupts = <12 13 14>;
+> >>           #dma-cells = <1>;
+> >>   };
+> >>
+> >> The patch description says the device should be split into more devices instead
+> >> of specifying several ti,hwmods entries, but unfortunately the Documentation
+> >> still suggests the above format in Documentation/devicetree/bindings/dma/ti-edma.txt.
+> >>
+> >> How would a correct entry look like?
+> > 
+> > Each tptc instance has it's own sysconfig register. This means each
+> > one of them can be clocked and idled independently. They should be
+> > treated as separate device instances. I believe the interrupts all
+> > belong to the tpcc, which should be also treated as a separate
+> > device instance.
+> > 
+> > In order to get rid of the ti,hwmods property, we want to have a
+> > 1-1-1 mapping of the compatible property, ti,hwmod property, and
+> > the device entry.
+> > 
+> > Looking at the TRM "Table 2-1. L3 Memory Map", these all are on
+> > the L3, so they should be like this for now (assuming the
+> > interrupts all belong to tpcc):
+> > 
+> > ocp {
+> > 	...
+> > 
+> > 	edma: tpcc@49000000 {
+> > 		compatible = "ti,edma3";
+> > 		ti,hwmods = "tpcc"; 
+> > 		reg = <0x49000000 0x10000>;
+> > 		interrupts = <12 13 14>;
+> > 		#dma-cells = <1>;
+> > 	};
+> > 
+> > 	tptc0: tptc@49800000 {
+> > 		compatible = "ti,tptc3";
+> > 		ti,hwmods = "tptc0";
+> > 		reg = <0x49800000 0x10000>;
+> > 	};
+> > 
+> > 	tptc1: tptc@49900000 {
+> > 		compatible = "ti,tptc3";
+> > 		ti,hwmods = "tptc1";
+> > 		reg = <0x49900000 0x10000>;
+> > 	};
+> > 
+> > 	tptc2: tptc@49a00000 {
+> > 		compatible = "ti,tptc3";
+> > 		ti,hwmods = "tptc2";
+> > 		reg = <0x49a00000 0x10000>;
+> > 	};
+> > 	...
+> > };
+> 
+> It is not that simple ;)
+> eDMA consists of Channel Controller(s) and Transfer Controllers. In AM335x we
+> have 1 CC and 3 TC. TC is mostly a box for us, we do not need to configure
+> anything within so the eDMA driver stack just does that: do not touch anything
+> TC related in TC address space, we only deal with the CC.
+> But in order to be able to move data around we need both CC and the TCs
+> enabled and this is why we have the multiple hwmod. with pm_runtime we manage
+> both CC and TCs at the same time.
+> But from the SW point of view the TC does not really exists. As I said we only
+> touch CC registers, paRAM entries.
+
+There's probably a real reason for each TC to have their own clkctrl
+register. Do you have any info on how they are split?
+ 
+> And yes, both TC and CCs can generate interrupts.
+
+Do the TCs have a shared interrupt that could be handled by
+each TC instance?
+ 
+> So it is not straight forward to separate the TC from the CC driver (edma3).
+
+It seems pm runtime for these four separate modules needs to be
+done at the CC driver level if it can't be done separately for
+each instance.
+
+Regards,
+
+Tony
