@@ -1,43 +1,32 @@
 From: Kamal Mostafa <kamal@canonical.com>
-Subject: [3.13.y-ckt stable] Patch "dmaengine: edma: fix memory leak when terminating running transfers" has been added to staging queue
-Date: Tue,  5 May 2015 13:33:23 -0700
-Message-ID: <1430858003-3358-1-git-send-email-kamal@canonical.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:35958 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757565AbbEEUd3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2015 16:33:29 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH 3.13.y-ckt 52/90] dmaengine: edma: fix memory leak when
+ terminating running transfers
+Date: Tue,  5 May 2015 13:54:24 -0700
+Message-ID: <1430859302-5886-53-git-send-email-kamal@canonical.com>
+References: <1430859302-5886-1-git-send-email-kamal@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-team-bounces@lists.ubuntu.com>
+In-Reply-To: <1430859302-5886-1-git-send-email-kamal@canonical.com>
+List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/kernel-team>,
+ <mailto:kernel-team-request@lists.ubuntu.com?subject=unsubscribe>
+List-Archive: <https://lists.ubuntu.com/archives/kernel-team>
+List-Post: <mailto:kernel-team@lists.ubuntu.com>
+List-Help: <mailto:kernel-team-request@lists.ubuntu.com?subject=help>
+List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/kernel-team>,
+ <mailto:kernel-team-request@lists.ubuntu.com?subject=subscribe>
+Errors-To: kernel-team-bounces@lists.ubuntu.com
+Sender: kernel-team-bounces@lists.ubuntu.com
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, Kamal Mostafa <kamal@canonical.com>, Petr Kulhavy <petr@barix.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Petr Kulhavy <petr@barix.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Luis Henriques <luis.henriques@canonical.com>, Kamal Mostafa <kamal@canonical.com>, kernel-team@lists.ubuntu.com
 
-This is a note to let you know that I have just added a patch titled
+3.13.11-ckt20 -stable review patch.  If anyone has any objections, please let me know.
 
-    dmaengine: edma: fix memory leak when terminating running transfers
+------------------
 
-to the linux-3.13.y-queue branch of the 3.13.y-ckt extended stable tree 
-which can be found at:
-
-    http://kernel.ubuntu.com/git/ubuntu/linux.git/log/?h=linux-3.13.y-queue
-
-This patch is scheduled to be released in version 3.13.11-ckt20.
-
-If you, or anyone else, feels it should not be added to this tree, please 
-reply to this email.
-
-For more information about the 3.13.y-ckt tree, see
-https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
-
-Thanks.
--Kamal
-
-------
-
->From 17a9e8d18385f6af8349d53025ae8ae33fea2958 Mon Sep 17 00:00:00 2001
 From: Petr Kulhavy <petr@barix.com>
-Date: Fri, 27 Mar 2015 13:35:51 +0200
-Subject: dmaengine: edma: fix memory leak when terminating running transfers
 
 commit 5ca9e7ce6eebec53362ff779264143860ccf68cd upstream.
 
@@ -85,6 +74,5 @@ index 037443c..52a3884 100644
  		echan->edesc = NULL;
  		edma_stop(echan->ch_num);
  	}
---
+-- 
 1.9.1
-
