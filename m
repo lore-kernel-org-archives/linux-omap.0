@@ -1,15 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 Subject: Re: [PATCH 0/3] Drop more omap3 legacy board-*.c files for v4.2
-Date: Tue, 5 May 2015 07:43:08 -0700
-Message-ID: <20150505144308.GA21061@atomide.com>
+Date: Tue, 5 May 2015 16:54:07 +0200
+Message-ID: <20150505145407.GK18002@pali>
 References: <1430769717-4088-1-git-send-email-tony@atomide.com>
- <2213391.JZ0TJA9KXB@wuerfel>
+ <2213391.JZ0TJA9KXB@wuerfel> <20150505144308.GA21061@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <2213391.JZ0TJA9KXB@wuerfel>
+In-Reply-To: <20150505144308.GA21061@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,40 +19,47 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [150505 03:56]:
-> On Monday 04 May 2015 13:01:54 Tony Lindgren wrote:
-> > 
-> > For dropping the remaining omap3 legacy boot support, we still
-> > have the following board-*.c files:
-> > 
-> > BOARD                   REASON NEEDED
-> > board-ldp.c             Still used in RMKs boot test system
-> > board-omap3logic.c      Getting a .dts file for v4.2
-> > board-omap3pandora.c    Got a .dts file for v4.1
-> > board-rx51-*.c          Needs /proc/atags support for user space
-> > 
-> > I'm hoping we can drop those for v4.3 merge window, then keep
-> > the platform data around for one more merge window in case of
-> > reverting needed, then drop the platform data too for v4.4
-> > if no issues needing reverting are found.
-> 
-> Sounds great. Has there been a conclusion about what to do for the
-> rx51 /proc/atags support?
-
-I believe we just need to enable /proc/atags also for device tree
-based booting if CONFIG_ARM_ATAG_DTB_COMPAT. Pali may have more
-info on that.
-
-Then looks like Pali's two patches for showing the revision are
-still pending in thread "[PATCH v2 0/2] ARM: /proc/cpuinfo: DT:
-Add support for Revision":
-
-http://www.spinics.net/lists/arm-kernel/msg401535.html
-
-Regards,
-
-Tony
+T24gVHVlc2RheSAwNSBNYXkgMjAxNSAwNzo0MzowOCBUb255IExpbmRncmVuIHdyb3RlOgo+ICog
+QXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4gWzE1MDUwNSAwMzo1Nl06Cj4gPiBPbiBNb25k
+YXkgMDQgTWF5IDIwMTUgMTM6MDE6NTQgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ID4gCj4gPiA+
+IEZvciBkcm9wcGluZyB0aGUgcmVtYWluaW5nIG9tYXAzIGxlZ2FjeSBib290IHN1cHBvcnQsIHdl
+IHN0aWxsCj4gPiA+IGhhdmUgdGhlIGZvbGxvd2luZyBib2FyZC0qLmMgZmlsZXM6Cj4gPiA+IAo+
+ID4gPiBCT0FSRCAgICAgICAgICAgICAgICAgICBSRUFTT04gTkVFREVECj4gPiA+IGJvYXJkLWxk
+cC5jICAgICAgICAgICAgIFN0aWxsIHVzZWQgaW4gUk1LcyBib290IHRlc3Qgc3lzdGVtCj4gPiA+
+IGJvYXJkLW9tYXAzbG9naWMuYyAgICAgIEdldHRpbmcgYSAuZHRzIGZpbGUgZm9yIHY0LjIKPiA+
+ID4gYm9hcmQtb21hcDNwYW5kb3JhLmMgICAgR290IGEgLmR0cyBmaWxlIGZvciB2NC4xCj4gPiA+
+IGJvYXJkLXJ4NTEtKi5jICAgICAgICAgIE5lZWRzIC9wcm9jL2F0YWdzIHN1cHBvcnQgZm9yIHVz
+ZXIgc3BhY2UKPiA+ID4gCj4gPiA+IEknbSBob3Bpbmcgd2UgY2FuIGRyb3AgdGhvc2UgZm9yIHY0
+LjMgbWVyZ2Ugd2luZG93LCB0aGVuIGtlZXAKPiA+ID4gdGhlIHBsYXRmb3JtIGRhdGEgYXJvdW5k
+IGZvciBvbmUgbW9yZSBtZXJnZSB3aW5kb3cgaW4gY2FzZSBvZgo+ID4gPiByZXZlcnRpbmcgbmVl
+ZGVkLCB0aGVuIGRyb3AgdGhlIHBsYXRmb3JtIGRhdGEgdG9vIGZvciB2NC40Cj4gPiA+IGlmIG5v
+IGlzc3VlcyBuZWVkaW5nIHJldmVydGluZyBhcmUgZm91bmQuCj4gPiAKPiA+IFNvdW5kcyBncmVh
+dC4gSGFzIHRoZXJlIGJlZW4gYSBjb25jbHVzaW9uIGFib3V0IHdoYXQgdG8gZG8gZm9yIHRoZQo+
+ID4gcng1MSAvcHJvYy9hdGFncyBzdXBwb3J0Pwo+IAo+IEkgYmVsaWV2ZSB3ZSBqdXN0IG5lZWQg
+dG8gZW5hYmxlIC9wcm9jL2F0YWdzIGFsc28gZm9yIGRldmljZSB0cmVlCj4gYmFzZWQgYm9vdGlu
+ZyBpZiBDT05GSUdfQVJNX0FUQUdfRFRCX0NPTVBBVC4gUGFsaSBtYXkgaGF2ZSBtb3JlCj4gaW5m
+byBvbiB0aGF0Lgo+IAo+IFRoZW4gbG9va3MgbGlrZSBQYWxpJ3MgdHdvIHBhdGNoZXMgZm9yIHNo
+b3dpbmcgdGhlIHJldmlzaW9uIGFyZQo+IHN0aWxsIHBlbmRpbmcgaW4gdGhyZWFkICJbUEFUQ0gg
+djIgMC8yXSBBUk06IC9wcm9jL2NwdWluZm86IERUOgo+IEFkZCBzdXBwb3J0IGZvciBSZXZpc2lv
+biI6Cj4gCj4gaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9hcm0ta2VybmVsL21zZzQwMTUz
+NS5odG1sCj4gCj4gUmVnYXJkcywKPiAKPiBUb255CgpJIHRoaW5rIEkgYWxyZWFkeSBzZW50IGFs
+bCBuZWVkIHBhdGNoZXMgdG8gTUwuIEJ1dCBJIGRpZCBub3QgY2hlY2sgaWYKeW91IG1lcmdlZCB0
+aGVtIG9yIG5vdC4gSSBkaWQgbm90IGdldCBhbnkgbmV3IGNvbW1lbnRzIGZvciB0aGVtIGZvciBh
+CndoaWxlIGFuZCByaWdodCBub3cgSSBkbyBub3QgaGF2ZSB0aW1lIGZvciBsb29raW5nIGF0IGl0
+IGFnYWluLgoKSSdtIGFnYWluc3QgcmVtb3ZpbmcgYm9hcmQtcng1MSouYyBmaWxlcyBiZWZvcmUg
+L3Byb2MvY3B1aW5mbyBhbmQKL3Byb2MvYXRhZ3Mgd2lsbCBiZSBhdmFpbGFibGUgYWxzbyBmb3Ig
+RFQgYm9vdGVkIG1hY2hpbmUuLi4KClBsdXMgdGhlcmUgd2VyZSBzb21lIG90aGVyIHJlZ3Jlc3Np
+b24gZm9yIERUIGJvb3RlZCBOOTAwIChub3Qgb25seSAvcHJvYwpmaWxlcyksIGJ1dCBJIGRvIG5v
+dCByZW1lbWJlciB0aGVtIG5vdy4gSSBzZW50IG1vcmUgZW1haWxzIHdoZXJlIEkKd3JvdGUgaXQu
+IE1heWJlIGl0IGlzIGZpeGVkLCBtYXliZSBub3QsIGp1c3Qgc2VhcmNoIGludG8gYXJjaGl2ZSBm
+b3IgbXkKZW1haWxzLgoKSSBjYW4gdHJ5IHRvIGZpbmQgc29tZSB0aW1lIGF0IHRoZSB3ZWVrZW5k
+ICh0aGlzIG9yIG5leHQpIHRvIHRlc3QKNC4xLXJjKiBrZXJuZWwgb24gTjkwMCBhbmQgcmVwb3J0
+IHdoYXQgaXMgd29ya2luZy4uLgoKVGhhbmtzIQoKLS0gClBhbGkgUm9ow6FyCnBhbGkucm9oYXJA
+Z21haWwuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
+ZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1hcm0ta2VybmVsCg==
