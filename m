@@ -1,15 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: EDMA oftree entry for AM335x
-Date: Tue, 5 May 2015 07:58:28 -0700
-Message-ID: <20150505145828.GB21061@atomide.com>
-References: <20150504064323.GU15254@pengutronix.de>
- <20150504141103.GD24469@atomide.com> <5548CB54.1040302@ti.com>
+Subject: Re: [PATCH 0/3] Drop more omap3 legacy board-*.c files for v4.2
+Date: Tue, 5 May 2015 08:06:38 -0700
+Message-ID: <20150505150638.GC21061@atomide.com>
+References: <1430769717-4088-1-git-send-email-tony@atomide.com>
+ <2213391.JZ0TJA9KXB@wuerfel> <20150505144308.GA21061@atomide.com>
+ <20150505145407.GK18002@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <5548CB54.1040302@ti.com>
+In-Reply-To: <20150505145407.GK18002@pali>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,114 +20,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Robert Schwebel <r.schwebel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [150505 06:54]:
-> On 05/04/2015 05:11 PM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > Adding Peter to Cc as well.
-> > 
-> > * Robert Schwebel <r.schwebel@pengutronix.de> [150503 23:44]:
-> >> Hi,
-> >>
-> >> since 5e863c561, I get this warning for an AM335x board:
-> >>
-> >>   omap_hwmod: tptc0 using broken dt data from edma
-> >>   omap_hwmod: tptc1 using broken dt data from edma
-> >>   omap_hwmod: tptc2 using broken dt data from edma
-> >>
-> >> It seems like the code in arch/arm/mach-omap2/omap_hwmod.c expects the oftree
-> >> entry to look differently than what we currently have in
-> >> arch/arm/boot/dts/am33xx.dtsi:
-> >>
-> >>   edma: edma@49000000 {
-> >>           compatible = "ti,edma3";
-> >>           ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";    <==========
-> >>           reg =   <0x49000000 0x10000>,
-> >>                   <0x44e10f90 0x40>;
-> >>           interrupts = <12 13 14>;
-> >>           #dma-cells = <1>;
-> >>   };
-> >>
-> >> The patch description says the device should be split into more devices instead
-> >> of specifying several ti,hwmods entries, but unfortunately the Documentation
-> >> still suggests the above format in Documentation/devicetree/bindings/dma/ti-edma.txt.
-> >>
-> >> How would a correct entry look like?
-> > 
-> > Each tptc instance has it's own sysconfig register. This means each
-> > one of them can be clocked and idled independently. They should be
-> > treated as separate device instances. I believe the interrupts all
-> > belong to the tpcc, which should be also treated as a separate
-> > device instance.
-> > 
-> > In order to get rid of the ti,hwmods property, we want to have a
-> > 1-1-1 mapping of the compatible property, ti,hwmod property, and
-> > the device entry.
-> > 
-> > Looking at the TRM "Table 2-1. L3 Memory Map", these all are on
-> > the L3, so they should be like this for now (assuming the
-> > interrupts all belong to tpcc):
-> > 
-> > ocp {
-> > 	...
-> > 
-> > 	edma: tpcc@49000000 {
-> > 		compatible = "ti,edma3";
-> > 		ti,hwmods = "tpcc"; 
-> > 		reg = <0x49000000 0x10000>;
-> > 		interrupts = <12 13 14>;
-> > 		#dma-cells = <1>;
-> > 	};
-> > 
-> > 	tptc0: tptc@49800000 {
-> > 		compatible = "ti,tptc3";
-> > 		ti,hwmods = "tptc0";
-> > 		reg = <0x49800000 0x10000>;
-> > 	};
-> > 
-> > 	tptc1: tptc@49900000 {
-> > 		compatible = "ti,tptc3";
-> > 		ti,hwmods = "tptc1";
-> > 		reg = <0x49900000 0x10000>;
-> > 	};
-> > 
-> > 	tptc2: tptc@49a00000 {
-> > 		compatible = "ti,tptc3";
-> > 		ti,hwmods = "tptc2";
-> > 		reg = <0x49a00000 0x10000>;
-> > 	};
-> > 	...
-> > };
-> 
-> It is not that simple ;)
-> eDMA consists of Channel Controller(s) and Transfer Controllers. In AM335x we
-> have 1 CC and 3 TC. TC is mostly a box for us, we do not need to configure
-> anything within so the eDMA driver stack just does that: do not touch anything
-> TC related in TC address space, we only deal with the CC.
-> But in order to be able to move data around we need both CC and the TCs
-> enabled and this is why we have the multiple hwmod. with pm_runtime we manage
-> both CC and TCs at the same time.
-> But from the SW point of view the TC does not really exists. As I said we only
-> touch CC registers, paRAM entries.
-
-There's probably a real reason for each TC to have their own clkctrl
-register. Do you have any info on how they are split?
- 
-> And yes, both TC and CCs can generate interrupts.
-
-Do the TCs have a shared interrupt that could be handled by
-each TC instance?
- 
-> So it is not straight forward to separate the TC from the CC driver (edma3).
-
-It seems pm runtime for these four separate modules needs to be
-done at the CC driver level if it can't be done separately for
-each instance.
-
-Regards,
-
-Tony
+KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNTA1MDUgMDc6NTVdOgo+IE9u
+IFR1ZXNkYXkgMDUgTWF5IDIwMTUgMDc6NDM6MDggVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ICog
+QXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4gWzE1MDUwNSAwMzo1Nl06Cj4gPiA+IE9uIE1v
+bmRheSAwNCBNYXkgMjAxNSAxMzowMTo1NCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gPiA+IAo+
+ID4gPiA+IEZvciBkcm9wcGluZyB0aGUgcmVtYWluaW5nIG9tYXAzIGxlZ2FjeSBib290IHN1cHBv
+cnQsIHdlIHN0aWxsCj4gPiA+ID4gaGF2ZSB0aGUgZm9sbG93aW5nIGJvYXJkLSouYyBmaWxlczoK
+PiA+ID4gPiAKPiA+ID4gPiBCT0FSRCAgICAgICAgICAgICAgICAgICBSRUFTT04gTkVFREVECj4g
+PiA+ID4gYm9hcmQtbGRwLmMgICAgICAgICAgICAgU3RpbGwgdXNlZCBpbiBSTUtzIGJvb3QgdGVz
+dCBzeXN0ZW0KPiA+ID4gPiBib2FyZC1vbWFwM2xvZ2ljLmMgICAgICBHZXR0aW5nIGEgLmR0cyBm
+aWxlIGZvciB2NC4yCj4gPiA+ID4gYm9hcmQtb21hcDNwYW5kb3JhLmMgICAgR290IGEgLmR0cyBm
+aWxlIGZvciB2NC4xCj4gPiA+ID4gYm9hcmQtcng1MS0qLmMgICAgICAgICAgTmVlZHMgL3Byb2Mv
+YXRhZ3Mgc3VwcG9ydCBmb3IgdXNlciBzcGFjZQo+ID4gPiA+IAo+ID4gPiA+IEknbSBob3Bpbmcg
+d2UgY2FuIGRyb3AgdGhvc2UgZm9yIHY0LjMgbWVyZ2Ugd2luZG93LCB0aGVuIGtlZXAKPiA+ID4g
+PiB0aGUgcGxhdGZvcm0gZGF0YSBhcm91bmQgZm9yIG9uZSBtb3JlIG1lcmdlIHdpbmRvdyBpbiBj
+YXNlIG9mCj4gPiA+ID4gcmV2ZXJ0aW5nIG5lZWRlZCwgdGhlbiBkcm9wIHRoZSBwbGF0Zm9ybSBk
+YXRhIHRvbyBmb3IgdjQuNAo+ID4gPiA+IGlmIG5vIGlzc3VlcyBuZWVkaW5nIHJldmVydGluZyBh
+cmUgZm91bmQuCj4gPiA+IAo+ID4gPiBTb3VuZHMgZ3JlYXQuIEhhcyB0aGVyZSBiZWVuIGEgY29u
+Y2x1c2lvbiBhYm91dCB3aGF0IHRvIGRvIGZvciB0aGUKPiA+ID4gcng1MSAvcHJvYy9hdGFncyBz
+dXBwb3J0Pwo+ID4gCj4gPiBJIGJlbGlldmUgd2UganVzdCBuZWVkIHRvIGVuYWJsZSAvcHJvYy9h
+dGFncyBhbHNvIGZvciBkZXZpY2UgdHJlZQo+ID4gYmFzZWQgYm9vdGluZyBpZiBDT05GSUdfQVJN
+X0FUQUdfRFRCX0NPTVBBVC4gUGFsaSBtYXkgaGF2ZSBtb3JlCj4gPiBpbmZvIG9uIHRoYXQuCj4g
+PiAKPiA+IFRoZW4gbG9va3MgbGlrZSBQYWxpJ3MgdHdvIHBhdGNoZXMgZm9yIHNob3dpbmcgdGhl
+IHJldmlzaW9uIGFyZQo+ID4gc3RpbGwgcGVuZGluZyBpbiB0aHJlYWQgIltQQVRDSCB2MiAwLzJd
+IEFSTTogL3Byb2MvY3B1aW5mbzogRFQ6Cj4gPiBBZGQgc3VwcG9ydCBmb3IgUmV2aXNpb24iOgo+
+ID4gCj4gPiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2FybS1rZXJuZWwvbXNnNDAxNTM1
+Lmh0bWwKPiAKPiBJIHRoaW5rIEkgYWxyZWFkeSBzZW50IGFsbCBuZWVkIHBhdGNoZXMgdG8gTUwu
+IEJ1dCBJIGRpZCBub3QgY2hlY2sgaWYKPiB5b3UgbWVyZ2VkIHRoZW0gb3Igbm90LiBJIGRpZCBu
+b3QgZ2V0IGFueSBuZXcgY29tbWVudHMgZm9yIHRoZW0gZm9yIGEKPiB3aGlsZSBhbmQgcmlnaHQg
+bm93IEkgZG8gbm90IGhhdmUgdGltZSBmb3IgbG9va2luZyBhdCBpdCBhZ2Fpbi4KCk9oIE9LLCBk
+byB5b3UgaGF2ZSBsaW5rIHRvIHRoZSAvcHJvYy9hdGFncyBwYXRjaCBzb21ld2hlcmU/CgpNYXli
+ZSBBcm5kIGFuZCBOaWNvIGNhbiBwaWNrIHRoZW0gdXAgYW5kIHNvcnQgb3V0IGhvdyB3ZSBzaG91
+bGQKcXVldWUgdGhlbSB3aXRoIFJ1c3NlbGw/CiAKPiBJJ20gYWdhaW5zdCByZW1vdmluZyBib2Fy
+ZC1yeDUxKi5jIGZpbGVzIGJlZm9yZSAvcHJvYy9jcHVpbmZvIGFuZAo+IC9wcm9jL2F0YWdzIHdp
+bGwgYmUgYXZhaWxhYmxlIGFsc28gZm9yIERUIGJvb3RlZCBtYWNoaW5lLi4uCgpJIGFncmVlIHRo
+b3NlIHNob3VsZCBiZSBzdXBwb3J0ZWQgYWxzbyBmb3IgRFQgYmFzZWQgYm9vdGluZy4KIAo+IFBs
+dXMgdGhlcmUgd2VyZSBzb21lIG90aGVyIHJlZ3Jlc3Npb24gZm9yIERUIGJvb3RlZCBOOTAwIChu
+b3Qgb25seSAvcHJvYwo+IGZpbGVzKSwgYnV0IEkgZG8gbm90IHJlbWVtYmVyIHRoZW0gbm93LiBJ
+IHNlbnQgbW9yZSBlbWFpbHMgd2hlcmUgSQo+IHdyb3RlIGl0LiBNYXliZSBpdCBpcyBmaXhlZCwg
+bWF5YmUgbm90LCBqdXN0IHNlYXJjaCBpbnRvIGFyY2hpdmUgZm9yIG15Cj4gZW1haWxzLgoKT0sK
+IAo+IEkgY2FuIHRyeSB0byBmaW5kIHNvbWUgdGltZSBhdCB0aGUgd2Vla2VuZCAodGhpcyBvciBu
+ZXh0KSB0byB0ZXN0Cj4gNC4xLXJjKiBrZXJuZWwgb24gTjkwMCBhbmQgcmVwb3J0IHdoYXQgaXMg
+d29ya2luZy4uLgoKUmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
