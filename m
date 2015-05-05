@@ -1,140 +1,130 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PRM: Fix am437x module reset
-Date: Tue, 5 May 2015 16:17:16 +0300
-Message-ID: <5548C2DC.1020800@ti.com>
-References: <1430508422-64913-1-git-send-email-d-gerlach@ti.com> <20150504171926.GQ24469@atomide.com>
+Subject: [PATCH 1/2] ARM: OMAP4+: PRM: add support for passing status register/bit info to reset
+Date: Tue, 5 May 2015 16:33:04 +0300
+Message-ID: <1430832785-1976-2-git-send-email-t-kristo@ti.com>
+References: <1430832785-1976-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36179 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34755 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423303AbbEENRh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 May 2015 09:17:37 -0400
-In-Reply-To: <20150504171926.GQ24469@atomide.com>
+	id S1945966AbbEENdS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 May 2015 09:33:18 -0400
+In-Reply-To: <1430832785-1976-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Suman Anna <s-anna@ti.com>
+To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, d-gerlach@ti.com, s-anna@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 05/04/2015 08:19 PM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [150501 12:28]:
->> When moving to using the OMAP4+ PRM driver on am437x, we switched
->> to using all omap4 ops for module reset management. However, reset
->> register layout on am437x is more similar to am335x than omap4 because
->> of the the need for an st_shift for the *_RST bits in certain *_RSTST
->> registers, like WKUP_PROC_LRST in the PRCM_RM_WKUP_RSTST. Without this
->> we cannot bring the Wakeup M3 IP out of reset.
->>
->> Because of this, we must use the am33xx prm ops for the hardreset
->> functionality while continuing to use all other omap4 ops. To accomplish
->> this we split out the common portion of omap44xx_prm_init and add an
->> am437x_prm_init to register the prm_ll_data struct specific to am437x.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c   |  6 +++---
->>   arch/arm/mach-omap2/prm33xx.c      | 14 +++++++-------
->>   arch/arm/mach-omap2/prm33xx.h      |  7 +++++++
->>   arch/arm/mach-omap2/prm44xx.c      | 32 +++++++++++++++++++++++++++++++-
->>   arch/arm/mach-omap2/prm44xx_54xx.h |  1 +
->>   arch/arm/mach-omap2/prm_common.c   |  2 +-
->>   6 files changed, 50 insertions(+), 12 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 982380b..4b13882 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -3924,9 +3924,9 @@ void __init omap_hwmod_init(void)
->>   		soc_ops.enable_module = _omap4_enable_module;
->>   		soc_ops.disable_module = _omap4_disable_module;
->>   		soc_ops.wait_target_ready = _omap4_wait_target_ready;
->> -		soc_ops.assert_hardreset = _omap4_assert_hardreset;
->> -		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
->> -		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
->> +		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
->> +		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
->> +		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
->>   		soc_ops.init_clkdm = _init_clkdm;
->>   	} else if (cpu_is_ti816x() || soc_is_am33xx()) {
->>   		soc_ops.enable_module = _omap4_enable_module;
->
-> Can't the above just become then:
->
-> 		...
-> 	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
-> 		...
-> 	} else if (cpu_is_ti816x() || soc_is_am33xx() || soc_is_am43xx()) {
-> 		...
-> 	}
->
->> --- a/arch/arm/mach-omap2/prm44xx.c
->> +++ b/arch/arm/mach-omap2/prm44xx.c
->> @@ -24,6 +24,7 @@
->>   #include "iomap.h"
->>   #include "common.h"
->>   #include "vp.h"
->> +#include "prm33xx.h"
->>   #include "prm44xx.h"
->>   #include "prm-regbits-44xx.h"
->>   #include "prcm44xx.h"
->> @@ -705,7 +706,7 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
->>
->>   static const struct omap_prcm_init_data *prm_init_data;
->>
->> -int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
->> +static void omap44xx_prm_init_common(const struct omap_prcm_init_data *data)
->>   {
->>   	omap_prm_base_init();
->>
->> @@ -718,7 +719,11 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
->>   		prm_features |= PRM_HAS_VOLTAGE;
->>
->>   	omap4_prminst_set_prm_dev_inst(data->device_inst_offset);
->> +}
->>
->> +int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
->> +{
->> +	omap44xx_prm_init_common(data);
->>   	return prm_register(&omap44xx_prm_ll_data);
->>   }
->>
->> @@ -762,3 +767,28 @@ static void __exit omap44xx_prm_exit(void)
->>   	prm_unregister(&omap44xx_prm_ll_data);
->>   }
->>   __exitcall(omap44xx_prm_exit);
->> +
->> +#ifdef CONFIG_SOC_AM43XX
->> +static struct prm_ll_data am43xx_prm_ll_data = {
->> +	.read_reset_sources = &omap44xx_prm_read_reset_sources,
->> +	.was_any_context_lost_old = &omap44xx_prm_was_any_context_lost_old,
->> +	.clear_context_loss_flags_old = &omap44xx_prm_clear_context_loss_flags_old,
->> +	.late_init = &omap44xx_prm_late_init,
->> +	.assert_hardreset	= am33xx_prm_assert_hardreset,
->> +	.deassert_hardreset	= am33xx_prm_deassert_hardreset,
->> +	.is_hardreset_asserted	= am33xx_prm_is_hardreset_asserted,
->> +	.reset_system		= omap4_prminst_global_warm_sw_reset,
->> +};
->> +
->> +int __init am43xx_prm_init(const struct omap_prcm_init_data *data)
->> +{
->> +	omap44xx_prm_init_common(data);
->> +	return prm_register(&am43xx_prm_ll_data);
->> +}
->> +
->> +static void __exit am43xx_prm_exit(void)
->> +{
->> +	prm_unregister(&am43xx_prm_ll_data);
->> +}
->> +__exitcall(am43xx_prm_exit);
->
-> I think you can similarly just move this to use prm33xx.c instead of
-> prm44xx.c and keep the functions static that way?
+AM43xx has slightly different reset register layout compared to OMAP4+,
+with varying status bit shifts and status register offsets. Current
+code assumes static offsets and identical status / reset control bit
+shifts, which is wrong. This patch adds PRM core support for passing
+the actual implementations from hwmod code. AM43xx mappings will be fixed
+in subsequent patch.
 
-Yea this code is breaking some of the cleanup work already done for PRM. 
-Sorry for the new bug introduced meanwhile, seems only pruss/wkup-m3 
-were affected by this issue. I will post a better approach for fixing 
-this problem shortly.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Reported-by: Dave Gerlach <d-gerlach@ti.com>
+Reported-by: Anna Suman <s-anna@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c  |   12 ++++++++++--
+ arch/arm/mach-omap2/prminst44xx.c |   20 +++++++-------------
+ 2 files changed, 17 insertions(+), 15 deletions(-)
 
--Tero
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 355b089..e482562 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -171,6 +171,12 @@
+  */
+ #define LINKS_PER_OCP_IF		2
+ 
++/*
++ * Address offset (in bytes) between the reset control and the reset
++ * status registers: 4 bytes on OMAP4
++ */
++#define OMAP4_RST_CTRL_ST_OFFSET	4
++
+ /**
+  * struct omap_hwmod_soc_ops - fn ptrs for some SoC-specific operations
+  * @enable_module: function to enable a module (via MODULEMODE)
+@@ -3016,10 +3022,12 @@ static int _omap4_deassert_hardreset(struct omap_hwmod *oh,
+ 	if (ohri->st_shift)
+ 		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
+ 		       oh->name, ohri->name);
+-	return omap_prm_deassert_hardreset(ohri->rst_shift, 0,
++	return omap_prm_deassert_hardreset(ohri->rst_shift, ohri->rst_shift,
+ 					   oh->clkdm->pwrdm.ptr->prcm_partition,
+ 					   oh->clkdm->pwrdm.ptr->prcm_offs,
+-					   oh->prcm.omap4.rstctrl_offs, 0);
++					   oh->prcm.omap4.rstctrl_offs,
++					   oh->prcm.omap4.rstctrl_offs +
++					   OMAP4_RST_CTRL_ST_OFFSET);
+ }
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index c4859c4..d0b15db 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -87,12 +87,6 @@ u32 omap4_prminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part, s16 inst,
+ 	return v;
+ }
+ 
+-/*
+- * Address offset (in bytes) between the reset control and the reset
+- * status registers: 4 bytes on OMAP4
+- */
+-#define OMAP4_RST_CTRL_ST_OFFSET		4
+-
+ /**
+  * omap4_prminst_is_hardreset_asserted - read the HW reset line state of
+  * submodules contained in the hwmod module
+@@ -141,11 +135,11 @@ int omap4_prminst_assert_hardreset(u8 shift, u8 part, s16 inst,
+  * omap4_prminst_deassert_hardreset - deassert a submodule hardreset line and
+  * wait
+  * @shift: register bit shift corresponding to the reset line to deassert
+- * @st_shift: status bit offset, not used for OMAP4+
++ * @st_shift: status bit offset corresponding to the reset line
+  * @part: PRM partition
+  * @inst: PRM instance offset
+  * @rstctrl_offs: reset register offset
+- * @st_offs: reset status register offset, not used for OMAP4+
++ * @rstst_offs: reset status register offset
+  *
+  * Some IPs like dsp, ipu or iva contain processors that require an HW
+  * reset line to be asserted / deasserted in order to fully enable the
+@@ -157,11 +151,11 @@ int omap4_prminst_assert_hardreset(u8 shift, u8 part, s16 inst,
+  * of reset, or -EBUSY if the submodule did not exit reset promptly.
+  */
+ int omap4_prminst_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 inst,
+-				     u16 rstctrl_offs, u16 st_offs)
++				     u16 rstctrl_offs, u16 rstst_offs)
+ {
+ 	int c;
+ 	u32 mask = 1 << shift;
+-	u16 rstst_offs = rstctrl_offs + OMAP4_RST_CTRL_ST_OFFSET;
++	u32 st_mask = 1 << st_shift;
+ 
+ 	/* Check the current status to avoid de-asserting the line twice */
+ 	if (omap4_prminst_is_hardreset_asserted(shift, part, inst,
+@@ -169,13 +163,13 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 inst,
+ 		return -EEXIST;
+ 
+ 	/* Clear the reset status by writing 1 to the status bit */
+-	omap4_prminst_rmw_inst_reg_bits(0xffffffff, mask, part, inst,
++	omap4_prminst_rmw_inst_reg_bits(0xffffffff, st_mask, part, inst,
+ 					rstst_offs);
+ 	/* de-assert the reset control line */
+ 	omap4_prminst_rmw_inst_reg_bits(mask, 0, part, inst, rstctrl_offs);
+ 	/* wait the status to be set */
+-	omap_test_timeout(omap4_prminst_is_hardreset_asserted(shift, part, inst,
+-							      rstst_offs),
++	omap_test_timeout(omap4_prminst_is_hardreset_asserted(st_shift, part,
++							      inst, rstst_offs),
+ 			  MAX_MODULE_HARDRESET_WAIT, c);
+ 
+ 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
+-- 
+1.7.9.5
+
