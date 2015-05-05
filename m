@@ -1,125 +1,145 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/2] ARM: AM33xx+: hwmod: re-use omap4 implementations for reset functionality
-Date: Tue, 5 May 2015 16:33:05 +0300
-Message-ID: <1430832785-1976-3-git-send-email-t-kristo@ti.com>
-References: <1430832785-1976-1-git-send-email-t-kristo@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: EDMA oftree entry for AM335x
+Date: Tue, 5 May 2015 16:53:24 +0300
+Message-ID: <5548CB54.1040302@ti.com>
+References: <20150504064323.GU15254@pengutronix.de> <20150504141103.GD24469@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49743 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50615 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946037AbbEENda (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2015 09:33:30 -0400
-In-Reply-To: <1430832785-1976-1-git-send-email-t-kristo@ti.com>
+	with ESMTP id S2992755AbbEENyN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2015 09:54:13 -0400
+In-Reply-To: <20150504141103.GD24469@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, d-gerlach@ti.com, s-anna@ti.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Robert Schwebel <r.schwebel@pengutronix.de>
+Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The reset code functionality is mostly a copy paste between OMAP4+ and
-AM33xx+. Re-use the omap4 code where possible, and just keep the special
-implementation for de-asserting the hardreset lines for AM33xx, as
-AM33xx+ devices have slightly different register layouts compared to
-OMAP4+. This patch also fixes the hardreset issues faced on AM43xx.
+On 05/04/2015 05:11 PM, Tony Lindgren wrote:
+> Hi,
+>=20
+> Adding Peter to Cc as well.
+>=20
+> * Robert Schwebel <r.schwebel@pengutronix.de> [150503 23:44]:
+>> Hi,
+>>
+>> since 5e863c561, I get this warning for an AM335x board:
+>>
+>>   omap_hwmod: tptc0 using broken dt data from edma
+>>   omap_hwmod: tptc1 using broken dt data from edma
+>>   omap_hwmod: tptc2 using broken dt data from edma
+>>
+>> It seems like the code in arch/arm/mach-omap2/omap_hwmod.c expects t=
+he oftree
+>> entry to look differently than what we currently have in
+>> arch/arm/boot/dts/am33xx.dtsi:
+>>
+>>   edma: edma@49000000 {
+>>           compatible =3D "ti,edma3";
+>>           ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";    <=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D
+>>           reg =3D   <0x49000000 0x10000>,
+>>                   <0x44e10f90 0x40>;
+>>           interrupts =3D <12 13 14>;
+>>           #dma-cells =3D <1>;
+>>   };
+>>
+>> The patch description says the device should be split into more devi=
+ces instead
+>> of specifying several ti,hwmods entries, but unfortunately the Docum=
+entation
+>> still suggests the above format in Documentation/devicetree/bindings=
+/dma/ti-edma.txt.
+>>
+>> How would a correct entry look like?
+>=20
+> Each tptc instance has it's own sysconfig register. This means each
+> one of them can be clocked and idled independently. They should be
+> treated as separate device instances. I believe the interrupts all
+> belong to the tpcc, which should be also treated as a separate
+> device instance.
+>=20
+> In order to get rid of the ti,hwmods property, we want to have a
+> 1-1-1 mapping of the compatible property, ti,hwmod property, and
+> the device entry.
+>=20
+> Looking at the TRM "Table 2-1. L3 Memory Map", these all are on
+> the L3, so they should be like this for now (assuming the
+> interrupts all belong to tpcc):
+>=20
+> ocp {
+> 	...
+>=20
+> 	edma: tpcc@49000000 {
+> 		compatible =3D "ti,edma3";
+> 		ti,hwmods =3D "tpcc";=20
+> 		reg =3D <0x49000000 0x10000>;
+> 		interrupts =3D <12 13 14>;
+> 		#dma-cells =3D <1>;
+> 	};
+>=20
+> 	tptc0: tptc@49800000 {
+> 		compatible =3D "ti,tptc3";
+> 		ti,hwmods =3D "tptc0";
+> 		reg =3D <0x49800000 0x10000>;
+> 	};
+>=20
+> 	tptc1: tptc@49900000 {
+> 		compatible =3D "ti,tptc3";
+> 		ti,hwmods =3D "tptc1";
+> 		reg =3D <0x49900000 0x10000>;
+> 	};
+>=20
+> 	tptc2: tptc@49a00000 {
+> 		compatible =3D "ti,tptc3";
+> 		ti,hwmods =3D "tptc2";
+> 		reg =3D <0x49a00000 0x10000>;
+> 	};
+> 	...
+> };
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reported-by: Dave Gerlach <d-gerlach@ti.com>
-Reported-by: Anna Suman <s-anna@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   56 +++-----------------------------------
- 1 file changed, 4 insertions(+), 52 deletions(-)
+It is not that simple ;)
+eDMA consists of Channel Controller(s) and Transfer Controllers. In AM3=
+35x we
+have 1 CC and 3 TC. TC is mostly a box for us, we do not need to config=
+ure
+anything within so the eDMA driver stack just does that: do not touch a=
+nything
+TC related in TC address space, we only deal with the CC.
+But in order to be able to move data around we need both CC and the TCs
+enabled and this is why we have the multiple hwmod. with pm_runtime we =
+manage
+both CC and TCs at the same time.
+But from the SW point of view the TC does not really exists. As I said =
+we only
+touch CC registers, paRAM entries.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e482562..752969f 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3056,27 +3056,6 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
- }
- 
- /**
-- * _am33xx_assert_hardreset - call AM33XX PRM hardreset fn with hwmod args
-- * @oh: struct omap_hwmod * to assert hardreset
-- * @ohri: hardreset line data
-- *
-- * Call am33xx_prminst_assert_hardreset() with parameters extracted
-- * from the hwmod @oh and the hardreset line data @ohri.  Only
-- * intended for use as an soc_ops function pointer.  Passes along the
-- * return value from am33xx_prminst_assert_hardreset().  XXX This
-- * function is scheduled for removal when the PRM code is moved into
-- * drivers/.
-- */
--static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
--				   struct omap_hwmod_rst_info *ohri)
--
--{
--	return omap_prm_assert_hardreset(ohri->rst_shift, 0,
--					 oh->clkdm->pwrdm.ptr->prcm_offs,
--					 oh->prcm.omap4.rstctrl_offs);
--}
--
--/**
-  * _am33xx_deassert_hardreset - call AM33XX PRM hardreset fn with hwmod args
-  * @oh: struct omap_hwmod * to deassert hardreset
-  * @ohri: hardreset line data
-@@ -3091,32 +3070,13 @@ static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
- static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
- 				     struct omap_hwmod_rst_info *ohri)
- {
--	return omap_prm_deassert_hardreset(ohri->rst_shift, ohri->st_shift, 0,
-+	return omap_prm_deassert_hardreset(ohri->rst_shift, ohri->st_shift,
-+					   oh->clkdm->pwrdm.ptr->prcm_partition,
- 					   oh->clkdm->pwrdm.ptr->prcm_offs,
- 					   oh->prcm.omap4.rstctrl_offs,
- 					   oh->prcm.omap4.rstst_offs);
- }
- 
--/**
-- * _am33xx_is_hardreset_asserted - call AM33XX PRM hardreset fn with hwmod args
-- * @oh: struct omap_hwmod * to test hardreset
-- * @ohri: hardreset line data
-- *
-- * Call am33xx_prminst_is_hardreset_asserted() with parameters
-- * extracted from the hwmod @oh and the hardreset line data @ohri.
-- * Only intended for use as an soc_ops function pointer.  Passes along
-- * the return value from am33xx_prminst_is_hardreset_asserted().  XXX
-- * This function is scheduled for removal when the PRM code is moved
-- * into drivers/.
-- */
--static int _am33xx_is_hardreset_asserted(struct omap_hwmod *oh,
--					struct omap_hwmod_rst_info *ohri)
--{
--	return omap_prm_is_hardreset_asserted(ohri->rst_shift, 0,
--					      oh->clkdm->pwrdm.ptr->prcm_offs,
--					      oh->prcm.omap4.rstctrl_offs);
--}
--
- /* Public functions */
- 
- u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs)
-@@ -3916,21 +3876,13 @@ void __init omap_hwmod_init(void)
- 		soc_ops.init_clkdm = _init_clkdm;
- 		soc_ops.update_context_lost = _omap4_update_context_lost;
- 		soc_ops.get_context_lost = _omap4_get_context_lost;
--	} else if (soc_is_am43xx()) {
-+	} else if (cpu_is_ti816x() || soc_is_am33xx() || soc_is_am43xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
- 		soc_ops.disable_module = _omap4_disable_module;
- 		soc_ops.wait_target_ready = _omap4_wait_target_ready;
- 		soc_ops.assert_hardreset = _omap4_assert_hardreset;
--		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
--		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
--		soc_ops.init_clkdm = _init_clkdm;
--	} else if (cpu_is_ti816x() || soc_is_am33xx()) {
--		soc_ops.enable_module = _omap4_enable_module;
--		soc_ops.disable_module = _omap4_disable_module;
--		soc_ops.wait_target_ready = _omap4_wait_target_ready;
--		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
- 		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
--		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
-+		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
- 		soc_ops.init_clkdm = _init_clkdm;
- 	} else {
- 		WARN(1, "omap_hwmod: unknown SoC type\n");
--- 
-1.7.9.5
+And yes, both TC and CCs can generate interrupts.
 
+So it is not straight forward to separate the TC from the CC driver (ed=
+ma3).
+
+
+>=20
+> Then eventually we can deprecate the ti,hwmods property and just
+> leave it out.
+>=20
+> Changing thing this way means each tptc instance should register
+> itself separately with tpcc when probed. Other than that, I think
+> that's pretty much the only changes needed here to fix up things.
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
