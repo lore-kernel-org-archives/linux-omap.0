@@ -1,16 +1,12 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] Drop more omap3 legacy board-*.c files for v4.2
-Date: Tue, 5 May 2015 08:06:38 -0700
-Message-ID: <20150505150638.GC21061@atomide.com>
-References: <1430769717-4088-1-git-send-email-tony@atomide.com>
- <2213391.JZ0TJA9KXB@wuerfel> <20150505144308.GA21061@atomide.com>
- <20150505145407.GK18002@pali>
+Subject: [GIT PULL] omap fixes against v4.1-rc1
+Date: Tue, 5 May 2015 08:44:24 -0700
+Message-ID: <20150505154423.GD21061@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150505145407.GK18002@pali>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,52 +16,84 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@linaro.org>
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNTA1MDUgMDc6NTVdOgo+IE9u
-IFR1ZXNkYXkgMDUgTWF5IDIwMTUgMDc6NDM6MDggVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ICog
-QXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4gWzE1MDUwNSAwMzo1Nl06Cj4gPiA+IE9uIE1v
-bmRheSAwNCBNYXkgMjAxNSAxMzowMTo1NCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gPiA+IAo+
-ID4gPiA+IEZvciBkcm9wcGluZyB0aGUgcmVtYWluaW5nIG9tYXAzIGxlZ2FjeSBib290IHN1cHBv
-cnQsIHdlIHN0aWxsCj4gPiA+ID4gaGF2ZSB0aGUgZm9sbG93aW5nIGJvYXJkLSouYyBmaWxlczoK
-PiA+ID4gPiAKPiA+ID4gPiBCT0FSRCAgICAgICAgICAgICAgICAgICBSRUFTT04gTkVFREVECj4g
-PiA+ID4gYm9hcmQtbGRwLmMgICAgICAgICAgICAgU3RpbGwgdXNlZCBpbiBSTUtzIGJvb3QgdGVz
-dCBzeXN0ZW0KPiA+ID4gPiBib2FyZC1vbWFwM2xvZ2ljLmMgICAgICBHZXR0aW5nIGEgLmR0cyBm
-aWxlIGZvciB2NC4yCj4gPiA+ID4gYm9hcmQtb21hcDNwYW5kb3JhLmMgICAgR290IGEgLmR0cyBm
-aWxlIGZvciB2NC4xCj4gPiA+ID4gYm9hcmQtcng1MS0qLmMgICAgICAgICAgTmVlZHMgL3Byb2Mv
-YXRhZ3Mgc3VwcG9ydCBmb3IgdXNlciBzcGFjZQo+ID4gPiA+IAo+ID4gPiA+IEknbSBob3Bpbmcg
-d2UgY2FuIGRyb3AgdGhvc2UgZm9yIHY0LjMgbWVyZ2Ugd2luZG93LCB0aGVuIGtlZXAKPiA+ID4g
-PiB0aGUgcGxhdGZvcm0gZGF0YSBhcm91bmQgZm9yIG9uZSBtb3JlIG1lcmdlIHdpbmRvdyBpbiBj
-YXNlIG9mCj4gPiA+ID4gcmV2ZXJ0aW5nIG5lZWRlZCwgdGhlbiBkcm9wIHRoZSBwbGF0Zm9ybSBk
-YXRhIHRvbyBmb3IgdjQuNAo+ID4gPiA+IGlmIG5vIGlzc3VlcyBuZWVkaW5nIHJldmVydGluZyBh
-cmUgZm91bmQuCj4gPiA+IAo+ID4gPiBTb3VuZHMgZ3JlYXQuIEhhcyB0aGVyZSBiZWVuIGEgY29u
-Y2x1c2lvbiBhYm91dCB3aGF0IHRvIGRvIGZvciB0aGUKPiA+ID4gcng1MSAvcHJvYy9hdGFncyBz
-dXBwb3J0Pwo+ID4gCj4gPiBJIGJlbGlldmUgd2UganVzdCBuZWVkIHRvIGVuYWJsZSAvcHJvYy9h
-dGFncyBhbHNvIGZvciBkZXZpY2UgdHJlZQo+ID4gYmFzZWQgYm9vdGluZyBpZiBDT05GSUdfQVJN
-X0FUQUdfRFRCX0NPTVBBVC4gUGFsaSBtYXkgaGF2ZSBtb3JlCj4gPiBpbmZvIG9uIHRoYXQuCj4g
-PiAKPiA+IFRoZW4gbG9va3MgbGlrZSBQYWxpJ3MgdHdvIHBhdGNoZXMgZm9yIHNob3dpbmcgdGhl
-IHJldmlzaW9uIGFyZQo+ID4gc3RpbGwgcGVuZGluZyBpbiB0aHJlYWQgIltQQVRDSCB2MiAwLzJd
-IEFSTTogL3Byb2MvY3B1aW5mbzogRFQ6Cj4gPiBBZGQgc3VwcG9ydCBmb3IgUmV2aXNpb24iOgo+
-ID4gCj4gPiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2FybS1rZXJuZWwvbXNnNDAxNTM1
-Lmh0bWwKPiAKPiBJIHRoaW5rIEkgYWxyZWFkeSBzZW50IGFsbCBuZWVkIHBhdGNoZXMgdG8gTUwu
-IEJ1dCBJIGRpZCBub3QgY2hlY2sgaWYKPiB5b3UgbWVyZ2VkIHRoZW0gb3Igbm90LiBJIGRpZCBu
-b3QgZ2V0IGFueSBuZXcgY29tbWVudHMgZm9yIHRoZW0gZm9yIGEKPiB3aGlsZSBhbmQgcmlnaHQg
-bm93IEkgZG8gbm90IGhhdmUgdGltZSBmb3IgbG9va2luZyBhdCBpdCBhZ2Fpbi4KCk9oIE9LLCBk
-byB5b3UgaGF2ZSBsaW5rIHRvIHRoZSAvcHJvYy9hdGFncyBwYXRjaCBzb21ld2hlcmU/CgpNYXli
-ZSBBcm5kIGFuZCBOaWNvIGNhbiBwaWNrIHRoZW0gdXAgYW5kIHNvcnQgb3V0IGhvdyB3ZSBzaG91
-bGQKcXVldWUgdGhlbSB3aXRoIFJ1c3NlbGw/CiAKPiBJJ20gYWdhaW5zdCByZW1vdmluZyBib2Fy
-ZC1yeDUxKi5jIGZpbGVzIGJlZm9yZSAvcHJvYy9jcHVpbmZvIGFuZAo+IC9wcm9jL2F0YWdzIHdp
-bGwgYmUgYXZhaWxhYmxlIGFsc28gZm9yIERUIGJvb3RlZCBtYWNoaW5lLi4uCgpJIGFncmVlIHRo
-b3NlIHNob3VsZCBiZSBzdXBwb3J0ZWQgYWxzbyBmb3IgRFQgYmFzZWQgYm9vdGluZy4KIAo+IFBs
-dXMgdGhlcmUgd2VyZSBzb21lIG90aGVyIHJlZ3Jlc3Npb24gZm9yIERUIGJvb3RlZCBOOTAwIChu
-b3Qgb25seSAvcHJvYwo+IGZpbGVzKSwgYnV0IEkgZG8gbm90IHJlbWVtYmVyIHRoZW0gbm93LiBJ
-IHNlbnQgbW9yZSBlbWFpbHMgd2hlcmUgSQo+IHdyb3RlIGl0LiBNYXliZSBpdCBpcyBmaXhlZCwg
-bWF5YmUgbm90LCBqdXN0IHNlYXJjaCBpbnRvIGFyY2hpdmUgZm9yIG15Cj4gZW1haWxzLgoKT0sK
-IAo+IEkgY2FuIHRyeSB0byBmaW5kIHNvbWUgdGltZSBhdCB0aGUgd2Vla2VuZCAodGhpcyBvciBu
-ZXh0KSB0byB0ZXN0Cj4gNC4xLXJjKiBrZXJuZWwgb24gTjkwMCBhbmQgcmVwb3J0IHdoYXQgaXMg
-d29ya2luZy4uLgoKUmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
-bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
+
+  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-rc1
+
+for you to fetch changes up to e7309c2673a389a495fcfad70376d3bae8b9bc89:
+
+  bus: omap_l3_noc: Fix master id address decoding for OMAP5 (2015-05-04 10:21:01 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps, mostly a fix for power power consumption
+creeping up during idle, and two l3-noc device fixes:
+
+- Fix power consumption creeping up with I2C4 staying on
+- Fix n900 microphone bias voltages
+- Fix dra7 l3-noc for host clock
+- Fix omap5 l3-noc id address decoding
+
+The rest are all just minor dts fixes:
+
+- Fix changed EXTCON_USB_GPIO_USB in defconfig
+- Fix missing isp and iva #iommu-cells property
+- Various beagle x15 dts fixes for pre-production changes
+- Fix am437x-sk display dts entries
+
+----------------------------------------------------------------
+Felipe Balbi (2):
+      ARM: dts: am437x-sk: fix for new newhaven display module revision
+      ARM: dts: am437x-sk: reduce col-scan-delay-us
+
+Grygorii Strashko (1):
+      ARM: dts: am57xx-beagle-x15: Fix IRQ type for mcp7941x
+
+Illia Smyrnov (1):
+      bus: omap_l3_noc: Fix offset for DRA7 CLK1_HOST_CLK1_2 instance
+
+Nishanth Menon (4):
+      ARM: dts: am57xx-beagle-x15: Fix RTC aliases
+      ARM: dts: am57xx-beagle-x15: Switch UART mux pins
+      ARM: dts: am57xx-beagle-x15: Switch GPIO fan number
+      ARM: dts: dra7: Fix efuse register size for ABB
+
+Pavel Machek (1):
+      ARM: dts: OMAP3-N900: Add microphone bias voltages
+
+Roger Quadros (1):
+      ARM: omap2plus_defconfig: Enable EXTCON_USB_GPIO
+
+Sebastian Reichel (1):
+      ARM: dts: omap3: Add #iommu-cells to isp and iva iommu
+
+Suman Anna (1):
+      bus: omap_l3_noc: Fix master id address decoding for OMAP5
+
+Tony Lindgren (1):
+      ARM: OMAP2+: Fix omap off idle power consumption creeping up
+
+ .../devicetree/bindings/arm/omap/l3-noc.txt        |  1 +
+ arch/arm/boot/dts/am437x-sk-evm.dts                |  4 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            | 11 +++--
+ arch/arm/boot/dts/dra7.dtsi                        | 10 ++--
+ arch/arm/boot/dts/omap3-n900.dts                   |  4 ++
+ arch/arm/boot/dts/omap3.dtsi                       |  2 +
+ arch/arm/boot/dts/omap5.dtsi                       |  2 +-
+ arch/arm/configs/omap2plus_defconfig               |  2 +-
+ arch/arm/mach-omap2/prm-regbits-34xx.h             |  1 +
+ arch/arm/mach-omap2/prm-regbits-44xx.h             |  1 +
+ arch/arm/mach-omap2/vc.c                           | 12 ++++-
+ arch/arm/mach-omap2/vc.h                           |  2 +
+ arch/arm/mach-omap2/vc3xxx_data.c                  |  1 +
+ arch/arm/mach-omap2/vc44xx_data.c                  |  1 +
+ drivers/bus/omap_l3_noc.c                          |  5 +-
+ drivers/bus/omap_l3_noc.h                          | 54 ++++++++++++++++------
+ 16 files changed, 81 insertions(+), 32 deletions(-)
