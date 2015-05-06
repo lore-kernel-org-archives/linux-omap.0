@@ -1,49 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 05/10] ARM: OMAP2+: display: detect DRA7 DSS
-Date: Wed, 6 May 2015 13:08:53 +0300
-Message-ID: <1430906938-26128-6-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv3 01/10] arm/dts: dra7xx: add 'ti,set-rate-parent' for dss_dss_clk
+Date: Wed, 6 May 2015 13:08:49 +0300
+Message-ID: <1430906938-26128-2-git-send-email-tomi.valkeinen@ti.com>
 References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55169 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477AbbEFKJk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 May 2015 06:09:40 -0400
-In-Reply-To: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1430906938-26128-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add platform code to detect DRA7 DSS.
+We need set-rate-parent flags for the display's clock path so that the
+DSS driver can change the clock rate of the PLL.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+This patchs adds the ti,set-rate-parent flag to 'dss_dss_clk' clock
+node, which is only a gate clock, allowing the setting of the clock rate
+to propagate to the PLL.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 ---
- arch/arm/mach-omap2/display.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 9868d0bc7805..6ab13d18c636 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -287,6 +287,8 @@ static enum omapdss_version __init omap_display_get_version(void)
- 		return OMAPDSS_VER_OMAP5;
- 	else if (soc_is_am43xx())
- 		return OMAPDSS_VER_AM43xx;
-+	else if (soc_is_dra7xx())
-+		return OMAPDSS_VER_DRA7xx;
- 	else
- 		return OMAPDSS_VER_UNKNOWN;
- }
-@@ -573,6 +575,7 @@ static const char * const omapdss_compat_names[] __initconst = {
- 	"ti,omap3-dss",
- 	"ti,omap4-dss",
- 	"ti,omap5-dss",
-+	"ti,dra7-dss",
- };
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 3b933f74d000..940dc8987adb 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1531,6 +1531,7 @@
+ 		clocks = <&dpll_per_h12x2_ck>;
+ 		ti,bit-shift = <8>;
+ 		reg = <0x1120>;
++		ti,set-rate-parent;
+ 	};
  
- struct device_node * __init omapdss_find_dss_of_node(void)
+ 	dss_hdmi_clk: dss_hdmi_clk {
 -- 
 2.1.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
