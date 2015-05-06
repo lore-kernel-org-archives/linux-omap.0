@@ -1,111 +1,106 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: EDMA oftree entry for AM335x
-Date: Wed, 6 May 2015 07:39:52 -0700
-Message-ID: <20150506143951.GG21061@atomide.com>
-References: <20150504064323.GU15254@pengutronix.de>
- <20150504141103.GD24469@atomide.com>
- <5548CB54.1040302@ti.com>
- <20150505145828.GB21061@atomide.com>
- <5549F95B.8090905@ti.com>
+Subject: Re: [PATCH 0/3] Drop more omap3 legacy board-*.c files for v4.2
+Date: Wed, 6 May 2015 07:42:39 -0700
+Message-ID: <20150506144239.GH21061@atomide.com>
+References: <1430769717-4088-1-git-send-email-tony@atomide.com>
+ <20150505145407.GK18002@pali>
+ <20150505150638.GC21061@atomide.com>
+ <201505051839.36882@pali>
+ <20150505170020.GF21061@atomide.com>
+ <20150506085204.GE30910@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:49490 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:49496 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751040AbbEFOjz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 May 2015 10:39:55 -0400
+	id S1750876AbbEFOmm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 May 2015 10:42:42 -0400
 Content-Disposition: inline
-In-Reply-To: <5549F95B.8090905@ti.com>
+In-Reply-To: <20150506085204.GE30910@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Robert Schwebel <r.schwebel@pengutronix.de>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [150506 04:23]:
-> On 05/05/2015 05:58 PM, Tony Lindgren wrote:
-> >> It is not that simple ;)
-> >> eDMA consists of Channel Controller(s) and Transfer Controllers. In AM335x we
-> >> have 1 CC and 3 TC. TC is mostly a box for us, we do not need to configure
-> >> anything within so the eDMA driver stack just does that: do not touch anything
-> >> TC related in TC address space, we only deal with the CC.
-> >> But in order to be able to move data around we need both CC and the TCs
-> >> enabled and this is why we have the multiple hwmod. with pm_runtime we manage
-> >> both CC and TCs at the same time.
-> >> But from the SW point of view the TC does not really exists. As I said we only
-> >> touch CC registers, paRAM entries.
-> > 
-> > There's probably a real reason for each TC to have their own clkctrl
-> > register. Do you have any info on how they are split?
-> 
-> In different SoC we can have different number of CCs (OMAP-L138 has two) and
-> each CC can have different number of TCs associated with. In AM335x we have
-> one CC with 3 TC, in OMAP-L138 we have two CC, CC0 has 2 TC, CC1 has 1 TC. The
-> TCs are used to set priorities, you can assign the priorities to the TCs and
-> you can choose to assign the transfer (channel) to a give TC.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150506 01:53]:
+> On Tuesday 05 May 2015 10:00:21 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150505 09:41]:
+> > > On Tuesday 05 May 2015 17:06:38 Tony Lindgren wrote:
+> > > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150505 07:55]:
+> > > > > On Tuesday 05 May 2015 07:43:08 Tony Lindgren wrote:
+> > > > > > * Arnd Bergmann <arnd@arndb.de> [150505 03:56]:
+> > > > > > > On Monday 04 May 2015 13:01:54 Tony Lindgren wrote:
+> > > > > > > > For dropping the remaining omap3 legacy boot support,
+> > > > > > > > we still have the following board-*.c files:
+> > > > > > > >=20
+> > > > > > > > BOARD                   REASON NEEDED
+> > > > > > > > board-ldp.c             Still used in RMKs boot test
+> > > > > > > > system board-omap3logic.c      Getting a .dts file
+> > > > > > > > for v4.2 board-omap3pandora.c    Got a .dts file for
+> > > > > > > > v4.1 board-rx51-*.c          Needs /proc/atags
+> > > > > > > > support for user space
+> > > > > > > >=20
+> > > > > > > > I'm hoping we can drop those for v4.3 merge window,
+> > > > > > > > then keep the platform data around for one more merge
+> > > > > > > > window in case of reverting needed, then drop the
+> > > > > > > > platform data too for v4.4 if no issues needing
+> > > > > > > > reverting are found.
+> > > > > > >=20
+> > > > > > > Sounds great. Has there been a conclusion about what to
+> > > > > > > do for the rx51 /proc/atags support?
+> > > > > >=20
+> > > > > > I believe we just need to enable /proc/atags also for
+> > > > > > device tree based booting if CONFIG_ARM_ATAG_DTB_COMPAT.
+> > > > > > Pali may have more info on that.
+> > > > > >=20
+> > > > > > Then looks like Pali's two patches for showing the
+> > > > > > revision are still pending in thread "[PATCH v2 0/2] ARM:
+> > > > > > /proc/cpuinfo: DT: Add support for Revision":
+> > > > > >=20
+> > > > > > http://www.spinics.net/lists/arm-kernel/msg401535.html
+> > > > >=20
+> > > > > I think I already sent all need patches to ML. But I did not
+> > > > > check if you merged them or not. I did not get any new
+> > > > > comments for them for a while and right now I do not have
+> > > > > time for looking at it again.
+> > > >=20
+> > > > Oh OK, do you have link to the /proc/atags patch somewhere?
+> > > >=20
+> > > > Maybe Arnd and Nico can pick them up and sort out how we
+> > > > should queue them with Russell?
+> > > >=20
+> > >=20
+> > > https://lkml.org/lkml/2015/1/26/648
+> >=20
+> > Hmm looks like you should resend all your pending four patches
+> > properly with the people mentioned above in Cc to the LAKML
+> > and linux-omap.. Assuming something will happen to them when
+> > the patches are buried into a middle of some old threads does
+> > not work well.. Best to just follow das protokoll und whine and
+> > follow up until the patches get merged :)
+> >=20
+> > Regards,
+> >=20
+> > Tony
+>=20
+> Now I resent "ARM: /proc/cpuinfo: DT: Add support for Revision" patch=
+es
+> to MLs again without in-reply-to header.
 
-OK
- 
-> >> And yes, both TC and CCs can generate interrupts.
-> > 
-> > Do the TCs have a shared interrupt that could be handled by
-> > each TC instance?
-> 
-> Separate IRQ lines to the ARM core, but we do not handle them right now.
+OK thanks.
+=20
+> Patches for /proc/atags I do not have currently in git format-patch m=
+box
+> format, so cannot resent it right now...
 
-OK
- 
-> >> So it is not straight forward to separate the TC from the CC driver (edma3).
-> > 
-> > It seems pm runtime for these four separate modules needs to be
-> > done at the CC driver level if it can't be done separately for
-> > each instance.
-> 
-> The current eDMA stack is not really flexible on this IMHO.
-> I think the way forward would be something like this in DT:
-> 
-> edma_cc: edma_cc@49000000 {
-> 	compatible = "ti,edma3-cc";
-> 	ti,hwmods = "tpcc"
-> 	reg =	<0x49000000 0x10000>,
-> 		<0x44e10f90 0x40>;
-> 	interrupts = <12 13 14>;
-> 	#dma-cells = <1>;
-> 
-> 	edma3_tc0: edma3_tc0@49800000 {
-> 		compatible = "ti,edma3-tc";
-> 		ti,hwmods = "tptc0"
-> 	};
-> 
-> 	edma3_tc1: edma3_tc1@49900000 {
-> 		compatible = "ti,edma3-tc";
-> 		ti,hwmods = "tptc1"
-> 	};
-> 
-> 	edma3_tc2: edma3_tc2@49a00000 {
-> 		compatible = "ti,edma3-tc";
-> 		ti,hwmods = "tptc2"
-> 	};
-> };
-
-Yeah that would be an improvment and remove the blockers for further
-hwmod work. It would still be better to have the TC probe separately
-and register with CC rather than combining separate elements in DT
-in a way that does not represent the hardare. There's a 7MB reserved
-block inbetween there..
- 
-> The driver for ti,edma3-tc would be pretty minimal, doing only pm_runtime only
-> and from the CC driver we could just set the runtime status for the the TC
-> which we are about to submit work and decrement the runtime when the work is
-> done. If not work is needed for the TC it can be shot down.
-
-OK
- 
-> But this would need significant amount of work which can be done when we get
-> rid of the legacy (arch/arm/common/edma.c) and move to dmaengine only mode.
-
-That may never happen considering that davinci is using it too.. It's
-best to not count on that happening anytime soon at least.
+Well presumably you'll resend those once you find them then :)
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
