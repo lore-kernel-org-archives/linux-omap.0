@@ -1,86 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer
- clock
-Date: Wed, 6 May 2015 07:55:39 -0700
-Message-ID: <20150506145539.GI21061@atomide.com>
-References: <1430848941-27106-1-git-send-email-tony@atomide.com>
- <20150506053539.GA10871@codeaurora.org>
+Subject: Re: [PATCH] gpio: omap: Fix regression for MPUIO interrupts
+Date: Wed, 6 May 2015 08:36:56 -0700
+Message-ID: <20150506153656.GJ21061@atomide.com>
+References: <1429833257-28188-1-git-send-email-tony@atomide.com>
+ <CACRpkdZqSEgaVOV1gCQvCLc1-x7eU3WZwAM2QT2HT21xqCHZ2Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:49511 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:49525 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399AbbEFOzl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 May 2015 10:55:41 -0400
+	id S1753013AbbEFPg7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 May 2015 11:36:59 -0400
 Content-Disposition: inline
-In-Reply-To: <20150506053539.GA10871@codeaurora.org>
+In-Reply-To: <CACRpkdZqSEgaVOV1gCQvCLc1-x7eU3WZwAM2QT2HT21xqCHZ2Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Grygorii Strashko <grygorii.strashko@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>
 
-* Stephen Boyd <sboyd@codeaurora.org> [150505 22:36]:
-> On 05/05, Tony Lindgren wrote:
-> > With recent changes to use determine_rate, the comparison of two
-> > clocks won't work without doing __clk_get_hw on the clocks
-> > first.
-> > 
-> > Cc: Michael Turquette <mturquette@linaro.org>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Stephen Boyd <sboyd@codeaurora.org>
-> > Cc: Tero Kristo <t-kristo@ti.com>
-> > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+* Linus Walleij <linus.walleij@linaro.org> [150506 06:22]:
+> On Fri, Apr 24, 2015 at 1:54 AM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > At some point with all the GPIO clean-up we've broken the
+> > MPUIO interrupts. Those are just a little bit different from
+> > the GPIO interrupts, so we can fix it up just by setting
+> > different irqchip functions for it. And then we can just
+> > remove all old code trying to do the same.
+> >
+> > Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > Cc: Felipe Balbi <balbi@ti.com>
+> > Cc: Javier Martinez Canillas <javier@dowhile0.org>
+> > Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Cc: Santosh Shilimkar <ssantosh@kernel.org>
 > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> > 
-> > Found one more of these, the coccinelle scripts do not seem
-> > to match this?
 > 
-> I don't think the coccinelle script was ever merged...
+> Patch applied for fixes with the ACKs etc,
 
-Oh OK, but the wrong comparisons in the kernel code got
-fixed, right? 
+Thanks. Yes this should go in during the -rc cycle as a regresion
+fix. Sorry I could not exactly pinpoint where we've broken the
+MPUIO interrupts with all the clean-up.
 
-> > @@ -298,7 +299,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
-> >  	if (IS_ERR(src))
-> >  		return PTR_ERR(src);
-> >  
-> > -	if (clk_get_parent(timer->fclk) != src) {
-> > +	if (__clk_get_hw(clk_get_parent(timer->fclk)) != __clk_get_hw(src)) {
-> 
-> Please use clk_is_match() instead so we can find these instances
-> with an easy grep.
+Also the omap1 SPARSE_IRQ changes I recently posted have a
+dependency to this one so that's another reason to get this
+one out of the way.
 
-Thanks here's an updated version with that.
+No rush with the other ones, those should be OK for v4.2.
 
 Regards,
 
 Tony
-
-8< -----------------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 5 May 2015 09:03:34 -0700
-Subject: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer clock
-
-With recent changes to use determine_rate, the comparison of two
-clocks won't work without clk_is_match that does __clk_get_hw
-on the clocks first.
-
-Cc: Michael Turquette <mturquette@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -298,7 +298,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 	if (IS_ERR(src))
- 		return PTR_ERR(src);
- 
--	if (clk_get_parent(timer->fclk) != src) {
-+	if (!clk_is_match(clk_get_parent(timer->fclk), src)) {
- 		r = clk_set_parent(timer->fclk, src);
- 		if (r < 0) {
- 			pr_warn("%s: %s cannot set source\n", __func__,
