@@ -1,155 +1,85 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.1-rc2
-Date: Wed, 6 May 2015 16:28:25 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1505061617300.3509@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] i2c: omap: implement bus recovery
+Date: Wed, 6 May 2015 11:44:28 -0500
+Message-ID: <20150506164428.GC12279@saruman.tx.rr.com>
+References: <1424369209-26735-1-git-send-email-balbi@ti.com>
+ <20150410214122.GB15596@katana>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8NvZYKFJsRX2Djef"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44539 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbbEFQ20 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2015 12:28:26 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38449 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752141AbbEFQqN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 May 2015 12:46:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20150410214122.GB15596@katana>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org
 
+--8NvZYKFJsRX2Djef
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Here are some basic OMAP test results for Linux v4.1-rc2.
-Logs and other details at:
+On Fri, Apr 10, 2015 at 11:41:22PM +0200, Wolfram Sang wrote:
+> On Thu, Feb 19, 2015 at 12:06:49PM -0600, Felipe Balbi wrote:
+> > If either SCL or SDA are stuck low, we need to
+> > recover the bus using the procedure described
+> > on section 3.1.16 of the I2C specification.
+> >=20
+> > Note that we're trying to implement the procedure
+> > exactly as described by that section. First we
+> > check which line is stuck low, then implement
+> > one or the other procedure. If SDA recovery procedure
+> > fails, we reset our IP in an attempt to make it work.
+> >=20
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>=20
+> As Grygorii already mentioned: can you convert it to the standard i2c
+> bus recovery mechanism?
+>=20
+> And is the timeout you replace with the recovery caused by SDA stuck
+> high (check the thread starting with
+> http://thread.gmane.org/gmane.linux.kernel/1841371/focus=3D22435)
 
-    http://www.pwsan.com/omap/testlogs/test_v4.1-rc2/20150505232833/
+SDA stuck low is one reason, yes. There could be other reasons like the
+far end (i2c client) just crapping out. I know of one touchscreen
+controller which will just die if you continuously try to read from
+unexistent registers. It will NAK for a while and later just die,
+completely. The only way to recover from that today is resetting the
+board. I have a feeling that resetting the touch controller might be
+doable if we have a reset pin tied to a GPIO, haven't tried that yet. In
+any case this is off-topic.
 
+I'll rebase the patch and fix what you asked, then retest, and resend.
 
-Test summary
-------------
+--=20
+balbi
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+--8NvZYKFJsRX2Djef
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+iQIcBAEBAgAGBQJVSkTsAAoJEIaOsuA1yqRE5gEP/3hQCjY7LrsvrkzzFjji6i6b
+kWL78Bgb+sMFPvF0/wPKv/4eVXEVt+0hf/QWTdD+E8C0+EUuXjimc8sm481XeYM6
+5N1OYOcZKCjyg4s83M7BXSp0XljhhlmvtuBRmR+3hYg8rGIq5HKiecNgZpay/m1g
+Epgjixwmzqydgym5VqoVUfKqTwKNkBqLL853QF76cKeLQwKAfbv6JyJwL/HqWteF
+Ybxnm1a24f/qPfqNZY7U+0tt3CEEpFav2yQHSNKaWXDeShwXl8Fe5ubSl+GIZQkF
+ajIQc2ReeSGUqjZr/9qf4wmcG0oViFdVV837quRJVwGV1AtH0sMYUG5WjhiDb/Y1
+3M7wjy8o5LDCR3nfxZqCwoPa63GjFDoKwDOqxbLiNU9xGuZMK0Jvtu2EOUpXpliS
+bc+JzNiwFTPxt6fpjgti94zPzO+MW34y6RsyOj9sH39JmyY7aNLAFU+XTE3q54KA
+KsJQF1/0KlDnsaDlGIpthNOayaKGreURMK3TZ2Yn2x47+n9jtO3dDIYCc1x3N2Fl
+yDciBp1YJwk7LdC/whv4FDxaVTbG1jaw8AuZMGbRmMGkroQ7ef9KPlBFyZdfd21y
++ceuy5EjMKLF39wH6MFxcgozd3bSigEyBkeCs+ZcnWFDDDLB9ua1DPqzYM5HYMJb
+FH93Tnq47CWoxQ7CQDSe
+=qqAf
+-----END PGP SIGNATURE-----
 
-Build warnings from toolchain: uImage:
-    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL (14/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Boot to userspace:
-    FAIL ( 6/17): 4460varsomom, 2430sdp, 3530es3beagle, 3530es31beagle,
-		  cmt3517, 5430es2sbct54
-    skip ( 2/17): 5912osk, 3517evm
-    Pass ( 9/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  37xxevm, 3730beaglexm, 3730es12beaglexm, 5430es2uevm,
-		  2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 1/17): 4430es2panda
-
-PM: chip retention via suspend:
-    FAIL ( 8/12): am335xbonelt, 4430es2panda, 4460varsomom,
-		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm,
-		  5430es2sbct54
-    Pass ( 4/12): 4460pandaes, 37xxevm, 3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 8/12): am335xbonelt, 4430es2panda, 4460varsomom,
-		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm,
-		  5430es2sbct54
-    Pass ( 4/12): 4460pandaes, 37xxevm, 3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 3530es3beagle, 3530es31beagle
-    Pass ( 2/ 4): 37xxevm, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 2/ 4): 3530es3beagle, 3530es31beagle
-    Pass ( 2/ 4): 37xxevm, 3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/17): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 1/20): multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.1-rc1 (b787f68c36d49bb1d9236f403813641efa74a031)):
-   text     data      bss    total  kernel
-   -650        0        0     -650  omap1_defconfig
-   -674      +32        0     -642  omap1_defconfig_1510innovator_only
-   -642      +32        0     -610  omap1_defconfig_5912osk_only
-   -586      +64        0     -522  multi_v7_defconfig
-   -678      -32        0     -710  omap2plus_defconfig
-   -350      -32        0     -382  omap2plus_defconfig_2430sdp_only
-   -750        0        0     -750  omap2plus_defconfig_am33xx_only
-   -682      -32        0     -714  omap2plus_defconfig_am43xx_only
-   -678      -32        0     -710  omap2plus_defconfig_cpupm
-   -682      -64        0     -746  omap2plus_defconfig_dra7xx_only
-   +204      -32        0     +172  omap2plus_defconfig_n800_multi_omap2xxx
-   +204      -32        0     +172  omap2plus_defconfig_n800_only_a
-   -678      -64        0     -742  omap2plus_defconfig_no_pm
-  +3422      -32        0    +3390  omap2plus_defconfig_omap2_4_only
-   -746      -32        0     -778  omap2plus_defconfig_omap3_4_only
-   -746      -32        0     -778  omap2plus_defconfig_omap5_only
-      0        0      +32      +32  rmk_omap3430_ldp_allnoconfig
-   -618        0        0     -618  rmk_omap3430_ldp_oldconfig
-    -16        0      +32      +16  rmk_omap4430_sdp_allnoconfig
-   -846      -64        0     -910  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.1-rc1 (b787f68c36d49bb1d9236f403813641efa74a031))
-  avail  rsrvd   high  freed  board          kconfig
-     4k    -4k      .      .  5430es2sbct54  omap2plus_defconfig
-
+--8NvZYKFJsRX2Djef--
