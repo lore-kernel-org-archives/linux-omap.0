@@ -1,85 +1,130 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] i2c: omap: implement bus recovery
-Date: Wed, 6 May 2015 11:44:28 -0500
-Message-ID: <20150506164428.GC12279@saruman.tx.rr.com>
-References: <1424369209-26735-1-git-send-email-balbi@ti.com>
- <20150410214122.GB15596@katana>
-Reply-To: <balbi@ti.com>
+Subject: [PATCH] i2c: omap: implement bus recovery
+Date: Wed, 6 May 2015 11:50:27 -0500
+Message-ID: <1430931027-19955-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8NvZYKFJsRX2Djef"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38449 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752141AbbEFQqN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 May 2015 12:46:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20150410214122.GB15596@katana>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: wsa@the-dreams.de
+Cc: grygorii.strashko@ti.com, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org
 
---8NvZYKFJsRX2Djef
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+implement bus recovery methods for i2c-omap
+so we can recover from situations where SCL/SDA
+are stuck low.
 
-On Fri, Apr 10, 2015 at 11:41:22PM +0200, Wolfram Sang wrote:
-> On Thu, Feb 19, 2015 at 12:06:49PM -0600, Felipe Balbi wrote:
-> > If either SCL or SDA are stuck low, we need to
-> > recover the bus using the procedure described
-> > on section 3.1.16 of the I2C specification.
-> >=20
-> > Note that we're trying to implement the procedure
-> > exactly as described by that section. First we
-> > check which line is stuck low, then implement
-> > one or the other procedure. If SDA recovery procedure
-> > fails, we reset our IP in an attempt to make it work.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->=20
-> As Grygorii already mentioned: can you convert it to the standard i2c
-> bus recovery mechanism?
->=20
-> And is the timeout you replace with the recovery caused by SDA stuck
-> high (check the thread starting with
-> http://thread.gmane.org/gmane.linux.kernel/1841371/focus=3D22435)
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-SDA stuck low is one reason, yes. There could be other reasons like the
-far end (i2c client) just crapping out. I know of one touchscreen
-controller which will just die if you continuously try to read from
-unexistent registers. It will NAK for a while and later just die,
-completely. The only way to recover from that today is resetting the
-board. I have a feeling that resetting the touch controller might be
-doable if we have a reset pin tied to a GPIO, haven't tried that yet. In
-any case this is off-topic.
+rebased on 4.1-rc2, switched over to generic i2c recover mechanism,
+retested on am437x sk and beaglebone black.
 
-I'll rebase the patch and fix what you asked, then retest, and resend.
+ drivers/i2c/busses/i2c-omap.c | 69 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 65 insertions(+), 4 deletions(-)
 
---=20
-balbi
-
---8NvZYKFJsRX2Djef
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVSkTsAAoJEIaOsuA1yqRE5gEP/3hQCjY7LrsvrkzzFjji6i6b
-kWL78Bgb+sMFPvF0/wPKv/4eVXEVt+0hf/QWTdD+E8C0+EUuXjimc8sm481XeYM6
-5N1OYOcZKCjyg4s83M7BXSp0XljhhlmvtuBRmR+3hYg8rGIq5HKiecNgZpay/m1g
-Epgjixwmzqydgym5VqoVUfKqTwKNkBqLL853QF76cKeLQwKAfbv6JyJwL/HqWteF
-Ybxnm1a24f/qPfqNZY7U+0tt3CEEpFav2yQHSNKaWXDeShwXl8Fe5ubSl+GIZQkF
-ajIQc2ReeSGUqjZr/9qf4wmcG0oViFdVV837quRJVwGV1AtH0sMYUG5WjhiDb/Y1
-3M7wjy8o5LDCR3nfxZqCwoPa63GjFDoKwDOqxbLiNU9xGuZMK0Jvtu2EOUpXpliS
-bc+JzNiwFTPxt6fpjgti94zPzO+MW34y6RsyOj9sH39JmyY7aNLAFU+XTE3q54KA
-KsJQF1/0KlDnsaDlGIpthNOayaKGreURMK3TZ2Yn2x47+n9jtO3dDIYCc1x3N2Fl
-yDciBp1YJwk7LdC/whv4FDxaVTbG1jaw8AuZMGbRmMGkroQ7ef9KPlBFyZdfd21y
-+ceuy5EjMKLF39wH6MFxcgozd3bSigEyBkeCs+ZcnWFDDDLB9ua1DPqzYM5HYMJb
-FH93Tnq47CWoxQ7CQDSe
-=qqAf
------END PGP SIGNATURE-----
-
---8NvZYKFJsRX2Djef--
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 0e894193accf..dcf559ac92c5 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -481,10 +481,8 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
+ 
+ 	timeout = jiffies + OMAP_I2C_TIMEOUT;
+ 	while (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
+-		if (time_after(jiffies, timeout)) {
+-			dev_warn(dev->dev, "timeout waiting for bus ready\n");
+-			return -ETIMEDOUT;
+-		}
++		if (time_after(jiffies, timeout))
++			return i2c_recover_bus(&dev->adapter);
+ 		msleep(1);
+ 	}
+ 
+@@ -1209,6 +1207,68 @@ MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
+ #define OMAP_I2C_SCHEME_0		0
+ #define OMAP_I2C_SCHEME_1		1
+ 
++static int omap_i2c_get_scl(struct i2c_adapter *adap)
++{
++	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
++	u32 reg;
++
++	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++
++	return reg & OMAP_I2C_SYSTEST_SCL_I_FUNC;
++}
++
++static int omap_i2c_get_sda(struct i2c_adapter *adap)
++{
++	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
++	u32 reg;
++
++	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++
++	return reg & OMAP_I2C_SYSTEST_SDA_I_FUNC;
++}
++
++static void omap_i2c_set_scl(struct i2c_adapter *adap, int val)
++{
++	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
++	u32 reg;
++
++	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++	if (val)
++		reg |= OMAP_I2C_SYSTEST_SCL_O;
++	else
++		reg &= ~OMAP_I2C_SYSTEST_SCL_O;
++	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
++}
++
++static void omap_i2c_prepare_recovery(struct i2c_adapter *adap)
++{
++	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
++	u32 reg;
++
++	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++	reg |= OMAP_I2C_SYSTEST_ST_EN;
++	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
++}
++
++static void omap_i2c_unprepare_recovery(struct i2c_adapter *adap)
++{
++	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
++	u32 reg;
++
++	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++	reg &= ~OMAP_I2C_SYSTEST_ST_EN;
++	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
++}
++
++static struct i2c_bus_recovery_info omap_i2c_bus_recovery_info = {
++	.get_scl		= omap_i2c_get_scl,
++	.get_sda		= omap_i2c_get_sda,
++	.set_scl		= omap_i2c_set_scl,
++	.prepare_recovery	= omap_i2c_prepare_recovery,
++	.unprepare_recovery	= omap_i2c_unprepare_recovery,
++	.recover_bus		= i2c_generic_scl_recovery,
++};
++
+ static int
+ omap_i2c_probe(struct platform_device *pdev)
+ {
+@@ -1358,6 +1418,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	adap->algo = &omap_i2c_algo;
+ 	adap->dev.parent = &pdev->dev;
+ 	adap->dev.of_node = pdev->dev.of_node;
++	adap->bus_recovery_info = &omap_i2c_bus_recovery_info;
+ 
+ 	/* i2c device drivers may be active on return from add_adapter() */
+ 	adap->nr = pdev->id;
+-- 
+2.4.0.rc3
