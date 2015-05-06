@@ -1,66 +1,72 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [PATCH 3.13.y-ckt 53/90] dmaengine: omap-dma: Fix memory leak when
- terminating running transfer
-Date: Tue,  5 May 2015 13:54:25 -0700
-Message-ID: <1430859302-5886-54-git-send-email-kamal@canonical.com>
-References: <1430859302-5886-1-git-send-email-kamal@canonical.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer
+ clock
+Date: Tue, 5 May 2015 22:35:39 -0700
+Message-ID: <20150506053539.GA10871@codeaurora.org>
+References: <1430848941-27106-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-team-bounces@lists.ubuntu.com>
-In-Reply-To: <1430859302-5886-1-git-send-email-kamal@canonical.com>
-List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/kernel-team>,
- <mailto:kernel-team-request@lists.ubuntu.com?subject=unsubscribe>
-List-Archive: <https://lists.ubuntu.com/archives/kernel-team>
-List-Post: <mailto:kernel-team@lists.ubuntu.com>
-List-Help: <mailto:kernel-team-request@lists.ubuntu.com?subject=help>
-List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/kernel-team>,
- <mailto:kernel-team-request@lists.ubuntu.com?subject=subscribe>
-Errors-To: kernel-team-bounces@lists.ubuntu.com
-Sender: kernel-team-bounces@lists.ubuntu.com
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, Kamal Mostafa <kamal@canonical.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50796 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbbEFFfl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2015 01:35:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1430848941-27106-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-3.13.11-ckt20 -stable review patch.  If anyone has any objections, please let me know.
+On 05/05, Tony Lindgren wrote:
+> With recent changes to use determine_rate, the comparison of two
+> clocks won't work without doing __clk_get_hw on the clocks
+> first.
+> 
+> Cc: Michael Turquette <mturquette@linaro.org>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> Found one more of these, the coccinelle scripts do not seem
+> to match this?
 
-------------------
+I don't think the coccinelle script was ever merged...
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> ---
+>  arch/arm/mach-omap2/timer.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index cef67af..22c7a8e 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/clocksource.h>
+>  #include <linux/clockchips.h>
+> +#include <linux/clk-provider.h>
+>  #include <linux/slab.h>
+>  #include <linux/of.h>
+>  #include <linux/of_address.h>
+> @@ -298,7 +299,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  	if (IS_ERR(src))
+>  		return PTR_ERR(src);
+>  
+> -	if (clk_get_parent(timer->fclk) != src) {
+> +	if (__clk_get_hw(clk_get_parent(timer->fclk)) != __clk_get_hw(src)) {
 
-commit 02d88b735f5a60f04dbf6d051b76e1877a0d0844 upstream.
+Please use clk_is_match() instead so we can find these instances
+with an easy grep.
 
-In omap_dma_start_desc the vdesc->node is removed from the virt-dma
-framework managed lists (to be precise from the desc_issued list).
-If a terminate_all comes before the transfer finishes the omap_desc will
-not be freed up because it is not in any of the lists and we stopped the
-DMA channel so the transfer will not going to complete.
-There is no special sequence for leaking memory when using cyclic (audio)
-transfer: with every start and stop of a cyclic transfer the driver leaks
-struct omap_desc worth of memory.
+>  		r = clk_set_parent(timer->fclk, src);
+>  		if (r < 0) {
+>  			pr_warn("%s: %s cannot set source\n", __func__,
 
-Free up the allocated memory directly in omap_dma_terminate_all() since the
-framework will not going to do that for us.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: <linux-omap@vger.kernel.org>
-Signed-off-by: Vinod Koul <vinod.koul@intel.com>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
----
- drivers/dma/omap-dma.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 2f66cf4..d1cb93d 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -487,6 +487,7 @@ static int omap_dma_terminate_all(struct omap_chan *c)
- 	 * c->desc is NULL and exit.)
- 	 */
- 	if (c->desc) {
-+		omap_dma_desc_free(&c->desc->vd);
- 		c->desc = NULL;
- 		/* Avoid stopping the dma twice */
- 		if (!c->paused)
 -- 
-1.9.1
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
