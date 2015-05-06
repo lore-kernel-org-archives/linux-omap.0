@@ -1,83 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv3 02/10] ARM: DRA7: hwmod: add DMM hwmod description
-Date: Wed, 6 May 2015 13:08:50 +0300
-Message-ID: <1430906938-26128-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv3 04/10] ARM: OMAP: display: change compat names to array
+Date: Wed, 6 May 2015 13:08:52 +0300
+Message-ID: <1430906938-26128-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55160 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41807 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919AbbEFKJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 May 2015 06:09:31 -0400
+	id S1751155AbbEFKJh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 May 2015 06:09:37 -0400
 In-Reply-To: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add DMM hwmod entries for DRA7. This is identical to DMM on OMAP5.
+Simplify the DSS detection logic by creating a list of the omapdss
+compat strings, instead of checking each separately with an 'if'.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ arch/arm/mach-omap2/display.c | 29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 0e64c2fac0b5..71599f27bddc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -49,6 +49,27 @@
-  */
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index f492ae147c6a..9868d0bc7805 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -568,25 +568,24 @@ void __init omapdss_early_init_of(void)
  
- /*
-+ * 'dmm' class
-+ * instance(s): dmm
-+ */
-+static struct omap_hwmod_class dra7xx_dmm_hwmod_class = {
-+	.name	= "dmm",
+ }
+ 
++static const char * const omapdss_compat_names[] __initconst = {
++	"ti,omap2-dss",
++	"ti,omap3-dss",
++	"ti,omap4-dss",
++	"ti,omap5-dss",
 +};
 +
-+/* dmm */
-+static struct omap_hwmod dra7xx_dmm_hwmod = {
-+	.name		= "dmm",
-+	.class		= &dra7xx_dmm_hwmod_class,
-+	.clkdm_name	= "emif_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_EMIF_DMM_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_EMIF_DMM_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/*
-  * 'l3' class
-  * instance(s): l3_instr, l3_main_1, l3_main_2
-  */
-@@ -2321,6 +2342,14 @@ static struct omap_hwmod dra7xx_wd_timer2_hwmod = {
-  * Interfaces
-  */
+ struct device_node * __init omapdss_find_dss_of_node(void)
+ {
+ 	struct device_node *node;
++	int i;
  
-+/* l3_main_1 -> dmm */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dmm = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_dmm_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_SDMA,
-+};
-+
- /* l3_main_2 -> l3_instr */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_2__l3_instr = {
- 	.master		= &dra7xx_l3_main_2_hwmod,
-@@ -3289,6 +3318,7 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
- };
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap2-dss");
+-	if (node)
+-		return node;
+-
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap3-dss");
+-	if (node)
+-		return node;
+-
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap4-dss");
+-	if (node)
+-		return node;
+-
+-	node = of_find_compatible_node(NULL, NULL, "ti,omap5-dss");
+-	if (node)
+-		return node;
++	for (i = 0; i < ARRAY_SIZE(omapdss_compat_names); ++i) {
++		node = of_find_compatible_node(NULL, NULL,
++			omapdss_compat_names[i]);
++		if (node)
++			return node;
++	}
  
- static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
-+	&dra7xx_l3_main_1__dmm,
- 	&dra7xx_l3_main_2__l3_instr,
- 	&dra7xx_l4_cfg__l3_main_1,
- 	&dra7xx_mpu__l3_main_1,
+ 	return NULL;
+ }
 -- 
 2.1.4
 
