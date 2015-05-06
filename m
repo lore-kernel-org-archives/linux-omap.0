@@ -1,61 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT revision
-Date: Wed, 06 May 2015 11:31:15 +0200
-Message-ID: <3577431.y872Foi4kj@wuerfel>
-References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com> <1430902142-17035-2-git-send-email-pali.rohar@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv3 00/10] ARM: DRA7: add display support
+Date: Wed, 6 May 2015 13:08:48 +0300
+Message-ID: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430902142-17035-2-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Rob Herring <robherring2@gmail.com>, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55159 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750718AbbEFKJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 May 2015 06:09:31 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wednesday 06 May 2015 10:49:01 Pali Roh=E1r wrote:
-> With this patch "revision" DT string entry is used to set global syst=
-em_rev
-> variable. DT "revision" is expected to be string with one hexadecimal=
- number.
-> So "Revision" line in /proc/cpuinfo will be same as "revision" DT val=
-ue.
->=20
-> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+Hi,
 
-+devicetree mailing list
+This series adds the arch/arm/ side of the display support for DRA7 (DRA72x,
+DRA74x, AM54xx) SoCs. Also support for HDMI output on x15 and DRA72 EVM boards
+is added.
 
-The property needs to be specified in a binding somewhere.
+This series is v3, and is based on v4.1-rc2. There are no differences to v2,
+except rebased and tested.
 
-> @@ -246,5 +247,14 @@ const struct machine_desc * __init setup_machine=
-_fdt(unsigned int dt_phys)
->  	/* Change machine number to match the mdesc we're using */
->  	__machine_arch_type =3D mdesc->nr;
-> =20
-> +	/* Set system revision from DT */
-> +	prop =3D of_get_flat_dt_prop(dt_root, "revision", &size);
-> +	if (prop && size > 0) {
-> +		char revision[11];
-> +		strlcpy(revision, prop, min(size, (int)sizeof(revision)));
-> +		if (kstrtouint(revision, 16, &system_rev) !=3D 0)
-> +			system_rev =3D 0;
-> +	}
-> +
->  	return mdesc;
->  }
->=20
+ Tomi
 
-What is the reason for doing it this early? I think it would be nicer t=
-o do
-it after unflattening the DT.
+Tomi Valkeinen (10):
+  arm/dts: dra7xx: add 'ti,set-rate-parent' for dss_dss_clk
+  ARM: DRA7: hwmod: add DMM hwmod description
+  ARM: DRA7: hwmod: set DSS submodule parent hwmods
+  ARM: OMAP: display: change compat names to array
+  ARM: OMAP2+: display: detect DRA7 DSS
+  arm/dts: dra7.dtsi: add DSS support
+  arm/dts: dra72-evm.dts: add HDMI
+  arm/dts: am57xx-beagle-x15.dts: add HDMI
+  arm: dra7: add DESHDCP clock
+  CLK: TI: always enable DESHDCP clock
 
-Also, it seems strange to have a string property and then use kstrtouin=
-t
-to convert it into a number. I think it should either be specified in a=
- DT
-binding to be a string and then have the kernel not assume that it is a=
- number,
-or we should define it to be binary.
+ arch/arm/boot/dts/am57xx-beagle-x15.dts   |  81 ++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi               |  43 ++++++++++++
+ arch/arm/boot/dts/dra72-evm.dts           | 110 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra72x.dtsi             |  11 +++
+ arch/arm/boot/dts/dra74x.dtsi             |  15 ++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi      |  11 +++
+ arch/arm/mach-omap2/display.c             |  32 +++++----
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  33 +++++++++
+ drivers/clk/ti/clk-7xx.c                  |   8 ++-
+ 9 files changed, 328 insertions(+), 16 deletions(-)
 
-	Arnd
+-- 
+2.1.4
+
