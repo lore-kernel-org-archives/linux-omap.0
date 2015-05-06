@@ -1,147 +1,128 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 08/10] arm/dts: am57xx-beagle-x15.dts: add HDMI
-Date: Wed, 6 May 2015 13:08:56 +0300
-Message-ID: <1430906938-26128-9-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv3 06/10] arm/dts: dra7.dtsi: add DSS support
+Date: Wed, 6 May 2015 13:08:54 +0300
+Message-ID: <1430906938-26128-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430906938-26128-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50673 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751477AbbEFKJn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 May 2015 06:09:43 -0400
+In-Reply-To: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org
 
-AM57xx Beagle X15 has a HDMI output. This patch adds the device tree
-nodes required for HDMI.
+DRA7xxx contains a very similar DSS to OMAP5. The main differences are:
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+* no DSI or RFBI support.
+* 1 or 2 dedicated video PLLs.
+* need to do additional configuration to the DRA7 CONTROL module.
+
+DRA72xx has only one video PLL, and DRA74xx has two.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org
 ---
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 81 +++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi   | 38 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra72x.dtsi | 11 +++++++++++
+ arch/arm/boot/dts/dra74x.dtsi | 15 +++++++++++++++
+ 3 files changed, 64 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 15f198e4864d..f1e430507e4f 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -18,6 +18,7 @@
- 	aliases {
- 		rtc0 = &mcp_rtc;
- 		rtc1 = &tps659038_rtc;
-+		display0 = &hdmi0;
- 	};
- 
- 	memory {
-@@ -102,6 +103,51 @@
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&extcon_usb2_pins>;
- 	};
-+
-+	hdmi0: connector {
-+		compatible = "hdmi-connector";
-+		label = "hdmi";
-+
-+		type = "a";
-+
-+		port {
-+			hdmi_connector_in: endpoint {
-+				remote-endpoint = <&tpd12s015_out>;
-+			};
-+		};
-+	};
-+
-+	tpd12s015: encoder {
-+		compatible = "ti,tpd12s015";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tpd12s015_pins>;
-+
-+		gpios = <&gpio7 10 GPIO_ACTIVE_HIGH>,	/* gpio7_10, CT CP HPD */
-+			<&gpio6 28 GPIO_ACTIVE_HIGH>,	/* gpio6_28, LS OE */
-+			<&gpio7 12 GPIO_ACTIVE_HIGH>;	/* gpio7_12/sp1_cs2, HPD */
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tpd12s015_in: endpoint {
-+					remote-endpoint = <&hdmi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tpd12s015_out: endpoint {
-+					remote-endpoint = <&hdmi_connector_in>;
-+				};
-+			};
-+		};
-+	};
- };
- 
- &dra7_pmx_core {
-@@ -121,6 +167,13 @@
- 		>;
- 	};
- 
-+	hdmi_pins: pinmux_hdmi_pins {
-+		pinctrl-single,pins = <
-+			0x408 (PIN_INPUT | MUX_MODE1)	/* i2c2_sda.hdmi1_ddc_scl */
-+			0x40c (PIN_INPUT | MUX_MODE1)	/* i2c2_scl.hdmi1_ddc_sda */
-+		>;
-+	};
-+
- 	i2c3_pins_default: i2c3_pins_default {
- 		pinctrl-single,pins = <
- 			0x2a4 (PIN_INPUT| MUX_MODE10)	/* mcasp1_aclkx.i2c3_sda */
-@@ -277,6 +330,14 @@
- 			0x3e8 (PIN_INPUT_PULLUP | MUX_MODE14) /* uart1_ctsn.gpio7_24 */
- 		>;
- 	};
-+
-+	tpd12s015_pins: pinmux_tpd12s015_pins {
-+		pinctrl-single,pins = <
-+			0x3b0 (PIN_OUTPUT | MUX_MODE14)		/* gpio7_10 CT_CP_HPD */
-+			0x3b8 (PIN_INPUT_PULLDOWN | MUX_MODE14)	/* gpio7_12 HPD */
-+			0x370 (PIN_OUTPUT | MUX_MODE14)		/* gpio6_28 LS_OE */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -607,3 +668,23 @@
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 5332b57b4950..a319de723851 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1469,6 +1469,44 @@
+ 			clocks = <&sys_clkin1>;
+ 			status = "disabled";
  		};
-        };
++
++		dss: dss@58000000 {
++			compatible = "ti,dra7-dss";
++			/* 'reg' defined in dra72x.dtsi and dra74x.dtsi */
++			/* 'clocks' defined in dra72x.dtsi and dra74x.dtsi */
++			status = "disabled";
++			ti,hwmods = "dss_core";
++			/* CTRL_CORE_DSS_PLL_CONTROL */
++			syscon-pll-ctrl = <&scm_conf 0x538>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++
++			dispc@58001000 {
++				compatible = "ti,dra7-dispc";
++				reg = <0x58001000 0x1000>;
++				interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
++				ti,hwmods = "dss_dispc";
++				clocks = <&dss_dss_clk>;
++				clock-names = "fck";
++				/* CTRL_CORE_SMA_SW_1 */
++				syscon-pol = <&scm_conf 0x534>;
++			};
++
++			hdmi: encoder@58060000 {
++				compatible = "ti,dra7-hdmi";
++				reg = <0x58040000 0x200>,
++				      <0x58040200 0x80>,
++				      <0x58040300 0x80>,
++				      <0x58060000 0x19000>;
++				reg-names = "wp", "pll", "phy", "core";
++				interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
++				status = "disabled";
++				ti,hwmods = "dss_hdmi";
++				clocks = <&dss_48mhz_clk>, <&dss_hdmi_clk>;
++				clock-names = "fck", "sys_clk";
++			};
++		};
+ 	};
+ 
+ 	thermal_zones: thermal-zones {
+diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
+index 03d742f8d572..eaca143faa77 100644
+--- a/arch/arm/boot/dts/dra72x.dtsi
++++ b/arch/arm/boot/dts/dra72x.dtsi
+@@ -34,3 +34,14 @@
+ 		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>;
+ 	};
  };
 +
 +&dss {
-+	status = "ok";
++	reg = <0x58000000 0x80>,
++	      <0x58004054 0x4>,
++	      <0x58004300 0x20>;
++	reg-names = "dss", "pll1_clkctrl", "pll1";
 +
-+	vdda_video-supply = <&ldoln_reg>;
++	clocks = <&dss_dss_clk>,
++		 <&dss_video1_clk>;
++	clock-names = "fck", "video1_clk";
 +};
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index cc560a70926f..fa995d0ca1f2 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -73,3 +73,18 @@
+ 		};
+ 	};
+ };
 +
-+&hdmi {
-+	status = "ok";
-+	vdda-supply = <&ldo3_reg>;
++&dss {
++	reg = <0x58000000 0x80>,
++	      <0x58004054 0x4>,
++	      <0x58004300 0x20>,
++	      <0x58005054 0x4>,
++	      <0x58005300 0x20>;
++	reg-names = "dss", "pll1_clkctrl", "pll1",
++		    "pll2_clkctrl", "pll2";
 +
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hdmi_pins>;
-+
-+	port {
-+		hdmi_out: endpoint {
-+			remote-endpoint = <&tpd12s015_in>;
-+		};
-+	};
++	clocks = <&dss_dss_clk>,
++		 <&dss_video1_clk>,
++		 <&dss_video2_clk>;
++	clock-names = "fck", "video1_clk", "video2_clk";
 +};
 -- 
 2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
