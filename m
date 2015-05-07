@@ -1,97 +1,61 @@
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer
- clock
-Date: Wed, 06 May 2015 17:29:23 -0700
-Message-ID: <554AB1E3.2000304@codeaurora.org>
-References: <1430848941-27106-1-git-send-email-tony@atomide.com> <20150506053539.GA10871@codeaurora.org> <20150506145539.GI21061@atomide.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Wed, 6 May 2015 23:39:53 -0700
+Message-ID: <20150507063953.GC32399@codeaurora.org>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:47016 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbbEGA3Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2015 20:29:25 -0400
-In-Reply-To: <20150506145539.GI21061@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-On 05/06/15 07:55, Tony Lindgren wrote:
-> * Stephen Boyd <sboyd@codeaurora.org> [150505 22:36]:
->> On 05/05, Tony Lindgren wrote:
->>> With recent changes to use determine_rate, the comparison of two
->>> clocks won't work without doing __clk_get_hw on the clocks
->>> first.
->>>
->>> Cc: Michael Turquette <mturquette@linaro.org>
->>> Cc: Paul Walmsley <paul@pwsan.com>
->>> Cc: Stephen Boyd <sboyd@codeaurora.org>
->>> Cc: Tero Kristo <t-kristo@ti.com>
->>> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>> ---
->>>
->>> Found one more of these, the coccinelle scripts do not seem
->>> to match this?
->> I don't think the coccinelle script was ever merged...
-> Oh OK, but the wrong comparisons in the kernel code got
-> fixed, right? 
+On 04/30, Boris Brezillon wrote:
+> Clock rates are stored in an unsigned long field, but ->round_rate()
+> (which returns a rounded rate from a requested one) returns a long
+> value (errors are reported using negative error codes), which can lead
+> to long overflow if the clock rate exceed 2Ghz.
+> 
+> Change ->round_rate() prototype to return 0 or an error code, and pass the
+> requested rate as a pointer so that it can be adjusted depending on
+> hardware capabilities.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> Tested-by: Heiko Stuebner <heiko@sntech.de>
+> Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+> Reviewed-by: Heiko Stuebner <heiko@sntech.de>
 
-Yes the ones that mattered were fixed.
+This patch is fairly invasive, and it probably doesn't even
+matter for most of these clock providers to be able to round a
+rate above 2GHz. I've been trying to remove the .round_rate op
+from the framework by encouraging new features via the
+.determine_rate op. Sadly, we still have to do a flag day and
+change all the .determine_rate ops when we want to add things.
 
->>> @@ -298,7 +299,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->>>  	if (IS_ERR(src))
->>>  		return PTR_ERR(src);
->>>  
->>> -	if (clk_get_parent(timer->fclk) != src) {
->>> +	if (__clk_get_hw(clk_get_parent(timer->fclk)) != __clk_get_hw(src)) {
->> Please use clk_is_match() instead so we can find these instances
->> with an easy grep.
-> Thanks here's an updated version with that.
+What if we changed determine_rate ops to take a struct
+clk_determine_info (or some better named structure) instead of
+the current list of arguments that it currently takes? Then when
+we want to make these sorts of framework wide changes we can just
+throw a new member into that structure and be done.
 
-Are you taking this through arm-soc?
+It doesn't solve the unsigned long to int return value problem
+though. We can solve that by gradually introducing a new op and
+handling another case in the rounding path. If we can come up
+with some good name for that new op like .decide_rate or
+something then it makes things nicer in the long run. I like the
+name .determine_rate though :/
 
-> Regards,
->
-> Tony
->
-> 8< -----------------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 5 May 2015 09:03:34 -0700
-> Subject: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer clock
->
-> With recent changes to use determine_rate, the comparison of two
-> clocks won't work without clk_is_match that does __clk_get_hw
-> on the clocks first.
->
-> Cc: Michael Turquette <mturquette@linaro.org>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -298,7 +298,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->  	if (IS_ERR(src))
->  		return PTR_ERR(src);
->  
-> -	if (clk_get_parent(timer->fclk) != src) {
-> +	if (!clk_is_match(clk_get_parent(timer->fclk), src)) {
->  		r = clk_set_parent(timer->fclk, src);
-
-I also wonder why we can't just call clk_set_parent() and skip the "is
-the parent already src" check?
-
-If there's a good reason for not just calling clk_set_parent() then it
-makes sense to do the clk_is_match() thing, and you can have my ack
-
-Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+The benefit of all this is that we don't have to worry about
+finding the random clk providers that get added into other
+subsystems and fixing them up. If drivers actually care about
+this problem then they'll be fixed to use the proper op. FYI,
+last time we updated the function signature of .determine_rate we
+broke a couple drivers along the way.
 
 -- 
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
 a Linux Foundation Collaborative Project
-
