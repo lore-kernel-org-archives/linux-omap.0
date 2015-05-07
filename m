@@ -1,60 +1,97 @@
-From: Tim Nordell <tim.nordell@logicpd.com>
-Subject: DM3730 + MUSB host mode + DMA + USB Ethernet dongle = Fail
-Date: Wed, 06 May 2015 18:17:47 -0500
-Message-ID: <554AA11B.9040909@logicpd.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer
+ clock
+Date: Wed, 06 May 2015 17:29:23 -0700
+Message-ID: <554AB1E3.2000304@codeaurora.org>
+References: <1430848941-27106-1-git-send-email-tony@atomide.com> <20150506053539.GA10871@codeaurora.org> <20150506145539.GI21061@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:42273 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751041AbbEFXSR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 May 2015 19:18:17 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1Yq8a0-0002bM-0c
-	for linux-omap@vger.kernel.org; Thu, 07 May 2015 01:18:16 +0200
-Received: from 66-162-60-14.static.twtelecom.net ([66.162.60.14])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 07 May 2015 01:18:15 +0200
-Received: from tim.nordell by 66-162-60-14.static.twtelecom.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 07 May 2015 01:18:15 +0200
+Received: from smtp.codeaurora.org ([198.145.29.96]:47016 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438AbbEGA3Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2015 20:29:25 -0400
+In-Reply-To: <20150506145539.GI21061@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-usb@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-Hi all -
+On 05/06/15 07:55, Tony Lindgren wrote:
+> * Stephen Boyd <sboyd@codeaurora.org> [150505 22:36]:
+>> On 05/05, Tony Lindgren wrote:
+>>> With recent changes to use determine_rate, the comparison of two
+>>> clocks won't work without doing __clk_get_hw on the clocks
+>>> first.
+>>>
+>>> Cc: Michael Turquette <mturquette@linaro.org>
+>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>> Cc: Stephen Boyd <sboyd@codeaurora.org>
+>>> Cc: Tero Kristo <t-kristo@ti.com>
+>>> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>> ---
+>>>
+>>> Found one more of these, the coccinelle scripts do not seem
+>>> to match this?
+>> I don't think the coccinelle script was ever merged...
+> Oh OK, but the wrong comparisons in the kernel code got
+> fixed, right? 
 
-I'm running kernel v3.19 (although I've tried v4.1-rc2's version of the 
-MUSB code) on a DM3730 processor.  I'm running into an issue where if I 
-enable MUSB Inventra DMA, plug in a USB Ethernet Dongle, and run iperf 
-between the dongle and a PC, the MUSB driver stops working.  I get the 
-following in my kernel log, twice back-to-back:
+Yes the ones that mattered were fixed.
 
-     musb_host_rx 1762: Rx interrupt with no errors or packet!
+>>> @@ -298,7 +299,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>>>  	if (IS_ERR(src))
+>>>  		return PTR_ERR(src);
+>>>  
+>>> -	if (clk_get_parent(timer->fclk) != src) {
+>>> +	if (__clk_get_hw(clk_get_parent(timer->fclk)) != __clk_get_hw(src)) {
+>> Please use clk_is_match() instead so we can find these instances
+>> with an easy grep.
+> Thanks here's an updated version with that.
 
-Any ideas?
+Are you taking this through arm-soc?
 
-The test above works in PIO mode, but I'd like to reduce the system CPU 
-usage of the driver by using DMA.  I'm using a ASIX AX88772B Ethernet 
-dongle, although, this shouldn't impact the error above.  I also tried 
-re-reading the RXCSR register immediately after the error printout 
-above, and the immediate subsequent time it contains the bit the driver 
-is looking for.  I tried nesting the check so that if the bit the driver 
-is looking for is set with an immediate subsequent read that it would 
-continue past it, but it still keels over (albeit lasting maybe a second 
-longer).
+> Regards,
+>
+> Tony
+>
+> 8< -----------------------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Tue, 5 May 2015 09:03:34 -0700
+> Subject: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer clock
+>
+> With recent changes to use determine_rate, the comparison of two
+> clocks won't work without clk_is_match that does __clk_get_hw
+> on the clocks first.
+>
+> Cc: Michael Turquette <mturquette@linaro.org>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -298,7 +298,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  	if (IS_ERR(src))
+>  		return PTR_ERR(src);
+>  
+> -	if (clk_get_parent(timer->fclk) != src) {
+> +	if (!clk_is_match(clk_get_parent(timer->fclk), src)) {
+>  		r = clk_set_parent(timer->fclk, src);
 
-Something about this feels race conditiony too.  Depending on the kernel 
-configuration options in the kernel debug menu (which slows down other 
-parts of the kernel), or if I enable verbose debug message output from 
-the MUSB driver, it lasts much, much longer before keeling over as a 
-system.  You can restore normal behavior by unplugging/replugging in the 
-device.
+I also wonder why we can't just call clk_set_parent() and skip the "is
+the parent already src" check?
 
-Thanks,
-Tim
+If there's a good reason for not just calling clk_set_parent() then it
+makes sense to do the clk_is_match() thing, and you can have my ack
+
+Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
