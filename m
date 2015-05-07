@@ -1,109 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer
- clock
-Date: Thu, 7 May 2015 07:44:37 -0700
-Message-ID: <20150507144437.GA15563@atomide.com>
-References: <1430848941-27106-1-git-send-email-tony@atomide.com>
- <20150506053539.GA10871@codeaurora.org>
- <20150506145539.GI21061@atomide.com>
- <554AB1E3.2000304@codeaurora.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: DM3730 + MUSB host mode + DMA + USB Ethernet dongle = Fail
+Date: Thu, 7 May 2015 09:06:06 -0700
+Message-ID: <20150507160606.GB15563@atomide.com>
+References: <554AA11B.9040909@logicpd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:49701 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751394AbbEGOok (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 May 2015 10:44:40 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <554AB1E3.2000304@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <554AA11B.9040909-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tim Nordell <tim.nordell-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-* Stephen Boyd <sboyd@codeaurora.org> [150506 17:30]:
-> On 05/06/15 07:55, Tony Lindgren wrote:
-> >> I don't think the coccinelle script was ever merged...
->
-> > Oh OK, but the wrong comparisons in the kernel code got
-> > fixed, right? 
+* Tim Nordell <tim.nordell-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org> [150506 16:19]:
+> Hi all -
 > 
-> Yes the ones that mattered were fixed.
+> I'm running kernel v3.19 (although I've tried v4.1-rc2's version of the MUSB
+> code) on a DM3730 processor.  I'm running into an issue where if I enable
+> MUSB Inventra DMA, plug in a USB Ethernet Dongle, and run iperf between the
+> dongle and a PC, the MUSB driver stops working.  I get the following in my
+> kernel log, twice back-to-back:
+> 
+>     musb_host_rx 1762: Rx interrupt with no errors or packet!
+> 
+> Any ideas?
+> 
+> The test above works in PIO mode, but I'd like to reduce the system CPU
+> usage of the driver by using DMA.  I'm using a ASIX AX88772B Ethernet
+> dongle, although, this shouldn't impact the error above.  I also tried
+> re-reading the RXCSR register immediately after the error printout above,
+> and the immediate subsequent time it contains the bit the driver is looking
+> for.  I tried nesting the check so that if the bit the driver is looking for
+> is set with an immediate subsequent read that it would continue past it, but
+> it still keels over (albeit lasting maybe a second longer).
+> 
+> Something about this feels race conditiony too.  Depending on the kernel
+> configuration options in the kernel debug menu (which slows down other parts
+> of the kernel), or if I enable verbose debug message output from the MUSB
+> driver, it lasts much, much longer before keeling over as a system.  You can
+> restore normal behavior by unplugging/replugging in the device.
 
-OK thanks for confirming that.
- 
-> > Thanks here's an updated version with that.
-> 
-> Are you taking this through arm-soc?
-
-Yes that's the plan.
- 
-> > --- a/arch/arm/mach-omap2/timer.c
-> > +++ b/arch/arm/mach-omap2/timer.c
-> > @@ -298,7 +298,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
-> >  	if (IS_ERR(src))
-> >  		return PTR_ERR(src);
-> >  
-> > -	if (clk_get_parent(timer->fclk) != src) {
-> > +	if (!clk_is_match(clk_get_parent(timer->fclk), src)) {
-> >  		r = clk_set_parent(timer->fclk, src);
-> 
-> I also wonder why we can't just call clk_set_parent() and skip the "is
-> the parent already src" check?
-> 
-> If there's a good reason for not just calling clk_set_parent() then it
-> makes sense to do the clk_is_match() thing, and you can have my ack
-> 
-> Acked-by: Stephen Boyd <sboyd@codeaurora.org>
-
-Good point. We've been unconditionally calling it anyways and
-nobody has complained of any issues. So let's just remove the
-check.
+This sounds like some issue dealing with certain size transfers where
+there's data remaining after a DMA transfer. You might be able to make
+it easily reproducable with a variable size ping from your PC even with
+debugging enabled. Something like the script below.
 
 Regards,
 
 Tony
 
-8< ----------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 5 May 2015 09:03:34 -0700
-Subject: [PATCH] ARM: OMAP2+: Remove bogus struct clk comparison for timer
- clock
+8< --------------
+#!/bin/bash
 
-With recent changes to use determine_rate, the comparison of two
-clocks won't work without clk_is_match that does __clk_get_hw
-on the clocks first.
+device=$1
+size=$2
 
-As we've been unconditionally already calling clk_set_parent
-already because of the bogus comparison, let's just remove the
-check as suggested by Stephen Boyd <sboyd@codeaurora.org>.
+while [ 1 ]; do
+	#echo "Pinging with size $size"
+	if ! ping -w0 -c1 $device -s$size > /dev/null 2>&1; then
+		break;
+	fi
+	size=$(expr $SIZE + 1)
 
-Cc: Michael Turquette <mturquette@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+	if [ $size -gt 8192 ]; then
+		size=1
+	fi
+done
 
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -298,14 +298,11 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 	if (IS_ERR(src))
- 		return PTR_ERR(src);
- 
--	if (clk_get_parent(timer->fclk) != src) {
--		r = clk_set_parent(timer->fclk, src);
--		if (r < 0) {
--			pr_warn("%s: %s cannot set source\n", __func__,
--				oh->name);
--			clk_put(src);
--			return r;
--		}
-+	r = clk_set_parent(timer->fclk, src);
-+	if (r < 0) {
-+		pr_warn("%s: %s cannot set source\n", __func__, oh->name);
-+		clk_put(src);
-+		return r;
- 	}
- 
- 	clk_put(src);
+echo "Test ran up to $size"
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
