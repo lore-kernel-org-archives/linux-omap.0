@@ -1,75 +1,63 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix bogus struct clk comparison for timer
- clock
-Date: Thu, 07 May 2015 12:01:58 -0700
-Message-ID: <554BB6A6.1060600@codeaurora.org>
-References: <1430848941-27106-1-git-send-email-tony@atomide.com> <20150506053539.GA10871@codeaurora.org> <20150506145539.GI21061@atomide.com> <554AB1E3.2000304@codeaurora.org> <20150507144437.GA15563@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40436 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbbEGTCA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2015 15:02:00 -0400
-In-Reply-To: <20150507144437.GA15563@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH] ARM: dts: omap3-gta04: Add GSM audio support
+Date: Thu,  7 May 2015 21:35:05 +0200
+Message-ID: <1431027305-17627-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michael Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-On 05/07/15 07:44, Tony Lindgren wrote:
-> * Stephen Boyd <sboyd@codeaurora.org> [150506 17:30]:
->> On 05/06/15 07:55, Tony Lindgren wrote:
->>
->>> --- a/arch/arm/mach-omap2/timer.c
->>> +++ b/arch/arm/mach-omap2/timer.c
->>> @@ -298,7 +298,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->>>  	if (IS_ERR(src))
->>>  		return PTR_ERR(src);
->>>  
->>> -	if (clk_get_parent(timer->fclk) != src) {
->>> +	if (!clk_is_match(clk_get_parent(timer->fclk), src)) {
->>>  		r = clk_set_parent(timer->fclk, src);
->> I also wonder why we can't just call clk_set_parent() and skip the "is
->> the parent already src" check?
->>
->> If there's a good reason for not just calling clk_set_parent() then it
->> makes sense to do the clk_is_match() thing, and you can have my ack
->>
->> Acked-by: Stephen Boyd <sboyd@codeaurora.org>
-> Good point. We've been unconditionally calling it anyways and
-> nobody has complained of any issues. So let's just remove the
-> check.
->
-> Regards,
->
-> Tony
->
-> 8< ----------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 5 May 2015 09:03:34 -0700
-> Subject: [PATCH] ARM: OMAP2+: Remove bogus struct clk comparison for timer
->  clock
->
-> With recent changes to use determine_rate, the comparison of two
-> clocks won't work without clk_is_match that does __clk_get_hw
-> on the clocks first.
->
-> As we've been unconditionally already calling clk_set_parent
-> already because of the bogus comparison, let's just remove the
-> check as suggested by Stephen Boyd <sboyd@codeaurora.org>.
->
-> Cc: Michael Turquette <mturquette@linaro.org>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Add voice audio card which is used for telephony on gta04 board.
+gtm601 codec is UMTS modem with pcm interface which get samples from
+microphone and provide data from other party side. Use simple audio card
+to describe audio card.
 
-Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+Signed-off-by: Marek Belisko <marek@goldelico.com>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index b9f6881..a3a4156 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -48,6 +48,28 @@
+ 		ti,mcbsp = <&mcbsp2>;
+ 	};
+ 
++	 /* GSM audio */
++	sound_telephony {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "GTA04 voice";
++		simple-audio-card,bitclock-master = <&telephony_link_master>;
++		simple-audio-card,frame-master = <&telephony_link_master>;
++		simple-audio-card,format = "i2s";
++
++		simple-audio-card,cpu {
++			sound-dai = <&mcbsp4>;
++		};
++
++		telephony_link_master: simple-audio-card,codec {
++			sound-dai = <&gtm601_codec>;
++		};
++	};
++
++	gtm601_codec: gsm_codec {
++		compatible = "option,gtm601";
++		#sound-dai-cells = <0>;
++	};
++
+ 	spi_lcd {
+ 		compatible = "spi-gpio";
+ 		#address-cells = <0x1>;
+@@ -517,3 +539,7 @@
+ &mcbsp2 {
+ 	status = "okay";
+ };
++
++&mcbsp4 {
++	status = "okay";
++};
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
-
+1.9.1
