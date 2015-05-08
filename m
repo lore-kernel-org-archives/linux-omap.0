@@ -1,104 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] arm: boot: dts: am4372: add operating points
-Date: Fri, 8 May 2015 15:24:39 -0500
-Message-ID: <20150508202439.GA25459@saruman.tx.rr.com>
-References: <1431115050-23693-1-git-send-email-balbi@ti.com>
- <554D17F3.7090008@ti.com>
- <554D18AB.6060901@ti.com>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: first set of hwmod fixes for v4.1-rc
+Date: Fri, 8 May 2015 20:43:42 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1505082043110.19833@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <554D18AB.6060901@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, rjw@rjwysocki.net, Viresh Kumar <viresh.kumar@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-pm@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47306 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850AbbEHUnn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2015 16:43:43 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Fri, May 08, 2015 at 03:12:27PM -0500, Nishanth Menon wrote:
-> On 05/08/2015 03:09 PM, Nishanth Menon wrote:
-> > On 05/08/2015 02:57 PM, Felipe Balbi wrote:
-> >> By adding operating points, cpufreq-dt has a
-> >> chance of running and doing something useful.
-> >>
-> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >> ---
-> >>  arch/arm/boot/dts/am4372.dtsi | 9 +++++++++
-> >>  1 file changed, 9 insertions(+)
-> >>
-> >> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.=
-dtsi
-> >> index c80a3e233792..ea1db20f64fc 100644
-> >> --- a/arch/arm/boot/dts/am4372.dtsi
-> >> +++ b/arch/arm/boot/dts/am4372.dtsi
-> >> @@ -38,6 +38,15 @@
-> >>  			clocks =3D <&dpll_mpu_ck>;
-> >>  			clock-names =3D "cpu";
-> >> =20
-> >> +			operating-points =3D <
-> >> +				/* kHz		uV */
-> >> +				1000000		1325000 /* OPP_NITRO */
-> >> +				 800000		1260000 /* OPP_TURBO */
-> >> +				 720000		1200000 /* OPP_120 */
-> >> +				 600000		1100000 /* OPP_100 */
-> >> +				 300000		 950000 /* OPP_50 */
-> >> +			>;
-> >> +
-> >>  			clock-latency =3D <300000>; /* From omap-cpufreq driver */
-> >>  		};
-> >>  	};
-> >>
-> > which of these OPPs need AVS? which of these are dependent on Efuse bit
-> > dependent?
-> >
->=20
->=20
-> You can use
-> http://git.ti.com/ti-linux-kernel/ti-linux-kernel/blobs/ti-linux-3.14.y/a=
-rch/arm/mach-omap2/opp43xx_data.c
-> for reference.
+Hi Tony,
 
-heh, why isn't that upstream yet ? Seems to be ready already. The point
-is that as of now, u-boot will set maximum OPP it can find and, for
-AM437x, that will be 800MHz or 1GHz depending on your board. 1GHz might
-not be supported in all SoCs and letting that be used all the time is
-likely going to reduce silicon lifetime.
+The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
 
-At least allowing ondemand governor run, we will be mostly running at
-300MHz and only jump to "invalid" OPPs under load which, granted, is
-still not perfect, but better than running at 1GHz all the time, don't
-you agree ?
+  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
 
---=20
-balbi
+are available in the git repository at:
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.1-rc/omap-fixes-a
 
+for you to fetch changes up to a5bf00cd735fbc293da8a9bada589c02861c8132:
+
+  ARM: AM33xx+: hwmod: re-use omap4 implementations for reset functionality (2015-05-08 13:05:19 -0600)
+
+- ----------------------------------------------------------------
+ARM: OMAP2+: first set of hwmod fixes for v4.1-rc
+
+Fix a few AM43xx problems: add the VPFE hwmod data, which removes some
+warnings; and fix the IP block hardreset implementation.
+
+Basic build, boot, and PM test results are here:
+
+http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v4.1-rc/20150508130543/
+
+Note that I do not have an AM43xx board in the testbed, and thus
+cannot test on that platform.
+
+- ----------------------------------------------------------------
+Benoit Parrot (1):
+      ARM: AM43xx: hwmod: add VPFE hwmod entries
+
+Tero Kristo (2):
+      ARM: OMAP4+: PRM: add support for passing status register/bit info to reset
+      ARM: AM33xx+: hwmod: re-use omap4 implementations for reset functionality
+
+ arch/arm/mach-omap2/omap_hwmod.c           | 68 ++++++-----------------------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 70 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |  3 +-
+ arch/arm/mach-omap2/prminst44xx.c          | 20 +++------
+ 4 files changed, 93 insertions(+), 68 deletions(-)
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVTRuHAAoJEIaOsuA1yqREnzoP/2AkmJWWiTVt8ZXf4s0rsc1t
-4sGHEL4UD6K97PWJHCs73s/Nv+kUAOK0JRG1+6xH1Vx7DNjO/4rAdDSC8P3TCpcO
-cQAc7GMMy/JGGEFG4B+Od5kRSJkit/Z7KaFoGeA3B6bNTwYiTa1F7TR47tDUhLjz
-ALLnWq/UPukCTo3yQmjy+ET6Bo4nC9b7MSU/1+6xHC/kk5GePfPZPwcMW3Tm3DEh
-gEciaQZ7ZFEjG+YAZqc/UoebEk7yGSWYJegMQN+Lllo9/mi63Q9Y8Jg//tSlsnOS
-iDbH+IJdo5WkqIuKe9iYDjfOfC6FEYrbKSG6WWnPQZ9N2WtGH0DKW2mH9cEyyTS2
-By6caN/Kb7RUk8LkSCSeReqMBc7pq8YkrvmsIWeHL2V3Qdp0hQOKgzRrFBB5dn/n
-a1DQIJKbZeh3sYtKpZvjdMHFsHyGfB+iWIGtN7Y0ZNoszOT1z468ZN61YDpaJrGr
-hJju3NqhKquLIUoqLWRmTrOcJtwIIFi3PCejWkeLH5sNCGFnmZb3cWqMmfH0IDcR
-urNRkkilyiBpewvRKpeLTILGIEXOvfbvKu24uBG39JsisCE7OLNbF72E8RfK/3J9
-G58LdtIcF31+wNXuc4Cg2HE2qwLvqw/ORkbrEuJbwtRXNjfrDSjbCGM+Bboq2ka5
-iUUDnEGdcqqsvdsBSjft
-=L44J
+iQIcBAEBAgAGBQJVTR/QAAoJEMePsQ0LvSpLP2wP/RU2rQWfIuK8Yec2IBH1+Dkn
+mD5xcuG+vLFI6cEzGjh91QvknoWGpt05+gPH8xrfzCLH/czNU/RTwVgAm70u+373
+NjiL5qIuB7UGERuAkqmXhy0fLTRvK/kQPp7lxE9bnrCNdRQHq7jDlvpRsrSrgVn1
+lbB9o9wVIroL2vnUF6LAgGY04sWsn+JG6ra/9fntMzdxjBjET0YzJW1MwE67Ur+1
+Ghp/lW39nHQ4zAdK9MhsZHH3h/4yFpSVgTqHgMwd2N1qCDKnl5ozrlUS16cQO7+d
+fO1DBY3bo3UcyEScVbEiC6SCiIu7cXzUhhpUJRcyt+TlK/Tm2AFdxXW8dF1Xl5UE
+ZK6ET+XgHxB7cJE0wDdkQQWxGSz+87MtMqC6L8UASMsBnCak2icqgFyuC20v08JC
+j744vp6yshHTQ8gB0FLXM27uUR/nLX4fpmkieqvWNpD0zeEt5eS3Kp2m+gQs2hiM
+VT1eTlzblmPi8MRzimlnophy+xMoGawX2u0AZ/RzthZ4aasYmokxffVXD/nKgilo
+aF77qLdPRGYWBjMt0fW3kBK/EJt34gIM/WXFqLJmmTDcK51RXgNtpBBJFAzUVw2n
+bAFQoowsA4aFRsNoCwSwp1C6P6e3oZWeT6uxXewDiClHpvoWPGY3TSx1VIg40tBe
+hzc7o9RL2BuifhwWYm0x
+=ElB0
 -----END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
