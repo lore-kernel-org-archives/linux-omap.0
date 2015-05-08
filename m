@@ -1,35 +1,42 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: AM33xx+: hwmod: re-use omap4 implementations
- for reset functionality
-Date: Fri, 8 May 2015 17:49:10 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1505081748510.19833@utopia.booyaka.com>
-References: <1430832785-1976-1-git-send-email-t-kristo@ti.com> <1430832785-1976-3-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PRM: Fix am437x module reset
+Date: Fri, 8 May 2015 17:50:37 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1505081749320.19833@utopia.booyaka.com>
+References: <1430508422-64913-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45105 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:45129 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473AbbEHRtL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2015 13:49:11 -0400
-In-Reply-To: <1430832785-1976-3-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1753676AbbEHRui (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2015 13:50:38 -0400
+In-Reply-To: <1430508422-64913-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, d-gerlach@ti.com, s-anna@ti.com, linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Suman Anna <s-anna@ti.com>
 
-On Tue, 5 May 2015, Tero Kristo wrote:
+Hi Dave 
 
-> The reset code functionality is mostly a copy paste between OMAP4+ and
-> AM33xx+. Re-use the omap4 code where possible, and just keep the special
-> implementation for de-asserting the hardreset lines for AM33xx, as
-> AM33xx+ devices have slightly different register layouts compared to
-> OMAP4+. This patch also fixes the hardreset issues faced on AM43xx.
+On Fri, 1 May 2015, Dave Gerlach wrote:
+
+> When moving to using the OMAP4+ PRM driver on am437x, we switched
+> to using all omap4 ops for module reset management. However, reset
+> register layout on am437x is more similar to am335x than omap4 because
+> of the the need for an st_shift for the *_RST bits in certain *_RSTST
+> registers, like WKUP_PROC_LRST in the PRCM_RM_WKUP_RSTST. Without this
+> we cannot bring the Wakeup M3 IP out of reset.
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Reported-by: Dave Gerlach <d-gerlach@ti.com>
-> Reported-by: Anna Suman <s-anna@ti.com>
+> Because of this, we must use the am33xx prm ops for the hardreset
+> functionality while continuing to use all other omap4 ops. To accomplish
+> this we split out the common portion of omap44xx_prm_init and add an
+> am437x_prm_init to register the prm_ll_data struct specific to am437x.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-Thanks, queued for v4.1-rc fixes.
+I'm assuming this has been superseded by Tero's patches.  If not, please 
+let me know.
 
 
 - Paul
