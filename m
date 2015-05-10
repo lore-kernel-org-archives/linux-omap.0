@@ -1,62 +1,59 @@
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: [PATCH] mach-omap2:Remove calls to deprecacted marco,
- PTR_RET in the files, fb.c and pmu.c
-Date: Sun, 10 May 2015 00:57:34 -0400
-Message-ID: <1431233854-31982-1-git-send-email-xerofoify@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Subject: [PATCH] ARM: dts: add core2 padconf region for am3517
+Date: Mon, 11 May 2015 00:27:53 +0300
+Message-ID: <1431293273-19321-1-git-send-email-andrej.skvortzov@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:34189 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751550AbbEJV2P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 May 2015 17:28:15 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Andrey Skvortsov <andrej.skvortzov@gmail.com>
 
-This removes two calls to the deprecated marco,PTR_RET in
-the files,fb.c and pmu.c for the functions,omap_init_vrfb
-and omap_init_pmu respectfully. Furthermore these are now
-replaced by calling the correctly non deprecacted function,
-PTR_ERR_OR_ZERO in both functions.
+According to the technical reference manual for AM35xx system
+controller module (SCM) PADCONFS core registers are divided in two
+regions: 0x48002030..0x48002268 and 0x480025d8..0x480025FC.
+First region is the same for all omap3 SoC and is described in omap3.dtsi.
+The second region is the same as in omap34xx (see omap34xx.dtsi)
+and omap35xx. The patch adds missing description for the second region.
+This patch was tested on AM3517.
 
-Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+Signed-off-by: Andrey Skvortsov <andrej.skvortzov@gmail.com>
 ---
- arch/arm/mach-omap2/fb.c  | 2 +-
- arch/arm/mach-omap2/pmu.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
-index 26e28e9..1f1ecf8 100644
---- a/arch/arm/mach-omap2/fb.c
-+++ b/arch/arm/mach-omap2/fb.c
-@@ -84,7 +84,7 @@ int __init omap_init_vrfb(void)
- 	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
- 			res, num_res, NULL, 0);
- 
--	return PTR_RET(pdev);
-+	return PTR_ERR_OR_ZERO(pdev);
- }
- #else
- int __init omap_init_vrfb(void) { return 0; }
-diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-index a69e9a3..d2adfeb 100644
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -55,7 +55,7 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
- 	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
- 	     dev_name);
- 
--	return PTR_RET(omap_pmu_dev);
-+	return PTR_ERR_OR_ZERO(omap_pmu_dev);
- }
- 
- static int __init omap_init_pmu(void)
+Commit 3d495383648a ("ARM: dts: Split omap3 pinmux core device") notes that
+Nishanth Menon <nm@ti.com> said that 3517 does not have padconf2 region.
+Unfortunately I couldn't find reference to his post on mailing list.
+This patch was tested on AM3517 SoC and original vendor code contains
+pinmuxing for this second region as well.
+
+ arch/arm/boot/dts/am3517.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+index c90724b..2534500 100644
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -60,5 +60,16 @@
+ 			dma-names = "tx", "rx";
+ 			clock-frequency = <48000000>;
+ 		};
++
++		omap3_pmx_core2: pinmux@480025D8 {
++			compatible = "ti,omap3-padconf", "pinctrl-single";
++			reg = <0x480025D8 0x24>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
++			pinctrl-single,register-width = <16>;
++			pinctrl-single,function-mask = <0xff1f>;
++		};
+ 	};
+ };
+
 -- 
 2.1.4
+
