@@ -1,70 +1,102 @@
-From: Michael Welling <mwelling@ieee.org>
-Subject: Re: next-20150511 / omap2-mcspi: regression for sdp4430 boot
-Date: Mon, 11 May 2015 12:07:42 -0500
-Message-ID: <20150511170742.GA6616@deathray>
-References: <5550DDCB.8010303@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 3/4] Documentation: dt: add bindings for TI Wakeup M3
+ processor
+Date: Mon, 11 May 2015 10:28:58 -0700
+Message-ID: <20150511172858.GD15563@atomide.com>
+References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com>
+ <1427917039-43206-4-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5550DDCB.8010303@ti.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-spi@vger.kernel.org
+In-Reply-To: <1427917039-43206-4-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 11, 2015 at 11:50:19AM -0500, Nishanth Menon wrote:
-> Hi,
-> 
-> SDP4430 uses a SPI based network chip ks8851.
-> 
-> next-20150508:
-> https://github.com/nmenon/kernel-test-logs/blob/next-20150508/omap2plus_defconfig/sdp4430.txt
-> 
-> However, next-20150511:
-> https://github.com/nmenon/kernel-test-logs/blob/next-20150511/omap2plus_defconfig/sdp4430.txt
-> 
+Hi,
 
-I will look into this but it is going to be difficult to debug with access to the hardware.
-This is what I get for changing a driver that effects so many SoCs.
+* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [150401 12:38]:
+> Add the device tree bindings document for the TI Wakeup M3 remote
+> processor devices on AM33xx and AM43xx SoCs. These devices are used
+> to offload low-level power management functionality, and are handled
+> by the wkup_m3 remoteproc driver.
+> 
+> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 
-> Generates infinite "ks8851 spi1.0: ks8851_irq: spi bus error" errors
-> and hangs the platform.
+This binding looks OK to me now, thanks for updating it:
+
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+> ---
+>  .../bindings/remoteproc/wkup_m3_rproc.txt          | 52 ++++++++++++++++++++++
+>  1 file changed, 52 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
 > 
-> Bisected the issue down to the following two commits when reverted
-> allows the board to function:
-> 
-> 
-> commit b28cb9414db9f8e42ac18c9e360e4e99cda42489
-> Author: Michael Welling <mwelling@ieee.org>
-> Date:   Thu May 7 18:36:53 2015 -0500
-> 
->     spi: omap2-mcspi: Switch driver to use transfer_one
-> 
->     Switches from transfer_one_message to transfer_one to prepare
-> driver for
->     use of GPIO chip selects.
-> 
->     Signed-off-by: Michael Welling <mwelling@ieee.org>
->     Signed-off-by: Mark Brown <broonie@kernel.org>
-> 
-> Reverting this alone: http://paste.ubuntu.org.cn/2594735 (did not boot up)
-> 
-> commit bc7f9bbc80bcc77745b3f54ec4e7103e3e142bb9
-> Author: Michael Welling <mwelling@ieee.org>
-> Date:   Fri May 8 13:31:01 2015 -0500
-> 
->     spi: omap2-mcspi: Add gpio_request and init CS
-> 
->     If GPIO chip select is specified, request the GPIO in the setup
-> function
->     and release it in the cleanup function.
-> 
->     Signed-off-by: Michael Welling <mwelling@ieee.org>
->     Signed-off-by: Mark Brown <broonie@kernel.org>
-> 
-> Reverting this as well allowed boot.
-> 
+> diff --git a/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+> new file mode 100644
+> index 0000000..3a70073
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+> @@ -0,0 +1,52 @@
+> +TI Wakeup M3 Remoteproc Driver
+> +==============================
+> +
+> +The TI AM33xx and AM43xx family of devices use a small Cortex M3 co-processor
+> +(commonly referred to as Wakeup M3 or CM3) to help with various low power tasks
+> +that cannot be controlled from the MPU. This CM3 processor requires a firmware
+> +binary to accomplish this. The wkup_m3 remoteproc driver handles the loading of
+> +the firmware and booting of the CM3.
+> +
+> +Wkup M3 Device Node:
+> +====================
+> +A wkup_m3 device node is used to represent the Wakeup M3 processor instance
+> +within the SoC. It is added as a child node of the parent interconnect bus
+> +(l4_wkup) through which it is accessible to the MPU.
+> +
+> +Required properties:
+> +--------------------
+> +- compatible:		Should be one of,
+> +				"ti,am3352-wkup-m3" for AM33xx SoCs
+> +				"ti,am4372-wkup-m3" for AM43xx SoCs
+> +- reg:			Should contain the address ranges for the two internal
+> +			memory regions, UMEM and DMEM. The parent node should
+> +			provide an appropriate ranges property for properly
+> +			translating these into bus addresses.
+> +- reg-names:		Contains the corresponding names for the two memory
+> +			regions. These should be named "umem" & "dmem".
+> +- ti,hwmods:		Name of the hwmod associated with the wkupm3 device.
+> +- ti,pm-firmware:	Name of firmware file to be used for loading and
+> +			booting the wkup_m3 remote processor.
+> +
+> +Example:
+> +--------
+> +/* AM33xx */
+> +ocp {
+> +	 l4_wkup: l4_wkup@44c00000 {
+> +		compatible = "am335-l4-wkup", "simple-bus";
+> +		ranges = <0 0x44c00000 0x400000>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +
+> +		wkup_m3: wkup_m3@100000 {
+> +			compatible = "ti,am3352-wkup-m3";
+> +			reg = <0x100000 0x4000>,
+> +			      <0x180000 0x2000>;
+> +			reg-names = "umem", "dmem";
+> +			ti,hwmods = "wkup_m3";
+> +			ti,pm-firmware = "am335x-pm-firmware.elf";
+> +		};
+> +	};
+> +
+> +	...
+> +};
 > -- 
-> Regards,
-> Nishanth Menon
+> 2.3.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
