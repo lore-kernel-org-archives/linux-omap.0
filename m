@@ -1,71 +1,63 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 26/27] ARM: OMAP2+: clock: remove legacy omap2_clk_readl/writel APIs
-Date: Mon, 11 May 2015 11:54:52 +0300
-Message-ID: <1431334493-24455-27-git-send-email-t-kristo@ti.com>
-References: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v2] genirq: Set IRQCHIP_SKIP_SET_WAKE flag for dummy_irq_chip
+Date: Mon, 11 May 2015 12:50:22 +0200
+Message-ID: <CAMuHMdVTn6w1QCQGw-gpcD=8zxfs2cKDLHgFETO_38=k=Km5Jg@mail.gmail.com>
+References: <1427721345-6402-1-git-send-email-rogerq@ti.com>
+	<552E1DD3.4040106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45787 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329AbbEKIzy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 May 2015 04:55:54 -0400
-In-Reply-To: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <552E1DD3.4040106@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Chanwoo Choi <cw00.choi@samsung.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
-To: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
 
-As most of the clock driver code has migrated, these are no longer used
-for anything. Thus remove these APIs completely.
+On Wed, Apr 15, 2015 at 10:14 AM, Roger Quadros <rogerq@ti.com> wrote:
+> Without this system suspend is broken on systems that have
+> drivers calling enable/disable_irq_wake() for interrupts based off
+> the dummy irq hook.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/clock.c |   16 ----------------
- arch/arm/mach-omap2/clock.h |    3 ---
- 2 files changed, 19 deletions(-)
+Good to see this was applied. Still, I think no_irq_chip should also be
+fixed, cfr. my patch "genirq: Set IRQCHIP_SKIP_SET_WAKE for no_irq_chip and
+dummy_irq_chip" (https://lkml.org/lkml/2015/1/12/506 is down, but
+https://patchwork.ozlabs.org/patch/427788/ works)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 40a88c2..79cec5f 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -87,22 +87,6 @@ static u32 clk_memmap_readl(void __iomem *reg)
- 	return val;
- }
- 
--void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg)
--{
--	if (WARN_ON_ONCE(!(clk->flags & MEMMAP_ADDRESSING)))
--		writel_relaxed(val, reg);
--	else
--		clk_memmap_writel(val, reg);
--}
--
--u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg)
--{
--	if (WARN_ON_ONCE(!(clk->flags & MEMMAP_ADDRESSING)))
--		return readl_relaxed(reg);
--	else
--		return clk_memmap_readl(reg);
--}
--
- static struct ti_clk_ll_ops omap_clk_ll_ops = {
- 	.clk_readl = clk_memmap_readl,
- 	.clk_writel = clk_memmap_writel,
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index a7051d6..f3dc04c 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -68,9 +68,6 @@ void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
- 			       const char *core_ck_name,
- 			       const char *mpu_ck_name);
- 
--u32 omap2_clk_readl(struct clk_hw_omap *clk, void __iomem *reg);
--void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg);
--
- extern u16 cpu_mask;
- 
- extern const struct clkops clkops_omap2_dflt_wait;
--- 
-1.7.9.5
+> (e.g. drivers/gpio/gpio-pcf857x.c)
 
+Please note the particular pfc857x.c case was fixed by commit b80eef95beb04760
+("gpio: pcf857x: Propagate wake-up setting to parent irq controller"), as that
+driver has other problems. Now it no longer uses dummy_irq_chip.
+
+> http://article.gmane.org/gmane.linux.kernel/1879035
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  kernel/irq/dummychip.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/kernel/irq/dummychip.c b/kernel/irq/dummychip.c
+> index 988dc58..2feb6fe 100644
+> --- a/kernel/irq/dummychip.c
+> +++ b/kernel/irq/dummychip.c
+> @@ -57,5 +57,6 @@ struct irq_chip dummy_irq_chip = {
+>         .irq_ack        = noop,
+>         .irq_mask       = noop,
+>         .irq_unmask     = noop,
+> +       .flags          = IRQCHIP_SKIP_SET_WAKE,
+>  };
+>  EXPORT_SYMBOL_GPL(dummy_irq_chip);
+> --
+> 2.1.0
+
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
