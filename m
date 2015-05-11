@@ -1,286 +1,389 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 23/27] clk: ti: move some public definitions to private header
-Date: Mon, 11 May 2015 11:54:49 +0300
-Message-ID: <1431334493-24455-24-git-send-email-t-kristo@ti.com>
+Subject: =?UTF-8?q?=5BPATCHv2=2020/27=5D=20clk=3A=20ti=3A=20omap34xx=3A=20move=20omap34xx=20clock=20type=20support=20code=20to=20clock=20driver?=
+Date: Mon, 11 May 2015 11:54:46 +0300
+Message-ID: <1431334493-24455-21-git-send-email-t-kristo@ti.com>
 References: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49534 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753319AbbEKIzn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2015 04:55:43 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59092 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753301AbbEKIzl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 May 2015 04:55:41 -0400
 In-Reply-To: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Several exported TI clock driver features are no longer needed outside
-the clock driver itself, thus move all of these to the driver private
-header file. Also, update some of the driver files to actually include
-this header.
+With the legacy clock data gone, this is no longer needed under platfor=
+m,
+so move it under the clock driver itself. Remove unnecessary declaratio=
+ns
+from the TI clock header also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/apll.c     |    2 ++
- drivers/clk/ti/autoidle.c |    2 ++
- drivers/clk/ti/clk-43xx.c |    2 ++
- drivers/clk/ti/clk-44xx.c |    2 ++
- drivers/clk/ti/clk-54xx.c |    2 ++
- drivers/clk/ti/clk-7xx.c  |    3 ++-
- drivers/clk/ti/clock.h    |   47 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h    |   45 -------------------------------------------
- 8 files changed, 59 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/Makefile    |    2 +-
+ arch/arm/mach-omap2/clock34xx.c |  138 -------------------------------=
+--------
+ drivers/clk/ti/clk-3xxx.c       |  118 +++++++++++++++++++++++++++++++=
+++
+ drivers/clk/ti/clock.h          |    4 ++
+ include/linux/clk/ti.h          |    4 --
+ 5 files changed, 123 insertions(+), 143 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clock34xx.c
 
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 49baf38..594b759 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -27,6 +27,8 @@
- #include <linux/clk/ti.h>
- #include <linux/delay.h>
- 
-+#include "clock.h"
-+
- #define APLL_FORCE_LOCK 0x1
- #define APLL_AUTO_IDLE	0x2
- #define MAX_APLL_WAIT_TRIES		1000000
-diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
-index 3dbcc36..94f0dcd 100644
---- a/drivers/clk/ti/autoidle.c
-+++ b/drivers/clk/ti/autoidle.c
-@@ -22,6 +22,8 @@
- #include <linux/of_address.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- struct clk_ti_autoidle {
- 	void __iomem		*reg;
- 	u8			shift;
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-index 3795fce..8943167 100644
---- a/drivers/clk/ti/clk-43xx.c
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -19,6 +19,8 @@
- #include <linux/clk-provider.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- static struct ti_dt_clk am43xx_clks[] = {
- 	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
- 	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index 581db77..7a8b51b 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -16,6 +16,8 @@
- #include <linux/clkdev.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- /*
-  * OMAP4 ABE DPLL default frequency. In OMAP4460 TRM version V, section
-  * "3.6.3.2.3 CM1_ABE Clock Generator" states that the "DPLL_ABE_X2_CLK
-diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-index 96c69a3..59ce2fa 100644
---- a/drivers/clk/ti/clk-54xx.c
-+++ b/drivers/clk/ti/clk-54xx.c
-@@ -17,6 +17,8 @@
- #include <linux/io.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- #define OMAP5_DPLL_ABE_DEFFREQ				98304000
- 
- /*
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 5d2217a..8b82721 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -16,11 +16,12 @@
- #include <linux/clkdev.h>
- #include <linux/clk/ti.h>
- 
-+#include "clock.h"
-+
- #define DRA7_DPLL_ABE_DEFFREQ				180633600
- #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
- #define DRA7_DPLL_USB_DEFFREQ				960000000
- 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
+e
+index 695d58f..22d2e48 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -186,7 +186,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+=3D clkt2xxx_dpllcore.o
+ obj-$(CONFIG_ARCH_OMAP2)		+=3D clkt2xxx_virt_prcm_set.o
+ obj-$(CONFIG_ARCH_OMAP2)		+=3D clkt2xxx_dpll.o
+ obj-$(CONFIG_ARCH_OMAP3)		+=3D $(clock-common)
+-obj-$(CONFIG_ARCH_OMAP3)		+=3D clock34xx.o clkt34xx_dpll3m2.o
++obj-$(CONFIG_ARCH_OMAP3)		+=3D clkt34xx_dpll3m2.o
+ obj-$(CONFIG_ARCH_OMAP3)		+=3D clock3517.o
+ obj-$(CONFIG_ARCH_OMAP4)		+=3D $(clock-common)
+ obj-$(CONFIG_SOC_AM33XX)		+=3D $(clock-common)
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/cloc=
+k34xx.c
+deleted file mode 100644
+index 4596468..0000000
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ /dev/null
+@@ -1,138 +0,0 @@
+-/*
+- * OMAP3-specific clock framework functions
+- *
+- * Copyright (C) 2007-2008 Texas Instruments, Inc.
+- * Copyright (C) 2007-2011 Nokia Corporation
+- *
+- * Paul Walmsley
+- * Jouni H=C3=B6gander
+- *
+- * Parts of this code are based on code written by
+- * Richard Woodruff, Tony Lindgren, Tuukka Tikkanen, Karthik Dasu,
+- * Russell King
+- *
+- * This program is free software; you can redistribute it and/or modif=
+y
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#undef DEBUG
 -
- static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
- 	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 0ca5a36..3c43125 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -154,6 +154,35 @@ struct ti_clk_dpll {
- 	u8 recal_st_bit;
- };
- 
-+/* Composite clock component types */
-+enum {
-+	CLK_COMPONENT_TYPE_GATE = 0,
-+	CLK_COMPONENT_TYPE_DIVIDER,
-+	CLK_COMPONENT_TYPE_MUX,
-+	CLK_COMPONENT_TYPE_MAX,
-+};
-+
-+/**
-+ * struct ti_dt_clk - OMAP DT clock alias declarations
-+ * @lk: clock lookup definition
-+ * @node_name: clock DT node to map to
-+ */
-+struct ti_dt_clk {
-+	struct clk_lookup		lk;
-+	char				*node_name;
-+};
-+
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.node_name = name,	\
-+	}
-+
-+typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
-+
- struct clk *ti_clk_register_gate(struct ti_clk *setup);
- struct clk *ti_clk_register_interface(struct ti_clk *setup);
- struct clk *ti_clk_register_mux(struct ti_clk *setup);
-@@ -169,6 +198,12 @@ void ti_clk_patch_legacy_clks(struct ti_clk **patch);
- struct clk *ti_clk_register_clk(struct ti_clk *setup);
- int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
- 
-+void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
-+void ti_dt_clocks_register(struct ti_dt_clk *oclks);
-+int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
-+		      ti_of_clk_init_cb_t func);
-+int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
-+
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int of_ti_clk_autoidle_setup(struct device_node *node);
- void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
-@@ -186,12 +221,24 @@ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
- 
-+extern const struct clk_ops ti_clk_divider_ops;
-+extern const struct clk_ops ti_clk_mux_ops;
-+
- int omap2_clkops_enable_clkdm(struct clk_hw *hw);
- void omap2_clkops_disable_clkdm(struct clk_hw *hw);
- 
- int omap2_dflt_clk_enable(struct clk_hw *hw);
- void omap2_dflt_clk_disable(struct clk_hw *hw);
- int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
-+void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
-+				   void __iomem **other_reg,
-+				   u8 *other_bit);
-+void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
-+				void __iomem **idlest_reg,
-+				u8 *idlest_bit, u8 *idlest_val);
-+
-+void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
-+void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
- 
- u8 omap2_init_dpll_parent(struct clk_hw *hw);
- int omap3_noncore_dpll_enable(struct clk_hw *hw);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index fc8e9ad..53fe38f 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -188,33 +188,6 @@ struct clk_hw_omap {
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
- 
--/* Composite clock component types */
--enum {
--	CLK_COMPONENT_TYPE_GATE = 0,
--	CLK_COMPONENT_TYPE_DIVIDER,
--	CLK_COMPONENT_TYPE_MUX,
--	CLK_COMPONENT_TYPE_MAX,
+-#include <linux/kernel.h>
+-#include <linux/clk.h>
+-#include <linux/io.h>
+-
+-#include "clock.h"
+-#include "clock34xx.h"
+-#include "cm3xxx.h"
+-#include "cm-regbits-34xx.h"
+-
+-/**
+- * omap3430es2_clk_ssi_find_idlest - return CM_IDLEST info for SSI
+- * @clk: struct clk * being enabled
+- * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+- * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+- * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+- *
+- * The OMAP3430ES2 SSI target CM_IDLEST bit is at a different shift
+- * from the CM_{I,F}CLKEN bit.  Pass back the correct info via
+- * @idlest_reg and @idlest_bit.  No return value.
+- */
+-static void omap3430es2_clk_ssi_find_idlest(struct clk_hw_omap *clk,
+-					    void __iomem **idlest_reg,
+-					    u8 *idlest_bit,
+-					    u8 *idlest_val)
+-{
+-	u32 r;
+-
+-	r =3D (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+-	*idlest_reg =3D (__force void __iomem *)r;
+-	*idlest_bit =3D OMAP3430ES2_ST_SSI_IDLE_SHIFT;
+-	*idlest_val =3D OMAP34XX_CM_IDLEST_VAL;
+-}
+-const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait =3D {
+-	.find_idlest	=3D omap3430es2_clk_ssi_find_idlest,
+-	.find_companion	=3D omap2_clk_dflt_find_companion,
+-};
+-
+-const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait =3D {
+-	.allow_idle	=3D omap2_clkt_iclk_allow_idle,
+-	.deny_idle	=3D omap2_clkt_iclk_deny_idle,
+-	.find_idlest	=3D omap3430es2_clk_ssi_find_idlest,
+-	.find_companion =3D omap2_clk_dflt_find_companion,
 -};
 -
 -/**
-- * struct ti_dt_clk - OMAP DT clock alias declarations
-- * @lk: clock lookup definition
-- * @node_name: clock DT node to map to
+- * omap3430es2_clk_dss_usbhost_find_idlest - CM_IDLEST info for DSS, U=
+SBHOST
+- * @clk: struct clk * being enabled
+- * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+- * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+- * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+- *
+- * Some OMAP modules on OMAP3 ES2+ chips have both initiator and
+- * target IDLEST bits.  For our purposes, we are concerned with the
+- * target IDLEST bits, which exist at a different bit position than
+- * the *CLKEN bit position for these modules (DSS and USBHOST) (The
+- * default find_idlest code assumes that they are at the same
+- * position.)  No return value.
 - */
--struct ti_dt_clk {
--	struct clk_lookup		lk;
--	char				*node_name;
+-static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk_hw_omap=
+ *clk,
+-						    void __iomem **idlest_reg,
+-						    u8 *idlest_bit,
+-						    u8 *idlest_val)
+-{
+-	u32 r;
+-
+-	r =3D (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+-	*idlest_reg =3D (__force void __iomem *)r;
+-	/* USBHOST_IDLE has same shift */
+-	*idlest_bit =3D OMAP3430ES2_ST_DSS_IDLE_SHIFT;
+-	*idlest_val =3D OMAP34XX_CM_IDLEST_VAL;
+-}
+-
+-const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait =3D=
+ {
+-	.find_idlest	=3D omap3430es2_clk_dss_usbhost_find_idlest,
+-	.find_companion	=3D omap2_clk_dflt_find_companion,
 -};
 -
--#define DT_CLK(dev, con, name)		\
--	{				\
--		.lk = {			\
--			.dev_id = dev,	\
--			.con_id = con,	\
--		},			\
--		.node_name = name,	\
--	}
+-const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wai=
+t =3D {
+-	.allow_idle	=3D omap2_clkt_iclk_allow_idle,
+-	.deny_idle	=3D omap2_clkt_iclk_deny_idle,
+-	.find_idlest	=3D omap3430es2_clk_dss_usbhost_find_idlest,
+-	.find_companion	=3D omap2_clk_dflt_find_companion,
+-};
 -
- /* Static memmap indices */
- enum {
- 	TI_CLKM_CM = 0,
-@@ -225,8 +198,6 @@ enum {
- 	CLK_MAX_MEMMAPS
- };
- 
--typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
+-/**
+- * omap3430es2_clk_hsotgusb_find_idlest - return CM_IDLEST info for HS=
+OTGUSB
+- * @clk: struct clk * being enabled
+- * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
+- * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+- * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+- *
+- * The OMAP3430ES2 HSOTGUSB target CM_IDLEST bit is at a different
+- * shift from the CM_{I,F}CLKEN bit.  Pass back the correct info via
+- * @idlest_reg and @idlest_bit.  No return value.
+- */
+-static void omap3430es2_clk_hsotgusb_find_idlest(struct clk_hw_omap *c=
+lk,
+-						 void __iomem **idlest_reg,
+-						 u8 *idlest_bit,
+-						 u8 *idlest_val)
+-{
+-	u32 r;
 -
- /**
-  * struct clk_omap_reg - OMAP register declaration
-  * @offset: offset from the master IP module base address
-@@ -266,9 +237,6 @@ struct ti_clk_ll_ops {
- 
- extern struct ti_clk_ll_ops *ti_clk_ll_ops;
- 
--extern const struct clk_ops ti_clk_divider_ops;
--extern const struct clk_ops ti_clk_mux_ops;
+-	r =3D (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
+-	*idlest_reg =3D (__force void __iomem *)r;
+-	*idlest_bit =3D OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT;
+-	*idlest_val =3D OMAP34XX_CM_IDLEST_VAL;
+-}
 -
- #define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
- 
- void omap2_init_clk_clkdm(struct clk_hw *clk);
-@@ -276,14 +244,6 @@ int omap2_clk_disable_autoidle_all(void);
- int omap2_clk_enable_autoidle_all(void);
- int omap2_clk_allow_idle(struct clk *clk);
- int omap2_clk_deny_idle(struct clk *clk);
--void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
--void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
--void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
--				   void __iomem **other_reg,
--				   u8 *other_bit);
--void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
--				void __iomem **idlest_reg,
--				u8 *idlest_bit, u8 *idlest_val);
- unsigned long omap2_dpllcore_recalc(struct clk_hw *hw,
- 				    unsigned long parent_rate);
- int omap2_reprogram_dpllcore(struct clk_hw *clk, unsigned long rate,
-@@ -292,14 +252,9 @@ void omap2xxx_clkt_dpllcore_init(struct clk_hw *hw);
- void omap2xxx_clkt_vps_init(void);
- unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
- 
--void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
--void ti_dt_clocks_register(struct ti_dt_clk *oclks);
- void ti_dt_clk_init_provider(struct device_node *np, int index);
- void ti_dt_clk_init_retry_clks(void);
- void ti_dt_clockdomains_setup(void);
--int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
--		      ti_of_clk_init_cb_t func);
--int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
- 
- int omap3430_dt_clk_init(void);
- int omap3630_dt_clk_init(void);
--- 
+-const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait =3D=
+ {
+-	.allow_idle	=3D omap2_clkt_iclk_allow_idle,
+-	.deny_idle	=3D omap2_clkt_iclk_deny_idle,
+-	.find_idlest	=3D omap3430es2_clk_hsotgusb_find_idlest,
+-	.find_companion	=3D omap2_clk_dflt_find_companion,
+-};
+-
+-const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait =3D {
+-	.find_idlest	=3D omap3430es2_clk_hsotgusb_find_idlest,
+-	.find_companion	=3D omap2_clk_dflt_find_companion,
+-};
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 5489ad8..58879f0 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -28,6 +28,124 @@
+  */
+ #define DPLL5_FREQ_FOR_USBHOST		120000000
+=20
++#define OMAP3430ES2_ST_DSS_IDLE_SHIFT			1
++#define OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT		5
++#define OMAP3430ES2_ST_SSI_IDLE_SHIFT			8
++
++#define OMAP34XX_CM_IDLEST_VAL				1
++
++/**
++ * omap3430es2_clk_ssi_find_idlest - return CM_IDLEST info for SSI
++ * @clk: struct clk * being enabled
++ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
++ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
++ * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
++ *
++ * The OMAP3430ES2 SSI target CM_IDLEST bit is at a different shift
++ * from the CM_{I,F}CLKEN bit.  Pass back the correct info via
++ * @idlest_reg and @idlest_bit.  No return value.
++ */
++static void omap3430es2_clk_ssi_find_idlest(struct clk_hw_omap *clk,
++					    void __iomem **idlest_reg,
++					    u8 *idlest_bit,
++					    u8 *idlest_val)
++{
++	u32 r;
++
++	r =3D (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
++	*idlest_reg =3D (__force void __iomem *)r;
++	*idlest_bit =3D OMAP3430ES2_ST_SSI_IDLE_SHIFT;
++	*idlest_val =3D OMAP34XX_CM_IDLEST_VAL;
++}
++
++const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait =3D {
++	.find_idlest	=3D omap3430es2_clk_ssi_find_idlest,
++	.find_companion	=3D omap2_clk_dflt_find_companion,
++};
++
++const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait =3D {
++	.allow_idle	=3D omap2_clkt_iclk_allow_idle,
++	.deny_idle	=3D omap2_clkt_iclk_deny_idle,
++	.find_idlest	=3D omap3430es2_clk_ssi_find_idlest,
++	.find_companion	=3D omap2_clk_dflt_find_companion,
++};
++
++/**
++ * omap3430es2_clk_dss_usbhost_find_idlest - CM_IDLEST info for DSS, U=
+SBHOST
++ * @clk: struct clk * being enabled
++ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
++ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
++ * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
++ *
++ * Some OMAP modules on OMAP3 ES2+ chips have both initiator and
++ * target IDLEST bits.  For our purposes, we are concerned with the
++ * target IDLEST bits, which exist at a different bit position than
++ * the *CLKEN bit position for these modules (DSS and USBHOST) (The
++ * default find_idlest code assumes that they are at the same
++ * position.)  No return value.
++ */
++static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk_hw_omap=
+ *clk,
++						    void __iomem **idlest_reg,
++						    u8 *idlest_bit,
++						    u8 *idlest_val)
++{
++	u32 r;
++
++	r =3D (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
++	*idlest_reg =3D (__force void __iomem *)r;
++	/* USBHOST_IDLE has same shift */
++	*idlest_bit =3D OMAP3430ES2_ST_DSS_IDLE_SHIFT;
++	*idlest_val =3D OMAP34XX_CM_IDLEST_VAL;
++}
++
++const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait =3D=
+ {
++	.find_idlest	=3D omap3430es2_clk_dss_usbhost_find_idlest,
++	.find_companion	=3D omap2_clk_dflt_find_companion,
++};
++
++const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wai=
+t =3D {
++	.allow_idle	=3D omap2_clkt_iclk_allow_idle,
++	.deny_idle	=3D omap2_clkt_iclk_deny_idle,
++	.find_idlest	=3D omap3430es2_clk_dss_usbhost_find_idlest,
++	.find_companion	=3D omap2_clk_dflt_find_companion,
++};
++
++/**
++ * omap3430es2_clk_hsotgusb_find_idlest - return CM_IDLEST info for HS=
+OTGUSB
++ * @clk: struct clk * being enabled
++ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
++ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
++ * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
++ *
++ * The OMAP3430ES2 HSOTGUSB target CM_IDLEST bit is at a different
++ * shift from the CM_{I,F}CLKEN bit.  Pass back the correct info via
++ * @idlest_reg and @idlest_bit.  No return value.
++ */
++static void omap3430es2_clk_hsotgusb_find_idlest(struct clk_hw_omap *c=
+lk,
++						 void __iomem **idlest_reg,
++						 u8 *idlest_bit,
++						 u8 *idlest_val)
++{
++	u32 r;
++
++	r =3D (((__force u32)clk->enable_reg & ~0xf0) | 0x20);
++	*idlest_reg =3D (__force void __iomem *)r;
++	*idlest_bit =3D OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT;
++	*idlest_val =3D OMAP34XX_CM_IDLEST_VAL;
++}
++
++const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait =3D=
+ {
++	.allow_idle	=3D omap2_clkt_iclk_allow_idle,
++	.deny_idle	=3D omap2_clkt_iclk_deny_idle,
++	.find_idlest	=3D omap3430es2_clk_hsotgusb_find_idlest,
++	.find_companion	=3D omap2_clk_dflt_find_companion,
++};
++
++const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait =3D {
++	.find_idlest	=3D omap3430es2_clk_hsotgusb_find_idlest,
++	.find_companion	=3D omap2_clk_dflt_find_companion,
++};
++
+ static struct ti_dt_clk omap3xxx_clks[] =3D {
+ 	DT_CLK(NULL, "apb_pclk", "dummy_apb_pclk"),
+ 	DT_CLK(NULL, "omap_32k_fck", "omap_32k_fck"),
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 83476d1..c6fbd15 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -179,6 +179,10 @@ extern const struct clk_hw_omap_ops clkhwops_wait;
+ extern const struct clk_hw_omap_ops clkhwops_iclk;
+ extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_w=
+ait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb=
+_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbh=
+ost_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait=
+;
+=20
+ int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 6361f21..813b809 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -331,12 +331,8 @@ void ti_clk_setup_features(struct ti_clk_features =
+*features);
+ struct ti_clk_features *ti_clk_get_features(void);
+=20
+ extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_w=
+ait;
+ extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
+ extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait=
+;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbh=
+ost_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb=
+_wait;
+=20
+ #ifdef CONFIG_ATAGS
+ int omap3430_clk_legacy_init(void);
+--=20
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
