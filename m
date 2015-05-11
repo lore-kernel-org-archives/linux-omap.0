@@ -1,55 +1,120 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 06/27] ARM: OMAP2+: clk: remove obsolete clksel support code
-Date: Mon, 11 May 2015 11:54:32 +0300
-Message-ID: <1431334493-24455-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 11/27] ARM: OMAP2+: clock: remove support for legacy mpurate command line param
+Date: Mon, 11 May 2015 11:54:37 +0300
+Message-ID: <1431334493-24455-12-git-send-email-t-kristo@ti.com>
 References: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46489 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45731 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753237AbbEKIy7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 May 2015 04:54:59 -0400
+	id S1753264AbbEKIzL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 May 2015 04:55:11 -0400
 In-Reply-To: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-The clksel clock type is no longer used for anything, it is rather
-replaced with common clock divider code. Thus, remove the dead code
-from kernel.
+The legacy support is wrong and dangerous, as it doesn't take any
+OPPs into account and does not scale voltages. Switching mpurate should
+be handled through cpufreq.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/Makefile      |    3 +-
- arch/arm/mach-omap2/clkt_clksel.c |  466 -------------------------------------
- arch/arm/mach-omap2/clock.h       |   12 -
- 3 files changed, 1 insertion(+), 480 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clkt_clksel.c
+ arch/arm/mach-omap2/Makefile    |    2 +-
+ arch/arm/mach-omap2/clock.c     |   41 ----------------------------
+ arch/arm/mach-omap2/clock.h     |    1 -
+ arch/arm/mach-omap2/clock2xxx.c |   57 ---------------------------------------
+ arch/arm/mach-omap2/clock3xxx.c |   25 -----------------
+ 5 files changed, 1 insertion(+), 125 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clock2xxx.c
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index a2f5156..d03bc21 100644
+index f33d011..bf5d71d 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -12,8 +12,7 @@ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
+@@ -181,7 +181,7 @@ obj-$(CONFIG_SOC_DRA7XX)		+= $(clockdomain-common)
+ obj-$(CONFIG_SOC_DRA7XX)		+= clockdomains7xx_data.o
  
- hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
- 					  omap_hwmod_common_data.o
--clock-common				= clock.o clock_common_data.o \
--					  clkt_clksel.o
-+clock-common				= clock.o clock_common_data.o
- secure-common				= omap-smc.o omap-secure.o
+ # Clock framework
+-obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
++obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common)
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpllcore.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 234cedf..94a4949 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -582,47 +582,6 @@ const struct clk_hw_omap_ops clkhwops_wait = {
+ };
  
- obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
-diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
+ /**
+- * omap2_clk_switch_mpurate_at_boot - switch ARM MPU rate by boot-time argument
+- * @mpurate_ck_name: clk name of the clock to change rate
+- *
+- * Change the ARM MPU clock rate to the rate specified on the command
+- * line, if one was specified.  @mpurate_ck_name should be
+- * "virt_prcm_set" on OMAP2xxx and "dpll1_ck" on OMAP34xx/OMAP36xx.
+- * XXX Does not handle voltage scaling - on OMAP2xxx this is currently
+- * handled by the virt_prcm_set clock, but this should be handled by
+- * the OPP layer.  XXX This is intended to be handled by the OPP layer
+- * code in the near future and should be removed from the clock code.
+- * Returns -EINVAL if 'mpurate' is zero or if clk_set_rate() rejects
+- * the rate, -ENOENT if the struct clk referred to by @mpurate_ck_name
+- * cannot be found, or 0 upon success.
+- */
+-int __init omap2_clk_switch_mpurate_at_boot(const char *mpurate_ck_name)
+-{
+-	struct clk *mpurate_ck;
+-	int r;
+-
+-	if (!mpurate)
+-		return -EINVAL;
+-
+-	mpurate_ck = clk_get(NULL, mpurate_ck_name);
+-	if (WARN(IS_ERR(mpurate_ck), "Failed to get %s.\n", mpurate_ck_name))
+-		return -ENOENT;
+-
+-	r = clk_set_rate(mpurate_ck, mpurate);
+-	if (r < 0) {
+-		WARN(1, "clock: %s: unable to set MPU rate to %d: %d\n",
+-		     mpurate_ck_name, mpurate, r);
+-		clk_put(mpurate_ck);
+-		return -EINVAL;
+-	}
+-
+-	calibrate_delay();
+-	clk_put(mpurate_ck);
+-
+-	return 0;
+-}
+-
+-/**
+  * omap2_clk_print_new_rates - print summary of current clock tree rates
+  * @hfclkin_ck_name: clk name for the off-chip HF oscillator
+  * @core_ck_name: clk name for the on-chip CORE_CLK
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 950a17a..e2781b4 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -186,7 +186,6 @@ void omap3_dpll_deny_idle(struct clk_hw_omap *clk);
+ 
+ void __init omap2_clk_disable_clkdm_control(void);
+ 
+-int omap2_clk_switch_mpurate_at_boot(const char *mpurate_ck_name);
+ void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+ 			       const char *core_ck_name,
+ 			       const char *mpu_ck_name);
+diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
 deleted file mode 100644
-index 7ee2610..0000000
---- a/arch/arm/mach-omap2/clkt_clksel.c
+index b870f6a..0000000
+--- a/arch/arm/mach-omap2/clock2xxx.c
 +++ /dev/null
-@@ -1,466 +0,0 @@
+@@ -1,57 +0,0 @@
 -/*
-- * clkt_clksel.c - OMAP2/3/4 clksel clock functions
+- * clock2xxx.c - OMAP2xxx-specific clock integration code
 - *
 - * Copyright (C) 2005-2008 Texas Instruments, Inc.
 - * Copyright (C) 2004-2010 Nokia Corporation
@@ -58,485 +123,86 @@ index 7ee2610..0000000
 - * Richard Woodruff <r-woodruff2@ti.com>
 - * Paul Walmsley
 - *
+- * Based on earlier work by Tuukka Tikkanen, Tony Lindgren,
+- * Gordon McNutt and RidgeRun, Inc.
+- *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
-- *
-- *
-- * clksel clocks are clocks that do not have a fixed parent, or that
-- * can divide their parent's rate, or possibly both at the same time, based
-- * on the contents of a hardware register bitfield.
-- *
-- * All of the various mux and divider settings can be encoded into
-- * struct clksel* data structures, and then these can be autogenerated
-- * from some hardware database for each new chip generation.  This
-- * should avoid the need to write, review, and validate a lot of new
-- * clock code for each new chip, since it can be exported from the SoC
-- * design flow.  This is now done on OMAP4.
-- *
-- * The fusion of mux and divider clocks is a software creation.  In
-- * hardware reality, the multiplexer (parent selection) and the
-- * divider exist separately.  XXX At some point these clksel clocks
-- * should be split into "divider" clocks and "mux" clocks to better
-- * match the hardware.
-- *
-- * (The name "clksel" comes from the name of the corresponding
-- * register field in the OMAP2/3 family of SoCs.)
-- *
-- * XXX Currently these clocks are only used in the OMAP2/3/4 code, but
-- * many of the OMAP1 clocks should be convertible to use this
-- * mechanism.
 - */
 -#undef DEBUG
 -
 -#include <linux/kernel.h>
 -#include <linux/errno.h>
--#include <linux/clk-provider.h>
+-#include <linux/clk.h>
 -#include <linux/io.h>
--#include <linux/bug.h>
 -
+-#include "soc.h"
 -#include "clock.h"
+-#include "clock2xxx.h"
+-#include "cm.h"
+-#include "cm-regbits-24xx.h"
 -
--/* Private functions */
--
--/**
-- * _get_clksel_by_parent() - return clksel struct for a given clk & parent
-- * @clk: OMAP struct clk ptr to inspect
-- * @src_clk: OMAP struct clk ptr of the parent clk to search for
-- *
-- * Scan the struct clksel array associated with the clock to find
-- * the element associated with the supplied parent clock address.
-- * Returns a pointer to the struct clksel on success or NULL on error.
+-struct clk_hw *dclk_hw;
+-/*
+- * Omap24xx specific clock functions
 - */
--static const struct clksel *_get_clksel_by_parent(struct clk_hw_omap *clk,
--						  struct clk *src_clk)
--{
--	const struct clksel *clks;
--
--	if (!src_clk)
--		return NULL;
--
--	for (clks = clk->clksel; clks->parent; clks++)
--		if (clks->parent == src_clk)
--			break; /* Found the requested parent */
--
--	if (!clks->parent) {
--		/* This indicates a data problem */
--		WARN(1, "clock: %s: could not find parent clock %s in clksel array\n",
--		     __clk_get_name(clk->hw.clk), __clk_get_name(src_clk));
--		return NULL;
--	}
--
--	return clks;
--}
--
--/**
-- * _write_clksel_reg() - program a clock's clksel register in hardware
-- * @clk: struct clk * to program
-- * @v: clksel bitfield value to program (with LSB at bit 0)
-- *
-- * Shift the clksel register bitfield value @v to its appropriate
-- * location in the clksel register and write it in.  This function
-- * will ensure that the write to the clksel_reg reaches its
-- * destination before returning -- important since PRM and CM register
-- * accesses can be quite slow compared to ARM cycles -- but does not
-- * take into account any time the hardware might take to switch the
-- * clock source.
-- */
--static void _write_clksel_reg(struct clk_hw_omap *clk, u32 field_val)
--{
--	u32 v;
--
--	v = omap2_clk_readl(clk, clk->clksel_reg);
--	v &= ~clk->clksel_mask;
--	v |= field_val << __ffs(clk->clksel_mask);
--	omap2_clk_writel(v, clk, clk->clksel_reg);
--
--	v = omap2_clk_readl(clk, clk->clksel_reg); /* OCP barrier */
--}
--
--/**
-- * _clksel_to_divisor() - turn clksel field value into integer divider
-- * @clk: OMAP struct clk to use
-- * @field_val: register field value to find
-- *
-- * Given a struct clk of a rate-selectable clksel clock, and a register field
-- * value to search for, find the corresponding clock divisor.  The register
-- * field value should be pre-masked and shifted down so the LSB is at bit 0
-- * before calling.  Returns 0 on error or returns the actual integer divisor
-- * upon success.
-- */
--static u32 _clksel_to_divisor(struct clk_hw_omap *clk, u32 field_val)
--{
--	const struct clksel *clks;
--	const struct clksel_rate *clkr;
--	struct clk *parent;
--
--	parent = __clk_get_parent(clk->hw.clk);
--
--	clks = _get_clksel_by_parent(clk, parent);
--	if (!clks)
--		return 0;
--
--	for (clkr = clks->rates; clkr->div; clkr++) {
--		if (!(clkr->flags & cpu_mask))
--			continue;
--
--		if (clkr->val == field_val)
--			break;
--	}
--
--	if (!clkr->div) {
--		/* This indicates a data error */
--		WARN(1, "clock: %s: could not find fieldval %d for parent %s\n",
--		     __clk_get_name(clk->hw.clk), field_val,
--		     __clk_get_name(parent));
--		return 0;
--	}
--
--	return clkr->div;
--}
--
--/**
-- * _divisor_to_clksel() - turn clksel integer divisor into a field value
-- * @clk: OMAP struct clk to use
-- * @div: integer divisor to search for
-- *
-- * Given a struct clk of a rate-selectable clksel clock, and a clock
-- * divisor, find the corresponding register field value.  Returns the
-- * register field value _before_ left-shifting (i.e., LSB is at bit
-- * 0); or returns 0xFFFFFFFF (~0) upon error.
-- */
--static u32 _divisor_to_clksel(struct clk_hw_omap *clk, u32 div)
--{
--	const struct clksel *clks;
--	const struct clksel_rate *clkr;
--	struct clk *parent;
--
--	/* should never happen */
--	WARN_ON(div == 0);
--
--	parent = __clk_get_parent(clk->hw.clk);
--	clks = _get_clksel_by_parent(clk, parent);
--	if (!clks)
--		return ~0;
--
--	for (clkr = clks->rates; clkr->div; clkr++) {
--		if (!(clkr->flags & cpu_mask))
--			continue;
--
--		if (clkr->div == div)
--			break;
--	}
--
--	if (!clkr->div) {
--		pr_err("clock: %s: could not find divisor %d for parent %s\n",
--		       __clk_get_name(clk->hw.clk), div,
--		       __clk_get_name(parent));
--		return ~0;
--	}
--
--	return clkr->val;
--}
--
--/**
-- * _read_divisor() - get current divisor applied to parent clock (from hdwr)
-- * @clk: OMAP struct clk to use.
-- *
-- * Read the current divisor register value for @clk that is programmed
-- * into the hardware, convert it into the actual divisor value, and
-- * return it; or return 0 on error.
-- */
--static u32 _read_divisor(struct clk_hw_omap *clk)
--{
--	u32 v;
--
--	if (!clk->clksel || !clk->clksel_mask)
--		return 0;
--
--	v = omap2_clk_readl(clk, clk->clksel_reg);
--	v &= clk->clksel_mask;
--	v >>= __ffs(clk->clksel_mask);
--
--	return _clksel_to_divisor(clk, v);
--}
--
--/* Public functions */
--
--/**
-- * omap2_clksel_round_rate_div() - find divisor for the given clock and rate
-- * @clk: OMAP struct clk to use
-- * @target_rate: desired clock rate
-- * @new_div: ptr to where we should store the divisor
-- *
-- * Finds 'best' divider value in an array based on the source and target
-- * rates.  The divider array must be sorted with smallest divider first.
-- * This function is also used by the DPLL3 M2 divider code.
-- *
-- * Returns the rounded clock rate or returns 0xffffffff on error.
-- */
--u32 omap2_clksel_round_rate_div(struct clk_hw_omap *clk,
--						 unsigned long target_rate,
--				u32 *new_div)
--{
--	unsigned long test_rate;
--	const struct clksel *clks;
--	const struct clksel_rate *clkr;
--	u32 last_div = 0;
--	struct clk *parent;
--	unsigned long parent_rate;
--	const char *clk_name;
--
--	parent = __clk_get_parent(clk->hw.clk);
--	clk_name = __clk_get_name(clk->hw.clk);
--	parent_rate = __clk_get_rate(parent);
--
--	if (!clk->clksel || !clk->clksel_mask)
--		return ~0;
--
--	pr_debug("clock: clksel_round_rate_div: %s target_rate %ld\n",
--		 clk_name, target_rate);
--
--	*new_div = 1;
--
--	clks = _get_clksel_by_parent(clk, parent);
--	if (!clks)
--		return ~0;
--
--	for (clkr = clks->rates; clkr->div; clkr++) {
--		if (!(clkr->flags & cpu_mask))
--			continue;
--
--		/* Sanity check */
--		if (clkr->div <= last_div)
--			pr_err("clock: %s: clksel_rate table not sorted\n",
--			       clk_name);
--
--		last_div = clkr->div;
--
--		test_rate = parent_rate / clkr->div;
--
--		if (test_rate <= target_rate)
--			break; /* found it */
--	}
--
--	if (!clkr->div) {
--		pr_err("clock: %s: could not find divisor for target rate %ld for parent %s\n",
--		       clk_name, target_rate, __clk_get_name(parent));
--		return ~0;
--	}
--
--	*new_div = clkr->div;
--
--	pr_debug("clock: new_div = %d, new_rate = %ld\n", *new_div,
--		 (parent_rate / clkr->div));
--
--	return parent_rate / clkr->div;
--}
 -
 -/*
-- * Clocktype interface functions to the OMAP clock code
-- * (i.e., those used in struct clk field function pointers, etc.)
+- * Switch the MPU rate if specified on cmdline.  We cannot do this
+- * early until cmdline is parsed.  XXX This should be removed from the
+- * clock code and handled by the OPP layer code in the near future.
 - */
--
--/**
-- * omap2_clksel_find_parent_index() - return the array index of the current
-- * hardware parent of @hw
-- * @hw: struct clk_hw * to find the current hardware parent of
-- *
-- * Given a struct clk_hw pointer @hw to the 'hw' member of a struct
-- * clk_hw_omap record representing a source-selectable hardware clock,
-- * read the hardware register and determine what its parent is
-- * currently set to.  Intended to be called only by the common clock
-- * framework struct clk_hw_ops.get_parent function pointer.  Return
-- * the array index of this parent clock upon success -- there is no
-- * way to return an error, so if we encounter an error, just WARN()
-- * and pretend that we know that we're doing.
-- */
--u8 omap2_clksel_find_parent_index(struct clk_hw *hw)
+-static int __init omap2xxx_clk_arch_init(void)
 -{
--	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
--	const struct clksel *clks;
--	const struct clksel_rate *clkr;
--	u32 r, found = 0;
--	struct clk *parent;
--	const char *clk_name;
--	int ret = 0, f = 0;
+-	int ret;
 -
--	parent = __clk_get_parent(hw->clk);
--	clk_name = __clk_get_name(hw->clk);
+-	if (!cpu_is_omap24xx())
+-		return 0;
 -
--	/* XXX should be able to return an error */
--	WARN((!clk->clksel || !clk->clksel_mask),
--	     "clock: %s: attempt to call on a non-clksel clock", clk_name);
--
--	r = omap2_clk_readl(clk, clk->clksel_reg) & clk->clksel_mask;
--	r >>= __ffs(clk->clksel_mask);
--
--	for (clks = clk->clksel; clks->parent && !found; clks++) {
--		for (clkr = clks->rates; clkr->div && !found; clkr++) {
--			if (!(clkr->flags & cpu_mask))
--				continue;
--
--			if (clkr->val == r) {
--				found = 1;
--				ret = f;
--			}
--		}
--		f++;
--	}
--
--	/* This indicates a data error */
--	WARN(!found, "clock: %s: init parent: could not find regval %0x\n",
--	     clk_name, r);
+-	ret = omap2_clk_switch_mpurate_at_boot("virt_prcm_set");
+-	if (!ret)
+-		omap2_clk_print_new_rates("sys_ck", "dpll_ck", "mpu_ck");
 -
 -	return ret;
 -}
 -
+-omap_arch_initcall(omap2xxx_clk_arch_init);
 -
--/**
-- * omap2_clksel_recalc() - function ptr to pass via struct clk .recalc field
-- * @clk: struct clk *
-- *
-- * This function is intended to be called only by the clock framework.
-- * Each clksel clock should have its struct clk .recalc field set to this
-- * function.  Returns the clock's current rate, based on its parent's rate
-- * and its current divisor setting in the hardware.
-- */
--unsigned long omap2_clksel_recalc(struct clk_hw *hw, unsigned long parent_rate)
--{
--	unsigned long rate;
--	u32 div = 0;
--	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
 -
--	if (!parent_rate)
--		return 0;
+diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
+index 8bede6a..4bd6122 100644
+--- a/arch/arm/mach-omap2/clock3xxx.c
++++ b/arch/arm/mach-omap2/clock3xxx.c
+@@ -108,28 +108,3 @@ void __init omap3_clk_lock_dpll5(void)
+ 	clk_disable_unprepare(dpll5_clk);
+ 	return;
+ }
 -
--	div = _read_divisor(clk);
--	if (!div)
--		rate = parent_rate;
--	else
--		rate = parent_rate / div;
--
--	pr_debug("%s: recalc'd %s's rate to %lu (div %d)\n", __func__,
--		 __clk_get_name(hw->clk), rate, div);
--
--	return rate;
--}
--
--/**
-- * omap2_clksel_round_rate() - find rounded rate for the given clock and rate
-- * @clk: OMAP struct clk to use
-- * @target_rate: desired clock rate
-- *
-- * This function is intended to be called only by the clock framework.
-- * Finds best target rate based on the source clock and possible dividers.
-- * rates. The divider array must be sorted with smallest divider first.
-- *
-- * Returns the rounded clock rate or returns 0xffffffff on error.
-- */
--long omap2_clksel_round_rate(struct clk_hw *hw, unsigned long target_rate,
--			unsigned long *parent_rate)
--{
--	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
--	u32 new_div;
--
--	return omap2_clksel_round_rate_div(clk, target_rate, &new_div);
--}
--
--/**
-- * omap2_clksel_set_rate() - program clock rate in hardware
-- * @clk: struct clk * to program rate
-- * @rate: target rate to program
-- *
-- * This function is intended to be called only by the clock framework.
-- * Program @clk's rate to @rate in the hardware.  The clock can be
-- * either enabled or disabled when this happens, although if the clock
-- * is enabled, some downstream devices may glitch or behave
-- * unpredictably when the clock rate is changed - this depends on the
-- * hardware. This function does not currently check the usecount of
-- * the clock, so if multiple drivers are using the clock, and the rate
-- * is changed, they will all be affected without any notification.
-- * Returns -EINVAL upon error, or 0 upon success.
-- */
--int omap2_clksel_set_rate(struct clk_hw *hw, unsigned long rate,
--				unsigned long parent_rate)
--{
--	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
--	u32 field_val, validrate, new_div = 0;
--
--	if (!clk->clksel || !clk->clksel_mask)
--		return -EINVAL;
--
--	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
--	if (validrate != rate)
--		return -EINVAL;
--
--	field_val = _divisor_to_clksel(clk, new_div);
--	if (field_val == ~0)
--		return -EINVAL;
--
--	_write_clksel_reg(clk, field_val);
--
--	pr_debug("clock: %s: set rate to %ld\n", __clk_get_name(hw->clk),
--		 __clk_get_rate(hw->clk));
--
--	return 0;
--}
+-/* Common clock code */
 -
 -/*
-- * Clksel parent setting function - not passed in struct clk function
-- * pointer - instead, the OMAP clock code currently assumes that any
-- * parent-setting clock is a clksel clock, and calls
-- * omap2_clksel_set_parent() by default
+- * Switch the MPU rate if specified on cmdline.  We cannot do this
+- * early until cmdline is parsed.  XXX This should be removed from the
+- * clock code and handled by the OPP layer code in the near future.
 - */
--
--/**
-- * omap2_clksel_set_parent() - change a clock's parent clock
-- * @clk: struct clk * of the child clock
-- * @new_parent: struct clk * of the new parent clock
-- *
-- * This function is intended to be called only by the clock framework.
-- * Change the parent clock of clock @clk to @new_parent.  This is
-- * intended to be used while @clk is disabled.  This function does not
-- * currently check the usecount of the clock, so if multiple drivers
-- * are using the clock, and the parent is changed, they will all be
-- * affected without any notification.  Returns -EINVAL upon error, or
-- * 0 upon success.
-- */
--int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val)
+-static int __init omap3xxx_clk_arch_init(void)
 -{
--	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+-	int ret;
 -
--	if (!clk->clksel || !clk->clksel_mask)
--		return -EINVAL;
+-	if (!cpu_is_omap34xx())
+-		return 0;
 -
--	_write_clksel_reg(clk, field_val);
--	return 0;
+-	ret = omap2_clk_switch_mpurate_at_boot("dpll1_ck");
+-	if (!ret)
+-		omap2_clk_print_new_rates("osc_sys_ck", "core_ck", "arm_fck");
+-
+-	return ret;
 -}
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index ca8c42c..9efff4b 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -186,18 +186,6 @@ void omap3_dpll_deny_idle(struct clk_hw_omap *clk);
- 
- void __init omap2_clk_disable_clkdm_control(void);
- 
--/* clkt_clksel.c public functions */
--u32 omap2_clksel_round_rate_div(struct clk_hw_omap *clk,
--				unsigned long target_rate,
--				u32 *new_div);
--u8 omap2_clksel_find_parent_index(struct clk_hw *hw);
--unsigned long omap2_clksel_recalc(struct clk_hw *hw, unsigned long parent_rate);
--long omap2_clksel_round_rate(struct clk_hw *hw, unsigned long target_rate,
--				unsigned long *parent_rate);
--int omap2_clksel_set_rate(struct clk_hw *hw, unsigned long rate,
--				unsigned long parent_rate);
--int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val);
 -
- int omap2_clk_enable_autoidle_all(void);
- int omap2_clk_allow_idle(struct clk *clk);
- int omap2_clk_deny_idle(struct clk *clk);
+-omap_arch_initcall(omap3xxx_clk_arch_init);
+-
+-
 -- 
 1.7.9.5
 
