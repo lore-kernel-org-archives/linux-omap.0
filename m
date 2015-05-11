@@ -1,165 +1,189 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] arm: boot: dts: am4372: add operating points
-Date: Mon, 11 May 2015 10:19:30 -0500
-Message-ID: <20150511151930.GA19183@saruman.tx.rr.com>
-References: <1431115050-23693-1-git-send-email-balbi@ti.com>
- <554D17F3.7090008@ti.com>
- <554D18AB.6060901@ti.com>
- <20150508202439.GA25459@saruman.tx.rr.com>
- <554FF686.5050704@ti.com>
-Reply-To: <balbi@ti.com>
+From: Chanwoo Choi <cwchoi00@gmail.com>
+Subject: Re: [PATCH 6/6] phy: twl4030-usb: add extcon to report cable connections.
+Date: Tue, 12 May 2015 00:58:32 +0900
+Message-ID: <CAGTfZH1dCLjp6FSRUj0QFHNd41p-XEPdUtrokQ4sZN+tvQ4Rag@mail.gmail.com>
+References: <20150416075945.23307.24424.stgit@notabene.brown>
+	<20150416080304.23307.44749.stgit@notabene.brown>
+	<5550B0E1.7090506@ti.com>
+Reply-To: cw00.choi@samsung.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36191 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbbEKPVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2015 11:21:51 -0400
-Content-Disposition: inline
-In-Reply-To: <554FF686.5050704@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5550B0E1.7090506@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: NeilBrown <neil@brown.name>, NeilBrown <neilb@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, rjw@rjwysocki.net, Viresh Kumar <viresh.kumar@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-pm@vger.kernel.org
-
---tThc/1wpZn/ma/RB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, May 10, 2015 at 07:23:34PM -0500, Nishanth Menon wrote:
-> On 05/08/2015 03:24 PM, Felipe Balbi wrote:
-> > On Fri, May 08, 2015 at 03:12:27PM -0500, Nishanth Menon wrote:
-> >> On 05/08/2015 03:09 PM, Nishanth Menon wrote:
-> >>> On 05/08/2015 02:57 PM, Felipe Balbi wrote:
-> >>>> By adding operating points, cpufreq-dt has a
-> >>>> chance of running and doing something useful.
-> >>>>
-> >>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >>>> ---
-> >>>>  arch/arm/boot/dts/am4372.dtsi | 9 +++++++++
-> >>>>  1 file changed, 9 insertions(+)
-> >>>>
-> >>>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am437=
-2.dtsi
-> >>>> index c80a3e233792..ea1db20f64fc 100644
-> >>>> --- a/arch/arm/boot/dts/am4372.dtsi
-> >>>> +++ b/arch/arm/boot/dts/am4372.dtsi
-> >>>> @@ -38,6 +38,15 @@
-> >>>>  			clocks =3D <&dpll_mpu_ck>;
-> >>>>  			clock-names =3D "cpu";
-> >>>> =20
-> >>>> +			operating-points =3D <
-> >>>> +				/* kHz		uV */
-> >>>> +				1000000		1325000 /* OPP_NITRO */
-> >>>> +				 800000		1260000 /* OPP_TURBO */
-> >>>> +				 720000		1200000 /* OPP_120 */
-> >>>> +				 600000		1100000 /* OPP_100 */
-> >>>> +				 300000		 950000 /* OPP_50 */
-> >>>> +			>;
-> >>>> +
-> >>>>  			clock-latency =3D <300000>; /* From omap-cpufreq driver */
-> >>>>  		};
-> >>>>  	};
-> >>>>
-> >>> which of these OPPs need AVS? which of these are dependent on Efuse b=
-it
-> >>> dependent?
-> >>>
-> >>
-> >>
-> >> You can use
-> >> http://git.ti.com/ti-linux-kernel/ti-linux-kernel/blobs/ti-linux-3.14.=
-y/arch/arm/mach-omap2/opp43xx_data.c
-> >> for reference.
-> >=20
-> > heh, why isn't that upstream yet ? Seems to be ready already. The point
->=20
-> we have tried in the past[1] - unfortunately that was just bandaid since
-> the existing OPP device tree bindings have very limiting behavior across
-> multiple SoCs.This was one of the reasons why we stopped adding more
-> OPPs, since we are hoping to see the new bindings[2] which is under
-> discussion settle down and help enable support for cases like that we
-> have on TI SoCs, iMX SoCs etc.
+On Mon, May 11, 2015 at 10:38 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> +extcon MAINTAINERS
+>
+> Hi,
+>
+> On Thursday 16 April 2015 01:33 PM, NeilBrown wrote:
+>>
+>> From: NeilBrown <neilb@suse.de>
+>
+>
+> commit msg pls.
+>
+>>
+>> Signed-off-by: NeilBrown <neilb@suse.de>
+>> ---
+>>   drivers/phy/phy-twl4030-usb.c |   67
+>> +++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 67 insertions(+)
+>>
+>> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+>> index 1d6f3e70193e..c42153d43ec2 100644
+>> --- a/drivers/phy/phy-twl4030-usb.c
+>> +++ b/drivers/phy/phy-twl4030-usb.c
+>> @@ -40,6 +40,7 @@
+>>   #include <linux/regulator/consumer.h>
+>>   #include <linux/err.h>
+>>   #include <linux/slab.h>
+>> +#include <linux/extcon.h>
+>>
+>>   /* Register defines */
+>>
+>> @@ -173,6 +174,9 @@ struct twl4030_usb {
+>>         enum omap_musb_vbus_id_status linkstat;
+>>         bool                    vbus_supplied;
+>>
+>> +       /* cable connection */
+>> +       struct extcon_dev       edev;
+>> +
+>>         struct delayed_work     id_workaround_work;
+>>   };
+>>
+>> @@ -592,6 +596,54 @@ static ssize_t twl4030_usb_id_show(struct device
+>> *dev,
+>>   }
+>>   static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
+>>
+>> +static const char *usb_cables[] = {
+>> +       "USB", /* id is floating */
+>> +       "Charger-downstream", /* id is floating and D+ shorted to D- */
+>> +       "USB-Host", /* id is ground */
+>> +       "USB-ACA", /* "Accessory Charger Adapter" id is something else */
+>> +       NULL
 
-fair enough.
+Current extcon core use the string for external connector when
+registering the extcon device.
+But, It is not clear. So, I'm working to implement it with the unique
+id for each external connectors
+instead of previous string name. You can refer to ongoing patch[1].
 
-> > is that as of now, u-boot will set maximum OPP it can find and, for
-> > AM437x, that will be 800MHz or 1GHz depending on your board. 1GHz might
-> > not be supported in all SoCs and letting that be used all the time is
-> > likely going to reduce silicon lifetime.
->=20
-> > At least allowing ondemand governor run, we will be mostly running at
-> > 300MHz and only jump to "invalid" OPPs under load which, granted, is
-> > still not perfect, but better than running at 1GHz all the time, don't
-> > you agree ?
-> The fix for this should ideally be in u-boot - we are trying not to
+[1] https://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/commit/?h=v4.2/extcon-next&id=ab73c3cb76816f904d91191b13b9140f3684fa35
 
-right, ideally, yeah; but then we go back to the discussion regarding
-kernel vs bootloader dependencies :-)
+I recommend that you stop the implementation of this patch until
+finishing the update[2] of extcon core.
+After complete the update[2], you'd better to implement this path
+again with new method
+to register the extcon device.
+[2] https://git.kernel.org/cgit/linux/kernel/git/chanwoo/extcon.git/log/?h=v4.2/extcon-next
 
-> introduce dts changes in the hopes that the new proposed bindings that
-> Viresh has on discussion comes to conclusion and help introduce new dtb
-> support with proper SoC description. allowing an SoC to enter an invalid
-> OPP is broken by design. we must attempt to curb it. unfortunately, we
-> already do have a broken implementation for AM335x, DRA7 in place which
-> went with the assumption that we will be able to do modifiers on top of
-> existing dt description and the hopes that [1] will eventually get
-> upstream. But, as is clear now, [1] has no future path in upstream
-> kernel. following the same broken path for newer SoC definitions will
-> probably very short sighted by us.
->=20
-> in my opinion, doing a temporary hack in upstream kernel is not an
-> elegant approach. I suggest helping review and approving Viresh's new
 
-however this is not a hack, right ? If we get rid of OPP_NITRO and
-OPP_TURBO, then we will more than likely always be dealing with safe
-OPPs (yeah, I need to confirm this since it's not on public TRM, so as
-of now, take this statement with a grain of salt :-), moreover, even
-though we're trying to change opp bindings, the current situation is
-still very much accepted and will remain valid even after changing
-binding :-)
+>> +};
+>> +enum {
+>> +       TWL_CABLE_USB,
+>> +       TWL_CABLE_CHARGER,      /* Not used - twl4030 can detect charger,
+>> +                                * but driver cannot yet */
+>> +       TWL_CABLE_OTG,
+>> +       TWL_CABLE_ACA,
+>> +};
+>> +static u32 all_exclusive[] =  {0xFFFFFFFF, 0};
+>> +
+>> +static void twl4030_usb_report_cable(struct twl4030_usb *twl)
+>> +{
+>> +       enum twl4030_id_status sts;
+>> +
+>> +       if (!cable_present(twl->linkstat)) {
+>> +               extcon_set_state(&twl->edev, 0);
+>> +               return;
+>> +       }
+>> +
+>> +       sts = twl4030_get_id(twl);
+>> +
+>> +       switch (sts) {
+>> +       case TWL4030_FLOATING: /* USB downstream */
+>> +               extcon_update_state(&twl->edev,
+>> +                                   1<<TWL_CABLE_USB,
+>> +                                   1<<TWL_CABLE_USB);
+>> +               break;
+>> +       case TWL4030_GROUND: /* USB host */
+>> +               extcon_update_state(&twl->edev,
+>> +                                   1<<TWL_CABLE_OTG,
+>> +                                   1<<TWL_CABLE_OTG);
+>> +               break;
+>> +       default: /* Some resistor */
+>> +               extcon_update_state(&twl->edev,
+>> +                                   1<<TWL_CABLE_ACA,
+>> +                                   1<<TWL_CABLE_ACA);
+>> +               /* An ACA should set port to 'host' mode */
+>> +               twl->linkstat = OMAP_MUSB_ID_GROUND;
+>> +               break;
+>> +       }
 
-Not to mention that people using AM43xx today might be using it under
-invalid OPPs and decreasing silicon life; I'd assume that's a very
-urgent detail to sort out.
+I don't prefer to use the extcon_update_state() function because
+the extcon_update_state() function make the difficult code to handle
+the extcon device driver. So, I'm planning to handle the extcon_update_state()
+in only extcon core. Instead, extcon driver can use the
+extcon_set_cable_{state|state_}
+to update the state of cable.
 
-> bindings so that we have a longer term solution is more the way to do thi=
-s.
->=20
-> Just my 2 cents. Thanks once again for identifying the urgent need for
-> helping Viresh's series along - will be great if folks could help review
-> and approve his series to get them upstream and help all of us ARM SoC
-> variations along.
+>> +}
+>> +
+>>   static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+>>   {
+>>         struct twl4030_usb *twl = _twl;
+>> @@ -628,6 +680,7 @@ static irqreturn_t twl4030_usb_irq(int irq, void
+>> *_twl)
+>>                         pm_runtime_put_autosuspend(twl->dev);
+>>                 }
+>>                 omap_musb_mailbox(status);
+>> +               twl4030_usb_report_cable(twl);
+>>         }
+>>
+>>         /* don't schedule during sleep - irq works right then */
+>> @@ -766,6 +819,20 @@ static int twl4030_usb_probe(struct platform_device
+>> *pdev)
+>>         }
+>>         usb_add_phy_dev(&twl->phy);
+>>
+>> +       twl->edev.name = devm_kasprintf(twl->dev, GFP_KERNEL, "%s-usb",
+>> +                                       dev_name(twl->dev->parent));
 
-np.
+The name of extcon device should be set by extcon core. you can refer
+to patch[3]
+about the extcon device's name.
+[3] https://lkml.org/lkml/2015/4/27/258
+- extcon: Modify the device name as extcon[X] for sysfs
 
---=20
-balbi
+>> +       twl->edev.supported_cable = usb_cables;
+>> +       twl->edev.mutually_exclusive = all_exclusive;
+>> +       twl->edev.print_name = NULL; /* why would you change this? */
+>> +       twl->edev.print_state = NULL; /* probably want to change this */
 
---tThc/1wpZn/ma/RB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I don't agree that you store some variable to extcon_dev structure directly.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+There are both extcon provider driver and extcon consumer driver. So,
+the extcon_dev structure should be handled on extcon provider driver
+which included in drivers/extcon. Namely, current extcon subsystem
+has the problem about this. Also, I'm working to resolve this problem.
 
-iQIcBAEBAgAGBQJVUMiCAAoJEIaOsuA1yqREdxUQAI6lMscTGeZiPazHxAsHh+4Y
-kn4ka14+era/4vTZIDBwVVh/FkbVE6E1vyJMstb1L+h7CqCg0iwebWz/D6ZwtFoF
-eKPs3YVkGQDIAuvi0UkepeJCyaZPoXq9zyJqg5ksDkHL/Rp83Nu3DUJeASjyVYXe
-5201r5/9siymjwrlGS0P+CK6/GqU44sEfMjKVzTxoin+p6JeY5alSMb2wDovWxY/
-hALL36VCv3P6i6+QSfb4xMed/LZrMsXnaRqCqSlFz4lCIAOv5+iuK9MS6XKOqoLp
-GwtUkzan0TD/n3rJsMFYC9e+lil1bno9c3KZnEeLDMIoHNbuwWtUATxKecmss039
-8V9CWvjYQu6bcCmV7EYq+hr9WcqqfYMJ8i4dyhpPaDP0QDn/L48Slz1P355x1Yi+
-ypnszPaCkVulxjp8LnBPV6DqHjoWWn6tCzFjKpsWmQaVcZHaIAJbmzpMcogmF31O
-H56Xv0GFbVsqjY5RUXB6ccFpn/JpnJbgYqyTzg9IhHmzp/p1e0+XEVp1DEfxc/nw
-GtMEDCV/grpZLcnCst8sT57FbCFgtMAfbFIjNYfyE1qvHdvJjmNQ/+fxJskdcV9l
-Y8OJdSXMfl4cjyIN5voaCHf+QqIjQetJ/N0+Akoc6wfh9f7zMXqH1R9zFARGQDUu
-XMu1bp+K8ePyoz8IkuRa
-=xBCR
------END PGP SIGNATURE-----
+I don't prefer to implement the new extcon provider driver on
+non-'drivers/extcon' directory.
 
---tThc/1wpZn/ma/RB--
+>
+>
+> Not sure about those two callbacks. Chanwoo?
+>
+> Thanks
+> Kishon
+
+
+Best Regards,
+Chanwoo Choi
