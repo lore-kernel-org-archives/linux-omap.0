@@ -1,199 +1,140 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 07/27] ARM: OMAP2+: clock: remove clock_common_data.c file
-Date: Mon, 11 May 2015 11:54:33 +0300
-Message-ID: <1431334493-24455-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 08/27] ARM: OMAP36xx: remove clock36xx.c/.h files
+Date: Mon, 11 May 2015 11:54:34 +0300
+Message-ID: <1431334493-24455-9-git-send-email-t-kristo@ti.com>
 References: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49473 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179AbbEKIy5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2015 04:54:57 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:46492 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753179AbbEKIzC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 May 2015 04:55:02 -0400
 In-Reply-To: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This only contains clksel tables that were used with the legacy clock data.
-Now that legacy clock data is completely gone, this file can be removed
-also.
+These files contain legacy clock implementations which are no longer used
+for anything, thus remove them completely.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/Makefile            |    2 +-
- arch/arm/mach-omap2/clock.h             |   14 ----
- arch/arm/mach-omap2/clock_common_data.c |  115 -------------------------------
- 3 files changed, 1 insertion(+), 130 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clock_common_data.c
+ arch/arm/mach-omap2/Makefile    |    2 +-
+ arch/arm/mach-omap2/clock36xx.c |   69 ---------------------------------------
+ arch/arm/mach-omap2/clock36xx.h |   13 --------
+ 3 files changed, 1 insertion(+), 83 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clock36xx.c
+ delete mode 100644 arch/arm/mach-omap2/clock36xx.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index d03bc21..98d5030 100644
+index 98d5030..f33d011 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -12,7 +12,7 @@ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
- 
- hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
- 					  omap_hwmod_common_data.o
--clock-common				= clock.o clock_common_data.o
-+clock-common				= clock.o
- secure-common				= omap-smc.o omap-secure.o
- 
- obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 9efff4b..b71d430 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -204,11 +204,6 @@ extern const struct clkops clkops_omap2_dflt;
- 
- extern struct clk_functions omap2_clk_functions;
- 
--extern const struct clksel_rate gpt_32k_rates[];
--extern const struct clksel_rate gpt_sys_rates[];
--extern const struct clksel_rate gfx_l3_rates[];
--extern const struct clksel_rate dsp_ick_rates[];
--
- extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
-@@ -217,15 +212,6 @@ extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_apll54;
- extern const struct clk_hw_omap_ops clkhwops_apll96;
- 
--/* clksel_rate blocks shared between OMAP44xx and AM33xx */
--extern const struct clksel_rate div_1_0_rates[];
--extern const struct clksel_rate div3_1to4_rates[];
--extern const struct clksel_rate div_1_1_rates[];
--extern const struct clksel_rate div_1_2_rates[];
--extern const struct clksel_rate div_1_3_rates[];
--extern const struct clksel_rate div_1_4_rates[];
--extern const struct clksel_rate div31_1to31_rates[];
--
- extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
- extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
- 
-diff --git a/arch/arm/mach-omap2/clock_common_data.c b/arch/arm/mach-omap2/clock_common_data.c
+@@ -188,7 +188,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o
+ obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o clkt34xx_dpll3m2.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o clock36xx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common)
+ obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o
+diff --git a/arch/arm/mach-omap2/clock36xx.c b/arch/arm/mach-omap2/clock36xx.c
 deleted file mode 100644
-index 61b60df..0000000
---- a/arch/arm/mach-omap2/clock_common_data.c
+index 91ccb96..0000000
+--- a/arch/arm/mach-omap2/clock36xx.c
 +++ /dev/null
-@@ -1,115 +0,0 @@
+@@ -1,69 +0,0 @@
 -/*
-- *  linux/arch/arm/mach-omap2/clock_common_data.c
+- * OMAP36xx-specific clkops
 - *
-- *  Copyright (C) 2005-2009 Texas Instruments, Inc.
-- *  Copyright (C) 2004-2009 Nokia Corporation
+- * Copyright (C) 2010 Texas Instruments, Inc.
+- * Copyright (C) 2010 Nokia Corporation
 - *
-- *  Contacts:
-- *  Richard Woodruff <r-woodruff2@ti.com>
-- *  Paul Walmsley
+- * Mike Turquette
+- * Vijaykumar GN
+- * Paul Walmsley
+- *
+- * Parts of this code are based on code written by
+- * Richard Woodruff, Tony Lindgren, Tuukka Tikkanen, Karthik Dasu,
+- * Russell King
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
-- *
-- * This file contains clock data that is common to both the OMAP2xxx and
-- * OMAP3xxx clock definition files.
 - */
+-#undef DEBUG
+-
+-#include <linux/kernel.h>
+-#include <linux/clk.h>
+-#include <linux/clk-provider.h>
+-#include <linux/io.h>
 -
 -#include "clock.h"
+-#include "clock36xx.h"
+-#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
 -
--/* clksel_rate data common to 24xx/343x */
--const struct clksel_rate gpt_32k_rates[] = {
--	 { .div = 1, .val = 0, .flags = RATE_IN_24XX | RATE_IN_3XXX },
--	 { .div = 0 }
--};
+-/**
+- * omap36xx_pwrdn_clk_enable_with_hsdiv_restore - enable clocks suffering
+- *         from HSDivider PWRDN problem Implements Errata ID: i556.
+- * @clk: DPLL output struct clk
+- *
+- * 3630 only: dpll3_m3_ck, dpll4_m2_ck, dpll4_m3_ck, dpll4_m4_ck,
+- * dpll4_m5_ck & dpll4_m6_ck dividers gets loaded with reset
+- * valueafter their respective PWRDN bits are set.  Any dummy write
+- * (Any other value different from the Read value) to the
+- * corresponding CM_CLKSEL register will refresh the dividers.
+- */
+-int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
+-{
+-	struct clk_divider *parent;
+-	struct clk_hw *parent_hw;
+-	u32 dummy_v, orig_v;
+-	struct clk_hw_omap *omap_clk = to_clk_hw_omap(clk);
+-	int ret;
 -
--const struct clksel_rate gpt_sys_rates[] = {
--	 { .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_3XXX },
--	 { .div = 0 }
--};
+-	/* Clear PWRDN bit of HSDIVIDER */
+-	ret = omap2_dflt_clk_enable(clk);
 -
--const struct clksel_rate gfx_l3_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_3XXX },
--	{ .div = 2, .val = 2, .flags = RATE_IN_24XX | RATE_IN_3XXX },
--	{ .div = 3, .val = 3, .flags = RATE_IN_243X | RATE_IN_3XXX },
--	{ .div = 4, .val = 4, .flags = RATE_IN_243X | RATE_IN_3XXX },
--	{ .div = 0 }
--};
+-	parent_hw = __clk_get_hw(__clk_get_parent(clk->clk));
+-	parent = to_clk_divider(parent_hw);
 -
--const struct clksel_rate dsp_ick_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_24XX },
--	{ .div = 2, .val = 2, .flags = RATE_IN_24XX },
--	{ .div = 3, .val = 3, .flags = RATE_IN_243X },
--	{ .div = 0 },
--};
+-	/* Restore the dividers */
+-	if (!ret) {
+-		orig_v = omap2_clk_readl(omap_clk, parent->reg);
+-		dummy_v = orig_v;
 -
+-		/* Write any other value different from the Read value */
+-		dummy_v ^= (1 << parent->shift);
+-		omap2_clk_writel(dummy_v, omap_clk, parent->reg);
 -
--/* clksel_rate blocks shared between OMAP44xx and AM33xx */
+-		/* Write the original divider */
+-		omap2_clk_writel(orig_v, omap_clk, parent->reg);
+-	}
 -
--const struct clksel_rate div_1_0_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 0 },
--};
+-	return ret;
+-}
+diff --git a/arch/arm/mach-omap2/clock36xx.h b/arch/arm/mach-omap2/clock36xx.h
+deleted file mode 100644
+index 945bb7f..0000000
+--- a/arch/arm/mach-omap2/clock36xx.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-/*
+- * OMAP36xx clock function prototypes and macros
+- *
+- * Copyright (C) 2010 Texas Instruments, Inc.
+- * Copyright (C) 2010 Nokia Corporation
+- */
 -
--const struct clksel_rate div3_1to4_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_4430 },
--	{ .div = 2, .val = 1, .flags = RATE_IN_4430 },
--	{ .div = 4, .val = 2, .flags = RATE_IN_4430 },
--	{ .div = 0 },
--};
+-#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK36XX_H
+-#define __ARCH_ARM_MACH_OMAP2_CLOCK36XX_H
 -
--const struct clksel_rate div_1_1_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 0 },
--};
+-extern int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *hw);
 -
--const struct clksel_rate div_1_2_rates[] = {
--	{ .div = 1, .val = 2, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 0 },
--};
--
--const struct clksel_rate div_1_3_rates[] = {
--	{ .div = 1, .val = 3, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 0 },
--};
--
--const struct clksel_rate div_1_4_rates[] = {
--	{ .div = 1, .val = 4, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 0 },
--};
--
--const struct clksel_rate div31_1to31_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 2, .val = 2, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 3, .val = 3, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 4, .val = 4, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 5, .val = 5, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 6, .val = 6, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 7, .val = 7, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 8, .val = 8, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 9, .val = 9, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 10, .val = 10, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 11, .val = 11, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 12, .val = 12, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 13, .val = 13, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 14, .val = 14, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 15, .val = 15, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 16, .val = 16, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 17, .val = 17, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 18, .val = 18, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 19, .val = 19, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 20, .val = 20, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 21, .val = 21, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 22, .val = 22, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 23, .val = 23, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 24, .val = 24, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 25, .val = 25, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 26, .val = 26, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 27, .val = 27, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 28, .val = 28, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 29, .val = 29, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 30, .val = 30, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 31, .val = 31, .flags = RATE_IN_4430 | RATE_IN_AM33XX },
--	{ .div = 0 },
--};
+-#endif
 -- 
 1.7.9.5
 
