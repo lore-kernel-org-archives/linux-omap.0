@@ -1,193 +1,217 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 18/27] clk: ti: omap2430: move clock support code under clock driver
-Date: Mon, 11 May 2015 11:54:44 +0300
-Message-ID: <1431334493-24455-19-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 24/27] ARM: OMAP2+: clock: remove dead definitions from the clock header file
+Date: Mon, 11 May 2015 11:54:50 +0300
+Message-ID: <1431334493-24455-25-git-send-email-t-kristo@ti.com>
 References: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49524 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbbEKIzf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2015 04:55:35 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:45778 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753323AbbEKIzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 May 2015 04:55:45 -0400
 In-Reply-To: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-With the legacy clock support gone, this is no longer needed under
-platform code-base. Thus, move this under the TI clock driver, and
-remove the exported API from the public header.
+Cleanup the mess in clock.h by removing all definitions that are no longer
+used for anything.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/Makefile    |    1 -
- arch/arm/mach-omap2/clock2430.c |   57 ---------------------------------------
- drivers/clk/ti/clkt_iclk.c      |   35 ++++++++++++++++++++++++
- drivers/clk/ti/clock.h          |    1 +
- include/linux/clk/ti.h          |    1 -
- 5 files changed, 36 insertions(+), 59 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clock2430.c
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |    1 -
+ arch/arm/mach-omap2/clock.h            |  124 --------------------------------
+ arch/arm/mach-omap2/clock34xx.h        |   18 -----
+ 3 files changed, 143 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clock34xx.h
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 07052656..695d58f 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -185,7 +185,6 @@ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common)
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpllcore.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o
--obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common)
- obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o clkt34xx_dpll3m2.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o
-diff --git a/arch/arm/mach-omap2/clock2430.c b/arch/arm/mach-omap2/clock2430.c
-deleted file mode 100644
-index cef0c8d..0000000
---- a/arch/arm/mach-omap2/clock2430.c
-+++ /dev/null
-@@ -1,57 +0,0 @@
--/*
-- * clock2430.c - OMAP2430-specific clock integration code
-- *
-- * Copyright (C) 2005-2008 Texas Instruments, Inc.
-- * Copyright (C) 2004-2010 Nokia Corporation
-- *
-- * Contacts:
-- * Richard Woodruff <r-woodruff2@ti.com>
-- * Paul Walmsley
-- *
-- * Based on earlier work by Tuukka Tikkanen, Tony Lindgren,
-- * Gordon McNutt and RidgeRun, Inc.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#undef DEBUG
+diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+index 6cd2961..07e1956 100644
+--- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
++++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+@@ -23,7 +23,6 @@
+ 
+ #include "clock.h"
+ #include "clock3xxx.h"
+-#include "clock34xx.h"
+ #include "sdrc.h"
+ #include "sram.h"
+ 
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index a7e9511..1986ab2 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -23,90 +23,6 @@
+ #include <linux/clk-provider.h>
+ #include <linux/clk/ti.h>
+ 
+-struct omap_clk {
+-	u16				cpu;
+-	struct clk_lookup		lk;
+-};
 -
--#include <linux/kernel.h>
--#include <linux/clk.h>
--#include <linux/io.h>
+-#define CLK(dev, con, ck)		\
+-	{				\
+-		.lk = {			\
+-			.dev_id = dev,	\
+-			.con_id = con,	\
+-			.clk = ck,	\
+-		},			\
+-	}
 -
--#include "soc.h"
--#include "iomap.h"
--#include "clock.h"
--#include "clock2xxx.h"
--#include "cm2xxx.h"
--#include "cm-regbits-24xx.h"
+-struct clockdomain;
+-
+-#define DEFINE_STRUCT_CLK(_name, _parent_array_name, _clkops_name)	\
+-	static struct clk_core _name##_core = {			\
+-		.name = #_name,					\
+-		.hw = &_name##_hw.hw,				\
+-		.parent_names = _parent_array_name,		\
+-		.num_parents = ARRAY_SIZE(_parent_array_name),	\
+-		.ops = &_clkops_name,				\
+-	};							\
+-	static struct clk _name = {				\
+-		.core = &_name##_core,				\
+-	};
+-
+-#define DEFINE_STRUCT_CLK_FLAGS(_name, _parent_array_name,	\
+-				_clkops_name, _flags)		\
+-	static struct clk_core _name##_core = {			\
+-		.name = #_name,					\
+-		.hw = &_name##_hw.hw,				\
+-		.parent_names = _parent_array_name,		\
+-		.num_parents = ARRAY_SIZE(_parent_array_name),	\
+-		.ops = &_clkops_name,				\
+-		.flags = _flags,				\
+-	};							\
+-	static struct clk _name = {				\
+-		.core = &_name##_core,				\
+-	};
+-
+-#define DEFINE_STRUCT_CLK_HW_OMAP(_name, _clkdm_name)		\
+-	static struct clk_hw_omap _name##_hw = {		\
+-		.hw = {						\
+-			.clk = &_name,				\
+-		},						\
+-		.clkdm_name = _clkdm_name,			\
+-	};
+-
+-#define DEFINE_CLK_OMAP_MUX(_name, _clkdm_name, _clksel,	\
+-			    _clksel_reg, _clksel_mask,		\
+-			    _parent_names, _ops)		\
+-	static struct clk _name;				\
+-	static struct clk_hw_omap _name##_hw = {		\
+-		.hw = {						\
+-			.clk = &_name,				\
+-		},						\
+-		.clksel		= _clksel,			\
+-		.clksel_reg	= _clksel_reg,			\
+-		.clksel_mask	= _clksel_mask,			\
+-		.clkdm_name	= _clkdm_name,			\
+-	};							\
+-	DEFINE_STRUCT_CLK(_name, _parent_names, _ops);
+-
+-#define DEFINE_CLK_OMAP_MUX_GATE(_name, _clkdm_name, _clksel,	\
+-				 _clksel_reg, _clksel_mask,	\
+-				 _enable_reg, _enable_bit,	\
+-				 _hwops, _parent_names, _ops)	\
+-	static struct clk _name;				\
+-	static struct clk_hw_omap _name##_hw = {		\
+-		.hw = {						\
+-			.clk = &_name,				\
+-		},						\
+-		.ops		= _hwops,			\
+-		.enable_reg	= _enable_reg,			\
+-		.enable_bit	= _enable_bit,			\
+-		.clksel		= _clksel,			\
+-		.clksel_reg	= _clksel_reg,			\
+-		.clksel_mask	= _clksel_mask,			\
+-		.clkdm_name	= _clkdm_name,			\
+-	};							\
+-	DEFINE_STRUCT_CLK(_name, _parent_names, _ops);
+-
+ /* struct clksel_rate.flags possibilities */
+ #define RATE_IN_242X		(1 << 0)
+ #define RATE_IN_243X		(1 << 1)
+@@ -127,38 +43,6 @@ struct clockdomain;
+ /* RATE_IN_3430ES2PLUS_36XX includes 34xx/35xx with ES >=2, and all 36xx/37xx */
+ #define RATE_IN_3430ES2PLUS_36XX	(RATE_IN_3430ES2PLUS | RATE_IN_36XX)
+ 
 -
 -/**
-- * omap2430_clk_i2chs_find_idlest - return CM_IDLEST info for 2430 I2CHS
-- * @clk: struct clk * being enabled
-- * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
-- * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
-- * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
+- * struct clksel_rate - register bitfield values corresponding to clk divisors
+- * @val: register bitfield value (shifted to bit 0)
+- * @div: clock divisor corresponding to @val
+- * @flags: (see "struct clksel_rate.flags possibilities" above)
 - *
-- * OMAP2430 I2CHS CM_IDLEST bits are in CM_IDLEST1_CORE, but the
-- * CM_*CLKEN bits are in CM_{I,F}CLKEN2_CORE.  This custom function
-- * passes back the correct CM_IDLEST register address for I2CHS
-- * modules.  No return value.
+- * @val should match the value of a read from struct clk.clksel_reg
+- * AND'ed with struct clk.clksel_mask, shifted right to bit 0.
+- *
+- * @div is the divisor that should be applied to the parent clock's rate
+- * to produce the current clock's rate.
 - */
--static void omap2430_clk_i2chs_find_idlest(struct clk_hw_omap *clk,
--					   void __iomem **idlest_reg,
--					   u8 *idlest_bit,
--					   u8 *idlest_val)
--{
--	*idlest_reg = OMAP2430_CM_REGADDR(CORE_MOD, CM_IDLEST);
--	*idlest_bit = clk->enable_bit;
--	*idlest_val = OMAP24XX_CM_IDLEST_VAL;
--}
--
--/* 2430 I2CHS has non-standard IDLEST register */
--const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait = {
--	.find_idlest	= omap2430_clk_i2chs_find_idlest,
--	.find_companion	= omap2_clk_dflt_find_companion,
+-struct clksel_rate {
+-	u32			val;
+-	u8			div;
+-	u16			flags;
 -};
-diff --git a/drivers/clk/ti/clkt_iclk.c b/drivers/clk/ti/clkt_iclk.c
-index a03919d..38c3690 100644
---- a/drivers/clk/ti/clkt_iclk.c
-+++ b/drivers/clk/ti/clkt_iclk.c
-@@ -18,8 +18,12 @@
- #include "clock.h"
+-
+-/**
+- * struct clksel - available parent clocks, and a pointer to their divisors
+- * @parent: struct clk * to a possible parent clock
+- * @rates: available divisors for this parent clock
+- *
+- * A struct clksel is always associated with one or more struct clks
+- * and one or more struct clksel_rates.
+- */
+-struct clksel {
+-	struct clk		 *parent;
+-	const struct clksel_rate *rates;
+-};
+-
+ /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
+ #define CORE_CLK_SRC_32K		0x0
+ #define CORE_CLK_SRC_DPLL		0x1
+@@ -194,14 +78,6 @@ extern const struct clkops clkops_omap2_dflt;
  
- /* Register offsets */
-+#define OMAP24XX_CM_FCLKEN2		0x04
- #define CM_AUTOIDLE			0x30
- #define CM_ICLKEN			0x10
-+#define CM_IDLEST			0x20
-+
-+#define OMAP24XX_CM_IDLEST_VAL		0
+ extern struct clk_functions omap2_clk_functions;
  
- /* Private functions */
+-extern const struct clk_hw_omap_ops clkhwops_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
+-extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
+-extern const struct clk_hw_omap_ops clkhwops_apll54;
+-extern const struct clk_hw_omap_ops clkhwops_apll96;
+-
+ struct regmap;
  
-@@ -51,6 +55,31 @@ void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk)
- 	ti_clk_ll_ops->clk_writel(v, r);
- }
- 
-+/**
-+ * omap2430_clk_i2chs_find_idlest - return CM_IDLEST info for 2430 I2CHS
-+ * @clk: struct clk * being enabled
-+ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
-+ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
-+ * @idlest_val: pointer to a u8 to store the CM_IDLEST indicator
-+ *
-+ * OMAP2430 I2CHS CM_IDLEST bits are in CM_IDLEST1_CORE, but the
-+ * CM_*CLKEN bits are in CM_{I,F}CLKEN2_CORE.  This custom function
-+ * passes back the correct CM_IDLEST register address for I2CHS
-+ * modules.  No return value.
-+ */
-+static void omap2430_clk_i2chs_find_idlest(struct clk_hw_omap *clk,
-+					   void __iomem **idlest_reg,
-+					   u8 *idlest_bit,
-+					   u8 *idlest_val)
-+{
-+	u32 r;
-+
-+	r = ((__force u32)clk->enable_reg ^ (OMAP24XX_CM_FCLKEN2 ^ CM_IDLEST));
-+	*idlest_reg = (__force void __iomem *)r;
-+	*idlest_bit = clk->enable_bit;
-+	*idlest_val = OMAP24XX_CM_IDLEST_VAL;
-+}
-+
- /* Public data */
- 
- const struct clk_hw_omap_ops clkhwops_iclk = {
-@@ -64,3 +93,9 @@ const struct clk_hw_omap_ops clkhwops_iclk_wait = {
- 	.find_idlest	= omap2_clk_dflt_find_idlest,
- 	.find_companion	= omap2_clk_dflt_find_companion,
- };
-+
-+/* 2430 I2CHS has non-standard IDLEST register */
-+const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait = {
-+	.find_idlest	= omap2430_clk_i2chs_find_idlest,
-+	.find_companion	= omap2_clk_dflt_find_companion,
-+};
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index f215383..3652c26 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -178,6 +178,7 @@ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_iclk;
- extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
-+extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
- 
- int omap2_dflt_clk_enable(struct clk_hw *hw);
- void omap2_dflt_clk_disable(struct clk_hw *hw);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 891fe0f..a7728f7 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -333,7 +333,6 @@ void ti_clk_setup_features(struct ti_clk_features *features);
- struct ti_clk_features *ti_clk_get_features(void);
- 
- extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
--extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
+ int __init omap2_clk_provider_init(struct device_node *np, int index,
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+deleted file mode 100644
+index 084ba71..0000000
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ /dev/null
+@@ -1,18 +0,0 @@
+-/*
+- * OMAP34xx clock function prototypes and macros
+- *
+- * Copyright (C) 2007-2010 Texas Instruments, Inc.
+- * Copyright (C) 2007-2011 Nokia Corporation
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK34XX_H
+-#define __ARCH_ARM_MACH_OMAP2_CLOCK34XX_H
+-
+-extern const struct clkops clkops_omap3430es2_ssi_wait;
+-extern const struct clkops clkops_omap3430es2_iclk_ssi_wait;
+-extern const struct clkops clkops_omap3430es2_hsotgusb_wait;
+-extern const struct clkops clkops_omap3430es2_iclk_hsotgusb_wait;
+-extern const struct clkops clkops_omap3430es2_dss_usbhost_wait;
+-extern const struct clkops clkops_omap3430es2_iclk_dss_usbhost_wait;
+-
+-#endif
 -- 
 1.7.9.5
 
