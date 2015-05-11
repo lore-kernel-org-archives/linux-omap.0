@@ -1,66 +1,98 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: next-20150511 / omap2-mcspi: regression for sdp4430 boot
-Date: Mon, 11 May 2015 11:50:19 -0500
-Message-ID: <5550DDCB.8010303@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] arm: boot: dts: am4372: add operating points
+Date: Mon, 11 May 2015 12:02:23 -0500
+Message-ID: <20150511170223.GC22558@saruman.tx.rr.com>
+References: <1431115050-23693-1-git-send-email-balbi@ti.com>
+ <554D17F3.7090008@ti.com>
+ <554D18AB.6060901@ti.com>
+ <20150508202439.GA25459@saruman.tx.rr.com>
+ <554FF686.5050704@ti.com>
+ <20150511151930.GA19183@saruman.tx.rr.com>
+ <CAGo_u6oQ_uzO4B4ezC-Vi8_FQZWH49+6fbutdVgP5s0fL3MhrA@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3Gf/FFewwPeBMqCJ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40055 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbbEKQuq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2015 12:50:46 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49547 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752486AbbEKREn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 May 2015 13:04:43 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGo_u6oQ_uzO4B4ezC-Vi8_FQZWH49+6fbutdVgP5s0fL3MhrA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Michael Welling <mwelling@ieee.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-spi@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Mark Rutland <mark.rutland@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+--3Gf/FFewwPeBMqCJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-SDP4430 uses a SPI based network chip ks8851.
+HI,
 
-next-20150508:
-https://github.com/nmenon/kernel-test-logs/blob/next-20150508/omap2plus_defconfig/sdp4430.txt
+On Mon, May 11, 2015 at 11:46:13AM -0500, Nishanth Menon wrote:
+> On Mon, May 11, 2015 at 10:19 AM, Felipe Balbi <balbi@ti.com> wrote:
+> >
+> >> in my opinion, doing a temporary hack in upstream kernel is not an
+> >> elegant approach. I suggest helping review and approving Viresh's new
+> >
+> > however this is not a hack, right ? If we get rid of OPP_NITRO and
+> > OPP_TURBO, then we will more than likely always be dealing with safe
+> > OPPs (yeah, I need to confirm this since it's not on public TRM, so as
+> > of now, take this statement with a grain of salt :-), moreover, even
+> > though we're trying to change opp bindings, the current situation is
+> > still very much accepted and will remain valid even after changing
+> > binding :-)
+>=20
+> yes - if we do have a documented subset of OPPs that are valid for all
+> "variants" of AM437x, we could add that in using the legacy bindings,
+> but, we will have to do a transition over to the new bindings when
+> they are finalized to support all OPPs appropriately.
 
-However, next-20150511:
-https://github.com/nmenon/kernel-test-logs/blob/next-20150511/omap2plus_defconfig/sdp4430.txt
+sounds fair to me.
 
-Generates infinite "ks8851 spi1.0: ks8851_irq: spi bus error" errors
-and hangs the platform.
+> > Not to mention that people using AM43xx today might be using it under
+> > invalid OPPs and decreasing silicon life; I'd assume that's a very
+> > urgent detail to sort out.
+>=20
+> While I do agree that there is always a debate between fixing things
+> in kernel for bootloader issues, but it does not mean that we should
+> just postpone fixing the bootloader in this case - since, at this very
+> moment, we are already in broken configuration - example sitting on a
+> bootloader shell does have the same impact we have at this time.
 
-Bisected the issue down to the following two commits when reverted
-allows the board to function:
+agreed, I'll cook up a patch for bootloader too.
 
+> Lets try to help Viresh in getting his series sorted out meanwhile -
+> maybe others can help as well :(
 
-commit b28cb9414db9f8e42ac18c9e360e4e99cda42489
-Author: Michael Welling <mwelling@ieee.org>
-Date:   Thu May 7 18:36:53 2015 -0500
+sure.
 
-    spi: omap2-mcspi: Switch driver to use transfer_one
+--=20
+balbi
 
-    Switches from transfer_one_message to transfer_one to prepare
-driver for
-    use of GPIO chip selects.
+--3Gf/FFewwPeBMqCJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-    Signed-off-by: Michael Welling <mwelling@ieee.org>
-    Signed-off-by: Mark Brown <broonie@kernel.org>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Reverting this alone: http://paste.ubuntu.org.cn/2594735 (did not boot up)
+iQIcBAEBAgAGBQJVUOCfAAoJEIaOsuA1yqRELf8P/0TYavF3GaDUi+K1AJJEmfco
+NEyoENn9U5OG88/d4Lo5AdOn/lJJXzLYfjR3xY+UMm8i1oqwO+ZjcChLmGN9HwBh
+FYf7SoRIGYSSz1R8FdKSBAn56Fv1Taltjyzyz9+l+iD+/s600gmq5eRfw/ZOg2DP
+xrIaWu5coTQTsdIKE3a+z55ouJKkCSYpnmu9i/y1JQHGLNxPx6jmwr/iYgprvX8o
+741V8LjdOheJBf3n5W6zFLq6wN9LDQOlObn38DcYPTV1m0zn4+uLdx8sFk/wAPuo
+wz+n1bwKTfzxsTs/Q5bL1wjtNXA+YiX5gM86Sl80Be4zpyxhREipo1pmamMkGdVM
+jhCMjG6QCCdjuIDedvbnz0KQaj+ndtGRHD41bmLZHwtWPC3rJt3Sh9i9IUsiZM1s
+7UZcppDwRB60nK2lFNePQfIBNpaTmgABz21f6m6j+p3yyFXYffMAHwolVElMsyF5
+al7Lcpd/LbDLQ/jFINrqMmuwjUwOxxy4f6N1i6YVH4dW8uMRJZa0Mso7XbQGht0L
+AALUzASQOMUVnST+qLvvBeBFrxneDwYYggeicJSrIbvoFkLQSZbGJkdlpqqCGEQe
+qf5INbqCsyTuJtOzYeEAWG1X64OkBaBm6ewdWWPtbcJmuSvDUttoAtMvSVpJt3l1
+thItIN038vivpquDOqUe
+=ACQ2
+-----END PGP SIGNATURE-----
 
-commit bc7f9bbc80bcc77745b3f54ec4e7103e3e142bb9
-Author: Michael Welling <mwelling@ieee.org>
-Date:   Fri May 8 13:31:01 2015 -0500
-
-    spi: omap2-mcspi: Add gpio_request and init CS
-
-    If GPIO chip select is specified, request the GPIO in the setup
-function
-    and release it in the cleanup function.
-
-    Signed-off-by: Michael Welling <mwelling@ieee.org>
-    Signed-off-by: Mark Brown <broonie@kernel.org>
-
-Reverting this as well allowed boot.
-
--- 
-Regards,
-Nishanth Menon
+--3Gf/FFewwPeBMqCJ--
