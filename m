@@ -1,242 +1,585 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 00/27] ARM: OMAP2+: clock code migration to
- drivers/clk/ti
-Date: Tue, 12 May 2015 20:58:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1505122019220.21747@utopia.booyaka.com>
-References: <1431334493-24455-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1505111747460.19833@utopia.booyaka.com> <5551D178.3000904@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: boot: dts: add DTS for Baltos IR5221
+Date: Tue, 12 May 2015 17:15:17 -0500
+Message-ID: <1431468917-27697-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58220 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753791AbbELU6c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2015 16:58:32 -0400
-In-Reply-To: <5551D178.3000904@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46533 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753862AbbELWRa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2015 18:17:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Yegor Yefremov <yegorslists@googlemail.com>, Felipe Balbi <balbi@ti.com>
 
-On Tue, 12 May 2015, Tero Kristo wrote:
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-> On 05/11/2015 11:21 PM, Paul Walmsley wrote:
-> > On Mon, 11 May 2015, Tero Kristo wrote:
-> > 
-> > > This set moves most of the OMAP2+ clock driver code under drivers/clk.
-> > > There are still a couple of files under mach-omap2 folder after this
-> > > set which have either unmet dependencies still (towards PRCM driver)
-> > > or is currently slightly broken (some of the DVFS code for OMAP2/OMAP3.)
-> > > Earlier version of this set has been posted back in March (see
-> > > http://www.spinics.net/lists/linux-omap/msg116418.html), mostly
-> > > the code is the same except patches 25+ which are new.
+This device is an industrial PC based on
+AM335x SoC.
 
-...
+[ balbi@ti.com : updated to fit current mainline ]
 
-> > > 
-> > > Branch info:
-> > > - tree: https://github.com/t-kristo/linux-pm.git
-> > > - branch: for-4.2/ti-clk-move
-> > 
-> > I can't replicate your test results.  Several Kconfigs fail to build here,
-> > and many boards don't even boot.
-> > 
-> > Could you please post a copy of your boot logs?
-> > 
-> > - Paul
-> > 
-> > http://www.pwsan.com/omap/testlogs/test-tkristo-clk-move-v4.2/20150511115145/
-> > 
-> > OMAP development test results for test-tkristo-clk-move-v4.2 20150511115145
-> 
-> Oh hmm, I seem to have introduced a Makefile issue which breaks a couple of
-> special builds. I just force pushed updated branch.
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-This one is better... the build problems are now fixed.
+Note that this is just a respin of DTS available from [1]
 
-> Here are the boot logs for it, I tried also single-soc builds with
-> am3/am4/omap2/omap3/omap4/omap5/dra7:
-> 
->   : Board           : Boot url
->  1: am335x-evm      : PASS http://paste.ubuntu.com/11093628/
->  2: am335x-evmsk    : PASS http://paste.ubuntu.com/11093629/
->  3: am3517-evm      : PASS http://paste.ubuntu.com/11093630/
->  4: am37x-evm       : PASS http://paste.ubuntu.com/11093632/
->  5: am43x-epos-evm  : PASS http://paste.ubuntu.com/11093633/
->  6: am437x-gp-evm   : PASS http://paste.ubuntu.com/11093634/
->  7: am57xx-evm      : FAIL http://paste.ubuntu.com/11093635/
->  8: omap3-beagle-xm : PASS http://paste.ubuntu.com/11093636/
->  9: omap3-beagle    : PASS http://paste.ubuntu.com/11093637/
-> 10: am335x-boneblack: PASS http://paste.ubuntu.com/11093638/
-> 11: am335x-bone     : PASS http://paste.ubuntu.com/11093639/
-> 12: craneboard      : PASS http://paste.ubuntu.com/11093640/
-> 13: dra7xx-evm      : PASS http://paste.ubuntu.com/11093641/
-> 14: omap3430-ldp    : PASS http://paste.ubuntu.com/11093642/
-> 15: omap3-n900      : PASS http://paste.ubuntu.com/11093643/
-> 16: omap5-uevm      : PASS http://paste.ubuntu.com/11093645/
-> 17: omap4-panda-es  : PASS http://paste.ubuntu.com/11093646/
-> 18: omap4-panda     : PASS http://paste.ubuntu.com/11093647/
-> 19: omap2430-sdp    : PASS http://paste.ubuntu.com/11093648/
-> 20: omap3430-sdp    : PASS http://paste.ubuntu.com/11093649/
-> 21: omap4-sdp-es23plus: PASS http://paste.ubuntu.com/11093650/
-> TOTAL = 21 boards, Booted Boards = 20, No Boot boards = 1
-> 
-> AM57xx-evm boot fails as it is missing some patches from Nishanth (I think the
-> UART mux has changed.)
+[1] https://github.com/visionsystemsgmbh/onrisc_br_bsp/blob/master/board/vscom/dts/3.15/onrisc-baltos-ir-5221.dts
 
-But this one has the same problems as v4.1-rc1 and beyond: it still 
-doesn't boot here on any OMAP34xx/OMAP35xx platform, nor the CM-T3517, 
-OMAP4460 VAR-SOM-OM, or OMAP5430ES2 SBC-T54:
+ arch/arm/boot/dts/Makefile          |   1 +
+ arch/arm/boot/dts/am335x-baltos.dts | 528 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 529 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-baltos.dts
 
-http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/README.txt
-
-Thanks for posting your test logs above.  They don't include bootloader 
-info, but my guess is that v4.1-rc* has some hidden bootloader 
-dependencies where things aren't being initialized properly from the 
-kernel.
-
-So those should be tracked down and fixed before we stack more patches on 
-top.
-
-
-- Paul
-
-
-http://www.pwsan.com/omap/testlogs/test-tkristo-clk-move-v4.2/20150512121218/
-
-
-OMAP development test results for test-tkristo-clk-move-v4.2 20150512121218
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL (14/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Boot to userspace:
-    FAIL ( 6/17): 4460varsomom, 2430sdp, 3530es3beagle, 3530es31beagle,
-		  cmt3517, 5430es2sbct54
-    skip ( 2/17): 5912osk, 3517evm
-    Pass ( 9/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  37xxevm, 3730beaglexm, 3730es12beaglexm, 5430es2uevm,
-		  2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 1/17): 4430es2panda
-
-PM: chip retention via suspend:
-    FAIL ( 9/12): am335xbonelt, 4430es2panda, 4460varsomom,
-		  3530es3beagle, 3530es31beagle, 3730es12beaglexm,
-		  2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 3/12): 4460pandaes, 37xxevm, 3730beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 9/12): am335xbonelt, 4430es2panda, 4460varsomom,
-		  3530es3beagle, 3530es31beagle, 3730es12beaglexm,
-		  2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 3/12): 4460pandaes, 37xxevm, 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
-    Pass ( 1/ 4): 37xxevm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
-    Pass ( 1/ 4): 37xxevm
-
-Kernel warnings during PM test:
-    FAIL ( 1/17): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 1/20): multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.1-rc2 (5ebe6afaf0057ac3eaeb98defd5456894b446d22)):
-   text     data      bss    total  kernel
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-  -1492       -8        0    -1500  multi_v7_defconfig
-  -2116      +56        0    -2060  omap2plus_defconfig
-      0        0        0        0  omap2plus_defconfig_2430sdp_only
-  -1476        0      +64    -1412  omap2plus_defconfig_am33xx_only
-  -5572        0      +64    -5508  omap2plus_defconfig_am43xx_only
-  -6148      +56      -64    -6156  omap2plus_defconfig_cpupm
-  -5500        0      +64    -5436  omap2plus_defconfig_dra7xx_only
-  -1668        0      +12    -1656  omap2plus_defconfig_n800_multi_omap2xxx
-  -1636       -8      -20    -1664  omap2plus_defconfig_n800_only_a
-  -6212       -8        0    -6220  omap2plus_defconfig_no_pm
-  -5828        0      -64    -5892  omap2plus_defconfig_omap2_4_only
-  -1916       -8        0    -1924  omap2plus_defconfig_omap3_4_only
-  -1412        0        0    -1412  omap2plus_defconfig_omap5_only
-  -2804       -4     +780    -2028  rmk_omap3430_ldp_allnoconfig
-  -1812       -8      +64    -1756  rmk_omap3430_ldp_oldconfig
-  -2332        0     +956    -1376  rmk_omap4430_sdp_allnoconfig
-  -1336      +64        0    -1272  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.1-rc2 (5ebe6afaf0057ac3eaeb98defd5456894b446d22))
-  avail  rsrvd   high  freed  board          kconfig
-    -4k     4k      .      .  5430es2sbct54  omap2plus_defconfig
-      .      .      .     4k  am335xbone     omap2plus_defconfig_am33xx_only
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 86217db2937a..941217b405e9 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -406,6 +406,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
+ dtb-$(CONFIG_SOC_TI81XX) += \
+ 	dm8168-evm.dtb
+ dtb-$(CONFIG_SOC_AM33XX) += \
++	am335x-baltos.dtb \
+ 	am335x-base0033.dtb \
+ 	am335x-bone.dtb \
+ 	am335x-boneblack.dtb \
+diff --git a/arch/arm/boot/dts/am335x-baltos.dts b/arch/arm/boot/dts/am335x-baltos.dts
+new file mode 100644
+index 000000000000..296965ab8bb5
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-baltos.dts
+@@ -0,0 +1,528 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * VScom OnRISC
++ * http://www.vscom.de
++ */
++
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include <dt-bindings/pwm/pwm.h>
++
++/ {
++	model = "OnRISC Baltos iR 5221";
++	compatible = "vscom,onrisc", "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vdd1_reg>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	vbat: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vbat";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-boot-on;
++	};
++
++	lis3_reg: fixedregulator@1 {
++		compatible = "regulator-fixed";
++		regulator-name = "lis3_reg";
++		regulator-boot-on;
++	};
++
++	wl12xx_vmmc: fixedregulator@2 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&wl12xx_gpio>;
++		compatible = "regulator-fixed";
++		regulator-name = "vwl1271";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio3 8 0>;
++		startup-delay-us = <70000>;
++		enable-active-high;
++	};
++};
++
++&am33xx_pinmux {
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			0x020 (PIN_INPUT_PULLUP | MUX_MODE2)      /* gpmc_ad8.mmc1_dat0_mux0 */
++			0x024 (PIN_INPUT_PULLUP | MUX_MODE2)      /* gpmc_ad9.mmc1_dat1_mux0 */
++			0x028 (PIN_INPUT_PULLUP | MUX_MODE2)      /* gpmc_ad10.mmc1_dat2_mux0 */
++			0x02c (PIN_INPUT_PULLUP | MUX_MODE2)      /* gpmc_ad11.mmc1_dat3_mux0 */
++			0x080 (PIN_INPUT_PULLUP | MUX_MODE2)      /* gpmc_csn1.mmc1_clk_mux0 */
++			0x084 (PIN_INPUT_PULLUP | MUX_MODE2)      /* gpmc_csn2.mmc1_cmd_mux0 */
++			0x1e4 (PIN_INPUT_PULLUP | MUX_MODE7)      /* emu0.gpio3[7] */
++		>;
++	};
++
++	wl12xx_gpio: pinmux_wl12xx_gpio {
++		pinctrl-single,pins = <
++			0x1e8 (PIN_OUTPUT_PULLUP | MUX_MODE7)      /* emu1.gpio3[8] */
++		>;
++	};
++
++	tps65910_pins: pinmux_tps65910_pins {
++		pinctrl-single,pins = <
++			0x078 (PIN_INPUT_PULLUP | MUX_MODE7)      /* gpmc_ben1.gpio1[28] */
++		>;
++	};
++
++	tca6416_pins: pinmux_tca6416_pins {
++		pinctrl-single,pins = <
++			0x1b4 (PIN_INPUT_PULLUP | MUX_MODE7)      /* xdma_event_intr1.gpio0[20] tca6416 stuff */
++		>;
++	};
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0x158 0x2a      /* spi0_d1.i2c1_sda_mux3, INPUT | MODE2 */
++			0x15c 0x2a      /* spi0_cs0.i2c1_scl_mux3, INPUT | MODE2 */
++		>;
++	};
++
++	dcan1_pins: pinmux_dcan1_pins {
++		pinctrl-single,pins = <
++			0x168 0x0a      /* uart0_ctsn.dcan1_tx_mux0, OUTPUT | MODE2 */
++			0x16c 0x2a      /* uart0_rtsn.dcan1_rx_mux0, INPUT | MODE2 */
++		>;
++	};
++
++	uart0_pins: pinmux_uart0_pins {
++		pinctrl-single,pins = <
++			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
++			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)		/* uart0_txd.uart0_txd */
++		>;
++	};
++
++	uart1_pins: pinmux_uart1_pins {
++		pinctrl-single,pins = <
++			0x180 0x28      /* uart1_rxd, INPUT | MODE0 */
++			0x184 0x28      /* uart1_txd, INPUT | MODE0 */
++			/*0x178 0x28*/      /* uart1_ctsn, INPUT | MODE0 */
++			/*0x17c 0x08*/      /* uart1_rtsn, OUTPUT | MODE0 */
++			0x178 (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* uart1_ctsn, INPUT | MODE0 */
++			0x17c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* uart1_rtsn, OUTPUT | MODE0 */
++			0x0e0 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* lcd_vsync.gpio2[22] DTR */
++			0x0e4 (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* lcd_hsync.gpio2[23] DSR */
++			0x0e8 (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* lcd_pclk.gpio2[24] DCD */
++			0x0ec (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* lcd_ac_bias_en.gpio2[25] RI */
++		>;
++	};
++
++	uart2_pins: pinmux_uart2_pins {
++		pinctrl-single,pins = <
++			0x150 0x29      /* spi0_sclk.uart2_rxd_mux3, INPUT | MODE1 */
++			0x154 0x09      /* spi0_d0.uart2_txd_mux3, OUTPUT | MODE1 */
++			/*0x188 0x2a*/      /* i2c0_sda.uart2_ctsn_mux0, INPUT | MODE2 */
++			/*0x18c 0x2a*/      /* i2c0_scl.uart2_rtsn_mux0, INPUT | MODE2 */
++			0x188 (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* i2c0_sda.uart2_ctsn_mux0 */
++			0x18c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* i2c0_scl.uart2_rtsn_mux0 */
++			0x030 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)      /* gpmc_ad12.gpio1[12] DTR */
++			0x034 (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* gpmc_ad13.gpio1[13] DSR */
++			0x038 (PIN_INPUT_PULLDOWN | MUX_MODE7)      /* gpmc_ad14.gpio1[14] DCD */
++			0x03c (PIN_INPUT_PULLDOWN | MUX_MODE7)     /* gpmc_ad15.gpio1[15] RI */
++
++			0x1a0 (PIN_INPUT_PULLUP | MUX_MODE7)      /* mcasp0_aclkr.gpio3[18], INPUT_PULLDOWN | MODE7 */
++		>;
++	};
++
++	cpsw_default: cpsw_default {
++		pinctrl-single,pins = <
++			/* Slave 1 */
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE1)       /* mii1_crs.rmii1_crs_dv */
++			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)      /* mii1_tx_en.rmii1_txen */
++			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)      /* mii1_txd1.rmii1_txd1 */
++			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)      /* mii1_txd0.rmii1_txd0 */
++			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE1)      /* mii1_rxd1.rmii1_rxd1 */
++			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE1)      /* mii1_rxd0.rmii1_rxd0 */
++			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE0)      /* rmii1_ref_clk.rmii1_refclk */
++
++
++			/* Slave 2 */
++			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a0.rgmii2_tctl */
++			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a1.rgmii2_rctl */
++			0x48 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a2.rgmii2_td3 */
++			0x4c (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a3.rgmii2_td2 */
++			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a4.rgmii2_td1 */
++			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a5.rgmii2_td0 */
++			0x58 (PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a6.rgmii2_tclk */
++			0x5c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a7.rgmii2_rclk */
++			0x60 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a8.rgmii2_rd3 */
++			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a9.rgmii2_rd2 */
++			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a10.rgmii2_rd1 */
++			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a11.rgmii2_rd0 */
++		>;
++	};
++
++	cpsw_sleep: cpsw_sleep {
++		pinctrl-single,pins = <
++			/* Slave 1 reset value */
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++
++			/* Slave 2 reset value*/
++			0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x44 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x48 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x4c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x58 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x5c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x60 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++		>;
++	};
++
++	davinci_mdio_default: davinci_mdio_default {
++		pinctrl-single,pins = <
++			/* MDIO */
++			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
++			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
++		>;
++	};
++
++	davinci_mdio_sleep: davinci_mdio_sleep {
++		pinctrl-single,pins = <
++			/* MDIO reset value */
++			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++		>;
++	};
++
++	nandflash_pins_s0: nandflash_pins_s0 {
++		pinctrl-single,pins = <
++			0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
++			0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
++			0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
++			0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
++			0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
++			0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
++			0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
++			0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
++			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
++			0x74 (PIN_INPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpio0_30 */
++			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
++			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
++			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
++			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
++			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
++		>;
++	};
++};
++
++&elm {
++	status = "okay";
++};
++
++&gpmc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&nandflash_pins_s0>;
++	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
++	status = "okay";
++
++	nand@0,0 {
++		reg = <0 0 0>; /* CS0, offset 0 */
++		nand-bus-width = <8>;
++		ti,nand-ecc-opt = "bch8";
++		ti,nand-xfer-type = "polled";
++
++		gpmc,device-nand = "true";
++		gpmc,device-width = <1>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-on-ns = <0>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wait-on-read = "true";
++		gpmc,wait-on-write = "true";
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++		elm_id = <&elm>;
++	};
++};
++
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins>;
++
++	status = "okay";
++};
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++	dtr-gpios = <&gpio2 22 GPIO_ACTIVE_LOW>;
++	dsr-gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
++	dcd-gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
++	rng-gpios = <&gpio2 25 GPIO_ACTIVE_LOW>;
++	cts-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
++	rts-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
++
++	status = "okay";
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart2_pins>;
++	dtr-gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
++	dsr-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
++	dcd-gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
++	rng-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
++	cts-gpios = <&gpio3 5 GPIO_ACTIVE_LOW>;
++	rts-gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
++
++	status = "okay";
++};
++
++&i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps: tps@2d {
++		reg = <0x2d>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <28 GPIO_ACTIVE_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&tps65910_pins>;
++	};
++
++	at24@50 {
++		compatible = "at24,24c02";
++		pagesize = <8>;
++		reg = <0x50>;
++	};
++
++	tca6416: gpio@20 {
++		compatible = "ti,tca6416";
++		reg = <0x20>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&gpio0>;
++		interrupts = <20 GPIO_ACTIVE_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&tca6416_pins>;
++	};
++};
++
++&usb {
++	status = "okay";
++
++	control@44e10620 {
++		status = "okay";
++	};
++
++	usb-phy@47401300 {
++		status = "okay";
++	};
++
++	usb-phy@47401b00 {
++		status = "okay";
++	};
++
++	usb@47401000 {
++		status = "okay";
++		dr_mode = "host";
++	};
++
++	usb@47401800 {
++		status = "okay";
++		dr_mode = "otg";
++	};
++
++	dma-controller@47402000  {
++		status = "okay";
++	};
++};
++
++#include "tps65910.dtsi"
++
++&tps {
++	vcc1-supply = <&vbat>;
++	vcc2-supply = <&vbat>;
++	vcc3-supply = <&vbat>;
++	vcc4-supply = <&vbat>;
++	vcc5-supply = <&vbat>;
++	vcc6-supply = <&vbat>;
++	vcc7-supply = <&vbat>;
++	vccio-supply = <&vbat>;
++
++	ti,en-ck32k-xtal = <1>;
++
++	regulators {
++		vrtc_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		vio_reg: regulator@1 {
++			regulator-always-on;
++		};
++
++		vdd1_reg: regulator@2 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <912500>;
++			regulator-max-microvolt = <1312500>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd2_reg: regulator@3 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <912500>;
++			regulator-max-microvolt = <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd3_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		vdig1_reg: regulator@5 {
++			regulator-always-on;
++		};
++
++		vdig2_reg: regulator@6 {
++			regulator-always-on;
++		};
++
++		vpll_reg: regulator@7 {
++			regulator-always-on;
++		};
++
++		vdac_reg: regulator@8 {
++			regulator-always-on;
++		};
++
++		vaux1_reg: regulator@9 {
++			regulator-always-on;
++		};
++
++		vaux2_reg: regulator@10 {
++			regulator-always-on;
++		};
++
++		vaux33_reg: regulator@11 {
++			regulator-always-on;
++		};
++
++		vmmc_reg: regulator@12 {
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++	};
++};
++
++&mac {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&cpsw_default>;
++	pinctrl-1 = <&cpsw_sleep>;
++	dual_emac = <1>;
++
++	status = "okay";
++};
++
++&davinci_mdio {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&davinci_mdio_default>;
++	pinctrl-1 = <&davinci_mdio_sleep>;
++
++	status = "okay";
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++	phy-mode = "rmii";
++	dual_emac_res_vlan = <1>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <7>;
++	phy-mode = "rgmii-txid";
++	dual_emac_res_vlan = <2>;
++};
++
++&phy_sel {
++	rmii-clock-ext = <1>;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmc_reg>;
++	status = "okay";
++};
++
++&mmc2 {
++	status = "okay";
++	vmmc-supply = <&wl12xx_vmmc>;
++	ti,non-removable;
++	bus-width = <4>;
++	cap-power-off-card;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++};
++
++&sham {
++	status = "okay";
++};
++
++&aes {
++	status = "okay";
++};
++
++&gpio0 {
++	ti,no-reset-on-init;
++};
++
++&dcan1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&dcan1_pins>;
++
++	status = "okay";
++};
+-- 
+2.4.0.rc3
 
