@@ -1,199 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/3] phy: ti-pipe3: i783 workaround for SATA lockup after dpll unlock/relock
-Date: Tue, 12 May 2015 19:07:07 +0300
-Message-ID: <1431446828-5473-3-git-send-email-rogerq@ti.com>
-References: <1431446828-5473-1-git-send-email-rogerq@ti.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH v4] i2c: omap: Add calls for pinctrl state select
+Date: Tue, 12 May 2015 18:07:57 +0200
+Message-ID: <20150512160757.GB6805@schokonusskuchen.bad>
+References: <1430917624-18164-1-git-send-email-pascal.huerst@gmail.com>
+ <20150512154737.GA4448@schokonusskuchen.bad>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1431446828-5473-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="v9Ux+11Zm5mwPlX6"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150512154737.GA4448-oo5tB6JMkjKRinMKxDlMNPwbnWRJjS81@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-SATA_PLL_SOFT_RESET bit of CTRL_CORE_SMA_SW_0 must be toggled
-between a SATA DPLL unlock and re-lock to prevent SATA lockup.
 
-Introduce a new DT parameter 'syscon-pllreset' to provide the syscon
-regmap access to this register which sits in the control module.
+--v9Ux+11Zm5mwPlX6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-If the register is not provided we fallback to the old behaviour
-i.e. SATA DPLL refclk will not be disabled and we prevent SoC low
-power states.
+> The mail header does not contain your full name, you might want to fix
+> that...
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- Documentation/devicetree/bindings/phy/ti-phy.txt | 16 ++++++
- drivers/phy/phy-ti-pipe3.c                       | 67 ++++++++++++++++++++----
- 2 files changed, 74 insertions(+), 9 deletions(-)
+Life is great! I just had the same flaw on my newly set up secondary
+laptop :)
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index 305e3df..f0f5537 100644
---- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -82,6 +82,9 @@ Optional properties:
-  - id: If there are multiple instance of the same type, in order to
-    differentiate between each instance "id" can be used (e.g., multi-lane PCIe
-    PHY). If "id" is not provided, it is set to default value of '1'.
-+ - syscon-pllreset: Handle to system control region that contains the
-+   CTRL_CORE_SMA_SW_0 register and register offset to the CTRL_CORE_SMA_SW_0
-+   register that contains the SATA_PLL_SOFT_RESET bit. Only valid for sata_phy.
- 
- This is usually a subnode of ocp2scp to which it is connected.
- 
-@@ -100,3 +103,16 @@ usb3phy@4a084400 {
- 			"sysclk",
- 			"refclk";
- };
-+
-+sata_phy: phy@4A096000 {
-+	compatible = "ti,phy-pipe3-sata";
-+	reg = <0x4A096000 0x80>, /* phy_rx */
-+	      <0x4A096400 0x64>, /* phy_tx */
-+	      <0x4A096800 0x40>; /* pll_ctrl */
-+	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+	ctrl-module = <&omap_control_sata>;
-+	clocks = <&sys_clkin1>, <&sata_ref_clk>;
-+	clock-names = "sysclk", "refclk";
-+	syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
-+	#phy-cells = <0>;
-+};
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index e13a306..d730142 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -28,6 +28,8 @@
- #include <linux/delay.h>
- #include <linux/phy/omap_control_phy.h>
- #include <linux/of_platform.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/regmap.h>
- 
- #define	PLL_STATUS		0x00000004
- #define	PLL_GO			0x00000008
-@@ -52,6 +54,8 @@
- #define	PLL_LOCK		0x2
- #define	PLL_IDLE		0x1
- 
-+#define SATA_PLL_SOFT_RESET	BIT(18)
-+
- /*
-  * This is an Empirical value that works, need to confirm the actual
-  * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
-@@ -82,6 +86,9 @@ struct ti_pipe3 {
- 	struct clk		*refclk;
- 	struct clk		*div_clk;
- 	struct pipe3_dpll_map	*dpll_map;
-+	struct regmap		*dpll_reset_syscon; /* ctrl. reg. acces */
-+	unsigned int		dpll_reset_reg; /* reg. index within syscon */
-+	bool			sata_refclk_enabled;
- };
- 
- static struct pipe3_dpll_map dpll_map_usb[] = {
-@@ -249,11 +256,15 @@ static int ti_pipe3_exit(struct phy *x)
- 	u32 val;
- 	unsigned long timeout;
- 
--	/* SATA DPLL can't be powered down due to Errata i783 and PCIe
--	 * does not have internal DPLL
-+	/* If dpll_reset_syscon is not present we wont power down SATA DPLL
-+	 * due to Errata i783
- 	 */
--	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") ||
--	    of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
-+	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") &&
-+	    !phy->dpll_reset_syscon)
-+		return 0;
-+
-+	/* PCIe doesn't have DPLL. FIXME: need to disable clocks though */
-+	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
- 		return 0;
- 
- 	/* Put DPLL in IDLE mode */
-@@ -276,6 +287,14 @@ static int ti_pipe3_exit(struct phy *x)
- 		return -EBUSY;
- 	}
- 
-+	/* i783: SATA needs control bit toggle after PLL unlock */
-+	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata")) {
-+		regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
-+				SATA_PLL_SOFT_RESET, SATA_PLL_SOFT_RESET);
-+		regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
-+				SATA_PLL_SOFT_RESET, 0);
-+	}
-+
- 	ti_pipe3_disable_clocks(phy);
- 
- 	return 0;
-@@ -350,6 +369,21 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		}
- 	} else {
- 		phy->wkupclk = ERR_PTR(-ENODEV);
-+		phy->dpll_reset_syscon = syscon_regmap_lookup_by_phandle(node,
-+							"syscon-pllreset");
-+		if (IS_ERR(phy->dpll_reset_syscon)) {
-+			dev_info(&pdev->dev,
-+				 "can't get syscon-pllreset, sata dpll won't idle\n");
-+			phy->dpll_reset_syscon = NULL;
-+		} else {
-+			if (of_property_read_u32_index(node,
-+						       "syscon-pllreset", 1,
-+						       &phy->dpll_reset_reg)) {
-+				dev_err(&pdev->dev,
-+					"couldn't get pllreset reg. offset\n");
-+				return -EINVAL;
-+			}
-+		}
- 	}
- 
- 	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
-@@ -402,9 +436,16 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, phy);
- 	pm_runtime_enable(phy->dev);
--	/* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
--	if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
--		clk_prepare_enable(phy->refclk);
-+
-+	/*
-+	 * Prevent auto-disable of refclk for SATA PHY due to Errata i783
-+	 */
-+	if (of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
-+		if (!IS_ERR(phy->refclk)) {
-+			clk_prepare_enable(phy->refclk);
-+			phy->sata_refclk_enabled = true;
-+		}
-+	}
- 
- 	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
- 	if (IS_ERR(generic_phy))
-@@ -443,8 +484,17 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
- 
- static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
- {
--	if (!IS_ERR(phy->refclk))
-+	if (!IS_ERR(phy->refclk)) {
- 		clk_disable_unprepare(phy->refclk);
-+		/*
-+		 * SATA refclk needs an additional disable as we left it
-+		 * on in probe to avoid Errata i783
-+		 */
-+		if (phy->sata_refclk_enabled) {
-+			clk_disable_unprepare(phy->refclk);
-+			phy->sata_refclk_enabled = false;
-+		}
-+	}
- }
- 
- static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
-@@ -476,7 +526,6 @@ static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
- disable_wkupclk:
- 	if (!IS_ERR(phy->wkupclk))
- 		clk_disable_unprepare(phy->wkupclk);
--
- disable_refclk:
- 	ti_pipe3_disable_refclk(phy);
- 
--- 
-2.1.4
+
+--v9Ux+11Zm5mwPlX6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJVUiVdAAoJEBQN5MwUoCm2q8cQALYrfPbcCti41kCIkLZQe2Fv
+CYWX5tQr9C+Zh18ZC+uM2ha4thbIr1UL9jkauV3Pi0JTTB+mkUZVmf6Bt9t1wSP5
+fNgxmDUSciF3pwmT51NW8VSFzIZwl0rtpEKEwlyuXKY1qsqZb/kHVV+Lzxio5C0D
++iMPIIff6aW8JJUceToVchz+WFwR3DasNbRmmXmIOMqhZECsOiTZqfxO3ZbBINF0
+u8dyP2mAt9zcuNxQ0s3mHWhcCPJR+a+na/uonQZKxgQjjnDEmKzDQ0iXIHpJMzvV
+nGt1fEv0gIKD2E2sXMR440q5f2Dxn1ZeuZVHeGewWvgAyeBKfihgah+6rakPOXMZ
+o3LgBwLZ2Wvs7gnl/xQXgnCqZ5tm3YFcNjRrS3giii9yuCe63YBg64hoy/+jPz5f
+gbCleNknO8ZbPC1nNH5cGMTfghXWg6Hn+JwIAtZtJ7UKWjVPua7vp8zRj60rWljQ
+7O5+0JubhZqRSLbks3UX+07S+rOZbNf5HqOJcf1uTL52Won+i5k5xiJJxb1NFj3a
+joprP0URsfdtZYq6hEtHdxh6R+9vseZsoZhyEWPOqKvJ4UPlLaMIpWXKjmaWUgxq
+cjxS8eHqnvXU5i2iqrGC4QGHFXXtvnA8YT7x0cuZSb+YrkEOJurjbgwbzKV6ehzr
+vwJk24dt2j0Bm9/DmIiF
+=687+
+-----END PGP SIGNATURE-----
+
+--v9Ux+11Zm5mwPlX6--
