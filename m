@@ -1,53 +1,59 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: Fix native cs with new set_cs
-Date: Tue, 12 May 2015 20:19:05 +0100
-Message-ID: <20150512191905.GY3066@sirena.org.uk>
-References: <1431452337-19280-1-git-send-email-mwelling@ieee.org>
- <55524D20.2050203@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: omap: implement bus recovery
+Date: Tue, 12 May 2015 21:19:34 +0200
+Message-ID: <20150512191934.GD4449@schokonusskuchen.bad>
+References: <1430931027-19955-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="gu8wNMO+QVC0jLZM"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HWvPVVuAAfuRc6SZ"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:35530 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753878AbbELTTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 May 2015 15:19:44 -0400
 Content-Disposition: inline
-In-Reply-To: <55524D20.2050203-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1430931027-19955-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org, grygorii.strashko@ti.com
 
 
---gu8wNMO+QVC0jLZM
+--HWvPVVuAAfuRc6SZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 12, 2015 at 01:57:36PM -0500, Nishanth Menon wrote:
-> On 05/12/2015 12:38 PM, Michael Welling wrote:
-> > GPIO chip select patch series appears to have broken the native chip select
-> > support. This patch pulls the manual native chip select toggling out of
-> > the transfer_one routine and adds a set_cs routine.
+On Wed, May 06, 2015 at 11:50:27AM -0500, Felipe Balbi wrote:
+> implement bus recovery methods for i2c-omap
+> so we can recover from situations where SCL/SDA
+> are stuck low.
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Please remember to delete unneeded context from your replies, the reader
-shouldn't need to page through the entire patch to find out you reviewed
-it.
+Applied to for-next, thanks!
 
---gu8wNMO+QVC0jLZM
+
+--HWvPVVuAAfuRc6SZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQEcBAEBCAAGBQJVUlIpAAoJECTWi3JdVIfQEE8H/R7r+NNIRpsTNNhbK03r42gz
-SdEx4o8oUb2LRf/1j7SAFCw2jWqsoqCr+WzxSd1sq0pZFJqRTRfs3ySUy7MP+yed
-wrXcn5IsFw2s06YI9zP7ioYj/ny8SdqAJJItbcvnwR1Skj4f5W+KeRimj1ZBJ1FG
-209TiNBNiUGvpGbhG1tLbNgKqsLGp1UjZ+r9inrO8B45kp+6sGJGQ/FDCplcJUKr
-Xkij8/KbPWkVmBragBNtY0V2MOzZDTt/t7tbFt40wOJDnLXn1pnRKLFyaN8p3F9k
-iQ7veaaE4DMW11AUun7eFf+nj3bEmRdvK7Ia6lgvUqp7X8HAHJJ2ozp6mvALUzw=
-=cH+s
+iQIcBAEBAgAGBQJVUlJFAAoJEBQN5MwUoCm2go4P/iHlUdQ8xF7iPUifcXptdUDm
+DsO6C8+6fHQzgaieZmZ+iiZ1BTvE5JjyezDWSnQ9QtxSUMpwPKbU95fADsRJcXwG
+TQmYirYEvqdatzo1cEA0ArTctvT2yrzHGDWu2JfFB5QuREmdWCNQ4+URJ5rfrSnn
+j4VVCLFfTEgltvX46hlD/jkWSim22cDI+0RWBOBpN9Td++OJXsZ2rt89Y1W+Fkx8
+uCweYVUSALduOTpRULMSR2IK6ju40v6IWXAqKAUDIl0OuQAlCOtDMi1uVLD+uv7r
+qHlTrrvMj2HGSCJl+3vwKPHZmNZYH52dfXuhzTi13dKYk1mf1rZr4cxZwEh/UOGx
+P5iYHsquv84nYtI0GSxCE3QkGIcIkLnbYODJM9JKvAuPPSTDP3+PK8Upqz/xpVzH
+cl2MyLNr8T8Vr7rjF4MiSp7i9q3Oj24DU2JlPyxJRmRC/Z5H76+e9+P7ij+oXnqj
+4EsKNy2fU9yLQd0vFj0BAIxN0P9BHyGn9V6zvYeX4WLH6zteLTn+/Kw08Jd6gDUd
+JxGrGcRejjnBrV8tUWRlRiZP/JfaXXokRmCYoECIGDCqXfqsCb3fI8sQLHIGqdAa
+D6Juxtz2TFZOS3XG0kzAilaUVaTT2zPrEnwNDYx4LFkPBOktEsRUP+LRzHobZM5v
+zdaXzSF1yRBSQcpikypw
+=Xfei
 -----END PGP SIGNATURE-----
 
---gu8wNMO+QVC0jLZM--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--HWvPVVuAAfuRc6SZ--
