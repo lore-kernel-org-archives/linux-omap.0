@@ -1,59 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.1-rc3
-Date: Mon, 11 May 2015 19:39:07 -0700
-Message-ID: <20150512023907.GE3409@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/1] gpio: omap: Fix PM runtime issue and remove most
+ BANK_USED macros
+Date: Tue, 12 May 2015 11:00:10 +0200
+Message-ID: <CACRpkdZ1nJ=-NPHrZdCQ6_TCrF7009R9Y7zVyXN1z9RWcv3a6A@mail.gmail.com>
+References: <1429632533-23285-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:50460 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752870AbbELCjK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 May 2015 22:39:10 -0400
-Content-Disposition: inline
+Received: from mail-oi0-f51.google.com ([209.85.218.51]:35274 "EHLO
+	mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826AbbELJAL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2015 05:00:11 -0400
+Received: by oign205 with SMTP id n205so491371oig.2
+        for <linux-omap@vger.kernel.org>; Tue, 12 May 2015 02:00:10 -0700 (PDT)
+In-Reply-To: <1429632533-23285-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@linaro.org>, Javier Martinez Canillas <jmartinez@softcrates.net>, Nishanth Menon <nm@ti.com>
 
-The following changes since commit e7309c2673a389a495fcfad70376d3bae8b9bc89:
+On Tue, Apr 21, 2015 at 6:08 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-  bus: omap_l3_noc: Fix master id address decoding for OMAP5 (2015-05-04 10:21:01 -0700)
+> Looks like omap_gpio_irq_type can return early at several places
+> leaving a GPIO bank enabled without doing pm_runtime_put if wrong
+> GPIO arguments are passed.
+>
+> Instead of adding more complicated BANK_USED macros, let's fix the
+> issue properly. We can pass is_irq flag to omap_enable_gpio_module
+> and omap_disble_gpio_module. And with that we can remove all the
+> similar code elsewhere to get rid of most BANK_USED macros.
+>
+> Note that the reason for the BANK_USED macro is that we need to manage
+> PM runtime on per GPIO bank basis. In the long run we want to move to
+> using PM runtime counts for each GPIO line to determine if a GPIO
+> bank is used. Once we have a solution for omap_enable_gpio_module
+> and omap_disable_gpio_module, we can remove the remaining BANK_USED
+> macros.
+>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
+> Cc: Javier Martinez Canillas <jmartinez@softcrates.net>
+> Cc: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-are available in the git repository at:
+There is so much discussion around this patch that I can't make
+up my mind whether I should apply this or some subsequent inline
+version of it.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-rc2
+Holding this off for now...
 
-for you to fetch changes up to e60a8fe1792dcd3aacda0959e0f4865bfefb7bb5:
-
-  Merge tag 'for-v4.1-rc/omap-fixes-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v4.1/fixes (2015-05-11 13:23:19 -0700)
-
-----------------------------------------------------------------
-Few fixes for omap clocks, PRM and hwmod code:
-
-- Fix bogus comparison of struct clk pointers, turns out
-  we can fix it by just removing the comparison
-
-- Fix am437 hardreset implementation and remove boottime
-  warnings by adding the VPFE hwmod data
-
-- Regression fix for am43xx PRM code, simplify things
-  by reusing the omap4 PRM implementation
-
-----------------------------------------------------------------
-Benoit Parrot (1):
-      ARM: AM43xx: hwmod: add VPFE hwmod entries
-
-Tero Kristo (2):
-      ARM: OMAP4+: PRM: add support for passing status register/bit info to reset
-      ARM: AM33xx+: hwmod: re-use omap4 implementations for reset functionality
-
-Tony Lindgren (2):
-      ARM: OMAP2+: Remove bogus struct clk comparison for timer clock
-      Merge tag 'for-v4.1-rc/omap-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v4.1/fixes
-
- arch/arm/mach-omap2/omap_hwmod.c           | 68 ++++++-----------------------
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 70 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm43xx.h             |  3 +-
- arch/arm/mach-omap2/prminst44xx.c          | 20 +++------
- arch/arm/mach-omap2/timer.c                | 13 +++---
- 5 files changed, 98 insertions(+), 76 deletions(-)
+Yours,
+Linus Walleij
