@@ -1,69 +1,63 @@
-From: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
-Subject: Re: [PATCH 1/1] gpio: omap: Fix PM runtime issue and remove most
- BANK_USED macros
-Date: Tue, 12 May 2015 18:31:49 +0300
-Message-ID: <55521CE5.8070903@linaro.org>
-References: <1429632533-23285-1-git-send-email-tony@atomide.com> <CACRpkdZ1nJ=-NPHrZdCQ6_TCrF7009R9Y7zVyXN1z9RWcv3a6A@mail.gmail.com> <20150512141348.GG15563@atomide.com>
+From: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org
+Subject: Re: [PATCH v4] i2c: omap: Add calls for pinctrl state select
+Date: Tue, 12 May 2015 17:47:37 +0200
+Message-ID: <20150512154737.GA4448@schokonusskuchen.bad>
+References: <1430917624-18164-1-git-send-email-pascal.huerst@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:34426 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753078AbbELPbx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2015 11:31:53 -0400
-Received: by wgic8 with SMTP id c8so14252485wgi.1
-        for <linux-omap@vger.kernel.org>; Tue, 12 May 2015 08:31:52 -0700 (PDT)
-In-Reply-To: <20150512141348.GG15563@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1430917624-18164-1-git-send-email-pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <jmartinez@softcrates.net>, Nishanth Menon <nm@ti.com>
 
-Hi Tony, Linus,
 
-On 05/12/2015 05:13 PM, Tony Lindgren wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [150512 02:01]:
->> On Tue, Apr 21, 2015 at 6:08 PM, Tony Lindgren <tony@atomide.com> wrote:
->>
->>> Looks like omap_gpio_irq_type can return early at several places
->>> leaving a GPIO bank enabled without doing pm_runtime_put if wrong
->>> GPIO arguments are passed.
->>>
->>> Instead of adding more complicated BANK_USED macros, let's fix the
->>> issue properly. We can pass is_irq flag to omap_enable_gpio_module
->>> and omap_disble_gpio_module. And with that we can remove all the
->>> similar code elsewhere to get rid of most BANK_USED macros.
->>>
->>> Note that the reason for the BANK_USED macro is that we need to manage
->>> PM runtime on per GPIO bank basis. In the long run we want to move to
->>> using PM runtime counts for each GPIO line to determine if a GPIO
->>> bank is used. Once we have a solution for omap_enable_gpio_module
->>> and omap_disable_gpio_module, we can remove the remaining BANK_USED
->>> macros.
->>>
->>> Cc: Felipe Balbi <balbi@ti.com>
->>> Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
->>> Cc: Javier Martinez Canillas <jmartinez@softcrates.net>
->>> Cc: Nishanth Menon <nm@ti.com>
->>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>
->> There is so much discussion around this patch that I can't make
->> up my mind whether I should apply this or some subsequent inline
->> version of it.
->>
->> Holding this off for now...
-> 
-> Yeah let's see what Grygorii comes up, sounds like he may have
-> a minimal fix coming up. Then we can do the rest as clean-up
-> later on.
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for your patience and sorry for delay - was ooo last week.
+On Wed, May 06, 2015 at 03:07:04PM +0200, pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
+> From: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>=20
+> This adds calls to pinctrl subsystem in order to switch pin states
+> on suspend/resume if you provide a "sleep" state in DT.
+>=20
+> If no "sleep" state is provided in the DT, these calls turn
+> to NOPs, so we don't need error checking here.
+>=20
+> Signed-off-by: Pascal Huerst <pascal.huerst-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 
-I'll try to come up with some patches as soon as possible, and,
-yes, In my personal opinion, it could be better if OMAP GPIO driver
-will be reworked/cleaned up/fixed in a different way.
+Applied to for-next, thanks!
 
--- 
-regards,
--grygorii
+The mail header does not contain your full name, you might want to fix
+that...
+
+
+--bg08WKrSYDhXBjb5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJVUiCZAAoJEBQN5MwUoCm2x0IP/j+TkTsbGeRa0PArOZuQpnMD
+Re5qUdKXGGJpgFtbimu1KQz3hbhmjf1pIWcL04uv36dOVdvIy3CLM2tY/L45JoG7
+RzApHWf2xyCmTOKzOiaUFeLkEqmqtMeR/BjY3oSKXiDz9VsUZeNqa/Fy1nC+i733
+h8Py0JjEqPprQv+tmGy3bn/agPjllC7yLyO+O5kfmLlibLIO7EsfgXvjYf7Qy4pu
+kh09EoaHpXiQbHUXIjf4fGwE/o/B1FfuS/76bm4c06O7fbXUqmraEHogz12ZI7Oz
+UDTGHRC8KeK9lafeDDAemch3pgNOLn3e/1qNeBkgVR41NH42zinIwgKttg3B4qJ9
+omKXTGoA3Stthei3dm8RerH3lh8YK7PV2pECgobqo+iTWQo4YS4xL2Ek/dzQJmHY
+ZRvbEpKj+qLnHqL3rM9QQmbA20OjeVYWv7zy48t4rt3vBeQ0cu87de4Pv+7DzCS9
+lwoJYBi+qy8R1wngQTzqPj3n6DjO4S0yDDtiClaw/yFjuP8+xIEwVXT2ZonqlkGI
+76UQjCrHieVf06+enQc4lDL7wOygHuWccrn5k9EU/70HXHaMbGY6ijlUNb5cxUB7
+jYldi529PvvgD3nI4LmDpQar1M4tRua1GFpHPPj/aeQRiRCYmV87J6ikktquRFy0
+A54Bql4RLJ0VxeKOmhex
+=ccbg
+-----END PGP SIGNATURE-----
+
+--bg08WKrSYDhXBjb5--
