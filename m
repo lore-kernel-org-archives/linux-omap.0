@@ -1,55 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] gpio: omap: Fix PM runtime issue and remove most
- BANK_USED macros
-Date: Tue, 12 May 2015 07:13:49 -0700
-Message-ID: <20150512141348.GG15563@atomide.com>
-References: <1429632533-23285-1-git-send-email-tony@atomide.com>
- <CACRpkdZ1nJ=-NPHrZdCQ6_TCrF7009R9Y7zVyXN1z9RWcv3a6A@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap fixes against v4.1-rc3
+Date: Tue, 12 May 2015 16:41:57 +0200
+Message-ID: <2162994.JoBjLhOA5b@wuerfel>
+References: <20150512023907.GE3409@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZ1nJ=-NPHrZdCQ6_TCrF7009R9Y7zVyXN1z9RWcv3a6A@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@linaro.org>, Javier Martinez Canillas <jmartinez@softcrates.net>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150512023907.GE3409@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [150512 02:01]:
-> On Tue, Apr 21, 2015 at 6:08 PM, Tony Lindgren <tony@atomide.com> wrote:
+On Monday 11 May 2015 19:39:07 Tony Lindgren wrote:
+> Few fixes for omap clocks, PRM and hwmod code:
 > 
-> > Looks like omap_gpio_irq_type can return early at several places
-> > leaving a GPIO bank enabled without doing pm_runtime_put if wrong
-> > GPIO arguments are passed.
-> >
-> > Instead of adding more complicated BANK_USED macros, let's fix the
-> > issue properly. We can pass is_irq flag to omap_enable_gpio_module
-> > and omap_disble_gpio_module. And with that we can remove all the
-> > similar code elsewhere to get rid of most BANK_USED macros.
-> >
-> > Note that the reason for the BANK_USED macro is that we need to manage
-> > PM runtime on per GPIO bank basis. In the long run we want to move to
-> > using PM runtime counts for each GPIO line to determine if a GPIO
-> > bank is used. Once we have a solution for omap_enable_gpio_module
-> > and omap_disable_gpio_module, we can remove the remaining BANK_USED
-> > macros.
-> >
-> > Cc: Felipe Balbi <balbi@ti.com>
-> > Cc: Grygorii Strashko <grygorii.strashko@linaro.org>
-> > Cc: Javier Martinez Canillas <jmartinez@softcrates.net>
-> > Cc: Nishanth Menon <nm@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> - Fix bogus comparison of struct clk pointers, turns out
+>   we can fix it by just removing the comparison
 > 
-> There is so much discussion around this patch that I can't make
-> up my mind whether I should apply this or some subsequent inline
-> version of it.
+> - Fix am437 hardreset implementation and remove boottime
+>   warnings by adding the VPFE hwmod data
 > 
-> Holding this off for now...
+> - Regression fix for am43xx PRM code, simplify things
+>   by reusing the omap4 PRM implementation
+> 
+> 
 
-Yeah let's see what Grygorii comes up, sounds like he may have
-a minimal fix coming up. Then we can do the rest as clean-up
-later on.
+Pulled into the fixes branch, thanks!
 
-Regards,
-
-Tony
+	Arnd
