@@ -1,62 +1,69 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFT PATCH 2/8] clk: ti: clk-2xxx: Prevent possible ERR_PTR dereference
-Date: Wed, 13 May 2015 15:54:41 +0900
-Message-ID: <1431500087-2275-3-git-send-email-k.kozlowski@samsung.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFT PATCH 0/8] clk: ti: Fix possible ERR_PTR dereferences from
+ clk_get_sys
+Date: Wed, 13 May 2015 10:07:08 +0300
+Message-ID: <5552F81C.2010301@ti.com>
 References: <1431500087-2275-1-git-send-email-k.kozlowski@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1431500087-2275-1-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43211 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751762AbbEMHGU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 May 2015 03:06:20 -0400
+In-Reply-To: <1431500087-2275-1-git-send-email-k.kozlowski@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Provide a wrapper to prevent possible ERR_PTR dereference by
-clk_get_rate().
+On 05/13/2015 09:54 AM, Krzysztof Kozlowski wrote:
+> Hi,
+>
+>
+> clk_get_sys() may return ERR_PTR but the drivers immediately
+> dereferenced the return value. This could lead to oops.
+>
+> I tried only to fix possible ERR_PTR dereference and to not change
+> the logic. This is why some of the patches look quite complex.
+> For example in clk-7xx driver proceeds to next clocks if first one fails.
+>
+> WARNING:
+> The patchset was only compile tested (plus static checkers), as
+> I do not have the hardware. I am kindly asking for tests.
+>
+>
+> Best regards,
+> Krzysztof
 
-The return value of clk_get_sys() was immediately used in
-clk_get_rate(). The first one may return ERR_PTR and the latter only
-checks if supplied argument is non-NULL.
+Hi Krzysztof,
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- drivers/clk/ti/clk-2xxx.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+These should be rather fixed by using assigned-clock-parents / 
+assigned-clock-rates DT properties and removing the offending legacy 
+code from clk-* files. Patch #1 is good to go as is.
 
-diff --git a/drivers/clk/ti/clk-2xxx.c b/drivers/clk/ti/clk-2xxx.c
-index c808ab3d2bb2..d6996c3db843 100644
---- a/drivers/clk/ti/clk-2xxx.c
-+++ b/drivers/clk/ti/clk-2xxx.c
-@@ -220,6 +220,16 @@ enum {
- 	OMAP2_SOC_OMAP2430,
- };
- 
-+static unsigned long __init omap2xxx_clk_get_rate(const char *clk_name)
-+{
-+	struct clk *clk = clk_get_sys(NULL, clk_name);
-+
-+	if (IS_ERR(clk))
-+		return 0;
-+
-+	return clk_get_rate(clk);
-+}
-+
- static int __init omap2xxx_dt_clk_init(int soc_type)
- {
- 	ti_dt_clocks_register(omap2xxx_clks);
-@@ -237,10 +247,10 @@ static int __init omap2xxx_dt_clk_init(int soc_type)
- 				     ARRAY_SIZE(enable_init_clks));
- 
- 	pr_info("Clocking rate (Crystal/DPLL/MPU): %ld.%01ld/%ld/%ld MHz\n",
--		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 1000000),
--		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 100000) % 10,
--		(clk_get_rate(clk_get_sys(NULL, "dpll_ck")) / 1000000),
--		(clk_get_rate(clk_get_sys(NULL, "mpu_ck")) / 1000000));
-+		(omap2xxx_clk_get_rate("sys_ck") / 1000000),
-+		(omap2xxx_clk_get_rate("sys_ck") / 100000) % 10,
-+		(omap2xxx_clk_get_rate("dpll_ck") / 1000000),
-+		(omap2xxx_clk_get_rate("mpu_ck") / 1000000));
- 
- 	return 0;
- }
--- 
-1.9.1
+-Tero
+
+>
+>
+> Krzysztof Kozlowski (8):
+>    clk: ti: dra7-atl-clock: Fix possible ERR_PTR dereference
+>    clk: ti: clk-2xxx: Prevent possible ERR_PTR dereference
+>    clk: ti: clk-3xxx: Prevent possible ERR_PTR dereference
+>    clk: ti: clk-33xx: Prevent possible ERR_PTR dereference
+>    clk: ti: clk-43xx: Prevent possible ERR_PTR dereference
+>    clk: ti: clk-43xx: Prevent possible ERR_PTR dereference
+>    clk: ti: clk-54xx: Prevent possible ERR_PTR dereference
+>    clk: ti: clk-7xx: Prevent possible ERR_PTR dereference
+>
+>   drivers/clk/ti/clk-2xxx.c     | 18 ++++++++++++----
+>   drivers/clk/ti/clk-33xx.c     |  9 +++++---
+>   drivers/clk/ti/clk-3xxx.c     | 18 ++++++++++++----
+>   drivers/clk/ti/clk-43xx.c     |  3 ++-
+>   drivers/clk/ti/clk-44xx.c     | 16 ++++++++++----
+>   drivers/clk/ti/clk-54xx.c     | 47 +++++++++++++++++++++++++++-------------
+>   drivers/clk/ti/clk-7xx.c      | 50 +++++++++++++++++++++++++------------------
+>   drivers/clk/ti/clk-dra7-atl.c |  5 +++++
+>   8 files changed, 114 insertions(+), 52 deletions(-)
+>
+
