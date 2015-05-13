@@ -1,12 +1,12 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/5] mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq
-Date: Wed, 13 May 2015 16:36:36 -0700
-Message-ID: <1431560196-5722-6-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/5] serial: omap: Switch wake-up interrupt to generic wakeirq
+Date: Wed, 13 May 2015 16:36:34 -0700
+Message-ID: <1431560196-5722-4-git-send-email-tony@atomide.com>
 References: <1431560196-5722-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tkt-001-i372.relay.mailchannels.net ([174.136.5.173]:33923 "EHLO
+Received: from aso-006-i440.relay.mailchannels.net ([23.91.64.121]:51435 "EHLO
 	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754711AbbEMXhW (ORCPT
+	with ESMTP id S1754715AbbEMXhW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2015 19:37:22 -0400
 In-Reply-To: <1431560196-5722-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -19,155 +19,115 @@ for the wake-up interrupts.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 51 +++++++------------------------------------
- 1 file changed, 8 insertions(+), 43 deletions(-)
+ drivers/tty/serial/omap-serial.c | 38 +++++++-------------------------------
+ 1 file changed, 7 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 9df2b68..5fbf4d8 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -43,6 +43,7 @@
- #include <linux/regulator/consumer.h>
- #include <linux/pinctrl/consumer.h>
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 211479a..b0cadaa 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -38,6 +38,7 @@
+ #include <linux/serial_core.h>
+ #include <linux/irq.h>
  #include <linux/pm_runtime.h>
 +#include <linux/pm_wakeirq.h>
- #include <linux/platform_data/hsmmc-omap.h>
+ #include <linux/of.h>
+ #include <linux/of_irq.h>
+ #include <linux/gpio.h>
+@@ -160,7 +161,6 @@ struct uart_omap_port {
+ 	unsigned long		port_activity;
+ 	int			context_loss_cnt;
+ 	u32			errata;
+-	u8			wakeups_enabled;
+ 	u32			features;
  
- /* OMAP HSMMC Host Controller Registers */
-@@ -218,7 +219,6 @@ struct omap_hsmmc_host {
- 	unsigned int		flags;
- #define AUTO_CMD23		(1 << 0)        /* Auto CMD23 support */
- #define HSMMC_SDIO_IRQ_ENABLED	(1 << 1)        /* SDIO irq enabled */
--#define HSMMC_WAKE_IRQ_ENABLED	(1 << 2)
- 	struct omap_hsmmc_next	next_data;
- 	struct	omap_hsmmc_platform_data	*pdata;
- 
-@@ -1117,22 +1117,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
- 	return IRQ_HANDLED;
+ 	int			rts_gpio;
+@@ -209,28 +209,11 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+ 	return pdata->get_context_loss_count(up->dev);
  }
  
--static irqreturn_t omap_hsmmc_wake_irq(int irq, void *dev_id)
+-static inline void serial_omap_enable_wakeirq(struct uart_omap_port *up,
+-				       bool enable)
 -{
--	struct omap_hsmmc_host *host = dev_id;
+-	if (!up->wakeirq)
+-		return;
 -
--	/* cirq is level triggered, disable to avoid infinite loop */
--	spin_lock(&host->irq_lock);
--	if (host->flags & HSMMC_WAKE_IRQ_ENABLED) {
--		disable_irq_nosync(host->wake_irq);
--		host->flags &= ~HSMMC_WAKE_IRQ_ENABLED;
--	}
--	spin_unlock(&host->irq_lock);
--	pm_request_resume(host->dev); /* no use counter */
--
--	return IRQ_HANDLED;
+-	if (enable)
+-		enable_irq(up->wakeirq);
+-	else
+-		disable_irq_nosync(up->wakeirq);
 -}
 -
- static void set_sd_bus_power(struct omap_hsmmc_host *host)
++/* REVISIT: Remove this when omap3 boots in device tree only mode */
+ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
  {
- 	unsigned long i;
-@@ -1665,7 +1649,6 @@ static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
+ 	struct omap_uart_port_info *pdata = dev_get_platdata(up->dev);
  
- static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
- {
--	struct mmc_host *mmc = host->mmc;
- 	int ret;
- 
- 	/*
-@@ -1677,11 +1660,7 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
- 	if (!host->dev->of_node || !host->wake_irq)
- 		return -ENODEV;
- 
--	/* Prevent auto-enabling of IRQ */
--	irq_set_status_flags(host->wake_irq, IRQ_NOAUTOEN);
--	ret = devm_request_irq(host->dev, host->wake_irq, omap_hsmmc_wake_irq,
--			       IRQF_TRIGGER_LOW | IRQF_ONESHOT,
--			       mmc_hostname(mmc), host);
-+	ret = dev_pm_request_wake_irq(host->dev, host->wake_irq, NULL, 0, NULL);
- 	if (ret) {
- 		dev_err(mmc_dev(host->mmc), "Unable to request wake IRQ\n");
- 		goto err;
-@@ -1718,7 +1697,7 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
- 	return 0;
- 
- err_free_irq:
--	devm_free_irq(host->dev, host->wake_irq, host);
-+	dev_pm_free_wake_irq(host->dev);
- err:
- 	dev_warn(host->dev, "no SDIO IRQ support, falling back to polling\n");
- 	host->wake_irq = 0;
-@@ -2007,6 +1986,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 		omap_hsmmc_ops.multi_io_quirk = omap_hsmmc_multi_io_quirk;
- 	}
- 
-+	device_init_wakeup(&pdev->dev, true);
- 	pm_runtime_enable(host->dev);
- 	pm_runtime_get_sync(host->dev);
- 	pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
-@@ -2147,6 +2127,7 @@ err_slot_name:
- 	if (host->use_reg)
- 		omap_hsmmc_reg_put(host);
- err_irq:
-+	device_init_wakeup(&pdev->dev, false);
- 	if (host->tx_chan)
- 		dma_release_channel(host->tx_chan);
- 	if (host->rx_chan)
-@@ -2178,6 +2159,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
- 
- 	pm_runtime_put_sync(host->dev);
- 	pm_runtime_disable(host->dev);
-+	device_init_wakeup(&pdev->dev, false);
- 	if (host->dbclk)
- 		clk_disable_unprepare(host->dbclk);
- 
-@@ -2204,11 +2186,6 @@ static int omap_hsmmc_suspend(struct device *dev)
- 				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 	}
- 
--	/* do not wake up due to sdio irq */
--	if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
--	    !(host->mmc->pm_flags & MMC_PM_WAKE_SDIO_IRQ))
--		disable_irq(host->wake_irq);
+-	if (enable == up->wakeups_enabled)
+-		return;
 -
- 	if (host->dbclk)
- 		clk_disable_unprepare(host->dbclk);
- 
-@@ -2233,11 +2210,6 @@ static int omap_hsmmc_resume(struct device *dev)
- 		omap_hsmmc_conf_bus_power(host);
- 
- 	omap_hsmmc_protect_card(host);
+-	serial_omap_enable_wakeirq(up, enable);
+-	up->wakeups_enabled = enable;
 -
--	if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
--	    !(host->mmc->pm_flags & MMC_PM_WAKE_SDIO_IRQ))
--		enable_irq(host->wake_irq);
--
- 	pm_runtime_mark_last_busy(host->dev);
- 	pm_runtime_put_autosuspend(host->dev);
- 	return 0;
-@@ -2277,10 +2249,7 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
+ 	if (!pdata || !pdata->enable_wakeup)
+ 		return;
+ 
+@@ -750,13 +733,12 @@ static int serial_omap_startup(struct uart_port *port)
+ 
+ 	/* Optional wake-up IRQ */
+ 	if (up->wakeirq) {
+-		retval = request_irq(up->wakeirq, serial_omap_irq,
+-				     up->port.irqflags, up->name, up);
++		retval = dev_pm_request_wake_irq(up->dev, up->wakeirq,
++						 NULL, 0, NULL);
+ 		if (retval) {
+ 			free_irq(up->port.irq, up);
+ 			return retval;
  		}
- 
- 		pinctrl_pm_select_idle_state(dev);
--
--		WARN_ON(host->flags & HSMMC_WAKE_IRQ_ENABLED);
--		enable_irq(host->wake_irq);
--		host->flags |= HSMMC_WAKE_IRQ_ENABLED;
-+		dev_pm_enable_wake_irq(host->dev);
- 	} else {
- 		pinctrl_pm_select_idle_state(dev);
+-		disable_irq(up->wakeirq);
  	}
-@@ -2302,11 +2271,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- 	spin_lock_irqsave(&host->irq_lock, flags);
- 	if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
- 	    (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
--		/* sdio irq flag can't change while in runtime suspend */
--		if (host->flags & HSMMC_WAKE_IRQ_ENABLED) {
--			disable_irq_nosync(host->wake_irq);
--			host->flags &= ~HSMMC_WAKE_IRQ_ENABLED;
--		}
-+		dev_pm_disable_wake_irq(host->dev);
  
- 		pinctrl_pm_select_default_state(host->dev);
+ 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
+@@ -845,8 +827,7 @@ static void serial_omap_shutdown(struct uart_port *port)
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ 	free_irq(up->port.irq, up);
+-	if (up->wakeirq)
+-		free_irq(up->wakeirq, up);
++	dev_pm_free_wake_irq(up->dev);
+ }
  
+ static void serial_omap_uart_qos_work(struct work_struct *work)
+@@ -1139,13 +1120,6 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
+ 	serial_out(up, UART_EFR, efr);
+ 	serial_out(up, UART_LCR, 0);
+ 
+-	if (!device_may_wakeup(up->dev)) {
+-		if (!state)
+-			pm_runtime_forbid(up->dev);
+-		else
+-			pm_runtime_allow(up->dev);
+-	}
+-
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ }
+@@ -1838,6 +1812,7 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	up->context_loss_cnt = serial_omap_get_context_loss_count(up);
+ 
+ 	serial_omap_enable_wakeup(up, true);
++	dev_pm_enable_wake_irq(dev);
+ 
+ 	up->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+ 	schedule_work(&up->qos_work);
+@@ -1852,6 +1827,7 @@ static int serial_omap_runtime_resume(struct device *dev)
+ 	int loss_cnt = serial_omap_get_context_loss_count(up);
+ 
+ 	serial_omap_enable_wakeup(up, false);
++	dev_pm_disable_wake_irq(dev);
+ 
+ 	if (loss_cnt < 0) {
+ 		dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
 -- 
 2.1.4
 
