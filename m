@@ -1,31 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH] net: Reserve skb headroom and set skb->dev
- even if using __alloc_skb
-Date: Wed, 13 May 2015 18:07:44 -0400 (EDT)
-Message-ID: <20150513.180744.973850573845788118.davem@davemloft.net>
-References: <20150513182738.GA28201@saruman.tx.rr.com>
-	<20150513203413.8252.98057.stgit@ahduyck-vm-fedora22>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150513203413.8252.98057.stgit@ahduyck-vm-fedora22>
-Sender: netdev-owner@vger.kernel.org
-To: alexander.h.duyck@redhat.com
-Cc: linux-kernel@vger.kernel.org, balbi@ti.com, tony@atomide.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv3 0/5] Linux generic wakeirq handling
+Date: Wed, 13 May 2015 16:36:31 -0700
+Message-ID: <1431560196-5722-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from tkt-001-i372.relay.mailchannels.net ([174.136.5.173]:1098 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754387AbbEMXhI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2015 19:37:08 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Alexander Duyck <alexander.h.duyck@redhat.com>
-Date: Wed, 13 May 2015 13:34:13 -0700
+Hi all,
 
-> When I had inlined __alloc_rx_skb into __netdev_alloc_skb and
-> __napi_alloc_skb I had overlooked the fact that there was a return in the
-> __alloc_rx_skb.  As a result we weren't reserving headroom or setting the
-> skb->dev in certain cases.  This change corrects that by adding a couple of
-> jump labels to jump to depending on __alloc_skb either succeeding or failing.
-> 
-> Fixes: 9451980a6646 ("net: Use cached copy of pfmemalloc to avoid accessing page")
-> Reported-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
+Here's the third version of the Linux generic wakeirq support.
 
-Applied, thanks.
+I've added support for automatically handling wake-up capable
+IO interrupts too as suggested by Rafael the last time around.
+
+I think I've addressed all the comments, please review and let
+me know if I've missed something.
+
+For reference, the two earlier versions can be found at:
+
+http://www.spinics.net/lists/arm-kernel/msg377300.html
+https://lwn.net/Articles/635904/
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (5):
+  PM / Runtime: Update last_busy in rpm_resume
+  PM / Wakeirq: Add automated device wake IRQ handling
+  serial: omap: Switch wake-up interrupt to generic wakeirq
+  serial: 8250_omap: Move wake-up interrupt to generic wakeirq
+  mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq
+
+ arch/arm/mach-omap2/Kconfig         |   1 +
+ drivers/base/power/Makefile         |   1 +
+ drivers/base/power/main.c           |   2 +
+ drivers/base/power/power.h          |  38 +++++
+ drivers/base/power/runtime.c        |   1 +
+ drivers/base/power/wakeirq.c        | 316 ++++++++++++++++++++++++++++++++++++
+ drivers/base/power/wakeup.c         |  96 +++++++++++
+ drivers/mmc/host/omap_hsmmc.c       |  51 +-----
+ drivers/tty/serial/8250/8250_omap.c |  61 +------
+ drivers/tty/serial/omap-serial.c    |  38 +----
+ include/linux/pm.h                  |   2 +
+ include/linux/pm_wakeirq.h          |  72 ++++++++
+ include/linux/pm_wakeup.h           |   7 +
+ kernel/power/Kconfig                |   4 +
+ 14 files changed, 562 insertions(+), 128 deletions(-)
+ create mode 100644 drivers/base/power/wakeirq.c
+ create mode 100644 include/linux/pm_wakeirq.h
+
+-- 
+2.1.4
+
