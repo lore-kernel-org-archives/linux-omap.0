@@ -1,53 +1,77 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH] ARM: dts: am335x-bone* enable pmic-shutdown-controller
-Date: Wed, 13 May 2015 16:48:46 +0200
-Message-ID: <20150513144846.GC6605@localhost>
-References: <1431525001-5747-1-git-send-email-robertcnelson@gmail.com>
- <20150513141658.GB6605@localhost>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 00/27] ARM: OMAP2+: clock code migration to
+ drivers/clk/ti
+Date: Wed, 13 May 2015 14:55:03 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1505131438430.7921@utopia.booyaka.com>
+References: <1431334493-24455-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1505111747460.19833@utopia.booyaka.com> <5551D178.3000904@ti.com> <alpine.DEB.2.02.1505122019220.21747@utopia.booyaka.com> <5552F32C.7060606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:34556 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965295AbbEMOsr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2015 10:48:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20150513141658.GB6605@localhost>
+Received: from utopia.booyaka.com ([74.50.51.50]:41334 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934300AbbEMOzE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2015 10:55:04 -0400
+In-Reply-To: <5552F32C.7060606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: tony@atomide.com, devicetree@vger.kernel.org, matthijsvanduin@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, May 13, 2015 at 04:16:58PM +0200, Johan Hovold wrote:
-> On Wed, May 13, 2015 at 08:50:01AM -0500, Robert Nelson wrote:
-> > Fixes: http://bugs.elinux.org/issues/143
-> > 
-> > Commit 672e2b147 which introduced proper shutdown chose to let the PMIC go into sleep-state (aka "RTC-only mode") rather than off-state. This was fine for rev A5 on which that patch was tested, but since then two changes have been made to the power supply scheme:
-> > 
-> > (rev A6) enable of the 3v3b regulator moved from LDO2 to LDO4 (3v3a)
-> > side-effect: 3v3b rail remains on in sleep-mode (also in off-mode when battery-powered)
-> > 
-> > (rev A6A) am335x vdds supply moved from LDO3 to LDO1
-> > side-effect: vdds remains supplied in sleep-mode
-> > 
-> > As a result heavy leakage occurs from vdds (directly) and 3v3b (via i/o pins) to the 3v3a. The amount of current depends on external connections, but for example leaving a serial console cable connected in this state resulted in serious violation of am335x absolute maximum ratings, with potential for hardware damage.
-> > 
-> > Reported-by: Matthijs van Duin <matthijsvanduin@gmail.com>
-> > Tested-by: Matthijs van Duin <matthijsvanduin@gmail.com>
-> > Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Felipe Balbi <balbi@ti.com>
-> > Cc: Johan Hovold <johan@kernel.org>
+On Wed, 13 May 2015, Tero Kristo wrote:
+
+> I clipped the boot-loader traces as they contain lots of noise from the
+> test-automation system.
 > 
-> This should go into stable as well:
+> Looking at the farm traces, I see this on the omap3 boards:
 > 
-> Fixes: 672e2b147413 ("ARM: dts: am335x-boneblack: enable power off and
-> rtc wake up")
-> Cc: stable <stable@vger.kernel.org>	# 3.19
-> Acked-by: Johan Hovold <johan@kernel.org>
+> beagleboard-vanilla.txt:ver=U-Boot 2014.04-00071-g8543283 (Apr 22 2014 -
+> 15:49:50)
+> 
+> beagle-xm.txt:U-Boot 2014.10-00004-g9ade0ab-dirty (Dec 16 2014 - 13:40:24)
+> 
+> craneboard.txt:U-Boot 2009.11-00005-ge83d2db (Dec 07 2010 - 11:55:34)
+> 
+> ldp.txt:U-Boot 2014.04-00071-g8543283-dirty (Apr 25 2014 - 14:59:48)
+> 
+> n900.txt:U-Boot 2014.04-00073-g4fa5b9e (Apr 22 2014 - 14:37:10)
+> 
+> sdp3430.txt:U-Boot 2009.11-rc1-00485-g7d1e865 (Nov 09 2009 - 11:21:55)
+> 
+> Maybe some DTB issues? When did you update your DTB files?
 
-By the way, perhaps you should add a comment in the tps node explaining
-why ti,pmic-shutdown-controller must not be disabled (on what revisions
-of hardware) as well?
+For all of the uImage+DTB boots, the DTB files in use follow the kernel 
+version:
 
-Johan
+http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/dtbs/
+
+which are then subsequently combined to produce:
+
+http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/dtcat/
+
+So, using the OMAP35xx Beagle as an example, you can prove to yourself 
+that the current DTB is in use by observing that U-boot is loading a 
+combined uImage+DTB file of 3495180 bytes from here:
+
+http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/boot/3530es3beagle/3530es3beagle_log.txt
+
+and comparing that with the size of this file (3495180 bytes):
+
+http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/dtcat/omap2plus_defconfig/uImage-dtb.omap3-beagle
+
+and observing that this file size is the sum of the DTB file size (63180 
+bytes):
+
+http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/dtbs/omap3-beagle.dtb
+
+and the zImage file size (3431936 bytes):
+
+http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/build_z/omap2plus_defconfig/zImage
+
+and the 64 byte uImage header.
+
+
+The only board that I suspect may be using an old DTB is the 4460 
+VAR-SOM-OM.
+
+
+- Paul
