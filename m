@@ -1,34 +1,31 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [net-next PATCH] net: Reserve skb headroom and set skb->dev even if using __alloc_skb
-Date: Wed, 13 May 2015 14:35:51 -0700
-Message-ID: <7h8ucs6tzc.fsf@deeprootsystems.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next PATCH] net: Reserve skb headroom and set skb->dev
+ even if using __alloc_skb
+Date: Wed, 13 May 2015 18:07:44 -0400 (EDT)
+Message-ID: <20150513.180744.973850573845788118.davem@davemloft.net>
 References: <20150513182738.GA28201@saruman.tx.rr.com>
 	<20150513203413.8252.98057.stgit@ahduyck-vm-fedora22>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150513203413.8252.98057.stgit@ahduyck-vm-fedora22> (Alexander
-	Duyck's message of "Wed, 13 May 2015 13:34:13 -0700")
+In-Reply-To: <20150513203413.8252.98057.stgit@ahduyck-vm-fedora22>
 Sender: netdev-owner@vger.kernel.org
-To: Alexander Duyck <alexander.h.duyck@redhat.com>
-Cc: linux-kernel@vger.kernel.org, balbi@ti.com, davem@davemloft.net, tony@atomide.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: alexander.h.duyck@redhat.com
+Cc: linux-kernel@vger.kernel.org, balbi@ti.com, tony@atomide.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Alexander Duyck <alexander.h.duyck@redhat.com> writes:
+From: Alexander Duyck <alexander.h.duyck@redhat.com>
+Date: Wed, 13 May 2015 13:34:13 -0700
 
 > When I had inlined __alloc_rx_skb into __netdev_alloc_skb and
 > __napi_alloc_skb I had overlooked the fact that there was a return in the
 > __alloc_rx_skb.  As a result we weren't reserving headroom or setting the
 > skb->dev in certain cases.  This change corrects that by adding a couple of
 > jump labels to jump to depending on __alloc_skb either succeeding or failing.
->
+> 
 > Fixes: 9451980a6646 ("net: Use cached copy of pfmemalloc to avoid accessing page")
 > Reported-by: Felipe Balbi <balbi@ti.com>
 > Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
 
-Tested this on top of next-20150513 on an ARM/OMAP
-(am335x-boneblack.dts) an it fixes the boot problem for me.
-
-Tested-by: Kevin Hilman <khilman@linaro.org>
-
-Kevin
+Applied, thanks.
