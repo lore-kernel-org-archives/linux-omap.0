@@ -1,87 +1,40 @@
-From: Alexander Duyck <alexander.h.duyck@redhat.com>
-Subject: [net-next PATCH] net: Reserve skb headroom and set skb->dev even if
- using __alloc_skb
-Date: Wed, 13 May 2015 13:34:13 -0700
-Message-ID: <20150513203413.8252.98057.stgit@ahduyck-vm-fedora22>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: regression with today's linux-next
+Date: Wed, 13 May 2015 13:39:44 -0700
+Message-ID: <CAMAWPa8U_ESvBUV5fvoFcRLtP5nK0qkVEtA+x7Xa_xUTG1ho_A@mail.gmail.com>
 References: <20150513182738.GA28201@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:37662 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754415AbbEMUjs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 May 2015 16:39:48 -0400
+Received: from mail.kernel.org (localhost [127.0.0.1])
+	by mail.kernel.org (Postfix) with ESMTP id 6F42520437
+	for <linux-omap@vger.kernel.org>; Wed, 13 May 2015 20:39:47 +0000 (UTC)
+Received: from mail-wi0-f175.google.com (mail-wi0-f175.google.com [209.85.212.175])
+	(using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id 15A012041A
+	for <linux-omap@vger.kernel.org>; Wed, 13 May 2015 20:39:46 +0000 (UTC)
+Received: by wicmc15 with SMTP id mc15so514133wic.1
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2015 13:39:44 -0700 (PDT)
 In-Reply-To: <20150513182738.GA28201@saruman.tx.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, balbi@ti.com, davem@davemloft.net
-Cc: tony@atomide.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Alexander Duyck <alexander.h.duyck@redhat.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-When I had inlined __alloc_rx_skb into __netdev_alloc_skb and
-__napi_alloc_skb I had overlooked the fact that there was a return in the
-__alloc_rx_skb.  As a result we weren't reserving headroom or setting the
-skb->dev in certain cases.  This change corrects that by adding a couple of
-jump labels to jump to depending on __alloc_skb either succeeding or failing.
+On Wed, May 13, 2015 at 11:27 AM, Felipe Balbi <balbi@ti.com> wrote:
 
-Fixes: 9451980a6646 ("net: Use cached copy of pfmemalloc to avoid accessing page")
-Reported-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
----
- net/core/skbuff.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+> your commit 9451980a6646 (net: Use cached copy of pfmemalloc to avoid
+> accessing page) regresses most OMAP-based boards with a NULL pointer
+> dereference.
+>
+> Below you can find git bisect log and a serial console capture of the
+> problem.
 
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index d67e612bf0ef..f3fe9bd9e672 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -414,8 +414,12 @@ struct sk_buff *__netdev_alloc_skb(struct net_device *dev, unsigned int len,
- 	len += NET_SKB_PAD;
- 
- 	if ((len > SKB_WITH_OVERHEAD(PAGE_SIZE)) ||
--	    (gfp_mask & (__GFP_WAIT | GFP_DMA)))
--		return __alloc_skb(len, gfp_mask, SKB_ALLOC_RX, NUMA_NO_NODE);
-+	    (gfp_mask & (__GFP_WAIT | GFP_DMA))) {
-+		skb = __alloc_skb(len, gfp_mask, SKB_ALLOC_RX, NUMA_NO_NODE);
-+		if (!skb)
-+			goto skb_fail;
-+		goto skb_success;
-+	}
- 
- 	len += SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
- 	len = SKB_DATA_ALIGN(len);
-@@ -445,9 +449,11 @@ struct sk_buff *__netdev_alloc_skb(struct net_device *dev, unsigned int len,
- 		skb->pfmemalloc = 1;
- 	skb->head_frag = 1;
- 
-+skb_success:
- 	skb_reserve(skb, NET_SKB_PAD);
- 	skb->dev = dev;
- 
-+skb_fail:
- 	return skb;
- }
- EXPORT_SYMBOL(__netdev_alloc_skb);
-@@ -475,8 +481,12 @@ struct sk_buff *__napi_alloc_skb(struct napi_struct *napi, unsigned int len,
- 	len += NET_SKB_PAD + NET_IP_ALIGN;
- 
- 	if ((len > SKB_WITH_OVERHEAD(PAGE_SIZE)) ||
--	    (gfp_mask & (__GFP_WAIT | GFP_DMA)))
--		return __alloc_skb(len, gfp_mask, SKB_ALLOC_RX, NUMA_NO_NODE);
-+	    (gfp_mask & (__GFP_WAIT | GFP_DMA))) {
-+		skb = __alloc_skb(len, gfp_mask, SKB_ALLOC_RX, NUMA_NO_NODE);
-+		if (!skb)
-+			goto skb_fail;
-+		goto skb_success;
-+	}
- 
- 	len += SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
- 	len = SKB_DATA_ALIGN(len);
-@@ -499,9 +509,11 @@ struct sk_buff *__napi_alloc_skb(struct napi_struct *napi, unsigned int len,
- 		skb->pfmemalloc = 1;
- 	skb->head_frag = 1;
- 
-+skb_success:
- 	skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
- 	skb->dev = napi->dev;
- 
-+skb_fail:
- 	return skb;
- }
- EXPORT_SYMBOL(__napi_alloc_skb);
+FWIW, I can confirm the boot failure and had bisected down to the same commit.
+
+Kevin
