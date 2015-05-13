@@ -1,107 +1,69 @@
 From: Pantelis Antoniou <pantelis.antoniou@konsulko.com>
-Subject: [PATCH] arm: dts: Beaglebone i2c definitions
-Date: Wed, 13 May 2015 11:04:34 +0300
-Message-ID: <1431504274-32084-1-git-send-email-pantelis.antoniou@konsulko.com>
+Subject: [PATCH] arm: dts: Enable beaglebone cape-manager
+Date: Wed, 13 May 2015 11:04:52 +0300
+Message-ID: <1431504292-32132-1-git-send-email-pantelis.antoniou@konsulko.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Benoit Cousson <bcousson@baylibre.com>
 Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Matt Porter <mporter@konsulko.com>, Koen Kooi <koen@dominion.thruhere.net>, Robert Nelson <robertcnelson@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Geert Uytterhoeven <geert+renesas@glider.be>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
 List-Id: linux-omap@vger.kernel.org
 
-The beaglebone family of boards contain two I2C busses enabled.
-The first one with a baseboard identification EEPROM and a
-cape I2C bus.
+Enable the cape manager on the beaglebone family of boards.
 
 Signed-off-by: Pantelis Antoniou <pantelis.antoniou@konsulko.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi | 66 +++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 42 +++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index c3255e0..236b7db 100644
+index 236b7db..28d9764 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -81,6 +81,13 @@
- 		>;
- 	};
- 
-+	i2c2_pins: pinmux_i2c2_pins {
-+		pinctrl-single,pins = <
-+			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
-+			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
-+		>;
-+	};
+@@ -375,3 +375,45 @@
+ &sham {
+ 	status = "okay";
+ };
 +
- 	uart0_pins: pinmux_uart0_pins {
- 		pinctrl-single,pins = <
- 			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-@@ -218,8 +225,67 @@
- 		reg = <0x24>;
- 	};
- 
-+	baseboard_eeprom: baseboard_eeprom@50 {
-+		compatible = "at,24c256";
-+		reg = <0x50>;
++/* the cape manager */
++/ {
++	bone_capemgr {
++		compatible = "ti,bone-capemgr";
++		status = "okay";
 +
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		baseboard_data: baseboard_data@0 {
-+			reg = <0 0x100>;
++		eeprom = <&baseboard_data>;
++
++		/* map board revisions to compatible definitions */
++		baseboardmaps {
++			baseboard_beaglebone: board@0 {
++				board-name = "A335BONE";
++				compatible-name = "ti,beaglebone";
++			};
++
++			baseboard_beaglebone_black: board@1 {
++				board-name = "A335BNLT";
++				compatible-name = "ti,beaglebone-black";
++			};
++		};
++
++		/* only 4 slots defined */
++		slots {
++			slot@0 {
++				eeprom = <&cape0_data>;
++			};
++
++			slot@1 {
++				eeprom = <&cape1_data>;
++			};
++
++			slot@2 {
++				eeprom = <&cape2_data>;
++			};
++
++			slot@3 {
++				eeprom = <&cape3_data>;
++			};
 +		};
 +	};
 +};
-+
-+&i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
-+
-+	status = "okay";
-+	clock-frequency = <100000>;
-+
-+	cape_eeprom0: cape_eeprom0@54 {
-+		compatible = "at,24c256";
-+		reg = <0x54>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		cape0_data: cape_data@0 {
-+			reg = <0 0x100>;
-+		};
-+	};
-+
-+	cape_eeprom1: cape_eeprom1@55 {
-+		compatible = "at,24c256";
-+		reg = <0x55>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		cape1_data: cape_data@0 {
-+			reg = <0 0x100>;
-+		};
-+	};
-+
-+	cape_eeprom2: cape_eeprom2@56 {
-+		compatible = "at,24c256";
-+		reg = <0x56>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		cape2_data: cape_data@0 {
-+			reg = <0 0x100>;
-+		};
-+	};
-+
-+	cape_eeprom3: cape_eeprom3@57 {
-+		compatible = "at,24c256";
-+		reg = <0x57>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		cape3_data: cape_data@0 {
-+			reg = <0 0x100>;
-+		};
-+	};
- };
- 
-+
- /include/ "tps65217.dtsi"
- 
- &tps {
 -- 
 1.7.12
