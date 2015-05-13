@@ -1,69 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFT PATCH 0/8] clk: ti: Fix possible ERR_PTR dereferences from
- clk_get_sys
-Date: Wed, 13 May 2015 10:07:08 +0300
-Message-ID: <5552F81C.2010301@ti.com>
-References: <1431500087-2275-1-git-send-email-k.kozlowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Romain Izard <romain.izard.pro@gmail.com>
+Subject: [PATCH] ARM: dts: Fix WLAN interrupt line for AM335x EVM-SK
+Date: Wed, 13 May 2015 09:37:35 +0200
+Message-ID: <1431502655-23255-1-git-send-email-romain.izard.pro@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43211 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751762AbbEMHGU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 May 2015 03:06:20 -0400
-In-Reply-To: <1431500087-2275-1-git-send-email-k.kozlowski@samsung.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:38654 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699AbbEMHhp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2015 03:37:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Romain Izard <romain.izard.pro@gmail.com>
 
-On 05/13/2015 09:54 AM, Krzysztof Kozlowski wrote:
-> Hi,
->
->
-> clk_get_sys() may return ERR_PTR but the drivers immediately
-> dereferenced the return value. This could lead to oops.
->
-> I tried only to fix possible ERR_PTR dereference and to not change
-> the logic. This is why some of the patches look quite complex.
-> For example in clk-7xx driver proceeds to next clocks if first one fails.
->
-> WARNING:
-> The patchset was only compile tested (plus static checkers), as
-> I do not have the hardware. I am kindly asking for tests.
->
->
-> Best regards,
-> Krzysztof
+While Sitara AM335x SoCs are very close to OMAP SoCs, the 32-line GPIO
+controllers are numbered from 0 on AM335x and from 1 on OMAP. But when
+the configuration for the TI WLAN controllers was converted from
+platform data to device tree, this detail was overlooked, as 10 boards
+were using OMAP with the WL12xx and WL18xx controllers, and only one
+was based on AM335x.
 
-Hi Krzysztof,
+This invalid configuration prevents the WL1271 module on the AM335x
+EVM-SK from notifying interrupts to the SoC, and breaks the wlan driver.
 
-These should be rather fixed by using assigned-clock-parents / 
-assigned-clock-rates DT properties and removing the offending legacy 
-code from clk-* files. Patch #1 is good to go as is.
+The DTS must be corrected to use the correct GPIO controller.
 
--Tero
+Signed-off-by: Romain Izard <romain.izard.pro@gmail.com>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->
->
-> Krzysztof Kozlowski (8):
->    clk: ti: dra7-atl-clock: Fix possible ERR_PTR dereference
->    clk: ti: clk-2xxx: Prevent possible ERR_PTR dereference
->    clk: ti: clk-3xxx: Prevent possible ERR_PTR dereference
->    clk: ti: clk-33xx: Prevent possible ERR_PTR dereference
->    clk: ti: clk-43xx: Prevent possible ERR_PTR dereference
->    clk: ti: clk-43xx: Prevent possible ERR_PTR dereference
->    clk: ti: clk-54xx: Prevent possible ERR_PTR dereference
->    clk: ti: clk-7xx: Prevent possible ERR_PTR dereference
->
->   drivers/clk/ti/clk-2xxx.c     | 18 ++++++++++++----
->   drivers/clk/ti/clk-33xx.c     |  9 +++++---
->   drivers/clk/ti/clk-3xxx.c     | 18 ++++++++++++----
->   drivers/clk/ti/clk-43xx.c     |  3 ++-
->   drivers/clk/ti/clk-44xx.c     | 16 ++++++++++----
->   drivers/clk/ti/clk-54xx.c     | 47 +++++++++++++++++++++++++++-------------
->   drivers/clk/ti/clk-7xx.c      | 50 +++++++++++++++++++++++++------------------
->   drivers/clk/ti/clk-dra7-atl.c |  5 +++++
->   8 files changed, 114 insertions(+), 52 deletions(-)
->
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 87fc7a35e802..156d05efcb70 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -654,7 +654,7 @@
+ 	wlcore: wlcore@2 {
+ 		compatible = "ti,wl1271";
+ 		reg = <2>;
+-		interrupt-parent = <&gpio1>;
++		interrupt-parent = <&gpio0>;
+ 		interrupts = <31 IRQ_TYPE_LEVEL_HIGH>; /* gpio 31 */
+ 		ref-clock-frequency = <38400000>;
+ 	};
+-- 
+2.1.4
 
