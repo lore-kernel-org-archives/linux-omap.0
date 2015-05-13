@@ -1,69 +1,68 @@
-From: Pantelis Antoniou <pantelis.antoniou@konsulko.com>
-Subject: [PATCH] arm: dts: Enable beaglebone cape-manager
-Date: Wed, 13 May 2015 11:04:52 +0300
-Message-ID: <1431504292-32132-1-git-send-email-pantelis.antoniou@konsulko.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Matt Porter <mporter@konsulko.com>, Koen Kooi <koen@dominion.thruhere.net>, Robert Nelson <robertcnelson@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Geert Uytterhoeven <geert+renesas@glider.be>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Pantelis Antoniou <pantelis.antoniou@konsulko.com>, Pantelis Antoniou <panto@antoniou-consulting.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH early RFC 0/2] Implement ASoC HDMI codec library
+Date: Wed, 13 May 2015 12:23:45 +0300
+Message-ID: <cover.1431508524.git.jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, moinejf@free.fr, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Enable the cape manager on the beaglebone family of boards.
+This is on early RFC and should not be merged yet. The idea is just
+to share my ideas early on as there has been a lot of development
+going on around HDMI audio.
 
-Signed-off-by: Pantelis Antoniou <pantelis.antoniou@konsulko.com>
----
- arch/arm/boot/dts/am335x-bone-common.dtsi | 42 +++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+The I2S DAI of the ASoC side patch is usable already, the spdif
+support has not been tested and the EDID SADs handling should use
+Russel's DRM ELD helper when it is ready.
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 236b7db..28d9764 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -375,3 +375,45 @@
- &sham {
- 	status = "okay";
- };
-+
-+/* the cape manager */
-+/ {
-+	bone_capemgr {
-+		compatible = "ti,bone-capemgr";
-+		status = "okay";
-+
-+		eeprom = <&baseboard_data>;
-+
-+		/* map board revisions to compatible definitions */
-+		baseboardmaps {
-+			baseboard_beaglebone: board@0 {
-+				board-name = "A335BONE";
-+				compatible-name = "ti,beaglebone";
-+			};
-+
-+			baseboard_beaglebone_black: board@1 {
-+				board-name = "A335BNLT";
-+				compatible-name = "ti,beaglebone-black";
-+			};
-+		};
-+
-+		/* only 4 slots defined */
-+		slots {
-+			slot@0 {
-+				eeprom = <&cape0_data>;
-+			};
-+
-+			slot@1 {
-+				eeprom = <&cape1_data>;
-+			};
-+
-+			slot@2 {
-+				eeprom = <&cape2_data>;
-+			};
-+
-+			slot@3 {
-+				eeprom = <&cape3_data>;
-+			};
-+		};
-+	};
-+};
+The tda998x patch is just to demonstrate the usage of the
+HDMI-codec-lib. At least the audio related DT-bindings are missing
+completely and the configuration is hard coded to work on
+Beaglebone-Black.
+
+Jean-Francois, would you consider trying the generic ASoC patch with
+your HW, as I can not test the spdif functionality with mine?
+
+The library could also be implemented as a separate platform driver,
+but then adding a pointer for private data to struct
+snd_soc_dai_driver, snd_soc_codec, or to snd_soc_component would be of
+great help.
+
+These patches, my tilcdc refactoring[1], and my latest BCLK fixes for
+davinci-mcasp diver [2], can found in a branch that produces a working
+HDMI audio on Beaglebone-Black here:
+
+https://github.com/jsarha/linux.git linux-master-bbb-hdmi-20150512
+
+[1] http://lists.freedesktop.org/archives/dri-devel/2015-May/082537.html
+[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2015-April/090974.html
+
+Jyri Sarha (2):
+  ASoC: hdmi-codec-lib: Add hdmi-codec-lib for external HDMI-encoders
+  drm/i2c: tda998x: HACK Implement primitive HDMI audio with ASoC
+    hdmi-code-lib
+
+ drivers/gpu/drm/i2c/Kconfig       |   1 +
+ drivers/gpu/drm/i2c/tda998x_drv.c | 238 +++++++++++++++++
+ include/sound/hdmi-codec-lib.h    | 105 ++++++++
+ sound/soc/codecs/Kconfig          |   4 +
+ sound/soc/codecs/Makefile         |   2 +
+ sound/soc/codecs/hdmi-codec-lib.c | 536 ++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 886 insertions(+)
+ create mode 100644 include/sound/hdmi-codec-lib.h
+ create mode 100644 sound/soc/codecs/hdmi-codec-lib.c
+
 -- 
-1.7.12
+1.9.1
