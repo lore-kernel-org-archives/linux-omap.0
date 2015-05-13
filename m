@@ -1,275 +1,267 @@
-From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
-Subject: Re: [PATCH] arm: boot: dts: add DTS for Baltos IR5221
-Date: Wed, 13 May 2015 07:40:02 +0200
-Message-ID: <20150513074002.0b7b8dda@ipc1.ka-ro>
-References: <1431468917-27697-1-git-send-email-balbi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 00/27] ARM: OMAP2+: clock code migration to drivers/clk/ti
+Date: Wed, 13 May 2015 09:46:04 +0300
+Message-ID: <5552F32C.7060606@ti.com>
+References: <1431334493-24455-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1505111747460.19833@utopia.booyaka.com> <5551D178.3000904@ti.com> <alpine.DEB.2.02.1505122019220.21747@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1431468917-27697-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Yegor Yefremov <yegorslists@googlemail.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:32808 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751846AbbEMGpn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 May 2015 02:45:43 -0400
+In-Reply-To: <alpine.DEB.2.02.1505122019220.21747@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
 
-SGksCgo+IEZyb206IFllZ29yIFllZnJlbW92IDx5ZWdvcnNsaXN0c0Bnb29nbGVtYWlsLmNvbT4K
-PiAKPiBUaGlzIGRldmljZSBpcyBhbiBpbmR1c3RyaWFsIFBDIGJhc2VkIG9uCj4gQU0zMzV4IFNv
-Qy4KPiAKPiBbIGJhbGJpQHRpLmNvbSA6IHVwZGF0ZWQgdG8gZml0IGN1cnJlbnQgbWFpbmxpbmUg
-XQo+IAo+IFNpZ25lZC1vZmYtYnk6IFllZ29yIFllZnJlbW92IDx5ZWdvcnNsaXN0c0Bnb29nbGVt
-YWlsLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBGZWxpcGUgQmFsYmkgPGJhbGJpQHRpLmNvbT4KPiAt
-LS0KPiAKPiBOb3RlIHRoYXQgdGhpcyBpcyBqdXN0IGEgcmVzcGluIG9mIERUUyBhdmFpbGFibGUg
-ZnJvbSBbMV0KPiAKPiBbMV0gaHR0cHM6Ly9naXRodWIuY29tL3Zpc2lvbnN5c3RlbXNnbWJoL29u
-cmlzY19icl9ic3AvYmxvYi9tYXN0ZXIvYm9hcmQvdnNjb20vZHRzLzMuMTUvb25yaXNjLWJhbHRv
-cy1pci01MjIxLmR0cwo+IAo+ICBhcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZSAgICAgICAgICB8
-ICAgMSArCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1iYWx0b3MuZHRzIHwgNTI4ICsrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ICAyIGZpbGVzIGNoYW5nZWQsIDUyOSBp
-bnNlcnRpb25zKCspCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9hbTMz
-NXgtYmFsdG9zLmR0cwo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9NYWtlZmls
-ZSBiL2FyY2gvYXJtL2Jvb3QvZHRzL01ha2VmaWxlCj4gaW5kZXggODYyMTdkYjI5MzdhLi45NDEy
-MTdiNDA1ZTkgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvTWFrZWZpbGUKPiArKysg
-Yi9hcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZQo+IEBAIC00MDYsNiArNDA2LDcgQEAgZHRiLSQo
-Q09ORklHX0FSQ0hfT01BUDMpICs9IFwKPiAgZHRiLSQoQ09ORklHX1NPQ19USTgxWFgpICs9IFwK
-PiAgCWRtODE2OC1ldm0uZHRiCj4gIGR0Yi0kKENPTkZJR19TT0NfQU0zM1hYKSArPSBcCj4gKwlh
-bTMzNXgtYmFsdG9zLmR0YiBcCj4gIAlhbTMzNXgtYmFzZTAwMzMuZHRiIFwKPiAgCWFtMzM1eC1i
-b25lLmR0YiBcCj4gIAlhbTMzNXgtYm9uZWJsYWNrLmR0YiBcCj4gZGlmZiAtLWdpdCBhL2FyY2gv
-YXJtL2Jvb3QvZHRzL2FtMzM1eC1iYWx0b3MuZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4
-LWJhbHRvcy5kdHMKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAwMDAwMDAwMC4u
-Mjk2OTY1YWI4YmI1Cj4gLS0tIC9kZXYvbnVsbAo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2Ft
-MzM1eC1iYWx0b3MuZHRzCj4gQEAgLTAsMCArMSw1MjggQEAKPiArLyoKPiArICogQ29weXJpZ2h0
-IChDKSAyMDEyIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGku
-Y29tLwo+ICsgKgo+ICsgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiBy
-ZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQo+ICsgKiBpdCB1bmRlciB0aGUgdGVybXMgb2Yg
-dGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiBhcwo+ICsgKiBwdWJsaXNo
-ZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4KPiArICovCj4gKwo+ICsvKgo+ICsg
-KiBWU2NvbSBPblJJU0MKPiArICogaHR0cDovL3d3dy52c2NvbS5kZQo+ICsgKi8KPiArCj4gKy9k
-dHMtdjEvOwo+ICsKPiArI2luY2x1ZGUgImFtMzN4eC5kdHNpIgo+ICsjaW5jbHVkZSA8ZHQtYmlu
-ZGluZ3MvcHdtL3B3bS5oPgo+ICsKPiArLyB7Cj4gKwltb2RlbCA9ICJPblJJU0MgQmFsdG9zIGlS
-IDUyMjEiOwo+ICsJY29tcGF0aWJsZSA9ICJ2c2NvbSxvbnJpc2MiLCAidGksYW0zM3h4IjsKPiAr
-Cj4gKwljcHVzIHsKPiArCQljcHVAMCB7Cj4gKwkJCWNwdTAtc3VwcGx5ID0gPCZ2ZGQxX3JlZz47
-Cj4gKwkJfTsKPiArCX07Cj4gKwo+ICsJbWVtb3J5IHsKPiArCQlkZXZpY2VfdHlwZSA9ICJtZW1v
-cnkiOwo+ICsJCXJlZyA9IDwweDgwMDAwMDAwIDB4MTAwMDAwMDA+OyAvKiAyNTYgTUIgKi8KPiAr
-CX07Cj4gKwo+ICsJdmJhdDogZml4ZWRyZWd1bGF0b3JAMCB7Cj4gKwkJY29tcGF0aWJsZSA9ICJy
-ZWd1bGF0b3ItZml4ZWQiOwo+ICsJCXJlZ3VsYXRvci1uYW1lID0gInZiYXQiOwo+ICsJCXJlZ3Vs
-YXRvci1taW4tbWljcm92b2x0ID0gPDUwMDAwMDA+Owo+ICsJCXJlZ3VsYXRvci1tYXgtbWljcm92
-b2x0ID0gPDUwMDAwMDA+Owo+ICsJCXJlZ3VsYXRvci1ib290LW9uOwo+ICsJfTsKPiArCj4gKwls
-aXMzX3JlZzogZml4ZWRyZWd1bGF0b3JAMSB7Cj4gKwkJY29tcGF0aWJsZSA9ICJyZWd1bGF0b3It
-Zml4ZWQiOwo+ICsJCXJlZ3VsYXRvci1uYW1lID0gImxpczNfcmVnIjsKPiArCQlyZWd1bGF0b3It
-Ym9vdC1vbjsKPiArCX07Cj4gKwo+ICsJd2wxMnh4X3ZtbWM6IGZpeGVkcmVndWxhdG9yQDIgewo+
-ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gKwkJcGluY3RybC0wID0gPCZ3bDEyeHhf
-Z3Bpbz47Cj4gKwkJY29tcGF0aWJsZSA9ICJyZWd1bGF0b3ItZml4ZWQiOwo+ICsJCXJlZ3VsYXRv
-ci1uYW1lID0gInZ3bDEyNzEiOwo+ICsJCXJlZ3VsYXRvci1taW4tbWljcm92b2x0ID0gPDMzMDAw
-MDA+Owo+ICsJCXJlZ3VsYXRvci1tYXgtbWljcm92b2x0ID0gPDMzMDAwMDA+Owo+ICsJCWdwaW8g
-PSA8JmdwaW8zIDggMD47Cj4gKwkJc3RhcnR1cC1kZWxheS11cyA9IDw3MDAwMD47Cj4gKwkJZW5h
-YmxlLWFjdGl2ZS1oaWdoOwo+ICsJfTsKPiArfTsKPiArCj4gKyZhbTMzeHhfcGlubXV4IHsKPiAr
-CW1tYzJfcGluczogcGlubXV4X21tYzJfcGlucyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9
-IDwKPiArCQkJMHgwMjAgKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTIpICAgICAgLyogZ3Bt
-Y19hZDgubW1jMV9kYXQwX211eDAgKi8KPiArCQkJMHgwMjQgKFBJTl9JTlBVVF9QVUxMVVAgfCBN
-VVhfTU9ERTIpICAgICAgLyogZ3BtY19hZDkubW1jMV9kYXQxX211eDAgKi8KPiArCQkJMHgwMjgg
-KFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTIpICAgICAgLyogZ3BtY19hZDEwLm1tYzFfZGF0
-Ml9tdXgwICovCj4gKwkJCTB4MDJjIChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUyKSAgICAg
-IC8qIGdwbWNfYWQxMS5tbWMxX2RhdDNfbXV4MCAqLwo+ICsJCQkweDA4MCAoUElOX0lOUFVUX1BV
-TExVUCB8IE1VWF9NT0RFMikgICAgICAvKiBncG1jX2NzbjEubW1jMV9jbGtfbXV4MCAqLwo+ICsJ
-CQkweDA4NCAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMikgICAgICAvKiBncG1jX2NzbjIu
-bW1jMV9jbWRfbXV4MCAqLwo+ICsJCQkweDFlNCAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RF
-NykgICAgICAvKiBlbXUwLmdwaW8zWzddICovCj4gKwkJPjsKPiArCX07Cj4gKwo+ICsJd2wxMnh4
-X2dwaW86IHBpbm11eF93bDEyeHhfZ3BpbyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwK
-PiArCQkJMHgxZTggKFBJTl9PVVRQVVRfUFVMTFVQIHwgTVVYX01PREU3KSAgICAgIC8qIGVtdTEu
-Z3BpbzNbOF0gKi8KPiArCQk+Owo+ICsJfTsKPiArCj4gKwl0cHM2NTkxMF9waW5zOiBwaW5tdXhf
-dHBzNjU5MTBfcGlucyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiArCQkJMHgwNzgg
-KFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTcpICAgICAgLyogZ3BtY19iZW4xLmdwaW8xWzI4
-XSAqLwo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCXRjYTY0MTZfcGluczogcGlubXV4X3RjYTY0MTZf
-cGlucyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiArCQkJMHgxYjQgKFBJTl9JTlBV
-VF9QVUxMVVAgfCBNVVhfTU9ERTcpICAgICAgLyogeGRtYV9ldmVudF9pbnRyMS5ncGlvMFsyMF0g
-dGNhNjQxNiBzdHVmZiAqLwo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCWkyYzFfcGluczogcGlubXV4
-X2kyYzFfcGlucyB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiArCQkJMHgxNTggMHgy
-YSAgICAgIC8qIHNwaTBfZDEuaTJjMV9zZGFfbXV4MywgSU5QVVQgfCBNT0RFMiAqLwo+ICsJCQkw
-eDE1YyAweDJhICAgICAgLyogc3BpMF9jczAuaTJjMV9zY2xfbXV4MywgSU5QVVQgfCBNT0RFMiAq
-Lwo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCWRjYW4xX3BpbnM6IHBpbm11eF9kY2FuMV9waW5zIHsK
-PiArCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAo+ICsJCQkweDE2OCAweDBhICAgICAgLyogdWFy
-dDBfY3Rzbi5kY2FuMV90eF9tdXgwLCBPVVRQVVQgfCBNT0RFMiAqLwo+ICsJCQkweDE2YyAweDJh
-ICAgICAgLyogdWFydDBfcnRzbi5kY2FuMV9yeF9tdXgwLCBJTlBVVCB8IE1PREUyICovCj4gKwkJ
-PjsKPiArCX07Cj4gKwo+ICsJdWFydDBfcGluczogcGlubXV4X3VhcnQwX3BpbnMgewo+ICsJCXBp
-bmN0cmwtc2luZ2xlLHBpbnMgPSA8Cj4gKwkJCTB4MTcwIChQSU5fSU5QVVRfUFVMTFVQIHwgTVVY
-X01PREUwKQkvKiB1YXJ0MF9yeGQudWFydDBfcnhkICovCj4gKwkJCTB4MTc0IChQSU5fT1VUUFVU
-X1BVTExET1dOIHwgTVVYX01PREUwKQkJLyogdWFydDBfdHhkLnVhcnQwX3R4ZCAqLwo+ICsJCT47
-Cj4gKwl9Owo+ICsKPiArCXVhcnQxX3BpbnM6IHBpbm11eF91YXJ0MV9waW5zIHsKPiArCQlwaW5j
-dHJsLXNpbmdsZSxwaW5zID0gPAo+ICsJCQkweDE4MCAweDI4ICAgICAgLyogdWFydDFfcnhkLCBJ
-TlBVVCB8IE1PREUwICovCj4gKwkJCTB4MTg0IDB4MjggICAgICAvKiB1YXJ0MV90eGQsIElOUFVU
-IHwgTU9ERTAgKi8KPiArCQkJLyoweDE3OCAweDI4Ki8gICAgICAvKiB1YXJ0MV9jdHNuLCBJTlBV
-VCB8IE1PREUwICovCj4gKwkJCS8qMHgxN2MgMHgwOCovICAgICAgLyogdWFydDFfcnRzbiwgT1VU
-UFVUIHwgTU9ERTAgKi8KPiArCQkJMHgxNzggKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RF
-NykgICAgICAvKiB1YXJ0MV9jdHNuLCBJTlBVVCB8IE1PREUwICovCj4gKwkJCTB4MTdjIChQSU5f
-T1VUUFVUX1BVTExET1dOIHwgTVVYX01PREU3KSAgICAgIC8qIHVhcnQxX3J0c24sIE9VVFBVVCB8
-IE1PREUwICovCj4gKwkJCTB4MGUwIChQSU5fT1VUUFVUX1BVTExET1dOIHwgTVVYX01PREU3KSAg
-ICAgIC8qIGxjZF92c3luYy5ncGlvMlsyMl0gRFRSICovCj4gKwkJCTB4MGU0IChQSU5fSU5QVVRf
-UFVMTERPV04gfCBNVVhfTU9ERTcpICAgICAgLyogbGNkX2hzeW5jLmdwaW8yWzIzXSBEU1IgKi8K
-PiArCQkJMHgwZTggKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykgICAgICAvKiBsY2Rf
-cGNsay5ncGlvMlsyNF0gRENEICovCj4gKwkJCTB4MGVjIChQSU5fSU5QVVRfUFVMTERPV04gfCBN
-VVhfTU9ERTcpICAgICAgLyogbGNkX2FjX2JpYXNfZW4uZ3BpbzJbMjVdIFJJICovCj4gKwkJPjsK
-PiArCX07Cj4gKwo+ICsJdWFydDJfcGluczogcGlubXV4X3VhcnQyX3BpbnMgewo+ICsJCXBpbmN0
-cmwtc2luZ2xlLHBpbnMgPSA8Cj4gKwkJCTB4MTUwIDB4MjkgICAgICAvKiBzcGkwX3NjbGsudWFy
-dDJfcnhkX211eDMsIElOUFVUIHwgTU9ERTEgKi8KPiArCQkJMHgxNTQgMHgwOSAgICAgIC8qIHNw
-aTBfZDAudWFydDJfdHhkX211eDMsIE9VVFBVVCB8IE1PREUxICovCj4gKwkJCS8qMHgxODggMHgy
-YSovICAgICAgLyogaTJjMF9zZGEudWFydDJfY3Rzbl9tdXgwLCBJTlBVVCB8IE1PREUyICovCj4g
-KwkJCS8qMHgxOGMgMHgyYSovICAgICAgLyogaTJjMF9zY2wudWFydDJfcnRzbl9tdXgwLCBJTlBV
-VCB8IE1PREUyICovCj4gKwkJCTB4MTg4IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTcp
-ICAgICAgLyogaTJjMF9zZGEudWFydDJfY3Rzbl9tdXgwICovCj4gKwkJCTB4MThjIChQSU5fT1VU
-UFVUX1BVTExET1dOIHwgTVVYX01PREU3KSAgICAgIC8qIGkyYzBfc2NsLnVhcnQyX3J0c25fbXV4
-MCAqLwo+ICsJCQkweDAzMCAoUElOX09VVFBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykgICAgICAv
-KiBncG1jX2FkMTIuZ3BpbzFbMTJdIERUUiAqLwo+ICsJCQkweDAzNCAoUElOX0lOUFVUX1BVTExE
-T1dOIHwgTVVYX01PREU3KSAgICAgIC8qIGdwbWNfYWQxMy5ncGlvMVsxM10gRFNSICovCj4gKwkJ
-CTB4MDM4IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTcpICAgICAgLyogZ3BtY19hZDE0
-LmdwaW8xWzE0XSBEQ0QgKi8KPiArCQkJMHgwM2MgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9N
-T0RFNykgICAgIC8qIGdwbWNfYWQxNS5ncGlvMVsxNV0gUkkgKi8KPiArCj4gKwkJCTB4MWEwIChQ
-SU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREU3KSAgICAgIC8qIG1jYXNwMF9hY2xrci5ncGlvM1sx
-OF0sIElOUFVUX1BVTExET1dOIHwgTU9ERTcgKi8KPiArCQk+Owo+ICsJfTsKPiArCj4gKwljcHN3
-X2RlZmF1bHQ6IGNwc3dfZGVmYXVsdCB7Cj4gKwkJcGluY3RybC1zaW5nbGUscGlucyA9IDwKPiAr
-CQkJLyogU2xhdmUgMSAqLwo+ICsJCQkweDEwYyAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01P
-REUxKSAgICAgICAvKiBtaWkxX2Nycy5ybWlpMV9jcnNfZHYgKi8KPiArCQkJMHgxMTQgKFBJTl9P
-VVRQVVRfUFVMTERPV04gfCBNVVhfTU9ERTEpICAgICAgLyogbWlpMV90eF9lbi5ybWlpMV90eGVu
-ICovCj4gKwkJCTB4MTI0IChQSU5fT1VUUFVUX1BVTExET1dOIHwgTVVYX01PREUxKSAgICAgIC8q
-IG1paTFfdHhkMS5ybWlpMV90eGQxICovCj4gKwkJCTB4MTI4IChQSU5fT1VUUFVUX1BVTExET1dO
-IHwgTVVYX01PREUxKSAgICAgIC8qIG1paTFfdHhkMC5ybWlpMV90eGQwICovCj4gKwkJCTB4MTNj
-IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTEpICAgICAgLyogbWlpMV9yeGQxLnJtaWkx
-X3J4ZDEgKi8KPiArCQkJMHgxNDAgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMSkgICAg
-ICAvKiBtaWkxX3J4ZDAucm1paTFfcnhkMCAqLwo+ICsJCQkweDE0NCAoUElOX0lOUFVUX1BVTExE
-T1dOIHwgTVVYX01PREUwKSAgICAgIC8qIHJtaWkxX3JlZl9jbGsucm1paTFfcmVmY2xrICovCj4g
-Kwo+ICsKPiArCQkJLyogU2xhdmUgMiAqLwo+ICsJCQkweDQwIChQSU5fT1VUUFVUX1BVTExET1dO
-IHwgTVVYX01PREUyKQkvKiBncG1jX2EwLnJnbWlpMl90Y3RsICovCj4gKwkJCTB4NDQgKFBJTl9J
-TlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMikJLyogZ3BtY19hMS5yZ21paTJfcmN0bCAqLwo+ICsJ
-CQkweDQ4IChQSU5fT1VUUFVUX1BVTExET1dOIHwgTVVYX01PREUyKQkvKiBncG1jX2EyLnJnbWlp
-Ml90ZDMgKi8KPiArCQkJMHg0YyAoUElOX09VVFBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMikJLyog
-Z3BtY19hMy5yZ21paTJfdGQyICovCj4gKwkJCTB4NTAgKFBJTl9PVVRQVVRfUFVMTERPV04gfCBN
-VVhfTU9ERTIpCS8qIGdwbWNfYTQucmdtaWkyX3RkMSAqLwo+ICsJCQkweDU0IChQSU5fT1VUUFVU
-X1BVTExET1dOIHwgTVVYX01PREUyKQkvKiBncG1jX2E1LnJnbWlpMl90ZDAgKi8KPiArCQkJMHg1
-OCAoUElOX09VVFBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMikJLyogZ3BtY19hNi5yZ21paTJfdGNs
-ayAqLwo+ICsJCQkweDVjIChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTIpCS8qIGdwbWNf
-YTcucmdtaWkyX3JjbGsgKi8KPiArCQkJMHg2MCAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01P
-REUyKQkvKiBncG1jX2E4LnJnbWlpMl9yZDMgKi8KPiArCQkJMHg2NCAoUElOX0lOUFVUX1BVTExE
-T1dOIHwgTVVYX01PREUyKQkvKiBncG1jX2E5LnJnbWlpMl9yZDIgKi8KPiArCQkJMHg2OCAoUElO
-X0lOUFVUX1BVTExET1dOIHwgTVVYX01PREUyKQkvKiBncG1jX2ExMC5yZ21paTJfcmQxICovCj4g
-KwkJCTB4NmMgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFMikJLyogZ3BtY19hMTEucmdt
-aWkyX3JkMCAqLwo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCWNwc3dfc2xlZXA6IGNwc3dfc2xlZXAg
-ewo+ICsJCXBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8Cj4gKwkJCS8qIFNsYXZlIDEgcmVzZXQgdmFs
-dWUgKi8KPiArCQkJMHgxMGMgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJ
-MHgxMTQgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJMHgxMjQgKFBJTl9J
-TlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJMHgxMjggKFBJTl9JTlBVVF9QVUxMRE9X
-TiB8IE1VWF9NT0RFNykKPiArCQkJMHgxM2MgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RF
-NykKPiArCQkJMHgxNDAgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJMHgx
-NDQgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCj4gKwkJCS8qIFNsYXZlIDIg
-cmVzZXQgdmFsdWUqLwo+ICsJCQkweDQwIChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTcp
-Cj4gKwkJCTB4NDQgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJMHg0OCAo
-UElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREU3KQo+ICsJCQkweDRjIChQSU5fSU5QVVRfUFVM
-TERPV04gfCBNVVhfTU9ERTcpCj4gKwkJCTB4NTAgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9N
-T0RFNykKPiArCQkJMHg1NCAoUElOX0lOUFVUX1BVTExET1dOIHwgTVVYX01PREU3KQo+ICsJCQkw
-eDU4IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTcpCj4gKwkJCTB4NWMgKFBJTl9JTlBV
-VF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJMHg2MCAoUElOX0lOUFVUX1BVTExET1dOIHwg
-TVVYX01PREU3KQo+ICsJCQkweDY0IChQSU5fSU5QVVRfUFVMTERPV04gfCBNVVhfTU9ERTcpCj4g
-KwkJCTB4NjggKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiArCQkJMHg2YyAoUElO
-X0lOUFVUX1BVTExET1dOIHwgTVVYX01PREU3KQo+ICsJCT47Cj4gKwl9Owo+ICsKPiArCWRhdmlu
-Y2lfbWRpb19kZWZhdWx0OiBkYXZpbmNpX21kaW9fZGVmYXVsdCB7Cj4gKwkJcGluY3RybC1zaW5n
-bGUscGlucyA9IDwKPiArCQkJLyogTURJTyAqLwo+ICsJCQkweDE0OCAoUElOX0lOUFVUX1BVTExV
-UCB8IFNMRVdDVFJMX0ZBU1QgfCBNVVhfTU9ERTApCS8qIG1kaW9fZGF0YS5tZGlvX2RhdGEgKi8K
-PiArCQkJMHgxNGMgKFBJTl9PVVRQVVRfUFVMTFVQIHwgTVVYX01PREUwKQkJCS8qIG1kaW9fY2xr
-Lm1kaW9fY2xrICovCj4gKwkJPjsKPiArCX07Cj4gKwo+ICsJZGF2aW5jaV9tZGlvX3NsZWVwOiBk
-YXZpbmNpX21kaW9fc2xlZXAgewo+ICsJCXBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8Cj4gKwkJCS8q
-IE1ESU8gcmVzZXQgdmFsdWUgKi8KPiArCQkJMHgxNDggKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1V
-WF9NT0RFNykKPiArCQkJMHgxNGMgKFBJTl9JTlBVVF9QVUxMRE9XTiB8IE1VWF9NT0RFNykKPiAr
-CQk+Owo+ICsJfTsKPiArCj4gKwluYW5kZmxhc2hfcGluc19zMDogbmFuZGZsYXNoX3BpbnNfczAg
-ewo+ICsJCXBpbmN0cmwtc2luZ2xlLHBpbnMgPSA8Cj4gKwkJCTB4MCAoUElOX0lOUFVUX1BVTExV
-UCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDAuZ3BtY19hZDAgKi8KPiArCQkJMHg0IChQSU5fSU5Q
-VVRfUFVMTFVQIHwgTVVYX01PREUwKQkvKiBncG1jX2FkMS5ncG1jX2FkMSAqLwo+ICsJCQkweDgg
-KFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTApCS8qIGdwbWNfYWQyLmdwbWNfYWQyICovCj4g
-KwkJCTB4YyAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDMuZ3BtY19h
-ZDMgKi8KPiArCQkJMHgxMCAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19h
-ZDQuZ3BtY19hZDQgKi8KPiArCQkJMHgxNCAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJ
-LyogZ3BtY19hZDUuZ3BtY19hZDUgKi8KPiArCQkJMHgxOCAoUElOX0lOUFVUX1BVTExVUCB8IE1V
-WF9NT0RFMCkJLyogZ3BtY19hZDYuZ3BtY19hZDYgKi8KPiArCQkJMHgxYyAoUElOX0lOUFVUX1BV
-TExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDcuZ3BtY19hZDcgKi8KPiArCQkJMHg3MCAoUElO
-X0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY193YWl0MC5ncG1jX3dhaXQwICovCj4g
-KwkJCTB4NzQgKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTcpCS8qIGdwbWNfd3BuLmdwaW8w
-XzMwICovCj4gKwkJCTB4N2MgKFBJTl9PVVRQVVQgfCBNVVhfTU9ERTApCQkvKiBncG1jX2NzbjAu
-Z3BtY19jc24wICAqLwo+ICsJCQkweDkwIChQSU5fT1VUUFVUIHwgTVVYX01PREUwKQkJLyogZ3Bt
-Y19hZHZuX2FsZS5ncG1jX2Fkdm5fYWxlICovCj4gKwkJCTB4OTQgKFBJTl9PVVRQVVQgfCBNVVhf
-TU9ERTApCQkvKiBncG1jX29lbl9yZW4uZ3BtY19vZW5fcmVuICovCj4gKwkJCTB4OTggKFBJTl9P
-VVRQVVQgfCBNVVhfTU9ERTApCQkvKiBncG1jX3dlbi5ncG1jX3dlbiAqLwo+ICsJCQkweDljIChQ
-SU5fT1VUUFVUIHwgTVVYX01PREUwKQkJLyogZ3BtY19iZTBuX2NsZS5ncG1jX2JlMG5fY2xlICov
-Cj4gKwkJPjsKPiArCX07Cj4gK307Cj4gKwo+ICsmZWxtIHsKPiArCXN0YXR1cyA9ICJva2F5IjsK
-PiArfTsKPiArCj4gKyZncG1jIHsKPiArCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gKwlw
-aW5jdHJsLTAgPSA8Jm5hbmRmbGFzaF9waW5zX3MwPjsKPiArCXJhbmdlcyA9IDwwIDAgMHgwODAw
-MDAwMCAweDEwMDAwMDAwPjsJLyogQ1MwOiBOQU5EICovCj4gKwlzdGF0dXMgPSAib2theSI7Cj4g
-Kwo+ICsJbmFuZEAwLDAgewo+ICsJCXJlZyA9IDwwIDAgMD47IC8qIENTMCwgb2Zmc2V0IDAgKi8K
-PiArCQluYW5kLWJ1cy13aWR0aCA9IDw4PjsKPiArCQl0aSxuYW5kLWVjYy1vcHQgPSAiYmNoOCI7
-Cj4gKwkJdGksbmFuZC14ZmVyLXR5cGUgPSAicG9sbGVkIjsKPiArCj4gKwkJZ3BtYyxkZXZpY2Ut
-bmFuZCA9ICJ0cnVlIjsKPiArCQlncG1jLGRldmljZS13aWR0aCA9IDwxPjsKPiArCQlncG1jLHN5
-bmMtY2xrLXBzID0gPDA+Owo+ICsJCWdwbWMsY3Mtb24tbnMgPSA8MD47Cj4gKwkJZ3BtYyxjcy1y
-ZC1vZmYtbnMgPSA8NDQ+Owo+ICsJCWdwbWMsY3Mtd3Itb2ZmLW5zID0gPDQ0PjsKPiArCQlncG1j
-LGFkdi1vbi1ucyA9IDw2PjsKPiArCQlncG1jLGFkdi1yZC1vZmYtbnMgPSA8MzQ+Owo+ICsJCWdw
-bWMsYWR2LXdyLW9mZi1ucyA9IDw0ND47Cj4gKwkJZ3BtYyx3ZS1vbi1ucyA9IDwwPjsKPiArCQln
-cG1jLHdlLW9mZi1ucyA9IDw0MD47Cj4gKwkJZ3BtYyxvZS1vbi1ucyA9IDwwPjsKPiArCQlncG1j
-LG9lLW9mZi1ucyA9IDw1ND47Cj4gKwkJZ3BtYyxhY2Nlc3MtbnMgPSA8NjQ+Owo+ICsJCWdwbWMs
-cmQtY3ljbGUtbnMgPSA8ODI+Owo+ICsJCWdwbWMsd3ItY3ljbGUtbnMgPSA8ODI+Owo+ICsJCWdw
-bWMsd2FpdC1vbi1yZWFkID0gInRydWUiOwo+ICsJCWdwbWMsd2FpdC1vbi13cml0ZSA9ICJ0cnVl
-IjsKPiArCQlncG1jLGJ1cy10dXJuYXJvdW5kLW5zID0gPDA+Owo+ICsJCWdwbWMsY3ljbGUyY3lj
-bGUtZGVsYXktbnMgPSA8MD47Cj4gKwkJZ3BtYyxjbGstYWN0aXZhdGlvbi1ucyA9IDwwPjsKPiAr
-CQlncG1jLHdhaXQtbW9uaXRvcmluZy1ucyA9IDwwPjsKPiArCQlncG1jLHdyLWFjY2Vzcy1ucyA9
-IDw0MD47Cj4gKwkJZ3BtYyx3ci1kYXRhLW11eC1idXMtbnMgPSA8MD47Cj4gKwo+ICsJCSNhZGRy
-ZXNzLWNlbGxzID0gPDE+Owo+ICsJCSNzaXplLWNlbGxzID0gPDE+Owo+ICsJCWVsbV9pZCA9IDwm
-ZWxtPjsKPiArCX07Cj4gK307Cj4gKwo+ICsmdWFydDAgewo+ICsJcGluY3RybC1uYW1lcyA9ICJk
-ZWZhdWx0IjsKPiArCXBpbmN0cmwtMCA9IDwmdWFydDBfcGlucz47Cj4gKwo+ICsJc3RhdHVzID0g
-Im9rYXkiOwo+ICt9Owo+ICsKPiArJnVhcnQxIHsKPiArCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVs
-dCI7Cj4gKwlwaW5jdHJsLTAgPSA8JnVhcnQxX3BpbnM+Owo+ICsJZHRyLWdwaW9zID0gPCZncGlv
-MiAyMiBHUElPX0FDVElWRV9MT1c+Owo+ICsJZHNyLWdwaW9zID0gPCZncGlvMiAyMyBHUElPX0FD
-VElWRV9MT1c+Owo+ICsJZGNkLWdwaW9zID0gPCZncGlvMiAyNCBHUElPX0FDVElWRV9MT1c+Owo+
-ICsJcm5nLWdwaW9zID0gPCZncGlvMiAyNSBHUElPX0FDVElWRV9MT1c+Owo+ICsJY3RzLWdwaW9z
-ID0gPCZncGlvMCAxMiBHUElPX0FDVElWRV9MT1c+Owo+ICsJcnRzLWdwaW9zID0gPCZncGlvMCAx
-MyBHUElPX0FDVElWRV9MT1c+Owo+ICsKPiArCXN0YXR1cyA9ICJva2F5IjsKPiArfTsKPiArCj4g
-KyZ1YXJ0MiB7Cj4gKwlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOwo+ICsJcGluY3RybC0wID0g
-PCZ1YXJ0Ml9waW5zPjsKPiArCWR0ci1ncGlvcyA9IDwmZ3BpbzEgMTIgR1BJT19BQ1RJVkVfTE9X
-PjsKPiArCWRzci1ncGlvcyA9IDwmZ3BpbzEgMTMgR1BJT19BQ1RJVkVfTE9XPjsKPiArCWRjZC1n
-cGlvcyA9IDwmZ3BpbzEgMTQgR1BJT19BQ1RJVkVfTE9XPjsKPiArCXJuZy1ncGlvcyA9IDwmZ3Bp
-bzEgMTUgR1BJT19BQ1RJVkVfTE9XPjsKPiArCWN0cy1ncGlvcyA9IDwmZ3BpbzMgNSBHUElPX0FD
-VElWRV9MT1c+Owo+ICsJcnRzLWdwaW9zID0gPCZncGlvMyA2IEdQSU9fQUNUSVZFX0xPVz47Cj4g
-Kwo+ICsJc3RhdHVzID0gIm9rYXkiOwo+ICt9Owo+ICsKPiArJmkyYzEgewo+ICsJcGluY3RybC1u
-YW1lcyA9ICJkZWZhdWx0IjsKPiArCXBpbmN0cmwtMCA9IDwmaTJjMV9waW5zPjsKPiArCj4gKwlz
-dGF0dXMgPSAib2theSI7Cj4gKwljbG9jay1mcmVxdWVuY3kgPSA8NDAwMDAwPjsKPiArCj4gKwl0
-cHM6IHRwc0AyZCB7Cj4gKwkJcmVnID0gPDB4MmQ+Owo+ICsJCWdwaW8tY29udHJvbGxlcjsKPiAr
-CQkjZ3Bpby1jZWxscyA9IDwyPjsKPiArCQlpbnRlcnJ1cHQtcGFyZW50ID0gPCZncGlvMT47Cj4g
-KwkJaW50ZXJydXB0cyA9IDwyOCBHUElPX0FDVElWRV9MT1c+Owo+ICsJCXBpbmN0cmwtbmFtZXMg
-PSAiZGVmYXVsdCI7Cj4gKwkJcGluY3RybC0wID0gPCZ0cHM2NTkxMF9waW5zPjsKPiArCX07Cj4g
-Kwo+ICsJYXQyNEA1MCB7Cj4gKwkJY29tcGF0aWJsZSA9ICJhdDI0LDI0YzAyIjsKPiArCQlwYWdl
-c2l6ZSA9IDw4PjsKPiArCQlyZWcgPSA8MHg1MD47Cj4gKwl9Owo+ICsKPiArCXRjYTY0MTY6IGdw
-aW9AMjAgewo+ICsJCWNvbXBhdGlibGUgPSAidGksdGNhNjQxNiI7Cj4gKwkJcmVnID0gPDB4MjA+
-Owo+ICsJCWdwaW8tY29udHJvbGxlcjsKPiArCQkjZ3Bpby1jZWxscyA9IDwyPjsKPiArCQlpbnRl
-cnJ1cHQtcGFyZW50ID0gPCZncGlvMD47Cj4gKwkJaW50ZXJydXB0cyA9IDwyMCBHUElPX0FDVElW
-RV9MT1c+Owo+ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gKwkJcGluY3RybC0wID0g
-PCZ0Y2E2NDE2X3BpbnM+Owo+ICsJfTsKPiArfTsKPiArCj4gKyZ1c2Igewo+ICsJc3RhdHVzID0g
-Im9rYXkiOwo+ICsKPiArCWNvbnRyb2xANDRlMTA2MjAgewo+ICsJCXN0YXR1cyA9ICJva2F5IjsK
-PiArCX07Cj4gKwo+ICsJdXNiLXBoeUA0NzQwMTMwMCB7Cj4gKwkJc3RhdHVzID0gIm9rYXkiOwo+
-ICsJfTsKPiArCj4gKwl1c2ItcGh5QDQ3NDAxYjAwIHsKPiArCQlzdGF0dXMgPSAib2theSI7Cj4g
-Kwl9Owo+ICsKPiArCXVzYkA0NzQwMTAwMCB7Cj4gKwkJc3RhdHVzID0gIm9rYXkiOwo+ICsJCWRy
-X21vZGUgPSAiaG9zdCI7Cj4gKwl9Owo+ICsKPiArCXVzYkA0NzQwMTgwMCB7Cj4gKwkJc3RhdHVz
-ID0gIm9rYXkiOwo+ICsJCWRyX21vZGUgPSAib3RnIjsKPiArCX07Cj4gKwo+ICsJZG1hLWNvbnRy
-b2xsZXJANDc0MDIwMDAgIHsKPiArCQlzdGF0dXMgPSAib2theSI7Cj4gKwl9Owo+ICt9Owo+ICsK
-PiArI2luY2x1ZGUgInRwczY1OTEwLmR0c2kiCj4gKwo+ICsmdHBzIHsKWy4uLl0KPiArJm1hYyB7
-ClsuLi5dCj4gKyZkYXZpbmNpX21kaW8gewpbLi4uXQo+ICsmY3Bzd19lbWFjMCB7ClsuLi5dCj4K
-U2hvdWxkIHRoZXNlIGJlIG9yZGVyZWQgYWxwaGFiZXRpY2FsbHk/CgoKTG90aGFyIFdhw59tYW5u
-Ci0tIApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwoKS2EtUm8gZWxlY3Ryb25pY3MgR21iSCB8IFBhc2NhbHN0cmHDn2UgMjIgfCBEIC0g
-NTIwNzYgQWFjaGVuClBob25lOiArNDkgMjQwOCAxNDAyLTAgfCBGYXg6ICs0OSAyNDA4IDE0MDIt
-MTAKR2VzY2jDpGZ0c2bDvGhyZXI6IE1hdHRoaWFzIEthdXNzZW4KSGFuZGVsc3JlZ2lzdGVyZWlu
-dHJhZzogQW10c2dlcmljaHQgQWFjaGVuLCBIUkIgNDk5NgoKd3d3Lmthcm8tZWxlY3Ryb25pY3Mu
-ZGUgfCBpbmZvQGthcm8tZWxlY3Ryb25pY3MuZGUKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0Cmxp
-bnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFk
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On 05/12/2015 11:58 PM, Paul Walmsley wrote:
+> On Tue, 12 May 2015, Tero Kristo wrote:
+>
+>> On 05/11/2015 11:21 PM, Paul Walmsley wrote:
+>>> On Mon, 11 May 2015, Tero Kristo wrote:
+>>>
+>>>> This set moves most of the OMAP2+ clock driver code under drivers/clk.
+>>>> There are still a couple of files under mach-omap2 folder after this
+>>>> set which have either unmet dependencies still (towards PRCM driver)
+>>>> or is currently slightly broken (some of the DVFS code for OMAP2/OMAP3.)
+>>>> Earlier version of this set has been posted back in March (see
+>>>> http://www.spinics.net/lists/linux-omap/msg116418.html), mostly
+>>>> the code is the same except patches 25+ which are new.
+>
+> ...
+>
+>>>>
+>>>> Branch info:
+>>>> - tree: https://github.com/t-kristo/linux-pm.git
+>>>> - branch: for-4.2/ti-clk-move
+>>>
+>>> I can't replicate your test results.  Several Kconfigs fail to build here,
+>>> and many boards don't even boot.
+>>>
+>>> Could you please post a copy of your boot logs?
+>>>
+>>> - Paul
+>>>
+>>> http://www.pwsan.com/omap/testlogs/test-tkristo-clk-move-v4.2/20150511115145/
+>>>
+>>> OMAP development test results for test-tkristo-clk-move-v4.2 20150511115145
+>>
+>> Oh hmm, I seem to have introduced a Makefile issue which breaks a couple of
+>> special builds. I just force pushed updated branch.
+>
+> This one is better... the build problems are now fixed.
+>
+>> Here are the boot logs for it, I tried also single-soc builds with
+>> am3/am4/omap2/omap3/omap4/omap5/dra7:
+>>
+>>    : Board           : Boot url
+>>   1: am335x-evm      : PASS http://paste.ubuntu.com/11093628/
+>>   2: am335x-evmsk    : PASS http://paste.ubuntu.com/11093629/
+>>   3: am3517-evm      : PASS http://paste.ubuntu.com/11093630/
+>>   4: am37x-evm       : PASS http://paste.ubuntu.com/11093632/
+>>   5: am43x-epos-evm  : PASS http://paste.ubuntu.com/11093633/
+>>   6: am437x-gp-evm   : PASS http://paste.ubuntu.com/11093634/
+>>   7: am57xx-evm      : FAIL http://paste.ubuntu.com/11093635/
+>>   8: omap3-beagle-xm : PASS http://paste.ubuntu.com/11093636/
+>>   9: omap3-beagle    : PASS http://paste.ubuntu.com/11093637/
+>> 10: am335x-boneblack: PASS http://paste.ubuntu.com/11093638/
+>> 11: am335x-bone     : PASS http://paste.ubuntu.com/11093639/
+>> 12: craneboard      : PASS http://paste.ubuntu.com/11093640/
+>> 13: dra7xx-evm      : PASS http://paste.ubuntu.com/11093641/
+>> 14: omap3430-ldp    : PASS http://paste.ubuntu.com/11093642/
+>> 15: omap3-n900      : PASS http://paste.ubuntu.com/11093643/
+>> 16: omap5-uevm      : PASS http://paste.ubuntu.com/11093645/
+>> 17: omap4-panda-es  : PASS http://paste.ubuntu.com/11093646/
+>> 18: omap4-panda     : PASS http://paste.ubuntu.com/11093647/
+>> 19: omap2430-sdp    : PASS http://paste.ubuntu.com/11093648/
+>> 20: omap3430-sdp    : PASS http://paste.ubuntu.com/11093649/
+>> 21: omap4-sdp-es23plus: PASS http://paste.ubuntu.com/11093650/
+>> TOTAL = 21 boards, Booted Boards = 20, No Boot boards = 1
+>>
+>> AM57xx-evm boot fails as it is missing some patches from Nishanth (I think the
+>> UART mux has changed.)
+>
+> But this one has the same problems as v4.1-rc1 and beyond: it still
+> doesn't boot here on any OMAP34xx/OMAP35xx platform, nor the CM-T3517,
+> OMAP4460 VAR-SOM-OM, or OMAP5430ES2 SBC-T54:
+>
+> http://www.pwsan.com/omap/testlogs/test_v4.1-rc1/20150426200156/README.txt
+>
+> Thanks for posting your test logs above.  They don't include bootloader
+> info, but my guess is that v4.1-rc* has some hidden bootloader
+> dependencies where things aren't being initialized properly from the
+> kernel.
+>
+> So those should be tracked down and fixed before we stack more patches on
+> top.
+
+I clipped the boot-loader traces as they contain lots of noise from the 
+test-automation system.
+
+Looking at the farm traces, I see this on the omap3 boards:
+
+beagleboard-vanilla.txt:ver=U-Boot 2014.04-00071-g8543283 (Apr 22 2014 - 
+15:49:50)
+
+beagle-xm.txt:U-Boot 2014.10-00004-g9ade0ab-dirty (Dec 16 2014 - 13:40:24)
+
+craneboard.txt:U-Boot 2009.11-00005-ge83d2db (Dec 07 2010 - 11:55:34)
+
+ldp.txt:U-Boot 2014.04-00071-g8543283-dirty (Apr 25 2014 - 14:59:48)
+
+n900.txt:U-Boot 2014.04-00073-g4fa5b9e (Apr 22 2014 - 14:37:10)
+
+sdp3430.txt:U-Boot 2009.11-rc1-00485-g7d1e865 (Nov 09 2009 - 11:21:55)
+
+Maybe some DTB issues? When did you update your DTB files?
+
+-Tero
+
+>
+>
+> - Paul
+>
+>
+> http://www.pwsan.com/omap/testlogs/test-tkristo-clk-move-v4.2/20150512121218/
+>
+>
+> OMAP development test results for test-tkristo-clk-move-v4.2 20150512121218
+>
+>
+> Test summary
+> ------------
+>
+> Build: uImage:
+>      Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+> 		  omap1_defconfig_5912osk_only
+>
+> Build: uImage+dtb:
+>      Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+> 		  omap2plus_defconfig/omap4-panda,
+> 		  omap2plus_defconfig/omap4-panda-es,
+> 		  omap2plus_defconfig/omap4-var-som,
+> 		  omap2plus_defconfig/omap3-evm-37xx,
+> 		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+> 		  omap2plus_defconfig/omap2430-sdp,
+> 		  omap2plus_defconfig/am3517-evm,
+> 		  omap2plus_defconfig/omap3-beagle,
+> 		  omap2plus_defconfig/omap3-beagle-xm,
+> 		  omap2plus_defconfig/omap3-sbc-t3517,
+> 		  omap2plus_defconfig/omap5-uevm,
+> 		  omap2plus_defconfig/omap5-sbc-t54
+>
+> Build: zImage:
+>      Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+> 		  omap2plus_defconfig_n800_only_a,
+> 		  omap2plus_defconfig_n800_multi_omap2xxx,
+> 		  omap2plus_defconfig_2430sdp_only,
+> 		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+> 		  omap2plus_defconfig_omap2_4_only,
+> 		  omap2plus_defconfig_omap3_4_only,
+> 		  omap2plus_defconfig_omap5_only,
+> 		  omap2plus_defconfig_dra7xx_only,
+> 		  omap2plus_defconfig_am43xx_only,
+> 		  rmk_omap3430_ldp_oldconfig,
+> 		  rmk_omap3430_ldp_allnoconfig,
+> 		  rmk_omap4430_sdp_oldconfig,
+> 		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+>
+> Build warnings from toolchain: uImage:
+>      FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+> 		  omap1_defconfig_5912osk_only
+>
+> Build warnings from toolchain: uImage+dtb:
+>      (none)
+>
+> Build warnings from toolchain: zImage:
+>      FAIL (14/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+> 		  omap2plus_defconfig_n800_only_a,
+> 		  omap2plus_defconfig_n800_multi_omap2xxx,
+> 		  omap2plus_defconfig_2430sdp_only,
+> 		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+> 		  omap2plus_defconfig_omap2_4_only,
+> 		  omap2plus_defconfig_omap3_4_only,
+> 		  omap2plus_defconfig_omap5_only,
+> 		  omap2plus_defconfig_dra7xx_only,
+> 		  omap2plus_defconfig_am43xx_only,
+> 		  rmk_omap3430_ldp_oldconfig,
+> 		  rmk_omap4430_sdp_oldconfig
+>
+> Boot to userspace:
+>      FAIL ( 6/17): 4460varsomom, 2430sdp, 3530es3beagle, 3530es31beagle,
+> 		  cmt3517, 5430es2sbct54
+>      skip ( 2/17): 5912osk, 3517evm
+>      Pass ( 9/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+> 		  37xxevm, 3730beaglexm, 3730es12beaglexm, 5430es2uevm,
+> 		  2420n800
+>
+> Kernel warnings during boot to userspace:
+>      FAIL ( 1/17): 4430es2panda
+>
+> PM: chip retention via suspend:
+>      FAIL ( 9/12): am335xbonelt, 4430es2panda, 4460varsomom,
+> 		  3530es3beagle, 3530es31beagle, 3730es12beaglexm,
+> 		  2430sdp, 5430es2uevm, 5430es2sbct54
+>      Pass ( 3/12): 4460pandaes, 37xxevm, 3730beaglexm
+>
+> PM: chip retention via dynamic idle:
+>      FAIL ( 9/12): am335xbonelt, 4430es2panda, 4460varsomom,
+> 		  3530es3beagle, 3530es31beagle, 3730es12beaglexm,
+> 		  2430sdp, 5430es2uevm, 5430es2sbct54
+>      Pass ( 3/12): 4460pandaes, 37xxevm, 3730beaglexm
+>
+> PM: chip off (except CORE, due to errata) via suspend:
+>      Pass ( 1/ 1): 3730beaglexm
+>
+> PM: chip off (except CORE, due to errata) via dynamic idle:
+>      Pass ( 1/ 1): 3730beaglexm
+>
+> PM: chip off via suspend:
+>      FAIL ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+>      Pass ( 1/ 4): 37xxevm
+>
+> PM: chip off via dynamic idle:
+>      FAIL ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+>      Pass ( 1/ 4): 37xxevm
+>
+> Kernel warnings during PM test:
+>      FAIL ( 1/17): 4430es2panda
+>
+> Obsolete Kconfig symbols:
+>      FAIL ( 1/20): multi_v7_defconfig
+>
+>
+> vmlinux object size
+> (delta in bytes from test_v4.1-rc2 (5ebe6afaf0057ac3eaeb98defd5456894b446d22)):
+>     text     data      bss    total  kernel
+>        0        0        0        0  omap1_defconfig
+>        0        0        0        0  omap1_defconfig_1510innovator_only
+>        0        0        0        0  omap1_defconfig_5912osk_only
+>    -1492       -8        0    -1500  multi_v7_defconfig
+>    -2116      +56        0    -2060  omap2plus_defconfig
+>        0        0        0        0  omap2plus_defconfig_2430sdp_only
+>    -1476        0      +64    -1412  omap2plus_defconfig_am33xx_only
+>    -5572        0      +64    -5508  omap2plus_defconfig_am43xx_only
+>    -6148      +56      -64    -6156  omap2plus_defconfig_cpupm
+>    -5500        0      +64    -5436  omap2plus_defconfig_dra7xx_only
+>    -1668        0      +12    -1656  omap2plus_defconfig_n800_multi_omap2xxx
+>    -1636       -8      -20    -1664  omap2plus_defconfig_n800_only_a
+>    -6212       -8        0    -6220  omap2plus_defconfig_no_pm
+>    -5828        0      -64    -5892  omap2plus_defconfig_omap2_4_only
+>    -1916       -8        0    -1924  omap2plus_defconfig_omap3_4_only
+>    -1412        0        0    -1412  omap2plus_defconfig_omap5_only
+>    -2804       -4     +780    -2028  rmk_omap3430_ldp_allnoconfig
+>    -1812       -8      +64    -1756  rmk_omap3430_ldp_oldconfig
+>    -2332        0     +956    -1376  rmk_omap4430_sdp_allnoconfig
+>    -1336      +64        0    -1272  rmk_omap4430_sdp_oldconfig
+>
+> Boot-time memory difference
+> (delta in bytes from test_v4.1-rc2 (5ebe6afaf0057ac3eaeb98defd5456894b446d22))
+>    avail  rsrvd   high  freed  board          kconfig
+>      -4k     4k      .      .  5430es2sbct54  omap2plus_defconfig
+>        .      .      .     4k  am335xbone     omap2plus_defconfig_am33xx_only
+>
+
