@@ -1,59 +1,128 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] Show proper respect for Heinrich Hertz by using the
- correct unit for frequency
-Date: Thu, 14 May 2015 16:20:32 +0100
-Message-ID: <20150514152032.GA29132@n2100.arm.linux.org.uk>
-References: <20150511131952.GD2067@n2100.arm.linux.org.uk>
- <5551217C.9090504@suse.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] arm: dts: Beaglebone i2c definitions
+Date: Thu, 14 May 2015 08:38:22 -0700
+Message-ID: <20150514153822.GJ15563@atomide.com>
+References: <1431504274-32084-1-git-send-email-pantelis.antoniou@konsulko.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5551217C.9090504@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1431504274-32084-1-git-send-email-pantelis.antoniou-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pantelis Antoniou <pantelis.antoniou-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Matt Porter <mporter-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 11, 2015 at 11:39:08PM +0200, Andreas F=E4rber wrote:
-> Am 11.05.2015 um 15:19 schrieb Russell King - ARM Linux:
-> > The SI unit of frequency is Hertz, named after Heinrich Hertz, and =
-is
-> > given the symbol "Hz" to denote this.  "hz" is not the unit of freq=
-uency,
-> > and is in fact meaningless.
-> >=20
-> > Fix arch/arm to correctly use "Hz", thereby acknowledging Heinrich =
-Hertz
-> > contribution to the modern world.
-> >=20
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->=20
-> Nice. :) Since you're being exact, should it be "Hertz' contribution"=
-?
->=20
-> > diff --git a/arch/arm/boot/dts/omap3-cm-t3517.dts b/arch/arm/boot/d=
-ts/omap3-cm-t3517.dts
-> > index f5b5a1d96cd7..53ae04f9104d 100644
-> > --- a/arch/arm/boot/dts/omap3-cm-t3517.dts
-> > +++ b/arch/arm/boot/dts/omap3-cm-t3517.dts
-> > @@ -66,7 +66,7 @@
-> > =20
-> >  	otg_drv_vbus: pinmux_otg_drv_vbus {
-> >  		pinctrl-single,pins =3D <
-> > -			OMAP3_CORE1_IOPAD(0x2210, PIN_INPUT_PULLDOWN | MUX_MODE0) /* rm=
-ii_50Mhz_clk.usb0_drvvbus */
-> > +			OMAP3_CORE1_IOPAD(0x2210, PIN_INPUT_PULLDOWN | MUX_MODE0) /* rm=
-ii_50MHz_clk.usb0_drvvbus */
->=20
-> This one looks like an identifier - did you check where it comes from
-> and whether it needs to be fixed there as well?
+* Pantelis Antoniou <pantelis.antoniou-OWPKS81ov/FWk0Htik3J/w@public.gmane.org> [150513 01:05]:
+> The beaglebone family of boards contain two I2C busses enabled.
+> The first one with a baseboard identification EEPROM and a
+> cape I2C bus.
 
-There isn't any other reference to it in arch/arm (if there were, the
-grep to find these would itself have found it.)
+This seems safe to apply as the i2c2 pins are listed in the cape
+specification.
 
---=20
-=46TTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps u=
-p
-according to speedtest.net.
+These pins could be used for other devices too.. But in that case
+the cape would not follow the cape standard.
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Pantelis Antoniou <pantelis.antoniou-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/am335x-bone-common.dtsi | 66 +++++++++++++++++++++++++++++++
+>  1 file changed, 66 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> index c3255e0..236b7db 100644
+> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> @@ -81,6 +81,13 @@
+>  		>;
+>  	};
+>  
+> +	i2c2_pins: pinmux_i2c2_pins {
+> +		pinctrl-single,pins = <
+> +			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
+> +			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
+> +		>;
+> +	};
+> +
+>  	uart0_pins: pinmux_uart0_pins {
+>  		pinctrl-single,pins = <
+>  			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
+> @@ -218,8 +225,67 @@
+>  		reg = <0x24>;
+>  	};
+>  
+> +	baseboard_eeprom: baseboard_eeprom@50 {
+> +		compatible = "at,24c256";
+> +		reg = <0x50>;
+> +
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		baseboard_data: baseboard_data@0 {
+> +			reg = <0 0x100>;
+> +		};
+> +	};
+> +};
+> +
+> +&i2c2 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&i2c2_pins>;
+> +
+> +	status = "okay";
+> +	clock-frequency = <100000>;
+> +
+> +	cape_eeprom0: cape_eeprom0@54 {
+> +		compatible = "at,24c256";
+> +		reg = <0x54>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		cape0_data: cape_data@0 {
+> +			reg = <0 0x100>;
+> +		};
+> +	};
+> +
+> +	cape_eeprom1: cape_eeprom1@55 {
+> +		compatible = "at,24c256";
+> +		reg = <0x55>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		cape1_data: cape_data@0 {
+> +			reg = <0 0x100>;
+> +		};
+> +	};
+> +
+> +	cape_eeprom2: cape_eeprom2@56 {
+> +		compatible = "at,24c256";
+> +		reg = <0x56>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		cape2_data: cape_data@0 {
+> +			reg = <0 0x100>;
+> +		};
+> +	};
+> +
+> +	cape_eeprom3: cape_eeprom3@57 {
+> +		compatible = "at,24c256";
+> +		reg = <0x57>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		cape3_data: cape_data@0 {
+> +			reg = <0 0x100>;
+> +		};
+> +	};
+>  };
+>  
+> +
+>  /include/ "tps65217.dtsi"
+>  
+>  &tps {
+> -- 
+> 1.7.12
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
