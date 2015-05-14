@@ -1,120 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/5] PM / Wakeirq: Add automated device wake IRQ handling
-Date: Thu, 14 May 2015 14:59:21 -0700
-Message-ID: <20150514215921.GQ15563@atomide.com>
-References: <1431560196-5722-1-git-send-email-tony@atomide.com>
- <20150514155945.GL15563@atomide.com>
- <20150514211501.GO15563@atomide.com>
- <3499196.MCAcS31ICO@vostro.rjw.lan>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/10] omap3 crypto fixes
+Date: Thu, 14 May 2015 15:03:26 -0700
+Message-ID: <20150514220325.GR15563@atomide.com>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+ <201505142317.41151@pali>
+ <20150514213418.GP15563@atomide.com>
+ <201505142339.14697@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3499196.MCAcS31ICO@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Felipe Balbi <balbi@ti.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <201505142339.14697@pali>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Rafael J. Wysocki <rjw@rjwysocki.net> [150514 14:36]:
-> On Thursday, May 14, 2015 02:15:01 PM Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [150514 09:01]:
-> > > * Felipe Balbi <balbi@ti.com> [150513 19:09]:
-> > > > > +void dev_pm_enable_wake_irq(struct device *dev)
-> > > > > +{
-> > > > > +	struct wake_irq *wirq = dev->power.wakeirq;
-> > > > > +
-> > > > > +	if (wirq && wirq->manage_irq)
-> > > > > +		enable_irq(wirq->irq);
-> > > > > +}
-> > > > > +EXPORT_SYMBOL_GPL(dev_pm_enable_wake_irq);
-> > > > 
-> > > > you probably want to enable dev_pm_enable_wake_irq() automatically for
-> > > > from rpm_suspend(). According to runtime_pm documentation, wakeup should
-> > > > always be enabled for runtime suspended devices. I didn't really look
-> > > > through the whole thing yet to know if you did call it or not.
-> > > 
-> > > Yes I think we can also automate that part, I've been playing with an
-> > > additional patch doing that for pm runtime. Been still thinking if
-> > > there's any need to manage that in the consomer driver, I guess not.
-> > 
-> > Here's what that would roughly look and now I also remember why
-> > I did not include it. It adds currently extra checks also for
-> > devices not using dedicated wakeirqs. But basically this would
-> > allow leaving out the enable/disable PM runtime calls from drivers.
-...
+* Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150514 14:40]:
+> On Thursday 14 May 2015 23:34:19 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150514 14:19]:
+> > > On Friday 06 March 2015 23:23:06 Aaro Koskinen wrote:
+> > > > Hi,
+> > > >=20
+> > > > On Fri, Mar 06, 2015 at 10:36:32AM -0800, Tony Lindgren wrote:
+> > > > > Are there any fixes in this series that should go into
+> > > > > v4.0-rc series, or can it all wait for v4.1?
+> > > >=20
+> > > > I think these all should wait for v4.1.
+> > > >=20
+> > > > A.
+> > >=20
+> > > 4.1-rc3 was released and this patch series is still not included.=
+=2E.
+> >=20
+> > The dts changes should be merged?
+> >=20
+>=20
+> Looks like yes, but first two arch/arm/mach-omap2 patches not.
 
-> > @@ -1427,6 +1432,7 @@ int pm_runtime_force_suspend(struct device *dev)
-> >  		goto err;
-> >  	}
-> >  
-> > +	dev_pm_enable_wake_irq(dev);
-> 
-> Why here?  This is for system suspend.
-> 
-> >  	ret = callback(dev);
-> >  	if (ret)
-> >  		goto err;
-> > @@ -1434,6 +1440,7 @@ int pm_runtime_force_suspend(struct device *dev)
-> >  	pm_runtime_set_suspended(dev);
-> >  	return 0;
-> >  err:
-> > +	dev_pm_disable_wake_irq(dev);
-> >  	pm_runtime_enable(dev);
-> >  	return ret;
-> >  }
-> > @@ -1463,6 +1470,7 @@ int pm_runtime_force_resume(struct device *dev)
-> >  		goto out;
-> >  	}
-> >  
-> > +	dev_pm_disable_wake_irq(dev);
-> 
-> This one too.
-
-Oh you're right, seems to work fine for me without those. So it would
-be the following additional patch then (only quickly tested).
-
+I suggest you repost those to separately so Paul can take
+a look at them. It seems they can be merged separately from
+the driver changes?
+=20
 Regards,
 
 Tony
-
-8< ----------------
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -10,6 +10,7 @@
- #include <linux/sched.h>
- #include <linux/export.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pm_wakeirq.h>
- #include <trace/events/rpm.h>
- #include "power.h"
- 
-@@ -514,6 +515,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
- 
- 	callback = RPM_GET_CALLBACK(dev, runtime_suspend);
- 
-+	dev_pm_enable_wake_irq(dev);
- 	retval = rpm_callback(callback, dev);
- 	if (retval)
- 		goto fail;
-@@ -552,6 +554,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
- 	return retval;
- 
-  fail:
-+	dev_pm_disable_wake_irq(dev);
- 	__update_runtime_status(dev, RPM_ACTIVE);
- 	dev->power.deferred_resume = false;
- 	wake_up_all(&dev->power.wait_queue);
-@@ -734,10 +737,12 @@ static int rpm_resume(struct device *dev, int rpmflags)
- 
- 	callback = RPM_GET_CALLBACK(dev, runtime_resume);
- 
-+	dev_pm_disable_wake_irq(dev);
- 	retval = rpm_callback(callback, dev);
- 	if (retval) {
- 		__update_runtime_status(dev, RPM_SUSPENDED);
- 		pm_runtime_cancel_pending(dev);
-+		dev_pm_enable_wake_irq(dev);
- 	} else {
-  no_callback:
- 		__update_runtime_status(dev, RPM_ACTIVE);
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
