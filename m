@@ -1,133 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/5] serial: omap: Switch wake-up interrupt to generic wakeirq
-Date: Wed, 13 May 2015 16:36:34 -0700
-Message-ID: <1431560196-5722-4-git-send-email-tony@atomide.com>
-References: <1431560196-5722-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aso-006-i440.relay.mailchannels.net ([23.91.64.121]:51435 "EHLO
-	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754715AbbEMXhW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2015 19:37:22 -0400
-In-Reply-To: <1431560196-5722-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [net-next PATCH] net: Reserve skb headroom and set skb->dev even
+ if using __alloc_skb
+Date: Wed, 13 May 2015 20:43:20 -0500
+Message-ID: <20150514014320.GA20006@saruman.tx.rr.com>
+References: <20150513182738.GA28201@saruman.tx.rr.com>
+ <20150513203413.8252.98057.stgit@ahduyck-vm-fedora22>
+ <7h8ucs6tzc.fsf@deeprootsystems.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7h8ucs6tzc.fsf@deeprootsystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Alexander Duyck <alexander.h.duyck@redhat.com>, linux-kernel@vger.kernel.org, balbi@ti.com, davem@davemloft.net, tony@atomide.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 
-We can now use generic wakeirq handling and remove the custom handling
-for the wake-up interrupts.
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/tty/serial/omap-serial.c | 38 +++++++-------------------------------
- 1 file changed, 7 insertions(+), 31 deletions(-)
+On Wed, May 13, 2015 at 02:35:51PM -0700, Kevin Hilman wrote:
+> Alexander Duyck <alexander.h.duyck@redhat.com> writes:
+>=20
+> > When I had inlined __alloc_rx_skb into __netdev_alloc_skb and
+> > __napi_alloc_skb I had overlooked the fact that there was a return in t=
+he
+> > __alloc_rx_skb.  As a result we weren't reserving headroom or setting t=
+he
+> > skb->dev in certain cases.  This change corrects that by adding a coupl=
+e of
+> > jump labels to jump to depending on __alloc_skb either succeeding or fa=
+iling.
+> >
+> > Fixes: 9451980a6646 ("net: Use cached copy of pfmemalloc to avoid acces=
+sing page")
+> > Reported-by: Felipe Balbi <balbi@ti.com>
+> > Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
+>=20
+> Tested this on top of next-20150513 on an ARM/OMAP
+> (am335x-boneblack.dts) an it fixes the boot problem for me.
+>=20
+> Tested-by: Kevin Hilman <khilman@linaro.org>
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 211479a..b0cadaa 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -38,6 +38,7 @@
- #include <linux/serial_core.h>
- #include <linux/irq.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pm_wakeirq.h>
- #include <linux/of.h>
- #include <linux/of_irq.h>
- #include <linux/gpio.h>
-@@ -160,7 +161,6 @@ struct uart_omap_port {
- 	unsigned long		port_activity;
- 	int			context_loss_cnt;
- 	u32			errata;
--	u8			wakeups_enabled;
- 	u32			features;
- 
- 	int			rts_gpio;
-@@ -209,28 +209,11 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
- 	return pdata->get_context_loss_count(up->dev);
- }
- 
--static inline void serial_omap_enable_wakeirq(struct uart_omap_port *up,
--				       bool enable)
--{
--	if (!up->wakeirq)
--		return;
--
--	if (enable)
--		enable_irq(up->wakeirq);
--	else
--		disable_irq_nosync(up->wakeirq);
--}
--
-+/* REVISIT: Remove this when omap3 boots in device tree only mode */
- static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
- {
- 	struct omap_uart_port_info *pdata = dev_get_platdata(up->dev);
- 
--	if (enable == up->wakeups_enabled)
--		return;
--
--	serial_omap_enable_wakeirq(up, enable);
--	up->wakeups_enabled = enable;
--
- 	if (!pdata || !pdata->enable_wakeup)
- 		return;
- 
-@@ -750,13 +733,12 @@ static int serial_omap_startup(struct uart_port *port)
- 
- 	/* Optional wake-up IRQ */
- 	if (up->wakeirq) {
--		retval = request_irq(up->wakeirq, serial_omap_irq,
--				     up->port.irqflags, up->name, up);
-+		retval = dev_pm_request_wake_irq(up->dev, up->wakeirq,
-+						 NULL, 0, NULL);
- 		if (retval) {
- 			free_irq(up->port.irq, up);
- 			return retval;
- 		}
--		disable_irq(up->wakeirq);
- 	}
- 
- 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
-@@ -845,8 +827,7 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- 	free_irq(up->port.irq, up);
--	if (up->wakeirq)
--		free_irq(up->wakeirq, up);
-+	dev_pm_free_wake_irq(up->dev);
- }
- 
- static void serial_omap_uart_qos_work(struct work_struct *work)
-@@ -1139,13 +1120,6 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
- 	serial_out(up, UART_EFR, efr);
- 	serial_out(up, UART_LCR, 0);
- 
--	if (!device_may_wakeup(up->dev)) {
--		if (!state)
--			pm_runtime_forbid(up->dev);
--		else
--			pm_runtime_allow(up->dev);
--	}
--
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- }
-@@ -1838,6 +1812,7 @@ static int serial_omap_runtime_suspend(struct device *dev)
- 	up->context_loss_cnt = serial_omap_get_context_loss_count(up);
- 
- 	serial_omap_enable_wakeup(up, true);
-+	dev_pm_enable_wake_irq(dev);
- 
- 	up->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
- 	schedule_work(&up->qos_work);
-@@ -1852,6 +1827,7 @@ static int serial_omap_runtime_resume(struct device *dev)
- 	int loss_cnt = serial_omap_get_context_loss_count(up);
- 
- 	serial_omap_enable_wakeup(up, false);
-+	dev_pm_disable_wake_irq(dev);
- 
- 	if (loss_cnt < 0) {
- 		dev_dbg(dev, "serial_omap_get_context_loss_count failed : %d\n",
--- 
-2.1.4
+Yeah, I know it's too late, but I also tested on my AM437x SK.
 
+Tested-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVU/24AAoJEIaOsuA1yqREyq8P/3WlkGcKeWdhNASUDUkXm0vL
+A2WWN5/aiG8V4UXa4oTEcSfE0M3Ugt8Pxn4bjKEfMYvi6b85ik2fSB+i2UBEj3+i
+6BmSveeESRehncfLCymelrE8FCnBdX5hHGNEpBWsfDq5M6Si6il1AUyiEldtVA9y
++GmeTPOe4UpIfqdtclg0dDoNjJZkbeI/uGUt9gYMsddpBAo6Y49qV2KCy5YO+SM0
+OMEIMYrdEdk2aVuY8grmvmvUYCbxur1OYvlUYD5oMf9/SuaB0fXnnH6kUYYkEnP1
+lmP2mqNsOD5fwLW6/94/gbS34bSwkKjm1QKBMxerNpTLsVqUq5LOf+bB9DhfioFg
+347wUgGiuvB5cejVJuI9WdeM29DzgPH/8sGQweKpSAG+A8Cdbm4OXLU+eSU6XX+T
+LQ5z3RtkAHgDX87EVLj76Da+IVraqZWY0gg4jsKuBSOqOTRWCF83LZV3Dvp9P7//
+qQ0Ki/GmwQzrwvEafFDIBZUhskY0RJHZdcFyTCD0mRXKw7uRVS9WkfejJy/UitlQ
+gf6afnMt0m9IKBXscJXye5DYZqeuptRbF/wfBQt8cDLiUVVhho5UgmASVqfQc4cw
+ZJRWrTr7GXjGdUMf6ogyb2OgroGVQa5cGaYgCChX+9UxXPHGCvKjKA96Gf6PYmup
+uG+f3rWXoczo8j4bqhMr
+=v4wa
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
