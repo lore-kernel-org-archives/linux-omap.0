@@ -1,111 +1,120 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2] crypto: omap-sham: Check for return value from pm_runtime_get_sync
-Date: Thu, 14 May 2015 23:40:37 +0200
-Message-ID: <201505142340.37649@pali>
-References: <1424958600-18881-5-git-send-email-pali.rohar@gmail.com> <1425808861-17004-1-git-send-email-pali.rohar@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/5] PM / Wakeirq: Add automated device wake IRQ handling
+Date: Thu, 14 May 2015 14:59:21 -0700
+Message-ID: <20150514215921.GQ15563@atomide.com>
+References: <1431560196-5722-1-git-send-email-tony@atomide.com>
+ <20150514155945.GL15563@atomide.com>
+ <20150514211501.GO15563@atomide.com>
+ <3499196.MCAcS31ICO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart7025459.kGf0r5O8cn";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425808861-17004-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, "David S. Miller" <davem@davemloft.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3499196.MCAcS31ICO@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Felipe Balbi <balbi@ti.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart7025459.kGf0r5O8cn
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Rafael J. Wysocki <rjw@rjwysocki.net> [150514 14:36]:
+> On Thursday, May 14, 2015 02:15:01 PM Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [150514 09:01]:
+> > > * Felipe Balbi <balbi@ti.com> [150513 19:09]:
+> > > > > +void dev_pm_enable_wake_irq(struct device *dev)
+> > > > > +{
+> > > > > +	struct wake_irq *wirq = dev->power.wakeirq;
+> > > > > +
+> > > > > +	if (wirq && wirq->manage_irq)
+> > > > > +		enable_irq(wirq->irq);
+> > > > > +}
+> > > > > +EXPORT_SYMBOL_GPL(dev_pm_enable_wake_irq);
+> > > > 
+> > > > you probably want to enable dev_pm_enable_wake_irq() automatically for
+> > > > from rpm_suspend(). According to runtime_pm documentation, wakeup should
+> > > > always be enabled for runtime suspended devices. I didn't really look
+> > > > through the whole thing yet to know if you did call it or not.
+> > > 
+> > > Yes I think we can also automate that part, I've been playing with an
+> > > additional patch doing that for pm runtime. Been still thinking if
+> > > there's any need to manage that in the consomer driver, I guess not.
+> > 
+> > Here's what that would roughly look and now I also remember why
+> > I did not include it. It adds currently extra checks also for
+> > devices not using dedicated wakeirqs. But basically this would
+> > allow leaving out the enable/disable PM runtime calls from drivers.
+...
 
-On Sunday 08 March 2015 11:01:01 Pali Roh=C3=A1r wrote:
-> Function pm_runtime_get_sync could fail and we need to check return
-> value to prevent kernel crash.
->=20
-> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> ---
-> v2: Check return value for all pm_runtime_get_sync() calls
-> ---
->  drivers/crypto/omap-sham.c |   23 ++++++++++++++++++++---
->  1 file changed, 20 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-> index b20e374..c5df53d 100644
-> --- a/drivers/crypto/omap-sham.c
-> +++ b/drivers/crypto/omap-sham.c
-> @@ -362,7 +362,13 @@ static void omap_sham_copy_ready_hash(struct
-> ahash_request *req)
->=20
->  static int omap_sham_hw_init(struct omap_sham_dev *dd)
->  {
-> -	pm_runtime_get_sync(dd->dev);
-> +	int err;
-> +
-> +	err =3D pm_runtime_get_sync(dd->dev);
-> +	if (err < 0) {
-> +		dev_err(dd->dev, "failed to get sync: %d\n", err);
-> +		return err;
-> +	}
->=20
->  	if (!test_bit(FLAGS_INIT, &dd->flags)) {
->  		set_bit(FLAGS_INIT, &dd->flags);
-> @@ -1949,7 +1955,13 @@ static int omap_sham_probe(struct
-> platform_device *pdev) dd->flags |=3D dd->pdata->flags;
->=20
->  	pm_runtime_enable(dev);
-> -	pm_runtime_get_sync(dev);
-> +
-> +	err =3D pm_runtime_get_sync(dev);
-> +	if (err < 0) {
-> +		dev_err(dev, "failed to get sync: %d\n", err);
-> +		goto err_pm;
-> +	}
-> +
->  	rev =3D omap_sham_read(dd, SHA_REG_REV(dd));
->  	pm_runtime_put_sync(&pdev->dev);
->=20
-> @@ -1979,6 +1991,7 @@ err_algs:
->  		for (j =3D dd->pdata->algs_info[i].registered - 1; j >=3D 0; j--)
->  			crypto_unregister_ahash(
->  					&dd->pdata->algs_info[i].algs_list[j]);
-> +err_pm:
->  	pm_runtime_disable(dev);
->  	if (dd->dma_lch)
->  		dma_release_channel(dd->dma_lch);
-> @@ -2021,7 +2034,11 @@ static int omap_sham_suspend(struct device
-> *dev)
->=20
->  static int omap_sham_resume(struct device *dev)
->  {
-> -	pm_runtime_get_sync(dev);
-> +	int err =3D pm_runtime_get_sync(dev);
-> +	if (err < 0) {
-> +		dev_err(dev, "failed to get sync: %d\n", err);
-> +		return err;
-> +	}
->  	return 0;
->  }
->  #endif
+> > @@ -1427,6 +1432,7 @@ int pm_runtime_force_suspend(struct device *dev)
+> >  		goto err;
+> >  	}
+> >  
+> > +	dev_pm_enable_wake_irq(dev);
+> 
+> Why here?  This is for system suspend.
+> 
+> >  	ret = callback(dev);
+> >  	if (ret)
+> >  		goto err;
+> > @@ -1434,6 +1440,7 @@ int pm_runtime_force_suspend(struct device *dev)
+> >  	pm_runtime_set_suspended(dev);
+> >  	return 0;
+> >  err:
+> > +	dev_pm_disable_wake_irq(dev);
+> >  	pm_runtime_enable(dev);
+> >  	return ret;
+> >  }
+> > @@ -1463,6 +1470,7 @@ int pm_runtime_force_resume(struct device *dev)
+> >  		goto out;
+> >  	}
+> >  
+> > +	dev_pm_disable_wake_irq(dev);
+> 
+> This one too.
 
-Herbert, can you apply this patch?
+Oh you're right, seems to work fine for me without those. So it would
+be the following additional patch then (only quickly tested).
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Regards,
 
---nextPart7025459.kGf0r5O8cn
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Tony
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlVVFlUACgkQi/DJPQPkQ1IWHgCfQcNxQoP0s3/Xir5426BLX59P
-6sUAniMOjl6klq5U2verxxGGQic5suKx
-=zozE
------END PGP SIGNATURE-----
-
---nextPart7025459.kGf0r5O8cn--
+8< ----------------
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -10,6 +10,7 @@
+ #include <linux/sched.h>
+ #include <linux/export.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_wakeirq.h>
+ #include <trace/events/rpm.h>
+ #include "power.h"
+ 
+@@ -514,6 +515,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 
+ 	callback = RPM_GET_CALLBACK(dev, runtime_suspend);
+ 
++	dev_pm_enable_wake_irq(dev);
+ 	retval = rpm_callback(callback, dev);
+ 	if (retval)
+ 		goto fail;
+@@ -552,6 +554,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 	return retval;
+ 
+  fail:
++	dev_pm_disable_wake_irq(dev);
+ 	__update_runtime_status(dev, RPM_ACTIVE);
+ 	dev->power.deferred_resume = false;
+ 	wake_up_all(&dev->power.wait_queue);
+@@ -734,10 +737,12 @@ static int rpm_resume(struct device *dev, int rpmflags)
+ 
+ 	callback = RPM_GET_CALLBACK(dev, runtime_resume);
+ 
++	dev_pm_disable_wake_irq(dev);
+ 	retval = rpm_callback(callback, dev);
+ 	if (retval) {
+ 		__update_runtime_status(dev, RPM_SUSPENDED);
+ 		pm_runtime_cancel_pending(dev);
++		dev_pm_enable_wake_irq(dev);
+ 	} else {
+  no_callback:
+ 		__update_runtime_status(dev, RPM_ACTIVE);
