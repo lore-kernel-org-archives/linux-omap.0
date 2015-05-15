@@ -1,57 +1,45 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: Add support for slot-name property in DT
-Date: Fri, 15 May 2015 23:25:05 +0200
-Message-ID: <3099867.Z5GbY7oWl2@wuerfel>
-References: <1431724489-32359-1-git-send-email-pali.rohar@gmail.com> <2523437.y90mKuWhc3@wuerfel> <201505152322.37739@pali>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: dts: omap5-uevm: Add Uart wakeup interrupt
+Date: Fri, 15 May 2015 16:59:21 -0500
+Message-ID: <1431727161-16870-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201505152322.37739@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60140 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934155AbbEOV7t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2015 17:59:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-On Friday 15 May 2015 23:22:37 Pali Roh=E1r wrote:
-> On Friday 15 May 2015 23:19:44 Arnd Bergmann wrote:
-> > On Friday 15 May 2015 23:14:48 Pali Roh=E1r wrote:
-> > > diff --git a/drivers/mmc/host/omap_hsmmc.c
-> > > b/drivers/mmc/host/omap_hsmmc.c index 9df2b68..f6073dd 100644
-> > > --- a/drivers/mmc/host/omap_hsmmc.c
-> > > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > > @@ -1901,6 +1901,8 @@ static struct omap_hsmmc_platform_data
-> > > *of_get_hsmmc_pdata(struct device *dev)
-> > >=20
-> > >         if (of_find_property(np, "ti,needs-special-hs-handling",
-> > >         NULL))
-> > >        =20
-> > >                 pdata->features |=3D HSMMC_HAS_HSPE_SUPPORT;
-> > >=20
-> > > +       of_property_read_string(np, "slot-name", &pdata->name);
-> > > +
-> > >=20
-> > >         return pdata;
-> > > =20
-> > >  }
-> >=20
-> > This property needs to be documented in
-> > Documentation/devicetree/bindings/mmc/mmc.txt and preferably the
-> > implementation moved into mmc_of_parse.
-> >=20
-> > We should not have an interface like this specific to one driver.
-> >=20
-> >       Arnd
->=20
-> Interface is already present for platform data code (which do not use=
-=20
-> DT). So "pdata->name" is not DT specific...
->=20
+UART3 wakeup takes place with iodaisy chain. enable the wakeup pin.
 
-The driver can of course keep providing the name from platform_data whe=
-re
-that is used. All I was saying is that when you introduce a DT property=
-,
-it should not be specific to that driver.
+Reported-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-	Arnd
+Test on linus master (f0897f4cc0fc) with 8250  driver: http://pastebin.ubuntu.com/11154446/
+
+Applies on next-20150515 and linus master (f0897f4cc0fc)
+
+ arch/arm/boot/dts/omap5-uevm.dts |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 74777a6e200a..214190796143 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -604,6 +604,8 @@
+ &uart3 {
+         pinctrl-names = "default";
+         pinctrl-0 = <&uart3_pins>;
++	interrupts-extended = <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>,
++			      <&omap5_pmx_core 0x19c>;
+ };
+ 
+ &uart5 {
+-- 
+1.7.9.5
+
