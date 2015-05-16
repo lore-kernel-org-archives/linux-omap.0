@@ -1,186 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/5] PM / Wakeirq: Add automated device wake IRQ handling
-Date: Fri, 15 May 2015 20:56:51 -0500
-Message-ID: <20150516015651.GA7493@saruman.tx.rr.com>
-References: <1431560196-5722-1-git-send-email-tony@atomide.com>
- <20150514155945.GL15563@atomide.com>
- <20150514211501.GO15563@atomide.com>
- <3499196.MCAcS31ICO@vostro.rjw.lan>
- <20150514215921.GQ15563@atomide.com>
- <20150515222513.GB10274@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am335x-bone* enable pmic-shutdown-controller
+Date: Sat, 16 May 2015 04:48:16 +0200
+Message-ID: <CAALWOA-hkgrMi+OeNrmwaVpdEfNadFn0R-QbpXi9LU-4sbakJQ@mail.gmail.com>
+References: <1431525001-5747-1-git-send-email-robertcnelson@gmail.com>
+ <20150513141658.GB6605@localhost> <20150513144846.GC6605@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150515222513.GB10274@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Felipe Balbi <balbi@ti.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150513144846.GC6605@localhost>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---y0ulUmNC+osPPQO6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 13 May 2015 at 16:48, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> By the way, perhaps you should add a comment in the tps node explaining
+> why ti,pmic-shutdown-controller must not be disabled (on what revisions
+> of hardware) as well?
 
-Hi,
+There are actually three separate obstacles for RTC-only sleep (only
+one of which actually BeagleBone-specific), so the "why" is a bit of a
+long story. The end result can however be stated briefly:
 
-On Fri, May 15, 2015 at 03:25:13PM -0700, Tony Lindgren wrote:
+Only BBBs prior to rev A6 properly support RTC-only mode. The rare BBW
+with a 2.x processor also supports it, provided nothing is connected
+to its expansion ports that leaks significant current from 3v3exp to
+processor I/Os while in reset.
 
-<snip>
+Any BeagleBone with an AM335x 2.x can be patched to properly support
+RTC-only mode. (Though reconnecting vdds to LDO3 is really no fun, and
+not a patch I could have done myself.)
 
-> diff --git a/drivers/base/power/wakeirq.c b/drivers/base/power/wakeirq.c
-> new file mode 100644
-> index 0000000..1125481
-> --- /dev/null
-> +++ b/drivers/base/power/wakeirq.c
-> @@ -0,0 +1,276 @@
-> +/*
-> + * wakeirq.c - Device wakeirq helper functions
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +#include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/pm_wakeirq.h>
-> +
-> +#include "power.h"
-> +
-> +/**
-> + * dev_pm_attach_wake_irq - Attach device interrupt as a wake IRQ
-> + * @dev: Device entry
-> + * @irq: Device wake-up capable interrupt
-> + * @wirq: Wake irq specific data
-> + *
-> + * Internal function to attach either a device IO interrupt or a
-> + * dedicated wake-up interrupt as a wake IRQ.
-> + */
-> +static int dev_pm_attach_wake_irq(struct device *dev, int irq,
-> +				  struct wake_irq *wirq)
-> +{
-> +	unsigned long flags;
-> +	int err;
-> +
-> +	if (!dev || !wirq)
-> +		return -EINVAL;
-> +
-> +	if (!dev->power.wakeup) {
-> +		dev_err(dev, "forgot to call call device_init_wakeup?\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	spin_lock_irqsave(&dev->power.lock, flags);
-> +	if (WARN_ON(dev->power.wakeirq)) {
-> +		dev_err(dev, "wake irq already initialized\n");
 
-these two can be combined if you can live with a WARN_ONCE() instead:
 
-	if (dev_WARN_ONCE(dev, dev->power.wakeirq,
-		"wake irq already initialized\n")) {
-		spin_unlock_irqrestore(&dev->power.lock, flags);
-		return -EEXIST;
-	}
+For reference, the details on the three problems:
 
-dev_WARN() needs to be fixed at some point to accept a "condition"
-argument :s
 
-But really, no strong feelings.
+1. Most BeagleBone Whites use AM335x 1.0 which freezes the RTC when
+vdd_core is gone or power-on reset is asserted, rendering RTC-only
+sleep mostly useless.  The BeagleBone Black, and a few BBWs, use
+AM335x 2.x which fixed this.
 
-> +static irqreturn_t handle_threaded_wakeirq(int wakeirq, void *_wirq)
-> +{
-> +	struct wake_irq *wirq =3D _wirq;
-> +
-> +	/* We don't want RPM_ASYNC or RPM_NOWAIT here */
-> +	return pm_runtime_resume(wirq->dev) ? IRQ_NONE : IRQ_HANDLED;
+Of all problems this is the most benign one since it merely results in
+loss of functionality. The other two risk hardware damage.
 
-I wonder if you should add a pm_runtime_mark_last_busy() here. I guess
-not after your previous patch ?
 
-> diff --git a/drivers/base/power/wakeup.c b/drivers/base/power/wakeup.c
-> index 7726200..7191519 100644
-> --- a/drivers/base/power/wakeup.c
-> +++ b/drivers/base/power/wakeup.c
-> @@ -238,6 +239,100 @@ int device_wakeup_enable(struct device *dev)
->  }
->  EXPORT_SYMBOL_GPL(device_wakeup_enable);
-> =20
-> +#ifdef CONFIG_PM_WAKEIRQ
-> +
-> +/**
-> + * device_wakeup_attach_irq - Attach a wakeirq to a wakeup source
-> + * @dev: Device to handle
-> + * @irq: Device specific wakeirq entry
+2. TI issued a notice that the AM335x "vdds" supply must be among the
+first to come up, and changed the official connection diagram for the
+TPS65217C/D (used for boards with DDR3/3L memory) by moving vdds from
+LDO3 to LDO1, and the BBB implemented this change in rev A6A.
 
-s/irq/wakeirq to match argument name below ?
+This change is incompatible with RTC-only sleep (a fact mentioned by
+TI), so this rules out RTC-only sleep for any AM335x board with
+DDR3/3L memory unless it predates (or ignored) TI's advice or uses a
+different power supply scheme altogether. Boards with DDR2 memory
+(TPS65217A/B) such as the BBW are not affected.
 
-> + * Attach a device specific wakeirq to the device specific
-> + * wakeup source so the device wakeirq can be configured
-> + * automatically for suspend and resume.
-> + */
-> +int device_wakeup_attach_irq(struct device *dev,
-> +			     struct wake_irq *wakeirq)
-> +{
-> +	struct wakeup_source *ws;
-> +	int ret =3D 0;
-> +
-> +	spin_lock_irq(&dev->power.lock);
-> +	ws =3D dev->power.wakeup;
-> +	if (!ws) {
-> +		ret =3D -EINVAL;
-> +		goto unlock;
-> +	}
-> +
-> +	if (ws->wakeirq) {
-> +		ret =3D -EEXIST;
-> +		goto unlock;
-> +	}
-> +
-> +	ws->wakeirq =3D wakeirq;
-> +
-> +unlock:
-> +	spin_unlock_irq(&dev->power.lock);
-> +
-> +	return ret;
-> +}
+Curiously, based on preliminary measurements, I have not observed any
+leakage to vdds when it is powered up "late" (LDO3). In contrast,
+during shutdown vdds begins to leak heavily (far in excess of rated
+max current) to other rails once they drop low enough, and moving vdds
+to LDO1 only makes this situation persist even longer (and
+indefinitely in RTC-only sleep). I've asked TI support for some
+clarification on this, but not yet received any response.
 
-<snip>
 
---=20
-balbi
+3. All BeagleBones have a mismanaged external regulator for the
+"3v3exp" (BBW) / "3v3b" (BBB) rail, which remains enabled longer than
+the AM335x's 3.3V supplies ("3v3a").
 
---y0ulUmNC+osPPQO6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+On the BBW, external hardware may end up sourcing current into
+processor I/Os, which feeds the 3v3a through protection diodes. Since
+the 3v3a is used as enable-signal for the regulator, if non-negligible
+current is leaked via this path, 3v3a remains "logic high" and the
+situation will persist indefinitely. If the currents remain modest
+this won't necessarily violate any absolute maximum ratings, but I'd
+still worry about the processor's long-term health.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+On BBB rev A6 and later the situation is the same, but without
+dependency on external hardware: the current from on-board pull-up
+resistors already suffices (3v3a remains at ~1.4V), and since rev A6A
+the leakage from vdds would also get the job done. Worse still, since
+the buffer for the console port is powered by the 3v3b, having a
+serial cable attached causes a dangerous amount of current to be
+driven into UART0_RXD (~45 mA) and I captured an event which I fear
+may have been a brief latch-up.
 
-iQIcBAEBAgAGBQJVVqPjAAoJEIaOsuA1yqRE2fAQAIQKuBWi+jm4UhtXaqpEOF0+
-tCKSrX+W5gdWWi0hXzOhCLBuDxObxaCPYszPoCP/WnDsDJttz54+DIybMFjJcqPV
-QaX6WBZIBlOgIoPKhpIHgUJuoFQIoWN7NxLlwqHNfyXa+dDzSc9WVkSE4BDyTbB1
-MFVcx2K3TM1sWRqJon7BtUihWR7BTGO1f91h335rXU40DTT2MHjwaYEbfrQfjmc5
-sevDIuOqNnDTLeUHmhxmq95tUM5IbLErrMCc+AN/cOuk62GkChi8C5QE9G0oasdQ
-Nqd3H4hxDk5NMGPsqyVJGHt5oNi7LrkjftwSGCdi1DfrwyGoqxx+wNRzAsvSmP8g
-ojPma47ki2tV6c0EL2nes+9yZEmV2dqQbGFiufJokN0G5KpmH02hTEbDrRyrKS+M
-iPOVFbQ48iYOtzf+YRi49kCXdPZa8CL8V8PS75ZCMKaPzSGHafptlkGK4t1z2akT
-M6X8n47a5lL6i4DtIoKsuQ4Yj0xAj+Dmn59siRfEQY5lfd8fB6HXqvjMEtcT7Kgs
-HLyS9NtlRk9WqJUXhj6SrkxcZ972/MYfQIeT4ymVE0tvieFs7jjewcEiLBPtKmHQ
-zfnOxgoqdJzhpnp2t2t2cNXL+73kAb1p2UARby8E/fL2NGxuJBzEVvgPlg2kOv68
-SJH3XH7Lbubp2Fuj80UO
-=02Dt
------END PGP SIGNATURE-----
+On BBBs prior to rev A6 the regulator is enabled by LDO2 (whose only
+other use is the power led), which prevents it from staying on
+indefinitely. It is however enabled 1ms before and disabled 1ms after
+the processor's 3.3V supplies, so external hardware must still avoid
+driving much current into I/O pins during those windows, e.g. by
+keeping drivers disabled while reset is asserted. As mentioned above,
+the console port buffer violates this rule.
 
---y0ulUmNC+osPPQO6--
+Technically this problem is also present when performing a full
+shutdown ("OFF-mode"), but then the main supply is cut at the start of
+the power-down sequence, which proceeds while running off rapidly
+draining capacitors. Heavy current draw from 3v3b will drain them even
+faster, thus making the issue self-limiting. (This however does not
+apply when running on battery power, in which case even a full
+shutdown is hazardous on an unpatched BBB rev A6 or later.)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
