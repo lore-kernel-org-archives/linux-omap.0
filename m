@@ -1,82 +1,83 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Calling irq_set_irq_wake() from .set_irq_wake()? (was: Re: [PATCH]
- gpio: pcf875x: Revert "gpio: pcf857x: Propagate wake-up setting to parent irq controller")
-Date: Sun, 17 May 2015 10:25:54 +0200
-Message-ID: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: High CPU usage when video streaming on EHCI, 3.17.8 kernel with
+ DMA enabled
+Date: Sun, 17 May 2015 10:06:11 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1505170956410.2774-100000@netrider.rowland.org>
+References: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>
-Cc: Roger Quadros <rogerq@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii, Thomas, Ingo,
+On Sun, 17 May 2015, Tom Mises wrote:
 
-On Thu, May 14, 2015 at 2:32 PM, Grygorii.Strashko@linaro.org
-<grygorii.strashko@linaro.org> wrote:
-> On 05/11/2015 08:36 PM, Geert Uytterhoeven wrote:
->> On Mon, May 11, 2015 at 4:13 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> commit b80eef95beb0 ('gpio: pcf857x: Propagate wake-up setting to parent irq controller')
->>> introduces the following recursive locking warning while suspending dra7-evm.
->>>
->>> The issue addressed by that commit has been already resolved by
->>> commit 10a50f1ab5f0 ('genirq: Set IRQCHIP_SKIP_SET_WAKE flag for dummy_irq_chip')
->>
->> That's not 100% correct: commit b80eef95beb0 ('gpio: pcf857x: Propagate wake-up
->> setting to parent irq controller') fixes _two_ things:
->>    1. warning due to missing irq_set_wake / IRQCHIP_SKIP_SET_WAKE,
->>    2. propagating set_wake, so the parent interrupt controller stays awake, as
->>       it's needed for wake-up,
->>
->> Only the first issue is addressed by commit 10a50f1ab5f0 ('genirq: Set
->> IRQCHIP_SKIP_SET_WAKE flag for dummy_irq_chip').
->>
->>> and so let's revert commit b80eef95beb0 ('gpio: pcf857x: Propagate wake-up setting to parent irq controller')
->>>
->>> At least the recursive locking message no longer appears after the revert.
->>>
->>> [   30.591905] PM: Syncing filesystems ... done.
->>> [   30.623060] Freezing user space processes ... (elapsed 0.003 seconds) done.
->>> [   30.634470] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
->>> [   30.658288] sd 0:0:0:0: [sda] Synchronizing SCSI cache
->>> [   30.663678]
->>> [   30.663681] =============================================
->>> [   30.663683] [ INFO: possible recursive locking detected ]
->>> [   30.663688] 4.1.0-rc3 #1115 Not tainted
->>> [   30.663693] ---------------------------------------------
->>> [   30.663697] suspend.sh/2319 is trying to acquire lock:
->>> [   30.663719]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
->>> [   30.663722]
->>> [   30.663722] but task is already holding lock:
->>> [   30.663734]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
->>
->> Does this mean .set_irq_wake() cannot call irq_set_irq_wake()?
->> Many GPIO drivers do that, as they need to propagate wake-up state to the
->> parent interrupt controller?
->
-> As I remember, there was similar problem, so I found corresponding patch (just FYI)
->
-> ab2b926 mfd: Fix twl6030 lockdep recursion warning on setting wake IRQs
->
-> Not sure such kind of solution is the best choice (
+> Hi,
+> 
+> I posted this on linux-uvc-devel, but was told the data transfer part
+> is handled by the USB driver.
+> 
+> I am running 3.17.8 kernel with DMA enabled on TI DM3730 (Gumstix
+> Overo Firestorm-P COM). When streaming video frames in mmap or userptr
+> mode, I am
+> seeing very high CPU usage, up to 70%. This CPU usage is reported to
+> be in software interrupts. The captured frames are NOT corrupted.
+> 
+> Interestingly, when running 3.5 kernel, with DMA enabled as well, the
+> CPU usage is 30% and it is reported to be mostly in the user space.
+> So, it guess it suggests PIO not DMA is actually used here.
 
-That looks like a convoluted solution...
+EHCI always uses DMA.  It cannot use PIO.
 
-Thomas, Ingo, can you please chime in w.r.t. calling irq_set_irq_wake()
-from .set_irq_wake()?
+> Neither of these results are satisfactory, I hoped DMA would take care
+> of the data transfer and the CPU resources would be available to run
+> data processing.
+> 
+> I used the video capture example from the V4L2 API documentation. This
+> behavior was tested and observed for two different cameras, one of
+> them working in isochronous mode, the other working in bulk mode.
+> 
+> Interrupts showing activity during the streaming are:
+> omap-dma-engine,
+> ehci_hcd:usb1.
+> 
+> I also ran another test with very low resolution and fps
+> settings, 160x90 5ps YUV422. In that case, on 3.5 kernel, CPU usage was
+> very low. However, on 3.17.8 kernel, it was still similar as before,
+> around 60% and all in software interrupts; it was dropping to zero
+> intermittently this time.
+> 
+> Perhaps, the problem is somewhere in the interaction between the UVC
+> driver and the DMA or USB driver. As far as I understand, the UVC
+> driver uses vmalloc(), which, again AFAIU, is not ideal for DMA
+> transfers. Is this known to work on other similar platforms?
 
-The thread starts at http://www.spinics.net/lists/linux-gpio/msg05844.html
+I haven't heard complaints about the UVC driver.
 
-Thanks!
+> I am aware this is a somewhat vague
+> description unfortunately, but I am not sure what other detail would
+> be helpful. UVC debugging messages do not show anything unusual.
+> Beyond that, debugging these drivers on my own exceeds my expertise,
+> so I will welcome any suggestions.
 
-Gr{oetje,eeting}s,
+You might be able to learn more from ftrace.  See the instructions in
+Documentation/trace/ftrace.txt.  The "irqsoff" tracer may be the best
+one to try.
 
-                        Geert
+> There is also the following error message from EDMA, I do not think it
+> is related though.
+> [    0.557342] edma-dma-engine edma-dma-engine.0: Can't allocate PaRAM
+> dummy slot
+> [    0.557434] edma-dma-engine: probe of edma-dma-engine.0 failed with error -22
+
+It seems unlikely to be related.
+
+Alan Stern
 
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
