@@ -1,147 +1,69 @@
-From: Mikko Perttunen <mikko.perttunen@kapsi.fi>
-Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
-Date: Sat, 16 May 2015 14:14:05 +0300
-Message-ID: <5557267D.7080209@kapsi.fi>
-References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>	<1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>	<20150507063953.GC32399@codeaurora.org>	<20150507093702.0b58753d@bbrezillon> <20150515174048.4a31af49@bbrezillon>
+From: Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: High CPU usage when video streaming on EHCI, 3.17.8 kernel with DMA enabled
+Date: Sun, 17 May 2015 00:45:19 -0600
+Message-ID: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <20150515174048.4a31af49@bbrezillon>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, =?windows-1252?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/15/2015 06:40 PM, Boris Brezillon wrote:
-> Hi Stephen,
->
-> Adding Mikko in the loop (after all, he was the one complaining about
-> this signed long limitation in the first place, and I forgot to add
-> him in the Cc list :-/).
+Hi,
 
-I think I got it through linux-tegra anyway, but thanks :)
+I posted this on linux-uvc-devel, but was told the data transfer part
+is handled by the USB driver.
 
->
-> Mikko, are you okay with the approach proposed by Stephen (adding a
-> new method) ?
+I am running 3.17.8 kernel with DMA enabled on TI DM3730 (Gumstix
+Overo Firestorm-P COM). When streaming video frames in mmap or userptr
+mode, I am
+seeing very high CPU usage, up to 70%. This CPU usage is reported to
+be in software interrupts. The captured frames are NOT corrupted.
 
-Yes, sounds good to me. If a driver uses the existing methods with too 
-large frequencies, the issue is pretty discoverable anyway. I think 
-"adjust_rate" sounds a bit too much like it sets the clock's rate, 
-though; perhaps "adjust_rate_request" or something like that?
+Interestingly, when running 3.5 kernel, with DMA enabled as well, the
+CPU usage is 30% and it is reported to be mostly in the user space.
+So, it guess it suggests PIO not DMA is actually used here.
+
+Neither of these results are satisfactory, I hoped DMA would take care
+of the data transfer and the CPU resources would be available to run
+data processing.
+
+I used the video capture example from the V4L2 API documentation. This
+behavior was tested and observed for two different cameras, one of
+them working in isochronous mode, the other working in bulk mode.
+
+Interrupts showing activity during the streaming are:
+omap-dma-engine,
+ehci_hcd:usb1.
+
+I also ran another test with very low resolution and fps
+settings, 160x90 5ps YUV422. In that case, on 3.5 kernel, CPU usage was
+very low. However, on 3.17.8 kernel, it was still similar as before,
+around 60% and all in software interrupts; it was dropping to zero
+intermittently this time.
+
+Perhaps, the problem is somewhere in the interaction between the UVC
+driver and the DMA or USB driver. As far as I understand, the UVC
+driver uses vmalloc(), which, again AFAIU, is not ideal for DMA
+transfers. Is this known to work on other similar platforms?
+
+I am aware this is a somewhat vague
+description unfortunately, but I am not sure what other detail would
+be helpful. UVC debugging messages do not show anything unusual.
+Beyond that, debugging these drivers on my own exceeds my expertise,
+so I will welcome any suggestions.
+
+There is also the following error message from EDMA, I do not think it
+is related though.
+[    0.557342] edma-dma-engine edma-dma-engine.0: Can't allocate PaRAM
+dummy slot
+[    0.557434] edma-dma-engine: probe of edma-dma-engine.0 failed with error -22
 
 Thanks,
-Mikko
 
->
-> On Thu, 7 May 2015 09:37:02 +0200
-> Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
->
->> Hi Stephen,
->>
->> On Wed, 6 May 2015 23:39:53 -0700
->> Stephen Boyd <sboyd@codeaurora.org> wrote:
->>
->>> On 04/30, Boris Brezillon wrote:
->>>> Clock rates are stored in an unsigned long field, but ->round_rate()
->>>> (which returns a rounded rate from a requested one) returns a long
->>>> value (errors are reported using negative error codes), which can lead
->>>> to long overflow if the clock rate exceed 2Ghz.
->>>>
->>>> Change ->round_rate() prototype to return 0 or an error code, and pass the
->>>> requested rate as a pointer so that it can be adjusted depending on
->>>> hardware capabilities.
->>>>
->>>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->>>> Tested-by: Heiko Stuebner <heiko@sntech.de>
->>>> Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
->>>> Reviewed-by: Heiko Stuebner <heiko@sntech.de>
->>>
->>> This patch is fairly invasive, and it probably doesn't even
->>> matter for most of these clock providers to be able to round a
->>> rate above 2GHz.
->>
->> Fair enough.
->>
->>> I've been trying to remove the .round_rate op
->>> from the framework by encouraging new features via the
->>> .determine_rate op.
->>
->> Oh, I wasn't aware of that (BTW, that's a good thing).
->> Maybe this should be clearly stated (both in the struct clk_ops
->> kerneldoc header and in Documentation/clk.txt).
->>
->>> Sadly, we still have to do a flag day and
->>> change all the .determine_rate ops when we want to add things.
->>
->> Yes, but the number of clk drivers implementing ->determine_rate() is
->> still quite limited compared to those implementing ->round_rate().
->>
->>>
->>> What if we changed determine_rate ops to take a struct
->>> clk_determine_info (or some better named structure) instead of
->>> the current list of arguments that it currently takes? Then when
->>> we want to make these sorts of framework wide changes we can just
->>> throw a new member into that structure and be done.
->>
->> I really like this idea, especially since I was wondering if we could
->> pass other 'clk rate requirements' like the rounding policy (down,
->> closest, up), or the maximum clk inaccuracy.
->>
->>>
->>> It doesn't solve the unsigned long to int return value problem
->>> though. We can solve that by gradually introducing a new op and
->>> handling another case in the rounding path. If we can come up
->>> with some good name for that new op like .decide_rate or
->>> something then it makes things nicer in the long run. I like the
->>> name .determine_rate though :/
->
-> Okay, if you want a new method, how about this one:
->
-> struct clk_adjust_rate_req {
-> 	/* fields filled by the caller */
-> 	unsigned long rate; /* rate is updated by the clk driver */
-> 	unsigned long min;
-> 	unsigned long max;
->
-> 	/* fields filled by the clk driver */
-> 	struct clk_hw *best_parent;
-> 	unsigned long best_parent_rate;
->
-> 	/*
-> 	 * new fields I'd like to add at some point:
-> 	 * unsigned long max_inaccuracy;
-> 	 * something about the power consumption constraints :-)
-> 	 */
-> };
->
-> int (*adjust_rate)(struct clk_hw *hw, struct clk_adjust_rate_req *req);
->
->>
->> Why not changing the ->determine_rate() prototype. As said above, the
->> number of clk drivers implementing this function is still quite
->> limited, and I guess we can have an ack for all of them.
->>
->>>
->>> The benefit of all this is that we don't have to worry about
->>> finding the random clk providers that get added into other
->>> subsystems and fixing them up. If drivers actually care about
->>> this problem then they'll be fixed to use the proper op. FYI,
->>> last time we updated the function signature of .determine_rate we
->>> broke a couple drivers along the way.
->>>
->>
->> Hm, IMHO, adding a new op is not a good thing. I agree that it eases
->> the transition, but ITOH you'll have to live with old/deprecated ops in
->> your clk_ops structure with people introducing new drivers still using
->> the old ops (see the number of clk drivers implementing ->round_rate()
->> instead of ->determine_rate()).
->>
->> Best Regards,
->>
->> Boris
->>
->
->
->
+Tom
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
