@@ -1,63 +1,143 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] serial: 8250_omap: provide complete custom startup &
- shutdown callbacks
-Date: Mon, 18 May 2015 15:06:44 -0700
-Message-ID: <20150518220643.GK10274@atomide.com>
-References: <20150518164720.GA29261@linutronix.de>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: Add support for configuring MMC pins as
+ GPIO pins
+Date: Mon, 18 May 2015 15:37:50 -0700
+Message-ID: <20150518223749.GL10274@atomide.com>
+References: <1430528752-316-1-git-send-email-tony@atomide.com>
+ <1430528752-316-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:51949 "EHLO muru.com"
+Received: from muru.com ([72.249.23.125]:51954 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753126AbbERWGq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 May 2015 18:06:46 -0400
+	id S1753226AbbERWhw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 May 2015 18:37:52 -0400
 Content-Disposition: inline
-In-Reply-To: <20150518164720.GA29261@linutronix.de>
+In-Reply-To: <1430528752-316-2-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: peter@hurleysoftware.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tim Nordell <tim.nordell@logicpd.com>
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [150518 09:48]:
-> The currently in-use port->startup and port->shutdown are "okay". The
-> startup part for instance does the tiny omap extra part and invokes
-> serial8250_do_startup() for the remaining pieces. The workflow in
-> serial8250_do_startup() is okay except for the part where UART_RX is
-> read without a check if there is something to read. I tried to
-> workaround it in commit 0aa525d1 ("tty: serial: 8250_core: read only
-> RX if there is something in the FIFO") but then reverted it later in
-> commit ca8bb4aefb9 ("serial: 8250: Revert "tty: serial: 8250_core: read
-> only RX if there is something in the FIFO"").
-> 
-> This is the second attempt to get it to work on older OMAPs without
-> breaking other chips this time :)
-> Peter Hurley suggested to pull in the few needed lines from
-> serial8250_do_startup() and drop everything else that is not required
-> including makeing it simpler like using just request_irq() instead the
-> chain handler like it is doing now.
-> So lets try that.
-> 
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
-> Peter is this what you had in mind? If so I will repost it without the
-> RFC. And I think tony would like a stable + fixes tag for it.
+* Tony Lindgren <tony@atomide.com> [150501 18:07]:
+> +/*
+> + * Configures GPIOs 126 to 129 to 1.8V mode instead of 3.0V
+> + * mode for MMC1 in case bootloader did not configure things.
+> + * Note that if the pins are used for MMC1, pbias-regulator
+> + * manages the IO voltage.
+> + */
+> +static void __init omap3_gpio126_129(void)
+> +{
+> +	u32 reg;
+> +
+> +	reg = omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
+> +	reg &= ~OMAP343X_PBIASLITEVMODE1;
+> +	reg |= OMAP343X_PBIASLITEPWRDNZ1;
+> +	omap_ctrl_writel(reg, OMAP343X_CONTROL_PBIAS_LITE);
+> +	if (cpu_is_omap3630()) {
+> +		reg = omap_ctrl_readl(OMAP34XX_CONTROL_WKUP_CTRL);
+> +		reg |= OMAP36XX_GPIO_IO_PWRDNZ;
+> +		omap_ctrl_writel(reg, OMAP34XX_CONTROL_WKUP_CTRL);
+> +	}
+> +}
+> +
 
-Yes please, this fixes an oops for omaps in v4.1-rc series:
-
-Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa06a000                                                         
-...                                                                                                                             
-[<c04217e8>] (mem_serial_in) from [<c0425480>] (serial8250_do_startup+0xe4/0x694)                                               
-[<c0425480>] (serial8250_do_startup) from [<c0427e48>] (omap_8250_startup+0x70/0x144)                                           
-[<c0427e48>] (omap_8250_startup) from [<c0425a54>] (serial8250_startup+0x24/0x30)                                               
-[<c0425a54>] (serial8250_startup) from [<c04208e4>] (uart_startup.part.14+0x8c/0x1a0)                                           
-[<c04208e4>] (uart_startup.part.14) from [<c0420fec>] (uart_open+0xd8/0x134)                                                    
-[<c0420fec>] (uart_open) from [<c0403e50>] (tty_open+0xdc/0x5e0)                                                                
-[<c0403e50>] (tty_open) from [<c018f008>] (chrdev_open+0xac/0x188)    
-
-Fixes: ca8bb4aefb93 ("serial: 8250: Revert "tty: serial: 8250_core:
-read only RX if there is something in the FIFO"")
-Tested-by: Tony Lindgren <tony@atomide.com>
+This seems to not include GPIO 128 as pointed out by Tim Nordell,
+so patch with updated naming below.
 
 Regards,
 
 Tony
+
+8< ------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 13 May 2015 11:42:59 -0700
+Subject: [PATCH] ARM: OMAP3: Add support for configuring MMC pins as GPIO pins
+
+Some devices are using the MMC1 pins 4..8 as GPIO pins, and in
+this case they need to be configured for 1.8V IO voltage if not
+done by the bootloader as otherwise some devices like smsc911x
+won't work properly.
+
+Let's also make sure this register is saved and restored for
+idle.
+
+Cc: Tim Nordell <tim.nordell@logicpd.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -112,6 +112,7 @@ struct omap3_control_regs {
+ 	u32 csirxfe;
+ 	u32 iva2_bootaddr;
+ 	u32 iva2_bootmod;
++	u32 wkup_ctrl;
+ 	u32 debobs_0;
+ 	u32 debobs_1;
+ 	u32 debobs_2;
+@@ -455,6 +456,7 @@ void omap3_control_save_context(void)
+ 			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
+ 	control_context.iva2_bootmod =
+ 			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
++	control_context.wkup_ctrl = omap_ctrl_readl(OMAP34XX_CONTROL_WKUP_CTRL);
+ 	control_context.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(0));
+ 	control_context.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(1));
+ 	control_context.debobs_2 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(2));
+@@ -512,6 +514,7 @@ void omap3_control_restore_context(void)
+ 					OMAP343X_CONTROL_IVA2_BOOTADDR);
+ 	omap_ctrl_writel(control_context.iva2_bootmod,
+ 					OMAP343X_CONTROL_IVA2_BOOTMOD);
++	omap_ctrl_writel(control_context.wkup_ctrl, OMAP34XX_CONTROL_WKUP_CTRL);
+ 	omap_ctrl_writel(control_context.debobs_0, OMAP343X_CONTROL_DEBOBS(0));
+ 	omap_ctrl_writel(control_context.debobs_1, OMAP343X_CONTROL_DEBOBS(1));
+ 	omap_ctrl_writel(control_context.debobs_2, OMAP343X_CONTROL_DEBOBS(2));
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -231,6 +231,9 @@
+ #define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
+ 
+ /* 34xx GENERAL_WKUP register offsets */
++#define OMAP34XX_CONTROL_WKUP_CTRL	(OMAP343X_CONTROL_GENERAL_WKUP - 0x4)
++#define OMAP36XX_GPIO_IO_PWRDNZ		BIT(6)
++
+ #define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
+ 						0x008 + (i))
+ #define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -44,6 +44,27 @@ static void __init omap2420_n8x0_legacy_init(void)
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP3
++/*
++ * Configures GPIOs 126, 127 and 129 to 1.8V mode instead of 3.0V
++ * mode for MMC1 in case bootloader did not configure things.
++ * Note that if the pins are used for MMC1, pbias-regulator
++ * manages the IO voltage.
++ */
++static void __init omap3_gpio126_127_129(void)
++{
++	u32 reg;
++
++	reg = omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
++	reg &= ~OMAP343X_PBIASLITEVMODE1;
++	reg |= OMAP343X_PBIASLITEPWRDNZ1;
++	omap_ctrl_writel(reg, OMAP343X_CONTROL_PBIAS_LITE);
++	if (cpu_is_omap3630()) {
++		reg = omap_ctrl_readl(OMAP34XX_CONTROL_WKUP_CTRL);
++		reg |= OMAP36XX_GPIO_IO_PWRDNZ;
++		omap_ctrl_writel(reg, OMAP34XX_CONTROL_WKUP_CTRL);
++	}
++}
++
+ static void __init hsmmc2_internal_input_clk(void)
+ {
+ 	u32 reg;
+@@ -356,6 +377,7 @@ static struct pdata_init pdata_quirks[] __initdata = {
+ 	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
+ 	{ "isee,omap3-igep0020-rev-f", omap3_igep0020_rev_f_legacy_init, },
+ 	{ "isee,omap3-igep0030-rev-g", omap3_igep0030_rev_g_legacy_init, },
++	{ "logicpd,dm3730-torpedo-devkit", omap3_gpio126_127_129, },
+ 	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
+ 	{ "ti,am3517-evm", am3517_evm_legacy_init, },
+ 	{ "technexion,omap3-tao3530", omap3_tao3530_legacy_init, },
