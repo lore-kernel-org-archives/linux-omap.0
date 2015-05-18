@@ -1,62 +1,58 @@
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: [PATCH RESEND] mach-omap2:Remove calls to deprecacted marco,
- PTR_RET in the files, fb.c and pmu.c
-Date: Mon, 18 May 2015 10:07:59 -0400
-Message-ID: <1431958079-486-1-git-send-email-xerofoify@gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: Calling irq_set_irq_wake() from .set_irq_wake()? (was: Re:
+ [PATCH] gpio: pcf875x: Revert "gpio: pcf857x: Propagate wake-up setting to
+ parent irq controller")
+Date: Mon, 18 May 2015 16:31:10 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505181626060.4225@nanos>
+References: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Ingo Molnar <mingo@redhat.com>, Roger Quadros <rogerq@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This removes two calls to the deprecated marco,PTR_RET in
-the files,fb.c and pmu.c for the functions,omap_init_vrfb
-and omap_init_pmu respectfully. Furthermore these are now
-replaced by calling the correctly non deprecacted function,
-PTR_ERR_OR_ZERO in both functions.
+On Sun, 17 May 2015, Geert Uytterhoeven wrote:
+> >>> At least the recursive locking message no longer appears after the revert.
+> >>>
+> >>> [   30.591905] PM: Syncing filesystems ... done.
+> >>> [   30.623060] Freezing user space processes ... (elapsed 0.003 seconds) done.
+> >>> [   30.634470] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+> >>> [   30.658288] sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> >>> [   30.663678]
+> >>> [   30.663681] =============================================
+> >>> [   30.663683] [ INFO: possible recursive locking detected ]
+> >>> [   30.663688] 4.1.0-rc3 #1115 Not tainted
+> >>> [   30.663693] ---------------------------------------------
+> >>> [   30.663697] suspend.sh/2319 is trying to acquire lock:
+> >>> [   30.663719]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
+> >>> [   30.663722]
+> >>> [   30.663722] but task is already holding lock:
+> >>> [   30.663734]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
+> >>
+> >> Does this mean .set_irq_wake() cannot call irq_set_irq_wake()?
 
-Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
----
- arch/arm/mach-omap2/fb.c  | 2 +-
- arch/arm/mach-omap2/pmu.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+It can call it, if it's guaranteed that this wont deadlock.
 
-diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
-index 26e28e9..1f1ecf8 100644
---- a/arch/arm/mach-omap2/fb.c
-+++ b/arch/arm/mach-omap2/fb.c
-@@ -84,7 +84,7 @@ int __init omap_init_vrfb(void)
- 	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
- 			res, num_res, NULL, 0);
+To tell lockdep that you sure about that, you need to set a different
+lock class for the child interrupts. irq_set_lockdep_class() is what
+you want to use here.
+
+> >> Many GPIO drivers do that, as they need to propagate wake-up state to the
+> >> parent interrupt controller?
+> >
+> > As I remember, there was similar problem, so I found corresponding patch (just FYI)
+> >
+> > ab2b926 mfd: Fix twl6030 lockdep recursion warning on setting wake IRQs
+> >
+> > Not sure such kind of solution is the best choice (
+> 
+> That looks like a convoluted solution...
+
+Indeed. See above.
  
--	return PTR_RET(pdev);
-+	return PTR_ERR_OR_ZERO(pdev);
- }
- #else
- int __init omap_init_vrfb(void) { return 0; }
-diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-index a69e9a3..d2adfeb 100644
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -55,7 +55,7 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
- 	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
- 	     dev_name);
- 
--	return PTR_RET(omap_pmu_dev);
-+	return PTR_ERR_OR_ZERO(omap_pmu_dev);
- }
- 
- static int __init omap_init_pmu(void)
--- 
-2.1.4
+Thanks,
+
+	tglx
