@@ -1,58 +1,55 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: Calling irq_set_irq_wake() from .set_irq_wake()? (was: Re:
- [PATCH] gpio: pcf875x: Revert "gpio: pcf857x: Propagate wake-up setting to
- parent irq controller")
-Date: Mon, 18 May 2015 16:31:10 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1505181626060.4225@nanos>
-References: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v3 1/4] remoteproc: introduce rproc_get_by_phandle API
+Date: Mon, 18 May 2015 09:33:28 -0500
+Message-ID: <5559F838.4010003@ti.com>
+References: <1427917039-43206-1-git-send-email-d-gerlach@ti.com> <1427917039-43206-2-git-send-email-d-gerlach@ti.com> <CAK=WgbZCqnMPEnU2992gkOp07BaCP5NJNRO-hLCAdOtUXZGRnQ@mail.gmail.com> <5550C644.4040005@ti.com> <CAK=WgbZGYa-xWE_cxPA1aq50kK2NBdQfhQHX+sPyowky6Syekg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Ingo Molnar <mingo@redhat.com>, Roger Quadros <rogerq@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbZGYa-xWE_cxPA1aq50kK2NBdQfhQHX+sPyowky6Syekg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 17 May 2015, Geert Uytterhoeven wrote:
-> >>> At least the recursive locking message no longer appears after the revert.
-> >>>
-> >>> [   30.591905] PM: Syncing filesystems ... done.
-> >>> [   30.623060] Freezing user space processes ... (elapsed 0.003 seconds) done.
-> >>> [   30.634470] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-> >>> [   30.658288] sd 0:0:0:0: [sda] Synchronizing SCSI cache
-> >>> [   30.663678]
-> >>> [   30.663681] =============================================
-> >>> [   30.663683] [ INFO: possible recursive locking detected ]
-> >>> [   30.663688] 4.1.0-rc3 #1115 Not tainted
-> >>> [   30.663693] ---------------------------------------------
-> >>> [   30.663697] suspend.sh/2319 is trying to acquire lock:
-> >>> [   30.663719]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
-> >>> [   30.663722]
-> >>> [   30.663722] but task is already holding lock:
-> >>> [   30.663734]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
-> >>
-> >> Does this mean .set_irq_wake() cannot call irq_set_irq_wake()?
-
-It can call it, if it's guaranteed that this wont deadlock.
-
-To tell lockdep that you sure about that, you need to set a different
-lock class for the child interrupts. irq_set_lockdep_class() is what
-you want to use here.
-
-> >> Many GPIO drivers do that, as they need to propagate wake-up state to the
-> >> parent interrupt controller?
-> >
-> > As I remember, there was similar problem, so I found corresponding patch (just FYI)
-> >
-> > ab2b926 mfd: Fix twl6030 lockdep recursion warning on setting wake IRQs
-> >
-> > Not sure such kind of solution is the best choice (
+Ohad,
+On 05/16/2015 02:18 AM, Ohad Ben-Cohen wrote:
+> Hi Suman,
 > 
-> That looks like a convoluted solution...
+> On Mon, May 11, 2015 at 6:09 PM, Suman Anna <s-anna@ti.com> wrote:
+>> On 05/09/2015 02:39 AM, Ohad Ben-Cohen wrote:
+>>> On Wed, Apr 1, 2015 at 10:37 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
+>>>> This patch uses the code removed by commit 40e575b1d0b3 ("remoteproc:
+>>>> remove the get_by_name/put API") for the ref counting a rproc klist
+>>>> code but has rproc_get_by_name replaced with an rproc_get_by_phandle API.
+>>>
+>>> The general idea makes sense to me, but I'm not sure we really do need
+>>> a klist here, since the usage profile of this list is expected to be
+>>> super simple: very small number of accessors, looking for small number
+>>> of list members a small number of times, and probably never do need to
+>>> modify the list while accessing it.
+>>>
+>>> I suspect that the code would be simpler to maintain, debug and
+>>> understand if we just use a simple list with a simple locking
+>>> methodology here.
+>>
+>> The klist usage is something that we restored from previous remoteproc
+>> core code as used by the rproc_get_by_name() API. This was removed in
+>> commit 40e575b1d0b3 ("remoteproc: remove the get_by_name/put API"). We
+>> chose to use the code that had been present before rather than inventing
+>> something new all over again. If you feel that a regular list is the way
+>> to go forward, we can make the switch.
+> 
+> Yes, please. Using a regular list with a simple locking methodology
+> should make the code easier to understand and debug.
 
-Indeed. See above.
- 
-Thanks,
+Ok, that makes sense, we can change this. Thanks for your input.
 
-	tglx
+Regards,
+Dave
+
+> 
+> Thanks,
+> Ohad.
+> 
