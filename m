@@ -1,407 +1,786 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: Add minimal support for LogicPD Torpedo
- DM3730 devkit
-Date: Mon, 18 May 2015 15:39:35 -0700
-Message-ID: <20150518223935.GM10274@atomide.com>
-References: <1430528752-316-1-git-send-email-tony@atomide.com>
- <1430528752-316-3-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 2/5] PM / Wakeirq: Add automated device wake IRQ handling
+Date: Mon, 18 May 2015 16:44:01 -0700
+Message-ID: <20150518234400.GN10274@atomide.com>
+References: <1431560196-5722-1-git-send-email-tony@atomide.com>
+ <20150514155945.GL15563@atomide.com>
+ <20150514211501.GO15563@atomide.com>
+ <3499196.MCAcS31ICO@vostro.rjw.lan>
+ <20150514215921.GQ15563@atomide.com>
+ <20150515222513.GB10274@atomide.com>
+ <20150516015651.GA7493@saruman.tx.rr.com>
+ <20150518220459.GJ10274@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:51961 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755021AbbERWjh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 May 2015 18:39:37 -0400
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1430528752-316-3-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20150518220459.GJ10274@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tim Nordell <tim.nordell@logicpd.com>
 
-* Tony Lindgren <tony@atomide.com> [150501 18:07]:
-> +&gpmc {
-> +	ranges = <1 0 0x08000000 0x1000000>;	/* CS1: 16MB for LAN9221 */
+* Tony Lindgren <tony@atomide.com> [150518 15:06]:
+> +/**
+> + * dev_pm_set_wake_irq - Attach device IO interrupt as wake IRQ
+> + * @dev: Device entry
+> + * @irq: Device IO interrupt
+> + *
+> + * Attach a device IO interrupt as a wake IRQ. The wake IRQ gets
+> + * automatically configured for wake-up from suspend  based
+> +void dev_pm_clear_wake_irq(struct device *dev)
+> +{
+> +	struct wake_irq *wirq = dev->power.wakeirq;
+> +	unsigned long flags;
 > +
-> +	ethernet@gpmc {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&lan9221_pins>;
-> +		interrupt-parent = <&gpio5>;
-> +		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;
-> +		reg = <1 0 0xff>;
-> +	};
-> +};
+> +	if (!wirq)
+> +		return;
 > +
-> +&mmc1 {
-> +	interrupts-extended = <&intc 83 &omap3_pmx_core 0x11a>;
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc1_pins &mmc1_cd>;
-> +	cd-gpios = <&gpio4 31 IRQ_TYPE_LEVEL_LOW>;
-> +	vmmc-supply = <&vmmc1>;
-> +	bus-width = <4>;
-> +	cap-power-off-card;
-> +};
+> +	device_wakeup_detach_irq(dev);
+> +
+> +	spin_lock_irqsave(&dev->power.lock, flags);
+> +	if (wirq->manage_irq) {
+> +		free_irq(wirq->irq, wirq);
+> +		wirq->manage_irq = false;
+> +	}
+> +	dev->power.wakeirq = NULL;
+> +	spin_unlock_irqrestore(&dev->power.lock, flags);
+> +
+> +	wirq->irq = -EINVAL;
+> +	kfree(wirq);
+> +}
 
-And these were missing the comments for the GPIO line numbers as
-done for the other GPIOs in the dts file. Updated patch below.
+I just noticed most of the dev_pm_clear_wake_irq is no longer needed.
+We're now freeing it anyways. so it can be just:
+
+void dev_pm_clear_wake_irq(struct device *dev)
+{
+	struct wake_irq *wirq = dev->power.wakeirq;
+	unsigned long flags;
+
+	if (!wirq)
+		return;
+
+	spin_lock_irqsave(&dev->power.lock, flags);
+	dev->power.wakeirq = NULL;
+	spin_unlock_irqrestore(&dev->power.lock, flags);
+
+	device_wakeup_detach_irq(dev);
+	if (wirq->manage_irq)
+		free_irq(wirq->irq, wirq);
+	kfree(wirq);
+}
+
 
 Regards,
 
 Tony
 
-8< ----------------------
+8< ---------------------
 From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 13 May 2015 11:42:59 -0700
-Subject: [PATCH] ARM: dts: Add minimal support for LogicPD Torpedo DM3730
- devkit
+Date: Mon, 18 May 2015 15:40:29 -0700
+Subject: [PATCH] PM / Wakeirq: Add automated device wake IRQ handling
 
-The LogicPD Torpedo DM3730 devkit consists of a base board and
-two processor boards. One of the processor boards has a WLAN and
-the other one does not.
+Turns out we can automate the handling for the device_may_wakeup()
+quite a bit by using the kernel wakeup source list.
 
-Let's set up basic dts file so we can move to device tree only
-based booting over next few merge windows. So far I've tested
-that UARTs, MMC1, USB OTG, smsc911x, and basic PM support works.
+And as some hardware has separate dedicated wake-up interrupt
+in addition to the IO interrupt, we can automate the handling by
+adding a generic threaded interrupt handler that just calls the
+device PM runtime to wake up the device.
 
-Note that the wireless support in kernel for wl1283 seems to be
-broken, it tries to load wl127x-nvs.bin instead of wl128x-nvs.bin
-with firmware.
+This allows dropping code from device drivers as we currently
+are doing it in multiple ways, and often wrong.
 
-Cc: Tim Nordell <tim.nordell@logicpd.com>
+For most drivers, we should be able to drop the following
+boilerplate code from runtime_suspend and runtime_resume
+functions:
+
+	...
+	device_init_wakeup(dev, true);
+	...
+	if (device_may_wakeup(dev)
+		enable_irq_wake(irq);
+	...
+	if (device_may_wakeup(dev)
+		enable_irq_wake(irq);
+	...
+	device_init_wakeup(dev, false);
+	...
+
+We can replace it with just the following init and exit
+time code:
+
+	...
+	device_init_wakeup(dev, true);
+	dev_pm_set_wake_irq(dev, irq);
+	...
+	dev_pm_clear_wake_irq(dev);
+	device_init_wakeup(dev, false);
+	...
+
+And for hardware with dedicated wake-up interrupts:
+
+	...
+	device_init_wakeup(dev, true);
+	dev_pm_set_dedicated_wake_irq(dev, irq);
+	...
+	dev_pm_clear_wake_irq(dev);
+	device_init_wakeup(dev, false);
+	...
+
+For now, let's only enable it for select PM_WAKEIRQ.
+
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -360,6 +360,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
- 	am3517-craneboard.dtb \
- 	am3517-evm.dtb \
- 	am3517_mt_ventoux.dtb \
-+	logicpd-torpedo-37xx-devkit.dtb \
- 	omap3430-sdp.dtb \
- 	omap3-beagle.dtb \
- 	omap3-beagle-xm.dtb \
+diff --git a/drivers/base/power/Makefile b/drivers/base/power/Makefile
+index 1cb8544..527546e 100644
+--- a/drivers/base/power/Makefile
++++ b/drivers/base/power/Makefile
+@@ -4,5 +4,6 @@ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+ obj-$(CONFIG_PM_OPP)	+= opp.o
+ obj-$(CONFIG_PM_GENERIC_DOMAINS)	+=  domain.o domain_governor.o
+ obj-$(CONFIG_HAVE_CLK)	+= clock_ops.o
++obj-$(CONFIG_PM_WAKEIRQ)	+= wakeirq.o
+ 
+ ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index 3d874ec..6f2515c 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -24,6 +24,7 @@
+ #include <linux/pm.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pm-trace.h>
++#include <linux/pm_wakeirq.h>
+ #include <linux/interrupt.h>
+ #include <linux/sched.h>
+ #include <linux/async.h>
+@@ -587,6 +588,7 @@ void dpm_resume_noirq(pm_message_t state)
+ 	async_synchronize_full();
+ 	dpm_show_time(starttime, state, "noirq");
+ 	resume_device_irqs();
++	device_wakeup_disarm_wake_irqs();
+ 	cpuidle_resume();
+ 	trace_suspend_resume(TPS("dpm_resume_noirq"), state.event, false);
+ }
+@@ -1104,6 +1106,7 @@ int dpm_suspend_noirq(pm_message_t state)
+ 
+ 	trace_suspend_resume(TPS("dpm_suspend_noirq"), state.event, true);
+ 	cpuidle_pause();
++	device_wakeup_arm_wake_irqs();
+ 	suspend_device_irqs();
+ 	mutex_lock(&dpm_list_mtx);
+ 	pm_transition = state;
+diff --git a/drivers/base/power/power.h b/drivers/base/power/power.h
+index b6b8a27..708de3b 100644
+--- a/drivers/base/power/power.h
++++ b/drivers/base/power/power.h
+@@ -20,6 +20,54 @@ static inline void pm_runtime_early_init(struct device *dev)
+ extern void pm_runtime_init(struct device *dev);
+ extern void pm_runtime_remove(struct device *dev);
+ 
++#ifdef CONFIG_PM_WAKEIRQ
++
++struct wake_irq {
++	struct device *dev;
++	int irq;
++	bool manage_irq:1;
++};
++
++extern int device_wakeup_attach_irq(struct device *dev,
++				    struct wake_irq *wakeirq);
++extern void device_wakeup_detach_irq(struct device *dev);
++extern void device_wakeup_arm_wake_irqs(void);
++extern void device_wakeup_disarm_wake_irqs(void);
++
++extern void dev_pm_arm_wake_irq(struct wake_irq *wirq);
++extern void dev_pm_disarm_wake_irq(struct wake_irq *wirq);
++
++#else
++
++static inline int
++device_wakeup_attach_irq(struct device *dev,
++			 struct wake_irq *wakeirq)
++{
++	return 0;
++}
++
++static inline void device_wakeup_detach_irq(struct device *dev)
++{
++}
++
++static inline void device_wakeup_arm_wake_irqs(void)
++{
++}
++
++static inline void device_wakeup_disarm_wake_irqs(void)
++{
++}
++
++static inline void dev_pm_arm_wake_irq(struct wake_irq *wirq)
++{
++}
++
++static inline void dev_pm_disarm_wake_irq(struct wake_irq *wirq)
++{
++}
++
++#endif /* CONFIG_PM_WAKEIRQ */
++
+ /*
+  * sysfs.c
+  */
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 4ffe4a2..e1a10a0 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -10,6 +10,7 @@
+ #include <linux/sched.h>
+ #include <linux/export.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_wakeirq.h>
+ #include <trace/events/rpm.h>
+ #include "power.h"
+ 
+@@ -514,6 +515,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 
+ 	callback = RPM_GET_CALLBACK(dev, runtime_suspend);
+ 
++	dev_pm_enable_wake_irq(dev);
+ 	retval = rpm_callback(callback, dev);
+ 	if (retval)
+ 		goto fail;
+@@ -552,6 +554,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
+ 	return retval;
+ 
+  fail:
++	dev_pm_disable_wake_irq(dev);
+ 	__update_runtime_status(dev, RPM_ACTIVE);
+ 	dev->power.deferred_resume = false;
+ 	wake_up_all(&dev->power.wait_queue);
+@@ -734,10 +737,12 @@ static int rpm_resume(struct device *dev, int rpmflags)
+ 
+ 	callback = RPM_GET_CALLBACK(dev, runtime_resume);
+ 
++	dev_pm_disable_wake_irq(dev);
+ 	retval = rpm_callback(callback, dev);
+ 	if (retval) {
+ 		__update_runtime_status(dev, RPM_SUSPENDED);
+ 		pm_runtime_cancel_pending(dev);
++		dev_pm_enable_wake_irq(dev);
+ 	} else {
+  no_callback:
+ 		__update_runtime_status(dev, RPM_ACTIVE);
+diff --git a/drivers/base/power/wakeirq.c b/drivers/base/power/wakeirq.c
+new file mode 100644
+index 0000000..aa0e636
 --- /dev/null
-+++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-@@ -0,0 +1,157 @@
++++ b/drivers/base/power/wakeirq.c
+@@ -0,0 +1,272 @@
 +/*
++ * wakeirq.c - Device wakeirq helper functions
++ *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
-+/dts-v1/;
++#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++#include <linux/pm_wakeirq.h>
 +
-+#include "omap36xx.dtsi"
-+#include "logicpd-torpedo-som.dtsi"
-+#include "omap-gpmc-smsc9221.dtsi"
++#include "power.h"
 +
-+/ {
-+	model = "LogicPD Zoom DM3730 Torpedo Development Kit";
-+	compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap36xx";
++/**
++ * dev_pm_attach_wake_irq - Attach device interrupt as a wake IRQ
++ * @dev: Device entry
++ * @irq: Device wake-up capable interrupt
++ * @wirq: Wake irq specific data
++ *
++ * Internal function to attach either a device IO interrupt or a
++ * dedicated wake-up interrupt as a wake IRQ.
++ */
++static int dev_pm_attach_wake_irq(struct device *dev, int irq,
++				  struct wake_irq *wirq)
++{
++	unsigned long flags;
++	int err;
 +
-+	gpio_keys {
-+		compatible = "gpio-keys";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&gpio_key_pins &gpio_key_pins_wkup>;
++	if (!dev || !wirq)
++		return -EINVAL;
 +
-+		sysboot2 {
-+			label = "sysboot2";
-+			gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;	/* gpio2 */
-+			linux,code = <BTN_0>;
-+			gpio-key,wakeup;
-+		};
++	if (!dev->power.wakeup) {
++		dev_err(dev, "forgot to call call device_init_wakeup?\n");
++		return -EINVAL;
++	}
 +
-+		sysboot5 {
-+			label = "sysboot5";
-+			gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;	/* gpio7 */
-+			linux,code = <BTN_1>;
-+			gpio-key,wakeup;
-+		};
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (dev_WARN_ONCE(dev, dev->power.wakeirq,
++			  "wake irq already initialized\n")) {
++		spin_unlock_irqrestore(&dev->power.lock, flags);
++		return -EEXIST;
++	}
 +
-+		gpio1 {
-+			label = "gpio1";
-+			gpios = <&gpio6 21 GPIO_ACTIVE_LOW>;	/* gpio181 */
-+			linux,code = <BTN_2>;
-+			gpio-key,wakeup;
-+		};
++	dev->power.wakeirq = wirq;
++	spin_unlock_irqrestore(&dev->power.lock, flags);
 +
-+		gpio2 {
-+			label = "gpio2";
-+			gpios = <&gpio6 18 GPIO_ACTIVE_LOW>;	/* gpio178 */
-+			linux,code = <BTN_3>;
-+			gpio-key,wakeup;
-+		};
-+	};
++	err = device_wakeup_attach_irq(dev, wirq);
++	if (err)
++		return err;
 +
-+	leds {
-+		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&led_pins>;
++	return 0;
++}
 +
-+		led1 {
-+			label = "led1";
-+			gpios = <&gpio6 20 GPIO_ACTIVE_HIGH>;	/* gpio180 */
-+			linux,default-trigger = "cpu0";
-+		};
++/**
++ * dev_pm_set_wake_irq - Attach device IO interrupt as wake IRQ
++ * @dev: Device entry
++ * @irq: Device IO interrupt
++ *
++ * Attach a device IO interrupt as a wake IRQ. The wake IRQ gets
++ * automatically configured for wake-up from suspend  based
++ * on the device specific sysfs wakeup entry. Typically called
++ * during driver probe after calling device_init_wakeup().
++ */
++int dev_pm_set_wake_irq(struct device *dev, int irq)
++{
++	struct wake_irq *wirq;
++	int err;
 +
-+		led2 {
-+			label = "led2";
-+			gpios = <&gpio6 19 GPIO_ACTIVE_HIGH>;	/* gpio179 */
-+			linux,default-trigger = "none";
-+		};
-+	};
-+};
++	wirq = kzalloc(sizeof(*wirq), GFP_KERNEL);
++	if (!wirq)
++		return -ENOMEM;
 +
-+&charger {
-+	ti,bb-uvolt = <3200000>;
-+	ti,bb-uamp = <150>;
-+};
++	wirq->dev = dev;
++	wirq->irq = irq;
 +
-+&gpmc {
-+	ranges = <1 0 0x08000000 0x1000000>;	/* CS1: 16MB for LAN9221 */
++	err = dev_pm_attach_wake_irq(dev, irq, wirq);
++	if (err)
++		kfree(wirq);
 +
-+	ethernet@gpmc {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&lan9221_pins>;
-+		interrupt-parent = <&gpio5>;
-+		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;		/* gpio129 */
-+		reg = <1 0 0xff>;
-+	};
-+};
++	return err;
++}
++EXPORT_SYMBOL_GPL(dev_pm_set_wake_irq);
 +
-+&mmc1 {
-+	interrupts-extended = <&intc 83 &omap3_pmx_core 0x11a>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins &mmc1_cd>;
-+	cd-gpios = <&gpio4 31 IRQ_TYPE_LEVEL_LOW>;		/* gpio127 */
-+	vmmc-supply = <&vmmc1>;
-+	bus-width = <4>;
-+	cap-power-off-card;
-+};
++/**
++ * dev_pm_clear_wake_irq - Detach a device IO interrupt wake IRQ
++ * @dev: Device entry
++ *
++ * Detach a device IO interrupt wake IRQ and free resources.
++ *
++ * Note that it's OK for drivers to call this without calling
++ * dev_pm_set_wake_irq() first as all the driver instances may
++ * not have the wake IRQ configured. This avoid adding wake IRQ
++ * checks into the drivers.
++ */
++void dev_pm_clear_wake_irq(struct device *dev)
++{
++	struct wake_irq *wirq = dev->power.wakeirq;
++	unsigned long flags;
 +
-+&omap3_pmx_core {
-+	gpio_key_pins: pinmux_gpio_key_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLUP | MUX_MODE4)	/* mcspi2_clk.gpio_178 */
-+			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLUP | MUX_MODE4)	/* mcspi2_cs0.gpio_181 */
-+		>;
-+	};
++	if (!wirq)
++		return;
 +
-+	led_pins: pinmux_led_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21d8, PIN_OUTPUT | MUX_MODE4)	/* gpio_179 */
-+			OMAP3_CORE1_IOPAD(0x21da, PIN_OUTPUT | MUX_MODE4)	/* gpio_180 */
-+		>;
-+	};
++	spin_lock_irqsave(&dev->power.lock, flags);
++	dev->power.wakeirq = NULL;
++	spin_unlock_irqrestore(&dev->power.lock, flags);
 +
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2144, PIN_OUTPUT | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
-+			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
-+			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat0.sdmmc1_dat0 */
-+			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
-+			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
-+			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
-+		>;
-+	};
-+};
++	device_wakeup_detach_irq(dev);
++	if (wirq->manage_irq)
++		free_irq(wirq->irq, wirq);
++	kfree(wirq);
++}
++EXPORT_SYMBOL_GPL(dev_pm_clear_wake_irq);
 +
-+&omap3_pmx_wkup {
-+	gpio_key_pins_wkup: pinmux_gpio_key_pins_wkup {
-+		pinctrl-single,pins = <
-+			OMAP3_WKUP_IOPAD(0x2a0a, PIN_INPUT_PULLUP | MUX_MODE4)	/* sys_boot0.gpio_2 */
-+			OMAP3_WKUP_IOPAD(0x2a14, PIN_INPUT_PULLUP | MUX_MODE4)	/* sys_boot5.gpio_7 */
-+		>;
-+	};
++/**
++ * handle_threaded_wake_irq - Handler for dedicated wake-up interrupts
++ * @irq: Device dedicated wake-up interrupt
++ * @_wirq: Wake IRQ data
++ *
++ * Some devices have a separate wake-up interrupt in addition to the
++ * device IO interrupt. The wake-up interrupts signal that the device
++ * should be woken up from a idle state. This handler uses device
++ * specific pm_runtime functions to wake the device and then it's
++ * up to the device to do whatever it needs to. Note as the device
++ * may need to restore context and start up regulators, we use a
++ * threaded IRQ.
++ *
++ * Also note that we are not resending the lost device interrupts.
++ * We assume that the wake-up interrupt just needs to wake-up the
++ * device, and the device pm_runtime_resume() can deal with the
++ * situation.
++ */
++static irqreturn_t handle_threaded_wake_irq(int irq, void *_wirq)
++{
++	struct wake_irq *wirq = _wirq;
 +
-+	lan9221_pins: pinmux_lan9221_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_WKUP_IOPAD(0x2a5a, PIN_INPUT | MUX_MODE4)		/* reserved.gpio_129 */
-+		>;
-+	};
++	/* We don't want RPM_ASYNC or RPM_NOWAIT here */
++	return pm_runtime_resume(wirq->dev) ? IRQ_NONE : IRQ_HANDLED;
++}
 +
-+	mmc1_cd: pinmux_mmc1_cd {
-+		pinctrl-single,pins = <
-+			OMAP3_WKUP_IOPAD(0x2a54, PIN_INPUT_PULLUP | MUX_MODE4)	/* reserved.gpio_127 */
-+		>;
-+	};
-+};
++/**
++ * dev_pm_set_dedicated_wake_irq - Request a dedicated wake-up interrupt
++ * @dev: Device entry
++ * @irq: Device wake-up interrupt
++ *
++ * Unless your hardware has separate wake-up interrupts in addition
++ * to the device IO interrupts, you don't need this.
++ *
++ * Sets up a threaded interrupt handler for a device that has
++ * a dedicated wake-up interrupt in addition to the device IO
++ * interrupt.
++ *
++ * The interrupt starts disabled, and needs to be managed for
++ * the device by the bus code or the device driver using
++ * dev_pm_enable_wake_irq() and dev_pm_disable_wake_irq()
++ * functions.
++ */
++int dev_pm_set_dedicated_wake_irq(struct device *dev, int irq)
++{
++	struct wake_irq *wirq;
++	int err;
 +
-+&uart1 {
-+	interrupts-extended = <&intc 72 &omap3_pmx_core OMAP3_UART1_RX>;
-+};
++	wirq = kzalloc(sizeof(*wirq), GFP_KERNEL);
++	if (!wirq)
++		return -ENOMEM;
 +
-+/* Wired to the tps65950 on the SOM, only the USB connector is on the devkit */
-+&usb_otg_hs {
-+	interface-type = <0>;
-+	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
-+	mode = <3>;
-+	power = <50>;
-+};
++	wirq->dev = dev;
++	wirq->irq = irq;
++	wirq->manage_irq = true;
++	irq_set_status_flags(irq, IRQ_NOAUTOEN);
++
++	/*
++	 * Consumer device may need to power up and restore state
++	 * so we use a threaded irq.
++	 */
++	err = request_threaded_irq(irq, NULL, handle_threaded_wake_irq,
++				   IRQF_ONESHOT, dev_name(dev), wirq);
++	if (err)
++		goto err_free;
++
++	err = dev_pm_attach_wake_irq(dev, irq, wirq);
++	if (err)
++		goto err_free_irq;
++
++	return err;
++
++err_free_irq:
++	free_irq(irq, wirq);
++err_free:
++	kfree(wirq);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(dev_pm_set_dedicated_wake_irq);
++
++/**
++ * dev_pm_enable_wake_irq - Enable device wake-up interrupt
++ * @dev: Device
++ *
++ * Called from the bus code or the device driver for
++ * runtime_suspend() to enable the wake-up interrupt while
++ * the device is running.
++ *
++ * Note that for runtime_suspend()) the wake-up interrupts
++ * should be unconditionally enabled unlike for suspend()
++ * that is conditional.
++ */
++void dev_pm_enable_wake_irq(struct device *dev)
++{
++	struct wake_irq *wirq = dev->power.wakeirq;
++
++	if (wirq && wirq->manage_irq)
++		enable_irq(wirq->irq);
++}
++EXPORT_SYMBOL_GPL(dev_pm_enable_wake_irq);
++
++/**
++ * dev_pm_disable_wake_irq - Disable device wake-up interrupt
++ * @dev: Device
++ *
++ * Called from the bus code or the device driver for
++ * runtime_resume() to disable the wake-up interrupt while
++ * the device is running.
++ */
++void dev_pm_disable_wake_irq(struct device *dev)
++{
++	struct wake_irq *wirq = dev->power.wakeirq;
++
++	if (wirq && wirq->manage_irq)
++		disable_irq_nosync(wirq->irq);
++}
++EXPORT_SYMBOL_GPL(dev_pm_disable_wake_irq);
++
++/**
++ * dev_pm_arm_wake_irq - Arm device wake-up
++ * @wirq: Device wake-up interrupt
++ *
++ * Sets up the wake-up event conditionally based on the
++ * device_may_wake().
++ */
++void dev_pm_arm_wake_irq(struct wake_irq *wirq)
++{
++	if (!wirq)
++		return;
++
++	if (device_may_wakeup(wirq->dev))
++		enable_irq_wake(wirq->irq);
++}
++
++/**
++ * dev_pm_disarm_wake_irq - Disarm device wake-up
++ * @wirq: Device wake-up interrupt
++ *
++ * Clears up the wake-up event conditionally based on the
++ * device_may_wake().
++ */
++void dev_pm_disarm_wake_irq(struct wake_irq *wirq)
++{
++	if (!wirq)
++		return;
++
++	if (device_may_wakeup(wirq->dev))
++		disable_irq_wake(wirq->irq);
++}
+diff --git a/drivers/base/power/wakeup.c b/drivers/base/power/wakeup.c
+index 7726200..bed2fbb 100644
+--- a/drivers/base/power/wakeup.c
++++ b/drivers/base/power/wakeup.c
+@@ -14,6 +14,7 @@
+ #include <linux/suspend.h>
+ #include <linux/seq_file.h>
+ #include <linux/debugfs.h>
++#include <linux/pm_wakeirq.h>
+ #include <trace/events/power.h>
+ 
+ #include "power.h"
+@@ -238,6 +239,100 @@ int device_wakeup_enable(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(device_wakeup_enable);
+ 
++#ifdef CONFIG_PM_WAKEIRQ
++
++/**
++ * device_wakeup_attach_irq - Attach a wakeirq to a wakeup source
++ * @dev: Device to handle
++ * @irq: Device specific wakeirq entry
++ *
++ * Attach a device specific wakeirq to the device specific
++ * wakeup source so the device wakeirq can be configured
++ * automatically for suspend and resume.
++ */
++int device_wakeup_attach_irq(struct device *dev,
++			     struct wake_irq *wakeirq)
++{
++	struct wakeup_source *ws;
++	int ret = 0;
++
++	spin_lock_irq(&dev->power.lock);
++	ws = dev->power.wakeup;
++	if (!ws) {
++		ret = -EINVAL;
++		goto unlock;
++	}
++
++	if (ws->wakeirq) {
++		ret = -EEXIST;
++		goto unlock;
++	}
++
++	ws->wakeirq = wakeirq;
++
++unlock:
++	spin_unlock_irq(&dev->power.lock);
++
++	return ret;
++}
++
++/**
++ * device_wakeup_detach_irq - Detach a wakeirq from a wakeup source
++ * @dev: Device to handle
++ *
++ * Removes the wakeirq from a wakeup source.
++ */
++void device_wakeup_detach_irq(struct device *dev)
++{
++	struct wakeup_source *ws;
++
++	spin_lock_irq(&dev->power.lock);
++	ws = dev->power.wakeup;
++	if (!ws)
++		goto unlock;
++
++	ws->wakeirq = NULL;
++
++unlock:
++	spin_unlock_irq(&dev->power.lock);
++}
++
++/**
++ * device_wakeup_arm_wake_irqs(void)
++ *
++ * Itereates over the list of wakeirqs to arm them.
++ */
++void device_wakeup_arm_wake_irqs(void)
++{
++	struct wakeup_source *ws;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(ws, &wakeup_sources, entry) {
++		if (ws->wakeirq)
++			dev_pm_arm_wake_irq(ws->wakeirq);
++	}
++	rcu_read_unlock();
++}
++
++/**
++ * device_wakeup_disarm_wake_irqs(void)
++ *
++ * Itereates over the list of wakeirqs to disarm them.
++ */
++void device_wakeup_disarm_wake_irqs(void)
++{
++	struct wakeup_source *ws;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(ws, &wakeup_sources, entry) {
++		if (ws->wakeirq)
++			dev_pm_disarm_wake_irq(ws->wakeirq);
++	}
++	rcu_read_unlock();
++}
++
++#endif /* CONFIG_PM_WAKEIRQ */
++
+ /**
+  * device_wakeup_detach - Detach a device's wakeup source object from it.
+  * @dev: Device to detach the wakeup source object from.
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 2d29c64..d1130d5 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -529,6 +529,7 @@ enum rpm_request {
+ };
+ 
+ struct wakeup_source;
++struct wake_irq;
+ struct pm_domain_data;
+ 
+ struct pm_subsys_data {
+@@ -558,6 +559,7 @@ struct dev_pm_info {
+ 	struct list_head	entry;
+ 	struct completion	completion;
+ 	struct wakeup_source	*wakeup;
++	struct wake_irq		*wakeirq;
+ 	bool			wakeup_path:1;
+ 	bool			syscore:1;
+ #else
+diff --git a/include/linux/pm_wakeirq.h b/include/linux/pm_wakeirq.h
+new file mode 100644
+index 0000000..d6478c7
 --- /dev/null
-+++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-@@ -0,0 +1,162 @@
++++ b/include/linux/pm_wakeirq.h
+@@ -0,0 +1,52 @@
 +/*
++ * pm_wakeirq.h - Device wakeirq helper functions
++ *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
-+#include <dt-bindings/input/input.h>
++#ifndef _LINUX_PM_WAKEIRQ_H
++#define _LINUX_PM_WAKEIRQ_H
 +
-+/ {
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&vcc>;
-+		};
-+	};
++#ifdef CONFIG_PM_WAKEIRQ
 +
-+	leds {
-+		compatible = "gpio-leds";
-+		user0 {
-+			label = "user0";
-+			gpios = <&twl_gpio 18 GPIO_ACTIVE_LOW>;	/* LEDA */
-+			linux,default-trigger = "none";
-+		};
-+	};
++extern int dev_pm_set_wake_irq(struct device *dev, int irq);
++extern int dev_pm_set_dedicated_wake_irq(struct device *dev,
++					 int irq);
++extern void dev_pm_clear_wake_irq(struct device *dev);
++extern void dev_pm_enable_wake_irq(struct device *dev);
++extern void dev_pm_disable_wake_irq(struct device *dev);
 +
-+	wl12xx_vmmc: wl12xx_vmmc {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vwl1271";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		gpio = <&gpio5 29 0>;   /* gpio157 */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+		vin-supply = <&vmmc2>;
-+	};
-+};
++#else	/* !CONFIG_PM_WAKEIRQ */
 +
-+&gpmc {
-+	ranges = <0 0 0x00000000 0x1000000>;	/* CS0: 16MB for NAND */
++static inline int dev_pm_set_wake_irq(struct device *dev, int irq)
++{
++	return 0;
++}
 +
-+	nand@0,0 {
-+		linux,mtd-name = "micron,mt29f4g16abbda3w";
-+		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
-+		nand-bus-width = <16>;
-+		ti,nand-ecc-opt = "bch8";
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <44>;
-+		gpmc,cs-wr-off-ns = <44>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <34>;
-+		gpmc,adv-wr-off-ns = <44>;
-+		gpmc,we-off-ns = <40>;
-+		gpmc,oe-off-ns = <54>;
-+		gpmc,access-ns = <64>;
-+		gpmc,rd-cycle-ns = <82>;
-+		gpmc,wr-cycle-ns = <82>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		gpmc,device-width = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
++static inline int dev_pm_set_dedicated__wake_irq(struct device *dev,
++						 int irq)
++{
++	return 0;
++}
 +
-+		/* u-boot uses mtdparts=omap2-nand.0:512k(x-loader),1920k(u-boot),128k(u-boot-env),4m(kernel),-(fs) */
++static inline void dev_pm_clear_wake_irq(struct device *dev)
++{
++}
 +
-+		x-loader@0 {
-+			label = "x-loader";
-+			reg = <0 0x80000>;
-+		};
++static inline void dev_pm_enable_wake_irq(struct device *dev)
++{
++}
 +
-+		bootloaders@80000 {
-+			label = "u-boot";
-+			reg = <0x80000 0x1e0000>;
-+		};
++static inline void dev_pm_disable_wake_irq(struct device *dev)
++{
++}
 +
-+		bootloaders_env@260000 {
-+			label = "u-boot-env";
-+			reg = <0x260000 0x20000>;
-+		};
++#endif	/* CONFIG_PM_WAKEIRQ */
++#endif	/* _LINUX_PM_WAKEIRQ_H */
+diff --git a/include/linux/pm_wakeup.h b/include/linux/pm_wakeup.h
+index a0f7080..86d1cbe 100644
+--- a/include/linux/pm_wakeup.h
++++ b/include/linux/pm_wakeup.h
+@@ -28,9 +28,15 @@
+ 
+ #include <linux/types.h>
+ 
++struct wake_irq;
 +
-+		kernel@280000 {
-+			label = "kernel";
-+			reg = <0x280000 0x400000>;
-+		};
+ /**
+  * struct wakeup_source - Representation of wakeup sources
+  *
++ * @name: Name of the wakeup source
++ * @entry: Wakeup source list entry
++ * @lock: Wakeup source lock
++ * @wakeirq: Optional device specific wakeirq
+  * @total_time: Total time this wakeup source has been active.
+  * @max_time: Maximum time this wakeup source has been continuously active.
+  * @last_time: Monotonic clock when the wakeup source's was touched last time.
+@@ -47,6 +53,7 @@ struct wakeup_source {
+ 	const char 		*name;
+ 	struct list_head	entry;
+ 	spinlock_t		lock;
++	struct wake_irq		*wakeirq;
+ 	struct timer_list	timer;
+ 	unsigned long		timer_expires;
+ 	ktime_t total_time;
+diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+index 7e01f78..d3735bd 100644
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -267,6 +267,10 @@ config PM_CLK
+ 	def_bool y
+ 	depends on PM && HAVE_CLK
+ 
++config PM_WAKEIRQ
++	bool
++	depends on PM_SLEEP
 +
-+		filesystem@680000 {
-+			label = "fs";
-+			reg = <0x680000 0>;	/* 0 = MTDPART_SIZ_FULL */
-+		};
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+/*
-+ * Only found on the wireless SOM. For the SOM without wireless, the pins for
-+ * MMC3 can be routed with jumpers to the second MMC slot on the devkit and
-+ * gpio157 is not connected. So this should be OK to keep common for now,
-+ * probably device tree overlays is the way to go with the various SOM and
-+ * jumpering combinations for the long run.
-+ */
-+&mmc3 {
-+	interrupts-extended = <&intc 94 &omap3_pmx_core2 0x46>;
-+	pinctrl-0 = <&mmc3_pins &mmc3_core2_pins>;
-+	pinctrl-names = "default";
-+	vmmc-supply = <&wl12xx_vmmc>;
-+	non-removable;
-+	bus-width = <4>;
-+	cap-power-off-card;
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	wlcore: wlcore@2 {
-+		compatible = "ti,wl1283";
-+		reg = <2>;
-+		interrupt-parent = <&gpio5>;
-+		interrupts = <24 IRQ_TYPE_LEVEL_HIGH>; /* gpio 152 */
-+		ref-clock-frequency = <26000000>;
-+	};
-+};
-+
-+&omap3_pmx_core {
-+	mmc3_pins: pinmux_mm3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2164, PIN_INPUT_PULLUP | MUX_MODE3)	/* sdmmc2_dat4.sdmmc3_dat0 */
-+			OMAP3_CORE1_IOPAD(0x2166, PIN_INPUT_PULLUP | MUX_MODE3)	/* sdmmc2_dat5.sdmmc3_dat1 */
-+			OMAP3_CORE1_IOPAD(0x2168, PIN_INPUT_PULLUP | MUX_MODE3)	/* sdmmc2_dat6.sdmmc3_dat2 */
-+			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT_PULLUP | MUX_MODE3)	/* sdmmc2_dat6.sdmmc3_dat3 */
-+			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT_PULLUP | MUX_MODE4)	/* mcbsp4_clkx.gpio_152 */
-+			OMAP3_CORE1_IOPAD(0x218e, PIN_OUTPUT | MUX_MODE4)	/* mcbsp1_fsr.gpio_157 */
-+		>;
-+	};
-+};
-+
-+&omap3_pmx_core2 {
-+	mmc3_core2_pins: pinmux_mmc3_core2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25d8, PIN_INPUT_PULLUP | MUX_MODE2)   /* etk_clk.sdmmc3_clk */
-+			OMAP3630_CORE2_IOPAD(0x25da, PIN_INPUT_PULLUP | MUX_MODE2)   /* etk_ctl.sdmmc3_cmd */
-+		>;
-+	};
-+};
-+
-+#include "twl4030.dtsi"
-+#include "twl4030_omap3.dtsi"
-+
-+&twl {
-+	twl_power: power {
-+		compatible = "ti,twl4030-power-idle-osc-off", "ti,twl4030-power-idle";
-+		ti,use_poweroff;
-+	};
-+};
-+
-+&twl_gpio {
-+	ti,use-leds;
-+};
+ config PM_GENERIC_DOMAINS
+ 	bool
+ 	depends on PM
