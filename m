@@ -1,83 +1,56 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: High CPU usage when video streaming on EHCI, 3.17.8 kernel with
- DMA enabled
-Date: Sun, 17 May 2015 10:06:11 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1505170956410.2774-100000@netrider.rowland.org>
-References: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
+From: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+Subject: Re: [PATCH 03/10] crypto: omap-sham: Add support for omap3 devices
+Date: Mon, 18 May 2015 12:30:08 +0800
+Message-ID: <20150518043008.GA13305@gondor.apana.org.au>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+ <1424958600-18881-4-git-send-email-pali.rohar@gmail.com>
+ <20150228162502.GC4978@amd>
+ <20150515091933.GA12078@pali>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150515091933.GA12078@pali>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 17 May 2015, Tom Mises wrote:
+On Fri, May 15, 2015 at 11:19:33AM +0200, Pali Roh=E1r wrote:
+> On Saturday 28 February 2015 17:25:02 Pavel Machek wrote:
+> > On Thu 2015-02-26 14:49:53, Pali Roh=E1r wrote:
+> > > omap3 support is same as omap2, just with different IO address (s=
+pecified in DT)
+> > >=20
+> > > Signed-off-by: Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> >=20
+> > Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> >=20
+> > > @@ -1792,6 +1792,10 @@ static const struct of_device_id omap_sham=
+_of_match[] =3D {
+> > >  		.data		=3D &omap_sham_pdata_omap2,
+> > >  	},
+> > >  	{
+> > > +		.compatible	=3D "ti,omap3-sham",
+> > > +		.data		=3D &omap_sham_pdata_omap2,
+> > > +	},
+> > > +	{
+> > >  		.compatible	=3D "ti,omap4-sham",
+> > >  		.data		=3D &omap_sham_pdata_omap4,
+> > >  	},
+> >=20
+>=20
+> Herbert, this is second crypto patch in this series, can you apply it=
+ too?
 
-> Hi,
-> 
-> I posted this on linux-uvc-devel, but was told the data transfer part
-> is handled by the USB driver.
-> 
-> I am running 3.17.8 kernel with DMA enabled on TI DM3730 (Gumstix
-> Overo Firestorm-P COM). When streaming video frames in mmap or userptr
-> mode, I am
-> seeing very high CPU usage, up to 70%. This CPU usage is reported to
-> be in software interrupts. The captured frames are NOT corrupted.
-> 
-> Interestingly, when running 3.5 kernel, with DMA enabled as well, the
-> CPU usage is 30% and it is reported to be mostly in the user space.
-> So, it guess it suggests PIO not DMA is actually used here.
-
-EHCI always uses DMA.  It cannot use PIO.
-
-> Neither of these results are satisfactory, I hoped DMA would take care
-> of the data transfer and the CPU resources would be available to run
-> data processing.
-> 
-> I used the video capture example from the V4L2 API documentation. This
-> behavior was tested and observed for two different cameras, one of
-> them working in isochronous mode, the other working in bulk mode.
-> 
-> Interrupts showing activity during the streaming are:
-> omap-dma-engine,
-> ehci_hcd:usb1.
-> 
-> I also ran another test with very low resolution and fps
-> settings, 160x90 5ps YUV422. In that case, on 3.5 kernel, CPU usage was
-> very low. However, on 3.17.8 kernel, it was still similar as before,
-> around 60% and all in software interrupts; it was dropping to zero
-> intermittently this time.
-> 
-> Perhaps, the problem is somewhere in the interaction between the UVC
-> driver and the DMA or USB driver. As far as I understand, the UVC
-> driver uses vmalloc(), which, again AFAIU, is not ideal for DMA
-> transfers. Is this known to work on other similar platforms?
-
-I haven't heard complaints about the UVC driver.
-
-> I am aware this is a somewhat vague
-> description unfortunately, but I am not sure what other detail would
-> be helpful. UVC debugging messages do not show anything unusual.
-> Beyond that, debugging these drivers on my own exceeds my expertise,
-> so I will welcome any suggestions.
-
-You might be able to learn more from ftrace.  See the instructions in
-Documentation/trace/ftrace.txt.  The "irqsoff" tracer may be the best
-one to try.
-
-> There is also the following error message from EDMA, I do not think it
-> is related though.
-> [    0.557342] edma-dma-engine edma-dma-engine.0: Can't allocate PaRAM
-> dummy slot
-> [    0.557434] edma-dma-engine: probe of edma-dma-engine.0 failed with error -22
-
-It seems unlikely to be related.
-
-Alan Stern
-
+Applied.
+--=20
+Email: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
