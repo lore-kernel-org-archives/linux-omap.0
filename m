@@ -1,45 +1,48 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] ASoC: rx51: use flags argument of
- devm_gpiod_get to set direction
-Date: Tue, 19 May 2015 11:16:50 +0300
-Message-ID: <20150519081650.GA8310@bitmer.com>
-References: <1432021688-25830-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH] arm: boot: dts: add DTS for Baltos IR5221
+Date: Tue, 19 May 2015 10:33:13 +0200
+Message-ID: <CAGm1_kvc+PiK8CbpaEWR-1vGLs5F0hMoWaEGXokg97+6q5mOUg@mail.gmail.com>
+References: <1431468917-27697-1-git-send-email-balbi@ti.com>
+ <20150513074002.0b7b8dda@ipc1.ka-ro> <20150513152904.GC4201@saruman.tx.rr.com>
+ <20150513155012.GI15563@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1432021688-25830-1-git-send-email-u.kleine-koenig@pengutronix.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Alexandre Courbot <gnurou@gmail.com>, alsa-devel@alsa-project.org, Linus Walleij <linus.walleij@linaro.org>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, kernel@pengutronix.de, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:32868 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749AbbESIde convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2015 04:33:34 -0400
+Received: by padbw4 with SMTP id bw4so14334848pad.0
+        for <linux-omap@vger.kernel.org>; Tue, 19 May 2015 01:33:33 -0700 (PDT)
+In-Reply-To: <20150513155012.GI15563@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, =?UTF-8?Q?Lothar_Wa=C3=9Fmann?= <LW@karo-electronics.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Tue, May 19, 2015 at 09:48:08AM +0200, Uwe Kleine-K=F6nig wrote:
-> Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
-> which appeared in v3.17-rc1, the gpiod_get* functions take an additional
-> parameter that allows to specify direction and initial value for output.
-> =
+On Wed, May 13, 2015 at 5:50 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Felipe Balbi <balbi@ti.com> [150513 08:32]:
+>> On Wed, May 13, 2015 at 07:40:02AM +0200, Lothar Wa=C3=9Fmann wrote:
+>> > >
+>> > Should these be ordered alphabetically?
+>>
+>> why ?
+>
+> In general the alphabetical ordering helps to avoid merge
+> conflicts when new things are added later on as they are
+> not all added to the end. So yeah I have a slight sorting
+> preference there too to make my life easier in the future :)
 
-> Use this to simplify the driver. Furthermore this is one caller less
-> that stops us making the flags argument to gpiod_get*() mandatory.
-> =
+I've sent v2, but I left network components order as is. It was
+borrowed from am335x-evmsk and represents somehow the hierarchy of
+CPSW: at first MAC, then MDIO and then slaves with their own settings.
 
-> Fixes: 386e81ab3b4d ("ASoC: omap: rx51: get GPIO numbers via gpiod API")
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-> ---
->  sound/soc/omap/rx51.c | 30 ++++++++----------------------
->  1 file changed, 8 insertions(+), 22 deletions(-)
-> =
-
-I don't think Fixes tag is justified. Otherwise than that
-
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com
+Regards,
+Yegor
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
