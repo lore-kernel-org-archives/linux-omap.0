@@ -1,71 +1,106 @@
-From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-bone* enable pmic-shutdown-controller
-Date: Tue, 19 May 2015 09:25:40 +0200
-Message-ID: <CAALWOA-OwUuAbc7Wd_SV-14mVbOCVWvKwKgb3eOjVGEery28og@mail.gmail.com>
-References: <1431525001-5747-1-git-send-email-robertcnelson@gmail.com>
- <20150513141658.GB6605@localhost> <20150513144846.GC6605@localhost>
- <CAALWOA-hkgrMi+OeNrmwaVpdEfNadFn0R-QbpXi9LU-4sbakJQ@mail.gmail.com> <20150518152108.GE10274@atomide.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: [PATCH] ASoC: rx51: use flags argument of devm_gpiod_get to set direction
+Date: Tue, 19 May 2015 09:48:08 +0200
+Message-ID: <1432021688-25830-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150518152108.GE10274-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38969 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281AbbESHsU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2015 03:48:20 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+Cc: Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, kernel@pengutronix.de, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
 
-On 18 May 2015 at 17:21, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> If some of these depend on the SoC revision and cannot be detected
-> based on the RTC driver revision register, that information should
-> be be passed to the RTC driver in platform data.
+Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
+which appeared in v3.17-rc1, the gpiod_get* functions take an additiona=
+l
+parameter that allows to specify direction and initial value for output=
+=2E
 
-The SoC revision is easy enough to check via the control module as
-usual, but is not really the biggest issue. Even on SoC rev 1.0
-RTC-only sleep still has some functionality (the RTC freezes if PMIC
-enters sleep-state, but that may still be preferred compared to
-complete loss of date and time), so I'm not even sure I'd bother with
-this check.
+Use this to simplify the driver. Furthermore this is one caller less
+that stops us making the flags argument to gpiod_get*() mandatory.
 
-The serious problems however depend on the PCB: Entering RTC-only
-sleep is only properly supported on some early prototype series
-(pre-A6) of the BeagleBone Black. Since rev A6A (which includes all
-production versions) it is not supported at all.
+=46ixes: 386e81ab3b4d ("ASoC: omap: rx51: get GPIO numbers via gpiod AP=
+I")
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+ sound/soc/omap/rx51.c | 30 ++++++++----------------------
+ 1 file changed, 8 insertions(+), 22 deletions(-)
 
-On rev A6 of the Black, as well as (afaik) all versions of the White
-(if anyone cares, since they normally have SoC rev 1.0), the impact of
-entering RTC-only sleep is heavily dependent on external connections
-and hardware, most of which not really detectable. It is possible to
-go from "hmm, annoying standby current" to a recipe for stir-fried I/O
-pin simply by connecting a console cable while the device is in sleep.
-This is not something the kernel can foresee or prevent.
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index c2ddf0fbfa28..fded99362d39 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -455,50 +455,36 @@ static int rx51_soc_probe(struct platform_device =
+*pdev)
+ 	snd_soc_card_set_drvdata(card, pdata);
+=20
+ 	pdata->tvout_selection_gpio =3D devm_gpiod_get(card->dev,
+-						     "tvout-selection");
++						     "tvout-selection",
++						     GPIOD_OUT_LOW);
+ 	if (IS_ERR(pdata->tvout_selection_gpio)) {
+ 		dev_err(card->dev, "could not get tvout selection gpio\n");
+ 		return PTR_ERR(pdata->tvout_selection_gpio);
+ 	}
+=20
+-	err =3D gpiod_direction_output(pdata->tvout_selection_gpio, 0);
+-	if (err) {
+-		dev_err(card->dev, "could not setup tvout selection gpio\n");
+-		return err;
+-	}
+-
+ 	pdata->jack_detection_gpio =3D devm_gpiod_get(card->dev,
+-						    "jack-detection");
++						    "jack-detection",
++						    GPIOD_ASIS);
+ 	if (IS_ERR(pdata->jack_detection_gpio)) {
+ 		dev_err(card->dev, "could not get jack detection gpio\n");
+ 		return PTR_ERR(pdata->jack_detection_gpio);
+ 	}
+=20
+-	pdata->eci_sw_gpio =3D devm_gpiod_get(card->dev, "eci-switch");
++	pdata->eci_sw_gpio =3D devm_gpiod_get(card->dev, "eci-switch",
++					    GPIOD_OUT_HIGH);
+ 	if (IS_ERR(pdata->eci_sw_gpio)) {
+ 		dev_err(card->dev, "could not get eci switch gpio\n");
+ 		return PTR_ERR(pdata->eci_sw_gpio);
+ 	}
+=20
+-	err =3D gpiod_direction_output(pdata->eci_sw_gpio, 1);
+-	if (err) {
+-		dev_err(card->dev, "could not setup eci switch gpio\n");
+-		return err;
+-	}
+-
+ 	pdata->speaker_amp_gpio =3D devm_gpiod_get(card->dev,
+-						 "speaker-amplifier");
++						 "speaker-amplifier",
++						 GPIOD_OUT_LOW);
+ 	if (IS_ERR(pdata->speaker_amp_gpio)) {
+ 		dev_err(card->dev, "could not get speaker enable gpio\n");
+ 		return PTR_ERR(pdata->speaker_amp_gpio);
+ 	}
+=20
+-	err =3D gpiod_direction_output(pdata->speaker_amp_gpio, 0);
+-	if (err) {
+-		dev_err(card->dev, "could not setup speaker enable gpio\n");
+-		return err;
+-	}
+-
+ 	err =3D devm_snd_soc_register_card(card->dev, card);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", err);
+--=20
+2.1.4
 
-I'm pretty sure the sane thing to do here is disable RTC-only sleep by
-default. People who care about it can still enable it after they
-verified the particular combination of pcb revision, external
-hardware, and usage scenario is safe (or patched the hardware to make
-it safe, or decided they're willing to take the risk.)
-
-It may be useful to leave some references for those who seek guidance:
-
-1. The issues with AM335x rev 1.0 SoCs are documented in the errata.
-
-2. Unfortunately I still have no idea why TI altered the connection
-diagram w.r.t. "VDDS" (and as a consequence officially defeatured
-RTC-only sleep) when the TPS65217C/D PMIC for AM335x + DDR3/3L memory
-is used. Maybe I'll still get an answer from TI on E2E, but I'm also
-planning to do more thorough testing this week especially w.r.t.
-current consumption patterns during boot and shutdown.
-
-3. The BeagleBone regulator problem is particularly notorious among
-people who (try to) use the PMIC's battery power support, since the
-problem then also surfaces during full shutdown. It has a long
-discussion thread here:
-https://groups.google.com/d/topic/beagleboard/7sxPePT7wkM/discussion
-which includes two posts by me with fairly detailed analysis along
-with scope pics:
-https://groups.google.com/d/msg/beagleboard/7sxPePT7wkM/3vFMPydR20IJ
-https://groups.google.com/d/msg/beagleboard/7sxPePT7wkM/V1Ft-xxh0agJ
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
