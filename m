@@ -1,51 +1,56 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] ASoC: rx51: use flags argument of devm_gpiod_get to set
- direction
-Date: Tue, 19 May 2015 14:10:05 +0200
-Message-ID: <20150519121005.GD24769@pengutronix.de>
-References: <1432021688-25830-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <20150519081650.GA8310@bitmer.com>
- <20150519104458.GF2761@sirena.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ASoC: omap: fix up SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency, again
+Date: Tue, 19 May 2015 14:47:32 +0200
+Message-ID: <3413182.qcoNiOhonF@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43813 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850AbbESMKP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2015 08:10:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20150519104458.GF2761@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: alsa-devel@alsa-project.org
+Cc: broonie@kernel.org, lgirdwood@gmail.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, kernel@pengutronix.de, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
 
-On Tue, May 19, 2015 at 11:44:58AM +0100, Mark Brown wrote:
-> On Tue, May 19, 2015 at 11:16:50AM +0300, Jarkko Nikula wrote:
->=20
-> > I don't think Fixes tag is justified. Otherwise than that
->=20
-> Yes, I don't see any bug fixing here - am I missing something?
-It only becomes a bug once the flags parameter becomes mandatory. But
-right, currently it's not a bug, just inefficient use of the gpiod
-stuff.
+I tried to fix this before and submitted a working patch, but after
+some discussion we came up with what seemed to be a nicer solution,
+resulting in commit 3d4cf65e2d ("ASoC: omap: fix up
+SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency"). Unfortunately, that
+version was incomplete, and we still get this build error:
 
-=46eel free to drop the Fixes: on application.
+drivers/clk/clk-palmas.c:46:16: error: field 'hw' has incomplete type
+drivers/clk/clk-palmas.c: In function 'to_palmas_clks_info':
+drivers/clk/clk-palmas.c:54:74: warning: initialization from incompatible pointer type [-Winc
 
-Best regards
-Uwe
+This happens only in randconfig builds that turn on MFD_PALMAS
+on a platform other than OMAP2+ when COMPILE_TEST is set
+but COMMON_CLK is not.
 
+The new approach is only 'select COMMON_CLK_PALMAS' if we know
+that we are on an OMAP5 platform and MFD_PALMAS is already set.
+This patch has survived thousands of randconfig builds and I
+don't see a remaining hole in the logic.
 
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 3d4cf65e2d ("ASoC: omap: fix up SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency")
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 6768e4f7d7d0..30d0109703a9 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -100,12 +100,13 @@ config SND_OMAP_SOC_OMAP_TWL4030
+ 
+ config SND_OMAP_SOC_OMAP_ABE_TWL6040
+ 	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
+-	depends on TWL6040_CORE && SND_OMAP_SOC && (ARCH_OMAP4 || SOC_OMAP5 || COMPILE_TEST)
++	depends on TWL6040_CORE && SND_OMAP_SOC
++	depends on ARCH_OMAP4 || (SOC_OMAP5 && MFD_PALMAS) || COMPILE_TEST
+ 	select SND_OMAP_SOC_DMIC
+ 	select SND_OMAP_SOC_MCPDM
+ 	select SND_SOC_TWL6040
+ 	select SND_SOC_DMIC
+-	select COMMON_CLK_PALMAS if MFD_PALMAS
++	select COMMON_CLK_PALMAS if (SOC_OMAP5 && MFD_PALMAS)
+ 	help
+ 	  Say Y if you want to add support for SoC audio on OMAP boards using
+ 	  ABE and twl6040 codec. This driver currently supports:
+
