@@ -1,44 +1,51 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v1 15/25] genirq: Kill the first parameter 'irq' of irq_flow_handler_t
-Date: Wed, 20 May 2015 23:32:57 +0800
-Message-ID: <555CA929.3080306@linux.intel.com>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-16-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201715380.4225@nanos>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1505201715380.4225@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: [PATCH] ARM: dts: am335x-boneblack: disable RTC-only sleep
+Date: Wed, 20 May 2015 10:38:42 -0500
+Message-ID: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:36445 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753843AbbETPir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2015 11:38:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Robert Nelson <robertcnelson@gmail.com>, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
 
-On 2015/5/20 23:28, Thomas Gleixner wrote:
-> On Wed, 20 May 2015, Jiang Liu wrote:
->> -static void locomo_handler(unsigned int irq, struct irq_desc *desc)
->> +static void locomo_handler(struct irq_desc *desc)
->>  {
->>  	struct locomo *lchip = irq_desc_get_chip_data(desc);
->> +	unsigned int irq;
->>  	int req, i;
-> 
-> That leaves irq unitialized ....
-That should be OK, 'irq' here is just a local variable.
-Actually it may be changed as:
-        if (req) {
-                /* generate the next interrupt(s) */
--                irq = lchip->irq_base;
-+                unsigned int irq = lchip->irq_base;
-                for (i = 0; i <= 3; i++, irq++) {
-                        if (req & (0x0100 << i)) {
-                                generic_handle_irq(irq);
-                        }
+Fixes: http://bugs.elinux.org/issues/143
 
-                }
-        }
+Entering RTC-only sleep is only properly supported on early prototypes series
+(pre-A6) of the BeagleBone Black.  Since rev (A6A), which include all production
+versions, it is not support at due to.
 
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+(rev A6) enable of the 3v3b regulator moved from LDO2 to LDO4 (3v3a)
+side-effect: 3v3b rail remains on in sleep-mode (also in off-mode when battery-powered)
+
+(rev A6A) am335x vdds supply moved from LDO3 to LDO1
+side-effect: vdds remains supplied in sleep-mode
+
+Reported-by: Matthijs van Duin <matthijsvanduin@gmail.com>
+Tested-by: Matthijs van Duin <matthijsvanduin@gmail.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Johan Hovold <johan@kernel.org>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 5c42d25..901739f 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -80,7 +80,3 @@
+ 		status = "okay";
+ 	};
+ };
+-
+-&rtc {
+-	system-power-controller;
+-};
+-- 
+2.1.4
+
