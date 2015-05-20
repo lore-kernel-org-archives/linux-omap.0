@@ -1,79 +1,93 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv2 4/4] DTS: ARM: OMAP3-N900: Add lis3lv02d support
-Date: Thu, 21 May 2015 00:09:48 +0200
-Message-ID: <20150520220947.GB28218@earth>
-References: <1427467186-9360-1-git-send-email-sre@kernel.org>
- <1427467186-9360-5-git-send-email-sre@kernel.org>
- <20150514224012.GA1835@earth>
- <20150520172121.GA10274@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap clean-up for v4.2
+Date: Wed, 20 May 2015 15:36:04 -0700
+Message-ID: <9446.35615819625$1432161390@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150520172121.GA10274@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from pmta2.delivery3.ore.mailhop.org ([54.213.22.21]:10289 "HELO
+	pmta2.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753681AbbETWgR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 May 2015 18:36:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
 
-Hi,
+are available in the git repository at:
 
-On Wed, May 20, 2015 at 10:21:22AM -0700, Tony Lindgren wrote:
-> * Sebastian Reichel <sre@kernel.org> [150514 15:41]:
-> > On Fri, Mar 27, 2015 at 03:39:46PM +0100, Sebastian Reichel wrote:
-> > > This adds support for the N900's accelerometer to
-> > > the Nokia N900 DTS file.
-> > >=20
-> > > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > > Quote from Tony:
-> > >=20
-> > > This at least currently does not conflict with anything I have
-> > > queued, so I suggest you try to get Greg to take the whole set:
-> > >=20
-> > > http://article.gmane.org/gmane.linux.ports.arm.omap/125020
-> >=20
-> > It seems Greg did not see this message (this patch did not make it
-> > into 4.1-rc and the driver changes did), so could you queue this
-> > patch for 4.2?
->=20
-> Hmm seems to be there as commit 1ac4e6fee41d6.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/clean
 
-uhm right, my mistake. No clue how I missed it (especially since it's
-the last change in the n900 dts file).
+for you to fetch changes up to fd0dbc83c6602ad57f34d1ec0b120fea25fcca56:
 
-Sorry for the noise.
+  Merge branch 'omap-for-v4.2/legacy' into omap-for-v4.2/cleanup (2015-05-20 14:51:05 -0700)
 
--- Sebastian
+----------------------------------------------------------------
+Clean-up for omaps for v4.2 merge window:
 
---jRHKVT23PllUwdXP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Drop more omap3 legacy board-*.c files for v4.2. This time we're
+dropping the board files for beagle, overo and cm-t35.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+The reason for dropping these now rather than later is that now
+we can simply revert the patches in case of unexpected issues as
+we are not dropping any platform data at this point.
 
-iQIcBAEBCgAGBQJVXQYpAAoJENju1/PIO/qaQsoP+gOU99FpuPSmlUF13FBKm4gC
-bsKrpXaFtQVtG6mHNSfjTJ6BhFwnhDX3yQi7F5Z1AEpMIr0cHrU4fKRsZMBVXo2s
-GCrinC4i/u9UdT1eFhJSkU+/sOSQRmOJNMPNlzsjzgLymsRl/Zz3GUTTFie29AiW
-/q/1+q8htQYLnyuckBX9/MHOd00LfplczdaMKbrtNEZlzMKCHdcPRNy3AZgiKDnt
-xpK5JtszgNgE1dqQJbh47GEjxLrUxTgiOmwxVFgc7OmC43Q1QBjGMue4xpf2YEjD
-Njn+G+NmF8NsytLvzizVn/ANPtd8J2+iWIR1btB0mjcV6447a0NRhH0YhXXhaMVD
-kjhiqabquEYBm7pXF/qRM4BmFcEkNlgdyuBi8nbcvf/s3j6FD7jg0sD6/nREocaH
-7vKxnNczrAaGNdwMuE96jcqsjBwof65yw6e48AQ4X71e8fLQrsHHCDMEyUep8UYw
-wF5dsfa7iR4eWxNHipVa/fMVQfNI/dbt9B5zBmSucel0xkbH3gB0YgMIcQzO1mAD
-e/kFcBcmSlTZrYSornDzZlJSPPcy11g064Fh1DklagVphaz4v7zIAtXyMDoNnKdZ
-2ACV7yn2xs63CDQNtG0ufauy9S2zy9Fu2jLuKK8rGsaR8lSSfCiSJKygCR4dMMXp
-veA+W6e/spU8c51miycv
-=ddm0
------END PGP SIGNATURE-----
+This leaves us with only the following board-*.c files:
 
---jRHKVT23PllUwdXP--
+BOARD                   REASON NEEDED
+board-ldp.c             Still used in RMKs boot test system
+board-omap3logic.c      Getting a .dts file for v4.2
+board-omap3pandora.c    Got a .dts file for v4.1
+board-rx51-*.c          Needs /proc/atags support for user space
+
+I'm hoping we can drop the remaining board-*.c for v4.3 merge
+window, then keep the platform data around for one more merge
+window in case of reverting needed, then drop the platform data
+too for v4.4 if no issues needing reverting are found.
+
+Also, few patches to clean-up the usage of Linux generic
+macros:
+
+- Use define for console loglevel
+
+- Use const for struct irq_domain_ops
+
+- Use PTR_ERR_OR_ZERO instead of PTR_RET
+
+----------------------------------------------------------------
+Alexander Kuleshov (1):
+      ARM: OMAP2+: use symbolic defines for console loglevels instead of numbers
+
+Krzysztof Kozlowski (1):
+      ARM: OMAP2+: Constify irq_domain_ops
+
+Nicholas Krause (2):
+      ARM: OMAP2+: Remove calls to deprecacted marco,PTR_RET in the files,fb.c and pmu.c
+      mach-omap2: Remove use of deprecated marco, PTR_RET in devices.c
+
+Tony Lindgren (4):
+      ARM: OMAP2+: Remove legacy booting support for cm-t35
+      ARM: OMAP2+: Remove legacy booting support for Overo
+      ARM: OMAP2+: Remove legacy booting support for Beagleboards
+      Merge branch 'omap-for-v4.2/legacy' into omap-for-v4.2/cleanup
+
+ arch/arm/mach-omap2/Kconfig             |  22 -
+ arch/arm/mach-omap2/Makefile            |   3 -
+ arch/arm/mach-omap2/board-cm-t35.c      | 769 --------------------------------
+ arch/arm/mach-omap2/board-omap3beagle.c | 595 ------------------------
+ arch/arm/mach-omap2/board-overo.c       | 571 ------------------------
+ arch/arm/mach-omap2/devices.c           |   4 +-
+ arch/arm/mach-omap2/fb.c                |   2 +-
+ arch/arm/mach-omap2/omap-wakeupgen.c    |   2 +-
+ arch/arm/mach-omap2/pmu.c               |   2 +-
+ arch/arm/mach-omap2/serial.c            |   2 +-
+ 10 files changed, 6 insertions(+), 1966 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-cm-t35.c
+ delete mode 100644 arch/arm/mach-omap2/board-omap3beagle.c
+ delete mode 100644 arch/arm/mach-omap2/board-overo.c
