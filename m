@@ -1,96 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap clean-up for v4.2
-Date: Wed, 20 May 2015 15:36:04 -0700
-Message-ID: <3856.24324339933$1432161479@news.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 00/27] ARM: OMAP2+: clock code migration to
+ drivers/clk/ti
+Date: Wed, 20 May 2015 22:40:15 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1505202234330.7960@utopia.booyaka.com>
+References: <1431334493-24455-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1505111747460.19833@utopia.booyaka.com> <5551D178.3000904@ti.com> <alpine.DEB.2.02.1505122019220.21747@utopia.booyaka.com> <5552F32C.7060606@ti.com>
+ <alpine.DEB.2.02.1505131438430.7921@utopia.booyaka.com> <555B8DC0.5080905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:51211 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752300AbbETWkQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2015 18:40:16 -0400
+In-Reply-To: <555B8DC0.5080905@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
 
-The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
+On Tue, 19 May 2015, Tero Kristo wrote:
 
-  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
+> Any news on this? As noted previously, I am not able to reproduce the issue
+> you are seeing currently, can you give DEBUG_LL a shot?
 
-are available in the git repository at:
+Yeah I just bisected it, it was caused by this:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/clean
+commit cc4a5fe972ad7834e8662b49b3a5fdb597e9e15e
+Author: Felipe Balbi <balbi@ti.com>
+Date:   Fri Jan 30 11:18:56 2015 -0600
 
-for you to fetch changes up to fd0dbc83c6602ad57f34d1ec0b120fea25fcca56:
+    arm: config: omap2plus_defconfig: switch over to LZMA compression
+    
+    LZMA compression makes about 33% smaller zImage
+    with just a slight extra decompression time.
+    
+    Before this patch, zImage built with o2+_dc
+    is 4.5MiB and after it's about 3.3MiB.
+    
+    Suggested-by: David Cohen <david.a.cohen@linux.intel.com>
+    Signed-off-by: Felipe Balbi <balbi@ti.com>
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-  Merge branch 'omap-for-v4.2/legacy' into omap-for-v4.2/cleanup (2015-05-20 14:51:05 -0700)
 
-----------------------------------------------------------------
-Clean-up for omaps for v4.2 merge window:
+and the timeouts on the testbed being set to fail if a kernel takes longer 
+than five seconds to start.  Seems that the part about a "slight extra 
+decompression time" probably only applies to relatively recent chips.
 
-Drop more omap3 legacy board-*.c files for v4.2. This time we're
-dropping the board files for beagle, overo and cm-t35.
 
-The reason for dropping these now rather than later is that now
-we can simply revert the patches in case of unexpected issues as
-we are not dropping any platform data at this point.
-
-This leaves us with only the following board-*.c files:
-
-BOARD                   REASON NEEDED
-board-ldp.c             Still used in RMKs boot test system
-board-omap3logic.c      Getting a .dts file for v4.2
-board-omap3pandora.c    Got a .dts file for v4.1
-board-rx51-*.c          Needs /proc/atags support for user space
-
-I'm hoping we can drop the remaining board-*.c for v4.3 merge
-window, then keep the platform data around for one more merge
-window in case of reverting needed, then drop the platform data
-too for v4.4 if no issues needing reverting are found.
-
-Also, few patches to clean-up the usage of Linux generic
-macros:
-
-- Use define for console loglevel
-
-- Use const for struct irq_domain_ops
-
-- Use PTR_ERR_OR_ZERO instead of PTR_RET
-
-----------------------------------------------------------------
-Alexander Kuleshov (1):
-      ARM: OMAP2+: use symbolic defines for console loglevels instead of numbers
-
-Krzysztof Kozlowski (1):
-      ARM: OMAP2+: Constify irq_domain_ops
-
-Nicholas Krause (2):
-      ARM: OMAP2+: Remove calls to deprecacted marco,PTR_RET in the files,fb.c and pmu.c
-      mach-omap2: Remove use of deprecated marco, PTR_RET in devices.c
-
-Tony Lindgren (4):
-      ARM: OMAP2+: Remove legacy booting support for cm-t35
-      ARM: OMAP2+: Remove legacy booting support for Overo
-      ARM: OMAP2+: Remove legacy booting support for Beagleboards
-      Merge branch 'omap-for-v4.2/legacy' into omap-for-v4.2/cleanup
-
- arch/arm/mach-omap2/Kconfig             |  22 -
- arch/arm/mach-omap2/Makefile            |   3 -
- arch/arm/mach-omap2/board-cm-t35.c      | 769 --------------------------------
- arch/arm/mach-omap2/board-omap3beagle.c | 595 ------------------------
- arch/arm/mach-omap2/board-overo.c       | 571 ------------------------
- arch/arm/mach-omap2/devices.c           |   4 +-
- arch/arm/mach-omap2/fb.c                |   2 +-
- arch/arm/mach-omap2/omap-wakeupgen.c    |   2 +-
- arch/arm/mach-omap2/pmu.c               |   2 +-
- arch/arm/mach-omap2/serial.c            |   2 +-
- 10 files changed, 6 insertions(+), 1966 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-cm-t35.c
- delete mode 100644 arch/arm/mach-omap2/board-omap3beagle.c
- delete mode 100644 arch/arm/mach-omap2/board-overo.c
+- Paul
