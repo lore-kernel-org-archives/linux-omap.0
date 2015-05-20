@@ -1,75 +1,75 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] am335x-evm: add bluetooth support
-Date: Wed, 20 May 2015 10:56:37 -0700
-Message-ID: <20150520175636.GF10274@atomide.com>
-References: <1430743273-2518-1-git-send-email-eyalr@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap3-gta04: Add GSM audio support
+Date: Wed, 20 May 2015 10:58:22 -0700
+Message-ID: <20150520175822.GG10274@atomide.com>
+References: <1431027305-17627-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1430743273-2518-1-git-send-email-eyalr-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1431027305-17627-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Eyal Reizer <eyalreizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150504 05:43]:
-> From: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+* Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [150507 12:36]:
+> Add voice audio card which is used for telephony on gta04 board.
+> gtm601 codec is UMTS modem with pcm interface which get samples from
+> microphone and provide data from other party side. Use simple audio card
+> to describe audio card.
 > 
-> uart1 is used for connecting to wilink8 bluetooth subsystem.
-> add the needed muxes and definitions.
-> 
-> Signed-off-by: Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 
 Applying into omap-for-v4.2/dt thanks.
 
 Tony
 
 > ---
-> Changes in v2:
-> removed ti shared transport bindings
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
 > 
->  arch/arm/boot/dts/am335x-evm.dts |   16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 0f398fa..765be27 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -191,6 +191,15 @@
->  		>;
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> index b9f6881..a3a4156 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -48,6 +48,28 @@
+>  		ti,mcbsp = <&mcbsp2>;
 >  	};
 >  
-> +	uart1_pins: pinmux_uart1_pins {
-> +		pinctrl-single,pins = <
-> +			0x178 (PIN_INPUT | MUX_MODE0)		/* uart1_ctsn.uart1_ctsn */
-> +			0x17C (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart1_rtsn.uart1_rtsn */
-> +			0x180 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart1_rxd.uart1_rxd */
-> +			0x184 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart1_txd.uart1_txd */
-> +		>;
+> +	 /* GSM audio */
+> +	sound_telephony {
+> +		compatible = "simple-audio-card";
+> +		simple-audio-card,name = "GTA04 voice";
+> +		simple-audio-card,bitclock-master = <&telephony_link_master>;
+> +		simple-audio-card,frame-master = <&telephony_link_master>;
+> +		simple-audio-card,format = "i2s";
+> +
+> +		simple-audio-card,cpu {
+> +			sound-dai = <&mcbsp4>;
+> +		};
+> +
+> +		telephony_link_master: simple-audio-card,codec {
+> +			sound-dai = <&gtm601_codec>;
+> +		};
 > +	};
 > +
->  	clkout2_pin: pinmux_clkout2_pin {
->  		pinctrl-single,pins = <
->  			0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
-> @@ -357,6 +366,13 @@
+> +	gtm601_codec: gsm_codec {
+> +		compatible = "option,gtm601";
+> +		#sound-dai-cells = <0>;
+> +	};
+> +
+>  	spi_lcd {
+>  		compatible = "spi-gpio";
+>  		#address-cells = <0x1>;
+> @@ -517,3 +539,7 @@
+>  &mcbsp2 {
 >  	status = "okay";
 >  };
->  
-> +&uart1 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart1_pins>;
 > +
+> +&mcbsp4 {
 > +	status = "okay";
 > +};
-> +
->  &i2c0 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&i2c0_pins>;
-> -- 
-> 1.7.9.5
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
