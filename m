@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] omap1 sparse irq support for v4.2
-Date: Wed, 20 May 2015 15:36:05 -0700
-Message-ID: <24089.1311470934$1432161461@news.gmane.org>
-References: <pull-1432161303-403113>
+Subject: [GIT PULL 1/2] omap clean-up for v4.2
+Date: Wed, 20 May 2015 15:36:04 -0700
+Message-ID: <3856.24324339933$1432161479@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1432161303-403113>
-In-Reply-To: <pull-1432161303-403113>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,61 +19,78 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 030bbdbf4c833bc69f502eae58498bc5572db736:
+The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
 
-  Linux 4.1-rc3 (2015-05-10 15:12:29 -0700)
+  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/omap1
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/clean
 
-for you to fetch changes up to 685e2d08c54b1a1bf31bbe6562f06db089d31c7b:
+for you to fetch changes up to fd0dbc83c6602ad57f34d1ec0b120fea25fcca56:
 
-  ARM: OMAP1: Change interrupt numbering for sparse IRQ (2015-05-20 09:01:21 -0700)
-
-----------------------------------------------------------------
-Add support for CONFIG_SPARSE_IRQ for omap1. This takes us a bit closer
-to making omap1 support multiarch. After this series we still need to
-make omap1 use the common clock framework and fix up the drivers to not
-rely on includes from mach and plat directories.
-
-Note that this branch depends on a GPIO driver fix in v4.1-rc3
-d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
+  Merge branch 'omap-for-v4.2/legacy' into omap-for-v4.2/cleanup (2015-05-20 14:51:05 -0700)
 
 ----------------------------------------------------------------
+Clean-up for omaps for v4.2 merge window:
+
+Drop more omap3 legacy board-*.c files for v4.2. This time we're
+dropping the board files for beagle, overo and cm-t35.
+
+The reason for dropping these now rather than later is that now
+we can simply revert the patches in case of unexpected issues as
+we are not dropping any platform data at this point.
+
+This leaves us with only the following board-*.c files:
+
+BOARD                   REASON NEEDED
+board-ldp.c             Still used in RMKs boot test system
+board-omap3logic.c      Getting a .dts file for v4.2
+board-omap3pandora.c    Got a .dts file for v4.1
+board-rx51-*.c          Needs /proc/atags support for user space
+
+I'm hoping we can drop the remaining board-*.c for v4.3 merge
+window, then keep the platform data around for one more merge
+window in case of reverting needed, then drop the platform data
+too for v4.4 if no issues needing reverting are found.
+
+Also, few patches to clean-up the usage of Linux generic
+macros:
+
+- Use define for console loglevel
+
+- Use const for struct irq_domain_ops
+
+- Use PTR_ERR_OR_ZERO instead of PTR_RET
+
+----------------------------------------------------------------
+Alexander Kuleshov (1):
+      ARM: OMAP2+: use symbolic defines for console loglevels instead of numbers
+
+Krzysztof Kozlowski (1):
+      ARM: OMAP2+: Constify irq_domain_ops
+
+Nicholas Krause (2):
+      ARM: OMAP2+: Remove calls to deprecacted marco,PTR_RET in the files,fb.c and pmu.c
+      mach-omap2: Remove use of deprecated marco, PTR_RET in devices.c
+
 Tony Lindgren (4):
-      ARM: OMAP1: Move UART defines to prepare for sparse IRQ
-      ARM: OMAP1: Switch to use generic irqchip in preparation for sparse IRQ
-      ARM: omap1: Switch to use MULTI_IRQ
-      ARM: OMAP1: Change interrupt numbering for sparse IRQ
+      ARM: OMAP2+: Remove legacy booting support for cm-t35
+      ARM: OMAP2+: Remove legacy booting support for Overo
+      ARM: OMAP2+: Remove legacy booting support for Beagleboards
+      Merge branch 'omap-for-v4.2/legacy' into omap-for-v4.2/cleanup
 
- arch/arm/Kconfig                               |   2 +
- arch/arm/mach-omap1/ams-delta-fiq-handler.S    |   3 +-
- arch/arm/mach-omap1/board-ams-delta.c          |   1 +
- arch/arm/mach-omap1/board-fsample.c            |   1 +
- arch/arm/mach-omap1/board-generic.c            |   1 +
- arch/arm/mach-omap1/board-h2.c                 |   1 +
- arch/arm/mach-omap1/board-h3.c                 |   1 +
- arch/arm/mach-omap1/board-htcherald.c          |   1 +
- arch/arm/mach-omap1/board-innovator.c          |   1 +
- arch/arm/mach-omap1/board-nokia770.c           |   1 +
- arch/arm/mach-omap1/board-osk.c                |   1 +
- arch/arm/mach-omap1/board-palmte.c             |   1 +
- arch/arm/mach-omap1/board-palmtt.c             |   1 +
- arch/arm/mach-omap1/board-palmz71.c            |   1 +
- arch/arm/mach-omap1/board-perseus2.c           |   1 +
- arch/arm/mach-omap1/board-sx1.c                |   1 +
- arch/arm/mach-omap1/board-voiceblue.c          |   1 +
- arch/arm/mach-omap1/common.h                   |   5 +-
- arch/arm/mach-omap1/dma.c                      |   2 +-
- arch/arm/mach-omap1/i2c.c                      |   3 +-
- arch/arm/mach-omap1/include/mach/entry-macro.S |  39 ------
- arch/arm/mach-omap1/include/mach/irqs.h        | 124 ++++++++++---------
- arch/arm/mach-omap1/include/mach/serial.h      |   5 -
- arch/arm/mach-omap1/include/mach/soc.h         |   4 +
- arch/arm/mach-omap1/irq.c                      | 157 +++++++++++++++----------
- arch/arm/mach-omap1/timer.c                    |   4 +-
- arch/arm/plat-omap/dma.c                       |   4 +
- include/uapi/linux/serial_reg.h                |   3 +
- 28 files changed, 190 insertions(+), 180 deletions(-)
- delete mode 100644 arch/arm/mach-omap1/include/mach/entry-macro.S
+ arch/arm/mach-omap2/Kconfig             |  22 -
+ arch/arm/mach-omap2/Makefile            |   3 -
+ arch/arm/mach-omap2/board-cm-t35.c      | 769 --------------------------------
+ arch/arm/mach-omap2/board-omap3beagle.c | 595 ------------------------
+ arch/arm/mach-omap2/board-overo.c       | 571 ------------------------
+ arch/arm/mach-omap2/devices.c           |   4 +-
+ arch/arm/mach-omap2/fb.c                |   2 +-
+ arch/arm/mach-omap2/omap-wakeupgen.c    |   2 +-
+ arch/arm/mach-omap2/pmu.c               |   2 +-
+ arch/arm/mach-omap2/serial.c            |   2 +-
+ 10 files changed, 6 insertions(+), 1966 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-cm-t35.c
+ delete mode 100644 arch/arm/mach-omap2/board-omap3beagle.c
+ delete mode 100644 arch/arm/mach-omap2/board-overo.c
