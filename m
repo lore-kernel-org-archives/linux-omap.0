@@ -1,46 +1,39 @@
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: Re: [PATCH RESEND] mach-omap2:Remove calls to deprecacted marco,
- PTR_RET in the files, fb.c and pmu.c
-Date: Wed, 20 May 2015 14:10:36 -0400
-Message-ID: <4C6EB19A-6533-40E9-AD8B-CF0B9CB69D91@gmail.com>
-References: <1431958079-486-1-git-send-email-xerofoify@gmail.com>
- <20150520180703.GI10274@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: add DT nodes for ov2659 sensor
+Date: Wed, 20 May 2015 11:14:06 -0700
+Message-ID: <20150520181406.GK10274@atomide.com>
+References: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com>
+ <20150316221740.GQ12397@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150520180703.GI10274@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150316221740.GQ12397-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lad Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [150316 15:22]:
+> * Lad Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150312 16:38]:
+> > From: "Lad, Prabhakar" <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > 
+> > this patch does the following:
+> > 1: adds DT node for fixed oscillator.
+> > 2: adds DT node entries for ov2659 sensor
+> > 3: adds remote-endpoint entry for VPFE.
+> > 
+> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+> Applying into omap-for-v4.1/dt thanks.
 
+Hmm looks like I somehow dropped this one, sorry. Applying into
+omap-for-v4.2/dt now thanks.
 
-On May 20, 2015 2:07:03 PM EDT, Tony Lindgren <tony@atomide.com> wrote:
->* Nicholas Krause <xerofoify@gmail.com> [150518 07:09]:
->> This removes two calls to the deprecated marco,PTR_RET in
->> the files,fb.c and pmu.c for the functions,omap_init_vrfb
->> and omap_init_pmu respectfully. Furthermore these are now
->> replaced by calling the correctly non deprecacted function,
->> PTR_ERR_OR_ZERO in both functions.
->
->I've applied the original version today as they seem to be
->the same.
->
->Thanks,
->
->Tony
-That's fine.  I just resent due to the rule about resending after a week. 
-Nick
+Regards,
 
--- 
-Sent from my Android device with K-9 Mail. Please excuse my brevity.
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
