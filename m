@@ -1,84 +1,230 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 10/10] CLK: TI: always enable DESHDCP clock
-Date: Wed, 20 May 2015 14:50:00 +0300
-Message-ID: <555C74E8.5010105@ti.com>
-References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com> <1430906938-26128-11-git-send-email-tomi.valkeinen@ti.com> <555C744C.6070901@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 1/3] phy: ti-pipe3: fix suspend
+Date: Wed, 20 May 2015 18:34:17 +0530
+Message-ID: <555C8651.7060805@ti.com>
+References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51620 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752045AbbETLua (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2015 07:50:30 -0400
-In-Reply-To: <555C744C.6070901@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1431446828-5473-2-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Nishanth Menon <nm@ti.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
 
-On 05/20/2015 02:47 PM, Tero Kristo wrote:
-> On 05/06/2015 01:08 PM, Tomi Valkeinen wrote:
->> DESHDCP clock is needed on DRA7 based SoCs to enable the DSS IP. That
->> clock is an odd one, as it is not supposed to be any kind of core clock
->> for DSS, and we don't even support HDCP, but the clock is still needed
->> even for the HWMOD framework to be able to reset the DSS IP.
->>
->> As there's no support for multiple core clocks in the HWMOD framework,
->> we don't have any obvious place to enable this clock when DSS IP is
->> being enabled.
->>
->> Furthermore, the HDMI on OMAP5 DSS is the same as on DRA7, and OMAP5
->> does not have any such clock configuration bit. This suggests that on
->> OMAP5 the DESHDCP clock is always enabled, and for DRA7 we have the
->> possibility to gate it.
->>
->> So, as we don't have any clean way to enable and disable the clock
->> based on the need, this patch enables the clock at boot time, making it
->> work similarly to OMAP5.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> ---
->>   drivers/clk/ti/clk-7xx.c | 7 ++++++-
->>   1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->> index 2dd956b9affa..63b8323df918 100644
->> --- a/drivers/clk/ti/clk-7xx.c
->> +++ b/drivers/clk/ti/clk-7xx.c
->> @@ -312,7 +312,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
->>   int __init dra7xx_dt_clk_init(void)
->>   {
->>       int rc;
->> -    struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck;
->> +    struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck, *hdcp_ck;
->>
->>       ti_dt_clocks_register(dra7xx_clks);
->>
->> @@ -348,5 +348,10 @@ int __init dra7xx_dt_clk_init(void)
->>       if (rc)
->>           pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
->>
->> +    hdcp_ck = clk_get_sys(NULL, "dss_deshdcp_clk");
->> +    rc = clk_prepare_enable(hdcp_ck);
->> +    if (rc)
->> +        pr_err("%s: failed to set dss_deshdcp_clk\n", __func__);
->> +
->>       return rc;
->>   }
->>
+Hi Roger,
+
+On Tuesday 12 May 2015 09:37 PM, Roger Quadros wrote:
+> Relying on PM-ops for shutting down PHY clocks was a
+> bad idea since the users (e.g. PCIe/SATA) might not
+> have been suspended by then.
 >
-> You should rather use the assigned-clock properties in DT to accomplish
-> this, the manual clock tweaks under the drivers/clk/ti/clk-* files
-> should be converted to DT setup also.
-
-Now that I sent this, I realize we only have support to set_parent / 
-set_rate through the assigned-clock props, no enable. Any plans to 
-extend this support Mike/Stephen?
-
--Tero
-
+> The main culprit for not shutting down the clocks was
+> the stray pm_runtime_get() call in probe.
 >
-> -Tero
+> Fix the whole thing in the right way by getting rid
+> of that pm_runtime_get() call from probe and
+> removing all PM-ops. It is the sole responsibility
+> of the PHY user to properly turn OFF and de-initialize
+> the PHY as part of its suspend routine.
 >
+> As PHY core serializes init/exit we don't need
+> to use a spinlock in this driver. So get rid of it.
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>   drivers/phy/phy-ti-pipe3.c | 112 ++++++++-------------------------------------
+>   1 file changed, 18 insertions(+), 94 deletions(-)
+>
+> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+> index 53f295c..e13a306 100644
+> --- a/drivers/phy/phy-ti-pipe3.c
+> +++ b/drivers/phy/phy-ti-pipe3.c
+> @@ -28,7 +28,6 @@
+>   #include <linux/delay.h>
+>   #include <linux/phy/omap_control_phy.h>
+>   #include <linux/of_platform.h>
+> -#include <linux/spinlock.h>
+>
+>   #define	PLL_STATUS		0x00000004
+>   #define	PLL_GO			0x00000008
+> @@ -83,10 +82,6 @@ struct ti_pipe3 {
+>   	struct clk		*refclk;
+>   	struct clk		*div_clk;
+>   	struct pipe3_dpll_map	*dpll_map;
+> -	bool			enabled;
+> -	spinlock_t		lock;	/* serialize clock enable/disable */
+> -	/* the below flag is needed specifically for SATA */
+> -	bool			refclk_enabled;
+>   };
+>
+>   static struct pipe3_dpll_map dpll_map_usb[] = {
+> @@ -137,6 +132,9 @@ static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(struct ti_pipe3 *phy)
+>   	return NULL;
+>   }
+>
+> +static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy);
+> +static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy);
+> +
+>   static int ti_pipe3_power_off(struct phy *x)
+>   {
+>   	struct ti_pipe3 *phy = phy_get_drvdata(x);
+> @@ -217,6 +215,7 @@ static int ti_pipe3_init(struct phy *x)
+>   	u32 val;
+>   	int ret = 0;
+>
+> +	ti_pipe3_enable_clocks(phy);
+>   	/*
+>   	 * Set pcie_pcs register to 0x96 for proper functioning of phy
+>   	 * as recommended in AM572x TRM SPRUHZ6, section 18.5.2.2, table
+> @@ -277,6 +276,8 @@ static int ti_pipe3_exit(struct phy *x)
+>   		return -EBUSY;
+>   	}
+>
+> +	ti_pipe3_disable_clocks(phy);
+> +
+>   	return 0;
+>   }
+>   static struct phy_ops ops = {
+> @@ -305,8 +306,7 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>   	if (!phy)
+>   		return -ENOMEM;
+>
+> -	phy->dev		= &pdev->dev;
+> -	spin_lock_init(&phy->lock);
+> +	phy->dev = &pdev->dev;
 
+this looks more of a cleanup.
+>
+>   	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+>   		match = of_match_device(ti_pipe3_id_table, &pdev->dev);
+> @@ -402,6 +402,9 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>
+>   	platform_set_drvdata(pdev, phy);
+>   	pm_runtime_enable(phy->dev);
+> +	/* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
+> +	if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
+> +		clk_prepare_enable(phy->refclk);
+>
+>   	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
+>   	if (IS_ERR(generic_phy))
+> @@ -413,24 +416,19 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>   	if (IS_ERR(phy_provider))
+>   		return PTR_ERR(phy_provider);
+>
+> -	pm_runtime_get(&pdev->dev);
+> -
+>   	return 0;
+>   }
+>
+>   static int ti_pipe3_remove(struct platform_device *pdev)
+>   {
+> -	if (!pm_runtime_suspended(&pdev->dev))
+> -		pm_runtime_put(&pdev->dev);
+>   	pm_runtime_disable(&pdev->dev);
+>
+>   	return 0;
+>   }
+>
+> -#ifdef CONFIG_PM
+>   static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
+>   {
+> -	if (!IS_ERR(phy->refclk) && !phy->refclk_enabled) {
+> +	if (!IS_ERR(phy->refclk)) {
+>   		int ret;
+>
+>   		ret = clk_prepare_enable(phy->refclk);
+> @@ -438,7 +436,6 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
+>   			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
+>   			return ret;
+>   		}
+> -		phy->refclk_enabled = true;
+>   	}
+>
+>   	return 0;
+> @@ -448,28 +445,21 @@ static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
+>   {
+>   	if (!IS_ERR(phy->refclk))
+>   		clk_disable_unprepare(phy->refclk);
+> -
+> -	phy->refclk_enabled = false;
+>   }
+>
+>   static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
+>   {
+>   	int ret = 0;
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(&phy->lock, flags);
+> -	if (phy->enabled)
+> -		goto err1;
+>
+>   	ret = ti_pipe3_enable_refclk(phy);
+
+we can enable refclk here itself instead of having a separate function it?
+>   	if (ret)
+> -		goto err1;
+> +		return ret;
+>
+>   	if (!IS_ERR(phy->wkupclk)) {
+>   		ret = clk_prepare_enable(phy->wkupclk);
+>   		if (ret) {
+>   			dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
+> -			goto err2;
+> +			goto disable_refclk;
+>   		}
+>   	}
+>
+> @@ -477,96 +467,31 @@ static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
+>   		ret = clk_prepare_enable(phy->div_clk);
+>   		if (ret) {
+>   			dev_err(phy->dev, "Failed to enable div_clk %d\n", ret);
+> -			goto err3;
+> +			goto disable_wkupclk;
+>   		}
+>   	}
+>
+> -	phy->enabled = true;
+> -	spin_unlock_irqrestore(&phy->lock, flags);
+>   	return 0;
+>
+> -err3:
+> +disable_wkupclk:
+>   	if (!IS_ERR(phy->wkupclk))
+>   		clk_disable_unprepare(phy->wkupclk);
+>
+> -err2:
+> -	if (!IS_ERR(phy->refclk))
+> -		clk_disable_unprepare(phy->refclk);
+> -
+> +disable_refclk:
+>   	ti_pipe3_disable_refclk(phy);
+> -err1:
+> -	spin_unlock_irqrestore(&phy->lock, flags);
+> +
+>   	return ret;
+>   }
+>
+>   static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy)
+>   {
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(&phy->lock, flags);
+> -	if (!phy->enabled) {
+> -		spin_unlock_irqrestore(&phy->lock, flags);
+> -		return;
+> -	}
+> -
+>   	if (!IS_ERR(phy->wkupclk))
+>   		clk_disable_unprepare(phy->wkupclk);
+> -	/* Don't disable refclk for SATA PHY due to Errata i783 */
+> -	if (!of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata"))
+> -		ti_pipe3_disable_refclk(phy);
+> +	ti_pipe3_disable_refclk(phy);
+
+here too. we can get rid of ti_pipe3_disable_refclk and ti_pipe3_enable_refclk.
+
+Thanks
+Kishon
