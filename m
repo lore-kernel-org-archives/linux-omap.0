@@ -1,31 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: dts: Beaglebone i2c definitions
-Date: Wed, 20 May 2015 11:17:08 -0700
-Message-ID: <20150520181708.GL10274@atomide.com>
-References: <1431504274-32084-1-git-send-email-pantelis.antoniou@konsulko.com>
- <20150514153822.GJ15563@atomide.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCHv2 02/27] clk: ti: move generic OMAP DPLL implementation
+ under drivers/clk
+Date: Wed, 20 May 2015 11:23:19 -0700
+Message-ID: <20150520182319.GD4815@codeaurora.org>
+References: <1431334493-24455-1-git-send-email-t-kristo@ti.com>
+ <1431334493-24455-3-git-send-email-t-kristo@ti.com>
+ <20150520012053.GC31054@codeaurora.org>
+ <555CC7CA.2090104@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:37185 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795AbbETSXV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2015 14:23:21 -0400
 Content-Disposition: inline
-In-Reply-To: <20150514153822.GJ15563@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <pantelis.antoniou@konsulko.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Matt Porter <mporter@konsulko.com>, Koen Kooi <koen@dominion.thruhere.net>, Robert Nelson <robertcnelson@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Geert Uytterhoeven <geert+renesas@glider.be>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Pantelis Antoniou <panto@antoniou-consulting.com>
+In-Reply-To: <555CC7CA.2090104@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [150514 08:40]:
-> * Pantelis Antoniou <pantelis.antoniou@konsulko.com> [150513 01:05]:
-> > The beaglebone family of boards contain two I2C busses enabled.
-> > The first one with a baseboard identification EEPROM and a
-> > cape I2C bus.
+On 05/20, Tero Kristo wrote:
+> On 05/20/2015 04:20 AM, Stephen Boyd wrote:
+> >On 05/11, Tero Kristo wrote:
+> >>With the legacy clock data now gone, we can start moving OMAP clock
+> >>type implementations under clock driver. Start this with moving the
+> >>generic OMAP DPLL clock type under TI clock driver.
+> >>
+> >>Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> >>---
+> >
+> >How much of the code is the same from the original copy? Can you
+> >generate these patches with -M -C so that we can see?
 > 
-> This seems safe to apply as the i2c2 pins are listed in the cape
-> specification.
+> Looks like for the move patches the range is from 85%...95% exact
+> copy. Shall I repost the patches in this format?
+
+Sure, a resend would be nice to actually see what changed. If
+that's too much mail, maybe you can share the diffstat for the
+whole series with -M -C so we can see what's moved instead.
+
+> Good hint for the
+> -M -C btw, I wonder why those are not default options for
+> git-format-patch.
 > 
-> These pins could be used for other devices too.. But in that case
-> the cape would not follow the cape standard.
 
-So applying this one into omap-for-v4.2/dt thanks.
+I think it isn't the default because 'patch' the program didn't
+always support the diff format that git generates with the -M and
+-C options. FWIW, I have
 
-Tony
+	[diff] 
+		renames = copy
+
+in my .gitconfig for this purpose.
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
