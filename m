@@ -1,45 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Constify irq_domain_ops
-Date: Wed, 20 May 2015 10:14:38 -0700
-Message-ID: <20150520171437.GZ10274@atomide.com>
-References: <1430138984-3523-1-git-send-email-k.kozlowski.k@gmail.com>
+Subject: Re: [PATCHv2 4/4] DTS: ARM: OMAP3-N900: Add lis3lv02d support
+Date: Wed, 20 May 2015 10:21:22 -0700
+Message-ID: <20150520172121.GA10274@atomide.com>
+References: <1427467186-9360-1-git-send-email-sre@kernel.org>
+ <1427467186-9360-5-git-send-email-sre@kernel.org>
+ <20150514224012.GA1835@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1430138984-3523-1-git-send-email-k.kozlowski.k@gmail.com>
+In-Reply-To: <20150514224012.GA1835@earth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Krzysztof Kozlowski <k.kozlowski.k@gmail.com> [150427 05:52]:
-> The irq_domain_ops are not modified by the driver and the irqdomain core
-> code accepts pointer to a const data.
+* Sebastian Reichel <sre@kernel.org> [150514 15:41]:
+> Hi Tony,
 > 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+> On Fri, Mar 27, 2015 at 03:39:46PM +0100, Sebastian Reichel wrote:
+> > This adds support for the N900's accelerometer to
+> > the Nokia N900 DTS file.
+> > 
+> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> > Quote from Tony:
+> > 
+> > This at least currently does not conflict with anything I have
+> > queued, so I suggest you try to get Greg to take the whole set:
+> > 
+> > http://article.gmane.org/gmane.linux.ports.arm.omap/125020
+> 
+> It seems Greg did not see this message (this patch did not make it
+> into 4.1-rc and the driver changes did), so could you queue this
+> patch for 4.2?
 
-Applying into omap-for-v4.2/cleanup thanks.
+Hmm seems to be there as commit 1ac4e6fee41d6.
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/omap-wakeupgen.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-> index 3b56722dfd8a..8e52621b5a6b 100644
-> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
-> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-> @@ -444,7 +444,7 @@ static int wakeupgen_domain_alloc(struct irq_domain *domain,
->  	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, &parent_args);
->  }
->  
-> -static struct irq_domain_ops wakeupgen_domain_ops = {
-> +static const struct irq_domain_ops wakeupgen_domain_ops = {
->  	.xlate	= wakeupgen_domain_xlate,
->  	.alloc	= wakeupgen_domain_alloc,
->  	.free	= irq_domain_free_irqs_common,
-> -- 
-> 2.1.0
-> 
