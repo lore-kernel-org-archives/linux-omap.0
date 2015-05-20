@@ -1,39 +1,31 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: add DT nodes for ov2659 sensor
-Date: Wed, 20 May 2015 11:14:06 -0700
-Message-ID: <20150520181406.GK10274@atomide.com>
-References: <1426203501-32115-1-git-send-email-prabhakar.csengg@gmail.com>
- <20150316221740.GQ12397@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: dts: Beaglebone i2c definitions
+Date: Wed, 20 May 2015 11:17:08 -0700
+Message-ID: <20150520181708.GL10274@atomide.com>
+References: <1431504274-32084-1-git-send-email-pantelis.antoniou@konsulko.com>
+ <20150514153822.GJ15563@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150316221740.GQ12397-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lad Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20150514153822.GJ15563@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <pantelis.antoniou@konsulko.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Matt Porter <mporter@konsulko.com>, Koen Kooi <koen@dominion.thruhere.net>, Robert Nelson <robertcnelson@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Geert Uytterhoeven <geert+renesas@glider.be>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Pantelis Antoniou <panto@antoniou-consulting.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [150316 15:22]:
-> * Lad Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150312 16:38]:
-> > From: "Lad, Prabhakar" <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > 
-> > this patch does the following:
-> > 1: adds DT node for fixed oscillator.
-> > 2: adds DT node entries for ov2659 sensor
-> > 3: adds remote-endpoint entry for VPFE.
-> > 
-> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+* Tony Lindgren <tony@atomide.com> [150514 08:40]:
+> * Pantelis Antoniou <pantelis.antoniou@konsulko.com> [150513 01:05]:
+> > The beaglebone family of boards contain two I2C busses enabled.
+> > The first one with a baseboard identification EEPROM and a
+> > cape I2C bus.
 > 
-> Applying into omap-for-v4.1/dt thanks.
+> This seems safe to apply as the i2c2 pins are listed in the cape
+> specification.
+> 
+> These pins could be used for other devices too.. But in that case
+> the cape would not follow the cape standard.
 
-Hmm looks like I somehow dropped this one, sorry. Applying into
-omap-for-v4.2/dt now thanks.
-
-Regards,
+So applying this one into omap-for-v4.2/dt thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
