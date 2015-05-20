@@ -1,23 +1,26 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: [GIT PULL 2/2] omap1 sparse irq support for v4.2
 Date: Wed, 20 May 2015 15:36:05 -0700
-Message-ID: <22301.4094088741$1432161393@news.gmane.org>
+Message-ID: <24089.1311470934$1432161461@news.gmane.org>
 References: <pull-1432161303-403113>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery3.ore.mailhop.org ([54.213.22.21]:10358 "HELO
-	pmta2.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753681AbbETWgV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2015 18:36:21 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <pull-1432161303-403113>
 In-Reply-To: <pull-1432161303-403113>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
 The following changes since commit 030bbdbf4c833bc69f502eae58498bc5572db736:
 
