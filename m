@@ -1,54 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Fix WLAN interrupt line for AM335x EVM-SK
-Date: Wed, 20 May 2015 09:52:23 -0700
-Message-ID: <20150520165223.GW10274@atomide.com>
-References: <1431502655-23255-1-git-send-email-romain.izard.pro@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: add core2 padconf region for am3517
+Date: Wed, 20 May 2015 10:11:46 -0700
+Message-ID: <20150520171146.GX10274@atomide.com>
+References: <1431293273-19321-1-git-send-email-andrej.skvortzov@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:52446 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753736AbbETQwZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2015 12:52:25 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1431502655-23255-1-git-send-email-romain.izard.pro@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1431293273-19321-1-git-send-email-andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrey Skvortsov <andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Romain Izard <romain.izard.pro@gmail.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-* Romain Izard <romain.izard.pro@gmail.com> [150513 00:39]:
-> While Sitara AM335x SoCs are very close to OMAP SoCs, the 32-line GPIO
-> controllers are numbered from 0 on AM335x and from 1 on OMAP. But when
-> the configuration for the TI WLAN controllers was converted from
-> platform data to device tree, this detail was overlooked, as 10 boards
-> were using OMAP with the WL12xx and WL18xx controllers, and only one
-> was based on AM335x.
+* Andrey Skvortsov <andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150510 14:29]:
+> According to the technical reference manual for AM35xx system
+> controller module (SCM) PADCONFS core registers are divided in two
+> regions: 0x48002030..0x48002268 and 0x480025d8..0x480025FC.
+> First region is the same for all omap3 SoC and is described in omap3.dtsi.
+> The second region is the same as in omap34xx (see omap34xx.dtsi)
+> and omap35xx. The patch adds missing description for the second region.
+> This patch was tested on AM3517.
 > 
-> This invalid configuration prevents the WL1271 module on the AM335x
-> EVM-SK from notifying interrupts to the SoC, and breaks the wlan driver.
-> 
-> The DTS must be corrected to use the correct GPIO controller.
-> 
-> Signed-off-by: Romain Izard <romain.izard.pro@gmail.com>
-> ---
->  arch/arm/boot/dts/am335x-evmsk.dts | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-> index 87fc7a35e802..156d05efcb70 100644
-> --- a/arch/arm/boot/dts/am335x-evmsk.dts
-> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> @@ -654,7 +654,7 @@
->  	wlcore: wlcore@2 {
->  		compatible = "ti,wl1271";
->  		reg = <2>;
-> -		interrupt-parent = <&gpio1>;
-> +		interrupt-parent = <&gpio0>;
->  		interrupts = <31 IRQ_TYPE_LEVEL_HIGH>; /* gpio 31 */
->  		ref-clock-frequency = <38400000>;
->  	};
+> Signed-off-by: Andrey Skvortsov <andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Applying into omap-for-v4.1/fixes thanks.
+Applying into omap-for-v4.2/dt thanks.
 
 Tony
+
+> Commit 3d495383648a ("ARM: dts: Split omap3 pinmux core device") notes that
+> Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> said that 3517 does not have padconf2 region.
+> Unfortunately I couldn't find reference to his post on mailing list.
+> This patch was tested on AM3517 SoC and original vendor code contains
+> pinmuxing for this second region as well.
+> 
+>  arch/arm/boot/dts/am3517.dtsi | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+> index c90724b..2534500 100644
+> --- a/arch/arm/boot/dts/am3517.dtsi
+> +++ b/arch/arm/boot/dts/am3517.dtsi
+> @@ -60,5 +60,16 @@
+>  			dma-names = "tx", "rx";
+>  			clock-frequency = <48000000>;
+>  		};
+> +
+> +		omap3_pmx_core2: pinmux@480025D8 {
+> +			compatible = "ti,omap3-padconf", "pinctrl-single";
+> +			reg = <0x480025D8 0x24>;
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			#interrupt-cells = <1>;
+> +			interrupt-controller;
+> +			pinctrl-single,register-width = <16>;
+> +			pinctrl-single,function-mask = <0xff1f>;
+> +		};
+>  	};
+>  };
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
