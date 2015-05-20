@@ -1,230 +1,196 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/3] phy: ti-pipe3: fix suspend
-Date: Wed, 20 May 2015 18:34:17 +0530
-Message-ID: <555C8651.7060805@ti.com>
-References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-2-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 2/3] phy: ti-pipe3: i783 workaround for SATA lockup after
+ dpll unlock/relock
+Date: Wed, 20 May 2015 18:49:14 +0530
+Message-ID: <555C89D2.5070301@ti.com>
+References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1431446828-5473-2-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41130 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753791AbbETNTX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2015 09:19:23 -0400
+In-Reply-To: <1431446828-5473-3-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
 Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
 Hi Roger,
 
 On Tuesday 12 May 2015 09:37 PM, Roger Quadros wrote:
-> Relying on PM-ops for shutting down PHY clocks was a
-> bad idea since the users (e.g. PCIe/SATA) might not
-> have been suspended by then.
+> SATA_PLL_SOFT_RESET bit of CTRL_CORE_SMA_SW_0 must be toggled
+> between a SATA DPLL unlock and re-lock to prevent SATA lockup.
 >
-> The main culprit for not shutting down the clocks was
-> the stray pm_runtime_get() call in probe.
+> Introduce a new DT parameter 'syscon-pllreset' to provide the syscon
+> regmap access to this register which sits in the control module.
 >
-> Fix the whole thing in the right way by getting rid
-> of that pm_runtime_get() call from probe and
-> removing all PM-ops. It is the sole responsibility
-> of the PHY user to properly turn OFF and de-initialize
-> the PHY as part of its suspend routine.
->
-> As PHY core serializes init/exit we don't need
-> to use a spinlock in this driver. So get rid of it.
+> If the register is not provided we fallback to the old behaviour
+> i.e. SATA DPLL refclk will not be disabled and we prevent SoC low
+> power states.
 >
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 > ---
->   drivers/phy/phy-ti-pipe3.c | 112 ++++++++-------------------------------------
->   1 file changed, 18 insertions(+), 94 deletions(-)
+>   Documentation/devicetree/bindings/phy/ti-phy.txt | 16 ++++++
+>   drivers/phy/phy-ti-pipe3.c                       | 67 ++++++++++++++++++++----
+>   2 files changed, 74 insertions(+), 9 deletions(-)
 >
+> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> index 305e3df..f0f5537 100644
+> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> @@ -82,6 +82,9 @@ Optional properties:
+>    - id: If there are multiple instance of the same type, in order to
+>      differentiate between each instance "id" can be used (e.g., multi-lane PCIe
+>      PHY). If "id" is not provided, it is set to default value of '1'.
+> + - syscon-pllreset: Handle to system control region that contains the
+> +   CTRL_CORE_SMA_SW_0 register and register offset to the CTRL_CORE_SMA_SW_0
+> +   register that contains the SATA_PLL_SOFT_RESET bit. Only valid for sata_phy.
+>
+>   This is usually a subnode of ocp2scp to which it is connected.
+>
+> @@ -100,3 +103,16 @@ usb3phy@4a084400 {
+>   			"sysclk",
+>   			"refclk";
+>   };
+> +
+> +sata_phy: phy@4A096000 {
+> +	compatible = "ti,phy-pipe3-sata";
+> +	reg = <0x4A096000 0x80>, /* phy_rx */
+> +	      <0x4A096400 0x64>, /* phy_tx */
+> +	      <0x4A096800 0x40>; /* pll_ctrl */
+> +	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+> +	ctrl-module = <&omap_control_sata>;
+> +	clocks = <&sys_clkin1>, <&sata_ref_clk>;
+> +	clock-names = "sysclk", "refclk";
+> +	syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
+> +	#phy-cells = <0>;
+> +};
 > diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-> index 53f295c..e13a306 100644
+> index e13a306..d730142 100644
 > --- a/drivers/phy/phy-ti-pipe3.c
 > +++ b/drivers/phy/phy-ti-pipe3.c
-> @@ -28,7 +28,6 @@
+> @@ -28,6 +28,8 @@
 >   #include <linux/delay.h>
 >   #include <linux/phy/omap_control_phy.h>
 >   #include <linux/of_platform.h>
-> -#include <linux/spinlock.h>
+> +#include <linux/mfd/syscon.h>
+> +#include <linux/regmap.h>
 >
 >   #define	PLL_STATUS		0x00000004
 >   #define	PLL_GO			0x00000008
-> @@ -83,10 +82,6 @@ struct ti_pipe3 {
+> @@ -52,6 +54,8 @@
+>   #define	PLL_LOCK		0x2
+>   #define	PLL_IDLE		0x1
+>
+> +#define SATA_PLL_SOFT_RESET	BIT(18)
+> +
+>   /*
+>    * This is an Empirical value that works, need to confirm the actual
+>    * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
+> @@ -82,6 +86,9 @@ struct ti_pipe3 {
 >   	struct clk		*refclk;
 >   	struct clk		*div_clk;
 >   	struct pipe3_dpll_map	*dpll_map;
-> -	bool			enabled;
-> -	spinlock_t		lock;	/* serialize clock enable/disable */
-> -	/* the below flag is needed specifically for SATA */
-> -	bool			refclk_enabled;
+> +	struct regmap		*dpll_reset_syscon; /* ctrl. reg. acces */
+> +	unsigned int		dpll_reset_reg; /* reg. index within syscon */
+> +	bool			sata_refclk_enabled;
 >   };
 >
 >   static struct pipe3_dpll_map dpll_map_usb[] = {
-> @@ -137,6 +132,9 @@ static struct pipe3_dpll_params *ti_pipe3_get_dpll_params(struct ti_pipe3 *phy)
->   	return NULL;
->   }
->
-> +static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy);
-> +static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy);
-> +
->   static int ti_pipe3_power_off(struct phy *x)
->   {
->   	struct ti_pipe3 *phy = phy_get_drvdata(x);
-> @@ -217,6 +215,7 @@ static int ti_pipe3_init(struct phy *x)
+> @@ -249,11 +256,15 @@ static int ti_pipe3_exit(struct phy *x)
 >   	u32 val;
->   	int ret = 0;
+>   	unsigned long timeout;
 >
-> +	ti_pipe3_enable_clocks(phy);
->   	/*
->   	 * Set pcie_pcs register to 0x96 for proper functioning of phy
->   	 * as recommended in AM572x TRM SPRUHZ6, section 18.5.2.2, table
-> @@ -277,6 +276,8 @@ static int ti_pipe3_exit(struct phy *x)
+> -	/* SATA DPLL can't be powered down due to Errata i783 and PCIe
+> -	 * does not have internal DPLL
+> +	/* If dpll_reset_syscon is not present we wont power down SATA DPLL
+> +	 * due to Errata i783
+>   	 */
+> -	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") ||
+> -	    of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
+> +	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") &&
+> +	    !phy->dpll_reset_syscon)
+> +		return 0;
+> +
+> +	/* PCIe doesn't have DPLL. FIXME: need to disable clocks though */
+
+I think it's better to fix it in this patch itself.. to disable clocks for PCIe.
+> +	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
+>   		return 0;
+>
+>   	/* Put DPLL in IDLE mode */
+> @@ -276,6 +287,14 @@ static int ti_pipe3_exit(struct phy *x)
 >   		return -EBUSY;
 >   	}
 >
-> +	ti_pipe3_disable_clocks(phy);
+> +	/* i783: SATA needs control bit toggle after PLL unlock */
+> +	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata")) {
+> +		regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
+> +				SATA_PLL_SOFT_RESET, SATA_PLL_SOFT_RESET);
+> +		regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
+> +				SATA_PLL_SOFT_RESET, 0);
+> +	}
 > +
+>   	ti_pipe3_disable_clocks(phy);
+>
 >   	return 0;
->   }
->   static struct phy_ops ops = {
-> @@ -305,8 +306,7 @@ static int ti_pipe3_probe(struct platform_device *pdev)
->   	if (!phy)
->   		return -ENOMEM;
+> @@ -350,6 +369,21 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>   		}
+>   	} else {
+>   		phy->wkupclk = ERR_PTR(-ENODEV);
+> +		phy->dpll_reset_syscon = syscon_regmap_lookup_by_phandle(node,
+> +							"syscon-pllreset");
+> +		if (IS_ERR(phy->dpll_reset_syscon)) {
+> +			dev_info(&pdev->dev,
+> +				 "can't get syscon-pllreset, sata dpll won't idle\n");
+> +			phy->dpll_reset_syscon = NULL;
+> +		} else {
+> +			if (of_property_read_u32_index(node,
+> +						       "syscon-pllreset", 1,
+> +						       &phy->dpll_reset_reg)) {
+> +				dev_err(&pdev->dev,
+> +					"couldn't get pllreset reg. offset\n");
+> +				return -EINVAL;
+> +			}
+> +		}
+>   	}
 >
-> -	phy->dev		= &pdev->dev;
-> -	spin_lock_init(&phy->lock);
-> +	phy->dev = &pdev->dev;
-
-this looks more of a cleanup.
->
->   	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
->   		match = of_match_device(ti_pipe3_id_table, &pdev->dev);
-> @@ -402,6 +402,9 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+>   	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+> @@ -402,9 +436,16 @@ static int ti_pipe3_probe(struct platform_device *pdev)
 >
 >   	platform_set_drvdata(pdev, phy);
 >   	pm_runtime_enable(phy->dev);
-> +	/* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
-> +	if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
-> +		clk_prepare_enable(phy->refclk);
+> -	/* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
+> -	if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
+> -		clk_prepare_enable(phy->refclk);
+> +
+> +	/*
+> +	 * Prevent auto-disable of refclk for SATA PHY due to Errata i783
+> +	 */
+> +	if (of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
+> +		if (!IS_ERR(phy->refclk)) {
+> +			clk_prepare_enable(phy->refclk);
+> +			phy->sata_refclk_enabled = true;
+> +		}
+> +	}
 >
 >   	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
 >   	if (IS_ERR(generic_phy))
-> @@ -413,24 +416,19 @@ static int ti_pipe3_probe(struct platform_device *pdev)
->   	if (IS_ERR(phy_provider))
->   		return PTR_ERR(phy_provider);
+> @@ -443,8 +484,17 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
 >
-> -	pm_runtime_get(&pdev->dev);
-> -
->   	return 0;
->   }
->
->   static int ti_pipe3_remove(struct platform_device *pdev)
+>   static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
 >   {
-> -	if (!pm_runtime_suspended(&pdev->dev))
-> -		pm_runtime_put(&pdev->dev);
->   	pm_runtime_disable(&pdev->dev);
->
->   	return 0;
->   }
->
-> -#ifdef CONFIG_PM
->   static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
->   {
-> -	if (!IS_ERR(phy->refclk) && !phy->refclk_enabled) {
-> +	if (!IS_ERR(phy->refclk)) {
->   		int ret;
->
->   		ret = clk_prepare_enable(phy->refclk);
-> @@ -438,7 +436,6 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3 *phy)
->   			dev_err(phy->dev, "Failed to enable refclk %d\n", ret);
->   			return ret;
->   		}
-> -		phy->refclk_enabled = true;
->   	}
->
->   	return 0;
-> @@ -448,28 +445,21 @@ static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
->   {
->   	if (!IS_ERR(phy->refclk))
->   		clk_disable_unprepare(phy->refclk);
-> -
-> -	phy->refclk_enabled = false;
->   }
->
->   static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
->   {
->   	int ret = 0;
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(&phy->lock, flags);
-> -	if (phy->enabled)
-> -		goto err1;
->
->   	ret = ti_pipe3_enable_refclk(phy);
-
-we can enable refclk here itself instead of having a separate function it?
->   	if (ret)
-> -		goto err1;
-> +		return ret;
->
->   	if (!IS_ERR(phy->wkupclk)) {
->   		ret = clk_prepare_enable(phy->wkupclk);
->   		if (ret) {
->   			dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
-> -			goto err2;
-> +			goto disable_refclk;
->   		}
->   	}
->
-> @@ -477,96 +467,31 @@ static int ti_pipe3_enable_clocks(struct ti_pipe3 *phy)
->   		ret = clk_prepare_enable(phy->div_clk);
->   		if (ret) {
->   			dev_err(phy->dev, "Failed to enable div_clk %d\n", ret);
-> -			goto err3;
-> +			goto disable_wkupclk;
->   		}
->   	}
->
-> -	phy->enabled = true;
-> -	spin_unlock_irqrestore(&phy->lock, flags);
->   	return 0;
->
-> -err3:
-> +disable_wkupclk:
->   	if (!IS_ERR(phy->wkupclk))
->   		clk_disable_unprepare(phy->wkupclk);
->
-> -err2:
 > -	if (!IS_ERR(phy->refclk))
-> -		clk_disable_unprepare(phy->refclk);
-> -
-> +disable_refclk:
->   	ti_pipe3_disable_refclk(phy);
-> -err1:
-> -	spin_unlock_irqrestore(&phy->lock, flags);
-> +
->   	return ret;
->   }
->
->   static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy)
->   {
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(&phy->lock, flags);
-> -	if (!phy->enabled) {
-> -		spin_unlock_irqrestore(&phy->lock, flags);
-> -		return;
-> -	}
-> -
->   	if (!IS_ERR(phy->wkupclk))
->   		clk_disable_unprepare(phy->wkupclk);
-> -	/* Don't disable refclk for SATA PHY due to Errata i783 */
-> -	if (!of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata"))
-> -		ti_pipe3_disable_refclk(phy);
-> +	ti_pipe3_disable_refclk(phy);
+> +	if (!IS_ERR(phy->refclk)) {
+>   		clk_disable_unprepare(phy->refclk);
+> +		/*
+> +		 * SATA refclk needs an additional disable as we left it
+> +		 * on in probe to avoid Errata i783
 
-here too. we can get rid of ti_pipe3_disable_refclk and ti_pipe3_enable_refclk.
+not sure I get this. Why don't we remove it in probe?
 
 Thanks
 Kishon
