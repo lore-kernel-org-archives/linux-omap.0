@@ -1,181 +1,436 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 05/25] gpio: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
-Date: Wed, 20 May 2015 17:59:53 +0800
-Message-ID: <1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 15/25] genirq: Kill the first parameter 'irq' of irq_flow_handler_t
+Date: Wed, 20 May 2015 18:00:03 +0800
+Message-ID: <1432116013-25902-16-git-send-email-jiang.liu@linux.intel.com>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
 In-Reply-To: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ray Jui <rjui@broadcom.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-already have a pointer to corresponding irq_desc.
+Now most IRQ flow handlers make no use of the first parameter 'irq'.
+And for those who do make use of 'irq', we could easily get the irq
+number through irq_desc->irq_data->irq. So kill the first parameter
+'irq' of irq_flow_handler_t.
+
+To ease review, I have split the changes into several parts, though
+they should be merge as one to support bisecting.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/gpio/gpio-bcm-kona.c   |    2 +-
- drivers/gpio/gpio-dwapb.c      |    2 +-
- drivers/gpio/gpio-mvebu.c      |    2 +-
- drivers/gpio/gpio-mxc.c        |    6 +++---
- drivers/gpio/gpio-mxs.c        |    2 +-
- drivers/gpio/gpio-omap.c       |    2 +-
- drivers/gpio/gpio-tegra.c      |    4 +---
- drivers/gpio/gpio-timberdale.c |    2 +-
- drivers/gpio/gpio-vf610.c      |    2 +-
- drivers/gpio/gpio-zynq.c       |    2 +-
- 10 files changed, 12 insertions(+), 14 deletions(-)
+ arch/arm/common/it8152.c               |    2 +-
+ arch/arm/common/locomo.c               |    3 ++-
+ arch/arm/common/sa1111.c               |    4 ++--
+ arch/arm/include/asm/hardware/it8152.h |    2 +-
+ arch/arm/include/asm/mach/irq.h        |    4 ++--
+ arch/arm/mach-dove/irq.c               |    5 +++--
+ arch/arm/mach-footbridge/isa-irq.c     |    4 ++--
+ arch/arm/mach-gemini/gpio.c            |    2 +-
+ arch/arm/mach-imx/3ds_debugboard.c     |    2 +-
+ arch/arm/mach-imx/mach-mx31ads.c       |    2 +-
+ arch/arm/mach-iop13xx/msi.c            |    2 +-
+ arch/arm/mach-lpc32xx/irq.c            |    4 ++--
+ arch/arm/mach-omap1/fpga.c             |    2 +-
+ arch/arm/mach-omap2/prm_common.c       |    2 +-
+ arch/arm/mach-pxa/balloon3.c           |    3 ++-
+ arch/arm/mach-pxa/cm-x2xx-pci.c        |    4 ++--
+ arch/arm/mach-pxa/lpd270.c             |    3 ++-
+ arch/arm/mach-pxa/pcm990-baseboard.c   |    1 +
+ arch/arm/mach-pxa/viper.c              |    3 ++-
+ arch/arm/mach-pxa/zeus.c               |    3 ++-
+ arch/arm/mach-rpc/ecard.c              |    2 +-
+ arch/arm/mach-s3c64xx/common.c         |    8 ++++----
+ arch/arm/mach-sa1100/neponset.c        |    2 +-
+ arch/arm/plat-orion/gpio.c             |    2 +-
+ 24 files changed, 39 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
-index b164ce837b43..2e7a8c66fe57 100644
---- a/drivers/gpio/gpio-bcm-kona.c
-+++ b/drivers/gpio/gpio-bcm-kona.c
-@@ -432,7 +432,7 @@ static void bcm_kona_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 	void __iomem *reg_base;
- 	int bit, bank_id;
- 	unsigned long sta;
--	struct bcm_kona_gpio_bank *bank = irq_get_handler_data(irq);
-+	struct bcm_kona_gpio_bank *bank = irq_desc_get_handler_data(desc);
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
+diff --git a/arch/arm/common/it8152.c b/arch/arm/common/it8152.c
+index 5114b68e99d5..aaa206181f92 100644
+--- a/arch/arm/common/it8152.c
++++ b/arch/arm/common/it8152.c
+@@ -95,7 +95,7 @@ void it8152_init_irq(void)
+ 	}
+ }
  
- 	chained_irq_enter(chip, desc);
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 58faf04fce5d..649be07a845d 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -149,7 +149,7 @@ static u32 dwapb_do_irq(struct dwapb_gpio *gpio)
- 
- static void dwapb_irq_handler(u32 irq, struct irq_desc *desc)
+-void it8152_irq_demux(unsigned int irq, struct irq_desc *desc)
++void it8152_irq_demux(struct irq_desc *desc)
  {
--	struct dwapb_gpio *gpio = irq_get_handler_data(irq);
-+	struct dwapb_gpio *gpio = irq_desc_get_handler_data(desc);
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
+        int bits_pd, bits_lp, bits_ld;
+        int i;
+diff --git a/arch/arm/common/locomo.c b/arch/arm/common/locomo.c
+index 02af4a07ceca..99d4535d7cc6 100644
+--- a/arch/arm/common/locomo.c
++++ b/arch/arm/common/locomo.c
+@@ -138,9 +138,10 @@ static struct locomo_dev_info locomo_devices[] = {
+ 	},
+ };
  
- 	dwapb_do_irq(gpio);
-diff --git a/drivers/gpio/gpio-mvebu.c b/drivers/gpio/gpio-mvebu.c
-index 1a54205860f5..a8c302ef7bc4 100644
---- a/drivers/gpio/gpio-mvebu.c
-+++ b/drivers/gpio/gpio-mvebu.c
-@@ -460,7 +460,7 @@ static int mvebu_gpio_irq_set_type(struct irq_data *d, unsigned int type)
- 
- static void mvebu_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+-static void locomo_handler(unsigned int irq, struct irq_desc *desc)
++static void locomo_handler(struct irq_desc *desc)
  {
--	struct mvebu_gpio_chip *mvchip = irq_get_handler_data(irq);
-+	struct mvebu_gpio_chip *mvchip = irq_desc_get_handler_data(desc);
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	u32 cause, type;
- 	int i;
-diff --git a/drivers/gpio/gpio-mxc.c b/drivers/gpio/gpio-mxc.c
-index 9f7446a7ac64..f10948c04f7c 100644
---- a/drivers/gpio/gpio-mxc.c
-+++ b/drivers/gpio/gpio-mxc.c
-@@ -275,8 +275,8 @@ static void mxc_gpio_irq_handler(struct mxc_gpio_port *port, u32 irq_stat)
- static void mx3_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+ 	struct locomo *lchip = irq_desc_get_chip_data(desc);
++	unsigned int irq;
+ 	int req, i;
+ 
+ 	/* Acknowledge the parent IRQ */
+diff --git a/arch/arm/common/sa1111.c b/arch/arm/common/sa1111.c
+index 0d0844fa54c2..762dfe7081f0 100644
+--- a/arch/arm/common/sa1111.c
++++ b/arch/arm/common/sa1111.c
+@@ -197,7 +197,7 @@ static struct sa1111_dev_info sa1111_devices[] = {
+  * will call us again if there are more interrupts to process.
+  */
+ static void
+-sa1111_irq_handler(unsigned int irq, struct irq_desc *desc)
++sa1111_irq_handler(struct irq_desc *desc)
  {
- 	u32 irq_stat;
--	struct mxc_gpio_port *port = irq_get_handler_data(irq);
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct mxc_gpio_port *port = irq_desc_get_handler_data(desc);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 	unsigned int stat0, stat1, i;
+ 	struct sa1111 *sachip = irq_desc_get_handler_data(desc);
+@@ -213,7 +213,7 @@ sa1111_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	sa1111_writel(stat1, mapbase + SA1111_INTSTATCLR1);
  
- 	chained_irq_enter(chip, desc);
+ 	if (stat0 == 0 && stat1 == 0) {
+-		do_bad_IRQ(irq, desc);
++		do_bad_IRQ(desc);
+ 		return;
+ 	}
  
-@@ -292,7 +292,7 @@ static void mx2_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+diff --git a/arch/arm/include/asm/hardware/it8152.h b/arch/arm/include/asm/hardware/it8152.h
+index d36a73d7c0e8..076777ff3daa 100644
+--- a/arch/arm/include/asm/hardware/it8152.h
++++ b/arch/arm/include/asm/hardware/it8152.h
+@@ -106,7 +106,7 @@ extern void __iomem *it8152_base_address;
+ struct pci_dev;
+ struct pci_sys_data;
+ 
+-extern void it8152_irq_demux(unsigned int irq, struct irq_desc *desc);
++extern void it8152_irq_demux(struct irq_desc *desc);
+ extern void it8152_init_irq(void);
+ extern int it8152_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
+ extern int it8152_pci_setup(int nr, struct pci_sys_data *sys);
+diff --git a/arch/arm/include/asm/mach/irq.h b/arch/arm/include/asm/mach/irq.h
+index 2092ee1e1300..4703e00283db 100644
+--- a/arch/arm/include/asm/mach/irq.h
++++ b/arch/arm/include/asm/mach/irq.h
+@@ -23,10 +23,10 @@ extern int show_fiq_list(struct seq_file *, int);
+ /*
+  * This is for easy migration, but should be changed in the source
+  */
+-#define do_bad_IRQ(irq,desc)				\
++#define do_bad_IRQ(desc)				\
+ do {							\
+ 	raw_spin_lock(&desc->lock);			\
+-	handle_bad_irq(irq, desc);			\
++	handle_bad_irq(desc);			\
+ 	raw_spin_unlock(&desc->lock);			\
+ } while(0)
+ 
+diff --git a/arch/arm/mach-dove/irq.c b/arch/arm/mach-dove/irq.c
+index 4a5a7aedcb76..30140cbdb249 100644
+--- a/arch/arm/mach-dove/irq.c
++++ b/arch/arm/mach-dove/irq.c
+@@ -69,13 +69,14 @@ static struct irq_chip pmu_irq_chip = {
+ 	.irq_ack	= pmu_irq_ack,
+ };
+ 
+-static void pmu_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void pmu_irq_handler(struct irq_desc *desc)
  {
- 	u32 irq_msk, irq_stat;
- 	struct mxc_gpio_port *port;
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 	unsigned long cause = readl(PMU_INTERRUPT_CAUSE);
++	unsigned int irq;
  
- 	chained_irq_enter(chip, desc);
+ 	cause &= readl(PMU_INTERRUPT_MASK);
+ 	if (cause == 0) {
+-		do_bad_IRQ(irq, desc);
++		do_bad_IRQ(desc);
+ 		return;
+ 	}
  
-diff --git a/drivers/gpio/gpio-mxs.c b/drivers/gpio/gpio-mxs.c
-index 84cbda6acdda..039c7d50e64f 100644
---- a/drivers/gpio/gpio-mxs.c
-+++ b/drivers/gpio/gpio-mxs.c
-@@ -157,7 +157,7 @@ static void mxs_flip_edge(struct mxs_gpio_port *port, u32 gpio)
- static void mxs_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+diff --git a/arch/arm/mach-footbridge/isa-irq.c b/arch/arm/mach-footbridge/isa-irq.c
+index c3a0abbc9049..f78e46662447 100644
+--- a/arch/arm/mach-footbridge/isa-irq.c
++++ b/arch/arm/mach-footbridge/isa-irq.c
+@@ -88,12 +88,12 @@ static struct irq_chip isa_hi_chip = {
+ };
+ 
+ static void
+-isa_irq_handler(unsigned int irq, struct irq_desc *desc)
++isa_irq_handler(struct irq_desc *desc)
  {
- 	u32 irq_stat;
--	struct mxs_gpio_port *port = irq_get_handler_data(irq);
-+	struct mxs_gpio_port *port = irq_desc_get_handler_data(desc);
+ 	unsigned int isa_irq = *(unsigned char *)PCIIACK_BASE;
  
+ 	if (isa_irq < _ISA_IRQ(0) || isa_irq >= _ISA_IRQ(16)) {
+-		do_bad_IRQ(isa_irq, desc);
++		do_bad_IRQ(desc);
+ 		return;
+ 	}
+ 
+diff --git a/arch/arm/mach-gemini/gpio.c b/arch/arm/mach-gemini/gpio.c
+index f8cb5710d6ee..713f655bcc74 100644
+--- a/arch/arm/mach-gemini/gpio.c
++++ b/arch/arm/mach-gemini/gpio.c
+@@ -126,7 +126,7 @@ static int gpio_set_irq_type(struct irq_data *d, unsigned int type)
+ 	return 0;
+ }
+ 
+-static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void gpio_irq_handler(struct irq_desc *desc)
+ {
+ 	unsigned int port = (unsigned int)irq_desc_get_handler_data(desc);
+ 	unsigned int gpio_irq_no, irq_stat;
+diff --git a/arch/arm/mach-imx/3ds_debugboard.c b/arch/arm/mach-imx/3ds_debugboard.c
+index 134377352966..d93d3337b579 100644
+--- a/arch/arm/mach-imx/3ds_debugboard.c
++++ b/arch/arm/mach-imx/3ds_debugboard.c
+@@ -85,7 +85,7 @@ static struct platform_device smsc_lan9217_device = {
+ 	.resource = smsc911x_resources,
+ };
+ 
+-static void mxc_expio_irq_handler(u32 irq, struct irq_desc *desc)
++static void mxc_expio_irq_handler(struct irq_desc *desc)
+ {
+ 	u32 imr_val;
+ 	u32 int_valid;
+diff --git a/arch/arm/mach-imx/mach-mx31ads.c b/arch/arm/mach-imx/mach-mx31ads.c
+index d08c37c696f6..07aef418a0e1 100644
+--- a/arch/arm/mach-imx/mach-mx31ads.c
++++ b/arch/arm/mach-imx/mach-mx31ads.c
+@@ -154,7 +154,7 @@ static inline void mxc_init_imx_uart(void)
+ 	imx31_add_imx_uart0(&uart_pdata);
+ }
+ 
+-static void mx31ads_expio_irq_handler(u32 irq, struct irq_desc *desc)
++static void mx31ads_expio_irq_handler(struct irq_desc *desc)
+ {
+ 	u32 imr_val;
+ 	u32 int_valid;
+diff --git a/arch/arm/mach-iop13xx/msi.c b/arch/arm/mach-iop13xx/msi.c
+index 9f89e76dfbb9..f6235b28578c 100644
+--- a/arch/arm/mach-iop13xx/msi.c
++++ b/arch/arm/mach-iop13xx/msi.c
+@@ -91,7 +91,7 @@ static void (*write_imipr[])(u32) = {
+ 	write_imipr_3,
+ };
+ 
+-static void iop13xx_msi_handler(unsigned int irq, struct irq_desc *desc)
++static void iop13xx_msi_handler(struct irq_desc *desc)
+ {
+ 	int i, j;
+ 	unsigned long status;
+diff --git a/arch/arm/mach-lpc32xx/irq.c b/arch/arm/mach-lpc32xx/irq.c
+index 9ecb8f9c4ef5..f361fed99105 100644
+--- a/arch/arm/mach-lpc32xx/irq.c
++++ b/arch/arm/mach-lpc32xx/irq.c
+@@ -370,7 +370,7 @@ static struct irq_chip lpc32xx_irq_chip = {
+ 	.irq_set_wake = lpc32xx_irq_wake
+ };
+ 
+-static void lpc32xx_sic1_handler(unsigned int irq, struct irq_desc *desc)
++static void lpc32xx_sic1_handler(struct irq_desc *desc)
+ {
+ 	unsigned long ints = __raw_readl(LPC32XX_INTC_STAT(LPC32XX_SIC1_BASE));
+ 
+@@ -383,7 +383,7 @@ static void lpc32xx_sic1_handler(unsigned int irq, struct irq_desc *desc)
+ 	}
+ }
+ 
+-static void lpc32xx_sic2_handler(unsigned int irq, struct irq_desc *desc)
++static void lpc32xx_sic2_handler(struct irq_desc *desc)
+ {
+ 	unsigned long ints = __raw_readl(LPC32XX_INTC_STAT(LPC32XX_SIC2_BASE));
+ 
+diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
+index 3c0e42219200..374bccf5ce24 100644
+--- a/arch/arm/mach-omap1/fpga.c
++++ b/arch/arm/mach-omap1/fpga.c
+@@ -87,7 +87,7 @@ static void fpga_mask_ack_irq(struct irq_data *d)
+ 	fpga_ack_irq(d);
+ }
+ 
+-static void innovator_fpga_IRQ_demux(unsigned int irq, struct irq_desc *desc)
++static void innovator_fpga_IRQ_demux(struct irq_desc *desc)
+ {
+ 	u32 stat;
+ 	int fpga_irq;
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 7add7994dbfc..6cfc1e54d41f 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -102,7 +102,7 @@ static void omap_prcm_events_filter_priority(unsigned long *events,
+  * dispatched accordingly. Clearing of the wakeup events should be
+  * done by the SoC specific individual handlers.
+  */
+-static void omap_prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void omap_prcm_irq_handler(struct irq_desc *desc)
+ {
+ 	unsigned long pending[OMAP_PRCM_MAX_NR_PENDING_REG];
+ 	unsigned long priority_pending[OMAP_PRCM_MAX_NR_PENDING_REG];
+diff --git a/arch/arm/mach-pxa/balloon3.c b/arch/arm/mach-pxa/balloon3.c
+index d897292712eb..506365cdd58b 100644
+--- a/arch/arm/mach-pxa/balloon3.c
++++ b/arch/arm/mach-pxa/balloon3.c
+@@ -496,8 +496,9 @@ static struct irq_chip balloon3_irq_chip = {
+ 	.irq_unmask	= balloon3_unmask_irq,
+ };
+ 
+-static void balloon3_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void balloon3_irq_handler(struct irq_desc *desc)
+ {
++	unsigned int irq;
+ 	unsigned long pending = __raw_readl(BALLOON3_INT_CONTROL_REG) &
+ 					balloon3_irq_enabled;
+ 	do {
+diff --git a/arch/arm/mach-pxa/cm-x2xx-pci.c b/arch/arm/mach-pxa/cm-x2xx-pci.c
+index d8f816c24a2f..3221ae15bef7 100644
+--- a/arch/arm/mach-pxa/cm-x2xx-pci.c
++++ b/arch/arm/mach-pxa/cm-x2xx-pci.c
+@@ -29,12 +29,12 @@
+ void __iomem *it8152_base_address;
+ static int cmx2xx_it8152_irq_gpio;
+ 
+-static void cmx2xx_it8152_irq_demux(unsigned int irq, struct irq_desc *desc)
++static void cmx2xx_it8152_irq_demux(struct irq_desc *desc)
+ {
+ 	/* clear our parent irq */
  	desc->irq_data.chip->irq_ack(&desc->irq_data);
  
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index b232397ad7ec..acbf3feff1e2 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -719,7 +719,7 @@ static void omap_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 	struct gpio_bank *bank;
- 	int unmasked = 0;
- 	struct irq_chip *irqchip = irq_desc_get_chip(desc);
--	struct gpio_chip *chip = irq_get_handler_data(irq);
-+	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
+-	it8152_irq_demux(irq, desc);
++	it8152_irq_demux(desc);
+ }
  
- 	chained_irq_enter(irqchip, desc);
+ void __cmx2xx_pci_init_irq(int irq_gpio)
+diff --git a/arch/arm/mach-pxa/lpd270.c b/arch/arm/mach-pxa/lpd270.c
+index eaee2c20b189..cbf00f51808f 100644
+--- a/arch/arm/mach-pxa/lpd270.c
++++ b/arch/arm/mach-pxa/lpd270.c
+@@ -120,9 +120,10 @@ static struct irq_chip lpd270_irq_chip = {
+ 	.irq_unmask	= lpd270_unmask_irq,
+ };
  
-diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
-index 1741981d53c8..89ed8a56eb0b 100644
---- a/drivers/gpio/gpio-tegra.c
-+++ b/drivers/gpio/gpio-tegra.c
-@@ -268,16 +268,14 @@ static void tegra_gpio_irq_shutdown(struct irq_data *d)
- 
- static void tegra_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+-static void lpd270_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void lpd270_irq_handler(struct irq_desc *desc)
  {
--	struct tegra_gpio_bank *bank;
- 	int port;
- 	int pin;
- 	int unmasked = 0;
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
-+	struct tegra_gpio_bank *bank = irq_desc_get_handler_data(desc);
+ 	unsigned long pending;
++	unsigned int irq;
  
- 	chained_irq_enter(chip, desc);
- 
--	bank = irq_get_handler_data(irq);
--
- 	for (port = 0; port < 4; port++) {
- 		int gpio = tegra_gpio_compose(bank->bank, port, 0);
- 		unsigned long sta = tegra_gpio_readl(GPIO_INT_STA(gpio)) &
-diff --git a/drivers/gpio/gpio-timberdale.c b/drivers/gpio/gpio-timberdale.c
-index e8f97e03c9bb..d4e8cb4f2e53 100644
---- a/drivers/gpio/gpio-timberdale.c
-+++ b/drivers/gpio/gpio-timberdale.c
-@@ -194,7 +194,7 @@ out:
- 
- static void timbgpio_irq(unsigned int irq, struct irq_desc *desc)
+ 	pending = __raw_readw(LPD270_INT_STATUS) & lpd270_irq_enabled;
+ 	do {
+diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+index 2897da2a5df6..0d8331f8536e 100644
+--- a/arch/arm/mach-pxa/pcm990-baseboard.c
++++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+@@ -287,6 +287,7 @@ static struct irq_chip pcm990_irq_chip = {
+ static void pcm990_irq_handler(unsigned int irq, struct irq_desc *desc)
  {
--	struct timbgpio *tgpio = irq_get_handler_data(irq);
-+	struct timbgpio *tgpio = irq_desc_get_handler_data(desc);
- 	unsigned long ipr;
- 	int offset;
+ 	unsigned long pending;
++	unsigned int irq;
  
-diff --git a/drivers/gpio/gpio-vf610.c b/drivers/gpio/gpio-vf610.c
-index 7bd9f209ffa8..fa344388f4da 100644
---- a/drivers/gpio/gpio-vf610.c
-+++ b/drivers/gpio/gpio-vf610.c
-@@ -120,7 +120,7 @@ static int vf610_gpio_direction_output(struct gpio_chip *chip, unsigned gpio,
+ 	pending = ~pcm990_cpld_readb(PCM990_CTRL_INTSETCLR);
+ 	pending &= pcm990_irq_enabled;
+diff --git a/arch/arm/mach-pxa/viper.c b/arch/arm/mach-pxa/viper.c
+index de3b08073fe7..bd52fb914d6a 100644
+--- a/arch/arm/mach-pxa/viper.c
++++ b/arch/arm/mach-pxa/viper.c
+@@ -276,9 +276,10 @@ static inline unsigned long viper_irq_pending(void)
+ 			viper_irq_enabled_mask;
+ }
  
- static void vf610_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+-static void viper_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void viper_irq_handler(struct irq_desc *desc)
  {
--	struct vf610_gpio_port *port = irq_get_handler_data(irq);
-+	struct vf610_gpio_port *port = irq_desc_get_handler_data(desc);
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	int pin;
- 	unsigned long irq_isfr;
-diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
-index aea6075e5b2e..70e3a568b1cb 100644
---- a/drivers/gpio/gpio-zynq.c
-+++ b/drivers/gpio/gpio-zynq.c
-@@ -499,7 +499,7 @@ static void zynq_gpio_irqhandler(unsigned int irq, struct irq_desc *desc)
- {
- 	u32 int_sts, int_enb;
- 	unsigned int bank_num;
--	struct zynq_gpio *gpio = irq_get_handler_data(irq);
-+	struct zynq_gpio *gpio = irq_desc_get_handler_data(desc);
- 	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+ 	unsigned long pending;
++	unsigned int irq;
  
- 	chained_irq_enter(irqchip, desc);
+ 	pending = viper_irq_pending();
+ 	do {
+diff --git a/arch/arm/mach-pxa/zeus.c b/arch/arm/mach-pxa/zeus.c
+index ac2ae5c71ab4..7ffff0b424c2 100644
+--- a/arch/arm/mach-pxa/zeus.c
++++ b/arch/arm/mach-pxa/zeus.c
+@@ -105,9 +105,10 @@ static inline unsigned long zeus_irq_pending(void)
+ 	return __raw_readw(ZEUS_CPLD_ISA_IRQ) & zeus_irq_enabled_mask;
+ }
+ 
+-static void zeus_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void zeus_irq_handler(struct irq_desc *desc)
+ {
+ 	unsigned long pending;
++	unsigned int irq;
+ 
+ 	pending = zeus_irq_pending();
+ 	do {
+diff --git a/arch/arm/mach-rpc/ecard.c b/arch/arm/mach-rpc/ecard.c
+index fcb1d59f7aec..b7074cd5ebfd 100644
+--- a/arch/arm/mach-rpc/ecard.c
++++ b/arch/arm/mach-rpc/ecard.c
+@@ -552,7 +552,7 @@ static void ecard_check_lockup(struct irq_desc *desc)
+ }
+ 
+ static void
+-ecard_irq_handler(unsigned int irq, struct irq_desc *desc)
++ecard_irq_handler(struct irq_desc *desc)
+ {
+ 	ecard_t *ec;
+ 	int called = 0;
+diff --git a/arch/arm/mach-s3c64xx/common.c b/arch/arm/mach-s3c64xx/common.c
+index 16547f2641a3..5c9ca33f61e5 100644
+--- a/arch/arm/mach-s3c64xx/common.c
++++ b/arch/arm/mach-s3c64xx/common.c
+@@ -389,22 +389,22 @@ static inline void s3c_irq_demux_eint(unsigned int start, unsigned int end)
+ 	}
+ }
+ 
+-static void s3c_irq_demux_eint0_3(unsigned int irq, struct irq_desc *desc)
++static void s3c_irq_demux_eint0_3(struct irq_desc *desc)
+ {
+ 	s3c_irq_demux_eint(0, 3);
+ }
+ 
+-static void s3c_irq_demux_eint4_11(unsigned int irq, struct irq_desc *desc)
++static void s3c_irq_demux_eint4_11(struct irq_desc *desc)
+ {
+ 	s3c_irq_demux_eint(4, 11);
+ }
+ 
+-static void s3c_irq_demux_eint12_19(unsigned int irq, struct irq_desc *desc)
++static void s3c_irq_demux_eint12_19(struct irq_desc *desc)
+ {
+ 	s3c_irq_demux_eint(12, 19);
+ }
+ 
+-static void s3c_irq_demux_eint20_27(unsigned int irq, struct irq_desc *desc)
++static void s3c_irq_demux_eint20_27(struct irq_desc *desc)
+ {
+ 	s3c_irq_demux_eint(20, 27);
+ }
+diff --git a/arch/arm/mach-sa1100/neponset.c b/arch/arm/mach-sa1100/neponset.c
+index af868d258e66..cc73c885d6a1 100644
+--- a/arch/arm/mach-sa1100/neponset.c
++++ b/arch/arm/mach-sa1100/neponset.c
+@@ -166,7 +166,7 @@ static struct sa1100_port_fns neponset_port_fns = {
+  * ensure that the IRQ signal is deasserted before returning.  This
+  * is rather unfortunate.
+  */
+-static void neponset_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void neponset_irq_handler(struct irq_desc *desc)
+ {
+ 	struct neponset_drvdata *d = irq_desc_get_handler_data(desc);
+ 	unsigned int irr;
+diff --git a/arch/arm/plat-orion/gpio.c b/arch/arm/plat-orion/gpio.c
+index caba04340619..dc91cfa5483f 100644
+--- a/arch/arm/plat-orion/gpio.c
++++ b/arch/arm/plat-orion/gpio.c
+@@ -407,7 +407,7 @@ static int gpio_irq_set_type(struct irq_data *d, u32 type)
+ 	return 0;
+ }
+ 
+-static void gpio_irq_handler(unsigned irq, struct irq_desc *desc)
++static void gpio_irq_handler(struct irq_desc *desc)
+ {
+ 	struct orion_gpio_chip *ochip = irq_desc_get_handler_data(desc);
+ 	u32 cause, type;
 -- 
 1.7.10.4
+
