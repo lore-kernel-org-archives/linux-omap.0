@@ -1,58 +1,48 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH V2] ARM: dts: omap5-uevm: Add Uart wakeup interrupt
-Date: Wed, 20 May 2015 11:03:16 -0700
-Message-ID: <20150520180316.GH10274@atomide.com>
-References: <1431728200-25486-1-git-send-email-nm@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ASoC: omap: fix up SND_OMAP_SOC_OMAP_ABE_TWL6040
+ dependency, again
+Date: Wed, 20 May 2015 19:06:36 +0100
+Message-ID: <20150520180636.GK21577@sirena.org.uk>
+References: <3413182.qcoNiOhonF@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="M0YLxmUXciMpOLPE"
+Return-path: <linux-kbuild-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1431728200-25486-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <3413182.qcoNiOhonF@wuerfel>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: alsa-devel@alsa-project.org, lgirdwood@gmail.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [150515 15:18]:
-> UART3 wakeup takes place with iodaisy chain. enable the wakeup pin.
-> 
-> Reported-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
-Applying into omap-for-v4.2/dt thanks.
+--M0YLxmUXciMpOLPE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Tony
+On Tue, May 19, 2015 at 02:47:32PM +0200, Arnd Bergmann wrote:
+> I tried to fix this before and submitted a working patch, but after
+> some discussion we came up with what seemed to be a nicer solution,
+> resulting in commit 3d4cf65e2d ("ASoC: omap: fix up
+> SND_OMAP_SOC_OMAP_ABE_TWL6040 dependency"). Unfortunately, that
+> version was incomplete, and we still get this build error:
 
-> ---
-> 
-> Test on linus master (f0897f4cc0fc) with 8250  driver: http://pastebin.ubuntu.com/11154663/
-> Applies on next-20150515 and linus master (f0897f4cc0fc)
-> 
-> Changes in V2:
-> 	- switched over to wakeupgen instead of GIC.
-> 	- retested.
-> V1: https://patchwork.kernel.org/patch/6416981/
-> 
->  arch/arm/boot/dts/omap5-uevm.dts |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-> index 74777a6e200a..c4dc487832ea 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -604,6 +604,8 @@
->  &uart3 {
->          pinctrl-names = "default";
->          pinctrl-0 = <&uart3_pins>;
-> +	interrupts-extended = <&wakeupgen GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>,
-> +			      <&omap5_pmx_core 0x19c>;
->  };
->  
->  &uart5 {
-> -- 
-> 1.7.9.5
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
+
+--M0YLxmUXciMpOLPE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVXM0sAAoJECTWi3JdVIfQNNUH/1rskV4DSNYxSAmBID6bYuSg
+SP08jIS1KN3Z3KW8rvTjw03DWl6SI40dySKZa+1gMJ8omn7Jpsa9VorfjBMQgRnZ
+LjeoGuJVCa1x647sglYqpIgWxnRcGsVqzECBOcmIQnEiYIWwFcBVV4Jmeh218NgF
+n/3/cwNC12fO+YIkhtoraxvBgcVjNWk60d2JaLUR/h0FGlyw+6fZTHr2PUxuDJAe
+HcoBXQzdoahj8+63VrelM6RpUS+O7pX0Ivu+ILHEy8rDqr8zitRuz7n6SoDcz30i
+xIhGUmAoet8QCIhFjFjH3nhXNDthlJpCqWVVUnJjeb9X24CrCER91kOAGVACLhQ=
+=mhao
+-----END PGP SIGNATURE-----
+
+--M0YLxmUXciMpOLPE--
