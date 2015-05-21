@@ -1,57 +1,80 @@
-From: =?UTF-8?Q?Nuno_Gon=C3=A7alves?= <nunojpg@gmail.com>
-Subject: am33xx: ignore SYSBOOT 15:14 if board OSC is known
-Date: Thu, 21 May 2015 17:26:33 +0100
-Message-ID: <CAEXMXLT9EJ33Yu-fQbL77YHaL_ftGSroOTxmRzyDPR6fb7x-yA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 2/2] omap1 sparse irq support for v4.2
+Date: Thu, 21 May 2015 09:54:14 -0700
+Message-ID: <20150521165413.GS10274@atomide.com>
+References: <80194352.chs4cqVdmg@wuerfel>
+ <20150521145840.GQ10274@atomide.com>
+ <2613552.WPU8qB3AF6@wuerfel>
+ <20150521154957.GR10274@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:36203 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756223AbbEUQ0y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2015 12:26:54 -0400
-Received: by pdfh10 with SMTP id h10so113347501pdf.3
-        for <linux-omap@vger.kernel.org>; Thu, 21 May 2015 09:26:54 -0700 (PDT)
+Received: from muru.com ([72.249.23.125]:52850 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753366AbbEUQyR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 May 2015 12:54:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20150521154957.GR10274@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: t-kristo@ti.com
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, arm@kernel.org, linux-omap@vger.kernel.org
 
-Currently the processor PLLs and Dividers are configured according to
-SYSBOOT levels during boot [1][2].
+* Tony Lindgren <tony@atomide.com> [150521 08:52]:
+> * Arnd Bergmann <arnd@arndb.de> [150521 08:41]:
+> > On Thursday 21 May 2015 07:58:41 Tony Lindgren wrote:
+> > > * Arnd Bergmann <arnd@arndb.de> [150521 05:13]:
+> > > > On Wednesday 20 May 2015 15:36:05 Tony Lindgren wrote:
+> > > > > Add support for CONFIG_SPARSE_IRQ for omap1. This takes us a bit closer
+> > > > > to making omap1 support multiarch. After this series we still need to
+> > > > > make omap1 use the common clock framework and fix up the drivers to not
+> > > > > rely on includes from mach and plat directories.
+> > > > > 
+> > > > > Note that this branch depends on a GPIO driver fix in v4.1-rc3
+> > > > > d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
+> > > > > 
+> > > > 
+> > > > I'm getting lots of build errors in linux-next, which I think are
+> > > > caused by this series.
+> > > 
+> > > Hmm is this with make randconfig?
+> > 
+> > Yes, all sorts of randconfig builds hit different parts here
+> > 
+> > > What's the Kconfig option enabling these errors?
+> > 
+> > From what I can tell, this is simply a result of enabling
+> > CONFIG_SPARSE_IRQ, which results in linux/irq.h no longer
+> > implicitly including  mach/hardware.h through mach/irqs.h.
+> 
+> Hmm not seeing that here, well at least not with what I've
+> tried so far.
+>  
+> > You should be able to see these errors by just enabling
+> > the respective drivers. The errors manifest as a long list
+> > of undefined symbols like
+> > 
+> > /git/arm-soc/arch/arm/mach-omap1/io.c:33:28: error: 'OMAP1_IO_OFFSET' undeclared here (not in a function)
+> > /git/arm-soc/arch/arm/mach-omap1/io.c:43:14: error: 'OMAP7XX_DSP_BASE' undeclared here (not in a function)
+> > /git/arm-soc/arch/arm/mach-omap1/serial.c:114:33: note: each undeclared identifier is reported only once for each function it appears in
+> > /git/arm-soc/arch/arm/mach-omap1/pm.c:217:23: error: 'ULPD_SOFT_DISABLE_REQ_REG' undeclared (first use in this function)
+> > /git/arm-soc/drivers/video/fbdev/omap/sossi.c:608:17: error: 'MOD_CONF_CTRL_1' undeclared (first use in this function)
+> > 
+> > Then again, it is possible that I only see the errors because of
+> > an interaction with another patch from my randconfig fixes
+> > series.
+> 
+> I think there's something like that going on.. Maybe you're
+> now enabling multiarch for omap1 in your branch?
 
-In the case of boards with expansion capabitliy, like the Beaglebone,
-the expansion board might touch this SYSBOOT pins a provide a wrong
-clock information.
+OK got it triggered here too with randconfig builds now.
+This seems to be related to not selecting some omap1 SoCs or
+boards. I'll try to do a minimal fix for it today.
 
-If we know the OSC on board as a fact (for example 24MHz for the
-Beaglebone), the SYSBOOT information can be safely ignored and the
-correct value hardcoded on the DT.
-
-The patch following works for am33xx.
-
-Anyway I have some reservations about this. Maybe overriding
-"sys_clkin_ck" with "virt_24000000_ck" is a better solution?
+It seems the include changes you posted would be better done
+by replacing the the dependencies to mach/irqs.h where possible
+rather than adding more includes?
 
 Regards,
-Nuno
 
-[1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/am33xx-clocks.dtsi#n11
-[2] http://www.ti.com/lit/ug/spruh73l/spruh73l.pdf
-
-
-diff --git a/src/arm/am335x-bone-common.dtsi b/src/arm/am335x-bone-common.dtsi
-index 77067d6..1ddaa58 100644
---- a/src/arm/am335x-bone-common.dtsi
-+++ b/src/arm/am335x-bone-common.dtsi
-@@ -356,6 +356,10 @@
-        status = "okay";
- };
-
-+&sys_clkin_ck {
-+       clocks = <&virt_24000000_ck>, <&virt_24000000_ck>,
-<&virt_24000000_ck>, <&virt_24000000_ck>;
-+};
-+
- /* the cape manager */
- / {
-        bone_capemgr {
+Tony
