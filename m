@@ -1,53 +1,176 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: Fix native cs with new set_cs
-Date: Thu, 21 May 2015 11:18:57 +0100
-Message-ID: <20150521101857.GR21577@sirena.org.uk>
-References: <1431452337-19280-1-git-send-email-mwelling@ieee.org>
- <20150512191758.GX3066@sirena.org.uk>
- <20150521020709.GA14258@deathray>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 01/10] ARM: OMAP2+: Return correct error values from
+ device and hwmod
+Date: Thu, 21 May 2015 13:44:48 +0200
+Message-ID: <20150521114448.GB8329@pali>
+References: <1424958600-18881-1-git-send-email-pali.rohar@gmail.com>
+ <1424958600-18881-2-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="A1VS04HCCjrR2aaM"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:49705 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397AbbEUKTO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2015 06:19:14 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150521020709.GA14258@deathray>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1424958600-18881-2-git-send-email-pali.rohar@gmail.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-omap@vger.kernel.org
-To: Michael Welling <mwelling@ieee.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Thursday 26 February 2015 14:49:51 Pali Roh=C3=A1r wrote:
+> Without this patch function pm_runtime_get_sync() returns 0 even when=
+ some
+> omap subfunction fails. This patch properly propagate error codes fro=
+m omap
+> functions back to caller.
+>=20
+> This patch fix problem, when loading omap-aes driver in qemu cause ke=
+rnel oops.
+>=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> ---
+>  arch/arm/mach-omap2/omap_device.c |   30 +++++++++++++++++----------=
+---
+>  arch/arm/mach-omap2/omap_hwmod.c  |   10 ++++++----
+>  2 files changed, 23 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/=
+omap_device.c
+> index be9541e..9fd47a9 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -224,13 +224,13 @@ static int _omap_device_notifier_call(struct no=
+tifier_block *nb,
+>   */
+>  static int _omap_device_enable_hwmods(struct omap_device *od)
+>  {
+> +	int ret =3D 0;
+>  	int i;
+> =20
+>  	for (i =3D 0; i < od->hwmods_cnt; i++)
+> -		omap_hwmod_enable(od->hwmods[i]);
+> +		ret |=3D omap_hwmod_enable(od->hwmods[i]);
+> =20
+> -	/* XXX pass along return value here? */
+> -	return 0;
+> +	return ret;
+>  }
+> =20
+>  /**
+> @@ -241,13 +241,13 @@ static int _omap_device_enable_hwmods(struct om=
+ap_device *od)
+>   */
+>  static int _omap_device_idle_hwmods(struct omap_device *od)
+>  {
+> +	int ret =3D 0;
+>  	int i;
+> =20
+>  	for (i =3D 0; i < od->hwmods_cnt; i++)
+> -		omap_hwmod_idle(od->hwmods[i]);
+> +		ret |=3D omap_hwmod_idle(od->hwmods[i]);
+> =20
+> -	/* XXX pass along return value here? */
+> -	return 0;
+> +	return ret;
+>  }
+> =20
+>  /* Public functions for use by core code */
+> @@ -595,18 +595,20 @@ static int _od_runtime_suspend(struct device *d=
+ev)
+>  	int ret;
+> =20
+>  	ret =3D pm_generic_runtime_suspend(dev);
+> +	if (ret)
+> +		return ret;
+> =20
+> -	if (!ret)
+> -		omap_device_idle(pdev);
+> -
+> -	return ret;
+> +	return omap_device_idle(pdev);
+>  }
+> =20
+>  static int _od_runtime_resume(struct device *dev)
+>  {
+>  	struct platform_device *pdev =3D to_platform_device(dev);
+> +	int ret;
+> =20
+> -	omap_device_enable(pdev);
+> +	ret =3D omap_device_enable(pdev);
+> +	if (ret)
+> +		return ret;
+> =20
+>  	return pm_generic_runtime_resume(dev);
+>  }
+> @@ -740,7 +742,8 @@ int omap_device_enable(struct platform_device *pd=
+ev)
+> =20
+>  	ret =3D _omap_device_enable_hwmods(od);
+> =20
+> -	od->_state =3D OMAP_DEVICE_STATE_ENABLED;
+> +	if (ret =3D=3D 0)
+> +		od->_state =3D OMAP_DEVICE_STATE_ENABLED;
+> =20
+>  	return ret;
+>  }
+> @@ -770,7 +773,8 @@ int omap_device_idle(struct platform_device *pdev=
+)
+> =20
+>  	ret =3D _omap_device_idle_hwmods(od);
+> =20
+> -	od->_state =3D OMAP_DEVICE_STATE_IDLE;
+> +	if (ret =3D=3D 0)
+> +		od->_state =3D OMAP_DEVICE_STATE_IDLE;
+> =20
+>  	return ret;
+>  }
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
+map_hwmod.c
+> index 92afb72..870e984 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -3350,16 +3350,17 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
+>   */
+>  int omap_hwmod_idle(struct omap_hwmod *oh)
+>  {
+> +	int r;
+>  	unsigned long flags;
+> =20
+>  	if (!oh)
+>  		return -EINVAL;
+> =20
+>  	spin_lock_irqsave(&oh->_lock, flags);
+> -	_idle(oh);
+> +	r =3D _idle(oh);
+>  	spin_unlock_irqrestore(&oh->_lock, flags);
+> =20
+> -	return 0;
+> +	return r;
+>  }
+> =20
+>  /**
+> @@ -3372,16 +3373,17 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
+>   */
+>  int omap_hwmod_shutdown(struct omap_hwmod *oh)
+>  {
+> +	int r;
+>  	unsigned long flags;
+> =20
+>  	if (!oh)
+>  		return -EINVAL;
+> =20
+>  	spin_lock_irqsave(&oh->_lock, flags);
+> -	_shutdown(oh);
+> +	r =3D _shutdown(oh);
+>  	spin_unlock_irqrestore(&oh->_lock, flags);
+> =20
+> -	return 0;
+> +	return r;
+>  }
+> =20
+>  /*
 
---A1VS04HCCjrR2aaM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hello Paul, can you apply this patch?
 
-On Wed, May 20, 2015 at 09:07:09PM -0500, Michael Welling wrote:
-
-> My guess is that the set_cs needs to be called even when toggling as GPIO.
-
-> How should I handle this?
-
-It shouldn't be part of a set_cs() operation but rather part of the main
-transfer operation.
-
---A1VS04HCCjrR2aaM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVXbERAAoJECTWi3JdVIfQRUwH/jrjusZl1DDv4j3E3NnCJhCN
-h4e0/WsgprJaCIJSKwV4rvBrd0LJKbpCu8tFSLiGKJsliaQTDEkHe5RKp51OdMwZ
-+hmihUsH36BFROpdyEsh+skbCgZ2jqcCI9cD55mQjlzw9EFXr9Xg2J1MqlMo4n87
-GODGkVYYMOAY4b6WQyb7kyZ+2QZiAXR2HD1KR80oWixkvVxHmtqvs6rsw2aeVRiJ
-Bh/PIh+Ckd3NHAmnCU3l36VabcKTTF4cfsjm2DgZM+kwo8Sa54LHhrJlzYhZlO1j
-2pG53Ox9txGZzR0+V204zQdJxm56zPRuP0SIb74VA8EC7MixgMee9DabyLv12Pw=
-=O88L
------END PGP SIGNATURE-----
-
---A1VS04HCCjrR2aaM--
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
