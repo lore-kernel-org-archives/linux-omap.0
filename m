@@ -1,39 +1,45 @@
-From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: High CPU usage when video streaming on EHCI, 3.17.8 kernel with
- DMA enabled
-Date: Thu, 21 May 2015 14:20:57 -0700
-Message-ID: <CAK8F28mdedXgL660SqTLeNZ7hVHOmRR7YwuTdkyY3XmnZ97_Zw@mail.gmail.com>
-References: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
- <Pine.LNX.4.44L0.1505170956410.2774-100000@netrider.rowland.org>
- <20150518102715.34e29c33@perruche.parrot.biz> <20150518145919.GC10274@atomide.com>
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: [PATCH] mach-omap2:Remove unnessary return statement from the void
+ function, omap2_show_dma_caps
+Date: Thu, 21 May 2015 17:27:31 -0400
+Message-ID: <1432243651-23061-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150518145919.GC10274-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Matthieu CASTET <matthieu.castet-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 18, 2015 at 7:59 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> [PATCH] dmaengine: omap-dma: Add support for memcpy
+This removes the no longer required return statement at the end
+of the void function, omap2_show_dma_cap due to no need for a
+return statement due to this function always running successfully.
 
-Hi Tom,
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+---
+ arch/arm/mach-omap2/dma.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-To follow up on your corresponding mail to the gumstix list [1], I
-tried on the 3.17.8 kernel on an Overo COM (DM37390) with the
-suggested dmaengine patch applied.  Using "hdparm -t --DIRECT
-/dev/sda" with a USB hard drive attached via the USB EHCI port, I see
-a read speed of ~24MB/s (vs ~33MB/s on my laptop).  I see the same
-behaviour on a recent kernel (from tony/omap-for-v4.2/cleanup,
-otherwise works nicely on an Overo FWIW) with and without the
-dmaengine patch.
-
-What would be the expected USB read speed for an OMAP3 platform?
-
---Ash
-[1] http://gumstix.8.x6.nabble.com/Low-USB-speed-on-Overo-td4969907.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index e1a56d8..1ed4be1 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -117,7 +117,6 @@ static void omap2_show_dma_caps(void)
+ 	u8 revision = dma_read(REVISION, 0) & 0xff;
+ 	printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+ 				revision >> 4, revision & 0xf);
+-	return;
+ }
+ 
+ static unsigned configure_dma_errata(void)
+-- 
+2.1.4
