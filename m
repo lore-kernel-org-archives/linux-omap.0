@@ -1,42 +1,62 @@
-From: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: Fix native cs with new set_cs
-Date: Wed, 20 May 2015 21:07:09 -0500
-Message-ID: <20150521020709.GA14258@deathray>
-References: <1431452337-19280-1-git-send-email-mwelling@ieee.org>
- <20150512191758.GX3066@sirena.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv3 10/10] CLK: TI: always enable DESHDCP clock
+Date: Thu, 21 May 2015 03:06:15 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1505210254330.7960@utopia.booyaka.com>
+References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com> <1430906938-26128-11-git-send-email-tomi.valkeinen@ti.com> <555C744C.6070901@ti.com> <555C74E8.5010105@ti.com> <555CE1BF.4050506@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150512191758.GX3066-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:53088 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676AbbEUDGQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2015 23:06:16 -0400
+In-Reply-To: <555CE1BF.4050506@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org
 
-On Tue, May 12, 2015 at 08:17:58PM +0100, Mark Brown wrote:
-> On Tue, May 12, 2015 at 12:38:57PM -0500, Michael Welling wrote:
-> > GPIO chip select patch series appears to have broken the native chip select
-> > support. This patch pulls the manual native chip select toggling out of
-> > the transfer_one routine and adds a set_cs routine.
+On Wed, 20 May 2015, Stephen Boyd wrote:
+
+> On 05/20/15 04:50, Tero Kristo wrote:
+> >
+> >>>
+> >>> @@ -348,5 +348,10 @@ int __init dra7xx_dt_clk_init(void)
+> >>>       if (rc)
+> >>>           pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
+> >>>
+> >>> +    hdcp_ck = clk_get_sys(NULL, "dss_deshdcp_clk");
+> >>> +    rc = clk_prepare_enable(hdcp_ck);
+> >>> +    if (rc)
+> >>> +        pr_err("%s: failed to set dss_deshdcp_clk\n", __func__);
+> >>> +
+> >>>       return rc;
+> >>>   }
+> >>>
+> >>
+> >> You should rather use the assigned-clock properties in DT to accomplish
+> >> this, the manual clock tweaks under the drivers/clk/ti/clk-* files
+> >> should be converted to DT setup also.
+> >
+> > Now that I sent this, I realize we only have support to set_parent /
+> > set_rate through the assigned-clock props, no enable. Any plans to
+> > extend this support Mike/Stephen?
+> >
+> >
 > 
-> Applied, thanks
+> Enable falls under the "critical clocks" discussion that is ongoing. I
+> assume that this is some sort of critical clock that can't be turned off?
 
-It appears that in haste, this fix for the native cs support broke
-the GPIO chip select support that I was originally shooting for.
+It only needs to be enabled for this particular display IP subsystem to 
+function:
 
-[    2.653658] mcp23s08 spi1.1: TXS timed out
-[    2.657961] mcp23s08 spi1.1: SPI transfer failed: -5
-[    2.663305] spi_master spi1: failed to transfer one message from queue
-[    2.670172] mcp23s08 spi1.1: can't setup chip 64, --> -5
-[    2.675784] GPIO chip mcp23s08: gpiochip_unexport: status -19
+http://marc.info/?l=linux-omap&m=142071550111482&w=2
 
-My guess is that the set_cs needs to be called even when toggling as GPIO.
-
-How should I handle this?
+I believe Tomi is taking this approach (enabling it unconditionally) to 
+avoid adding support for a secondary IP block "main clock" to the hwmod 
+code.  Apparently, the chips that contain this clock gating bit are not 
+intended to be used for power-critical use cases, so there's not much 
+motivation to switch it on and off with the display controller.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
