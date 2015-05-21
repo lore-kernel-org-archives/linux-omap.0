@@ -1,67 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv2 00/27] ARM: OMAP2+: clock code migration to drivers/clk/ti
-Date: Thu, 21 May 2015 02:01:31 -0500
-Message-ID: <555D82CB.5060300@ti.com>
-References: <1431334493-24455-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1505111747460.19833@utopia.booyaka.com> <5551D178.3000904@ti.com> <alpine.DEB.2.02.1505122019220.21747@utopia.booyaka.com> <5552F32C.7060606@ti.com> <alpine.DEB.2.02.1505131438430.7921@utopia.booyaka.com> <555B8DC0.5080905@ti.com> <alpine.DEB.2.02.1505202234330.7960@utopia.booyaka.com> <555D7D52.8010501@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] spi: omap2-mcspi: Fix native cs with new set_cs
+Date: Thu, 21 May 2015 11:18:57 +0100
+Message-ID: <20150521101857.GR21577@sirena.org.uk>
+References: <1431452337-19280-1-git-send-email-mwelling@ieee.org>
+ <20150512191758.GX3066@sirena.org.uk>
+ <20150521020709.GA14258@deathray>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="A1VS04HCCjrR2aaM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52065 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753590AbbEUHCE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 May 2015 03:02:04 -0400
-In-Reply-To: <555D7D52.8010501@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:49705 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753397AbbEUKTO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2015 06:19:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20150521020709.GA14258@deathray>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: mturquette@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
+To: Michael Welling <mwelling@ieee.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 05/21/2015 01:38 AM, Tero Kristo wrote:
-> On 05/21/2015 01:40 AM, Paul Walmsley wrote:
->> On Tue, 19 May 2015, Tero Kristo wrote:
->>
->>> Any news on this? As noted previously, I am not able to reproduce the
->>> issue
->>> you are seeing currently, can you give DEBUG_LL a shot?
->>
->> Yeah I just bisected it, it was caused by this:
->>
->> commit cc4a5fe972ad7834e8662b49b3a5fdb597e9e15e
->> Author: Felipe Balbi <balbi@ti.com>
->> Date:   Fri Jan 30 11:18:56 2015 -0600
->>
->>      arm: config: omap2plus_defconfig: switch over to LZMA compression
->>
->>      LZMA compression makes about 33% smaller zImage
->>      with just a slight extra decompression time.
->>
->>      Before this patch, zImage built with o2+_dc
->>      is 4.5MiB and after it's about 3.3MiB.
->>
->>      Suggested-by: David Cohen <david.a.cohen@linux.intel.com>
->>      Signed-off-by: Felipe Balbi <balbi@ti.com>
->>      Signed-off-by: Tony Lindgren <tony@atomide.com>
->>
->>
->> and the timeouts on the testbed being set to fail if a kernel takes
->> longer
->> than five seconds to start.  Seems that the part about a "slight extra
->> decompression time" probably only applies to relatively recent chips.
->>
->>
->> - Paul
->>
-> 
-> Oh, so this explains why I was thinking it took very long time to boot
-> the recent kernels also. The boot lag is clearly noticeable without any
-> measurement. I wonder if we should probably revert this patch.
 
-we already have issues with zImage size bloating up and running headlong
-into dtb - esp on platforms like N900. Felipe spend quiet some time
-getting things into a manageable size here -> loosing 33% sounds like
-bad idea to me :(
+--A1VS04HCCjrR2aaM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-Regards,
-Nishanth Menon
+On Wed, May 20, 2015 at 09:07:09PM -0500, Michael Welling wrote:
+
+> My guess is that the set_cs needs to be called even when toggling as GPIO.
+
+> How should I handle this?
+
+It shouldn't be part of a set_cs() operation but rather part of the main
+transfer operation.
+
+--A1VS04HCCjrR2aaM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVXbERAAoJECTWi3JdVIfQRUwH/jrjusZl1DDv4j3E3NnCJhCN
+h4e0/WsgprJaCIJSKwV4rvBrd0LJKbpCu8tFSLiGKJsliaQTDEkHe5RKp51OdMwZ
++hmihUsH36BFROpdyEsh+skbCgZ2jqcCI9cD55mQjlzw9EFXr9Xg2J1MqlMo4n87
+GODGkVYYMOAY4b6WQyb7kyZ+2QZiAXR2HD1KR80oWixkvVxHmtqvs6rsw2aeVRiJ
+Bh/PIh+Ckd3NHAmnCU3l36VabcKTTF4cfsjm2DgZM+kwo8Sa54LHhrJlzYhZlO1j
+2pG53Ox9txGZzR0+V204zQdJxm56zPRuP0SIb74VA8EC7MixgMee9DabyLv12Pw=
+=O88L
+-----END PGP SIGNATURE-----
+
+--A1VS04HCCjrR2aaM--
