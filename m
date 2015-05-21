@@ -1,15 +1,15 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [GIT PULL 2/2] omap1 sparse irq support for v4.2
-Date: Thu, 21 May 2015 14:11:48 +0200
-Message-ID: <80194352.chs4cqVdmg@wuerfel>
+Date: Thu, 21 May 2015 14:14:12 +0200
+Message-ID: <4094934.StqYY08vL5@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:59257 "EHLO
+Received: from mout.kundenserver.de ([212.227.17.24]:63357 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbbEUML4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2015 08:11:56 -0400
+	with ESMTP id S1753776AbbEUMOm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2015 08:14:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
@@ -25,152 +25,233 @@ On Wednesday 20 May 2015 15:36:05 Tony Lindgren wrote:
 > d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
 > 
 
-I'm getting lots of build errors in linux-next, which I think are
-caused by this series.
+fwiw, I have another patch in my 'multiplatform' series that will add
+another baby step.
 
-Here is my fixup. Unfortunately, this again gets us a little further
-from making the drivers standalone, or at least it documents the
-dependencies.
+8<---
+ARM: OMAP1: make header files local if possible
 
-	Arnd
+A number of header files in mach-omap1 are never included from outside
+of mach-omap1, so we can move them directly to that directory.
 
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index 9525ef9bc6c0..ac9bd88c6b05 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -42,6 +42,7 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index a95499ea8706..9fc70978823b 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -41,7 +41,7 @@
  
-+#include <mach/hardware.h>
- #include <mach/omap7xx.h>
- #include "mmc.h"
- 
-diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-index 6e6ec93dcbb3..404f3f55726f 100644
---- a/arch/arm/mach-omap1/gpio16xx.c
-+++ b/arch/arm/mach-omap1/gpio16xx.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
-+#include <mach/soc.h>
- #include <mach/irqs.h>
- 
- #define OMAP1610_GPIO1_BASE		0xfffbe400
-diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
-index 4612d2506a2d..1bb38a4aec8f 100644
---- a/arch/arm/mach-omap1/gpio7xx.c
-+++ b/arch/arm/mach-omap1/gpio7xx.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
-+#include <mach/soc.h>
- #include <mach/irqs.h>
- 
- #define OMAP7XX_GPIO1_BASE		0xfffbc000
-diff --git a/arch/arm/mach-omap1/iomap.h b/arch/arm/mach-omap1/iomap.h
-index f4e2d7a21365..23686204df45 100644
---- a/arch/arm/mach-omap1/iomap.h
-+++ b/arch/arm/mach-omap1/iomap.h
-@@ -27,6 +27,7 @@
-  * Omap1 specific IO mapping
-  * ----------------------------------------------------------------------------
-  */
-+#include <mach/hardware.h>
- 
- #define OMAP1_IO_PHYS		0xFFFB0000
- #define OMAP1_IO_SIZE		0x40000
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index d1ac08016f0b..652ba6b9385e 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -22,6 +22,7 @@
- 
- #include <asm/mach-types.h>
- 
-+#include <mach/soc.h>
- #include <mach/mux.h>
- 
- #include "pm.h"
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 4118db50d5e8..1f28b5e8d6ca 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -26,6 +26,7 @@
- 
- #include <asm/irq.h>
- 
-+#include <mach/hardware.h>
- #include <mach/mux.h>
- 
+ #include <mach/hardware.h>
+ #include <mach/ams-delta-fiq.h>
+-#include <mach/camera.h>
++#include "camera.h"
  #include <mach/usb.h>
-diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
-index 7502e46165fa..32c8fc0fdc15 100644
---- a/drivers/input/keyboard/omap-keypad.c
-+++ b/drivers/input/keyboard/omap-keypad.c
-@@ -38,6 +38,10 @@
- #include <linux/platform_data/gpio-omap.h>
+ 
+ #include "iomap.h"
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 0fb51d22c8b5..fad95b74bb65 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -29,7 +29,7 @@
+ 
+ #include <mach/tc.h>
+ #include <mach/mux.h>
+-#include <mach/flash.h>
++#include "flash.h"
  #include <linux/platform_data/keypad-omap.h>
  
-+#ifdef CONFIG_ARCH_OMAP1
-+#include <mach/hardware.h>
-+#endif
-+
- #undef NEW_BOARD_LEARNING_MODE
+ #include <mach/hardware.h>
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index 8340d684d8b6..cd146ed0538d 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -42,7 +42,7 @@
+ #include <linux/omap-dma.h>
+ #include <mach/tc.h>
+ #include <linux/platform_data/keypad-omap.h>
+-#include <mach/flash.h>
++#include "flash.h"
  
- static void omap_kp_tasklet(unsigned long);
-diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
-index c43f74c53cd9..c73297bd7ed4 100644
---- a/drivers/tty/serial/8250/8250.h
-+++ b/drivers/tty/serial/8250/8250.h
-@@ -15,6 +15,10 @@
- #include <linux/serial_reg.h>
- #include <linux/dmaengine.h>
+ #include <mach/hardware.h>
+ #include <mach/usb.h>
+diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+index 086ff34e072b..f7c8c63dd532 100644
+--- a/arch/arm/mach-omap1/board-h3.c
++++ b/arch/arm/mach-omap1/board-h3.c
+@@ -44,7 +44,7 @@
+ #include <mach/tc.h>
+ #include <linux/platform_data/keypad-omap.h>
+ #include <linux/omap-dma.h>
+-#include <mach/flash.h>
++#include "flash.h"
  
-+#ifdef CONFIG_ARCH_OMAP1
-+#include <mach/soc.h>
-+#endif
-+
- struct uart_8250_dma {
- 	int (*tx_dma)(struct uart_8250_port *p);
- 	int (*rx_dma)(struct uart_8250_port *p, unsigned int iir);
-diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-index 3af263cc0caa..1c05541bbeee 100644
---- a/drivers/usb/phy/phy-isp1301-omap.c
-+++ b/drivers/usb/phy/phy-isp1301-omap.c
-@@ -36,6 +36,7 @@
- #include <asm/irq.h>
- #include <asm/mach-types.h>
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index ed4e045c2ad8..ae90bd02b3bf 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -32,7 +32,7 @@
+ #include <asm/mach/map.h>
  
-+#include <mach/hardware.h>
+ #include <mach/mux.h>
+-#include <mach/flash.h>
++#include "flash.h"
+ #include <mach/tc.h>
+ #include <linux/platform_data/keypad-omap.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index 0efd165b8227..209aecb0df68 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -46,7 +46,7 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <mach/flash.h>
++#include "flash.h"
+ #include <mach/mux.h>
+ #include <mach/tc.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
+index 1142ae431fe0..e5288cda1a6a 100644
+--- a/arch/arm/mach-omap1/board-palmte.c
++++ b/arch/arm/mach-omap1/board-palmte.c
+@@ -34,7 +34,7 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <mach/flash.h>
++#include "flash.h"
+ #include <mach/mux.h>
+ #include <mach/tc.h>
+ #include <linux/omap-dma.h>
+diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
+index 54a547a96950..d672495f7441 100644
+--- a/arch/arm/mach-omap1/board-palmtt.c
++++ b/arch/arm/mach-omap1/board-palmtt.c
+@@ -34,7 +34,7 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <mach/flash.h>
++#include "flash.h"
+ #include <mach/mux.h>
+ #include <linux/omap-dma.h>
+ #include <mach/tc.h>
+diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
+index 87ec04ae40dd..aaf741b0aff6 100644
+--- a/arch/arm/mach-omap1/board-palmz71.c
++++ b/arch/arm/mach-omap1/board-palmz71.c
+@@ -36,7 +36,7 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <mach/flash.h>
++#include "flash.h"
+ #include <mach/mux.h>
+ #include <linux/omap-dma.h>
+ #include <mach/tc.h>
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 3d76f05407f0..150b57ba42bf 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -30,7 +30,7 @@
+ 
+ #include <mach/tc.h>
+ #include <mach/mux.h>
+-#include <mach/flash.h>
++#include "flash.h"
+ 
+ #include <mach/hardware.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-omap1/board-sx1-mmc.c
+index 4fcf19c78a08..a9373570bbb1 100644
+--- a/arch/arm/mach-omap1/board-sx1-mmc.c
++++ b/arch/arm/mach-omap1/board-sx1-mmc.c
+@@ -16,7 +16,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <mach/hardware.h>
+-#include <mach/board-sx1.h>
++#include "board-sx1.h"
+ 
+ #include "mmc.h"
+ 
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index 939991ea33d5..6c482254b37c 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -34,11 +34,11 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <mach/flash.h>
++#include "flash.h"
+ #include <mach/mux.h>
+ #include <linux/omap-dma.h>
+ #include <mach/tc.h>
+-#include <mach/board-sx1.h>
++#include "board-sx1.h"
+ 
+ #include <mach/hardware.h>
+ #include <mach/usb.h>
+diff --git a/arch/arm/mach-omap1/include/mach/board-sx1.h b/arch/arm/mach-omap1/board-sx1.h
+similarity index 100%
+rename from arch/arm/mach-omap1/include/mach/board-sx1.h
+rename to arch/arm/mach-omap1/board-sx1.h
+diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+index e960687d0cb1..2c01147a27f9 100644
+--- a/arch/arm/mach-omap1/board-voiceblue.c
++++ b/arch/arm/mach-omap1/board-voiceblue.c
+@@ -32,8 +32,8 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <mach/board-voiceblue.h>
+-#include <mach/flash.h>
++#include "board-voiceblue.h"
++#include "flash.h"
+ #include <mach/mux.h>
+ #include <mach/tc.h>
+ 
+diff --git a/arch/arm/mach-omap1/include/mach/board-voiceblue.h b/arch/arm/mach-omap1/board-voiceblue.h
+similarity index 100%
+rename from arch/arm/mach-omap1/include/mach/board-voiceblue.h
+rename to arch/arm/mach-omap1/board-voiceblue.h
+diff --git a/arch/arm/mach-omap1/include/mach/camera.h b/arch/arm/mach-omap1/camera.h
+similarity index 100%
+rename from arch/arm/mach-omap1/include/mach/camera.h
+rename to arch/arm/mach-omap1/camera.h
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 325e6030095e..263c07a566cb 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -25,7 +25,7 @@
  #include <mach/mux.h>
  
- #include <mach/usb.h>
-diff --git a/drivers/video/fbdev/omap/lcdc.c b/drivers/video/fbdev/omap/lcdc.c
-index 6efa2591eaa8..4e01fbbeb52f 100644
---- a/drivers/video/fbdev/omap/lcdc.c
-+++ b/drivers/video/fbdev/omap/lcdc.c
-@@ -30,6 +30,7 @@
- #include <linux/clk.h>
- #include <linux/gfp.h>
+ #include <mach/omap7xx.h>
+-#include <mach/camera.h>
++#include "camera.h"
+ #include <mach/hardware.h>
  
-+#include <mach/hardware.h>
- #include <mach/lcdc.h>
- #include <linux/omap-dma.h>
+ #include "common.h"
+diff --git a/arch/arm/mach-omap1/flash.c b/arch/arm/mach-omap1/flash.c
+index b3fb531af94e..99cda402e1e2 100644
+--- a/arch/arm/mach-omap1/flash.c
++++ b/arch/arm/mach-omap1/flash.c
+@@ -11,7 +11,7 @@
+ #include <linux/mtd/map.h>
  
-diff --git a/drivers/video/fbdev/omap/sossi.c b/drivers/video/fbdev/omap/sossi.c
-index d4e7684e7045..39d9d7050d78 100644
---- a/drivers/video/fbdev/omap/sossi.c
-+++ b/drivers/video/fbdev/omap/sossi.c
-@@ -27,6 +27,8 @@
+ #include <mach/tc.h>
+-#include <mach/flash.h>
++#include "flash.h"
  
- #include <linux/omap-dma.h>
+ #include <mach/hardware.h>
  
-+#include <mach/hardware.h>
-+
- #include "omapfb.h"
- #include "lcdc.h"
- 
+diff --git a/arch/arm/mach-omap1/include/mach/flash.h b/arch/arm/mach-omap1/flash.h
+similarity index 100%
+rename from arch/arm/mach-omap1/include/mach/flash.h
+rename to arch/arm/mach-omap1/flash.h
 
