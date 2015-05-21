@@ -1,48 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/5] PM / Wakeirq: Add automated device wake IRQ handling
-Date: Wed, 20 May 2015 17:35:28 -0700
-Message-ID: <20150521003528.GP10274@atomide.com>
-References: <1431560196-5722-1-git-send-email-tony@atomide.com>
- <143211021.lFoirF2CMg@vostro.rjw.lan>
- <20150520021057.GT10274@atomide.com>
- <2273759.0pS9I3MzHs@vostro.rjw.lan>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Thu, 21 May 2015 01:06:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1505210106140.7960@utopia.booyaka.com>
+References: <1432156863-19695-1-git-send-email-tony@atomide.com> <1432156863-19695-3-git-send-email-tony@atomide.com> <alpine.DEB.2.02.1505202249450.7960@utopia.booyaka.com> <20150520225628.GO10274@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2273759.0pS9I3MzHs@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <balbi@ti.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:52297 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753444AbbEUBGX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2015 21:06:23 -0400
+In-Reply-To: <20150520225628.GO10274@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Roger Quadros <rogerq@ti.com>
 
-* Rafael J. Wysocki <rjw@rjwysocki.net> [150520 17:30]:
-> On Tuesday, May 19, 2015 07:10:57 PM Tony Lindgren wrote:
-> > * Rafael J. Wysocki <rjw@rjwysocki.net> [150519 17:01]:
-> > > On Tuesday, May 19, 2015 04:27:56 PM Tony Lindgren wrote:
-> > > > * Rafael J. Wysocki <rjw@rjwysocki.net> [150519 16:07]:
-> > > > > On Wednesday, May 20, 2015 12:41:06 AM Thomas Gleixner wrote:
-> > > > > > On Wed, 20 May 2015, Rafael J. Wysocki wrote:
-> > > > > > > This one looks really good. :-)
-> > > > > > > 
-> > > > > > > If it doesn't depend on anything, I can apply it right away, so please let me
-> > > > > > > know.
-> > > > 
-> > > > Sure works for me, it just has a dependency to patch #1 in this
-> > > > series ("[PATCH 1/5] PM / Runtime: Update last_busy in rpm_resume").
-> > > 
-> > > OK, I'll queue them both up for 4.2, then.
-> > > 
-> > > Please let me know if you need a special branch with them.
+On Wed, 20 May 2015, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [150520 15:52]:
+> > On Wed, 20 May 2015, Tony Lindgren wrote:
 > > 
-> > A separate branch would be nice so I can merge that in too.
+> > > We support decoding the bootloader values if DEBUG is defined.
+> > > But we also need to change the struct omap_hwmod flags to have
+> > > HWMOD_INIT_NO_RESET to avoid the GPMC being reset during the
+> > > boot. Otherwise just the default timings will be displayed
+> > > instead of the bootloader configured timings.
+> > > 
+> > > This also allows us to clean up the various GPMC related
+> > > hwmod flags. For debugging, we only need HWMOD_INIT_NO_RESET,
+> > > and HWMOD_INIT_NO_IDLE is not needed.
+> > > 
+> > > Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> > > Cc: Paul Walmsley <paul@pwsan.com>
+> > > Cc: Roger Quadros <rogerq@ti.com>
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > Looks good to me, want me to queue it or do you want to?
 > 
-> OK
-> 
-> I added a new pm-wakeirq branch to linux-pm.git with these two patches and
-> one other commit related to runtime PM (all based on 4.1-rc4).  This branch
-> will not be rebased going forward.
+> Feel free to take it if it looks OK to you, I'll just queue
+> the first patch then. Roger may have other GPMC patches
+> coming up, but this should not conflict with them, there's
+> more of a hwmod conflict chance.
 
-Great thanks!
+OK thanks queued for v4.2.
 
-Tony
+- Paul
