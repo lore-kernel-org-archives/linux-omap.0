@@ -1,50 +1,39 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: Fix native cs with new set_cs
-Date: Thu, 21 May 2015 22:16:38 +0100
-Message-ID: <20150521211638.GN21577@sirena.org.uk>
-References: <1431452337-19280-1-git-send-email-mwelling@ieee.org>
- <20150512191758.GX3066@sirena.org.uk>
- <20150521020709.GA14258@deathray>
- <20150521101857.GR21577@sirena.org.uk>
- <20150521210411.GA5406@deathray>
+From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: High CPU usage when video streaming on EHCI, 3.17.8 kernel with
+ DMA enabled
+Date: Thu, 21 May 2015 14:20:57 -0700
+Message-ID: <CAK8F28mdedXgL660SqTLeNZ7hVHOmRR7YwuTdkyY3XmnZ97_Zw@mail.gmail.com>
+References: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
+ <Pine.LNX.4.44L0.1505170956410.2774-100000@netrider.rowland.org>
+ <20150518102715.34e29c33@perruche.parrot.biz> <20150518145919.GC10274@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="tbBCmy51UvWhYeBI"
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150521210411.GA5406@deathray>
-Sender: linux-next-owner@vger.kernel.org
-To: Michael Welling <mwelling@ieee.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150518145919.GC10274-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Matthieu CASTET <matthieu.castet-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, May 18, 2015 at 7:59 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> [PATCH] dmaengine: omap-dma: Add support for memcpy
 
---tbBCmy51UvWhYeBI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Tom,
 
-On Thu, May 21, 2015 at 04:04:11PM -0500, Michael Welling wrote:
+To follow up on your corresponding mail to the gumstix list [1], I
+tried on the 3.17.8 kernel on an Overo COM (DM37390) with the
+suggested dmaengine patch applied.  Using "hdparm -t --DIRECT
+/dev/sda" with a USB hard drive attached via the USB EHCI port, I see
+a read speed of ~24MB/s (vs ~33MB/s on my laptop).  I see the same
+behaviour on a recent kernel (from tony/omap-for-v4.2/cleanup,
+otherwise works nicely on an Overo FWIW) with and without the
+dmaengine patch.
 
-> Do you want to revert the patch and apply a new one or should I provide a
-> patch that reverts the changes and fixes it all in one?
+What would be the expected USB read speed for an OMAP3 platform?
 
-Can you please send me separate revert and re-add patches, that's
-probably going to be easier to review.
-
---tbBCmy51UvWhYeBI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVXks1AAoJECTWi3JdVIfQzQAH/23DnhxaJhVqDgMZffB2BTEd
-4WX6M080N0glhqnBcwi98TCxK5f7DwCys+ULKS0XKOpQQjsXHKrCHrPtfx+KuemN
-Q+Dw18RvSr6nRlK5ddLrcFrrzJ5hevjkpGixB5Ct5LDBpmV27ijLGwQ4s+kc7Igc
-KP1PQFW/IjItHQmVe8cpLK0fm8MPBlhxMOFOglxKR+OM+fua+VqL+zQeRBVVAYo1
-KrKcrLk4uMuhTrwrqjhkQc0rCIpBKrhl2sLIMfRzk5LAhFdx43ZVGv++kpX2MK5Y
-ASqJQCJ7r79s8Drwq7QiFK373+lhvsCfr56qtUH0ojXp2GyNCnjAXUu7JKk+E0Y=
-=BCIv
------END PGP SIGNATURE-----
-
---tbBCmy51UvWhYeBI--
+--Ash
+[1] http://gumstix.8.x6.nabble.com/Low-USB-speed-on-Overo-td4969907.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
