@@ -1,224 +1,46 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/3] phy: ti-pipe3: i783 workaround for SATA lockup after
- dpll unlock/relock
-Date: Fri, 22 May 2015 16:58:07 +0300
-Message-ID: <555F35EF.3000409@ti.com>
-References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-3-git-send-email-rogerq@ti.com> <555C89D2.5070301@ti.com> <555C905B.4080006@ti.com> <555F145E.7070404@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] video: omap/h3: fix tps65010 dependency
+Date: Fri, 22 May 2015 16:22:16 +0200
+Message-ID: <4416278.oVFvT3Eyqf@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <555F145E.7070404@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.131]:59106 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932291AbbEVOYu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2015 10:24:50 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-fbdev@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Kishon,
+The h3 LCD driver fails to link when tps65010 is configured
+as a loadable module:
 
-On 22/05/15 14:34, Kishon Vijay Abraham I wrote:
-> Roger,
->
-> On Wednesday 20 May 2015 07:17 PM, Roger Quadros wrote:
->> Kishon,
->>
->> On 20/05/15 16:19, Kishon Vijay Abraham I wrote:
->>> Hi Roger,
->>>
->>> On Tuesday 12 May 2015 09:37 PM, Roger Quadros wrote:
->>>> SATA_PLL_SOFT_RESET bit of CTRL_CORE_SMA_SW_0 must be toggled
->>>> between a SATA DPLL unlock and re-lock to prevent SATA lockup.
->>>>
->>>> Introduce a new DT parameter 'syscon-pllreset' to provide the syscon
->>>> regmap access to this register which sits in the control module.
->>>>
->>>> If the register is not provided we fallback to the old behaviour
->>>> i.e. SATA DPLL refclk will not be disabled and we prevent SoC low
->>>> power states.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    Documentation/devicetree/bindings/phy/ti-phy.txt | 16 ++++++
->>>>    drivers/phy/phy-ti-pipe3.c                       | 67
->>>> ++++++++++++++++++++----
->>>>    2 files changed, 74 insertions(+), 9 deletions(-)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> index 305e3df..f0f5537 100644
->>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> @@ -82,6 +82,9 @@ Optional properties:
->>>>     - id: If there are multiple instance of the same type, in order to
->>>>       differentiate between each instance "id" can be used (e.g.,
->>>> multi-lane PCIe
->>>>       PHY). If "id" is not provided, it is set to default value of '1'.
->>>> + - syscon-pllreset: Handle to system control region that contains the
->>>> +   CTRL_CORE_SMA_SW_0 register and register offset to the
->>>> CTRL_CORE_SMA_SW_0
->>>> +   register that contains the SATA_PLL_SOFT_RESET bit. Only valid for
->>>> sata_phy.
->>>>
->>>>    This is usually a subnode of ocp2scp to which it is connected.
->>>>
->>>> @@ -100,3 +103,16 @@ usb3phy@4a084400 {
->>>>                "sysclk",
->>>>                "refclk";
->>>>    };
->>>> +
->>>> +sata_phy: phy@4A096000 {
->>>> +    compatible = "ti,phy-pipe3-sata";
->>>> +    reg = <0x4A096000 0x80>, /* phy_rx */
->>>> +          <0x4A096400 0x64>, /* phy_tx */
->>>> +          <0x4A096800 0x40>; /* pll_ctrl */
->>>> +    reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->>>> +    ctrl-module = <&omap_control_sata>;
->>>> +    clocks = <&sys_clkin1>, <&sata_ref_clk>;
->>>> +    clock-names = "sysclk", "refclk";
->>>> +    syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
->>>> +    #phy-cells = <0>;
->>>> +};
->>>> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
->>>> index e13a306..d730142 100644
->>>> --- a/drivers/phy/phy-ti-pipe3.c
->>>> +++ b/drivers/phy/phy-ti-pipe3.c
->>>> @@ -28,6 +28,8 @@
->>>>    #include <linux/delay.h>
->>>>    #include <linux/phy/omap_control_phy.h>
->>>>    #include <linux/of_platform.h>
->>>> +#include <linux/mfd/syscon.h>
->>>> +#include <linux/regmap.h>
->>>>
->>>>    #define    PLL_STATUS        0x00000004
->>>>    #define    PLL_GO            0x00000008
->>>> @@ -52,6 +54,8 @@
->>>>    #define    PLL_LOCK        0x2
->>>>    #define    PLL_IDLE        0x1
->>>>
->>>> +#define SATA_PLL_SOFT_RESET    BIT(18)
->>>> +
->>>>    /*
->>>>     * This is an Empirical value that works, need to confirm the actual
->>>>     * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
->>>> @@ -82,6 +86,9 @@ struct ti_pipe3 {
->>>>        struct clk        *refclk;
->>>>        struct clk        *div_clk;
->>>>        struct pipe3_dpll_map    *dpll_map;
->>>> +    struct regmap        *dpll_reset_syscon; /* ctrl. reg. acces */
->>>> +    unsigned int        dpll_reset_reg; /* reg. index within syscon */
->>>> +    bool            sata_refclk_enabled;
->>>>    };
->>>>
->>>>    static struct pipe3_dpll_map dpll_map_usb[] = {
->>>> @@ -249,11 +256,15 @@ static int ti_pipe3_exit(struct phy *x)
->>>>        u32 val;
->>>>        unsigned long timeout;
->>>>
->>>> -    /* SATA DPLL can't be powered down due to Errata i783 and PCIe
->>>> -     * does not have internal DPLL
->>>> +    /* If dpll_reset_syscon is not present we wont power down SATA DPLL
->>>> +     * due to Errata i783
->>>>         */
->>>> -    if (of_device_is_compatible(phy->dev->of_node,
->>>> "ti,phy-pipe3-sata") ||
->>>> -        of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
->>>> +    if (of_device_is_compatible(phy->dev->of_node,
->>>> "ti,phy-pipe3-sata") &&
->>>> +        !phy->dpll_reset_syscon)
->>>> +        return 0;
->>>> +
->>>> +    /* PCIe doesn't have DPLL. FIXME: need to disable clocks though */
->>>
->>> I think it's better to fix it in this patch itself.. to disable clocks
->>> for PCIe.
->>>> +    if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
->>>>            return 0;
->>>>
->>>>        /* Put DPLL in IDLE mode */
->>>> @@ -276,6 +287,14 @@ static int ti_pipe3_exit(struct phy *x)
->>>>            return -EBUSY;
->>>>        }
->>>>
->>>> +    /* i783: SATA needs control bit toggle after PLL unlock */
->>>> +    if (of_device_is_compatible(phy->dev->of_node,
->>>> "ti,phy-pipe3-sata")) {
->>>> +        regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
->>>> +                SATA_PLL_SOFT_RESET, SATA_PLL_SOFT_RESET);
->>>> +        regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
->>>> +                SATA_PLL_SOFT_RESET, 0);
->>>> +    }
->>>> +
->>>>        ti_pipe3_disable_clocks(phy);
->>>>
->>>>        return 0;
->>>> @@ -350,6 +369,21 @@ static int ti_pipe3_probe(struct platform_device
->>>> *pdev)
->>>>            }
->>>>        } else {
->>>>            phy->wkupclk = ERR_PTR(-ENODEV);
->>>> +        phy->dpll_reset_syscon = syscon_regmap_lookup_by_phandle(node,
->>>> +                            "syscon-pllreset");
->>>> +        if (IS_ERR(phy->dpll_reset_syscon)) {
->>>> +            dev_info(&pdev->dev,
->>>> +                 "can't get syscon-pllreset, sata dpll won't idle\n");
->>>> +            phy->dpll_reset_syscon = NULL;
->>>> +        } else {
->>>> +            if (of_property_read_u32_index(node,
->>>> +                               "syscon-pllreset", 1,
->>>> +                               &phy->dpll_reset_reg)) {
->>>> +                dev_err(&pdev->dev,
->>>> +                    "couldn't get pllreset reg. offset\n");
->>>> +                return -EINVAL;
->>>> +            }
->>>> +        }
->>>>        }
->>>>
->>>>        if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
->>>> @@ -402,9 +436,16 @@ static int ti_pipe3_probe(struct platform_device
->>>> *pdev)
->>>>
->>>>        platform_set_drvdata(pdev, phy);
->>>>        pm_runtime_enable(phy->dev);
->>>> -    /* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
->>>> -    if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
->>>> -        clk_prepare_enable(phy->refclk);
->>>> +
->>>> +    /*
->>>> +     * Prevent auto-disable of refclk for SATA PHY due to Errata i783
->>>> +     */
->>>> +    if (of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
->>>> +        if (!IS_ERR(phy->refclk)) {
->>>> +            clk_prepare_enable(phy->refclk);
->>>> +            phy->sata_refclk_enabled = true;
->>>> +        }
->>>> +    }
->>>>
->>>>        generic_phy = devm_phy_create(phy->dev, NULL, &ops);
->>>>        if (IS_ERR(generic_phy))
->>>> @@ -443,8 +484,17 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3
->>>> *phy)
->>>>
->>>>    static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
->>>>    {
->>>> -    if (!IS_ERR(phy->refclk))
->>>> +    if (!IS_ERR(phy->refclk)) {
->>>>            clk_disable_unprepare(phy->refclk);
->>>> +        /*
->>>> +         * SATA refclk needs an additional disable as we left it
->>>> +         * on in probe to avoid Errata i783
->>>
->>> not sure I get this. Why don't we remove it in probe?
->>
->> Because if we remove it from probe and if AHCI_PLATFORM is built as a
->> module then phy_init won't be called before kernel starts autodisabling
->> unused clocks and so SATA refclk gets disabled causing i783 and
->> breaking SATA.
->
-> Just to be clear, this entire thing won't be required if uboot does SATA_PLL_SOFT_RESET no?
->
+drivers/built-in.o: In function `h3_panel_disable':
+debugfs.c:(.text+0x206ac): undefined reference to `tps65010_set_gpio_out_value'
+debugfs.c:(.text+0x206cc): undefined reference to `tps65010_set_gpio_out_value'
+drivers/built-in.o: In function `h3_panel_enable':
+debugfs.c:(.text+0x206e0): undefined reference to `tps65010_set_gpio_out_value'
+debugfs.c:(.text+0x20704): undefined reference to `tps65010_set_gpio_out_value'
 
-Yes that is right. We don't yet have the u-boot fix and there is no guarantee all users move
-to the u-boot with the fix, so this is important.
+This clarifies the dependency so we can only select it if
+the dependnecy is built-in.
 
-cheers,
--roger
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+diff --git a/drivers/video/fbdev/omap/Kconfig b/drivers/video/fbdev/omap/Kconfig
+index 18c4cb0d5690..29d250da8a3e 100644
+--- a/drivers/video/fbdev/omap/Kconfig
++++ b/drivers/video/fbdev/omap/Kconfig
+@@ -42,7 +42,7 @@ config FB_OMAP_LCD_MIPID
+ config FB_OMAP_LCD_H3
+ 	bool "TPS65010 LCD controller on OMAP-H3"
+ 	depends on MACH_OMAP_H3
+-	depends on TPS65010
++	depends on TPS65010=y
+ 	default y
+ 	help
+ 	  Say Y here if you want to have support for the LCD on the
+
