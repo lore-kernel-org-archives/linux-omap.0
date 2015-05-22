@@ -1,46 +1,74 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] video: omap/h3: fix tps65010 dependency
-Date: Fri, 22 May 2015 16:22:16 +0200
-Message-ID: <4416278.oVFvT3Eyqf@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Grygorii Strashko <grygorii.strashko@linaro.org>
+Subject: [RFC/RFT PATCH 3/7] gpio: omap: rework omap_x_irq_shutdown to touch only irqs specific registers
+Date: Fri, 22 May 2015 17:35:50 +0300
+Message-ID: <1432305354-5968-4-git-send-email-grygorii.strashko@linaro.org>
+References: <1432305354-5968-1-git-send-email-grygorii.strashko@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:59106 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932291AbbEVOYu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2015 10:24:50 -0400
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:36269 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756486AbbEVOgI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2015 10:36:08 -0400
+Received: by lbbqq2 with SMTP id qq2so14263969lbb.3
+        for <linux-omap@vger.kernel.org>; Fri, 22 May 2015 07:36:07 -0700 (PDT)
+In-Reply-To: <1432305354-5968-1-git-send-email-grygorii.strashko@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, tony@atomide.com
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@linaro.org>
 
-The h3 LCD driver fails to link when tps65010 is configured
-as a loadable module:
+The GPIO Chip and GPIO IRQ Chip functionality are essentially orthogonal,
+so GPIO IRQ Chip implementation shouldn't touch GPIO specific
+registers and vise versa.
 
-drivers/built-in.o: In function `h3_panel_disable':
-debugfs.c:(.text+0x206ac): undefined reference to `tps65010_set_gpio_out_value'
-debugfs.c:(.text+0x206cc): undefined reference to `tps65010_set_gpio_out_value'
-drivers/built-in.o: In function `h3_panel_enable':
-debugfs.c:(.text+0x206e0): undefined reference to `tps65010_set_gpio_out_value'
-debugfs.c:(.text+0x20704): undefined reference to `tps65010_set_gpio_out_value'
+Hence, rework omap_gpio_irq_shutdown and try to touch only irqs specific
+registers:
+- don't configure GPIO as input (it, actually, should be already configured
+  as input).
+- don't clear debounce configuration if GPIO is still used as GPIO.
+  We need to take in to account here commit c9c55d921115
+  ("gpio/omap: fix off-mode bug: clear debounce settings on free/reset").
 
-This clarifies the dependency so we can only select it if
-the dependnecy is built-in.
+Also remove omap_reset_gpio() function as it is not used any more.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+---
+ drivers/gpio/gpio-omap.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap/Kconfig b/drivers/video/fbdev/omap/Kconfig
-index 18c4cb0d5690..29d250da8a3e 100644
---- a/drivers/video/fbdev/omap/Kconfig
-+++ b/drivers/video/fbdev/omap/Kconfig
-@@ -42,7 +42,7 @@ config FB_OMAP_LCD_MIPID
- config FB_OMAP_LCD_H3
- 	bool "TPS65010 LCD controller on OMAP-H3"
- 	depends on MACH_OMAP_H3
--	depends on TPS65010
-+	depends on TPS65010=y
- 	default y
- 	help
- 	  Say Y here if you want to have support for the LCD on the
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index f6cc638..d933b99 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -646,15 +646,6 @@ static int omap_set_gpio_wakeup(struct gpio_bank *bank, unsigned offset,
+ 	return 0;
+ }
+ 
+-static void omap_reset_gpio(struct gpio_bank *bank, unsigned offset)
+-{
+-	omap_set_gpio_direction(bank, offset, 1);
+-	omap_set_gpio_irqenable(bank, offset, 0);
+-	omap_clear_gpio_irqstatus(bank, offset);
+-	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+-	omap_clear_gpio_debounce(bank, offset);
+-}
+-
+ /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
+ static int omap_gpio_wake_enable(struct irq_data *d, unsigned int enable)
+ {
+@@ -821,8 +812,12 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	bank->irq_usage &= ~(BIT(offset));
++	omap_set_gpio_irqenable(bank, offset, 0);
++	omap_clear_gpio_irqstatus(bank, offset);
++	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
++	if (!LINE_USED(bank->mod_usage, offset))
++		omap_clear_gpio_debounce(bank, offset);
+ 	omap_disable_gpio_module(bank, offset);
+-	omap_reset_gpio(bank, offset);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	/*
+-- 
+1.9.1
 
