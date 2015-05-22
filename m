@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v4 2/4] remoteproc: add a rproc ops for performing address translation
-Date: Fri, 22 May 2015 15:45:28 -0500
-Message-ID: <1432327530-48032-3-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v4 4/4] remoteproc/wkup_m3: add a remoteproc driver for TI Wakeup M3
+Date: Fri, 22 May 2015 15:45:30 -0500
+Message-ID: <1432327530-48032-5-git-send-email-d-gerlach@ti.com>
 References: <1432327530-48032-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,116 +12,373 @@ To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-om
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+Add a remoteproc driver to load the firmware and boot a small
+Wakeup M3 processor present on TI AM33xx and AM43xx SoCs. This
+Wakeup M3 remote processor is an integrated Cortex M3 that allows
+the SoC to enter the lowest possible power state by taking control
+from the MPU after it has gone into its own low power state and
+shutting off any additional peripherals.
 
-The rproc_da_to_va API is currently used to perform any device to
-kernel address translations to meet the different needs of the remoteproc
-core/drivers (eg: loading). The functionality is achieved within the
-remoteproc core, and is limited only for carveouts allocated within the
-core.
-
-A new rproc ops, da_to_va, is added to provide flexibility to platform
-implementations to perform the address translation themselves when the
-above conditions cannot be met by the implementations. The rproc_da_to_va()
-API is extended to invoke this ops if present, and fallback to regular
-processing if the platform implementation cannot provide the translation.
-This will allow any remoteproc implementations to translate addresses for
-dedicated memories like internal memories.
-
-While at this, also update the rproc_da_to_va() documentation since it
-is an exported function.
+The Wakeup M3 processor has two internal memory regions - 16 kB of
+unified instruction memory called UMEM used to store executable
+code, and 8 kB of data memory called DMEM used for all data sections.
+The Wakeup M3 processor executes its code entirely from within the
+UMEM and uses the DMEM for any data. It does not use any external
+memory or any other external resources. The device address view has
+the UMEM at address 0x0 and DMEM at address 0x80000, and these are
+computed automatically within the driver based on relative address
+calculation from the corresponding device tree IOMEM resources.
+These device addresses are used to aid the core remoteproc ELF
+loader code to properly translate and load the firmware segments
+through the .rproc_da_to_va ops.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
-v3->v4: No changes.
+v3->v4: Added explanation of memory management and regions in the
+	changelog, added a few additional comments to explain use
+	of __force and memory region probe order.
 
- drivers/remoteproc/remoteproc_core.c | 31 +++++++++++++++++++++++++------
- include/linux/remoteproc.h           |  2 ++
- 2 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/remoteproc/Kconfig            |  13 ++
+ drivers/remoteproc/Makefile           |   1 +
+ drivers/remoteproc/wkup_m3_rproc.c    | 257 ++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/wkup_m3.h |  30 ++++
+ 4 files changed, 301 insertions(+)
+ create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
+ create mode 100644 include/linux/platform_data/wkup_m3.h
 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 982f2fc..4c6e43f 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -139,28 +139,46 @@ static void rproc_disable_iommu(struct rproc *rproc)
- 	return;
- }
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index 5e343ba..28c711f 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -41,6 +41,19 @@ config STE_MODEM_RPROC
+ 	  This can be either built-in or a loadable module.
+ 	  If unsure say N.
  
--/*
++config WKUP_M3_RPROC
++	tristate "AMx3xx Wakeup M3 remoteproc support"
++	depends on SOC_AM33XX || SOC_AM43XX
++	select REMOTEPROC
++	help
++	  Say y here to support Wakeup M3 remote processor on TI AM33xx
++	  and AM43xx family of SoCs.
++
++	  Required for Suspend-to-RAM on AM33xx and AM43xx SoCs. Also needed
++	  for deep CPUIdle states on AM33xx SoCs. Allows for loading of the
++	  firmware onto these remote processors.
++	  If unsure say N.
++
+ config DA8XX_REMOTEPROC
+ 	tristate "DA8xx/OMAP-L13x remoteproc support"
+ 	depends on ARCH_DAVINCI_DA8XX
+diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+index ac2ff75..81b04d1 100644
+--- a/drivers/remoteproc/Makefile
++++ b/drivers/remoteproc/Makefile
+@@ -9,4 +9,5 @@ remoteproc-y				+= remoteproc_virtio.o
+ remoteproc-y				+= remoteproc_elf_loader.o
+ obj-$(CONFIG_OMAP_REMOTEPROC)		+= omap_remoteproc.o
+ obj-$(CONFIG_STE_MODEM_RPROC)	 	+= ste_modem_rproc.o
++obj-$(CONFIG_WKUP_M3_RPROC)		+= wkup_m3_rproc.o
+ obj-$(CONFIG_DA8XX_REMOTEPROC)		+= da8xx_remoteproc.o
+diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
+new file mode 100644
+index 0000000..edf8181
+--- /dev/null
++++ b/drivers/remoteproc/wkup_m3_rproc.c
+@@ -0,0 +1,257 @@
++/*
++ * TI AMx3 Wakeup M3 Remote Processor driver
++ *
++ * Copyright (C) 2014-2015 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach@ti.com>
++ * Suman Anna <s-anna@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/of_address.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/remoteproc.h>
++
++#include <linux/platform_data/wkup_m3.h>
++
++#include "remoteproc_internal.h"
++
++#define WKUPM3_MEM_MAX	2
++
 +/**
-+ * rproc_da_to_va() - lookup the kernel virtual address for a remoteproc address
-+ * @rproc: handle of a remote processor
-+ * @da: remoteproc device address to translate
-+ * @len: length of the memory region @da is pointing to
-+ *
-  * Some remote processors will ask us to allocate them physically contiguous
-  * memory regions (which we call "carveouts"), and map them to specific
-- * device addresses (which are hardcoded in the firmware).
-+ * device addresses (which are hardcoded in the firmware). They may also have
-+ * dedicated memory regions internal to the processors, and use them either
-+ * exclusively or alongside carveouts.
-  *
-  * They may then ask us to copy objects into specific device addresses (e.g.
-  * code/data sections) or expose us certain symbols in other device address
-  * (e.g. their trace buffer).
-  *
-- * This function is an internal helper with which we can go over the allocated
-- * carveouts and translate specific device address to kernel virtual addresses
-- * so we can access the referenced memory.
-+ * This function is a helper function with which we can go over the allocated
-+ * carveouts and translate specific device addresses to kernel virtual addresses
-+ * so we can access the referenced memory. This function also allows to perform
-+ * translations on the internal remoteproc memory regions through a platform
-+ * implementation specific da_to_va ops, if present.
-+ *
-+ * The function returns a valid kernel address on success or NULL on failure.
-  *
-  * Note: phys_to_virt(iommu_iova_to_phys(rproc->domain, da)) will work too,
-  * but only on kernel direct mapped RAM memory. Instead, we're just using
-- * here the output of the DMA API, which should be more correct.
-+ * here the output of the DMA API for the carveouts, which should be more
-+ * correct.
-  */
- void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
- {
- 	struct rproc_mem_entry *carveout;
- 	void *ptr = NULL;
- 
-+	if (rproc->ops->da_to_va) {
-+		ptr = rproc->ops->da_to_va(rproc, da, len);
-+		if (ptr)
-+			goto out;
++ * struct wkup_m3_mem - WkupM3 internal memory structure
++ * @cpu_addr: MPU virtual address of the memory region
++ * @bus_addr: Bus address used to access the memory region
++ * @dev_addr: Device address from Wakeup M3 view
++ * @size: Size of the memory region
++ */
++struct wkup_m3_mem {
++	void __iomem *cpu_addr;
++	phys_addr_t bus_addr;
++	u32 dev_addr;
++	size_t size;
++};
++
++/**
++ * struct wkup_m3_rproc - WkupM3 remote processor state
++ * @rproc: rproc handle
++ * @pdev: pointer to platform device
++ * @mem: WkupM3 memory information
++ */
++struct wkup_m3_rproc {
++	struct rproc *rproc;
++	struct platform_device *pdev;
++	struct wkup_m3_mem mem[WKUPM3_MEM_MAX];
++};
++
++static int wkup_m3_rproc_start(struct rproc *rproc)
++{
++	struct wkup_m3_rproc *wkupm3 = rproc->priv;
++	struct platform_device *pdev = wkupm3->pdev;
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev_get_platdata(dev);
++
++	if (pdata->deassert_reset(pdev, pdata->reset_name)) {
++		dev_err(dev, "Unable to reset wkup_m3!\n");
++		return -ENODEV;
 +	}
 +
- 	list_for_each_entry(carveout, &rproc->carveouts, node) {
- 		int offset = da - carveout->da;
- 
-@@ -177,6 +195,7 @@ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len)
- 		break;
- 	}
- 
-+out:
- 	return ptr;
- }
- EXPORT_SYMBOL(rproc_da_to_va);
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 56739e5..9c4e138 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -330,11 +330,13 @@ struct rproc;
-  * @start:	power on the device and boot it
-  * @stop:	power off the device
-  * @kick:	kick a virtqueue (virtqueue id given as a parameter)
-+ * @da_to_va:	optional platform hook to perform address translations
-  */
- struct rproc_ops {
- 	int (*start)(struct rproc *rproc);
- 	int (*stop)(struct rproc *rproc);
- 	void (*kick)(struct rproc *rproc, int vqid);
-+	void * (*da_to_va)(struct rproc *rproc, u64 da, int len);
- };
- 
- /**
++	return 0;
++}
++
++static int wkup_m3_rproc_stop(struct rproc *rproc)
++{
++	struct wkup_m3_rproc *wkupm3 = rproc->priv;
++	struct platform_device *pdev = wkupm3->pdev;
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev_get_platdata(dev);
++
++	if (pdata->assert_reset(pdev, pdata->reset_name)) {
++		dev_err(dev, "Unable to assert reset of wkup_m3!\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static void *wkup_m3_rproc_da_to_va(struct rproc *rproc, u64 da, int len)
++{
++	struct wkup_m3_rproc *wkupm3 = rproc->priv;
++	void *va = NULL;
++	int i;
++	u32 offset;
++
++	if (len <= 0)
++		return NULL;
++
++	for (i = 0; i < WKUPM3_MEM_MAX; i++) {
++		if (da >= wkupm3->mem[i].dev_addr && da + len <=
++		    wkupm3->mem[i].dev_addr +  wkupm3->mem[i].size) {
++			offset = da -  wkupm3->mem[i].dev_addr;
++			/* __force to make sparse happy with type conversion */
++			va = (__force void *)(wkupm3->mem[i].cpu_addr + offset);
++			break;
++		}
++	}
++
++	return va;
++}
++
++static struct rproc_ops wkup_m3_rproc_ops = {
++	.start		= wkup_m3_rproc_start,
++	.stop		= wkup_m3_rproc_stop,
++	.da_to_va	= wkup_m3_rproc_da_to_va,
++};
++
++static const struct of_device_id wkup_m3_rproc_of_match[] = {
++	{ .compatible = "ti,am3352-wkup-m3", },
++	{ .compatible = "ti,am4372-wkup-m3", },
++	{},
++};
++
++static int wkup_m3_rproc_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev->platform_data;
++	/* umem always needs to be processed first */
++	const char *mem_names[WKUPM3_MEM_MAX] = { "umem", "dmem" };
++	struct wkup_m3_rproc *wkupm3;
++	const char *fw_name;
++	struct rproc *rproc;
++	struct resource *res;
++	const __be32 *addrp;
++	u32 l4_offset = 0;
++	u64 size;
++	int ret;
++	int i;
++
++	if (!(pdata && pdata->deassert_reset && pdata->assert_reset &&
++	      pdata->reset_name)) {
++		dev_err(dev, "Platform data missing!\n");
++		return -ENODEV;
++	}
++
++	ret = of_property_read_string(dev->of_node, "ti,pm-firmware",
++				      &fw_name);
++	if (ret) {
++		dev_err(dev, "No firmware filename given\n");
++		return -ENODEV;
++	}
++
++	pm_runtime_enable(&pdev->dev);
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
++		goto err;
++	}
++
++	rproc = rproc_alloc(dev, "wkup_m3", &wkup_m3_rproc_ops,
++			    fw_name, sizeof(*wkupm3));
++	if (!rproc) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	wkupm3 = rproc->priv;
++	wkupm3->rproc = rproc;
++	wkupm3->pdev = pdev;
++
++	for (i = 0; i < ARRAY_SIZE(mem_names); i++) {
++		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++						   mem_names[i]);
++		wkupm3->mem[i].cpu_addr = devm_ioremap_resource(dev, res);
++		if (IS_ERR(wkupm3->mem[i].cpu_addr)) {
++			dev_err(&pdev->dev, "devm_ioremap_resource failed for resource %d\n",
++				i);
++			ret = PTR_ERR(wkupm3->mem[i].cpu_addr);
++			goto err;
++		}
++		wkupm3->mem[i].bus_addr = res->start;
++		wkupm3->mem[i].size = resource_size(res);
++		addrp = of_get_address(dev->of_node, i, &size, NULL);
++		/*
++		 * The wkupm3 has umem at address 0 in its view, so the device
++		 * addresses for each memory region is computed as a relative
++		 * offset of the bus address for umem, and therefore needs to be
++		 * processed first.
++		 */
++		if (!strcmp(mem_names[i], "umem"))
++			l4_offset = be32_to_cpu(*addrp);
++		wkupm3->mem[i].dev_addr = be32_to_cpu(*addrp) - l4_offset;
++	}
++
++	dev_set_drvdata(dev, rproc);
++
++	ret = rproc_add(rproc);
++	if (ret) {
++		dev_err(dev, "rproc_add failed\n");
++		goto err_put_rproc;
++	}
++
++	return 0;
++
++err_put_rproc:
++	rproc_put(rproc);
++err:
++	pm_runtime_put_noidle(dev);
++	pm_runtime_disable(dev);
++	return ret;
++}
++
++static int wkup_m3_rproc_remove(struct platform_device *pdev)
++{
++	struct rproc *rproc = platform_get_drvdata(pdev);
++
++	rproc_del(rproc);
++	rproc_put(rproc);
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int wkup_m3_rpm_suspend(struct device *dev)
++{
++	return -EBUSY;
++}
++
++static int wkup_m3_rpm_resume(struct device *dev)
++{
++	return 0;
++}
++#endif
++
++static const struct dev_pm_ops wkup_m3_rproc_pm_ops = {
++	SET_RUNTIME_PM_OPS(wkup_m3_rpm_suspend, wkup_m3_rpm_resume, NULL)
++};
++
++static struct platform_driver wkup_m3_rproc_driver = {
++	.probe = wkup_m3_rproc_probe,
++	.remove = wkup_m3_rproc_remove,
++	.driver = {
++		.name = "wkup_m3_rproc",
++		.of_match_table = wkup_m3_rproc_of_match,
++		.pm = &wkup_m3_rproc_pm_ops,
++	},
++};
++
++module_platform_driver(wkup_m3_rproc_driver);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("TI Wakeup M3 remote processor control driver");
++MODULE_AUTHOR("Dave Gerlach <d-gerlach@ti.com>");
+diff --git a/include/linux/platform_data/wkup_m3.h b/include/linux/platform_data/wkup_m3.h
+new file mode 100644
+index 0000000..3f1d77e
+--- /dev/null
++++ b/include/linux/platform_data/wkup_m3.h
+@@ -0,0 +1,30 @@
++/*
++ * TI Wakeup M3 remote processor platform data
++ *
++ * Copyright (C) 2014-2015 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef _LINUX_PLATFORM_DATA_WKUP_M3_H
++#define _LINUX_PLATFORM_DATA_WKUP_M3_H
++
++struct platform_device;
++
++struct wkup_m3_platform_data {
++	const char *reset_name;
++
++	int (*assert_reset)(struct platform_device *pdev, const char *name);
++	int (*deassert_reset)(struct platform_device *pdev, const char *name);
++};
++
++#endif /* _LINUX_PLATFORM_DATA_WKUP_M3_H */
 -- 
 2.4.1
