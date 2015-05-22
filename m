@@ -1,51 +1,51 @@
-From: Grygorii Strashko <grygorii.strashko@linaro.org>
-Subject: [PATCH 1/7] gpio: omap: fix omap_gpio_free to not clean up irq configuration
-Date: Fri, 22 May 2015 17:35:48 +0300
-Message-ID: <1432305354-5968-2-git-send-email-grygorii.strashko@linaro.org>
-References: <1432305354-5968-1-git-send-email-grygorii.strashko@linaro.org>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1432305354-5968-1-git-send-email-grygorii.strashko@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, tony@atomide.com
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 2.1/2] fixed up omap1 sparse irq support for v4.2
+Date: Fri, 22 May 2015 16:36:24 +0200
+Message-ID: <39338069.RMptS8vVnc@wuerfel>
+References: <20150521225938.GY10274@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.24]:60100 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756709AbbEVOgz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2015 10:36:55 -0400
+In-Reply-To: <20150521225938.GY10274@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-omap@vger.kernel.org
 
-This patch fixes following issue:
-- GPIOn is used as IRQ by some dev, for example PCF8575.INT ->  gpio6.11
-- PCFx driver knows nothing about type of IRQ line (GPIO or not)
-  so it doesn't request gpio and just do request_irq()
-- If gpio6.11 will be exported through the sysfs and then un-xeported
-then IRQs from PCFx will not be received any more, because
-IRQ configuration for gpio6.11 will be cleaned up unconditionally
-in omap_gpio_free.
+On Thursday 21 May 2015 15:59:38 Tony Lindgren wrote:
+> Here's this pull request updated for the randconfig errors found
+> by Arnd.
+> 
+> The following changes since commit 030bbdbf4c833bc69f502eae58498bc5572db736:
+> 
+>   Linux 4.1-rc3 (2015-05-10 15:12:29 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/omap1-v2
+> 
+> for you to fetch changes up to 7bf15c4360b384e34d685616a77a8abf7dd8aea5:
+> 
+>   ARM: OMAP1: Fix section mismatch warnings for omap_cfg_reg (2015-05-21 14:50:23 -0700)
+> 
+> ----------------------------------------------------------------
+> Add support for CONFIG_SPARSE_IRQ for omap1. This takes us a bit closer
+> to making omap1 support multiarch. After this series we still need to
+> make omap1 use the common clock framework and fix up the drivers to not
+> rely on includes from mach and plat directories.
 
-Fix this by removing all GPIO IRQ specific code from omap_gpio_free()
-and also do GPIO clean up (change direction to 'in' and disable debounce)
-only if corresponding GPIO is not used as IRQ too.
-GPIO IRQ will be properly cleaned up by GPIO irqchip code.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
----
- drivers/gpio/gpio-omap.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index b232397..bb60cbc 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -690,8 +690,11 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+Pulled into next/soc
  
- 	spin_lock_irqsave(&bank->lock, flags);
- 	bank->mod_usage &= ~(BIT(offset));
-+	if (!LINE_USED(bank->irq_usage, offset)) {
-+		omap_set_gpio_direction(bank, offset, 1);
-+		omap_clear_gpio_debounce(bank, offset);
-+	}
- 	omap_disable_gpio_module(bank, offset);
--	omap_reset_gpio(bank, offset);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	/*
--- 
-1.9.1
+> Note that this branch depends on a GPIO driver fix in v4.1-rc3
+> d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
 
+The branch is already based on 4.1-rc3, so we should be fine.
+
+Thanks,
+
+	Arnd
