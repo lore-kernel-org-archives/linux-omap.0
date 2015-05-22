@@ -1,60 +1,178 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v4 0/4] remoteproc: Introduce wkup_m3_rproc driver
-Date: Fri, 22 May 2015 15:45:26 -0500
-Message-ID: <1432327530-48032-1-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v4 1/4] remoteproc: introduce rproc_get_by_phandle API
+Date: Fri, 22 May 2015 15:45:27 -0500
+Message-ID: <1432327530-48032-2-git-send-email-d-gerlach@ti.com>
+References: <1432327530-48032-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432327530-48032-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This patch series is v4 of the series to add a wkup_m3_rproc driver
-for TI AM335xi and AM437x SoCs. This family of SoCs contains an ARM
-Cortex M3 coprocessor that is responsible for low-level power tasks
-that cannot be handled by the main ARM Cortex A8 so firmware running
-from the CM3 can be used instead. This driver handles loading
-of the firmware and reset of the CM3. Change info can be found
-with each patch.
+Allow users of remoteproc the ability to get a handle to an rproc by
+passing a phandle supplied in the user's device tree node. This is
+useful in situations that require manual booting of the rproc.
 
-The previous version of this series can be found here [1].
-I have pushed a branch based on v4.1-rc4 containing the entire
-am335x suspend series along with WIP am437x suspend patches for
-a higher level view of the entire series of patch sets here [2].
+This patch uses the code removed by commit 40e575b1d0b3 ("remoteproc:
+remove the get_by_name/put API") for the ref counting but is modified
+to use a simple list and locking mechanism and has rproc_get_by_name
+replaced with an rproc_get_by_phandle API.
 
-The driver expects to load firmware am335x-pm-firmware.elf from
-/lib/firmware which is found here [3].
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+v3->v4: Switch from using klist to using simple list and mutex for
+	rproc list.
 
-Regards,
-Dave
+ Documentation/remoteproc.txt         |  6 +++++
+ drivers/remoteproc/remoteproc_core.c | 50 ++++++++++++++++++++++++++++++++++++
+ include/linux/remoteproc.h           |  7 ++---
+ 3 files changed, 60 insertions(+), 3 deletions(-)
 
-[1] http://www.spinics.net/lists/linux-omap/msg117611.html
-[2] https://github.com/dgerlach/linux-pm/tree/pm-v4.1-rc4-amx3-suspend
-[3] https://git.ti.com/ti-cm3-pm-firmware/amx3-cm3/commits/next-upstream
-
-
-Dave Gerlach (3):
-  remoteproc: introduce rproc_get_by_phandle API
-  Documentation: dt: add bindings for TI Wakeup M3 processor
-  remoteproc/wkup_m3: add a remoteproc driver for TI Wakeup M3
-
-Suman Anna (1):
-  remoteproc: add a rproc ops for performing address translation
-
- .../bindings/remoteproc/wkup_m3_rproc.txt          |  52 +++++
- Documentation/remoteproc.txt                       |   6 +
- drivers/remoteproc/Kconfig                         |  13 ++
- drivers/remoteproc/Makefile                        |   1 +
- drivers/remoteproc/remoteproc_core.c               |  81 ++++++-
- drivers/remoteproc/wkup_m3_rproc.c                 | 257 +++++++++++++++++++++
- include/linux/platform_data/wkup_m3.h              |  30 +++
- include/linux/remoteproc.h                         |   9 +-
- 8 files changed, 440 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
- create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
- create mode 100644 include/linux/platform_data/wkup_m3.h
-
+diff --git a/Documentation/remoteproc.txt b/Documentation/remoteproc.txt
+index e6469fd..ef0219f 100644
+--- a/Documentation/remoteproc.txt
++++ b/Documentation/remoteproc.txt
+@@ -51,6 +51,12 @@ cost.
+         rproc_shutdown() returns, and users can still use it with a subsequent
+         rproc_boot(), if needed.
+ 
++  struct rproc *rproc_get_by_phandle(phandle phandle)
++    - Find an rproc handle using a device tree phandle. Returns the rproc
++      handle on success, and NULL on failure. This function increments
++      the remote processor's refcount, so always use rproc_put() to
++      decrement it back once rproc isn't needed anymore.
++
+ 3. Typical usage
+ 
+ #include <linux/remoteproc.h>
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 11cdb11..982f2fc 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -44,6 +44,9 @@
+ 
+ #include "remoteproc_internal.h"
+ 
++static DEFINE_MUTEX(rproc_list_mutex);
++static LIST_HEAD(rproc_list);
++
+ typedef int (*rproc_handle_resources_t)(struct rproc *rproc,
+ 				struct resource_table *table, int len);
+ typedef int (*rproc_handle_resource_t)(struct rproc *rproc,
+@@ -1152,6 +1155,43 @@ out:
+ EXPORT_SYMBOL(rproc_shutdown);
+ 
+ /**
++ * rproc_get_by_phandle() - find a remote processor by phandle
++ * @phandle: phandle to the rproc
++ *
++ * Finds an rproc handle using the remote processor's phandle, and then
++ * return a handle to the rproc.
++ *
++ * This function increments the remote processor's refcount, so always
++ * use rproc_put() to decrement it back once rproc isn't needed anymore.
++ *
++ * Returns the rproc handle on success, and NULL on failure.
++ */
++struct rproc *rproc_get_by_phandle(phandle phandle)
++{
++	struct rproc *rproc = NULL, *r;
++	struct device_node *np;
++
++	np = of_find_node_by_phandle(phandle);
++	if (!np)
++		return NULL;
++
++	mutex_lock(&rproc_list_mutex);
++	list_for_each_entry(r, &rproc_list, node) {
++		if (r->dev.parent && r->dev.parent->of_node == np) {
++			rproc = r;
++			get_device(&rproc->dev);
++			break;
++		}
++	}
++	mutex_unlock(&rproc_list_mutex);
++
++	of_node_put(np);
++
++	return rproc;
++}
++EXPORT_SYMBOL(rproc_get_by_phandle);
++
++/**
+  * rproc_add() - register a remote processor
+  * @rproc: the remote processor handle to register
+  *
+@@ -1180,6 +1220,11 @@ int rproc_add(struct rproc *rproc)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* expose to rproc_get_by_phandle users */
++	mutex_lock(&rproc_list_mutex);
++	list_add(&rproc->node, &rproc_list);
++	mutex_unlock(&rproc_list_mutex);
++
+ 	dev_info(dev, "%s is available\n", rproc->name);
+ 
+ 	dev_info(dev, "Note: remoteproc is still under development and considered experimental.\n");
+@@ -1369,6 +1414,11 @@ int rproc_del(struct rproc *rproc)
+ 	/* Free the copy of the resource table */
+ 	kfree(rproc->cached_table);
+ 
++	/* the rproc is downref'ed as soon as it's removed from the klist */
++	mutex_lock(&rproc_list_mutex);
++	list_del(&rproc->node);
++	mutex_unlock(&rproc_list_mutex);
++
+ 	device_del(&rproc->dev);
+ 
+ 	return 0;
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index 78b8a9b..56739e5 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -36,11 +36,11 @@
+ #define REMOTEPROC_H
+ 
+ #include <linux/types.h>
+-#include <linux/klist.h>
+ #include <linux/mutex.h>
+ #include <linux/virtio.h>
+ #include <linux/completion.h>
+ #include <linux/idr.h>
++#include <linux/of.h>
+ 
+ /**
+  * struct resource_table - firmware resource table header
+@@ -375,7 +375,7 @@ enum rproc_crash_type {
+ 
+ /**
+  * struct rproc - represents a physical remote processor device
+- * @node: klist node of this rproc object
++ * @node: list node of this rproc object
+  * @domain: iommu domain
+  * @name: human readable name of the rproc
+  * @firmware: name of firmware file to be loaded
+@@ -407,7 +407,7 @@ enum rproc_crash_type {
+  * @has_iommu: flag to indicate if remote processor is behind an MMU
+  */
+ struct rproc {
+-	struct klist_node node;
++	struct list_head node;
+ 	struct iommu_domain *domain;
+ 	const char *name;
+ 	const char *firmware;
+@@ -481,6 +481,7 @@ struct rproc_vdev {
+ 	u32 rsc_offset;
+ };
+ 
++struct rproc *rproc_get_by_phandle(phandle phandle);
+ struct rproc *rproc_alloc(struct device *dev, const char *name,
+ 				const struct rproc_ops *ops,
+ 				const char *firmware, int len);
 -- 
 2.4.1
