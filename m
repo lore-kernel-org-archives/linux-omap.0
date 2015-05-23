@@ -1,230 +1,103 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/3] phy: ti-pipe3: i783 workaround for SATA lockup after
- dpll unlock/relock
-Date: Sat, 23 May 2015 12:52:21 +0530
-Message-ID: <55602AAD.8060705@ti.com>
-References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-3-git-send-email-rogerq@ti.com> <555C89D2.5070301@ti.com> <555C905B.4080006@ti.com> <555F145E.7070404@ti.com> <555F35EF.3000409@ti.com>
+From: "Peter Kuemmel" <syntheticpp@gmx.net>
+Subject: simple-framebuffer: ioremap_wc() fails
+Date: Sat, 23 May 2015 12:49:10 +0200
+Message-ID: <trinity-412e3c6c-33f0-4735-aac6-a8a38ff7e66c-1432378150845@3capp-gmx-bs10>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <555F35EF.3000409@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.17.22]:56714 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757586AbbEWKtN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 23 May 2015 06:49:13 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Roger,
+Hello,
 
-On Friday 22 May 2015 07:28 PM, Roger Quadros wrote:
-> Kishon,
->
-> On 22/05/15 14:34, Kishon Vijay Abraham I wrote:
->> Roger,
->>
->> On Wednesday 20 May 2015 07:17 PM, Roger Quadros wrote:
->>> Kishon,
->>>
->>> On 20/05/15 16:19, Kishon Vijay Abraham I wrote:
->>>> Hi Roger,
->>>>
->>>> On Tuesday 12 May 2015 09:37 PM, Roger Quadros wrote:
->>>>> SATA_PLL_SOFT_RESET bit of CTRL_CORE_SMA_SW_0 must be toggled
->>>>> between a SATA DPLL unlock and re-lock to prevent SATA lockup.
->>>>>
->>>>> Introduce a new DT parameter 'syscon-pllreset' to provide the syscon
->>>>> regmap access to this register which sits in the control module.
->>>>>
->>>>> If the register is not provided we fallback to the old behaviour
->>>>> i.e. SATA DPLL refclk will not be disabled and we prevent SoC low
->>>>> power states.
->>>>>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>>     Documentation/devicetree/bindings/phy/ti-phy.txt | 16 ++++++
->>>>>     drivers/phy/phy-ti-pipe3.c                       | 67
->>>>> ++++++++++++++++++++----
->>>>>     2 files changed, 74 insertions(+), 9 deletions(-)
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> index 305e3df..f0f5537 100644
->>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>> @@ -82,6 +82,9 @@ Optional properties:
->>>>>      - id: If there are multiple instance of the same type, in order to
->>>>>        differentiate between each instance "id" can be used (e.g.,
->>>>> multi-lane PCIe
->>>>>        PHY). If "id" is not provided, it is set to default value of '1'.
->>>>> + - syscon-pllreset: Handle to system control region that contains the
->>>>> +   CTRL_CORE_SMA_SW_0 register and register offset to the
->>>>> CTRL_CORE_SMA_SW_0
->>>>> +   register that contains the SATA_PLL_SOFT_RESET bit. Only valid for
->>>>> sata_phy.
->>>>>
->>>>>     This is usually a subnode of ocp2scp to which it is connected.
->>>>>
->>>>> @@ -100,3 +103,16 @@ usb3phy@4a084400 {
->>>>>                 "sysclk",
->>>>>                 "refclk";
->>>>>     };
->>>>> +
->>>>> +sata_phy: phy@4A096000 {
->>>>> +    compatible = "ti,phy-pipe3-sata";
->>>>> +    reg = <0x4A096000 0x80>, /* phy_rx */
->>>>> +          <0x4A096400 0x64>, /* phy_tx */
->>>>> +          <0x4A096800 0x40>; /* pll_ctrl */
->>>>> +    reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->>>>> +    ctrl-module = <&omap_control_sata>;
->>>>> +    clocks = <&sys_clkin1>, <&sata_ref_clk>;
->>>>> +    clock-names = "sysclk", "refclk";
->>>>> +    syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
->>>>> +    #phy-cells = <0>;
->>>>> +};
->>>>> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
->>>>> index e13a306..d730142 100644
->>>>> --- a/drivers/phy/phy-ti-pipe3.c
->>>>> +++ b/drivers/phy/phy-ti-pipe3.c
->>>>> @@ -28,6 +28,8 @@
->>>>>     #include <linux/delay.h>
->>>>>     #include <linux/phy/omap_control_phy.h>
->>>>>     #include <linux/of_platform.h>
->>>>> +#include <linux/mfd/syscon.h>
->>>>> +#include <linux/regmap.h>
->>>>>
->>>>>     #define    PLL_STATUS        0x00000004
->>>>>     #define    PLL_GO            0x00000008
->>>>> @@ -52,6 +54,8 @@
->>>>>     #define    PLL_LOCK        0x2
->>>>>     #define    PLL_IDLE        0x1
->>>>>
->>>>> +#define SATA_PLL_SOFT_RESET    BIT(18)
->>>>> +
->>>>>     /*
->>>>>      * This is an Empirical value that works, need to confirm the actual
->>>>>      * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
->>>>> @@ -82,6 +86,9 @@ struct ti_pipe3 {
->>>>>         struct clk        *refclk;
->>>>>         struct clk        *div_clk;
->>>>>         struct pipe3_dpll_map    *dpll_map;
->>>>> +    struct regmap        *dpll_reset_syscon; /* ctrl. reg. acces */
->>>>> +    unsigned int        dpll_reset_reg; /* reg. index within syscon */
->>>>> +    bool            sata_refclk_enabled;
->>>>>     };
->>>>>
->>>>>     static struct pipe3_dpll_map dpll_map_usb[] = {
->>>>> @@ -249,11 +256,15 @@ static int ti_pipe3_exit(struct phy *x)
->>>>>         u32 val;
->>>>>         unsigned long timeout;
->>>>>
->>>>> -    /* SATA DPLL can't be powered down due to Errata i783 and PCIe
->>>>> -     * does not have internal DPLL
->>>>> +    /* If dpll_reset_syscon is not present we wont power down SATA DPLL
->>>>> +     * due to Errata i783
->>>>>          */
->>>>> -    if (of_device_is_compatible(phy->dev->of_node,
->>>>> "ti,phy-pipe3-sata") ||
->>>>> -        of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
->>>>> +    if (of_device_is_compatible(phy->dev->of_node,
->>>>> "ti,phy-pipe3-sata") &&
->>>>> +        !phy->dpll_reset_syscon)
->>>>> +        return 0;
->>>>> +
->>>>> +    /* PCIe doesn't have DPLL. FIXME: need to disable clocks though */
->>>>
->>>> I think it's better to fix it in this patch itself.. to disable clocks
->>>> for PCIe.
->>>>> +    if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
->>>>>             return 0;
->>>>>
->>>>>         /* Put DPLL in IDLE mode */
->>>>> @@ -276,6 +287,14 @@ static int ti_pipe3_exit(struct phy *x)
->>>>>             return -EBUSY;
->>>>>         }
->>>>>
->>>>> +    /* i783: SATA needs control bit toggle after PLL unlock */
->>>>> +    if (of_device_is_compatible(phy->dev->of_node,
->>>>> "ti,phy-pipe3-sata")) {
->>>>> +        regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
->>>>> +                SATA_PLL_SOFT_RESET, SATA_PLL_SOFT_RESET);
->>>>> +        regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
->>>>> +                SATA_PLL_SOFT_RESET, 0);
->>>>> +    }
->>>>> +
->>>>>         ti_pipe3_disable_clocks(phy);
->>>>>
->>>>>         return 0;
->>>>> @@ -350,6 +369,21 @@ static int ti_pipe3_probe(struct platform_device
->>>>> *pdev)
->>>>>             }
->>>>>         } else {
->>>>>             phy->wkupclk = ERR_PTR(-ENODEV);
->>>>> +        phy->dpll_reset_syscon = syscon_regmap_lookup_by_phandle(node,
->>>>> +                            "syscon-pllreset");
->>>>> +        if (IS_ERR(phy->dpll_reset_syscon)) {
->>>>> +            dev_info(&pdev->dev,
->>>>> +                 "can't get syscon-pllreset, sata dpll won't idle\n");
->>>>> +            phy->dpll_reset_syscon = NULL;
->>>>> +        } else {
->>>>> +            if (of_property_read_u32_index(node,
->>>>> +                               "syscon-pllreset", 1,
->>>>> +                               &phy->dpll_reset_reg)) {
->>>>> +                dev_err(&pdev->dev,
->>>>> +                    "couldn't get pllreset reg. offset\n");
->>>>> +                return -EINVAL;
->>>>> +            }
->>>>> +        }
->>>>>         }
->>>>>
->>>>>         if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
->>>>> @@ -402,9 +436,16 @@ static int ti_pipe3_probe(struct platform_device
->>>>> *pdev)
->>>>>
->>>>>         platform_set_drvdata(pdev, phy);
->>>>>         pm_runtime_enable(phy->dev);
->>>>> -    /* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
->>>>> -    if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
->>>>> -        clk_prepare_enable(phy->refclk);
->>>>> +
->>>>> +    /*
->>>>> +     * Prevent auto-disable of refclk for SATA PHY due to Errata i783
->>>>> +     */
->>>>> +    if (of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
->>>>> +        if (!IS_ERR(phy->refclk)) {
->>>>> +            clk_prepare_enable(phy->refclk);
->>>>> +            phy->sata_refclk_enabled = true;
->>>>> +        }
->>>>> +    }
->>>>>
->>>>>         generic_phy = devm_phy_create(phy->dev, NULL, &ops);
->>>>>         if (IS_ERR(generic_phy))
->>>>> @@ -443,8 +484,17 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3
->>>>> *phy)
->>>>>
->>>>>     static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
->>>>>     {
->>>>> -    if (!IS_ERR(phy->refclk))
->>>>> +    if (!IS_ERR(phy->refclk)) {
->>>>>             clk_disable_unprepare(phy->refclk);
->>>>> +        /*
->>>>> +         * SATA refclk needs an additional disable as we left it
->>>>> +         * on in probe to avoid Errata i783
->>>>
->>>> not sure I get this. Why don't we remove it in probe?
->>>
->>> Because if we remove it from probe and if AHCI_PLATFORM is built as a
->>> module then phy_init won't be called before kernel starts autodisabling
->>> unused clocks and so SATA refclk gets disabled causing i783 and
->>> breaking SATA.
->>
->> Just to be clear, this entire thing won't be required if uboot does SATA_PLL_SOFT_RESET no?
->>
->
-> Yes that is right. We don't yet have the u-boot fix and there is no guarantee all users move
-> to the u-boot with the fix, so this is important.
+I have a problems when using simple-framebuffer: re-using the memory provided 
+by u-boot fails when calling ioremap_wc() in simplefb.c:
 
-Okay. Just thinking if we can do SATA_PLL_SOFT_RESET in probe to begin with. 
-That way we don't have to do this additional clk_enable().
+[    0.370025] ------------[ cut here ]------------
+[    0.370086] WARNING: CPU: 0 PID: 1 at arch/arm/mm/ioremap.c:301 __arm_ioremap_pfn_caller+0x220/0x234()
+[    0.370086] Modules linked in:
+[    0.370117] CPU: 0 PID: 1 Comm: swapper Not tainted 4.1.0-rc4 #1
+[    0.370117] Hardware name: Generic OMAP36xx (Flattened Device Tree)
+[    0.370117] Backtrace:
+[    0.370178] [<c00198a0>] (show_stack) from [<c04ded24>] (dump_stack+0x24/0x28)
+[    0.370178]  r5:0000012d r4:c066b608
+[    0.370208] [<c04ded00>] (dump_stack) from [<c003ca7c>] (warn_slowpath_null+0x78/0xe0)
+[    0.370208] [<c003ca04>] (warn_slowpath_null) from [<c001e07c>] (__arm_ioremap_pfn_caller+0x220/0x234)
+[    0.370239]  r6:83800000 r5:00000000 r4:00083800
+[    0.370239] [<c001de5c>] (__arm_ioremap_pfn_caller) from [<c001e0e4>] (__arm_ioremap_caller+0x54/0x5c)
+[    0.370269]  r10:c0653900 r9:c065390c r8:c3b11210 r7:c3aaa264 r6:00000000 r5:c3b11200
+[    0.370269]  r4:00000003 r3:00000003
+[    0.370300] [<c001e090>] (__arm_ioremap_caller) from [<c001db80>] (__arm_ioremap+0x20/0x24)
+[    0.370300]  r4:c3aaa000
+[    0.370330] [<c001db60>] (__arm_ioremap) from [<c02f2c44>] (simplefb_probe+0x1d8/0x82c)
+[    0.370361] [<c02f2a6c>] (simplefb_probe) from [<c033e8a8>] (platform_drv_probe+0x4c/0xac)
+[    0.370361]  r10:00000000 r9:00000000 r8:c0653740 r7:fffffdfb r6:c0653740 r5:c3b11210
+[    0.370391]  r4:c067dcf0
+[    0.370391] [<c033e85c>] (platform_drv_probe) from [<c033d068>] (driver_probe_device+0x2fc/0x388)
+[    0.370422]  r7:c3b11218 r6:00000000 r5:c3b11210 r4:c067dcf0
+[    0.370452] [<c033cd6c>] (driver_probe_device) from [<c033d13c>] (__device_attach+0x48/0x4c)
+[    0.370452]  r9:c067dccc r8:c3b11210 r7:c0657a54 r6:c033d0f4 r5:c3b11210 r4:c0653740
+[    0.370483] [<c033d0f4>] (__device_attach) from [<c033a958>] (bus_for_each_drv+0x6c/0xa0)
+[    0.370483]  r5:c3b11210 r4:00000000
+[    0.370513] [<c033a8ec>] (bus_for_each_drv) from [<c033cacc>] (device_attach+0xb0/0x108)
+[    0.370513]  r6:c0657d08 r5:c3b11244 r4:c3b11210
+[    0.370544] [<c033ca1c>] (device_attach) from [<c033c16c>] (bus_probe_device+0x8c/0xb0)
+[    0.370544]  r6:c0657d08 r5:c3b11210 r4:c3b11218 r3:c3830f00
+[    0.370574] [<c033c0e0>] (bus_probe_device) from [<c03395c4>] (device_add+0x574/0x85c)
+[    0.370574]  r6:00000000 r5:c0657bc8 r4:c3b11218 r3:00000001
+[    0.370605] [<c0339050>] (device_add) from [<c03dd680>] (of_device_add+0x3c/0x44)
+[    0.370635]  r10:00000000 r9:c06065f0 r8:0000005f r7:c3b11210 r6:c3e3aad8 r5:00000000
+[    0.370635]  r4:c3b11200
+[    0.370666] [<c03dd644>] (of_device_add) from [<c03de140>] (of_platform_device_create+0x84/0xc4)
+[    0.370697] [<c03de0bc>] (of_platform_device_create) from [<c06205b8>] (simplefb_init+0x5c/0x88)
+[    0.370697]  r7:c062055c r6:c3b25400 r5:c067e260 r4:c3e3aad8
+[    0.370727] [<c062055c>] (simplefb_init) from [<c0009644>] (do_one_initcall+0x94/0x1dc)
+[    0.370727]  r5:c063fa98 r4:c063fa98
+[    0.370758] [<c00095b0>] (do_one_initcall) from [<c0606dbc>] (kernel_init_freeable+0x12c/0x1d0)
+[    0.370758]  r10:c06306ac r9:c06065f0 r8:0000005f r7:c066a640 r6:c066a640 r5:00000005
+[    0.370788]  r4:c063aca8
+[    0.370788] [<c0606c90>] (kernel_init_freeable) from [<c04dbee8>] (kernel_init+0x10/0x218)
+[    0.370819]  r10:00000000 r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:c04dbed8
+[    0.370819]  r4:00000000
+[    0.370849] [<c04dbed8>] (kernel_init) from [<c0016920>] (ret_from_fork+0x14/0x34)
+[    0.370849]  r5:c04dbed8 r4:00000000
+[    0.370910] ---[ end trace 58eeb60b5f9cadf1 ]---
+[    0.370941] simple-framebuffer: probe of 83800000.framebuffer failed with error -12
 
-Thanks
-Kishon
+I tried with 4.0 and 4.1, also tried with disabled omapfb/dss, but always the same.
+
+dts looks like this:
+
+     chosen {
+         #address-cells = <1>;
+         #size-cells = <1>;
+         ranges;
+
+         framebuffer@0 {
+             compatible = "simple-framebuffer";
+             reg = <0x83800000 (320 * 240 * 3)>;
+             width = <320>;
+             height = <240>;
+             stride = <(320 * 3)>;
+             format = "r8g8b8";
+             display = <&lcd0>;
+         };
+     };
+
+Is there any special to do in u-boot to make it work?
+u-boot shows a splash screen correctly.
+
+I saw in sunxi code is a workaround if ioremap_wc() fails,
+https://groups.google.com/forum/#!topic/linux-sunxi/C6pKdmKeZKY
+
+Is something similar also needed for the omap?
+
+Many thanks,
+Peter
+
+
