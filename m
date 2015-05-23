@@ -1,186 +1,230 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: AM3517 usb host issue
-Date: Fri, 22 May 2015 20:07:26 -0500
-Message-ID: <20150523010726.GB18455@saruman.tx.rr.com>
-References: <555EE311.3030507@codethink.co.uk>
- <20150522135039.GA5582@saruman.tx.rr.com>
- <555F8DE2.1050403@codethink.co.uk>
-Reply-To: <balbi@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 2/3] phy: ti-pipe3: i783 workaround for SATA lockup after
+ dpll unlock/relock
+Date: Sat, 23 May 2015 12:52:21 +0530
+Message-ID: <55602AAD.8060705@ti.com>
+References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-3-git-send-email-rogerq@ti.com> <555C89D2.5070301@ti.com> <555C905B.4080006@ti.com> <555F145E.7070404@ti.com> <555F35EF.3000409@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38088 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756899AbbEWBJl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 May 2015 21:09:41 -0400
-Content-Disposition: inline
-In-Reply-To: <555F8DE2.1050403@codethink.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <555F35EF.3000409@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: balbi@ti.com, Linux USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---oLBj+sq0vYjzfsbl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Roger,
 
-Hi,
+On Friday 22 May 2015 07:28 PM, Roger Quadros wrote:
+> Kishon,
+>
+> On 22/05/15 14:34, Kishon Vijay Abraham I wrote:
+>> Roger,
+>>
+>> On Wednesday 20 May 2015 07:17 PM, Roger Quadros wrote:
+>>> Kishon,
+>>>
+>>> On 20/05/15 16:19, Kishon Vijay Abraham I wrote:
+>>>> Hi Roger,
+>>>>
+>>>> On Tuesday 12 May 2015 09:37 PM, Roger Quadros wrote:
+>>>>> SATA_PLL_SOFT_RESET bit of CTRL_CORE_SMA_SW_0 must be toggled
+>>>>> between a SATA DPLL unlock and re-lock to prevent SATA lockup.
+>>>>>
+>>>>> Introduce a new DT parameter 'syscon-pllreset' to provide the syscon
+>>>>> regmap access to this register which sits in the control module.
+>>>>>
+>>>>> If the register is not provided we fallback to the old behaviour
+>>>>> i.e. SATA DPLL refclk will not be disabled and we prevent SoC low
+>>>>> power states.
+>>>>>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> ---
+>>>>>     Documentation/devicetree/bindings/phy/ti-phy.txt | 16 ++++++
+>>>>>     drivers/phy/phy-ti-pipe3.c                       | 67
+>>>>> ++++++++++++++++++++----
+>>>>>     2 files changed, 74 insertions(+), 9 deletions(-)
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>> b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>> index 305e3df..f0f5537 100644
+>>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>>>>> @@ -82,6 +82,9 @@ Optional properties:
+>>>>>      - id: If there are multiple instance of the same type, in order to
+>>>>>        differentiate between each instance "id" can be used (e.g.,
+>>>>> multi-lane PCIe
+>>>>>        PHY). If "id" is not provided, it is set to default value of '1'.
+>>>>> + - syscon-pllreset: Handle to system control region that contains the
+>>>>> +   CTRL_CORE_SMA_SW_0 register and register offset to the
+>>>>> CTRL_CORE_SMA_SW_0
+>>>>> +   register that contains the SATA_PLL_SOFT_RESET bit. Only valid for
+>>>>> sata_phy.
+>>>>>
+>>>>>     This is usually a subnode of ocp2scp to which it is connected.
+>>>>>
+>>>>> @@ -100,3 +103,16 @@ usb3phy@4a084400 {
+>>>>>                 "sysclk",
+>>>>>                 "refclk";
+>>>>>     };
+>>>>> +
+>>>>> +sata_phy: phy@4A096000 {
+>>>>> +    compatible = "ti,phy-pipe3-sata";
+>>>>> +    reg = <0x4A096000 0x80>, /* phy_rx */
+>>>>> +          <0x4A096400 0x64>, /* phy_tx */
+>>>>> +          <0x4A096800 0x40>; /* pll_ctrl */
+>>>>> +    reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>>>>> +    ctrl-module = <&omap_control_sata>;
+>>>>> +    clocks = <&sys_clkin1>, <&sata_ref_clk>;
+>>>>> +    clock-names = "sysclk", "refclk";
+>>>>> +    syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
+>>>>> +    #phy-cells = <0>;
+>>>>> +};
+>>>>> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+>>>>> index e13a306..d730142 100644
+>>>>> --- a/drivers/phy/phy-ti-pipe3.c
+>>>>> +++ b/drivers/phy/phy-ti-pipe3.c
+>>>>> @@ -28,6 +28,8 @@
+>>>>>     #include <linux/delay.h>
+>>>>>     #include <linux/phy/omap_control_phy.h>
+>>>>>     #include <linux/of_platform.h>
+>>>>> +#include <linux/mfd/syscon.h>
+>>>>> +#include <linux/regmap.h>
+>>>>>
+>>>>>     #define    PLL_STATUS        0x00000004
+>>>>>     #define    PLL_GO            0x00000008
+>>>>> @@ -52,6 +54,8 @@
+>>>>>     #define    PLL_LOCK        0x2
+>>>>>     #define    PLL_IDLE        0x1
+>>>>>
+>>>>> +#define SATA_PLL_SOFT_RESET    BIT(18)
+>>>>> +
+>>>>>     /*
+>>>>>      * This is an Empirical value that works, need to confirm the actual
+>>>>>      * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
+>>>>> @@ -82,6 +86,9 @@ struct ti_pipe3 {
+>>>>>         struct clk        *refclk;
+>>>>>         struct clk        *div_clk;
+>>>>>         struct pipe3_dpll_map    *dpll_map;
+>>>>> +    struct regmap        *dpll_reset_syscon; /* ctrl. reg. acces */
+>>>>> +    unsigned int        dpll_reset_reg; /* reg. index within syscon */
+>>>>> +    bool            sata_refclk_enabled;
+>>>>>     };
+>>>>>
+>>>>>     static struct pipe3_dpll_map dpll_map_usb[] = {
+>>>>> @@ -249,11 +256,15 @@ static int ti_pipe3_exit(struct phy *x)
+>>>>>         u32 val;
+>>>>>         unsigned long timeout;
+>>>>>
+>>>>> -    /* SATA DPLL can't be powered down due to Errata i783 and PCIe
+>>>>> -     * does not have internal DPLL
+>>>>> +    /* If dpll_reset_syscon is not present we wont power down SATA DPLL
+>>>>> +     * due to Errata i783
+>>>>>          */
+>>>>> -    if (of_device_is_compatible(phy->dev->of_node,
+>>>>> "ti,phy-pipe3-sata") ||
+>>>>> -        of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
+>>>>> +    if (of_device_is_compatible(phy->dev->of_node,
+>>>>> "ti,phy-pipe3-sata") &&
+>>>>> +        !phy->dpll_reset_syscon)
+>>>>> +        return 0;
+>>>>> +
+>>>>> +    /* PCIe doesn't have DPLL. FIXME: need to disable clocks though */
+>>>>
+>>>> I think it's better to fix it in this patch itself.. to disable clocks
+>>>> for PCIe.
+>>>>> +    if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
+>>>>>             return 0;
+>>>>>
+>>>>>         /* Put DPLL in IDLE mode */
+>>>>> @@ -276,6 +287,14 @@ static int ti_pipe3_exit(struct phy *x)
+>>>>>             return -EBUSY;
+>>>>>         }
+>>>>>
+>>>>> +    /* i783: SATA needs control bit toggle after PLL unlock */
+>>>>> +    if (of_device_is_compatible(phy->dev->of_node,
+>>>>> "ti,phy-pipe3-sata")) {
+>>>>> +        regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
+>>>>> +                SATA_PLL_SOFT_RESET, SATA_PLL_SOFT_RESET);
+>>>>> +        regmap_update_bits(phy->dpll_reset_syscon, phy->dpll_reset_reg,
+>>>>> +                SATA_PLL_SOFT_RESET, 0);
+>>>>> +    }
+>>>>> +
+>>>>>         ti_pipe3_disable_clocks(phy);
+>>>>>
+>>>>>         return 0;
+>>>>> @@ -350,6 +369,21 @@ static int ti_pipe3_probe(struct platform_device
+>>>>> *pdev)
+>>>>>             }
+>>>>>         } else {
+>>>>>             phy->wkupclk = ERR_PTR(-ENODEV);
+>>>>> +        phy->dpll_reset_syscon = syscon_regmap_lookup_by_phandle(node,
+>>>>> +                            "syscon-pllreset");
+>>>>> +        if (IS_ERR(phy->dpll_reset_syscon)) {
+>>>>> +            dev_info(&pdev->dev,
+>>>>> +                 "can't get syscon-pllreset, sata dpll won't idle\n");
+>>>>> +            phy->dpll_reset_syscon = NULL;
+>>>>> +        } else {
+>>>>> +            if (of_property_read_u32_index(node,
+>>>>> +                               "syscon-pllreset", 1,
+>>>>> +                               &phy->dpll_reset_reg)) {
+>>>>> +                dev_err(&pdev->dev,
+>>>>> +                    "couldn't get pllreset reg. offset\n");
+>>>>> +                return -EINVAL;
+>>>>> +            }
+>>>>> +        }
+>>>>>         }
+>>>>>
+>>>>>         if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+>>>>> @@ -402,9 +436,16 @@ static int ti_pipe3_probe(struct platform_device
+>>>>> *pdev)
+>>>>>
+>>>>>         platform_set_drvdata(pdev, phy);
+>>>>>         pm_runtime_enable(phy->dev);
+>>>>> -    /* Prevent auto-disable of refclk for SATA PHY due to Errata i783 */
+>>>>> -    if (of_device_is_compatible(node, "ti,phy-pipe3-sata"))
+>>>>> -        clk_prepare_enable(phy->refclk);
+>>>>> +
+>>>>> +    /*
+>>>>> +     * Prevent auto-disable of refclk for SATA PHY due to Errata i783
+>>>>> +     */
+>>>>> +    if (of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
+>>>>> +        if (!IS_ERR(phy->refclk)) {
+>>>>> +            clk_prepare_enable(phy->refclk);
+>>>>> +            phy->sata_refclk_enabled = true;
+>>>>> +        }
+>>>>> +    }
+>>>>>
+>>>>>         generic_phy = devm_phy_create(phy->dev, NULL, &ops);
+>>>>>         if (IS_ERR(generic_phy))
+>>>>> @@ -443,8 +484,17 @@ static int ti_pipe3_enable_refclk(struct ti_pipe3
+>>>>> *phy)
+>>>>>
+>>>>>     static void ti_pipe3_disable_refclk(struct ti_pipe3 *phy)
+>>>>>     {
+>>>>> -    if (!IS_ERR(phy->refclk))
+>>>>> +    if (!IS_ERR(phy->refclk)) {
+>>>>>             clk_disable_unprepare(phy->refclk);
+>>>>> +        /*
+>>>>> +         * SATA refclk needs an additional disable as we left it
+>>>>> +         * on in probe to avoid Errata i783
+>>>>
+>>>> not sure I get this. Why don't we remove it in probe?
+>>>
+>>> Because if we remove it from probe and if AHCI_PLATFORM is built as a
+>>> module then phy_init won't be called before kernel starts autodisabling
+>>> unused clocks and so SATA refclk gets disabled causing i783 and
+>>> breaking SATA.
+>>
+>> Just to be clear, this entire thing won't be required if uboot does SATA_PLL_SOFT_RESET no?
+>>
+>
+> Yes that is right. We don't yet have the u-boot fix and there is no guarantee all users move
+> to the u-boot with the fix, so this is important.
 
-On Fri, May 22, 2015 at 11:13:22PM +0300, Ben Dooks wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA256
->=20
-> On 22/05/15 16:50, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Fri, May 22, 2015 at 11:04:33AM +0300, Ben Dooks wrote:
-> >> I am trying to get the full-speed USB host working on an custom
-> >> AM3517 device with the 3.18.12 kernel. The hardware works (a
-> >> 2.6.37 kernel has been used for testing).
-> >>=20
-> >> Does anyone have any experience of 3.18 (or similarly recent
-> >> kernel on an AM3517 system) or have any pointers as where to
-> >> start debugging? The ti-linux-3.14.y does not have any patches
-> >> that aren't applied to the usb on 3.18.13.
-> >>=20
-> >> The cpu port 1 is connected by a TI TUSB1106 usb transceiver that
-> >> is directly connected to a full-speed hub (TI USB2046) hub so the
-> >> OHCI driver is the only one in use.
-> >>=20
-> >> Note, the ohci-omap3 is loaded as a module as this is how their
-> >> user application expects to be able to shut down usb when it does
-> >> not need it.
-> >>=20
-> >> The device tree configuration for the usb host:
-> >=20
-> > and what exactly doesn't work ? That old OHCI driver hasn't been
-> > touched in years, it's no surprise that it stopped working :-(
-> >=20
-> > Anyway, what exactly doesn't work ? No device enumerates ? Do you
-> > get any IRQs by plugging a new device in ?
->=20
-> I will check the interrupts when I get back into the office.
->=20
-> There is only one device (the hub) which isn't enumerating and is
-> hard-wired on the board.
+Okay. Just thinking if we can do SATA_PLL_SOFT_RESET in probe to begin with. 
+That way we don't have to do this additional clk_enable().
 
-alright, that makes things a little more difficult :-)
-
-> >>> &usbhshost { status =3D "okay";	/* just in case it is started
-> >>> disabled */
-> >>>=20
-> >>> port1-mode =3D "ohci-phy-6pin-dpdm"; };
-> >>>=20
-> >>> &usbhsohci { status =3D "okay"; };
-> >>>=20
-> >>> &usbhsehci { status =3D "disabled";	/* no ehci on board */ };
-> >>=20
-> >>=20
-> >> The usb from the logs is as follows. Some extra debugging has
-> >> been added to verify the device-tree settings:
-> >>=20
-> >>> [    0.000000] AM3517 ES1.1 (l2cache sgx neon)
-> >>>=20
-> >>>=20
-> >>> [    0.869706] usbcore: registered new interface driver usbfs
-> >>>  [    0.874270] usbcore: registered new interface driver hub
-> >>>  [    0.878592] usbcore: registered new device driver usb
-> >>>  [    1.223199] usbhs_tll 48062000.usbhstll: starting TI HSUSB
-> >>> TLL Controller [    1.273000] usbhs_omap 48064000.usbhshost:
-> >>> ports 0 [    1.278291] usbhs_omap 48064000.usbhshost: port 0:
-> >>> ohci-phy-6pin-dpdm [    1.284476] usbhs_omap
-> >>> 48064000.usbhshost: port0-mode: ohci-phy-6pin-dpdm ->5 [
-> >>> 1.288689] usbhs_tll 48062000.usbhstll: omap_tll_init()
-> >>>  [    1.293628] usbhs_omap 48064000.usbhshost:
-> >>> usbhs_runtime_resume [    1.298434] usbhs_omap
-> >>> 48064000.usbhshost: sysconfig 0x00001009 [    1.302730]
-> >>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
-> >>>  [    1.307668] usbhs_omap 48064000.usbhshost:
-> >>> usbhs_runtime_suspend [    1.310142] stopping usb controller
-> >>>  [    1.419910] usbhs_tll 48062000.usbhstll: omap_tll_disable()
-> >>>  [    1.423547] usbhs_omap 48064000.usbhshost: 3 ports
-> >>>  [    1.429065] usbhs_omap 48064000.usbhshost: starting TI
-> >>> HSUSB Controller [    1.433831] usbhs_omap 48064000.usbhshost:
-> >>> usbhs_runtime_resume [    1.438625] usbhs_omap
-> >>> 48064000.usbhshost: sysconfig 0x00001009 [    1.442921]
-> >>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
-> >>>  [    1.448548] usbhs_omap 48064000.usbhshost:
-> >>> omap_usbhs_rev1_hostconfig =3D> [    1.455034] usbhs_omap
-> >>> 48064000.usbhshost: UHH setup done, uhh_hostconfig=3D80d [
-> >>> 1.459918] usbhs_omap 48064000.usbhshost: usbhs_runtime_suspend
-> >>>  [    1.462337] stopping usb controller
-> >>>  [    1.569905] usbhs_tll 48062000.usbhstll: omap_tll_disable()
-> >>>  [    1.575408] usbhs_omap 48064000.usbhshost: populating usb
-> >>> sub nodes....
-> >>>=20
-> >>> [   77.609168] usbhs_omap 48064000.usbhshost:
-> >>> usbhs_runtime_resume [   77.613927] usbhs_omap
-> >>> 48064000.usbhshost: sysconfig 0x00001009 [   77.618374]
-> >>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
-> >>>  [   77.802694] usb usb1: New USB device found, idVendor=3D1d6b,
-> >>> idProduct=3D0001 [   77.816003] usb usb1: New USB device strings:
-> >>> Mfr=3D3, Product=3D2, SerialNumber1 [   77.827391] usb usb1:
-> >>> Product: OHCI Host Controller [   77.838674] usb usb1:
-> >>> Manufacturer: Linux 3.18.13-00203-ga3c52be-dirty ohci_d [
-> >>> 77.849913] usb usb1: SerialNumber: 48064400.ohci
-> >>>=20
-> >=20
-> > OK, so this is roothub, what happens when a device is plugged to
-> > the other end ? Is VBUS charged ? We didn't even enumerate
-> > TUSB2046, did you look at its datasheet
-> > (http://www.ti.com/lit/ds/symlink/tusb2046b.pdf) ? What is the
-> > state of RESETn pin ? Perhaps that's tied to a GPIO and the old TI
-> > kernel toggles that ? Anything interesting from usbmon ?
->=20
-> I've gone through the schematics and verified the hub's reset line
-> is connected where we think it is (will try and check with a 'scope
-> on monday that it is being taken high, the boot-loader starts it low).
->=20
-> The root has just the one device connected, and unfortunately the
-> hw designer decided to hard-wire the D+ pull-up to 3.3V instead
-> of the transceiver's pull pin.
->=20
-> Not tried usbmon yet. However if the hub is not being detected then
-> probably won't show anything either.
->=20
-> I am going to install devmem2 into the root image and use it to poke
-> around and see the state of the system at run time.
->=20
-> Thanks for looking in to this.
-
-yeah, no problem. You probably want to first make sure VBUS is alive
-behind the HUB (iow, make sure the hub is powered up as you'd expect),
-then make sure VBUS is coming out on the other end (the hub's ports).
-The make sure RESETn is high as you'd want it to be. After that, then I
-guess only register pick-and-poke is left.
-
-cheers
-
---=20
-balbi
-
---oLBj+sq0vYjzfsbl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVX9LOAAoJEIaOsuA1yqREfiwP/izC/jKK6FdvyICHswglBSDX
-OR07T9GGIpRS05ioj3STZ1yMjwZQkBExHLKSVCcsbcoghNY2sXcKkwBdmzTYXE0J
-KwiiA+fMPPwnKOzw0nMr8xVkYmDkoqkeOKkhP5H4TfqpBt0UiGldGEu3jmwR+smP
-JJIiJwqR+O8pfeXG4E/IdplML6NUkv2Rd7U3D9V1SquX8emTn04HuBX8pbXlozR1
-CoLBTyrnxvwUnlXMCZQczmFn/9TC1W98ZdodpsN7HnYJl6SP6pRKxI0ssLhbf2cT
-6fQ9zUFnRRFKs4/6EAj6kxkVXjnUHCM8TiBujTVlH32g/A/IFBvs0icKPgfzTKq7
-SHJ4QXlAHie7gleWkDLEmpC+QKXyYkRpqdjY8oyfimwCIEXojgDSO3qJIdMggb+4
-HL8gAliLNxXN17V/l4He+7reFyZ9ypxPEi5q3tcUokfFvRYmGhJ6JR9Q2Fa9x90L
-BbyQXOfSq/r+SedGHObWT/jL3/EF9dMZXe7oDzJTdkIBxI0/oW0brAeFs6AlFyf+
-GtJ2uJnKNeHcK7IZcEw5v1SLnhxvRbh25E7RYk2pJWoxBTA7eUc4TxfGl2kd+qEL
-HvGZUJA3aaZO66GQB0PMZ954Jn2MIvT6kTEb+JWXkkkFT9O/Hhov2WKQ6BRCdZ0i
-ALF+5jZqalvOOXzxiaUa
-=KxhX
------END PGP SIGNATURE-----
-
---oLBj+sq0vYjzfsbl--
+Thanks
+Kishon
