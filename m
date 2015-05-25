@@ -1,91 +1,189 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] video: omap/h3: fix tps65010 dependency
-Date: Mon, 25 May 2015 08:43:38 +0300
-Message-ID: <5562B68A.6030608@ti.com>
-References: <4416278.oVFvT3Eyqf@wuerfel>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 5/5] mmc: omap_hsmmc: Change wake-up interrupt to use
+ generic wakeirq
+Date: Mon, 25 May 2015 10:38:31 +0200
+Message-ID: <CAPDyKFqsfVL1SG2uuQRx3g=8DeJ4W_RhZwEEeQwFedhwOnBjXA@mail.gmail.com>
+References: <1431560196-5722-1-git-send-email-tony@atomide.com>
+	<1431560196-5722-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41335 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859AbbEYFoR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2015 01:44:17 -0400
-In-Reply-To: <4416278.oVFvT3Eyqf@wuerfel>
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:34579 "EHLO
+	mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751756AbbEYIic (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2015 04:38:32 -0400
+Received: by qkgx75 with SMTP id x75so59680384qkg.1
+        for <linux-omap@vger.kernel.org>; Mon, 25 May 2015 01:38:31 -0700 (PDT)
+In-Reply-To: <1431560196-5722-6-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-fbdev@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
 
---NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On 14 May 2015 at 01:36, Tony Lindgren <tony@atomide.com> wrote:
+> We can now use generic wakeirq handling and remove the custom handling
+> for the wake-up interrupts.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
+Rafael, if you are fine with it, please take this one through your
+linux-pm tree.
 
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-On 22/05/15 17:22, Arnd Bergmann wrote:
-> The h3 LCD driver fails to link when tps65010 is configured
-> as a loadable module:
->=20
-> drivers/built-in.o: In function `h3_panel_disable':
-> debugfs.c:(.text+0x206ac): undefined reference to `tps65010_set_gpio_ou=
-t_value'
-> debugfs.c:(.text+0x206cc): undefined reference to `tps65010_set_gpio_ou=
-t_value'
-> drivers/built-in.o: In function `h3_panel_enable':
-> debugfs.c:(.text+0x206e0): undefined reference to `tps65010_set_gpio_ou=
-t_value'
-> debugfs.c:(.text+0x20704): undefined reference to `tps65010_set_gpio_ou=
-t_value'
->=20
-> This clarifies the dependency so we can only select it if
-> the dependnecy is built-in.
->=20
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->=20
-> diff --git a/drivers/video/fbdev/omap/Kconfig b/drivers/video/fbdev/oma=
-p/Kconfig
-> index 18c4cb0d5690..29d250da8a3e 100644
-> --- a/drivers/video/fbdev/omap/Kconfig
-> +++ b/drivers/video/fbdev/omap/Kconfig
-> @@ -42,7 +42,7 @@ config FB_OMAP_LCD_MIPID
->  config FB_OMAP_LCD_H3
->  	bool "TPS65010 LCD controller on OMAP-H3"
->  	depends on MACH_OMAP_H3
-> -	depends on TPS65010
-> +	depends on TPS65010=3Dy
->  	default y
->  	help
->  	  Say Y here if you want to have support for the LCD on the
->=20
+Kind regards
+Uffe
 
-Thanks, queued for 4.2.
-
- Tomi
-
-
---NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVYraKAAoJEPo9qoy8lh71sTIQALGpHFezDm0ldTpuhy1fIMe1
-AcrtAWJqX/fGSkS8wwdBiMsKoR8T8DgGVRJFEDjAu+qK3nx9hfACCCoOnPn5AG5V
-Zf1On+Lxf/T7gzBk4S9X5YI25sPUbVQuWwbensmgLRGFG4xlCYTc3XTD0dJq2Gz9
-am1xBWY/gCioo6ATXz8mZddoKLveuSu3R7dEnpvH4TGp5EFBD8Cpm7t2AeXhoMyd
-TD6SdGlaj07J6qbnMNmqS/G6+GbSOhQBnE/yAd7FcMMqXFjxTD3+lAAQ7HRFQi0u
-YR9tMgC9auIi6nZULcXiOxlIxMPZEjGGT9fe2fMDA/ypSj7q2xE7n6+mca6aR0xN
-r07QLJp/k3nqLndOnprWLyBX/olNYHQz5L0yiqvEk1EZ7K2EQ5QBC73GWrZMEQUQ
-SXCKlop0CPypnp4wG+R3/dBQB5F8ckGvSU5VPVyKI+qqfdBYbBMZUvaiO+Z0oHkf
-+Jtl9upLT/jqZmWCGQsjXJY7qKCsdLrTHFWkdQQfrXHRuaWJJJDHNN/wSMRaAQ0J
-nEjtW5bFK651dUegD1Y3vqgh1apiwMvK1JyDbe0Ky0GymA//Wx5+TZEv9p1Mbfgl
-iZAkZkQhCaoUILl3oXdMq3t6H0F8zt4+Z0Hvr+VDlhav7xpZOop+gLI6bcf81iRE
-ZE0kYaxHDN1Hpic3rAuQ
-=plML
------END PGP SIGNATURE-----
-
---NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA--
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 51 +++++++------------------------------------
+>  1 file changed, 8 insertions(+), 43 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 9df2b68..5fbf4d8 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -43,6 +43,7 @@
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/pinctrl/consumer.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pm_wakeirq.h>
+>  #include <linux/platform_data/hsmmc-omap.h>
+>
+>  /* OMAP HSMMC Host Controller Registers */
+> @@ -218,7 +219,6 @@ struct omap_hsmmc_host {
+>         unsigned int            flags;
+>  #define AUTO_CMD23             (1 << 0)        /* Auto CMD23 support */
+>  #define HSMMC_SDIO_IRQ_ENABLED (1 << 1)        /* SDIO irq enabled */
+> -#define HSMMC_WAKE_IRQ_ENABLED (1 << 2)
+>         struct omap_hsmmc_next  next_data;
+>         struct  omap_hsmmc_platform_data        *pdata;
+>
+> @@ -1117,22 +1117,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+>         return IRQ_HANDLED;
+>  }
+>
+> -static irqreturn_t omap_hsmmc_wake_irq(int irq, void *dev_id)
+> -{
+> -       struct omap_hsmmc_host *host = dev_id;
+> -
+> -       /* cirq is level triggered, disable to avoid infinite loop */
+> -       spin_lock(&host->irq_lock);
+> -       if (host->flags & HSMMC_WAKE_IRQ_ENABLED) {
+> -               disable_irq_nosync(host->wake_irq);
+> -               host->flags &= ~HSMMC_WAKE_IRQ_ENABLED;
+> -       }
+> -       spin_unlock(&host->irq_lock);
+> -       pm_request_resume(host->dev); /* no use counter */
+> -
+> -       return IRQ_HANDLED;
+> -}
+> -
+>  static void set_sd_bus_power(struct omap_hsmmc_host *host)
+>  {
+>         unsigned long i;
+> @@ -1665,7 +1649,6 @@ static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
+>
+>  static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
+>  {
+> -       struct mmc_host *mmc = host->mmc;
+>         int ret;
+>
+>         /*
+> @@ -1677,11 +1660,7 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
+>         if (!host->dev->of_node || !host->wake_irq)
+>                 return -ENODEV;
+>
+> -       /* Prevent auto-enabling of IRQ */
+> -       irq_set_status_flags(host->wake_irq, IRQ_NOAUTOEN);
+> -       ret = devm_request_irq(host->dev, host->wake_irq, omap_hsmmc_wake_irq,
+> -                              IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+> -                              mmc_hostname(mmc), host);
+> +       ret = dev_pm_request_wake_irq(host->dev, host->wake_irq, NULL, 0, NULL);
+>         if (ret) {
+>                 dev_err(mmc_dev(host->mmc), "Unable to request wake IRQ\n");
+>                 goto err;
+> @@ -1718,7 +1697,7 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
+>         return 0;
+>
+>  err_free_irq:
+> -       devm_free_irq(host->dev, host->wake_irq, host);
+> +       dev_pm_free_wake_irq(host->dev);
+>  err:
+>         dev_warn(host->dev, "no SDIO IRQ support, falling back to polling\n");
+>         host->wake_irq = 0;
+> @@ -2007,6 +1986,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>                 omap_hsmmc_ops.multi_io_quirk = omap_hsmmc_multi_io_quirk;
+>         }
+>
+> +       device_init_wakeup(&pdev->dev, true);
+>         pm_runtime_enable(host->dev);
+>         pm_runtime_get_sync(host->dev);
+>         pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
+> @@ -2147,6 +2127,7 @@ err_slot_name:
+>         if (host->use_reg)
+>                 omap_hsmmc_reg_put(host);
+>  err_irq:
+> +       device_init_wakeup(&pdev->dev, false);
+>         if (host->tx_chan)
+>                 dma_release_channel(host->tx_chan);
+>         if (host->rx_chan)
+> @@ -2178,6 +2159,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+>
+>         pm_runtime_put_sync(host->dev);
+>         pm_runtime_disable(host->dev);
+> +       device_init_wakeup(&pdev->dev, false);
+>         if (host->dbclk)
+>                 clk_disable_unprepare(host->dbclk);
+>
+> @@ -2204,11 +2186,6 @@ static int omap_hsmmc_suspend(struct device *dev)
+>                                 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+>         }
+>
+> -       /* do not wake up due to sdio irq */
+> -       if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+> -           !(host->mmc->pm_flags & MMC_PM_WAKE_SDIO_IRQ))
+> -               disable_irq(host->wake_irq);
+> -
+>         if (host->dbclk)
+>                 clk_disable_unprepare(host->dbclk);
+>
+> @@ -2233,11 +2210,6 @@ static int omap_hsmmc_resume(struct device *dev)
+>                 omap_hsmmc_conf_bus_power(host);
+>
+>         omap_hsmmc_protect_card(host);
+> -
+> -       if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+> -           !(host->mmc->pm_flags & MMC_PM_WAKE_SDIO_IRQ))
+> -               enable_irq(host->wake_irq);
+> -
+>         pm_runtime_mark_last_busy(host->dev);
+>         pm_runtime_put_autosuspend(host->dev);
+>         return 0;
+> @@ -2277,10 +2249,7 @@ static int omap_hsmmc_runtime_suspend(struct device *dev)
+>                 }
+>
+>                 pinctrl_pm_select_idle_state(dev);
+> -
+> -               WARN_ON(host->flags & HSMMC_WAKE_IRQ_ENABLED);
+> -               enable_irq(host->wake_irq);
+> -               host->flags |= HSMMC_WAKE_IRQ_ENABLED;
+> +               dev_pm_enable_wake_irq(host->dev);
+>         } else {
+>                 pinctrl_pm_select_idle_state(dev);
+>         }
+> @@ -2302,11 +2271,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+>         spin_lock_irqsave(&host->irq_lock, flags);
+>         if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+>             (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
+> -               /* sdio irq flag can't change while in runtime suspend */
+> -               if (host->flags & HSMMC_WAKE_IRQ_ENABLED) {
+> -                       disable_irq_nosync(host->wake_irq);
+> -                       host->flags &= ~HSMMC_WAKE_IRQ_ENABLED;
+> -               }
+> +               dev_pm_disable_wake_irq(host->dev);
+>
+>                 pinctrl_pm_select_default_state(host->dev);
+>
+> --
+> 2.1.4
+>
