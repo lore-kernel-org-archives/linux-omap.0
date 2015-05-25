@@ -1,184 +1,138 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 04/27] clk: ti: move interface clock implementation under drivers/clk
-Date: Mon, 25 May 2015 18:00:09 +0300
-Message-ID: <1432566032-10860-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 16/27] ARM: OMAP2+: clock: remove clkdm_control static boolean from code
+Date: Mon, 25 May 2015 18:00:21 +0300
+Message-ID: <1432566032-10860-17-git-send-email-t-kristo@ti.com>
 References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33861 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002AbbEYPBE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2015 11:01:04 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:48987 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084AbbEYPBd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 May 2015 11:01:33 -0400
 In-Reply-To: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-With the legacy clock support gone, the OMAP interface clock implementation
-can be moved under the clock driver. Some temporary header file tweaks are
-also needed to make this change work properly.
+clkdm_control is used to determine, whether clocks should trigger a
+clockdomain transition when they are enabled/disabled. Keep this
+functionality intact, but replace this with a clk_features flag
+which can be initialized during boot if needed.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                       |    3 +--
- arch/arm/mach-omap2/clock.h                        |   11 -----------
- drivers/clk/ti/Makefile                            |    2 +-
- .../arm/mach-omap2 => drivers/clk/ti}/clkt_iclk.c  |   12 +++++-------
- drivers/clk/ti/clock.h                             |    2 ++
- include/linux/clk/ti.h                             |   10 ++++++++--
- 6 files changed, 17 insertions(+), 23 deletions(-)
- rename {arch/arm/mach-omap2 => drivers/clk/ti}/clkt_iclk.c (89%)
+ arch/arm/mach-omap2/clock.c |   34 ++++++++++------------------------
+ arch/arm/mach-omap2/clock.h |    2 --
+ include/linux/clk/ti.h      |    1 +
+ 3 files changed, 11 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5bcd282..a2f5156 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -185,13 +185,12 @@ obj-$(CONFIG_SOC_DRA7XX)		+= clockdomains7xx_data.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpllcore.o
- obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
--obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o clkt_iclk.o
-+obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o
- obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o clkt34xx_dpll3m2.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o clock36xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o
--obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common)
- obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 7a5713d..6c17adf 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -61,14 +61,6 @@ u16 cpu_mask;
+ #define OMAP3PLUS_DPLL_FINT_MIN		32000
+ #define OMAP3PLUS_DPLL_FINT_MAX		52000000
+ 
+-/*
+- * clkdm_control: if true, then when a clock is enabled in the
+- * hardware, its clockdomain will first be enabled; and when a clock
+- * is disabled in the hardware, its clockdomain will be disabled
+- * afterwards.
+- */
+-static bool clkdm_control = true;
+-
+ struct clk_iomap {
+ 	struct regmap *regmap;
+ 	void __iomem *mem;
+@@ -288,19 +280,6 @@ void omap2_init_clk_clkdm(struct clk_hw *hw)
+ }
+ 
+ /**
+- * omap2_clk_disable_clkdm_control - disable clkdm control on clk enable/disable
+- *
+- * Prevent the OMAP clock code from calling into the clockdomain code
+- * when a hardware clock in that clockdomain is enabled or disabled.
+- * Intended to be called at init time from omap*_clk_init().  No
+- * return value.
+- */
+-void __init omap2_clk_disable_clkdm_control(void)
+-{
+-	clkdm_control = false;
+-}
+-
+-/**
+  * omap2_clk_dflt_find_companion - find companion clock to @clk
+  * @clk: struct clk * to find the companion clock of
+  * @other_reg: void __iomem ** to return the companion clock CM_*CLKEN va in
+@@ -384,6 +363,12 @@ int omap2_dflt_clk_enable(struct clk_hw *hw)
+ 	struct clk_hw_omap *clk;
+ 	u32 v;
+ 	int ret = 0;
++	bool clkdm_control;
++
++	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL)
++		clkdm_control = false;
++	else
++		clkdm_control = true;
+ 
+ 	clk = to_clk_hw_omap(hw);
+ 
+@@ -457,7 +442,8 @@ void omap2_dflt_clk_disable(struct clk_hw *hw)
+ 	omap2_clk_writel(v, clk, clk->enable_reg);
+ 	/* No OCP barrier needed here since it is a disable operation */
+ 
+-	if (clkdm_control && clk->clkdm)
++	if (!(ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL) &&
++	    clk->clkdm)
+ 		clkdm_clk_disable(clk->clkdm, hw->clk);
+ }
+ 
+@@ -490,7 +476,7 @@ int omap2_clkops_enable_clkdm(struct clk_hw *hw)
+ 		pr_err("%s: %s: should use dflt_clk_enable ?!\n", __func__,
+ 		       __clk_get_name(hw->clk));
+ 
+-	if (!clkdm_control) {
++	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL) {
+ 		pr_err("%s: %s: clkfw-based clockdomain control disabled ?!\n",
+ 		       __func__, __clk_get_name(hw->clk));
+ 		return 0;
+@@ -528,7 +514,7 @@ void omap2_clkops_disable_clkdm(struct clk_hw *hw)
+ 		pr_err("%s: %s: should use dflt_clk_disable ?!\n", __func__,
+ 		       __clk_get_name(hw->clk));
+ 
+-	if (!clkdm_control) {
++	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL) {
+ 		pr_err("%s: %s: clkfw-based clockdomain control disabled ?!\n",
+ 		       __func__, __clk_get_name(hw->clk));
+ 		return;
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index d7ed244..ca8c42c 100644
+index d60691d..9480654 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -198,16 +198,6 @@ int omap2_clksel_set_rate(struct clk_hw *hw, unsigned long rate,
- 				unsigned long parent_rate);
- int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val);
+@@ -180,8 +180,6 @@ struct clksel {
+ #define OMAP4XXX_EN_DPLL_FRBYPASS		0x6
+ #define OMAP4XXX_EN_DPLL_LOCKED			0x7
  
--/* clkt_iclk.c public functions */
--extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
--extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
+-void __init omap2_clk_disable_clkdm_control(void);
 -
--void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
--				   void __iomem **other_reg,
--				   u8 *other_bit);
--void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
--				void __iomem **idlest_reg,
--				u8 *idlest_bit, u8 *idlest_val);
- int omap2_clk_enable_autoidle_all(void);
- int omap2_clk_allow_idle(struct clk *clk);
- int omap2_clk_deny_idle(struct clk *clk);
-@@ -231,7 +221,6 @@ extern const struct clksel_rate gpt_sys_rates[];
- extern const struct clksel_rate gfx_l3_rates[];
- extern const struct clksel_rate dsp_ick_rates[];
- 
--extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
- extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index c3ec301..23cd726 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,7 +1,7 @@
- obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
- 					  fixed-factor.o mux.o apll.o \
--					  clkt_dpll.o
-+					  clkt_dpll.o clkt_iclk.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
- obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-816x.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
-diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/drivers/clk/ti/clkt_iclk.c
-similarity index 89%
-rename from arch/arm/mach-omap2/clkt_iclk.c
-rename to drivers/clk/ti/clkt_iclk.c
-index 55eb579..a03919d 100644
---- a/arch/arm/mach-omap2/clkt_iclk.c
-+++ b/drivers/clk/ti/clkt_iclk.c
-@@ -13,6 +13,7 @@
- #include <linux/kernel.h>
- #include <linux/clk-provider.h>
- #include <linux/io.h>
-+#include <linux/clk/ti.h>
- 
- #include "clock.h"
- 
-@@ -31,9 +32,9 @@ void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk)
- 	r = (__force void __iomem *)
- 		((__force u32)clk->enable_reg ^ (CM_AUTOIDLE ^ CM_ICLKEN));
- 
--	v = omap2_clk_readl(clk, r);
-+	v = ti_clk_ll_ops->clk_readl(r);
- 	v |= (1 << clk->enable_bit);
--	omap2_clk_writel(v, clk, r);
-+	ti_clk_ll_ops->clk_writel(v, r);
- }
- 
- /* XXX */
-@@ -45,9 +46,9 @@ void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk)
- 	r = (__force void __iomem *)
- 		((__force u32)clk->enable_reg ^ (CM_AUTOIDLE ^ CM_ICLKEN));
- 
--	v = omap2_clk_readl(clk, r);
-+	v = ti_clk_ll_ops->clk_readl(r);
- 	v &= ~(1 << clk->enable_bit);
--	omap2_clk_writel(v, clk, r);
-+	ti_clk_ll_ops->clk_writel(v, r);
- }
- 
- /* Public data */
-@@ -63,6 +64,3 @@ const struct clk_hw_omap_ops clkhwops_iclk_wait = {
- 	.find_idlest	= omap2_clk_dflt_find_idlest,
- 	.find_companion	= omap2_clk_dflt_find_companion,
- };
--
--
--
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index c75d4b4..a7256a9 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -170,6 +170,8 @@ struct clk *ti_clk_register_clk(struct ti_clk *setup);
- int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
- 
- extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
-+extern const struct clk_hw_omap_ops clkhwops_iclk;
-+extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
- 
- u8 omap2_init_dpll_parent(struct clk_hw *hw);
- 
+ void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+ 			       const char *core_ck_name,
+ 			       const char *mpu_ck_name);
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 89deddf..63f2945 100644
+index 0f9d15f..3dadb74 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -296,6 +296,14 @@ int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
- int omap2_dflt_clk_enable(struct clk_hw *hw);
- void omap2_dflt_clk_disable(struct clk_hw *hw);
- int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
-+void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
-+void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
-+void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
-+				   void __iomem **other_reg,
-+				   u8 *other_bit);
-+void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
-+				void __iomem **idlest_reg,
-+				u8 *idlest_bit, u8 *idlest_val);
- void omap3_clk_lock_dpll5(void);
- unsigned long omap2_dpllcore_recalc(struct clk_hw *hw,
- 				    unsigned long parent_rate);
-@@ -358,8 +366,6 @@ extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
--extern const struct clk_hw_omap_ops clkhwops_iclk;
--extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
+@@ -330,6 +330,7 @@ struct ti_clk_features {
+ 
+ #define TI_CLK_DPLL_HAS_FREQSEL			BIT(0)
+ #define TI_CLK_DPLL4_DENY_REPROGRAM		BIT(1)
++#define TI_CLK_DISABLE_CLKDM_CONTROL		BIT(2)
+ 
+ void ti_clk_setup_features(struct ti_clk_features *features);
+ struct ti_clk_features *ti_clk_get_features(void);
 -- 
 1.7.9.5
 
