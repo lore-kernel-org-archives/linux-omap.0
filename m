@@ -1,33 +1,50 @@
-From: Admin <info@webmaster.org>
-Subject: =?UTF-8?Q?FRISS=C3=8DT=C3=89S?=
-Date: Mon, 25 May 2015 10:03:10 +0100
-Message-ID: <83c75df5be0b760dc1199de578230c31@tozsdeiskola.hu>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/4] spi: omap2-mcspi: Fixes for recent updates
+Date: Mon, 25 May 2015 13:00:12 +0100
+Message-ID: <20150525120012.GH21391@sirena.org.uk>
+References: <20150522122544.GL21391@sirena.org.uk>
+ <1432433625-23407-1-git-send-email-mwelling@ieee.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.tozsdeiskola.hu ([87.229.103.13]:44386 "EHLO
-	web.tozsdeiskola.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039AbbEYJVP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2015 05:21:15 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="gX7DG0PufVj3JKBt"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1432433625-23407-1-git-send-email-mwelling-EkmVulN54Sk@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--gX7DG0PufVj3JKBt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---=20
-Jelenleg fut a szerver friss=C3=ADt=C3=A9s / ellen=C5=91rz=C3=A9s, a ha=
-t=C3=A9konys=C3=A1g
-n=C3=B6vel=C3=A9se =C3=A9s t=C3=B6r=C3=B6lni sz=C3=A1ml=C3=A1k, amelyek=
- m=C3=A1r nem active.click a
-http://michowen09.wix.com/webmaster-hu adja meg adatait, hogy=20
-ellen=C5=91rizze
-=C3=A9s friss=C3=ADtse a sz=C3=A1mla.
-k=C3=B6sz=C3=B6n=C3=B6m
-Web Admin.
+On Sat, May 23, 2015 at 09:13:41PM -0500, Michael Welling wrote:
+> The recent update of the OMAP2 McSPI driver left some unresolved issues.
+> These patches should take care them and again allow for GPIO chip selects
+> and native chip selects.
+
+Applied all, thanks.
+
+--gX7DG0PufVj3JKBt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVYw7LAAoJECTWi3JdVIfQEb4H/3aLrFvnA/3E2vbMxqTyKDV7
+8vGlQbXVSuePP/Zvzy1EmTQoTwH0+GnJEDdbHek5EmFz6NSpQm0vcSIBRzsiC12H
+FZhoMcIpCSSw3OYNnYGgchrY3ekMzT2+/yQiQTsCo7xE/Mari4QMZp8NnvfqlgPT
+mXrDpO8VDduk5c8/l/N03En+ZeDVRTBEGdla7G8MO9Toea8Iuvt//tGq1gl+srXc
+r9WuB5ODoNBiOmjvFg6AeJfYI15fTS2UkY3c10nbur/Gzk+APD3nNIAQ4JdcXmbc
+l0yDJR21+gIB4qhCVbRjSPrFBdSh6JrPlyAzi0PnLKX10xhPHAozuTfOiSS8gaU=
+=1S5v
+-----END PGP SIGNATURE-----
+
+--gX7DG0PufVj3JKBt--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
