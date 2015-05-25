@@ -1,60 +1,91 @@
-From: Michael Welling <mwelling@ieee.org>
-Subject: Re: [PATCH 4/4] spi: omap2-mcspi: Handle error on gpio_request
-Date: Sun, 24 May 2015 11:52:31 -0500
-Message-ID: <20150524165231.GA3994@deathray>
-References: <20150522122544.GL21391@sirena.org.uk>
- <1432433625-23407-1-git-send-email-mwelling@ieee.org>
- <1432433625-23407-5-git-send-email-mwelling@ieee.org>
- <20150524081307.GC17508@opentech.at>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] video: omap/h3: fix tps65010 dependency
+Date: Mon, 25 May 2015 08:43:38 +0300
+Message-ID: <5562B68A.6030608@ti.com>
+References: <4416278.oVFvT3Eyqf@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150524081307.GC17508@opentech.at>
-Sender: linux-next-owner@vger.kernel.org
-To: Nicholas Mc Guire <der.herr@hofr.at>
-Cc: broonie@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41335 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859AbbEYFoR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2015 01:44:17 -0400
+In-Reply-To: <4416278.oVFvT3Eyqf@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-fbdev@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Sun, May 24, 2015 at 10:13:07AM +0200, Nicholas Mc Guire wrote:
-> On Sat, 23 May 2015, Michael Welling wrote:
-> 
-> > If a valid GPIO is specified but cannot be requested by the driver, print a
-> > message and error out of omap2_mcspi_setup.
-> > 
-> > Signed-off-by: Michael Welling <mwelling@ieee.org>
-> > ---
-> >  drivers/spi/spi-omap2-mcspi.c |    9 ++++++---
-> >  1 file changed, 6 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> > index c4e21ad..5867384 100644
-> > --- a/drivers/spi/spi-omap2-mcspi.c
-> > +++ b/drivers/spi/spi-omap2-mcspi.c
-> > @@ -1023,9 +1023,12 @@ static int omap2_mcspi_setup(struct spi_device *spi)
-> >  	}
-> >  
-> >  	if (gpio_is_valid(spi->cs_gpio)) {
-> > -		if (gpio_request(spi->cs_gpio, dev_name(&spi->dev)) == 0)
-> > -			gpio_direction_output(spi->cs_gpio,
-> > -			!(spi->mode & SPI_CS_HIGH));
-> > +		ret = gpio_request(spi->cs_gpio, dev_name(&spi->dev));
-> > +		if (ret) {
-> > +			dev_err(&spi->dev, "failed to request gpio\n");
-> > +			return ret;
-> > +		}
-> > +		gpio_direction_output(spi->cs_gpio, !(spi->mode & SPI_CS_HIGH));
-> >  	}
-> 
-> just wondering if the outer gpio_is_valid is actually needed as it seems
-> gpio_request() is actually calling gpio_is_valid() anyway and would return
-> non 0 if it were not,
+--NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-In this case we have to check first because if the GPIO is not registered the 
-native chip select is assumed. If the GPIO is registered, is valid and can be
-requested we use it as the chip select. If the GPIO is registered and valid but
-cannot be requested we return an error.
 
-> 
-> thx!
-> hofrat
+
+On 22/05/15 17:22, Arnd Bergmann wrote:
+> The h3 LCD driver fails to link when tps65010 is configured
+> as a loadable module:
+>=20
+> drivers/built-in.o: In function `h3_panel_disable':
+> debugfs.c:(.text+0x206ac): undefined reference to `tps65010_set_gpio_ou=
+t_value'
+> debugfs.c:(.text+0x206cc): undefined reference to `tps65010_set_gpio_ou=
+t_value'
+> drivers/built-in.o: In function `h3_panel_enable':
+> debugfs.c:(.text+0x206e0): undefined reference to `tps65010_set_gpio_ou=
+t_value'
+> debugfs.c:(.text+0x20704): undefined reference to `tps65010_set_gpio_ou=
+t_value'
+>=20
+> This clarifies the dependency so we can only select it if
+> the dependnecy is built-in.
+>=20
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>=20
+> diff --git a/drivers/video/fbdev/omap/Kconfig b/drivers/video/fbdev/oma=
+p/Kconfig
+> index 18c4cb0d5690..29d250da8a3e 100644
+> --- a/drivers/video/fbdev/omap/Kconfig
+> +++ b/drivers/video/fbdev/omap/Kconfig
+> @@ -42,7 +42,7 @@ config FB_OMAP_LCD_MIPID
+>  config FB_OMAP_LCD_H3
+>  	bool "TPS65010 LCD controller on OMAP-H3"
+>  	depends on MACH_OMAP_H3
+> -	depends on TPS65010
+> +	depends on TPS65010=3Dy
+>  	default y
+>  	help
+>  	  Say Y here if you want to have support for the LCD on the
+>=20
+
+Thanks, queued for 4.2.
+
+ Tomi
+
+
+--NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVYraKAAoJEPo9qoy8lh71sTIQALGpHFezDm0ldTpuhy1fIMe1
+AcrtAWJqX/fGSkS8wwdBiMsKoR8T8DgGVRJFEDjAu+qK3nx9hfACCCoOnPn5AG5V
+Zf1On+Lxf/T7gzBk4S9X5YI25sPUbVQuWwbensmgLRGFG4xlCYTc3XTD0dJq2Gz9
+am1xBWY/gCioo6ATXz8mZddoKLveuSu3R7dEnpvH4TGp5EFBD8Cpm7t2AeXhoMyd
+TD6SdGlaj07J6qbnMNmqS/G6+GbSOhQBnE/yAd7FcMMqXFjxTD3+lAAQ7HRFQi0u
+YR9tMgC9auIi6nZULcXiOxlIxMPZEjGGT9fe2fMDA/ypSj7q2xE7n6+mca6aR0xN
+r07QLJp/k3nqLndOnprWLyBX/olNYHQz5L0yiqvEk1EZ7K2EQ5QBC73GWrZMEQUQ
+SXCKlop0CPypnp4wG+R3/dBQB5F8ckGvSU5VPVyKI+qqfdBYbBMZUvaiO+Z0oHkf
++Jtl9upLT/jqZmWCGQsjXJY7qKCsdLrTHFWkdQQfrXHRuaWJJJDHNN/wSMRaAQ0J
+nEjtW5bFK651dUegD1Y3vqgh1apiwMvK1JyDbe0Ky0GymA//Wx5+TZEv9p1Mbfgl
+iZAkZkQhCaoUILl3oXdMq3t6H0F8zt4+Z0Hvr+VDlhav7xpZOop+gLI6bcf81iRE
+ZE0kYaxHDN1Hpic3rAuQ
+=plML
+-----END PGP SIGNATURE-----
+
+--NwOFECEr9NMCrtWTs1u7xkh5vPs5XnQMA--
