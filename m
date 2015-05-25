@@ -1,316 +1,242 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 01/27] ARM: OMAP2+: clock: export driver API to setup/get clock features
-Date: Mon, 25 May 2015 18:00:06 +0300
-Message-ID: <1432566032-10860-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 03/27] clk: ti: move OMAP4+ DPLL implementation under drivers/clk
+Date: Mon, 25 May 2015 18:00:08 +0300
+Message-ID: <1432566032-10860-4-git-send-email-t-kristo@ti.com>
 References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59897 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50037 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993AbbEYPA6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 May 2015 11:00:58 -0400
+	id S1752004AbbEYPBF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 May 2015 11:01:05 -0400
 In-Reply-To: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-As most of the clock driver support code is going to be moved under
-drivers/clk/ti, an API for setting / getting the SoC specific clock
-features is needed. This patch provides this API and changes the
-existing code to use it.
+With the legacy clock support gone, the OMAP4 specific DPLL implementations
+can be moved under the clock driver. Change some of the function prototypes
+to be static at the same time, and remove some exports from the global TI
+clock driver header.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clkt_dpll.c |   14 +++++++-------
- arch/arm/mach-omap2/clock.c     |   36 +++++++++++++++++-------------------
- arch/arm/mach-omap2/clock.h     |   18 ------------------
- arch/arm/mach-omap2/clock3xxx.c |    4 ++--
- arch/arm/mach-omap2/dpll3xxx.c  |    4 ++--
- drivers/clk/ti/clk.c            |   25 +++++++++++++++++++++++++
- include/linux/clk/ti.h          |   16 ++++++++++++++++
- 7 files changed, 69 insertions(+), 48 deletions(-)
+ arch/arm/mach-omap2/Makefile                       |    6 ++---
+ arch/arm/mach-omap2/clock.h                        |    4 ----
+ drivers/clk/ti/Makefile                            |    6 ++---
+ drivers/clk/ti/clock.h                             |   14 ++++++++++++
+ {arch/arm/mach-omap2 => drivers/clk/ti}/dpll44xx.c |   23 ++++++++++----------
+ include/linux/clk/ti.h                             |   13 +----------
+ 6 files changed, 33 insertions(+), 33 deletions(-)
+ rename {arch/arm/mach-omap2 => drivers/clk/ti}/dpll44xx.c (91%)
 
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index f251a14..82f0600 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -80,8 +80,8 @@ static int _dpll_test_fint(struct clk_hw_omap *clk, unsigned int n)
- 		fint_min = OMAP3PLUS_DPLL_FINT_JTYPE_MIN;
- 		fint_max = OMAP3PLUS_DPLL_FINT_JTYPE_MAX;
- 	} else {
--		fint_min = ti_clk_features.fint_min;
--		fint_max = ti_clk_features.fint_max;
-+		fint_min = ti_clk_get_features()->fint_min;
-+		fint_max = ti_clk_get_features()->fint_max;
- 	}
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fcb5d47..5bcd282 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -193,12 +193,12 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o clock36xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common)
+-obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
+-obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
++obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o
+ obj-$(CONFIG_SOC_DRA7XX)		+= $(clock-common)
+-obj-$(CONFIG_SOC_DRA7XX)		+= dpll3xxx.o dpll44xx.o
++obj-$(CONFIG_SOC_DRA7XX)		+= dpll3xxx.o
+ obj-$(CONFIG_SOC_AM43XX)		+= $(clock-common) dpll3xxx.o
  
- 	if (!fint_min || !fint_max) {
-@@ -89,18 +89,18 @@ static int _dpll_test_fint(struct clk_hw_omap *clk, unsigned int n)
- 		return DPLL_FINT_INVALID;
- 	}
- 
--	if (fint < ti_clk_features.fint_min) {
-+	if (fint < ti_clk_get_features()->fint_min) {
- 		pr_debug("rejecting n=%d due to Fint failure, lowering max_divider\n",
- 			 n);
- 		dd->max_divider = n;
- 		ret = DPLL_FINT_UNDERFLOW;
--	} else if (fint > ti_clk_features.fint_max) {
-+	} else if (fint > ti_clk_get_features()->fint_max) {
- 		pr_debug("rejecting n=%d due to Fint failure, boosting min_divider\n",
- 			 n);
- 		dd->min_divider = n;
- 		ret = DPLL_FINT_INVALID;
--	} else if (fint > ti_clk_features.fint_band1_max &&
--		   fint < ti_clk_features.fint_band2_min) {
-+	} else if (fint > ti_clk_get_features()->fint_band1_max &&
-+		   fint < ti_clk_get_features()->fint_band2_min) {
- 		pr_debug("rejecting n=%d due to Fint failure\n", n);
- 		ret = DPLL_FINT_INVALID;
- 	}
-@@ -183,7 +183,7 @@ static int _omap2_dpll_is_in_bypass(u32 v)
- {
- 	u8 mask, val;
- 
--	mask = ti_clk_features.dpll_bypass_vals;
-+	mask = ti_clk_get_features()->dpll_bypass_vals;
- 
- 	/*
- 	 * Each set bit in the mask corresponds to a bypass value equal
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index a699d71..cbc65b3 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -48,11 +48,6 @@
- 
- u16 cpu_mask;
- 
--/*
-- * Clock features setup. Used instead of CPU type checks.
-- */
--struct ti_clk_features ti_clk_features;
--
- /* DPLL valid Fint frequency band limits - from 34xx TRM Section 4.7.6.2 */
- #define OMAP3430_DPLL_FINT_BAND1_MIN	750000
- #define OMAP3430_DPLL_FINT_BAND1_MAX	2100000
-@@ -367,7 +362,7 @@ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
- 	 * 34xx reverses this, just to keep us on our toes
- 	 * AM35xx uses both, depending on the module.
- 	 */
--	*idlest_val = ti_clk_features.cm_idlest_val;
-+	*idlest_val = ti_clk_get_features()->cm_idlest_val;
- }
- 
- /**
-@@ -801,29 +796,30 @@ void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
-  */
- void __init ti_clk_init_features(void)
- {
-+	struct ti_clk_features features = { 0 };
- 	/* Fint setup for DPLLs */
- 	if (cpu_is_omap3430()) {
--		ti_clk_features.fint_min = OMAP3430_DPLL_FINT_BAND1_MIN;
--		ti_clk_features.fint_max = OMAP3430_DPLL_FINT_BAND2_MAX;
--		ti_clk_features.fint_band1_max = OMAP3430_DPLL_FINT_BAND1_MAX;
--		ti_clk_features.fint_band2_min = OMAP3430_DPLL_FINT_BAND2_MIN;
-+		features.fint_min = OMAP3430_DPLL_FINT_BAND1_MIN;
-+		features.fint_max = OMAP3430_DPLL_FINT_BAND2_MAX;
-+		features.fint_band1_max = OMAP3430_DPLL_FINT_BAND1_MAX;
-+		features.fint_band2_min = OMAP3430_DPLL_FINT_BAND2_MIN;
- 	} else {
--		ti_clk_features.fint_min = OMAP3PLUS_DPLL_FINT_MIN;
--		ti_clk_features.fint_max = OMAP3PLUS_DPLL_FINT_MAX;
-+		features.fint_min = OMAP3PLUS_DPLL_FINT_MIN;
-+		features.fint_max = OMAP3PLUS_DPLL_FINT_MAX;
- 	}
- 
- 	/* Bypass value setup for DPLLs */
- 	if (cpu_is_omap24xx()) {
--		ti_clk_features.dpll_bypass_vals |=
-+		features.dpll_bypass_vals |=
- 			(1 << OMAP2XXX_EN_DPLL_LPBYPASS) |
- 			(1 << OMAP2XXX_EN_DPLL_FRBYPASS);
- 	} else if (cpu_is_omap34xx()) {
--		ti_clk_features.dpll_bypass_vals |=
-+		features.dpll_bypass_vals |=
- 			(1 << OMAP3XXX_EN_DPLL_LPBYPASS) |
- 			(1 << OMAP3XXX_EN_DPLL_FRBYPASS);
- 	} else if (soc_is_am33xx() || cpu_is_omap44xx() || soc_is_am43xx() ||
- 		   soc_is_omap54xx() || soc_is_dra7xx()) {
--		ti_clk_features.dpll_bypass_vals |=
-+		features.dpll_bypass_vals |=
- 			(1 << OMAP4XXX_EN_DPLL_LPBYPASS) |
- 			(1 << OMAP4XXX_EN_DPLL_FRBYPASS) |
- 			(1 << OMAP4XXX_EN_DPLL_MNBYPASS);
-@@ -831,7 +827,7 @@ void __init ti_clk_init_features(void)
- 
- 	/* Jitter correction only available on OMAP343X */
- 	if (cpu_is_omap343x())
--		ti_clk_features.flags |= TI_CLK_DPLL_HAS_FREQSEL;
-+		features.flags |= TI_CLK_DPLL_HAS_FREQSEL;
- 
- 	/* Idlest value for interface clocks.
- 	 * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
-@@ -839,11 +835,13 @@ void __init ti_clk_init_features(void)
- 	 * AM35xx uses both, depending on the module.
- 	 */
- 	if (cpu_is_omap24xx())
--		ti_clk_features.cm_idlest_val = OMAP24XX_CM_IDLEST_VAL;
-+		features.cm_idlest_val = OMAP24XX_CM_IDLEST_VAL;
- 	else if (cpu_is_omap34xx())
--		ti_clk_features.cm_idlest_val = OMAP34XX_CM_IDLEST_VAL;
-+		features.cm_idlest_val = OMAP34XX_CM_IDLEST_VAL;
- 
- 	/* On OMAP3430 ES1.0, DPLL4 can't be re-programmed */
- 	if (omap_rev() == OMAP3430_REV_ES1_0)
--		ti_clk_features.flags |= TI_CLK_DPLL4_DENY_REPROGRAM;
-+		features.flags |= TI_CLK_DPLL4_DENY_REPROGRAM;
-+
-+	ti_clk_setup_features(&features);
- }
+ # OMAP2 clock rate set data (old "OPP" data)
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 652ed0a..ac21856 100644
+index ac21856..d7ed244 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -225,24 +225,6 @@ void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg);
+@@ -183,8 +183,6 @@ struct clksel {
+ u32 omap3_dpll_autoidle_read(struct clk_hw_omap *clk);
+ void omap3_dpll_allow_idle(struct clk_hw_omap *clk);
+ void omap3_dpll_deny_idle(struct clk_hw_omap *clk);
+-void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk);
+-void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk);
  
- extern u16 cpu_mask;
+ void __init omap2_clk_disable_clkdm_control(void);
  
--/*
-- * Clock features setup. Used instead of CPU type checks.
-- */
--struct ti_clk_features {
--	u32 flags;
--	long fint_min;
--	long fint_max;
--	long fint_band1_max;
--	long fint_band2_min;
--	u8 dpll_bypass_vals;
--	u8 cm_idlest_val;
--};
+@@ -204,8 +202,6 @@ int omap2_clksel_set_parent(struct clk_hw *hw, u8 field_val);
+ extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
+ extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
+ 
+-unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
 -
--#define TI_CLK_DPLL_HAS_FREQSEL		(1 << 0)
--#define TI_CLK_DPLL4_DENY_REPROGRAM	(1 << 1)
--
--extern struct ti_clk_features ti_clk_features;
--
- extern const struct clkops clkops_omap2_dflt_wait;
- extern const struct clkops clkops_omap2_dflt;
+ void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
+ 				   void __iomem **other_reg,
+ 				   u8 *other_bit);
+diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+index 62dae2a..c3ec301 100644
+--- a/drivers/clk/ti/Makefile
++++ b/drivers/clk/ti/Makefile
+@@ -7,10 +7,10 @@ obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-816x.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o \
+ 					   clk-3xxx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o
+-obj-$(CONFIG_SOC_OMAP5)			+= $(clk-common) clk-54xx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o dpll44xx.o
++obj-$(CONFIG_SOC_OMAP5)			+= $(clk-common) clk-54xx.o dpll44xx.o
+ obj-$(CONFIG_SOC_DRA7XX)		+= $(clk-common) clk-7xx.o \
+-					   clk-dra7-atl.o
++					   clk-dra7-atl.o dpll44xx.o
+ obj-$(CONFIG_SOC_AM43XX)		+= $(clk-common) clk-43xx.o
  
-diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
-index a9e86db..8bede6a 100644
---- a/arch/arm/mach-omap2/clock3xxx.c
-+++ b/arch/arm/mach-omap2/clock3xxx.c
-@@ -58,7 +58,7 @@ int omap3_dpll4_set_rate(struct clk_hw *hw, unsigned long rate,
- 	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
- 	 * on DPLL4.
- 	 */
--	if (ti_clk_features.flags & TI_CLK_DPLL4_DENY_REPROGRAM) {
-+	if (ti_clk_get_features()->flags & TI_CLK_DPLL4_DENY_REPROGRAM) {
- 		pr_err("clock: DPLL4 cannot change rate due to silicon 'Limitation 2.5' on 3430ES1.\n");
- 		return -EINVAL;
- 	}
-@@ -81,7 +81,7 @@ int omap3_dpll4_set_rate(struct clk_hw *hw, unsigned long rate,
- int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
- 				    unsigned long parent_rate, u8 index)
- {
--	if (ti_clk_features.flags & TI_CLK_DPLL4_DENY_REPROGRAM) {
-+	if (ti_clk_get_features()->flags & TI_CLK_DPLL4_DENY_REPROGRAM) {
- 		pr_err("clock: DPLL4 cannot change rate due to silicon 'Limitation 2.5' on 3430ES1.\n");
- 		return -EINVAL;
- 	}
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 44e57ec..9a80f59 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -307,7 +307,7 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
- 	 * Set jitter correction. Jitter correction applicable for OMAP343X
- 	 * only since freqsel field is no longer present on other devices.
- 	 */
--	if (ti_clk_features.flags & TI_CLK_DPLL_HAS_FREQSEL) {
-+	if (ti_clk_get_features()->flags & TI_CLK_DPLL_HAS_FREQSEL) {
- 		v = omap2_clk_readl(clk, dd->control_reg);
- 		v &= ~dd->freqsel_mask;
- 		v |= freqsel << __ffs(dd->freqsel_mask);
-@@ -559,7 +559,7 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
- 		return -EINVAL;
+ ifdef CONFIG_ATAGS
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 05ed10a..c75d4b4 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -169,6 +169,20 @@ void ti_clk_patch_legacy_clks(struct ti_clk **patch);
+ struct clk *ti_clk_register_clk(struct ti_clk *setup);
+ int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
  
- 	/* Freqsel is available only on OMAP343X devices */
--	if (ti_clk_features.flags & TI_CLK_DPLL_HAS_FREQSEL) {
-+	if (ti_clk_get_features()->flags & TI_CLK_DPLL_HAS_FREQSEL) {
- 		freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
- 		WARN_ON(!freqsel);
- 	}
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 0ebe5c5..567f8b9 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -30,6 +30,8 @@
- struct ti_clk_ll_ops *ti_clk_ll_ops;
- static struct device_node *clocks_node_ptr[CLK_MAX_MEMMAPS];
- 
-+struct ti_clk_features ti_clk_features;
++extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
 +
- /**
-  * ti_dt_clocks_register - register DT alias clocks during boot
-  * @oclks: list of clocks to register
-@@ -310,4 +312,27 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ u8 omap2_init_dpll_parent(struct clk_hw *hw);
  
- 	return 0;
- }
++unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
++					 unsigned long parent_rate);
++long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
++				    unsigned long target_rate,
++				    unsigned long *parent_rate);
++long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw,
++					unsigned long rate,
++					unsigned long min_rate,
++					unsigned long max_rate,
++					unsigned long *best_parent_rate,
++					struct clk_hw **best_parent_clk);
 +
-+/**
-+ * ti_clk_setup_features - setup clock features flags
-+ * @features: features definition to use
-+ *
-+ * Initializes the clock driver features flags based on platform
-+ * provided data. No return value.
-+ */
-+void __init ti_clk_setup_features(struct ti_clk_features *features)
-+{
-+	memcpy(&ti_clk_features, features, sizeof(*features));
-+}
-+
-+/**
-+ * ti_clk_get_features - get clock driver features flags
-+ *
-+ * Get TI clock driver features description. Returns a pointer
-+ * to the current feature setup.
-+ */
-+struct ti_clk_features *ti_clk_get_features(void)
-+{
-+	return &ti_clk_features;
-+}
  #endif
+diff --git a/arch/arm/mach-omap2/dpll44xx.c b/drivers/clk/ti/dpll44xx.c
+similarity index 91%
+rename from arch/arm/mach-omap2/dpll44xx.c
+rename to drivers/clk/ti/dpll44xx.c
+index f231be0..ef1a5b4 100644
+--- a/arch/arm/mach-omap2/dpll44xx.c
++++ b/drivers/clk/ti/dpll44xx.c
+@@ -14,6 +14,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/bitops.h>
++#include <linux/clk/ti.h>
+ 
+ #include "clock.h"
+ 
+@@ -29,14 +30,14 @@
+ /*
+  * Bitfield declarations
+  */
+-#define OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK		(1 << 8)
+-#define OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_MASK		(1 << 10)
+-#define OMAP4430_DPLL_REGM4XEN_MASK			(1 << 11)
++#define OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK		BIT(8)
++#define OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_MASK		BIT(10)
++#define OMAP4430_DPLL_REGM4XEN_MASK			BIT(11)
+ 
+ /* Static rate multiplier for OMAP4 REGM4XEN clocks */
+ #define OMAP4430_REGM4XEN_MULT				4
+ 
+-void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk)
++static void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk)
+ {
+ 	u32 v;
+ 	u32 mask;
+@@ -48,13 +49,13 @@ void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk)
+ 			OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_MASK :
+ 			OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
+ 
+-	v = omap2_clk_readl(clk, clk->clksel_reg);
++	v = ti_clk_ll_ops->clk_readl(clk->clksel_reg);
+ 	/* Clear the bit to allow gatectrl */
+ 	v &= ~mask;
+-	omap2_clk_writel(v, clk, clk->clksel_reg);
++	ti_clk_ll_ops->clk_writel(v, clk->clksel_reg);
+ }
+ 
+-void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk)
++static void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk)
+ {
+ 	u32 v;
+ 	u32 mask;
+@@ -66,10 +67,10 @@ void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk)
+ 			OMAP4430_DPLL_CLKOUTX2_GATE_CTRL_MASK :
+ 			OMAP4430_DPLL_CLKOUT_GATE_CTRL_MASK;
+ 
+-	v = omap2_clk_readl(clk, clk->clksel_reg);
++	v = ti_clk_ll_ops->clk_readl(clk->clksel_reg);
+ 	/* Set the bit to deny gatectrl */
+ 	v |= mask;
+-	omap2_clk_writel(v, clk, clk->clksel_reg);
++	ti_clk_ll_ops->clk_writel(v, clk->clksel_reg);
+ }
+ 
+ const struct clk_hw_omap_ops clkhwops_omap4_dpllmx = {
+@@ -112,7 +113,7 @@ static void omap4_dpll_lpmode_recalc(struct dpll_data *dd)
+  * upon success, or 0 upon error.
+  */
+ unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+-			unsigned long parent_rate)
++					 unsigned long parent_rate)
+ {
+ 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+ 	u32 v;
+@@ -127,7 +128,7 @@ unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+ 	rate = omap2_get_dpll_rate(clk);
+ 
+ 	/* regm4xen adds a multiplier of 4 to DPLL calculations */
+-	v = omap2_clk_readl(clk, dd->control_reg);
++	v = ti_clk_ll_ops->clk_readl(dd->control_reg);
+ 	if (v & OMAP4430_DPLL_REGM4XEN_MASK)
+ 		rate *= OMAP4430_REGM4XEN_MULT;
+ 
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 79b76e1..b066835 100644
+index f2436b2..89deddf 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -338,6 +338,22 @@ int am43xx_dt_clk_init(void);
- int omap2420_dt_clk_init(void);
- int omap2430_dt_clk_init(void);
+@@ -275,17 +275,6 @@ long omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
+ 				       unsigned long max_rate,
+ 				       unsigned long *best_parent_rate,
+ 				       struct clk_hw **best_parent_clk);
+-unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+-					 unsigned long parent_rate);
+-long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
+-				    unsigned long target_rate,
+-				    unsigned long *parent_rate);
+-long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw,
+-					unsigned long rate,
+-					unsigned long min_rate,
+-					unsigned long max_rate,
+-					unsigned long *best_parent_rate,
+-					struct clk_hw **best_parent_clk);
+ unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
+ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+ 			   unsigned long *parent_rate);
+@@ -314,6 +303,7 @@ int omap2_reprogram_dpllcore(struct clk_hw *clk, unsigned long rate,
+ 			     unsigned long parent_rate);
+ void omap2xxx_clkt_dpllcore_init(struct clk_hw *hw);
+ void omap2xxx_clkt_vps_init(void);
++unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
  
-+struct ti_clk_features {
-+	u32 flags;
-+	long fint_min;
-+	long fint_max;
-+	long fint_band1_max;
-+	long fint_band2_min;
-+	u8 dpll_bypass_vals;
-+	u8 cm_idlest_val;
-+};
-+
-+#define TI_CLK_DPLL_HAS_FREQSEL			BIT(0)
-+#define TI_CLK_DPLL4_DENY_REPROGRAM		BIT(1)
-+
-+void ti_clk_setup_features(struct ti_clk_features *features);
-+struct ti_clk_features *ti_clk_get_features(void);
-+
- #ifdef CONFIG_OF
- void of_ti_clk_allow_autoidle_all(void);
- void of_ti_clk_deny_autoidle_all(void);
+ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
+@@ -364,7 +354,6 @@ static inline void of_ti_clk_deny_autoidle_all(void) { }
+ extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
+ extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
+-extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+ extern const struct clk_hw_omap_ops clkhwops_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
+ extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
 -- 
 1.7.9.5
 
