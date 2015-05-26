@@ -1,52 +1,43 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 11/13] spi: omap2-mcspi: Support for deferred probing
- when requesting DMA channels
-Date: Tue, 26 May 2015 16:27:30 +0100
-Message-ID: <20150526152730.GT21577@sirena.org.uk>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <1432646768-12532-12-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
+Date: Tue, 26 May 2015 09:05:58 -0700
+Message-ID: <20150526160557.GD16525@atomide.com>
+References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="cCVGH4QhGbYkRKO5"
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1432646768-12532-12-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, tony@atomide.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-crypto@vger.kernel.org, linux-spi@vger.kernel.org, linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-List-Id: linux-omap@vger.kernel.org
-
-
---cCVGH4QhGbYkRKO5
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:53976 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755856AbbEZQGA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 May 2015 12:06:00 -0400
 Content-Disposition: inline
+In-Reply-To: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, May 26, 2015 at 04:26:06PM +0300, Peter Ujfalusi wrote:
+* Tero Kristo <t-kristo@ti.com> [150525 08:01]:
+> Hi,
+> 
+> As requested, posting v3 with somewhat changed diff parameters and
+> diffstat attached. Just some minor Makefile changes compared to v2,
+> these were discussed under that set.
+> 
+> Set has been pushed to:
+> - tree: https://github.com/t-kristo/linux-pm.git
+> - branch: for-4.2/ti-clk-move
 
-> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-> channels. Only fall back to pio mode if the error code returned is not
-> -EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
+Looks like this causes a build error for at least omap2 only .config:
 
-I've got two patches from a patch series here with no cover letter...
-I'm guessing there's no interdependencies or anything?  Please always
-ensure that when sending a patch series everyone getting the patches can
-tell what the series as a whole looks like (if there's no dependencies
-consider posting as individual patches rather than a series).
+drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
+drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
 
---cCVGH4QhGbYkRKO5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
+KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
+randconfigs :) Usually the issues like this are exposed within few
+randconfig builds, some take longer if the options have dependencies.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Regards,
 
-iQEcBAEBCAAGBQJVZJDhAAoJECTWi3JdVIfQii8H/1dNPl+UQ4hYgOsQbXMiYH/e
-613k9/0lY7U0SMHKZ0pKlQNnbkrEDfY1qniWMTAYfBjxhcP97iACvq/Dhf8hPBoX
-UsaJGnpjmbMBw9OKGo3aSFQW3OA84ifW7VZK51316IwlL9weniqOJlQ7zRAl8nJe
-mBwR9lhFKAfUexsHRZkfqeoxIiZkCM4DU9pqPNeZUI4cu7uiGPGWmwonZ/+K0Zr5
-Vm5pe7A4BAyKUYoJatAOfektb0ODeNvo8ogFbsYGThHghm4+24fRQdNDiw/jYGTP
-TUJQRHR2/KRHvi2EjdlTMKdG7c/EhnPtH6jS8H2ryIDYtLte+1nBs8lL2EzQJRE=
-=GuJ4
------END PGP SIGNATURE-----
-
---cCVGH4QhGbYkRKO5--
+Tony
