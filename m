@@ -1,64 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
-Date: Tue, 26 May 2015 09:32:16 -0700
-Message-ID: <20150526163216.GF16525@atomide.com>
+Date: Tue, 26 May 2015 11:39:31 -0500
+Message-ID: <20150526163931.GO26599@saruman.tx.rr.com>
 References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
  <20150526160557.GD16525@atomide.com>
+ <20150526163216.GF16525@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yLaBmHMi4cq+C/u4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:54000 "EHLO muru.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47466 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513AbbEZQcT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 May 2015 12:32:19 -0400
+	id S1751700AbbEZQmJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 May 2015 12:42:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20150526160557.GD16525@atomide.com>
+In-Reply-To: <20150526163216.GF16525@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [150526 09:08]:
-> * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
-> > Hi,
-> > 
-> > As requested, posting v3 with somewhat changed diff parameters and
-> > diffstat attached. Just some minor Makefile changes compared to v2,
-> > these were discussed under that set.
-> > 
-> > Set has been pushed to:
-> > - tree: https://github.com/t-kristo/linux-pm.git
-> > - branch: for-4.2/ti-clk-move
-> 
-> Looks like this causes a build error for at least omap2 only .config:
-> 
-> drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
-> drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
-> 
-> You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
-> KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
-> randconfigs :) Usually the issues like this are exposed within few
-> randconfig builds, some take longer if the options have dependencies.
+--yLaBmHMi4cq+C/u4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Found more similar issues for omap3 only and omap4 only configs:
+On Tue, May 26, 2015 at 09:32:16AM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150526 09:08]:
+> > * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
+> > > Hi,
+> > >=20
+> > > As requested, posting v3 with somewhat changed diff parameters and
+> > > diffstat attached. Just some minor Makefile changes compared to v2,
+> > > these were discussed under that set.
+> > >=20
+> > > Set has been pushed to:
+> > > - tree: https://github.com/t-kristo/linux-pm.git
+> > > - branch: for-4.2/ti-clk-move
+> >=20
+> > Looks like this causes a build error for at least omap2 only .config:
+> >=20
+> > drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhw=
+ops_omap3_dpll'
+> > drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
+> >=20
+> > You may want to create a file selecting ARCH_OMAP2PLUS=3Dy, then point
+> > KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
+> > randconfigs :) Usually the issues like this are exposed within few
+> > randconfig builds, some take longer if the options have dependencies.
 
-drivers/built-in.o: In function `omap2_clkops_enable_clkdm':
-omap-gpmc.c:(.text+0x202e0): undefined reference to `ti_clk_get_features'
-drivers/built-in.o: In function `omap2_clkops_disable_clkdm':
-omap-gpmc.c:(.text+0x20374): undefined reference to `ti_clk_get_features'
-drivers/built-in.o: In function `_omap2_dpll_is_in_bypass':
-omap-gpmc.c:(.text+0x21678): undefined reference to `ti_clk_get_features'
-drivers/built-in.o: In function `omap2_dpll_round_rate':
-omap-gpmc.c:(.text+0x218ac): undefined reference to `ti_clk_get_features'
-omap-gpmc.c:(.text+0x218ec): undefined reference to `ti_clk_get_features'
+alternatively, just clone the repository at [1] and use the example
+script provided in README.md.
 
-drivers/built-in.o: In function `omap3xxx_dt_clk_init':
-omap-gpmc.c:(.init.text+0x4d60): undefined reference to `omap2_clk_enable_init_clocks'
-arch/arm/mach-omap2/built-in.o: In function `ti_clk_init_features':
+[1] https://github.com/felipebalbi/omap-seeds
 
-arch/arm/mach-omap2/built-in.o: In function `ti_clk_init_features':
-dss-common.c:(.init.text+0x4368): undefined reference to `ti_clk_setup_features'
+--=20
+balbi
 
-Regards,
+--yLaBmHMi4cq+C/u4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVZKHDAAoJEIaOsuA1yqRE3jwP/RA41JPeoZIwNPIXgzjBwRfO
+eOehGx3VrNSfr9Stkq5pMIX76N4ZXd0yOc7tbSyaIof4qkUDPv1oxhv+qLAJdPuh
+XSVC5Pr/CsbKJT+FZTNhbhuHPm0wTQR/6eD+hfTPjibcHCKv4pZal2K061kTWnvX
+go7vAauhUjVOGZ1b81i/8VLvN2RsebFxlGb/ZVISuyydzGUJ/HYlnK2Se3C5Dm6U
+pfzjca6kEsaTqUcF6Nren2XF3BveUBsVlwZsQwGUTLOR04BQIAWORcfbWJlFQ5IP
+9T3hHTbIl7gCFXWdTQcT5AomMSrH/sQQScNDawMruicgWWAuom0agLaFr7bzv7gE
+qIthg+H996m2VoDUL0wQDI161bnr5LpetasrbnxWIEeKzTust4KEM2wekNK6N0a1
+H7f827eyxFNy6Sle1wsZ1ib9Ks5vRs+GbpfbnrE2ZcPmhBk+FHOBCaQ5NkoVSn5c
+QCZj6GN/DwiLgXA2xMtUEGD0LuNpymZbRhlre3jaCE7xV/MsPwqpmA6gaQEdIdAW
+TkY0yL6eeh/sIRz8DgoLe40FvThqwheAZ6tqXlmfe6Hewir+gCH6wjJumtKMombk
+vPtdABID46rGu4A26sUbYj7LrC8zJeRSHD0nI11r6n6AumsX6xHHUXLKSqfzYUFv
+aDHM7KWmPWpEFh02R7sX
+=IUHl
+-----END PGP SIGNATURE-----
+
+--yLaBmHMi4cq+C/u4--
