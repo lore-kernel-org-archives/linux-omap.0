@@ -1,40 +1,36 @@
 From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCH 1/2] of: Add vendor prefix for Toby Churchill Ltd.
-Date: Tue, 26 May 2015 13:13:26 +0200
-Message-ID: <1432638807-6582-2-git-send-email-enric.balletbo@collabora.com>
-References: <1432638807-6582-1-git-send-email-enric.balletbo@collabora.com>
+Subject: [PATCH 0/2] Add support for Toby Churchill SL50 board.
+Date: Tue, 26 May 2015 13:13:25 +0200
+Message-ID: <1432638807-6582-1-git-send-email-enric.balletbo@collabora.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:36578 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753286AbbEZNFy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2015 09:05:54 -0400
-Received: by wizk4 with SMTP id k4so76645716wiz.1
-        for <linux-omap@vger.kernel.org>; Tue, 26 May 2015 06:04:53 -0700 (PDT)
-In-Reply-To: <1432638807-6582-1-git-send-email-enric.balletbo@collabora.com>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:34038 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783AbbEZM7T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2015 08:59:19 -0400
+Received: by wicmc15 with SMTP id mc15so64033206wic.1
+        for <linux-omap@vger.kernel.org>; Tue, 26 May 2015 05:57:37 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: javier.martinez@collabora.co.uk, andy.simpkins@toby-churchill.com, sjoerd.simons@collabora.co.uk, nick.milner@collabora.co.uk
 
-Toby Churchill Ltd is a global provider of assistive technology.
+Hi Tony,
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
- 1 file changed, 1 insertion(+)
+These patches add support for a new board based on AM335x processor. If it
+is ok, take in consideration to include in next DT merge window, please.
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index 8033919..86e842a 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -189,6 +189,7 @@ ste	ST-Ericsson
- stericsson	ST-Ericsson
- synology	Synology, Inc.
- tbs	TBS Technologies
-+tcl	Toby Churchill Ltd.
- thine	THine Electronics, Inc.
- ti	Texas Instruments
- tlm	Trusted Logic Mobility
+Best regards,
+
+Enric Balletbo i Serra (2):
+  of: Add vendor prefix for Toby Churchill Ltd.
+  ARM: dts: am335x-sl50: Add Toby-Churchill SL50 board support.
+
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-sl50.dts                  | 482 +++++++++++++++++++++
+ 3 files changed, 484 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-sl50.dts
+
 -- 
 2.1.0
 
