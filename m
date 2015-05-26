@@ -1,76 +1,74 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 0/7] Implement generic ASoC HDMI codec
-Date: Tue, 26 May 2015 21:59:04 +0300
-Message-ID: <1432666751-24794-1-git-send-email-jsarha@ti.com>
+Subject: [PATCH RFC v2 1/7] ASoC: core: If component doesn't have of_node use parent's node instead
+Date: Tue, 26 May 2015 21:59:05 +0300
+Message-ID: <1432666751-24794-2-git-send-email-jsarha@ti.com>
+References: <1432666751-24794-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, moinejf@free.fr, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37435 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386AbbEZS7y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2015 14:59:54 -0400
+In-Reply-To: <1432666751-24794-1-git-send-email-jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, moinejf@free.fr, rmk+kernel@arm.linux.org.uk, Jyri Sarha <jsarha@ti.com>
 
-Only the first three patches are meant for serious review.
+If an ASoC component device does not have a device tree node, use its
+parent's node instead, when looking for a matching DAI based on a
+device tree reference.
 
-The ASoC part should be ready for review in other respects but the
-EDID SADs handling is waiting for Russell King's DRM ELD helper
-patches. There is a copy-pasted not-to-be-merged patch with the same
-functionality in the patch series.
+This allows video device drivers to register a separate child device
+for their ASoC side audio functionality.
 
-The tda998x part is not complete and I do not think Jean-Francois'
-binding are ready as such either. At least the usage of reg property in
-a port node for something that is not an address or even guaranteed to
-be unique is not a good idea. Some documentation of how to configure
-AP0-AP4 pins (REG_ENA_AP?) would help in making a proper binding for
-the tda998x audio configuration.
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ sound/soc/soc-core.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-These patches, my tilcdc refactoring[1], and my latest BCLK fixes for
-davinci-mcasp driver [2], can be found in a branch that produces
-working HDMI audio on Beaglebone-Black here:
-
-https://github.com/jsarha/linux.git linux-master-bbb-hdmi-20150512
-
-[1] http://lists.freedesktop.org/archives/dri-devel/2015-May/082537.html
-[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2015-April/090974.html
-
-Jean-Francois Moine (1):
-  drm/i2c: tda998x: Add support of a DT graph of ports DO NOT MERGE
-
-Jyri Sarha (6):
-  ASoC: core: If component doesn't have of_node use parent's node
-    instead
-  ASoC: hdmi: Remove obsolete dummy HDMI codec
-  ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders
-  ASoC: hdmi-codec: Add ELD based audio pcm rules DO NOT MERGE
-  drm/i2c: tda998x: Register ASoC HDMI codec for audio functionality DO
-    NOT MERGE
-  ARM: dts: am335x-boneblack: Add HDMI audio support DO NOT MERGE
-
- .../devicetree/bindings/drm/i2c/tda998x.txt        |  51 ++
- arch/arm/boot/dts/am335x-boneblack.dts             |  78 ++-
- drivers/gpu/drm/i2c/Kconfig                        |   1 +
- drivers/gpu/drm/i2c/tda998x_drv.c                  | 328 +++++++++++-
- include/sound/hdmi-codec.h                         |  99 ++++
- include/sound/tda998x.h                            |   8 +
- sound/soc/codecs/Kconfig                           |   2 +-
- sound/soc/codecs/Makefile                          |   4 +-
- sound/soc/codecs/hdmi-codec.c                      | 560 +++++++++++++++++++++
- sound/soc/codecs/hdmi.c                            | 109 ----
- sound/soc/soc-core.c                               |  14 +-
- 11 files changed, 1129 insertions(+), 125 deletions(-)
- create mode 100644 include/sound/hdmi-codec.h
- create mode 100644 include/sound/tda998x.h
- create mode 100644 sound/soc/codecs/hdmi-codec.c
- delete mode 100644 sound/soc/codecs/hdmi.c
-
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index 2373252..b1bcff2 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -904,12 +904,17 @@ static struct snd_soc_dai *snd_soc_find_dai(
+ {
+ 	struct snd_soc_component *component;
+ 	struct snd_soc_dai *dai;
++	struct device_node *component_of_node;
+ 
+ 	lockdep_assert_held(&client_mutex);
+ 
+ 	/* Find CPU DAI from registered DAIs*/
+ 	list_for_each_entry(component, &component_list, list) {
+-		if (dlc->of_node && component->dev->of_node != dlc->of_node)
++		component_of_node = component->dev->of_node;
++		if (!component_of_node && component->dev->parent)
++			component_of_node = component->dev->parent->of_node;
++
++		if (dlc->of_node && component_of_node != dlc->of_node)
+ 			continue;
+ 		if (dlc->name && strcmp(component->name, dlc->name))
+ 			continue;
+@@ -3488,11 +3493,16 @@ static int snd_soc_get_dai_name(struct of_phandle_args *args,
+ 				const char **dai_name)
+ {
+ 	struct snd_soc_component *pos;
++	struct device_node *component_of_node;
+ 	int ret = -EPROBE_DEFER;
+ 
+ 	mutex_lock(&client_mutex);
+ 	list_for_each_entry(pos, &component_list, list) {
+-		if (pos->dev->of_node != args->np)
++		component_of_node = pos->dev->of_node;
++		if (!component_of_node && pos->dev->parent)
++			component_of_node = pos->dev->parent->of_node;
++
++		if (component_of_node != args->np)
+ 			continue;
+ 
+ 		if (pos->driver->of_xlate_dai_name) {
 -- 
 1.9.1
+
