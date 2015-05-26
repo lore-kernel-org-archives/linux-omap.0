@@ -1,119 +1,253 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 2/7] ASoC: hdmi: Remove obsolete dummy HDMI codec
-Date: Tue, 26 May 2015 21:59:06 +0300
-Message-ID: <1432666751-24794-3-git-send-email-jsarha@ti.com>
+Subject: [PATCH RFC v2 5/7] drm/i2c: tda998x: Add support of a DT graph of ports DO NOT MERGE
+Date: Tue, 26 May 2015 21:59:09 +0300
+Message-ID: <1432666751-24794-6-git-send-email-jsarha@ti.com>
 References: <1432666751-24794-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51947 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751633AbbEZTAD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 May 2015 15:00:03 -0400
 In-Reply-To: <1432666751-24794-1-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, moinejf@free.fr, rmk+kernel@arm.linux.org.uk, Jyri Sarha <jsarha@ti.com>
 
-VGhlIGhkbWkgc3R1YiBjb2RlYyBoYXMgbm90IGJlZW4gdXNlZCBzaW5jZSByZWZhY3RvcmluZyBv
-ZiBPTUFQIEhETUkKYXVkaW8gc3VwcG9ydC4KClNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpz
-YXJoYUB0aS5jb20+Ci0tLQogc291bmQvc29jL2NvZGVjcy9LY29uZmlnICB8ICAgNCAtLQogc291
-bmQvc29jL2NvZGVjcy9NYWtlZmlsZSB8ICAgMiAtCiBzb3VuZC9zb2MvY29kZWNzL2hkbWkuYyAg
-IHwgMTA5IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDMg
-ZmlsZXMgY2hhbmdlZCwgMTE1IGRlbGV0aW9ucygtKQogZGVsZXRlIG1vZGUgMTAwNjQ0IHNvdW5k
-L3NvYy9jb2RlY3MvaGRtaS5jCgpkaWZmIC0tZ2l0IGEvc291bmQvc29jL2NvZGVjcy9LY29uZmln
-IGIvc291bmQvc29jL2NvZGVjcy9LY29uZmlnCmluZGV4IDA2MWM0NjUuLmZiN2Y5NzggMTAwNjQ0
-Ci0tLSBhL3NvdW5kL3NvYy9jb2RlY3MvS2NvbmZpZworKysgYi9zb3VuZC9zb2MvY29kZWNzL0tj
-b25maWcKQEAgLTc2LDcgKzc2LDYgQEAgY29uZmlnIFNORF9TT0NfQUxMX0NPREVDUwogCXNlbGVj
-dCBTTkRfU09DX01BWDk4NzcgaWYgSTJDCiAJc2VsZWN0IFNORF9TT0NfTUMxMzc4MyBpZiBNRkRf
-TUMxM1hYWAogCXNlbGVjdCBTTkRfU09DX01MMjYxMjQgaWYgSTJDCi0Jc2VsZWN0IFNORF9TT0Nf
-SERNSV9DT0RFQwogCXNlbGVjdCBTTkRfU09DX1BDTTE2ODEgaWYgSTJDCiAJc2VsZWN0IFNORF9T
-T0NfUENNMTc5MkEgaWYgU1BJX01BU1RFUgogCXNlbGVjdCBTTkRfU09DX1BDTTMwMDgKQEAgLTQz
-MCw5ICs0MjksNiBAQCBjb25maWcgU05EX1NPQ19CVF9TQ08KIGNvbmZpZyBTTkRfU09DX0RNSUMK
-IAl0cmlzdGF0ZQogCi1jb25maWcgU05EX1NPQ19IRE1JX0NPREVDCi0gICAgICAgdHJpc3RhdGUg
-IkhETUkgc3R1YiBDT0RFQyIKLQogY29uZmlnIFNORF9TT0NfRVM4MzI4CiAJdHJpc3RhdGUgIkV2
-ZXJlc3QgU2VtaSBFUzgzMjggQ09ERUMiCiAKZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy9jb2RlY3Mv
-TWFrZWZpbGUgYi9zb3VuZC9zb2MvY29kZWNzL01ha2VmaWxlCmluZGV4IGFiZTJkN2UuLjRlNWQx
-N2MgMTAwNjQ0Ci0tLSBhL3NvdW5kL3NvYy9jb2RlY3MvTWFrZWZpbGUKKysrIGIvc291bmQvc29j
-L2NvZGVjcy9NYWtlZmlsZQpAQCAtNjksNyArNjksNiBAQCBzbmQtc29jLW1heDk4OTI1LW9ianMg
-Oj0gbWF4OTg5MjUubwogc25kLXNvYy1tYXg5ODUwLW9ianMgOj0gbWF4OTg1MC5vCiBzbmQtc29j
-LW1jMTM3ODMtb2JqcyA6PSBtYzEzNzgzLm8KIHNuZC1zb2MtbWwyNjEyNC1vYmpzIDo9IG1sMjYx
-MjQubwotc25kLXNvYy1oZG1pLWNvZGVjLW9ianMgOj0gaGRtaS5vCiBzbmQtc29jLXBjbTE2ODEt
-b2JqcyA6PSBwY20xNjgxLm8KIHNuZC1zb2MtcGNtMTc5MmEtY29kZWMtb2JqcyA6PSBwY20xNzky
-YS5vCiBzbmQtc29jLXBjbTMwMDgtb2JqcyA6PSBwY20zMDA4Lm8KQEAgLTI1NCw3ICsyNTMsNiBA
-QCBvYmotJChDT05GSUdfU05EX1NPQ19NQVg5ODkyNSkJKz0gc25kLXNvYy1tYXg5ODkyNS5vCiBv
-YmotJChDT05GSUdfU05EX1NPQ19NQVg5ODUwKQkrPSBzbmQtc29jLW1heDk4NTAubwogb2JqLSQo
-Q09ORklHX1NORF9TT0NfTUMxMzc4MykJKz0gc25kLXNvYy1tYzEzNzgzLm8KIG9iai0kKENPTkZJ
-R19TTkRfU09DX01MMjYxMjQpCSs9IHNuZC1zb2MtbWwyNjEyNC5vCi1vYmotJChDT05GSUdfU05E
-X1NPQ19IRE1JX0NPREVDKSArPSBzbmQtc29jLWhkbWktY29kZWMubwogb2JqLSQoQ09ORklHX1NO
-RF9TT0NfUENNMTY4MSkJKz0gc25kLXNvYy1wY20xNjgxLm8KIG9iai0kKENPTkZJR19TTkRfU09D
-X1BDTTE3OTJBKQkrPSBzbmQtc29jLXBjbTE3OTJhLWNvZGVjLm8KIG9iai0kKENPTkZJR19TTkRf
-U09DX1BDTTMwMDgpCSs9IHNuZC1zb2MtcGNtMzAwOC5vCmRpZmYgLS1naXQgYS9zb3VuZC9zb2Mv
-Y29kZWNzL2hkbWkuYyBiL3NvdW5kL3NvYy9jb2RlY3MvaGRtaS5jCmRlbGV0ZWQgZmlsZSBtb2Rl
-IDEwMDY0NAppbmRleCBiZDQyYWQzLi4wMDAwMDAwCi0tLSBhL3NvdW5kL3NvYy9jb2RlY3MvaGRt
-aS5jCisrKyAvZGV2L251bGwKQEAgLTEsMTA5ICswLDAgQEAKLS8qCi0gKiBBTFNBIFNvQyBjb2Rl
-YyBkcml2ZXIgZm9yIEhETUkgYXVkaW8gY29kZWNzLgotICogQ29weXJpZ2h0IChDKSAyMDEyIFRl
-eGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGkuY29tLwotICogQXV0
-aG9yOiBSaWNhcmRvIE5lcmkgPHJpY2FyZG8ubmVyaUB0aS5jb20+Ci0gKgotICogVGhpcyBwcm9n
-cmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vcgotICog
-bW9kaWZ5IGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vu
-c2UKLSAqIHZlcnNpb24gMiBhcyBwdWJsaXNoZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRh
-dGlvbi4KLSAqCi0gKiBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhh
-dCBpdCB3aWxsIGJlIHVzZWZ1bCwgYnV0Ci0gKiBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91
-dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCi0gKiBNRVJDSEFOVEFCSUxJVFkgb3IgRklU
-TkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdOVQotICogR2VuZXJhbCBQ
-dWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgotICoKLSAqIFlvdSBzaG91bGQgaGF2ZSBy
-ZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCi0gKiBhbG9u
-ZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQot
-ICogRm91bmRhdGlvbiwgSW5jLiwgNTEgRnJhbmtsaW4gU3QsIEZpZnRoIEZsb29yLCBCb3N0b24s
-IE1BCi0gKiAwMjExMC0xMzAxIFVTQQotICoKLSAqLwotI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5o
-PgotI2luY2x1ZGUgPHNvdW5kL3NvYy5oPgotI2luY2x1ZGUgPGxpbnV4L29mLmg+Ci0jaW5jbHVk
-ZSA8bGludXgvb2ZfZGV2aWNlLmg+Ci0KLSNkZWZpbmUgRFJWX05BTUUgImhkbWktYXVkaW8tY29k
-ZWMiCi0KLXN0YXRpYyBjb25zdCBzdHJ1Y3Qgc25kX3NvY19kYXBtX3dpZGdldCBoZG1pX3dpZGdl
-dHNbXSA9IHsKLQlTTkRfU09DX0RBUE1fSU5QVVQoIlJYIiksCi0JU05EX1NPQ19EQVBNX09VVFBV
-VCgiVFgiKSwKLX07Ci0KLXN0YXRpYyBjb25zdCBzdHJ1Y3Qgc25kX3NvY19kYXBtX3JvdXRlIGhk
-bWlfcm91dGVzW10gPSB7Ci0JeyAiQ2FwdHVyZSIsIE5VTEwsICJSWCIgfSwKLQl7ICJUWCIsIE5V
-TEwsICJQbGF5YmFjayIgfSwKLX07Ci0KLXN0YXRpYyBzdHJ1Y3Qgc25kX3NvY19kYWlfZHJpdmVy
-IGhkbWlfY29kZWNfZGFpID0gewotCS5uYW1lID0gImhkbWktaGlmaSIsCi0JLnBsYXliYWNrID0g
-ewotCQkuc3RyZWFtX25hbWUgPSAiUGxheWJhY2siLAotCQkuY2hhbm5lbHNfbWluID0gMiwKLQkJ
-LmNoYW5uZWxzX21heCA9IDgsCi0JCS5yYXRlcyA9IFNORFJWX1BDTV9SQVRFXzMyMDAwIHwKLQkJ
-CVNORFJWX1BDTV9SQVRFXzQ0MTAwIHwgU05EUlZfUENNX1JBVEVfNDgwMDAgfAotCQkJU05EUlZf
-UENNX1JBVEVfODgyMDAgfCBTTkRSVl9QQ01fUkFURV85NjAwMCB8Ci0JCQlTTkRSVl9QQ01fUkFU
-RV8xNzY0MDAgfCBTTkRSVl9QQ01fUkFURV8xOTIwMDAsCi0JCS5mb3JtYXRzID0gU05EUlZfUENN
-X0ZNVEJJVF9TMTZfTEUgfAotCQkJU05EUlZfUENNX0ZNVEJJVF9TMjRfTEUgfCBTTkRSVl9QQ01f
-Rk1UQklUX1MzMl9MRSwKLQkJLnNpZ19iaXRzID0gMjQsCi0JfSwKLQkuY2FwdHVyZSA9IHsKLQkJ
-LnN0cmVhbV9uYW1lID0gIkNhcHR1cmUiLAotCQkuY2hhbm5lbHNfbWluID0gMiwKLQkJLmNoYW5u
-ZWxzX21heCA9IDIsCi0JCS5yYXRlcyA9IFNORFJWX1BDTV9SQVRFXzMyMDAwIHwKLQkJCVNORFJW
-X1BDTV9SQVRFXzQ0MTAwIHwgU05EUlZfUENNX1JBVEVfNDgwMDAgfAotCQkJU05EUlZfUENNX1JB
-VEVfODgyMDAgfCBTTkRSVl9QQ01fUkFURV85NjAwMCB8Ci0JCQlTTkRSVl9QQ01fUkFURV8xNzY0
-MDAgfCBTTkRSVl9QQ01fUkFURV8xOTIwMDAsCi0JCS5mb3JtYXRzID0gU05EUlZfUENNX0ZNVEJJ
-VF9TMTZfTEUgfAotCQkJU05EUlZfUENNX0ZNVEJJVF9TMjRfTEUsCi0JfSwKLQotfTsKLQotI2lm
-ZGVmIENPTkZJR19PRgotc3RhdGljIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgaGRtaV9hdWRp
-b19jb2RlY19pZHNbXSA9IHsKLQl7IC5jb21wYXRpYmxlID0gImxpbnV4LGhkbWktYXVkaW8iLCB9
-LAotCXsgfQotfTsKLU1PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIGhkbWlfYXVkaW9fY29kZWNfaWRz
-KTsKLSNlbmRpZgotCi1zdGF0aWMgc3RydWN0IHNuZF9zb2NfY29kZWNfZHJpdmVyIGhkbWlfY29k
-ZWMgPSB7Ci0JLmRhcG1fd2lkZ2V0cyA9IGhkbWlfd2lkZ2V0cywKLQkubnVtX2RhcG1fd2lkZ2V0
-cyA9IEFSUkFZX1NJWkUoaGRtaV93aWRnZXRzKSwKLQkuZGFwbV9yb3V0ZXMgPSBoZG1pX3JvdXRl
-cywKLQkubnVtX2RhcG1fcm91dGVzID0gQVJSQVlfU0laRShoZG1pX3JvdXRlcyksCi0JLmlnbm9y
-ZV9wbWRvd25fdGltZSA9IHRydWUsCi19OwotCi1zdGF0aWMgaW50IGhkbWlfY29kZWNfcHJvYmUo
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKLXsKLQlyZXR1cm4gc25kX3NvY19yZWdpc3Rl
-cl9jb2RlYygmcGRldi0+ZGV2LCAmaGRtaV9jb2RlYywKLQkJCSZoZG1pX2NvZGVjX2RhaSwgMSk7
-Ci19Ci0KLXN0YXRpYyBpbnQgaGRtaV9jb2RlY19yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2Rldmlj
-ZSAqcGRldikKLXsKLQlzbmRfc29jX3VucmVnaXN0ZXJfY29kZWMoJnBkZXYtPmRldik7Ci0JcmV0
-dXJuIDA7Ci19Ci0KLXN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVyIGhkbWlfY29kZWNfZHJp
-dmVyID0gewotCS5kcml2ZXIJCT0gewotCQkubmFtZQk9IERSVl9OQU1FLAotCQkub2ZfbWF0Y2hf
-dGFibGUgPSBvZl9tYXRjaF9wdHIoaGRtaV9hdWRpb19jb2RlY19pZHMpLAotCX0sCi0KLQkucHJv
-YmUJCT0gaGRtaV9jb2RlY19wcm9iZSwKLQkucmVtb3ZlCQk9IGhkbWlfY29kZWNfcmVtb3ZlLAot
-fTsKLQotbW9kdWxlX3BsYXRmb3JtX2RyaXZlcihoZG1pX2NvZGVjX2RyaXZlcik7Ci0KLU1PRFVM
-RV9BVVRIT1IoIlJpY2FyZG8gTmVyaSA8cmljYXJkby5uZXJpQHRpLmNvbT4iKTsKLU1PRFVMRV9E
-RVNDUklQVElPTigiQVNvQyBnZW5lcmljIEhETUkgY29kZWMgZHJpdmVyIik7Ci1NT0RVTEVfTElD
-RU5TRSgiR1BMIik7Ci1NT0RVTEVfQUxJQVMoInBsYXRmb3JtOiIgRFJWX05BTUUpOwotLSAKMS45
-LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+From: Jean-Francois Moine <moinejf@free.fr>
+
+Two kinds of ports may be declared in a DT graph of ports: video and audio.
+This patch accepts the port value from a video port as an alternative
+to the video-ports property.
+It also accepts audio ports in the case the transmitter is not used as
+a slave encoder.
+The new file include/sound/tda998x.h prepares to the definition of
+a tda998x CODEC.
+
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ .../devicetree/bindings/drm/i2c/tda998x.txt        | 51 ++++++++++++
+ drivers/gpu/drm/i2c/tda998x_drv.c                  | 90 +++++++++++++++++++---
+ include/sound/tda998x.h                            |  8 ++
+ 3 files changed, 140 insertions(+), 9 deletions(-)
+ create mode 100644 include/sound/tda998x.h
+
+diff --git a/Documentation/devicetree/bindings/drm/i2c/tda998x.txt b/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
+index e9e4bce..386b6c3 100644
+--- a/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
++++ b/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
+@@ -16,6 +16,35 @@ Optional properties:
+ 
+   - video-ports: 24 bits value which defines how the video controller
+ 	output is wired to the TDA998x input - default: <0x230145>
++	This property is not used when ports are defined.
++
++Optional nodes:
++
++  - port: up to three ports.
++	The ports are defined according to [1].
++
++    Video port.
++	There may be only one video port.
++	This one must contain the following property:
++
++	- port-type: must be "rgb"
++
++	and may contain the optional property:
++
++	- reg: 24 bits value which defines how the video controller
++		output is wired to the TDA998x input (video pins)
++		When absent, the default value is <0x230145>.
++
++    Audio ports.
++	There may be one or two audio ports.
++	These ones must contain the following properties:
++
++	- port-type: must be "i2s" or "spdif"
++
++	- reg: 8 bits value which defines how the audio controller
++		output is wired to the TDA998x input (audio pins)
++
++[1] Documentation/devicetree/bindings/graph.txt
+ 
+ Example:
+ 
+@@ -26,4 +55,26 @@ Example:
+ 		interrupts = <27 2>;		/* falling edge */
+ 		pinctrl-0 = <&pmx_camera>;
+ 		pinctrl-names = "default";
++
++		port at 230145 {
++			port-type = "rgb";
++			reg = <0x230145>;
++			hdmi_0: endpoint {
++				remote-endpoint = <&lcd0_0>;
++			};
++		};
++		port at 3 {			/* AP1 = I2S */
++			port-type = "i2s";
++			reg = <0x03>;
++			tda998x_i2s: endpoint {
++				remote-endpoint = <&audio1_i2s>;
++			};
++		};
++		port at 4 {			 /* AP2 = S/PDIF */
++			port-type = "spdif";
++			reg = <0x04>;
++			tda998x_spdif: endpoint {
++				remote-endpoint = <&audio1_spdif1>;
++			};
++		};
+ 	};
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+index 5febffd..bcf96f7 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -27,6 +27,7 @@
+ #include <drm/drm_edid.h>
+ #include <drm/drm_of.h>
+ #include <drm/i2c/tda998x.h>
++#include <sound/tda998x.h>
+ 
+ #define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
+ 
+@@ -47,6 +48,8 @@ struct tda998x_priv {
+ 	wait_queue_head_t wq_edid;
+ 	volatile int wq_edid_wait;
+ 	struct drm_encoder *encoder;
++
++	struct tda998x_audio_s audio;
+ };
+ 
+ #define to_tda998x_priv(x)  ((struct tda998x_priv *)to_encoder_slave(x)->slave_priv)
+@@ -771,6 +774,8 @@ static void tda998x_encoder_set_config(struct tda998x_priv *priv,
+ 			    (p->mirr_f ? VIP_CNTRL_2_MIRR_F : 0);
+ 
+ 	priv->params = *p;
++	priv->audio.port_types[0] = p->audio_format;
++	priv->audio.ports[0] = p->audio_cfg;
+ }
+ 
+ static void tda998x_encoder_dpms(struct tda998x_priv *priv, int mode)
+@@ -1227,9 +1232,57 @@ static struct drm_encoder_slave_funcs tda998x_encoder_slave_funcs = {
+ 
+ /* I2C driver functions */
+ 
++static int tda998x_parse_ports(struct tda998x_priv *priv,
++				struct device_node *np)
++{
++	struct device_node *of_port;
++	const char *port_type;
++	int ret, audio_index, reg, afmt;
++
++	audio_index = 0;
++	for_each_child_of_node(np, of_port) {
++		if (!of_port->name
++		 || of_node_cmp(of_port->name, "port") != 0)
++			continue;
++		ret = of_property_read_string(of_port, "port-type",
++					&port_type);
++		if (ret < 0)
++			continue;
++		ret = of_property_read_u32(of_port, "reg", &reg);
++		if (strcmp(port_type, "rgb") == 0) {
++			if (!ret) {		/* video reg is optional */
++				priv->vip_cntrl_0 = reg >> 16;
++				priv->vip_cntrl_1 = reg >> 8;
++				priv->vip_cntrl_2 = reg;
++			}
++			continue;
++		}
++		if (strcmp(port_type, "i2s") == 0)
++			afmt = AFMT_I2S;
++		else if (strcmp(port_type, "spdif") == 0)
++			afmt = AFMT_SPDIF;
++		else
++			continue;
++		if (ret < 0) {
++			dev_err(&priv->hdmi->dev, "missing reg for %s\n",
++				port_type);
++			return ret;
++		}
++		if (audio_index >= ARRAY_SIZE(priv->audio.ports)) {
++			dev_err(&priv->hdmi->dev, "too many audio ports\n");
++			break;
++		}
++		priv->audio.ports[audio_index] = reg;
++		priv->audio.port_types[audio_index] = afmt;
++		audio_index++;
++	}
++	return 0;
++}
++
+ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+ {
+ 	struct device_node *np = client->dev.of_node;
++	struct device_node *of_port;
+ 	u32 video;
+ 	int rev_lo, rev_hi, ret;
+ 	unsigned short cec_addr;
+@@ -1334,15 +1387,34 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
+ 	/* enable EDID read irq: */
+ 	reg_set(priv, REG_INT_FLAGS_2, INT_FLAGS_2_EDID_BLK_RD);
+ 
+-	if (!np)
+-		return 0;		/* non-DT */
+-
+-	/* get the optional video properties */
+-	ret = of_property_read_u32(np, "video-ports", &video);
+-	if (ret == 0) {
+-		priv->vip_cntrl_0 = video >> 16;
+-		priv->vip_cntrl_1 = video >> 8;
+-		priv->vip_cntrl_2 = video;
++	/* get the device tree parameters */
++	if (np) {
++		of_port = of_get_child_by_name(np, "port");
++		if (of_port) {				/* graph of ports */
++			of_node_put(of_port);
++			ret = tda998x_parse_ports(priv, np);
++			if (ret < 0)
++				goto fail;
++
++			/* initialize the default audio configuration */
++			if (priv->audio.ports[0]) {
++				priv->params.audio_cfg = priv->audio.ports[0];
++				priv->params.audio_format =
++						priv->audio.port_types[0];
++				priv->params.audio_clk_cfg =
++					priv->params.audio_format ==
++							AFMT_SPDIF ? 0 : 1;
++			}
++		} else {
++
++			/* optional video properties */
++			ret = of_property_read_u32(np, "video-ports", &video);
++			if (ret == 0) {
++				priv->vip_cntrl_0 = video >> 16;
++				priv->vip_cntrl_1 = video >> 8;
++				priv->vip_cntrl_2 = video;
++			}
++		}
+ 	}
+ 
+ 	return 0;
+diff --git a/include/sound/tda998x.h b/include/sound/tda998x.h
+new file mode 100644
+index 0000000..487a809
+--- /dev/null
++++ b/include/sound/tda998x.h
+@@ -0,0 +1,8 @@
++#ifndef SND_TDA998X_H
++#define SND_TDA998X_H
++
++struct tda998x_audio_s {
++	u8 ports[2];			/* AP value */
++	u8 port_types[2];		/* AFMT_xxx */
++};
++#endif
+-- 
+1.9.1
+
