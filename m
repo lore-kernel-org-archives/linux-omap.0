@@ -1,66 +1,76 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
-Date: Tue, 26 May 2015 20:41:34 +0300
-Message-ID: <5564B04E.3000300@ti.com>
-References: <1432566032-10860-1-git-send-email-t-kristo@ti.com> <20150526160557.GD16525@atomide.com> <20150526163216.GF16525@atomide.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC v2 0/7] Implement generic ASoC HDMI codec
+Date: Tue, 26 May 2015 21:59:04 +0300
+Message-ID: <1432666751-24794-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34110 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbbEZRlv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2015 13:41:51 -0400
-In-Reply-To: <20150526163216.GF16525@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, moinejf@free.fr, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 05/26/2015 07:32 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150526 09:08]:
->> * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
->>> Hi,
->>>
->>> As requested, posting v3 with somewhat changed diff parameters and
->>> diffstat attached. Just some minor Makefile changes compared to v2,
->>> these were discussed under that set.
->>>
->>> Set has been pushed to:
->>> - tree: https://github.com/t-kristo/linux-pm.git
->>> - branch: for-4.2/ti-clk-move
->>
->> Looks like this causes a build error for at least omap2 only .config:
->>
->> drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
->> drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
->>
->> You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
->> KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
->> randconfigs :) Usually the issues like this are exposed within few
->> randconfig builds, some take longer if the options have dependencies.
->
-> Found more similar issues for omap3 only and omap4 only configs:
->
-> drivers/built-in.o: In function `omap2_clkops_enable_clkdm':
-> omap-gpmc.c:(.text+0x202e0): undefined reference to `ti_clk_get_features'
-> drivers/built-in.o: In function `omap2_clkops_disable_clkdm':
-> omap-gpmc.c:(.text+0x20374): undefined reference to `ti_clk_get_features'
-> drivers/built-in.o: In function `_omap2_dpll_is_in_bypass':
-> omap-gpmc.c:(.text+0x21678): undefined reference to `ti_clk_get_features'
-> drivers/built-in.o: In function `omap2_dpll_round_rate':
-> omap-gpmc.c:(.text+0x218ac): undefined reference to `ti_clk_get_features'
-> omap-gpmc.c:(.text+0x218ec): undefined reference to `ti_clk_get_features'
->
-> drivers/built-in.o: In function `omap3xxx_dt_clk_init':
-> omap-gpmc.c:(.init.text+0x4d60): undefined reference to `omap2_clk_enable_init_clocks'
-> arch/arm/mach-omap2/built-in.o: In function `ti_clk_init_features':
->
-> arch/arm/mach-omap2/built-in.o: In function `ti_clk_init_features':
-> dss-common.c:(.init.text+0x4368): undefined reference to `ti_clk_setup_features'
+Only the first three patches are meant for serious review.
 
-Argh, that same issue crept back with a merge issue again. I fixed this 
-already once.
+The ASoC part should be ready for review in other respects but the
+EDID SADs handling is waiting for Russell King's DRM ELD helper
+patches. There is a copy-pasted not-to-be-merged patch with the same
+functionality in the patch series.
 
--Tero
+The tda998x part is not complete and I do not think Jean-Francois'
+binding are ready as such either. At least the usage of reg property in
+a port node for something that is not an address or even guaranteed to
+be unique is not a good idea. Some documentation of how to configure
+AP0-AP4 pins (REG_ENA_AP?) would help in making a proper binding for
+the tda998x audio configuration.
 
+These patches, my tilcdc refactoring[1], and my latest BCLK fixes for
+davinci-mcasp driver [2], can be found in a branch that produces
+working HDMI audio on Beaglebone-Black here:
+
+https://github.com/jsarha/linux.git linux-master-bbb-hdmi-20150512
+
+[1] http://lists.freedesktop.org/archives/dri-devel/2015-May/082537.html
+[2] http://mailman.alsa-project.org/pipermail/alsa-devel/2015-April/090974.html
+
+Jean-Francois Moine (1):
+  drm/i2c: tda998x: Add support of a DT graph of ports DO NOT MERGE
+
+Jyri Sarha (6):
+  ASoC: core: If component doesn't have of_node use parent's node
+    instead
+  ASoC: hdmi: Remove obsolete dummy HDMI codec
+  ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders
+  ASoC: hdmi-codec: Add ELD based audio pcm rules DO NOT MERGE
+  drm/i2c: tda998x: Register ASoC HDMI codec for audio functionality DO
+    NOT MERGE
+  ARM: dts: am335x-boneblack: Add HDMI audio support DO NOT MERGE
+
+ .../devicetree/bindings/drm/i2c/tda998x.txt        |  51 ++
+ arch/arm/boot/dts/am335x-boneblack.dts             |  78 ++-
+ drivers/gpu/drm/i2c/Kconfig                        |   1 +
+ drivers/gpu/drm/i2c/tda998x_drv.c                  | 328 +++++++++++-
+ include/sound/hdmi-codec.h                         |  99 ++++
+ include/sound/tda998x.h                            |   8 +
+ sound/soc/codecs/Kconfig                           |   2 +-
+ sound/soc/codecs/Makefile                          |   4 +-
+ sound/soc/codecs/hdmi-codec.c                      | 560 +++++++++++++++++++++
+ sound/soc/codecs/hdmi.c                            | 109 ----
+ sound/soc/soc-core.c                               |  14 +-
+ 11 files changed, 1129 insertions(+), 125 deletions(-)
+ create mode 100644 include/sound/hdmi-codec.h
+ create mode 100644 include/sound/tda998x.h
+ create mode 100644 sound/soc/codecs/hdmi-codec.c
+ delete mode 100644 sound/soc/codecs/hdmi.c
+
+-- 
+1.9.1
