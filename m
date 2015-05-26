@@ -1,651 +1,181 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 3/7] ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders
-Date: Tue, 26 May 2015 21:59:07 +0300
-Message-ID: <1432666751-24794-4-git-send-email-jsarha@ti.com>
+Subject: [PATCH RFC v2 6/7] drm/i2c: tda998x: Register ASoC HDMI codec for
+ audio functionality DO NOT MERGE
+Date: Tue, 26 May 2015 21:59:10 +0300
+Message-ID: <1432666751-24794-7-git-send-email-jsarha@ti.com>
 References: <1432666751-24794-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59027 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751274AbbEZTAH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 May 2015 15:00:07 -0400
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1432666751-24794-1-git-send-email-jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, moinejf@free.fr, rmk+kernel@arm.linux.org.uk, Jyri Sarha <jsarha@ti.com>
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+List-Id: linux-omap@vger.kernel.org
 
-The hdmi-codec is a platform device driver to be registered from
-drivers of external HDMI encoders with I2S and/or spdif interface. The
-driver in turn registers an ASoC codec for the encoder's audio
-functionality.
-
-The structures and definitions in the API header are mostly redundant
-copies of similar structures in ASoC headers. This is on purpose to
-avoid direct dependencies to ASoC structures in video side driver.
-
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- include/sound/hdmi-codec.h    |  99 +++++++++
- sound/soc/codecs/Kconfig      |   4 +
- sound/soc/codecs/Makefile     |   2 +
- sound/soc/codecs/hdmi-codec.c | 458 ++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 563 insertions(+)
- create mode 100644 include/sound/hdmi-codec.h
- create mode 100644 sound/soc/codecs/hdmi-codec.c
-
-diff --git a/include/sound/hdmi-codec.h b/include/sound/hdmi-codec.h
-new file mode 100644
-index 0000000..0632bcb
---- /dev/null
-+++ b/include/sound/hdmi-codec.h
-@@ -0,0 +1,99 @@
-+/*
-+ * hdmi-codec.h - HDMI Codec driver API
-+ *
-+ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
-+ *
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#ifndef __HDMI_CODEC_H__
-+#define __HDMI_CODEC_H__
-+
-+#include <linux/hdmi.h>
-+#include <drm/drm_edid.h>
-+#include <sound/asoundef.h>
-+#include <uapi/sound/asound.h>
-+
-+/*
-+ * Protocol between ASoC cpu-dai and HDMI-encoder
-+ */
-+struct hdmi_codec_daifmt {
-+	enum {
-+		HDMI_I2S,
-+		HDMI_RIGHT_J,
-+		HDMI_LEFT_J,
-+		HDMI_DSP_A,
-+		HDMI_DSP_B,
-+		HDMI_AC97,
-+		HDMI_SPDIF,
-+	} fmt;
-+	int bit_clk_inv:1;
-+	int frame_clk_inv:1;
-+	int bit_clk_master:1;
-+	int frame_clk_master:1;
-+};
-+
-+/*
-+ * HDMI audio parameters
-+ */
-+struct hdmi_codec_params {
-+	struct hdmi_audio_infoframe cea;
-+	struct snd_aes_iec958 iec;
-+	int sample_rate;
-+	int sample_width;
-+	int channels;
-+};
-+
-+struct hdmi_codec_ops {
-+	/* For runtime clock configuration from ASoC machine driver.
-+	 * A direct forward from set_sysclk in struct snd_soc_dai_ops.
-+	 * Optional */
-+	int (*set_clk)(struct device *dev, int clk_id, int freq);
-+
-+	/* Called when ASoC starts an audio stream setup. The call
-+	 * provides an audio abort callback for stoping an ongoing
-+	 * stream if the HDMI audio becomes unavailable.
-+	 * Optional */
-+	int (*audio_startup)(struct device *dev,
-+			     void (*abort_cb)(struct device *dev));
-+
-+	/* Configures HDMI-encoder for audio stream.
-+	 * Mandatory */
-+	int (*hw_params)(struct device *dev,
-+			 struct hdmi_codec_daifmt *fmt,
-+			 struct hdmi_codec_params *hparms);
-+
-+	/* Shuts down the audio stream.
-+	 * Mandatory */
-+	void (*audio_shutdown)(struct device *dev);
-+
-+	/* Mute/unmute HDMI audio stream.
-+	 * Optional */
-+	int (*digital_mute)(struct device *dev, bool enable);
-+
-+	/* Provides EDID-Like-Data from connected HDMI device.
-+	 * Optional */
-+	uint8_t *(*get_eld)(struct device *dev);
-+};
-+
-+/* HDMI codec initalization data */
-+struct hdmi_codec_pdata {
-+	struct device *dev; /* The HDMI encoder registering the codec */
-+	const struct hdmi_codec_ops *ops;
-+	uint i2s:1;
-+	uint spdif:1;
-+	int max_i2s_channels;
-+};
-+
-+#define HDMI_CODEC_DRV_NAME "hdmi-audio-codec"
-+
-+#endif /* __HDMI_CODEC_H__ */
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index fb7f978..ef9646f 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -76,6 +76,7 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_MAX9877 if I2C
- 	select SND_SOC_MC13783 if MFD_MC13XXX
- 	select SND_SOC_ML26124 if I2C
-+	select SND_SOC_HDMI_CODEC
- 	select SND_SOC_PCM1681 if I2C
- 	select SND_SOC_PCM1792A if SPI_MASTER
- 	select SND_SOC_PCM3008
-@@ -429,6 +430,9 @@ config SND_SOC_BT_SCO
- config SND_SOC_DMIC
- 	tristate
- 
-+config SND_SOC_HDMI_CODEC
-+       tristate
-+
- config SND_SOC_ES8328
- 	tristate "Everest Semi ES8328 CODEC"
- 
-diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index 4e5d17c..a128c2b 100644
---- a/sound/soc/codecs/Makefile
-+++ b/sound/soc/codecs/Makefile
-@@ -69,6 +69,7 @@ snd-soc-max98925-objs := max98925.o
- snd-soc-max9850-objs := max9850.o
- snd-soc-mc13783-objs := mc13783.o
- snd-soc-ml26124-objs := ml26124.o
-+snd-soc-hdmi-codec-objs := hdmi-codec.o
- snd-soc-pcm1681-objs := pcm1681.o
- snd-soc-pcm1792a-codec-objs := pcm1792a.o
- snd-soc-pcm3008-objs := pcm3008.o
-@@ -253,6 +254,7 @@ obj-$(CONFIG_SND_SOC_MAX98925)	+= snd-soc-max98925.o
- obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc-max9850.o
- obj-$(CONFIG_SND_SOC_MC13783)	+= snd-soc-mc13783.o
- obj-$(CONFIG_SND_SOC_ML26124)	+= snd-soc-ml26124.o
-+obj-$(CONFIG_SND_SOC_HDMI_CODEC)	+= snd-soc-hdmi-codec.o
- obj-$(CONFIG_SND_SOC_PCM1681)	+= snd-soc-pcm1681.o
- obj-$(CONFIG_SND_SOC_PCM1792A)	+= snd-soc-pcm1792a-codec.o
- obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
-diff --git a/sound/soc/codecs/hdmi-codec.c b/sound/soc/codecs/hdmi-codec.c
-new file mode 100644
-index 0000000..c208cef
---- /dev/null
-+++ b/sound/soc/codecs/hdmi-codec.c
-@@ -0,0 +1,458 @@
-+/*
-+ * ALSA SoC codec for HDMI encoder drivers
-+ * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com/
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/module.h>
-+#include <linux/string.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/pcm_params.h>
-+#include <sound/soc.h>
-+#include <sound/hdmi-codec.h>
-+
-+struct hdmi_codec_priv {
-+	struct hdmi_codec_pdata hcd;
-+	struct snd_soc_dai_driver *daidrv;
-+	struct hdmi_codec_daifmt daifmt[2];
-+	struct mutex current_stream_lock;
-+	struct snd_pcm_substream *current_stream;
-+	struct snd_pcm_hw_constraint_list ratec;
-+	uint8_t *eld;
-+};
-+
-+static const struct snd_soc_dapm_widget hdmi_widgets[] = {
-+	SND_SOC_DAPM_OUTPUT("TX"),
-+};
-+
-+static const struct snd_soc_dapm_route hdmi_routes[] = {
-+	{ "TX", NULL, "Playback" },
-+};
-+
-+enum {
-+	DAI_ID_I2C = 0,
-+	DAI_ID_SPDIF,
-+};
-+
-+static void hdmi_codec_abort(struct device *dev)
-+{
-+	struct hdmi_codec_priv *hcp = dev_get_drvdata(dev);
-+
-+	dev_dbg(dev, "%s()\n", __func__);
-+
-+	mutex_lock(&hcp->current_stream_lock);
-+	if (hcp->current_stream && hcp->current_stream->runtime &&
-+	    snd_pcm_running(hcp->current_stream)) {
-+		dev_info(dev, "HDMI audio playback aborted\n");
-+		snd_pcm_stream_lock_irq(hcp->current_stream);
-+		snd_pcm_stop(hcp->current_stream, SNDRV_PCM_STATE_DISCONNECTED);
-+		snd_pcm_stream_unlock_irq(hcp->current_stream);
-+	}
-+	mutex_unlock(&hcp->current_stream_lock);
-+}
-+
-+static int hdmi_codec_new_stream(struct snd_pcm_substream *substream,
-+				 struct snd_soc_dai *dai)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+	int ret = 0;
-+
-+	mutex_lock(&hcp->current_stream_lock);
-+	if (!hcp->current_stream) {
-+		hcp->current_stream = substream;
-+	} else if (hcp->current_stream != substream) {
-+		dev_err(dai->dev, "Only one simultaneous stream supported!\n");
-+		ret = -EINVAL;
-+	}
-+	mutex_unlock(&hcp->current_stream_lock);
-+
-+	return ret;
-+}
-+
-+static int hdmi_codec_startup(struct snd_pcm_substream *substream,
-+			      struct snd_soc_dai *dai)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+	int ret = 0;
-+
-+	dev_dbg(dai->dev, "%s()\n", __func__);
-+
-+	ret = hdmi_codec_new_stream(substream, dai);
-+	if (ret)
-+		return ret;
-+
-+	if (hcp->hcd.ops->audio_startup) {
-+		ret = hcp->hcd.ops->audio_startup(hcp->hcd.dev,
-+						  hdmi_codec_abort);
-+		if (ret) {
-+			mutex_lock(&hcp->current_stream_lock);
-+			hcp->current_stream = NULL;
-+			mutex_unlock(&hcp->current_stream_lock);
-+			return ret;
-+		}
-+	}
-+
-+	if (hcp->hcd.ops->get_eld) {
-+		hcp->eld = hcp->hcd.ops->get_eld(hcp->hcd.dev);
-+
-+		/* Call snd_pcm_hw_constraint_eld here */
-+	}
-+	return 0;
-+}
-+
-+static void hdmi_codec_shutdown(struct snd_pcm_substream *substream,
-+				struct snd_soc_dai *dai)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+
-+	dev_dbg(dai->dev, "%s()\n", __func__);
-+
-+	mutex_lock(&hcp->current_stream_lock);
-+	BUG_ON(hcp->current_stream != substream);
-+	hcp->current_stream = NULL;
-+	mutex_unlock(&hcp->current_stream_lock);
-+
-+	hcp->hcd.ops->audio_shutdown(hcp->hcd.dev);
-+}
-+
-+static int hdmi_codec_hw_params(struct snd_pcm_substream *substream,
-+				struct snd_pcm_hw_params *params,
-+				struct snd_soc_dai *dai)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+	struct hdmi_codec_params hp = {
-+		.cea = { 0 },
-+		.iec = {
-+			.status = {
-+				IEC958_AES0_CON_NOT_COPYRIGHT,
-+				IEC958_AES1_CON_GENERAL,
-+				IEC958_AES2_CON_SOURCE_UNSPEC,
-+				IEC958_AES3_CON_CLOCK_VARIABLE,
-+			},
-+			.subcode = { 0 },
-+			.pad = 0,
-+			.dig_subframe = { 0 },
-+		}
-+	};
-+	int ret;
-+
-+	dev_dbg(dai->dev, "%s()\n", __func__);
-+
-+	ret = hdmi_codec_new_stream(substream, dai);
-+	if (ret)
-+		return ret;
-+
-+	hdmi_audio_infoframe_init(&hp.cea);
-+	hp.cea.coding_type = HDMI_AUDIO_CODING_TYPE_PCM;
-+	hp.cea.channels = params_channels(params);
-+
-+	switch (params_width(params)) {
-+	case 16:
-+		hp.iec.status[4] |= IEC958_AES4_CON_WORDLEN_20_16;
-+		hp.cea.sample_size = HDMI_AUDIO_SAMPLE_SIZE_16;
-+		break;
-+	case 18:
-+		hp.iec.status[4] |= IEC958_AES4_CON_WORDLEN_22_18;
-+		hp.cea.sample_size = HDMI_AUDIO_SAMPLE_SIZE_20;
-+		break;
-+	case 20:
-+		hp.iec.status[4] |= IEC958_AES4_CON_WORDLEN_24_20;
-+		hp.cea.sample_size = HDMI_AUDIO_SAMPLE_SIZE_20;
-+		break;
-+	case 24:
-+	case 32:
-+		hp.iec.status[4] |= IEC958_AES4_CON_MAX_WORDLEN_24 |
-+			IEC958_AES4_CON_WORDLEN_24_20;
-+		hp.cea.sample_size = HDMI_AUDIO_SAMPLE_SIZE_24;
-+		break;
-+	default:
-+		dev_err(dai->dev, "sample width not supported!\n");
-+		return -EINVAL;
-+	}
-+
-+	switch (params_rate(params)) {
-+	case 32000:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_32000;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_32000;
-+		break;
-+	case 44100:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_44100;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_44100;
-+		break;
-+	case 48000:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_48000;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_48000;
-+		break;
-+	case 88200:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_88200;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_88200;
-+		break;
-+	case 96000:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_96000;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_96000;
-+		break;
-+	case 176400:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_176400;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_176400;
-+		break;
-+	case 192000:
-+		hp.iec.status[3] |= IEC958_AES3_CON_FS_192000;
-+		hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_192000;
-+		break;
-+	default:
-+		dev_err(dai->dev, "rate not supported!\n");
-+		return -EINVAL;
-+	}
-+	hp.sample_width = params_width(params);
-+	hp.sample_rate = params_rate(params);
-+	hp.channels = params_channels(params);
-+
-+	return hcp->hcd.ops->hw_params(hcp->hcd.dev, &hcp->daifmt[dai->id],
-+				       &hp);
-+}
-+
-+static int hdmi_codec_set_sysclk(struct snd_soc_dai *dai,
-+				 int clk_id, unsigned int freq, int dir)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+
-+	dev_dbg(dai->dev, "%s()\n", __func__);
-+
-+	if (hcp->hcd.ops->set_clk)
-+		return hcp->hcd.ops->set_clk(hcp->hcd.dev, clk_id, freq);
-+
-+	return 0;
-+}
-+
-+static int hdmi_codec_set_fmt(struct snd_soc_dai *dai,
-+			      unsigned int fmt)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+	struct hdmi_codec_daifmt cf = { 0 };
-+	int ret = 0;
-+
-+	dev_dbg(dai->dev, "%s()\n", __func__);
-+
-+	if (dai->id == DAI_ID_SPDIF) {
-+		cf.fmt = HDMI_SPDIF;
-+	} else {
-+		switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-+		case SND_SOC_DAIFMT_CBM_CFM:
-+			cf.bit_clk_master = 1;
-+			cf.frame_clk_master = 1;
-+			break;
-+		case SND_SOC_DAIFMT_CBS_CFM:
-+			cf.frame_clk_master = 1;
-+			break;
-+		case SND_SOC_DAIFMT_CBM_CFS:
-+			cf.bit_clk_master = 1;
-+			break;
-+		case SND_SOC_DAIFMT_CBS_CFS:
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+
-+		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-+		case SND_SOC_DAIFMT_NB_NF:
-+			break;
-+		case SND_SOC_DAIFMT_NB_IF:
-+			cf.frame_clk_inv = 1;
-+			break;
-+		case SND_SOC_DAIFMT_IB_NF:
-+			cf.bit_clk_inv = 1;
-+			break;
-+		case SND_SOC_DAIFMT_IB_IF:
-+			cf.frame_clk_inv = 1;
-+			cf.bit_clk_inv = 1;
-+			break;
-+		}
-+
-+		switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-+		case SND_SOC_DAIFMT_I2S:
-+			cf.fmt = HDMI_I2S;
-+			break;
-+		case SND_SOC_DAIFMT_DSP_A:
-+			cf.fmt = HDMI_DSP_A;
-+			break;
-+		case SND_SOC_DAIFMT_DSP_B:
-+			cf.fmt = HDMI_DSP_B;
-+			break;
-+		case SND_SOC_DAIFMT_RIGHT_J:
-+			cf.fmt = HDMI_RIGHT_J;
-+			break;
-+		case SND_SOC_DAIFMT_LEFT_J:
-+			cf.fmt = HDMI_LEFT_J;
-+			break;
-+		case SND_SOC_DAIFMT_AC97:
-+			cf.fmt = HDMI_AC97;
-+			break;
-+		default:
-+			dev_err(dai->dev, "Invalid DAI interface format\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	hcp->daifmt[dai->id] = cf;
-+
-+	return ret;
-+}
-+
-+static int hdmi_codec_digital_mute(struct snd_soc_dai *dai, int mute)
-+{
-+	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
-+
-+	dev_dbg(dai->dev, "%s()\n", __func__);
-+
-+	if (hcp->hcd.ops->digital_mute)
-+		return hcp->hcd.ops->digital_mute(hcp->hcd.dev, mute);
-+
-+	return 0;
-+}
-+
-+static const struct snd_soc_dai_ops hdmi_dai_ops = {
-+	.startup	= hdmi_codec_startup,
-+	.shutdown	= hdmi_codec_shutdown,
-+	.hw_params	= hdmi_codec_hw_params,
-+	.set_sysclk	= hdmi_codec_set_sysclk,
-+	.set_fmt	= hdmi_codec_set_fmt,
-+	.digital_mute	= hdmi_codec_digital_mute,
-+};
-+
-+
-+#define HDMI_RATES	(SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |\
-+			 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |\
-+			 SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |\
-+			 SNDRV_PCM_RATE_192000)
-+
-+#define SPDIF_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |\
-+			 SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE |\
-+			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE |\
-+			 SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE)
-+
-+#define I2S_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |\
-+			 SNDRV_PCM_FMTBIT_S18_3LE | SNDRV_PCM_FMTBIT_S18_3BE |\
-+			 SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE |\
-+			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE |\
-+			 SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE |\
-+			 SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_S32_BE)
-+
-+static struct snd_soc_dai_driver hdmi_i2s_dai = {
-+	.name = "i2s-hifi",
-+	.id = DAI_ID_I2C,
-+	.playback = {
-+		.stream_name = "Playback",
-+		.channels_min = 2,
-+		.channels_max = 8,
-+		.rates = HDMI_RATES,
-+		.formats = I2S_FORMATS,
-+		.sig_bits = 24,
-+	},
-+	.ops = &hdmi_dai_ops,
-+};
-+
-+static const struct snd_soc_dai_driver hdmi_spdif_dai = {
-+	.name = "spdif-hifi",
-+	.id = DAI_ID_SPDIF,
-+	.playback = {
-+		.stream_name = "Playback",
-+		.channels_min = 2,
-+		.channels_max = 2,
-+		.rates = HDMI_RATES,
-+		.formats = SPDIF_FORMATS,
-+	},
-+	.ops = &hdmi_dai_ops,
-+};
-+
-+static struct snd_soc_codec_driver hdmi_codec = {
-+	.dapm_widgets = hdmi_widgets,
-+	.num_dapm_widgets = ARRAY_SIZE(hdmi_widgets),
-+	.dapm_routes = hdmi_routes,
-+	.num_dapm_routes = ARRAY_SIZE(hdmi_routes),
-+};
-+
-+static int hdmi_codec_probe(struct platform_device *pdev)
-+{
-+	struct hdmi_codec_pdata *hcd = pdev->dev.platform_data;
-+	struct device *dev = &pdev->dev;
-+	struct hdmi_codec_priv *hcp;
-+	int dai_count, i = 0;
-+	int ret;
-+
-+	dev_dbg(dev, "%s()\n", __func__);
-+
-+	if (!hcd) {
-+		dev_err(dev, "%s: No plalform data\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	dai_count = hcd->i2s + hcd->spdif;
-+	if (dai_count < 1 || !hcd->dev || !hcd->ops ||
-+	    !hcd->ops->hw_params || !hcd->ops->audio_shutdown) {
-+		dev_err(dev, "%s: Invalid parameters\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	hcp = devm_kzalloc(dev, sizeof(*hcp), GFP_KERNEL);
-+	if (!hcp)
-+		return -ENOMEM;
-+
-+	hcp->hcd = *hcd;
-+	mutex_init(&hcp->current_stream_lock);
-+
-+	hcp->daidrv = devm_kzalloc(hcd->dev, dai_count * sizeof(*hcp->daidrv),
-+				   GFP_KERNEL);
-+	if (!hcp->daidrv)
-+		return -ENOMEM;
-+
-+	if (hcd->i2s) {
-+		hcp->daidrv[i] = hdmi_i2s_dai;
-+		hcp->daidrv[i].playback.channels_max =
-+			hcd->max_i2s_channels;
-+		i++;
-+	}
-+
-+	if (hcd->spdif)
-+		hcp->daidrv[i] = hdmi_spdif_dai;
-+
-+	ret = snd_soc_register_codec(dev, &hdmi_codec, hcp->daidrv,
-+				     dai_count);
-+	if (ret) {
-+		dev_err(dev, "%s: snd_soc_register_codec() failed (%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+
-+	dev_set_drvdata(dev, hcp);
-+	return 0;
-+}
-+
-+static int hdmi_codec_remove(struct platform_device *pdev)
-+{
-+	snd_soc_unregister_codec(&pdev->dev);
-+	return 0;
-+}
-+
-+static struct platform_driver hdmi_codec_driver = {
-+	.driver = {
-+		.name = HDMI_CODEC_DRV_NAME,
-+	},
-+	.probe = hdmi_codec_probe,
-+	.remove = hdmi_codec_remove,
-+};
-+
-+module_platform_driver(hdmi_codec_driver);
-+
-+MODULE_AUTHOR("Jyri Sarha <jsarha@ti.com>");
-+MODULE_DESCRIPTION("HDMI Audio Codec Driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" HDMI_CODEC_DRV_NAME);
--- 
-1.9.1
-
+VGhpcyBwYXRjaCBpcyBoZXJlIHRvIGRlbW9uc3RyYXRlIGhvdyB0byB1c2UgdGhlIEFTb0MgaGRt
+aS1jb2RlYyB0bwppbXBsZW1lbnQgQVNvQyBjb2RlYyBBUEkgaW4gdGRhOTk4eCBkcml2ZXIuCgpJ
+IGRvIG5vdCBoYXZlIHByb3BlciBkb2N1bWVudGF0aW9uIGZvciB0ZGE5OTh4IGZhbWlseSBjaGlw
+cyBzbyBJIGxhY2sKdGhlIG5lY2Vzc2FyeSBpbmZvcm1hdGlvbiBmb3IgbWFraW5nIGEgZGVjZW50
+IGJpbmRpbmcgZm9yIGF1ZGlvIHBhcnQKb2YgdGhlIGNoaXAuIEluIHN0ZWFkIEkgdXNlIGJpbmRp
+bmcgZnJvbSBKZWFuLUZyYW5jb2lzIE1vaW5lJ3MgIkFTb0M6CnRkYTk5OHg6IGFkZCBhIGNvZGVj
+IHRvIHRoZSBIRE1JIHRyYW5zbWl0dGVyIiBwYXRjaCBzZXJpZXMuCgpTaWduZWQtb2ZmLWJ5OiBK
+eXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgotLS0KIGRyaXZlcnMvZ3B1L2RybS9pMmMvS2NvbmZp
+ZyAgICAgICB8ICAgMSArCiBkcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMgfCAyMzgg
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDIgZmlsZXMgY2hhbmdlZCwg
+MjM5IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTJjL0tjb25m
+aWcgYi9kcml2ZXJzL2dwdS9kcm0vaTJjL0tjb25maWcKaW5kZXggMjJjN2VkNi4uMDg4ZjI3OCAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy9LY29uZmlnCisrKyBiL2RyaXZlcnMvZ3B1
+L2RybS9pMmMvS2NvbmZpZwpAQCAtMjgsNiArMjgsNyBAQCBjb25maWcgRFJNX0kyQ19TSUwxNjQK
+IGNvbmZpZyBEUk1fSTJDX05YUF9UREE5OThYCiAJdHJpc3RhdGUgIk5YUCBTZW1pY29uZHVjdG9y
+cyBUREE5OThYIEhETUkgZW5jb2RlciIKIAlkZWZhdWx0IG0gaWYgRFJNX1RJTENEQworCXNlbGVj
+dCBTTkRfU09DX0hETUlfQ09ERUMgaWYgU05EX1NPQwogCWhlbHAKIAkgIFN1cHBvcnQgZm9yIE5Y
+UCBTZW1pY29uZHVjdG9ycyBUREE5OThYIEhETUkgZW5jb2RlcnMuCiAKZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRh
+OTk4eF9kcnYuYwppbmRleCBiY2Y5NmY3Li4zYzM4OTExIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dw
+dS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4
+X2Rydi5jCkBAIC0yMCw2ICsyMCw3IEBACiAjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CiAjaW5j
+bHVkZSA8bGludXgvaXJxLmg+CiAjaW5jbHVkZSA8c291bmQvYXNvdW5kZWYuaD4KKyNpbmNsdWRl
+IDxzb3VuZC9oZG1pLWNvZGVjLmg+CiAKICNpbmNsdWRlIDxkcm0vZHJtUC5oPgogI2luY2x1ZGUg
+PGRybS9kcm1fY3J0Y19oZWxwZXIuaD4KQEAgLTQ1LDYgKzQ2LDkgQEAgc3RydWN0IHRkYTk5OHhf
+cHJpdiB7CiAJdTggdmlwX2NudHJsXzI7CiAJc3RydWN0IHRkYTk5OHhfZW5jb2Rlcl9wYXJhbXMg
+cGFyYW1zOwogCisJc3RydWN0IHBsYXRmb3JtX2RldmljZSAqYXVkaW9fcGRldjsKKwl1aW50OF90
+IGVsZFtNQVhfRUxEX0JZVEVTXTsKKwogCXdhaXRfcXVldWVfaGVhZF90IHdxX2VkaWQ7CiAJdm9s
+YXRpbGUgaW50IHdxX2VkaWRfd2FpdDsKIAlzdHJ1Y3QgZHJtX2VuY29kZXIgKmVuY29kZXI7CkBA
+IC0xMTIwLDYgKzExMjQsOSBAQCB0ZGE5OTh4X2VuY29kZXJfZ2V0X21vZGVzKHN0cnVjdCB0ZGE5
+OTh4X3ByaXYgKnByaXYsCiAJZHJtX21vZGVfY29ubmVjdG9yX3VwZGF0ZV9lZGlkX3Byb3BlcnR5
+KGNvbm5lY3RvciwgZWRpZCk7CiAJbiA9IGRybV9hZGRfZWRpZF9tb2Rlcyhjb25uZWN0b3IsIGVk
+aWQpOwogCXByaXYtPmlzX2hkbWlfc2luayA9IGRybV9kZXRlY3RfaGRtaV9tb25pdG9yKGVkaWQp
+OworCWRybV9lZGlkX3RvX2VsZChjb25uZWN0b3IsIGVkaWQpOworCW1lbWNweShwcml2LT5lbGQs
+IGNvbm5lY3Rvci0+ZWxkLCBzaXplb2YocHJpdi0+ZWxkKSk7CisKIAlrZnJlZShlZGlkKTsKIAog
+CXJldHVybiBuOwpAQCAtMTE1Niw2ICsxMTYzLDkgQEAgc3RhdGljIHZvaWQgdGRhOTk4eF9kZXN0
+cm95KHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYpCiAJfQogCiAJaTJjX3VucmVnaXN0ZXJfZGV2
+aWNlKHByaXYtPmNlYyk7CisKKwlpZiAocHJpdi0+YXVkaW9fcGRldikKKwkJcGxhdGZvcm1fZGV2
+aWNlX3VucmVnaXN0ZXIocHJpdi0+YXVkaW9fcGRldik7CiB9CiAKIC8qIFNsYXZlIGVuY29kZXIg
+c3VwcG9ydCAqLwpAQCAtMTIzMCw2ICsxMjQwLDIzMCBAQCBzdGF0aWMgc3RydWN0IGRybV9lbmNv
+ZGVyX3NsYXZlX2Z1bmNzIHRkYTk5OHhfZW5jb2Rlcl9zbGF2ZV9mdW5jcyA9IHsKIAkuc2V0X3By
+b3BlcnR5ID0gdGRhOTk4eF9lbmNvZGVyX3NldF9wcm9wZXJ0eSwKIH07CiAKK3N0YXRpYyBpbnQK
+K3RkYTk5OHhfY29uZmlndXJlX2F1ZGlvMihzdHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2LAorCQkJ
+aW50IG1vZGVfY2xvY2ssCisJCQlpbnQgZW5hX2FwLAorCQkJc3RydWN0IGhkbWlfY29kZWNfcGFy
+YW1zICpwYXJhbXMsCisJCQlzdHJ1Y3QgaGRtaV9jb2RlY19kYWlmbXQgKmRhaWZtdCkKK3sKKwl1
+aW50OF90IGJ1Zls2XSwgY2xrc2VsX2FpcCwgY2xrc2VsX2ZzLCBjdHNfbiwgYWRpdjsKKwl1aW50
+OF90IGluZm9mcmFtZV9idWZbSERNSV9JTkZPRlJBTUVfU0laRShBVURJTyldOworCWludCBpbmZv
+ZnJhbWVfbGVuOworCXVpbnQzMl90IG47CisKKwlpbmZvZnJhbWVfbGVuID0gaGRtaV9hdWRpb19p
+bmZvZnJhbWVfcGFjaygmcGFyYW1zLT5jZWEsIGluZm9mcmFtZV9idWYsCisJCQkJCQkgIHNpemVv
+ZihpbmZvZnJhbWVfYnVmKSk7CisJaWYgKGluZm9mcmFtZV9sZW4gPCAwKSB7CisJCWRldl9lcnIo
+JnByaXYtPmhkbWktPmRldiwKKwkJCSJGYWlsZWQgdG8gcGFjayBhdWRpbyBpbmZvZnJhbWU6ICVk
+XG4iLAorCQkJaW5mb2ZyYW1lX2xlbik7CisJCXJldHVybiBpbmZvZnJhbWVfbGVuOworCX0KKwor
+CS8qIEVuYWJsZSBhdWRpbyBwb3J0cyAqLworCXJlZ193cml0ZShwcml2LCBSRUdfRU5BX0FQLCBl
+bmFfYXApOworCXJlZ193cml0ZShwcml2LCBSRUdfRU5BX0FDTEssIGRhaWZtdC0+Zm10ID09IEhE
+TUlfU1BESUYgPyAwIDogMSk7CisKKwkvKiBTZXQgYXVkaW8gaW5wdXQgc291cmNlICovCisJc3dp
+dGNoIChkYWlmbXQtPmZtdCkgeworCWNhc2UgSERNSV9TUERJRjoKKwkJcmVnX3dyaXRlKHByaXYs
+IFJFR19NVVhfQVAsIE1VWF9BUF9TRUxFQ1RfU1BESUYpOworCQljbGtzZWxfYWlwID0gQUlQX0NM
+S1NFTF9BSVBfU1BESUY7CisJCWNsa3NlbF9mcyA9IEFJUF9DTEtTRUxfRlNfRlM2NFNQRElGOwor
+CQljdHNfbiA9IENUU19OX00oMykgfCBDVFNfTl9LKDMpOworCQlicmVhazsKKworCWNhc2UgSERN
+SV9JMlM6CisJCXJlZ193cml0ZShwcml2LCBSRUdfTVVYX0FQLCBNVVhfQVBfU0VMRUNUX0kyUyk7
+CisJCWNsa3NlbF9haXAgPSBBSVBfQ0xLU0VMX0FJUF9JMlM7CisJCWNsa3NlbF9mcyA9IEFJUF9D
+TEtTRUxfRlNfQUNMSzsKKwkJc3dpdGNoIChwYXJhbXMtPnNhbXBsZV93aWR0aCkgeworCQljYXNl
+IDE2OgorCQkJY3RzX24gPSBDVFNfTl9NKDMpIHwgQ1RTX05fSygxKTsKKwkJCWJyZWFrOworCQlj
+YXNlIDE4OgorCQljYXNlIDIwOgorCQljYXNlIDI0OgorCQkJY3RzX24gPSBDVFNfTl9NKDMpIHwg
+Q1RTX05fSygyKTsKKwkJCWJyZWFrOworCQlkZWZhdWx0OgorCQljYXNlIDMyOgorCQkJY3RzX24g
+PSBDVFNfTl9NKDMpIHwgQ1RTX05fSygzKTsKKwkJCWJyZWFrOworCQl9CisJCWJyZWFrOworCisJ
+ZGVmYXVsdDoKKwkJZGV2X2VycigmcHJpdi0+aGRtaS0+ZGV2LCAiVW5zdXBwb3J0ZWQgSTJTIGZv
+cm1hdFxuIik7CisJCXJldHVybiAtRUlOVkFMOworCX0KKworCXJlZ193cml0ZShwcml2LCBSRUdf
+QUlQX0NMS1NFTCwgY2xrc2VsX2FpcCk7CisJcmVnX2NsZWFyKHByaXYsIFJFR19BSVBfQ05UUkxf
+MCwgQUlQX0NOVFJMXzBfTEFZT1VUIHwKKwkJCQkJQUlQX0NOVFJMXzBfQUNSX01BTik7CS8qIGF1
+dG8gQ1RTICovCisJcmVnX3dyaXRlKHByaXYsIFJFR19DVFNfTiwgY3RzX24pOworCisJLyoKKwkg
+KiBBdWRpbyBpbnB1dCBzb21laG93IGRlcGVuZHMgb24gSERNSSBsaW5lIHJhdGUgd2hpY2ggaXMK
+KwkgKiByZWxhdGVkIHRvIHBpeGNsay4gVGVzdGluZyBzaG93ZWQgdGhhdCBtb2RlcyB3aXRoIHBp
+eGNsaworCSAqID4xMDBNSHogbmVlZCBhIGxhcmdlciBkaXZpZGVyIHdoaWxlIDw0ME1IeiBuZWVk
+IHRoZSBkZWZhdWx0LgorCSAqIFRoZXJlIGlzIG5vIGRldGFpbGVkIGluZm8gaW4gdGhlIGRhdGFz
+aGVldCwgc28gd2UganVzdAorCSAqIGFzc3VtZSAxMDBNSHogcmVxdWlyZXMgbGFyZ2VyIGRpdmlk
+ZXIuCisJICovCisJYWRpdiA9IEFVRElPX0RJVl9TRVJDTEtfODsKKwlpZiAobW9kZV9jbG9jayA+
+IDEwMDAwMCkKKwkJYWRpdisrOwkJCS8qIEFVRElPX0RJVl9TRVJDTEtfMTYgKi8KKworCS8qIFMv
+UERJRiBhc2tzIGZvciBhIGxhcmdlciBkaXZpZGVyICovCisJaWYgKGRhaWZtdC0+Zm10ID09IEhE
+TUlfU1BESUYpCisJCWFkaXYrKzsJCQkvKiBBVURJT19ESVZfU0VSQ0xLXzE2IG9yIF8zMiAqLwor
+CisJcmVnX3dyaXRlKHByaXYsIFJFR19BVURJT19ESVYsIGFkaXYpOworCisJLyoKKwkgKiBUaGlz
+IGlzIHRoZSBhcHByb3hpbWF0ZSB2YWx1ZSBvZiBOLCB3aGljaCBoYXBwZW5zIHRvIGJlCisJICog
+dGhlIHJlY29tbWVuZGVkIHZhbHVlcyBmb3Igbm9uLWNvaGVyZW50IGNsb2Nrcy4KKwkgKi8KKwlu
+ID0gMTI4ICogcGFyYW1zLT5zYW1wbGVfcmF0ZSAvIDEwMDA7CisKKwkvKiBXcml0ZSB0aGUgQ1RT
+IGFuZCBOIHZhbHVlcyAqLworCWJ1ZlswXSA9IDB4NDQ7CisJYnVmWzFdID0gMHg0MjsKKwlidWZb
+Ml0gPSAweDAxOworCWJ1ZlszXSA9IG47CisJYnVmWzRdID0gbiA+PiA4OworCWJ1Zls1XSA9IG4g
+Pj4gMTY7CisJcmVnX3dyaXRlX3JhbmdlKHByaXYsIFJFR19BQ1JfQ1RTXzAsIGJ1ZiwgNik7CisK
+KwkvKiBTZXQgQ1RTIGNsb2NrIHJlZmVyZW5jZSAqLworCXJlZ193cml0ZShwcml2LCBSRUdfQUlQ
+X0NMS1NFTCwgY2xrc2VsX2FpcCB8IGNsa3NlbF9mcyk7CisKKwkvKiBSZXNldCBDVFMgZ2VuZXJh
+dG9yICovCisJcmVnX3NldChwcml2LCBSRUdfQUlQX0NOVFJMXzAsIEFJUF9DTlRSTF8wX1JTVF9D
+VFMpOworCXJlZ19jbGVhcihwcml2LCBSRUdfQUlQX0NOVFJMXzAsIEFJUF9DTlRSTF8wX1JTVF9D
+VFMpOworCisJLyogV3JpdGUgdGhlIGNoYW5uZWwgc3RhdHVzICovCisJcmVnX3dyaXRlX3Jhbmdl
+KHByaXYsIFJFR19DSF9TVEFUX0IoMCksIHBhcmFtcy0+aWVjLnN0YXR1cywgNCk7CisKKwl0ZGE5
+OTh4X2F1ZGlvX211dGUocHJpdiwgdHJ1ZSk7CisJbXNsZWVwKDIwKTsKKwl0ZGE5OTh4X2F1ZGlv
+X211dGUocHJpdiwgZmFsc2UpOworCisJLyogV3JpdGUgdGhlIGF1ZGlvIGluZm9ybWF0aW9uIHBh
+Y2tldCAqLworCXRkYTk5OHhfd3JpdGVfaWYocHJpdiwgRElQX0lGX0ZMQUdTX0lGNCwgUkVHX0lG
+NF9IQjAsCisJCQkgaW5mb2ZyYW1lX2J1ZiwKKwkJCSBpbmZvZnJhbWVfbGVuKTsKKwlyZXR1cm4g
+MDsKK30KKworc3RhdGljIGludCB0ZGE5OTh4X2F1ZGlvX2h3X3BhcmFtcyhzdHJ1Y3QgZGV2aWNl
+ICpkZXYsCisJCQkJICAgc3RydWN0IGhkbWlfY29kZWNfZGFpZm10ICpkYWlmbXQsCisJCQkJICAg
+c3RydWN0IGhkbWlfY29kZWNfcGFyYW1zICpwYXJhbXMpCit7CisJc3RydWN0IHRkYTk5OHhfcHJp
+diAqcHJpdiA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOworCXVuc2lnbmVkIGludCBlbmFfYXAgPSAt
+MTsKKwlpbnQgaTsKKworCWlmICghcHJpdi0+ZW5jb2Rlci0+Y3J0YykKKwkJcmV0dXJuIC1FTk9E
+RVY7CisKKwlzd2l0Y2ggKGRhaWZtdC0+Zm10KSB7CisJY2FzZSBIRE1JX0kyUzoKKwkJaWYgKGRh
+aWZtdC0+Yml0X2Nsa19pbnYgfHwgZGFpZm10LT5mcmFtZV9jbGtfaW52IHx8CisJCSAgICBkYWlm
+bXQtPmJpdF9jbGtfbWFzdGVyIHx8IGRhaWZtdC0+ZnJhbWVfY2xrX21hc3RlcikgeworCQkJZGV2
+X2VycihkZXYsICIlczogQmFkIGZsYWdzICVkICVkICVkICVkXG4iLCBfX2Z1bmNfXywKKwkJCQlk
+YWlmbXQtPmJpdF9jbGtfaW52LCBkYWlmbXQtPmZyYW1lX2Nsa19pbnYsCisJCQkJZGFpZm10LT5i
+aXRfY2xrX21hc3RlciwKKwkJCQlkYWlmbXQtPmZyYW1lX2Nsa19tYXN0ZXIpOworCQkJcmV0dXJu
+IC1FSU5WQUw7CisJCX0KKwkJZm9yIChpID0gMDsgaSA8IEFSUkFZX1NJWkUocHJpdi0+YXVkaW8u
+cG9ydHMpOyBpKyspCisJCQlpZiAocHJpdi0+YXVkaW8ucG9ydF90eXBlc1tpXSA9PSBBRk1UX0ky
+UykKKwkJCQllbmFfYXAgPSBwcml2LT5hdWRpby5wb3J0c1tpXTsKKwkJYnJlYWs7CisJY2FzZSBI
+RE1JX1NQRElGOgorCQlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShwcml2LT5hdWRpby5wb3J0
+cyk7IGkrKykKKwkJCWlmIChwcml2LT5hdWRpby5wb3J0X3R5cGVzID09IEFGTVRfU1BESUYpCisJ
+CQkJZW5hX2FwID0gcHJpdi0+YXVkaW8ucG9ydHNbaV07CisJCWJyZWFrOworCWRlZmF1bHQ6CisJ
+CWRldl9lcnIoZGV2LCAiJXM6IEludmFsaWQgZm9ybWF0ICVkXG4iLCBfX2Z1bmNfXywgZGFpZm10
+LT5mbXQpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlpZiAoZW5hX2FwIDwgMCkgeworCQlk
+ZXZfZXJyKGRldiwgIiVzOiBObyBhdWRpbyBjb25maWd1dGF0aW9uIGZvdW5kXG4iLCBfX2Z1bmNf
+Xyk7CisJCXJldHVybiAtRUlOVkFMOworCX0KKworCisJcmV0dXJuIHRkYTk5OHhfY29uZmlndXJl
+X2F1ZGlvMihwcml2LAorCQkJCQlwcml2LT5lbmNvZGVyLT5jcnRjLT5od21vZGUuY2xvY2ssCisJ
+CQkJCWVuYV9hcCwKKwkJCQkJcGFyYW1zLAorCQkJCQlkYWlmbXQpOworfQorCitzdGF0aWMgdm9p
+ZCB0ZGE5OTh4X2F1ZGlvX3NodXRkb3duKHN0cnVjdCBkZXZpY2UgKmRldikKK3sKKwlzdHJ1Y3Qg
+dGRhOTk4eF9wcml2ICpwcml2ID0gZGV2X2dldF9kcnZkYXRhKGRldik7CisKKwlyZWdfd3JpdGUo
+cHJpdiwgUkVHX0VOQV9BUCwgMCk7Cit9CisKK2ludCB0ZGE5OTh4X2F1ZGlvX2RpZ2l0YWxfbXV0
+ZShzdHJ1Y3QgZGV2aWNlICpkZXYsIGJvb2wgZW5hYmxlKQoreworCXN0cnVjdCB0ZGE5OTh4X3By
+aXYgKnByaXYgPSBkZXZfZ2V0X2RydmRhdGEoZGV2KTsKKworCXRkYTk5OHhfYXVkaW9fbXV0ZShw
+cml2LCBlbmFibGUpOworCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyB1aW50OF90ICp0ZGE5OTh4
+X2F1ZGlvX2dldF9lbGQoc3RydWN0IGRldmljZSAqZGV2KQoreworCXN0cnVjdCB0ZGE5OTh4X3By
+aXYgKnByaXYgPSBkZXZfZ2V0X2RydmRhdGEoZGV2KTsKKworCXJldHVybiBwcml2LT5lbGQ7Cit9
+CisKK3N0YXRpYyBjb25zdCBzdHJ1Y3QgaGRtaV9jb2RlY19vcHMgYXVkaW9fY29kZWNfb3BzID0g
+eworCS5od19wYXJhbXMgPSB0ZGE5OTh4X2F1ZGlvX2h3X3BhcmFtcywKKwkuYXVkaW9fc2h1dGRv
+d24gPSB0ZGE5OTh4X2F1ZGlvX3NodXRkb3duLAorCS5kaWdpdGFsX211dGUgPSB0ZGE5OTh4X2F1
+ZGlvX2RpZ2l0YWxfbXV0ZSwKKwkuZ2V0X2VsZCA9IHRkYTk5OHhfYXVkaW9fZ2V0X2VsZCwKK307
+CisKK3N0YXRpYyBpbnQgdGRhOTk4eF9hdWRpb19jb2RlY19pbml0KHN0cnVjdCB0ZGE5OTh4X3By
+aXYgKnByaXYsCisJCQkJICAgIHN0cnVjdCBkZXZpY2UgKmRldikKK3sKKwlzdHJ1Y3QgaGRtaV9j
+b2RlY19wZGF0YSBjb2RlY19kYXRhID0geworCQkuZGV2ID0gZGV2LAorCQkub3BzID0gJmF1ZGlv
+X2NvZGVjX29wcywKKwkJLm1heF9pMnNfY2hhbm5lbHMgPSAyLAorCX07CisJaW50IGk7CisKKwlm
+b3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShwcml2LT5hdWRpby5wb3J0cyk7IGkrKykgeworCQlp
+ZiAocHJpdi0+YXVkaW8ucG9ydF90eXBlc1tpXSA9PSBBRk1UX0kyUyAmJgorCQkgICAgcHJpdi0+
+YXVkaW8ucG9ydHNbaV0gIT0gMCkKKwkJCWNvZGVjX2RhdGEuaTJzID0gMTsKKwkJaWYgKHByaXYt
+PmF1ZGlvLnBvcnRfdHlwZXNbaV0gPT0gQUZNVF9TUERJRiAmJgorCQkgICAgcHJpdi0+YXVkaW8u
+cG9ydHNbaV0gIT0gMCkKKwkJCWNvZGVjX2RhdGEuc3BkaWYgPSAxOworCX0KKworCXByaXYtPmF1
+ZGlvX3BkZXYgPSBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXJfZGF0YSgKKwkJZGV2LCBIRE1JX0NP
+REVDX0RSVl9OQU1FLCBQTEFURk9STV9ERVZJRF9BVVRPLAorCQkmY29kZWNfZGF0YSwgc2l6ZW9m
+KGNvZGVjX2RhdGEpKTsKKworCWlmIChJU19FUlIocHJpdi0+YXVkaW9fcGRldikpCisJCXJldHVy
+biBQVFJfRVJSKHByaXYtPmF1ZGlvX3BkZXYpOworCisJcmV0dXJuIDA7Cit9CisKIC8qIEkyQyBk
+cml2ZXIgZnVuY3Rpb25zICovCiAKIHN0YXRpYyBpbnQgdGRhOTk4eF9wYXJzZV9wb3J0cyhzdHJ1
+Y3QgdGRhOTk4eF9wcml2ICpwcml2LApAQCAtMTQxNyw2ICsxNjUxLDggQEAgc3RhdGljIGludCB0
+ZGE5OTh4X2NyZWF0ZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBzdHJ1Y3QgdGRhOTk4eF9w
+cml2ICpwcml2KQogCQl9CiAJfQogCisJdGRhOTk4eF9hdWRpb19jb2RlY19pbml0KHByaXYsICZj
+bGllbnQtPmRldik7CisKIAlyZXR1cm4gMDsKIAogZmFpbDoKQEAgLTE0NDcsNiArMTY4Myw4IEBA
+IHN0YXRpYyBpbnQgdGRhOTk4eF9lbmNvZGVyX2luaXQoc3RydWN0IGkyY19jbGllbnQgKmNsaWVu
+dCwKIAkJcmV0dXJuIHJldDsKIAl9CiAKKwlkZXZfc2V0X2RydmRhdGEoJmNsaWVudC0+ZGV2LCBw
+cml2KTsKKwogCWVuY29kZXJfc2xhdmUtPnNsYXZlX3ByaXYgPSBwcml2OwogCWVuY29kZXJfc2xh
+dmUtPnNsYXZlX2Z1bmNzID0gJnRkYTk5OHhfZW5jb2Rlcl9zbGF2ZV9mdW5jczsKIAotLSAKMS45
+LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
