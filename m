@@ -1,144 +1,71 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: Re: AM3517 usb host issue
-Date: Wed, 27 May 2015 07:31:18 +0300
-Message-ID: <55654896.4070503@codethink.co.uk>
-References: <555EE311.3030507@codethink.co.uk> <20150522135039.GA5582@saruman.tx.rr.com> <555F8DE2.1050403@codethink.co.uk>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] tty: serial: omap: use mctrl_gpio helpers
+Date: Wed, 27 May 2015 11:31:03 +0530
+Message-ID: <55655D9F.107@ti.com>
+References: <1432297017-1264-1-git-send-email-yegorslists@googlemail.com> <555F4C7F.9020307@ti.com> <20150522165212.GZ10274@atomide.com> <20150522173816.GE5582@saruman.tx.rr.com> <20150522175429.GB10274@atomide.com> <CAGm1_ksofPwNmvmzo_8h0L1xHnZjEfYa7YYey6dF=TsYVPELtQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:52414 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745AbbE0EbY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2015 00:31:24 -0400
-In-Reply-To: <555F8DE2.1050403@codethink.co.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:49869 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751480AbbE0GBW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 May 2015 02:01:22 -0400
+In-Reply-To: <CAGm1_ksofPwNmvmzo_8h0L1xHnZjEfYa7YYey6dF=TsYVPELtQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Linux USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Yegor Yefremov <yegorslists@googlemail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-On 22/05/15 23:13, Ben Dooks wrote:
-> On 22/05/15 16:50, Felipe Balbi wrote:
->> Hi,
+On Tuesday 26 May 2015 12:34 PM, Yegor Yefremov wrote:
+> Hi Tony, Nishanth and Felipe,
 > 
->> On Fri, May 22, 2015 at 11:04:33AM +0300, Ben Dooks wrote:
->>> I am trying to get the full-speed USB host working on an custom
->>> AM3517 device with the 3.18.12 kernel. The hardware works (a
->>> 2.6.37 kernel has been used for testing).
->>>
->>> Does anyone have any experience of 3.18 (or similarly recent
->>> kernel on an AM3517 system) or have any pointers as where to
->>> start debugging? The ti-linux-3.14.y does not have any patches
->>> that aren't applied to the usb on 3.18.13.
->>>
->>> The cpu port 1 is connected by a TI TUSB1106 usb transceiver that
->>> is directly connected to a full-speed hub (TI USB2046) hub so the
->>> OHCI driver is the only one in use.
->>>
->>> Note, the ohci-omap3 is loaded as a module as this is how their
->>> user application expects to be able to shut down usb when it does
->>> not need it.
->>>
->>> The device tree configuration for the usb host:
-> 
->> and what exactly doesn't work ? That old OHCI driver hasn't been
->> touched in years, it's no surprise that it stopped working :-(
-> 
->> Anyway, what exactly doesn't work ? No device enumerates ? Do you
->> get any IRQs by plugging a new device in ?
-> 
-> I will check the interrupts when I get back into the office.
-> 
-> There is only one device (the hub) which isn't enumerating and is
-> hard-wired on the board.
-> 
->>>> &usbhshost { status = "okay";	/* just in case it is started
->>>> disabled */
+> On Fri, May 22, 2015 at 7:54 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Felipe Balbi <balbi@ti.com> [150522 10:41]:
+>>> On Fri, May 22, 2015 at 09:52:13AM -0700, Tony Lindgren wrote:
+>>>> * Nishanth Menon <nm@ti.com> [150522 08:36]:
+>>>>> On 05/22/2015 07:16 AM, yegorslists@googlemail.com wrote:
+>>>>>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>>>>>
+>>>>>> This patch permits to use GPIOs to control the CTS/RTS/DTR/DSR/DCD/RI
+>>>>>> signals.
+>>>>>>
+>>>>>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+>>>>>> ---
+>>>>>>  .../devicetree/bindings/serial/omap_serial.txt     |    9 +
+>>>>>>  drivers/tty/serial/Kconfig                         |    1 +
+>>>>>>  drivers/tty/serial/omap-serial.c                   |  168 +++++++++++++++++++-
+>>>>>>  3 files changed, 171 insertions(+), 7 deletions(-)
+>>>>>
+>>>>> Would we rather move introducing new features to 8250_omap.c rather
+>>>>> than doing that to omap-serial and keep feature creeping it such that
+>>>>> we wont ever be able to switch to 8250_omap ?
 >>>>
->>>> port1-mode = "ohci-phy-6pin-dpdm"; };
->>>>
->>>> &usbhsohci { status = "okay"; };
->>>>
->>>> &usbhsehci { status = "disabled";	/* no ehci on board */ };
+>>>> Yes please. Also, do we really want to allow mapping
+>>>> random GPIO pins to the UART driver? I guess it would be
 >>>
->>>
->>> The usb from the logs is as follows. Some extra debugging has
->>> been added to verify the device-tree settings:
->>>
->>>> [    0.000000] AM3517 ES1.1 (l2cache sgx neon)
->>>>
->>>>
->>>> [    0.869706] usbcore: registered new interface driver usbfs
->>>>  [    0.874270] usbcore: registered new interface driver hub
->>>>  [    0.878592] usbcore: registered new device driver usb
->>>>  [    1.223199] usbhs_tll 48062000.usbhstll: starting TI HSUSB
->>>> TLL Controller [    1.273000] usbhs_omap 48064000.usbhshost:
->>>> ports 0 [    1.278291] usbhs_omap 48064000.usbhshost: port 0:
->>>> ohci-phy-6pin-dpdm [    1.284476] usbhs_omap
->>>> 48064000.usbhshost: port0-mode: ohci-phy-6pin-dpdm ->5 [
->>>> 1.288689] usbhs_tll 48062000.usbhstll: omap_tll_init()
->>>>  [    1.293628] usbhs_omap 48064000.usbhshost:
->>>> usbhs_runtime_resume [    1.298434] usbhs_omap
->>>> 48064000.usbhshost: sysconfig 0x00001009 [    1.302730]
->>>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
->>>>  [    1.307668] usbhs_omap 48064000.usbhshost:
->>>> usbhs_runtime_suspend [    1.310142] stopping usb controller
->>>>  [    1.419910] usbhs_tll 48062000.usbhstll: omap_tll_disable()
->>>>  [    1.423547] usbhs_omap 48064000.usbhshost: 3 ports
->>>>  [    1.429065] usbhs_omap 48064000.usbhshost: starting TI
->>>> HSUSB Controller [    1.433831] usbhs_omap 48064000.usbhshost:
->>>> usbhs_runtime_resume [    1.438625] usbhs_omap
->>>> 48064000.usbhshost: sysconfig 0x00001009 [    1.442921]
->>>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
->>>>  [    1.448548] usbhs_omap 48064000.usbhshost:
->>>> omap_usbhs_rev1_hostconfig => [    1.455034] usbhs_omap
->>>> 48064000.usbhshost: UHH setup done, uhh_hostconfig=80d [
->>>> 1.459918] usbhs_omap 48064000.usbhshost: usbhs_runtime_suspend
->>>>  [    1.462337] stopping usb controller
->>>>  [    1.569905] usbhs_tll 48062000.usbhstll: omap_tll_disable()
->>>>  [    1.575408] usbhs_omap 48064000.usbhshost: populating usb
->>>> sub nodes....
->>>>
->>>> [   77.609168] usbhs_omap 48064000.usbhshost:
->>>> usbhs_runtime_resume [   77.613927] usbhs_omap
->>>> 48064000.usbhshost: sysconfig 0x00001009 [   77.618374]
->>>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
->>>>  [   77.802694] usb usb1: New USB device found, idVendor=1d6b,
->>>> idProduct=0001 [   77.816003] usb usb1: New USB device strings:
->>>> Mfr=3, Product=2, SerialNumber1 [   77.827391] usb usb1:
->>>> Product: OHCI Host Controller [   77.838674] usb usb1:
->>>> Manufacturer: Linux 3.18.13-00203-ga3c52be-dirty ohci_d [
->>>> 77.849913] usb usb1: SerialNumber: 48064400.ohci
->>>>
+>>> See drivers/tty/serial/serial_mctrl_gpio.[ch], these are used for UARTs
+>>> on SoCs with enough GPIOs available whose UART don't have full Modem
+>>> signals. It's pretty handy for BT, GSM, LTE, whatever type of modem-like
+>>> device.
+>>
+>> OK
 > 
->> OK, so this is roothub, what happens when a device is plugged to
->> the other end ? Is VBUS charged ? We didn't even enumerate
->> TUSB2046, did you look at its datasheet
->> (http://www.ti.com/lit/ds/symlink/tusb2046b.pdf) ? What is the
->> state of RESETn pin ? Perhaps that's tied to a GPIO and the old TI
->> kernel toggles that ? Anything interesting from usbmon ?
+> I need this functionality for a real device having switchable
+> RS232/422/485 driver. So I need both RS232 signals, that are not all
+> possible to get via pinmux, and RS485 transmitter switching.
 > 
-> I've gone through the schematics and verified the hub's reset line
-> is connected where we think it is (will try and check with a 'scope
-> on monday that it is being taken high, the boot-loader starts it low).
-> 
-> The root has just the one device connected, and unfortunately the
-> hw designer decided to hard-wire the D+ pull-up to 3.3V instead
-> of the transceiver's pull pin.
-> 
-> Not tried usbmon yet. However if the hub is not being detected then
-> probably won't show anything either.
-> 
-> I am going to install devmem2 into the root image and use it to poke
-> around and see the state of the system at run time.
-> 
-> Thanks for looking in to this.
+> AFAIK RS485 feature is still not implemented in 8250. That's why I
+> would like this patch to be still included into omap_serial for now.
 
-The hub is functioning, 3.3V is up, the ~RESET line is high and the
-6MHz crystal is running at 6MHz.
+No one I know in TI has used or tested the RS485 functionality. Thats
+why Sebastian left it when he created the 8250_omap driver. Since you
+have the setup to test it, is it possible for you to migrate that
+functionality to 8250_omap.c itself rather than enhance omap-serial.c?
 
-I will get a register dump from both sets and compare.
+We really want to be gravitating towards 8250_omap.c and this patch will
+take us backwards. As a bonus you get more efficient interrupt handling
+etc with the new driver.
 
--- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+Thanks,
+Sekhar
