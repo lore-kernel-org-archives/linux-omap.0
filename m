@@ -1,41 +1,84 @@
-From: Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
-Subject: [PATCH v2 2/2] ARM: OMAP: enable DM9000 in omap2plus_defconfig
-Date: Wed, 27 May 2015 22:00:14 +0200
-Message-ID: <1432756814-2078-2-git-send-email-anthoine.bourgeois@gmail.com>
-References: <1432237937-16691-1-git-send-email-anthoine.bourgeois@gmail.com>
- <1432756814-2078-1-git-send-email-anthoine.bourgeois@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [RFC] Fix omap3 booting with thumb2 compiled kernel
+Date: Wed, 27 May 2015 14:55:46 -0700
+Message-ID: <20150527215545.GA30984@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:35349 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753300AbbE0UAw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2015 16:00:52 -0400
-Received: by wgme6 with SMTP id e6so18941694wgm.2
-        for <linux-omap@vger.kernel.org>; Wed, 27 May 2015 13:00:51 -0700 (PDT)
-In-Reply-To: <1432756814-2078-1-git-send-email-anthoine.bourgeois@gmail.com>
+Received: from muru.com ([72.249.23.125]:54193 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751968AbbE0Vzs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 May 2015 17:55:48 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-This ethernet device is used on devkit8000 board.
+The power management related assembly needs to interact with
+ARM mode bootrom code, so we need to keep most of the related
+assembly in ARM mode.
 
-Signed-off-by: Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
+Currently we are entering into and ARM mode assembly function
+from thumb2 mode, so we need to make sure we switch to ARM
+mode. And we need to do that again after the cache flush.
+
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 8e10859..08cd89c 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -135,6 +135,7 @@ CONFIG_NETDEVICES=y
- # CONFIG_NET_CADENCE is not set
- # CONFIG_NET_VENDOR_BROADCOM is not set
- # CONFIG_NET_VENDOR_CIRRUS is not set
-+CONFIG_DM9000=y
- # CONFIG_NET_VENDOR_FARADAY is not set
- # CONFIG_NET_VENDOR_HISILICON is not set
- # CONFIG_NET_VENDOR_INTEL is not set
--- 
-2.0.5
+Kevin told me about this earlier today.. Anybody got better ideas
+for a fix here?
 
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -151,6 +151,17 @@ ENTRY(save_secure_ram_context_sz)
+  */
+ 	.align	3
+ ENTRY(omap34xx_cpu_suspend)
++
++	/*
++	 * This ARM assembly can also be called from thumb2 kernel code.
++	 * Make sure we switch to ARM mode first.
++	 */
++ THUMB(	.thumb		)
++ THUMB(	.align		)
++ THUMB(	bx	pc	)
++ THUMB(	nop		)
++	.arm
++
+ 	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+ 
+ 	/*
+@@ -187,6 +198,18 @@ save_context_wfi:
+ 	bx	r1
+ 
+ 	/*
++	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
++	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
++	 * This sequence switches back to ARM.  Note that .align may insert a
++	 * nop: bx pc needs to be word-aligned in order to work.
++	 */
++ THUMB(	.thumb		)
++ THUMB(	.align		)
++ THUMB(	bx	pc	)
++ THUMB(	nop		)
++	.arm
++
++	/*
+ 	 * Clear the SCTLR.C bit to prevent further data cache
+ 	 * allocation. Clearing SCTLR.C would make all the data accesses
+ 	 * strongly ordered and would not hit the cache.
+@@ -203,12 +226,8 @@ save_context_wfi:
+ 	 */
+ 	ldr	r1, kernel_flush
+ 	blx	r1
+-	/*
+-	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
+-	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
+-	 * This sequence switches back to ARM.  Note that .align may insert a
+-	 * nop: bx pc needs to be word-aligned in order to work.
+-	 */
++
++	/* See the comments above about v7_flush_dcache_all */
+  THUMB(	.thumb		)
+  THUMB(	.align		)
+  THUMB(	bx	pc	)
