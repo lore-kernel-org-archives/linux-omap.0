@@ -1,47 +1,28 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [RFC] Fix omap3 booting with thumb2 compiled kernel
-Date: Wed, 27 May 2015 15:19:10 -0700
-Message-ID: <7h7frtmzoh.fsf@deeprootsystems.com>
-References: <20150527215545.GA30984@atomide.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH 5/5] mmc: omap_hsmmc: Change wake-up interrupt to use
+ generic wakeirq
+Date: Thu, 28 May 2015 00:42:59 +0200
+Message-ID: <55664873.2080604@intel.com>
+References: <1431560196-5722-1-git-send-email-tony@atomide.com>	<1431560196-5722-6-git-send-email-tony@atomide.com> <CAPDyKFqsfVL1SG2uuQRx3g=8DeJ4W_RhZwEEeQwFedhwOnBjXA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:34693 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660AbbE0WTN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2015 18:19:13 -0400
-Received: by pabru16 with SMTP id ru16so7834477pab.1
-        for <linux-omap@vger.kernel.org>; Wed, 27 May 2015 15:19:13 -0700 (PDT)
-In-Reply-To: <20150527215545.GA30984@atomide.com> (Tony Lindgren's message of
-	"Wed, 27 May 2015 14:55:46 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqsfVL1SG2uuQRx3g=8DeJ4W_RhZwEEeQwFedhwOnBjXA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Dave Martin <dave.martin@arm.com>, linux-arm-kernel@lists.infradead.org, tyler.baker@linaro.org
 
-[ fix email for Dave Martin, +Tyler ]
-
-Tony Lindgren <tony@atomide.com> writes:
-
-> The power management related assembly needs to interact with
-> ARM mode bootrom code, so we need to keep most of the related
-> assembly in ARM mode.
+On 5/25/2015 10:38 AM, Ulf Hansson wrote:
+> On 14 May 2015 at 01:36, Tony Lindgren <tony@atomide.com> wrote:
+>> We can now use generic wakeirq handling and remove the custom handling
+>> for the wake-up interrupts.
+>>
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Rafael, if you are fine with it, please take this one through your
+> linux-pm tree.
 >
-> Currently we are entering into and ARM mode assembly function
-> from thumb2 mode, so we need to make sure we switch to ARM
-> mode. And we need to do that again after the cache flush.
->
-> ---
->
-> Kevin told me about this earlier today.. 
+> Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-
-And for full boot log/panics, see the kernelci.org thumb2 kernel boots
-that fail: http://kernelci.org/boot/?THUMB2_KERNEL&fail
-
-> Anybody got better ideas for a fix here?
-
-FWIW, a quick test of this patch makes my omap3-beagle-xm pass a simple
-boot test, but it fails with off idle.
-
-Kevin
+I thought that Tony would resubmit this one.  Tony?
