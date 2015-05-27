@@ -1,141 +1,144 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 7/7] ARM: dts: am335x-boneblack: Add HDMI audio support DO NOT MERGE
-Date: Tue, 26 May 2015 21:59:11 +0300
-Message-ID: <1432666751-24794-8-git-send-email-jsarha@ti.com>
-References: <1432666751-24794-1-git-send-email-jsarha@ti.com>
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: Re: AM3517 usb host issue
+Date: Wed, 27 May 2015 07:31:18 +0300
+Message-ID: <55654896.4070503@codethink.co.uk>
+References: <555EE311.3030507@codethink.co.uk> <20150522135039.GA5582@saruman.tx.rr.com> <555F8DE2.1050403@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59056 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751274AbbEZTAb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 May 2015 15:00:31 -0400
-In-Reply-To: <1432666751-24794-1-git-send-email-jsarha@ti.com>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:52414 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745AbbE0EbY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2015 00:31:24 -0400
+In-Reply-To: <555F8DE2.1050403@codethink.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, moinejf@free.fr, rmk+kernel@arm.linux.org.uk, Jyri Sarha <jsarha@ti.com>
+To: balbi@ti.com
+Cc: Linux USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch is here only to demonstrate HDMI codec functionality on
-Beaglebone-Black.
+On 22/05/15 23:13, Ben Dooks wrote:
+> On 22/05/15 16:50, Felipe Balbi wrote:
+>> Hi,
+> 
+>> On Fri, May 22, 2015 at 11:04:33AM +0300, Ben Dooks wrote:
+>>> I am trying to get the full-speed USB host working on an custom
+>>> AM3517 device with the 3.18.12 kernel. The hardware works (a
+>>> 2.6.37 kernel has been used for testing).
+>>>
+>>> Does anyone have any experience of 3.18 (or similarly recent
+>>> kernel on an AM3517 system) or have any pointers as where to
+>>> start debugging? The ti-linux-3.14.y does not have any patches
+>>> that aren't applied to the usb on 3.18.13.
+>>>
+>>> The cpu port 1 is connected by a TI TUSB1106 usb transceiver that
+>>> is directly connected to a full-speed hub (TI USB2046) hub so the
+>>> OHCI driver is the only one in use.
+>>>
+>>> Note, the ohci-omap3 is loaded as a module as this is how their
+>>> user application expects to be able to shut down usb when it does
+>>> not need it.
+>>>
+>>> The device tree configuration for the usb host:
+> 
+>> and what exactly doesn't work ? That old OHCI driver hasn't been
+>> touched in years, it's no surprise that it stopped working :-(
+> 
+>> Anyway, what exactly doesn't work ? No device enumerates ? Do you
+>> get any IRQs by plugging a new device in ?
+> 
+> I will check the interrupts when I get back into the office.
+> 
+> There is only one device (the hub) which isn't enumerating and is
+> hard-wired on the board.
+> 
+>>>> &usbhshost { status = "okay";	/* just in case it is started
+>>>> disabled */
+>>>>
+>>>> port1-mode = "ohci-phy-6pin-dpdm"; };
+>>>>
+>>>> &usbhsohci { status = "okay"; };
+>>>>
+>>>> &usbhsehci { status = "disabled";	/* no ehci on board */ };
+>>>
+>>>
+>>> The usb from the logs is as follows. Some extra debugging has
+>>> been added to verify the device-tree settings:
+>>>
+>>>> [    0.000000] AM3517 ES1.1 (l2cache sgx neon)
+>>>>
+>>>>
+>>>> [    0.869706] usbcore: registered new interface driver usbfs
+>>>>  [    0.874270] usbcore: registered new interface driver hub
+>>>>  [    0.878592] usbcore: registered new device driver usb
+>>>>  [    1.223199] usbhs_tll 48062000.usbhstll: starting TI HSUSB
+>>>> TLL Controller [    1.273000] usbhs_omap 48064000.usbhshost:
+>>>> ports 0 [    1.278291] usbhs_omap 48064000.usbhshost: port 0:
+>>>> ohci-phy-6pin-dpdm [    1.284476] usbhs_omap
+>>>> 48064000.usbhshost: port0-mode: ohci-phy-6pin-dpdm ->5 [
+>>>> 1.288689] usbhs_tll 48062000.usbhstll: omap_tll_init()
+>>>>  [    1.293628] usbhs_omap 48064000.usbhshost:
+>>>> usbhs_runtime_resume [    1.298434] usbhs_omap
+>>>> 48064000.usbhshost: sysconfig 0x00001009 [    1.302730]
+>>>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
+>>>>  [    1.307668] usbhs_omap 48064000.usbhshost:
+>>>> usbhs_runtime_suspend [    1.310142] stopping usb controller
+>>>>  [    1.419910] usbhs_tll 48062000.usbhstll: omap_tll_disable()
+>>>>  [    1.423547] usbhs_omap 48064000.usbhshost: 3 ports
+>>>>  [    1.429065] usbhs_omap 48064000.usbhshost: starting TI
+>>>> HSUSB Controller [    1.433831] usbhs_omap 48064000.usbhshost:
+>>>> usbhs_runtime_resume [    1.438625] usbhs_omap
+>>>> 48064000.usbhshost: sysconfig 0x00001009 [    1.442921]
+>>>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
+>>>>  [    1.448548] usbhs_omap 48064000.usbhshost:
+>>>> omap_usbhs_rev1_hostconfig => [    1.455034] usbhs_omap
+>>>> 48064000.usbhshost: UHH setup done, uhh_hostconfig=80d [
+>>>> 1.459918] usbhs_omap 48064000.usbhshost: usbhs_runtime_suspend
+>>>>  [    1.462337] stopping usb controller
+>>>>  [    1.569905] usbhs_tll 48062000.usbhstll: omap_tll_disable()
+>>>>  [    1.575408] usbhs_omap 48064000.usbhshost: populating usb
+>>>> sub nodes....
+>>>>
+>>>> [   77.609168] usbhs_omap 48064000.usbhshost:
+>>>> usbhs_runtime_resume [   77.613927] usbhs_omap
+>>>> 48064000.usbhshost: sysconfig 0x00001009 [   77.618374]
+>>>> usbhs_tll 48062000.usbhstll: omap_tll_enable()
+>>>>  [   77.802694] usb usb1: New USB device found, idVendor=1d6b,
+>>>> idProduct=0001 [   77.816003] usb usb1: New USB device strings:
+>>>> Mfr=3, Product=2, SerialNumber1 [   77.827391] usb usb1:
+>>>> Product: OHCI Host Controller [   77.838674] usb usb1:
+>>>> Manufacturer: Linux 3.18.13-00203-ga3c52be-dirty ohci_d [
+>>>> 77.849913] usb usb1: SerialNumber: 48064400.ohci
+>>>>
+> 
+>> OK, so this is roothub, what happens when a device is plugged to
+>> the other end ? Is VBUS charged ? We didn't even enumerate
+>> TUSB2046, did you look at its datasheet
+>> (http://www.ti.com/lit/ds/symlink/tusb2046b.pdf) ? What is the
+>> state of RESETn pin ? Perhaps that's tied to a GPIO and the old TI
+>> kernel toggles that ? Anything interesting from usbmon ?
+> 
+> I've gone through the schematics and verified the hub's reset line
+> is connected where we think it is (will try and check with a 'scope
+> on monday that it is being taken high, the boot-loader starts it low).
+> 
+> The root has just the one device connected, and unfortunately the
+> hw designer decided to hard-wire the D+ pull-up to 3.3V instead
+> of the transceiver's pull pin.
+> 
+> Not tried usbmon yet. However if the hub is not being detected then
+> probably won't show anything either.
+> 
+> I am going to install devmem2 into the root image and use it to poke
+> around and see the state of the system at run time.
+> 
+> Thanks for looking in to this.
 
-Adds mcasp0_pins, clk_mcasp0_fixed, clk_mcasp0, mcasp0, sound node,
-and changes the tda19988 node to follow the new binding.
+The hub is functioning, 3.3V is up, the ~RESET line is high and the
+6MHz crystal is running at 6MHz.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- arch/arm/boot/dts/am335x-boneblack.dts | 78 +++++++++++++++++++++++++++++++++-
- 1 file changed, 76 insertions(+), 2 deletions(-)
+I will get a register dump from both sets and compare.
 
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index eadbba3..8a8abf5 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -64,6 +64,16 @@
- 			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
- 		>;
- 	};
-+
-+	mcasp0_pins: mcasp0_pins {
-+		pinctrl-single,pins = <
-+			0x1ac (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_ahclkx.mcasp0_ahclkx */
-+			0x19c (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2 */
-+			0x194 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
-+			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
-+			0x06c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.GPIO1_27 */
-+		>;
-+	};
- };
- 
- &lcdc {
-@@ -76,21 +86,85 @@
- };
- 
- &i2c0 {
--	tda19988 {
-+	tda19988: tda19988 {
- 		compatible = "nxp,tda998x";
- 		reg = <0x70>;
-+
-+		#sound-dai-cells = <0>;
-+
- 		pinctrl-names = "default", "off";
- 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
- 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
- 
--		port {
-+		port@0 {
-+			port-type = "rgb";
-+			reg = <0x230145>;
- 			hdmi_0: endpoint@0 {
- 				remote-endpoint = <&lcdc_0>;
- 			};
- 		};
-+		port@1 {
-+			port-type = "i2s";
-+			reg = <0x03>;
-+			tda19988_i2s: endpoint {
-+				remote-endpoint = <&mcasp0_i2s>;
-+			};
-+		};
- 	};
- };
- 
- &rtc {
- 	system-power-controller;
- };
-+
-+&mcasp0	{
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcasp0_pins>;
-+	status = "okay";
-+	op-mode = <0>;	/* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 0
-+		>;
-+	tx-num-evt = <1>;
-+	rx-num-evt = <1>;
-+
-+	port {
-+		mcasp0_i2s: endpoint {
-+			remote-endpoint = <&tda19988_i2s>;
-+		};
-+	};
-+};
-+
-+/ {
-+	clk_mcasp0_fixed: clk_mcasp0_fixed {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <24576000>;
-+	};
-+
-+	clk_mcasp0: clk_mcasp0 {
-+		#clock-cells = <0>;
-+		compatible = "gpio-gate-clock";
-+		clocks = <&clk_mcasp0_fixed>;
-+		enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
-+	};
-+
-+	sound {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "TI BeagleBone Black";
-+		simple-audio-card,format = "i2s";
-+		simple-audio-card,bitclock-master = <&dailink0_master>;
-+		simple-audio-card,frame-master = <&dailink0_master>;
-+
-+		dailink0_master: simple-audio-card,cpu {
-+			sound-dai = <&mcasp0>;
-+			clocks = <&clk_mcasp0>;
-+		};
-+
-+		simple-audio-card,codec {
-+			sound-dai = <&tda19988>;
-+		};
-+	};
-+};
 -- 
-1.9.1
-
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
