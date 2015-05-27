@@ -1,110 +1,82 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
-Date: Wed, 27 May 2015 21:30:51 +0300
-Message-ID: <55660D5B.8020607@ti.com>
-References: <1432566032-10860-1-git-send-email-t-kristo@ti.com> <20150526160557.GD16525@atomide.com> <20150526163216.GF16525@atomide.com> <20150526163931.GO26599@saruman.tx.rr.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
+Subject: [PATCH v2 1/2] ARM: dts: omap3-devkit8000: Add dm9000 support
+Date: Wed, 27 May 2015 22:00:13 +0200
+Message-ID: <1432756814-2078-1-git-send-email-anthoine.bourgeois@gmail.com>
+References: <1432237937-16691-1-git-send-email-anthoine.bourgeois@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52623 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751287AbbE0SbI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 May 2015 14:31:08 -0400
-In-Reply-To: <20150526163931.GO26599@saruman.tx.rr.com>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:33668 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300AbbE0UAo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2015 16:00:44 -0400
+Received: by wicmx19 with SMTP id mx19so104196304wic.0
+        for <linux-omap@vger.kernel.org>; Wed, 27 May 2015 13:00:43 -0700 (PDT)
+In-Reply-To: <1432237937-16691-1-git-send-email-anthoine.bourgeois@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Tony Lindgren <tony@atomide.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@linaro.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
 
-On 05/26/2015 07:39 PM, Felipe Balbi wrote:
-> On Tue, May 26, 2015 at 09:32:16AM -0700, Tony Lindgren wrote:
->> * Tony Lindgren <tony@atomide.com> [150526 09:08]:
->>> * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
->>>> Hi,
->>>>
->>>> As requested, posting v3 with somewhat changed diff parameters and
->>>> diffstat attached. Just some minor Makefile changes compared to v2,
->>>> these were discussed under that set.
->>>>
->>>> Set has been pushed to:
->>>> - tree: https://github.com/t-kristo/linux-pm.git
->>>> - branch: for-4.2/ti-clk-move
->>>
->>> Looks like this causes a build error for at least omap2 only .config:
->>>
->>> drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
->>> drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
->>>
->>> You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
->>> KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
->>> randconfigs :) Usually the issues like this are exposed within few
->>> randconfig builds, some take longer if the options have dependencies.
->
-> alternatively, just clone the repository at [1] and use the example
-> script provided in README.md.
->
-> [1] https://github.com/felipebalbi/omap-seeds
->
+Support dm9000 network interface in the device tree of devkit8000 board.
 
-Ok, I pushed an updated branch named: for-4.2/ti-clk-move-v4
+Signed-off-by: Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
+---
 
-This definitely compiles with OMAP2 / OMAP3 / OMAP4 / OMAP5 / DRA7 / 
-AM33xx / AM43xx only setups (tried it out.)
+Changes since v1:
+ * Fix io-mapping size
+ * Fix comments
 
-The extra diff compared to v3 inlined here, the changes have been 
-squashed to the branch itself:
-====================
+ arch/arm/boot/dts/omap3-devkit8000.dts | 41 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index fc6fe8c..9b93e69 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,18 +1,19 @@
-  obj-y					+= clk.o autoidle.o clockdomain.o
-  clk-common				= dpll.o composite.o divider.o gate.o \
-  					  fixed-factor.o mux.o apll.o \
--					  clkt_dpll.o clkt_iclk.o dpll3xxx.o \
--					  clkt_dflt.o
--obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
-+					  clkt_dpll.o clkt_iclk.o clkt_dflt.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o dpll3xxx.o
-  obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-816x.o
-  obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
-  obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o \
--					   clk-3xxx.o
--obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o dpll44xx.o
--obj-$(CONFIG_SOC_OMAP5)			+= $(clk-common) clk-54xx.o dpll44xx.o
-+					   clk-3xxx.o dpll3xxx.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= $(clk-common) clk-44xx.o \
-+					   dpll3xxx.o dpll44xx.o
-+obj-$(CONFIG_SOC_OMAP5)			+= $(clk-common) clk-54xx.o \
-+					   dpll3xxx.o dpll44xx.o
-  obj-$(CONFIG_SOC_DRA7XX)		+= $(clk-common) clk-7xx.o \
--					   clk-dra7-atl.o dpll44xx.o
--obj-$(CONFIG_SOC_AM43XX)		+= $(clk-common) clk-43xx.o
-+					   clk-dra7-atl.o dpll3xxx.o dpll44xx.o
-+obj-$(CONFIG_SOC_AM43XX)		+= $(clk-common) dpll3xxx.o clk-43xx.o
-
-  ifdef CONFIG_ATAGS
-  obj-$(CONFIG_ARCH_OMAP3)                += clk-3xxx-legacy.o
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 786ab59..e8d7d13 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -402,6 +402,7 @@ int __init ti_clk_register_legacy_clks(struct 
-ti_clk_alias *clks)
-
-  	return 0;
-  }
-+#endif
-
-  /**
-   * ti_clk_setup_features - setup clock features flags
-@@ -449,4 +450,3 @@ void omap2_clk_enable_init_clocks(const char 
-**clk_names, u8 num_clocks)
-  		clk_prepare_enable(init_clk);
-  	}
-  }
--#endif
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+index 283db1d..2af54cb 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -158,3 +158,44 @@
+ 		};
+ 	};
+ };
++
++&gpmc {
++	ranges = <6 0 0x2c000000 0x1000000>;       /* CS6: 16MB for DM9000 */
++
++	ethernet@0,0 {
++		compatible = "davicom,dm9000";
++		reg =  <6 0x000 2
++			6 0x400 2>; /* CS6, offset 0 and 0x400, IO size 2 */
++		bank-width = <2>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <25 IRQ_TYPE_LEVEL_LOW>;
++		davicom,no-eeprom;
++
++		gpmc,mux-add-data = <0>;
++		gpmc,device-width = <1>;
++		gpmc,wait-pin = <0>;
++		gpmc,cycle2cycle-samecsen = <1>;
++		gpmc,cycle2cycle-diffcsen = <1>;
++
++		gpmc,cs-on-ns = <6>;
++		gpmc,cs-rd-off-ns = <180>;
++		gpmc,cs-wr-off-ns = <180>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <18>;
++		gpmc,adv-wr-off-ns = <48>;
++		gpmc,oe-on-ns = <54>;
++		gpmc,oe-off-ns = <168>;
++		gpmc,we-on-ns = <54>;
++		gpmc,we-off-ns = <168>;
++		gpmc,rd-cycle-ns = <186>;
++		gpmc,wr-cycle-ns = <186>;
++		gpmc,access-ns = <144>;
++		gpmc,page-burst-access-ns = <24>;
++		gpmc,bus-turnaround-ns = <90>;
++		gpmc,cycle2cycle-delay-ns = <90>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		gpmc,wr-access-ns = <0>;
++	};
++};
+-- 
+2.0.5
 
