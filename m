@@ -1,43 +1,458 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v6 7/7] ARM: dts: am335x-boneblack: Use new binding for HDMI
-Date: Wed, 27 May 2015 12:23:01 +0300
-Message-ID: <24904e4f2d314d73608e33a11d1426145d1a3402.1432718049.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v6 5/7] drm/tilcdc: Add DRM_TILCDC_SLAVE_COMPAT for ti,tilcdc,slave binding support
+Date: Wed, 27 May 2015 12:22:59 +0300
+Message-ID: <ed4d30bd53628fd89606c9e9adc73d521b54cc1d.1432718049.git.jsarha@ti.com>
 References: <cover.1432718049.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1432718049.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com
-Cc: rmk+kernel@arm.linux.org.uk, tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1432718049.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: tomi.valkeinen-l0cyMroinI0@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-VXNlIG5ldyBiaW5kaW5nIGZvciB0aGUgZXh0ZXJuYWwgdGRhMTk5ODggSERNSSBlbmNvZGVyLgoK
-U2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9i
-b290L2R0cy9hbTMzNXgtYm9uZWJsYWNrLmR0cyB8IDIwICsrKysrKysrKysrKysrKy0tLS0tCiAx
-IGZpbGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZWJsYWNrLmR0cyBiL2FyY2gvYXJtL2Jv
-b3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRzCmluZGV4IDVjNDJkMjUuLmVhZGJiYTMgMTAwNjQ0
-Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRzCisrKyBiL2FyY2gv
-YXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRzCkBAIC02OCwxNiArNjgsMjYgQEAKIAog
-JmxjZGMgewogCXN0YXR1cyA9ICJva2F5IjsKKwlwb3J0IHsKKwkJbGNkY18wOiBlbmRwb2ludEAw
-IHsKKwkJCXJlbW90ZS1lbmRwb2ludCA9IDwmaGRtaV8wPjsKKwkJfTsKKwl9OwogfTsKIAotLyB7
-Ci0JaGRtaSB7Ci0JCWNvbXBhdGlibGUgPSAidGksdGlsY2RjLHNsYXZlIjsKLQkJaTJjID0gPCZp
-MmMwPjsKKyZpMmMwIHsKKwl0ZGExOTk4OCB7CisJCWNvbXBhdGlibGUgPSAibnhwLHRkYTk5OHgi
-OworCQlyZWcgPSA8MHg3MD47CiAJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCIsICJvZmYiOwog
-CQlwaW5jdHJsLTAgPSA8Jm54cF9oZG1pX2JvbmVsdF9waW5zPjsKIAkJcGluY3RybC0xID0gPCZu
-eHBfaGRtaV9ib25lbHRfb2ZmX3BpbnM+OwotCQlzdGF0dXMgPSAib2theSI7CisKKwkJcG9ydCB7
-CisJCQloZG1pXzA6IGVuZHBvaW50QDAgeworCQkJCXJlbW90ZS1lbmRwb2ludCA9IDwmbGNkY18w
-PjsKKwkJCX07CisJCX07CiAJfTsKIH07CiAKLS0gCjEuOS4xCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
-ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Adds a CONFIG_DRM_TILCDC_SLAVE_COMPAT module for "ti,tilcdc,slave"
+node conversion. The implementation is in tilcdc_slave_compat.c and it
+uses tilcdc_slave_compat.dts as a basis for creating a DTS
+overlay. The DTS overlay adds an external tda998x encoder to tilcdc
+that corresponds to the old tda998x based slave encoder.
+
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+---
+ drivers/gpu/drm/tilcdc/Kconfig                 |  12 ++
+ drivers/gpu/drm/tilcdc/Makefile                |   3 +
+ drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c   | 270 +++++++++++++++++++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts |  72 +++++++
+ drivers/gpu/drm/tilcdc/tilcdc_slave_compat.h   |  25 +++
+ 5 files changed, 382 insertions(+)
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts
+ create mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave_compat.h
+
+diff --git a/drivers/gpu/drm/tilcdc/Kconfig b/drivers/gpu/drm/tilcdc/Kconfig
+index 8394a0b..78beafb 100644
+--- a/drivers/gpu/drm/tilcdc/Kconfig
++++ b/drivers/gpu/drm/tilcdc/Kconfig
+@@ -12,3 +12,15 @@ config DRM_TILCDC
+ 	  Choose this option if you have an TI SoC with LCDC display
+ 	  controller, for example AM33xx in beagle-bone, DA8xx, or
+ 	  OMAP-L1xx.  This driver replaces the FB_DA8XX fbdev driver.
++
++config DRM_TILCDC_SLAVE_COMPAT
++	bool "Support device tree blobs using TI LCDC Slave binding"
++	depends on DRM_TILCDC
++	default y
++	select OF_RESOLVE
++	select OF_OVERLAY
++	help
++	  Choose this option if you need a kernel that is compatible
++	  with device tree blobs using the obsolete "ti,tilcdc,slave"
++	  binding. If you find "ti,tilcdc,slave"-string from your DTB,
++	  you probably need this. Otherwise you do not.
+diff --git a/drivers/gpu/drm/tilcdc/Makefile b/drivers/gpu/drm/tilcdc/Makefile
+index e1f738b..deeca48 100644
+--- a/drivers/gpu/drm/tilcdc/Makefile
++++ b/drivers/gpu/drm/tilcdc/Makefile
+@@ -3,6 +3,9 @@ ifeq (, $(findstring -W,$(EXTRA_CFLAGS)))
+ 	ccflags-y += -Werror
+ endif
+ 
++obj-$(CONFIG_DRM_TILCDC_SLAVE_COMPAT) += tilcdc_slave_compat.o \
++					 tilcdc_slave_compat.dtb.o
++
+ tilcdc-y := \
+ 	tilcdc_crtc.o \
+ 	tilcdc_tfp410.o \
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c b/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c
+new file mode 100644
+index 0000000..106679b
+--- /dev/null
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.c
+@@ -0,0 +1,270 @@
++/*
++ * Copyright (C) 2015 Texas Instruments
++ * Author: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ */
++
++/*
++ * To support the old "ti,tilcdc,slave" binding the binding has to be
++ * transformed to the new external encoder binding.
++ */
++
++#include <linux/kernel.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/of_fdt.h>
++#include <linux/slab.h>
++#include <linux/list.h>
++
++#include "tilcdc_slave_compat.h"
++
++struct kfree_table {
++	int total;
++	int num;
++	void **table;
++};
++
++static int __init kfree_table_init(struct kfree_table *kft)
++{
++	kft->total = 32;
++	kft->num = 0;
++	kft->table = kmalloc(kft->total * sizeof(*kft->table),
++			     GFP_KERNEL);
++	if (!kft->table)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static int __init kfree_table_add(struct kfree_table *kft, void *p)
++{
++	if (kft->num == kft->total) {
++		void **old = kft->table;
++
++		kft->total *= 2;
++		kft->table = krealloc(old, kft->total * sizeof(*kft->table),
++				      GFP_KERNEL);
++		if (!kft->table) {
++			kft->table = old;
++			kfree(p);
++			return -ENOMEM;
++		}
++	}
++	kft->table[kft->num++] = p;
++	return 0;
++}
++
++static void __init kfree_table_free(struct kfree_table *kft)
++{
++	int i;
++
++	for (i = 0; i < kft->num; i++)
++		kfree(kft->table[i]);
++
++	kfree(kft->table);
++}
++
++static
++struct property * __init tilcdc_prop_dup(const struct property *prop,
++					 struct kfree_table *kft)
++{
++	struct property *nprop;
++
++	nprop = kzalloc(sizeof(*nprop), GFP_KERNEL);
++	if (!nprop || kfree_table_add(kft, nprop))
++		return NULL;
++
++	nprop->name = kstrdup(prop->name, GFP_KERNEL);
++	if (!nprop->name || kfree_table_add(kft, nprop->name))
++		return NULL;
++
++	nprop->value = kmemdup(prop->value, prop->length, GFP_KERNEL);
++	if (!nprop->value || kfree_table_add(kft, nprop->value))
++		return NULL;
++
++	nprop->length = prop->length;
++
++	return nprop;
++}
++
++static void __init tilcdc_copy_props(struct device_node *from,
++				     struct device_node *to,
++				     const char * const props[],
++				     struct kfree_table *kft)
++{
++	struct property *prop;
++	int i;
++
++	for (i = 0; props[i]; i++) {
++		prop = of_find_property(from, props[i], NULL);
++		if (!prop)
++			continue;
++
++		prop = tilcdc_prop_dup(prop, kft);
++		if (!prop)
++			continue;
++
++		prop->next = to->properties;
++		to->properties = prop;
++	}
++}
++
++static int __init tilcdc_prop_str_update(struct property *prop,
++					  const char *str,
++					  struct kfree_table *kft)
++{
++	prop->value = kstrdup(str, GFP_KERNEL);
++	if (kfree_table_add(kft, prop->value) || !prop->value)
++		return -ENOMEM;
++	prop->length = strlen(str)+1;
++	return 0;
++}
++
++static void __init tilcdc_node_disable(struct device_node *node)
++{
++	struct property *prop;
++
++	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
++	if (!prop)
++		return;
++
++	prop->name = "status";
++	prop->value = "disabled";
++	prop->length = strlen((char *)prop->value)+1;
++
++	of_update_property(node, prop);
++}
++
++struct device_node * __init tilcdc_get_overlay(struct kfree_table *kft)
++{
++	const int size = __dtb_tilcdc_slave_compat_end -
++		__dtb_tilcdc_slave_compat_begin;
++	static void *overlay_data;
++	struct device_node *overlay;
++	int ret;
++
++	if (!size) {
++		pr_warn("%s: No overlay data\n", __func__);
++		return NULL;
++	}
++
++	overlay_data = kmemdup(__dtb_tilcdc_slave_compat_begin,
++			       size, GFP_KERNEL);
++	if (!overlay_data || kfree_table_add(kft, overlay_data))
++		return NULL;
++
++	of_fdt_unflatten_tree(overlay_data, &overlay);
++	if (!overlay) {
++		pr_warn("%s: Unfattening overlay tree failed\n", __func__);
++		return NULL;
++	}
++
++	of_node_set_flag(overlay, OF_DETACHED);
++	ret = of_resolve_phandles(overlay);
++	if (ret) {
++		pr_err("%s: Failed to resolve phandles: %d\n", __func__, ret);
++		return NULL;
++	}
++
++	return overlay;
++}
++
++static const struct of_device_id tilcdc_slave_of_match[] __initconst = {
++	{ .compatible = "ti,tilcdc,slave", },
++	{},
++};
++
++static const struct of_device_id tilcdc_of_match[] __initconst = {
++	{ .compatible = "ti,am33xx-tilcdc", },
++	{},
++};
++
++static const struct of_device_id tilcdc_tda998x_of_match[] __initconst = {
++	{ .compatible = "nxp,tda998x", },
++	{},
++};
++
++static const char * const tilcdc_slave_props[] __initconst = {
++	"pinctrl-names",
++	"pinctrl-0",
++	"pinctrl-1",
++	NULL
++};
++
++void __init tilcdc_convert_slave_node(void)
++{
++	struct device_node *slave = NULL, *lcdc = NULL;
++	struct device_node *i2c = NULL, *fragment = NULL;
++	struct device_node *overlay, *encoder;
++	struct property *prop;
++	/* For all memory needed for the overlay tree. This memory can
++	   be freed after the overlay has been applied. */
++	struct kfree_table kft;
++	int ret;
++
++	if (kfree_table_init(&kft))
++		goto out;
++
++	lcdc = of_find_matching_node(NULL, tilcdc_of_match);
++	slave = of_find_matching_node(NULL, tilcdc_slave_of_match);
++
++	if (!slave || !of_device_is_available(lcdc))
++		goto out;
++
++	i2c = of_parse_phandle(slave, "i2c", 0);
++	if (!i2c) {
++		pr_err("%s: Can't find i2c node trough phandle\n", __func__);
++		goto out;
++	}
++
++	overlay = tilcdc_get_overlay(&kft);
++	if (!overlay)
++		goto out;
++
++	encoder = of_find_matching_node(overlay, tilcdc_tda998x_of_match);
++	if (!encoder) {
++		pr_err("%s: Failed to find tda998x node\n", __func__);
++		goto out;
++	}
++
++	tilcdc_copy_props(slave, encoder, tilcdc_slave_props, &kft);
++
++	for_each_child_of_node(overlay, fragment) {
++		prop = of_find_property(fragment, "target-path", NULL);
++		if (!prop)
++			continue;
++		if (!strncmp("i2c", (char *)prop->value, prop->length))
++			if (tilcdc_prop_str_update(prop, i2c->full_name, &kft))
++				goto out;
++		if (!strncmp("lcdc", (char *)prop->value, prop->length))
++			if (tilcdc_prop_str_update(prop, lcdc->full_name, &kft))
++				goto out;
++	}
++
++	tilcdc_node_disable(slave);
++
++	ret = of_overlay_create(overlay);
++	if (ret)
++		pr_err("%s: Creating overlay failed: %d\n", __func__, ret);
++	else
++		pr_info("%s: ti,tilcdc,slave node successfully converted\n",
++			__func__);
++out:
++	kfree_table_free(&kft);
++	of_node_put(i2c);
++	of_node_put(slave);
++	of_node_put(lcdc);
++	of_node_put(fragment);
++}
++
++int __init tilcdc_slave_compat_init(void)
++{
++	tilcdc_convert_slave_node();
++	return 0;
++}
++
++subsys_initcall(tilcdc_slave_compat_init);
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts b/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts
+new file mode 100644
+index 0000000..693f8b0
+--- /dev/null
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.dts
+@@ -0,0 +1,72 @@
++/*
++ * DTS overlay for converting ti,tilcdc,slave binding to new binding.
++ *
++ * Copyright (C) 2015 Texas Instruments Inc.
++ * Author: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++/*
++ * target-path property values are simple tags that are replaced with
++ * correct values in tildcdc_slave_compat.c. Some properties are also
++ * copied over from the ti,tilcdc,slave node.
++ */
++
++/dts-v1/;
++/ {
++	fragment@0 {
++		target-path = "i2c";
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			tda19988 {
++				compatible = "nxp,tda998x";
++				reg = <0x70>;
++				status = "okay";
++
++				port {
++					hdmi_0: endpoint@0 {
++						remote-endpoint = <&lcd_0>;
++					};
++				};
++			};
++		};
++	};
++
++	fragment@1 {
++		target-path = "lcdc";
++		__overlay__ {
++			port {
++				lcd_0: endpoint@0 {
++					remote-endpoint = <&hdmi_0>;
++				};
++			};
++		};
++	};
++
++	__local_fixups__ {
++		fragment@0 {
++			__overlay__ {
++				tda19988 {
++					port {
++						endpoint@0 {
++							remote-endpoint	= <0>;
++						};
++					};
++				};
++			};
++		};
++		fragment@1 {
++			__overlay__ {
++				port {
++					endpoint@0 {
++						remote-endpoint	= <0>;
++					};
++				};
++			};
++		};
++	};
++};
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.h b/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.h
+new file mode 100644
+index 0000000..403d35d
+--- /dev/null
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave_compat.h
+@@ -0,0 +1,25 @@
++/*
++ * Copyright (C) 2015 Texas Instruments
++ * Author: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++/* This header declares the symbols defined in tilcdc_slave_compat.dts */
++
++#ifndef __TILCDC_SLAVE_COMPAT_H__
++#define __TILCDC_SLAVE_COMPAT_H__
++
++extern uint8_t __dtb_tilcdc_slave_compat_begin[];
++extern uint8_t __dtb_tilcdc_slave_compat_end[];
++
++#endif /* __TILCDC_SLAVE_COMPAT_H__ */
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
