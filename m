@@ -1,42 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] mmc: omap_hsmmc: Change wake-up interrupt to use
- generic wakeirq
-Date: Thu, 28 May 2015 07:36:43 -0700
-Message-ID: <20150528143643.GF30984@atomide.com>
+Subject: Re: [PATCH 3/5] serial: omap: Switch wake-up interrupt to generic
+ wakeirq
+Date: Thu, 28 May 2015 07:56:16 -0700
+Message-ID: <20150528145616.GG30984@atomide.com>
 References: <1431560196-5722-1-git-send-email-tony@atomide.com>
- <1431560196-5722-6-git-send-email-tony@atomide.com>
- <CAPDyKFqsfVL1SG2uuQRx3g=8DeJ4W_RhZwEEeQwFedhwOnBjXA@mail.gmail.com>
- <55664873.2080604@intel.com>
- <20150527224500.GB30984@atomide.com>
+ <1431560196-5722-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:54365 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754018AbbE1O4U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 May 2015 10:56:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20150527224500.GB30984@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
+In-Reply-To: <1431560196-5722-4-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
 
-* Tony Lindgren <tony@atomide.com> [150527 15:46]:
-> * Rafael J. Wysocki <rafael.j.wysocki@intel.com> [150527 15:44]:
-> > On 5/25/2015 10:38 AM, Ulf Hansson wrote:
-> > >On 14 May 2015 at 01:36, Tony Lindgren <tony@atomide.com> wrote:
-> > >>We can now use generic wakeirq handling and remove the custom handling
-> > >>for the wake-up interrupts.
-> > >>
-> > >>Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > >Rafael, if you are fine with it, please take this one through your
-> > >linux-pm tree.
-> > >
-> > >Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
-> > 
-> > I thought that Tony would resubmit this one.  Tony?
-> 
-> OK I can queue it with Ulf's ack via arm-soc no problem.
+Hi Greg,
 
-I've applied this one now into omap-for-v4.2/wakeirq branch that's
-based on Rafael's pm-wakeirq branch.
+* Tony Lindgren <tony@atomide.com> [150513 16:38]:
+> We can now use generic wakeirq handling and remove the custom handling
+> for the wake-up interrupts.
+
+How do you prefer to handle the two omap specific serial driver
+changes in this series?
+
+There's a dependency to Rafael's pm-wakeirq branch that contains:
+
+4990d4fe327b ("PM / Wakeirq: Add automated device wake IRQ handling")
+56f487c78015 ("PM / Runtime: Update last_busy in rpm_resume")
+f6a2fbb903d5 ("PM / runtime: add note about re-calling in during
+device probe()")
+
+The 8250_omap.c driver change also needs to be merged with:
+
+9e91597f2423 ("serial: 8250_omap: provide complete custom startup &
+shutdown callbacks")
+
+Not sure if 9e91597f2423 is immutable, but if so then I could:
+
+a) Send you a pull request for the two serial driver patches
+   based on Rafael's pm-wakeirq branch merged with 9e91597f2423 to
+   avoid the merge conflict.
+
+b) Apply both serial driver patches into omap-for-v4.2/wakeirq
+   based on Rafael's pm-wakeirq branch merged with 9e91597f2423.
+
+Or do you have some better ideas?
 
 Regards,
 
