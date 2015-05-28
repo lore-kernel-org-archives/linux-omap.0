@@ -1,56 +1,148 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [RFC] Fix omap3 booting with thumb2 compiled kernel
-Date: Thu, 28 May 2015 14:43:30 +0300
-Message-ID: <CANOLnOMYBFAr_t_tOs8ifo=ngtCrpyogtf_7hBDc4rmbC_-BQQ@mail.gmail.com>
-References: <20150527215545.GA30984@atomide.com>
-	<7h7frtmzoh.fsf@deeprootsystems.com>
-	<20150527225553.GC30984@atomide.com>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt
+ source
+Date: Thu, 28 May 2015 15:06:05 +0200
+Message-ID: <20150528130605.GQ2185@piout.net>
+References: <1408637521-6764-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f44.google.com ([209.85.213.44]:33688 "EHLO
-	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753107AbbE1Lnb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2015 07:43:31 -0400
-Received: by yhpn97 with SMTP id n97so9637595yhp.0
-        for <linux-omap@vger.kernel.org>; Thu, 28 May 2015 04:43:30 -0700 (PDT)
-In-Reply-To: <20150527225553.GC30984@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1408637521-6764-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@kernel.org>, Arnd Bergmann <arnd@arndb.de>, tyler.baker@linaro.org, Stephen Boyd <sboyd@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Dave Martin <dave.martin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, May 28, 2015 at 1:55 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> 8 <----------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 27 May 2015 15:33:57 -0700
-> Subject: [PATCH] ARM: OMAP3: Fix booting with thumb2 kernel
->
-> We get a NULL pointer dereference on omap3 for thumb2 compiled kernel=
-s:
->
-> Internal error: Oops: 80000005 [#1] SMP THUMB2
-> ...
-> [<c046497b>] (_raw_spin_unlock_irqrestore) from [<c0024375>]
-> (omap3_enter_idle_bm+0xc5/0x178)
-> [<c0024375>] (omap3_enter_idle_bm) from [<c0374e63>]
-> (cpuidle_enter_state+0x77/0x27c)
-> [<c0374e63>] (cpuidle_enter_state) from [<c00627f1>]
-> (cpu_startup_entry+0x155/0x23c)
-> [<c00627f1>] (cpu_startup_entry) from [<c06b9a47>]
-> (start_kernel+0x32f/0x338)
-> [<c06b9a47>] (start_kernel) from [<8000807f>] (0x8000807f)
->
-> The power management related assembly on moaps needs to interact with
+Hi Nishanth,
 
-moaps -> omaps
+Do you mind rebasing that one so I can apply it?
 
+On 21/08/2014 at 11:12:01 -0500, Nishanth Menon wrote :
+> With the recent pinctrl-single changes, SoCs such as Texas
+> Instrument's OMAP processors can treat wake-up events from deeper idle
+> states as interrupts.
+> 
+> Let's add support for the optional second interrupt for wake-up
+> events. And then SoC can wakeup and handle the event using it's
+> regular handler.
+> 
+> Finally, to pass the wake-up interrupt in the dts file,
+> interrupts-extended property needs to be passed.
+> 
+> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
+> support for optional wake-up")
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  drivers/rtc/rtc-ds1307.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 57 insertions(+)
+> 
+> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+> index f03d5ba..5feedfc 100644
+> --- a/drivers/rtc/rtc-ds1307.c
+> +++ b/drivers/rtc/rtc-ds1307.c
+> @@ -15,6 +15,8 @@
+>  #include <linux/init.h>
+>  #include <linux/slab.h>
+>  #include <linux/i2c.h>
+> +#include <linux/of_device.h>
+> +#include <linux/of_irq.h>
+>  #include <linux/string.h>
+>  #include <linux/rtc.h>
+>  #include <linux/bcd.h>
+> @@ -115,6 +117,7 @@ struct ds1307 {
+>  	struct i2c_client	*client;
+>  	struct rtc_device	*rtc;
+>  	struct work_struct	work;
+> +	int			wakeirq;
+>  	s32 (*read_block_data)(const struct i2c_client *client, u8 command,
+>  			       u8 length, u8 *values);
+>  	s32 (*write_block_data)(const struct i2c_client *client, u8 command,
+> @@ -835,6 +838,34 @@ ds1307_nvram_write(struct file *filp, struct kobject *kobj,
+>  
+>  /*----------------------------------------------------------------------*/
+>  
+> +static int ds1307_i2c_suspend(struct i2c_client *client,  pm_message_t mesg)
+> +{
+> +	struct ds1307 *ds1307 = i2c_get_clientdata(client);
+> +	struct device *dev = &client->dev;
+> +
+> +	if (!ds1307->wakeirq)
+> +		return 0;
+> +
+> +	if (device_may_wakeup(dev))
+> +		enable_irq(ds1307->wakeirq);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ds1307_i2c_resume(struct i2c_client *client)
+> +{
+> +	struct ds1307 *ds1307 = i2c_get_clientdata(client);
+> +	struct device *dev = &client->dev;
+> +
+> +	if (!ds1307->wakeirq)
+> +		return 0;
+> +
+> +	if (device_may_wakeup(dev))
+> +		disable_irq_nosync(ds1307->wakeirq);
+> +
+> +	return 0;
+> +}
+> +
+>  static int ds1307_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+> @@ -1116,6 +1147,8 @@ read_rtc:
+>  	}
+>  
+>  	if (want_irq) {
+> +		struct device_node *node = client->dev.of_node;
+> +
+>  		err = request_irq(client->irq, ds1307_irq, IRQF_SHARED,
+>  			  ds1307->rtc->name, client);
+>  		if (err) {
+> @@ -1125,6 +1158,28 @@ read_rtc:
+>  
+>  			set_bit(HAS_ALARM, &ds1307->flags);
+>  			dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
+> +			if (node)
+> +				ds1307->wakeirq = irq_of_parse_and_map(node, 1);
+> +
+> +			if (ds1307->wakeirq <= 0)
+> +				ds1307->wakeirq = 0;
+> +			else
+> +				err = devm_request_irq(&client->dev,
+> +						       ds1307->wakeirq,
+> +						       ds1307_irq,
+> +						       IRQF_ONESHOT,
+> +						       ds1307->rtc->name,
+> +						       client);
+> +			if (err) {
+> +				dev_err(&client->dev, "unable to get wakeIRQ %d\n",
+> +					err);
+> +				free_irq(client->irq, client);
+> +				goto exit;
+> +			}
+> +
+> +			/* We enable the interrupt only during suspend path */
+> +			if (ds1307->wakeirq)
+> +				disable_irq_nosync(ds1307->wakeirq);
+>  		}
+>  	}
+>  
+> @@ -1189,6 +1244,8 @@ static struct i2c_driver ds1307_driver = {
+>  	},
+>  	.probe		= ds1307_probe,
+>  	.remove		= ds1307_remove,
+> +	.suspend	= ds1307_i2c_suspend,
+> +	.resume		= ds1307_i2c_resume,
+>  	.id_table	= ds1307_id,
+>  };
+>  
 
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
