@@ -1,56 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/5] serial: omap: Switch wake-up interrupt to generic
- wakeirq
-Date: Thu, 28 May 2015 07:56:16 -0700
-Message-ID: <20150528145616.GG30984@atomide.com>
-References: <1431560196-5722-1-git-send-email-tony@atomide.com>
- <1431560196-5722-4-git-send-email-tony@atomide.com>
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: [PATCH RESEND] mach-omap2:Remove unnessary return statement from the
+ void function, omap2_show_dma_caps
+Date: Thu, 28 May 2015 11:00:05 -0400
+Message-ID: <1432825205-4663-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:54365 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754018AbbE1O4U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 May 2015 10:56:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1431560196-5722-4-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
 
-Hi Greg,
+This removes the no longer required return statement at the end
+of the void function, omap2_show_dma_cap due to no need for a
+return statement due to this function always running successfully.
 
-* Tony Lindgren <tony@atomide.com> [150513 16:38]:
-> We can now use generic wakeirq handling and remove the custom handling
-> for the wake-up interrupts.
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+---
+ arch/arm/mach-omap2/dma.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-How do you prefer to handle the two omap specific serial driver
-changes in this series?
-
-There's a dependency to Rafael's pm-wakeirq branch that contains:
-
-4990d4fe327b ("PM / Wakeirq: Add automated device wake IRQ handling")
-56f487c78015 ("PM / Runtime: Update last_busy in rpm_resume")
-f6a2fbb903d5 ("PM / runtime: add note about re-calling in during
-device probe()")
-
-The 8250_omap.c driver change also needs to be merged with:
-
-9e91597f2423 ("serial: 8250_omap: provide complete custom startup &
-shutdown callbacks")
-
-Not sure if 9e91597f2423 is immutable, but if so then I could:
-
-a) Send you a pull request for the two serial driver patches
-   based on Rafael's pm-wakeirq branch merged with 9e91597f2423 to
-   avoid the merge conflict.
-
-b) Apply both serial driver patches into omap-for-v4.2/wakeirq
-   based on Rafael's pm-wakeirq branch merged with 9e91597f2423.
-
-Or do you have some better ideas?
-
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index e1a56d8..1ed4be1 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -117,7 +117,6 @@ static void omap2_show_dma_caps(void)
+ 	u8 revision = dma_read(REVISION, 0) & 0xff;
+ 	printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+ 				revision >> 4, revision & 0xf);
+-	return;
+ }
+ 
+ static unsigned configure_dma_errata(void)
+-- 
+2.1.4
