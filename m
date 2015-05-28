@@ -1,91 +1,143 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 07/13] mmc: davinci_mmc: Support for deferred probing when
- requesting DMA channels
-Date: Thu, 28 May 2015 09:31:19 +0200
-Message-ID: <CAPDyKFpiHz9nePG0D5HzMkuBGcyt7340hWjjn1emqAKZGWoUnA@mail.gmail.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-	<1432646768-12532-8-git-send-email-peter.ujfalusi@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Thu, 28 May 2015 09:37:40 +0200
+Message-ID: <20150528073740.GD16509@pali>
+References: <20131206213613.GA19648@earth.universe>
+ <201502111339.54480@pali>
+ <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+ <201502112128.44852@pali>
+ <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:35819 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbbE1HbT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2015 03:31:19 -0400
-Received: by qchk10 with SMTP id k10so14084420qch.2
-        for <linux-omap@vger.kernel.org>; Thu, 28 May 2015 00:31:19 -0700 (PDT)
-In-Reply-To: <1432646768-12532-8-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:35020 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394AbbE1Hho (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2015 03:37:44 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-crypto@vger.kernel.org, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-On 26 May 2015 at 15:26, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-> channels. Only fall back to pio mode if the error code returned is not
-> -EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Ulf Hansson <ulf.hansson@linaro.org>
+On Wednesday 11 February 2015 14:40:33 Nishanth Menon wrote:
+> On Wed, Feb 11, 2015 at 2:28 PM, Pali Roh=C3=A1r <pali.rohar@gmail.co=
+m> wrote:
+> > On Wednesday 11 February 2015 16:22:51 Matthijs van Duin wrote:
+> >> On 11 February 2015 at 13:39, Pali Roh=C3=A1r <pali.rohar@gmail.co=
+m>
+> > wrote:
+> >> >> Anyhow, since checking the firewalls/APs to see if you have
+> >> >> permission will probably only get you yet another fault if
+> >> >> things are walled off, the robust way of dealing with this
+> >> >> sort of situation is by probing the device with a read
+> >> >> while trapping bus faults. This also handles modules that
+> >> >> are unreachable for other reasons, e.g. being disabled by
+> >> >> eFuse.
+> >> >
+> >> > It is possible to patch kernel code to mask or ignore that
+> >> > fault? Can you help me with something like that?
+> >>
+> >> As I mentioned, I'm still learning my way around the kernel,
+> >> so I don't feel very comfortable suggesting a concrete patch
+> >> just yet. I've been browsing arch/arm/mm/ however and my
+> >> impression is that all that would be required is editing
+> >> fault.c by making a copy of do_bad but containing
+> >>     return user_mode(regs) || !fixup_exception(regs);
+> >> and hook it onto the appropriate fault codes.  However, this
+> >> really needs the opinion of someone more familiar with this
+> >> code.
+> >>
+> >> I do have an observation to make on the issue of fault
+> >> decoding: the list in fsr-2level.c may be "standard ARMv3 and
+> >> ARMv4 aborts" but they are quite wrong for ARMv7 which has:
+> >>
+> >> [ 0] -
+> >> [ 1] alignment fault
+> >> [ 2] debug event
+> >> [ 3] section access flag fault
+> >> [ 4] instruction cache maintainance fault (reported via data
+> >> abort) [ 5] section translation fault
+> >> [ 6] page access flag fault
+> >> [ 7] page translation fault
+> >> [ 8] bus error on access
+> >> [ 9] section domain fault
+> >> [10] -
+> >> [11] page domain fault
+> >> [12] bus error on section table walk
+> >> [13] section permission fault
+> >> [14] bus error on page table walk
+> >> [15] page permission fault
+> >> [16] (TLB conflict abort)
+> >> [17] -
+> >> [18] -
+> >> [19] -
+> >> [20] (lockdown abort)
+> >> [21] -
+> >> [22] async bus error (reported via data abort)
+> >> [23] -
+> >> [24] async parity/ECC error (reported via data abort)
+> >> [25] parity/ECC error on access
+> >> [26] (coprocessor abort)
+> >> [27] -
+> >> [28] parity/ECC error on section table walk
+> >> [29] -
+> >> [30] parity/ECC error on page table walk
+> >> [31] -
+> >>
+> >> Some entries are patched up near the bottom of fault.c but
+> >> many bogus messages remain, for example the "on linefetch" vs
+> >> "on non-linefetch" is misleading since no such thing can be
+> >> inferred from the fault status on v7.  Also, the i-cache
+> >> maintenance fault handling looks wrong to me: it should fetch
+> >> the actual fault status from IFSR (even though the address
+> >> still comes from DFSR) and dispatch based on that.
+> >>
+> >> Async external aborts (async bus error and async parity/ECC
+> >> error) give you basically no info. DFAR will contain garbage
+> >> hence displaying it will confuse rather than enlighten, a
+> >> traceback is pointless since the instruction that caused the
+> >> access is long retired, likewise user_mode() doesn't matter
+> >> since a transition to kernel space may have happened after
+> >> the access that cause the abort. Basically they should be
+> >> treated more as an IRQ than as a fault (note they can also be
+> >> masked just like irqs). In case of a bus error, it may be
+> >> appropriate to just warn about it, or perhaps send a signal
+> >> to the current process, although in the latter case it should
+> >> have some means to distinguish it from a synchronous bus
+> >> error.
+> >>
+> >> At least on the cortex-a8, a parity/ECC error (whether async
+> >> or not) is to be regarded as absolutely fatal.  Quoth the
+> >> TRM: "No recovery is possible. The abort handler must disable
+> >> the caches, communicate the fail directly with the external
+> >> system, request a reboot."
+> >>
+> >> Bit 10 no longer indicates an asynchronous (let alone
+> >> imprecise) fault.  Apart from the debug events and async
+> >> aborts (and possibly some implementation-defined aborts), all
+> >> aborts listed are synchronous, and DFAR/IFAR is valid.
+> >> There's no technical obstruction to make these trappable via
+> >> the kernel exception handling mechanism. (Though at least in
+> >> case of parity/ECC errors one shouldn't.)
+> >
+> > Tony, Nishanth, or somebody else... can you help with memory
+> > management? Or do you know some expert for arch/arm/mm/ code?
+>=20
+> Folks in linux-arm-kernel are probably the right people, I suppose.
+> Looping them in.
+>=20
 
-Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+So pinging linux-arm-kernel again. Any idea how to handle that fault?
 
-Kind regards
-Uffe
-
-> ---
->  drivers/mmc/host/davinci_mmc.c | 26 +++++++++++++++-----------
->  1 file changed, 15 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/mmc/host/davinci_mmc.c b/drivers/mmc/host/davinci_mmc.c
-> index b2b3f8bbfd8c..df81e4e2f662 100644
-> --- a/drivers/mmc/host/davinci_mmc.c
-> +++ b/drivers/mmc/host/davinci_mmc.c
-> @@ -530,20 +530,20 @@ static int __init davinci_acquire_dma_channels(struct mmc_davinci_host *host)
->         dma_cap_zero(mask);
->         dma_cap_set(DMA_SLAVE, mask);
->
-> -       host->dma_tx =
-> -               dma_request_slave_channel_compat(mask, edma_filter_fn,
-> -                               &host->txdma, mmc_dev(host->mmc), "tx");
-> -       if (!host->dma_tx) {
-> +       host->dma_tx = dma_request_slave_channel_compat_reason(mask,
-> +                               edma_filter_fn, &host->txdma,
-> +                               mmc_dev(host->mmc), "tx");
-> +       if (IS_ERR(host->dma_tx)) {
->                 dev_err(mmc_dev(host->mmc), "Can't get dma_tx channel\n");
-> -               return -ENODEV;
-> +               return PTR_ERR(host->dma_tx);
->         }
->
-> -       host->dma_rx =
-> -               dma_request_slave_channel_compat(mask, edma_filter_fn,
-> -                               &host->rxdma, mmc_dev(host->mmc), "rx");
-> -       if (!host->dma_rx) {
-> +       host->dma_rx = dma_request_slave_channel_compat_reason(mask,
-> +                               edma_filter_fn, &host->rxdma,
-> +                               mmc_dev(host->mmc), "rx");
-> +       if (IS_ERR(host->dma_rx)) {
->                 dev_err(mmc_dev(host->mmc), "Can't get dma_rx channel\n");
-> -               r = -ENODEV;
-> +               r = PTR_ERR(host->dma_rx);
->                 goto free_master_write;
->         }
->
-> @@ -1307,8 +1307,12 @@ static int __init davinci_mmcsd_probe(struct platform_device *pdev)
->         host->mmc_irq = irq;
->         host->sdio_irq = platform_get_irq(pdev, 1);
->
-> -       if (host->use_dma && davinci_acquire_dma_channels(host) != 0)
-> +       if (host->use_dma) {
-> +               ret = davinci_acquire_dma_channels(host);
-> +               if (ret == -EPROBE_DEFER)
-> +                       goto out;
->                 host->use_dma = 0;
-> +       }
->
->         /* REVISIT:  someday, support IRQ-driven card detection.  */
->         mmc->caps |= MMC_CAP_NEEDS_POLL;
-> --
-> 2.3.5
->
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
