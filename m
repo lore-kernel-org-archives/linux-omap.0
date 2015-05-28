@@ -1,67 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] Fix omap3 booting with thumb2 compiled kernel
-Date: Thu, 28 May 2015 13:41:25 -0700
-Message-ID: <20150528204124.GL30984@atomide.com>
-References: <20150527215545.GA30984@atomide.com>
- <20150528161730.GE3657@e103592.cambridge.arm.com>
- <20150528163605.GI30984@atomide.com>
- <6381487.LvuhvmaVk1@wuerfel>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCHv3 02/27] clk: ti: move generic OMAP DPLL implementation
+ under drivers/clk
+Date: Thu, 28 May 2015 15:03:27 -0700
+Message-ID: <20150528220327.GF24204@codeaurora.org>
+References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
+ <1432566032-10860-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:54478 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932185AbbE1Ul1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 May 2015 16:41:27 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:52401 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291AbbE1WD3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2015 18:03:29 -0400
 Content-Disposition: inline
-In-Reply-To: <6381487.LvuhvmaVk1@wuerfel>
+In-Reply-To: <1432566032-10860-3-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Martin <Dave.Martin@arm.com>, Grazvydas Ignotas <notasas@gmail.com>, Kevin Hilman <khilman@kernel.org>, tyler.baker@linaro.org, Stephen Boyd <sboyd@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, mturquette@linaro.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Arnd Bergmann <arnd@arndb.de> [150528 11:57]:
-> On Thursday 28 May 2015 09:36:05 Tony Lindgren wrote:
-> > * Dave Martin <Dave.Martin@arm.com> [150528 09:19]:
-> > > On Thu, May 28, 2015 at 07:21:25AM -0700, Tony Lindgren wrote:
-> > > > --- a/arch/arm/mach-omap2/sleep34xx.S
-> > > > +++ b/arch/arm/mach-omap2/sleep34xx.S
-> > > > @@ -203,23 +203,8 @@ save_context_wfi:
-> > > >      */
-> > > >     ldr     r1, kernel_flush
-> > > >     blx     r1
-> > > > -   /*
-> > > > -    * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
-> > > > -    * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
-> > > > -    * This sequence switches back to ARM.  Note that .align may insert a
-> > > > -    * nop: bx pc needs to be word-aligned in order to work.
-> > > > -    */
-> > > > - THUMB(    .thumb          )
-> > > > - THUMB(    .align          )
-> > > > - THUMB(    bx      pc      )
-> > > > - THUMB(    nop             )
-> > > > -   .arm
-> > > > -
-> > > 
-> > > ^ This looks unrelated to the issue?  This code is simply unnecessary
-> > > after Russell introduced the "ret" macro in commit 6ebbf2ce43.  That
-> > > made v7_flush_dcache_all do a proper interworking return.
-> > > 
-> > > It should probably be in a separate commit, or at least mentioned
-> > > explicitly in the commit log.
-> > 
-> > Thanks, I've updated the description with the commit info above.
-> > 
-> > I'll keep the removal of the duplicate code in this patch, as it's
-> > all related to the mode switching and we don't want to do it twice.
-> 
-> I would have thought that the change is actually necessary after
-> 6ebbf2ce43, because it now returns in ARM mode, which will cause the
-> "bx pc; nop" thumb instruction sequence be misinterpreted as an 
-> ARM instruction.
+On 05/25, Tero Kristo wrote:
+> @@ -281,7 +282,7 @@ unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk)
+>   * be rounded, or the rounded rate upon success.
+>   */
+>  long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+> -		unsigned long *parent_rate)
+> +			   unsigned long *parent_rate)
+>  {
+>  	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+>  	int m, n, r, scaled_max_m;
+> @@ -310,7 +311,6 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+>  	dd->last_rounded_rate = 0;
+>  
+>  	for (n = dd->min_divider; n <= dd->max_divider; n++) {
+> -
+>  		/* Is the (input clk, divider) pair valid for the DPLL? */
+>  		r = _dpll_test_fint(clk, n);
+>  		if (r == DPLL_FINT_UNDERFLOW)
+> @@ -367,4 +367,3 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+>  
+>  	return dd->last_rounded_rate;
+>  }
+> -
 
-Could be it's necessary.. But alone that change is not enough.
+It's a lot easier to see the cleanup that happened while copying
+code over. Thanks.
 
-Regards,
-
-Tony
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
