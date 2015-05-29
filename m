@@ -1,43 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Remove L3 compatible value for dm816x
-Date: Fri, 29 May 2015 10:21:52 -0700
-Message-ID: <1432920112-21539-1-git-send-email-tony@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: omap2plus_defconfig: Add dm816x USB PHY as a
+ loadable module
+Date: Fri, 29 May 2015 12:20:04 -0500
+Message-ID: <20150529171927.GJ2026@saruman.tx.rr.com>
+References: <1432919532-20445-1-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yaPAUYI/0vT2YKpA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery3.ore.mailhop.org ([54.213.22.21]:23834 "HELO
-	pmta2.delivery3.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756598AbbE2RV6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 May 2015 13:21:58 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:45752 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755331AbbE2RWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 May 2015 13:22:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1432919532-20445-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
 
-The interconnects on dm816x are like on omap4, so we should use
-l3-noc instead of l3-smx. But as the related SoC specific
-l3_target_data is still missing from omap_l3_noc let's just
-remove the entry for now.
+--yaPAUYI/0vT2YKpA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Brian Hutchinson <b.hutchman@gmail.com>
-Reported-by: Matthijs van Duin <matthijsvanduin@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dm816x.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Fri, May 29, 2015 at 10:12:12AM -0700, Tony Lindgren wrote:
+> This is needed for USB on dm816x-evm.
+>=20
+> Cc: Bin Liu <binmlist@gmail.com>
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Cc: George Cherian <george.cherian@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
-index 289806a..3c99cfa 100644
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -58,7 +58,7 @@
- 	 * the whole bus hierarchy.
- 	 */
- 	ocp {
--		compatible = "ti,omap3-l3-smx", "simple-bus";
-+		compatible = "simple-bus";
- 		reg = <0x44000000 0x10000>;
- 		interrupts = <9 10>;
- 		#address-cells = <1>;
--- 
-2.1.4
+it's a module, fine by me:
 
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
+2plus_defconfig
+> index 4380291..92e4206 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -402,6 +402,7 @@ CONFIG_PWM_TIECAP=3Dm
+>  CONFIG_PWM_TIEHRPWM=3Dm
+>  CONFIG_PWM_TWL=3Dm
+>  CONFIG_PWM_TWL_LED=3Dm
+> +CONFIG_PHY_DM816X_USB=3Dm
+>  CONFIG_OMAP_USB2=3Dm
+>  CONFIG_TI_PIPE3=3Dy
+>  CONFIG_TWL4030_USB=3Dm
+> --=20
+> 2.1.4
+>=20
+
+--=20
+balbi
+
+--yaPAUYI/0vT2YKpA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVaJ/DAAoJEIaOsuA1yqREk+8P/jMuYCbuV+/teHW2q2LJIN7e
+be/MTrK14xxkFMYJPkMZtDpTkAkETD1x6vnupGnYiPhFOnixDV0hv0A5T2b1JMKn
++LO3dC6/2cHy+D3/uZgOCdJ+ppNvVW1DnhFnilkgI4EK18OJ6PxZYKHI9o0ujC4J
+zWopdWXeZSsAAASxHKcl02KBiPTOTPaxlZPRZTPhyIutNVoQDttBqKecBsAxjJLy
+512KDypc4oPUOYvZ1I/FsGax+i5XD4zUksJ4rFikt3tbSX6lKtMh/TItEpiBpuem
+puslQuHc8YHpk6KrqaTkuhnnOldUxBxpYXIURfLM3UoQi7jD6zvjEsZmYR9QXrUq
+twZBPIPzXuPW8LvPxqmWiGJXrjG5+eB4UmfJGp/F4GR25PQPnSK7oxgqxo+5pee2
+dM8XGFAmv0Fx0MIrAMa5oJr1wPoteWRBFbF1Yy4hbkOYGs0n+laSVNnGivxZP9C6
+SsZIHIUG78q7+AebVVQ1os6Vhx0synHVJS1Wk/xB6OQH5lzE+0xLMFoWc1d/Awkk
+MWuU4idSfBHdT5Yfbzc46VSKLpGn4LrlbGBa8pD7M5Rkc+cgbBBKUTe1zI5+u8K9
+jb00jFp6+QopEjUh2aOOYYG45zPIp9eAOUej/3D6rN+PwSPLeR7EM5144HLAYGVX
+BmVkFl/nUsBEifGZEL35
+=cqGY
+-----END PGP SIGNATURE-----
+
+--yaPAUYI/0vT2YKpA--
