@@ -1,87 +1,84 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: omap2plus_defconfig: Add dm816x USB PHY as a
- loadable module
-Date: Fri, 29 May 2015 12:20:04 -0500
-Message-ID: <20150529171927.GJ2026@saruman.tx.rr.com>
-References: <1432919532-20445-1-git-send-email-tony@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Fri, 29 May 2015 11:16:15 -0700
+Message-ID: <20150529181614.GS30984@atomide.com>
+References: <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+ <201502112128.44852@pali>
+ <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
+ <20150528073740.GD16509@pali>
+ <20150528160113.GH30984@atomide.com>
+ <CAALWOA8Pfc_zbN9MoHwR=njPBpFU56WObYMbGv9N7ktzy+RSeQ@mail.gmail.com>
+ <20150528222412.GM30984@atomide.com>
+ <CAALWOA9qJHUST0JQxA6MBohMfbTYAP9+NbSXGYHZY4Xa3nSFvw@mail.gmail.com>
+ <CAALWOA82=QmTpCeiceOFQOjqXKdSBjB3Z+jL-mi0vYF=QaL4sA@mail.gmail.com>
+ <20150529155030.GO30984@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yaPAUYI/0vT2YKpA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45752 "EHLO bear.ext.ti.com"
+Received: from muru.com ([72.249.23.125]:54688 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755331AbbE2RWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 May 2015 13:22:35 -0400
+	id S1756060AbbE2SQS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 May 2015 14:16:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1432919532-20445-1-git-send-email-tony@atomide.com>
+In-Reply-To: <20150529155030.GO30984@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bin Liu <binmlist@gmail.com>, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
---yaPAUYI/0vT2YKpA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Tony Lindgren <tony@atomide.com> [150529 08:52]:
+> * Matthijs van Duin <matthijsvanduin@gmail.com> [150528 18:37]:
+> > On 29 May 2015 at 02:58, Matthijs van Duin <matthijsvanduin@gmail.com> wrote:
+> > > It is only guaranteed to happen immediately (before the next
+> > > instruction is executed) if the error occurs before the posting-point
+> > > of the write. However, in that case the error is reported in-band to
+> > > the cpu, resulting in a (synchronous) bus error which takes precedence
+> > > over the out-of-band error irq (if any is signalled).
+> > 
+> > OK, all this was actually assuming linux uses device-type mappings for
+> > device mappings, which was also the impression I got from
+> > build_mem_type_table() in arch/arm/mm/mmu.c (although it's a bit of a
+> > maze). A quick test however seems to imply otherwise:
+> > 
+> > ~# ./bogus-dev-write
+> > Bus error
+> > 
+> > So... linux actually uses strongly-ordered mappings? I really didn't
+> > expect that, given the performance implications (especially on a
+> > strictly in-order cpu like the Cortex-A8 which will really just sit
+> > there picking its nose until the write completes) and I think I recall
+> > having seen an OCP barrier being used somewhere in driver code...
+> 
+> I believe some TI kernels use strongly-ordered mappings, mainline
+> kernel does not. Which kernel version are you using?
+>  
+> > Well, in that case everything I said is technically still true, except
+> > the posting point is the peripheral itself. That also means the
+> > interconnect error reporting mechanism is not really useful for
+> > probing since you'll get a bus error before any error irq is
+> > delivered.
+> 
+> Hmm if that's the case then yes we can't use the error irq. However,
+> what I've seen so far is that we only get the bus error if the
+> l3_* drivers are configured. I guess some more testing is needed.
+>  
+> > So I'd say you're back at having to trap that bus error using the
+> > exception handling mechanism, which I still suspect shouldn't be hard
+> > to do.
+> 
+> And in that case it makes sense to do that in the bootloader to
+> avoid adding any custom early boot code to Linux kernel.
+>  
+> > Or perhaps you could probe the device using a DMA access and combine
+> > that with the interconnect error reporting irq... ;-)
+> 
+> Heh too many dependencies :)
 
-On Fri, May 29, 2015 at 10:12:12AM -0700, Tony Lindgren wrote:
-> This is needed for USB on dm816x-evm.
->=20
-> Cc: Bin Liu <binmlist@gmail.com>
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: George Cherian <george.cherian@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+If we can't use the l3 interrrupts, then something similar to commit
+fdf4850cb5b2 ("ARM: BCM5301X: workaround suppress fault") might be
+doable too.
 
-it's a module, fine by me:
+Regards,
 
-Acked-by: Felipe Balbi <balbi@ti.com>
-
-> ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
-2plus_defconfig
-> index 4380291..92e4206 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -402,6 +402,7 @@ CONFIG_PWM_TIECAP=3Dm
->  CONFIG_PWM_TIEHRPWM=3Dm
->  CONFIG_PWM_TWL=3Dm
->  CONFIG_PWM_TWL_LED=3Dm
-> +CONFIG_PHY_DM816X_USB=3Dm
->  CONFIG_OMAP_USB2=3Dm
->  CONFIG_TI_PIPE3=3Dy
->  CONFIG_TWL4030_USB=3Dm
-> --=20
-> 2.1.4
->=20
-
---=20
-balbi
-
---yaPAUYI/0vT2YKpA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVaJ/DAAoJEIaOsuA1yqREk+8P/jMuYCbuV+/teHW2q2LJIN7e
-be/MTrK14xxkFMYJPkMZtDpTkAkETD1x6vnupGnYiPhFOnixDV0hv0A5T2b1JMKn
-+LO3dC6/2cHy+D3/uZgOCdJ+ppNvVW1DnhFnilkgI4EK18OJ6PxZYKHI9o0ujC4J
-zWopdWXeZSsAAASxHKcl02KBiPTOTPaxlZPRZTPhyIutNVoQDttBqKecBsAxjJLy
-512KDypc4oPUOYvZ1I/FsGax+i5XD4zUksJ4rFikt3tbSX6lKtMh/TItEpiBpuem
-puslQuHc8YHpk6KrqaTkuhnnOldUxBxpYXIURfLM3UoQi7jD6zvjEsZmYR9QXrUq
-twZBPIPzXuPW8LvPxqmWiGJXrjG5+eB4UmfJGp/F4GR25PQPnSK7oxgqxo+5pee2
-dM8XGFAmv0Fx0MIrAMa5oJr1wPoteWRBFbF1Yy4hbkOYGs0n+laSVNnGivxZP9C6
-SsZIHIUG78q7+AebVVQ1os6Vhx0synHVJS1Wk/xB6OQH5lzE+0xLMFoWc1d/Awkk
-MWuU4idSfBHdT5Yfbzc46VSKLpGn4LrlbGBa8pD7M5Rkc+cgbBBKUTe1zI5+u8K9
-jb00jFp6+QopEjUh2aOOYYG45zPIp9eAOUej/3D6rN+PwSPLeR7EM5144HLAYGVX
-BmVkFl/nUsBEifGZEL35
-=cqGY
------END PGP SIGNATURE-----
-
---yaPAUYI/0vT2YKpA--
+Tony
