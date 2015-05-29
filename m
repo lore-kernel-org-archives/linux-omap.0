@@ -1,47 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] PM / Wakeirq: Fix typo in prototype for dev_pm_set_dedicated_wake_irq
-Date: Fri, 29 May 2015 09:54:02 -0700
-Message-ID: <1432918442-2043-1-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP: enable DM9000 in omap2plus_defconfig
+Date: Fri, 29 May 2015 10:08:41 -0700
+Message-ID: <20150529170840.GR30984@atomide.com>
+References: <1432237937-16691-1-git-send-email-anthoine.bourgeois@gmail.com>
+ <1432756814-2078-1-git-send-email-anthoine.bourgeois@gmail.com>
+ <1432756814-2078-2-git-send-email-anthoine.bourgeois@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery5.ore.mailhop.org ([54.186.218.12]:40394 "HELO
-	pmta2.delivery5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S964784AbbE2QyJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 May 2015 12:54:09 -0400
+Received: from muru.com ([72.249.23.125]:54680 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756615AbbE2RIn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 May 2015 13:08:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1432756814-2078-2-git-send-email-anthoine.bourgeois@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>
+To: Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Looks like I only built test the dev_pm_set_wake_irq and not the
-dev_pm_set_dedicated_wake_irq case on x86.
+* Anthoine Bourgeois <anthoine.bourgeois@gmail.com> [150527 13:02]:
+> This ethernet device is used on devkit8000 board.
+> 
+> Signed-off-by: Anthoine Bourgeois <anthoine.bourgeois@gmail.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 8e10859..08cd89c 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -135,6 +135,7 @@ CONFIG_NETDEVICES=y
+>  # CONFIG_NET_CADENCE is not set
+>  # CONFIG_NET_VENDOR_BROADCOM is not set
+>  # CONFIG_NET_VENDOR_CIRRUS is not set
+> +CONFIG_DM9000=y
+>  # CONFIG_NET_VENDOR_FARADAY is not set
+>  # CONFIG_NET_VENDOR_HISILICON is not set
+>  # CONFIG_NET_VENDOR_INTEL is not set
 
-Turns out there's a typo for the dev_pm_set_dedicated_wake_irq
-prototype that causes a build error if CONFIG_COMPILE_TEST
-and CONFIG_MMC_OMAP_HS are selected.
+Applying into omap-for-v4.2/defconfig thanks.
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Reported-by: Jim Davis <jim.epost@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- include/linux/pm_wakeirq.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/include/linux/pm_wakeirq.h b/include/linux/pm_wakeirq.h
-index 4046fa1..cd5b62d 100644
---- a/include/linux/pm_wakeirq.h
-+++ b/include/linux/pm_wakeirq.h
-@@ -30,8 +30,7 @@ static inline int dev_pm_set_wake_irq(struct device *dev, int irq)
- 	return 0;
- }
- 
--static inline int dev_pm_set_dedicated__wake_irq(struct device *dev,
--						 int irq)
-+static inline int dev_pm_set_dedicated_wake_irq(struct device *dev, int irq)
- {
- 	return 0;
- }
--- 
-2.1.4
-
+Tony
