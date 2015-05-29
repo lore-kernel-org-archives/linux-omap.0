@@ -1,88 +1,77 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
-	dma_request_slave_channel_compat_reason()
-Date: Fri, 29 May 2015 17:32:50 +0300
-Message-ID: <55687892.7050606@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
- <20150529093317.GF3140@localhost>
- <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
- <20150529101846.GG3140@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Fri, 29 May 2015 08:50:31 -0700
+Message-ID: <20150529155030.GO30984@atomide.com>
+References: <201502111339.54480@pali>
+ <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+ <201502112128.44852@pali>
+ <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
+ <20150528073740.GD16509@pali>
+ <20150528160113.GH30984@atomide.com>
+ <CAALWOA8Pfc_zbN9MoHwR=njPBpFU56WObYMbGv9N7ktzy+RSeQ@mail.gmail.com>
+ <20150528222412.GM30984@atomide.com>
+ <CAALWOA9qJHUST0JQxA6MBohMfbTYAP9+NbSXGYHZY4Xa3nSFvw@mail.gmail.com>
+ <CAALWOA82=QmTpCeiceOFQOjqXKdSBjB3Z+jL-mi0vYF=QaL4sA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20150529101846.GG3140@localhost>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Vinod Koul <vinod.koul@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, linux-crypto@vger.kernel.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, dmaengine@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:54635 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751298AbbE2Pud (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 May 2015 11:50:33 -0400
+Content-Disposition: inline
+In-Reply-To: <CAALWOA82=QmTpCeiceOFQOjqXKdSBjB3Z+jL-mi0vYF=QaL4sA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-On 05/29/2015 01:18 PM, Vinod Koul wrote:
-> On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
->> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrot=
-e:
->>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
->>>> dma_request_slave_channel_compat() 'eats' up the returned error codes =
-which
->>>> prevents drivers using the compat call to be able to do deferred probi=
-ng.
->>>>
->>>> The new wrapper is identical in functionality but it will return with =
-error
->>>> code in case of failure and will pass the -EPROBE_DEFER to the caller =
-in
->>>> case dma_request_slave_channel_reason() returned with it.
->>> This is okay but am worried about one more warpper, how about fixing
->>> dma_request_slave_channel_compat()
->>
->> Then all callers of dma_request_slave_channel_compat() have to be
->> modified to handle ERR_PTR first.
->>
->> The same is true for (the existing) dma_request_slave_channel_reason()
->> vs. dma_request_slave_channel().
-> Good point, looking again, I think we should rather fix
-> dma_request_slave_channel_reason() as it was expected to return err code =
-and
-> add new users. Anyway users of this API do expect the reason...
+* Matthijs van Duin <matthijsvanduin@gmail.com> [150528 18:37]:
+> On 29 May 2015 at 02:58, Matthijs van Duin <matthijsvanduin@gmail.com> wrote:
+> > It is only guaranteed to happen immediately (before the next
+> > instruction is executed) if the error occurs before the posting-point
+> > of the write. However, in that case the error is reported in-band to
+> > the cpu, resulting in a (synchronous) bus error which takes precedence
+> > over the out-of-band error irq (if any is signalled).
+> 
+> OK, all this was actually assuming linux uses device-type mappings for
+> device mappings, which was also the impression I got from
+> build_mem_type_table() in arch/arm/mm/mmu.c (although it's a bit of a
+> maze). A quick test however seems to imply otherwise:
+> 
+> ~# ./bogus-dev-write
+> Bus error
+> 
+> So... linux actually uses strongly-ordered mappings? I really didn't
+> expect that, given the performance implications (especially on a
+> strictly in-order cpu like the Cortex-A8 which will really just sit
+> there picking its nose until the write completes) and I think I recall
+> having seen an OCP barrier being used somewhere in driver code...
 
-Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
-drivers only working via DT or ACPI while
-dma_request_slave_channel_compat()/_reason() is for drivers expected to run=
- in
-DT/ACPI or legacy mode as well.
+I believe some TI kernels use strongly-ordered mappings, mainline
+kernel does not. Which kernel version are you using?
+ 
+> Well, in that case everything I said is technically still true, except
+> the posting point is the peripheral itself. That also means the
+> interconnect error reporting mechanism is not really useful for
+> probing since you'll get a bus error before any error irq is
+> delivered.
 
-I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
-drivers are using this to request channels - they need to support DT and
-legacy mode.
+Hmm if that's the case then yes we can't use the error irq. However,
+what I've seen so far is that we only get the bus error if the
+l3_* drivers are configured. I guess some more testing is needed.
+ 
+> So I'd say you're back at having to trap that bus error using the
+> exception handling mechanism, which I still suspect shouldn't be hard
+> to do.
 
-But it is doable to do this for both the non _compat and _compat version:
-1. change all users to check IS_ERR_OR_NULL(chan)
- return the PTR_ERR if not NULL, or do whatever the driver was doing in case
-of chan =3D=3D NULL.
-2. change the non _compat and _compat versions to do the same as the _reason
-variants, #define the _reason ones to the non _reason names
-3. Rename the _reason use to non _reason function in drivers
-4. Remove the #defines for the _reason functions
-5. Change the IS_ERR_OR_NULL(chan) to IS_ERR(chan) in all drivers
-The result:
-Both dma_request_slave_channel() and dma_request_slave_channel_compat() will
-return ERR_PTR in case of failure or in success they will return the pinter=
- to
-chan.
+And in that case it makes sense to do that in the bootloader to
+avoid adding any custom early boot code to Linux kernel.
+ 
+> Or perhaps you could probe the device using a DMA access and combine
+> that with the interconnect error reporting irq... ;-)
 
-Is this what you were asking?
-It is a bit broader than what this series was doing: taking care of
-OMAP/daVinci drivers for deferred probing regarding to dmaengine ;)
+Heh too many dependencies :)
 
--- =
-
-P=E9ter
+Tony
