@@ -1,12 +1,12 @@
 From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 2/5] clk: st: Use of_clk_get_parent_count() instead of open coding
-Date: Fri, 29 May 2015 11:25:46 +0200
-Message-ID: <1432891549-23295-3-git-send-email-geert+renesas@glider.be>
+Subject: [PATCH 5/5] [RFC] ARM: timer-sp: Use of_clk_get_parent_count() instead of open coding
+Date: Fri, 29 May 2015 11:25:49 +0200
+Message-ID: <1432891549-23295-6-git-send-email-geert+renesas@glider.be>
 References: <1432891549-23295-1-git-send-email-geert+renesas@glider.be>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from baptiste.telenet-ops.be ([195.130.132.51]:59186 "EHLO
-	baptiste.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755721AbbE2J0K (ORCPT
+Received: from michel.telenet-ops.be ([195.130.137.88]:42117 "EHLO
+	michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755662AbbE2J0K (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 May 2015 05:26:10 -0400
 In-Reply-To: <1432891549-23295-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,36 +16,33 @@ Cc: linux-clk@vger.kernel.org, kernel@stlinux.com, linux-omap@vger.kernel.org, l
 
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/clk/st/clk-flexgen.c | 2 +-
- drivers/clk/st/clkgen-mux.c  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+This is an RFC, as it depends on "[RFC] clk: Provide dummy
+of_clk_get_parent_count() for !OF/!CCF".
+---
+ arch/arm/common/timer-sp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/clk/st/clk-flexgen.c b/drivers/clk/st/clk-flexgen.c
-index 409ed4b0b569ff60..657ca14ba709a64b 100644
---- a/drivers/clk/st/clk-flexgen.c
-+++ b/drivers/clk/st/clk-flexgen.c
-@@ -245,7 +245,7 @@ static const char ** __init flexgen_get_parents(struct device_node *np,
- 	const char **parents;
- 	int nparents, i;
+diff --git a/arch/arm/common/timer-sp.c b/arch/arm/common/timer-sp.c
+index 19211324772f387c..be87a5d480ffb655 100644
+--- a/arch/arm/common/timer-sp.c
++++ b/arch/arm/common/timer-sp.c
+@@ -21,6 +21,7 @@
+ #include <linux/clk.h>
+ #include <linux/clocksource.h>
+ #include <linux/clockchips.h>
++#include <linux/clk-provider.h>
+ #include <linux/err.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+@@ -234,7 +235,7 @@ static void __init sp804_of_init(struct device_node *np)
+ 		clk1 = NULL;
  
--	nparents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-+	nparents = of_clk_get_parent_count(np);
- 	if (WARN_ON(nparents <= 0))
- 		return NULL;
- 
-diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
-index 80aa77dbf660cf0c..4fbe6e099587c054 100644
---- a/drivers/clk/st/clkgen-mux.c
-+++ b/drivers/clk/st/clkgen-mux.c
-@@ -26,7 +26,7 @@ static const char ** __init clkgen_mux_get_parents(struct device_node *np,
- 	const char **parents;
- 	int nparents, i;
- 
--	nparents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-+	nparents = of_clk_get_parent_count(np);
- 	if (WARN_ON(nparents <= 0))
- 		return ERR_PTR(-EINVAL);
- 
+ 	/* Get the 2nd clock if the timer has 3 timer clocks */
+-	if (of_count_phandle_with_args(np, "clocks", "#clock-cells") == 3) {
++	if (of_clk_get_parent_count(np) == 3) {
+ 		clk2 = of_clk_get(np, 1);
+ 		if (IS_ERR(clk2)) {
+ 			pr_err("sp804: %s clock not found: %d\n", np->name,
 -- 
 1.9.1
 
