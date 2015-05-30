@@ -1,131 +1,78 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH 1/5] clk: at91: Use of_clk_get_parent_count() instead of
- open coding
-Date: Sat, 30 May 2015 09:43:16 +0200
-Message-ID: <20150530094316.0c65e6c4@bbrezillon>
-References: <1432891549-23295-1-git-send-email-geert+renesas@glider.be>
-	<1432891549-23295-2-git-send-email-geert+renesas@glider.be>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] fix n900 dts file to work around 4.1 touchscreen
+ regression on n900
+Date: Sat, 30 May 2015 12:14:30 +0200
+Message-ID: <20150530101430.GA505@amd>
+References: <201505241444.41039@pali>
+ <20150527132545.GA23434@amd>
+ <20150527133311.GJ30798@pali>
+ <20150527143722.GA28108@amd>
+ <20150527145837.GA13223@earth>
+ <20150529190816.GA20232@amd>
+ <20150529192505.GA28987@amd>
+ <20150529193211.GA7599@amd>
+ <20150529194955.GV2026@saruman.tx.rr.com>
+ <20150529200306.GB17267@lukather>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:56264 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752574AbbE3HnU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 May 2015 03:43:20 -0400
-In-Reply-To: <1432891549-23295-2-git-send-email-geert+renesas@glider.be>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39203 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750862AbbE3KOg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 May 2015 06:14:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20150529200306.GB17267@lukather>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Maxime Coquelin <maxime.coquelin@st.com>, Patrice Chotard <patrice.chotard@st.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-clk@vger.kernel.org, kernel@stlinux.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, dmitry.torokhov@gmail.com, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 
-On Fri, 29 May 2015 11:25:45 +0200
-Geert Uytterhoeven <geert+renesas@glider.be> wrote:
-
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Acked-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-
-> ---
->  drivers/clk/at91/clk-main.c         | 2 +-
->  drivers/clk/at91/clk-master.c       | 2 +-
->  drivers/clk/at91/clk-programmable.c | 2 +-
->  drivers/clk/at91/clk-slow.c         | 4 ++--
->  drivers/clk/at91/clk-smd.c          | 2 +-
->  drivers/clk/at91/clk-usb.c          | 2 +-
->  6 files changed, 7 insertions(+), 7 deletions(-)
+On Fri 2015-05-29 22:03:06, Maxime Ripard wrote:
+> On Fri, May 29, 2015 at 02:49:55PM -0500, Felipe Balbi wrote:
+> > Hi,
+> > 
+> > On Fri, May 29, 2015 at 09:32:11PM +0200, Pavel Machek wrote:
+> > > Fix dts to match what the Linux kernel expects. This works around
+> > > touchscreen problems in 4.1 linux on Nokia n900.
+> > >     
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+> > > index 4b641c7..09089a6 100644
+> > > --- a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+> > > +++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+> > > @@ -32,8 +32,8 @@ Example:
+> > >  		touchscreen-fuzz-x = <4>;
+> > >  		touchscreen-fuzz-y = <7>;
+> > >  		touchscreen-fuzz-pressure = <2>;
+> > > -		touchscreen-max-x = <4096>;
+> > > -		touchscreen-max-y = <4096>;
+> > > +		touchscreen-size-x = <4096>;
+> > > +		touchscreen-size-y = <4096>;
+> > 
+> > IMHO, the older binding needs to be supported as well. It's fine to
+> > update the DTS for the new binding, but even Documentation says
+> > touchscreen-max-[xy] and if the driver changed that, the driver should
+> > be fixed too. Besides, it seems like this has been in tree since v3.16:
+> > 
+> > $ git describe a38cfebb56898633687ab337fd53710e63a0aedd
+> > v3.15-rc5-72-ga38cfebb5689
+> > 
+> > So, because this has been wrongly documented for so long, we should
+> > support both bindings. Sure, deprecate touchscreen-max-[xy], but they
+> > must still be supported, IMO.
 > 
-> diff --git a/drivers/clk/at91/clk-main.c b/drivers/clk/at91/clk-main.c
-> index 59fa3cc96c9eb341..c2400456a0447118 100644
-> --- a/drivers/clk/at91/clk-main.c
-> +++ b/drivers/clk/at91/clk-main.c
-> @@ -614,7 +614,7 @@ void __init of_at91sam9x5_clk_main_setup(struct device_node *np,
->  	const char *name = np->name;
->  	int i;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents <= 0 || num_parents > 2)
->  		return;
->  
-> diff --git a/drivers/clk/at91/clk-master.c b/drivers/clk/at91/clk-master.c
-> index c1af80bcdf2082c8..f98eafe9b12dc92d 100644
-> --- a/drivers/clk/at91/clk-master.c
-> +++ b/drivers/clk/at91/clk-master.c
-> @@ -224,7 +224,7 @@ of_at91_clk_master_setup(struct device_node *np, struct at91_pmc *pmc,
->  	const char *name = np->name;
->  	struct clk_master_characteristics *characteristics;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents <= 0 || num_parents > MASTER_SOURCE_MAX)
->  		return;
->  
-> diff --git a/drivers/clk/at91/clk-programmable.c b/drivers/clk/at91/clk-programmable.c
-> index 86c8a073dcc32a20..8c86c0f7847a55a0 100644
-> --- a/drivers/clk/at91/clk-programmable.c
-> +++ b/drivers/clk/at91/clk-programmable.c
-> @@ -237,7 +237,7 @@ of_at91_clk_prog_setup(struct device_node *np, struct at91_pmc *pmc,
->  	const char *name;
->  	struct device_node *progclknp;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents <= 0 || num_parents > PROG_SOURCE_MAX)
->  		return;
->  
-> diff --git a/drivers/clk/at91/clk-slow.c b/drivers/clk/at91/clk-slow.c
-> index 2f13bd5246b5563e..98a84a865fe1cf1b 100644
-> --- a/drivers/clk/at91/clk-slow.c
-> +++ b/drivers/clk/at91/clk-slow.c
-> @@ -373,7 +373,7 @@ void __init of_at91sam9x5_clk_slow_setup(struct device_node *np,
->  	const char *name = np->name;
->  	int i;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents <= 0 || num_parents > 2)
->  		return;
->  
-> @@ -451,7 +451,7 @@ void __init of_at91sam9260_clk_slow_setup(struct device_node *np,
->  	const char *name = np->name;
->  	int i;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents != 2)
->  		return;
->  
-> diff --git a/drivers/clk/at91/clk-smd.c b/drivers/clk/at91/clk-smd.c
-> index 144d47ecfe63c6eb..3817ea865ca258ec 100644
-> --- a/drivers/clk/at91/clk-smd.c
-> +++ b/drivers/clk/at91/clk-smd.c
-> @@ -150,7 +150,7 @@ void __init of_at91sam9x5_clk_smd_setup(struct device_node *np,
->  	const char *parent_names[SMD_SOURCE_MAX];
->  	const char *name = np->name;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents <= 0 || num_parents > SMD_SOURCE_MAX)
->  		return;
->  
-> diff --git a/drivers/clk/at91/clk-usb.c b/drivers/clk/at91/clk-usb.c
-> index 0b7c3e8840bae0eb..b0cbd2b1ff595702 100644
-> --- a/drivers/clk/at91/clk-usb.c
-> +++ b/drivers/clk/at91/clk-usb.c
-> @@ -378,7 +378,7 @@ void __init of_at91sam9x5_clk_usb_setup(struct device_node *np,
->  	const char *parent_names[USB_SOURCE_MAX];
->  	const char *name = np->name;
->  
-> -	num_parents = of_count_phandle_with_args(np, "clocks", "#clock-cells");
-> +	num_parents = of_clk_get_parent_count(np);
->  	if (num_parents <= 0 || num_parents > USB_SOURCE_MAX)
->  		return;
->  
+> This property has never been anything but a typo in a documentation of
+> a single driver.
+> 
+> Feel free to fix that in that driver, but I don't see why the core
+> code should handle that isolated typo.
 
+Well... the driver was not broken... before you did "cleanup" that did
+two functional changes. And yes, the dts should be fixed, but that
+does not make your "cleanup" good.
 
-
+									Pavel
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
