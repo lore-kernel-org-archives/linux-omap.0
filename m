@@ -1,78 +1,59 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] fix n900 dts file to work around 4.1 touchscreen
- regression on n900
-Date: Sat, 30 May 2015 12:14:30 +0200
-Message-ID: <20150530101430.GA505@amd>
-References: <201505241444.41039@pali>
- <20150527132545.GA23434@amd>
- <20150527133311.GJ30798@pali>
- <20150527143722.GA28108@amd>
- <20150527145837.GA13223@earth>
- <20150529190816.GA20232@amd>
- <20150529192505.GA28987@amd>
- <20150529193211.GA7599@amd>
- <20150529194955.GV2026@saruman.tx.rr.com>
- <20150529200306.GB17267@lukather>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: runtime check for omap-aes bus access permission (was: Re:
+ 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot)
+Date: Sat, 30 May 2015 17:22:11 +0200
+Message-ID: <CAALWOA-X-Jb_2NODrPNnDgaLuYFDuxjPLHYwqRjaPz2PrqhJkA@mail.gmail.com>
+References: <201502111339.54480@pali> <CAALWOA_ngoSKjB=ZQ264Va37bBK7v41Ei45SyoYLiMdanTKnxQ@mail.gmail.com>
+ <201502112128.44852@pali> <CAGo_u6oZxi7O6re30L2-wVyxTeahhyMb4qVcrE3tSCV9sBvrnw@mail.gmail.com>
+ <20150528073740.GD16509@pali> <20150528160113.GH30984@atomide.com>
+ <CAALWOA8Pfc_zbN9MoHwR=njPBpFU56WObYMbGv9N7ktzy+RSeQ@mail.gmail.com>
+ <20150528222412.GM30984@atomide.com> <CAALWOA9qJHUST0JQxA6MBohMfbTYAP9+NbSXGYHZY4Xa3nSFvw@mail.gmail.com>
+ <CAALWOA82=QmTpCeiceOFQOjqXKdSBjB3Z+jL-mi0vYF=QaL4sA@mail.gmail.com> <20150529155030.GO30984@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39203 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbbE3KOg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 May 2015 06:14:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20150529200306.GB17267@lukather>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:37171 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479AbbE3PWe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 May 2015 11:22:34 -0400
+In-Reply-To: <20150529155030.GO30984@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, dmitry.torokhov@gmail.com, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Reichel <sre@ring0.de>, linux-omap <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, lkml <linux-kernel@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-On Fri 2015-05-29 22:03:06, Maxime Ripard wrote:
-> On Fri, May 29, 2015 at 02:49:55PM -0500, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Fri, May 29, 2015 at 09:32:11PM +0200, Pavel Machek wrote:
-> > > Fix dts to match what the Linux kernel expects. This works around
-> > > touchscreen problems in 4.1 linux on Nokia n900.
-> > >     
-> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-> > > index 4b641c7..09089a6 100644
-> > > --- a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-> > > +++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-> > > @@ -32,8 +32,8 @@ Example:
-> > >  		touchscreen-fuzz-x = <4>;
-> > >  		touchscreen-fuzz-y = <7>;
-> > >  		touchscreen-fuzz-pressure = <2>;
-> > > -		touchscreen-max-x = <4096>;
-> > > -		touchscreen-max-y = <4096>;
-> > > +		touchscreen-size-x = <4096>;
-> > > +		touchscreen-size-y = <4096>;
-> > 
-> > IMHO, the older binding needs to be supported as well. It's fine to
-> > update the DTS for the new binding, but even Documentation says
-> > touchscreen-max-[xy] and if the driver changed that, the driver should
-> > be fixed too. Besides, it seems like this has been in tree since v3.16:
-> > 
-> > $ git describe a38cfebb56898633687ab337fd53710e63a0aedd
-> > v3.15-rc5-72-ga38cfebb5689
-> > 
-> > So, because this has been wrongly documented for so long, we should
-> > support both bindings. Sure, deprecate touchscreen-max-[xy], but they
-> > must still be supported, IMO.
-> 
-> This property has never been anything but a typo in a documentation of
-> a single driver.
-> 
-> Feel free to fix that in that driver, but I don't see why the core
-> code should handle that isolated typo.
+On 29 May 2015 at 17:50, Tony Lindgren <tony@atomide.com> wrote:
+> I believe some TI kernels use strongly-ordered mappings, mainline
+> kernel does not. Which kernel version are you using?
 
-Well... the driver was not broken... before you did "cleanup" that did
-two functional changes. And yes, the dts should be fixed, but that
-does not make your "cleanup" good.
+Normally I periodically rebuild based on Robert C Nelson's -bone
+kernel (but with heavily customized config). I also tried a plain
+4.1.0-rc5-bone3, the generic 4.1.0-rc5-armv7-x0 (the most
+vanilla-looking kernel I could find in my debian package list), and
+for the heck of it also the classic 3.14.43-ti-r66.
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+In all cases I observed a synchronous bus error (dubiously reported as
+"external abort on non-linefetch (0x1818)") on an AM335x with this
+trivial test:
+
+int main() {
+        int fd = open( "/dev/mem", O_RDWR | O_DSYNC );
+        if( fd < 0 ) return 1;
+        void *ptr = mmap( NULL, 4096, PROT_WRITE, MAP_SHARED, fd, 0x42000000 );
+        if( ptr == MAP_FAILED ) return 1;
+        *(volatile int *)ptr = 0;
+        return 0;
+}
+
+I even considered for a moment that maybe the AM335x has some "all
+writes non-posted" thing enabled (which I think is available as a
+switch on OMAP 4/5?). It seemed unlikely, but since most of my
+exploration of interconnect behaviour was done on a DM814x, I
+double-checked by performing the same write in a baremetal test
+program (with that region configured Device-type in the MMU). As
+expected, no data abort occurred, so writes most certainly are posted.
+
+So I have trouble coming up with any explanation for this other than
+the use of strongly-ordered mappings.
+
+(Curiously BTW, omitting O_DSYNC made no difference.)
