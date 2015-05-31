@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Subject: Re: [PATCH] serial: 8250_omap: provide complete custom startup &
  shutdown callbacks
-Date: Sun, 31 May 2015 16:19:24 +0900
-Message-ID: <20150531071924.GB9051@kroah.com>
+Date: Mon, 1 Jun 2015 07:09:06 +0900
+Message-ID: <20150531220906.GA25616@kroah.com>
 References: <20150520200735.GA7790@linutronix.de>
  <55647DF8.4030209@hurleysoftware.com>
  <20150526160926.GE16525@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46270 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758309AbbEaHWd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 May 2015 03:22:33 -0400
+	with ESMTP id S1758624AbbEaWMX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 May 2015 18:12:23 -0400
 Content-Disposition: inline
 In-Reply-To: <20150526160926.GE16525@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -58,12 +58,7 @@ On Tue, May 26, 2015 at 09:09:26AM -0700, Tony Lindgren wrote:
 > [<c0420fec>] (uart_open) from [<c0403e50>] (tty_open+0xdc/0x5e0)
 > [<c0403e50>] (tty_open) from [<c018f008>] (chrdev_open+0xac/0x188)
 
-This is a "big" patch to come so late in the -rc cycle.  It's been
-broken since 4.0, so it can't be _that_ important of a thing if no one
-has been screaming about it :)
-
-Are you willing to justify this to Linus as to why it should go in now?
-
-thanks,
+In looking at it closer, this is fine, I'll queue it up for 4.1-final
+now.
 
 greg k-h
