@@ -1,57 +1,68 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 3/5] serial: omap: Switch wake-up interrupt to generic
- wakeirq
-Date: Sun, 31 May 2015 16:16:34 +0900
-Message-ID: <20150531071634.GA9051@kroah.com>
-References: <1431560196-5722-1-git-send-email-tony@atomide.com>
- <1431560196-5722-4-git-send-email-tony@atomide.com>
- <20150528145616.GG30984@atomide.com>
+Subject: Re: [PATCH] serial: 8250_omap: provide complete custom startup &
+ shutdown callbacks
+Date: Sun, 31 May 2015 16:19:24 +0900
+Message-ID: <20150531071924.GB9051@kroah.com>
+References: <20150520200735.GA7790@linutronix.de>
+ <55647DF8.4030209@hurleysoftware.com>
+ <20150526160926.GE16525@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41230 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758309AbbEaHWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 May 2015 03:22:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20150528145616.GG30984@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Felipe Balbi <balbi@ti.com>, Huiquan Zhong <huiquan.zhong@intel.com>, Kevin Hilman <khilman@kernel.org>, NeilBrown <neilb@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ulf Hansson <ulf.hansson@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>
+In-Reply-To: <20150526160926.GE16525@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-omap@vger.kernel.org, nsekhar@ti.com, tony@atomide.comm, nm@ti.com, linux-serial@vger.kernel.org
 
-On Thu, May 28, 2015 at 07:56:16AM -0700, Tony Lindgren wrote:
-> Hi Greg,
+On Tue, May 26, 2015 at 09:09:26AM -0700, Tony Lindgren wrote:
+> * Peter Hurley <peter@hurleysoftware.com> [150526 07:14]:
+> > On 05/20/2015 04:07 PM, Sebastian Andrzej Siewior wrote:
+> > > The currently in-use port->startup and port->shutdown are "okay". The
+> > > startup part for instance does the tiny omap extra part and invokes
+> > > serial8250_do_startup() for the remaining pieces. The workflow in
+> > > serial8250_do_startup() is okay except for the part where UART_RX is
+> > > read without a check if there is something to read. I tried to
+> > > workaround it in commit 0aa525d11859 ("tty: serial: 8250_core: read only
+> > > RX if there is something in the FIFO") but then reverted it later in
+> > > commit ca8bb4aefb9 ("serial: 8250: Revert "tty: serial: 8250_core: read
+> > > only RX if there is something in the FIFO"").
+> > > 
+> > > This is the second attempt to get it to work on older OMAPs without
+> > > breaking other chips this time
+> > > Peter Hurley suggested to pull in the few needed lines from
+> > > serial8250_do_startup() and drop everything else that is not required
+> > > including making it simpler like using just request_irq() instead the
+> > > chain handler like it is doing now.
+> > > So lets try that.
+> > 
+> > Thanks, Sebastian.
+> > 
+> > Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
 > 
-> * Tony Lindgren <tony@atomide.com> [150513 16:38]:
-> > We can now use generic wakeirq handling and remove the custom handling
-> > for the wake-up interrupts.
+> Can we please get this into the v4.1-rc series?
 > 
-> How do you prefer to handle the two omap specific serial driver
-> changes in this series?
+> It fixes the following:
 > 
-> There's a dependency to Rafael's pm-wakeirq branch that contains:
-> 
-> 4990d4fe327b ("PM / Wakeirq: Add automated device wake IRQ handling")
-> 56f487c78015 ("PM / Runtime: Update last_busy in rpm_resume")
-> f6a2fbb903d5 ("PM / runtime: add note about re-calling in during
-> device probe()")
-> 
-> The 8250_omap.c driver change also needs to be merged with:
-> 
-> 9e91597f2423 ("serial: 8250_omap: provide complete custom startup &
-> shutdown callbacks")
-> 
-> Not sure if 9e91597f2423 is immutable, but if so then I could:
-> 
-> a) Send you a pull request for the two serial driver patches
->    based on Rafael's pm-wakeirq branch merged with 9e91597f2423 to
->    avoid the merge conflict.
-> 
-> b) Apply both serial driver patches into omap-for-v4.2/wakeirq
->    based on Rafael's pm-wakeirq branch merged with 9e91597f2423.
+> Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa06a000                                                       
+> ...                                                                                                                           
+> [<c04217e8>] (mem_serial_in) from [<c0425480>] (serial8250_do_startup+0xe4/0x694)
+> [<c0425480>] (serial8250_do_startup) from [<c0427e48>] (omap_8250_startup+0x70/0x144)
+> [<c0427e48>] (omap_8250_startup) from [<c0425a54>] (serial8250_startup+0x24/0x30)
+> [<c0425a54>] (serial8250_startup) from [<c04208e4>] (uart_startup.part.14+0x8c/0x1a0)
+> [<c04208e4>] (uart_startup.part.14) from [<c0420fec>] (uart_open+0xd8/0x134)
+> [<c0420fec>] (uart_open) from [<c0403e50>] (tty_open+0xdc/0x5e0)
+> [<c0403e50>] (tty_open) from [<c018f008>] (chrdev_open+0xac/0x188)
 
-That one sounds good to me, feel free to do so and add:
+This is a "big" patch to come so late in the -rc cycle.  It's been
+broken since 4.0, so it can't be _that_ important of a thing if no one
+has been screaming about it :)
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
-It's the easiest for everyone involved, right?
+Are you willing to justify this to Linus as to why it should go in now?
 
 thanks,
 
