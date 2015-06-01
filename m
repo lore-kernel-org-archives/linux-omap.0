@@ -1,78 +1,42 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH] ARM: dts: am335x-boneblack: disable RTC-only sleep
-Date: Mon, 1 Jun 2015 07:14:43 +0200
-Message-ID: <CAALWOA9wyCsUQqER2Cqwru_2REpX6AeryWeoSuwZWDsdPPL+Ow@mail.gmail.com>
-References: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
- <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com> <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv3 00/10] ARM: DRA7: add display support
+Date: Mon, 1 Jun 2015 05:46:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1506010538330.14902@utopia.booyaka.com>
+References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a11c2382c97ecdf05176de893
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:34122 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760AbbFAFPG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 01:15:06 -0400
-In-Reply-To: <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:47964 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758766AbbFAFqp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 01:46:45 -0400
+In-Reply-To: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
 
---001a11c2382c97ecdf05176de893
-Content-Type: text/plain; charset=UTF-8
+Hi Tomi
 
-Here's a version that attempts to address Tony's earlier request to
-include some comments in the patch itself. Since I saw no way to
-concisely summarize the issues, I included links to relevant messages
-(and enough info to locate the thread again in case of link rot).
+On Wed, 6 May 2015, Tomi Valkeinen wrote:
 
-Since the patch itself contains more explanation, I made the commit
-message more concise.
+> This series adds the arch/arm/ side of the display support for DRA7 (DRA72x,
+> DRA74x, AM54xx) SoCs. Also support for HDMI output on x15 and DRA72 EVM boards
+> is added.
+> 
+> This series is v3, and is based on v4.1-rc2. There are no differences to v2,
+> except rebased and tested.
 
-Apologies for the attachment (inline text would get fucked up by gmail)
+Are you still planning to move the DESHDCP clock enable to the beginning 
+of the series to avoid the warnings, per:
 
---001a11c2382c97ecdf05176de893
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-ARM-dts-am335x-bone-enable-pmic-shutdown-controller.patch"
-Content-Disposition: attachment;
-	filename="0001-ARM-dts-am335x-bone-enable-pmic-shutdown-controller.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_iadfxp7g0
+http://www.spinics.net/lists/arm-kernel/msg410968.html
 
-RnJvbSA0Mjc4ZWNjMzJlODg2ZDJlODNiYzQ4NmU2NDA5ZDhmNmRmODJhMGQxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYXR0aGlqcyB2YW4gRHVpbiA8bWF0dGhpanN2YW5kdWluQGdt
-YWlsLmNvbT4KRGF0ZTogTW9uLCAxIEp1biAyMDE1IDA2OjU2OjI0ICswMjAwClN1YmplY3Q6IFtQ
-QVRDSF0gQVJNOiBkdHM6IGFtMzM1eC1ib25lKiBlbmFibGUgcG1pYy1zaHV0ZG93bi1jb250cm9s
-bGVyCgpGaXhlczogaHR0cDovL2J1Z3MuZWxpbnV4Lm9yZy9pc3N1ZXMvMTQzCgpBdm9pZCBlbnRl
-cmluZyAiUlRDLW9ubHkgbW9kZSIgYXQgcG93ZXJvZmYuIEl0IGlzIHVuc3VwcG9ydGVkIGJ5IG1v
-c3QKdmVyc2lvbnMgb2YgQmVhZ2xlQm9uZSwgYW5kIHJpc2tzIGhhcmR3YXJlIGRhbWFnZS4KClJl
-cG9ydGVkLWJ5OiBNYXR0aGlqcyB2YW4gRHVpbiA8bWF0dGhpanN2YW5kdWluQGdtYWlsLmNvbT4K
-VGVzdGVkLWJ5OiBNYXR0aGlqcyB2YW4gRHVpbiA8bWF0dGhpanN2YW5kdWluQGdtYWlsLmNvbT4K
-U2lnbmVkLW9mZi1ieTogUm9iZXJ0IE5lbHNvbiA8cm9iZXJ0Y25lbHNvbkBnbWFpbC5jb20+CkNj
-OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogRmVsaXBlIEJhbGJpIDxiYWxi
-aUB0aS5jb20+CkNjOiBKb2hhbiBIb3ZvbGQgPGpvaGFuQGtlcm5lbC5vcmc+CltNYXR0aGlqcyB2
-YW4gRHVpbjogYWRkZWQgZXhwbGFuYXRvcnkgY29tbWVudHNdClNpZ25lZC1vZmYtYnk6IE1hdHRo
-aWpzIHZhbiBEdWluIDxtYXR0aGlqc3ZhbmR1aW5AZ21haWwuY29tPgotLS0KIGFyY2gvYXJtL2Jv
-b3QvZHRzL2FtMzM1eC1ib25lLWNvbW1vbi5kdHNpIHwgMTggKysrKysrKysrKysrKysrKysrCiAx
-IGZpbGUgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jv
-b3QvZHRzL2FtMzM1eC1ib25lLWNvbW1vbi5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4
-LWJvbmUtY29tbW9uLmR0c2kKaW5kZXggYzMyNTVlMC4uOTBmYmJiMSAxMDA2NDQKLS0tIGEvYXJj
-aC9hcm0vYm9vdC9kdHMvYW0zMzV4LWJvbmUtY29tbW9uLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9v
-dC9kdHMvYW0zMzV4LWJvbmUtY29tbW9uLmR0c2kKQEAgLTIyMyw2ICsyMjMsMjQgQEAKIC9pbmNs
-dWRlLyAidHBzNjUyMTcuZHRzaSIKIAogJnRwcyB7CisJLy8gQ29uZmlndXJlIHBtaWMgdG8gZW50
-ZXIgT0ZGLXN0YXRlIGluc3RlYWQgb2YgU0xFRVAtc3RhdGUgKCJSVEMtb25seQorCS8vIG1vZGUi
-KSBhdCBwb3dlcm9mZi4gIE1vc3QgQmVhZ2xlQm9uZSB2ZXJzaW9ucyBkbyBub3Qgc3VwcG9ydCBS
-VEMtb25seQorCS8vIG1vZGUgYW5kIHJpc2sgaGFyZHdhcmUgZGFtYWdlIGlmIHRoaXMgbW9kZSBp
-cyBlbnRlcmVkLgorCS8vCisJLy8gRm9yIGRldGFpbHMsIHNlZSBsaW51eC1vbWFwIG1haWxpbmcg
-bGlzdCBNYXkgMjAxNSB0aHJlYWQKKwkvLwlbUEFUQ0hdIEFSTTogZHRzOiBhbTMzNXgtYm9uZSog
-ZW5hYmxlIHBtaWMtc2h1dGRvd24tY29udHJvbGxlcgorCS8vIEluIHBhcnRpY3VsYXIsIG1lc3Nh
-Z2VzOgorCS8vCWh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtb21hcC9tc2cxMTg1
-ODUuaHRtbAorCS8vCWh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtb21hcC9tc2cx
-MTg2MTUuaHRtbAorCS8vCisJdGkscG1pYy1zaHV0ZG93bi1jb250cm9sbGVyOworCS8vCisJLy8g
-WW91IGNhbiBvdmVycmlkZSB0aGlzIGxhdGVyIHdpdGgKKwkvLwkmdHBzIHsgIC9kZWxldGUtcHJv
-cGVydHkvIHRpLHBtaWMtc2h1dGRvd24tY29udHJvbGxlcjsgIH0KKwkvLyBpZiB5b3Ugd2FudCB0
-byB1c2UgUlRDLW9ubHkgbW9kZSBhbmQgbWFkZSBzdXJlIHlvdSBhcmUgbm90IGFmZmVjdGVkCisJ
-Ly8gYnkgdGhlIGhhcmR3YXJlIHByb2JsZW1zLiAoVGlwOiBkb3VibGUtY2hlY2sgYnkgcGVyZm9y
-bWluZyBhIGN1cnJlbnQKKwkvLyBtZWFzdXJlbWVudCBhZnRlciBzaHV0ZG93bjogaXQgc2hvdWxk
-IGJlIGxlc3MgdGhhbiAxIG1BLikKKwogCXJlZ3VsYXRvcnMgewogCQlkY2RjMV9yZWc6IHJlZ3Vs
-YXRvckAwIHsKIAkJCXJlZ3VsYXRvci1uYW1lID0gInZkZHNfZHByIjsKLS0gCjIuMS40Cgo=
---001a11c2382c97ecdf05176de893--
+?
+
+Also, not sure if you can arrange for someone at TI to send over a DRA7xx 
+board for the testbed, but it would be nice to have a board to test these 
+patches with, to avoid issues like the one mentioned in your E-mails...
+
+
+- Paul
