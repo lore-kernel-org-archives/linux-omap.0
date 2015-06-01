@@ -1,49 +1,46 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv4 07/10] ARM: OMAP2+: display: detect DRA7 DSS
-Date: Mon, 1 Jun 2015 09:23:15 +0300
-Message-ID: <1433139798-23450-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv4 03/10] arm/dts: dra7xx: add 'ti,set-rate-parent' for dss_dss_clk
+Date: Mon, 1 Jun 2015 09:23:11 +0300
+Message-ID: <1433139798-23450-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1433139798-23450-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57675 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57665 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753155AbbFAGYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Jun 2015 02:24:08 -0400
+	id S1758769AbbFAGX7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Jun 2015 02:23:59 -0400
 In-Reply-To: <1433139798-23450-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: paul@pwsan.com, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: paul@pwsan.com, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org
 
-Add platform code to detect DRA7 DSS.
+We need set-rate-parent flags for the display's clock path so that the
+DSS driver can change the clock rate of the PLL.
+
+This patchs adds the ti,set-rate-parent flag to 'dss_dss_clk' clock
+node, which is only a gate clock, allowing the setting of the clock rate
+to propagate to the PLL.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree@vger.kernel.org
 ---
- arch/arm/mach-omap2/display.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 9868d0bc7805..6ab13d18c636 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -287,6 +287,8 @@ static enum omapdss_version __init omap_display_get_version(void)
- 		return OMAPDSS_VER_OMAP5;
- 	else if (soc_is_am43xx())
- 		return OMAPDSS_VER_AM43xx;
-+	else if (soc_is_dra7xx())
-+		return OMAPDSS_VER_DRA7xx;
- 	else
- 		return OMAPDSS_VER_UNKNOWN;
- }
-@@ -573,6 +575,7 @@ static const char * const omapdss_compat_names[] __initconst = {
- 	"ti,omap3-dss",
- 	"ti,omap4-dss",
- 	"ti,omap5-dss",
-+	"ti,dra7-dss",
- };
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 470f39c4e326..357bedeebfac 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1531,6 +1531,7 @@
+ 		clocks = <&dpll_per_h12x2_ck>;
+ 		ti,bit-shift = <8>;
+ 		reg = <0x1120>;
++		ti,set-rate-parent;
+ 	};
  
- struct device_node * __init omapdss_find_dss_of_node(void)
+ 	dss_hdmi_clk: dss_hdmi_clk {
 -- 
 2.1.4
 
