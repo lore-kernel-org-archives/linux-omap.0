@@ -1,67 +1,78 @@
-From: Robert Nelson <robertcnelson@gmail.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
 Subject: Re: [PATCH] ARM: dts: am335x-boneblack: disable RTC-only sleep
-Date: Sun, 31 May 2015 21:18:42 -0500
-Message-ID: <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
-References: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com> <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com>
+Date: Mon, 1 Jun 2015 07:14:43 +0200
+Message-ID: <CAALWOA9wyCsUQqER2Cqwru_2REpX6AeryWeoSuwZWDsdPPL+Ow@mail.gmail.com>
+References: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
+ <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com> <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/mixed; boundary=001a11c2382c97ecdf05176de893
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:36857 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755486AbbFACTE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 May 2015 22:19:04 -0400
-In-Reply-To: <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:34122 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbbFAFPG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 01:15:06 -0400
+In-Reply-To: <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, devicetree <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
 
-On Sun, May 31, 2015 at 7:20 PM, Matthijs van Duin
-<matthijsvanduin@gmail.com> wrote:
-> Sorry for the late response, I only just noticed this since I wasn't CC'd.
->
-> This "fix" was not ever Reported-By or Tested-By me as it claims. It
-> is in fact wrong: &rtc { system-power-controller; } needs to be
-> present for every variety of beaglebone (more generally every design
-> with a TPS65217 whose PWR_EN is connected to the PMIC_POWER_EN pin of
-> an AM335x).
->
-> Without a system-power-controller, the kernel has no way of turning
-> off the system and shutdown will leave the system halted instead.
->
-> The previously posted fix, which added  &tps {
-> ti,pmic-shutdown-controller; }  was correct, and ensures that a
-> poweroff makes the pmic enter "OFF-state" rather than "SLEEP-state"
-> (aka RTC-only sleep).
+--001a11c2382c97ecdf05176de893
+Content-Type: text/plain; charset=UTF-8
 
-Sorry Matthijs, (and everyone else)
+Here's a version that attempts to address Tony's earlier request to
+include some comments in the patch itself. Since I saw no way to
+concisely summarize the issues, I included links to relevant messages
+(and enough info to locate the thread again in case of link rot).
 
-That's my fault for completely screwing up this patch..
+Since the patch itself contains more explanation, I made the commit
+message more concise.
 
-Revert:
+Apologies for the attachment (inline text would get fucked up by gmail)
 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=3d76be5b933e2a66d85a2f7444e68e99e8a48ad4
+--001a11c2382c97ecdf05176de893
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-ARM-dts-am335x-bone-enable-pmic-shutdown-controller.patch"
+Content-Disposition: attachment;
+	filename="0001-ARM-dts-am335x-bone-enable-pmic-shutdown-controller.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_iadfxp7g0
 
-Then use:
-http://www.spinics.net/lists/linux-omap/msg118512.html
-
-With the update commit message:
-
-Fixes: http://bugs.elinux.org/issues/143
-
-Entering RTC-only sleep is only properly supported on early prototypes
-series (pre-A6) of the BeagleBone Black. Since rev (A6A), which
-include all production versions, it is not support at due to.
-
-(rev A6) enable of the 3v3b regulator moved from LDO2 to LDO4 (3v3a)
-side-effect: 3v3b rail remains on in sleep-mode (also in off-mode when
-battery-powered)
-
-(rev A6A) am335x vdds supply moved from LDO3 to LDO1 side-effect: vdds
-remains supplied in sleep-mode
-
-Regards,
-
--- 
-Robert Nelson
-https://rcn-ee.com/
+RnJvbSA0Mjc4ZWNjMzJlODg2ZDJlODNiYzQ4NmU2NDA5ZDhmNmRmODJhMGQxIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYXR0aGlqcyB2YW4gRHVpbiA8bWF0dGhpanN2YW5kdWluQGdt
+YWlsLmNvbT4KRGF0ZTogTW9uLCAxIEp1biAyMDE1IDA2OjU2OjI0ICswMjAwClN1YmplY3Q6IFtQ
+QVRDSF0gQVJNOiBkdHM6IGFtMzM1eC1ib25lKiBlbmFibGUgcG1pYy1zaHV0ZG93bi1jb250cm9s
+bGVyCgpGaXhlczogaHR0cDovL2J1Z3MuZWxpbnV4Lm9yZy9pc3N1ZXMvMTQzCgpBdm9pZCBlbnRl
+cmluZyAiUlRDLW9ubHkgbW9kZSIgYXQgcG93ZXJvZmYuIEl0IGlzIHVuc3VwcG9ydGVkIGJ5IG1v
+c3QKdmVyc2lvbnMgb2YgQmVhZ2xlQm9uZSwgYW5kIHJpc2tzIGhhcmR3YXJlIGRhbWFnZS4KClJl
+cG9ydGVkLWJ5OiBNYXR0aGlqcyB2YW4gRHVpbiA8bWF0dGhpanN2YW5kdWluQGdtYWlsLmNvbT4K
+VGVzdGVkLWJ5OiBNYXR0aGlqcyB2YW4gRHVpbiA8bWF0dGhpanN2YW5kdWluQGdtYWlsLmNvbT4K
+U2lnbmVkLW9mZi1ieTogUm9iZXJ0IE5lbHNvbiA8cm9iZXJ0Y25lbHNvbkBnbWFpbC5jb20+CkNj
+OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogRmVsaXBlIEJhbGJpIDxiYWxi
+aUB0aS5jb20+CkNjOiBKb2hhbiBIb3ZvbGQgPGpvaGFuQGtlcm5lbC5vcmc+CltNYXR0aGlqcyB2
+YW4gRHVpbjogYWRkZWQgZXhwbGFuYXRvcnkgY29tbWVudHNdClNpZ25lZC1vZmYtYnk6IE1hdHRo
+aWpzIHZhbiBEdWluIDxtYXR0aGlqc3ZhbmR1aW5AZ21haWwuY29tPgotLS0KIGFyY2gvYXJtL2Jv
+b3QvZHRzL2FtMzM1eC1ib25lLWNvbW1vbi5kdHNpIHwgMTggKysrKysrKysrKysrKysrKysrCiAx
+IGZpbGUgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jv
+b3QvZHRzL2FtMzM1eC1ib25lLWNvbW1vbi5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4
+LWJvbmUtY29tbW9uLmR0c2kKaW5kZXggYzMyNTVlMC4uOTBmYmJiMSAxMDA2NDQKLS0tIGEvYXJj
+aC9hcm0vYm9vdC9kdHMvYW0zMzV4LWJvbmUtY29tbW9uLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9v
+dC9kdHMvYW0zMzV4LWJvbmUtY29tbW9uLmR0c2kKQEAgLTIyMyw2ICsyMjMsMjQgQEAKIC9pbmNs
+dWRlLyAidHBzNjUyMTcuZHRzaSIKIAogJnRwcyB7CisJLy8gQ29uZmlndXJlIHBtaWMgdG8gZW50
+ZXIgT0ZGLXN0YXRlIGluc3RlYWQgb2YgU0xFRVAtc3RhdGUgKCJSVEMtb25seQorCS8vIG1vZGUi
+KSBhdCBwb3dlcm9mZi4gIE1vc3QgQmVhZ2xlQm9uZSB2ZXJzaW9ucyBkbyBub3Qgc3VwcG9ydCBS
+VEMtb25seQorCS8vIG1vZGUgYW5kIHJpc2sgaGFyZHdhcmUgZGFtYWdlIGlmIHRoaXMgbW9kZSBp
+cyBlbnRlcmVkLgorCS8vCisJLy8gRm9yIGRldGFpbHMsIHNlZSBsaW51eC1vbWFwIG1haWxpbmcg
+bGlzdCBNYXkgMjAxNSB0aHJlYWQKKwkvLwlbUEFUQ0hdIEFSTTogZHRzOiBhbTMzNXgtYm9uZSog
+ZW5hYmxlIHBtaWMtc2h1dGRvd24tY29udHJvbGxlcgorCS8vIEluIHBhcnRpY3VsYXIsIG1lc3Nh
+Z2VzOgorCS8vCWh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtb21hcC9tc2cxMTg1
+ODUuaHRtbAorCS8vCWh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtb21hcC9tc2cx
+MTg2MTUuaHRtbAorCS8vCisJdGkscG1pYy1zaHV0ZG93bi1jb250cm9sbGVyOworCS8vCisJLy8g
+WW91IGNhbiBvdmVycmlkZSB0aGlzIGxhdGVyIHdpdGgKKwkvLwkmdHBzIHsgIC9kZWxldGUtcHJv
+cGVydHkvIHRpLHBtaWMtc2h1dGRvd24tY29udHJvbGxlcjsgIH0KKwkvLyBpZiB5b3Ugd2FudCB0
+byB1c2UgUlRDLW9ubHkgbW9kZSBhbmQgbWFkZSBzdXJlIHlvdSBhcmUgbm90IGFmZmVjdGVkCisJ
+Ly8gYnkgdGhlIGhhcmR3YXJlIHByb2JsZW1zLiAoVGlwOiBkb3VibGUtY2hlY2sgYnkgcGVyZm9y
+bWluZyBhIGN1cnJlbnQKKwkvLyBtZWFzdXJlbWVudCBhZnRlciBzaHV0ZG93bjogaXQgc2hvdWxk
+IGJlIGxlc3MgdGhhbiAxIG1BLikKKwogCXJlZ3VsYXRvcnMgewogCQlkY2RjMV9yZWc6IHJlZ3Vs
+YXRvckAwIHsKIAkJCXJlZ3VsYXRvci1uYW1lID0gInZkZHNfZHByIjsKLS0gCjIuMS40Cgo=
+--001a11c2382c97ecdf05176de893--
