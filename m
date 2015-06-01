@@ -1,84 +1,30 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 3/5] ARM: dts: DRA7: Add TBCLK for PWMSS
-Date: Mon, 1 Jun 2015 17:23:32 +0530
-Message-ID: <1433159614-437-4-git-send-email-vigneshr@ti.com>
-References: <1433159614-437-1-git-send-email-vigneshr@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC v1 05/25] gpio: Use irq_desc_get_xxx() to avoid redundant
+ lookup of irq_desc
+Date: Mon, 1 Jun 2015 14:45:59 +0200
+Message-ID: <CACRpkdZfWK5H+gRD6inX31Ouq1XCvq7CneNDJV8x0iihXHzWjw@mail.gmail.com>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
+	<1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1433159614-437-1-git-send-email-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-pwm@vger.kernel.org, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ray Jui <rjui@broadcom.com>, Alexandre Courbot <gnurou@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.o>
 List-Id: linux-omap@vger.kernel.org
 
-tbclk is used by ehrpwm to generate PWM waveform on DRA7 SoC. Add Linux
-clock to control ehrpwm tbclk.
+On Wed, May 20, 2015 at 11:59 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi          |  5 +++++
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 26 ++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+> already have a pointer to corresponding irq_desc.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index f03a091cd076..387c76ca41f9 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -131,6 +131,11 @@
- 							regulator-max-microvolt = <3000000>;
- 						};
- 					};
-+
-+					scm_conf_clocks: clocks {
-+						#address-cells = <1>;
-+						#size-cells = <0>;
-+					};
- 				};
- 
- 				dra7_pmx_core: pinmux@1400 {
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 3b933f74d000..92452d61cf58 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -2136,3 +2136,29 @@
- 		clocks = <&dpll_usb_ck>;
- 	};
- };
-+
-+&scm_conf_clocks {
-+       ehrpwm0_tbclk: ehrpwm0_tbclk {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&l4_root_clk_div>;
-+		ti,bit-shift = <20>;
-+		reg = <0x0558>;
-+	};
-+
-+	ehrpwm1_tbclk: ehrpwm1_tbclk {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&l4_root_clk_div>;
-+		ti,bit-shift = <21>;
-+		reg = <0x0558>;
-+	};
-+
-+	ehrpwm2_tbclk: ehrpwm2_tbclk {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&l4_root_clk_div>;
-+		ti,bit-shift = <22>;
-+		reg = <0x0558>;
-+	};
-+};
--- 
-2.4.1
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+
+Are there dependencies on this patch or can I just apply it
+directly to the GPIO tree?
+
+Yours,
+Linus Walleij
