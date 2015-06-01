@@ -1,73 +1,48 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv4 06/10] ARM: OMAP: display: change compat names to array
-Date: Mon, 1 Jun 2015 09:23:14 +0300
-Message-ID: <1433139798-23450-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv4 05/10] ARM: DRA7: hwmod: set DSS submodule parent hwmods
+Date: Mon, 1 Jun 2015 09:23:13 +0300
+Message-ID: <1433139798-23450-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1433139798-23450-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57670 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758769AbbFAGYE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Jun 2015 02:24:04 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:45772 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753155AbbFAGYK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 02:24:10 -0400
 In-Reply-To: <1433139798-23450-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: paul@pwsan.com, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Simplify the DSS detection logic by creating a list of the omapdss
-compat strings, instead of checking each separately with an 'if'.
+Set DSS core hwmod as the parent for all the DSS submodules.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/display.c | 29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index f492ae147c6a..9868d0bc7805 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -568,25 +568,24 @@ void __init omapdss_early_init_of(void)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index f6b94854fafc..9961f95f52ae 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -522,6 +522,7 @@ static struct omap_hwmod dra7xx_dss_dispc_hwmod = {
+ 		},
+ 	},
+ 	.dev_attr	= &dss_dispc_dev_attr,
++	.parent_hwmod	= &dra7xx_dss_hwmod,
+ };
  
- }
+ /*
+@@ -563,6 +564,7 @@ static struct omap_hwmod dra7xx_dss_hdmi_hwmod = {
+ 	},
+ 	.opt_clks	= dss_hdmi_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(dss_hdmi_opt_clks),
++	.parent_hwmod	= &dra7xx_dss_hwmod,
+ };
  
-+static const char * const omapdss_compat_names[] __initconst = {
-+	"ti,omap2-dss",
-+	"ti,omap3-dss",
-+	"ti,omap4-dss",
-+	"ti,omap5-dss",
-+};
-+
- struct device_node * __init omapdss_find_dss_of_node(void)
- {
- 	struct device_node *node;
-+	int i;
- 
--	node = of_find_compatible_node(NULL, NULL, "ti,omap2-dss");
--	if (node)
--		return node;
--
--	node = of_find_compatible_node(NULL, NULL, "ti,omap3-dss");
--	if (node)
--		return node;
--
--	node = of_find_compatible_node(NULL, NULL, "ti,omap4-dss");
--	if (node)
--		return node;
--
--	node = of_find_compatible_node(NULL, NULL, "ti,omap5-dss");
--	if (node)
--		return node;
-+	for (i = 0; i < ARRAY_SIZE(omapdss_compat_names); ++i) {
-+		node = of_find_compatible_node(NULL, NULL,
-+			omapdss_compat_names[i]);
-+		if (node)
-+			return node;
-+	}
- 
- 	return NULL;
- }
+ /*
 -- 
 2.1.4
 
