@@ -1,82 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v4.1, urgent fix to avoid potential
- hardware damage
-Date: Mon, 1 Jun 2015 13:59:53 -0700
-Message-ID: <20150601205952.GF30984@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: dts: AM35xx: fix system control module clocks
+Date: Mon, 1 Jun 2015 21:21:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1506012120020.14902@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1506010546510.14902@utopia.booyaka.com> <1433172627-28052-1-git-send-email-t-kristo@ti.com> <556C8ED5.5050000@myspectrum.nl> <20150601173126.GY30984@atomide.com> <alpine.DEB.2.02.1506011733180.14902@utopia.booyaka.com>
+ <20150601180429.GA30984@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55219 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752406AbbFAU7z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Jun 2015 16:59:55 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([74.50.51.50]:57803 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889AbbFAVWA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 17:22:00 -0400
+In-Reply-To: <20150601180429.GA30984@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jeroen Hofstee <linux-arm@myspectrum.nl>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Mon, 1 Jun 2015, Tony Lindgren wrote:
 
-Here's a pull request to fix potential hardware breaking configuration
-on BeagleBones. For the other fixes, apologies for these coming in so
-late, seems that people have been busy finding regressions.
+> * Paul Walmsley <paul@pwsan.com> [150601 10:45]:
+> 
+> > http://www.pwsan.com/omap/testlogs/test_v4.1-rc6/20150601012139/README.txt
+> 
+> OK somehow 3517evm is listed under "skip" there? 
 
-Regards,
+Yep that board is down right now; something's wrong with it and I haven't 
+had the time to figure out whether it's fixable, or if it's fried.
 
-Tony
+> > The best way to make this work IMHO would be for us not to accept any new 
+> > feature addition patches as long as there are warnings reported in the 
+> > test results.  The only real exception that I would foresee is if those 
+> > warnings are due to something outside of our control, e.g., a crappy 
+> > bootloader, as I suspect the USB_OTG initiator warnings are for the 
+> > CM-T3517.
+> 
+> Right. Also seems we should diff dmesg output too (after stripping out
+> the timestamps). Pretty much the only things that should change are
+> the sysfs paths for devices in the dmesg output unless some warnings
+> get fixed. That output probably still also needs to be manually looked
+> at though..
 
+Yep, there are still some other minor loose ends to be tied up too that 
+don't show up as full warnings, such as the broken UART4 idle protocol 
+integration on AM35xx...
 
-The following changes since commit f25bf74c8862efdc30453d16d60cf22958a4873e:
-
-  ARM: dts: Fix WLAN interrupt line for AM335x EVM-SK (2015-05-20 10:00:10 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-rc6
-
-for you to fetch changes up to 7a6cb0abe1aa63334f3ded6d2b6c8eca80e72302:
-
-  ARM: dts: am335x-boneblack: disable RTC-only sleep to avoid hardware damage (2015-06-01 12:48:23 -0700)
-
-----------------------------------------------------------------
-Omap fixes for the -rc cycle, including a fix for potential hardware
-breakage on BeagleBones:
-
-- BeagleBones don't support RTC-only mode, it can cause hardware
-  damage if system-power-controller is specified without
-  ti,pmic-shutdown-controller
-
-- Fix a recent regression to am3517 SoCs caused by the recent clock
-  move that was not noticed until now despite automated boot
-  testing
-
-- Fix a regression for n900 touchscreen triggered by recent
-  recent input changes
-
-- Fix compatible property for dm816x USB to avoid errors with
-  USB Ethernet
-
-- Fix oops for omap3 when built with CONFIG_THUMB2_KERNEL
-
-----------------------------------------------------------------
-Matthijs van Duin (1):
-      ARM: dts: am335x-boneblack: disable RTC-only sleep to avoid hardware damage
-
-Pavel Machek (1):
-      ARM: dts: Fix n900 dts file to work around 4.1 touchscreen regression on n900
-
-Tero Kristo (1):
-      ARM: dts: AM35xx: fix system control module clocks
-
-Tony Lindgren (2):
-      ARM: OMAP3: Fix booting with thumb2 kernel
-      ARM: dts: Fix dm816x to use right compatible flag for MUSB
-
- .../bindings/input/touchscreen/tsc2005.txt         |  4 ++--
- arch/arm/boot/dts/am335x-bone-common.dtsi          | 19 +++++++++++++++++++
- arch/arm/boot/dts/am35xx-clocks.dtsi               | 14 +++++++-------
- arch/arm/boot/dts/dm816x.dtsi                      |  4 ++--
- arch/arm/boot/dts/omap3-n900.dts                   |  4 ++--
- arch/arm/mach-omap2/sleep34xx.S                    | 22 ++--------------------
- 6 files changed, 34 insertions(+), 33 deletions(-)
+- Paul
