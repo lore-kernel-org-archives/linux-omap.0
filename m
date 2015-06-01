@@ -1,67 +1,85 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v4.1-rc5
-Date: Mon, 1 Jun 2015 05:49:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1506010546510.14902@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1505301534250.26925@utopia.booyaka.com> <5569DDB3.2040802@myspectrum.nl> <556B8817.7080305@myspectrum.nl>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv3 00/10] ARM: DRA7: add display support
+Date: Mon, 1 Jun 2015 09:21:44 +0300
+Message-ID: <556BF9F8.5070500@ti.com>
+References: <1430906938-26128-1-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1506010538330.14902@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="skV0Mti4fSbmNiqdcoOsPxaLSoj93Pohg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:48021 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753338AbbFAFtQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 01:49:16 -0400
-In-Reply-To: <556B8817.7080305@myspectrum.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57541 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750936AbbFAGWV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Jun 2015 02:22:21 -0400
+In-Reply-To: <alpine.DEB.2.02.1506010538330.14902@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jeroen Hofstee <linux-arm@myspectrum.nl>, t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
 
-+ Tero
+--skV0Mti4fSbmNiqdcoOsPxaLSoj93Pohg
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Hello Jeroen,
 
-On Mon, 1 Jun 2015, Jeroen Hofstee wrote:
 
-> On 30-05-15 17:56, Jeroen Hofstee wrote:
-> > Hello Paul,
-> > 
-> > On 30-05-15 17:50, Paul Walmsley wrote:
-> > > Here are some basic OMAP test results for Linux v4.1-rc5.
-> > > Logs and other details at:
-> > > 
-> > > http://www.pwsan.com/omap/testlogs/test_v4.1-rc5/20150529162206/
-> > > 
-> > 
-> > The cmt3517 seems to have these some In-Band errors.
-> > Do you happen to know where these are coming from?
-> > 
-> 
-> git bisect + some workarounds seem to indicate:
-> 
-> d744ce37b721d6678f420ba0fb058f615eb015b6 is the first bad commit
-> commit d744ce37b721d6678f420ba0fb058f615eb015b6
-> Author: Tero Kristo <t-kristo@ti.com>
-> Date:   Tue Feb 24 16:22:45 2015 +0200
-> 
->     ARM: dts: omap3: add minimal l4 bus layout with control module support
-> 
->     This patch creates an l4_core interconnect for OMAP3, and moves some
->     of the generic peripherals under it. System control module nodes are
->     moved under this new interconnect also, and the SCM clock layout
->     is changed to use the renamed SCM node as the clock provider.
-> 
->     Signed-off-by: Tero Kristo <t-kristo@ti.com>
->     Reported-by: Tony Lindgren <tony@atomide.com>
-> 
-> I haven't looked further into it yet,
+On 01/06/15 08:46, Paul Walmsley wrote:
+> Hi Tomi
+>=20
+> On Wed, 6 May 2015, Tomi Valkeinen wrote:
+>=20
+>> This series adds the arch/arm/ side of the display support for DRA7 (D=
+RA72x,
+>> DRA74x, AM54xx) SoCs. Also support for HDMI output on x15 and DRA72 EV=
+M boards
+>> is added.
+>>
+>> This series is v3, and is based on v4.1-rc2. There are no differences =
+to v2,
+>> except rebased and tested.
+>=20
+> Are you still planning to move the DESHDCP clock enable to the beginnin=
+g=20
+> of the series to avoid the warnings, per:
+>=20
+> http://www.spinics.net/lists/arm-kernel/msg410968.html
 
-Interesting; thanks for the bisect.  In the mainline kernel, this appears 
-to be commit b8845074cfbbd1d1b46720a1b563d7b4240dac21.
+Sorry, I totally forgot that. I will do that and send a v4.
 
-I took a quick look at the control module offsets in that patch, and they 
-appear to match what's in the SPRUGR0B PDF.  Will try a few test boots 
-here to confirm your findings.
+> Also, not sure if you can arrange for someone at TI to send over a DRA7=
+xx=20
+> board for the testbed, but it would be nice to have a board to test the=
+se=20
+> patches with, to avoid issues like the one mentioned in your E-mails...=
 
-Tero, care to take a look?
 
-- Paul
+I'll forward the request.
+
+ Tomi
+
+
+--skV0Mti4fSbmNiqdcoOsPxaLSoj93Pohg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVa/n7AAoJEPo9qoy8lh71M88P/0cdiY7qdxcIIHMHVamcwWnN
+5AkuPUaFxDC/qqSkyfr922ZUVyblR2KRN+EpjHWZdbmqEk2qQbSB9nY2vKuYer1A
+IWT/ZQZLT5yaScXkDhvmZCnF/QMf3pG7+HgWULogL7iYUc2hTKAVZ9LsYXYXU7jY
+BLJ6bMY/rz1WYz2Nm6Z/H5Md9o7LfRW/u544Ui0zOPab4sI3SIDFd+ozP/yeRhYt
+Xs8OelK7cSMhmfkj1VTG4V02qaTMdV1/jNwdb+nFORImsftG/MXgzHbs1++todFs
+afUvrt6uiGF/+yfBnXnc//3JrTwzchx/+B+TY8nbM7wR6kMPI+c2S3mxLtsv2ESL
+gq++UDglOkg4gjGAX/2zR00hNGjdE563SnXIfn5S/3i3KVJPaSj8B4rUJj4QB1cv
+cwQisGF1cnjCfmIGTDN2OUSUCXDTXJTwIn6eTyaCEY+6duTxsyj9DBPRmY0vkEwM
+lhspudxmPlRpfNku5dXslECAVp4iSYZIpaCd6Ej0Vyx2o1XaeI1JNDg414QdLWMv
+u0DyMfCgMb+lNm0Ah4B2t9RKAIgE0xJijpYdsyqEXeQwpG2u06ToWEQFjo78Zj6q
+zYLDz/S2FPbOMXerctiRMZaY+TwtB96s9OQF4qXdvMIrNNC88XbIkBFUFOF/Ihw2
+3urre9SzzdCDQGqvBIj2
+=lAtS
+-----END PGP SIGNATURE-----
+
+--skV0Mti4fSbmNiqdcoOsPxaLSoj93Pohg--
