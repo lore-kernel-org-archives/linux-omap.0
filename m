@@ -1,55 +1,35 @@
-From: Jeroen Hofstee <linux-arm@myspectrum.nl>
-Subject: Re: OMAP baseline test results for v4.1-rc5
-Date: Mon, 01 Jun 2015 00:15:51 +0200
-Message-ID: <556B8817.7080305@myspectrum.nl>
-References: <alpine.DEB.2.02.1505301534250.26925@utopia.booyaka.com> <5569DDB3.2040802@myspectrum.nl>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH] ARM: dts: am335x-boneblack: disable RTC-only sleep
+Date: Mon, 1 Jun 2015 02:20:08 +0200
+Message-ID: <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com>
+References: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from orange.myspectrum.nl ([149.210.134.247]:38706 "EHLO
-	orange.myspectrum.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758545AbbEaWPy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 May 2015 18:15:54 -0400
-In-Reply-To: <5569DDB3.2040802@myspectrum.nl>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:32953 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758677AbbFAAUa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 31 May 2015 20:20:30 -0400
+In-Reply-To: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
 
-Hi,
+Sorry for the late response, I only just noticed this since I wasn't CC'd.
 
-On 30-05-15 17:56, Jeroen Hofstee wrote:
-> Hello Paul,
->
-> On 30-05-15 17:50, Paul Walmsley wrote:
->> Here are some basic OMAP test results for Linux v4.1-rc5.
->> Logs and other details at:
->>
->> http://www.pwsan.com/omap/testlogs/test_v4.1-rc5/20150529162206/
->>
->
-> The cmt3517 seems to have these some In-Band errors.
-> Do you happen to know where these are coming from?
->
+This "fix" was not ever Reported-By or Tested-By me as it claims. It
+is in fact wrong: &rtc { system-power-controller; } needs to be
+present for every variety of beaglebone (more generally every design
+with a TPS65217 whose PWR_EN is connected to the PMIC_POWER_EN pin of
+an AM335x).
 
-git bisect + some workarounds seem to indicate:
+Without a system-power-controller, the kernel has no way of turning
+off the system and shutdown will leave the system halted instead.
 
-d744ce37b721d6678f420ba0fb058f615eb015b6 is the first bad commit
-commit d744ce37b721d6678f420ba0fb058f615eb015b6
-Author: Tero Kristo <t-kristo@ti.com>
-Date:   Tue Feb 24 16:22:45 2015 +0200
+The previously posted fix, which added  &tps {
+ti,pmic-shutdown-controller; }  was correct, and ensures that a
+poweroff makes the pmic enter "OFF-state" rather than "SLEEP-state"
+(aka RTC-only sleep).
 
-     ARM: dts: omap3: add minimal l4 bus layout with control module support
-
-     This patch creates an l4_core interconnect for OMAP3, and moves some
-     of the generic peripherals under it. System control module nodes are
-     moved under this new interconnect also, and the SCM clock layout
-     is changed to use the renamed SCM node as the clock provider.
-
-     Signed-off-by: Tero Kristo <t-kristo@ti.com>
-     Reported-by: Tony Lindgren <tony@atomide.com>
-
-I haven't looked further into it yet,
-
-Regards, Jeroen
+Matthijs
