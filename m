@@ -1,30 +1,49 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv4 10/10] arm/dts: am57xx-beagle-x15.dts: add HDMI
-Date: Mon, 1 Jun 2015 14:51:16 -0700
-Message-ID: <20150601215115.GH30984@atomide.com>
-References: <1433139798-23450-1-git-send-email-tomi.valkeinen@ti.com>
- <1433139798-23450-11-git-send-email-tomi.valkeinen@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RESEND] mach-omap2:Remove unnessary return statement from
+ the void function, omap2_show_dma_caps
+Date: Mon, 1 Jun 2015 15:02:38 -0700
+Message-ID: <20150601220237.GI30984@atomide.com>
+References: <1432825205-4663-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:55254 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752038AbbFAWCk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Jun 2015 18:02:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1433139798-23450-11-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1432825205-4663-1-git-send-email-xerofoify@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicholas Krause <xerofoify@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [150531 23:25]:
-> AM57xx Beagle X15 has a HDMI output. This patch adds the device tree
-> nodes required for HDMI.
+* Nicholas Krause <xerofoify@gmail.com> [150528 08:06]:
+> This removes the no longer required return statement at the end
+> of the void function, omap2_show_dma_cap due to no need for a
+> return statement due to this function always running successfully.
+> 
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+> ---
+>  arch/arm/mach-omap2/dma.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+> index e1a56d8..1ed4be1 100644
+> --- a/arch/arm/mach-omap2/dma.c
+> +++ b/arch/arm/mach-omap2/dma.c
+> @@ -117,7 +117,6 @@ static void omap2_show_dma_caps(void)
+>  	u8 revision = dma_read(REVISION, 0) & 0xff;
+>  	printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+>  				revision >> 4, revision & 0xf);
+> -	return;
+>  }
+>  
+>  static unsigned configure_dma_errata(void)
 
-This one does not seem to apply to linux next, did not look
-further where it conflicts.
+Sorry for the delay, applying this into omap-for-v4.2/fixes as
+it's not urgent.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
