@@ -1,40 +1,83 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v1 05/25] gpio: Use irq_desc_get_xxx() to avoid redundant
- lookup of irq_desc
-Date: Mon, 01 Jun 2015 21:48:53 +0800
-Message-ID: <556C62C5.2040107@linux.intel.com>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>	<1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com> <CACRpkdZfWK5H+gRD6inX31Ouq1XCvq7CneNDJV8x0iihXHzWjw@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Please revert 3eea8b5d68c801fec788b411582b803463834752 as it breaks
+ touchscreen on n900.
+Date: Mon, 1 Jun 2015 16:06:06 +0200
+Message-ID: <20150601140605.GA26908@amd>
+References: <20150529190816.GA20232@amd>
+ <20150529192505.GA28987@amd>
+ <20150529193211.GA7599@amd>
+ <20150529194955.GV2026@saruman.tx.rr.com>
+ <20150529195629.GA9811@amd>
+ <20150529201745.GC17267@lukather>
+ <20150529202123.GY2026@saruman.tx.rr.com>
+ <20150529202954.GA26494@localhost>
+ <20150529203456.GC22083@amd>
+ <20150601095556.GH17267@lukather>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZfWK5H+gRD6inX31Ouq1XCvq7CneNDJV8x0iihXHzWjw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ray Jui <rjui@broadcom.com>, Alexandre Courbot <gnurou@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?B?U8O2cmVuIEJyaW5rbWFubg==?= <soren.brinkmann@xilinx.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kern>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60302 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487AbbFAOGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 10:06:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20150601095556.GH17267@lukather>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Maxime Ripard <maxime.ripard@free-electrons.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 
-On 2015/6/1 20:45, Linus Walleij wrote:
-> On Wed, May 20, 2015 at 11:59 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> 
->> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
->> already have a pointer to corresponding irq_desc.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> 
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> 
-> Are there dependencies on this patch or can I just apply it
-> directly to the GPIO tree?
-Hi Linus,
-	Thanks for review.
-	There's a very long dependency list of this patch set,
-so it would be safer to merge this patch set altogether through
-the irq tree if that works:)
-Thanks!
-Gerry
+Hi!
 
+> > But that's not what I'm asking. See a changelog of
+> > 3eea8b5d68c801fec788b411582b803463834752 and compare it with what it
+> > actually does.
+> > 
+> > It is buggy. If fuzz is specified but maximum is not, it overwites
+> > maximum with zero.
 > 
-> Yours,
-> Linus Walleij
+> If maximum is not set, you'll have other issues anyway. But it really
+> boils down on what the default behaviour should be.
+
+It was not broken before commit
+3eea8b5d68c801fec788b411582b803463834752. Maximum was set, but after
+your patch, it is overwritten with zero.
+
+> > Plus it introduces new failure "if (!test_bit(axis, dev->absbit))".
 > 
+> It's not a new failure, it's testing against stupid code.
+
+Yes. In a commit marked "cleanup". We call this "undocumented
+feature".
+
+> If an axis is setup in the DT but not registered in the driver,
+> something is wrong, most probably the DT.
+
+Yes, we have fixed the DT, so that bug you introduced will not happen
+on n900 with updated device tree.
+
+> > Plus it fails to distinguish between "value not specified in the dt"
+> > and "zero is specified in the dt".
+> 
+> Again, default behaviour.
+
+Again, regression from 4.0 kernel, you are not willing to fix.
+
+> > The 3eea8b5d68c801fec788b411582b803463834752 is just bad.
+> 
+> You were very welcome to review this patch at the time and/or suggest
+> a fix that pleases everyone.
+
+You should be the one that should suggest fixes, as you broke it in
+the first place. But clearly you don't understand that.
+
+Dmitry, please revert 3eea8b5d68c801fec788b411582b803463834752
+. You'll probably need to revert
+0a363a380954e10fece7cd9931b66056eeb07d56 too. Then, Maxime can submit
+his multitouch patches in a way it does not break existing setups.
+
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
