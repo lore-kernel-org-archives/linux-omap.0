@@ -1,130 +1,234 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: Please revert 3eea8b5d68c801fec788b411582b803463834752 as it
- breaks touchscreen on n900.
-Date: Mon, 1 Jun 2015 14:32:13 -0700
-Message-ID: <20150601213213.GB14395@dtor-ws>
-References: <20150529201745.GC17267@lukather>
- <20150529202123.GY2026@saruman.tx.rr.com>
- <20150529202954.GA26494@localhost>
- <20150529203456.GC22083@amd>
- <20150601095556.GH17267@lukather>
- <20150601140605.GA26908@amd>
- <20150601145825.GA20557@lukather>
- <20150601152111.GA14015@amd>
- <20150601174730.GA30024@dtor-ws>
- <20150601212226.GH23777@lukather>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 5/6] phy: twl4030-usb: add support for reading resistor
+ on ID pin.
+Date: Tue, 2 Jun 2015 07:37:31 +1000
+Message-ID: <20150602073731.26edbd3b@notabene.brown>
+References: <20150416075945.23307.24424.stgit@notabene.brown>
+	<20150416080304.23307.41913.stgit@notabene.brown>
+	<556C5FF4.3050603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150601212226.GH23777@lukather>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/c5FbS..w+1RzbuxIwx8jZb0"; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:53307 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751591AbbFAVhn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Jun 2015 17:37:43 -0400
+In-Reply-To: <556C5FF4.3050603@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: NeilBrown <neil@brown.name>, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
 
-On Mon, Jun 01, 2015 at 11:22:26PM +0200, Maxime Ripard wrote:
-> Hi Dmitry,
-> 
-> On Mon, Jun 01, 2015 at 10:47:30AM -0700, Dmitry Torokhov wrote:
-> > On Mon, Jun 01, 2015 at 05:21:11PM +0200, Pavel Machek wrote:
-> > > 
-> > > 
-> > > > > > > The 3eea8b5d68c801fec788b411582b803463834752 is just bad.
-> > > > > > 
-> > > > > > You were very welcome to review this patch at the time and/or suggest
-> > > > > > a fix that pleases everyone.
-> > > > > 
-> > > > > You should be the one that should suggest fixes, as you broke it in
-> > > > > the first place. But clearly you don't understand that.
-> > > > 
-> > > > You actually never asked for a fix, and went head first calling this
-> > > > patch "bad" and asking for nothing but reverting it.
-> > > 
-> > > Date: Fri, 29 May 2015 21:08:16 +0200
-> > > Subject: 4.1 touchscreen regression on n900 -- pinpointed [was Re:
-> > > linux-n900
-> > > ...
-> > > Maxime, can you suggest a fix?
-> > 
-> > How about we do something like below (it needs a small edt-ft5x06 fixup
-> > that I'll send separately). Not tested.
-> > 
-> > Thanks.
-> > 
-> > -- 
-> > Dmitry
-> > 
-> > 
-> > Input: improve parsing OF parameters for touchscreens
-> > 
-> > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > 
-> > When applying touchscreen parameters specified in device tree let's make
-> > sure we keep whatever setup was done by the driver and not reset the
-> > missing values to zero.
-> > 
-> > Reported-by: Pavel Machek <pavel@ucw.cz>
-> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+--Sig_/c5FbS..w+1RzbuxIwx8jZb0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 1 Jun 2015 19:06:52 +0530 Kishon Vijay Abraham I <kishon@ti.com>
+wrote:
+
+> Hi,
+>=20
+> On Thursday 16 April 2015 01:33 PM, NeilBrown wrote:
+> > From: NeilBrown <neilb@suse.de>
+> >
+> > The twl4030 phy can measure, with low precision, the
+> > resistance-to-ground of the ID pin.
+> >
+> > Add a function to read the value, and export the result
+> > via sysfs.
+>=20
+> Little sceptical about adding new sysfs entries. Do you have a good reaso=
+n to=20
+> add this?
+
+The hardware can report the value, so why not present it to user-space?
+
+I originally used this with a udev rule which would configure the maximum
+current based on the resistance measure - to work with the particular charg=
+er
+hardware I have.
+
+More recent patches try to do all of the max-current configuration in the
+kernel, so I could live without exporting the value via sysfs if that is a
+show-stopper.
+
+I can't see where the scepticism comes from though.  It is a well defined
+and cleary documented feature of the hardware.  Why not expose it?
+
+Thanks,
+NeilBrown
+
+
+>=20
+> Thanks
+> Kishon
+> >
+> > If the read fails, which it does sometimes, try again in 50msec.
+> >
+> > Acked-by: Pavel Machek <pavel@ucw.cz>
+> > Signed-off-by: NeilBrown <neilb@suse.de>
 > > ---
-> >  drivers/input/touchscreen/edt-ft5x06.c     |    2 -
-> >  drivers/input/touchscreen/of_touchscreen.c |   67 ++++++++++++++++++----------
-> >  drivers/input/touchscreen/tsc2005.c        |    2 -
-> >  include/linux/input/touchscreen.h          |    5 +-
-> >  4 files changed, 48 insertions(+), 28 deletions(-)
-> > 
-> > diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
-> > index 29d179a..394b1de 100644
-> > --- a/drivers/input/touchscreen/edt-ft5x06.c
-> > +++ b/drivers/input/touchscreen/edt-ft5x06.c
-> > @@ -1041,7 +1041,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
-> >  			     0, tsdata->num_y * 64 - 1, 0, 0);
-> >  
-> >  	if (!pdata)
-> > -		touchscreen_parse_of_params(input);
-> > +		touchscreen_parse_of_params(input, true);
-> >  
-> >  	error = input_mt_init_slots(input, MAX_SUPPORT_POINTS, INPUT_MT_DIRECT);
-> >  	if (error) {
-> > diff --git a/drivers/input/touchscreen/of_touchscreen.c b/drivers/input/touchscreen/of_touchscreen.c
-> > index b82b520..c132624 100644
-> > --- a/drivers/input/touchscreen/of_touchscreen.c
-> > +++ b/drivers/input/touchscreen/of_touchscreen.c
-> > @@ -14,14 +14,22 @@
-> >  #include <linux/input/mt.h>
-> >  #include <linux/input/touchscreen.h>
-> >  
-> > -static u32 of_get_optional_u32(struct device_node *np,
-> > -			       const char *property)
-> > +static bool touchscreen_get_property_u32(struct device_node *np,
-> > +					 const char *property,
-> > +					 unsigned int default_value,
-> > +					 unsigned int *value)
-> >  {
-> >  	u32 val = 0;
-> > +	int error;
-> >  
-> > -	of_property_read_u32(np, property, &val);
-> > +	error = of_property_read_u32(np, property, &val);
-> > +	if (error) {
-> > +		*value = default_value;
-> > +		return false;
+> >   .../ABI/testing/sysfs-platform-twl4030-usb         |   22 +++++++
+> >   drivers/phy/phy-twl4030-usb.c                      |   63 +++++++++++=
++++++++++
+> >   2 files changed, 85 insertions(+)
+> >
+> > diff --git a/Documentation/ABI/testing/sysfs-platform-twl4030-usb b/Doc=
+umentation/ABI/testing/sysfs-platform-twl4030-usb
+> > index 512c51be64ae..425d23676f8a 100644
+> > --- a/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+> > +++ b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+> > @@ -6,3 +6,25 @@ Description:
+> >   	Possible values: "on", "off".
+> >
+> >   	Changes are notified via select/poll.
+> > +
+> > +What: /sys/bus/platform/devices/*twl4030-usb/id
+> > +Description:
+> > +	Read-only report on measurement of USB-OTG ID pin.
+> > +
+> > +	The ID pin may be floating, grounded, or pulled to
+> > +	ground by a resistor.
+> > +
+> > +	A very course grained reading of the resistance is
+> > +	available.  The numbers given in kilo-ohms are roughly
+> > +	the center-point of the detected range.
+> > +
+> > +	Possible values are:
+> > +		ground
+> > +		102k
+> > +		200k
+> > +		440k
+> > +		floating
+> > +		unknown
+> > +
+> > +	"unknown" indicates a problem with trying to detect
+> > +	the resistance.
+> > diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-us=
+b.c
+> > index 3a707dd14238..1d6f3e70193e 100644
+> > --- a/drivers/phy/phy-twl4030-usb.c
+> > +++ b/drivers/phy/phy-twl4030-usb.c
+> > @@ -379,6 +379,56 @@ static void twl4030_i2c_access(struct twl4030_usb =
+*twl, int on)
+> >   	}
+> >   }
+> >
+> > +enum twl4030_id_status {
+> > +	TWL4030_GROUND,
+> > +	TWL4030_102K,
+> > +	TWL4030_200K,
+> > +	TWL4030_440K,
+> > +	TWL4030_FLOATING,
+> > +	TWL4030_ID_UNKNOWN,
+> > +};
+> > +static char *twl4030_id_names[] =3D {
+> > +	"ground",
+> > +	"102k",
+> > +	"200k",
+> > +	"440k",
+> > +	"floating",
+> > +	"unknown"
+> > +};
+> > +
+> > +enum twl4030_id_status twl4030_get_id(struct twl4030_usb *twl)
+> > +{
+> > +	int ret;
+> > +
+> > +	pm_runtime_get_sync(twl->dev);
+> > +	if (twl->usb_mode =3D=3D T2_USB_MODE_ULPI)
+> > +		twl4030_i2c_access(twl, 1);
+> > +	ret =3D twl4030_usb_read(twl, ULPI_OTG_CTRL);
+> > +	if (ret < 0 || !(ret & ULPI_OTG_ID_PULLUP)) {
+> > +		/* Need pull-up to read ID */
+> > +		twl4030_usb_set_bits(twl, ULPI_OTG_CTRL,
+> > +				     ULPI_OTG_ID_PULLUP);
+> > +		mdelay(50);
 > > +	}
-> >  
-> > -	return val;
-> > +	*value = val;
-> > +	return true;
-> 
-> This looks good.
-> 
-> However, of_property_read_u32 already does the right thing here by not
-> update val if the property is not found.
+> > +	ret =3D twl4030_usb_read(twl, ID_STATUS);
+> > +	if (ret < 0 || (ret & 0x1f) =3D=3D 0) {
+> > +		mdelay(50);
+> > +		ret =3D twl4030_usb_read(twl, ID_STATUS);
+> > +	}
+> > +
+> > +	if (twl->usb_mode =3D=3D T2_USB_MODE_ULPI)
+> > +		twl4030_i2c_access(twl, 0);
+> > +	pm_runtime_put_autosuspend(twl->dev);
+> > +
+> > +	if (ret < 0)
+> > +		return TWL4030_ID_UNKNOWN;
+> > +	ret =3D ffs(ret) - 1;
+> > +	if (ret < TWL4030_GROUND || ret > TWL4030_FLOATING)
+> > +		return TWL4030_ID_UNKNOWN;
+> > +
+> > +	return ret;
+> > +}
+> > +
+> >   static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+> >   {
+> >   	u8 pwr =3D twl4030_usb_read(twl, PHY_PWR_CTRL);
+> > @@ -532,6 +582,16 @@ static ssize_t twl4030_usb_vbus_show(struct device=
+ *dev,
+> >   }
+> >   static DEVICE_ATTR(vbus, 0444, twl4030_usb_vbus_show, NULL);
+> >
+> > +static ssize_t twl4030_usb_id_show(struct device *dev,
+> > +				   struct device_attribute *attr,
+> > +				   char *buf)
+> > +{
+> > +	struct twl4030_usb *twl =3D dev_get_drvdata(dev);
+> > +	return scnprintf(buf, PAGE_SIZE, "%s\n",
+> > +			 twl4030_id_names[twl4030_get_id(twl)]);
+> > +}
+> > +static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
+> > +
+> >   static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+> >   {
+> >   	struct twl4030_usb *twl =3D _twl;
+> > @@ -709,6 +769,8 @@ static int twl4030_usb_probe(struct platform_device=
+ *pdev)
+> >   	platform_set_drvdata(pdev, twl);
+> >   	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+> >   		dev_warn(&pdev->dev, "could not create sysfs file\n");
+> > +	if (device_create_file(&pdev->dev, &dev_attr_id))
+> > +		dev_warn(&pdev->dev, "could not create sysfs file\n");
+> >
+> >   	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+> >
+> > @@ -753,6 +815,7 @@ static int twl4030_usb_remove(struct platform_devic=
+e *pdev)
+> >   	pm_runtime_get_sync(twl->dev);
+> >   	cancel_delayed_work(&twl->id_workaround_work);
+> >   	device_remove_file(twl->dev, &dev_attr_vbus);
+> > +	device_remove_file(twl->dev, &dev_attr_id);
+> >
+> >   	/* set transceiver mode to power on defaults */
+> >   	twl4030_usb_set_mode(twl, -1);
+> >
+> >
 
-I know but it is not documented anywhere (as far as I know) so I'd
-rather not rely on the implementation detail that might change in the
-future. This is not a hot path so extra assignment should not hurt.
 
-Thanks.
+--Sig_/c5FbS..w+1RzbuxIwx8jZb0
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
--- 
-Dmitry
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIVAwUBVWzQmznsnt1WYoG5AQJvFxAArDgCT9yg3XjnYUqgnstFg7DiFcHZ/ye2
+nxecgd7eRE0uBtcieLIy+EjiP7aj2GMrjocx0gcTXwNcmLhP63nvSm/L2yF+6WGi
+OsFrkTzVnDJtrWvudDRhcHHt54Og0C72jlR/ToObbERP2QOr8hHb0a3TiUezjG0U
+LlgKjH5HLFy0nws1s88ITRMMyeVyd/ZrfS7vZKZu4n1XU9gvu1JtIzBzuj0GLjjL
+u9bCa0MBIOOIYmgs4wDeExRx64zardsn+i88yUKK1tOFyg7B6x4gfS+1IHlNv6Kr
+v41IiWZ7TGIMzW5gCdJgSVP0pdJM5k+/Pr2GgmyQ4UF9yJ7QfcPryFzlfWg53NB7
+t5Zr2i2EQtdOpCEk1EBVQLgLoA5//PQ5HHk6L5pFRDm9Pu2hZQSV9B13Kk77Faii
+knQhhC0eobCtQJZImKjhuO1JG9z0TNeipyIAKKEXqpc6amyaP+RB63J++6hg7ZKJ
+LM37oghZZqrg9B5lHGanBxWo41H267sDYEr+DpfCVzaTfsr/HyDUgwLgesnEs/mB
+3UnaOG0u4THK4nyX/zjvcpdVyGhI1ZHcsIKEeWA7Ui5W7AcVE5xWQdUwIZItZdSJ
+X8nD6EYlMHUC5lxJMRcVmSzIpjvNPEJy8XoEwbdglInWyAM+uyu3N9r/KesKoYV0
+KBqiXsHsp50=
+=0TYz
+-----END PGP SIGNATURE-----
+
+--Sig_/c5FbS..w+1RzbuxIwx8jZb0--
