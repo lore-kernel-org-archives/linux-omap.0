@@ -1,114 +1,102 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 2/2] usb: dwc3: Add chained TRB support for ep0
-Date: Mon, 1 Jun 2015 13:42:36 -0500
-Message-ID: <20150601184236.GH26081@saruman.tx.rr.com>
-References: <1423223735-32512-1-git-send-email-kishon@ti.com>
- <1423223735-32512-2-git-send-email-kishon@ti.com>
- <20150206144841.GB16783@saruman.tx.rr.com>
- <556C2BAC.4070901@ti.com>
-Reply-To: <balbi@ti.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH] ARM: dts: am335x-boneblack: disable RTC-only sleep
+Date: Mon, 1 Jun 2015 21:33:28 +0200
+Message-ID: <20150601193328.GA27640@squirrel.local>
+References: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
+ <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com>
+ <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
+ <CAALWOA9wyCsUQqER2Cqwru_2REpX6AeryWeoSuwZWDsdPPL+Ow@mail.gmail.com>
+ <20150601172330.GX30984@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="G44BJl3Aq1QbV/QL"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37883 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752019AbbFASoq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Jun 2015 14:44:46 -0400
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:35040 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812AbbFATdc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 15:33:32 -0400
 Content-Disposition: inline
-In-Reply-To: <556C2BAC.4070901@ti.com>
+In-Reply-To: <20150601172330.GX30984@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, Sekhar Nori <nsekhar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>
 
---G44BJl3Aq1QbV/QL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 1 June 2015 at 19:23, Tony Lindgren <tony@atomide.com> wrote:
+> Ah finally you got around doing a proper patch :)
 
-Hi,
+My First Linux Patch(tm) ;-)
 
-On Mon, Jun 01, 2015 at 03:23:48PM +0530, Kishon Vijay Abraham I wrote:
-> >>+		transferred =3D transfer_size - length;
-> >>+		buf =3D (u8 *)buf + transferred;
-> >>+		ur->actual +=3D transferred;
-> >
-> >this is dangerous. The extra size is because you *must* align OUT to
-> >wMaxPacketSize, so you cannot allow more than the original req->length
-> >to be copied into buf. That bounce buffer, is really supposed to be a
->=20
-> Here we are not handling bounce buffer. The bounce buffer is used only for
-> the 2nd TRB which actually programs to receive data that is less than bou=
-nce
-> buffer size. The 1st TRB will always be max packet aligned and the data is
-> directly copied to the request buffer. (However note that if the request
-> length is less than bounce buffer size, we'll use 1 TRB only)
->=20
-> To summarize..
-> We are splitting req->length into 2 TRB's if the req->length is not align=
-ed
-> to wMaxPacketSize _and_ req->length is greater than bounce buffer size. By
-> this way we can make the 2nd TRB to receive data lesser than or equal to
-> bounce buffer size and the rest of it can be received using the 1st TRB.
->=20
-> Consider the following case.
-> ur->length =3D 612;
-> maxp =3D 512;
->=20
-> This case can't be handled by the existing bounce buffer mechanism since =
-the
-> size of bounce buffer is only 512. So we program 2 TRB's.
-> First TRB
-> trb->size =3D 512; /* We don't need bounce buffer for this TRB since it i=
-s max
-> packet aligned. The data is directly loaded to the request buffer. */
->=20
-> Second TRB
-> trb->size =3D 512 /* For the remaining 100 bytes we use bounce buffer and=
- it
-> uses the same existing bounce buffer mechanism. But instead of copying the
-> data to the start of the request buffer, it has to be appended to the data
-> that is received due to first TRB. */
+> Also, if this is needed as a fix for the mainline kernel to avoid hardware
+> damage, please let me know too ASAP.
 
-this is all fine, but you need to make sure that you only copy the
-remaining 100 bytes. Never, ever, ever copy anything past that.
+The damaging configuration is having &rtc { system-power-controller; }
+without &tps { ti,pmic-shutdown-controller; }
 
-> >throw-away buffer and should never have data in it. You should really
-> >add a big fat WARN() if transferred > req->length.
-> >
-> >The thing is that if host sends more data than we were expecting, this
-> >could be someone trying to use our driver as an exploit vector, trying
-> >to send more data than it should. We must be robust against that.
->=20
-> This is handled in the existing bounce buffer mechanism and I use the same
-> bounce buffer mechanism for the 2nd TRB.
+So 3d76be5b9 also avoids damage, but with the unfortunate side-effect
+that the system doesn't power off at all anymore (it just halts). I do
+recommend applying this patch (restyled as needed) before reverting
+3d76be5b9.
 
-ok.
+> Hmm no ideas about that, I guess people are using gmail to send email
+> with smtps though?
 
---=20
-balbi
+Hmm, setting up mutt turned out less hassle than I remembered...
 
---G44BJl3Aq1QbV/QL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+(Let's hope all goes well)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> Linux usually does not use the // style comments.. Can you please change
+> that? And how about have just one section of comments then the entry
+> for ti,pmic-shutdown-controller?
 
-iQIcBAEBAgAGBQJVbKecAAoJEIaOsuA1yqREPEEP/jnQSnO8LPNtHcIpeTkHhszq
-kBOziJGVnaxdb5ARbUG/fKy9kUe49bN3QqZFUtH7Tc/ZbJwFov5XOFjmKH4ez9dO
-9BQr+UoCGkvXXo8fexUobcwLcgj/yqp/95fpSZ1Tys5PNeY0uWnk3Vf/a/fw2TCN
-D+W4v3HYjSbbtrnG2qpST/vLIijza/jA93GNzbdYWLwuCmrwW21+tqbZqdeIG7SC
-VcO0CB6cgQw7rhXphJCGZzzSTWuolgsnXnS9qvLegcLt19Bes47VuqrgyZkb+AKx
-GCUo9ZohxY9SvEpappjF2XUuvvbK3DB4S2J36q9idjdcCCRACLccpahPqBSselIV
-6/CnGJMqxjAYfL5OVLlTwdiMeknD/ou/0PYc+TR7hiDCJ1TgrD6qRliHn3SuYWgz
-chL7LQNI453XMcfPBCctmPm7sHVi8O59UGkb3a1/wQ5weZuUZTsLJFX+Hf+BelVT
-mpZm4dGww7BO8s/M45J5+y5X6+ykv5CWHfgd05J8qeOb5kCEEI2v2LjM/RllAaeD
-t9vGGD5kFWLypt58kPUjzeFrMlwp3fVN8JBpGbM1K7VR/xr+1IU/JFTWocXXf8Kf
-dMjcYaQI3fr+XKtU+pBO6PNDcIqA9snyfqV5qRdExznMF37g7hNsV/2YacrLxY/i
-3vC1wTCsB2ckzqatG6Xo
-=wafV
------END PGP SIGNATURE-----
+Fresh try...
 
---G44BJl3Aq1QbV/QL--
+--- 8< -----------------------------------------------------
+Fixes: http://bugs.elinux.org/issues/143
+
+Avoid entering "RTC-only mode" at poweroff. It is unsupported by most
+versions of BeagleBone, and risks hardware damage.
+
+Reported-by: Matthijs van Duin <matthijsvanduin@gmail.com>
+Tested-by: Matthijs van Duin <matthijsvanduin@gmail.com>
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Johan Hovold <johan@kernel.org>
+[Matthijs van Duin: added explanatory comments]
+Signed-off-by: Matthijs van Duin <matthijsvanduin@gmail.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index c3255e0..c0b0c02 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -223,6 +223,24 @@
+ /include/ "tps65217.dtsi"
+ 
+ &tps {
++	/* Configure pmic to enter OFF-state instead of SLEEP-state ("RTC-only
++	 * mode") at poweroff.  Most BeagleBone versions do not support RTC-only
++	 * mode and risk hardware damage if this mode is entered.
++	 *
++	 * For details, see linux-omap mailing list May 2015 thread
++	 *	[PATCH] ARM: dts: am335x-bone* enable pmic-shutdown-controller
++	 * In particular, messages:
++	 *	http://www.spinics.net/lists/linux-omap/msg118585.html
++	 *	http://www.spinics.net/lists/linux-omap/msg118615.html
++	 *
++	 * You can override this later with
++	 *	&tps {  /delete-property/ ti,pmic-shutdown-controller;  }
++	 * if you want to use RTC-only mode and made sure you are not affected
++	 * by the hardware problems. (Tip: double-check by performing a current
++	 * measurement after shutdown: it should be less than 1 mA.)
++	 */
++	ti,pmic-shutdown-controller;
++
+ 	regulators {
+ 		dcdc1_reg: regulator@0 {
+ 			regulator-name = "vdds_dpr";
+-- 
+2.1.4
+
