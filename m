@@ -1,64 +1,75 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-boneblack: disable RTC-only sleep
-Date: Mon, 1 Jun 2015 13:01:37 -0700
-Message-ID: <20150601200137.GC30984@atomide.com>
-References: <1432136322-7609-1-git-send-email-robertcnelson@gmail.com>
- <CAALWOA8ReuBSMcu5EvLOrKGfFGBGWSdMhpL_uSnL4QvTC-n8zg@mail.gmail.com>
- <CAOCHtYigGmDY6c8woQxwdy9kU0J1h258jZXL7g7=VdrxKJC9cA@mail.gmail.com>
- <CAALWOA9wyCsUQqER2Cqwru_2REpX6AeryWeoSuwZWDsdPPL+Ow@mail.gmail.com>
- <20150601172330.GX30984@atomide.com>
- <20150601193328.GA27640@squirrel.local>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Please revert 3eea8b5d68c801fec788b411582b803463834752 as it
+ breaks touchscreen on n900.
+Date: Mon, 1 Jun 2015 22:27:40 +0200
+Message-ID: <20150601202740.GA6716@amd>
+References: <20150529195629.GA9811@amd>
+ <20150529201745.GC17267@lukather>
+ <20150529202123.GY2026@saruman.tx.rr.com>
+ <20150529202954.GA26494@localhost>
+ <20150529203456.GC22083@amd>
+ <20150601095556.GH17267@lukather>
+ <20150601140605.GA26908@amd>
+ <20150601145825.GA20557@lukather>
+ <20150601152111.GA14015@amd>
+ <20150601174730.GA30024@dtor-ws>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39646 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628AbbFAU1n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2015 16:27:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20150601193328.GA27640-2pNSKKP3PSK44ywRPIzf9A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20150601174730.GA30024@dtor-ws>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 
-* Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150601 12:35]:
-> On 1 June 2015 at 19:23, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > Ah finally you got around doing a proper patch :)
+On Mon 2015-06-01 10:47:30, Dmitry Torokhov wrote:
+> On Mon, Jun 01, 2015 at 05:21:11PM +0200, Pavel Machek wrote:
+> > 
+> > 
+> > > > > > The 3eea8b5d68c801fec788b411582b803463834752 is just bad.
+> > > > > 
+> > > > > You were very welcome to review this patch at the time and/or suggest
+> > > > > a fix that pleases everyone.
+> > > > 
+> > > > You should be the one that should suggest fixes, as you broke it in
+> > > > the first place. But clearly you don't understand that.
+> > > 
+> > > You actually never asked for a fix, and went head first calling this
+> > > patch "bad" and asking for nothing but reverting it.
+> > 
+> > Date: Fri, 29 May 2015 21:08:16 +0200
+> > Subject: 4.1 touchscreen regression on n900 -- pinpointed [was Re:
+> > linux-n900
+> > ...
+> > Maxime, can you suggest a fix?
 > 
-> My First Linux Patch(tm) ;-)
+> How about we do something like below (it needs a small edt-ft5x06 fixup
+> that I'll send separately). Not tested.
 
-Probably easier than trying to get other people to do the right
-thing by writing emails ;)
- 
-> > Also, if this is needed as a fix for the mainline kernel to avoid hardware
-> > damage, please let me know too ASAP.
-> 
-> The damaging configuration is having &rtc { system-power-controller; }
-> without &tps { ti,pmic-shutdown-controller; }
++       data_present = touchscreen_get_prop_u32(np,
+"touchscreen-size-x",
++
+input_abs_get_maximum(axis),
++                                               &maximum) |
++                      touchscreen_get_prop_u32(np,
+"touchscreen-fuzz-x",
++
+input_abs_get_fuzz(axis),
++                                               &fuzz);
++       if (data_present)
++               touchscreen_set_params(dev, axis, maximum, fuzz);
 
-OK thanks updating the description with that.
- 
-> So 3d76be5b9 also avoids damage, but with the unfortunate side-effect
-> that the system doesn't power off at all anymore (it just halts). I do
-> recommend applying this patch (restyled as needed) before reverting
-> 3d76be5b9.
-> 
-> > Hmm no ideas about that, I guess people are using gmail to send email
-> > with smtps though?
-> 
-> Hmm, setting up mutt turned out less hassle than I remembered...
-> 
-> (Let's hope all goes well)
-> 
-> > Linux usually does not use the // style comments.. Can you please change
-> > that? And how about have just one section of comments then the entry
-> > for ti,pmic-shutdown-controller?
-> 
-> Fresh try...
+Umm. So you are changing behaviour from "whatever was there" to
+"input_abs_get_maximum"... in n900 case. Is that a good idea for a
+regression fix this late in release cycle?
 
-Thanks applying into omap-for-v4.1/fixes with Cc stable.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Maxime's patch should be easy to fix...
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
