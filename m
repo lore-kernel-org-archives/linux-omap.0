@@ -1,55 +1,125 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: dts: AM35xx: fix system control module clocks
-Date: Tue, 2 Jun 2015 10:15:25 +0300
-Message-ID: <556D580D.1000600@ti.com>
-References: <alpine.DEB.2.02.1506010546510.14902@utopia.booyaka.com> <1433172627-28052-1-git-send-email-t-kristo@ti.com> <556C8ED5.5050000@myspectrum.nl> <20150601173126.GY30984@atomide.com> <alpine.DEB.2.02.1506011733180.14902@utopia.booyaka.com> <20150601180429.GA30984@atomide.com> <20150601180658.GB30984@atomide.com> <alpine.DEB.2.02.1506012122050.14902@utopia.booyaka.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/3] phy: ti-pipe3: i783 workaround for SATA lockup after
+ dpll unlock/relock
+Date: Tue, 2 Jun 2015 11:17:06 +0300
+Message-ID: <556D6682.1030609@ti.com>
+References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-3-git-send-email-rogerq@ti.com> <555C89D2.5070301@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37286 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752142AbbFBHP3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jun 2015 03:15:29 -0400
-In-Reply-To: <alpine.DEB.2.02.1506012122050.14902@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <555C89D2.5070301@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com
+Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Jeroen Hofstee <linux-arm@myspectrum.nl>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 06/02/2015 12:26 AM, Paul Walmsley wrote:
-> On Mon, 1 Jun 2015, Tony Lindgren wrote:
+Kishon,
+
+On 20/05/15 16:19, Kishon Vijay Abraham I wrote:
+> Hi Roger,
 >
->> * Tony Lindgren <tony@atomide.com> [150601 11:06]:
->>> * Paul Walmsley <paul@pwsan.com> [150601 10:45]:
->>>>
->>>> See for example the "Build warnings from toolchain", "Kernel warnings
->>>> during boot to userspace", "Kernel warnings during PM test", and "Obsolete
->>>> Kconfig symbols" sections here:
->>>>
->>>> http://www.pwsan.com/omap/testlogs/test_v4.1-rc6/20150601012139/README.txt
->>>
->>> OK somehow 3517evm is listed under "skip" there?
+> On Tuesday 12 May 2015 09:37 PM, Roger Quadros wrote:
+>> SATA_PLL_SOFT_RESET bit of CTRL_CORE_SMA_SW_0 must be toggled
+>> between a SATA DPLL unlock and re-lock to prevent SATA lockup.
 >>
->> Oh I see you have two 3517 devices there, never mind.
+>> Introduce a new DT parameter 'syscon-pllreset' to provide the syscon
+>> regmap access to this register which sits in the control module.
 >>
->> Hmm now I'm wondering what the panda es warnings listed there are..
+>> If the register is not provided we fallback to the old behaviour
+>> i.e. SATA DPLL refclk will not be disabled and we prevent SoC low
+>> power states.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   Documentation/devicetree/bindings/phy/ti-phy.txt | 16 ++++++
+>>   drivers/phy/phy-ti-pipe3.c                       | 67 ++++++++++++++++++++----
+>>   2 files changed, 74 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> index 305e3df..f0f5537 100644
+>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+>> @@ -82,6 +82,9 @@ Optional properties:
+>>    - id: If there are multiple instance of the same type, in order to
+>>      differentiate between each instance "id" can be used (e.g., multi-lane PCIe
+>>      PHY). If "id" is not provided, it is set to default value of '1'.
+>> + - syscon-pllreset: Handle to system control region that contains the
+>> +   CTRL_CORE_SMA_SW_0 register and register offset to the CTRL_CORE_SMA_SW_0
+>> +   register that contains the SATA_PLL_SOFT_RESET bit. Only valid for sata_phy.
+>>
+>>   This is usually a subnode of ocp2scp to which it is connected.
+>>
+>> @@ -100,3 +103,16 @@ usb3phy@4a084400 {
+>>               "sysclk",
+>>               "refclk";
+>>   };
+>> +
+>> +sata_phy: phy@4A096000 {
+>> +    compatible = "ti,phy-pipe3-sata";
+>> +    reg = <0x4A096000 0x80>, /* phy_rx */
+>> +          <0x4A096400 0x64>, /* phy_tx */
+>> +          <0x4A096800 0x40>; /* pll_ctrl */
+>> +    reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+>> +    ctrl-module = <&omap_control_sata>;
+>> +    clocks = <&sys_clkin1>, <&sata_ref_clk>;
+>> +    clock-names = "sysclk", "refclk";
+>> +    syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
+>> +    #phy-cells = <0>;
+>> +};
+>> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+>> index e13a306..d730142 100644
+>> --- a/drivers/phy/phy-ti-pipe3.c
+>> +++ b/drivers/phy/phy-ti-pipe3.c
+>> @@ -28,6 +28,8 @@
+>>   #include <linux/delay.h>
+>>   #include <linux/phy/omap_control_phy.h>
+>>   #include <linux/of_platform.h>
+>> +#include <linux/mfd/syscon.h>
+>> +#include <linux/regmap.h>
+>>
+>>   #define    PLL_STATUS        0x00000004
+>>   #define    PLL_GO            0x00000008
+>> @@ -52,6 +54,8 @@
+>>   #define    PLL_LOCK        0x2
+>>   #define    PLL_IDLE        0x1
+>>
+>> +#define SATA_PLL_SOFT_RESET    BIT(18)
+>> +
+>>   /*
+>>    * This is an Empirical value that works, need to confirm the actual
+>>    * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
+>> @@ -82,6 +86,9 @@ struct ti_pipe3 {
+>>       struct clk        *refclk;
+>>       struct clk        *div_clk;
+>>       struct pipe3_dpll_map    *dpll_map;
+>> +    struct regmap        *dpll_reset_syscon; /* ctrl. reg. acces */
+>> +    unsigned int        dpll_reset_reg; /* reg. index within syscon */
+>> +    bool            sata_refclk_enabled;
+>>   };
+>>
+>>   static struct pipe3_dpll_map dpll_map_usb[] = {
+>> @@ -249,11 +256,15 @@ static int ti_pipe3_exit(struct phy *x)
+>>       u32 val;
+>>       unsigned long timeout;
+>>
+>> -    /* SATA DPLL can't be powered down due to Errata i783 and PCIe
+>> -     * does not have internal DPLL
+>> +    /* If dpll_reset_syscon is not present we wont power down SATA DPLL
+>> +     * due to Errata i783
+>>        */
+>> -    if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") ||
+>> -        of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
+>> +    if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-sata") &&
+>> +        !phy->dpll_reset_syscon)
+>> +        return 0;
+>> +
+>> +    /* PCIe doesn't have DPLL. FIXME: need to disable clocks though */
 >
-> http://www.pwsan.com/omap/testlogs/test_v4.1-rc6/20150601012139/boot/4430es2panda/4430es2panda_log.txt
->
-> Looked to me like an OMAP4430 ES2.2 bug.  I recall discussing it with
-> someone with an ES2.3 Pandaboard and they said it didn't show up.  So I
-> asked TI at the time if there was an erratum for it; apparently not.  So I
-> think we may need to add in another hardware bug workaround flag to the
-> OMAP integration code...
->
-> - Paul
->
+> I think it's better to fix it in this patch itself.. to disable clocks for PCIe.
 
-Don't know about pandaboard ES2.2, but this doesn't show up on SDP4430 
-es2.3 at least. Do you know which clockdomain is in question there? It 
-could just be a race someplace in the usecounting system that shows up 
-on that specific SoC.
+I was not sure if it will break PCIe in any way. moreover it is not part of the patch subject.
+do you still want me to fix it in this patch?
 
--Tero
-
+cheers,
+-roger
