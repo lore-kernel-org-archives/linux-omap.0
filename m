@@ -1,45 +1,73 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 2/5] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
-Date: Tue, 2 Jun 2015 16:54:10 +0530
-Message-ID: <556D925A.9070708@ti.com>
-References: <1433159614-437-1-git-send-email-vigneshr@ti.com> <1433159614-437-3-git-send-email-vigneshr@ti.com> <556D6781.2090405@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: davinci-mcasp: Choose PCM driver based on configured
+ DMA controller
+Date: Tue, 2 Jun 2015 14:55:10 +0300
+Message-ID: <556D999E.8000306@ti.com>
+References: <bcd986aa18bf41643f1d190739381a890313ac61.1433235274.git.jsarha@ti.com> <556D8600.1060204@ti.com> <556D8F7F.7090803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58113 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59161 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751949AbbFBLZB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 07:25:01 -0400
-In-Reply-To: <556D6781.2090405@ti.com>
+	with ESMTP id S1752948AbbFBLzX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 07:55:23 -0400
+In-Reply-To: <556D8F7F.7090803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, misael.lopez@ti.com
 
-Hi Tero,
+On 06/02/2015 02:11 PM, Jyri Sarha wrote:
+>>> -    switch (mcasp->version) {
+>>> +    ret =3D -EINVAL;
+>>
+>> Why? What was the problem with setting the ret in the default case?
+>>
+>=20
+> I would need to have that I three places now for the #else cases, whe=
+n
+> devicetree tries to configure pcm driver that has not been compiled.
 
-On Tuesday 02 June 2015 01:51 PM, Tero Kristo wrote:
-> On 06/01/2015 02:53 PM, Vignesh R wrote:
->> Add hwmod entries for the PWMSS on DRA7.
-> 
-> Can you provide some documentation references for this data?
-> 
-> I was looking at the TRM and at least the main_clk selection is somewhat
-> unclear to me.
+I see now, thanks for pointing out ;)
 
-As per AM57x TRM SPRUHZ6, October 2014, Section 29.1.3 Table 29-4.
-source signal as L4PER2_L3_GICLK but it is actually equal to
-L4PER2_L3_GICLK/2. l4_root_clock_div is fixed-factored clock equal to
-L4PER2_L3_GICLK/2 (l3_iclk_div/2 in Linux clock dt). The TRM does'nt
-show factor of by 2. I will forward you an internal documentation that
-talks about this.
+>>> +    switch (davinci_mcasp_get_dma_type(mcasp)) {
+>>> +    case MCASP_EDMA:
+>>>   #if IS_BUILTIN(CONFIG_SND_EDMA_SOC) || \
+>>>       (IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
+>>>        IS_MODULE(CONFIG_SND_EDMA_SOC))
+>>> -    case MCASP_VERSION_1:
+>>> -    case MCASP_VERSION_2:
+>>> -    case MCASP_VERSION_3:
+>>>           ret =3D edma_pcm_platform_register(&pdev->dev);
+>>> -        break;
+>>> +#else
+>>> +        dev_err(&pdev->dev, "Missing SND_EDMA_SOC\n");
+>>>   #endif
+>>> +        break;
+>>> +    case MCASP_SDMA:
+>>>   #if IS_BUILTIN(CONFIG_SND_OMAP_SOC) || \
+>>>       (IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
+>>>        IS_MODULE(CONFIG_SND_OMAP_SOC))
+>>> -    case MCASP_VERSION_4:
+>>>           ret =3D omap_pcm_platform_register(&pdev->dev);
+>>> -        break;
+>>> +#else
+>>> +        dev_err(&pdev->dev, "Missing SND_SDMA_SOC\n");
+>>>   #endif
+>>> +        break;
+>>>       default:
+>>> -        dev_err(&pdev->dev, "Invalid McASP version: %d\n",
+>>> -            mcasp->version);
+>>> -        ret =3D -EINVAL;
+>>> +        dev_err(&pdev->dev, "No DMA controller found\n");
+>>>           break;
+>>>       }
 
-I also measured the frequencies of PWM waveforms using oscilloscope and
-it matches above observation.
-
-I will update the patch description in v2.
-
-Regards
-Vignesh
-
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
