@@ -1,139 +1,68 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3] ASoC: davinci-mcasp: Choose PCM driver based on configured DMA controller
-Date: Tue, 2 Jun 2015 23:09:34 +0300
-Message-ID: <e5dbf0a5fbb101792fd106461929c4b814dffc06.1433275670.git.jsarha@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH RFC v2 1/7] ASoC: core: If component
+ doesn't have of_node use parent's node instead
+Date: Tue, 2 Jun 2015 21:09:22 +0100
+Message-ID: <20150602200922.GQ14071@sirena.org.uk>
+References: <1432666751-24794-1-git-send-email-jsarha@ti.com>
+ <1432666751-24794-2-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53804 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751033AbbFBUJq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jun 2015 16:09:46 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7529407807999104804=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1432666751-24794-2-git-send-email-jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, moinejf@free.fr, airlied@linux.ie, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, misael.lopez@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Find the configured DMA controller by asking for a DMA channel in the
-probe phase and releasing it right after. The controller device can be
-found via the dma_chan struct and the controller is recognized from
-the compatible property of its device node. The patch assumes EDMA if
-there is no device node.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
-Changes since v2:
-- Print only one error message if DMA "probing" fails
-  and none in case of -EPROBE_DEFER
+--===============7529407807999104804==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="BzJ6Fzq6EYQX8BP0"
+Content-Disposition: inline
 
-Changes since first patch version:
-- Change enum names from MCASP_?DMA to PCM_?DMA
-- Return PCM_EDMA if !mcasp->dev->of_node
-- Do not ignore possible error code returned by
-  davinci_mcasp_get_dma_type()
 
- sound/soc/davinci/davinci-mcasp.c | 70 +++++++++++++++++++++++++++++++++------
- 1 file changed, 60 insertions(+), 10 deletions(-)
+--BzJ6Fzq6EYQX8BP0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index d793494..a73cd57 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1565,6 +1565,49 @@ static int davinci_mcasp_init_ch_constraints(struct davinci_mcasp *mcasp)
- 	return ret;
- }
- 
-+enum {
-+	PCM_EDMA,
-+	PCM_SDMA,
-+};
-+static const char *sdma_prefix = "ti,omap";
-+
-+static int davinci_mcasp_get_dma_type(struct davinci_mcasp *mcasp)
-+{
-+	struct dma_chan *chan;
-+	const char *tmp;
-+	int ret = PCM_EDMA;
-+
-+	if (!mcasp->dev->of_node)
-+		return PCM_EDMA;
-+
-+	tmp = mcasp->dma_data[SNDRV_PCM_STREAM_PLAYBACK].filter_data;
-+	chan = dma_request_slave_channel_reason(mcasp->dev, tmp);
-+	if (IS_ERR(chan)) {
-+		if (PTR_ERR(chan) != -EPROBE_DEFER)
-+			dev_err(mcasp->dev,
-+				"Can't verify DMA configuration (%ld)\n",
-+				PTR_ERR(chan));
-+		return PTR_ERR(chan);
-+	}
-+	BUG_ON(!chan->device || !chan->device->dev);
-+
-+	if (chan->device->dev->of_node)
-+		ret = of_property_read_string(chan->device->dev->of_node,
-+					      "compatible", &tmp);
-+	else
-+		dev_dbg(mcasp->dev, "DMA controller has no of-node\n");
-+
-+	dma_release_channel(chan);
-+	if (ret)
-+		return ret;
-+
-+	dev_dbg(mcasp->dev, "DMA controller compatible = \"%s\"\n", tmp);
-+	if (!strncmp(tmp, sdma_prefix, strlen(sdma_prefix)))
-+		return PCM_SDMA;
-+
-+	return PCM_EDMA;
-+}
-+
- static int davinci_mcasp_probe(struct platform_device *pdev)
- {
- 	struct snd_dmaengine_dai_dma_data *dma_data;
-@@ -1763,27 +1806,34 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err;
- 
--	switch (mcasp->version) {
-+	ret = davinci_mcasp_get_dma_type(mcasp);
-+	switch (ret) {
-+	case PCM_EDMA:
- #if IS_BUILTIN(CONFIG_SND_EDMA_SOC) || \
- 	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
- 	 IS_MODULE(CONFIG_SND_EDMA_SOC))
--	case MCASP_VERSION_1:
--	case MCASP_VERSION_2:
--	case MCASP_VERSION_3:
- 		ret = edma_pcm_platform_register(&pdev->dev);
--		break;
-+#else
-+		dev_err(&pdev->dev, "Missing SND_EDMA_SOC\n");
-+		ret = -EINVAL;
-+		goto err;
- #endif
-+		break;
-+	case PCM_SDMA:
- #if IS_BUILTIN(CONFIG_SND_OMAP_SOC) || \
- 	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
- 	 IS_MODULE(CONFIG_SND_OMAP_SOC))
--	case MCASP_VERSION_4:
- 		ret = omap_pcm_platform_register(&pdev->dev);
--		break;
-+#else
-+		dev_err(&pdev->dev, "Missing SND_SDMA_SOC\n");
-+		ret = -EINVAL;
-+		goto err;
- #endif
-+		break;
- 	default:
--		dev_err(&pdev->dev, "Invalid McASP version: %d\n",
--			mcasp->version);
--		ret = -EINVAL;
-+		dev_err(&pdev->dev, "No DMA controller found (%d)\n", ret);
-+	case -EPROBE_DEFER:
-+		goto err;
- 		break;
- 	}
- 
--- 
-1.9.1
+On Tue, May 26, 2015 at 09:59:05PM +0300, Jyri Sarha wrote:
+> If an ASoC component device does not have a device tree node, use its
+> parent's node instead, when looking for a matching DAI based on a
+> device tree reference.
 
+Applied, thanks.
+
+--BzJ6Fzq6EYQX8BP0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVbg1xAAoJECTWi3JdVIfQCzcH/RBpRv9Q4cf2Dc09ctm0BMpI
+RKT2+zKp9ESmoZHTkokEIMKS4w1RdyC1MtXxle9xHtG0aw6kHi42LJ7LSytPp+aG
+teO9oiLACEcLlXIJ7Qxgd5waE+yRNbjLHdT7fpEOmUNAW0RA1ZJz8W19Zaxt+9tV
+qPjBURxo8CawHRDfs3G+aMpKUgB4lEN3ddkOrmDoox4iYSRxY/KHmQI7DzPt/yxU
+gOQ0X1gRKwSDAcsTSHg+dK+5PdhRL3gT0DT6IsPfBjIuCU433iBdl/s6cv4a1ugD
+KPJRUM33mfMaDR4HcL2vdpLr0FbPZG5qt3jQLdUYDpKchlFzqrp1UKwpsEyxQHQ=
+=+mEr
+-----END PGP SIGNATURE-----
+
+--BzJ6Fzq6EYQX8BP0--
+
+--===============7529407807999104804==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============7529407807999104804==--
