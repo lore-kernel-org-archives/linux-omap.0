@@ -1,81 +1,133 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 3/5] ARM: dts: DRA7: Add TBCLK for PWMSS
-Date: Tue, 2 Jun 2015 11:22:35 +0300
-Message-ID: <556D67CB.8090309@ti.com>
-References: <1433159614-437-1-git-send-email-vigneshr@ti.com> <1433159614-437-4-git-send-email-vigneshr@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Please revert 3eea8b5d68c801fec788b411582b803463834752 as it
+ breaks touchscreen on n900.
+Date: Tue, 2 Jun 2015 10:25:22 +0200
+Message-ID: <20150602082521.GA14955@amd>
+References: <20150529202123.GY2026@saruman.tx.rr.com>
+ <20150529202954.GA26494@localhost>
+ <20150529203456.GC22083@amd>
+ <20150601095556.GH17267@lukather>
+ <20150601140605.GA26908@amd>
+ <20150601145825.GA20557@lukather>
+ <20150601152111.GA14015@amd>
+ <20150601174730.GA30024@dtor-ws>
+ <20150601212226.GH23777@lukather>
+ <20150601213213.GB14395@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433159614-437-4-git-send-email-vigneshr@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20150601213213.GB14395@dtor-ws>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Paul Walmsley <paul@pwsan.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/01/2015 02:53 PM, Vignesh R wrote:
-> tbclk is used by ehrpwm to generate PWM waveform on DRA7 SoC. Add Linux
-> clock to control ehrpwm tbclk.
+On Mon 2015-06-01 14:32:13, Dmitry Torokhov wrote:
+> On Mon, Jun 01, 2015 at 11:22:26PM +0200, Maxime Ripard wrote:
+> > Hi Dmitry,
+> > 
+> > On Mon, Jun 01, 2015 at 10:47:30AM -0700, Dmitry Torokhov wrote:
+> > > On Mon, Jun 01, 2015 at 05:21:11PM +0200, Pavel Machek wrote:
+> > > > 
+> > > > 
+> > > > > > > > The 3eea8b5d68c801fec788b411582b803463834752 is just bad.
+> > > > > > > 
+> > > > > > > You were very welcome to review this patch at the time and/or suggest
+> > > > > > > a fix that pleases everyone.
+> > > > > > 
+> > > > > > You should be the one that should suggest fixes, as you broke it in
+> > > > > > the first place. But clearly you don't understand that.
+> > > > > 
+> > > > > You actually never asked for a fix, and went head first calling this
+> > > > > patch "bad" and asking for nothing but reverting it.
+> > > > 
+> > > > Date: Fri, 29 May 2015 21:08:16 +0200
+> > > > Subject: 4.1 touchscreen regression on n900 -- pinpointed [was Re:
+> > > > linux-n900
+> > > > ...
+> > > > Maxime, can you suggest a fix?
+> > > 
+> > > How about we do something like below (it needs a small edt-ft5x06 fixup
+> > > that I'll send separately). Not tested.
+> > > 
+> > > Thanks.
+> > > 
+> > > -- 
+> > > Dmitry
+> > > 
+> > > 
+> > > Input: improve parsing OF parameters for touchscreens
+> > > 
+> > > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > > 
+> > > When applying touchscreen parameters specified in device tree let's make
+> > > sure we keep whatever setup was done by the driver and not reset the
+> > > missing values to zero.
+> > > 
+> > > Reported-by: Pavel Machek <pavel@ucw.cz>
+> > > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > > ---
+> > >  drivers/input/touchscreen/edt-ft5x06.c     |    2 -
+> > >  drivers/input/touchscreen/of_touchscreen.c |   67 ++++++++++++++++++----------
+> > >  drivers/input/touchscreen/tsc2005.c        |    2 -
+> > >  include/linux/input/touchscreen.h          |    5 +-
+> > >  4 files changed, 48 insertions(+), 28 deletions(-)
+> > > 
+> > > diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
+> > > index 29d179a..394b1de 100644
+> > > --- a/drivers/input/touchscreen/edt-ft5x06.c
+> > > +++ b/drivers/input/touchscreen/edt-ft5x06.c
+> > > @@ -1041,7 +1041,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
+> > >  			     0, tsdata->num_y * 64 - 1, 0, 0);
+> > >  
+> > >  	if (!pdata)
+> > > -		touchscreen_parse_of_params(input);
+> > > +		touchscreen_parse_of_params(input, true);
+> > >  
+> > >  	error = input_mt_init_slots(input, MAX_SUPPORT_POINTS, INPUT_MT_DIRECT);
+> > >  	if (error) {
+> > > diff --git a/drivers/input/touchscreen/of_touchscreen.c b/drivers/input/touchscreen/of_touchscreen.c
+> > > index b82b520..c132624 100644
+> > > --- a/drivers/input/touchscreen/of_touchscreen.c
+> > > +++ b/drivers/input/touchscreen/of_touchscreen.c
+> > > @@ -14,14 +14,22 @@
+> > >  #include <linux/input/mt.h>
+> > >  #include <linux/input/touchscreen.h>
+> > >  
+> > > -static u32 of_get_optional_u32(struct device_node *np,
+> > > -			       const char *property)
+> > > +static bool touchscreen_get_property_u32(struct device_node *np,
+> > > +					 const char *property,
+> > > +					 unsigned int default_value,
+> > > +					 unsigned int *value)
+> > >  {
+> > >  	u32 val = 0;
+> > > +	int error;
+> > >  
+> > > -	of_property_read_u32(np, property, &val);
+> > > +	error = of_property_read_u32(np, property, &val);
+> > > +	if (error) {
+> > > +		*value = default_value;
+> > > +		return false;
+> > > +	}
+> > >  
+> > > -	return val;
+> > > +	*value = val;
+> > > +	return true;
+> > 
+> > This looks good.
+> > 
+> > However, of_property_read_u32 already does the right thing here by not
+> > update val if the property is not found.
+> 
+> I know but it is not documented anywhere (as far as I know) so I'd
+> rather not rely on the implementation detail that might change in the
+> future. This is not a hot path so extra assignment should not hurt.
 
-Care to add TRM reference here?
-
--Tero
-
->
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->   arch/arm/boot/dts/dra7.dtsi          |  5 +++++
->   arch/arm/boot/dts/dra7xx-clocks.dtsi | 26 ++++++++++++++++++++++++++
->   2 files changed, 31 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index f03a091cd076..387c76ca41f9 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -131,6 +131,11 @@
->   							regulator-max-microvolt = <3000000>;
->   						};
->   					};
-> +
-> +					scm_conf_clocks: clocks {
-> +						#address-cells = <1>;
-> +						#size-cells = <0>;
-> +					};
->   				};
->
->   				dra7_pmx_core: pinmux@1400 {
-> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> index 3b933f74d000..92452d61cf58 100644
-> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-> @@ -2136,3 +2136,29 @@
->   		clocks = <&dpll_usb_ck>;
->   	};
->   };
-> +
-> +&scm_conf_clocks {
-> +       ehrpwm0_tbclk: ehrpwm0_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&l4_root_clk_div>;
-> +		ti,bit-shift = <20>;
-> +		reg = <0x0558>;
-> +	};
-> +
-> +	ehrpwm1_tbclk: ehrpwm1_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&l4_root_clk_div>;
-> +		ti,bit-shift = <21>;
-> +		reg = <0x0558>;
-> +	};
-> +
-> +	ehrpwm2_tbclk: ehrpwm2_tbclk {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,gate-clock";
-> +		clocks = <&l4_root_clk_div>;
-> +		ti,bit-shift = <22>;
-> +		reg = <0x0558>;
-> +	};
-> +};
->
+Seriously? Submit a patch documenting it, instead of writing strange
+code. I bet everyone and their dog relies on it.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
