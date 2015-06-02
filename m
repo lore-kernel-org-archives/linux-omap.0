@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] omap device tree changes for v4.2, part 2
-Date: Tue,  2 Jun 2015 10:22:15 -0700
-Message-ID: <37677.0957293504$1433265923@news.gmane.org>
+Subject: [GIT PULL 3/3] omap soc changes for v4.2
+Date: Tue,  2 Jun 2015 10:22:17 -0700
+Message-ID: <49117.7243683071$1433265925@news.gmane.org>
+References: <pull-1433265658-688305>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1433265658-688305>
+In-Reply-To: <pull-1433265658-688305>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,38 +22,54 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 52dfcbfc94833b0192d439127ee9ff46023cdbb2:
-
-  ARM: dts: am335x-evm: add mmc3 and wlan definitions to dts (2015-05-21 12:05:59 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/dt-pt2
-
-for you to fetch changes up to 8584d4fcab2222e2501e1c95b4d063cd4a76891d:
-
-  ARM: dts: am335x-sl50: Add Toby-Churchill SL50 board support. (2015-05-28 09:49:50 -0700)
-
-----------------------------------------------------------------
-Few more omap device tree changes for v4.2 merge window:
-
-- Add dm9000 Ethernet support to omap3-devkit8000
-
-- Add Toby-Churchill SL50 board support
-
-- Add vendor prefix for Toby Churchill Ltd
-
-----------------------------------------------------------------
-Anthoine Bourgeois (1):
-      ARM: dts: omap3-devkit8000: Add dm9000 support
-
-Enric Balletbo i Serra (2):
-      of: Add vendor prefix for Toby Churchill Ltd.
-      ARM: dts: am335x-sl50: Add Toby-Churchill SL50 board support.
-
- .../devicetree/bindings/vendor-prefixes.txt        |   1 +
- arch/arm/boot/dts/Makefile                         |   1 +
- arch/arm/boot/dts/am335x-sl50.dts                  | 482 +++++++++++++++++++++
- arch/arm/boot/dts/omap3-devkit8000.dts             |  41 ++
- 4 files changed, 525 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-sl50.dts
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCBlMjYwODE4MDhlZGFkZmQyNTdjNmM5
+ZDgxMDE0ZTNiMjVlOWE2MTE4OgoKICBMaW51eCA0LjEtcmM0ICgyMDE1LTA1LTE4IDEwOjEzOjQ3
+IC0wNzAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21h
+cCB0YWdzL29tYXAtZm9yLXY0LjIvc29jLXB0MS10YWtlMgoKZm9yIHlvdSB0byBmZXRjaCBjaGFu
+Z2VzIHVwIHRvIDQzNmJiYzEyNDUyYzIzYjllNzM4NWYzZmNhYmM4MmZkZDM4N2E1NWE6CgogIE1l
+cmdlIHRhZyAnZm9yLXY0LjIvb21hcC1od21vZC1hJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
+dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvcGp3L29tYXAtcGVuZGluZyBpbnRvIG9tYXAtZm9yLXY0
+LjIvc29jICgyMDE1LTA2LTAyIDA3OjQyOjQzIC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpPbWFwIGh3bW9kIGNo
+YW5nZXMgZm9yIHY0LjIgdmlhIFBhdWwgV2FsbXNsZXkgPHBhdWxAcHdzYW4uY29tPjoKClNldmVy
+YWwgT01BUDIrIGh3bW9kIGNoYW5nZXMgZm9yIHY0LjIuICBPbmUgcGF0Y2ggY2xlYW5zIHVwIGEg
+bmFzdHkKaW50ZXJhY3Rpb24gYmV0d2VlbiB0aGUgT01BUCBHUE1DIGFuZCB0aGUgaHdtb2QgY29k
+ZSB3aGVuIGRlYnVnZ2luZyBpcwplbmFibGVkLiAgSVAgYmxvY2sgaW50ZWdyYXRpb24gZGF0YSBo
+YXMgYmVlbiBhZGRlZCBmb3IgdGhlIEFNNDN4eCBFTUlGClJBTSBjb250cm9sbGVyLiAgVGhlcmUn
+cyBhbHNvIGEgZml4IGZvciB0aGUgb21hcC1hZXMgZHJpdmVyIHdoZW4gdXNlZCBpbgpRRU1VLiAg
+QW5kIGZpbmFsbHksIHNvbWUgY2hhbmdlcyB0byB0aGUgT01BUDMgaHdtb2QgY29kZSB0byBzdXBw
+b3J0IHRoZQp1c2Ugb2YgdGhlIHNlY3VyaXR5IElQIGJsb2NrcyAoQUVTIGFuZCBTSEEpIG9uIEdQ
+IGRldmljZXMsIG9yIHdoZW4gdGhleSd2ZQpzcGVjaWZpY2FsbHkgYmVlbiBlbmFibGVkIGluIHRo
+ZSBEVCBkYXRhLgoKQmFzaWMgYnVpbGQsIGJvb3QsIGFuZCBwb3dlciBtYW5hZ2VtZW50IHRlc3Qg
+cmVzdWx0cyBhcmUgaGVyZToKCmh0dHA6Ly93d3cucHdzYW4uY29tL29tYXAvdGVzdGxvZ3Mvb21h
+cC1od21vZC1hLWZvci12NC4yLzIwMTUwNjAxMTkyMzQ5LwoKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEYXZlIEdlcmxhY2gg
+KDEpOgogICAgICBBUk06IE9NQVA6IEFNNDN4eCBod21vZDogQWRkIGRhdGEgZm9yIGFtNDN4eCBl
+bWlmIGh3bW9kCgpQYWxpIFJvaMOhciAoMik6CiAgICAgIEFSTTogT01BUDIrOiBSZXR1cm4gY29y
+cmVjdCBlcnJvciB2YWx1ZXMgZnJvbSBkZXZpY2UgYW5kIGh3bW9kCiAgICAgIEFSTTogT01BUDM6
+IEZpeCBjcnlwdG8gc3VwcG9ydCBmb3IgSFMgZGV2aWNlcwoKVG9ueSBMaW5kZ3JlbiAoMik6CiAg
+ICAgIG1lbW9yeTogb21hcC1ncG1jOiBBZGQgS2NvbmZpZyBvcHRpb24gZm9yIGRlYnVnCiAgICAg
+IE1lcmdlIHRhZyAnZm9yLXY0LjIvb21hcC1od21vZC1hJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9y
+Zy8uLi4vcGp3L29tYXAtcGVuZGluZyBpbnRvIG9tYXAtZm9yLXY0LjIvc29jCgogYXJjaC9hcm0v
+bWFjaC1vbWFwMi9vbWFwX2RldmljZS5jICAgICAgICAgICAgICAgICAgfCAgMzAgKysrLS0tCiBh
+cmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuYyAgICAgICAgICAgICAgICAgICB8ICAxMCAr
+LQogYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kLmggICAgICAgICAgICAgICAgICAgfCAg
+IDYgKysKIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8yeHh4X2lwYmxvY2tfZGF0YS5j
+IHwgIDEyICstLQogLi4uL21hY2gtb21hcDIvb21hcF9od21vZF8zM3h4XzQzeHhfY29tbW9uX2Rh
+dGEuaCAgfCAgIDEgKwogLi4uL21hY2gtb21hcDIvb21hcF9od21vZF8zM3h4XzQzeHhfaXBibG9j
+a19kYXRhLmMgfCAgMTYgKystCiBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfMzN4eF9k
+YXRhLmMgICAgICAgICB8ICAxMyAtLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8z
+eHh4X2RhdGEuYyAgICAgICAgIHwgMTE5ICsrKysrKysrKysrKysrKysrLS0tLQogYXJjaC9hcm0v
+bWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQzeHhfZGF0YS5jICAgICAgICAgfCAgMjIgKysrKwogYXJj
+aC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQ0eHhfZGF0YS5jICAgICAgICAgfCAgMTEgKy0K
+IGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF83eHhfZGF0YS5jICAgICAgICAgIHwgICA0
+ICstCiBhcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfODF4eF9kYXRhLmMgICAgICAgICB8
+ICAgMiArCiBhcmNoL2FybS9tYWNoLW9tYXAyL3ByY200M3h4LmggICAgICAgICAgICAgICAgICAg
+ICB8ICAgMiArCiBkcml2ZXJzL21lbW9yeS9LY29uZmlnICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICB8ICAgOCArKwogZHJpdmVycy9tZW1vcnkvb21hcC1ncG1jLmMgICAgICAgICAgICAgICAg
+ICAgICAgICAgfCAgIDYgKy0KIDE1IGZpbGVzIGNoYW5nZWQsIDE4NCBpbnNlcnRpb25zKCspLCA3
+OCBkZWxldGlvbnMoLSkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
+dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LWFybS1rZXJuZWwK
