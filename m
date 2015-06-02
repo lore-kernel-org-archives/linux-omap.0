@@ -1,68 +1,55 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC v2 1/7] ASoC: core: If component
- doesn't have of_node use parent's node instead
-Date: Tue, 2 Jun 2015 21:09:22 +0100
-Message-ID: <20150602200922.GQ14071@sirena.org.uk>
+Subject: Re: [PATCH RFC v2 2/7] ASoC: hdmi: Remove obsolete dummy HDMI codec
+Date: Tue, 2 Jun 2015 21:10:13 +0100
+Message-ID: <20150602201013.GR14071@sirena.org.uk>
 References: <1432666751-24794-1-git-send-email-jsarha@ti.com>
- <1432666751-24794-2-git-send-email-jsarha@ti.com>
+ <1432666751-24794-3-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7529407807999104804=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1432666751-24794-2-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, moinejf@free.fr, airlied@linux.ie, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============7529407807999104804==
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="BzJ6Fzq6EYQX8BP0"
+	protocol="application/pgp-signature"; boundary="rpOPesfUXqAMaEty"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:39711 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbbFBUKY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 16:10:24 -0400
 Content-Disposition: inline
+In-Reply-To: <1432666751-24794-3-git-send-email-jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, moinejf@free.fr, rmk+kernel@arm.linux.org.uk
 
 
---BzJ6Fzq6EYQX8BP0
+--rpOPesfUXqAMaEty
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, May 26, 2015 at 09:59:05PM +0300, Jyri Sarha wrote:
-> If an ASoC component device does not have a device tree node, use its
-> parent's node instead, when looking for a matching DAI based on a
-> device tree reference.
+On Tue, May 26, 2015 at 09:59:06PM +0300, Jyri Sarha wrote:
 
-Applied, thanks.
+> -#ifdef CONFIG_OF
+> -static const struct of_device_id hdmi_audio_codec_ids[] = {
+> -	{ .compatible = "linux,hdmi-audio", },
+> -	{ }
+> -};
+> -MODULE_DEVICE_TABLE(of, hdmi_audio_codec_ids);
+> -#endif
 
---BzJ6Fzq6EYQX8BP0
+There is actually a binding document, you should remove that too.
+
+--rpOPesfUXqAMaEty
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJVbg1xAAoJECTWi3JdVIfQCzcH/RBpRv9Q4cf2Dc09ctm0BMpI
-RKT2+zKp9ESmoZHTkokEIMKS4w1RdyC1MtXxle9xHtG0aw6kHi42LJ7LSytPp+aG
-teO9oiLACEcLlXIJ7Qxgd5waE+yRNbjLHdT7fpEOmUNAW0RA1ZJz8W19Zaxt+9tV
-qPjBURxo8CawHRDfs3G+aMpKUgB4lEN3ddkOrmDoox4iYSRxY/KHmQI7DzPt/yxU
-gOQ0X1gRKwSDAcsTSHg+dK+5PdhRL3gT0DT6IsPfBjIuCU433iBdl/s6cv4a1ugD
-KPJRUM33mfMaDR4HcL2vdpLr0FbPZG5qt3jQLdUYDpKchlFzqrp1UKwpsEyxQHQ=
-=+mEr
+iQEcBAEBCAAGBQJVbg2kAAoJECTWi3JdVIfQ+sUH/R+4QXH+jN5ReZZzGFI5CDab
+KLDx4tqeIgx3oB+JuVE4G33aojgdhvsaboWcG7p22jwV6Xb+Dsp31cLSooj2K1BM
+hx+1QzNXJu5JpguHnPVNy3JsLKHEU15zSD6lmiPqpmuRz5GpIXIQJevvpANB5wUD
+Liw1vk4msE/cUTpczWHdpoyE/SsLD6UcJ4vJXEXGYxpAml6oqkW5nCJV9YD9amMp
+6eHVSG7NsLks9ngZ2w4xLmBYQECXrCPwh6SXk56VmaPoGTe7Bp4eRd0/30HGX2KR
+f6TOLZRkhNSVkKUzDHif27R9ifGPCtjBTgK4o3y3jypCMDvGQ0x2Ba9EK/vekFw=
+=UOUC
 -----END PGP SIGNATURE-----
 
---BzJ6Fzq6EYQX8BP0--
-
---===============7529407807999104804==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============7529407807999104804==--
+--rpOPesfUXqAMaEty--
