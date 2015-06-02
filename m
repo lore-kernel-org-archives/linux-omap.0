@@ -1,45 +1,42 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 0/3] phy: ti-pipe3: dra7: sata: allow suspend to RAM (core-retention)
-Date: Tue, 2 Jun 2015 12:10:39 +0300
-Message-ID: <1433236242-26172-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to SATA PHY
+Date: Tue, 2 Jun 2015 12:10:42 +0300
+Message-ID: <1433236242-26172-4-git-send-email-rogerq@ti.com>
+References: <1433236242-26172-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53130 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758872AbbFBJK4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 05:10:56 -0400
+In-Reply-To: <1433236242-26172-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: kishon@ti.com, tony@atomide.com
 Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This register is required to be passed to the SATA PHY driver
+to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
 
-We fix 2 things here to ensure that PHY clocks are disabled during
-system suspend.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-1) Stop relying on pm_runtime ops to disable our clocks as they don't
-fit in well with the PHY framework usage scenario. This ensures that all clocks are
-disabled when phy_exit() is called.
-
-2) Implement workaround for SATA errata i783 (SATA Lockup After SATA DPLL Unlock/Relock)
-so that we can now turn off sata_refclk to support suspend-to-ram without preventing
-core-retention.
-
-Changelog:
-v2:
-- Fixed pcie disable_clocks. Addressed review comments.
-
-cheers,
--roger
-
-Roger Quadros (3):
-  phy: ti-pipe3: fix suspend
-  phy: ti-pipe3: i783 workaround for SATA lockup after dpll
-    unlock/relock
-  ARM: dts: dra7: Add syscon-pllreset syscon to SATA PHY
-
- Documentation/devicetree/bindings/phy/ti-phy.txt |  16 ++
- arch/arm/boot/dts/dra7.dtsi                      |   1 +
- drivers/phy/phy-ti-pipe3.c                       | 217 +++++++++--------------
- 3 files changed, 105 insertions(+), 129 deletions(-)
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index f03a091..260f300 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1135,6 +1135,7 @@
+ 				ctrl-module = <&omap_control_sata>;
+ 				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+ 				clock-names = "sysclk", "refclk";
++				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
+ 				#phy-cells = <0>;
+ 			};
+ 
 -- 
 2.1.4
+
