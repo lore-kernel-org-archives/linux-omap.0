@@ -1,133 +1,205 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2] ASoC: davinci-mcasp: Choose PCM driver based on configured DMA controller
-Date: Tue, 2 Jun 2015 16:49:56 +0300
-Message-ID: <7230089f10ea27a9bd76eb8bfffcef754e71f274.1433252849.git.jsarha@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 5/6] phy: twl4030-usb: add support for reading resistor
+ on ID pin.
+Date: Tue, 2 Jun 2015 19:19:53 +0530
+Message-ID: <556DB481.3080906@ti.com>
+References: <20150416075945.23307.24424.stgit@notabene.brown>	<20150416080304.23307.41913.stgit@notabene.brown>	<556C5FF4.3050603@ti.com> <20150602073731.26edbd3b@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39041 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756284AbbFBNuJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Jun 2015 09:50:09 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:35408 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754399AbbFBNuP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 09:50:15 -0400
+In-Reply-To: <20150602073731.26edbd3b@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, misael.lopez@ti.com, Jyri Sarha <jsarha@ti.com>
+To: NeilBrown <neilb@suse.de>
+Cc: NeilBrown <neil@brown.name>, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org
 
-Find the configured DMA controller by asking for a DMA channel in the
-probe phase and releasing it right after. The controller device can be
-found via the dma_chan struct and the controller is recognized from
-the compatible property of its device node. The patch assumes EDMA if
-there is no device node.
+Hi,
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
-Changes since first patch version:
-- Change enum names from MCASP_?DMA to PCM_?DMA
-- Return PCM_EDMA if !mcasp->dev->of_node
-- Do not ignore possible error code returned by
-  davinci_mcasp_get_dma_type()
+On Tuesday 02 June 2015 03:07 AM, NeilBrown wrote:
+> On Mon, 1 Jun 2015 19:06:52 +0530 Kishon Vijay Abraham I <kishon@ti.com>
+> wrote:
+>
+>> Hi,
+>>
+>> On Thursday 16 April 2015 01:33 PM, NeilBrown wrote:
+>>> From: NeilBrown <neilb@suse.de>
+>>>
+>>> The twl4030 phy can measure, with low precision, the
+>>> resistance-to-ground of the ID pin.
+>>>
+>>> Add a function to read the value, and export the result
+>>> via sysfs.
+>>
+>> Little sceptical about adding new sysfs entries. Do you have a good reason to
+>> add this?
+>
+> The hardware can report the value, so why not present it to user-space?
+>
+> I originally used this with a udev rule which would configure the maximum
+> current based on the resistance measure - to work with the particular charger
+> hardware I have.
+>
+> More recent patches try to do all of the max-current configuration in the
+> kernel, so I could live without exporting the value via sysfs if that is a
+> show-stopper.
+>
+> I can't see where the scepticism comes from though.  It is a well defined
+> and cleary documented feature of the hardware.  Why not expose it?
 
- sound/soc/davinci/davinci-mcasp.c | 68 +++++++++++++++++++++++++++++++++------
- 1 file changed, 58 insertions(+), 10 deletions(-)
+ABI can never be removed or modified later. So should be really careful before 
+adding it.
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index d793494..3b78c3e 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1565,6 +1565,49 @@ static int davinci_mcasp_init_ch_constraints(struct davinci_mcasp *mcasp)
- 	return ret;
- }
- 
-+enum {
-+	PCM_EDMA,
-+	PCM_SDMA,
-+};
-+static const char *sdma_prefix = "ti,omap";
-+
-+static int davinci_mcasp_get_dma_type(struct davinci_mcasp *mcasp)
-+{
-+	struct dma_chan *chan;
-+	const char *tmp;
-+	int ret = PCM_EDMA;
-+
-+	if (!mcasp->dev->of_node)
-+		return PCM_EDMA;
-+
-+	tmp = mcasp->dma_data[SNDRV_PCM_STREAM_PLAYBACK].filter_data;
-+	chan = dma_request_slave_channel_reason(mcasp->dev, tmp);
-+	if (IS_ERR(chan)) {
-+		if (PTR_ERR(chan) != -EPROBE_DEFER)
-+			dev_err(mcasp->dev,
-+				"Can't verify DMA configuration (%ld)\n",
-+				PTR_ERR(chan));
-+		return PTR_ERR(chan);
-+	}
-+	BUG_ON(!chan->device || !chan->device->dev);
-+
-+	if (chan->device->dev->of_node)
-+		ret = of_property_read_string(chan->device->dev->of_node,
-+					      "compatible", &tmp);
-+	else
-+		dev_dbg(mcasp->dev, "DMA controller has no of-node\n");
-+
-+	dma_release_channel(chan);
-+	if (ret)
-+		return ret;
-+
-+	dev_dbg(mcasp->dev, "DMA controller compatible = \"%s\"\n", tmp);
-+	if (!strncmp(tmp, sdma_prefix, strlen(sdma_prefix)))
-+		return PCM_SDMA;
-+
-+	return PCM_EDMA;
-+}
-+
- static int davinci_mcasp_probe(struct platform_device *pdev)
- {
- 	struct snd_dmaengine_dai_dma_data *dma_data;
-@@ -1763,27 +1806,32 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err;
- 
--	switch (mcasp->version) {
-+	ret = davinci_mcasp_get_dma_type(mcasp);
-+	switch (ret) {
-+	case PCM_EDMA:
- #if IS_BUILTIN(CONFIG_SND_EDMA_SOC) || \
- 	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
- 	 IS_MODULE(CONFIG_SND_EDMA_SOC))
--	case MCASP_VERSION_1:
--	case MCASP_VERSION_2:
--	case MCASP_VERSION_3:
- 		ret = edma_pcm_platform_register(&pdev->dev);
--		break;
-+#else
-+		dev_err(&pdev->dev, "Missing SND_EDMA_SOC\n");
-+		ret = -EINVAL;
- #endif
-+		break;
-+	case PCM_SDMA:
- #if IS_BUILTIN(CONFIG_SND_OMAP_SOC) || \
- 	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
- 	 IS_MODULE(CONFIG_SND_OMAP_SOC))
--	case MCASP_VERSION_4:
- 		ret = omap_pcm_platform_register(&pdev->dev);
--		break;
-+#else
-+		dev_err(&pdev->dev, "Missing SND_SDMA_SOC\n");
-+		ret = -EINVAL;
- #endif
-+		break;
-+	case -EPROBE_DEFER:
-+		break;
- 	default:
--		dev_err(&pdev->dev, "Invalid McASP version: %d\n",
--			mcasp->version);
--		ret = -EINVAL;
-+		dev_err(&pdev->dev, "No DMA controller found (%d)\n", ret);
- 		break;
- 	}
- 
--- 
-1.9.1
+Thanks
+Kishon
 
+>
+> Thanks,
+> NeilBrown
+>
+>
+>>
+>> Thanks
+>> Kishon
+>>>
+>>> If the read fails, which it does sometimes, try again in 50msec.
+>>>
+>>> Acked-by: Pavel Machek <pavel@ucw.cz>
+>>> Signed-off-by: NeilBrown <neilb@suse.de>
+>>> ---
+>>>    .../ABI/testing/sysfs-platform-twl4030-usb         |   22 +++++++
+>>>    drivers/phy/phy-twl4030-usb.c                      |   63 ++++++++++++++++++++
+>>>    2 files changed, 85 insertions(+)
+>>>
+>>> diff --git a/Documentation/ABI/testing/sysfs-platform-twl4030-usb b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+>>> index 512c51be64ae..425d23676f8a 100644
+>>> --- a/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+>>> +++ b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
+>>> @@ -6,3 +6,25 @@ Description:
+>>>    	Possible values: "on", "off".
+>>>
+>>>    	Changes are notified via select/poll.
+>>> +
+>>> +What: /sys/bus/platform/devices/*twl4030-usb/id
+>>> +Description:
+>>> +	Read-only report on measurement of USB-OTG ID pin.
+>>> +
+>>> +	The ID pin may be floating, grounded, or pulled to
+>>> +	ground by a resistor.
+>>> +
+>>> +	A very course grained reading of the resistance is
+>>> +	available.  The numbers given in kilo-ohms are roughly
+>>> +	the center-point of the detected range.
+>>> +
+>>> +	Possible values are:
+>>> +		ground
+>>> +		102k
+>>> +		200k
+>>> +		440k
+>>> +		floating
+>>> +		unknown
+>>> +
+>>> +	"unknown" indicates a problem with trying to detect
+>>> +	the resistance.
+>>> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+>>> index 3a707dd14238..1d6f3e70193e 100644
+>>> --- a/drivers/phy/phy-twl4030-usb.c
+>>> +++ b/drivers/phy/phy-twl4030-usb.c
+>>> @@ -379,6 +379,56 @@ static void twl4030_i2c_access(struct twl4030_usb *twl, int on)
+>>>    	}
+>>>    }
+>>>
+>>> +enum twl4030_id_status {
+>>> +	TWL4030_GROUND,
+>>> +	TWL4030_102K,
+>>> +	TWL4030_200K,
+>>> +	TWL4030_440K,
+>>> +	TWL4030_FLOATING,
+>>> +	TWL4030_ID_UNKNOWN,
+>>> +};
+>>> +static char *twl4030_id_names[] = {
+>>> +	"ground",
+>>> +	"102k",
+>>> +	"200k",
+>>> +	"440k",
+>>> +	"floating",
+>>> +	"unknown"
+>>> +};
+>>> +
+>>> +enum twl4030_id_status twl4030_get_id(struct twl4030_usb *twl)
+>>> +{
+>>> +	int ret;
+>>> +
+>>> +	pm_runtime_get_sync(twl->dev);
+>>> +	if (twl->usb_mode == T2_USB_MODE_ULPI)
+>>> +		twl4030_i2c_access(twl, 1);
+>>> +	ret = twl4030_usb_read(twl, ULPI_OTG_CTRL);
+>>> +	if (ret < 0 || !(ret & ULPI_OTG_ID_PULLUP)) {
+>>> +		/* Need pull-up to read ID */
+>>> +		twl4030_usb_set_bits(twl, ULPI_OTG_CTRL,
+>>> +				     ULPI_OTG_ID_PULLUP);
+>>> +		mdelay(50);
+>>> +	}
+>>> +	ret = twl4030_usb_read(twl, ID_STATUS);
+>>> +	if (ret < 0 || (ret & 0x1f) == 0) {
+>>> +		mdelay(50);
+>>> +		ret = twl4030_usb_read(twl, ID_STATUS);
+>>> +	}
+>>> +
+>>> +	if (twl->usb_mode == T2_USB_MODE_ULPI)
+>>> +		twl4030_i2c_access(twl, 0);
+>>> +	pm_runtime_put_autosuspend(twl->dev);
+>>> +
+>>> +	if (ret < 0)
+>>> +		return TWL4030_ID_UNKNOWN;
+>>> +	ret = ffs(ret) - 1;
+>>> +	if (ret < TWL4030_GROUND || ret > TWL4030_FLOATING)
+>>> +		return TWL4030_ID_UNKNOWN;
+>>> +
+>>> +	return ret;
+>>> +}
+>>> +
+>>>    static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+>>>    {
+>>>    	u8 pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+>>> @@ -532,6 +582,16 @@ static ssize_t twl4030_usb_vbus_show(struct device *dev,
+>>>    }
+>>>    static DEVICE_ATTR(vbus, 0444, twl4030_usb_vbus_show, NULL);
+>>>
+>>> +static ssize_t twl4030_usb_id_show(struct device *dev,
+>>> +				   struct device_attribute *attr,
+>>> +				   char *buf)
+>>> +{
+>>> +	struct twl4030_usb *twl = dev_get_drvdata(dev);
+>>> +	return scnprintf(buf, PAGE_SIZE, "%s\n",
+>>> +			 twl4030_id_names[twl4030_get_id(twl)]);
+>>> +}
+>>> +static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
+>>> +
+>>>    static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+>>>    {
+>>>    	struct twl4030_usb *twl = _twl;
+>>> @@ -709,6 +769,8 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+>>>    	platform_set_drvdata(pdev, twl);
+>>>    	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+>>>    		dev_warn(&pdev->dev, "could not create sysfs file\n");
+>>> +	if (device_create_file(&pdev->dev, &dev_attr_id))
+>>> +		dev_warn(&pdev->dev, "could not create sysfs file\n");
+>>>
+>>>    	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+>>>
+>>> @@ -753,6 +815,7 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+>>>    	pm_runtime_get_sync(twl->dev);
+>>>    	cancel_delayed_work(&twl->id_workaround_work);
+>>>    	device_remove_file(twl->dev, &dev_attr_vbus);
+>>> +	device_remove_file(twl->dev, &dev_attr_id);
+>>>
+>>>    	/* set transceiver mode to power on defaults */
+>>>    	twl4030_usb_set_mode(twl, -1);
+>>>
+>>>
+>
