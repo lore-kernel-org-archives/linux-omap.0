@@ -1,96 +1,182 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 2/7] gpio: omap: fix error handling in omap_gpio_irq_type
-Date: Tue, 2 Jun 2015 11:40:35 +0200
-Message-ID: <CABxcv=m7htmrUStVJXdUmPvn+hOkA6+vZJi4qvcYZ46qXiJ6Jw@mail.gmail.com>
-References: <1432305354-5968-1-git-send-email-grygorii.strashko@linaro.org>
-	<1432305354-5968-3-git-send-email-grygorii.strashko@linaro.org>
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: Please revert 3eea8b5d68c801fec788b411582b803463834752 as it
+ breaks touchscreen on n900.
+Date: Tue, 2 Jun 2015 11:44:47 +0200
+Message-ID: <20150602094447.GW23777@lukather>
+References: <20150529202123.GY2026@saruman.tx.rr.com>
+ <20150529202954.GA26494@localhost>
+ <20150529203456.GC22083@amd>
+ <20150601095556.GH17267@lukather>
+ <20150601140605.GA26908@amd>
+ <20150601145825.GA20557@lukather>
+ <20150601152111.GA14015@amd>
+ <20150601174730.GA30024@dtor-ws>
+ <20150601212226.GH23777@lukather>
+ <20150601213213.GB14395@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kigERAySUJmIn/9g"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f176.google.com ([209.85.160.176]:33742 "EHLO
-	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426AbbFBJkg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 05:40:36 -0400
-Received: by ykfr66 with SMTP id r66so52051354ykf.0
-        for <linux-omap@vger.kernel.org>; Tue, 02 Jun 2015 02:40:35 -0700 (PDT)
-In-Reply-To: <1432305354-5968-3-git-send-email-grygorii.strashko@linaro.org>
+Received: from down.free-electrons.com ([37.187.137.238]:52725 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754625AbbFBJpD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2015 05:45:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20150601213213.GB14395@dtor-ws>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 
-Hello Grygorii,
 
-On Fri, May 22, 2015 at 4:35 PM, Grygorii Strashko
-<grygorii.strashko@linaro.org> wrote:
-> The GPIO bank will be kept powered in case if input parameters
-> are invalid or error occurred in omap_gpio_irq_type.
->
-> Hence, fix it by ensuring that GPIO bank will be unpowered
-> in case of errors and add additional check of value returned
-> from omap_set_gpio_triggering().
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
-> ---
->  drivers/gpio/gpio-omap.c | 16 ++++++++++++----
->  1 file changed, 12 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index bb60cbc..f6cc638 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -488,9 +488,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
->         unsigned long flags;
->         unsigned offset = d->hwirq;
->
-> -       if (!BANK_USED(bank))
-> -               pm_runtime_get_sync(bank->dev);
-> -
->         if (type & ~IRQ_TYPE_SENSE_MASK)
->                 return -EINVAL;
->
-> @@ -498,12 +495,18 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
->                 (type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
->                 return -EINVAL;
->
-> +       if (!BANK_USED(bank))
-> +               pm_runtime_get_sync(bank->dev);
-> +
->         spin_lock_irqsave(&bank->lock, flags);
->         retval = omap_set_gpio_triggering(bank, offset, type);
-> +       if (retval)
+--kigERAySUJmIn/9g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-At this point the bank->lock spinlock is held so you need to add a
-spin_unlock_irqrestore() in the error path.
+On Mon, Jun 01, 2015 at 02:32:13PM -0700, Dmitry Torokhov wrote:
+> On Mon, Jun 01, 2015 at 11:22:26PM +0200, Maxime Ripard wrote:
+> > Hi Dmitry,
+> >=20
+> > On Mon, Jun 01, 2015 at 10:47:30AM -0700, Dmitry Torokhov wrote:
+> > > On Mon, Jun 01, 2015 at 05:21:11PM +0200, Pavel Machek wrote:
+> > > >=20
+> > > >=20
+> > > > > > > > The 3eea8b5d68c801fec788b411582b803463834752 is just bad.
+> > > > > > >=20
+> > > > > > > You were very welcome to review this patch at the time and/or=
+ suggest
+> > > > > > > a fix that pleases everyone.
+> > > > > >=20
+> > > > > > You should be the one that should suggest fixes, as you broke i=
+t in
+> > > > > > the first place. But clearly you don't understand that.
+> > > > >=20
+> > > > > You actually never asked for a fix, and went head first calling t=
+his
+> > > > > patch "bad" and asking for nothing but reverting it.
+> > > >=20
+> > > > Date: Fri, 29 May 2015 21:08:16 +0200
+> > > > Subject: 4.1 touchscreen regression on n900 -- pinpointed [was Re:
+> > > > linux-n900
+> > > > ...
+> > > > Maxime, can you suggest a fix?
+> > >=20
+> > > How about we do something like below (it needs a small edt-ft5x06 fix=
+up
+> > > that I'll send separately). Not tested.
+> > >=20
+> > > Thanks.
+> > >=20
+> > > --=20
+> > > Dmitry
+> > >=20
+> > >=20
+> > > Input: improve parsing OF parameters for touchscreens
+> > >=20
+> > > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > >=20
+> > > When applying touchscreen parameters specified in device tree let's m=
+ake
+> > > sure we keep whatever setup was done by the driver and not reset the
+> > > missing values to zero.
+> > >=20
+> > > Reported-by: Pavel Machek <pavel@ucw.cz>
+> > > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > > ---
+> > >  drivers/input/touchscreen/edt-ft5x06.c     |    2 -
+> > >  drivers/input/touchscreen/of_touchscreen.c |   67 ++++++++++++++++++=
+----------
+> > >  drivers/input/touchscreen/tsc2005.c        |    2 -
+> > >  include/linux/input/touchscreen.h          |    5 +-
+> > >  4 files changed, 48 insertions(+), 28 deletions(-)
+> > >=20
+> > > diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/t=
+ouchscreen/edt-ft5x06.c
+> > > index 29d179a..394b1de 100644
+> > > --- a/drivers/input/touchscreen/edt-ft5x06.c
+> > > +++ b/drivers/input/touchscreen/edt-ft5x06.c
+> > > @@ -1041,7 +1041,7 @@ static int edt_ft5x06_ts_probe(struct i2c_clien=
+t *client,
+> > >  			     0, tsdata->num_y * 64 - 1, 0, 0);
+> > > =20
+> > >  	if (!pdata)
+> > > -		touchscreen_parse_of_params(input);
+> > > +		touchscreen_parse_of_params(input, true);
+> > > =20
+> > >  	error =3D input_mt_init_slots(input, MAX_SUPPORT_POINTS, INPUT_MT_D=
+IRECT);
+> > >  	if (error) {
+> > > diff --git a/drivers/input/touchscreen/of_touchscreen.c b/drivers/inp=
+ut/touchscreen/of_touchscreen.c
+> > > index b82b520..c132624 100644
+> > > --- a/drivers/input/touchscreen/of_touchscreen.c
+> > > +++ b/drivers/input/touchscreen/of_touchscreen.c
+> > > @@ -14,14 +14,22 @@
+> > >  #include <linux/input/mt.h>
+> > >  #include <linux/input/touchscreen.h>
+> > > =20
+> > > -static u32 of_get_optional_u32(struct device_node *np,
+> > > -			       const char *property)
+> > > +static bool touchscreen_get_property_u32(struct device_node *np,
+> > > +					 const char *property,
+> > > +					 unsigned int default_value,
+> > > +					 unsigned int *value)
+> > >  {
+> > >  	u32 val =3D 0;
+> > > +	int error;
+> > > =20
+> > > -	of_property_read_u32(np, property, &val);
+> > > +	error =3D of_property_read_u32(np, property, &val);
+> > > +	if (error) {
+> > > +		*value =3D default_value;
+> > > +		return false;
+> > > +	}
+> > > =20
+> > > -	return val;
+> > > +	*value =3D val;
+> > > +	return true;
+> >=20
+> > This looks good.
+> >=20
+> > However, of_property_read_u32 already does the right thing here by not
+> > update val if the property is not found.
+>=20
+> I know but it is not documented anywhere (as far as I know) so I'd
+> rather not rely on the implementation detail that might change in the
+> future. This is not a hot path so extra assignment should not hurt.
 
-> +               goto error;
->         omap_gpio_init_irq(bank, offset);
->         if (!omap_gpio_is_input(bank, offset)) {
->                 spin_unlock_irqrestore(&bank->lock, flags);
-> -               return -EINVAL;
-> +               retval = -EINVAL;
-> +               goto error;
->         }
->         spin_unlock_irqrestore(&bank->lock, flags);
->
-> @@ -512,6 +515,11 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
->         else if (type & (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING))
->                 __irq_set_handler_locked(d->irq, handle_edge_irq);
->
-> +       return 0;
-> +
-> +error:
-> +       if (!BANK_USED(bank))
-> +               pm_runtime_put(bank->dev);
->         return retval;
->  }
->
-> --
+It is actually: http://lxr.free-electrons.com/source/drivers/of/base.c#L1231
 
-But you are correct about the runtime PM bug so after addressing the
-above comment, feel free to add:
+But you're right that it's mostly a cosmetic change.
 
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+Maxime
 
-Best regards,
-Javier
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--kigERAySUJmIn/9g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVbXsPAAoJEBx+YmzsjxAg8QUP/jVDfeVUTeFycL4CTKovR1Yv
+WtASSD2tUs+xBILWhVbUq8MlkxhFouabnffOvZzm/7n7gODx0LIorIr+ydq6XVC4
+N2ykQHZdvjmrMZfn3EBOAHj1qOkjD4yN/VpcoEi5axa/15LuSSukeyJ/fg+qtY9o
+UdiCRxXGq1+7GHj/rbQyq27KNRJQEBFswONikxf/e65QnlD/hCtcgThCB+Lk1MyP
+HwPEfVyNnId6o2mLNi1AMkejXvP+kVDqMAIxwd2I+dzSzqpsXrbnx03/ljBbAHeo
+ELGc96w0QWYNqstmG9PEuG28ZrY5NGqWcDatIW8Crq94zr0CKDvtOeSXzMQ0GKjk
+TsCD5TX+gbKXIg85q1Enz0qIwSXEnuCq8Qv4hZe3UzOhDBNpj06M92Jb6B+lcFoy
+vqJoUdD/Wjg6qO5ivnMtcP7hskvbkD+gwjwOpexcrI4Ru6+6goHaCJ9thuCZdWn7
+xiD9Qi2KM6k8MvTVggVPhyZkEIiVbCYqx+MvpJ8kd2SyZaAp5OhaEPkb8Bz3Jyb3
+JWmjSABdNdFOApBiA50LdjTPJqnnZg4/OMFzO3m9SwUY7y9F99pwlgjBS1jzREos
+IDZ7bBHwyYMQgiqMu1MUpha6DhWYMlnV/7JTOmd7WXAKqAXwsLHN9FlLAdYYSbqa
+X+8iVQSwPlRVSM8GOn4t
+=4cRU
+-----END PGP SIGNATURE-----
+
+--kigERAySUJmIn/9g--
