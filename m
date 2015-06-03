@@ -1,89 +1,94 @@
-From: Michael Turquette <mturquette@linaro.org>
-Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
-Date: Wed, 03 Jun 2015 16:11:36 -0700
-Message-ID: <20150603231136.6017.65683@quantum>
-References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
- <20150526160557.GD16525@atomide.com> <20150526163216.GF16525@atomide.com>
- <20150526163931.GO26599@saruman.tx.rr.com> <55660D5B.8020607@ti.com>
- <20150527231536.GD30984@atomide.com> <556EF42A.9000207@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v3] clk: change clk_ops' ->determine_rate() prototype
+Date: Wed, 3 Jun 2015 16:37:28 -0700
+Message-ID: <20150603233728.GA490@codeaurora.org>
+References: <1432138345-19044-1-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:35350 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752539AbbFCXLk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2015 19:11:40 -0400
-Received: by padjw17 with SMTP id jw17so16464165pad.2
-        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2015 16:11:39 -0700 (PDT)
-In-Reply-To: <556EF42A.9000207@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1432138345-19044-1-git-send-email-boris.brezillon@free-electrons.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org, Mikko Perttunen <mikko.perttunen@kapsi.fi>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, Emilio L??pez <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Quoting Tero Kristo (2015-06-03 05:33:46)
-> On 05/28/2015 02:15 AM, Tony Lindgren wrote:
-> > * Tero Kristo <t-kristo@ti.com> [150527 11:32]:
-> >> On 05/26/2015 07:39 PM, Felipe Balbi wrote:
-> >>> On Tue, May 26, 2015 at 09:32:16AM -0700, Tony Lindgren wrote:
-> >>>> * Tony Lindgren <tony@atomide.com> [150526 09:08]:
-> >>>>> * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
-> >>>>>> Hi,
-> >>>>>>
-> >>>>>> As requested, posting v3 with somewhat changed diff parameters and
-> >>>>>> diffstat attached. Just some minor Makefile changes compared to v2,
-> >>>>>> these were discussed under that set.
-> >>>>>>
-> >>>>>> Set has been pushed to:
-> >>>>>> - tree: https://github.com/t-kristo/linux-pm.git
-> >>>>>> - branch: for-4.2/ti-clk-move
-> >>>>>
-> >>>>> Looks like this causes a build error for at least omap2 only .config:
-> >>>>>
-> >>>>> drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
-> >>>>> drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
-> >>>>>
-> >>>>> You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
-> >>>>> KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
-> >>>>> randconfigs :) Usually the issues like this are exposed within few
-> >>>>> randconfig builds, some take longer if the options have dependencies.
-> >>>
-> >>> alternatively, just clone the repository at [1] and use the example
-> >>> script provided in README.md.
-> >>>
-> >>> [1] https://github.com/felipebalbi/omap-seeds
-> >>>
-> >>
-> >> Ok, I pushed an updated branch named: for-4.2/ti-clk-move-v4
-> >>
-> >> This definitely compiles with OMAP2 / OMAP3 / OMAP4 / OMAP5 / DRA7 / AM33xx
-> >> / AM43xx only setups (tried it out.)
-> >
-> > Thanks yeah seems to work for me now.
-> >
-> > Regards,
-> >
-> > Tony
-> >
-> 
-> Question to Mike / Stephen, any chance of getting this in during the 4.2 
-> merge anymore seeing we are already at 4.1-rc6?
-> 
-> I can send a pull request if yes. Otherwise I just wait until we are 
-> past the next merge.
+On 05/20, Boris Brezillon wrote:
+> Clock rates are stored in an unsigned long field, but ->determine_rat=
+e()
+> (which returns a rounded rate from a requested one) returns a long
+> value (errors are reported using negative error codes), which can lea=
+d
+> to long overflow if the clock rate exceed 2Ghz.
+>=20
+> Change ->determine_rate() prototype to return 0 or an error code, and=
+ pass
+> a pointer to a clk_rate_request structure containing the expected tar=
+get
+> rate and the rate constraints imposed by clk users.
+>=20
+> The clk_rate_request structure might be extended in the future to con=
+tain
+> other kind of constraints like the rounding policy, the maximum clock
+> inaccuracy or other things that are not yet supported by the CCF
+> (power consumption constraints ?).
+>=20
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+>=20
+> CC: Jonathan Corbet <corbet@lwn.net>
+> CC: Tony Lindgren <tony@atomide.com>
+> CC: Ralf Baechle <ralf@linux-mips.org>
+> CC: "Emilio L=F3pez" <emilio@elopez.com.ar>
+> CC: Maxime Ripard <maxime.ripard@free-electrons.com>
+> CC: Tero Kristo <t-kristo@ti.com>
+> CC: linux-doc@vger.kernel.org
+> CC: linux-kernel@vger.kernel.org
+> CC: linux-arm-kernel@lists.infradead.org
+> CC: linux-omap@vger.kernel.org
+> CC: linux-mips@linux-mips.org
+> ---
+>=20
+> Hi Stephen,
+>=20
+> This patch is based on clk-next and contains the changes you suggeste=
+d
+> in your previous review.
+>=20
+> It was tested on sama5d4 and compile tested on several ARM platforms
+> (those enabled in multi_v7_defconfig).
+>=20
 
-Hi Tero,
+Thanks. I think we should wait until the next -rc1 drops to apply the
+patch for the next merge window. That will make it least likely to conf=
+lict
+with other trees, and we can provide it on a stable branch should there
+be clock providers going through other trees somewhere. Please
+remind me if I forget.
 
-I'd like more time for any regressions this introduces to be fixed, so
-lets push back to next merge window. The always-wrong-but-never-by-much
-crystal ball[0] predicts June 14. This is less than two weeks away, so
-the wait should be short.
+> @@ -1186,15 +1191,21 @@ EXPORT_SYMBOL_GPL(__clk_determine_rate);
+>   */
+>  unsigned long __clk_round_rate(struct clk *clk, unsigned long rate)
+>  {
+> -	unsigned long min_rate;
+> -	unsigned long max_rate;
+> +
+> +	struct clk_rate_request req;
+> +	int ret;
+> =20
+>  	if (!clk)
+>  		return 0;
+> =20
+> -	clk_core_get_boundaries(clk->core, &min_rate, &max_rate);
+> +	clk_core_get_boundaries(clk->core, &req.min_rate, &req.max_rate);
+> +	req.rate =3D rate;
+> +
+> +	ret =3D clk_core_round_rate_nolock(clk->core, &req);
+> +	if (ret)
+> +		return ret;
 
-[0] http://phb-crystal-ball.org/
+This returns a negative int for unsigned long. Is that intentional?
 
-Thanks,
-Mike
-
-> 
-> -Tero
+--=20
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
