@@ -1,103 +1,89 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/NOT FOR MERGING] HACK: add global/private timers for A9
-Date: Wed, 3 Jun 2015 15:26:20 -0700
-Message-ID: <20150603222619.GY30984@atomide.com>
-References: <1433363565-17725-1-git-send-email-balbi@ti.com>
+From: Michael Turquette <mturquette@linaro.org>
+Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
+Date: Wed, 03 Jun 2015 16:11:36 -0700
+Message-ID: <20150603231136.6017.65683@quantum>
+References: <1432566032-10860-1-git-send-email-t-kristo@ti.com>
+ <20150526160557.GD16525@atomide.com> <20150526163216.GF16525@atomide.com>
+ <20150526163931.GO26599@saruman.tx.rr.com> <55660D5B.8020607@ti.com>
+ <20150527231536.GD30984@atomide.com> <556EF42A.9000207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55764 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298AbbFCW0W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Jun 2015 18:26:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1433363565-17725-1-git-send-email-balbi@ti.com>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:35350 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539AbbFCXLk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2015 19:11:40 -0400
+Received: by padjw17 with SMTP id jw17so16464165pad.2
+        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2015 16:11:39 -0700 (PDT)
+In-Reply-To: <556EF42A.9000207@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [150603 13:36]:
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -655,20 +655,18 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
->  static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE, 29);
->  void __init omap4_local_timer_init(void)
->  {
-> +	int err;
-> +
->  	omap4_sync32k_timer_init();
->  	/* Local timers are not supprted on OMAP4430 ES1.0 */
-> -	if (omap_rev() != OMAP4430_REV_ES1_0) {
-> -		int err;
-> -
-> -		if (of_have_populated_dt()) {
-> -			clocksource_of_init();
-> -			return;
-> -		}
-> -
-> -		err = twd_local_timer_register(&twd_local_timer);
-> -		if (err)
-> -			pr_err("twd_local_timer_register failed %d\n", err);
-> +	if (of_have_populated_dt()) {
-> +		clocksource_of_init();
-> +		return;
->  	}
-> +
-> +	err = twd_local_timer_register(&twd_local_timer);
-> +	if (err)
-> +		pr_err("twd_local_timer_register failed %d\n", err);
->  }
->  #else
->  void __init omap4_local_timer_init(void)
+Quoting Tero Kristo (2015-06-03 05:33:46)
+> On 05/28/2015 02:15 AM, Tony Lindgren wrote:
+> > * Tero Kristo <t-kristo@ti.com> [150527 11:32]:
+> >> On 05/26/2015 07:39 PM, Felipe Balbi wrote:
+> >>> On Tue, May 26, 2015 at 09:32:16AM -0700, Tony Lindgren wrote:
+> >>>> * Tony Lindgren <tony@atomide.com> [150526 09:08]:
+> >>>>> * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
+> >>>>>> Hi,
+> >>>>>>
+> >>>>>> As requested, posting v3 with somewhat changed diff parameters and
+> >>>>>> diffstat attached. Just some minor Makefile changes compared to v2,
+> >>>>>> these were discussed under that set.
+> >>>>>>
+> >>>>>> Set has been pushed to:
+> >>>>>> - tree: https://github.com/t-kristo/linux-pm.git
+> >>>>>> - branch: for-4.2/ti-clk-move
+> >>>>>
+> >>>>> Looks like this causes a build error for at least omap2 only .config:
+> >>>>>
+> >>>>> drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
+> >>>>> drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
+> >>>>>
+> >>>>> You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
+> >>>>> KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
+> >>>>> randconfigs :) Usually the issues like this are exposed within few
+> >>>>> randconfig builds, some take longer if the options have dependencies.
+> >>>
+> >>> alternatively, just clone the repository at [1] and use the example
+> >>> script provided in README.md.
+> >>>
+> >>> [1] https://github.com/felipebalbi/omap-seeds
+> >>>
+> >>
+> >> Ok, I pushed an updated branch named: for-4.2/ti-clk-move-v4
+> >>
+> >> This definitely compiles with OMAP2 / OMAP3 / OMAP4 / OMAP5 / DRA7 / AM33xx
+> >> / AM43xx only setups (tried it out.)
+> >
+> > Thanks yeah seems to work for me now.
+> >
+> > Regards,
+> >
+> > Tony
+> >
+> 
+> Question to Mike / Stephen, any chance of getting this in during the 4.2 
+> merge anymore seeing we are already at 4.1-rc6?
+> 
+> I can send a pull request if yes. Otherwise I just wait until we are 
+> past the next merge.
 
-Looks like can get rid of even more code here, see the patch below.
+Hi Tero,
 
-Regards,
+I'd like more time for any regressions this introduces to be fixed, so
+lets push back to next merge window. The always-wrong-but-never-by-much
+crystal ball[0] predicts June 14. This is less than two weeks away, so
+the wait should be short.
 
-Tony
+[0] http://phb-crystal-ball.org/
 
-8< ------------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 3 Jun 2015 14:40:40 -0700
-Subject: [PATCH] ARM: OMAP2+: Clean up omap4_local_timer_init
+Thanks,
+Mike
 
-Inspired by a patch from Felipe Balbi <balbi@ti.com>, we can
-now get rid of most the code in omap4_local_timer_init.
-
-Omap4 is now device tree only.. And we have not properly supported
-omap4 ES1.0 revision for a really long time AFAIK.
-
-Let's just remove all that code to simplify things. This assumes
-we have arm,cortex-a9-twd-timer entry in the omap4.dtsi file, which
-we do.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -649,23 +649,10 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
- 
- #ifdef CONFIG_ARCH_OMAP4
- #ifdef CONFIG_HAVE_ARM_TWD
--static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE, 29);
- void __init omap4_local_timer_init(void)
- {
- 	omap4_sync32k_timer_init();
--	/* Local timers are not supprted on OMAP4430 ES1.0 */
--	if (omap_rev() != OMAP4430_REV_ES1_0) {
--		int err;
--
--		if (of_have_populated_dt()) {
--			clocksource_of_init();
--			return;
--		}
--
--		err = twd_local_timer_register(&twd_local_timer);
--		if (err)
--			pr_err("twd_local_timer_register failed %d\n", err);
--	}
-+	clocksource_of_init();
- }
- #else
- void __init omap4_local_timer_init(void)
+> 
+> -Tero
