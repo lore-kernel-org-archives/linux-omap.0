@@ -1,55 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/12] ARM: OMAP2+: Fix scrm compatible for dm814x
-Date: Wed, 3 Jun 2015 12:38:07 -0700
-Message-ID: <20150603193806.GW30984@atomide.com>
-References: <1433348601-8966-1-git-send-email-tony@atomide.com>
- <1433348601-8966-3-git-send-email-tony@atomide.com>
- <556F50B8.6000903@cogentembedded.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: Calling irq_set_irq_wake() from .set_irq_wake()?
+Date: Wed, 3 Jun 2015 22:52:47 +0300
+Message-ID: <556F5B0F.7040603@ti.com>
+References: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>	<alpine.DEB.2.11.1505181626060.4225@nanos>	<5559FCC0.2050302@linaro.org> <CAMuHMdX7exSoJdnLD9_5ZB3Xmbxud+gPbcy2XJZv6hu9MEvEFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55721 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753518AbbFCTiJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Jun 2015 15:38:09 -0400
-Content-Disposition: inline
-In-Reply-To: <556F50B8.6000903@cogentembedded.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CAMuHMdX7exSoJdnLD9_5ZB3Xmbxud+gPbcy2XJZv6hu9MEvEFg@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>, "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Roger Quadros <rogerq@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>
 
-* Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [150603 12:10]:
-> Hello.
-> 
-> On 06/03/2015 07:23 PM, Tony Lindgren wrote:
-> 
-> >Fix scrm compatible for dm814x.
-> 
->    So, scrm...
-> 
-> >Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
-> >Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >---
-> >  arch/arm/mach-omap2/control.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> >diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> >index af95a62..364925c 100644
-> >--- a/arch/arm/mach-omap2/control.c
-> >+++ b/arch/arm/mach-omap2/control.c
-> >@@ -649,6 +649,7 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
-> >  	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
-> >  	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
-> >  	{ .compatible = "ti,omap3-scm", .data = &omap2_ctrl_data },
-> >+	{ .compatible = "ti,dm814-scm", .data = &ctrl_data },
-> 
->    ... or scm? :-)
-> 
-> >  	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
-> >  	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
-> >  	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
+Hi Geert,
 
-Thanks, yeah we should standardize on scm.
+On 05/19/2015 12:38 PM, Geert Uytterhoeven wrote:
+> On Mon, May 18, 2015 at 4:52 PM, Grygorii.Strashko@linaro.org
+> <grygorii.strashko@linaro.org> wrote:
+>> On 05/18/2015 05:31 PM, Thomas Gleixner wrote:
+>>> On Sun, 17 May 2015, Geert Uytterhoeven wrote:
+>>>>>>> At least the recursive locking message no longer appears after the revert.
+>>>>>>>
+>>>>>>> [   30.591905] PM: Syncing filesystems ... done.
+>>>>>>> [   30.623060] Freezing user space processes ... (elapsed 0.003 seconds) done.
+>>>>>>> [   30.634470] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+>>>>>>> [   30.658288] sd 0:0:0:0: [sda] Synchronizing SCSI cache
+>>>>>>> [   30.663678]
+>>>>>>> [   30.663681] =============================================
+>>>>>>> [   30.663683] [ INFO: possible recursive locking detected ]
+>>>>>>> [   30.663688] 4.1.0-rc3 #1115 Not tainted
+>>>>>>> [   30.663693] ---------------------------------------------
+>>>>>>> [   30.663697] suspend.sh/2319 is trying to acquire lock:
+>>>>>>> [   30.663719]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
+>>>>>>> [   30.663722]
+>>>>>>> [   30.663722] but task is already holding lock:
+>>>>>>> [   30.663734]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
+>>>>>>
+>>>>>> Does this mean .set_irq_wake() cannot call irq_set_irq_wake()?
+>>>
+>>> It can call it, if it's guaranteed that this wont deadlock.
+>>>
+>>> To tell lockdep that you sure about that, you need to set a different
+>>> lock class for the child interrupts. irq_set_lockdep_class() is what
+>>> you want to use here.
+>>
+>> Hm. Seems we already have corresponding call in gpiochip_irq_map:
+>>
+>>   static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
+>>                              irq_hw_number_t hwirq)
+>> {
+>>          struct gpio_chip *chip = d->host_data;
+>>
+>>          irq_set_chip_data(irq, chip);
+>>          irq_set_lockdep_class(irq, &gpiochip_irq_lock_class);
+>> ^^^^
+> 
+> That piece of code sets the lockdep class of the gpiochip's interrupts, not
+> the parent interrupt.
+> 
+> Found out the hard way by adding some debug code ;-)
+[..]
+> 
+> However, I cannot reproduce the problem on sh73a0/kzm9g with
+> s2ram on a current tree (renesas-drivers-2015-05-19-v4.1-rc4 from
+> (https://git.kernel.org/cgit/linux/kernel/git/geert/renesas-drivers.git), using
+> 
+> CONFIG_LOCKDEP_SUPPORT=y
+> CONFIG_LOCKDEP=y
+> CONFIG_DEBUG_LOCKDEP=y
+> CONFIG_PROVE_LOCKING=y
+> 
+> Wake-up from gpio-keys works fine, no scary messages.
+> 
+>> commit e45d1c80c0eee88e82751461e9cac49d9ed287bc
+>> Author: Linus Walleij <linus.walleij@linaro.org>
+>> Date:   Tue Apr 22 14:01:46 2014 +0200
+>>
+>>      gpio: put GPIO IRQs into their own lock clas
+>>
+>> added in Kernel v3.16
+>>
+>> Roger, can you confirm that you've observed this issue with latest kernel, pls?
+> 
+> Yes please. Thanks!
 
-Tony
+Unfortunately, I was able to reproduce it, but have no clue how to fix it gracefully.
+lockdep_set_class_and_subclass(..,gpio_chip->base)?
+
+HW configuration which generates lockdep warning:
+
+[SOC GPIO bankA.gpioX] <- irq - [pcf875x.gpioY] <- irq - DevZ.enable_irq_wake(pcf_gpioY_irq);
+
+There stacked GPIO chips, but gpiolib uses only one lockdep class for all GPIOirqchips -
+- gpiochip_irq_lock_class.
+
+
+> 
+>>>>>> Many GPIO drivers do that, as they need to propagate wake-up state to the
+>>>>>> parent interrupt controller?
+>>>>>
+>>>>> As I remember, there was similar problem, so I found corresponding patch (just FYI)
+>>>>>
+>>>>> ab2b926 mfd: Fix twl6030 lockdep recursion warning on setting wake IRQs
+>>>>>
+>>>>> Not sure such kind of solution is the best choice (
+>>>>
+>>>> That looks like a convoluted solution...
+>>>
+
+regards,
+-grygorii
+
