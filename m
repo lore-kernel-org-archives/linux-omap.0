@@ -1,87 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] ARM: OMAP2+: Add custom abort handler for t410
-Date: Wed,  3 Jun 2015 09:23:21 -0700
-Message-ID: <1433348601-8966-13-git-send-email-tony@atomide.com>
-References: <1433348601-8966-1-git-send-email-tony@atomide.com>
+Subject: Re: [PATCHv4 10/10] arm/dts: am57xx-beagle-x15.dts: add HDMI
+Date: Wed, 3 Jun 2015 10:16:28 -0700
+Message-ID: <20150603171627.GU30984@atomide.com>
+References: <1433139798-23450-1-git-send-email-tomi.valkeinen@ti.com>
+ <1433139798-23450-11-git-send-email-tomi.valkeinen@ti.com>
+ <20150601215115.GH30984@atomide.com>
+ <556EE463.6000502@ti.com>
+ <20150603154438.GS30984@atomide.com>
+ <556F24E6.7040003@ti.com>
+ <20150603161008.GT30984@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pmta2.delivery5.ore.mailhop.org ([54.186.218.12]:13657 "HELO
-	pmta2.delivery5.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757808AbbFCQYC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2015 12:24:02 -0400
-In-Reply-To: <1433348601-8966-1-git-send-email-tony@atomide.com>
+Received: from muru.com ([72.249.23.125]:55657 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965314AbbFCRQb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Jun 2015 13:16:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20150603161008.GT30984@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org
 
-Similar to commit fdf4850cb5b2 ("ARM: BCM5301X: workaround suppress fault"),
-let's add custom handling for the aborts on t410 that prevent booting:
+* Tony Lindgren <tony@atomide.com> [150603 09:11]:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [150603 09:03]:
+> > 
+> > 
+> > On 03/06/15 18:44, Tony Lindgren wrote:
+> > > * Tomi Valkeinen <tomi.valkeinen@ti.com> [150603 04:28]:
+> > >>
+> > >>
+> > >> On 02/06/15 00:51, Tony Lindgren wrote:
+> > >>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [150531 23:25]:
+> > >>>> AM57xx Beagle X15 has a HDMI output. This patch adds the device tree
+> > >>>> nodes required for HDMI.
+> > >>>
+> > >>> This one does not seem to apply to linux next, did not look
+> > >>> further where it conflicts.
+> > >>
+> > >> Looks like the change was also in -rc6. I've rebased my patches on -rc6,
+> > >> and added the acks:
+> > >>
+> > >> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git dra7-dss-arch
+> > > 
+> > > OK, since there are no other merge conflicts that I'm aware of,
+> > > it's best that you merge the whole branch. I've acked the patches,
+> > > so for this one too:
+> > 
+> > Ok, I can do that, but isn't this more linux-arm stuff? All the driver
+> > side code is already in the mainline.
+> 
+> Yes but we're getting so late into merge window that I'd rather not
+> take it for v4.2 at this point. And it's all DSS related.
+> 
+> Please make sure you get an ack for the drivers/clk/omap change from
+> Mike or Stephen though.
 
-Unhandled fault: imprecise external abort (0xc06) at 0xee091fb0
-pgd = ee4bc000
-[ee091fb0] *pgd=ae00041e(bad)
-Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000007
+Naturally I mean "getting so close to the merge window" above :)
 
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/pdata-quirks.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index af11511..3d1e219 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -18,6 +18,9 @@
- #include <linux/platform_data/pinctrl-single.h>
- #include <linux/platform_data/iommu-omap.h>
- 
-+#include <asm/siginfo.h>
-+#include <asm/signal.h>
-+
- #include "common.h"
- #include "common-board-devices.h"
- #include "dss-common.h"
-@@ -249,6 +252,29 @@ static void __init omap3_tao3530_legacy_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
-+#ifdef CONFIG_SOC_TI81XX
-+static int fault_fixed_up;
-+
-+static int t410_abort_handler(unsigned long addr, unsigned int fsr,
-+			      struct pt_regs *regs)
-+{
-+	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
-+		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
-+			addr, fsr);
-+		fault_fixed_up = 1;
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static void __init t410_abort_init(void)
-+{
-+	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
-+			"imprecise external abort");
-+}
-+#endif
-+
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- static struct iommu_platform_data omap4_iommu_pdata = {
- 	.reset_name = "mmu_cache",
-@@ -360,6 +386,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "ti,am3517-evm", am3517_evm_legacy_init, },
- 	{ "technexion,omap3-tao3530", omap3_tao3530_legacy_init, },
- #endif
-+#ifdef CONFIG_SOC_TI81XX
-+	{ "hp,t410", t410_abort_init, },
-+#endif
- #ifdef CONFIG_SOC_OMAP5
- 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
- #endif
--- 
-2.1.4
-
+Tony
