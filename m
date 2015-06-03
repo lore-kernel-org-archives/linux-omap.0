@@ -1,14 +1,11 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v2 1/5] ARM: OMAP2+: DRA7: clockdomain: change
- l4per2_7xx_clkdm to SW_WKUP
-Date: Wed, 3 Jun 2015 17:21:20 +0530
-Message-ID: <1433332284-10766-2-git-send-email-vigneshr@ti.com>
-References: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
+Subject: [PATCH v2 0/5] Add support for PWMSS on DRA7
+Date: Wed, 3 Jun 2015 17:21:19 +0530
+Message-ID: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,27 +19,33 @@ To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Thierry Redin
 Cc: linux-pwm@vger.kernel.org, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Legacy IPs like PWMSS, present under l4per2_7xx_clkdm, cannot support
-smart-idle when its clock domain is in HW_AUTO on DRA7 SoCs. Hence,
-program clock domain to SW_WKUP.
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi,
 
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index 57d5df0c1fbd..7581e036bda6 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -331,7 +331,7 @@ static struct clockdomain l4per2_7xx_clkdm = {
- 	.dep_bit	  = DRA7XX_L4PER2_STATDEP_SHIFT,
- 	.wkdep_srcs	  = l4per2_wkup_sleep_deps,
- 	.sleepdep_srcs	  = l4per2_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
- };
- 
- static struct clockdomain mpu0_7xx_clkdm = {
+This patch series adds support for PWMSS on DRA7. The IP is same as that
+present in AM33XX and AM43XX.
+The first patch changes clock domain in which PWMSS is present
+(l4per2_7xx_clkdm) to SW_WKUP. This is because legacy IPs like PWM
+does'nt support HW_AUTO prorperly. Hence, switch clock domain to
+SW_WKUP. This is based on the input from the hardware team.
+The rest of the patches add hwmod and dt entries and enable PWMSS on
+DRA7 based SoCs.
+
+Vignesh R (5):
+  ARM: OMAP2+: DRA7: clockdomain: change l4per2_7xx_clkdm to SW_WKUP
+  ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+  ARM: dts: DRA7: Add TBCLK for PWMSS
+  clk: ti: DRA7: Add tbclk data for ehrpwm
+  ARM: dts: DRA7: Add dt nodes for PWMSS
+
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |   8 +
+ .../devicetree/bindings/pwm/pwm-tipwmss.txt        |  17 +-
+ arch/arm/boot/dts/dra7.dtsi                        |  69 ++++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               |  26 +++
+ arch/arm/mach-omap2/clockdomains7xx_data.c         |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 239 +++++++++++++++++++
+ drivers/clk/ti/clk-7xx.c                           |   3 +
+ 7 files changed, 362 insertions(+), 2 deletions(-)
+
 -- 
 2.4.1
