@@ -1,51 +1,58 @@
-From: Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/3] ARM: dts: Fix frequency scaling on Gumstix Pepper.
-Date: Thu,  4 Jun 2015 11:08:19 -0700
-Message-ID: <1433441299-18887-4-git-send-email-arun@gumstix.com>
+From: Arun Bharadwaj <arun@gumstix.com>
+Subject: [PATCH 1/3] ARM: dts: Correct audio input route & set mic bias
+Date: Thu,  4 Jun 2015 11:08:17 -0700
+Message-ID: <1433441299-18887-2-git-send-email-arun@gumstix.com>
 References: <1433441299-18887-1-git-send-email-arun@gumstix.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433441299-18887-1-git-send-email-arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:35160 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753503AbbFDSIX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2015 14:08:23 -0400
+Received: by padjw17 with SMTP id jw17so34261160pad.2
+        for <linux-omap@vger.kernel.org>; Thu, 04 Jun 2015 11:08:22 -0700 (PDT)
+In-Reply-To: <1433441299-18887-1-git-send-email-arun@gumstix.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Adam YH Lee <adam.yh.lee@gmail.com>, Ash Charles <ashcharles@gmail.com>
 
-The device tree for Gumstix Pepper has DCDC2 and
-DCDC3 correctly labelled but the upper limit values
-are wrong. The confusion is due to the hardware
-quirk where the DCDC2 and DCDC3 wires are flipped
-in Pepper.
+From: Adam YH Lee <adam.yh.lee@gmail.com>
 
-Signed-off-by: Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
+Audio-in was incorrectly routed to Line In. It should be Mic3L as per
+schematic.
+
+Using mic-bias voltage at 2.0v (<0x1>) does not work for some reason. There
+is no voltage seen on micbias (R127). Mic-bias voltage of 2.5v (<0x2>) works.
+I see voltage of 2.475v across GND and micbias.
+
+With these changes, I can record audio with a pair of proliferate TRRS earbuds.
+
+Signed-off-by: Ash Charles <ashcharles@gmail.com>
 ---
- arch/arm/boot/dts/am335x-pepper.dts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am335x-pepper.dts | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index 99f855d..37b95f6 100644
+index 0d35ab6..473d8ee 100644
 --- a/arch/arm/boot/dts/am335x-pepper.dts
 +++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -448,7 +448,7 @@
- 			/* VDD_CORE voltage limits 0.95V - 1.26V with +/-4% tolerance */
- 			regulator-name = "vdd_core";
- 			regulator-min-microvolt = <925000>;
--			regulator-max-microvolt = <1325000>;
-+			regulator-max-microvolt = <1150000>;
- 			regulator-boot-on;
- 			regulator-always-on;
- 		};
-@@ -457,7 +457,7 @@
- 			/* VDD_MPU voltage limits 0.95V - 1.1V with +/-4% tolerance */
- 			regulator-name = "vdd_mpu";
- 			regulator-min-microvolt = <925000>;
--			regulator-max-microvolt = <1150000>;
-+			regulator-max-microvolt = <1325000>;
- 			regulator-boot-on;
- 			regulator-always-on;
- 		};
+@@ -74,6 +74,7 @@
+ 	audio_codec: tlv320aic3106@1b {
+ 		compatible = "ti,tlv320aic3106";
+ 		reg = <0x1b>;
++		ai3x-micbias-vg = <0x2>;
+ 	};
+ 
+ 	accel: lis331dlh@1d {
+@@ -153,7 +154,7 @@
+ 	ti,audio-routing =
+ 		"Headphone Jack",	"HPLOUT",
+ 		"Headphone Jack",	"HPROUT",
+-		"LINE1L",		"Line In";
++		"MIC3L",		"Mic3L Switch";
+ };
+ 
+ &mcasp0 {
 -- 
 2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
