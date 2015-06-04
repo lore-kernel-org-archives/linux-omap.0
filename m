@@ -1,114 +1,82 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v3] clk: change clk_ops' ->determine_rate() prototype
-Date: Thu, 4 Jun 2015 08:44:34 +0200
-Message-ID: <20150604084434.48939141@bbrezillon>
-References: <1432138345-19044-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20150603233728.GA490@codeaurora.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 5/5] [RFC] ARM: timer-sp: Use of_clk_get_parent_count()
+ instead of open coding
+Date: Thu, 4 Jun 2015 09:26:43 +0200
+Message-ID: <CAMuHMdXRQbBJWLCiDgx=vRcj=MS5BAQ6gskfcMGZzW1gKa6J8g@mail.gmail.com>
+References: <1432891549-23295-1-git-send-email-geert+renesas@glider.be>
+	<1432891549-23295-6-git-send-email-geert+renesas@glider.be>
+	<20150603234426.GB490@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20150603233728.GA490@codeaurora.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org, Mikko Perttunen <mikko.perttunen@kapsi.fi>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, Emilio L??pez <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:35553 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253AbbFDH0o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2015 03:26:44 -0400
+In-Reply-To: <20150603234426.GB490@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Boris Brezillon <boris.brezillon@free-electrons.com>, Maxime Coquelin <maxime.coquelin@st.com>, Patrice Chotard <patrice.chotard@st.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-clk@vger.kernel.org, kernel@stlinux.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Stefen,
+Hi Stephen,
 
-On Wed, 3 Jun 2015 16:37:28 -0700
-Stephen Boyd <sboyd@codeaurora.org> wrote:
+On Thu, Jun 4, 2015 at 1:44 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
+> On 05/29, Geert Uytterhoeven wrote:
+>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+>> ---
+>> This is an RFC, as it depends on "[RFC] clk: Provide dummy
+>> of_clk_get_parent_count() for !OF/!CCF".
+>> ---
+>>  arch/arm/common/timer-sp.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/common/timer-sp.c b/arch/arm/common/timer-sp.c
+>> index 19211324772f387c..be87a5d480ffb655 100644
+>> --- a/arch/arm/common/timer-sp.c
+>> +++ b/arch/arm/common/timer-sp.c
+>> @@ -21,6 +21,7 @@
+>>  #include <linux/clk.h>
+>>  #include <linux/clocksource.h>
+>>  #include <linux/clockchips.h>
+>> +#include <linux/clk-provider.h>
+>
+> This looks weird. This is not a clock provider.
 
-> On 05/20, Boris Brezillon wrote:
-> > Clock rates are stored in an unsigned long field, but ->determine_r=
-ate()
-> > (which returns a rounded rate from a requested one) returns a long
-> > value (errors are reported using negative error codes), which can l=
-ead
-> > to long overflow if the clock rate exceed 2Ghz.
-> >=20
-> > Change ->determine_rate() prototype to return 0 or an error code, a=
-nd pass
-> > a pointer to a clk_rate_request structure containing the expected t=
-arget
-> > rate and the rate constraints imposed by clk users.
-> >=20
-> > The clk_rate_request structure might be extended in the future to c=
-ontain
-> > other kind of constraints like the rounding policy, the maximum clo=
-ck
-> > inaccuracy or other things that are not yet supported by the CCF
-> > (power consumption constraints ?).
-> >=20
-> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> >=20
-> > CC: Jonathan Corbet <corbet@lwn.net>
-> > CC: Tony Lindgren <tony@atomide.com>
-> > CC: Ralf Baechle <ralf@linux-mips.org>
-> > CC: "Emilio L=C3=B3pez" <emilio@elopez.com.ar>
-> > CC: Maxime Ripard <maxime.ripard@free-electrons.com>
-> > CC: Tero Kristo <t-kristo@ti.com>
-> > CC: linux-doc@vger.kernel.org
-> > CC: linux-kernel@vger.kernel.org
-> > CC: linux-arm-kernel@lists.infradead.org
-> > CC: linux-omap@vger.kernel.org
-> > CC: linux-mips@linux-mips.org
-> > ---
-> >=20
-> > Hi Stephen,
-> >=20
-> > This patch is based on clk-next and contains the changes you sugges=
-ted
-> > in your previous review.
-> >=20
-> > It was tested on sama5d4 and compile tested on several ARM platform=
-s
-> > (those enabled in multi_v7_defconfig).
-> >=20
->=20
-> Thanks. I think we should wait until the next -rc1 drops to apply the
-> patch for the next merge window. That will make it least likely to co=
-nflict
-> with other trees, and we can provide it on a stable branch should the=
-re
-> be clock providers going through other trees somewhere. Please
-> remind me if I forget.
+But that's where the declaration of of_clk_get_parent_count() lives...
 
-No problem.
+>>  #include <linux/err.h>
+>>  #include <linux/interrupt.h>
+>>  #include <linux/irq.h>
+>> @@ -234,7 +235,7 @@ static void __init sp804_of_init(struct device_node *np)
+>>               clk1 = NULL;
+>>
+>>       /* Get the 2nd clock if the timer has 3 timer clocks */
+>> -     if (of_count_phandle_with_args(np, "clocks", "#clock-cells") == 3) {
+>> +     if (of_clk_get_parent_count(np) == 3) {
+>
+> So maybe it means if we want to expose of_clk_get_parent_count()
+> we should move it to some other header file (of_clk.h?). And then
+> maybe we should always compile said helpers if OF=y and
+> HAVE_CLK=y.
 
->=20
-> > @@ -1186,15 +1191,21 @@ EXPORT_SYMBOL_GPL(__clk_determine_rate);
-> >   */
-> >  unsigned long __clk_round_rate(struct clk *clk, unsigned long rate=
-)
-> >  {
-> > -	unsigned long min_rate;
-> > -	unsigned long max_rate;
-> > +
-> > +	struct clk_rate_request req;
-> > +	int ret;
-> > =20
-> >  	if (!clk)
-> >  		return 0;
-> > =20
-> > -	clk_core_get_boundaries(clk->core, &min_rate, &max_rate);
-> > +	clk_core_get_boundaries(clk->core, &req.min_rate, &req.max_rate);
-> > +	req.rate =3D rate;
-> > +
-> > +	ret =3D clk_core_round_rate_nolock(clk->core, &req);
-> > +	if (ret)
-> > +		return ret;
->=20
-> This returns a negative int for unsigned long. Is that intentional?
+That makes sense.
 
-Nope, should be replaced by 'return 0;'.
+Currently we have lots of of_clk_*() in <linux/clk-provider.h>, and a few
+of_clk_get*() in <inux/clk.h>.
+And the mysterious of_clk_set_defaults() in <linux/clk/clk-conf.h>.
 
-Thanks,
+All of_clk_get*() could be moved to a new <linux/of_clk.h>.
 
-Boris
+Alternatively, of_clk_get_parent_count() could just move to <linux/clk.h>?
 
+Gr{oetje,eeting}s,
 
---=20
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
