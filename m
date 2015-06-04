@@ -1,149 +1,200 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING] HACK: add global/private timers for A9
-Date: Wed, 3 Jun 2015 22:45:56 -0500
-Message-ID: <20150604034550.GA25075@saruman.tx.rr.com>
-References: <1433363565-17725-1-git-send-email-balbi@ti.com>
- <20150603222619.GY30984@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFT v2 05/48] gpio: Use irq_desc_get_xxx() to avoid redundant lookup
+ of irq_desc
+Date: Thu,  4 Jun 2015 12:13:15 +0800
+Message-ID: <1433391238-19471-6-git-send-email-jiang.liu@linux.intel.com>
+References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TakKZr9L6Hm6aLOc"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34599 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751340AbbFDDsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Jun 2015 23:48:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20150603222619.GY30984@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ray Jui <rjui@broadcom.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>
+Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pci@vger.kernel.org, linux-gpio@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
---TakKZr9L6Hm6aLOc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+already have a pointer to corresponding irq_desc.
 
-Hi,
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/gpio/gpio-bcm-kona.c   |    2 +-
+ drivers/gpio/gpio-dwapb.c      |    2 +-
+ drivers/gpio/gpio-mvebu.c      |    2 +-
+ drivers/gpio/gpio-mxc.c        |    6 +++---
+ drivers/gpio/gpio-mxs.c        |    2 +-
+ drivers/gpio/gpio-omap.c       |    2 +-
+ drivers/gpio/gpio-tegra.c      |    4 +---
+ drivers/gpio/gpio-timberdale.c |    5 +++--
+ drivers/gpio/gpio-vf610.c      |    2 +-
+ drivers/gpio/gpio-zynq.c       |    2 +-
+ 10 files changed, 14 insertions(+), 15 deletions(-)
 
-On Wed, Jun 03, 2015 at 03:26:20PM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [150603 13:36]:
-> > --- a/arch/arm/mach-omap2/timer.c
-> > +++ b/arch/arm/mach-omap2/timer.c
-> > @@ -655,20 +655,18 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_c=
-k", "ti,timer-alwon",
-> >  static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE=
-, 29);
-> >  void __init omap4_local_timer_init(void)
-> >  {
-> > +	int err;
-> > +
-> >  	omap4_sync32k_timer_init();
-> >  	/* Local timers are not supprted on OMAP4430 ES1.0 */
-> > -	if (omap_rev() !=3D OMAP4430_REV_ES1_0) {
-> > -		int err;
-> > -
-> > -		if (of_have_populated_dt()) {
-> > -			clocksource_of_init();
-> > -			return;
-> > -		}
-> > -
-> > -		err =3D twd_local_timer_register(&twd_local_timer);
-> > -		if (err)
-> > -			pr_err("twd_local_timer_register failed %d\n", err);
-> > +	if (of_have_populated_dt()) {
-> > +		clocksource_of_init();
-> > +		return;
-> >  	}
-> > +
-> > +	err =3D twd_local_timer_register(&twd_local_timer);
-> > +	if (err)
-> > +		pr_err("twd_local_timer_register failed %d\n", err);
-> >  }
-> >  #else
-> >  void __init omap4_local_timer_init(void)
->=20
-> Looks like can get rid of even more code here, see the patch below.
->=20
-> Regards,
->=20
-> Tony
->=20
-> 8< ------------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 3 Jun 2015 14:40:40 -0700
-> Subject: [PATCH] ARM: OMAP2+: Clean up omap4_local_timer_init
->=20
-> Inspired by a patch from Felipe Balbi <balbi@ti.com>, we can
-> now get rid of most the code in omap4_local_timer_init.
->=20
-> Omap4 is now device tree only.. And we have not properly supported
-> omap4 ES1.0 revision for a really long time AFAIK.
->=20
-> Let's just remove all that code to simplify things. This assumes
-> we have arm,cortex-a9-twd-timer entry in the omap4.dtsi file, which
-> we do.
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-very true
-
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -649,23 +649,10 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck"=
-, "ti,timer-alwon",
-> =20
->  #ifdef CONFIG_ARCH_OMAP4
->  #ifdef CONFIG_HAVE_ARM_TWD
-> -static DEFINE_TWD_LOCAL_TIMER(twd_local_timer, OMAP44XX_LOCAL_TWD_BASE, =
-29);
->  void __init omap4_local_timer_init(void)
->  {
->  	omap4_sync32k_timer_init();
-> -	/* Local timers are not supprted on OMAP4430 ES1.0 */
-> -	if (omap_rev() !=3D OMAP4430_REV_ES1_0) {
-> -		int err;
-> -
-> -		if (of_have_populated_dt()) {
-> -			clocksource_of_init();
-> -			return;
-> -		}
-> -
-> -		err =3D twd_local_timer_register(&twd_local_timer);
-> -		if (err)
-> -			pr_err("twd_local_timer_register failed %d\n", err);
-> -	}
-> +	clocksource_of_init();
->  }
->  #else
->  void __init omap4_local_timer_init(void)
-
---=20
-balbi
-
---TakKZr9L6Hm6aLOc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVb8nzAAoJEIaOsuA1yqREALcP/Ros5ejikXMY0PNGpLuWNzxu
-pDUu0E/dQ3OfHsLd6O+yELVrrqRIKLoKsoHwAVQNlvTEByZhr0Gcn1e924+5nmWV
-Eu/w7xKqacPz6OsnEwME0M5g/gs79WNfKMl3J6XsUBMpogtcSrEIMmKm56nAIfKY
-mBcwBDqj/FlyssCcxzbFRvGGzTHxi8E6bfN5jYqKuRRCX1zNGLaiIfCmZ6FwwCzd
-Bkr6OSSyCZW+wuFKAAPMmGLX04llttNzcFzcMLCw1sGrutEaO0XVbLnXhAbTzIxu
-7jrHqGyObBV6ZThnaD4oz702MgRWH7Kxb/V/Q/3R3/TADJCu6dzetZxPFBRfZA5v
-FjRPUniu54Qd+ZafmIQ4BoeWx0O+Mzie9Le/Gufk5gY3AvZC/GFvr7GKEBU1Kn5I
-cmzrrK7JmNfCMjq8B6wckDuoxASHCra46SV5L48feBytCic/xPj1NBuJO5PP2Aj3
-XOje3wIAvu1slilPjG3G1QS3KPup/2t9tE7Br/yMEI9Y4FTlsWdzIEz4WIvv+SvT
-bx3tKgM0jmhllmEO54BSeEoC0pL975sCl5gnyEM2tffW2C6LpU7HnWJKfgQqCArj
-9pb+eggCigGmT0OcAx3+h1coYjQ/DgTMu4fS+JoHiQfhdCP8br0UEPK44tlZD7yg
-guPU4SikBPPMQ+G5WqH8
-=3hs9
------END PGP SIGNATURE-----
-
---TakKZr9L6Hm6aLOc--
+diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
+index b164ce837b43..2e7a8c66fe57 100644
+--- a/drivers/gpio/gpio-bcm-kona.c
++++ b/drivers/gpio/gpio-bcm-kona.c
+@@ -432,7 +432,7 @@ static void bcm_kona_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	void __iomem *reg_base;
+ 	int bit, bank_id;
+ 	unsigned long sta;
+-	struct bcm_kona_gpio_bank *bank = irq_get_handler_data(irq);
++	struct bcm_kona_gpio_bank *bank = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 
+ 	chained_irq_enter(chip, desc);
+diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+index 58faf04fce5d..649be07a845d 100644
+--- a/drivers/gpio/gpio-dwapb.c
++++ b/drivers/gpio/gpio-dwapb.c
+@@ -149,7 +149,7 @@ static u32 dwapb_do_irq(struct dwapb_gpio *gpio)
+ 
+ static void dwapb_irq_handler(u32 irq, struct irq_desc *desc)
+ {
+-	struct dwapb_gpio *gpio = irq_get_handler_data(irq);
++	struct dwapb_gpio *gpio = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 
+ 	dwapb_do_irq(gpio);
+diff --git a/drivers/gpio/gpio-mvebu.c b/drivers/gpio/gpio-mvebu.c
+index 1a54205860f5..a8c302ef7bc4 100644
+--- a/drivers/gpio/gpio-mvebu.c
++++ b/drivers/gpio/gpio-mvebu.c
+@@ -460,7 +460,7 @@ static int mvebu_gpio_irq_set_type(struct irq_data *d, unsigned int type)
+ 
+ static void mvebu_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ {
+-	struct mvebu_gpio_chip *mvchip = irq_get_handler_data(irq);
++	struct mvebu_gpio_chip *mvchip = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 	u32 cause, type;
+ 	int i;
+diff --git a/drivers/gpio/gpio-mxc.c b/drivers/gpio/gpio-mxc.c
+index 9f7446a7ac64..f10948c04f7c 100644
+--- a/drivers/gpio/gpio-mxc.c
++++ b/drivers/gpio/gpio-mxc.c
+@@ -275,8 +275,8 @@ static void mxc_gpio_irq_handler(struct mxc_gpio_port *port, u32 irq_stat)
+ static void mx3_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+ {
+ 	u32 irq_stat;
+-	struct mxc_gpio_port *port = irq_get_handler_data(irq);
+-	struct irq_chip *chip = irq_get_chip(irq);
++	struct mxc_gpio_port *port = irq_desc_get_handler_data(desc);
++	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 
+ 	chained_irq_enter(chip, desc);
+ 
+@@ -292,7 +292,7 @@ static void mx2_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+ {
+ 	u32 irq_msk, irq_stat;
+ 	struct mxc_gpio_port *port;
+-	struct irq_chip *chip = irq_get_chip(irq);
++	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 
+ 	chained_irq_enter(chip, desc);
+ 
+diff --git a/drivers/gpio/gpio-mxs.c b/drivers/gpio/gpio-mxs.c
+index 84cbda6acdda..039c7d50e64f 100644
+--- a/drivers/gpio/gpio-mxs.c
++++ b/drivers/gpio/gpio-mxs.c
+@@ -157,7 +157,7 @@ static void mxs_flip_edge(struct mxs_gpio_port *port, u32 gpio)
+ static void mxs_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+ {
+ 	u32 irq_stat;
+-	struct mxs_gpio_port *port = irq_get_handler_data(irq);
++	struct mxs_gpio_port *port = irq_desc_get_handler_data(desc);
+ 
+ 	desc->irq_data.chip->irq_ack(&desc->irq_data);
+ 
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index b232397ad7ec..acbf3feff1e2 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -719,7 +719,7 @@ static void omap_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	struct gpio_bank *bank;
+ 	int unmasked = 0;
+ 	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+-	struct gpio_chip *chip = irq_get_handler_data(irq);
++	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
+ 
+ 	chained_irq_enter(irqchip, desc);
+ 
+diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
+index 1741981d53c8..89ed8a56eb0b 100644
+--- a/drivers/gpio/gpio-tegra.c
++++ b/drivers/gpio/gpio-tegra.c
+@@ -268,16 +268,14 @@ static void tegra_gpio_irq_shutdown(struct irq_data *d)
+ 
+ static void tegra_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ {
+-	struct tegra_gpio_bank *bank;
+ 	int port;
+ 	int pin;
+ 	int unmasked = 0;
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
++	struct tegra_gpio_bank *bank = irq_desc_get_handler_data(desc);
+ 
+ 	chained_irq_enter(chip, desc);
+ 
+-	bank = irq_get_handler_data(irq);
+-
+ 	for (port = 0; port < 4; port++) {
+ 		int gpio = tegra_gpio_compose(bank->bank, port, 0);
+ 		unsigned long sta = tegra_gpio_readl(GPIO_INT_STA(gpio)) &
+diff --git a/drivers/gpio/gpio-timberdale.c b/drivers/gpio/gpio-timberdale.c
+index e8f97e03c9bb..2b8baf1ea16e 100644
+--- a/drivers/gpio/gpio-timberdale.c
++++ b/drivers/gpio/gpio-timberdale.c
+@@ -194,11 +194,12 @@ out:
+ 
+ static void timbgpio_irq(unsigned int irq, struct irq_desc *desc)
+ {
+-	struct timbgpio *tgpio = irq_get_handler_data(irq);
++	struct timbgpio *tgpio = irq_desc_get_handler_data(desc);
++	struct irq_data *data = irq_desc_get_irq_data(desc);
+ 	unsigned long ipr;
+ 	int offset;
+ 
+-	desc->irq_data.chip->irq_ack(irq_get_irq_data(irq));
++	data->chip->irq_ack(data);
+ 	ipr = ioread32(tgpio->membase + TGPIO_IPR);
+ 	iowrite32(ipr, tgpio->membase + TGPIO_ICR);
+ 
+diff --git a/drivers/gpio/gpio-vf610.c b/drivers/gpio/gpio-vf610.c
+index 7bd9f209ffa8..fa344388f4da 100644
+--- a/drivers/gpio/gpio-vf610.c
++++ b/drivers/gpio/gpio-vf610.c
+@@ -120,7 +120,7 @@ static int vf610_gpio_direction_output(struct gpio_chip *chip, unsigned gpio,
+ 
+ static void vf610_gpio_irq_handler(u32 irq, struct irq_desc *desc)
+ {
+-	struct vf610_gpio_port *port = irq_get_handler_data(irq);
++	struct vf610_gpio_port *port = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 	int pin;
+ 	unsigned long irq_isfr;
+diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
+index aea6075e5b2e..70e3a568b1cb 100644
+--- a/drivers/gpio/gpio-zynq.c
++++ b/drivers/gpio/gpio-zynq.c
+@@ -499,7 +499,7 @@ static void zynq_gpio_irqhandler(unsigned int irq, struct irq_desc *desc)
+ {
+ 	u32 int_sts, int_enb;
+ 	unsigned int bank_num;
+-	struct zynq_gpio *gpio = irq_get_handler_data(irq);
++	struct zynq_gpio *gpio = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+ 
+ 	chained_irq_enter(irqchip, desc);
+-- 
+1.7.10.4
