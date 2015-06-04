@@ -1,82 +1,83 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 5/5] [RFC] ARM: timer-sp: Use of_clk_get_parent_count()
- instead of open coding
-Date: Thu, 4 Jun 2015 09:26:43 +0200
-Message-ID: <CAMuHMdXRQbBJWLCiDgx=vRcj=MS5BAQ6gskfcMGZzW1gKa6J8g@mail.gmail.com>
-References: <1432891549-23295-1-git-send-email-geert+renesas@glider.be>
-	<1432891549-23295-6-git-send-email-geert+renesas@glider.be>
-	<20150603234426.GB490@codeaurora.org>
+From: Mason <slash.tmp@free.fr>
+Subject: Re: [RFC/NOT FOR MERGING] HACK: add global/private timers for A9
+Date: Thu, 04 Jun 2015 11:46:59 +0200
+Message-ID: <55701E93.60303@free.fr>
+References: <1433363565-17725-1-git-send-email-balbi@ti.com> <2466648.WjMxjIpAUG@wuerfel> <20150603210455.GD6042@saruman.tx.rr.com> <20150603212821.GH6042@saruman.tx.rr.com> <556F7493.2060602@codeaurora.org> <20150603215445.GK6042@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:35553 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253AbbFDH0o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2015 03:26:44 -0400
-In-Reply-To: <20150603234426.GB490@codeaurora.org>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:47804 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751175AbbFDJrL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jun 2015 05:47:11 -0400
+In-Reply-To: <20150603215445.GK6042@saruman.tx.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Boris Brezillon <boris.brezillon@free-electrons.com>, Maxime Coquelin <maxime.coquelin@st.com>, Patrice Chotard <patrice.chotard@st.com>, Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-clk@vger.kernel.org, kernel@stlinux.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Shawn Guo <shawn.guo@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linux OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Hi Stephen,
+On 03/06/2015 23:54, Felipe Balbi wrote:
 
-On Thu, Jun 4, 2015 at 1:44 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> On 05/29, Geert Uytterhoeven wrote:
->> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
->> ---
->> This is an RFC, as it depends on "[RFC] clk: Provide dummy
->> of_clk_get_parent_count() for !OF/!CCF".
->> ---
->>  arch/arm/common/timer-sp.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
+> On Wed, Jun 03, 2015 at 02:41:39PM -0700, Stephen Boyd wrote:
+>>>>>> AM43xx, even though it's a single processor A9, it still has TWD and global
+>>>>>> timer. I was doing some profiling with RT v4.0 and latency is 3.5x lower just
+>>>>>> by switching from gptimer to twd/global.
+>>>>>>
+>>>>>> The only problem is that currently, is_smp() check prevents me from using twd
+>>>>>> with AM43xx (that's why it's commented below, for testing purposes).
+>>>>>>
+>>>>>> In the hopes that we can start a, hopefully, small thread around the subject,
+>>>>>> I'm sending this HACK which I used to get TWD and global timer enabled so I
+>>>>>> could measure latencies with cyclictest.
+>>>>>>
+>>>>>> Is it so that TWD shouldn't be available on UP integrations of ARM's Cortex-A
+>>>>>> processors ?
+>>>>>>
+>>>>>>
+>>>>> I wondered about this recently when looking at something unrelated
+>>>>> and noticed that the check had been introduced as part of
+>>>>> 904464b91eca8 ("ARM: 7655/1: smp_twd: make twd_local_timer_of_register()
+>>>>> no-op for nosmp").
+>>>>>
+>>>>> I suspect this was just the wrong fix at the time, and that the
+>>>>> real culprit is either alloc_percpu() or request_percpu_irq()
+>>>>> getting called too early on a machine without SMP support.
+>>>>>
+>>>>> Possibly the problem is already resolved independently, if you
+>>>>> didn't run into it.
+>>>> no, no splats, nothing at all. See [1]
+>>>>
+>>>> [1] http://hastebin.com/helekubutu
+>>> Adding Shawn
+>>>
 >>
->> diff --git a/arch/arm/common/timer-sp.c b/arch/arm/common/timer-sp.c
->> index 19211324772f387c..be87a5d480ffb655 100644
->> --- a/arch/arm/common/timer-sp.c
->> +++ b/arch/arm/common/timer-sp.c
->> @@ -21,6 +21,7 @@
->>  #include <linux/clk.h>
->>  #include <linux/clocksource.h>
->>  #include <linux/clockchips.h>
->> +#include <linux/clk-provider.h>
->
-> This looks weird. This is not a clock provider.
-
-But that's where the declaration of of_clk_get_parent_count() lives...
-
->>  #include <linux/err.h>
->>  #include <linux/interrupt.h>
->>  #include <linux/irq.h>
->> @@ -234,7 +235,7 @@ static void __init sp804_of_init(struct device_node *np)
->>               clk1 = NULL;
+>> Mason was also interested in doing this. See [2]. From what I could tell
+>> back then, commit 904464b91eca8 was working around the local timer APIs that
+>> no longer exist.
 >>
->>       /* Get the 2nd clock if the timer has 3 timer clocks */
->> -     if (of_count_phandle_with_args(np, "clocks", "#clock-cells") == 3) {
->> +     if (of_clk_get_parent_count(np) == 3) {
->
-> So maybe it means if we want to expose of_clk_get_parent_count()
-> we should move it to some other header file (of_clk.h?). And then
-> maybe we should always compile said helpers if OF=y and
-> HAVE_CLK=y.
+>> [2] http://thread.gmane.org/gmane.linux.ports.arm.kernel/389931/focus=392348
+> 
+> A lot of good information on that thread, thanks. Seems like getting
+> twd/global timer working would also have some effect on context
+> switching, perhaps ?
 
-That makes sense.
+Hello,
 
-Currently we have lots of of_clk_*() in <linux/clk-provider.h>, and a few
-of_clk_get*() in <inux/clk.h>.
-And the mysterious of_clk_set_defaults() in <linux/clk/clk-conf.h>.
+In my case, I need to support two platforms:
 
-All of_clk_get*() could be moved to a new <linux/of_clk.h>.
+  single core Cortex A9 MPCore
+    dual core Cortex A9 MPCore
 
-Alternatively, of_clk_get_parent_count() could just move to <linux/clk.h>?
+However, as the MPCore moniker implies, even the single core platform
+is "SMP capable". (I think this only means an SCU is available?)
 
-Gr{oetje,eeting}s,
+Thus, I worked around the issue by using the same SMP kernel for both
+platforms; which is why I didn't push any patch.
 
-                        Geert
+Also, check /proc/timer_list for a "Broadcast device". If you don't
+define one, the TWD timers are set to periodic mode, with hrtimers
+disabled.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Regards.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
