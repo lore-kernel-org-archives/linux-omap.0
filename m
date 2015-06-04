@@ -1,59 +1,91 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [RFT v2 36/48] genirq,
- arm: Kill the first parameter 'irq' of irq_flow_handler_t
-Date: Thu, 04 Jun 2015 13:52:57 +0900
-Message-ID: <556FD9A9.8090704@samsung.com>
-References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
- <1433391238-19471-37-git-send-email-jiang.liu@linux.intel.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 00/27] ARM: OMAP2+: clock code move under clk driver
+Date: Thu, 4 Jun 2015 08:26:09 +0300
+Message-ID: <556FE171.5010000@ti.com>
+References: <1432566032-10860-1-git-send-email-t-kristo@ti.com> <20150526160557.GD16525@atomide.com> <20150526163216.GF16525@atomide.com> <20150526163931.GO26599@saruman.tx.rr.com> <55660D5B.8020607@ti.com> <20150527231536.GD30984@atomide.com> <556EF42A.9000207@ti.com> <20150603231136.6017.65683@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1433391238-19471-37-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37024 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751232AbbFDF0K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jun 2015 01:26:10 -0400
+In-Reply-To: <20150603231136.6017.65683@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 04.06.2015 13:13, Jiang Liu wrote:
-> Now most IRQ flow handlers make no use of the first parameter 'irq'.
-> And for those who do make use of 'irq', we could easily get the irq
-> number through irq_desc->irq_data->irq. So kill the first parameter
-> 'irq' of irq_flow_handler_t.
-> 
-> To ease review, I have split the changes into several parts, though
-> they should be merge as one to support bisecting.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Signed-off-by: Hans Ulli Kroll <ulli.kroll@googlemail.com>
-> ---
->  arch/arm/common/it8152.c               |    2 +-
->  arch/arm/common/locomo.c               |    2 +-
->  arch/arm/common/sa1111.c               |    4 ++--
->  arch/arm/include/asm/hardware/it8152.h |    2 +-
->  arch/arm/include/asm/mach/irq.h        |    4 ++--
->  arch/arm/mach-dove/irq.c               |    4 ++--
->  arch/arm/mach-footbridge/isa-irq.c     |    4 ++--
->  arch/arm/mach-gemini/gpio.c            |    2 +-
->  arch/arm/mach-imx/3ds_debugboard.c     |    2 +-
->  arch/arm/mach-imx/mach-mx31ads.c       |    2 +-
->  arch/arm/mach-iop13xx/msi.c            |    2 +-
->  arch/arm/mach-lpc32xx/irq.c            |    4 ++--
->  arch/arm/mach-netx/generic.c           |    2 +-
->  arch/arm/mach-omap1/fpga.c             |    2 +-
->  arch/arm/mach-omap2/prm_common.c       |    2 +-
->  arch/arm/mach-pxa/balloon3.c           |    2 +-
->  arch/arm/mach-pxa/cm-x2xx-pci.c        |    4 ++--
->  arch/arm/mach-pxa/lpd270.c             |    2 +-
->  arch/arm/mach-pxa/pcm990-baseboard.c   |    2 +-
->  arch/arm/mach-pxa/viper.c              |    2 +-
->  arch/arm/mach-pxa/zeus.c               |    2 +-
->  arch/arm/mach-rpc/ecard.c              |    2 +-
->  arch/arm/mach-s3c24xx/bast-irq.c       |    3 +--
->  arch/arm/mach-s3c64xx/common.c         |    8 ++++----
+On 06/04/2015 02:11 AM, Michael Turquette wrote:
+> Quoting Tero Kristo (2015-06-03 05:33:46)
+>> On 05/28/2015 02:15 AM, Tony Lindgren wrote:
+>>> * Tero Kristo <t-kristo@ti.com> [150527 11:32]:
+>>>> On 05/26/2015 07:39 PM, Felipe Balbi wrote:
+>>>>> On Tue, May 26, 2015 at 09:32:16AM -0700, Tony Lindgren wrote:
+>>>>>> * Tony Lindgren <tony@atomide.com> [150526 09:08]:
+>>>>>>> * Tero Kristo <t-kristo@ti.com> [150525 08:01]:
+>>>>>>>> Hi,
+>>>>>>>>
+>>>>>>>> As requested, posting v3 with somewhat changed diff parameters and
+>>>>>>>> diffstat attached. Just some minor Makefile changes compared to v2,
+>>>>>>>> these were discussed under that set.
+>>>>>>>>
+>>>>>>>> Set has been pushed to:
+>>>>>>>> - tree: https://github.com/t-kristo/linux-pm.git
+>>>>>>>> - branch: for-4.2/ti-clk-move
+>>>>>>>
+>>>>>>> Looks like this causes a build error for at least omap2 only .config:
+>>>>>>>
+>>>>>>> drivers/clk/ti/dpll3xxx.o:(.rodata+0x1c): multiple definition of `clkhwops_omap3_dpll'
+>>>>>>> drivers/clk/ti/dpll.o:(.rodata+0x0): first defined here
+>>>>>>>
+>>>>>>> You may want to create a file selecting ARCH_OMAP2PLUS=y, then point
+>>>>>>> KCONFIG_ALLCONFIG to that file for make randconfig. Then just build
+>>>>>>> randconfigs :) Usually the issues like this are exposed within few
+>>>>>>> randconfig builds, some take longer if the options have dependencies.
+>>>>>
+>>>>> alternatively, just clone the repository at [1] and use the example
+>>>>> script provided in README.md.
+>>>>>
+>>>>> [1] https://github.com/felipebalbi/omap-seeds
+>>>>>
+>>>>
+>>>> Ok, I pushed an updated branch named: for-4.2/ti-clk-move-v4
+>>>>
+>>>> This definitely compiles with OMAP2 / OMAP3 / OMAP4 / OMAP5 / DRA7 / AM33xx
+>>>> / AM43xx only setups (tried it out.)
+>>>
+>>> Thanks yeah seems to work for me now.
+>>>
+>>> Regards,
+>>>
+>>> Tony
+>>>
+>>
+>> Question to Mike / Stephen, any chance of getting this in during the 4.2
+>> merge anymore seeing we are already at 4.1-rc6?
+>>
+>> I can send a pull request if yes. Otherwise I just wait until we are
+>> past the next merge.
+>
+> Hi Tero,
+>
+> I'd like more time for any regressions this introduces to be fixed, so
+> lets push back to next merge window. The always-wrong-but-never-by-much
+> crystal ball[0] predicts June 14. This is less than two weeks away, so
+> the wait should be short.
 
-For s3c24xx/s3c64xx:
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Ok, I'll rebase this against rc1 and send a pull-request once we have it.
 
-Best regards,
-Krzysztof
+-Tero
+
+>
+> [0] http://phb-crystal-ball.org/
+>
+> Thanks,
+> Mike
+>
+>>
+>> -Tero
+
