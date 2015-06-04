@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [RFC/NOT FOR MERGING] HACK: add global/private timers for A9
-Date: Thu, 4 Jun 2015 15:08:50 -0500
-Message-ID: <20150604200850.GF5710@saruman.tx.rr.com>
+Date: Thu, 4 Jun 2015 15:18:25 -0500
+Message-ID: <20150604201825.GG5710@saruman.tx.rr.com>
 References: <1433363565-17725-1-git-send-email-balbi@ti.com>
  <2466648.WjMxjIpAUG@wuerfel>
  <20150603210455.GD6042@saruman.tx.rr.com>
@@ -9,59 +9,64 @@ References: <1433363565-17725-1-git-send-email-balbi@ti.com>
  <556F7493.2060602@codeaurora.org>
  <20150603215445.GK6042@saruman.tx.rr.com>
  <55701E93.60303@free.fr>
+ <20150604200850.GF5710@saruman.tx.rr.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E69HUUNAyIJqGpVn"
+	protocol="application/pgp-signature"; boundary="G44BJl3Aq1QbV/QL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39099 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39426 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752103AbbFDULo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Jun 2015 16:11:44 -0400
+	id S1753772AbbFDUVO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jun 2015 16:21:14 -0400
 Content-Disposition: inline
-In-Reply-To: <55701E93.60303@free.fr>
+In-Reply-To: <20150604200850.GF5710@saruman.tx.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mason <slash.tmp@free.fr>
-Cc: Felipe Balbi <balbi@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Shawn Guo <shawn.guo@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linux OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Mason <slash.tmp@free.fr>, Stephen Boyd <sboyd@codeaurora.org>, Shawn Guo <shawn.guo@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linux OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
---E69HUUNAyIJqGpVn
+--G44BJl3Aq1QbV/QL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Thu, Jun 04, 2015 at 03:08:50PM -0500, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Thu, Jun 04, 2015 at 11:46:59AM +0200, Mason wrote:
+> > Also, check /proc/timer_list for a "Broadcast device". If you don't
+> > define one, the TWD timers are set to periodic mode, with hrtimers
+> > disabled.
+>=20
+> Did you manage to turn global timer into Broadcast device ?
 
-On Thu, Jun 04, 2015 at 11:46:59AM +0200, Mason wrote:
-> Also, check /proc/timer_list for a "Broadcast device". If you don't
-> define one, the TWD timers are set to periodic mode, with hrtimers
-> disabled.
-
-Did you manage to turn global timer into Broadcast device ?
+arm_global_timer is marked PERCPU, so it will never be chosen as
+broadcast.
 
 --=20
 balbi
 
---E69HUUNAyIJqGpVn
+--G44BJl3Aq1QbV/QL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVcLBSAAoJEIaOsuA1yqREs1wP/3MumWfenN6+ccdGKMapG0/W
-24p52EN3KZFSFYg1Ywgb5JtQpXv8UZ0U4/jUCpcGu/xd7MuxmSQohSoxGJzhRzJW
-PGd1y51VzqtmAoFAIiSJlzXHx/HM7Nv86lTaWzPdUDHEf59O65wB2Ra0nIZLwWff
-c/fK0mSpM0p5pf4/KIxpR1IQtbGXfDvfi1eG60lLkLb13zMBudXgw3XA8u0AlMiI
-Q/Syc7M3q3vZ9Jbu4uMyhdiD2bo7pJUrU2jofurrM2xvrDsphT8ciLORmbfQIkh0
-qRv9yhQqp5nECJi/sGVjSJBA0b9bok9mR9ghEg07lQGDBjD/iRMl7J2001FFMoOO
-l9ehNSdeqgTvA6ngb7DR8ZBgycOm2Kai4ou68jQEL4ClJz47QEsFeond6hyv/PTF
-WUT+Euc7bBjbsWHrd1H6hWKM3WV5/+ieOuJs1iCHQxtME/Lj/EGX2RIXck3UXJQC
-vVbNmQu66nBXEc9aMDeI8hyEBJ8NmMkwHhDqJQB38nj88VIGfPRXdO3ryh3VXBLT
-tQCktgKwsb2LGzH7jg0y7AJwhBEsHg+rJw97hc8FpqOpL0u7kgOMaBDe/d6nlULe
-MX0AS+T1jJaUZFrUHrlOcrslDoGUSO+fm8S5GeBj2HuvLHI6fagRnZeTDSkWdoBJ
-rEiQYfAzaa1CVSkbO41g
-=ICcI
+iQIcBAEBAgAGBQJVcLKRAAoJEIaOsuA1yqREAtEP+wbYqbhdi4S62NfYRznDcuVi
+4w0Nb7We4y36RFJzmqX13EF4XTPfdx0C0GqcVXGRn3XcuS6PMU3uuWg5lGvU8eOd
+/zILy4Z0JoF2uFaoVxAz96FO4WAzqi4tVYbFDLnCvzRyW/NBMtW79wwND+oq0/ZU
+ubs4Z2jHdvHqHLLiznmCg2+bIZ1U+JizNUh9UisXBuOvuSTsvq1p+VB2CKdG0ek6
+PCytPuSuPKJBGh0PBHyMpr9Q58ZbMrAC5o3URYDJ4yW+3v7A55R2zJhdiHpAl+oh
+gXw/PMQtuX3aqVAQXYS65EwzCjVjPsHBguC8/bPByqfVqiNs/OTgG0LFvRh/QRiR
+z8Ly+ANditXJxUsh6t0cgvKXhMo6USjBYTMMXGz+OZBnH9pUfTI+imc9St5Aktjc
+kBYmO1ikCXOv3kJPtiHXGcjOUQL+dbwiueeFH7OMgNVTaIE8vw8JqaU0i2HTgq4E
+d36YAqmevW8GVmj5NdhW8RMSGGJnPfdrBBD1a6WY1pTXFUXpc/Rzw1kCjzerp0kF
+5efYDq4yMORXaHVI4Bj2EOgY4E49J0/V/EPUrLkjr441gIOO/Y6CqFCnpgd2iEJD
+Q2BGsYgiliSxTxFR+axgePeYz9RLhe9ywPQzxDwSSYU9k4V9lF4SLxg2Uw+U9o1s
+yTxWhqDbhketlVC+VbPs
+=dz3C
 -----END PGP SIGNATURE-----
 
---E69HUUNAyIJqGpVn--
+--G44BJl3Aq1QbV/QL--
