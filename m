@@ -1,7 +1,7 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
 Subject: Re: [RFC/NOT FOR MERGING] HACK: add global/private timers for A9
-Date: Thu, 4 Jun 2015 14:46:51 -0700
-Message-ID: <20150604214650.GB30984@atomide.com>
+Date: Thu, 4 Jun 2015 15:20:57 -0700
+Message-ID: <20150604222057.GA8099@codeaurora.org>
 References: <1433363565-17725-1-git-send-email-balbi@ti.com>
  <2466648.WjMxjIpAUG@wuerfel>
  <20150603210455.GD6042@saruman.tx.rr.com>
@@ -10,54 +10,61 @@ References: <1433363565-17725-1-git-send-email-balbi@ti.com>
  <20150603215445.GK6042@saruman.tx.rr.com>
  <55701E93.60303@free.fr>
  <20150604200850.GF5710@saruman.tx.rr.com>
- <5570B5E8.90300@free.fr>
- <20150604203732.GI5710@saruman.tx.rr.com>
+ <20150604201825.GG5710@saruman.tx.rr.com>
+ <20150604202943.GH5710@saruman.tx.rr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55959 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751672AbbFDVqx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Jun 2015 17:46:53 -0400
+Received: from smtp.codeaurora.org ([198.145.29.96]:35164 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616AbbFDWVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2015 18:21:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20150604203732.GI5710@saruman.tx.rr.com>
+In-Reply-To: <20150604202943.GH5710@saruman.tx.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Mason <slash.tmp@free.fr>, Stephen Boyd <sboyd@codeaurora.org>, Shawn Guo <shawn.guo@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Linux OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc: Mason <slash.tmp@free.fr>, Shawn Guo <shawn.guo@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linux OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [150604 13:41]:
-> On Thu, Jun 04, 2015 at 10:32:40PM +0200, Mason wrote:
-> > On 04/06/2015 22:08, Felipe Balbi wrote:
-> > 
+On 06/04, Felipe Balbi wrote:
+> On Thu, Jun 04, 2015 at 03:18:25PM -0500, Felipe Balbi wrote:
+> > On Thu, Jun 04, 2015 at 03:08:50PM -0500, Felipe Balbi wrote:
+> > > Hi,
+> > > 
 > > > On Thu, Jun 04, 2015 at 11:46:59AM +0200, Mason wrote:
-> > >> Also, check /proc/timer_list for a "Broadcast device". If you don't
-> > >> define one, the TWD timers are set to periodic mode, with hrtimers
-> > >> disabled.
+> > > > Also, check /proc/timer_list for a "Broadcast device". If you don't
+> > > > define one, the TWD timers are set to periodic mode, with hrtimers
+> > > > disabled.
 > > > 
 > > > Did you manage to turn global timer into Broadcast device ?
 > > 
-> > Disclaimer: I am a kernel noob, take everything I say with
-> > a rock of salt.
-> > 
-> > As far as I can see, the global timer code doesn't handle
-> > frequency changes, whereas the TWD code does.
+> > arm_global_timer is marked PERCPU, so it will never be chosen as
+> > broadcast.
 > 
-> All right, but TWD has C3STOP and that prevents it from being used as
-> broadcast device.
+> Perhaps this is acceptable ?
 > 
-> Tony Lindgren had the idea of implementing a timer switch during idle
-> and that could help us strip the kernel off of C3STOP feature flag. That
-> means we might be able to use TWD as broadcast until CPU decides to
-> idle, at which point we need to switch to a different timer.
+> diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
+> index e6833771a716..8c0170ac367d 100644
+> --- a/drivers/clocksource/arm_global_timer.c
+> +++ b/drivers/clocksource/arm_global_timer.c
+> @@ -169,8 +169,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
+>  	int cpu = smp_processor_id();
+>  
+>  	clk->name = "arm_global_timer";
+> -	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
+> -		CLOCK_EVT_FEAT_PERCPU;
+> +	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT;
+> +	if (is_smp() || setup_max_cpus)
+> +		clk->features |= CLOCK_EVT_FEAT_PERCPU;
+>  	clk->set_mode = gt_clockevent_set_mode;
+>  	clk->set_next_event = gt_clockevent_set_next_event;
+>  	clk->cpumask = cpumask_of(cpu);
+> 
 
-Yeah I'm looking at adding clocksource_pm_enter/exit() to allow also
-changing the clocksource to a different one for idle.. Will post some
-patches after investigating it a bit further.
+What is this doing? Allowing the global timer to become the
+broadcast timer? Can you share all the clockevents that are being
+registered in the system and what ratings and features they have?
 
-Changing the clockevent for idle already works just fine based on
-tick_broadcast_enable() + tick_broadcast_enter/exit().
-
-Regards,
-
-Tony
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
