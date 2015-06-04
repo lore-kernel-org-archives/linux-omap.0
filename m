@@ -1,52 +1,30 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: next-20150604 build: 2 failures 37 warnings (next-20150604)
-Date: Thu, 4 Jun 2015 18:57:40 +0100
-Message-ID: <20150604175740.GQ14071@sirena.org.uk>
-References: <E1Z0YIL-0008Ma-5O@optimist>
- <20150604170112.GM14071@sirena.org.uk>
- <20150604171004.GZ30984@atomide.com>
- <20150604172026.GA30984@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="awGZH0NYyyipry6r"
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150604172026.GA30984@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/3] ARM: dts: Changes for Gumstix Pepper dts
+Date: Thu,  4 Jun 2015 11:08:16 -0700
+Message-ID: <1433441299-18887-1-git-send-email-arun@gumstix.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+These 3 patches are included to fix the following issues
+with pepper device tree source. The patches are based against
+linux-omap/master.
 
---awGZH0NYyyipry6r
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Adam YH Lee (2):
+  ARM: dts: Correct audio input route & set mic bias
+  ARM: dts: configure regulators for Gumstix Pepper
 
-On Thu, Jun 04, 2015 at 10:20:26AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150604 10:11]:
+Arun Bharadwaj (1):
+  ARM: dts: Fix frequency scaling on Gumstix Pepper.
 
-> > Sounds like I'm using an old commit in one of my pending branches,
-> > will check immediately.
+ arch/arm/boot/dts/am335x-pepper.dts | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-> Greg, there's now commit 9809889c708e in tty-linus and commit
-> 9e91597f2423 in tty-next.
+-- 
+2.1.4
 
-Thanks for investigating!
-
---awGZH0NYyyipry6r
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVcJGTAAoJECTWi3JdVIfQe7oH/1TuVtBfCvg/7w5qEgH+8PEx
-zrkzSIbMDS3GRXv2mKMwkKFsPZiP1xlBW6YF/qbOfu5nKZkTF97XTqQ+HaH6RYe7
-aFybpfSAtJRW3ppEKsIoGLazX7dF6i96OaqHsz4DAkZfzpbf5qNU/GggtqTrPiWL
-vmbWBC3vcbKdizadqffSOZT1Xh4cg7rGAMvJVzyVcucGCnUVwo0RY5B8UxXaT5Cj
-cSXrPWeDq8VOMcPj+dLI7cjEpyq5Op5OgtrxWySRVp3W0MHSMi6Pofp20lTJYHmn
-ZsRtNt9nHLXNmYMUWOc2V5jgmEa2f4a/SMBa4RJCmiXOZSJE5ynWe5JoW33hclA=
-=CveP
------END PGP SIGNATURE-----
-
---awGZH0NYyyipry6r--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
