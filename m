@@ -1,70 +1,78 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [RFC/NOT FOR MERGING] HACK: add global/private timers for A9
-Date: Thu, 4 Jun 2015 15:20:57 -0700
-Message-ID: <20150604222057.GA8099@codeaurora.org>
-References: <1433363565-17725-1-git-send-email-balbi@ti.com>
- <2466648.WjMxjIpAUG@wuerfel>
- <20150603210455.GD6042@saruman.tx.rr.com>
- <20150603212821.GH6042@saruman.tx.rr.com>
- <556F7493.2060602@codeaurora.org>
- <20150603215445.GK6042@saruman.tx.rr.com>
- <55701E93.60303@free.fr>
- <20150604200850.GF5710@saruman.tx.rr.com>
- <20150604201825.GG5710@saruman.tx.rr.com>
- <20150604202943.GH5710@saruman.tx.rr.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/12] ARM: OMAP2+: Add support for initializing dm814x
+ clocks
+Date: Thu, 4 Jun 2015 15:28:24 -0700
+Message-ID: <20150604222823.GC30984@atomide.com>
+References: <1433348601-8966-1-git-send-email-tony@atomide.com>
+ <1433348601-8966-6-git-send-email-tony@atomide.com>
+ <20150604184254.GJ490@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:35164 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616AbbFDWVA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2015 18:21:00 -0400
+Received: from muru.com ([72.249.23.125]:55985 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751672AbbFDW20 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jun 2015 18:28:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20150604202943.GH5710@saruman.tx.rr.com>
+In-Reply-To: <20150604184254.GJ490@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Mason <slash.tmp@free.fr>, Shawn Guo <shawn.guo@linaro.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Linux OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-On 06/04, Felipe Balbi wrote:
-> On Thu, Jun 04, 2015 at 03:18:25PM -0500, Felipe Balbi wrote:
-> > On Thu, Jun 04, 2015 at 03:08:50PM -0500, Felipe Balbi wrote:
-> > > Hi,
-> > > 
-> > > On Thu, Jun 04, 2015 at 11:46:59AM +0200, Mason wrote:
-> > > > Also, check /proc/timer_list for a "Broadcast device". If you don't
-> > > > define one, the TWD timers are set to periodic mode, with hrtimers
-> > > > disabled.
-> > > 
-> > > Did you manage to turn global timer into Broadcast device ?
-> > 
-> > arm_global_timer is marked PERCPU, so it will never be chosen as
-> > broadcast.
+* Stephen Boyd <sboyd@codeaurora.org> [150604 11:44]:
+> On 06/03, Tony Lindgren wrote:
+> > diff --git a/drivers/clk/ti/clk-814x.c b/drivers/clk/ti/clk-814x.c
+> > new file mode 100644
+> > index 0000000..bd2353c
+> > --- /dev/null
+> > +++ b/drivers/clk/ti/clk-814x.c
+> > @@ -0,0 +1,36 @@
+> > +/*
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License as
+> > + * published by the Free Software Foundation version 2.
+> > + */
+> > +
+> > +#include <linux/kernel.h>
+> > +#include <linux/list.h>
 > 
-> Perhaps this is acceptable ?
+> Is list.h used?
 > 
-> diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
-> index e6833771a716..8c0170ac367d 100644
-> --- a/drivers/clocksource/arm_global_timer.c
-> +++ b/drivers/clocksource/arm_global_timer.c
-> @@ -169,8 +169,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
->  	int cpu = smp_processor_id();
->  
->  	clk->name = "arm_global_timer";
-> -	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
-> -		CLOCK_EVT_FEAT_PERCPU;
-> +	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT;
-> +	if (is_smp() || setup_max_cpus)
-> +		clk->features |= CLOCK_EVT_FEAT_PERCPU;
->  	clk->set_mode = gt_clockevent_set_mode;
->  	clk->set_next_event = gt_clockevent_set_next_event;
->  	clk->cpumask = cpumask_of(cpu);
+> > +#include <linux/clk-provider.h>
+> > +#include <linux/clk/ti.h>
+> > +
+> > +static struct ti_dt_clk dm814_clks[] = {
+> > +	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
+> > +	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
+> > +	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
+> > +	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
+> > +	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
+> > +	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
+> > +	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
+> > +	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
+> > +	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
+> > +	{ .node_name = NULL },
+> > +};
+> > +
+> > +static const char *enable_init_clks[] = {
+> > +};
 > 
+> delete?
+> 
+> > +
+> > +int __init dm814x_dt_clk_init(void)
+> > +{
+> > +	ti_dt_clocks_register(dm814_clks);
+> > +	omap2_clk_disable_autoidle_all();
+> > +	omap2_clk_enable_init_clocks(enable_init_clks,
+> > +				     ARRAY_SIZE(enable_init_clks));
+> 
+> And pass NULL and 0 here?
 
-What is this doing? Allowing the global timer to become the
-broadcast timer? Can you share all the clockevents that are being
-registered in the system and what ratings and features they have?
+Sure will remove, we can add those back once the PLL parts are
+working and if/when some boot time clocks are needed.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Thanks.
+
+Tony
