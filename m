@@ -1,78 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/12] ARM: OMAP2+: Add support for initializing dm814x
- clocks
-Date: Thu, 4 Jun 2015 15:28:24 -0700
-Message-ID: <20150604222823.GC30984@atomide.com>
-References: <1433348601-8966-1-git-send-email-tony@atomide.com>
- <1433348601-8966-6-git-send-email-tony@atomide.com>
- <20150604184254.GJ490@codeaurora.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Thu, 4 Jun 2015 23:02:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com> <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55985 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751672AbbFDW20 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Jun 2015 18:28:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20150604184254.GJ490@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, =?ISO-8859-15?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-* Stephen Boyd <sboyd@codeaurora.org> [150604 11:44]:
-> On 06/03, Tony Lindgren wrote:
-> > diff --git a/drivers/clk/ti/clk-814x.c b/drivers/clk/ti/clk-814x.c
-> > new file mode 100644
-> > index 0000000..bd2353c
-> > --- /dev/null
-> > +++ b/drivers/clk/ti/clk-814x.c
-> > @@ -0,0 +1,36 @@
-> > +/*
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License as
-> > + * published by the Free Software Foundation version 2.
-> > + */
-> > +
-> > +#include <linux/kernel.h>
-> > +#include <linux/list.h>
-> 
-> Is list.h used?
-> 
-> > +#include <linux/clk-provider.h>
-> > +#include <linux/clk/ti.h>
-> > +
-> > +static struct ti_dt_clk dm814_clks[] = {
-> > +	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
-> > +	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
-> > +	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
-> > +	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
-> > +	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
-> > +	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
-> > +	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
-> > +	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
-> > +	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
-> > +	{ .node_name = NULL },
-> > +};
-> > +
-> > +static const char *enable_init_clks[] = {
-> > +};
-> 
-> delete?
-> 
-> > +
-> > +int __init dm814x_dt_clk_init(void)
-> > +{
-> > +	ti_dt_clocks_register(dm814_clks);
-> > +	omap2_clk_disable_autoidle_all();
-> > +	omap2_clk_enable_init_clocks(enable_init_clks,
-> > +				     ARRAY_SIZE(enable_init_clks));
-> 
-> And pass NULL and 0 here?
+Hi folks
 
-Sure will remove, we can add those back once the PLL parts are
-working and if/when some boot time clocks are needed.
+just a brief comment on this one:
 
-Thanks.
+On Thu, 30 Apr 2015, Boris Brezillon wrote:
 
-Tony
+> Clock rates are stored in an unsigned long field, but ->round_rate()
+> (which returns a rounded rate from a requested one) returns a long
+> value (errors are reported using negative error codes), which can lead
+> to long overflow if the clock rate exceed 2Ghz.
+> 
+> Change ->round_rate() prototype to return 0 or an error code, and pass the
+> requested rate as a pointer so that it can be adjusted depending on
+> hardware capabilities.
+
+...
+
+> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+> index 0e4f90a..fca8b7a 100644
+> --- a/Documentation/clk.txt
+> +++ b/Documentation/clk.txt
+> @@ -68,8 +68,8 @@ the operations defined in clk.h:
+>  		int		(*is_enabled)(struct clk_hw *hw);
+>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+>  						unsigned long parent_rate);
+> -		long		(*round_rate)(struct clk_hw *hw,
+> -						unsigned long rate,
+> +		int		(*round_rate)(struct clk_hw *hw,
+> +						unsigned long *rate,
+>  						unsigned long *parent_rate);
+>  		long		(*determine_rate)(struct clk_hw *hw,
+>  						unsigned long rate,
+
+I'd suggest that we should probably go straight to 64-bit rates.  There 
+are already plenty of clock sources that can generate rates higher than 
+4GiHz.
+
+
+- Paul
