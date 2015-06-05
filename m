@@ -1,45 +1,77 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: next-20150604 build: 2 failures 37 warnings (next-20150604)
-Date: Fri, 5 Jun 2015 19:49:00 +0900
-Message-ID: <20150605104900.GA5346@kroah.com>
-References: <E1Z0YIL-0008Ma-5O@optimist>
- <20150604170112.GM14071@sirena.org.uk>
- <20150604171004.GZ30984@atomide.com>
- <20150604172026.GA30984@atomide.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Fri, 5 Jun 2015 13:38:03 +0200
+Message-ID: <20150605133803.59990a66@bbrezillon>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+ <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150604172026.GA30984@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter De Schrijver <pdeschrijver@nvidia.com>P
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 04, 2015 at 10:20:26AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150604 10:11]:
-> > * Mark Brown <broonie@kernel.org> [150604 10:03]:
-> > > On Thu, Jun 04, 2015 at 05:47:05PM +0100, Build bot for Mark Brown wrote:
-> > > 
-> > > > 	arm-allmodconfig
-> > > > ../drivers/tty/serial/8250/8250_omap.c:586:20: error: redefinition of 'omap8250_irq'
-> > > 
-> > > Current -next fails to build an ARM allmodconfig (and possibly other
-> > > things) due to 9e91597f24234 and 9809889c708eb (serial: 8250_omap:
-> > > provide complete custom startup & shutdown callbacks) which appear to be
-> > > the same commit that's been applied twice somehow.  Not sure what's
-> > > going on there...
-> > 
-> > Sounds like I'm using an old commit in one of my pending branches,
-> > will check immediately.
+Hi Paul,
+
+On Thu, 4 Jun 2015 23:02:25 +0000 (UTC)
+Paul Walmsley <paul@pwsan.com> wrote:
+
+> Hi folks
 > 
-> Greg, there's now commit 9809889c708e in tty-linus and commit
-> 9e91597f2423 in tty-next.
+> just a brief comment on this one:
+> 
+> On Thu, 30 Apr 2015, Boris Brezillon wrote:
+> 
+> > Clock rates are stored in an unsigned long field, but ->round_rate()
+> > (which returns a rounded rate from a requested one) returns a long
+> > value (errors are reported using negative error codes), which can lead
+> > to long overflow if the clock rate exceed 2Ghz.
+> > 
+> > Change ->round_rate() prototype to return 0 or an error code, and pass the
+> > requested rate as a pointer so that it can be adjusted depending on
+> > hardware capabilities.
+> 
+> ...
+> 
+> > diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+> > index 0e4f90a..fca8b7a 100644
+> > --- a/Documentation/clk.txt
+> > +++ b/Documentation/clk.txt
+> > @@ -68,8 +68,8 @@ the operations defined in clk.h:
+> >  		int		(*is_enabled)(struct clk_hw *hw);
+> >  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+> >  						unsigned long parent_rate);
+> > -		long		(*round_rate)(struct clk_hw *hw,
+> > -						unsigned long rate,
+> > +		int		(*round_rate)(struct clk_hw *hw,
+> > +						unsigned long *rate,
+> >  						unsigned long *parent_rate);
+> >  		long		(*determine_rate)(struct clk_hw *hw,
+> >  						unsigned long rate,
+> 
+> I'd suggest that we should probably go straight to 64-bit rates.  There 
+> are already plenty of clock sources that can generate rates higher than 
+> 4GiHz.
 
-Yes, I can't go back and remove the one in tty-next, I'm guessing when
-they are merged there is an issue.  I'll look into that after Linus
-pulls in my tty-linus tree.
+Yep, that was something I was considering too. If Stephen agrees I'll
+change that in the next version.
+BTW, you're referring to the second version of this patch, but things
+have changed a bit: Stephen recommended to only modify the
+->determine_rate() prototype and pass a structure instead of a list of
+arguments.
+Here is the last version of this series [1].
 
-thanks,
+Best Regards,
 
-greg k-h
+Boris
+
+[1]http://patchwork.linux-mips.org/patch/10092/
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
