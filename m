@@ -1,69 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/3] dmaengine: ti-dma-crossbar: Support for eDMA
-Date: Fri, 5 Jun 2015 19:17:17 +0300
-Message-ID: <5571CB8D.7030401@ti.com>
-References: <1433518474-26628-1-git-send-email-peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: next-20150604 build: 2 failures 37 warnings (next-20150604)
+Date: Fri, 5 Jun 2015 18:16:52 +0100
+Message-ID: <20150605171652.GB14071@sirena.org.uk>
+References: <E1Z0YIL-0008Ma-5O@optimist>
+ <20150604170112.GM14071@sirena.org.uk>
+ <20150604171004.GZ30984@atomide.com>
+ <20150604172026.GA30984@atomide.com>
+ <20150605104900.GA5346@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433518474-26628-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, Tony Lindgren <tony@atomide.com>, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="F2YjuSVvMy0XUwbk"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:44044 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752211AbbFERRH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2015 13:17:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20150605104900.GA5346@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On 06/05/2015 06:34 PM, Peter Ujfalusi wrote:
-> Hi,
->=20
-> The ti-dma-crossbar driver in it's current form can work when it is u=
-sed with
-> sDMA (omap-dma). On DRA7x class of devices we have both sDMA and eDMA=
- available.
-> The DT bindings for sDMA has been done in a way that DMA users need t=
-o specify
-> the required DMA request number + 1 when they request for channel and=
- the driver
-> stack has been written in this way also for sDMA.
-> Since right now we do not have the crossbar enabled we can still chan=
-ge the
-> compatible string to reflect the crossbar use. The TRM also refers th=
-e crossbars
-> in this way.
-
-Now that I have sent this series...
-Would it be better to not touch the compatible strings, but add of_devi=
-ce_id
-table in the ti-dma-crossbar driver containing the supported dma contro=
-llers,
-like "ti,omap4430-sdma" and "ti,edma3" and to of_match_node() against t=
-he node
-we got via dma-masters?
-
-So we would keep the ti,dra7-dma-crossbar and depending on where the
-dma-masters point us we can decide in the code on how to handle?
-
-Just a thought.
-
->=20
-> Regards,
-> Peter
-> ---
-> Misael Lopez Cruz (2):
->   dmaengine: ti-dma-crossbar: Make idr xbar instance-specific
->   dmaengine: ti-dma-crossbar: Add support for eDMA xbar
->=20
-> Peter Ujfalusi (1):
->   dmaengine: ti-dma-crossbar: Change the compatible string to
->     ti,dra7-sdma-crossbar
->=20
->  Documentation/devicetree/bindings/dma/dma.txt      |  2 +-
->  .../devicetree/bindings/dma/ti-dma-crossbar.txt    |  5 +--
->  drivers/dma/ti-dma-crossbar.c                      | 37 ++++++++++++=
-++++------
->  3 files changed, 31 insertions(+), 13 deletions(-)
->=20
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
---=20
-P=E9ter
+--F2YjuSVvMy0XUwbk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Jun 05, 2015 at 07:49:00PM +0900, Greg Kroah-Hartman wrote:
+> On Thu, Jun 04, 2015 at 10:20:26AM -0700, Tony Lindgren wrote:
+
+> > Greg, there's now commit 9809889c708e in tty-linus and commit
+> > 9e91597f2423 in tty-next.
+
+> Yes, I can't go back and remove the one in tty-next, I'm guessing when
+> they are merged there is an issue.  I'll look into that after Linus
+> pulls in my tty-linus tree.
+
+Yeah, git isn't always spectacularly good at resolving add/add if
+there's context changes between two things in a merge - it sometimes
+ends up double adding things.
+
+--F2YjuSVvMy0XUwbk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVcdmDAAoJECTWi3JdVIfQrGUH/0DZ+yHuI491OC5C8E2h9YvC
+2CiteLgjAibMN5WNBRByyUdlcqNmL80YNkKhnaj+O7Q7yjKrmXGmwv1VfzxKMMZD
+nqPRU2pU9jiKczozAwlT/ru3yMgCKvzXSXwfJ+OgxP4OjtuoiOnntZ7Lat/WT2L3
+KtXQBrhdo24WMhzAX8T7xJLDjTTHQIkW0ffM6yyZ8BvPgTZW/bXpRGX6rn83Vtgd
+uAQha+HtamqUsBhzD1wbuLdyX3LF4nMKfF6N3eLxCsyHze4ISeMb2us69nqcEij3
+ZnGqWPvp9b/EjBjdGR7K3tyW3ComxF9O672OnsCuGaiABz3VNXIfzkG0r6FvH00=
+=oPzJ
+-----END PGP SIGNATURE-----
+
+--F2YjuSVvMy0XUwbk--
