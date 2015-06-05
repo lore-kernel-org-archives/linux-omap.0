@@ -1,120 +1,58 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: Calling irq_set_irq_wake() from .set_irq_wake()?
-Date: Fri, 5 Jun 2015 05:35:43 +0300
-Message-ID: <20150605053543.3b10d605@rockdesk>
-References: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
-	<alpine.DEB.2.11.1505181626060.4225@nanos>
-	<5559FCC0.2050302@linaro.org>
-	<CAMuHMdX7exSoJdnLD9_5ZB3Xmbxud+gPbcy2XJZv6hu9MEvEFg@mail.gmail.com>
-	<556F5B0F.7040603@ti.com>
+From: Jeroen Hofstee <linux-arm@myspectrum.nl>
+Subject: Re: [PATCH] ARM: dts: AM35xx: fix system control module clocks
+Date: Fri, 05 Jun 2015 10:01:50 +0200
+Message-ID: <5571576E.6020207@myspectrum.nl>
+References: <alpine.DEB.2.02.1506010546510.14902@utopia.booyaka.com> <1433172627-28052-1-git-send-email-t-kristo@ti.com> <556C8ED5.5050000@myspectrum.nl> <20150601173126.GY30984@atomide.com> <alpine.DEB.2.02.1506011733180.14902@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <556F5B0F.7040603@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from orange.myspectrum.nl ([149.210.134.247]:40913 "EHLO
+	orange.myspectrum.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932439AbbFEIBy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2015 04:01:54 -0400
+In-Reply-To: <alpine.DEB.2.02.1506011733180.14902@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jeroen Hofstee <jeroen@myspectrum.nl>
 
-Hi,
+Hello Paul,
 
-On Wed, 3 Jun 2015 22:52:47 +0300
-Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+On 01-06-15 19:44, Paul Walmsley wrote:
+> The best way to make this work IMHO would be for us not to accept any new
+> feature addition patches as long as there are warnings reported in the
+> test results.  The only real exception that I would foresee is if those
+> warnings are due to something outside of our control, e.g., a crappy
+> bootloader, as I suspect the USB_OTG initiator warnings are for the
+> CM-T3517.
+>
 
-> Hi Geert,
-> 
-> On 05/19/2015 12:38 PM, Geert Uytterhoeven wrote:
-> > On Mon, May 18, 2015 at 4:52 PM, Grygorii.Strashko@linaro.org
-> > <grygorii.strashko@linaro.org> wrote:
-> >> On 05/18/2015 05:31 PM, Thomas Gleixner wrote:
-> >>> On Sun, 17 May 2015, Geert Uytterhoeven wrote:
-> >>>>>>> At least the recursive locking message no longer appears after the revert.
-> >>>>>>>
-> >>>>>>> [   30.591905] PM: Syncing filesystems ... done.
-> >>>>>>> [   30.623060] Freezing user space processes ... (elapsed 0.003 seconds) done.
-> >>>>>>> [   30.634470] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-> >>>>>>> [   30.658288] sd 0:0:0:0: [sda] Synchronizing SCSI cache
-> >>>>>>> [   30.663678]
-> >>>>>>> [   30.663681] =============================================
-> >>>>>>> [   30.663683] [ INFO: possible recursive locking detected ]
-> >>>>>>> [   30.663688] 4.1.0-rc3 #1115 Not tainted
-> >>>>>>> [   30.663693] ---------------------------------------------
-> >>>>>>> [   30.663697] suspend.sh/2319 is trying to acquire lock:
-> >>>>>>> [   30.663719]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
-> >>>>>>> [   30.663722]
-> >>>>>>> [   30.663722] but task is already holding lock:
-> >>>>>>> [   30.663734]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
-> >>>>>>
-> >>>>>> Does this mean .set_irq_wake() cannot call irq_set_irq_wake()?
-> >>>
-> >>> It can call it, if it's guaranteed that this wont deadlock.
-> >>>
-> >>> To tell lockdep that you sure about that, you need to set a different
-> >>> lock class for the child interrupts. irq_set_lockdep_class() is what
-> >>> you want to use here.
-> >>
-> >> Hm. Seems we already have corresponding call in gpiochip_irq_map:
-> >>
-> >>   static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
-> >>                              irq_hw_number_t hwirq)
-> >> {
-> >>          struct gpio_chip *chip = d->host_data;
-> >>
-> >>          irq_set_chip_data(irq, chip);
-> >>          irq_set_lockdep_class(irq, &gpiochip_irq_lock_class);
-> >> ^^^^
-> > 
-> > That piece of code sets the lockdep class of the gpiochip's interrupts, not
-> > the parent interrupt.
-> > 
-> > Found out the hard way by adding some debug code ;-)
-> [..]
-> > 
-> > However, I cannot reproduce the problem on sh73a0/kzm9g with
-> > s2ram on a current tree (renesas-drivers-2015-05-19-v4.1-rc4 from
-> > (https://git.kernel.org/cgit/linux/kernel/git/geert/renesas-drivers.git), using
-> > 
-> > CONFIG_LOCKDEP_SUPPORT=y
-> > CONFIG_LOCKDEP=y
-> > CONFIG_DEBUG_LOCKDEP=y
-> > CONFIG_PROVE_LOCKING=y
-> > 
-> > Wake-up from gpio-keys works fine, no scary messages.
-> > 
-> >> commit e45d1c80c0eee88e82751461e9cac49d9ed287bc
-> >> Author: Linus Walleij <linus.walleij@linaro.org>
-> >> Date:   Tue Apr 22 14:01:46 2014 +0200
-> >>
-> >>      gpio: put GPIO IRQs into their own lock clas
-> >>
-> >> added in Kernel v3.16
-> >>
-> >> Roger, can you confirm that you've observed this issue with latest kernel, pls?
-> > 
-> > Yes please. Thanks!
+I doubt this is related to the bootloader. I have the suspicion that is 
+actually
+a bug in linux but only triggered depending on whether the ROMcode setup
+the USB OTG or not. Here is some data to backup my statement:
 
-Issue is reproducible on v4.1-rc6
+Linux booting without USB_OTG error trap
+md 480022F0 1
+480022f0: 0000032f                               /...
+md 48002580 1
+48002580: 0f00b7a2                               ....
 
-> 
-> Unfortunately, I was able to reproduce it, but have no clue how to fix it gracefully.
-> lockdep_set_class_and_subclass(..,gpio_chip->base)?
-> 
-> HW configuration which generates lockdep warning:
-> 
-> [SOC GPIO bankA.gpioX] <- irq - [pcf875x.gpioY] <- irq - DevZ.enable_irq_wake(pcf_gpioY_irq);
-> 
-> There stacked GPIO chips, but gpiolib uses only one lockdep class for all GPIOirqchips -
-> - gpiochip_irq_lock_class.
+bit USBOTG_PHY_RESET is 0 -> out of reset
 
-If this is a gpiolib core issue are we (dra7-evm) the only stacked GPIO users facing
-this problem?
 
-Linus/Alexandre/Geert,
+USB_OTG sees memory hole
+md 480022F0 1
+480022f0: 0000030f    ....
+md 48002580 1
+48002580: 0f00c71e    ....
 
-Please advise what can be done for v4.1. The warning is annoying for dra7-evm users.
-Should we temporarily revert the patch even though it is correct and add it back when the
-gpiolib core issue is fixed?
+USBOTG_PHY_RESET is 1 -> still in reset when booting linux.
 
-cheers,
--roger
+Does that match with how your am3517 boards boot?
+
+Regards,
+Jeroen
+
+
