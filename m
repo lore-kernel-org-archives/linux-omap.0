@@ -1,68 +1,63 @@
-From: Jeroen Hofstee <jeroen@myspectrum.nl>
-Subject: Re: [PATCH] ARM: dts: AM35xx: fix system control module clocks
-Date: Fri, 05 Jun 2015 10:04:10 +0200
-Message-ID: <557157FA.7080305@myspectrum.nl>
-References: <alpine.DEB.2.02.1506010546510.14902@utopia.booyaka.com>
- <1433172627-28052-1-git-send-email-t-kristo@ti.com>
- <556C8ED5.5050000@myspectrum.nl> <20150601173126.GY30984@atomide.com>
- <alpine.DEB.2.02.1506011733180.14902@utopia.booyaka.com>
- <5571576E.6020207@myspectrum.nl>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Fri, 5 Jun 2015 09:46:09 +0100
+Message-ID: <557161D1.3040107@nvidia.com>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com> <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com> <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5571576E.6020207@myspectrum.nl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeroen Hofstee <linux-arm@myspectrum.nl>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, =?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
 
-On 05-06-15 10:01, Jeroen Hofstee wrote:
-> Hello Paul,
->
-> On 01-06-15 19:44, Paul Walmsley wrote:
->> The best way to make this work IMHO would be for us not to accept any 
->> new
->> feature addition patches as long as there are warnings reported in the
->> test results.  The only real exception that I would foresee is if those
->> warnings are due to something outside of our control, e.g., a crappy
->> bootloader, as I suspect the USB_OTG initiator warnings are for the
->> CM-T3517.
+On 05/06/15 00:02, Paul Walmsley wrote:
+> Hi folks
+> 
+> just a brief comment on this one:
+> 
+> On Thu, 30 Apr 2015, Boris Brezillon wrote:
+> 
+>> Clock rates are stored in an unsigned long field, but ->round_rate()
+>> (which returns a rounded rate from a requested one) returns a long
+>> value (errors are reported using negative error codes), which can lead
+>> to long overflow if the clock rate exceed 2Ghz.
 >>
->
-> I doubt this is related to the bootloader. I have the suspicion that 
-> is actually
-> a bug in linux but only triggered depending on whether the ROMcode setup
-> the USB OTG or not. Here is some data to backup my statement:
->
-> Linux booting without USB_OTG error trap
-> md 480022F0 1
-> 480022f0: 0000032f                               /...
-> md 48002580 1
-> 48002580: 0f00b7a2                               ....
->
-> bit USBOTG_PHY_RESET is 0 -> out of reset
->
->
-> USB_OTG sees memory hole
-> md 480022F0 1
-> 480022f0: 0000030f    ....
-> md 48002580 1
-> 48002580: 0f00c71e    ....
->
-> USBOTG_PHY_RESET is 1 -> still in reset when booting linux.
->
-> Does that match with how your am3517 boards boot?
->
+>> Change ->round_rate() prototype to return 0 or an error code, and pass the
+>> requested rate as a pointer so that it can be adjusted depending on
+>> hardware capabilities.
+> 
+> ...
+> 
+>> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+>> index 0e4f90a..fca8b7a 100644
+>> --- a/Documentation/clk.txt
+>> +++ b/Documentation/clk.txt
+>> @@ -68,8 +68,8 @@ the operations defined in clk.h:
+>>  		int		(*is_enabled)(struct clk_hw *hw);
+>>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+>>  						unsigned long parent_rate);
+>> -		long		(*round_rate)(struct clk_hw *hw,
+>> -						unsigned long rate,
+>> +		int		(*round_rate)(struct clk_hw *hw,
+>> +						unsigned long *rate,
+>>  						unsigned long *parent_rate);
+>>  		long		(*determine_rate)(struct clk_hw *hw,
+>>  						unsigned long rate,
+> 
+> I'd suggest that we should probably go straight to 64-bit rates.  There 
+> are already plenty of clock sources that can generate rates higher than 
+> 4GiHz.
 
-ps. the dumped register are CONTROL.CONTROL_STATUS and 
-CONTROL.CONTROL_DEVCONF2.
+An alternative would be to introduce to a frequency "base" the default
+could be Hz (for backwards compatibility), but for CPUs we probably only
+care about MHz (or may be kHz) and so 32-bits would still suffice. Even
+if CPUs cared about Hz they could still use Hz, but in that case they
+probably don't care about GHz. Obviously, we don't want to break DT
+compatibility but may be the frequency base could be defined in DT and
+if it is missing then Hz is assumed. Just a thought ...
+
+Jon
