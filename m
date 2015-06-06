@@ -1,138 +1,71 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: Calling irq_set_irq_wake() from .set_irq_wake()?
-Date: Sat, 6 Jun 2015 10:16:47 +0200
-Message-ID: <CAMuHMdU99WKFKWMN-6J06U8pWVbWPKUhH7xXtmwnOg_OfyUcSw@mail.gmail.com>
-References: <CAMuHMdXYPcQNCHhGa5kC8omtBw_O=Ua+rRJ+gh3tc6dY0oC5JA@mail.gmail.com>
-	<alpine.DEB.2.11.1505181626060.4225@nanos>
-	<5559FCC0.2050302@linaro.org>
-	<CAMuHMdX7exSoJdnLD9_5ZB3Xmbxud+gPbcy2XJZv6hu9MEvEFg@mail.gmail.com>
-	<556F5B0F.7040603@ti.com>
-	<20150605053543.3b10d605@rockdesk>
-	<55717023.2090908@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 5/6] phy: twl4030-usb: add support for reading resistor
+ on ID pin.
+Date: Sat, 6 Jun 2015 15:10:09 +0200
+Message-ID: <20150606131009.GD1329@xo-6d-61-c0.localdomain>
+References: <20150416075945.23307.24424.stgit@notabene.brown>
+ <20150416080304.23307.41913.stgit@notabene.brown>
+ <556C5FF4.3050603@ti.com>
+ <20150602073731.26edbd3b@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <55717023.2090908@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Grygorii.Strashko@linaro.org" <grygorii.strashko@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150602073731.26edbd3b@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, NeilBrown <neil@brown.name>, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 5, 2015 at 11:47 AM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> On 06/05/2015 05:35 AM, Roger Quadros wrote:
->> On Wed, 3 Jun 2015 22:52:47 +0300
->> Grygorii Strashko <grygorii.strashko@ti.com> wrote:
->>> On 05/19/2015 12:38 PM, Geert Uytterhoeven wrote:
->>>> On Mon, May 18, 2015 at 4:52 PM, Grygorii.Strashko@linaro.org
->>>> <grygorii.strashko@linaro.org> wrote:
->>>>> On 05/18/2015 05:31 PM, Thomas Gleixner wrote:
->>>>>> On Sun, 17 May 2015, Geert Uytterhoeven wrote:
->>>>>>>>>> At least the recursive locking message no longer appears after the revert.
->>>>>>>>>>
->>>>>>>>>> [   30.591905] PM: Syncing filesystems ... done.
->>>>>>>>>> [   30.623060] Freezing user space processes ... (elapsed 0.003 seconds) done.
->>>>>>>>>> [   30.634470] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
->>>>>>>>>> [   30.658288] sd 0:0:0:0: [sda] Synchronizing SCSI cache
->>>>>>>>>> [   30.663678]
->>>>>>>>>> [   30.663681] =============================================
->>>>>>>>>> [   30.663683] [ INFO: possible recursive locking detected ]
->>>>>>>>>> [   30.663688] 4.1.0-rc3 #1115 Not tainted
->>>>>>>>>> [   30.663693] ---------------------------------------------
->>>>>>>>>> [   30.663697] suspend.sh/2319 is trying to acquire lock:
->>>>>>>>>> [   30.663719]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
->>>>>>>>>> [   30.663722]
->>>>>>>>>> [   30.663722] but task is already holding lock:
->>>>>>>>>> [   30.663734]  (class){......}, at: [<c0096ebc>] __irq_get_desc_lock+0x48/0x88
->>>>>>>>>
->>>>>>>>> Does this mean .set_irq_wake() cannot call irq_set_irq_wake()?
->>>>>>
->>>>>> It can call it, if it's guaranteed that this wont deadlock.
->>>>>>
->>>>>> To tell lockdep that you sure about that, you need to set a different
->>>>>> lock class for the child interrupts. irq_set_lockdep_class() is what
->>>>>> you want to use here.
->>>>>
->>>>> Hm. Seems we already have corresponding call in gpiochip_irq_map:
->>>>>
->>>>>    static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
->>>>>                               irq_hw_number_t hwirq)
->>>>> {
->>>>>           struct gpio_chip *chip = d->host_data;
->>>>>
->>>>>           irq_set_chip_data(irq, chip);
->>>>>           irq_set_lockdep_class(irq, &gpiochip_irq_lock_class);
->>>>> ^^^^
->>>>
->>>> That piece of code sets the lockdep class of the gpiochip's interrupts, not
->>>> the parent interrupt.
->>>>
->>>> Found out the hard way by adding some debug code ;-)
->>> [..]
->>>>
->>>> However, I cannot reproduce the problem on sh73a0/kzm9g with
->>>> s2ram on a current tree (renesas-drivers-2015-05-19-v4.1-rc4 from
->>>> (https://git.kernel.org/cgit/linux/kernel/git/geert/renesas-drivers.git), using
->>>>
->>>> CONFIG_LOCKDEP_SUPPORT=y
->>>> CONFIG_LOCKDEP=y
->>>> CONFIG_DEBUG_LOCKDEP=y
->>>> CONFIG_PROVE_LOCKING=y
->>>>
->>>> Wake-up from gpio-keys works fine, no scary messages.
->>>>
->>>>> commit e45d1c80c0eee88e82751461e9cac49d9ed287bc
->>>>> Author: Linus Walleij <linus.walleij@linaro.org>
->>>>> Date:   Tue Apr 22 14:01:46 2014 +0200
->>>>>
->>>>>       gpio: put GPIO IRQs into their own lock clas
->>>>>
->>>>> added in Kernel v3.16
->>>>>
->>>>> Roger, can you confirm that you've observed this issue with latest kernel, pls?
->>>>
->>>> Yes please. Thanks!
->>
->> Issue is reproducible on v4.1-rc6
->>
->>>
->>> Unfortunately, I was able to reproduce it, but have no clue how to fix it gracefully.
->>> lockdep_set_class_and_subclass(..,gpio_chip->base)?
->>>
->>> HW configuration which generates lockdep warning:
->>>
->>> [SOC GPIO bankA.gpioX] <- irq - [pcf875x.gpioY] <- irq - DevZ.enable_irq_wake(pcf_gpioY_irq);
->>>
->>> There stacked GPIO chips, but gpiolib uses only one lockdep class for all GPIOirqchips -
->>> - gpiochip_irq_lock_class.
->>
->> If this is a gpiolib core issue are we (dra7-evm) the only stacked GPIO users facing
->> this problem?
->>
->> Linus/Alexandre/Geert,
->>
->> Please advise what can be done for v4.1. The warning is annoying for dra7-evm users.
->> Should we temporarily revert the patch even though it is correct and add it back when the
->> gpiolib core issue is fixed?
->
-> No. Pls. don't do that. See https://lkml.org/lkml/2015/6/3/965
+On Tue 2015-06-02 07:37:31, NeilBrown wrote:
+> On Mon, 1 Jun 2015 19:06:52 +0530 Kishon Vijay Abraham I <kishon@ti.com>
+> wrote:
+> 
+> > Hi,
+> > 
+> > On Thursday 16 April 2015 01:33 PM, NeilBrown wrote:
+> > > From: NeilBrown <neilb@suse.de>
+> > >
+> > > The twl4030 phy can measure, with low precision, the
+> > > resistance-to-ground of the ID pin.
+> > >
+> > > Add a function to read the value, and export the result
+> > > via sysfs.
+> > 
+> > Little sceptical about adding new sysfs entries. Do you have a good reason to 
+> > add this?
+> 
+> The hardware can report the value, so why not present it to user-space?
+> 
+> I originally used this with a udev rule which would configure the maximum
+> current based on the resistance measure - to work with the particular charger
+> hardware I have.
+> 
+> More recent patches try to do all of the max-current configuration in the
+> kernel, so I could live without exporting the value via sysfs if that is a
+> show-stopper.
+> 
+> I can't see where the scepticism comes from though.  It is a well defined
+> and cleary documented feature of the hardware.  Why not expose it?
 
-I'm about to leave for a business trip to Japan. I will give it a try when I'm
-back home.
+sysfs interface is supposed to work for different chargers, without userspace
+noticing.
 
-> Simple revert is not good solution.
->
-> Probably we need to allow GPIO drivers to specify own lockdep class somehow.
+Are these values the ones that are likely to be useful there?
 
-Indeed.
+> > > +	Possible values are:
+> > > +		ground
+> > > +		102k
+> > > +		200k
+> > > +		440k
+> > > +		floating
+> > > +		unknown
 
-Gr{oetje,eeting}s,
+...or would it make more sense to export for example numerical ohms, as that's
+what are other chargers likely to provide?
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
