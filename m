@@ -1,72 +1,70 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 1/2] dmaengine: ti-dma-crossbar: Make idr xbar instance-specific
-Date: Mon, 8 Jun 2015 16:22:41 +0300
-Message-ID: <1433769762-31827-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [GIT PULL] omap fixes for v4.1, urgent fix to avoid potential hardware damage
+Date: Mon, 08 Jun 2015 10:38:27 -0700
+Message-ID: <7h7frew164.fsf@deeprootsystems.com>
+References: <20150601205952.GF30984@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:32877 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752601AbbFHRid (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2015 13:38:33 -0400
+Received: by pdjn11 with SMTP id n11so71613316pdj.0
+        for <linux-omap@vger.kernel.org>; Mon, 08 Jun 2015 10:38:33 -0700 (PDT)
+In-Reply-To: <20150601205952.GF30984@atomide.com> (Tony Lindgren's message of
+	"Mon, 1 Jun 2015 13:59:53 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
+Tony Lindgren <tony@atomide.com> writes:
 
-In preparation for supporting multiple DMA crossbar instances,
-make the idr xbar instance specific.
+> Hi,
+>
+> Here's a pull request to fix potential hardware breaking configuration
+> on BeagleBones. For the other fixes, apologies for these coming in so
+> late, seems that people have been busy finding regressions.
+>
+> Regards,
+>
+> Tony
+>
+>
+> The following changes since commit f25bf74c8862efdc30453d16d60cf22958a4873e:
+>
+>   ARM: dts: Fix WLAN interrupt line for AM335x EVM-SK (2015-05-20 10:00:10 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.1/fixes-rc6
+>
+> for you to fetch changes up to 7a6cb0abe1aa63334f3ded6d2b6c8eca80e72302:
+>
+>   ARM: dts: am335x-boneblack: disable RTC-only sleep to avoid hardware damage (2015-06-01 12:48:23 -0700)
+>
+> ----------------------------------------------------------------
+> Omap fixes for the -rc cycle, including a fix for potential hardware
+> breakage on BeagleBones:
+>
+> - BeagleBones don't support RTC-only mode, it can cause hardware
+>   damage if system-power-controller is specified without
+>   ti,pmic-shutdown-controller
+>
+> - Fix a recent regression to am3517 SoCs caused by the recent clock
+>   move that was not noticed until now despite automated boot
+>   testing
+>
+> - Fix a regression for n900 touchscreen triggered by recent
+>   recent input changes
+>
+> - Fix compatible property for dm816x USB to avoid errors with
+>   USB Ethernet
+>
+> - Fix oops for omap3 when built with CONFIG_THUMB2_KERNEL
+>
 
-Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/ti-dma-crossbar.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Thanks, applied to fixes. 
 
-diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-index 24f5ca2356bf..1fd3fb73d6e8 100644
---- a/drivers/dma/ti-dma-crossbar.c
-+++ b/drivers/dma/ti-dma-crossbar.c
-@@ -20,12 +20,11 @@
- #define TI_XBAR_OUTPUTS	127
- #define TI_XBAR_INPUTS	256
- 
--static DEFINE_IDR(map_idr);
--
- struct ti_dma_xbar_data {
- 	void __iomem *iomem;
- 
- 	struct dma_router dmarouter;
-+	struct idr map_idr;
- 
- 	u16 safe_val; /* Value to rest the crossbar lines */
- 	u32 xbar_requests; /* number of DMA requests connected to XBAR */
-@@ -51,7 +50,7 @@ static void ti_dma_xbar_free(struct device *dev, void *route_data)
- 		map->xbar_in, map->xbar_out);
- 
- 	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
--	idr_remove(&map_idr, map->xbar_out);
-+	idr_remove(&xbar->map_idr, map->xbar_out);
- 	kfree(map);
- }
- 
-@@ -81,7 +80,7 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	map->xbar_out = idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
-+	map->xbar_out = idr_alloc(&xbar->map_idr, NULL, 0, xbar->dma_requests,
- 				  GFP_KERNEL);
- 	map->xbar_in = (u16)dma_spec->args[0];
- 
-@@ -113,6 +112,8 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
- 	if (!xbar)
- 		return -ENOMEM;
- 
-+	idr_init(&xbar->map_idr);
-+
- 	dma_node = of_parse_phandle(node, "dma-masters", 0);
- 	if (!dma_node) {
- 		dev_err(&pdev->dev, "Can't get DMA master node\n");
--- 
-2.4.2
+Kevin
