@@ -1,83 +1,110 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
-Date: Mon, 8 Jun 2015 09:46:34 +0100
-Message-ID: <5575566A.4060503@nvidia.com>
-References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com> <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com> <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com> <557161D1.3040107@nvidia.com> <20150605133928.66909901@bbrezillon>
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+Subject: Re: EDMA oftree entry for AM335x
+Date: Mon, 8 Jun 2015 12:59:57 +0200
+Message-ID: <20150608105957.GT26523@pengutronix.de>
+References: <20150504064323.GU15254@pengutronix.de>
+ <20150504141103.GD24469@atomide.com>
+ <5548CB54.1040302@ti.com>
+ <20150505145828.GB21061@atomide.com>
+ <5549F95B.8090905@ti.com>
+ <20150506143951.GG21061@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <20150605133928.66909901@bbrezillon>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, =?windows-1252?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>Maxime Ripard <ma>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44725 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752879AbbFHLAD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2015 07:00:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20150506143951.GG21061@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Boris,
-
-On 05/06/15 12:39, Boris Brezillon wrote:
-> Hi Jon,
+On Wed, May 06, 2015 at 07:39:52AM -0700, Tony Lindgren wrote:
+> > In different SoC we can have different number of CCs (OMAP-L138 has two) and
+> > each CC can have different number of TCs associated with. In AM335x we have
+> > one CC with 3 TC, in OMAP-L138 we have two CC, CC0 has 2 TC, CC1 has 1 TC. The
+> > TCs are used to set priorities, you can assign the priorities to the TCs and
+> > you can choose to assign the transfer (channel) to a give TC.
 > 
-> On Fri, 5 Jun 2015 09:46:09 +0100
-> Jon Hunter <jonathanh@nvidia.com> wrote:
+> OK
+>  
+> > >> And yes, both TC and CCs can generate interrupts.
+> > > 
+> > > Do the TCs have a shared interrupt that could be handled by
+> > > each TC instance?
+> > 
+> > Separate IRQ lines to the ARM core, but we do not handle them right now.
 > 
->>
->> On 05/06/15 00:02, Paul Walmsley wrote:
->>> Hi folks
->>>
->>> just a brief comment on this one:
->>>
->>> On Thu, 30 Apr 2015, Boris Brezillon wrote:
->>>
->>>> Clock rates are stored in an unsigned long field, but ->round_rate()
->>>> (which returns a rounded rate from a requested one) returns a long
->>>> value (errors are reported using negative error codes), which can lead
->>>> to long overflow if the clock rate exceed 2Ghz.
->>>>
->>>> Change ->round_rate() prototype to return 0 or an error code, and pass the
->>>> requested rate as a pointer so that it can be adjusted depending on
->>>> hardware capabilities.
->>>
->>> ...
->>>
->>>> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
->>>> index 0e4f90a..fca8b7a 100644
->>>> --- a/Documentation/clk.txt
->>>> +++ b/Documentation/clk.txt
->>>> @@ -68,8 +68,8 @@ the operations defined in clk.h:
->>>>  		int		(*is_enabled)(struct clk_hw *hw);
->>>>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
->>>>  						unsigned long parent_rate);
->>>> -		long		(*round_rate)(struct clk_hw *hw,
->>>> -						unsigned long rate,
->>>> +		int		(*round_rate)(struct clk_hw *hw,
->>>> +						unsigned long *rate,
->>>>  						unsigned long *parent_rate);
->>>>  		long		(*determine_rate)(struct clk_hw *hw,
->>>>  						unsigned long rate,
->>>
->>> I'd suggest that we should probably go straight to 64-bit rates.  There 
->>> are already plenty of clock sources that can generate rates higher than 
->>> 4GiHz.
->>
->> An alternative would be to introduce to a frequency "base" the default
->> could be Hz (for backwards compatibility), but for CPUs we probably only
->> care about MHz (or may be kHz) and so 32-bits would still suffice. Even
->> if CPUs cared about Hz they could still use Hz, but in that case they
->> probably don't care about GHz. Obviously, we don't want to break DT
->> compatibility but may be the frequency base could be defined in DT and
->> if it is missing then Hz is assumed. Just a thought ...
+> OK
+>  
+> > >> So it is not straight forward to separate the TC from the CC driver (edma3).
+> > > 
+> > > It seems pm runtime for these four separate modules needs to be
+> > > done at the CC driver level if it can't be done separately for
+> > > each instance.
+> > 
+> > The current eDMA stack is not really flexible on this IMHO.
+> > I think the way forward would be something like this in DT:
+> > 
+> > edma_cc: edma_cc@49000000 {
+> > 	compatible = "ti,edma3-cc";
+> > 	ti,hwmods = "tpcc"
+> > 	reg =	<0x49000000 0x10000>,
+> > 		<0x44e10f90 0x40>;
+> > 	interrupts = <12 13 14>;
+> > 	#dma-cells = <1>;
+> > 
+> > 	edma3_tc0: edma3_tc0@49800000 {
+> > 		compatible = "ti,edma3-tc";
+> > 		ti,hwmods = "tptc0"
+> > 	};
+> > 
+> > 	edma3_tc1: edma3_tc1@49900000 {
+> > 		compatible = "ti,edma3-tc";
+> > 		ti,hwmods = "tptc1"
+> > 	};
+> > 
+> > 	edma3_tc2: edma3_tc2@49a00000 {
+> > 		compatible = "ti,edma3-tc";
+> > 		ti,hwmods = "tptc2"
+> > 	};
+> > };
 > 
-> Yes, but is it really worth the additional complexity. You'll have to
-> add the unit information anyway, so using an unsigned long for the
-> value and another field for the unit (an enum ?) is just like using a
-> 64 bit integer.
+> Yeah that would be an improvment and remove the blockers for further
+> hwmod work. It would still be better to have the TC probe separately
+> and register with CC rather than combining separate elements in DT
+> in a way that does not represent the hardare. There's a 7MB reserved
+> block inbetween there..
+>  
+> > The driver for ti,edma3-tc would be pretty minimal, doing only pm_runtime only
+> > and from the CC driver we could just set the runtime status for the the TC
+> > which we are about to submit work and decrement the runtime when the work is
+> > done. If not work is needed for the TC it can be shot down.
+> 
+> OK
+>  
+> > But this would need significant amount of work which can be done when we get
+> > rid of the legacy (arch/arm/common/edma.c) and move to dmaengine only mode.
+> 
+> That may never happen considering that davinci is using it too.. It's
+> best to not count on that happening anytime soon at least.
 
-For a storage perspective, yes it would be the same. However, there are
-probably a lot of devices that would not need the extra range, but would
-now have to deal with 64-bit types. I have no idea how much overhead
-that would be in reality. If the overhead is negligible then a 64-bit
-type is definitely the way to go, as I agree it is simpler and cleaner.
+So my current understanding is that we have the situation that the
+kernel warns about the oftree being wrong, but isn't able to handle an
+oftree that would be right.
 
-Cheers
-Jon
+Shouldn't the warning being added when the kernel driver supports that
+new mechanism?
+
+I had a warning free mainline kernel without patches on my customer
+hardware before, so this smells a bit like a regression ... :-/
+
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
