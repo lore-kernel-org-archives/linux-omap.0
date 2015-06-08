@@ -1,155 +1,83 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.1-rc7
-Date: Mon, 8 Jun 2015 06:39:02 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1506080637190.15153@utopia.booyaka.com>
+From: Jon Hunter <jonathanh@nvidia.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Mon, 8 Jun 2015 09:46:34 +0100
+Message-ID: <5575566A.4060503@nvidia.com>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com> <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com> <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com> <557161D1.3040107@nvidia.com> <20150605133928.66909901@bbrezillon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38388 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750762AbbFHGjE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2015 02:39:04 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20150605133928.66909901@bbrezillon>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>, ascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ralf Baechle <ralf@linux-mips.org>, Max Filippov <jcmvbkbc@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <viresh.linux@gmail.com>, =?windows-1252?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>Maxime Ripard <ma>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
+Hi Boris,
 
-Here are some basic OMAP test results for Linux v4.1-rc7.
-Logs and other details at:
+On 05/06/15 12:39, Boris Brezillon wrote:
+> Hi Jon,
+> 
+> On Fri, 5 Jun 2015 09:46:09 +0100
+> Jon Hunter <jonathanh@nvidia.com> wrote:
+> 
+>>
+>> On 05/06/15 00:02, Paul Walmsley wrote:
+>>> Hi folks
+>>>
+>>> just a brief comment on this one:
+>>>
+>>> On Thu, 30 Apr 2015, Boris Brezillon wrote:
+>>>
+>>>> Clock rates are stored in an unsigned long field, but ->round_rate()
+>>>> (which returns a rounded rate from a requested one) returns a long
+>>>> value (errors are reported using negative error codes), which can lead
+>>>> to long overflow if the clock rate exceed 2Ghz.
+>>>>
+>>>> Change ->round_rate() prototype to return 0 or an error code, and pass the
+>>>> requested rate as a pointer so that it can be adjusted depending on
+>>>> hardware capabilities.
+>>>
+>>> ...
+>>>
+>>>> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+>>>> index 0e4f90a..fca8b7a 100644
+>>>> --- a/Documentation/clk.txt
+>>>> +++ b/Documentation/clk.txt
+>>>> @@ -68,8 +68,8 @@ the operations defined in clk.h:
+>>>>  		int		(*is_enabled)(struct clk_hw *hw);
+>>>>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+>>>>  						unsigned long parent_rate);
+>>>> -		long		(*round_rate)(struct clk_hw *hw,
+>>>> -						unsigned long rate,
+>>>> +		int		(*round_rate)(struct clk_hw *hw,
+>>>> +						unsigned long *rate,
+>>>>  						unsigned long *parent_rate);
+>>>>  		long		(*determine_rate)(struct clk_hw *hw,
+>>>>  						unsigned long rate,
+>>>
+>>> I'd suggest that we should probably go straight to 64-bit rates.  There 
+>>> are already plenty of clock sources that can generate rates higher than 
+>>> 4GiHz.
+>>
+>> An alternative would be to introduce to a frequency "base" the default
+>> could be Hz (for backwards compatibility), but for CPUs we probably only
+>> care about MHz (or may be kHz) and so 32-bits would still suffice. Even
+>> if CPUs cared about Hz they could still use Hz, but in that case they
+>> probably don't care about GHz. Obviously, we don't want to break DT
+>> compatibility but may be the frequency base could be defined in DT and
+>> if it is missing then Hz is assumed. Just a thought ...
+> 
+> Yes, but is it really worth the additional complexity. You'll have to
+> add the unit information anyway, so using an unsigned long for the
+> value and another field for the unit (an enum ?) is just like using a
+> 64 bit integer.
 
-    http://www.pwsan.com/omap/testlogs/test_v4.1-rc7/20150607230110/
+For a storage perspective, yes it would be the same. However, there are
+probably a lot of devices that would not need the extra range, but would
+now have to deal with 64-bit types. I have no idea how much overhead
+that would be in reality. If the overhead is negligible then a 64-bit
+type is definitely the way to go, as I agree it is simpler and cleaner.
 
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL (14/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Boot to userspace:
-    FAIL ( 2/17): 2430sdp, 5430es2sbct54
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 2/17): 4430es2panda, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/17): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 1/20): multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.1-rc6 (c65b99f046843d2455aa231747b5a07a999a9f3d)):
-   text     data      bss    total  kernel
-    +57      +32        0      +89  omap1_defconfig
-    +65        0        0      +65  omap1_defconfig_1510innovator_only
-    +65        0        0      +65  omap1_defconfig_5912osk_only
-   +497       -8        0     +489  multi_v7_defconfig
-   +209      -96        0     +113  omap2plus_defconfig
-   +185     -112        0      +73  omap2plus_defconfig_2430sdp_only
-   +145      -96        0      +49  omap2plus_defconfig_am33xx_only
-   +141      -96        0      +45  omap2plus_defconfig_am43xx_only
-   +273      -88        0     +185  omap2plus_defconfig_cpupm
-   +141      -88        0      +53  omap2plus_defconfig_dra7xx_only
-    +45        0        0      +45  omap2plus_defconfig_n800_multi_omap2xxx
-    +49       -8        0      +41  omap2plus_defconfig_n800_only_a
-   +209      -88        0     +121  omap2plus_defconfig_no_pm
-   +205      -96        0     +109  omap2plus_defconfig_omap2_4_only
-   +145      -96        0      +49  omap2plus_defconfig_omap3_4_only
-   +205      -88        0     +117  omap2plus_defconfig_omap5_only
-    -32      -12      -32      -76  rmk_omap3430_ldp_allnoconfig
-    -63       -8        0      -71  rmk_omap3430_ldp_oldconfig
-    -24      -12      -40      -76  rmk_omap4430_sdp_allnoconfig
-   -155        0        0     -155  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.1-rc6 (c65b99f046843d2455aa231747b5a07a999a9f3d))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
-
+Cheers
+Jon
