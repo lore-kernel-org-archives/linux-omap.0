@@ -1,108 +1,72 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/2] dmaengine: ti-dma-crossbar: Add support for eDMA
-Date: Mon, 8 Jun 2015 16:22:42 +0300
-Message-ID: <1433769762-31827-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] dmaengine: ti-dma-crossbar: Make idr xbar instance-specific
+Date: Mon, 8 Jun 2015 16:22:41 +0300
+Message-ID: <1433769762-31827-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52951 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495AbbFHNXZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2015 09:23:25 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, Tony Lindgren <tony@atomide.com>
 Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-The crossbar for eDMA works exactly the same way as sDMA, but sDMA
-requires an offset of 1, while no offset is needed for eDMA.
+From: Misael Lopez Cruz <misael.lopez@ti.com>
 
-Based on the patch from Misael Lopez Cruz <misael.lopez@ti.com>
+In preparation for supporting multiple DMA crossbar instances,
+make the idr xbar instance specific.
 
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Misael Lopez Cruz <misael.lopez@ti.com>
 ---
- drivers/dma/ti-dma-crossbar.c | 27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+ drivers/dma/ti-dma-crossbar.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-index 1fd3fb73d6e8..10487d91e60d 100644
+index 24f5ca2356bf..1fd3fb73d6e8 100644
 --- a/drivers/dma/ti-dma-crossbar.c
 +++ b/drivers/dma/ti-dma-crossbar.c
-@@ -20,6 +20,9 @@
+@@ -20,12 +20,11 @@
  #define TI_XBAR_OUTPUTS	127
  #define TI_XBAR_INPUTS	256
  
-+#define TI_XBAR_EDMA_OFFSET	0
-+#define TI_XBAR_SDMA_OFFSET	1
-+
+-static DEFINE_IDR(map_idr);
+-
  struct ti_dma_xbar_data {
  	void __iomem *iomem;
  
-@@ -29,6 +32,7 @@ struct ti_dma_xbar_data {
+ 	struct dma_router dmarouter;
++	struct idr map_idr;
+ 
  	u16 safe_val; /* Value to rest the crossbar lines */
  	u32 xbar_requests; /* number of DMA requests connected to XBAR */
- 	u32 dma_requests; /* number of DMA requests forwarded to DMA */
-+	u32 dma_offset;
- };
+@@ -51,7 +50,7 @@ static void ti_dma_xbar_free(struct device *dev, void *route_data)
+ 		map->xbar_in, map->xbar_out);
  
- struct ti_dma_xbar_map {
-@@ -84,8 +88,7 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
+ 	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
+-	idr_remove(&map_idr, map->xbar_out);
++	idr_remove(&xbar->map_idr, map->xbar_out);
+ 	kfree(map);
+ }
+ 
+@@ -81,7 +80,7 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	map->xbar_out = idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
++	map->xbar_out = idr_alloc(&xbar->map_idr, NULL, 0, xbar->dma_requests,
  				  GFP_KERNEL);
  	map->xbar_in = (u16)dma_spec->args[0];
  
--	/* The DMA request is 1 based in sDMA */
--	dma_spec->args[0] = map->xbar_out + 1;
-+	dma_spec->args[0] = map->xbar_out + xbar->dma_offset;
+@@ -113,6 +112,8 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
+ 	if (!xbar)
+ 		return -ENOMEM;
  
- 	dev_dbg(&pdev->dev, "Mapping XBAR%u to DMA%d\n",
- 		map->xbar_in, map->xbar_out);
-@@ -95,9 +98,22 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
- 	return map;
- }
- 
-+static const struct of_device_id ti_dma_master_match[] = {
-+	{
-+		.compatible = "ti,omap4430-sdma",
-+		.data = (void *)TI_XBAR_SDMA_OFFSET,
-+	},
-+	{
-+		.compatible = "ti,edma3",
-+		.data = (void *)TI_XBAR_EDMA_OFFSET,
-+	},
-+	{},
-+};
++	idr_init(&xbar->map_idr);
 +
- static int ti_dma_xbar_probe(struct platform_device *pdev)
- {
- 	struct device_node *node = pdev->dev.of_node;
-+	const struct of_device_id *match;
- 	struct device_node *dma_node;
- 	struct ti_dma_xbar_data *xbar;
- 	struct resource *res;
-@@ -120,6 +136,12 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
-+	match = of_match_node(ti_dma_master_match, dma_node);
-+	if (!match) {
-+		dev_err(&pdev->dev, "DMA master is not supported\n");
-+		return -EINVAL;
-+	}
-+
- 	if (of_property_read_u32(dma_node, "dma-requests",
- 				 &xbar->dma_requests)) {
- 		dev_info(&pdev->dev,
-@@ -151,6 +173,7 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
- 
- 	xbar->dmarouter.dev = &pdev->dev;
- 	xbar->dmarouter.route_free = ti_dma_xbar_free;
-+	xbar->dma_offset = (u32)match->data;
- 
- 	platform_set_drvdata(pdev, xbar);
- 
+ 	dma_node = of_parse_phandle(node, "dma-masters", 0);
+ 	if (!dma_node) {
+ 		dev_err(&pdev->dev, "Can't get DMA master node\n");
 -- 
 2.4.2
-
