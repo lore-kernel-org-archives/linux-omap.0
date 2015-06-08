@@ -1,115 +1,155 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/6] phy: twl4030-usb: add support for reading resistor
- on ID pin.
-Date: Sun, 7 Jun 2015 22:45:40 -0500
-Message-ID: <20150608034540.GB6129@saruman.tx.rr.com>
-References: <20150416075945.23307.24424.stgit@notabene.brown>
- <20150416080304.23307.41913.stgit@notabene.brown>
- <556C5FF4.3050603@ti.com>
- <20150602073731.26edbd3b@notabene.brown>
- <20150606131009.GD1329@xo-6d-61-c0.localdomain>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.1-rc7
+Date: Mon, 8 Jun 2015 06:39:02 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1506080637190.15153@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7iMSBzlTiPOCCT2k"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150606131009.GD1329@xo-6d-61-c0.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: NeilBrown <neilb@suse.de>, Kishon Vijay Abraham I <kishon@ti.com>, NeilBrown <neil@brown.name>, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:38388 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750762AbbFHGjE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2015 02:39:04 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
---7iMSBzlTiPOCCT2k
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jun 06, 2015 at 03:10:09PM +0200, Pavel Machek wrote:
-> On Tue 2015-06-02 07:37:31, NeilBrown wrote:
-> > On Mon, 1 Jun 2015 19:06:52 +0530 Kishon Vijay Abraham I <kishon@ti.com>
-> > wrote:
-> >=20
-> > > Hi,
-> > >=20
-> > > On Thursday 16 April 2015 01:33 PM, NeilBrown wrote:
-> > > > From: NeilBrown <neilb@suse.de>
-> > > >
-> > > > The twl4030 phy can measure, with low precision, the
-> > > > resistance-to-ground of the ID pin.
-> > > >
-> > > > Add a function to read the value, and export the result
-> > > > via sysfs.
-> > >=20
-> > > Little sceptical about adding new sysfs entries. Do you have a good r=
-eason to=20
-> > > add this?
-> >=20
-> > The hardware can report the value, so why not present it to user-space?
-> >=20
-> > I originally used this with a udev rule which would configure the maxim=
-um
-> > current based on the resistance measure - to work with the particular c=
-harger
-> > hardware I have.
-> >=20
-> > More recent patches try to do all of the max-current configuration in t=
-he
-> > kernel, so I could live without exporting the value via sysfs if that i=
-s a
-> > show-stopper.
-> >=20
-> > I can't see where the scepticism comes from though.  It is a well defin=
-ed
-> > and cleary documented feature of the hardware.  Why not expose it?
->=20
-> sysfs interface is supposed to work for different chargers, without users=
-pace
-> noticing.
->=20
-> Are these values the ones that are likely to be useful there?
+Here are some basic OMAP test results for Linux v4.1-rc7.
+Logs and other details at:
 
-These values come from Battery Charger specification 1.1+, IIRC, so no
-other values should show up unless documented in future BC revisions.
+    http://www.pwsan.com/omap/testlogs/test_v4.1-rc7/20150607230110/
 
-> > > > +	Possible values are:
-> > > > +		ground
-> > > > +		102k
-> > > > +		200k
-> > > > +		440k
-> > > > +		floating
-> > > > +		unknown
->=20
-> ...or would it make more sense to export for example numerical ohms, as t=
-hat's
-> what are other chargers likely to provide?
 
-How do you expose "floating" in Ohms ? UINT_MAX might be one way, but
-that would have to be documented.
+Test summary
+------------
 
---=20
-balbi
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
---7iMSBzlTiPOCCT2k
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
-iQIcBAEBAgAGBQJVdQ/kAAoJEIaOsuA1yqREJScP/27qLOuShQJVwnr1zLDvC0Pb
-Ckp5hRJ9/mecxkXMwjnE4UsOpmegmMPPEcWOU1ocJ1Ado/KEYmRUAaMgy2JAO+MP
-iWSJWNZqcs/Rq5/O0c7dqFcnlsYWRhuOKoUPUlZuMbCU7jy6SCUGC6QPwHpgegHI
-LkmaAWNOUKbd4UE9q8ax0RgV+32EyBYwi05NlIFJA97nBRdNVCfu9fqVwxSDlUg2
-8ncBYlY78nfSH+y7WWnlZ8AzJgXu7wX1fNc6TTmVrdIvtNn1R0/cgsweLe8Du/xU
-x4oVKHMbeSB4+8nTX964AXr+n8Y+G9nUdYnSnqugRfv5nCU2aXYnDpZXXuUuj0pr
-97GGuuYwhAOLzsqwLH/wyz70aXY8chd0Yik6P+j9S559qNwvWF1Qe1FaS000Ihg+
-zqs+wl12YIO3aF3G6iDytVQKz2SYnVLTGrPgdBln//XJfdHISMFChdjnoKyRqHE6
-3D9bM9IZPp3G9ZmiVAo5NbObNIfGmAddamB4SFa8a8Qt75puFqb9eGtnV8uTycjo
-/VxB7+oTPMK0NwD+Ukvxgg/pm2N1QUSguwpthps+/7agYnPlvqLkQXWr5JJy/pLT
-LFGS6L9huCrz1aYPGSRVv6KvdDZbCsAGrXWEho9DG0EMPd7tz0piONjQkhHPVCDD
-xBkUMM6nDTLVqBo6Tk01
-=7Qs6
------END PGP SIGNATURE-----
+Build warnings from toolchain: uImage:
+    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
---7iMSBzlTiPOCCT2k--
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL (14/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_oldconfig
+
+Boot to userspace:
+    FAIL ( 2/17): 2430sdp, 5430es2sbct54
+    skip ( 2/17): 5912osk, 3517evm
+    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 2/17): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/17): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 1/20): multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.1-rc6 (c65b99f046843d2455aa231747b5a07a999a9f3d)):
+   text     data      bss    total  kernel
+    +57      +32        0      +89  omap1_defconfig
+    +65        0        0      +65  omap1_defconfig_1510innovator_only
+    +65        0        0      +65  omap1_defconfig_5912osk_only
+   +497       -8        0     +489  multi_v7_defconfig
+   +209      -96        0     +113  omap2plus_defconfig
+   +185     -112        0      +73  omap2plus_defconfig_2430sdp_only
+   +145      -96        0      +49  omap2plus_defconfig_am33xx_only
+   +141      -96        0      +45  omap2plus_defconfig_am43xx_only
+   +273      -88        0     +185  omap2plus_defconfig_cpupm
+   +141      -88        0      +53  omap2plus_defconfig_dra7xx_only
+    +45        0        0      +45  omap2plus_defconfig_n800_multi_omap2xxx
+    +49       -8        0      +41  omap2plus_defconfig_n800_only_a
+   +209      -88        0     +121  omap2plus_defconfig_no_pm
+   +205      -96        0     +109  omap2plus_defconfig_omap2_4_only
+   +145      -96        0      +49  omap2plus_defconfig_omap3_4_only
+   +205      -88        0     +117  omap2plus_defconfig_omap5_only
+    -32      -12      -32      -76  rmk_omap3430_ldp_allnoconfig
+    -63       -8        0      -71  rmk_omap3430_ldp_oldconfig
+    -24      -12      -40      -76  rmk_omap4430_sdp_allnoconfig
+   -155        0        0     -155  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.1-rc6 (c65b99f046843d2455aa231747b5a07a999a9f3d))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
