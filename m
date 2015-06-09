@@ -1,43 +1,63 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [RFC PATCH] usb: dwc3: ep0: Fix mem corruption on OUT transfers
- of more than 512 bytes
-Date: Tue, 9 Jun 2015 11:16:48 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1506091114340.1324-100000@iolanthe.rowland.org>
-References: <55770173.7060801@ti.com>
+From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3] ARM: dts: Fix frequency scaling on Gumstix Pepper.
+Date: Tue, 9 Jun 2015 08:45:04 -0700
+Message-ID: <CAK8F28kxuk0zPetCBPLmU5skQcOb2E47veZe5s7YaeE-ZJNMew@mail.gmail.com>
+References: <1433441299-18887-1-git-send-email-arun@gumstix.com> <1433441299-18887-4-git-send-email-arun@gumstix.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55770173.7060801-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433441299-18887-4-git-send-email-arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
+Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 9 Jun 2015, Kishon Vijay Abraham I wrote:
+This works well for me--cpufreq seems much happier.
 
-> > Why not just make the bounce buffer size the same as the maxpacket
-> > size?  In other words, 1024 bytes instead of 512, for ep0 on a USB-3
-> > device.
-> 
-> It would still be possible for the host to send data more than 1024 bytes no? 
+Tested-by: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Yes.
-
-> When working with DFU gadget, I've seen host sends data upto 4KB. Changing the 
-> bounce buffer size might not be able to fix all the cases IMO. The actual fix 
-> will be something like [1]
-> 
-> [1] -> http://comments.gmane.org/gmane.linux.kernel/1883688
-
-But with a bounce buffer that's only 512 bytes long, you can never send
-an entire packet's worth of data.  If the bounce buffer is 1024 bytes
-then you can send the entire first packet.  When that's done, you can
-send the second packet.  And so on.  It wouldn't be quite as fast, but
-for ep0 that shouldn't matter.
-
-Alan Stern
-
+On Thu, Jun 4, 2015 at 11:08 AM, Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org> wrote:
+> The device tree for Gumstix Pepper has DCDC2 and
+> DCDC3 correctly labelled but the upper limit values
+> are wrong. The confusion is due to the hardware
+> quirk where the DCDC2 and DCDC3 wires are flipped
+> in Pepper.
+>
+> Signed-off-by: Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/am335x-pepper.dts | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
+> index 99f855d..37b95f6 100644
+> --- a/arch/arm/boot/dts/am335x-pepper.dts
+> +++ b/arch/arm/boot/dts/am335x-pepper.dts
+> @@ -448,7 +448,7 @@
+>                         /* VDD_CORE voltage limits 0.95V - 1.26V with +/-4% tolerance */
+>                         regulator-name = "vdd_core";
+>                         regulator-min-microvolt = <925000>;
+> -                       regulator-max-microvolt = <1325000>;
+> +                       regulator-max-microvolt = <1150000>;
+>                         regulator-boot-on;
+>                         regulator-always-on;
+>                 };
+> @@ -457,7 +457,7 @@
+>                         /* VDD_MPU voltage limits 0.95V - 1.1V with +/-4% tolerance */
+>                         regulator-name = "vdd_mpu";
+>                         regulator-min-microvolt = <925000>;
+> -                       regulator-max-microvolt = <1150000>;
+> +                       regulator-max-microvolt = <1325000>;
+>                         regulator-boot-on;
+>                         regulator-always-on;
+>                 };
+> --
+> 2.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
