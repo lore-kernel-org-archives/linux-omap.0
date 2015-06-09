@@ -1,161 +1,83 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3] ASoC: davinci-mcasp: Choose PCM driver based on configured
- DMA controller
-Date: Tue, 9 Jun 2015 17:52:26 +0300
-Message-ID: <5576FDAA.8030701@ti.com>
-References: <e5dbf0a5fbb101792fd106461929c4b814dffc06.1433275670.git.jsarha@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH] usb: dwc3: ep0: Fix mem corruption on OUT transfers
+ of more than 512 bytes
+Date: Tue, 9 Jun 2015 10:59:50 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1506091057100.1324-100000@iolanthe.rowland.org>
+References: <5576FBBA.4000905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47641 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477AbbFIOzh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Jun 2015 10:55:37 -0400
-In-Reply-To: <e5dbf0a5fbb101792fd106461929c4b814dffc06.1433275670.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5576FBBA.4000905@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Michael Trimarchi <michael@amarulasolutions.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, misael.lopez@ti.com
 
-On 06/02/2015 11:09 PM, Jyri Sarha wrote:
-> Find the configured DMA controller by asking for a DMA channel in the
-> probe phase and releasing it right after. The controller device can b=
-e
-> found via the dma_chan struct and the controller is recognized from
-> the compatible property of its device node. The patch assumes EDMA if
-> there is no device node.
+On Tue, 9 Jun 2015, Kishon Vijay Abraham I wrote:
 
-Thanks Jyri,
+> Hi,
+> 
+> On Tuesday 09 June 2015 08:09 PM, Michael Trimarchi wrote:
+> > Hi
+> >
+> > On Jun 9, 2015 4:36 PM, "Kishon Vijay Abraham I" <kishon@ti.com
+> > <mailto:kishon@ti.com>> wrote:
+> >  >
+> >  > DWC3 uses bounce buffer to handle non max packet aligned OUT transfers and
+> >  > the size of bounce buffer is 512 bytes. However if the host initiates OUT
+> >  > transfers of size more than 512 bytes (and non max packet aligned), the
+> >  > driver throws a WARN dump but still programs the TRB to receive more than
+> >  > 512 bytes. This will cause bounce buffer to overflow and corrupt the
+> >  > adjacent memory locations which can be fatal.
+> >  >
+> >  > Fix it by programming the TRB to receive a maximum of DWC3_EP0_BOUNCE_SIZE
+> >  > (512) bytes.
+> >  >
+> >  > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com <mailto:kishon@ti.com>>
+> >  > ---
+> >  > Steps to see the issue (before this patch)
+> >  > 1) Insert g_zero in DUT
+> >  > 2) run './testusb -t 14 -c 1 -s 520 -v 1' in host (size should be > 512)
+> >  >
+> >  > The test should FAIL since bounce buffer can handle only 512 bytes, but the
+> >  > test PASS. There is a WARN dump in DUT but still there will be memory
+> >  > corruption since the bounce buffer overflows.
+> >  >
+> >  > Tested this patch using USB3 Gen X CV (ch9 tests: usb2 and usb3, link layer
+> >  > testing and MSC tests) and using USB2 X CV (ch9 tests, MSC tests).
+> >  >
+> >  > After the patch, the tests timeout!
+> >  > ./testusb -t 14 -c 1 -s 514 -v 1
+> >  > unknown speed   /dev/bus/usb/001/018    0
+> >  > /dev/bus/usb/001/018 test 14 --> 110 (Connection timed out)
+> >  >
+> >  > IMO a patch to fix this is required for stable releases too. So If this
+> >  > patch is alright, I can post the patch cc'ing stable. While the actual fix
+> >  > would be to have chained TRB, I'm not sure if it can go to stable
+> >  > releases.
+> >  >  drivers/usb/dwc3/ep0.c |   12 ++++++++++--
+> >  >  1 file changed, 10 insertions(+), 2 deletions(-)
+> >  >
+> >  > diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+> >  > index 2ef3c8d..8858c60 100644
+> >  > --- a/drivers/usb/dwc3/ep0.c
+> >  > +++ b/drivers/usb/dwc3/ep0.c
+> >  > @@ -816,6 +816,11 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
+> >  >                 unsigned maxp = ep0->endpoint.maxpacket;
+> >  >
+> >  >                 transfer_size += (maxp - (transfer_size % maxp));
+> >  > +
+> >  > +               /* Maximum of DWC3_EP0_BOUNCE_SIZE can only be received */
+> >  > +               if (transfer_size > DWC3_EP0_BOUNCE_SIZE)
+> >  > +                       transfer_size = DWC3_EP0_BOUNCE_SIZE;
+> >  > +
+> >
+> > Can you just use maxp in the correct way?
+> 
+> what do you mean by correct way? Using roundup() to calculate transfer_size?
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Why not just make the bounce buffer size the same as the maxpacket 
+size?  In other words, 1024 bytes instead of 512, for ep0 on a USB-3 
+device.
 
->=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
-> Changes since v2:
-> - Print only one error message if DMA "probing" fails
->   and none in case of -EPROBE_DEFER
->=20
-> Changes since first patch version:
-> - Change enum names from MCASP_?DMA to PCM_?DMA
-> - Return PCM_EDMA if !mcasp->dev->of_node
-> - Do not ignore possible error code returned by
->   davinci_mcasp_get_dma_type()
->=20
->  sound/soc/davinci/davinci-mcasp.c | 70 +++++++++++++++++++++++++++++=
-++++------
->  1 file changed, 60 insertions(+), 10 deletions(-)
->=20
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/da=
-vinci-mcasp.c
-> index d793494..a73cd57 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -1565,6 +1565,49 @@ static int davinci_mcasp_init_ch_constraints(s=
-truct davinci_mcasp *mcasp)
->  	return ret;
->  }
-> =20
-> +enum {
-> +	PCM_EDMA,
-> +	PCM_SDMA,
-> +};
-> +static const char *sdma_prefix =3D "ti,omap";
-> +
-> +static int davinci_mcasp_get_dma_type(struct davinci_mcasp *mcasp)
-> +{
-> +	struct dma_chan *chan;
-> +	const char *tmp;
-> +	int ret =3D PCM_EDMA;
-> +
-> +	if (!mcasp->dev->of_node)
-> +		return PCM_EDMA;
-> +
-> +	tmp =3D mcasp->dma_data[SNDRV_PCM_STREAM_PLAYBACK].filter_data;
-> +	chan =3D dma_request_slave_channel_reason(mcasp->dev, tmp);
-> +	if (IS_ERR(chan)) {
-> +		if (PTR_ERR(chan) !=3D -EPROBE_DEFER)
-> +			dev_err(mcasp->dev,
-> +				"Can't verify DMA configuration (%ld)\n",
-> +				PTR_ERR(chan));
-> +		return PTR_ERR(chan);
-> +	}
-> +	BUG_ON(!chan->device || !chan->device->dev);
-> +
-> +	if (chan->device->dev->of_node)
-> +		ret =3D of_property_read_string(chan->device->dev->of_node,
-> +					      "compatible", &tmp);
-> +	else
-> +		dev_dbg(mcasp->dev, "DMA controller has no of-node\n");
-> +
-> +	dma_release_channel(chan);
-> +	if (ret)
-> +		return ret;
-> +
-> +	dev_dbg(mcasp->dev, "DMA controller compatible =3D \"%s\"\n", tmp);
-> +	if (!strncmp(tmp, sdma_prefix, strlen(sdma_prefix)))
-> +		return PCM_SDMA;
-> +
-> +	return PCM_EDMA;
-> +}
-> +
->  static int davinci_mcasp_probe(struct platform_device *pdev)
->  {
->  	struct snd_dmaengine_dai_dma_data *dma_data;
-> @@ -1763,27 +1806,34 @@ static int davinci_mcasp_probe(struct platfor=
-m_device *pdev)
->  	if (ret !=3D 0)
->  		goto err;
-> =20
-> -	switch (mcasp->version) {
-> +	ret =3D davinci_mcasp_get_dma_type(mcasp);
-> +	switch (ret) {
-> +	case PCM_EDMA:
->  #if IS_BUILTIN(CONFIG_SND_EDMA_SOC) || \
->  	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
->  	 IS_MODULE(CONFIG_SND_EDMA_SOC))
-> -	case MCASP_VERSION_1:
-> -	case MCASP_VERSION_2:
-> -	case MCASP_VERSION_3:
->  		ret =3D edma_pcm_platform_register(&pdev->dev);
-> -		break;
-> +#else
-> +		dev_err(&pdev->dev, "Missing SND_EDMA_SOC\n");
-> +		ret =3D -EINVAL;
-> +		goto err;
->  #endif
-> +		break;
-> +	case PCM_SDMA:
->  #if IS_BUILTIN(CONFIG_SND_OMAP_SOC) || \
->  	(IS_MODULE(CONFIG_SND_DAVINCI_SOC_MCASP) && \
->  	 IS_MODULE(CONFIG_SND_OMAP_SOC))
-> -	case MCASP_VERSION_4:
->  		ret =3D omap_pcm_platform_register(&pdev->dev);
-> -		break;
-> +#else
-> +		dev_err(&pdev->dev, "Missing SND_SDMA_SOC\n");
-> +		ret =3D -EINVAL;
-> +		goto err;
->  #endif
-> +		break;
->  	default:
-> -		dev_err(&pdev->dev, "Invalid McASP version: %d\n",
-> -			mcasp->version);
-> -		ret =3D -EINVAL;
-> +		dev_err(&pdev->dev, "No DMA controller found (%d)\n", ret);
-> +	case -EPROBE_DEFER:
-> +		goto err;
->  		break;
->  	}
-> =20
->=20
-
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alan stern
