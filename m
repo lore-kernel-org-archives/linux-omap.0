@@ -1,79 +1,92 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 4/5] usb: dwc3: ep0: Add chained TRB support
-Date: Wed, 10 Jun 2015 14:48:51 +0530
-Message-ID: <1433927932-32395-5-git-send-email-kishon@ti.com>
+Subject: [PATCH 2/5] usb: dwc3: ep0: preparation for handling non maxpacket aligned transfers > 512
+Date: Wed, 10 Jun 2015 14:48:49 +0530
+Message-ID: <1433927932-32395-3-git-send-email-kishon@ti.com>
 References: <1433927932-32395-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50413 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932613AbbFJJTL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Jun 2015 05:19:11 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433927932-32395-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: nsekhar@ti.com, kishon@ti.com, gregkh@linuxfoundation.org
+List-Id: linux-omap@vger.kernel.org
 
-Add chained TRB support to ep0. Now TRB's can be chained just by
-invoking _dwc3_ep0_start_trans_ with 'chain' parameter set to true.
+No functional change. This is in preparation for handling non maxpacket
+aligned transfers greater than bounce buffer size. This is basically to
+avoid code duplication when using chained TRB transfers to handle
+non maxpacket aligned transfers greater than bounce buffer size.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/ep0.c    |   16 +++++++++++++---
- drivers/usb/dwc3/gadget.c |    2 +-
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/usb/dwc3/ep0.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-index d1a2be1..6847afe 100644
+index 713e46a..4998074 100644
 --- a/drivers/usb/dwc3/ep0.c
 +++ b/drivers/usb/dwc3/ep0.c
-@@ -70,7 +70,10 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
- 		return 0;
+@@ -779,7 +779,11 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
+ 	struct usb_request	*ur;
+ 	struct dwc3_trb		*trb;
+ 	struct dwc3_ep		*ep0;
+-	u32			transferred;
++	unsigned		transfer_size = 0;
++	unsigned		maxp;
++	unsigned		remaining_ur_length;
++	void			*buf;
++	u32			transferred = 0;
+ 	u32			status;
+ 	u32			length;
+ 	u8			epnum;
+@@ -808,20 +812,24 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
  	}
  
--	trb = dwc->ep0_trb;
-+	trb = &dwc->ep0_trb[dep->free_slot];
-+
-+	if (chain)
-+		dep->free_slot++;
+ 	ur = &r->request;
++	buf = ur->buf;
++	remaining_ur_length = ur->length;
  
- 	trb->bpl = lower_32_bits(buf_dma);
- 	trb->bph = upper_32_bits(buf_dma);
-@@ -78,10 +81,17 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
- 	trb->ctrl = type;
+ 	length = trb->size & DWC3_TRB_SIZE_MASK;
  
- 	trb->ctrl |= (DWC3_TRB_CTRL_HWO
--			| DWC3_TRB_CTRL_LST
--			| DWC3_TRB_CTRL_IOC
- 			| DWC3_TRB_CTRL_ISP_IMI);
++	maxp = ep0->endpoint.maxpacket;
++
+ 	if (dwc->ep0_bounced) {
+-		unsigned maxp = ep0->endpoint.maxpacket;
+-		unsigned transfer_size = roundup(ur->length, maxp);
++		transfer_size = roundup((ur->length - transfer_size),
++					maxp);
  
-+	if (chain)
-+		trb->ctrl |= DWC3_TRB_CTRL_CHN;
-+	else
-+		trb->ctrl |= (DWC3_TRB_CTRL_IOC
-+				| DWC3_TRB_CTRL_LST);
-+
-+	if (chain)
-+		return 0;
-+
- 	memset(&params, 0, sizeof(params));
- 	params.param0 = upper_32_bits(dwc->ep0_trb_addr);
- 	params.param1 = lower_32_bits(dwc->ep0_trb_addr);
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 8946c32..b8d0a84 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -2677,7 +2677,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
- 		goto err0;
+ 		/* Maximum of DWC3_EP0_BOUNCE_SIZE can only be received */
+ 		if (transfer_size > DWC3_EP0_BOUNCE_SIZE)
+ 			transfer_size = DWC3_EP0_BOUNCE_SIZE;
+ 
+-		transferred = min_t(u32, ur->length,
+-				transfer_size - length);
+-		memcpy(ur->buf, dwc->ep0_bounce, transferred);
++		transferred = min_t(u32, remaining_ur_length,
++				    transfer_size - length);
++		memcpy(buf, dwc->ep0_bounce, transferred);
+ 	} else {
+ 		transferred = ur->length - length;
  	}
+@@ -930,7 +938,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
+ 				DWC3_TRBCTL_CONTROL_DATA);
+ 	} else if (!IS_ALIGNED(req->request.length, dep->endpoint.maxpacket)
+ 			&& (dep->number == 0)) {
+-		u32	transfer_size;
++		u32	transfer_size = 0;
+ 		u32	maxpacket;
  
--	dwc->ep0_trb = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ep0_trb),
-+	dwc->ep0_trb = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ep0_trb) * 2,
- 			&dwc->ep0_trb_addr, GFP_KERNEL);
- 	if (!dwc->ep0_trb) {
- 		dev_err(dwc->dev, "failed to allocate ep0 trb\n");
+ 		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
+@@ -941,7 +949,8 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
+ 		}
+ 
+ 		maxpacket = dep->endpoint.maxpacket;
+-		transfer_size = roundup(req->request.length, maxpacket);
++		transfer_size = roundup((req->request.length - transfer_size),
++					maxpacket);
+ 
+ 		if (transfer_size > DWC3_EP0_BOUNCE_SIZE) {
+ 			dev_WARN(dwc->dev, "bounce buf can't handle req len\n");
 -- 
 1.7.9.5
-
