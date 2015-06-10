@@ -1,82 +1,54 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP2+: hwmod: add support for lock and unlock hooks
-Date: Wed, 10 Jun 2015 14:56:24 +0530
-Message-ID: <1433928386-24891-2-git-send-email-lokeshvutla@ti.com>
-References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: EDMA oftree entry for AM335x
+Date: Wed, 10 Jun 2015 14:13:30 +0300
+Message-ID: <55781BDA.9020705@ti.com>
+References: <20150504064323.GU15254@pengutronix.de> <20150504141103.GD24469@atomide.com> <5548CB54.1040302@ti.com> <20150505145828.GB21061@atomide.com> <5549F95B.8090905@ti.com> <20150506143951.GG21061@atomide.com> <20150608105957.GT26523@pengutronix.de> <20150610051037.GA2740@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54403 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754057AbbFJJ3b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jun 2015 05:29:31 -0400
-In-Reply-To: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54030 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754011AbbFJLRI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Jun 2015 07:17:08 -0400
+In-Reply-To: <20150610051037.GA2740@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, t-kristo@ti.com, lokeshvutla@ti.com
+To: Tony Lindgren <tony@atomide.com>, Robert Schwebel <r.schwebel@pengutronix.de>
+Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Some IP blocks like RTC, needs an additional setting for writing to its
-registers. This is to prevent any spurious writes from changing the
-register values.
+On 06/10/2015 08:10 AM, Tony Lindgren wrote:
+> * Robert Schwebel <r.schwebel@pengutronix.de> [150608 04:01]:
+>> On Wed, May 06, 2015 at 07:39:52AM -0700, Tony Lindgren wrote:
+>>>
+>>> That may never happen considering that davinci is using it too.. It=
+'s
+>>> best to not count on that happening anytime soon at least.
+>>
+>> So my current understanding is that we have the situation that the
+>> kernel warns about the oftree being wrong, but isn't able to handle =
+an
+>> oftree that would be right.
+>>
+>> Shouldn't the warning being added when the kernel driver supports th=
+at
+>> new mechanism?
+>=20
+> This particular driver is broken and it needs to be fixed properly.
+> =20
+>> I had a warning free mainline kernel without patches on my customer
+>> hardware before, so this smells a bit like a regression ... :-/
+>=20
+> Yes sorry I'm not patching away the warning as it does not fix the
+> driver. Peter, I assume you are busy fixing it?
 
-This patch adds optional lock and unlock function pointers to
-the IP block's hwmod data. These unlock and lock function pointers
-are called by hwmod code before and after writing sysconfig registers.
+Well, I was not.
+But I'm now ;)
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 13 +++++++++++++
- arch/arm/mach-omap2/omap_hwmod.h |  4 ++++
- 2 files changed, 17 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 752969f..44c916d3 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -299,7 +299,20 @@ static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
- 
- 	/* Module might have lost context, always update cache and register */
- 	oh->_sysc_cache = v;
-+
-+	/*
-+	 * Some IP blocks (such as RTC) require unlocking of IP before
-+	 * accessing its registers. If a function pointer is present
-+	 * to unlock, then call it before accessing sysconfig and
-+	 * call lock after writing sysconfig.
-+	 */
-+	if (oh->class->unlock)
-+		oh->class->unlock(oh);
-+
- 	omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
-+
-+	if (oh->class->lock)
-+		oh->class->lock(oh);
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 9611c91..44c7db9 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -570,6 +570,8 @@ struct omap_hwmod_omap4_prcm {
-  * @pre_shutdown: ptr to fn to be executed immediately prior to device shutdown
-  * @reset: ptr to fn to be executed in place of the standard hwmod reset fn
-  * @enable_preprogram:  ptr to fn to be executed during device enable
-+ * @lock: ptr to fn to be executed to lock IP registers
-+ * @unlock: ptr to fn to be executed to unlock IP registers
-  *
-  * Represent the class of a OMAP hardware "modules" (e.g. timer,
-  * smartreflex, gpio, uart...)
-@@ -594,6 +596,8 @@ struct omap_hwmod_class {
- 	int					(*pre_shutdown)(struct omap_hwmod *oh);
- 	int					(*reset)(struct omap_hwmod *oh);
- 	int					(*enable_preprogram)(struct omap_hwmod *oh);
-+	void				(*lock)(struct omap_hwmod *oh);
-+	void				(*unlock)(struct omap_hwmod *oh);
- };
- 
- /**
--- 
-1.9.1
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
