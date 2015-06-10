@@ -1,52 +1,24 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH] usb: dwc3: ep0: Fix mem corruption on OUT transfers
- of more than 512 bytes
-Date: Wed, 10 Jun 2015 11:03:59 +0530
-Message-ID: <5577CC47.1000706@ti.com>
-References: <Pine.LNX.4.44L0.1506091320160.1324-100000@iolanthe.rowland.org>
+From: Colin & Chris Weir <mpalma@amnet.com.ni>
+Subject: DONATION OF $ 1.5 MILLION DOLLARS!!!
+Date: Tue, 9 Jun 2015 23:46:37 -0600 (CST)
+Message-ID: <674929547.41108.1433915197021.JavaMail.zimbra__7780.78842345185$1433917356$gmane$org@amnet.com.ni>
+Reply-To: Colin & Chris Weir <colin_chrisweir33@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1506091320160.1324-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.tigobusiness.com.ni ([165.98.132.14]:56124 "EHLO
+	ni01.newcom.com.ni" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752115AbbFJGWU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jun 2015 02:22:20 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+My wife and I have awarded you with a donation of $ 1.5 million Dollars from part of our Jackpot Lottery of 161,653,000 Million Pounds, send your name,address, phone for claims.
 
-On Tuesday 09 June 2015 10:54 PM, Alan Stern wrote:
-> On Tue, 9 Jun 2015, Kishon Vijay Abraham I wrote:
->
->>> But with a bounce buffer that's only 512 bytes long, you can never send
->>> an entire packet's worth of data.  If the bounce buffer is 1024 bytes
->>
->> for control endpoint, 512 bytes should be sufficient to send entire packet right?
->
-> Yes, you're right.  I had confused control endpoints with bulk
-> endpoints, where the maxpacket size is 1024.  Sorry for the mistake.
+View http://www.bbc.co.uk/news/uk-scotland-glasgow-west-18801698
 
-no problem.
->
->>> then you can send the entire first packet.  When that's done, you can
->>> send the second packet.  And so on.  It wouldn't be quite as fast, but
->>> for ep0 that shouldn't matter.
->>
->> right! this is a variant of what I tried to implement in chained TRB [1].
->> $subject tries just to avoid memory corruption instead of actually trying to
->> receive all the data.
->
-> Okay.  If you take the $SUBJECT approach, I think it would be better
-> for an URB submission to fail than for the host controller to send only
-> part of the data.
+We await your earliest response and God Bless you.
 
-Could be but we also want to prevent mem corruption in the case of a faulty 
-host to be more robust.
-
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best of luck.
+Colin & Chris Weir
