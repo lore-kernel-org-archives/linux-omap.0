@@ -1,49 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: EDMA oftree entry for AM335x
-Date: Tue, 9 Jun 2015 22:10:38 -0700
-Message-ID: <20150610051037.GA2740@atomide.com>
-References: <20150504064323.GU15254@pengutronix.de>
- <20150504141103.GD24469@atomide.com>
- <5548CB54.1040302@ti.com>
- <20150505145828.GB21061@atomide.com>
- <5549F95B.8090905@ti.com>
- <20150506143951.GG21061@atomide.com>
- <20150608105957.GT26523@pengutronix.de>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH] usb: dwc3: ep0: Fix mem corruption on OUT transfers
+ of more than 512 bytes
+Date: Wed, 10 Jun 2015 11:03:59 +0530
+Message-ID: <5577CC47.1000706@ti.com>
+References: <Pine.LNX.4.44L0.1506091320160.1324-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:56946 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861AbbFJFKl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Jun 2015 01:10:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20150608105957.GT26523@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1506091320160.1324-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Robert Schwebel <r.schwebel@pengutronix.de> [150608 04:01]:
-> On Wed, May 06, 2015 at 07:39:52AM -0700, Tony Lindgren wrote:
-> > 
-> > That may never happen considering that davinci is using it too.. It's
-> > best to not count on that happening anytime soon at least.
-> 
-> So my current understanding is that we have the situation that the
-> kernel warns about the oftree being wrong, but isn't able to handle an
-> oftree that would be right.
+Hi,
+
+On Tuesday 09 June 2015 10:54 PM, Alan Stern wrote:
+> On Tue, 9 Jun 2015, Kishon Vijay Abraham I wrote:
 >
-> Shouldn't the warning being added when the kernel driver supports that
-> new mechanism?
+>>> But with a bounce buffer that's only 512 bytes long, you can never send
+>>> an entire packet's worth of data.  If the bounce buffer is 1024 bytes
+>>
+>> for control endpoint, 512 bytes should be sufficient to send entire packet right?
+>
+> Yes, you're right.  I had confused control endpoints with bulk
+> endpoints, where the maxpacket size is 1024.  Sorry for the mistake.
 
-This particular driver is broken and it needs to be fixed properly.
- 
-> I had a warning free mainline kernel without patches on my customer
-> hardware before, so this smells a bit like a regression ... :-/
+no problem.
+>
+>>> then you can send the entire first packet.  When that's done, you can
+>>> send the second packet.  And so on.  It wouldn't be quite as fast, but
+>>> for ep0 that shouldn't matter.
+>>
+>> right! this is a variant of what I tried to implement in chained TRB [1].
+>> $subject tries just to avoid memory corruption instead of actually trying to
+>> receive all the data.
+>
+> Okay.  If you take the $SUBJECT approach, I think it would be better
+> for an URB submission to fail than for the host controller to send only
+> part of the data.
 
-Yes sorry I'm not patching away the warning as it does not fix the
-driver. Peter, I assume you are busy fixing it?
+Could be but we also want to prevent mem corruption in the case of a faulty 
+host to be more robust.
 
-Regards,
-
-Tony
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
