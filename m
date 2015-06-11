@@ -1,69 +1,109 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: EDMA oftree entry for AM335x
-Date: Thu, 11 Jun 2015 17:53:47 +0300
-Message-ID: <5579A0FB.6000800@ti.com>
-References: <20150504064323.GU15254@pengutronix.de> <20150504141103.GD24469@atomide.com> <5548CB54.1040302@ti.com> <20150505145828.GB21061@atomide.com> <5549F95B.8090905@ti.com> <20150506143951.GG21061@atomide.com> <20150608105957.GT26523@pengutronix.de> <20150610051037.GA2740@atomide.com> <55781BDA.9020705@ti.com> <20150611141330.GC2740@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Kevin Hilman <khilman@kernel.org>
+Subject: [PATCH stable/3.18.y] ARM: OMAP3: Fix booting with thumb2 kernel
+Date: Thu, 11 Jun 2015 11:47:53 -0700
+Message-ID: <1434048473-30680-1-git-send-email-khilman@kernel.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51651 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750963AbbFKOye (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Jun 2015 10:54:34 -0400
-In-Reply-To: <20150611141330.GC2740@atomide.com>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:36109 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754511AbbFKSr7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2015 14:47:59 -0400
+Received: by pdjm12 with SMTP id m12so8632431pdj.3
+        for <linux-omap@vger.kernel.org>; Thu, 11 Jun 2015 11:47:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Robert Schwebel <r.schwebel@pengutronix.de>, =?windows-1252?Q?Beno=EE?= =?windows-1252?Q?t_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sasha Levin <sasha.levin@oracle.com>, stable@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 06/11/2015 05:13 PM, Tony Lindgren wrote:
->> Well, I was not.
->> But I'm now ;)
->=20
-> OK good to hear!
+From: Tony Lindgren <tony@atomide.com>
 
-I have a working version now, but...
-Due to the scale of the needed changes we would need different compatib=
-le
-string for the single hwmod version.
-The Linux driver itself works fine if I don't change the compatible
-(ti,edma3). Boots fine with the old and new DTS file, but the edma sect=
-ions
-are not compatible anymore IMO.
+We get a NULL pointer dereference on omap3 for thumb2 compiled kernels:
 
-I don't want to rush in a new binding for it since I want to make sure =
-that
-the new binding will be usable when I got the chance to rewrite the edm=
-a stack
-(get rid of the code from arch/arm/common/edma.c)
+Internal error: Oops: 80000005 [#1] SMP THUMB2
+...
+[<c046497b>] (_raw_spin_unlock_irqrestore) from [<c0024375>]
+(omap3_enter_idle_bm+0xc5/0x178)
+[<c0024375>] (omap3_enter_idle_bm) from [<c0374e63>]
+(cpuidle_enter_state+0x77/0x27c)
+[<c0374e63>] (cpuidle_enter_state) from [<c00627f1>]
+(cpu_startup_entry+0x155/0x23c)
+[<c00627f1>] (cpu_startup_entry) from [<c06b9a47>]
+(start_kernel+0x32f/0x338)
+[<c06b9a47>] (start_kernel) from [<8000807f>] (0x8000807f)
 
-We have the xbar support embedded in the current edma driver - not the =
-same
-crossbar as we have in dra7, it is a bit more problematic (very problem=
-atic).
-Currently we do not have support for more than one TPCC via DT, legacy =
-boot on
-SoC with more than one TPCC is also going to be interesting.
+The power management related assembly on omaps needs to interact with
+ARM mode bootrom code, so we need to keep most of the related assembly
+in ARM mode.
 
-Since we will need new bindings for the edma when we fix the multiple h=
-wmods I
-think we should allow us some time to think about it a bit and come up =
-with
-something which will work in the future and it is nice to look at it at=
- the
-same time ;)
+Turns out this error is because of missing ENDPROC for assembly code
+as suggested by Stephen Boyd <sboyd@codeaurora.org>. Let's fix the
+problem by adding ENDPROC in two places to sleep34xx.S.
 
-And I will be away for one week...
-If you want I can send an RFC/DO NOT MERGE series with the code I have
-tomorrow in case you want to see it, but I think it will look quite a b=
-it
-different at the end.
+Let's also remove the now duplicate custom code for mode switching.
+This has been unnecessary since commit 6ebbf2ce437b ("ARM: convert
+all "mov.* pc, reg" to "bx reg" for ARMv6+").
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And let's also remove the comments about local variables, they are
+now just confusing after the ENDPROC.
+
+The reason why ENDPROC makes a difference is it sets .type and then
+the compiler knows what to do with the thumb bit as explained at:
+
+https://wiki.ubuntu.com/ARM/Thumb2PortingHowto
+
+Reported-by: Kevin Hilman <khilman@kernel.org>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+(cherry picked from commit d8a50941c91a68da202aaa96a3dacd471ea9c693)
+Cc: <stable@vger.kernel.org> # v3.18+
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
+---
+Sasha, please add to your v3.18.y-queue.  This one fixes boot failures
+on several ARM/OMAP platforms when CONFIG_THUMB2_KERNEL=y.
+
+ arch/arm/mach-omap2/sleep34xx.S | 22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index d1dedc8195ed..eafd120b53f1 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -203,23 +203,8 @@ save_context_wfi:
+ 	 */
+ 	ldr	r1, kernel_flush
+ 	blx	r1
+-	/*
+-	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
+-	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
+-	 * This sequence switches back to ARM.  Note that .align may insert a
+-	 * nop: bx pc needs to be word-aligned in order to work.
+-	 */
+- THUMB(	.thumb		)
+- THUMB(	.align		)
+- THUMB(	bx	pc	)
+- THUMB(	nop		)
+-	.arm
+-
+ 	b	omap3_do_wfi
+-
+-/*
+- * Local variables
+- */
++ENDPROC(omap34xx_cpu_suspend)
+ omap3_do_wfi_sram_addr:
+ 	.word omap3_do_wfi_sram
+ kernel_flush:
+@@ -364,10 +349,7 @@ exit_nonoff_modes:
+  * ===================================
+  */
+ 	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
+-
+-/*
+- * Local variables
+- */
++ENDPROC(omap3_do_wfi)
+ sdrc_power:
+ 	.word	SDRC_POWER_V
+ cm_idlest1_core:
+-- 
+2.3.1
+
