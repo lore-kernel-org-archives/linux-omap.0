@@ -1,63 +1,69 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH] Revert "ARM: dts: am335x-boneblack: disable RTC-only sleep"
-Date: Thu, 11 Jun 2015 16:18:38 +0200
-Message-ID: <1434032318-3557-1-git-send-email-johan@kernel.org>
-References: <20150601200137.GC30984@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: EDMA oftree entry for AM335x
+Date: Thu, 11 Jun 2015 17:53:47 +0300
+Message-ID: <5579A0FB.6000800@ti.com>
+References: <20150504064323.GU15254@pengutronix.de> <20150504141103.GD24469@atomide.com> <5548CB54.1040302@ti.com> <20150505145828.GB21061@atomide.com> <5549F95B.8090905@ti.com> <20150506143951.GG21061@atomide.com> <20150608105957.GT26523@pengutronix.de> <20150610051037.GA2740@atomide.com> <55781BDA.9020705@ti.com> <20150611141330.GC2740@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:34850 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbbFKOSr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2015 10:18:47 -0400
-In-Reply-To: <20150601200137.GC30984@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51651 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750963AbbFKOye (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Jun 2015 10:54:34 -0400
+In-Reply-To: <20150611141330.GC2740@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, robertcnelson@gmail.com, Felipe Balbi <balbi@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Johan Hovold <johan@kernel.org>
+Cc: Robert Schwebel <r.schwebel@pengutronix.de>, =?windows-1252?Q?Beno=EE?= =?windows-1252?Q?t_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This reverts commit 3d76be5b933e2a66d85a2f7444e68e99e8a48ad4.
+On 06/11/2015 05:13 PM, Tony Lindgren wrote:
+>> Well, I was not.
+>> But I'm now ;)
+>=20
+> OK good to hear!
 
-The latest revision of Beaglebone Black does not support RTC-only mode.
+I have a working version now, but...
+Due to the scale of the needed changes we would need different compatib=
+le
+string for the single hwmod version.
+The Linux driver itself works fine if I don't change the compatible
+(ti,edma3). Boots fine with the old and new DTS file, but the edma sect=
+ions
+are not compatible anymore IMO.
 
-To avoid potential hardware damage, RTC-only mode was disabled by
-default by commit 7a6cb0abe1aa ("ARM: dts: am335x-boneblack: disable
-RTC-only sleep to avoid hardware damage").
+I don't want to rush in a new binding for it since I want to make sure =
+that
+the new binding will be usable when I got the chance to rewrite the edm=
+a stack
+(get rid of the code from arch/arm/common/edma.c)
 
-Unfortunately, an incorrect fix had already been applied, which instead
-of just disabling RTC-only mode, prevents the Beaglebone from powering
-down at all.
+We have the xbar support embedded in the current edma driver - not the =
+same
+crossbar as we have in dra7, it is a bit more problematic (very problem=
+atic).
+Currently we do not have support for more than one TPCC via DT, legacy =
+boot on
+SoC with more than one TPCC is also going to be interesting.
 
-Revert this patch to fix the power-off regression.
+Since we will need new bindings for the edma when we fix the multiple h=
+wmods I
+think we should allow us some time to think about it a bit and come up =
+with
+something which will work in the future and it is nice to look at it at=
+ the
+same time ;)
 
-Signed-off-by: Johan Hovold <johan@kernel.org>
----
+And I will be away for one week...
+If you want I can send an RFC/DO NOT MERGE series with the code I have
+tomorrow in case you want to see it, but I think it will look quite a b=
+it
+different at the end.
 
-The offending patch was incorrectly applied after Matthijs initial fix
-was posted and before the final fix (which only added some comments) was
-applied.
-
-Note that the final version of the fix 7a6cb0abe1aa ("ARM: dts:
-am335x-boneblack: disable RTC-only sleep to avoid hardware damage")
-indicates that it should be backported to 3.12 even though RTC-only mode
-was first enabled in 3.19.
-
-Johan
-
-
- arch/arm/boot/dts/am335x-boneblack.dts | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 901739fcb85a..5c42d259fa68 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -80,3 +80,7 @@
- 		status = "okay";
- 	};
- };
-+
-+&rtc {
-+	system-power-controller;
-+};
--- 
-2.3.6
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
