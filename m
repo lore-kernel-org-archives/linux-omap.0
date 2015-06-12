@@ -1,222 +1,58 @@
-From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/5] omap3: overo: Add device tree for Palo35 board
-Date: Fri, 12 Jun 2015 13:37:26 -0700
-Message-ID: <1434141446-11568-6-git-send-email-ashcharles@gmail.com>
+From: Ash Charles <ashcharles@gmail.com>
+Subject: [PATCH 3/5] omap3: overo: Enable McBSP2 for all Overo COMs
+Date: Fri, 12 Jun 2015 13:37:24 -0700
+Message-ID: <1434141446-11568-4-git-send-email-ashcharles@gmail.com>
 References: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1434141446-11568-1-git-send-email-ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:36624 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956AbbFLUhb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2015 16:37:31 -0400
+In-Reply-To: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Cc: tony@atomide.com, bcousson@baylibre.com, Adam YH Lee <adam.yh.lee@gmail.com>
 
-From: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Adam YH Lee <adam.yh.lee@gmail.com>
 
-Also, reduce the maximum SPI device speed to the max. supported by the
-LCD controller used on the LGPhilips LB035Q02 panel for this board.
+Both Gumstix Overo and Overo Storm COMs use TWL4030 audio module
+connected to the McBSP2.  As such, enable the McBSP2 module in the
+common device tree file, omap3-overo-base.dtsi, rather than in the
+processor-specific device tree files, omap3-overo.dtsi and
+omap3-overo-storm.dtsi.  This corrects audio on the Storm COMs where
+the setting was accidentally missing from the device tree.
 
-Signed-off-by: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ash Charles <ashcharles@gmail.com>
 ---
- arch/arm/boot/dts/Makefile                       |  2 +
- arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi  |  3 +-
- arch/arm/boot/dts/omap3-overo-palo35-common.dtsi | 54 ++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-palo35.dts         | 38 +++++++++++++++++
- arch/arm/boot/dts/omap3-overo-storm-palo35.dts   | 38 +++++++++++++++++
- 5 files changed, 134 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-palo35.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-palo35.dts
+ arch/arm/boot/dts/omap3-overo-base.dtsi | 4 ++++
+ arch/arm/boot/dts/omap3-overo.dtsi      | 4 ----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index ac7c6f6bd719..219f5ab1b585 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -387,10 +387,12 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
- 	omap3-overo-alto35.dtb \
- 	omap3-overo-chestnut43.dtb \
- 	omap3-overo-gallop43.dtb \
-+	omap3-overo-palo35.dtb \
- 	omap3-overo-palo43.dtb \
- 	omap3-overo-storm-alto35.dtb \
- 	omap3-overo-storm-chestnut43.dtb \
- 	omap3-overo-storm-gallop43.dtb \
-+	omap3-overo-storm-palo35.dtb \
- 	omap3-overo-storm-palo43.dtb \
- 	omap3-overo-storm-summit.dtb \
- 	omap3-overo-storm-tobi.dtb \
-diff --git a/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi b/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
-index df8908adb0cb..80d236ac64a5 100644
---- a/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
-@@ -62,6 +62,7 @@
- 			OMAP3_CORE1_IOPAD(0x21ca, PIN_INPUT | MUX_MODE0)	/* mcspi1_simo.mcspi1_simo */
- 			OMAP3_CORE1_IOPAD(0x21cc, PIN_INPUT | MUX_MODE0)	/* mcspi1_somi.mcspi1_somi */
- 			OMAP3_CORE1_IOPAD(0x21ce, PIN_INPUT | MUX_MODE0)	/* mcspi1_cs0.mcspi1_cs0 */
-+			OMAP3_CORE1_IOPAD(0x21d0, PIN_INPUT | MUX_MODE0)	/* mcspi1_cs1.mcspi1_cs1 */
+diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
+index 18e1649681c1..029e5feb65b4 100644
+--- a/arch/arm/boot/dts/omap3-overo-base.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
+@@ -218,3 +218,7 @@
+ 	pinctrl-0 = <&uart2_pins>;
+ };
+ 
++&mcbsp2 {
++	status = "okay";
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+index 69ca7c45bca2..932a02ff552a 100644
+--- a/arch/arm/boot/dts/omap3-overo.dtsi
++++ b/arch/arm/boot/dts/omap3-overo.dtsi
+@@ -32,7 +32,3 @@
  		>;
  	};
- 
-@@ -123,7 +124,7 @@
- 		label = "lcd35";
- 
- 		reg = <1>;					/* CS1 */
--		spi-max-frequency = <10000000>;
-+		spi-max-frequency = <500000>;
- 		spi-cpol;
- 		spi-cpha;
- 
-diff --git a/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi b/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
-new file mode 100644
-index 000000000000..eab94c13634f
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
-@@ -0,0 +1,54 @@
-+/*
-+ * Copyright (C) 2015 Ash Charles, Gumstix Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Palo35 expansion board is manufactured by Gumstix Inc.
-+ */
-+
-+#include "omap3-overo-common-peripherals.dtsi"
-+#include "omap3-overo-common-lcd35.dtsi"
-+
-+#include <dt-bindings/input/input.h>
-+
-+/ {
-+	leds {
-+		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&led_pins>;
-+		heartbeat {
-+			label = "overo:red:gpio21";
-+			gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;		/* gpio_21 */
-+			linux,default-trigger = "heartbeat";
-+		};
-+		gpio22 {
-+			label = "overo:blue:gpio22";
-+			gpios = <&gpio1 22 GPIO_ACTIVE_LOW>;		/* gpio_22 */
-+		};
-+	};
-+
-+	gpio_keys {
-+		compatible = "gpio-keys";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&button_pins>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		button0@23 {
-+			label = "button0";
-+			linux,code = <BTN_0>;
-+			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
-+			gpio-key,wakeup;
-+		};
-+		button1@14 {
-+			label = "button1";
-+			linux,code = <BTN_1>;
-+			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
-+			gpio-key,wakeup;
-+		};
-+	};
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-palo35.dts b/arch/arm/boot/dts/omap3-overo-palo35.dts
-new file mode 100644
-index 000000000000..880101977d43
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-palo35.dts
-@@ -0,0 +1,38 @@
-+/*
-+ * Copyright (C) 2015 Ash Charles, Gumstix Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Palo35 expansion board is manufactured by Gumstix Inc.
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap3-overo.dtsi"
-+#include "omap3-overo-palo35-common.dtsi"
-+
-+/ {
-+	model = "OMAP35xx Gumstix Overo on Palo35";
-+	compatible = "gumstix,omap3-overo-palo35", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3";
-+};
-+
-+&omap3_pmx_core2 {
-+	led_pins: pinmux_led_pins {
-+		pinctrl-single,pins = <
-+			OMAP3430_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)	/* etk_d7.gpio_21 */
-+			OMAP3430_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)	/* etk_d8.gpio_22 */
-+		>;
-+	};
-+
-+	button_pins: pinmux_button_pins {
-+		pinctrl-single,pins = <
-+			OMAP3430_CORE2_IOPAD(0x25ee, PIN_INPUT | MUX_MODE4)	/* etk_d9.gpio_23 */
-+			OMAP3430_CORE2_IOPAD(0x25dc, PIN_INPUT | MUX_MODE4)	/* etk_d0.gpio_14 */
-+		>;
-+	};
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-storm-palo35.dts b/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
-new file mode 100644
-index 000000000000..e2515450c6cf
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
-@@ -0,0 +1,38 @@
-+/*
-+ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Palo35 expansion board is manufactured by Gumstix Inc.
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap3-overo-storm.dtsi"
-+#include "omap3-overo-palo35-common.dtsi"
-+
-+/ {
-+	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Palo35";
-+	compatible = "gumstix,omap3-overo-palo35", "gumstix,omap3-overo", "ti,omap36xx", "ti,omap3";
-+};
-+
-+&omap3_pmx_core2 {
-+	led_pins: pinmux_led_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)	/* etk_d7.gpio_21 */
-+			OMAP3630_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)	/* etk_d8.gpio_22 */
-+		>;
-+	};
-+
-+	button_pins: pinmux_button_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25ee, PIN_INPUT | MUX_MODE4)	/* etk_d9.gpio_23 */
-+			OMAP3630_CORE2_IOPAD(0x25dc, PIN_INPUT | MUX_MODE4)	/* etk_d0.gpio_14 */
-+		>;
-+	};
-+};
-+
+ };
+-
+-&mcbsp2 {
+-	status = "okay";
+-};
 -- 
 2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
