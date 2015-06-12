@@ -1,77 +1,76 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] fbdev: omap2: remove potential format string leak
-Date: Fri, 12 Jun 2015 12:38:05 +0300
-Message-ID: <557AA87D.2020504@ti.com>
-References: <20150608223053.GA28939@www.outflux.net>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+Date: Fri, 12 Jun 2015 18:28:37 +0530
+Message-ID: <20150612125837.GJ28601@localhost>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+ <20150529093317.GF3140@localhost>
+ <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
+ <20150529101846.GG3140@localhost>
+ <55687892.7050606@ti.com>
+ <20150602125535.GS3140@localhost>
+ <5570758E.6030302@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="Ux3tWXD7UBfIEcwd84w9T5erSlgGcnciB"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150608223053.GA28939@www.outflux.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5570758E.6030302@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, linux-crypto@vger.kernel.org, linux-spi <linux-spi@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>
 List-Id: linux-omap@vger.kernel.org
 
---Ux3tWXD7UBfIEcwd84w9T5erSlgGcnciB
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jun 04, 2015 at 06:58:06PM +0300, Peter Ujfalusi wrote:
+> Vinod,
+> 
+> On 06/02/2015 03:55 PM, Vinod Koul wrote:
+> > On Fri, May 29, 2015 at 05:32:50PM +0300, Peter Ujfalusi wrote:
+> >> On 05/29/2015 01:18 PM, Vinod Koul wrote:
+> >>> On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
+> >>>> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+> >>>>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
+> >>>>>> dma_request_slave_channel_compat() 'eats' up the returned error codes which
+> >>>>>> prevents drivers using the compat call to be able to do deferred probing.
+> >>>>>>
+> >>>>>> The new wrapper is identical in functionality but it will return with error
+> >>>>>> code in case of failure and will pass the -EPROBE_DEFER to the caller in
+> >>>>>> case dma_request_slave_channel_reason() returned with it.
+> >>>>> This is okay but am worried about one more warpper, how about fixing
+> >>>>> dma_request_slave_channel_compat()
+> >>>>
+> >>>> Then all callers of dma_request_slave_channel_compat() have to be
+> >>>> modified to handle ERR_PTR first.
+> >>>>
+> >>>> The same is true for (the existing) dma_request_slave_channel_reason()
+> >>>> vs. dma_request_slave_channel().
+> >>> Good point, looking again, I think we should rather fix
+> >>> dma_request_slave_channel_reason() as it was expected to return err code and
+> >>> add new users. Anyway users of this API do expect the reason...
+> >>
+> >> Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
+> >> drivers only working via DT or ACPI while
+> >> dma_request_slave_channel_compat()/_reason() is for drivers expected to run in
+> >> DT/ACPI or legacy mode as well.
+> >>
+> >> I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
+> >> drivers are using this to request channels - they need to support DT and
+> >> legacy mode.
+> > I think we should hide these things behind the API and do this behind the
+> > hood for ACPI/DT systems.
+> > 
+> > Also it makes sense to use right API and mark rest as depricated
+> 
+> So to convert the dma_request_slave_channel_compat() and not to create _reason
+> variant?
+> 
+> Or to have single API to request channel? The problem with that is that we
+> need different parameters for legacy and DT for example.
+Sorry this slipped thru
+
+Thinking about it again, I think we should coverge to two APIs and mark the
+legacy depracuated and look to convert folks and phase that out
 
 
-
-On 09/06/15 01:30, Kees Cook wrote:
-> Since kobject_init_and_add takes a format string, make sure that the
-> passed in name cannot be accidentally parsed.
->=20
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
->  drivers/video/fbdev/omap2/dss/display-sysfs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/video/fbdev/omap2/dss/display-sysfs.c b/drivers/vi=
-deo/fbdev/omap2/dss/display-sysfs.c
-> index 12186557a9d4..6ad0991f8259 100644
-> --- a/drivers/video/fbdev/omap2/dss/display-sysfs.c
-> +++ b/drivers/video/fbdev/omap2/dss/display-sysfs.c
-> @@ -324,7 +324,7 @@ int display_init_sysfs(struct platform_device *pdev=
-)
-> =20
->  	for_each_dss_dev(dssdev) {
->  		r =3D kobject_init_and_add(&dssdev->kobj, &display_ktype,
-> -			&pdev->dev.kobj, dssdev->alias);
-> +			&pdev->dev.kobj, "%s", dssdev->alias);
->  		if (r) {
->  			DSSERR("failed to create sysfs files\n");
->  			omap_dss_put_device(dssdev);
->=20
-
-Thanks, queued for 4.2.
-
- Tomi
-
-
---Ux3tWXD7UBfIEcwd84w9T5erSlgGcnciB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVeqh9AAoJEPo9qoy8lh71BaIQAJqwziSWkfL3n0BRRLCUxhTw
-dAZ3mORTgEtLYKQFipYAtNAvdZ6EXslab0M4sOum9IZStKYrcRlmhA80WI4bRPqx
-k9Xhm8lGj0JPyaPigYAukO4JPpv0tLS96bDGBLHXqtv3sz8gF1Wt0CNi7O0Rv2qN
-M0/wrjXWqdQ5ttEjnPx7fmuGH4hznR8+cakpbXCBLY3jBiNwyDhea6mD/thNuK4A
-VDjE9PXCYqPqhYFGdn2XGakYE/bjbgK7AQaqi3sd3sAVraPoSnC/M7sWJVoZ0sJT
-ZPnTnyx88mff1MHj2arHyGnjgNqfRZIxi+GG62S3QRfT8yM+dmfkymXA5kIY6fGb
-eReizWVbixsAvBRqO7yU0U2Lg0QySWq0Lmk975BQsCjB0o0S2ePL0TbBIDGx371N
-o1yR5ONOuJ1osQmMSqdZ1uieaXI2RjUxOowd7KlLnFN/vgPoZzfaqpZX5mfnrsXr
-JdoxmOxsN2TzuYh/4a5wKeWe4LRFLpbTV8RGzKs+FDU4URDezwG8LxxgrCAauXiF
-pfcbt+WeoC1lZFysnRk834ufLN6Vfho6aw+alJwSCAYEo6+ZWFnS5wKwHjX28jJB
-h71npPrttnF7fgH5meAFCzcTw5p7dbzlynd3mjW9fZ46RXii+YKlA1iOr96rLFk4
-69/n3RGT7TcuoheryIFS
-=DMX6
------END PGP SIGNATURE-----
-
---Ux3tWXD7UBfIEcwd84w9T5erSlgGcnciB--
+-- 
+~Vinod
