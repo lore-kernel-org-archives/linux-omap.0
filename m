@@ -1,84 +1,50 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH] usb: dwc3: pci: make better use of gpiod API
-Date: Fri, 12 Jun 2015 09:10:19 +0200
-Message-ID: <1434093019-14009-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH] drm/tilcdc: Fix bad if statement in
+ tilcdc_get_external_components()
+Date: Fri, 12 Jun 2015 12:24:33 +0300
+Message-ID: <1434101073-17677-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>, dan.carpenter@oracle.com
 List-Id: linux-omap@vger.kernel.org
 
-Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
-which appeared in v3.17-rc1, the gpiod_get* functions take an additiona=
-l
-parameter that allows to specify direction and initial value for output=
-=2E
-
-=46urthermore there is devm_gpiod_get_optional which is designed to get
-optional gpios. Also use devm_gpiod_get* because otherwise the gpio
-might be grabbed by a different driver.
-
-Simplify driver accordingly.
-
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
----
-Hello,
-
-This usage without flags was introduced by commit a89d977cc04c (usb:
-dwc3: pci: add quirk for Baytrails) that is currently in next.
-
-Note I plan to make the flags parameter mandatory for 4.3. So unless
-this change gets into 4.2, would it be ok to let it go in via the gpio
-tree?
-
-Best regards
-Uwe
-
- drivers/usb/dwc3/dwc3-pci.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
-index 27e4fc896e9d..7e308730f955 100644
---- a/drivers/usb/dwc3/dwc3-pci.c
-+++ b/drivers/usb/dwc3/dwc3-pci.c
-@@ -84,18 +84,19 @@ static int dwc3_pci_quirks(struct pci_dev *pdev)
- 					  acpi_dwc3_byt_gpios);
-=20
- 		/* These GPIOs will turn on the USB2 PHY */
--		gpio =3D gpiod_get(&pdev->dev, "cs");
--		if (!IS_ERR(gpio)) {
--			gpiod_direction_output(gpio, 0);
--			gpiod_set_value_cansleep(gpio, 1);
--			gpiod_put(gpio);
--		}
-+		gpio =3D devm_gpiod_get_optional(&pdev->dev, "cs", GPIOD_OUT_LOW);
-+		if (IS_ERR(gpio))
-+			return PTR_ERR(gpio);
-+
-+		gpiod_set_value_cansleep(gpio, 1);
-+
-+		gpio =3D devm_gpiod_get_optional(&pdev->dev, "reset",
-+					       GPIOD_OUT_LOW);
-+		if (IS_ERR(gpio))
-+			return PTR_ERR(gpio);
-=20
--		gpio =3D gpiod_get(&pdev->dev, "reset");
--		if (!IS_ERR(gpio)) {
--			gpiod_direction_output(gpio, 0);
-+		if (gpio) {
- 			gpiod_set_value_cansleep(gpio, 1);
--			gpiod_put(gpio);
- 			usleep_range(10000, 11000);
- 		}
- 	}
---=20
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+VGhlIGlmIHN0YXRlbWVudCBjb25kaXRpb24gc2hvdWxkIGhhdmUgYmVlbiAiIW5vZGUgfHwKIW9m
+X2RldmljZV9pc19hdmFpbGFibGUobm9kZSkiICgmJiBjaGFuZ2VkIHRvIHx8KSwgYnV0IGxldCdz
+IHJld3JpdGUKdGhlIHdob2xlIGluc2lkZSBvZiB0aGUgbG9vcCBmb3IgYmV0dGVyIHJlYWRhYmls
+aXR5LgoKUmVwb3J0ZWQtYnk6IERhbiBDYXJwZW50ZXIgPGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNv
+bT4KU2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNvbT4KLS0tCiBkcml2ZXJz
+L2dwdS9kcm0vdGlsY2RjL3RpbGNkY19leHRlcm5hbC5jIHwgMTkgKysrKysrKystLS0tLS0tLS0t
+LQogMSBmaWxlIGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pCgpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZXh0ZXJuYWwuYyBiL2RyaXZl
+cnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX2V4dGVybmFsLmMKaW5kZXggMDNhY2I0Zi4uYTY0MTgw
+OCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZXh0ZXJuYWwuYwor
+KysgYi9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19leHRlcm5hbC5jCkBAIC0xNDIsMTkg
+KzE0MiwxNiBAQCBpbnQgdGlsY2RjX2dldF9leHRlcm5hbF9jb21wb25lbnRzKHN0cnVjdCBkZXZp
+Y2UgKmRldiwKIAlpbnQgY291bnQgPSAwOwogCiAJd2hpbGUgKChlcCA9IG9mX2dyYXBoX2dldF9u
+ZXh0X2VuZHBvaW50KGRldi0+b2Zfbm9kZSwgZXApKSkgewotCQlzdHJ1Y3QgZGV2aWNlX25vZGUg
+Km5vZGU7Ci0KLQkJbm9kZSA9IG9mX2dyYXBoX2dldF9yZW1vdGVfcG9ydF9wYXJlbnQoZXApOwot
+CQlpZiAoIW5vZGUgJiYgIW9mX2RldmljZV9pc19hdmFpbGFibGUobm9kZSkpIHsKLQkJCW9mX25v
+ZGVfcHV0KG5vZGUpOwotCQkJY29udGludWU7CisJCXN0cnVjdCBkZXZpY2Vfbm9kZSAqbm9kZSA9
+IG9mX2dyYXBoX2dldF9yZW1vdGVfcG9ydF9wYXJlbnQoZXApOworCisJCWlmIChub2RlICYmIG9m
+X2RldmljZV9pc19hdmFpbGFibGUobm9kZSkpIHsKKwkJCWRldl9kYmcoZGV2LCAiU3ViZGV2aWNl
+IG5vZGUgJyVzJyBmb3VuZFxuIiwgbm9kZS0+bmFtZSk7CisJCQlpZiAobWF0Y2gpCisJCQkJY29t
+cG9uZW50X21hdGNoX2FkZChkZXYsIG1hdGNoLCBkZXZfbWF0Y2hfb2YsCisJCQkJCQkgICAgbm9k
+ZSk7CisJCQljb3VudCsrOwogCQl9Ci0KLQkJZGV2X2RiZyhkZXYsICJTdWJkZXZpY2Ugbm9kZSAn
+JXMnIGZvdW5kXG4iLCBub2RlLT5uYW1lKTsKLQkJaWYgKG1hdGNoKQotCQkJY29tcG9uZW50X21h
+dGNoX2FkZChkZXYsIG1hdGNoLCBkZXZfbWF0Y2hfb2YsIG5vZGUpOwogCQlvZl9ub2RlX3B1dChu
+b2RlKTsKLQkJY291bnQrKzsKIAl9CiAKIAlpZiAoY291bnQgPiAxKSB7Ci0tIAoxLjkuMQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
+aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
