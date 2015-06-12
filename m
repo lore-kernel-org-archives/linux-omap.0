@@ -1,97 +1,182 @@
 From: Ash Charles <ashcharles@gmail.com>
-Subject: [PATCH 4/5] omap3: overo: Support PoP NAND
-Date: Fri, 12 Jun 2015 13:37:25 -0700
-Message-ID: <1434141446-11568-5-git-send-email-ashcharles@gmail.com>
+Subject: [PATCH 2/5] omap3: dts: Add DTS for Gumstix TobiDuo expansion board
+Date: Fri, 12 Jun 2015 13:37:23 -0700
+Message-ID: <1434141446-11568-3-git-send-email-ashcharles@gmail.com>
 References: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:33796 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197AbbFLUhb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2015 16:37:31 -0400
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:35509 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753205AbbFLUha (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2015 16:37:30 -0400
 In-Reply-To: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 Cc: tony@atomide.com, bcousson@baylibre.com
 
-Some Overo COM models include NAND flash in the on-board
-package-on-package (PoP) chip.  Add this to the base Overo devicetree.
+The Gumstix "Tobi-Duo" expansion board [1] can be used with either
+OMAP3 Overo or Overo Storm COMs.  It provides two NICs using LAN9221
+chips.
+It is necessary to duplicate the interface information for the
+second SMSC9221 chip as discussed [2].
 
-Most commonly, this is 512MB NAND from the Micron MT29C4G96MAZ family
-but, as discussed [1], several different sized are possible. To
-support different sizes, the last partition should fill to the end of
-the chip (i.e. MTDPART_SIZ_FULL).
-
-With thanks to Florian Vaussard for the original patch [2] and Adam Lee for
-updating it here.
+[1] https://store.gumstix.com/index.php/products/241/
+[2] http://www.spinics.net/lists/linux-omap/msg115282.html
 
 Signed-off-by: Ash Charles <ashcharles@gmail.com>
-
-[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/175760.html
-[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-June/175449.html
 ---
- arch/arm/boot/dts/omap3-overo-base.dtsi | 51 +++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+ arch/arm/boot/dts/Makefile                        |  2 +
+ arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts   | 22 ++++++++
+ arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi | 66 +++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo-tobiduo.dts         | 22 ++++++++
+ 4 files changed, 112 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-tobiduo.dts
 
-diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
-index 029e5feb65b4..28430f1596f2 100644
---- a/arch/arm/boot/dts/omap3-overo-base.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
-@@ -222,3 +222,54 @@
- 	status = "okay";
- };
- 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 992736b5229b..ac7c6f6bd719 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -394,8 +394,10 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
+ 	omap3-overo-storm-palo43.dtb \
+ 	omap3-overo-storm-summit.dtb \
+ 	omap3-overo-storm-tobi.dtb \
++	omap3-overo-storm-tobiduo.dtb \
+ 	omap3-overo-summit.dtb \
+ 	omap3-overo-tobi.dtb \
++	omap3-overo-tobiduo.dtb \
+ 	omap3-pandora-600mhz.dtb \
+ 	omap3-pandora-1ghz.dtb \
+ 	omap3-sbc-t3517.dtb \
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts b/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
+new file mode 100644
+index 000000000000..0c7d5a70e5e5
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
+@@ -0,0 +1,22 @@
++/*
++ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * TobiDuo expansion board is manufactured by Gumstix Inc.
++ */
++
++/dts-v1/;
++
++#include "omap3-overo-storm.dtsi"
++#include "omap3-overo-tobiduo-common.dtsi"
++
++/ {
++	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on TobiDuo";
++	compatible = "gumstix,omap3-overo-tobiduo", "gumstix,omap3-overo", "ti,omap36xx", "ti,omap3";
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
+new file mode 100644
+index 000000000000..05788aab3cd3
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
+@@ -0,0 +1,66 @@
++/*
++ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * TobiDuo expansion board is manufactured by Gumstix Inc.
++ */
++
++#include "omap3-overo-common-peripherals.dtsi"
++
++#include "omap-gpmc-smsc9221.dtsi"
++
 +&gpmc {
-+	ranges = <0 0 0x00000000 0x20000000>;
++	ranges = <4 0 0x2b000000 0x1000000>,	/* CS4 */
++		 <5 0 0x2c000000 0x1000000>;	/* CS5 */
 +
-+	nand@0,0 {
-+		linux,mtd-name= "micron,mt29c4g96maz";
-+		reg = <0 0 0>;
-+		nand-bus-width = <16>;
-+		gpmc,device-width = <2>;
-+		ti,nand-ecc-opt = "bch8";
++	smsc1: ethernet@gpmc {
++		reg = <5 0 0xff>;
++		interrupt-parent = <&gpio6>;
++		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 176 */
++	};
 +
-+		gpmc,sync-clk-ps = <0>;
++	smsc2: ethernet@4,0 {
++		compatible = "smsc,lan9221","smsc,lan9115";
++		bank-width = <2>;
++
++		gpmc,mux-add-data;
 +		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <44>;
-+		gpmc,cs-wr-off-ns = <44>;
++		gpmc,cs-rd-off-ns = <42>;
++		gpmc,cs-wr-off-ns = <36>;
 +		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <34>;
-+		gpmc,adv-wr-off-ns = <44>;
-+		gpmc,we-off-ns = <40>;
-+		gpmc,oe-off-ns = <54>;
-+		gpmc,access-ns = <64>;
-+		gpmc,rd-cycle-ns = <82>;
-+		gpmc,wr-cycle-ns = <82>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
++		gpmc,adv-rd-off-ns = <12>;
++		gpmc,adv-wr-off-ns = <12>;
++		gpmc,oe-on-ns = <0>;
++		gpmc,oe-off-ns = <42>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <36>;
++		gpmc,rd-cycle-ns = <60>;
++		gpmc,wr-cycle-ns = <54>;
++		gpmc,access-ns = <36>;
++		gpmc,page-burst-access-ns = <0>;
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,wr-data-mux-bus-ns = <18>;
++		gpmc,wr-access-ns = <42>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-diffcsen;
++		vddvario-supply = <&vddvario>;
++		vdd33a-supply = <&vdd33a>;
++		reg-io-width = <4>;
++		smsc,save-mac-address;
 +
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+
-+		partition@0 {
-+			label = "SPL";
-+			reg = <0 0x80000>; /* 512KiB */
-+		};
-+		partition@80000 {
-+			label = "U-Boot";
-+			reg = <0x80000 0x1C0000>; /* 1792KiB */
-+		};
-+		partition@1c0000 {
-+			label = "Environment";
-+			reg = <0x240000 0x40000>; /* 256KiB */
-+		};
-+		partition@280000 {
-+			label = "Kernel";
-+			reg = <0x280000 0x800000>; /* 8192KiB */
-+		};
-+		partition@780000 {
-+			label = "Filesystem";
-+			reg = <0xA80000 0>;
-+			/* HACK: MTDPART_SIZ_FULL=0 so fill to end */
-+		};
++		reg = <4 0 0xff>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 65 */
 +	};
 +};
++
++&lis33de {
++	status = "disabled";
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo-tobiduo.dts b/arch/arm/boot/dts/omap3-overo-tobiduo.dts
+new file mode 100644
+index 000000000000..bebc4b1e0bf7
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-tobiduo.dts
+@@ -0,0 +1,22 @@
++/*
++ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * TobiDuo expansion board is manufactured by Gumstix Inc.
++ */
++
++/dts-v1/;
++
++#include "omap3-overo.dtsi"
++#include "omap3-overo-tobiduo-common.dtsi"
++
++/ {
++	model = "OMAP35xx Gumstix Overo on TobiDuo";
++	compatible = "gumstix,omap3-overo-tobiduo", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3";
++};
++
 -- 
 2.1.4
 
