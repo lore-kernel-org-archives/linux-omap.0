@@ -1,41 +1,37 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: [PATCH] usb: dwc3: Use ASCII space in Kconfig
-Date: Fri, 12 Jun 2015 15:16:21 +0200
-Message-ID: <1434114981-2296-1-git-send-email-thierry.reding@gmail.com>
+From: Hans Ulli Kroll <ulli.kroll@googlemail.com>
+Subject: Re: [PATCH 01/15] ARM: kill off set_irq_flags usage
+Date: Fri, 12 Jun 2015 16:05:48 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1506121604200.30841@localhost>
+References: <1433874401-27161-1-git-send-email-robh@kernel.org> <1433874401-27161-2-git-send-email-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1433874401-27161-2-git-send-email-robh@kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arm@kernel.org, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Greg Ungerer <gerg@uclinux.org>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simtec Linux Team <linux@simtec.co.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.koz>
 List-Id: linux-omap@vger.kernel.org
 
-=46rom: Thierry Reding <treding@nvidia.com>
 
-The USB_DWC3_ULPI Kconfig entry uses a UTF-8 non-breaking space (0xca20=
-)
-instead of a regular ASCII space (0x20). Commit 2e0d737fc76f ("kconfig:
-don't silently ignore unhandled characters") exposes this by warning
-about unhandled characters.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
----
- drivers/usb/dwc3/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue, 9 Jun 2015, Rob Herring wrote:
 
-diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-index 473bfaa96c30..dede32e809b6 100644
---- a/drivers/usb/dwc3/Kconfig
-+++ b/drivers/usb/dwc3/Kconfig
-@@ -13,7 +13,7 @@ if USB_DWC3
-=20
- config USB_DWC3_ULPI
- 	bool "Register ULPI PHY Interface"
--	depends on USB_ULPI_BUS=3Dy ||=C2=A0USB_ULPI_BUS=3DUSB_DWC3
-+	depends on USB_ULPI_BUS=3Dy || USB_ULPI_BUS=3DUSB_DWC3
- 	help
- 	  Select this if you have ULPI type PHY attached to your DWC3
- 	  controller.
---=20
-2.4.1
+> set_irq_flags is ARM specific with custom flags which have genirq
+> equivalents. Convert drivers to use the genirq interfaces directly, so we
+> can kill off set_irq_flags. The translation of flags is as follows:
+> 
+> IRQF_VALID -> !IRQ_NOREQUEST
+> IRQF_PROBE -> !IRQ_NOPROBE
+> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
+> 
+> For IRQs managed by an irqdomain, the irqdomain core code handles clearing
+> and setting IRQ_NOREQUEST already, so there is no need to do this in
+> .map() functions and we can simply remove the set_irq_flags calls. Some
+> users also set IRQ_NOPROBE and this has been maintained although it is not
+> clear that is really needed. There appears to be a great deal of blind
+> copy and paste of this code.
+> 
+
+for mach-gemini
+Signed-off-by: Hans Ulli Kroll <ulli.kroll@googlemail.com>
+y
