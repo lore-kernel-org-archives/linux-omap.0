@@ -1,61 +1,222 @@
-From: Ash Charles <ashcharles@gmail.com>
-Subject: [PATCH 1/5] omap3: overo: Update LCD panel names
-Date: Fri, 12 Jun 2015 13:37:22 -0700
-Message-ID: <1434141446-11568-2-git-send-email-ashcharles@gmail.com>
+From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 5/5] omap3: overo: Add device tree for Palo35 board
+Date: Fri, 12 Jun 2015 13:37:26 -0700
+Message-ID: <1434141446-11568-6-git-send-email-ashcharles@gmail.com>
 References: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:35501 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197AbbFLUh3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2015 16:37:29 -0400
-In-Reply-To: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1434141446-11568-1-git-send-email-ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, Adam YH Lee <adam.yh.lee@gmail.com>
 
-From: Adam YH Lee <adam.yh.lee@gmail.com>
+From: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-For Gumstix Overo COMs, the u-boot bootloader typically passes an
-argument specifying the default display via the omapdss.def_disp
-parameter.  When a default display is specified, DSS2 tries to match
-this name with either the device tree label (e.g. label=dvi) or,
-failing this, the device tree alias (e.g. label=display0). Update the
-panel names for the 'lcd43' and 'lcd35' displays in the device tree
-such that they match the names passed by u-boot.
+Also, reduce the maximum SPI device speed to the max. supported by the
+LCD controller used on the LGPhilips LB035Q02 panel for this board.
 
-Signed-off-by: Ash Charles <ashcharles@gmail.com>
+Signed-off-by: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi | 2 +-
- arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/Makefile                       |  2 +
+ arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi  |  3 +-
+ arch/arm/boot/dts/omap3-overo-palo35-common.dtsi | 54 ++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-overo-palo35.dts         | 38 +++++++++++++++++
+ arch/arm/boot/dts/omap3-overo-storm-palo35.dts   | 38 +++++++++++++++++
+ 5 files changed, 134 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo-palo35.dts
+ create mode 100644 arch/arm/boot/dts/omap3-overo-storm-palo35.dts
 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index ac7c6f6bd719..219f5ab1b585 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -387,10 +387,12 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
+ 	omap3-overo-alto35.dtb \
+ 	omap3-overo-chestnut43.dtb \
+ 	omap3-overo-gallop43.dtb \
++	omap3-overo-palo35.dtb \
+ 	omap3-overo-palo43.dtb \
+ 	omap3-overo-storm-alto35.dtb \
+ 	omap3-overo-storm-chestnut43.dtb \
+ 	omap3-overo-storm-gallop43.dtb \
++	omap3-overo-storm-palo35.dtb \
+ 	omap3-overo-storm-palo43.dtb \
+ 	omap3-overo-storm-summit.dtb \
+ 	omap3-overo-storm-tobi.dtb \
 diff --git a/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi b/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
-index 233c69e50ae3..df8908adb0cb 100644
+index df8908adb0cb..80d236ac64a5 100644
 --- a/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
 +++ b/arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi
-@@ -120,7 +120,7 @@
+@@ -62,6 +62,7 @@
+ 			OMAP3_CORE1_IOPAD(0x21ca, PIN_INPUT | MUX_MODE0)	/* mcspi1_simo.mcspi1_simo */
+ 			OMAP3_CORE1_IOPAD(0x21cc, PIN_INPUT | MUX_MODE0)	/* mcspi1_somi.mcspi1_somi */
+ 			OMAP3_CORE1_IOPAD(0x21ce, PIN_INPUT | MUX_MODE0)	/* mcspi1_cs0.mcspi1_cs0 */
++			OMAP3_CORE1_IOPAD(0x21d0, PIN_INPUT | MUX_MODE0)	/* mcspi1_cs1.mcspi1_cs1 */
+ 		>;
+ 	};
  
- 	lcd0: display@0 {
- 		compatible = "lgphilips,lb035q02";
--		label = "lcd";
-+		label = "lcd35";
+@@ -123,7 +124,7 @@
+ 		label = "lcd35";
  
  		reg = <1>;					/* CS1 */
- 		spi-max-frequency = <10000000>;
-diff --git a/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi b/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi
-index f5395b7da912..048fd216970a 100644
---- a/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi
-@@ -98,7 +98,7 @@
+-		spi-max-frequency = <10000000>;
++		spi-max-frequency = <500000>;
+ 		spi-cpol;
+ 		spi-cpha;
  
- 	lcd0: display@0 {
- 		compatible = "samsung,lte430wq-f0c", "panel-dpi";
--		label = "lcd";
-+		label = "lcd43";
- 
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&lte430_pins>;
+diff --git a/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi b/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
+new file mode 100644
+index 000000000000..eab94c13634f
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-palo35-common.dtsi
+@@ -0,0 +1,54 @@
++/*
++ * Copyright (C) 2015 Ash Charles, Gumstix Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Palo35 expansion board is manufactured by Gumstix Inc.
++ */
++
++#include "omap3-overo-common-peripherals.dtsi"
++#include "omap3-overo-common-lcd35.dtsi"
++
++#include <dt-bindings/input/input.h>
++
++/ {
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&led_pins>;
++		heartbeat {
++			label = "overo:red:gpio21";
++			gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;		/* gpio_21 */
++			linux,default-trigger = "heartbeat";
++		};
++		gpio22 {
++			label = "overo:blue:gpio22";
++			gpios = <&gpio1 22 GPIO_ACTIVE_LOW>;		/* gpio_22 */
++		};
++	};
++
++	gpio_keys {
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&button_pins>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		button0@23 {
++			label = "button0";
++			linux,code = <BTN_0>;
++			gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;		/* gpio_23 */
++			gpio-key,wakeup;
++		};
++		button1@14 {
++			label = "button1";
++			linux,code = <BTN_1>;
++			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;		/* gpio_14 */
++			gpio-key,wakeup;
++		};
++	};
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo-palo35.dts b/arch/arm/boot/dts/omap3-overo-palo35.dts
+new file mode 100644
+index 000000000000..880101977d43
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-palo35.dts
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (C) 2015 Ash Charles, Gumstix Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Palo35 expansion board is manufactured by Gumstix Inc.
++ */
++
++/dts-v1/;
++
++#include "omap3-overo.dtsi"
++#include "omap3-overo-palo35-common.dtsi"
++
++/ {
++	model = "OMAP35xx Gumstix Overo on Palo35";
++	compatible = "gumstix,omap3-overo-palo35", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3";
++};
++
++&omap3_pmx_core2 {
++	led_pins: pinmux_led_pins {
++		pinctrl-single,pins = <
++			OMAP3430_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)	/* etk_d7.gpio_21 */
++			OMAP3430_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)	/* etk_d8.gpio_22 */
++		>;
++	};
++
++	button_pins: pinmux_button_pins {
++		pinctrl-single,pins = <
++			OMAP3430_CORE2_IOPAD(0x25ee, PIN_INPUT | MUX_MODE4)	/* etk_d9.gpio_23 */
++			OMAP3430_CORE2_IOPAD(0x25dc, PIN_INPUT | MUX_MODE4)	/* etk_d0.gpio_14 */
++		>;
++	};
++};
++
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-palo35.dts b/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
+new file mode 100644
+index 000000000000..e2515450c6cf
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Palo35 expansion board is manufactured by Gumstix Inc.
++ */
++
++/dts-v1/;
++
++#include "omap3-overo-storm.dtsi"
++#include "omap3-overo-palo35-common.dtsi"
++
++/ {
++	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Palo35";
++	compatible = "gumstix,omap3-overo-palo35", "gumstix,omap3-overo", "ti,omap36xx", "ti,omap3";
++};
++
++&omap3_pmx_core2 {
++	led_pins: pinmux_led_pins {
++		pinctrl-single,pins = <
++			OMAP3630_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)	/* etk_d7.gpio_21 */
++			OMAP3630_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)	/* etk_d8.gpio_22 */
++		>;
++	};
++
++	button_pins: pinmux_button_pins {
++		pinctrl-single,pins = <
++			OMAP3630_CORE2_IOPAD(0x25ee, PIN_INPUT | MUX_MODE4)	/* etk_d9.gpio_23 */
++			OMAP3630_CORE2_IOPAD(0x25dc, PIN_INPUT | MUX_MODE4)	/* etk_d0.gpio_14 */
++		>;
++	};
++};
++
 -- 
 2.1.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
