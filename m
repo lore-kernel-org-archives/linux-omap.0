@@ -1,51 +1,84 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [GIT PULL 2/3] omap defconfig changes for v4.2
-Date: Thu, 11 Jun 2015 16:34:24 -0700
-Message-ID: <7hpp51bz0f.fsf@deeprootsystems.com>
-References: <556de668.8f9c6b0a.05a4.ffffe794SMTPIN_ADDED_BROKEN@mx.google.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH] usb: dwc3: pci: make better use of gpiod API
+Date: Fri, 12 Jun 2015 09:10:19 +0200
+Message-ID: <1434093019-14009-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:34743 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361AbbFKXe1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2015 19:34:27 -0400
-Received: by payr10 with SMTP id r10so10975310pay.1
-        for <linux-omap@vger.kernel.org>; Thu, 11 Jun 2015 16:34:27 -0700 (PDT)
-In-Reply-To: <556de668.8f9c6b0a.05a4.ffffe794SMTPIN_ADDED_BROKEN@mx.google.com>
-	(Tony Lindgren's message of "Tue, 2 Jun 2015 10:22:16 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
+which appeared in v3.17-rc1, the gpiod_get* functions take an additiona=
+l
+parameter that allows to specify direction and initial value for output=
+=2E
 
-> The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
->
->   Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/o2_dc
->
-> for you to fetch changes up to 4cbb08336f506cde30c0dfb3e49c55a52842fb5c:
->
->   ARM: omap2plus_defconfig: Enable TOUCHSCREEN_PIXCIR (2015-06-02 07:54:50 -0700)
->
-> ----------------------------------------------------------------
-> Few omap2plus_defconfig changes for v4.2 merge window:
->
-> - Enable dm9000 as built-in for NFSroot
->
-> - Enable dm816x USB phy as a loadable module
->
-> - Enable Pixcir touch screen as a loadable module
->
-> ----------------------------------------------------------------
+=46urthermore there is devm_gpiod_get_optional which is designed to get
+optional gpios. Also use devm_gpiod_get* because otherwise the gpio
+might be grabbed by a different driver.
 
-Pulled into next/defconfig.
+Simplify driver accordingly.
 
-Thanks,
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+---
+Hello,
 
-Kevin
+This usage without flags was introduced by commit a89d977cc04c (usb:
+dwc3: pci: add quirk for Baytrails) that is currently in next.
+
+Note I plan to make the flags parameter mandatory for 4.3. So unless
+this change gets into 4.2, would it be ok to let it go in via the gpio
+tree?
+
+Best regards
+Uwe
+
+ drivers/usb/dwc3/dwc3-pci.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 27e4fc896e9d..7e308730f955 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -84,18 +84,19 @@ static int dwc3_pci_quirks(struct pci_dev *pdev)
+ 					  acpi_dwc3_byt_gpios);
+=20
+ 		/* These GPIOs will turn on the USB2 PHY */
+-		gpio =3D gpiod_get(&pdev->dev, "cs");
+-		if (!IS_ERR(gpio)) {
+-			gpiod_direction_output(gpio, 0);
+-			gpiod_set_value_cansleep(gpio, 1);
+-			gpiod_put(gpio);
+-		}
++		gpio =3D devm_gpiod_get_optional(&pdev->dev, "cs", GPIOD_OUT_LOW);
++		if (IS_ERR(gpio))
++			return PTR_ERR(gpio);
++
++		gpiod_set_value_cansleep(gpio, 1);
++
++		gpio =3D devm_gpiod_get_optional(&pdev->dev, "reset",
++					       GPIOD_OUT_LOW);
++		if (IS_ERR(gpio))
++			return PTR_ERR(gpio);
+=20
+-		gpio =3D gpiod_get(&pdev->dev, "reset");
+-		if (!IS_ERR(gpio)) {
+-			gpiod_direction_output(gpio, 0);
++		if (gpio) {
+ 			gpiod_set_value_cansleep(gpio, 1);
+-			gpiod_put(gpio);
+ 			usleep_range(10000, 11000);
+ 		}
+ 	}
+--=20
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
