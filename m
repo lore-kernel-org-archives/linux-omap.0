@@ -1,182 +1,58 @@
-From: Ash Charles <ashcharles@gmail.com>
-Subject: [PATCH 2/5] omap3: dts: Add DTS for Gumstix TobiDuo expansion board
-Date: Fri, 12 Jun 2015 13:37:23 -0700
-Message-ID: <1434141446-11568-3-git-send-email-ashcharles@gmail.com>
-References: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:35509 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753205AbbFLUha (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2015 16:37:30 -0400
-In-Reply-To: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Wan ZongShun <mcuos.com@gmail.com>
+Subject: Re: [PATCH 01/15] ARM: kill off set_irq_flags usage
+Date: Sat, 13 Jun 2015 19:32:20 +0800
+Message-ID: <CAKT61h_EJgF926gmu0QZB=YHYSC+jWQA86yQ0e2T_4MtOvbXFg@mail.gmail.com>
+References: <1433874401-27161-1-git-send-email-robh@kernel.org> <1433874401-27161-2-git-send-email-robh@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1433874401-27161-2-git-send-email-robh@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-kernel <linux-kernel@vger.kernel.org>, arm@kernel.org, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Greg Ungerer <gerg@uclinux.org>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simtec Linux Team <linux@simtec.co.uk>, Kukjin Kim <kgene@kerne>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com
 
-The Gumstix "Tobi-Duo" expansion board [1] can be used with either
-OMAP3 Overo or Overo Storm COMs.  It provides two NICs using LAN9221
-chips.
-It is necessary to duplicate the interface information for the
-second SMSC9221 chip as discussed [2].
+2015-06-10 2:26 GMT+08:00 Rob Herring <robh@kernel.org>:
+> set_irq_flags is ARM specific with custom flags which have genirq
+> equivalents. Convert drivers to use the genirq interfaces directly, so we
+> can kill off set_irq_flags. The translation of flags is as follows:
+>
+> IRQF_VALID -> !IRQ_NOREQUEST
+> IRQF_PROBE -> !IRQ_NOPROBE
+> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
+>
+> For IRQs managed by an irqdomain, the irqdomain core code handles clearing
+> and setting IRQ_NOREQUEST already, so there is no need to do this in
+> .map() functions and we can simply remove the set_irq_flags calls. Some
+> users also set IRQ_NOPROBE and this has been maintained although it is not
+> clear that is really needed. There appears to be a great deal of blind
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Simtec Linux Team <linux@simtec.co.uk>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Cc: Wan ZongShun <mcuos.com@gmail.com>
 
-[1] https://store.gumstix.com/index.php/products/241/
-[2] http://www.spinics.net/lists/linux-omap/msg115282.html
+For Nuvoton W90x900
+Acked-by: Wan ZongShun <mcuos.com@gmail.com>
 
-Signed-off-by: Ash Charles <ashcharles@gmail.com>
----
- arch/arm/boot/dts/Makefile                        |  2 +
- arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts   | 22 ++++++++
- arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi | 66 +++++++++++++++++++++++
- arch/arm/boot/dts/omap3-overo-tobiduo.dts         | 22 ++++++++
- 4 files changed, 112 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
- create mode 100644 arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo-tobiduo.dts
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> +++ b/arch/arm/mach-w90x900/irq.c
+> @@ -211,6 +211,6 @@ void __init nuc900_init_irq(void)
+>         for (irqno = IRQ_WDT; irqno <= IRQ_ADC; irqno++) {
+>                 irq_set_chip_and_handler(irqno, &nuc900_irq_chip,
+>                                          handle_level_irq);
+> -               set_irq_flags(irqno, IRQF_VALID);
+> +               irq_clear_status_flags(irqno, IRQ_NOREQUEST);
+>         }
+>  }
+> --
+> 2.1.0
+>
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 992736b5229b..ac7c6f6bd719 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -394,8 +394,10 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
- 	omap3-overo-storm-palo43.dtb \
- 	omap3-overo-storm-summit.dtb \
- 	omap3-overo-storm-tobi.dtb \
-+	omap3-overo-storm-tobiduo.dtb \
- 	omap3-overo-summit.dtb \
- 	omap3-overo-tobi.dtb \
-+	omap3-overo-tobiduo.dtb \
- 	omap3-pandora-600mhz.dtb \
- 	omap3-pandora-1ghz.dtb \
- 	omap3-sbc-t3517.dtb \
-diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts b/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
-new file mode 100644
-index 000000000000..0c7d5a70e5e5
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
-@@ -0,0 +1,22 @@
-+/*
-+ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * TobiDuo expansion board is manufactured by Gumstix Inc.
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap3-overo-storm.dtsi"
-+#include "omap3-overo-tobiduo-common.dtsi"
-+
-+/ {
-+	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on TobiDuo";
-+	compatible = "gumstix,omap3-overo-tobiduo", "gumstix,omap3-overo", "ti,omap36xx", "ti,omap3";
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
-new file mode 100644
-index 000000000000..05788aab3cd3
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
-@@ -0,0 +1,66 @@
-+/*
-+ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * TobiDuo expansion board is manufactured by Gumstix Inc.
-+ */
-+
-+#include "omap3-overo-common-peripherals.dtsi"
-+
-+#include "omap-gpmc-smsc9221.dtsi"
-+
-+&gpmc {
-+	ranges = <4 0 0x2b000000 0x1000000>,	/* CS4 */
-+		 <5 0 0x2c000000 0x1000000>;	/* CS5 */
-+
-+	smsc1: ethernet@gpmc {
-+		reg = <5 0 0xff>;
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 176 */
-+	};
-+
-+	smsc2: ethernet@4,0 {
-+		compatible = "smsc,lan9221","smsc,lan9115";
-+		bank-width = <2>;
-+
-+		gpmc,mux-add-data;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <42>;
-+		gpmc,cs-wr-off-ns = <36>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <12>;
-+		gpmc,adv-wr-off-ns = <12>;
-+		gpmc,oe-on-ns = <0>;
-+		gpmc,oe-off-ns = <42>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <36>;
-+		gpmc,rd-cycle-ns = <60>;
-+		gpmc,wr-cycle-ns = <54>;
-+		gpmc,access-ns = <36>;
-+		gpmc,page-burst-access-ns = <0>;
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,wr-data-mux-bus-ns = <18>;
-+		gpmc,wr-access-ns = <42>;
-+		gpmc,cycle2cycle-samecsen;
-+		gpmc,cycle2cycle-diffcsen;
-+		vddvario-supply = <&vddvario>;
-+		vdd33a-supply = <&vdd33a>;
-+		reg-io-width = <4>;
-+		smsc,save-mac-address;
-+
-+		reg = <4 0 0xff>;
-+		interrupt-parent = <&gpio3>;
-+		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;	/* GPIO 65 */
-+	};
-+};
-+
-+&lis33de {
-+	status = "disabled";
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-overo-tobiduo.dts b/arch/arm/boot/dts/omap3-overo-tobiduo.dts
-new file mode 100644
-index 000000000000..bebc4b1e0bf7
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-overo-tobiduo.dts
-@@ -0,0 +1,22 @@
-+/*
-+ * Copyright (C) 2015 Ash Charles, Gumstix, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * TobiDuo expansion board is manufactured by Gumstix Inc.
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap3-overo.dtsi"
-+#include "omap3-overo-tobiduo-common.dtsi"
-+
-+/ {
-+	model = "OMAP35xx Gumstix Overo on TobiDuo";
-+	compatible = "gumstix,omap3-overo-tobiduo", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3";
-+};
-+
+
+
 -- 
-2.1.4
-
+---
+Vincent Wan(Zongshun)
+www.mcuos.com
