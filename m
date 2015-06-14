@@ -1,58 +1,52 @@
-From: Wan ZongShun <mcuos.com@gmail.com>
-Subject: Re: [PATCH 01/15] ARM: kill off set_irq_flags usage
-Date: Sat, 13 Jun 2015 19:32:20 +0800
-Message-ID: <CAKT61h_EJgF926gmu0QZB=YHYSC+jWQA86yQ0e2T_4MtOvbXFg@mail.gmail.com>
-References: <1433874401-27161-1-git-send-email-robh@kernel.org> <1433874401-27161-2-git-send-email-robh@kernel.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH -next] usb: dwc3: Remove unprintable characters from Kconfig
+Date: Sun, 14 Jun 2015 11:20:53 -0700
+Message-ID: <1434306053-21510-1-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433874401-27161-2-git-send-email-robh@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-kernel <linux-kernel@vger.kernel.org>, arm@kernel.org, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Greg Ungerer <gerg@uclinux.org>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simtec Linux Team <linux@simtec.co.uk>, Kukjin Kim <kgene@kerne>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:58366 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143AbbFNSU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Jun 2015 14:20:59 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-2015-06-10 2:26 GMT+08:00 Rob Herring <robh@kernel.org>:
-> set_irq_flags is ARM specific with custom flags which have genirq
-> equivalents. Convert drivers to use the genirq interfaces directly, so we
-> can kill off set_irq_flags. The translation of flags is as follows:
->
-> IRQF_VALID -> !IRQ_NOREQUEST
-> IRQF_PROBE -> !IRQ_NOPROBE
-> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
->
-> For IRQs managed by an irqdomain, the irqdomain core code handles clearing
-> and setting IRQ_NOREQUEST already, so there is no need to do this in
-> .map() functions and we can simply remove the set_irq_flags calls. Some
-> users also set IRQ_NOPROBE and this has been maintained although it is not
-> clear that is really needed. There appears to be a great deal of blind
-> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-> Cc: Simtec Linux Team <linux@simtec.co.uk>
-> Cc: Kukjin Kim <kgene@kernel.org>
-> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Cc: Wan ZongShun <mcuos.com@gmail.com>
+=46ix:
 
-For Nuvoton W90x900
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
+drivers/usb/dwc3/Kconfig:16:warning: ignoring unsupported character '=EF=
+=BF=BD'
+drivers/usb/dwc3/Kconfig:16:warning: ignoring unsupported character '=EF=
+=BF=BD'
 
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> +++ b/arch/arm/mach-w90x900/irq.c
-> @@ -211,6 +211,6 @@ void __init nuc900_init_irq(void)
->         for (irqno = IRQ_WDT; irqno <= IRQ_ADC; irqno++) {
->                 irq_set_chip_and_handler(irqno, &nuc900_irq_chip,
->                                          handle_level_irq);
-> -               set_irq_flags(irqno, IRQF_VALID);
-> +               irq_clear_status_flags(irqno, IRQ_NOREQUEST);
->         }
->  }
-> --
-> 2.1.0
->
-
-
-
--- 
+=46ixes: 88bc9d194ff6 ("usb: dwc3: add ULPI interface support")
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-Vincent Wan(Zongshun)
-www.mcuos.com
+ drivers/usb/dwc3/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+index 473bfaa96c30..dede32e809b6 100644
+--- a/drivers/usb/dwc3/Kconfig
++++ b/drivers/usb/dwc3/Kconfig
+@@ -13,7 +13,7 @@ if USB_DWC3
+=20
+ config USB_DWC3_ULPI
+ 	bool "Register ULPI PHY Interface"
+-	depends on USB_ULPI_BUS=3Dy ||=C2=A0USB_ULPI_BUS=3DUSB_DWC3
++	depends on USB_ULPI_BUS=3Dy || USB_ULPI_BUS=3DUSB_DWC3
+ 	help
+ 	  Select this if you have ULPI type PHY attached to your DWC3
+ 	  controller.
+--=20
+2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
