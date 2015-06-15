@@ -1,41 +1,88 @@
-From: Brian Hutchinson <b.hutchman@gmail.com>
-Subject: [RESEND PATCH] Add timer_32k_ck alias for dm816x in clk-816x.c
-Date: Mon, 15 Jun 2015 14:59:12 -0400
-Message-ID: <CAFZh4h-bdz4Q1fKXNVRYWNwp7wmvUrQmuWEwMjBtYwGtgk9-qw@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/1] add pwm capability to dm816x
+Date: Mon, 15 Jun 2015 22:32:59 +0300
+Message-ID: <557F286B.6010003@ti.com>
+References: <CAFZh4h8ikia8oKsZ6B12QZ1HdTV8Teu-+U9x_Ydu_-uOyh7-HA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:35469 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756149AbbFOS7N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2015 14:59:13 -0400
-Received: by obbgp2 with SMTP id gp2so70670890obb.2
-        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2015 11:59:12 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFZh4h8ikia8oKsZ6B12QZ1HdTV8Teu-+U9x_Ydu_-uOyh7-HA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Hutchinson <b.hutchman@gmail.com>, mturquette@linaro.org, sboyd@codeaurora.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Resend of patch since it was kicked back ... probably got out of plain
-text mode somehow.
+On 06/15/2015 09:36 PM, Brian Hutchinson wrote:
+> Clocks 4-7 are capable of PWM output on dm816x.
+>
+> This adds the pwm capability to those timers.
 
-dm816x needs timer_32k_ck alias to use dual mode timers in dmtimers.c
+Use checkpatch pls, I see lots of whitespace errors.
 
-This adds a timer_32k_ck alias for sys_32_ck in clk-816x.c so
-omap_dm_timer_set_source will work for dm816x.
+Also, I don't think Mike / Stephen care about this patch, as it is 
+against omap hwmod data only.
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Brian Hutchinson <b.hutchman@gmail.com>
+-Tero
 
---- drivers/clk/ti/clk-816x.c_
-orig      2015-06-15 13:46:53.058128064 -0400
-+++ drivers/clk/ti/clk-816x.c   2015-06-15 13:47:28.966306123 -0400
-@@ -18,6 +18,7 @@ static struct ti_dt_clk dm816x_clks[] =
-        DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
-        DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
-        DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
-+       DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
-        DT_CLK(NULL, "mpu_ck", "mpu_ck"),
-        DT_CLK(NULL, "timer1_fck", "timer1_fck"),
-        DT_CLK(NULL, "timer2_fck", "timer2_fck"),
+>
+> Cc: Paul Walmsley <paul@pwsan.com <mailto:paul@pwsan.com>>
+> Cc: Tero Kristo <t-kristo@ti.com <mailto:t-kristo@ti.com>>
+> Cc: Tony Lindgren <tony@atomide.com <mailto:tony@atomide.com>>
+> Signed-off-by: Brian Hutchinson <b.hutchman@gmail.com
+> <mailto:b.hutchman@gmail.com><mailto:tony@atomide.com>>
+>
+> --- arch/arm/mach-omap2/omap_hwmod_81xx_data.c_orig     2015-06-15
+> 13:20:43.174343431 -0400
+> +++ arch/arm/mach-omap2/omap_hwmod_81xx_data.c  2015-06-15
+> 13:34:51.770551392 -0400
+> @@ -546,6 +546,14 @@ static struct omap_timer_capability_dev_
+>          .timer_capability       = OMAP_TIMER_ALWON,
+>   };
+>
+> +/* pwm timers dev attribute.
+> + * timers 4-7 may be used for PWM output - see datasheet timer terminal
+> + * functions table
+> + */
+> +static struct omap_timer_capability_dev_attr capability_pwm_dev_attr = {
+> +       .timer_capability       = OMAP_TIMER_ALWON | OMAP_TIMER_HAS_PWM,
+> +};
+> +
+>   static struct omap_hwmod dm816x_timer1_hwmod = {
+>          .name           = "timer1",
+>          .clkdm_name     = "alwon_l3s_clkdm",
+> @@ -619,7 +627,7 @@ static struct omap_hwmod dm816x_timer4_h
+>                          .modulemode = MODULEMODE_SWCTRL,
+>                  },
+>          },
+> -       .dev_attr       = &capability_alwon_dev_attr,
+> +       .dev_attr       = &capability_pwm_dev_attr,
+>          .class          = &dm816x_timer_hwmod_class,
+>   };
+>
+> @@ -640,7 +648,7 @@ static struct omap_hwmod dm816x_timer5_h
+>                          .modulemode = MODULEMODE_SWCTRL,
+>                  },
+>          },
+> -       .dev_attr       = &capability_alwon_dev_attr,
+> +       .dev_attr       = &capability_pwm_dev_attr,
+>          .class          = &dm816x_timer_hwmod_class,
+>   };
+>
+> @@ -661,7 +669,7 @@ static struct omap_hwmod dm816x_timer6_h
+>                          .modulemode = MODULEMODE_SWCTRL,
+>                  },
+>          },
+> -       .dev_attr       = &capability_alwon_dev_attr,
+> +       .dev_attr       = &capability_pwm_dev_attr,
+>          .class          = &dm816x_timer_hwmod_class,
+>   };
+>
+> @@ -682,7 +690,7 @@ static struct omap_hwmod dm816x_timer7_h
+>                          .modulemode = MODULEMODE_SWCTRL,
+>                  },
+>          },
+> -       .dev_attr       = &capability_alwon_dev_attr,
+> +       .dev_attr       = &capability_pwm_dev_attr,
+>          .class          = &dm816x_timer_hwmod_class,
+>   };
