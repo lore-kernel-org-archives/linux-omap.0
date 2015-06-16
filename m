@@ -1,14 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/7] OMAPDSS: refactor dss probe function
-Date: Tue, 16 Jun 2015 13:16:24 +0300
-Message-ID: <1434449789-13812-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 5/7] OMAPDSS: reorder uninit calls
+Date: Tue, 16 Jun 2015 13:16:27 +0300
+Message-ID: <1434449789-13812-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1434449789-13812-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48350 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57888 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756618AbbFPKRH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756716AbbFPKRH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 16 Jun 2015 06:17:07 -0400
 In-Reply-To: <1434449789-13812-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,184 +16,60 @@ List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Refactor dss probe function by extracting the setup for video plls into
-a separate function. The call to this function is also moved to a
-slightly earlier phase, so that in error case we can bail out more
-easily.
+We have a list of function pointers to dss submodule uninit functions.
+It makes sense to do the uninit in the reverse order to init, but that
+is not currently the case.
+
+This patch reorders the uninit calls to be the reverse of init order.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dss.c | 125 ++++++++++++++++++++----------------
- 1 file changed, 69 insertions(+), 56 deletions(-)
+ drivers/video/fbdev/omap2/dss/core.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index 35601ab232e3..1ce47441efe3 100644
---- a/drivers/video/fbdev/omap2/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -1026,14 +1026,73 @@ static void __exit dss_uninit_ports(struct platform_device *pdev)
- 	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
- }
+diff --git a/drivers/video/fbdev/omap2/dss/core.c b/drivers/video/fbdev/omap2/dss/core.c
+index 57b6a5296c87..5c64515de818 100644
+--- a/drivers/video/fbdev/omap2/dss/core.c
++++ b/drivers/video/fbdev/omap2/dss/core.c
+@@ -269,26 +269,26 @@ static int (*dss_output_drv_reg_funcs[])(void) __initdata = {
+ };
  
-+static int dss_video_pll_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct regulator *pll_regulator;
-+	int r;
-+
-+	if (!np)
-+		return 0;
-+
-+	if (of_property_read_bool(np, "syscon-pll-ctrl")) {
-+		dss.syscon_pll_ctrl = syscon_regmap_lookup_by_phandle(np,
-+			"syscon-pll-ctrl");
-+		if (IS_ERR(dss.syscon_pll_ctrl)) {
-+			dev_err(&pdev->dev,
-+				"failed to get syscon-pll-ctrl regmap\n");
-+			return PTR_ERR(dss.syscon_pll_ctrl);
-+		}
-+
-+		if (of_property_read_u32_index(np, "syscon-pll-ctrl", 1,
-+				&dss.syscon_pll_ctrl_offset)) {
-+			dev_err(&pdev->dev,
-+				"failed to get syscon-pll-ctrl offset\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	pll_regulator = devm_regulator_get(&pdev->dev, "vdda_video");
-+	if (IS_ERR(pll_regulator)) {
-+		r = PTR_ERR(pll_regulator);
-+
-+		switch (r) {
-+		case -ENOENT:
-+			pll_regulator = NULL;
-+			break;
-+
-+		case -EPROBE_DEFER:
-+			return -EPROBE_DEFER;
-+
-+		default:
-+			DSSERR("can't get DPLL VDDA regulator\n");
-+			return r;
-+		}
-+	}
-+
-+	if (of_property_match_string(np, "reg-names", "pll1") >= 0) {
-+		dss.video1_pll = dss_video_pll_init(pdev, 0, pll_regulator);
-+		if (IS_ERR(dss.video1_pll))
-+			return PTR_ERR(dss.video1_pll);
-+	}
-+
-+	if (of_property_match_string(np, "reg-names", "pll2") >= 0) {
-+		dss.video2_pll = dss_video_pll_init(pdev, 1, pll_regulator);
-+		if (IS_ERR(dss.video2_pll)) {
-+			dss_video_pll_uninit(dss.video1_pll);
-+			return PTR_ERR(dss.video2_pll);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- /* DSS HW IP initialisation */
- static int __init omap_dsshw_probe(struct platform_device *pdev)
- {
- 	struct resource *dss_mem;
--	struct device_node *np = pdev->dev.of_node;
- 	u32 rev;
- 	int r;
--	struct regulator *pll_regulator;
+ static void (*dss_output_drv_unreg_funcs[])(void) __exitdata = {
+-#ifdef CONFIG_OMAP2_DSS_DSI
+-	dsi_uninit_platform_driver,
++#ifdef CONFIG_OMAP5_DSS_HDMI
++	hdmi5_uninit_platform_driver,
+ #endif
+-#ifdef CONFIG_OMAP2_DSS_DPI
+-	dpi_uninit_platform_driver,
++#ifdef CONFIG_OMAP4_DSS_HDMI
++	hdmi4_uninit_platform_driver,
+ #endif
+-#ifdef CONFIG_OMAP2_DSS_SDI
+-	sdi_uninit_platform_driver,
++#ifdef CONFIG_OMAP2_DSS_VENC
++	venc_uninit_platform_driver,
+ #endif
+ #ifdef CONFIG_OMAP2_DSS_RFBI
+ 	rfbi_uninit_platform_driver,
+ #endif
+-#ifdef CONFIG_OMAP2_DSS_VENC
+-	venc_uninit_platform_driver,
++#ifdef CONFIG_OMAP2_DSS_SDI
++	sdi_uninit_platform_driver,
+ #endif
+-#ifdef CONFIG_OMAP4_DSS_HDMI
+-	hdmi4_uninit_platform_driver,
++#ifdef CONFIG_OMAP2_DSS_DPI
++	dpi_uninit_platform_driver,
+ #endif
+-#ifdef CONFIG_OMAP5_DSS_HDMI
+-	hdmi5_uninit_platform_driver,
++#ifdef CONFIG_OMAP2_DSS_DSI
++	dsi_uninit_platform_driver,
+ #endif
+ };
  
- 	dss.pdev = pdev;
- 
-@@ -1062,6 +1121,10 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 	if (r)
- 		goto err_setup_clocks;
- 
-+	r = dss_video_pll_probe(pdev);
-+	if (r)
-+		goto err_pll_init;
-+
- 	pm_runtime_enable(&pdev->dev);
- 
- 	r = dss_runtime_get();
-@@ -1088,57 +1151,6 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 
- 	dss_init_ports(pdev);
- 
--	if (np && of_property_read_bool(np, "syscon-pll-ctrl")) {
--		dss.syscon_pll_ctrl = syscon_regmap_lookup_by_phandle(np,
--			"syscon-pll-ctrl");
--		if (IS_ERR(dss.syscon_pll_ctrl)) {
--			dev_err(&pdev->dev,
--				"failed to get syscon-pll-ctrl regmap\n");
--			return PTR_ERR(dss.syscon_pll_ctrl);
--		}
--
--		if (of_property_read_u32_index(np, "syscon-pll-ctrl", 1,
--				&dss.syscon_pll_ctrl_offset)) {
--			dev_err(&pdev->dev,
--				"failed to get syscon-pll-ctrl offset\n");
--			return -EINVAL;
--		}
--	}
--
--	pll_regulator = devm_regulator_get(&pdev->dev, "vdda_video");
--	if (IS_ERR(pll_regulator)) {
--		r = PTR_ERR(pll_regulator);
--
--		switch (r) {
--		case -ENOENT:
--			pll_regulator = NULL;
--			break;
--
--		case -EPROBE_DEFER:
--			return -EPROBE_DEFER;
--
--		default:
--			DSSERR("can't get DPLL VDDA regulator\n");
--			return r;
--		}
--	}
--
--	if (of_property_match_string(np, "reg-names", "pll1") >= 0) {
--		dss.video1_pll = dss_video_pll_init(pdev, 0, pll_regulator);
--		if (IS_ERR(dss.video1_pll)) {
--			r = PTR_ERR(dss.video1_pll);
--			goto err_pll_init;
--		}
--	}
--
--	if (of_property_match_string(np, "reg-names", "pll2") >= 0) {
--		dss.video2_pll = dss_video_pll_init(pdev, 1, pll_regulator);
--		if (IS_ERR(dss.video2_pll)) {
--			r = PTR_ERR(dss.video2_pll);
--			goto err_pll_init;
--		}
--	}
--
- 	rev = dss_read_reg(DSS_REVISION);
- 	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
- 			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
-@@ -1153,14 +1165,15 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
--err_pll_init:
-+err_runtime_get:
-+	pm_runtime_disable(&pdev->dev);
-+
- 	if (dss.video1_pll)
- 		dss_video_pll_uninit(dss.video1_pll);
- 
- 	if (dss.video2_pll)
- 		dss_video_pll_uninit(dss.video2_pll);
--err_runtime_get:
--	pm_runtime_disable(&pdev->dev);
-+err_pll_init:
- err_setup_clocks:
- 	dss_put_clocks();
- 	return r;
 -- 
 2.1.4
 
