@@ -1,70 +1,45 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/7] OMAPDSS: use components (fix probing problems)
-Date: Tue, 16 Jun 2015 17:36:41 +0300
-Message-ID: <358618591.Y41I6t5qpX@avalon>
-References: <1434449789-13812-1-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1434449789-13812-1-git-send-email-tomi.valkeinen@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH 1/1 linux-next] mmc: omap: use for_each_sg() for scatterlist parsing
+Date: Tue, 16 Jun 2015 21:15:15 +0200
+Message-ID: <1434482116-29583-1-git-send-email-fabf@skynet.be>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tomi,
+See Documentation/DMA-API.txt - Part Id
 
-Thank for the patches.
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+This is untested.
 
-On Tuesday 16 June 2015 13:16:22 Tomi Valkeinen wrote:
-> Hi,
-> 
-> I noticed that on some platforms omapdss did not probe successfully. Some
-> resource was not available yet, but omapdss did not manage to handle
-> deferred probing. The reason was the use of platform_driver_probe() in
-> combination with how the omapdss module handles the drivers.
-> 
-> To fix this properly, the component system felt fine for the job, and it
-> seems to work nicely.
-> 
->  Tomi
-> 
-> Tomi Valkeinen (7):
->   OMAPDSS: move 'dss_initialized' to dss driver
->   OMAPDSS: refactor dss probe function
->   OMAPDSS: fix dss_init_ports error handling
->   OMAPDSS: remove uses of __init/__exit
->   OMAPDSS: reorder uninit calls
->   OMAPDSS: componentize omapdss
->   OMAPDSS: simplify submodule reg/unreg code
+ drivers/mmc/host/omap.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-I've quickly reviewed the whole series and it looks good to me.
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  drivers/video/fbdev/omap2/dss/core.c  |  80 ++++--------
->  drivers/video/fbdev/omap2/dss/dispc.c |  42 +++++--
->  drivers/video/fbdev/omap2/dss/dpi.c   |  36 ++++--
->  drivers/video/fbdev/omap2/dss/dsi.c   |  27 +++-
->  drivers/video/fbdev/omap2/dss/dss.c   | 223 ++++++++++++++++++++-----------
->  drivers/video/fbdev/omap2/dss/dss.h   |  32 ++---
->  drivers/video/fbdev/omap2/dss/hdmi4.c |  28 ++++-
->  drivers/video/fbdev/omap2/dss/hdmi5.c |  28 ++++-
->  drivers/video/fbdev/omap2/dss/rfbi.c  |  32 ++++-
->  drivers/video/fbdev/omap2/dss/sdi.c   |  35 ++++--
->  drivers/video/fbdev/omap2/dss/venc.c  |  31 +++--
->  11 files changed, 396 insertions(+), 198 deletions(-)
-
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 68dd6c7..70dcf07 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -948,6 +948,7 @@ mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
+ {
+ 	struct mmc_data *data = req->data;
+ 	int i, use_dma = 1, block_size;
++	struct scatterlist *sg;
+ 	unsigned sg_len;
+ 
+ 	host->data = data;
+@@ -972,8 +973,8 @@ mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
+ 	sg_len = (data->blocks == 1) ? 1 : data->sg_len;
+ 
+ 	/* Only do DMA for entire blocks */
+-	for (i = 0; i < sg_len; i++) {
+-		if ((data->sg[i].length % block_size) != 0) {
++	for_each_sg(data->sg, sg, sg_len, i) {
++		if ((sg->length % block_size) != 0) {
+ 			use_dma = 0;
+ 			break;
+ 		}
 -- 
-Regards,
+2.4.2
 
-Laurent Pinchart
