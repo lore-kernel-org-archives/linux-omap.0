@@ -1,53 +1,41 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 1/1] Add timer_32k_ck alias for dm816x in clk-816x.c
-Date: Mon, 15 Jun 2015 22:38:14 +0300
-Message-ID: <557F29A6.8040109@ti.com>
-References: <CAFZh4h-ABVJ=TrePiZvv3vwNGx_CmeqFg3ck4OqCmws5UF8Q9w@mail.gmail.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] usb: dwc3: pci: make better use of gpiod API
+Date: Tue, 16 Jun 2015 11:16:30 +0200
+Message-ID: <CACRpkdaFFx7keJuoQxTwSKkVEUH1Ux0WxyO3Smq1OEeROA9VJg@mail.gmail.com>
+References: <1434093019-14009-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54530 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751948AbbFOTiO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jun 2015 15:38:14 -0400
-In-Reply-To: <CAFZh4h-ABVJ=TrePiZvv3vwNGx_CmeqFg3ck4OqCmws5UF8Q9w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1434093019-14009-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Brian Hutchinson <b.hutchman@gmail.com>, mturquette@linaro.org, sboyd@codeaurora.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, Tony Lindgren <tony@atomide.com>
 
-Subject should have clk: ti: in the beginning.
+On Fri, Jun 12, 2015 at 9:10 AM, Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> wrote:
 
-On 06/15/2015 09:54 PM, Brian Hutchinson wrote:
-> dm816x needs timer_32k_ck alias to use dual mode timers in dmtimers.c
+> Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() function=
+s)
+> which appeared in v3.17-rc1, the gpiod_get* functions take an additio=
+nal
+> parameter that allows to specify direction and initial value for outp=
+ut.
 >
-> This adds a timer_32k_ck alias for sys_32_ck in clk-816x.c so
-> omap_dm_timer_set_source will work for dm816x.
-
-Use checkpatch please. Or use a mailer that doesn't convert tabs to 
-spaces. This patch seems to have something else that is strange also.
-
+> Furthermore there is devm_gpiod_get_optional which is designed to get
+> optional gpios. Also use devm_gpiod_get* because otherwise the gpio
+> might be grabbed by a different driver.
 >
-> Cc: Paul Walmsley <paul@pwsan.com <mailto:paul@pwsan.com>>
-> Cc: Tero Kristo <t-kristo@ti.com <mailto:t-kristo@ti.com>>
-> Cc: Tony Lindgren <tony@atomide.com <mailto:tony@atomide.com>>
-> Signed-off-by: Brian Hutchinson <b.hutchman@gmail.com
-> <mailto:b.hutchman@gmail.com>>
+> Simplify driver accordingly.
 >
-> --- drivers/clk/ti/clk-816x.c_orig      2015-06-15 13:46:53.058128064 -0400
-> +++ drivers/clk/ti/clk-816x.c   2015-06-15 13:47:28.966306123 -0400
+> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-What is that _orig here? Are you using git to generate the patches?
+Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
--Tero
-
-> @@ -18,6 +18,7 @@ static struct ti_dt_clk dm816x_clks[] =
->          DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
->          DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
->          DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
-> +       DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
->          DT_CLK(NULL, "mpu_ck", "mpu_ck"),
->          DT_CLK(NULL, "timer1_fck", "timer1_fck"),
->          DT_CLK(NULL, "timer2_fck", "timer2_fck"),
-
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
