@@ -1,22 +1,28 @@
-From: "chang" <admin@bbc.com>
-Subject: Hello!!!
-Date: Tue, 16 Jun 2015 18:05:19 -0000
-Message-ID: <b9606a86c3ea526f3a13901e0d1f17cd.squirrel__44806.3670810827$1434498665$gmane$org@204.151.240.160>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v4 0/4] remoteproc: Introduce wkup_m3_rproc driver
+Date: Wed, 17 Jun 2015 10:12:45 +0300
+Message-ID: <CAK=WgbbQKaAuyfUJGWpzEmdSZFyReOsf+uPSQq9BMSaSh_xzaA@mail.gmail.com>
+References: <1432327530-48032-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [204.151.240.160] ([204.151.240.160]:43674 "EHLO mail.bbc.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751831AbbFPXul (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Jun 2015 19:50:41 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432327530-48032-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, May 22, 2015 at 11:45 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
+> Hi,
+> This patch series is v4 of the series to add a wkup_m3_rproc driver
+> for TI AM335xi and AM437x SoCs. This family of SoCs contains an ARM
+> Cortex M3 coprocessor that is responsible for low-level power tasks
+> that cannot be handled by the main ARM Cortex A8 so firmware running
+> from the CM3 can be used instead. This driver handles loading
+> of the firmware and reset of the CM3. Change info can be found
+> with each patch.
 
-Hello,
+Applied all 4 patches to remoteproc's for-next branch.
 
-Mrs. Liliane picked you. For details email her
-directly: lilbetencout45@hotmail.com
-
-
+Thanks,
+Ohad.
