@@ -1,50 +1,185 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v5 1/4] remoteproc: introduce rproc_get_by_phandle API
-Date: Thu, 18 Jun 2015 11:01:21 -0500
-Message-ID: <5582EB51.8010406@ti.com>
-References: <1432327530-48032-2-git-send-email-d-gerlach@ti.com> <1434566762-40702-1-git-send-email-d-gerlach@ti.com> <CAK=Wgbb1e6O574Bpicy4Y623vtiigauT22H-zk+JXGCz070i5g@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 10/15] PCI: kill off set_irq_flags usage
+Date: Thu, 18 Jun 2015 11:59:54 -0500
+Message-ID: <20150618165954.GE7710@google.com>
+References: <1433874401-27161-1-git-send-email-robh@kernel.org>
+ <1433874401-27161-11-git-send-email-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=Wgbb1e6O574Bpicy4Y623vtiigauT22H-zk+JXGCz070i5g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1433874401-27161-11-git-send-email-robh@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arm@kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Simon Horman <horms@verge.net.au>, Michal Simek <michal.simek@xilinx.com>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Ohad,
-On 06/18/2015 04:04 AM, Ohad Ben-Cohen wrote:
-> Hi Dave,
-> 
-> On Wed, Jun 17, 2015 at 9:46 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
->> Allow users of remoteproc the ability to get a handle to an rproc by
->> passing a phandle supplied in the user's device tree node. This is
->> useful in situations that require manual booting of the rproc.
->>
->> This patch uses the code removed by commit 40e575b1d0b3 ("remoteproc:
->> remove the get_by_name/put API") for the ref counting but is modified
->> to use a simple list and locking mechanism and has rproc_get_by_name
->> replaced with an rproc_get_by_phandle API.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->> v4->v5: Fixed build error from of_find_node_by_phandle when !CONFIG_OF
->>         based on offline discussion.
-> 
-> We can't rebase our for-next branch, so I've applied a
-> similar fix in a separate patch.
-> 
-> Please check our for-next branch to make sure things still work for you.
-> 
+On Tue, Jun 09, 2015 at 01:26:36PM -0500, Rob Herring wrote:
+> set_irq_flags is ARM specific with custom flags which have genirq
+> equivalents. Convert drivers to use the genirq interfaces directly, s=
+o we
+> can kill off set_irq_flags. The translation of flags is as follows:
+>=20
+> IRQF_VALID -> !IRQ_NOREQUEST
+> IRQF_PROBE -> !IRQ_NOPROBE
+> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
+>=20
+> For IRQs managed by an irqdomain, the irqdomain core code handles cle=
+aring
+> and setting IRQ_NOREQUEST already, so there is no need to do this in
+> .map() functions and we can simply remove the set_irq_flags calls. So=
+me
+> users also set IRQ_NOPROBE and this has been maintained although it i=
+s not
+> clear that is really needed. There appears to be a great deal of blin=
+d
+> copy and paste of this code.
+>=20
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Murali Karicheri <m-karicheri2@ti.com>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: Stephen Warren <swarren@wwwdotorg.org>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: Jingoo Han <jingoohan1@gmail.com>
+> Cc: Pratyush Anand <pratyush.anand@gmail.com>
+> Cc: Simon Horman <horms@verge.net.au>
+> Cc: Michal Simek <michal.simek@xilinx.com>
+> Cc: "S=F6ren Brinkmann" <soren.brinkmann@xilinx.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-pci@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-tegra@vger.kernel.org
+> Cc: linux-sh@vger.kernel.org
 
-Oh sorry about. Pulled your for-next, tried it out, everything looks good to me,
-thanks!
+This is the only part of the series on linux-pci, so I assume this will=
+ be
+merged by somebody else along with the rest.
 
-Regards,
-Dave
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-> Thanks,
-> Ohad.
-> 
+> ---
+>  drivers/pci/host/pci-dra7xx.c      | 1 -
+>  drivers/pci/host/pci-keystone-dw.c | 2 --
+>  drivers/pci/host/pci-tegra.c       | 1 -
+>  drivers/pci/host/pcie-designware.c | 1 -
+>  drivers/pci/host/pcie-rcar.c       | 1 -
+>  drivers/pci/host/pcie-xilinx.c     | 2 --
+>  6 files changed, 8 deletions(-)
+>=20
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra=
+7xx.c
+> index 2d57e19..94cbc4d 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -160,7 +160,6 @@ static int dra7xx_pcie_intx_map(struct irq_domain=
+ *domain, unsigned int irq,
+>  {
+>  	irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> diff --git a/drivers/pci/host/pci-keystone-dw.c b/drivers/pci/host/pc=
+i-keystone-dw.c
+> index f34892e..f1d0749 100644
+> --- a/drivers/pci/host/pci-keystone-dw.c
+> +++ b/drivers/pci/host/pci-keystone-dw.c
+> @@ -196,7 +196,6 @@ static int ks_dw_pcie_msi_map(struct irq_domain *=
+domain, unsigned int irq,
+>  	irq_set_chip_and_handler(irq, &ks_dw_pcie_msi_irq_chip,
+>  				 handle_level_irq);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> @@ -277,7 +276,6 @@ static int ks_dw_pcie_init_legacy_irq_map(struct =
+irq_domain *d,
+>  	irq_set_chip_and_handler(irq, &ks_dw_pcie_legacy_irq_chip,
+>  				 handle_level_irq);
+>  	irq_set_chip_data(irq, d->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> diff --git a/drivers/pci/host/pci-tegra.c b/drivers/pci/host/pci-tegr=
+a.c
+> index 00e9272..36bd700 100644
+> --- a/drivers/pci/host/pci-tegra.c
+> +++ b/drivers/pci/host/pci-tegra.c
+> @@ -1263,7 +1263,6 @@ static int tegra_msi_map(struct irq_domain *dom=
+ain, unsigned int irq,
+>  {
+>  	irq_set_chip_and_handler(irq, &tegra_msi_irq_chip, handle_simple_ir=
+q);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	tegra_cpuidle_pcie_irqs_in_use();
+> =20
+> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pc=
+ie-designware.c
+> index 2e9f84f..5caa94d 100644
+> --- a/drivers/pci/host/pcie-designware.c
+> +++ b/drivers/pci/host/pcie-designware.c
+> @@ -333,7 +333,6 @@ static int dw_pcie_msi_map(struct irq_domain *dom=
+ain, unsigned int irq,
+>  {
+>  	irq_set_chip_and_handler(irq, &dw_msi_irq_chip, handle_simple_irq);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> diff --git a/drivers/pci/host/pcie-rcar.c b/drivers/pci/host/pcie-rca=
+r.c
+> index c086210..7678fe0 100644
+> --- a/drivers/pci/host/pcie-rcar.c
+> +++ b/drivers/pci/host/pcie-rcar.c
+> @@ -664,7 +664,6 @@ static int rcar_msi_map(struct irq_domain *domain=
+, unsigned int irq,
+>  {
+>  	irq_set_chip_and_handler(irq, &rcar_msi_irq_chip, handle_simple_irq=
+);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> diff --git a/drivers/pci/host/pcie-xilinx.c b/drivers/pci/host/pcie-x=
+ilinx.c
+> index f1a06a0..72015119 100644
+> --- a/drivers/pci/host/pcie-xilinx.c
+> +++ b/drivers/pci/host/pcie-xilinx.c
+> @@ -338,7 +338,6 @@ static int xilinx_pcie_msi_map(struct irq_domain =
+*domain, unsigned int irq,
+>  {
+>  	irq_set_chip_and_handler(irq, &xilinx_msi_irq_chip, handle_simple_i=
+rq);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> @@ -377,7 +376,6 @@ static int xilinx_pcie_intx_map(struct irq_domain=
+ *domain, unsigned int irq,
+>  {
+>  	irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
+>  	irq_set_chip_data(irq, domain->host_data);
+> -	set_irq_flags(irq, IRQF_VALID);
+> =20
+>  	return 0;
+>  }
+> --=20
+> 2.1.0
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
