@@ -1,101 +1,86 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] i2c: omap: improve duty cycle on SCL
-Date: Thu, 18 Jun 2015 12:24:28 -0500
-Message-ID: <20150618172428.GB27790@saruman.tx.rr.com>
-References: <1434482276-1210-1-git-send-email-balbi@ti.com>
- <55815581.80807@gmx.de>
- <20150617153812.GB18421@saruman.tx.rr.com>
- <5582678F.4010505@gmx.de>
+Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
+Date: Thu, 18 Jun 2015 12:25:58 -0500
+Message-ID: <20150618172558.GC27790@saruman.tx.rr.com>
+References: <1434569475-17378-1-git-send-email-balbi@ti.com>
+ <55827CD7.7030207@nokia.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="32u276st3Jlj2kUU"
+	protocol="application/pgp-signature"; boundary="2Z2K0IlrPCVsbNpk"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32965 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47064 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754679AbbFRR1a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Jun 2015 13:27:30 -0400
+	id S1753653AbbFRR25 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jun 2015 13:28:57 -0400
 Content-Disposition: inline
-In-Reply-To: <5582678F.4010505@gmx.de>
+In-Reply-To: <55827CD7.7030207@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Lawnick <ml.lawnick@gmx.de>
-Cc: balbi@ti.com, wsa@the-dreams.de, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Alexander Sverdlin <alexander.sverdlin@nokia.com>
+Cc: ext Felipe Balbi <balbi@ti.com>, wsa@the-dreams.de, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---32u276st3Jlj2kUU
-Content-Type: text/plain; charset=utf-8
+--2Z2K0IlrPCVsbNpk
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 18, 2015 at 08:39:11AM +0200, Michael Lawnick wrote:
-> Am 17.06.2015 um 17:38 schrieb Felipe Balbi:
-> >Hi,
-> >
-> >On Wed, Jun 17, 2015 at 01:09:53PM +0200, Michael Lawnick wrote:
-> >>Am 16.06.2015 um 21:17 schrieb Felipe Balbi:
-> >>>With this patch we try to be as close to 50%
-> >>>duty cycle as possible. The reason for this
-> >>>is that some devices present an erratic behavior
-> >>>with certain duty cycles.
-> >>>
-> >>>One such example is TPS65218 PMIC which fails
-> >>>to change voltages when running @ 400kHz and
-> >>>duty cycle is lower than 34%.
-> >>>
-> >>>The idea of the patch is simple:
-> >>>
-> >>>calculate desired scl_period from requested scl
-> >>>and use 50% for tLow and 50% for tHigh.
-> >>...
-> >>Hmm, and what's about  Philips I2C specification 2.1, Jan 2000, Table 5?
-> >>
-> >>>PARAMETER                       SYMBOL  STANDARD-MODE   FAST-MODE     =
-UNIT
-> >>>                                          MIN. MAX.     MIN. MAX.
-> >>>LOW period of the SCL clock     tLOW      4.7   =E2=80=93       1.3   =
-=E2=80=93       =C2=B5s
-> >>>HIGH period of the SCL clock    tHIGH     4.0   =E2=80=93       0.6   =
-=E2=80=93       =C2=B5s
-> >>
-> >>Your signal is in spec (0.85 =C2=B5s high, 1,65 low).
-> >>Maybe your TPS65218 is just buggy or signals are bad?
-> >
-> >yes, tps is buggy, it's written in the commit log itself.
-> >
+On Thu, Jun 18, 2015 at 10:09:59AM +0200, Alexander Sverdlin wrote:
+> Hello Felipe,
 >=20
-> So I think it is unacceptable to change the adapters code violating
-> specification because some buggy device doesn't work properly.
+> On 17/06/15 21:31, ext Felipe Balbi wrote:
+> > With this patch we try to be as close to 50%
+> > duty cycle as possible. The reason for this
+> > is that some devices present an erratic behavior
+> > with certain duty cycles.
+> >=20
+> > One such example is TPS65218 PMIC which fails
+> > to change voltages when running @ 400kHz and
+> > duty cycle is lower than 34%.
+> >=20
+> > The idea of the patch is simple:
+> >=20
+> > calculate desired scl_period from requested scl
+> > and use 50% for tLow and 50% for tHigh.
+> >=20
+> > tLow is calculated with a DIV_ROUND_UP() to make
+> > sure it's slightly higher than tHigh and to make
+> > sure that we end up within I2C specifications.
+>=20
+> if you refuse to change the calculations to achieve maximum possible
+> bus rate (as I've shown you with SCLL=3D9 and SCLH=3D9), maybe you want to
+> change the description? Because you are doing something else than is
+> written here. You are only in spec because you are not doing 50% duty
+> cycle. And you didn't mention here that you lower the bus speed below
+> 400kHz to achieve this.
 
-read the other thread and you'll see that it's not violating jack
-
-> This change for your device has chance to blow up many correctly
-> working ones.
-
-How ?
+and there's a comment where the calculation goes which states "as close
+to 50% as possible but we make sure tLow is higher than tHigh so we're
+still within spec".
 
 --=20
 balbi
 
---32u276st3Jlj2kUU
+--2Z2K0IlrPCVsbNpk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVgv7MAAoJEIaOsuA1yqREHTMP/2MVCa56nikZatPn+6+D9RGJ
-YdCXDehifA0jjHWfv6CLivqFmHR2gK6Ohx/XhZv5cJXhtgr14nc321kZEy1UrpRX
-8Fn4V0zN0kPvKKF8iznWkBdLdjTBEceRjERSSaXiYMlj3seK3CFoQ3oSmifCn3Uo
-cq3JrRRxDNxbfyJmyu0tWyIXgP6L7/bSLOFo6XdyUL5M9fAj2/ChaES9RkiPx48r
-dCOnhN0Zzz89uWhIKqseh3knRirGHyIbK2Xl2kHXpbeNLK86hKw0VI6XyKJcuxnG
-4JVH7afkXkRFp9x8nHHnJQ/vVFWS74Q7avDK7JqT1Km9BSAhsD042qF4I7VSwoAx
-Jzr8oobAlN2C/ZhZG1QKtSklq1He7y1zqp6m81aCt9m4QEWuQdqowR2q4qOHL/4n
-fN3+vDQXx8M5z2bQd+xWqc6EdELu4xThvLUvI34Gb3dCTpi/1zo39LMAoujuG2+i
-cV9FXCwwg/4/JfhBK+F9zPOIAkug6vWpSGC4XMGsWC2oqMZqA22kof7ZuKCJ8P2O
-vW2x78ufk05WNnrbHct4Ucxb6lb3z2/Ypc1DigCkkh8kaJ4rCVRBP62gMJ6AvCxr
-ZP7HJiWD+ETaFuyaZlkvmr6HIXAdwoBSmWV6BtpA/choijf2K6BOgQMBC0tKHYv0
-gSr0i+96o3lpiEPUVGtv
-=KshA
+iQIcBAEBAgAGBQJVgv8lAAoJEIaOsuA1yqREa3EQAJLH+CQ9fQ7cwb4o+PihHsRk
+WzmeTKb3sXyfn+diF2KgFDdf/qicEBRvWEMD7I/lQNUn8b0VNO2VySXSH8P2dbCu
+3a+wvZrjjQI/QdhOw9WUD9pgPI5JdZIDR3o8nfuaLupWaDoRKXPcCtE43EDnGlBD
+ITilIsHL0siVrZPyyE38yThGYDKal5cZpMeeV0joQAxU6xN2Vlni5/u0SYku8Uiz
+8dkJ7HDxAcyr0oAd35PM73OyZKBX1fH+lK3Xe2eTUjjwW/uaxKvVgA4mrwEBRWSn
+VuIIc1MfQTszqwhzsiFq5TUv1/dlSZ7buqdTUW83E2ABn8raMQJ84Ja+GZH7I0VQ
+yEHPaEPdrVdPtS1lVYQeRzAZ1CAkV7iDm2vI+LQK92ZyrRiY8u06ZRkCIVBrdtaK
+ecCl5aIFY7oDAlo6E78XkQcK+HB4YF2r+3GBpaR586tKqaDpa/AnFrIRAdKHEf5y
+wJEyRuUB1two8k6wCaXTQCnlASWy0XDOtq8DzG7NMJnPYklEnLSwgfAt8NVjgIQj
+k6gvohh7Htojr6wNejCxhT9Rqgpq8B3QP1aPbfgs94puEkviOAfDR7ymOQ1GggwI
+6Vh0OhCqW57xie4GHh6nnC0U4uI16md8aR5Z4gbpbfwXkqCBu7nuvegMZr7KUlxd
+QNb4D+u2BOUo3rUUD3o/
+=l2WW
 -----END PGP SIGNATURE-----
 
---32u276st3Jlj2kUU--
+--2Z2K0IlrPCVsbNpk--
