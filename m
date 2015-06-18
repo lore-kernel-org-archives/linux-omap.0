@@ -1,54 +1,45 @@
-From: Alexander Sverdlin <alexander.sverdlin@nokia.com>
-Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
-Date: Thu, 18 Jun 2015 10:09:59 +0200
-Message-ID: <55827CD7.7030207@nokia.com>
-References: <1434569475-17378-1-git-send-email-balbi@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v5 1/4] remoteproc: introduce rproc_get_by_phandle API
+Date: Thu, 18 Jun 2015 12:04:16 +0300
+Message-ID: <CAK=Wgbb1e6O574Bpicy4Y623vtiigauT22H-zk+JXGCz070i5g@mail.gmail.com>
+References: <1432327530-48032-2-git-send-email-d-gerlach@ti.com> <1434566762-40702-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1434569475-17378-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Felipe Balbi <balbi@ti.com>, wsa@the-dreams.de
-Cc: Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:36091 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727AbbFRJEh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2015 05:04:37 -0400
+Received: by igbiq7 with SMTP id iq7so86582587igb.1
+        for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2015 02:04:36 -0700 (PDT)
+In-Reply-To: <1434566762-40702-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hello Felipe,
+Hi Dave,
 
-On 17/06/15 21:31, ext Felipe Balbi wrote:
-> With this patch we try to be as close to 50%
-> duty cycle as possible. The reason for this
-> is that some devices present an erratic behavior
-> with certain duty cycles.
-> 
-> One such example is TPS65218 PMIC which fails
-> to change voltages when running @ 400kHz and
-> duty cycle is lower than 34%.
-> 
-> The idea of the patch is simple:
-> 
-> calculate desired scl_period from requested scl
-> and use 50% for tLow and 50% for tHigh.
-> 
-> tLow is calculated with a DIV_ROUND_UP() to make
-> sure it's slightly higher than tHigh and to make
-> sure that we end up within I2C specifications.
+On Wed, Jun 17, 2015 at 9:46 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
+> Allow users of remoteproc the ability to get a handle to an rproc by
+> passing a phandle supplied in the user's device tree node. This is
+> useful in situations that require manual booting of the rproc.
+>
+> This patch uses the code removed by commit 40e575b1d0b3 ("remoteproc:
+> remove the get_by_name/put API") for the ref counting but is modified
+> to use a simple list and locking mechanism and has rproc_get_by_name
+> replaced with an rproc_get_by_phandle API.
+>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> v4->v5: Fixed build error from of_find_node_by_phandle when !CONFIG_OF
+>         based on offline discussion.
 
-if you refuse to change the calculations to achieve maximum possible
-bus rate (as I've shown you with SCLL=9 and SCLH=9), maybe you want to
-change the description? Because you are doing something else than is
-written here. You are only in spec because you are not doing 50% duty
-cycle. And you didn't mention here that you lower the bus speed below
-400kHz to achieve this.
+We can't rebase our for-next branch, so I've applied a
+similar fix in a separate patch.
 
--- 
-Best regards,
-Alexander Sverdlin.
+Please check our for-next branch to make sure things still work for you.
+
+Thanks,
+Ohad.
