@@ -1,45 +1,57 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH v2] futex: lower the lock contention on the HB lock during wake up
-Date: Fri, 19 Jun 2015 12:32:56 -0700
-Message-ID: <7ha8vvtrx3.fsf@deeprootsystems.com>
-References: <1432056298-18738-1-git-send-email-dave@stgolabs.net>
-	<1432056298-18738-2-git-send-email-dave@stgolabs.net>
-	<20150616192911.GA19500@linutronix.de>
-	<1434484226.1903.19.camel@stgolabs.net>
-	<20150617083350.GA2433@linutronix.de>
-	<CAMAWPa9F3qP41XQ1jb9U+fQxUAogYnomHabbKj6PG1=Mf8sW2w@mail.gmail.com>
-	<alpine.DEB.2.11.1506192053280.4107@nanos>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH] gpio: omap: use raw locks for locking
+Date: Fri, 19 Jun 2015 23:52:34 +0200
+Message-ID: <CABxcv==rPLGKSSuXNFqh1gSgDH0DsD2qDYJdXhspwojzAFE1Pw@mail.gmail.com>
+References: <1423757436-18986-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1506192053280.4107@nanos> (Thomas Gleixner's
-	message of "Fri, 19 Jun 2015 20:54:44 +0200 (CEST)")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Davidlohr Bueso <dave@stgolabs.net>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Mike Galbraith <umgwanakikbuti@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, lkml <linux-kernel@vger.kernel.org>, Tyler Baker <tyler.baker@linaro.org>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1423757436-18986-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Thomas Gleixner <tglx@linutronix.de> writes:
+Hello Sebastian,
 
-> On Fri, 19 Jun 2015, Kevin Hilman wrote:
->> On Wed, Jun 17, 2015 at 1:33 AM, Sebastian Andrzej Siewior
->> A handful of boot test failures on ARM/OMAP were found by kernelci.org
->> in next-20150619[1] and were bisected down to this patch, which hit
->> next-20150619 in the form of commit 881bd58d6e9e (futex: Lower the
->> lock contention on the HB lock during wake up).  I confirmed that
->> reverting that patch on top of next-20150619 gets things booting again
->> for the affected platforms.
->> 
->> I haven't debugged this any further, but full boot logs are available
->> for the boot failures[2][3] and the linux-omap list and maintainer are
->> Cc'd here to help investigate further if needed.
+On Thu, Feb 12, 2015 at 5:10 PM, Sebastian Andrzej Siewior
+<bigeasy@linutronix.de> wrote:
+> This patch converts gpio_bank.lock from a spin_lock into a
+> raw_spin_lock. The call path to access this lock is always under a
+> raw_spin_lock, for instance
+> - __setup_irq() holds &desc->lock with irq off
+>   + __irq_set_trigger()
+>    + omap_gpio_irq_type()
 >
-> Found it. Dunno, how I missed that one. Fix below.
+> - handle_level_irq() (runs with irqs off therefore raw locks)
+>   + mask_ack_irq()
+>    + omap_gpio_mask_irq()
 >
+> This fixes the obvious backtrace on -RT. However I noticed two cases
+> where it looks wrong and this is not limited to -RT:
+> - omap_gpio_irq_type() is called with IRQ off and has an conditional
+>   call to pm_runtime_get_sync() which may sleep. Either it may happen or
+>   it may not happen but pm_runtime_get_sync() should not be called in an
+>   atomic section.
+>
+> - omap_gpio_debounce() is holding the lock with IRQs off.
+>   + omap2_set_gpio_debounce()
+>    + clk_prepare_enable()
+>     + clk_prepare() this one might sleep.
+>   The number of users of gpiod_set_debounce() / gpio_set_debounce()
+>   looks low but still this is not good.
+>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
 
-Yup, that fix on top of next-20150619 gets the two OMAP platforms
-booting again.
+I had already acked the first time you posted this [0] but you didn't
+carry the tag so here goes again:
 
-Tested-by: Kevin Hilman <khilman@linaro.org>
+Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
 
-Kevin
+Best regards,
+Javier
+
+[0]: https://patchwork.ozlabs.org/patch/439249/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" in
