@@ -1,56 +1,77 @@
-From: Michael Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v2 4/5] clk: ti: DRA7: Add tbclk data for ehrpwm
-Date: Thu, 18 Jun 2015 15:39:39 -0700
-Message-ID: <20150618223939.9112.75016@quantum>
-References: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
- <1433332284-10766-5-git-send-email-vigneshr@ti.com>
+From: Michael Lawnick <ml.lawnick-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: improve duty cycle on SCL
+Date: Fri, 19 Jun 2015 07:41:49 +0200
+Message-ID: <5583AB9D.6090805@gmx.de>
+References: <1434482276-1210-1-git-send-email-balbi@ti.com> <55815581.80807@gmx.de> <20150617153812.GB18421@saruman.tx.rr.com> <5582678F.4010505@gmx.de> <20150618172428.GB27790@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:35766 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbbFRWju convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2015 18:39:50 -0400
-Received: by pacyx8 with SMTP id yx8so70520400pac.2
-        for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2015 15:39:50 -0700 (PDT)
-In-Reply-To: <1433332284-10766-5-git-send-email-vigneshr@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150618172428.GB27790-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 
-Quoting Vignesh R (2015-06-03 04:51:23)
-> tbclk is needed by ehrpwm to generate pwm waveforms. Hence, register
-> the required clock information.
-> 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
+Am 18.06.2015 um 19:24 schrieb Felipe Balbi:
+> On Thu, Jun 18, 2015 at 08:39:11AM +0200, Michael Lawnick wrote:
+>> Am 17.06.2015 um 17:38 schrieb Felipe Balbi:
+>>> Hi,
+>>>
+>>> On Wed, Jun 17, 2015 at 01:09:53PM +0200, Michael Lawnick wrote:
+>>>> Am 16.06.2015 um 21:17 schrieb Felipe Balbi:
+>>>>> With this patch we try to be as close to 50%
+>>>>> duty cycle as possible. The reason for this
+>>>>> is that some devices present an erratic behavior
+>>>>> with certain duty cycles.
+>>>>>
+>>>>> One such example is TPS65218 PMIC which fails
+>>>>> to change voltages when running @ 400kHz and
+>>>>> duty cycle is lower than 34%.
+>>>>>
+>>>>> The idea of the patch is simple:
+>>>>>
+>>>>> calculate desired scl_period from requested scl
+>>>>> and use 50% for tLow and 50% for tHigh.
+>>>> ...
+>>>> Hmm, and what's about  Philips I2C specification 2.1, Jan 2000, Ta=
+ble 5?
+>>>>
+>>>>> PARAMETER                       SYMBOL  STANDARD-MODE   FAST-MODE=
+     UNIT
+>>>>>                                           MIN. MAX.     MIN. MAX.
+>>>>> LOW period of the SCL clock     tLOW      4.7   =E2=80=93       1=
+=2E3   =E2=80=93       =C2=B5s
+>>>>> HIGH period of the SCL clock    tHIGH     4.0   =E2=80=93       0=
+=2E6   =E2=80=93       =C2=B5s
+>>>>
+>>>> Your signal is in spec (0.85 =C2=B5s high, 1,65 low).
+>>>> Maybe your TPS65218 is just buggy or signals are bad?
+>>>
+>>> yes, tps is buggy, it's written in the commit log itself.
+>>>
+>>
+>> So I think it is unacceptable to change the adapters code violating
+>> specification because some buggy device doesn't work properly.
+>
+> read the other thread and you'll see that it's not violating jack
+>
+>> This change for your device has chance to blow up many correctly
+>> working ones.
+>
+> How ?
+>
+The answer is so obvious that I'm a bit irritated.
+Your patch description tells: 'and use 50% for tLow and 50% for tHigh'
+=46or 400kHz this means 1.25 us for high and low. This clearly violates=
+=20
+the specification for minimum low period and will not work with any=20
+device that relies on it.
+In the other thread it is discussed that your patch does effectively no=
+t=20
+do what you describe but this is something completely independent.
 
-Looks good to me. Please feel free to add:
-
-Acked-by: Michael Turquette <mturquette@baylibre.com>
-
-Regards,
-Mike
-
-> ---
->  drivers/clk/ti/clk-7xx.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 5d2217ae4478..366be43d15fe 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -304,6 +304,9 @@ static struct ti_dt_clk dra7xx_clks[] = {
->         DT_CLK("4882a000.timer", "timer_sys_ck", "timer_sys_clk_div"),
->         DT_CLK("4882c000.timer", "timer_sys_ck", "timer_sys_clk_div"),
->         DT_CLK("4882e000.timer", "timer_sys_ck", "timer_sys_clk_div"),
-> +       DT_CLK("4843e200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
-> +       DT_CLK("48440200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
-> +       DT_CLK("48442200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
->         DT_CLK(NULL, "sys_clkin", "sys_clkin1"),
->         { .node_name = NULL },
->  };
-> -- 
-> 2.4.1
-> 
+--=20
+KR
+Michael
