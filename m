@@ -1,125 +1,327 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: improve duty cycle on SCL
-Date: Fri, 19 Jun 2015 10:30:21 -0500
-Message-ID: <20150619153021.GD29392@saruman.tx.rr.com>
-References: <1434482276-1210-1-git-send-email-balbi@ti.com>
- <55815581.80807@gmx.de>
- <20150617153812.GB18421@saruman.tx.rr.com>
- <5582678F.4010505@gmx.de>
- <20150618172428.GB27790@saruman.tx.rr.com>
- <5583AB9D.6090805@gmx.de>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH REPOST] gpio: omap: use raw locks for locking
+Date: Fri, 19 Jun 2015 19:06:54 +0200
+Message-ID: <20150619170654.GA4937@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u65IjBhB3TIa72Vp"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5583AB9D.6090805-Mmb7MZpHnFY@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Lawnick <ml.lawnick-Mmb7MZpHnFY@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---u65IjBhB3TIa72Vp
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch converts gpio_bank.lock from a spin_lock into a
+raw_spin_lock. The call path is to access this lock is always under a
+raw_spin_lock, for instance
+- __setup_irq() holds &desc->lock with irq off
+  + __irq_set_trigger()
+   + omap_gpio_irq_type()
 
-On Fri, Jun 19, 2015 at 07:41:49AM +0200, Michael Lawnick wrote:
-> Am 18.06.2015 um 19:24 schrieb Felipe Balbi:
-> >On Thu, Jun 18, 2015 at 08:39:11AM +0200, Michael Lawnick wrote:
-> >>Am 17.06.2015 um 17:38 schrieb Felipe Balbi:
-> >>>Hi,
-> >>>
-> >>>On Wed, Jun 17, 2015 at 01:09:53PM +0200, Michael Lawnick wrote:
-> >>>>Am 16.06.2015 um 21:17 schrieb Felipe Balbi:
-> >>>>>With this patch we try to be as close to 50%
-> >>>>>duty cycle as possible. The reason for this
-> >>>>>is that some devices present an erratic behavior
-> >>>>>with certain duty cycles.
-> >>>>>
-> >>>>>One such example is TPS65218 PMIC which fails
-> >>>>>to change voltages when running @ 400kHz and
-> >>>>>duty cycle is lower than 34%.
-> >>>>>
-> >>>>>The idea of the patch is simple:
-> >>>>>
-> >>>>>calculate desired scl_period from requested scl
-> >>>>>and use 50% for tLow and 50% for tHigh.
-> >>>>...
-> >>>>Hmm, and what's about  Philips I2C specification 2.1, Jan 2000, Table=
- 5?
-> >>>>
-> >>>>>PARAMETER                       SYMBOL  STANDARD-MODE   FAST-MODE   =
-  UNIT
-> >>>>>                                          MIN. MAX.     MIN. MAX.
-> >>>>>LOW period of the SCL clock     tLOW      4.7   =E2=80=93       1.3 =
-  =E2=80=93       =C2=B5s
-> >>>>>HIGH period of the SCL clock    tHIGH     4.0   =E2=80=93       0.6 =
-  =E2=80=93       =C2=B5s
-> >>>>
-> >>>>Your signal is in spec (0.85 =C2=B5s high, 1,65 low).
-> >>>>Maybe your TPS65218 is just buggy or signals are bad?
-> >>>
-> >>>yes, tps is buggy, it's written in the commit log itself.
-> >>>
-> >>
-> >>So I think it is unacceptable to change the adapters code violating
-> >>specification because some buggy device doesn't work properly.
-> >
-> >read the other thread and you'll see that it's not violating jack
-> >
-> >>This change for your device has chance to blow up many correctly
-> >>working ones.
-> >
-> >How ?
-> >
-> The answer is so obvious that I'm a bit irritated.
-> Your patch description tells: 'and use 50% for tLow and 50% for tHigh'
+- handle_level_irq() (runs with irqs off therefore raw locks)
+  + mask_ack_irq()
+   + omap_gpio_mask_irq()
 
-another one who can't do simple algebra.
+This fixes the obvious backtrace on -RT. However the locking vs context
+is not and this is not limited to -RT:
+- omap_gpio_irq_type() is called with IRQ off and has an conditional
+  call to pm_runtime_get_sync() which may sleep. Either it may happen or
+  it may not happen but pm_runtime_get_sync() should not be called with
+  irqs off.
 
-http://marc.info/?l=3Dlinux-i2c&m=3D143456423512634&w=3D2
-http://marc.info/?l=3Dlinux-i2c&m=3D143456444212698&w=3D2
-http://marc.info/?l=3Dlinux-omap&m=3D143456762413953&w=3D2
+- omap_gpio_debounce() is holding the lock with IRQs off.
+  + omap2_set_gpio_debounce()
+   + clk_prepare_enable()
+    + clk_prepare() this one might sleep.
+  The number of users of gpiod_set_debounce() / gpio_set_debounce()
+  looks low but still this is not good.
 
-> For 400kHz this means 1.25 us for high and low. This clearly violates the
-> specification for minimum low period and will not work with any device th=
-at
-> relies on it.
-> In the other thread it is discussed that your patch does effectively not =
-do
-> what you describe but this is something completely independent.
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/gpio/gpio-omap.c |   78 +++++++++++++++++++++++------------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
 
-Read the comment where the calculation goes, it states that we try to
-get as close to 50% duty cycle while making sure we're within spec.
-
-Also, commit log is saying that we're using 50% of SCL period for tLow
-and tHigh calculation, not that duty cycle will be 50%, which it isn't.
-
---=20
-balbi
-
---u65IjBhB3TIa72Vp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVhDWNAAoJEIaOsuA1yqRESEUP/jNlWfGVikRlqRv+85M8pf5r
-d705ZECWwlNhm+2TVceRyh+wZiQNIoFHb1D9+szPqgStRfegvu/ycJNTZNnsB+dZ
-KPPpSXWr6Uy1Y+a/ahDbqmC33NJEtRJmmWsUOAb0EW8JzVWQBH9n1FDB67seOw2c
-GvOLngklcYoPGz1bEw1QvztDXxtA6FIjI7SEqKk3gJRlp6D8C80iS0CclMPTr84Q
-ke0/kY2bh5zSza61vtZIMDhY8hb26aIG4V0UFVjdiKfD1oXIht+YrbYlaXc3MarS
-SxmgHyhu8clyISlZiyLOmn/e3lfztHln4UHIwDpO5qAFmoo/sh3pwiwqJWyuHtyU
-RMJ0D14urhc1JrKgK324MofpuZgz1ow6lJYK12h5whGy8t6j7W/LBz8dMtivlznd
-kzjfYo/58PamV2uCcqajeYEjUrM/7TaxGxm8Mkg80y3Ao41kAhXHafbHqKdIYbRx
-WVZRVKWVgRqabTl1sNBLNLPrYFEzsOChOvfp6LFAJekCckYbMKzS8FyNrF+FJrz7
-VYcpy8fALODzcQBtN26ESaB9I/XUf7t4DqSsg+uWI24NstjA01nsJNAynv4DDR8r
-cGgcpyPaunsXuY84smrPeNKdgNR1kvrqkl7kWYtWc+05Hl51gknpZgQCd1IFhyAk
-Db2tvdx1cPlXRJorgS3v
-=5C6B
------END PGP SIGNATURE-----
-
---u65IjBhB3TIa72Vp--
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -57,7 +57,7 @@ struct gpio_bank {
+ 	u32 saved_datain;
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+-	spinlock_t lock;
++	raw_spinlock_t lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
+ 	u32 mod_usage;
+@@ -498,14 +498,14 @@ static int omap_gpio_irq_type(struct irq
+ 		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+ 		return -EINVAL;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	retval = omap_set_gpio_triggering(bank, offset, type);
+ 	omap_gpio_init_irq(bank, offset);
+ 	if (!omap_gpio_is_input(bank, offset)) {
+-		spin_unlock_irqrestore(&bank->lock, flags);
++		raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 		return -EINVAL;
+ 	}
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+ 		__irq_set_handler_locked(d->irq, handle_level_irq);
+@@ -626,14 +626,14 @@ static int omap_set_gpio_wakeup(struct g
+ 		return -EINVAL;
+ 	}
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	if (enable)
+ 		bank->context.wake_en |= gpio_bit;
+ 	else
+ 		bank->context.wake_en &= ~gpio_bit;
+ 
+ 	writel_relaxed(bank->context.wake_en, bank->base + bank->regs->wkup_en);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -668,7 +668,7 @@ static int omap_gpio_request(struct gpio
+ 	if (!BANK_USED(bank))
+ 		pm_runtime_get_sync(bank->dev);
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	/* Set trigger to none. You need to enable the desired trigger with
+ 	 * request_irq() or set_irq_type(). Only do this if the IRQ line has
+ 	 * not already been requested.
+@@ -678,7 +678,7 @@ static int omap_gpio_request(struct gpio
+ 		omap_enable_gpio_module(bank, offset);
+ 	}
+ 	bank->mod_usage |= BIT(offset);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -688,11 +688,11 @@ static void omap_gpio_free(struct gpio_c
+ 	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	bank->mod_usage &= ~(BIT(offset));
+ 	omap_disable_gpio_module(bank, offset);
+ 	omap_reset_gpio(bank, offset);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	/*
+ 	 * If this is the last gpio to be freed in the bank,
+@@ -794,9 +794,9 @@ static unsigned int omap_gpio_irq_startu
+ 	if (!BANK_USED(bank))
+ 		pm_runtime_get_sync(bank->dev);
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	omap_gpio_init_irq(bank, offset);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 	omap_gpio_unmask_irq(d);
+ 
+ 	return 0;
+@@ -808,11 +808,11 @@ static void omap_gpio_irq_shutdown(struc
+ 	unsigned long flags;
+ 	unsigned offset = d->hwirq;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	bank->irq_usage &= ~(BIT(offset));
+ 	omap_disable_gpio_module(bank, offset);
+ 	omap_reset_gpio(bank, offset);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	/*
+ 	 * If this is the last IRQ to be freed in the bank,
+@@ -836,10 +836,10 @@ static void omap_gpio_mask_irq(struct ir
+ 	unsigned offset = d->hwirq;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	omap_set_gpio_irqenable(bank, offset, 0);
+ 	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ }
+ 
+ static void omap_gpio_unmask_irq(struct irq_data *d)
+@@ -849,7 +849,7 @@ static void omap_gpio_unmask_irq(struct
+ 	u32 trigger = irqd_get_trigger_type(d);
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	if (trigger)
+ 		omap_set_gpio_triggering(bank, offset, trigger);
+ 
+@@ -861,7 +861,7 @@ static void omap_gpio_unmask_irq(struct
+ 	}
+ 
+ 	omap_set_gpio_irqenable(bank, offset, 1);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ }
+ 
+ /*---------------------------------------------------------------------*/
+@@ -874,9 +874,9 @@ static int omap_mpuio_suspend_noirq(stru
+ 					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+ 	unsigned long		flags;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	writel_relaxed(0xffff & ~bank->context.wake_en, mask_reg);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -889,9 +889,9 @@ static int omap_mpuio_resume_noirq(struc
+ 					OMAP_MPUIO_GPIO_MASKIT / bank->stride;
+ 	unsigned long		flags;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	writel_relaxed(bank->context.wake_en, mask_reg);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -937,9 +937,9 @@ static int omap_gpio_get_direction(struc
+ 
+ 	bank = container_of(chip, struct gpio_bank, chip);
+ 	reg = bank->base + bank->regs->direction;
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	dir = !!(readl_relaxed(reg) & BIT(offset));
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 	return dir;
+ }
+ 
+@@ -949,9 +949,9 @@ static int omap_gpio_input(struct gpio_c
+ 	unsigned long flags;
+ 
+ 	bank = container_of(chip, struct gpio_bank, chip);
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	omap_set_gpio_direction(bank, offset, 1);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 	return 0;
+ }
+ 
+@@ -973,10 +973,10 @@ static int omap_gpio_output(struct gpio_
+ 	unsigned long flags;
+ 
+ 	bank = container_of(chip, struct gpio_bank, chip);
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	bank->set_dataout(bank, offset, value);
+ 	omap_set_gpio_direction(bank, offset, 0);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 	return 0;
+ }
+ 
+@@ -988,9 +988,9 @@ static int omap_gpio_debounce(struct gpi
+ 
+ 	bank = container_of(chip, struct gpio_bank, chip);
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	omap2_set_gpio_debounce(bank, offset, debounce);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -1001,9 +1001,9 @@ static void omap_gpio_set(struct gpio_ch
+ 	unsigned long flags;
+ 
+ 	bank = container_of(chip, struct gpio_bank, chip);
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	bank->set_dataout(bank, offset, value);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ }
+ 
+ /*---------------------------------------------------------------------*/
+@@ -1199,7 +1199,7 @@ static int omap_gpio_probe(struct platfo
+ 	else
+ 		bank->set_dataout = omap_set_gpio_dataout_mask;
+ 
+-	spin_lock_init(&bank->lock);
++	raw_spin_lock_init(&bank->lock);
+ 
+ 	/* Static mapping, never released */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1246,7 +1246,7 @@ static int omap_gpio_runtime_suspend(str
+ 	unsigned long flags;
+ 	u32 wake_low, wake_hi;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 
+ 	/*
+ 	 * Only edges can generate a wakeup event to the PRCM.
+@@ -1299,7 +1299,7 @@ static int omap_gpio_runtime_suspend(str
+ 				bank->get_context_loss_count(bank->dev);
+ 
+ 	omap_gpio_dbck_disable(bank);
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -1314,7 +1314,7 @@ static int omap_gpio_runtime_resume(stru
+ 	unsigned long flags;
+ 	int c;
+ 
+-	spin_lock_irqsave(&bank->lock, flags);
++	raw_spin_lock_irqsave(&bank->lock, flags);
+ 
+ 	/*
+ 	 * On the first resume during the probe, the context has not
+@@ -1350,14 +1350,14 @@ static int omap_gpio_runtime_resume(stru
+ 			if (c != bank->context_loss_count) {
+ 				omap_gpio_restore_context(bank);
+ 			} else {
+-				spin_unlock_irqrestore(&bank->lock, flags);
++				raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 				return 0;
+ 			}
+ 		}
+ 	}
+ 
+ 	if (!bank->workaround_enabled) {
+-		spin_unlock_irqrestore(&bank->lock, flags);
++		raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 		return 0;
+ 	}
+ 
+@@ -1412,7 +1412,7 @@ static int omap_gpio_runtime_resume(stru
+ 	}
+ 
+ 	bank->workaround_enabled = false;
+-	spin_unlock_irqrestore(&bank->lock, flags);
++	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+ }
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" in
