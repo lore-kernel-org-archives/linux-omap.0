@@ -1,59 +1,77 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH REPOST] gpio: omap: use raw locks for locking
-Date: Fri, 19 Jun 2015 23:54:59 +0200
-Message-ID: <CABxcv==5Fo-x9CdSu6BYNfBpAS7rp63fHA319J_KvWZZG9q=ng@mail.gmail.com>
-References: <20150619170654.GA4937@linutronix.de>
-	<5584547B.9040203@oracle.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH 1/3] mmc: host: omap_hsmmc: Fix DTO and DCRC handling
+Date: Sun, 21 Jun 2015 00:21:51 +0200
+Message-ID: <CALtMJEAN0vCLsT8SuY3f0rjUx0w4h9S21r2Xj=YTm-VcSzvKkA@mail.gmail.com>
+References: <1434451039-18195-1-git-send-email-vigneshr@ti.com>
+	<1434451039-18195-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <5584547B.9040203@oracle.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: santosh shilimkar <santosh.shilimkar@oracle.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1434451039-18195-2-git-send-email-vigneshr@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, NeilBrown <neilb@suse.de>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 19, 2015 at 7:42 PM, santosh shilimkar
-<santosh.shilimkar@oracle.com> wrote:
-> On 6/19/2015 10:06 AM, Sebastian Andrzej Siewior wrote:
->>
->> This patch converts gpio_bank.lock from a spin_lock into a
->> raw_spin_lock. The call path is to access this lock is always under a
->> raw_spin_lock, for instance
->> - __setup_irq() holds &desc->lock with irq off
->>    + __irq_set_trigger()
->>     + omap_gpio_irq_type()
->>
->> - handle_level_irq() (runs with irqs off therefore raw locks)
->>    + mask_ack_irq()
->>     + omap_gpio_mask_irq()
->>
->> This fixes the obvious backtrace on -RT. However the locking vs context
->> is not and this is not limited to -RT:
->> - omap_gpio_irq_type() is called with IRQ off and has an conditional
->>    call to pm_runtime_get_sync() which may sleep. Either it may happen or
->>    it may not happen but pm_runtime_get_sync() should not be called with
->>    irqs off.
->>
->> - omap_gpio_debounce() is holding the lock with IRQs off.
->>    + omap2_set_gpio_debounce()
->>     + clk_prepare_enable()
->>      + clk_prepare() this one might sleep.
->>    The number of users of gpiod_set_debounce() / gpio_set_debounce()
->>    looks low but still this is not good.
->>
->> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->> ---
+Hi Vignesh,
+
+2015-06-16 12:37 GMT+02:00 Vignesh R <vigneshr@ti.com>:
+> From: Kishon Vijay Abraham I <kishon@ti.com>
 >
-> Should be safe to do it.
-> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+> DTO/DCRC errors were not being informed to the mmc core since
+> commit ae4bf788ee9b ("mmc: omap_hsmmc: consolidate error report handling of
+> HSMMC IRQ"). This commit made sure 'end_trans' is never set on DTO/DCRC
+> errors. This is because after this commit 'host->data' is checked after
+> it has been cleared to NULL by omap_hsmmc_dma_cleanup().
 >
+> Because 'end_trans' is never set, omap_hsmmc_xfer_done() is never invoked
+> making core layer not to be aware of DTO/DCRC errors. Because of this
+> any command invoked after DTO/DCRC error leads to a hang.
+>
+> Fix this by checking for 'host->data' before it is actually cleared.
 
-Answered on the wrong thread, sorry for the noise.
+This really fixes the problem, thanks for the analysis
+TESTED-BY
 
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
-
-Best regards,
-Javier
+>
+> Fixes: ae4bf788ee9b ("mmc: omap_hsmmc: consolidate error report handling of
+> HSMMC IRQ")
+>
+> CC: stable@vger.kernel.org
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 9df2b6801f76..d0abdffb0d7c 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1062,6 +1062,10 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+>
+>                 if (status & (CTO_EN | CCRC_EN))
+>                         end_cmd = 1;
+> +               if (host->data || host->response_busy) {
+> +                       end_trans = !end_cmd;
+> +                       host->response_busy = 0;
+> +               }
+>                 if (status & (CTO_EN | DTO_EN))
+>                         hsmmc_command_incomplete(host, -ETIMEDOUT, end_cmd);
+>                 else if (status & (CCRC_EN | DCRC_EN))
+> @@ -1081,10 +1085,6 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+>                         }
+>                         dev_dbg(mmc_dev(host->mmc), "AC12 err: 0x%x\n", ac12);
+>                 }
+> -               if (host->data || host->response_busy) {
+> -                       end_trans = !end_cmd;
+> -                       host->response_busy = 0;
+> -               }
+>         }
+>
+>         OMAP_HSMMC_WRITE(host->base, STAT, status);
+> --
+> 2.4.1
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" in
+To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
