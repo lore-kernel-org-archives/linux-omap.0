@@ -1,212 +1,256 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 3/3] mmc: host: omap_hsmmc: Add custom card detect irq
- handler
-Date: Mon, 22 Jun 2015 18:48:28 +0530
-Message-ID: <55880B24.9010906@ti.com>
-References: <1434451039-18195-1-git-send-email-vigneshr@ti.com>	<1434451039-18195-4-git-send-email-vigneshr@ti.com> <CALtMJEAy8p23dkqPYZT9wTfyvvjiwi6Swj9Fzpau9Y4K9dym5g@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: DRA7: Provide proper IO map table
+Date: Mon, 22 Jun 2015 10:12:14 -0500
+Message-ID: <1434985934-29132-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CALtMJEAy8p23dkqPYZT9wTfyvvjiwi6Swj9Fzpau9Y4K9dym5g@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, NeilBrown <neilb@suse.de>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
+DRA7 uses OMAP5 IO table at the moment. This is purely spurious since
+the OMAP5 and DRA7 register maps are different in many aspects.
 
+AM57xx/DRA7 TRM Reference: http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
 
-Thanks for testing out these patches.
+NOTE: Most of the drivers are already doing ioremap, so, there should'nt
+be any functional improvement involved here, other than making the
+initial iotable more accurate.
 
-On Sunday 21 June 2015 04:15 AM, Andreas Fenkart wrote:
-> I haven't managed to produce a hang without this patch
+Fixes: a3a9384a1157 ("ARM: DRA7: Reuse io tables and add a new .init_early")
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-Reproducing this hang is not straight forward. It takes 40-50 card
-insertion/removal to see this case (sometimes even 100 tries).
+NOTE: there are a few >80c checkpatch warnings in this patch, which i decided
+to ignore since it helps readability of the macros and overall code formatting
+already used in the header.
 
-> 
-> see also comments below
-> 
-> 2015-06-16 12:37 GMT+02:00 Vignesh R <vigneshr@ti.com>:
->> Usually when there is an error in transfer, DTO/CTO or other error
->> interrupts are raised. But if the card is unplugged in the middle of a
->> data transfer, it is observed that, neither completion(success) or
->> timeout(error) interrupts are raised. Hence, the mmc-core is waiting
->> for-ever for the transfer to complete. This results failure to recognise
->> sd card on the next insertion.
->> The only way to solve this is to introduce code to detect this condition
->> and recover on card insertion (in hsmmc specific cd_irq). Hence,
->> introduce cd_irq and add code to clear mmc_request that is pending from
->> the failed transaction.
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>  drivers/mmc/host/omap_hsmmc.c | 73 ++++++++++++++++++++++++++++++++++-
->>  1 file changed, 72 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index fb4bfefd9250..ec1fff3c0c9c 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -221,6 +221,12 @@ struct omap_hsmmc_host {
->>  #define HSMMC_WAKE_IRQ_ENABLED (1 << 2)
->>         struct omap_hsmmc_next  next_data;
->>         struct  omap_hsmmc_platform_data        *pdata;
->> +       /*
->> +        * flag to determine whether card was removed during data
->> +        * transfer
->> +        */
->> +       bool                    transfer_incomplete;
->> +
->>
->>         /* return MMC cover switch state, can be NULL if not supported.
->>          *
->> @@ -867,6 +873,26 @@ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_req
->>  }
->>
->>  /*
->> + * Cleanup incomplete card removal sequence. This will make sure the
->> + * next card enumeration is clean.
->> + */
->> +static void omap_hsmmc_request_clear(struct omap_hsmmc_host *host,
->> +                                    struct mmc_request *mrq)
->> +{
->> +       unsigned long flags;
->> +
->> +       spin_lock_irqsave(&host->irq_lock, flags);
->> +       host->req_in_progress = 0;
->> +       host->dma_ch = -1;
->> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->> +
->> +       mmc_request_done(host->mmc, mrq);
->> +       if (host->mmc->card)
->> +               mmc_card_set_removed(host->mmc->card);
->> +       host->mrq = NULL;
->> +}
->> +
->> +/*
->>   * Notify the transfer complete to MMC core
->>   */
->>  static void
->> @@ -1248,6 +1274,47 @@ static irqreturn_t omap_hsmmc_cover_irq(int irq, void *dev_id)
->>         return IRQ_HANDLED;
->>  }
->>
->> +/*
->> + * irq handler to notify the core about card insertion/removal
->> + */
->> +static irqreturn_t omap_hsmmc_cd_irq(int irq, void *dev_id)
->> +{
-> 
-> Move this code to 'omap_hsmmc_get_cd' function. Or rather clear
-> any pending transfer upon '.init_card/omap_hsmmc_init_card'
+Baseline: v4.1
+Test (boot):
+	AM57xx-BeagleBoard-X15: http://pastebin.ubuntu.com/11757238/
+	DRA72x Evm: http://pastebin.ubuntu.com/11757252/
+	DRA74x Evm: http://pastebin.ubuntu.com/11757259/
 
-I tried using omap_hsmmc_init initially, but here is the problem:
+ arch/arm/mach-omap2/board-generic.c |    4 +--
+ arch/arm/mach-omap2/common.h        |    1 +
+ arch/arm/mach-omap2/io.c            |   58 ++++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/iomap.h         |   63 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap54xx.h      |    8 +++++
+ 5 files changed, 130 insertions(+), 4 deletions(-)
 
-card inserted --> cd_irq_isr--> schedule mmc_rescan()
---- after some time ---
-mmc_rescan() -->
-mmc_sd_alive() -->
--- card removed ---
-mmc_send_status -->
-mmc_wait_for_req()-->
-wait_for_completion()
-^^^ Here the mmc_rescan thread waits forever because, it doesn't get
-timeout interrupt for the cmd/req it sent (because card was removed).
-
-But calls to omap_hsmmc_card_init or omap_hsmmc_get_cd are in the same
-mmc_rescan thread. Hence, moving the recovery code to init_card does not
-help.
-
-> 
-> I guess other hosts also have some housekeeping upon unexpected
-> card removals. So I guess there is some generic code to this problem.
-> Did you check?
-
-I did try to find generic code in mmc-core, but couldn't find any.
-However, I did see some driver specific cleanups related to unexpected
-card removal in sdhci.c. sdhci handles this in .card_event call back.
-This does not help in my case as .card_event  is also called from
-mmc_rescan. I think cleanup code (in sdhci driver) for unexpected card
-removal was introduced when .card_event call was outside mmc_rescan.
-
-> 
->> +       struct omap_hsmmc_host *host = mmc_priv(dev_id);
->> +       int carddetect = mmc_gpio_get_cd(host->mmc);
->> +       struct mmc_request *mrq = host->mrq;
->> +
->> +       /*
->> +        * If the card was removed in the middle of data transfer last
->> +        * time, the TC/CC/timeout interrupt is not raised due to which
->> +        * mmc_request is not cleared. Hence, this card insertion will
->> +        * still see pending mmc_request. Clear the request to make sure
->> +        * that this card enumeration is successful.
->> +        */
->> +       if (!carddetect && mrq && host->transfer_incomplete) {
->> +               omap_hsmmc_disable_irq(host);
->> +               dev_info(host->dev,
->> +                        "card removed during transfer last time\n");
->> +               hsmmc_command_incomplete(host, -ENOMEDIUM, 1);
->> +               omap_hsmmc_request_clear(host, host->mrq);
->> +               dev_info(host->dev, "recovery done\n");
->> +       }
->> +       host->transfer_incomplete = false;
->> +
->> +       mmc_detect_change(host->mmc, (HZ * 200) / 1000);
->> +
->> +       /*
->> +        * The current mmc_request is usually null before card removal
->> +        * sequence is complete. It may not be null if TC/CC interrupt
->> +        * never happens due to removal of card during a data
->> +        * transfer. Set a flag to indicate mmc_request was not null
->> +        * in order to do cleanup on next card insertion.
->> +        */
->> +       if (carddetect && mrq)
->> +               host->transfer_incomplete = true;
->> +
->> +       return IRQ_HANDLED;
->> +}
->> +
->>  static void omap_hsmmc_dma_callback(void *param)
->>  {
->>         struct omap_hsmmc_host *host = param;
->> @@ -1918,7 +1985,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->>         struct mmc_host *mmc;
->>         struct omap_hsmmc_host *host = NULL;
->>         struct resource *res;
->> -       int ret, irq;
->> +       int ret, irq, len;
->>         const struct of_device_id *match;
->>         dma_cap_mask_t mask;
->>         unsigned tx_req, rx_req;
->> @@ -1980,6 +2047,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->>         if (ret)
->>                 goto err_gpio;
->>
->> +       /* register cd_irq, if cd-gpios property is specified in dt */
->> +       if (of_find_property(host->dev->of_node, "cd-gpios", &len))
->> +               mmc_gpio_set_cd_isr(mmc, omap_hsmmc_cd_irq);
->> +
-> 
-> nack, this is done by mmc_of_parse
-
-mmc_of_parse parses the cd-gpios and registers a generic cd_irq_isr but
-there is no way to set driver specific cd_irq. So, the above code is
-required.
-
-> 
->>         platform_set_drvdata(pdev, host);
->>
->>         if (pdev->dev.of_node)
->> --
->> 2.4.1
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> 
-
-Regards
-Vignesh
---
-To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 34ff14b7beab..b4fbe50672a3 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -297,7 +297,7 @@ static const char *const dra74x_boards_compat[] __initconst = {
+ DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.smp		= smp_ops(omap4_smp_ops),
+-	.map_io		= omap5_map_io,
++	.map_io		= dra7xx_map_io,
+ 	.init_early	= dra7xx_init_early,
+ 	.init_late	= dra7xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+@@ -316,7 +316,7 @@ static const char *const dra72x_boards_compat[] __initconst = {
+ 
+ DT_MACHINE_START(DRA72X_DT, "Generic DRA72X (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+-	.map_io		= omap5_map_io,
++	.map_io		= dra7xx_map_io,
+ 	.init_early	= dra7xx_init_early,
+ 	.init_late	= dra7xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index cf3cf22ecd42..749d50bb4ca5 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -198,6 +198,7 @@ void __init omap3_map_io(void);
+ void __init am33xx_map_io(void);
+ void __init omap4_map_io(void);
+ void __init omap5_map_io(void);
++void __init dra7xx_map_io(void);
+ void __init ti81xx_map_io(void);
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 820dde8b5b04..c10fb291b99f 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -236,7 +236,7 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
+ };
+ #endif
+ 
+-#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
++#ifdef CONFIG_SOC_OMAP5
+ static struct map_desc omap54xx_io_desc[] __initdata = {
+ 	{
+ 		.virtual	= L3_54XX_VIRT,
+@@ -265,6 +265,53 @@ static struct map_desc omap54xx_io_desc[] __initdata = {
+ };
+ #endif
+ 
++#ifdef CONFIG_SOC_DRA7XX
++static struct map_desc dra7xx_io_desc[] __initdata = {
++	{
++		.virtual	= L4_CFG_MPU_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L4_CFG_MPU_DRA7XX_PHYS),
++		.length		= L4_CFG_MPU_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++	{
++		.virtual	= L3_MAIN_SN_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L3_MAIN_SN_DRA7XX_PHYS),
++		.length		= L3_MAIN_SN_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++	{
++		.virtual	= L4_PER1_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L4_PER1_DRA7XX_PHYS),
++		.length		= L4_PER1_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++	{
++		.virtual	= L4_PER2_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L4_PER2_DRA7XX_PHYS),
++		.length		= L4_PER2_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++	{
++		.virtual	= L4_PER3_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L4_PER3_DRA7XX_PHYS),
++		.length		= L4_PER3_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++	{
++		.virtual	= L4_CFG_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L4_CFG_DRA7XX_PHYS),
++		.length		= L4_CFG_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++	{
++		.virtual	= L4_WKUP_DRA7XX_VIRT,
++		.pfn		= __phys_to_pfn(L4_WKUP_DRA7XX_PHYS),
++		.length		= L4_WKUP_DRA7XX_SIZE,
++		.type		= MT_DEVICE,
++	},
++};
++#endif
++
+ #ifdef CONFIG_SOC_OMAP2420
+ void __init omap242x_map_io(void)
+ {
+@@ -309,12 +356,19 @@ void __init omap4_map_io(void)
+ }
+ #endif
+ 
+-#if defined(CONFIG_SOC_OMAP5) ||  defined(CONFIG_SOC_DRA7XX)
++#ifdef CONFIG_SOC_OMAP5
+ void __init omap5_map_io(void)
+ {
+ 	iotable_init(omap54xx_io_desc, ARRAY_SIZE(omap54xx_io_desc));
+ }
+ #endif
++
++#ifdef CONFIG_SOC_DRA7XX
++void __init dra7xx_map_io(void)
++{
++	iotable_init(dra7xx_io_desc, ARRAY_SIZE(dra7xx_io_desc));
++}
++#endif
+ /*
+  * omap2_init_reprogram_sdrc - reprogram SDRC timing parameters
+  *
+diff --git a/arch/arm/mach-omap2/iomap.h b/arch/arm/mach-omap2/iomap.h
+index cce2b65039f1..6191d244438a 100644
+--- a/arch/arm/mach-omap2/iomap.h
++++ b/arch/arm/mach-omap2/iomap.h
+@@ -194,3 +194,66 @@
+ #define L4_PER_54XX_PHYS	L4_PER_54XX_BASE /* 0x48000000 --> 0xfa000000 */
+ #define L4_PER_54XX_VIRT	(L4_PER_54XX_PHYS + OMAP2_L4_IO_OFFSET)
+ #define L4_PER_54XX_SIZE	SZ_4M
++
++/*
++ * ----------------------------------------------------------------------------
++ * DRA7xx specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
++/*
++ * L3_MAIN_SN_DRA7XX_PHYS 0x44000000 --> 0xf8000000
++ * The overall space is 24MiB (0x4400_0000<->0x457F_FFFF), but mapping
++ * everything is just inefficient, since, there are too many address holes.
++ */
++#define L3_MAIN_SN_DRA7XX_PHYS		L3_MAIN_SN_DRA7XX_BASE
++#define L3_MAIN_SN_DRA7XX_VIRT		(L3_MAIN_SN_DRA7XX_PHYS + OMAP4_L3_IO_OFFSET)
++#define L3_MAIN_SN_DRA7XX_SIZE		SZ_1M
++
++/*
++ * L4_PER1_DRA7XX_PHYS	(0x4800_000<>0x480D_2FFF) -> 0.82MiB (alloc 1MiB)
++ *	(0x48000000<->0x48100000) <=> (0xFA000000<->0xFA100000)
++ */
++#define L4_PER1_DRA7XX_PHYS		L4_PER1_DRA7XX_BASE
++#define L4_PER1_DRA7XX_VIRT		(L4_PER1_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_PER1_DRA7XX_SIZE		SZ_1M
++
++/*
++ * L4_CFG_MPU_DRA7XX_PHYS	(0x48210000<>0x482A_F2FF) -> 0.62MiB (alloc 1MiB)
++ *	(0x48210000<->0x48310000) <=> (0xFA210000<->0xFA310000)
++ * NOTE: This is a bit of an orphan memory map sitting isolated in TRM
++ */
++#define L4_CFG_MPU_DRA7XX_PHYS		L4_CFG_MPU_DRA7XX_BASE
++#define L4_CFG_MPU_DRA7XX_VIRT		(L4_CFG_MPU_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_CFG_MPU_DRA7XX_SIZE		SZ_1M
++
++/*
++ * L4_PER2_DRA7XX_PHYS	(0x4840_0000<>0x4848_8FFF) -> .53MiB (alloc 1MiB)
++ *	(0x48400000<->0x48500000) <=> (0xFA400000<->0xFA500000)
++ */
++#define L4_PER2_DRA7XX_PHYS		L4_PER2_DRA7XX_BASE
++#define L4_PER2_DRA7XX_VIRT		(L4_PER2_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_PER2_DRA7XX_SIZE		SZ_1M
++
++/*
++ * L4_PER3_DRA7XX_PHYS	(0x4880_0000<>0x489E_0FFF) -> 1.87MiB (alloc 2MiB)
++ *	(0x48800000<->0x48A00000) <=> (0xFA800000<->0xFAA00000)
++ */
++#define L4_PER3_DRA7XX_PHYS		L4_PER3_DRA7XX_BASE
++#define L4_PER3_DRA7XX_VIRT		(L4_PER3_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_PER3_DRA7XX_SIZE		SZ_2M
++
++/*
++ * L4_CFG_DRA7XX_PHYS	(0x4A00_0000<>0x4A22_BFFF) ->2.17MiB (alloc 3MiB)?
++ *	(0x4A000000<->0x4A300000) <=> (0xFC000000<->0xFC300000)
++ */
++#define L4_CFG_DRA7XX_PHYS		L4_CFG_DRA7XX_BASE
++#define L4_CFG_DRA7XX_VIRT		(L4_CFG_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_CFG_DRA7XX_SIZE		(SZ_1M + SZ_2M)
++
++/*
++ * L4_WKUP_DRA7XX_PHYS	(0x4AE0_0000<>0x4AE3_EFFF) -> .24 mb (alloc 1MiB)?
++ *	(0x4AE00000<->4AF00000)	<=> (0xFCE00000<->0xFCF00000)
++ */
++#define L4_WKUP_DRA7XX_PHYS		L4_WKUP_DRA7XX_BASE
++#define L4_WKUP_DRA7XX_VIRT		(L4_WKUP_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_WKUP_DRA7XX_SIZE		SZ_1M
+diff --git a/arch/arm/mach-omap2/omap54xx.h b/arch/arm/mach-omap2/omap54xx.h
+index 2d35c5709408..0ca8e938096b 100644
+--- a/arch/arm/mach-omap2/omap54xx.h
++++ b/arch/arm/mach-omap2/omap54xx.h
+@@ -30,6 +30,14 @@
+ #define OMAP54XX_CTRL_BASE		0x4a002800
+ #define OMAP54XX_SAR_RAM_BASE		0x4ae26000
+ 
++/* DRA7 specific base addresses */
++#define L3_MAIN_SN_DRA7XX_BASE		0x44000000
++#define L4_PER1_DRA7XX_BASE		0x48000000
++#define L4_CFG_MPU_DRA7XX_BASE		0x48210000
++#define L4_PER2_DRA7XX_BASE		0x48400000
++#define L4_PER3_DRA7XX_BASE		0x48800000
++#define L4_CFG_DRA7XX_BASE		0x4A000000
++#define L4_WKUP_DRA7XX_BASE		0x4ae00000
+ #define DRA7XX_CM_CORE_AON_BASE		0x4a005000
+ #define DRA7XX_CTRL_BASE		0x4a003400
+ #define DRA7XX_TAP_BASE			0x4ae0c000
+-- 
+1.7.9.5
