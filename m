@@ -1,256 +1,66 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: DRA7: Provide proper IO map table
-Date: Mon, 22 Jun 2015 10:12:14 -0500
-Message-ID: <1434985934-29132-1-git-send-email-nm@ti.com>
+Subject: [PATCH] pinctrl: dra: dt-bindings: Add virtual mode configuration option
+Date: Mon, 22 Jun 2015 10:22:26 -0500
+Message-ID: <1434986546-2211-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-DRA7 uses OMAP5 IO table at the moment. This is purely spurious since
-the OMAP5 and DRA7 register maps are different in many aspects.
+In addition to the regular mux configuration such as mux mode 1,
+2 etc, certain pins of DRA7 require to have "virtual mode" also
+programmed. This allows for predefined delay characteristics to
+be used by the SoC to meet timing characterstics needed for the
+interface.
 
-AM57xx/DRA7 TRM Reference: http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+Provide easy to use macro to do the same.
 
-NOTE: Most of the drivers are already doing ioremap, so, there should'nt
-be any functional improvement involved here, other than making the
-initial iotable more accurate.
+It is important to note that the official TI guidelines recommend
+to do as minimal pin reconfiguration beyond the bootloader given
+the design of the hardware involved which can result in substantial
+glitches which may impair functionality of certain peripherals.
 
-Fixes: a3a9384a1157 ("ARM: DRA7: Reuse io tables and add a new .init_early")
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
 
-NOTE: there are a few >80c checkpatch warnings in this patch, which i decided
-to ignore since it helps readability of the macros and overall code formatting
-already used in the header.
-
 Baseline: v4.1
-Test (boot):
-	AM57xx-BeagleBoard-X15: http://pastebin.ubuntu.com/11757238/
-	DRA72x Evm: http://pastebin.ubuntu.com/11757252/
-	DRA74x Evm: http://pastebin.ubuntu.com/11757259/
 
- arch/arm/mach-omap2/board-generic.c |    4 +--
- arch/arm/mach-omap2/common.h        |    1 +
- arch/arm/mach-omap2/io.c            |   58 ++++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/iomap.h         |   63 +++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap54xx.h      |    8 +++++
- 5 files changed, 130 insertions(+), 4 deletions(-)
+ include/dt-bindings/pinctrl/dra.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 34ff14b7beab..b4fbe50672a3 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -297,7 +297,7 @@ static const char *const dra74x_boards_compat[] __initconst = {
- DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.smp		= smp_ops(omap4_smp_ops),
--	.map_io		= omap5_map_io,
-+	.map_io		= dra7xx_map_io,
- 	.init_early	= dra7xx_init_early,
- 	.init_late	= dra7xx_init_late,
- 	.init_irq	= omap_gic_of_init,
-@@ -316,7 +316,7 @@ static const char *const dra72x_boards_compat[] __initconst = {
+diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+index 7448edff4723..4379e29f0460 100644
+--- a/include/dt-bindings/pinctrl/dra.h
++++ b/include/dt-bindings/pinctrl/dra.h
+@@ -30,6 +30,26 @@
+ #define MUX_MODE14	0xe
+ #define MUX_MODE15	0xf
  
- DT_MACHINE_START(DRA72X_DT, "Generic DRA72X (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
--	.map_io		= omap5_map_io,
-+	.map_io		= dra7xx_map_io,
- 	.init_early	= dra7xx_init_early,
- 	.init_late	= dra7xx_init_late,
- 	.init_irq	= omap_gic_of_init,
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index cf3cf22ecd42..749d50bb4ca5 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -198,6 +198,7 @@ void __init omap3_map_io(void);
- void __init am33xx_map_io(void);
- void __init omap4_map_io(void);
- void __init omap5_map_io(void);
-+void __init dra7xx_map_io(void);
- void __init ti81xx_map_io(void);
- 
- /**
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 820dde8b5b04..c10fb291b99f 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -236,7 +236,7 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
- };
- #endif
- 
--#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
-+#ifdef CONFIG_SOC_OMAP5
- static struct map_desc omap54xx_io_desc[] __initdata = {
- 	{
- 		.virtual	= L3_54XX_VIRT,
-@@ -265,6 +265,53 @@ static struct map_desc omap54xx_io_desc[] __initdata = {
- };
- #endif
- 
-+#ifdef CONFIG_SOC_DRA7XX
-+static struct map_desc dra7xx_io_desc[] __initdata = {
-+	{
-+		.virtual	= L4_CFG_MPU_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_CFG_MPU_DRA7XX_PHYS),
-+		.length		= L4_CFG_MPU_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= L3_MAIN_SN_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L3_MAIN_SN_DRA7XX_PHYS),
-+		.length		= L3_MAIN_SN_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= L4_PER1_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_PER1_DRA7XX_PHYS),
-+		.length		= L4_PER1_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= L4_PER2_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_PER2_DRA7XX_PHYS),
-+		.length		= L4_PER2_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= L4_PER3_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_PER3_DRA7XX_PHYS),
-+		.length		= L4_PER3_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= L4_CFG_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_CFG_DRA7XX_PHYS),
-+		.length		= L4_CFG_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= L4_WKUP_DRA7XX_VIRT,
-+		.pfn		= __phys_to_pfn(L4_WKUP_DRA7XX_PHYS),
-+		.length		= L4_WKUP_DRA7XX_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+};
-+#endif
++/* Certain pins need virtual mode, but note: they may glitch */
++#define MUX_VIRTUAL_MODE0	(MODE_SELECT | (0x0 << 4))
++#define MUX_VIRTUAL_MODE1	(MODE_SELECT | (0x1 << 4))
++#define MUX_VIRTUAL_MODE2	(MODE_SELECT | (0x2 << 4))
++#define MUX_VIRTUAL_MODE3	(MODE_SELECT | (0x3 << 4))
++#define MUX_VIRTUAL_MODE4	(MODE_SELECT | (0x4 << 4))
++#define MUX_VIRTUAL_MODE5	(MODE_SELECT | (0x5 << 4))
++#define MUX_VIRTUAL_MODE6	(MODE_SELECT | (0x6 << 4))
++#define MUX_VIRTUAL_MODE7	(MODE_SELECT | (0x7 << 4))
++#define MUX_VIRTUAL_MODE8	(MODE_SELECT | (0x8 << 4))
++#define MUX_VIRTUAL_MODE9	(MODE_SELECT | (0x9 << 4))
++#define MUX_VIRTUAL_MODE10	(MODE_SELECT | (0xa << 4))
++#define MUX_VIRTUAL_MODE11	(MODE_SELECT | (0xb << 4))
++#define MUX_VIRTUAL_MODE12	(MODE_SELECT | (0xc << 4))
++#define MUX_VIRTUAL_MODE13	(MODE_SELECT | (0xd << 4))
++#define MUX_VIRTUAL_MODE14	(MODE_SELECT | (0xe << 4))
++#define MUX_VIRTUAL_MODE15	(MODE_SELECT | (0xf << 4))
 +
- #ifdef CONFIG_SOC_OMAP2420
- void __init omap242x_map_io(void)
- {
-@@ -309,12 +356,19 @@ void __init omap4_map_io(void)
- }
- #endif
- 
--#if defined(CONFIG_SOC_OMAP5) ||  defined(CONFIG_SOC_DRA7XX)
-+#ifdef CONFIG_SOC_OMAP5
- void __init omap5_map_io(void)
- {
- 	iotable_init(omap54xx_io_desc, ARRAY_SIZE(omap54xx_io_desc));
- }
- #endif
++#define MODE_SELECT		(1 << 8)
 +
-+#ifdef CONFIG_SOC_DRA7XX
-+void __init dra7xx_map_io(void)
-+{
-+	iotable_init(dra7xx_io_desc, ARRAY_SIZE(dra7xx_io_desc));
-+}
-+#endif
- /*
-  * omap2_init_reprogram_sdrc - reprogram SDRC timing parameters
-  *
-diff --git a/arch/arm/mach-omap2/iomap.h b/arch/arm/mach-omap2/iomap.h
-index cce2b65039f1..6191d244438a 100644
---- a/arch/arm/mach-omap2/iomap.h
-+++ b/arch/arm/mach-omap2/iomap.h
-@@ -194,3 +194,66 @@
- #define L4_PER_54XX_PHYS	L4_PER_54XX_BASE /* 0x48000000 --> 0xfa000000 */
- #define L4_PER_54XX_VIRT	(L4_PER_54XX_PHYS + OMAP2_L4_IO_OFFSET)
- #define L4_PER_54XX_SIZE	SZ_4M
-+
-+/*
-+ * ----------------------------------------------------------------------------
-+ * DRA7xx specific IO mapping
-+ * ----------------------------------------------------------------------------
-+ */
-+/*
-+ * L3_MAIN_SN_DRA7XX_PHYS 0x44000000 --> 0xf8000000
-+ * The overall space is 24MiB (0x4400_0000<->0x457F_FFFF), but mapping
-+ * everything is just inefficient, since, there are too many address holes.
-+ */
-+#define L3_MAIN_SN_DRA7XX_PHYS		L3_MAIN_SN_DRA7XX_BASE
-+#define L3_MAIN_SN_DRA7XX_VIRT		(L3_MAIN_SN_DRA7XX_PHYS + OMAP4_L3_IO_OFFSET)
-+#define L3_MAIN_SN_DRA7XX_SIZE		SZ_1M
-+
-+/*
-+ * L4_PER1_DRA7XX_PHYS	(0x4800_000<>0x480D_2FFF) -> 0.82MiB (alloc 1MiB)
-+ *	(0x48000000<->0x48100000) <=> (0xFA000000<->0xFA100000)
-+ */
-+#define L4_PER1_DRA7XX_PHYS		L4_PER1_DRA7XX_BASE
-+#define L4_PER1_DRA7XX_VIRT		(L4_PER1_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_PER1_DRA7XX_SIZE		SZ_1M
-+
-+/*
-+ * L4_CFG_MPU_DRA7XX_PHYS	(0x48210000<>0x482A_F2FF) -> 0.62MiB (alloc 1MiB)
-+ *	(0x48210000<->0x48310000) <=> (0xFA210000<->0xFA310000)
-+ * NOTE: This is a bit of an orphan memory map sitting isolated in TRM
-+ */
-+#define L4_CFG_MPU_DRA7XX_PHYS		L4_CFG_MPU_DRA7XX_BASE
-+#define L4_CFG_MPU_DRA7XX_VIRT		(L4_CFG_MPU_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_CFG_MPU_DRA7XX_SIZE		SZ_1M
-+
-+/*
-+ * L4_PER2_DRA7XX_PHYS	(0x4840_0000<>0x4848_8FFF) -> .53MiB (alloc 1MiB)
-+ *	(0x48400000<->0x48500000) <=> (0xFA400000<->0xFA500000)
-+ */
-+#define L4_PER2_DRA7XX_PHYS		L4_PER2_DRA7XX_BASE
-+#define L4_PER2_DRA7XX_VIRT		(L4_PER2_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_PER2_DRA7XX_SIZE		SZ_1M
-+
-+/*
-+ * L4_PER3_DRA7XX_PHYS	(0x4880_0000<>0x489E_0FFF) -> 1.87MiB (alloc 2MiB)
-+ *	(0x48800000<->0x48A00000) <=> (0xFA800000<->0xFAA00000)
-+ */
-+#define L4_PER3_DRA7XX_PHYS		L4_PER3_DRA7XX_BASE
-+#define L4_PER3_DRA7XX_VIRT		(L4_PER3_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_PER3_DRA7XX_SIZE		SZ_2M
-+
-+/*
-+ * L4_CFG_DRA7XX_PHYS	(0x4A00_0000<>0x4A22_BFFF) ->2.17MiB (alloc 3MiB)?
-+ *	(0x4A000000<->0x4A300000) <=> (0xFC000000<->0xFC300000)
-+ */
-+#define L4_CFG_DRA7XX_PHYS		L4_CFG_DRA7XX_BASE
-+#define L4_CFG_DRA7XX_VIRT		(L4_CFG_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_CFG_DRA7XX_SIZE		(SZ_1M + SZ_2M)
-+
-+/*
-+ * L4_WKUP_DRA7XX_PHYS	(0x4AE0_0000<>0x4AE3_EFFF) -> .24 mb (alloc 1MiB)?
-+ *	(0x4AE00000<->4AF00000)	<=> (0xFCE00000<->0xFCF00000)
-+ */
-+#define L4_WKUP_DRA7XX_PHYS		L4_WKUP_DRA7XX_BASE
-+#define L4_WKUP_DRA7XX_VIRT		(L4_WKUP_DRA7XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_WKUP_DRA7XX_SIZE		SZ_1M
-diff --git a/arch/arm/mach-omap2/omap54xx.h b/arch/arm/mach-omap2/omap54xx.h
-index 2d35c5709408..0ca8e938096b 100644
---- a/arch/arm/mach-omap2/omap54xx.h
-+++ b/arch/arm/mach-omap2/omap54xx.h
-@@ -30,6 +30,14 @@
- #define OMAP54XX_CTRL_BASE		0x4a002800
- #define OMAP54XX_SAR_RAM_BASE		0x4ae26000
- 
-+/* DRA7 specific base addresses */
-+#define L3_MAIN_SN_DRA7XX_BASE		0x44000000
-+#define L4_PER1_DRA7XX_BASE		0x48000000
-+#define L4_CFG_MPU_DRA7XX_BASE		0x48210000
-+#define L4_PER2_DRA7XX_BASE		0x48400000
-+#define L4_PER3_DRA7XX_BASE		0x48800000
-+#define L4_CFG_DRA7XX_BASE		0x4A000000
-+#define L4_WKUP_DRA7XX_BASE		0x4ae00000
- #define DRA7XX_CM_CORE_AON_BASE		0x4a005000
- #define DRA7XX_CTRL_BASE		0x4a003400
- #define DRA7XX_TAP_BASE			0x4ae0c000
+ #define PULL_ENA		(0 << 16)
+ #define PULL_DIS		(1 << 16)
+ #define PULL_UP			(1 << 17)
 -- 
 1.7.9.5
