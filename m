@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/6] ARM: AM43xx: Add the PRM IRQ register offsets
-Date: Mon, 22 Jun 2015 11:52:52 +0530
-Message-ID: <1434954176-9605-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 6/6] ARM: PRM: AM437x: Enable IO wakeup feature
+Date: Mon, 22 Jun 2015 11:52:56 +0530
+Message-ID: <1434954176-9605-7-git-send-email-j-keerthy@ti.com>
 References: <1434954176-9605-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,33 +12,24 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: galak@codeaurora.org, t-kristo@ti.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, paul@pwsan.com, bcousson@baylibre.com, linux-clk@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add the PRM IRQ register offsets.
+Enable IO wakeup feature.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/prcm43xx.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/mach-omap2/prm_common.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-index d026199..ec1ac5c 100644
---- a/arch/arm/mach-omap2/prcm43xx.h
-+++ b/arch/arm/mach-omap2/prcm43xx.h
-@@ -25,6 +25,10 @@
- #define AM43XX_PRM_WKUP_INST				0x2000
- #define AM43XX_PRM_DEVICE_INST				0x4000
- 
-+/* PRM_IRQ offsets */
-+#define AM43XX_PRM_IRQSTATUS_MPU_OFFSET			0x0004
-+#define AM43XX_PRM_IRQENABLE_MPU_OFFSET			0x0008
-+
- /* RM RSTCTRL offsets */
- #define AM43XX_RM_PER_RSTCTRL_OFFSET			0x0010
- #define AM43XX_RM_GFX_RSTCTRL_OFFSET			0x0010
-@@ -146,4 +150,5 @@
- #define AM43XX_CM_PER_HDQ1W_CLKCTRL_OFFSET		0x04a0
- #define AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET		0x0068
- #define AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET		0x0070
-+#define AM43XX_PRM_IO_PMCTRL_OFFSET			0x0024
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 10ef0da..238cb4a 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -695,6 +695,7 @@ static struct omap_prcm_init_data am4_prm_data __initdata = {
+ 	.index = TI_CLKM_PRM,
+ 	.init = omap44xx_prm_init,
+ 	.device_inst_offset = AM43XX_PRM_DEVICE_INST,
++	.flags = PRM_HAS_IO_WAKEUP,
+ };
  #endif
+ 
 -- 
 1.9.1
