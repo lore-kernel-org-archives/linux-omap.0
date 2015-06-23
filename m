@@ -1,58 +1,58 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 09/17] ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in SATA PHY node
-Date: Tue, 23 Jun 2015 17:28:54 +0530
-Message-ID: <1435060743-5511-10-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 01/17] phy: ti-pipe3: use ti_pipe3_power_off to power off the
+ PHY during probe
+Date: Tue, 23 Jun 2015 17:28:46 +0530
+Message-ID: <1435060743-5511-2-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435060743-5511-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
+Cc: mark.rutland@arm.com, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com, robh+dt@kernel.org, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
-Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
-property from SATA PHY node. Since "omap_control_sata" note is no longer
-used, remove it.
+No functional change. Previously omap_control_phy_power() was used to power
+off the PHY during probe. But once PIPE3 driver is adapted to use syscon,
+omap_control_phy_power() cannot be used. Hence used ti_pipe3_power_off
+to power off the PHY.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/phy/phy-ti-pipe3.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 3f434f7..92e0741 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1115,14 +1115,6 @@
- 			status = "disabled";
- 		};
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index 08020dc..d784426 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -431,8 +431,6 @@ static int ti_pipe3_probe(struct platform_device *pdev)
  
--		omap_control_sata: control-phy@4a002374 {
--			compatible = "ti,control-phy-pipe3";
--			reg = <0x4a002374 0x4>;
--			reg-names = "power";
--			clocks = <&sys_clkin1>;
--			clock-names = "sysclk";
--		};
+ 	phy->control_dev = &control_pdev->dev;
+ 
+-	omap_control_phy_power(phy->control_dev, 0);
 -
- 		/* OCP2SCP3 */
- 		ocp2scp@4a090000 {
- 			compatible = "ti,omap-ocp2scp";
-@@ -1137,7 +1129,7 @@
- 				      <0x4A096400 0x64>, /* phy_tx */
- 				      <0x4A096800 0x40>; /* pll_ctrl */
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
--				ctrl-module = <&omap_control_sata>;
-+				syscon-phy-power = <&dra7_ctrl_core 0x374>;
- 				clocks = <&sys_clkin1>, <&sata_ref_clk>;
- 				clock-names = "sysclk", "refclk";
- 				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
+ 	platform_set_drvdata(pdev, phy);
+ 	pm_runtime_enable(phy->dev);
+ 
+@@ -451,6 +449,8 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 		return PTR_ERR(generic_phy);
+ 
+ 	phy_set_drvdata(generic_phy, phy);
++	ti_pipe3_power_off(generic_phy);
++
+ 	phy_provider = devm_of_phy_provider_register(phy->dev,
+ 			of_phy_simple_xlate);
+ 	if (IS_ERR(phy_provider))
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
