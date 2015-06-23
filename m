@@ -1,13 +1,12 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 3/5] drivers/rtc/rtc-ds1307.c: Sort the headers
-Date: Tue, 23 Jun 2015 11:15:12 -0500
-Message-ID: <1435076114-12416-4-git-send-email-nm@ti.com>
-References: <1435076114-12416-1-git-send-email-nm@ti.com>
+Subject: [PATCH V2 0/5] drivers/rtc/rtc-ds1307.c: Basic cleanups and support
+ for wakeupirq
+Date: Tue, 23 Jun 2015 11:15:09 -0500
+Message-ID: <1435076114-12416-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1435076114-12416-1-git-send-email-nm@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,36 +20,45 @@ To: Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <
 Cc: Nishanth Menon <nm@ti.com>, grygorii.strashko@ti.com, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-It is always a good practice to keep the #includes sorted
+Hi,
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/rtc/rtc-ds1307.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Here is the revamp of the patch posted eariler to support wakeupirq.
+This series does a few cleanups as well prior to introducing the
+generic apis required to support the wakeirq mechanism used on certain
+TI SoCs. Cleanups done here are just minimal set of the cleanups we
+discussed in [2].
 
-diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-index 0a98d8a52791..b03880fc32b5 100644
---- a/drivers/rtc/rtc-ds1307.c
-+++ b/drivers/rtc/rtc-ds1307.c
-@@ -11,14 +11,14 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include <linux/module.h>
-+#include <linux/bcd.h>
-+#include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/rtc/ds1307.h>
-+#include <linux/rtc.h>
- #include <linux/slab.h>
--#include <linux/i2c.h>
- #include <linux/string.h>
--#include <linux/rtc.h>
--#include <linux/bcd.h>
--#include <linux/rtc/ds1307.h>
- 
- /*
-  * We can't determine type by probing, but if we expect pre-Linux code
+Series is based on next-20150623
+
+Test log: http://pastebin.ubuntu.com/11763002/
+
+NOTE1: I have only tested in mcp79410 device, and not on other
+ds1307-rtc driver compatbile devices as I dont have any other.
+additional testing might be nice to have.
+NOTE2: there are additional fixes that linux-next seems to need but
+those are in omap-rtc, cpufreq etc, but those are not related by the
+ds-1307.
+
+V1: https://patchwork.kernel.org/patch/4759171/
+
+NOTE: Patch 5/5 of the series is meant to indicate the usage, and will
+be reposted along with other wakeup sources to be enabled once the
+driver changes are accepted.
+
+Felipe Balbi (1):
+  drivers/rtc/rtc-ds1307.c: Convert to threaded IRQ
+
+Nishanth Menon (4):
+  drivers/rtc/rtc-ds1307.c: Switch to managed irq allocation
+  drivers/rtc/rtc-ds1307.c: Sort the headers
+  drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt source
+  (TMP) ARM: dts: am57xx-beagle-x15: Add wakeup irq for mcp79410
+
+ arch/arm/boot/dts/am57xx-beagle-x15.dts |    3 +-
+ drivers/rtc/rtc-ds1307.c                |  110 +++++++++++++++++--------------
+ 2 files changed, 63 insertions(+), 50 deletions(-)
+
 -- 
 1.7.9.5
+
+[2] https://patchwork.kernel.org/patch/6245101/
