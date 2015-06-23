@@ -1,54 +1,56 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 15/17] ARM: dts: OMAP5: Use "syscon-phy-power" instead of "ctrl-module" in SATA PHY node
-Date: Tue, 23 Jun 2015 17:29:00 +0530
-Message-ID: <1435060743-5511-16-git-send-email-kishon@ti.com>
+Subject: [PATCH 04/17] phy: omap-usb2: use omap_usb_power_off to power off the
+ PHY during probe
+Date: Tue, 23 Jun 2015 17:28:49 +0530
+Message-ID: <1435060743-5511-5-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
+Cc: mark.rutland@arm.com, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com, robh+dt@kernel.org, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
-Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
-property from SATA PHY node.
-
-Since "omap_control_sata" devicetree node is no longer used, remove it.
+No functional change. Previously omap_control_phy_power() was used to power
+off the PHY during probe. But once phy-omap-usb2 driver is adapted to
+use syscon, omap_control_phy_power() cannot be used. Hence used
+omap_usb_power_off to power off the PHY.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/phy/phy-omap-usb2.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 9b50314..ca0a77f 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -944,14 +944,6 @@
- 			#thermal-sensor-cells = <1>;
- 		};
+diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+index c1a4686..b5c266a 100644
+--- a/drivers/phy/phy-omap-usb2.c
++++ b/drivers/phy/phy-omap-usb2.c
+@@ -241,7 +241,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	}
  
--		omap_control_sata: control-phy@4a002374 {
--			compatible = "ti,control-phy-pipe3";
--			reg = <0x4a002374 0x4>;
--			reg-names = "power";
--			clocks = <&sys_clkin>;
--			clock-names = "sysclk";
--		};
--
- 		/* OCP2SCP3 */
- 		ocp2scp@4a090000 {
- 			compatible = "ti,omap-ocp2scp";
-@@ -966,7 +958,7 @@
- 				      <0x4A096400 0x64>, /* phy_tx */
- 				      <0x4A096800 0x40>; /* pll_ctrl */
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
--				ctrl-module = <&omap_control_sata>;
-+				syscon-phy-power = <&scm_conf 0x374>;
- 				clocks = <&sys_clkin>, <&sata_ref_clk>;
- 				clock-names = "sysclk", "refclk";
- 				#phy-cells = <0>;
+ 	phy->control_dev = &control_pdev->dev;
+-	omap_control_phy_power(phy->control_dev, 0);
+ 
+ 	otg->set_host		= omap_usb_set_host;
+ 	otg->set_peripheral	= omap_usb_set_peripheral;
+@@ -261,6 +260,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	phy_set_drvdata(generic_phy, phy);
++	omap_usb_power_off(generic_phy);
+ 
+ 	phy_provider = devm_of_phy_provider_register(phy->dev,
+ 			of_phy_simple_xlate);
 -- 
 1.7.9.5
