@@ -1,73 +1,54 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 13/17] ARM: dts: am4372: Use "syscon-phy-power" instead of "ctrl-module" in USB PHY node
-Date: Tue, 23 Jun 2015 17:28:58 +0530
-Message-ID: <1435060743-5511-14-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 15/17] ARM: dts: OMAP5: Use "syscon-phy-power" instead of "ctrl-module" in SATA PHY node
+Date: Tue, 23 Jun 2015 17:29:00 +0530
+Message-ID: <1435060743-5511-16-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435060743-5511-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
-property from USB PHY device tree node.
+property from SATA PHY node.
 
-Since "am43xx_control_usb2phy1" and "am43xx_control_usb2phy2"
-devicetree nodes are no longer used, remove it.
+Since "omap_control_sata" devicetree node is no longer used, remove it.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index c80a3e2..0754e0da 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -796,18 +796,6 @@
- 			status = "disabled";
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 9b50314..ca0a77f 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -944,14 +944,6 @@
+ 			#thermal-sensor-cells = <1>;
  		};
  
--		am43xx_control_usb2phy1: control-phy@44e10620 {
--			compatible = "ti,control-phy-usb2-am437";
--			reg = <0x44e10620 0x4>;
+-		omap_control_sata: control-phy@4a002374 {
+-			compatible = "ti,control-phy-pipe3";
+-			reg = <0x4a002374 0x4>;
 -			reg-names = "power";
+-			clocks = <&sys_clkin>;
+-			clock-names = "sysclk";
 -		};
 -
--		am43xx_control_usb2phy2: control-phy@0x44e10628 {
--			compatible = "ti,control-phy-usb2-am437";
--			reg = <0x44e10628 0x4>;
--			reg-names = "power";
--		};
--
- 		ocp2scp0: ocp2scp@483a8000 {
- 			compatible = "ti,am437x-ocp2scp", "ti,omap-ocp2scp";
- 			#address-cells = <1>;
-@@ -818,7 +806,7 @@
- 			usb2_phy1: phy@483a8000 {
- 				compatible = "ti,am437x-usb2";
- 				reg = <0x483a8000 0x8000>;
--				ctrl-module = <&am43xx_control_usb2phy1>;
-+				syscon-phy-power = <&scm_conf 0x620>;
- 				clocks = <&usb_phy0_always_on_clk32k>,
- 					 <&usb_otg_ss0_refclk960m>;
- 				clock-names = "wkupclk", "refclk";
-@@ -837,7 +825,7 @@
- 			usb2_phy2: phy@483e8000 {
- 				compatible = "ti,am437x-usb2";
- 				reg = <0x483e8000 0x8000>;
--				ctrl-module = <&am43xx_control_usb2phy2>;
-+				syscon-phy-power = <&scm_conf 0x628>;
- 				clocks = <&usb_phy1_always_on_clk32k>,
- 					 <&usb_otg_ss1_refclk960m>;
- 				clock-names = "wkupclk", "refclk";
+ 		/* OCP2SCP3 */
+ 		ocp2scp@4a090000 {
+ 			compatible = "ti,omap-ocp2scp";
+@@ -966,7 +958,7 @@
+ 				      <0x4A096400 0x64>, /* phy_tx */
+ 				      <0x4A096800 0x40>; /* pll_ctrl */
+ 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+-				ctrl-module = <&omap_control_sata>;
++				syscon-phy-power = <&scm_conf 0x374>;
+ 				clocks = <&sys_clkin>, <&sata_ref_clk>;
+ 				clock-names = "sysclk", "refclk";
+ 				#phy-cells = <0>;
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
