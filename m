@@ -1,86 +1,71 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 00/17] Deprecate phy-omap-control and use SYSCON
-Date: Tue, 23 Jun 2015 17:28:45 +0530
-Message-ID: <1435060743-5511-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 05/17] phy: omap-usb2: Add a new compatible string for USB2 PHY2
+Date: Tue, 23 Jun 2015 17:28:50 +0530
+Message-ID: <1435060743-5511-6-git-send-email-kishon@ti.com>
+References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
-Cc: mark.rutland@arm.com, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com, robh+dt@kernel.org, galak@codeaurora.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1435060743-5511-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-phy-omap-control driver was added when there was no proper
-infrastructure for doing control module initializations.
-Now with SYSCON framework being added to the kernel, phy-omap-control
-shouldn't be needed.
+The USB2 PHY2 has a different register map compared to USB2 PHY1
+to power on/off the PHY. In order to handle it, add a new
+"compatible" string.
 
-This series is about adapting phy-omap-usb2, phy-ti-pipe3 and omap2430
-to use SYSCON framework instead of phy-omap-control.
-However we can't remove the phy-omap-control driver altogether since
-that will break older dtbs.
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ Documentation/devicetree/bindings/phy/ti-phy.txt |    2 ++
+ drivers/phy/phy-omap-usb2.c                      |    9 +++++++++
+ 2 files changed, 11 insertions(+)
 
-Performed USB enumeration testing in DRA72-EVM, AM43XX-EVM, OMAP5-uEVM
-and OMAP4 PANDA.
-
-Performed SATA enumeration testing in DRA72-EVM and OMAP5-uEVM
-
-Performed PCIe enumeration testing in DRA72-EVM.
-
-This patch series is developed on top of Linux 4.1-rc8 +
-http://lkml.iu.edu/hypermail/linux/kernel/1505.1/03099.html
-
-Kishon Vijay Abraham I (17):
-  phy: ti-pipe3: use ti_pipe3_power_off to power off the PHY during
-    probe
-  phy: ti-pipe3: use *syscon* framework to power on/off the PHY
-  phy: ti-pipe3: use *syscon* framework to set PCS value of the PHY
-  phy: omap-usb2: use omap_usb_power_off to power off the PHY during
-    probe
-  phy: omap-usb2: Add a new compatible string for USB2 PHY2
-  phy: omap-usb2: use *syscon* framework to power on/off the PHY
-  usb: musb: omap2430: use *syscon* framework to write to mailbox
-    register
-  ARM: dts: dra7: Add dt node for the sycon pcie
-  ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in
-    SATA PHY node
-  ARM: dts: dra7: Use "syscon-phy-power" and "syscon-pcs" in PCIe PHY
-    node
-  ARM: dts: dra7: Use "ti,dra7x-usb2-phy2" compatible string for USB2
-    PHY2
-  ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in
-    USB PHY node
-  ARM: dts: am4372: Use "syscon-phy-power" instead of "ctrl-module" in
-    USB PHY node
-  ARM: dts: OMAP5: Use "syscon-phy-power" instead of "ctrl-module" in
-    USB PHY node
-  ARM: dts: OMAP5: Use "syscon-phy-power" instead of "ctrl-module" in
-    SATA PHY node
-  ARM: dts: omap4: Use "syscon-phy-power" instead of "ctrl-module" in
-    USB PHY node
-  ARM: dts: omap4: Use "syscon-otghs" instead of "ctrl-module" in USB
-    node
-
- Documentation/devicetree/bindings/phy/ti-phy.txt   |   20 +++-
- Documentation/devicetree/bindings/usb/omap-usb.txt |    7 +-
- arch/arm/boot/dts/am4372.dtsi                      |   16 +--
- arch/arm/boot/dts/dra7.dtsi                        |   69 +++--------
- arch/arm/boot/dts/omap4.dtsi                       |   16 +--
- arch/arm/boot/dts/omap5.dtsi                       |   26 +---
- drivers/phy/phy-omap-usb2.c                        |  112 +++++++++++++++---
- drivers/phy/phy-ti-pipe3.c                         |  125 +++++++++++++++++---
- drivers/usb/musb/omap2430.c                        |  118 ++++++++++++++----
- include/linux/phy/omap_usb.h                       |   18 +++
- 10 files changed, 365 insertions(+), 162 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index 52c7a92..b9101b9 100644
+--- a/Documentation/devicetree/bindings/phy/ti-phy.txt
++++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+@@ -31,6 +31,8 @@ OMAP USB2 PHY
+ 
+ Required properties:
+  - compatible: Should be "ti,omap-usb2"
++	       Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
++			in DRA7x
+  - reg : Address and length of the register set for the device.
+  - #phy-cells: determine the number of cells that should be given in the
+    phandle while referencing this phy.
+diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+index b5c266a..2f7220f 100644
+--- a/drivers/phy/phy-omap-usb2.c
++++ b/drivers/phy/phy-omap-usb2.c
+@@ -159,6 +159,11 @@ static const struct usb_phy_data dra7x_usb2_data = {
+ 	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
+ };
+ 
++static const struct usb_phy_data dra7x_usb2_phy2_data = {
++	.label = "dra7x_usb2_phy2",
++	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
++};
++
+ static const struct usb_phy_data am437x_usb2_data = {
+ 	.label = "am437x_usb2",
+ 	.flags =  0,
+@@ -178,6 +183,10 @@ static const struct of_device_id omap_usb2_id_table[] = {
+ 		.data = &dra7x_usb2_data,
+ 	},
+ 	{
++		.compatible = "ti,dra7x-usb2-phy2",
++		.data = &dra7x_usb2_phy2_data,
++	},
++	{
+ 		.compatible = "ti,am437x-usb2",
+ 		.data = &am437x_usb2_data,
+ 	},
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
