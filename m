@@ -1,56 +1,58 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 04/17] phy: omap-usb2: use omap_usb_power_off to power off the
- PHY during probe
-Date: Tue, 23 Jun 2015 17:28:49 +0530
-Message-ID: <1435060743-5511-5-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 17/17] ARM: dts: omap4: Use "syscon-otghs" instead of "ctrl-module" in USB node
+Date: Tue, 23 Jun 2015 17:29:02 +0530
+Message-ID: <1435060743-5511-18-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
-Cc: mark.rutland@arm.com, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com, robh+dt@kernel.org, galak@codeaurora.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1435060743-5511-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Previously omap_control_phy_power() was used to power
-off the PHY during probe. But once phy-omap-usb2 driver is adapted to
-use syscon, omap_control_phy_power() cannot be used. Hence used
-omap_usb_power_off to power off the PHY.
+Add "syscon-otghs" property and remove the deprecated "ctrl-module"
+property from MUSB devicetree node.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Since "omap_control_usbotg" devicetree node is no longer used, remove
+it.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/phy/phy-omap-usb2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap4.dtsi |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index c1a4686..b5c266a 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -241,7 +241,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	}
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index d0e0960..3bc77b1 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -852,12 +852,6 @@
+ 			};
+ 		};
  
- 	phy->control_dev = &control_pdev->dev;
--	omap_control_phy_power(phy->control_dev, 0);
+-		omap_control_usbotg: control-phy@4a00233c {
+-			compatible = "ti,control-phy-otghs";
+-			reg = <0x4a00233c 0x4>;
+-			reg-names = "otghs_control";
+-		};
+-
+ 		usb_otg_hs: usb_otg_hs@4a0ab000 {
+ 			compatible = "ti,omap4-musb";
+ 			reg = <0x4a0ab000 0x7ff>;
+@@ -870,7 +864,7 @@
+ 			multipoint = <1>;
+ 			num-eps = <16>;
+ 			ram-bits = <12>;
+-			ctrl-module = <&omap_control_usbotg>;
++			syscon-otghs = <&scm_conf 0x33c>;
+ 		};
  
- 	otg->set_host		= omap_usb_set_host;
- 	otg->set_peripheral	= omap_usb_set_peripheral;
-@@ -261,6 +260,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	}
- 
- 	phy_set_drvdata(generic_phy, phy);
-+	omap_usb_power_off(generic_phy);
- 
- 	phy_provider = devm_of_phy_provider_register(phy->dev,
- 			of_phy_simple_xlate);
+ 		aes: aes@4b501000 {
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
