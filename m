@@ -1,12 +1,14 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 0/5] drivers/rtc/rtc-ds1307.c: Basic cleanups and support
- for wakeupirq
-Date: Tue, 23 Jun 2015 11:15:09 -0500
-Message-ID: <1435076114-12416-1-git-send-email-nm@ti.com>
+Subject: [TMP PATCH V2 5/5] ARM: dts: am57xx-beagle-x15: Add wakeup irq for
+ mcp79410
+Date: Tue, 23 Jun 2015 11:15:14 -0500
+Message-ID: <1435076114-12416-6-git-send-email-nm@ti.com>
+References: <1435076114-12416-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1435076114-12416-1-git-send-email-nm@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,45 +22,34 @@ To: Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <
 Cc: Nishanth Menon <nm@ti.com>, grygorii.strashko@ti.com, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+With the support in the generic PM framework for wakeirq and capability
+added to the rtc-ds1307 driver to support this, we can now define the
+optional wakeup irq to allow the RTC to wakeup the system from low power
+modes as part of suspend.
 
-Here is the revamp of the patch posted eariler to support wakeupirq.
-This series does a few cleanups as well prior to introducing the
-generic apis required to support the wakeirq mechanism used on certain
-TI SoCs. Cleanups done here are just minimal set of the cleanups we
-discussed in [2].
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-Series is based on next-20150623
+Please do not merge this patch -> since this needs to come via linux-omap
+tree and also needs to be done with a few other changes on other peripherals.
+This is meant for illustration only.
 
-Test log: http://pastebin.ubuntu.com/11763002/
+ arch/arm/boot/dts/am57xx-beagle-x15.dts |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-NOTE1: I have only tested in mcp79410 device, and not on other
-ds1307-rtc driver compatbile devices as I dont have any other.
-additional testing might be nice to have.
-NOTE2: there are additional fixes that linux-next seems to need but
-those are in omap-rtc, cpufreq etc, but those are not related by the
-ds-1307.
-
-V1: https://patchwork.kernel.org/patch/4759171/
-
-NOTE: Patch 5/5 of the series is meant to indicate the usage, and will
-be reposted along with other wakeup sources to be enabled once the
-driver changes are accepted.
-
-Felipe Balbi (1):
-  drivers/rtc/rtc-ds1307.c: Convert to threaded IRQ
-
-Nishanth Menon (4):
-  drivers/rtc/rtc-ds1307.c: Switch to managed irq allocation
-  drivers/rtc/rtc-ds1307.c: Sort the headers
-  drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt source
-  (TMP) ARM: dts: am57xx-beagle-x15: Add wakeup irq for mcp79410
-
- arch/arm/boot/dts/am57xx-beagle-x15.dts |    3 +-
- drivers/rtc/rtc-ds1307.c                |  110 +++++++++++++++++--------------
- 2 files changed, 63 insertions(+), 50 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index a42cc377a862..5c9ce2df260a 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -517,7 +517,8 @@
+ 	mcp_rtc: rtc@6f {
+ 		compatible = "microchip,mcp7941x";
+ 		reg = <0x6f>;
+-		interrupts = <GIC_SPI 2 IRQ_TYPE_EDGE_RISING>;  /* IRQ_SYS_1N */
++		interrupts-extended = <&crossbar_mpu GIC_SPI 2 IRQ_TYPE_EDGE_RISING>,
++				      <&dra7_pmx_core 0x424>;
+ 
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&mcp79410_pins_default>;
 -- 
 1.7.9.5
-
-[2] https://patchwork.kernel.org/patch/6245101/
