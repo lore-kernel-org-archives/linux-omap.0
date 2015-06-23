@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 11/17] ARM: dts: dra7: Use "ti,dra7x-usb2-phy2" compatible string for USB2 PHY2
-Date: Tue, 23 Jun 2015 17:28:56 +0530
-Message-ID: <1435060743-5511-12-git-send-email-kishon@ti.com>
+Subject: [PATCH 10/17] ARM: dts: dra7: Use "syscon-phy-power" and "syscon-pcs" in PCIe PHY node
+Date: Tue, 23 Jun 2015 17:28:55 +0530
+Message-ID: <1435060743-5511-11-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,28 +12,82 @@ To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TU
 Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The USB2 PHY2 has a different register map compared to USB2 PHY1
-to power on/off the PHY. In order to handle it, use the new compatible
-string "ti,dra7x-usb2-phy2" for the second instance of USB2 PHY.
+Add "syscon-phy-power" property and "syscon-pcs" property which can
+be used to perform the control module initializations and remove
+the deprecated "ctrl-module" property from PCIe PHY dt nodes.
+
+Phandle to "sysclk" clock node is also added to the PCIe PHY node
+since some of the syscon initializations is based on system clock
+frequency.
+
+Since "omap_control_pcie1phy" and "omap_control_pcie2phy" devicetree
+nodes are no longer used, remove it.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7.dtsi |   28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index f69db70..a8ee829 100644
+index 92e0741..f69db70 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1235,7 +1235,7 @@
+@@ -1141,16 +1141,18 @@
+ 				reg = <0x4a094000 0x80>, /* phy_rx */
+ 				      <0x4a094400 0x64>; /* phy_tx */
+ 				reg-names = "phy_rx", "phy_tx";
+-				ctrl-module = <&omap_control_pcie1phy>;
++				syscon-phy-power = <&dra7_ctrl_pcie 0x40>;
++				syscon-pcs = <&dra7_ctrl_pcie 0x34>;
+ 				clocks = <&dpll_pcie_ref_ck>,
+ 					 <&dpll_pcie_ref_m2ldo_ck>,
+ 					 <&optfclk_pciephy1_32khz>,
+ 					 <&optfclk_pciephy1_clk>,
+ 					 <&optfclk_pciephy1_div_clk>,
+-					 <&optfclk_pciephy_div>;
++					 <&optfclk_pciephy_div>,
++					 <&sys_clkin1>;
+ 				clock-names = "dpll_ref", "dpll_ref_m2",
+ 					      "wkupclk", "refclk",
+-					      "div-clk", "phy-div";
++					      "div-clk", "phy-div", "sysclk";
+ 				#phy-cells = <0>;
  			};
  
- 			usb2_phy2: phy@4a085000 {
--				compatible = "ti,omap-usb2";
-+				compatible = "ti,dra7x-usb2-phy2", "ti,omap-usb2";
- 				reg = <0x4a085000 0x400>;
- 				ctrl-module = <&omap_control_usb2phy2>;
- 				clocks = <&usb_phy2_always_on_clk32k>,
+@@ -1159,7 +1161,8 @@
+ 				reg = <0x4a095000 0x80>, /* phy_rx */
+ 				      <0x4a095400 0x64>; /* phy_tx */
+ 				reg-names = "phy_rx", "phy_tx";
+-				ctrl-module = <&omap_control_pcie2phy>;
++				syscon-phy-power = <&dra7_ctrl_pcie 0x44>;
++				syscon-pcs = <&dra7_ctrl_pcie 0x34>;
+ 				clocks = <&dpll_pcie_ref_ck>,
+ 					 <&dpll_pcie_ref_m2ldo_ck>,
+ 					 <&optfclk_pciephy2_32khz>,
+@@ -1184,23 +1187,6 @@
+ 			ti,hwmods = "sata";
+ 		};
+ 
+-		omap_control_pcie1phy: control-phy@0x4a003c40 {
+-			compatible = "ti,control-phy-pcie";
+-			reg = <0x4a003c40 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
+-			reg-names = "power", "control_sma", "pcie_pcs";
+-			clocks = <&sys_clkin1>;
+-			clock-names = "sysclk";
+-		};
+-
+-		omap_control_pcie2phy: control-pcie@0x4a003c44 {
+-			compatible = "ti,control-phy-pcie";
+-			reg = <0x4a003c44 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
+-			reg-names = "power", "control_sma", "pcie_pcs";
+-			clocks = <&sys_clkin1>;
+-			clock-names = "sysclk";
+-			status = "disabled";
+-		};
+-
+ 		rtc: rtc@48838000 {
+ 			compatible = "ti,am3352-rtc";
+ 			reg = <0x48838000 0x100>;
 -- 
 1.7.9.5
 
