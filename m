@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 05/17] phy: omap-usb2: Add a new compatible string for USB2 PHY2
-Date: Tue, 23 Jun 2015 17:28:50 +0530
-Message-ID: <1435060743-5511-6-git-send-email-kishon@ti.com>
+Subject: [PATCH 09/17] ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in SATA PHY node
+Date: Tue, 23 Jun 2015 17:28:54 +0530
+Message-ID: <1435060743-5511-10-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,56 +12,43 @@ To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TU
 Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The USB2 PHY2 has a different register map compared to USB2 PHY1
-to power on/off the PHY. In order to handle it, add a new
-"compatible" string.
+Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
+property from SATA PHY node. Since "omap_control_sata" note is no longer
+used, remove it.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/phy/ti-phy.txt |    2 ++
- drivers/phy/phy-omap-usb2.c                      |    9 +++++++++
- 2 files changed, 11 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index 52c7a92..b9101b9 100644
---- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -31,6 +31,8 @@ OMAP USB2 PHY
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 3f434f7..92e0741 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1115,14 +1115,6 @@
+ 			status = "disabled";
+ 		};
  
- Required properties:
-  - compatible: Should be "ti,omap-usb2"
-+	       Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
-+			in DRA7x
-  - reg : Address and length of the register set for the device.
-  - #phy-cells: determine the number of cells that should be given in the
-    phandle while referencing this phy.
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index b5c266a..2f7220f 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -159,6 +159,11 @@ static const struct usb_phy_data dra7x_usb2_data = {
- 	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
- };
- 
-+static const struct usb_phy_data dra7x_usb2_phy2_data = {
-+	.label = "dra7x_usb2_phy2",
-+	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
-+};
-+
- static const struct usb_phy_data am437x_usb2_data = {
- 	.label = "am437x_usb2",
- 	.flags =  0,
-@@ -178,6 +183,10 @@ static const struct of_device_id omap_usb2_id_table[] = {
- 		.data = &dra7x_usb2_data,
- 	},
- 	{
-+		.compatible = "ti,dra7x-usb2-phy2",
-+		.data = &dra7x_usb2_phy2_data,
-+	},
-+	{
- 		.compatible = "ti,am437x-usb2",
- 		.data = &am437x_usb2_data,
- 	},
+-		omap_control_sata: control-phy@4a002374 {
+-			compatible = "ti,control-phy-pipe3";
+-			reg = <0x4a002374 0x4>;
+-			reg-names = "power";
+-			clocks = <&sys_clkin1>;
+-			clock-names = "sysclk";
+-		};
+-
+ 		/* OCP2SCP3 */
+ 		ocp2scp@4a090000 {
+ 			compatible = "ti,omap-ocp2scp";
+@@ -1137,7 +1129,7 @@
+ 				      <0x4A096400 0x64>, /* phy_tx */
+ 				      <0x4A096800 0x40>; /* pll_ctrl */
+ 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+-				ctrl-module = <&omap_control_sata>;
++				syscon-phy-power = <&dra7_ctrl_core 0x374>;
+ 				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+ 				clock-names = "sysclk", "refclk";
+ 				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
 -- 
 1.7.9.5
 
