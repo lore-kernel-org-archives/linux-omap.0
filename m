@@ -1,273 +1,105 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 06/17] phy: omap-usb2: use *syscon* framework to power on/off the PHY
-Date: Tue, 23 Jun 2015 17:28:51 +0530
-Message-ID: <1435060743-5511-7-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 03/17] phy: ti-pipe3: use *syscon* framework to set PCS value of the PHY
+Date: Tue, 23 Jun 2015 17:28:48 +0530
+Message-ID: <1435060743-5511-4-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435060743-5511-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Deprecate using phy-omap-control driver to power on/off the PHY,
-and use *syscon* framework to do the same. This handles
-powering on/off the PHY for the USB2 PHYs used in various TI SoCs.
+Deprecate using phy-omap-control driver to set PCS value of the PHY
+and start using *syscon* framework to do the same.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/phy/ti-phy.txt |    6 +-
- drivers/phy/phy-omap-usb2.c                      |  101 ++++++++++++++++++----
- include/linux/phy/omap_usb.h                     |   18 ++++
- 3 files changed, 107 insertions(+), 18 deletions(-)
+ Documentation/devicetree/bindings/phy/ti-phy.txt |    2 ++
+ drivers/phy/phy-ti-pipe3.c                       |   32 +++++++++++++++++++++-
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index b9101b9..5bfe461 100644
+index d3ad3bf..52c7a92 100644
 --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
 +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -42,10 +42,14 @@ Required properties:
-    * "wkupclk" - wakeup clock.
-    * "refclk" - reference clock (optional).
+@@ -83,6 +83,8 @@ Optional properties:
+  - syscon-pllreset: Handle to system control region that contains the
+    CTRL_CORE_SMA_SW_0 register and register offset to the CTRL_CORE_SMA_SW_0
+    register that contains the SATA_PLL_SOFT_RESET bit. Only valid for sata_phy.
++ - syscon-pcs : phandle/offset pair. Phandle to the system control module and the
++   register offset to write the PCS delay value.
  
--Optional properties:
-+Deprecated properties:
+ Deprecated properties:
   - ctrl-module : phandle of the control module used by PHY driver to power on
-    the PHY.
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index 78bac00..e2f9ad7 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -65,6 +65,9 @@
+ #define PIPE3_PHY_TX_RX_POWERON		0x3
+ #define PIPE3_PHY_TX_RX_POWEROFF	0x0
  
-+Recommended properies:
-+- syscon-phy-power : phandle/offset pair. Phandle to the system control
-+  module and the register offset to power on/off the PHY.
++#define PCIE_PCS_MASK			0xFF0000
++#define PCIE_PCS_DELAY_COUNT_SHIFT	0x10
 +
- This is usually a subnode of ocp2scp to which it is connected.
+ /*
+  * This is an Empirical value that works, need to confirm the actual
+  * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
+@@ -96,9 +99,11 @@ struct ti_pipe3 {
+ 	struct clk		*div_clk;
+ 	struct pipe3_dpll_map	*dpll_map;
+ 	struct regmap		*phy_power_syscon; /* ctrl. reg. acces */
++	struct regmap		*pcs_syscon; /* ctrl. reg. acces */
+ 	struct regmap		*dpll_reset_syscon; /* ctrl. reg. acces */
+ 	unsigned int		dpll_reset_reg; /* reg. index within syscon */
+ 	unsigned int		power_reg; /* power reg. index within syscon */
++	unsigned int		pcie_pcs_reg; /* pcs reg. index in syscon */
+ 	bool			sata_refclk_enabled;
+ };
  
- usb2phy@4a0ad080 {
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index 2f7220f..180b066 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -29,6 +29,8 @@
- #include <linux/delay.h>
- #include <linux/phy/omap_control_phy.h>
- #include <linux/phy/phy.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/regmap.h>
- #include <linux/of_platform.h>
+@@ -271,7 +276,16 @@ static int ti_pipe3_init(struct phy *x)
+ 	 * 18-1804.
+ 	 */
+ 	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie")) {
+-		omap_control_pcie_pcs(phy->control_dev, 0x96);
++		if (phy->pcs_syscon) {
++			val = 0x96 << OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT;
++			ret = regmap_update_bits(phy->pcs_syscon,
++						 phy->pcie_pcs_reg,
++						 PCIE_PCS_MASK, val);
++			if (ret < 0)
++				return ret;
++		} else {
++			omap_control_pcie_pcs(phy->control_dev, 0x96);
++		}
+ 		return 0;
+ 	}
  
- #define USB2PHY_DISCON_BYP_LATCH (1 << 31)
-@@ -97,22 +99,65 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
- 	return 0;
- }
- 
--static int omap_usb_power_off(struct phy *x)
-+static int omap_usb_phy_power(struct omap_usb *phy, int on)
- {
--	struct omap_usb *phy = phy_get_drvdata(x);
-+	u32 val = 0;
-+	u32 mask;
-+	int ret;
- 
--	omap_control_phy_power(phy->control_dev, 0);
-+	if (phy->syscon_phy_power) {
-+		switch (phy->type) {
-+		case TYPE_USB2:
-+			mask = OMAP_DEV_PHY_PD;
-+			if (!on)
-+				val = OMAP_DEV_PHY_PD;
-+			break;
-+		case TYPE_DRA7USB2:
-+			mask = OMAP_USB2_PHY_PD;
-+			if (!on)
-+				val = OMAP_USB2_PHY_PD;
-+			break;
-+		case TYPE_AM437USB2:
-+			mask = AM437X_USB2_PHY_PD |
-+				AM437X_USB2_OTG_PD |
-+				AM437X_USB2_OTGVDET_EN |
-+				AM437X_USB2_OTGSESSEND_EN;
-+			if (on) {
-+				val = AM437X_USB2_OTGVDET_EN |
-+					AM437X_USB2_OTGSESSEND_EN;
-+			} else {
-+				val = AM437X_USB2_PHY_PD | AM437X_USB2_OTG_PD;
+@@ -455,6 +469,22 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 			dev_err(&pdev->dev, "unable to get div-clk\n");
+ 			return PTR_ERR(phy->div_clk);
+ 		}
++
++		phy->pcs_syscon = syscon_regmap_lookup_by_phandle(node,
++								  "syscon-pcs");
++		if (IS_ERR(phy->pcs_syscon)) {
++			dev_dbg(&pdev->dev,
++				 "can't get syscon-pcs, using omap control\n");
++			phy->pcs_syscon = NULL;
++		} else {
++			if (of_property_read_u32_index(node,
++						       "syscon-pcs", 1,
++						       &phy->pcie_pcs_reg)) {
++				dev_err(&pdev->dev,
++					"couldn't get pcie pcs reg. offset\n");
++				return -EINVAL;
 +			}
-+			break;
-+		default:
-+			dev_err(phy->dev, "%s: type %d not recognized\n",
-+				__func__, phy->type);
-+			return -EINVAL;
 +		}
-+
-+		ret = regmap_update_bits(phy->syscon_phy_power, phy->power_reg,
-+					 mask, val);
-+		if (ret < 0)
-+			return ret;
-+	} else {
-+		omap_control_phy_power(phy->control_dev, on);
-+	}
- 
- 	return 0;
- }
- 
--static int omap_usb_power_on(struct phy *x)
-+static int omap_usb_power_off(struct phy *x)
- {
- 	struct omap_usb *phy = phy_get_drvdata(x);
- 
--	omap_control_phy_power(phy->control_dev, 1);
-+	return omap_usb_phy_power(phy, false);
-+}
- 
--	return 0;
-+static int omap_usb_power_on(struct phy *x)
-+{
-+	struct omap_usb *phy = phy_get_drvdata(x);
-+
-+	return omap_usb_phy_power(phy, true);
- }
- 
- static int omap_usb_init(struct phy *x)
-@@ -147,26 +192,31 @@ static struct phy_ops ops = {
- static const struct usb_phy_data omap_usb2_data = {
- 	.label = "omap_usb2",
- 	.flags = OMAP_USB2_HAS_START_SRP | OMAP_USB2_HAS_SET_VBUS,
-+	.type = TYPE_USB2,
- };
- 
- static const struct usb_phy_data omap5_usb2_data = {
- 	.label = "omap5_usb2",
- 	.flags = 0,
-+	.type = TYPE_USB2,
- };
- 
- static const struct usb_phy_data dra7x_usb2_data = {
- 	.label = "dra7x_usb2",
- 	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
-+	.type = TYPE_USB2,
- };
- 
- static const struct usb_phy_data dra7x_usb2_phy2_data = {
- 	.label = "dra7x_usb2_phy2",
- 	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
-+	.type = TYPE_DRA7USB2,
- };
- 
- static const struct usb_phy_data am437x_usb2_data = {
- 	.label = "am437x_usb2",
- 	.flags =  0,
-+	.type = TYPE_AM437USB2,
- };
- 
- static const struct of_device_id omap_usb2_id_table[] = {
-@@ -223,6 +273,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	phy->dev		= &pdev->dev;
-+	phy->type		= phy_data->type;
- 
- 	phy->phy.dev		= phy->dev;
- 	phy->phy.label		= phy_data->label;
-@@ -237,20 +288,36 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 		phy->flags |= OMAP_USB2_CALIBRATE_FALSE_DISCONNECT;
+ 	} else {
+ 		phy->div_clk = ERR_PTR(-ENODEV);
  	}
- 
--	control_node = of_parse_phandle(node, "ctrl-module", 0);
--	if (!control_node) {
--		dev_err(&pdev->dev, "Failed to get control device phandle\n");
--		return -EINVAL;
--	}
-+	phy->syscon_phy_power = syscon_regmap_lookup_by_phandle(node,
-+							"syscon-phy-power");
-+	if (IS_ERR(phy->syscon_phy_power)) {
-+		dev_info(&pdev->dev,
-+			 "can't get syscon-phy-power, using control device\n");
-+		phy->syscon_phy_power = NULL;
-+
-+		control_node = of_parse_phandle(node, "ctrl-module", 0);
-+		if (!control_node) {
-+			dev_err(&pdev->dev,
-+				"Failed to get control device phandle\n");
-+			return -EINVAL;
-+		}
- 
--	control_pdev = of_find_device_by_node(control_node);
--	if (!control_pdev) {
--		dev_err(&pdev->dev, "Failed to get control device\n");
--		return -EINVAL;
-+		control_pdev = of_find_device_by_node(control_node);
-+		if (!control_pdev) {
-+			dev_err(&pdev->dev, "Failed to get control device\n");
-+			return -EINVAL;
-+		}
-+		phy->control_dev = &control_pdev->dev;
-+	} else {
-+		if (of_property_read_u32_index(node,
-+					       "syscon-phy-power", 1,
-+					       &phy->power_reg)) {
-+			dev_err(&pdev->dev,
-+				"couldn't get power reg. offset\n");
-+			return -EINVAL;
-+		}
- 	}
- 
--	phy->control_dev = &control_pdev->dev;
--
- 	otg->set_host		= omap_usb_set_host;
- 	otg->set_peripheral	= omap_usb_set_peripheral;
- 	if (phy_data->flags & OMAP_USB2_HAS_SET_VBUS)
-diff --git a/include/linux/phy/omap_usb.h b/include/linux/phy/omap_usb.h
-index dc2c541..de933ab 100644
---- a/include/linux/phy/omap_usb.h
-+++ b/include/linux/phy/omap_usb.h
-@@ -30,6 +30,12 @@ struct usb_dpll_params {
- 	u32	mf;
- };
- 
-+enum omap_usb_phy_type {
-+	TYPE_USB2,    /* USB2_PHY, power down in CONTROL_DEV_CONF */
-+	TYPE_DRA7USB2, /* USB2 PHY, power and power_aux e.g. DRA7 */
-+	TYPE_AM437USB2, /* USB2 PHY, power e.g. AM437x */
-+};
-+
- struct omap_usb {
- 	struct usb_phy		phy;
- 	struct phy_companion	*comparator;
-@@ -40,11 +46,15 @@ struct omap_usb {
- 	struct clk		*wkupclk;
- 	struct clk		*optclk;
- 	u8			flags;
-+	enum omap_usb_phy_type	type;
-+	struct regmap		*syscon_phy_power; /* ctrl. reg. acces */
-+	unsigned int		power_reg; /* power reg. index within syscon */
- };
- 
- struct usb_phy_data {
- 	const char *label;
- 	u8 flags;
-+	enum omap_usb_phy_type type;
- };
- 
- /* Driver Flags */
-@@ -52,6 +62,14 @@ struct usb_phy_data {
- #define OMAP_USB2_HAS_SET_VBUS (1 << 1)
- #define OMAP_USB2_CALIBRATE_FALSE_DISCONNECT (1 << 2)
- 
-+#define OMAP_DEV_PHY_PD		BIT(0)
-+#define OMAP_USB2_PHY_PD	BIT(28)
-+
-+#define AM437X_USB2_PHY_PD		BIT(0)
-+#define AM437X_USB2_OTG_PD		BIT(1)
-+#define AM437X_USB2_OTGVDET_EN		BIT(19)
-+#define AM437X_USB2_OTGSESSEND_EN	BIT(20)
-+
- #define	phy_to_omapusb(x)	container_of((x), struct omap_usb, phy)
- 
- #if defined(CONFIG_OMAP_USB2) || defined(CONFIG_OMAP_USB2_MODULE)
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
