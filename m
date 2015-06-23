@@ -1,255 +1,96 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 07/17] usb: musb: omap2430: use *syscon* framework to write to mailbox register
-Date: Tue, 23 Jun 2015 17:28:52 +0530
-Message-ID: <1435060743-5511-8-git-send-email-kishon@ti.com>
-References: <1435060743-5511-1-git-send-email-kishon@ti.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH v2] usb: dwc3: pci: make better use of gpiod API
+Date: Tue, 23 Jun 2015 14:25:06 +0200
+Message-ID: <1435062306-2591-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <20150623100116.GB1296@kuha.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150623100116.GB1296-FZxXFokcWpatqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Deprecate using phy-omap-control driver to write to the mailbox register
-and start using *syscon* framework to do the same.
+Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
+which appeared in v3.17-rc1, the gpiod_get* functions take an additiona=
+l
+parameter that allows to specify direction and initial value for output=
+=2E
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Use this additional parameter and the _optional variant to simplify the
+driver and improve error handling. Also expand the comment to explain
+why it's not sensible to switch to devm_gpiod_get and why the gpiod_put
+is also necessary.
+
+=46urthermore this is one caller less that stops us making the flags
+argument to gpiod_get*() mandatory.
+
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 ---
- Documentation/devicetree/bindings/usb/omap-usb.txt |    7 +-
- drivers/usb/musb/omap2430.c                        |  118 ++++++++++++++++----
- 2 files changed, 102 insertions(+), 23 deletions(-)
+Changes since (implicit) v1, sent with Message-Id:
+1434093019-14009-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org:
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 38d9bb8..c001306 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -20,10 +20,15 @@ OMAP MUSB GLUE
-  - phy-names : the names of the PHY corresponding to the PHYs present in the
-    *phy* phandle.
- 
--Optional properties:
-+Optional Properties:
-+Deprecated properties:
-  - ctrl-module : phandle of the control module this glue uses to write to
-    mailbox
- 
-+Recommended properies:
-+ - syscon-otghs : phandle/offset pair. Phandle to the system control module and the
-+   register offset of the mailbox.
-+
- SOC specific device node entry
- usb_otg_hs: usb_otg_hs@4a0ab000 {
- 	compatible = "ti,omap4-musb";
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index cc752d8..bcd6d1e 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -39,16 +39,27 @@
- #include <linux/usb/musb-omap.h>
- #include <linux/phy/omap_control_phy.h>
- #include <linux/of_platform.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/syscon.h>
- 
- #include "musb_core.h"
- #include "omap2430.h"
- 
-+#define OMAP2430_MUSB_MODE_MASK	0x1f
-+#define OMAP2430_MUSB_AVALID	(0x1 << 0)
-+#define OMAP2430_MUSB_BVALID	(0x1 << 1)
-+#define OMAP2430_MUSB_VBUSVALID	(0x1 << 2)
-+#define OMAP2430_MUSB_SESSEND	(0x1 << 3)
-+#define OMAP2430_MUSB_IDDIG	(0x1 << 4)
-+
- struct omap2430_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
- 	enum omap_musb_vbus_id_status status;
- 	struct work_struct	omap_musb_mailbox_work;
- 	struct device		*control_otghs;
-+	struct regmap		*syscon_otghs; /* ctrl. reg. acces */
-+	unsigned int            otghs_reg; /* otghs reg. index within syscon */
- };
- #define glue_to_musb(g)		platform_get_drvdata(g->musb)
- 
-@@ -253,6 +264,47 @@ void omap_musb_mailbox(enum omap_musb_vbus_id_status status)
- }
- EXPORT_SYMBOL_GPL(omap_musb_mailbox);
- 
-+static void omap2430_musb_set_usbmode(struct omap2430_glue *glue,
-+				      enum omap_control_usb_mode mode)
-+{
-+	u32 val;
-+	int ret;
-+
-+	if (glue->syscon_otghs) {
-+		switch (mode) {
-+		case USB_MODE_HOST:
-+			val = OMAP2430_MUSB_AVALID | OMAP2430_MUSB_VBUSVALID;
-+			break;
-+
-+		case USB_MODE_DEVICE:
-+			val = OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_AVALID |
-+				OMAP2430_MUSB_VBUSVALID;
-+			break;
-+
-+		case USB_MODE_DISCONNECT:
-+			val = OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_SESSEND;
-+			break;
-+
-+		default:
-+			dev_dbg(glue->dev, "Invalid mode\n");
-+			goto err_regmap_update;
-+		}
-+
-+		ret = regmap_update_bits(glue->syscon_otghs,
-+					 glue->otghs_reg,
-+					 OMAP2430_MUSB_MODE_MASK, val);
-+		if (ret < 0)
-+			goto err_regmap_update;
-+	} else {
-+		omap_control_usb_set_mode(glue->control_otghs, mode);
-+	}
-+
-+	return;
-+
-+err_regmap_update:
-+	dev_err(glue->dev, "Failed to set mode to %d\n", mode);
-+}
-+
- static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- {
- 	struct musb *musb = glue_to_musb(glue);
-@@ -270,8 +322,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		musb->xceiv->last_event = USB_EVENT_ID;
- 		if (musb->gadget_driver) {
- 			pm_runtime_get_sync(dev);
--			omap_control_usb_set_mode(glue->control_otghs,
--				USB_MODE_HOST);
-+			omap2430_musb_set_usbmode(glue, USB_MODE_HOST);
- 			omap2430_musb_set_vbus(musb, 1);
- 		}
- 		break;
-@@ -284,7 +335,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		musb->xceiv->last_event = USB_EVENT_VBUS;
- 		if (musb->gadget_driver)
- 			pm_runtime_get_sync(dev);
--		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
-+		omap2430_musb_set_usbmode(glue, USB_MODE_DEVICE);
- 		break;
- 
- 	case OMAP_MUSB_ID_FLOAT:
-@@ -301,8 +352,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		if (data->interface_type == MUSB_INTERFACE_UTMI)
- 			otg_set_vbus(musb->xceiv->otg, 0);
- 
--		omap_control_usb_set_mode(glue->control_otghs,
--			USB_MODE_DISCONNECT);
-+		omap2430_musb_set_usbmode(glue, USB_MODE_DISCONNECT);
- 		break;
- 	default:
- 		dev_dbg(dev, "ID float\n");
-@@ -444,7 +494,7 @@ static void omap2430_musb_enable(struct musb *musb)
- 	switch (glue->status) {
- 
- 	case OMAP_MUSB_ID_GROUND:
--		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_HOST);
-+		omap2430_musb_set_usbmode(glue, USB_MODE_HOST);
- 		if (data->interface_type != MUSB_INTERFACE_UTMI)
- 			break;
- 		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-@@ -463,7 +513,7 @@ static void omap2430_musb_enable(struct musb *musb)
- 		break;
- 
- 	case OMAP_MUSB_VBUS_VALID:
--		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
-+		omap2430_musb_set_usbmode(glue, USB_MODE_DEVICE);
- 		break;
- 
- 	default:
-@@ -477,8 +527,7 @@ static void omap2430_musb_disable(struct musb *musb)
- 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
- 
- 	if (glue->status != OMAP_MUSB_UNKNOWN)
--		omap_control_usb_set_mode(glue->control_otghs,
--			USB_MODE_DISCONNECT);
-+		omap2430_musb_set_usbmode(glue, USB_MODE_DISCONNECT);
- }
- 
- static int omap2430_musb_exit(struct musb *musb)
-@@ -507,6 +556,40 @@ static const struct musb_platform_ops omap2430_ops = {
- 
- static u64 omap2430_dmamask = DMA_BIT_MASK(32);
- 
-+static int omap2430_get_control(struct omap2430_glue *glue,
-+				struct device_node *np)
-+{
-+	struct device_node *control_node;
-+	struct platform_device *control_pdev;
-+
-+	glue->syscon_otghs = syscon_regmap_lookup_by_phandle(np,
-+							     "syscon-otghs");
-+	if (IS_ERR(glue->syscon_otghs)) {
-+		dev_info(glue->dev, "can't get syscon, using control device\n");
-+		glue->syscon_otghs = NULL;
-+
-+		control_node = of_parse_phandle(np, "ctrl-module", 0);
-+		if (control_node) {
-+			control_pdev = of_find_device_by_node(control_node);
-+			if (!control_pdev) {
-+				dev_err(glue->dev,
-+					"Failed to get control device\n");
-+				return -EINVAL;
-+			}
-+			glue->control_otghs = &control_pdev->dev;
-+		}
-+	} else {
-+		if (of_property_read_u32_index(np, "syscon-otghs", 1,
-+					       &glue->otghs_reg)) {
-+			dev_err(glue->dev,
-+				"couldn't get otghs reg. offset\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int omap2430_probe(struct platform_device *pdev)
- {
- 	struct resource			musb_resources[3];
-@@ -538,9 +621,6 @@ static int omap2430_probe(struct platform_device *pdev)
- 	glue->control_otghs = ERR_PTR(-ENODEV);
- 
- 	if (np) {
--		struct device_node *control_node;
--		struct platform_device *control_pdev;
--
- 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 		if (!pdata)
- 			goto err2;
-@@ -567,16 +647,10 @@ static int omap2430_probe(struct platform_device *pdev)
- 		pdata->board_data	= data;
- 		pdata->config		= config;
- 
--		control_node = of_parse_phandle(np, "ctrl-module", 0);
--		if (control_node) {
--			control_pdev = of_find_device_by_node(control_node);
--			if (!control_pdev) {
--				dev_err(&pdev->dev, "Failed to get control device\n");
--				ret = -EINVAL;
--				goto err2;
--			}
--			glue->control_otghs = &control_pdev->dev;
+ - don't use devm_ and keep the gpiod_put
+
+As with v1: This usage without flags was introduced by commit a89d977cc=
+04c
+(usb: dwc3: pci: add quirk for Baytrails) that is currently in next.
+
+Note I plan to make the flags parameter mandatory for 4.3. So unless
+this change gets into 4.2, would it be ok to let it go in via the gpio
+tree?
+
+Best regards
+Uwe
+
+ drivers/usb/dwc3/dwc3-pci.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 27e4fc896e9d..f62617999f3c 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -83,17 +83,23 @@ static int dwc3_pci_quirks(struct pci_dev *pdev)
+ 		acpi_dev_add_driver_gpios(ACPI_COMPANION(&pdev->dev),
+ 					  acpi_dwc3_byt_gpios);
+=20
+-		/* These GPIOs will turn on the USB2 PHY */
+-		gpio =3D gpiod_get(&pdev->dev, "cs");
+-		if (!IS_ERR(gpio)) {
+-			gpiod_direction_output(gpio, 0);
+-			gpiod_set_value_cansleep(gpio, 1);
+-			gpiod_put(gpio);
 -		}
-+		ret = omap2430_get_control(glue, np);
-+		if (ret)
-+			goto err2;
++		/*
++		 * These GPIOs will turn on the USB2 PHY. Note that we have to
++		 * put the gpio descriptors again here because the phy driver
++		 * might want to grab them, too.
++		 */
++		gpio =3D gpiod_get_optional(&pdev->dev, "cs", GPIOD_OUT_LOW);
++		if (IS_ERR(gpio))
++			return PTR_ERR(gpio);
 +
- 	}
- 	pdata->platform_ops		= &omap2430_ops;
- 
--- 
-1.7.9.5
++		gpiod_set_value_cansleep(gpio, 1);
++		gpiod_put(gpio);
++
++		gpio =3D gpiod_get_optional(&pdev->dev, "reset", GPIOD_OUT_LOW);
++		if (IS_ERR(gpio))
++			return PTR_ERR(gpio);
+=20
+-		gpio =3D gpiod_get(&pdev->dev, "reset");
+-		if (!IS_ERR(gpio)) {
+-			gpiod_direction_output(gpio, 0);
++		if (gpio) {
+ 			gpiod_set_value_cansleep(gpio, 1);
+ 			gpiod_put(gpio);
+ 			usleep_range(10000, 11000);
+--=20
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
