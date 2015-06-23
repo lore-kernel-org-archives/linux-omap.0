@@ -1,242 +1,80 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Gta04-owner] [PATCH 5/6] phy: twl4030-usb: add support for reading resistor on ID pin.
-Date: Tue, 23 Jun 2015 11:09:59 +0200
-Message-ID: <0E289BE4-719F-4A87-A571-5E3D21D6B86C@goldelico.com>
-References: <20150416075945.23307.24424.stgit@notabene.brown> <20150416080304.23307.41913.stgit@notabene.brown> <556C5FF4.3050603@ti.com> <20150602073731.26edbd3b@notabene.brown>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
+From: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] usb: dwc3: pci: make better use of gpiod API
+Date: Tue, 23 Jun 2015 13:01:16 +0300
+Message-ID: <20150623100116.GB1296@kuha.fi.intel.com>
+References: <1434093019-14009-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150602073731.26edbd3b@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neil@brown.name>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1434093019-14009-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Neil,
-
-Am 01.06.2015 um 23:37 schrieb NeilBrown <neilb@suse.de>:
-
-> On Mon, 1 Jun 2015 19:06:52 +0530 Kishon Vijay Abraham I <kishon@ti.c=
-om>
-> wrote:
+On Fri, Jun 12, 2015 at 09:10:19AM +0200, Uwe Kleine-K=F6nig wrote:
+> Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() function=
+s)
+> which appeared in v3.17-rc1, the gpiod_get* functions take an additio=
+nal
+> parameter that allows to specify direction and initial value for outp=
+ut.
 >=20
->> Hi,
->>=20
->> On Thursday 16 April 2015 01:33 PM, NeilBrown wrote:
->>> From: NeilBrown <neilb@suse.de>
->>>=20
->>> The twl4030 phy can measure, with low precision, the
->>> resistance-to-ground of the ID pin.
->>>=20
->>> Add a function to read the value, and export the result
->>> via sysfs.
->>=20
->> Little sceptical about adding new sysfs entries. Do you have a good =
-reason to=20
->> add this?
->=20
-> The hardware can report the value, so why not present it to user-spac=
-e?
+> Furthermore there is devm_gpiod_get_optional which is designed to get
+> optional gpios. Also use devm_gpiod_get* because otherwise the gpio
+> might be grabbed by a different driver.
 
-I just had another idea how to present the value to user space.
+These gpios are later given to the phy driver. We handle them in this
+quirk separately because otherwise the phy can not be probed as it
+may still be in reset.
 
-The TWL6030 has connected the USB ID pin to one of the GPADC channels:
+So we are just turning the phy "on" here, and then releasing the gpios
+so the phy driver can take over.
 
-	http://lxr.free-electrons.com/source/drivers/iio/adc/twl6030-gpadc.c#L=
-235
+> diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.=
+c
+> index 27e4fc896e9d..7e308730f955 100644
+> --- a/drivers/usb/dwc3/dwc3-pci.c
+> +++ b/drivers/usb/dwc3/dwc3-pci.c
+> @@ -84,18 +84,19 @@ static int dwc3_pci_quirks(struct pci_dev *pdev)
+>  					  acpi_dwc3_byt_gpios);
+> =20
+>  		/* These GPIOs will turn on the USB2 PHY */
+> -		gpio =3D gpiod_get(&pdev->dev, "cs");
+> -		if (!IS_ERR(gpio)) {
+> -			gpiod_direction_output(gpio, 0);
+> -			gpiod_set_value_cansleep(gpio, 1);
+> -			gpiod_put(gpio);
+> -		}
+> +		gpio =3D devm_gpiod_get_optional(&pdev->dev, "cs", GPIOD_OUT_LOW);
+> +		if (IS_ERR(gpio))
+> +			return PTR_ERR(gpio);
+> +
+> +		gpiod_set_value_cansleep(gpio, 1);
+> +
+> +		gpio =3D devm_gpiod_get_optional(&pdev->dev, "reset",
+> +					       GPIOD_OUT_LOW);
+> +		if (IS_ERR(gpio))
+> +			return PTR_ERR(gpio);
+> =20
+> -		gpio =3D gpiod_get(&pdev->dev, "reset");
+> -		if (!IS_ERR(gpio)) {
+> -			gpiod_direction_output(gpio, 0);
+> +		if (gpio) {
+>  			gpiod_set_value_cansleep(gpio, 1);
+> -			gpiod_put(gpio);
 
-And therefore automatically presents the ID pin voltage through iio.
+So we still need to release the gpio here, or we break the platforms
+where we have these gpios.
 
-Would it be possible and useful to provide an iio interface for the res=
-istance-to-ground
-of the tw4030 ID pin as well?
 
-This would resemble a 6 or 7 level ADC with non-linear scale, but bette=
-r than nothing.
+Thanks,
 
-And to avoid the =93floating=94 issue, it could also present some volta=
-ge value (assuming
-a defined current).
-
-So that =93floating=94 is reported as some maximum voltage (e.g. 3.3V) =
-and =93ground=94 as 0V.
-
-What do you think?
-
-BR,
-Nikolaus
-
->=20
-> I originally used this with a udev rule which would configure the max=
-imum
-> current based on the resistance measure - to work with the particular=
- charger
-> hardware I have.
->=20
-> More recent patches try to do all of the max-current configuration in=
- the
-> kernel, so I could live without exporting the value via sysfs if that=
- is a
-> show-stopper.
->=20
-> I can't see where the scepticism comes from though.  It is a well def=
-ined
-> and cleary documented feature of the hardware.  Why not expose it?
->=20
-> Thanks,
-> NeilBrown
->=20
->=20
->>=20
->> Thanks
->> Kishon
->>>=20
->>> If the read fails, which it does sometimes, try again in 50msec.
->>>=20
->>> Acked-by: Pavel Machek <pavel@ucw.cz>
->>> Signed-off-by: NeilBrown <neilb@suse.de>
->>> ---
->>>  .../ABI/testing/sysfs-platform-twl4030-usb         |   22 +++++++
->>>  drivers/phy/phy-twl4030-usb.c                      |   63 ++++++++=
-++++++++++++
->>>  2 files changed, 85 insertions(+)
->>>=20
->>> diff --git a/Documentation/ABI/testing/sysfs-platform-twl4030-usb b=
-/Documentation/ABI/testing/sysfs-platform-twl4030-usb
->>> index 512c51be64ae..425d23676f8a 100644
->>> --- a/Documentation/ABI/testing/sysfs-platform-twl4030-usb
->>> +++ b/Documentation/ABI/testing/sysfs-platform-twl4030-usb
->>> @@ -6,3 +6,25 @@ Description:
->>>  	Possible values: "on", "off".
->>>=20
->>>  	Changes are notified via select/poll.
->>> +
->>> +What: /sys/bus/platform/devices/*twl4030-usb/id
->>> +Description:
->>> +	Read-only report on measurement of USB-OTG ID pin.
->>> +
->>> +	The ID pin may be floating, grounded, or pulled to
->>> +	ground by a resistor.
->>> +
->>> +	A very course grained reading of the resistance is
->>> +	available.  The numbers given in kilo-ohms are roughly
->>> +	the center-point of the detected range.
->>> +
->>> +	Possible values are:
->>> +		ground
->>> +		102k
->>> +		200k
->>> +		440k
->>> +		floating
->>> +		unknown
->>> +
->>> +	"unknown" indicates a problem with trying to detect
->>> +	the resistance.
->>> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl403=
-0-usb.c
->>> index 3a707dd14238..1d6f3e70193e 100644
->>> --- a/drivers/phy/phy-twl4030-usb.c
->>> +++ b/drivers/phy/phy-twl4030-usb.c
->>> @@ -379,6 +379,56 @@ static void twl4030_i2c_access(struct twl4030_=
-usb *twl, int on)
->>>  	}
->>>  }
->>>=20
->>> +enum twl4030_id_status {
->>> +	TWL4030_GROUND,
->>> +	TWL4030_102K,
->>> +	TWL4030_200K,
->>> +	TWL4030_440K,
->>> +	TWL4030_FLOATING,
->>> +	TWL4030_ID_UNKNOWN,
->>> +};
->>> +static char *twl4030_id_names[] =3D {
->>> +	"ground",
->>> +	"102k",
->>> +	"200k",
->>> +	"440k",
->>> +	"floating",
->>> +	"unknown"
->>> +};
->>> +
->>> +enum twl4030_id_status twl4030_get_id(struct twl4030_usb *twl)
->>> +{
->>> +	int ret;
->>> +
->>> +	pm_runtime_get_sync(twl->dev);
->>> +	if (twl->usb_mode =3D=3D T2_USB_MODE_ULPI)
->>> +		twl4030_i2c_access(twl, 1);
->>> +	ret =3D twl4030_usb_read(twl, ULPI_OTG_CTRL);
->>> +	if (ret < 0 || !(ret & ULPI_OTG_ID_PULLUP)) {
->>> +		/* Need pull-up to read ID */
->>> +		twl4030_usb_set_bits(twl, ULPI_OTG_CTRL,
->>> +				     ULPI_OTG_ID_PULLUP);
->>> +		mdelay(50);
->>> +	}
->>> +	ret =3D twl4030_usb_read(twl, ID_STATUS);
->>> +	if (ret < 0 || (ret & 0x1f) =3D=3D 0) {
->>> +		mdelay(50);
->>> +		ret =3D twl4030_usb_read(twl, ID_STATUS);
->>> +	}
->>> +
->>> +	if (twl->usb_mode =3D=3D T2_USB_MODE_ULPI)
->>> +		twl4030_i2c_access(twl, 0);
->>> +	pm_runtime_put_autosuspend(twl->dev);
->>> +
->>> +	if (ret < 0)
->>> +		return TWL4030_ID_UNKNOWN;
->>> +	ret =3D ffs(ret) - 1;
->>> +	if (ret < TWL4030_GROUND || ret > TWL4030_FLOATING)
->>> +		return TWL4030_ID_UNKNOWN;
->>> +
->>> +	return ret;
->>> +}
->>> +
->>>  static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
->>>  {
->>>  	u8 pwr =3D twl4030_usb_read(twl, PHY_PWR_CTRL);
->>> @@ -532,6 +582,16 @@ static ssize_t twl4030_usb_vbus_show(struct de=
-vice *dev,
->>>  }
->>>  static DEVICE_ATTR(vbus, 0444, twl4030_usb_vbus_show, NULL);
->>>=20
->>> +static ssize_t twl4030_usb_id_show(struct device *dev,
->>> +				   struct device_attribute *attr,
->>> +				   char *buf)
->>> +{
->>> +	struct twl4030_usb *twl =3D dev_get_drvdata(dev);
->>> +	return scnprintf(buf, PAGE_SIZE, "%s\n",
->>> +			 twl4030_id_names[twl4030_get_id(twl)]);
->>> +}
->>> +static DEVICE_ATTR(id, 0444, twl4030_usb_id_show, NULL);
->>> +
->>>  static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
->>>  {
->>>  	struct twl4030_usb *twl =3D _twl;
->>> @@ -709,6 +769,8 @@ static int twl4030_usb_probe(struct platform_de=
-vice *pdev)
->>>  	platform_set_drvdata(pdev, twl);
->>>  	if (device_create_file(&pdev->dev, &dev_attr_vbus))
->>>  		dev_warn(&pdev->dev, "could not create sysfs file\n");
->>> +	if (device_create_file(&pdev->dev, &dev_attr_id))
->>> +		dev_warn(&pdev->dev, "could not create sysfs file\n");
->>>=20
->>>  	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
->>>=20
->>> @@ -753,6 +815,7 @@ static int twl4030_usb_remove(struct platform_d=
-evice *pdev)
->>>  	pm_runtime_get_sync(twl->dev);
->>>  	cancel_delayed_work(&twl->id_workaround_work);
->>>  	device_remove_file(twl->dev, &dev_attr_vbus);
->>> +	device_remove_file(twl->dev, &dev_attr_id);
->>>=20
->>>  	/* set transceiver mode to power on defaults */
->>>  	twl4030_usb_set_mode(twl, -1);
->>>=20
->>>=20
->=20
-> _______________________________________________
-> Gta04-owner mailing list
-> Gta04-owner@goldelico.com
-> http://lists.goldelico.com/mailman/listinfo.cgi/gta04-owner
+--=20
+heikki
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
