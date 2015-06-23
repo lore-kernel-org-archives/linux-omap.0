@@ -1,58 +1,83 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 01/17] phy: ti-pipe3: use ti_pipe3_power_off to power off the
- PHY during probe
-Date: Tue, 23 Jun 2015 17:28:46 +0530
-Message-ID: <1435060743-5511-2-git-send-email-kishon@ti.com>
+Subject: [PATCH 12/17] ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in USB PHY node
+Date: Tue, 23 Jun 2015 17:28:57 +0530
+Message-ID: <1435060743-5511-13-git-send-email-kishon@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1435060743-5511-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, rogerq@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, kishon@ti.com
-Cc: mark.rutland@arm.com, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com, robh+dt@kernel.org, galak@codeaurora.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Previously omap_control_phy_power() was used to power
-off the PHY during probe. But once PIPE3 driver is adapted to use syscon,
-omap_control_phy_power() cannot be used. Hence used ti_pipe3_power_off
-to power off the PHY.
+Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
+property from USB PHY devicetree nodes.
+
+Since "omap_control_usb2phy1", "omap_control_usb3phy1" and
+"omap_control_usb2phy2" devicetree nodes are no longer used, remove it.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/phy/phy-ti-pipe3.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi |   24 +++---------------------
+ 1 file changed, 3 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index 08020dc..d784426 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -431,8 +431,6 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index a8ee829..e82ac00 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1196,24 +1196,6 @@
+ 			clocks = <&sys_32k_ck>;
+ 		};
  
- 	phy->control_dev = &control_pdev->dev;
- 
--	omap_control_phy_power(phy->control_dev, 0);
+-		omap_control_usb2phy1: control-phy@4a002300 {
+-			compatible = "ti,control-phy-usb2";
+-			reg = <0x4a002300 0x4>;
+-			reg-names = "power";
+-		};
 -
- 	platform_set_drvdata(pdev, phy);
- 	pm_runtime_enable(phy->dev);
- 
-@@ -451,6 +449,8 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		return PTR_ERR(generic_phy);
- 
- 	phy_set_drvdata(generic_phy, phy);
-+	ti_pipe3_power_off(generic_phy);
-+
- 	phy_provider = devm_of_phy_provider_register(phy->dev,
- 			of_phy_simple_xlate);
- 	if (IS_ERR(phy_provider))
+-		omap_control_usb3phy1: control-phy@4a002370 {
+-			compatible = "ti,control-phy-pipe3";
+-			reg = <0x4a002370 0x4>;
+-			reg-names = "power";
+-		};
+-
+-		omap_control_usb2phy2: control-phy@0x4a002e74 {
+-			compatible = "ti,control-phy-usb2-dra7";
+-			reg = <0x4a002e74 0x4>;
+-			reg-names = "power";
+-		};
+-
+ 		/* OCP2SCP1 */
+ 		ocp2scp@4a080000 {
+ 			compatible = "ti,omap-ocp2scp";
+@@ -1226,7 +1208,7 @@
+ 			usb2_phy1: phy@4a084000 {
+ 				compatible = "ti,omap-usb2";
+ 				reg = <0x4a084000 0x400>;
+-				ctrl-module = <&omap_control_usb2phy1>;
++				syscon-phy-power = <&dra7_ctrl_core 0x300>;
+ 				clocks = <&usb_phy1_always_on_clk32k>,
+ 					 <&usb_otg_ss1_refclk960m>;
+ 				clock-names =	"wkupclk",
+@@ -1237,7 +1219,7 @@
+ 			usb2_phy2: phy@4a085000 {
+ 				compatible = "ti,dra7x-usb2-phy2", "ti,omap-usb2";
+ 				reg = <0x4a085000 0x400>;
+-				ctrl-module = <&omap_control_usb2phy2>;
++				syscon-phy-power = <&dra7_ctrl_general 0x74>;
+ 				clocks = <&usb_phy2_always_on_clk32k>,
+ 					 <&usb_otg_ss2_refclk960m>;
+ 				clock-names =	"wkupclk",
+@@ -1251,7 +1233,7 @@
+ 				      <0x4a084800 0x64>,
+ 				      <0x4a084c00 0x40>;
+ 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+-				ctrl-module = <&omap_control_usb3phy1>;
++				syscon-phy-power = <&dra7_ctrl_core 0x370>;
+ 				clocks = <&usb_phy3_always_on_clk32k>,
+ 					 <&sys_clkin1>,
+ 					 <&usb_otg_ss1_refclk960m>;
 -- 
 1.7.9.5
