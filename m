@@ -1,151 +1,72 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH V2 4/5] drivers/rtc/rtc-ds1307.c: Support optional wakeup
- interrupt source
-Date: Wed, 24 Jun 2015 18:36:39 +0300
-Message-ID: <558ACE87.6040509@ti.com>
-References: <1435076114-12416-1-git-send-email-nm@ti.com> <1435076114-12416-5-git-send-email-nm@ti.com>
+Subject: Re: [PATCH V2 0/5] drivers/rtc/rtc-ds1307.c: Basic cleanups and
+ support for wakeupirq
+Date: Wed, 24 Jun 2015 18:37:28 +0300
+Message-ID: <558ACEB8.2020406@ti.com>
+References: <1435076114-12416-1-git-send-email-nm@ti.com>
+ <20150624143432.GE21232@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1435076114-12416-5-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
-Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150624143432.GE21232@saruman.tx.rr.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com, Nishanth Menon <nm@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/23/2015 07:15 PM, Nishanth Menon wrote:
-> With the recent pinctrl-single changes, SoCs such as Texas
-> Instrument's OMAP processors can treat wake-up events from deeper idle
-> states as interrupts.
+On 06/24/2015 05:34 PM, Felipe Balbi wrote:
+> Hi,
 >
-> Let's add support for the optional second interrupt for wake-up using
-> the generic wakeirq support added in commit 4990d4fe327b ("PM /
-> Wakeirq: Add automated device wake IRQ handling")
+> On Tue, Jun 23, 2015 at 11:15:09AM -0500, Nishanth Menon wrote:
+>> Hi,
+>>
+>> Here is the revamp of the patch posted eariler to support wakeupirq.
+>> This series does a few cleanups as well prior to introducing the
+>> generic apis required to support the wakeirq mechanism used on certain
+>> TI SoCs. Cleanups done here are just minimal set of the cleanups we
+>> discussed in [2].
+>>
+>> Series is based on next-20150623
+>>
+>> Test log: http://pastebin.ubuntu.com/11763002/
+>>
+>> NOTE1: I have only tested in mcp79410 device, and not on other
+>> ds1307-rtc driver compatbile devices as I dont have any other.
+>> additional testing might be nice to have.
+>> NOTE2: there are additional fixes that linux-next seems to need but
+>> those are in omap-rtc, cpufreq etc, but those are not related by the
+>> ds-1307.
+>>
+>> V1: https://patchwork.kernel.org/patch/4759171/
+>>
+>> NOTE: Patch 5/5 of the series is meant to indicate the usage, and will
+>> be reposted along with other wakeup sources to be enabled once the
+>> driver changes are accepted.
+>>
+>> Felipe Balbi (1):
+>>    drivers/rtc/rtc-ds1307.c: Convert to threaded IRQ
+>>
+>> Nishanth Menon (4):
+>>    drivers/rtc/rtc-ds1307.c: Switch to managed irq allocation
+>>    drivers/rtc/rtc-ds1307.c: Sort the headers
+>>    drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt source
 >
-> Finally, to pass the wake-up interrupt in the dts file,
-> interrupts-extended property needs to be passed.
+> for the series, except the patch which I wrote :
 >
-> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
-> support for optional wake-up") + ee83bd3b6483 ("serial: omap: Switch
-> wake-up interrupt to generic wakeirq")
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> Changes since V1:
-> 	- dropped the need for specific suspend-resume handlers generic api
-> 	  has adequate hooks for those
-> 	- little more code flow cleanups.
->
-> V1: https://patchwork.kernel.org/patch/4759171/
->
->   drivers/rtc/rtc-ds1307.c |   41 ++++++++++++++++++++++++++++++++++++++---
->   1 file changed, 38 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-> index b03880fc32b5..b00d97dbf955 100644
-> --- a/drivers/rtc/rtc-ds1307.c
-> +++ b/drivers/rtc/rtc-ds1307.c
-> @@ -15,6 +15,9 @@
->   #include <linux/i2c.h>
->   #include <linux/init.h>
->   #include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/of_irq.h>
-> +#include <linux/pm_wakeirq.h>
->   #include <linux/rtc/ds1307.h>
->   #include <linux/rtc.h>
->   #include <linux/slab.h>
-> @@ -114,6 +117,7 @@ struct ds1307 {
->   #define HAS_ALARM	1		/* bit 1 == irq claimed */
->   	struct i2c_client	*client;
->   	struct rtc_device	*rtc;
-> +	int			wakeirq;
->   	s32 (*read_block_data)(const struct i2c_client *client, u8 command,
->   			       u8 length, u8 *values);
->   	s32 (*write_block_data)(const struct i2c_client *client, u8 command,
-> @@ -1156,6 +1160,8 @@ read_rtc:
->   	}
->
->   	if (want_irq) {
-> +		struct device_node *node = client->dev.of_node;
-> +
->   		err = devm_request_threaded_irq(&client->dev,
->   						client->irq, NULL, irq_handler,
->   						IRQF_SHARED | IRQF_ONESHOT,
-> @@ -1163,13 +1169,36 @@ read_rtc:
->   		if (err) {
->   			client->irq = 0;
->   			dev_err(&client->dev, "unable to request IRQ!\n");
-> -		} else {
-> +			goto no_irq;
-> +		}
-> +
-> +		set_bit(HAS_ALARM, &ds1307->flags);
-> +		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
->
-> -			set_bit(HAS_ALARM, &ds1307->flags);
-> -			dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
-> +		/* Currently supported by OF code only! */
-> +		if (!node)
-> +			goto no_irq;
-> +
-> +		ds1307->wakeirq = of_irq_get(node, 1);
-> +		if (ds1307->wakeirq <= 0) {
-> +			if (ds1307->wakeirq == -EPROBE_DEFER) {
-> +				err = ds1307->wakeirq;
-> +				goto exit;
-> +			}
-> +			ds1307->wakeirq = 0;
-> +			goto no_irq;
-> +		}
-
-Might be above code could be done a little bit simpler?
-
-		err = of_irq_get(node, 1);
-		if (err <= 0) {
-			if (err == -EPROBE_DEFER)
-				goto exit;
-			goto no_irq;
-		}
-		ds1307->wakeirq = err;
-
-> +
-> +		err = dev_pm_set_dedicated_wake_irq(&client->dev,
-> +						    ds1307->wakeirq);
-> +		if (err) {
-> +			dev_err(&client->dev, "unable to setup wakeIRQ %d\n",
-> +				err);
-> +			goto exit;
->   		}
->   	}
->
-> +no_irq:
->   	if (chip->nvram_size) {
->
->   		ds1307->nvram = devm_kzalloc(&client->dev,
-> @@ -1206,6 +1235,9 @@ read_rtc:
->   	return 0;
->
->   exit:
-> +	if (ds1307->wakeirq)
-> +		dev_pm_clear_wake_irq(&client->dev);
-> +
->   	return err;
->   }
->
-> @@ -1213,6 +1245,9 @@ static int ds1307_remove(struct i2c_client *client)
->   {
->   	struct ds1307 *ds1307 = i2c_get_clientdata(client);
->
-> +	if (ds1307->wakeirq)
-> +		dev_pm_clear_wake_irq(&client->dev);
-> +
->   	if (test_and_clear_bit(HAS_NVRAM, &ds1307->flags))
->   		sysfs_remove_bin_file(&client->dev.kobj, ds1307->nvram);
->
+> Acked-by: Felipe Balbi <balbi@ti.com>
 >
 
+With minor comment to patch 4:
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
 -- 
 regards,
