@@ -1,58 +1,36 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 17/17] ARM: dts: omap4: Use "syscon-otghs" instead of
- "ctrl-module" in USB node
-Date: Wed, 24 Jun 2015 03:41:16 -0700
-Message-ID: <20150624104116.GC4156@atomide.com>
-References: <1435060743-5511-1-git-send-email-kishon@ti.com>
- <1435060743-5511-18-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 4/5] drivers/rtc/rtc-ds1307.c: Support optional wakeup
+ interrupt source
+Date: Wed, 24 Jun 2015 03:54:21 -0700
+Message-ID: <20150624105421.GD4156@atomide.com>
+References: <1435076114-12416-1-git-send-email-nm@ti.com>
+ <1435076114-12416-5-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1435060743-5511-18-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+In-Reply-To: <1435076114-12416-5-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150623 05:02]:
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -852,12 +852,6 @@
->  			};
->  		};
->  
-> -		omap_control_usbotg: control-phy@4a00233c {
-> -			compatible = "ti,control-phy-otghs";
-> -			reg = <0x4a00233c 0x4>;
-> -			reg-names = "otghs_control";
-> -		};
-> -
->  		usb_otg_hs: usb_otg_hs@4a0ab000 {
->  			compatible = "ti,omap4-musb";
->  			reg = <0x4a0ab000 0x7ff>;
-> @@ -870,7 +864,7 @@
->  			multipoint = <1>;
->  			num-eps = <16>;
->  			ram-bits = <12>;
-> -			ctrl-module = <&omap_control_usbotg>;
-> +			syscon-otghs = <&scm_conf 0x33c>;
->  		};
->  
->  		aes: aes@4b501000 {
+* Nishanth Menon <nm@ti.com> [150623 09:21]:
+> With the recent pinctrl-single changes, SoCs such as Texas
+> Instrument's OMAP processors can treat wake-up events from deeper idle
+> states as interrupts.
+> 
+> Let's add support for the optional second interrupt for wake-up using
+> the generic wakeirq support added in commit 4990d4fe327b ("PM /
+> Wakeirq: Add automated device wake IRQ handling")
+> 
+> Finally, to pass the wake-up interrupt in the dts file,
+> interrupts-extended property needs to be passed.
+> 
+> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
+> support for optional wake-up") + ee83bd3b6483 ("serial: omap: Switch
+> wake-up interrupt to generic wakeirq")
 
-We should still keep a separate entry for the phy in the dtsi
-files. And the phy should be a child of the scm_conf area in the
-dtsi file.
+The wakeirq related changes look good to me:
 
-This is because the scm and usb_otg_hs are separate devices and
-can be clocked separately. So the phy driver needs to be a
-separate driver to avoid spaghetti code and issues with clocking.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
