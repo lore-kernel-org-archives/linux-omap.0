@@ -1,63 +1,80 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 04/17] phy: omap-usb2: use omap_usb_power_off to power
- off the PHY during probe
-Date: Wed, 24 Jun 2015 13:58:09 +0300
-Message-ID: <20150624135809.ccf19caf000c0213dd9ff45c@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 05/17] phy: omap-usb2: Add a new compatible string for
+ USB2 PHY2
+Date: Wed, 24 Jun 2015 14:03:54 +0300
+Message-ID: <20150624140354.c3c1b0fc24dc37eae5097b4c@ti.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
-	<1435060743-5511-5-git-send-email-kishon@ti.com>
+	<1435060743-5511-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435060743-5511-5-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1435060743-5511-6-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 23 Jun 2015 17:28:49 +0530
-Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
+On Tue, 23 Jun 2015 17:28:50 +0530
+Kishon Vijay Abraham I <kishon@ti.com> wrote:
 
-> No functional change. Previously omap_control_phy_power() was used to power
-> off the PHY during probe. But once phy-omap-usb2 driver is adapted to
-> use syscon, omap_control_phy_power() cannot be used. Hence used
-> omap_usb_power_off to power off the PHY.
+> The USB2 PHY2 has a different register map compared to USB2 PHY1
+> to power on/off the PHY. In order to handle it, add a new
+> "compatible" string.
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-
-Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-
-cheers,
--roger
-
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/phy/phy-omap-usb2.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  Documentation/devicetree/bindings/phy/ti-phy.txt |    2 ++
+>  drivers/phy/phy-omap-usb2.c                      |    9 +++++++++
+>  2 files changed, 11 insertions(+)
 > 
+> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> index 52c7a92..b9101b9 100644
+> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+> @@ -31,6 +31,8 @@ OMAP USB2 PHY
+>  
+>  Required properties:
+>   - compatible: Should be "ti,omap-usb2"
+> +	       Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
+> +			in DRA7x
+>   - reg : Address and length of the register set for the device.
+>   - #phy-cells: determine the number of cells that should be given in the
+>     phandle while referencing this phy.
 > diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-> index c1a4686..b5c266a 100644
+> index b5c266a..2f7220f 100644
 > --- a/drivers/phy/phy-omap-usb2.c
 > +++ b/drivers/phy/phy-omap-usb2.c
-> @@ -241,7 +241,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
->  	}
+> @@ -159,6 +159,11 @@ static const struct usb_phy_data dra7x_usb2_data = {
+>  	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
+>  };
 >  
->  	phy->control_dev = &control_pdev->dev;
-> -	omap_control_phy_power(phy->control_dev, 0);
->  
->  	otg->set_host		= omap_usb_set_host;
->  	otg->set_peripheral	= omap_usb_set_peripheral;
-> @@ -261,6 +260,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
->  	}
->  
->  	phy_set_drvdata(generic_phy, phy);
-> +	omap_usb_power_off(generic_phy);
->  
->  	phy_provider = devm_of_phy_provider_register(phy->dev,
->  			of_phy_simple_xlate);
+> +static const struct usb_phy_data dra7x_usb2_phy2_data = {
+> +	.label = "dra7x_usb2_phy2",
+> +	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
+
+Isn't it better to define the register map in usb_phy_data
+so that you don't need to check for compatible flag everytime?
+
+> +};
+> +
+>  static const struct usb_phy_data am437x_usb2_data = {
+>  	.label = "am437x_usb2",
+>  	.flags =  0,
+> @@ -178,6 +183,10 @@ static const struct of_device_id omap_usb2_id_table[] = {
+>  		.data = &dra7x_usb2_data,
+>  	},
+>  	{
+> +		.compatible = "ti,dra7x-usb2-phy2",
+> +		.data = &dra7x_usb2_phy2_data,
+> +	},
+> +	{
+>  		.compatible = "ti,am437x-usb2",
+>  		.data = &am437x_usb2_data,
+>  	},
 > -- 
 > 1.7.9.5
 > 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+cheers,
+-roger
