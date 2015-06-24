@@ -1,265 +1,85 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 07/17] usb: musb: omap2430: use *syscon* framework to
- write to mailbox register
-Date: Wed, 24 Jun 2015 14:39:34 +0300
-Message-ID: <20150624143934.a42bb85eee6f4f75dd384ea0@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 17/17] ARM: dts: omap4: Use "syscon-otghs" instead of
+ "ctrl-module" in USB node
+Date: Wed, 24 Jun 2015 04:46:03 -0700
+Message-ID: <20150624114602.GE4156@atomide.com>
 References: <1435060743-5511-1-git-send-email-kishon@ti.com>
-	<1435060743-5511-8-git-send-email-kishon@ti.com>
+ <1435060743-5511-18-git-send-email-kishon@ti.com>
+ <20150624104116.GC4156@atomide.com>
+ <558A92A5.5070506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1435060743-5511-8-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <558A92A5.5070506-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 23 Jun 2015 17:28:52 +0530
-Kishon Vijay Abraham I <kishon@ti.com> wrote:
-
-> Deprecate using phy-omap-control driver to write to the mailbox register
-> and start using *syscon* framework to do the same.
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150624 04:23]:
+> On Wednesday 24 June 2015 04:11 PM, Tony Lindgren wrote:
+> >* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150623 05:02]:
+> >>--- a/arch/arm/boot/dts/omap4.dtsi
+> >>+++ b/arch/arm/boot/dts/omap4.dtsi
+> >>@@ -852,12 +852,6 @@
+> >>  			};
+> >>  		};
+> >>
+> >>-		omap_control_usbotg: control-phy@4a00233c {
+> >>-			compatible = "ti,control-phy-otghs";
+> >>-			reg = <0x4a00233c 0x4>;
+> >>-			reg-names = "otghs_control";
+> >>-		};
+> >>-
+> >>  		usb_otg_hs: usb_otg_hs@4a0ab000 {
+> >>  			compatible = "ti,omap4-musb";
+> >>  			reg = <0x4a0ab000 0x7ff>;
+> >>@@ -870,7 +864,7 @@
+> >>  			multipoint = <1>;
+> >>  			num-eps = <16>;
+> >>  			ram-bits = <12>;
+> >>-			ctrl-module = <&omap_control_usbotg>;
+> >>+			syscon-otghs = <&scm_conf 0x33c>;
+> >>  		};
+> >>
+> >>  		aes: aes@4b501000 {
+> >
+> >We should still keep a separate entry for the phy in the dtsi
+> >files. And the phy should be a child of the scm_conf area in the
+> >dtsi file.
+> >
+> >This is because the scm and usb_otg_hs are separate devices and
+> >can be clocked separately. So the phy driver needs to be a
+> >separate driver to avoid spaghetti code and issues with clocking.
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  Documentation/devicetree/bindings/usb/omap-usb.txt |    7 +-
->  drivers/usb/musb/omap2430.c                        |  118 ++++++++++++++++----
->  2 files changed, 102 insertions(+), 23 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> index 38d9bb8..c001306 100644
-> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> @@ -20,10 +20,15 @@ OMAP MUSB GLUE
->   - phy-names : the names of the PHY corresponding to the PHYs present in the
->     *phy* phandle.
->  
-> -Optional properties:
-> +Optional Properties:
-> +Deprecated properties:
->   - ctrl-module : phandle of the control module this glue uses to write to
->     mailbox
->  
-> +Recommended properies:
-> + - syscon-otghs : phandle/offset pair. Phandle to the system control module and the
-> +   register offset of the mailbox.
-> +
->  SOC specific device node entry
->  usb_otg_hs: usb_otg_hs@4a0ab000 {
->  	compatible = "ti,omap4-musb";
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index cc752d8..bcd6d1e 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -39,16 +39,27 @@
->  #include <linux/usb/musb-omap.h>
->  #include <linux/phy/omap_control_phy.h>
->  #include <linux/of_platform.h>
-> +#include <linux/regmap.h>
-> +#include <linux/mfd/syscon.h>
->  
->  #include "musb_core.h"
->  #include "omap2430.h"
->  
-> +#define OMAP2430_MUSB_MODE_MASK	0x1f
-> +#define OMAP2430_MUSB_AVALID	(0x1 << 0)
-> +#define OMAP2430_MUSB_BVALID	(0x1 << 1)
-> +#define OMAP2430_MUSB_VBUSVALID	(0x1 << 2)
-> +#define OMAP2430_MUSB_SESSEND	(0x1 << 3)
-> +#define OMAP2430_MUSB_IDDIG	(0x1 << 4)
-> +
->  struct omap2430_glue {
->  	struct device		*dev;
->  	struct platform_device	*musb;
->  	enum omap_musb_vbus_id_status status;
->  	struct work_struct	omap_musb_mailbox_work;
->  	struct device		*control_otghs;
-> +	struct regmap		*syscon_otghs; /* ctrl. reg. acces */
-> +	unsigned int            otghs_reg; /* otghs reg. index within syscon */
->  };
->  #define glue_to_musb(g)		platform_get_drvdata(g->musb)
->  
-> @@ -253,6 +264,47 @@ void omap_musb_mailbox(enum omap_musb_vbus_id_status status)
->  }
->  EXPORT_SYMBOL_GPL(omap_musb_mailbox);
->  
-> +static void omap2430_musb_set_usbmode(struct omap2430_glue *glue,
-> +				      enum omap_control_usb_mode mode)
-> +{
-> +	u32 val;
-> +	int ret;
-> +
-> +	if (glue->syscon_otghs) {
-> +		switch (mode) {
-> +		case USB_MODE_HOST:
-> +			val = OMAP2430_MUSB_AVALID | OMAP2430_MUSB_VBUSVALID;
-> +			break;
-> +
-> +		case USB_MODE_DEVICE:
-> +			val = OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_AVALID |
-> +				OMAP2430_MUSB_VBUSVALID;
-> +			break;
-> +
-> +		case USB_MODE_DISCONNECT:
-> +			val = OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_SESSEND;
-> +			break;
-> +
-> +		default:
-> +			dev_dbg(glue->dev, "Invalid mode\n");
-> +			goto err_regmap_update;
-> +		}
-> +
-> +		ret = regmap_update_bits(glue->syscon_otghs,
-> +					 glue->otghs_reg,
-> +					 OMAP2430_MUSB_MODE_MASK, val);
-> +		if (ret < 0)
-> +			goto err_regmap_update;
-> +	} else {
-> +		omap_control_usb_set_mode(glue->control_otghs, mode);
-> +	}
-> +
-> +	return;
-> +
-> +err_regmap_update:
-> +	dev_err(glue->dev, "Failed to set mode to %d\n", mode);
-> +}
-> +
->  static void omap_musb_set_mailbox(struct omap2430_glue *glue)
->  {
->  	struct musb *musb = glue_to_musb(glue);
-> @@ -270,8 +322,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
->  		musb->xceiv->last_event = USB_EVENT_ID;
->  		if (musb->gadget_driver) {
->  			pm_runtime_get_sync(dev);
-> -			omap_control_usb_set_mode(glue->control_otghs,
-> -				USB_MODE_HOST);
-> +			omap2430_musb_set_usbmode(glue, USB_MODE_HOST);
->  			omap2430_musb_set_vbus(musb, 1);
->  		}
->  		break;
-> @@ -284,7 +335,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
->  		musb->xceiv->last_event = USB_EVENT_VBUS;
->  		if (musb->gadget_driver)
->  			pm_runtime_get_sync(dev);
-> -		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
-> +		omap2430_musb_set_usbmode(glue, USB_MODE_DEVICE);
->  		break;
->  
->  	case OMAP_MUSB_ID_FLOAT:
-> @@ -301,8 +352,7 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
->  		if (data->interface_type == MUSB_INTERFACE_UTMI)
->  			otg_set_vbus(musb->xceiv->otg, 0);
->  
-> -		omap_control_usb_set_mode(glue->control_otghs,
-> -			USB_MODE_DISCONNECT);
-> +		omap2430_musb_set_usbmode(glue, USB_MODE_DISCONNECT);
->  		break;
->  	default:
->  		dev_dbg(dev, "ID float\n");
-> @@ -444,7 +494,7 @@ static void omap2430_musb_enable(struct musb *musb)
->  	switch (glue->status) {
->  
->  	case OMAP_MUSB_ID_GROUND:
-> -		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_HOST);
-> +		omap2430_musb_set_usbmode(glue, USB_MODE_HOST);
->  		if (data->interface_type != MUSB_INTERFACE_UTMI)
->  			break;
->  		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-> @@ -463,7 +513,7 @@ static void omap2430_musb_enable(struct musb *musb)
->  		break;
->  
->  	case OMAP_MUSB_VBUS_VALID:
-> -		omap_control_usb_set_mode(glue->control_otghs, USB_MODE_DEVICE);
-> +		omap2430_musb_set_usbmode(glue, USB_MODE_DEVICE);
->  		break;
->  
->  	default:
-> @@ -477,8 +527,7 @@ static void omap2430_musb_disable(struct musb *musb)
->  	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
->  
->  	if (glue->status != OMAP_MUSB_UNKNOWN)
-> -		omap_control_usb_set_mode(glue->control_otghs,
-> -			USB_MODE_DISCONNECT);
-> +		omap2430_musb_set_usbmode(glue, USB_MODE_DISCONNECT);
->  }
->  
->  static int omap2430_musb_exit(struct musb *musb)
-> @@ -507,6 +556,40 @@ static const struct musb_platform_ops omap2430_ops = {
->  
->  static u64 omap2430_dmamask = DMA_BIT_MASK(32);
->  
-> +static int omap2430_get_control(struct omap2430_glue *glue,
-> +				struct device_node *np)
-> +{
-> +	struct device_node *control_node;
-> +	struct platform_device *control_pdev;
-> +
-> +	glue->syscon_otghs = syscon_regmap_lookup_by_phandle(np,
-> +							     "syscon-otghs");
-> +	if (IS_ERR(glue->syscon_otghs)) {
-> +		dev_info(glue->dev, "can't get syscon, using control device\n");
+> AFAIK SCM is clocked by L4CFG_L4_GICLK which is either free running or is
+> managed automatically by the HW i.e gated when there is no access to the
+> CTRL_MODULE_CORE registers.
 
-dev_dbg().
+The point is they are separate devices on the interconnect. And we
+don't want to add dependencies between separate devices. And there
+is nothing stopping us from starting to idle the SCM module.
+ 
+> Having a separate control-PHY driver only to do a regmap update to SCM is
+> unnecessary IMHO.
 
-> +		glue->syscon_otghs = NULL;
-> +
-> +		control_node = of_parse_phandle(np, "ctrl-module", 0);
-> +		if (control_node) {
-> +			control_pdev = of_find_device_by_node(control_node);
-> +			if (!control_pdev) {
-> +				dev_err(glue->dev,
-> +					"Failed to get control device\n");
-> +				return -EINVAL;
-> +			}
-> +			glue->control_otghs = &control_pdev->dev;
-> +		}
-> +	} else {
-> +		if (of_property_read_u32_index(np, "syscon-otghs", 1,
-> +					       &glue->otghs_reg)) {
-> +			dev_err(glue->dev,
-> +				"couldn't get otghs reg. offset\n");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int omap2430_probe(struct platform_device *pdev)
->  {
->  	struct resource			musb_resources[3];
-> @@ -538,9 +621,6 @@ static int omap2430_probe(struct platform_device *pdev)
->  	glue->control_otghs = ERR_PTR(-ENODEV);
->  
->  	if (np) {
-> -		struct device_node *control_node;
-> -		struct platform_device *control_pdev;
-> -
->  		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
->  		if (!pdata)
->  			goto err2;
-> @@ -567,16 +647,10 @@ static int omap2430_probe(struct platform_device *pdev)
->  		pdata->board_data	= data;
->  		pdata->config		= config;
->  
-> -		control_node = of_parse_phandle(np, "ctrl-module", 0);
-> -		if (control_node) {
-> -			control_pdev = of_find_device_by_node(control_node);
-> -			if (!control_pdev) {
-> -				dev_err(&pdev->dev, "Failed to get control device\n");
-> -				ret = -EINVAL;
-> -				goto err2;
-> -			}
-> -			glue->control_otghs = &control_pdev->dev;
-> -		}
-> +		ret = omap2430_get_control(glue, np);
-> +		if (ret)
-> +			goto err2;
-> +
->  	}
->  	pdata->platform_ops		= &omap2430_ops;
->  
+Not true. The phy driver can be generic and used by multiple platforms.
 
-cheers,
--roger
+And the phy driver should be capable of idling the phy separately
+independent of the USB module. And the phy driver should be able to
+tell the system things like ID pin status, VBUS status and so on.
+
+So to summarize, we are _not_ going to start tinkering with the sycon
+registers directly from random device drivers in a separate IO space.
+
+Anything using the syscon registers must implement a driver for some
+Linux generic framework such as phy, clock, or regulator framework.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
