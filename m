@@ -1,15 +1,15 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH V2 0/5] drivers/rtc/rtc-ds1307.c: Basic cleanups and
- support for wakeupirq
-Date: Wed, 24 Jun 2015 18:37:28 +0300
-Message-ID: <558ACEB8.2020406@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2 4/5] drivers/rtc/rtc-ds1307.c: Support optional wakeup
+ interrupt source
+Date: Wed, 24 Jun 2015 11:07:13 -0500
+Message-ID: <558AD5B1.8030406@ti.com>
 References: <1435076114-12416-1-git-send-email-nm@ti.com>
- <20150624143432.GE21232@saruman.tx.rr.com>
+ <1435076114-12416-5-git-send-email-nm@ti.com> <558ACE87.6040509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150624143432.GE21232@saruman.tx.rr.com>
+In-Reply-To: <558ACE87.6040509@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,55 +19,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com, Nishanth Menon <nm@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alessandro Zummo <a.zummo@towertech.it>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/24/2015 05:34 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Tue, Jun 23, 2015 at 11:15:09AM -0500, Nishanth Menon wrote:
->> Hi,
->>
->> Here is the revamp of the patch posted eariler to support wakeupirq.
->> This series does a few cleanups as well prior to introducing the
->> generic apis required to support the wakeirq mechanism used on certain
->> TI SoCs. Cleanups done here are just minimal set of the cleanups we
->> discussed in [2].
->>
->> Series is based on next-20150623
->>
->> Test log: http://pastebin.ubuntu.com/11763002/
->>
->> NOTE1: I have only tested in mcp79410 device, and not on other
->> ds1307-rtc driver compatbile devices as I dont have any other.
->> additional testing might be nice to have.
->> NOTE2: there are additional fixes that linux-next seems to need but
->> those are in omap-rtc, cpufreq etc, but those are not related by the
->> ds-1307.
->>
->> V1: https://patchwork.kernel.org/patch/4759171/
->>
->> NOTE: Patch 5/5 of the series is meant to indicate the usage, and will
->> be reposted along with other wakeup sources to be enabled once the
->> driver changes are accepted.
->>
->> Felipe Balbi (1):
->>    drivers/rtc/rtc-ds1307.c: Convert to threaded IRQ
->>
->> Nishanth Menon (4):
->>    drivers/rtc/rtc-ds1307.c: Switch to managed irq allocation
->>    drivers/rtc/rtc-ds1307.c: Sort the headers
->>    drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt source
->
-> for the series, except the patch which I wrote :
->
-> Acked-by: Felipe Balbi <balbi@ti.com>
->
+On 06/24/2015 10:36 AM, Grygorii Strashko wrote:
+> On 06/23/2015 07:15 PM, Nishanth Menon wrote:
+[...]
 
-With minor comment to patch 4:
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> +		ds1307->wakeirq = of_irq_get(node, 1);
+>> +		if (ds1307->wakeirq <= 0) {
+>> +			if (ds1307->wakeirq == -EPROBE_DEFER) {
+>> +				err = ds1307->wakeirq;
+>> +				goto exit;
+>> +			}
+>> +			ds1307->wakeirq = 0;
+>> +			goto no_irq;
+>> +		}
+> 
+> Might be above code could be done a little bit simpler?
+> 
+> 		err = of_irq_get(node, 1);
+> 		if (err <= 0) {
+> 			if (err == -EPROBE_DEFER)
+> 				goto exit;
+> 			goto no_irq;
+
+I had considered it, but problem with this approach is that is err
+does not get reset back to 0 and probe will fail as it flows through
+the rest of the code.. which is not our intent.
+
+> 		}
+> 		ds1307->wakeirq = err;
+> 
+
+
+
+
 
 -- 
-regards,
--grygorii
+Regards,
+Nishanth Menon
