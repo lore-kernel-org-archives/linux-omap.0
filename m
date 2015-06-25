@@ -1,49 +1,48 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] thermal: Switch mode to enabled once the cooling device
- is bound
-Date: Thu, 25 Jun 2015 12:35:30 -0500
-Message-ID: <558C3BE2.9020508@ti.com>
-References: <1435236635-20830-1-git-send-email-j-keerthy@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3] i2c: omap: switch to dev_get_drvdata()
+Date: Thu, 25 Jun 2015 14:34:48 -0500
+Message-ID: <1435260890-32335-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1435236635-20830-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com
-Cc: linux-omap@vger.kernel.org, rui.zhang@intel.com, t-kristo@ti.com, linux-pm@vger.kernel.org, Ravikumar Kattekola <rk@ti.com>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/25/2015 07:50 AM, Keerthy wrote:
-> Currently mode is still disabled even after the cooling device is bound
-> to the appropriate device. Hence changing the mode to enabled as soon as
-> the cooling device is registered successfully.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  drivers/thermal/of-thermal.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-> index 04b1be7..bc84485 100644
-> --- a/drivers/thermal/of-thermal.c
-> +++ b/drivers/thermal/of-thermal.c
-> @@ -163,6 +163,9 @@ static int of_thermal_bind(struct thermal_zone_device *thermal,
->  		}
->  	}
->  
-> +	/* Now that cooling device is bound enable the thermal device*/
-> +	data->mode = THERMAL_DEVICE_ENABLED;
-> +
->  	return 0;
->  }
->  
-> 
-This makes sense to me rather than waiting for userspace to enable the
-zone -(by which time we might have hit catastrophic thermal events
-which may have been prevented if we had the zones enabled and cooling
-devices functional.
+there's no need to fetch the platform_device
+in order to dereference it back to the dev
+pointer to access drvdata, we can use
+dev_get_drvdata() instead.
 
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 0e894193accf..00712c1cf3c0 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1403,8 +1403,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
+ 
+ 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+ 
+@@ -1428,8 +1427,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ 
+ static int omap_i2c_runtime_resume(struct device *dev)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
+ 
+ 	if (!_dev->regs)
+ 		return 0;
 -- 
-Regards,
-Nishanth Menon
+2.4.4
