@@ -1,38 +1,44 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] thermal: Switch mode to enabled once the cooling device is bound
-Date: Thu, 25 Jun 2015 18:20:35 +0530
-Message-ID: <1435236635-20830-1-git-send-email-j-keerthy@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 0/2] CLK: TI: add dpll_clksel_mac_clk node
+Date: Thu, 25 Jun 2015 19:16:12 +0530
+Message-ID: <558C0624.4060008@ti.com>
+References: <1434614473-8500-1-git-send-email-j-keerthy@ti.com> <55828A18.6030608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: edubezval@gmail.com
-Cc: linux-omap@vger.kernel.org, rui.zhang@intel.com, t-kristo@ti.com, j-keerthy@ti.com, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55828A18.6030608@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org
+Cc: galak@codeaurora.org, tony@atomide.com, t-kristo@ti.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, bcousson@baylibre.com, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently mode is still disabled even after the cooling device is bound
-to the appropriate device. Hence changing the mode to enabled as soon as
-the cooling device is registered successfully.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/thermal/of-thermal.c | 3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-index 04b1be7..bc84485 100644
---- a/drivers/thermal/of-thermal.c
-+++ b/drivers/thermal/of-thermal.c
-@@ -163,6 +163,9 @@ static int of_thermal_bind(struct thermal_zone_device *thermal,
- 		}
- 	}
- 
-+	/* Now that cooling device is bound enable the thermal device*/
-+	data->mode = THERMAL_DEVICE_ENABLED;
-+
- 	return 0;
- }
- 
--- 
-1.9.1
+On Thursday 18 June 2015 02:36 PM, Mugunthan V N wrote:
+> On Thursday 18 June 2015 01:31 PM, Keerthy wrote:
+>> The series adds the missing clock node needed for cpsw.
+>>
+>> Keerthy (2):
+>>    CLK: TI: add dpll_clksel_mac_clk node
+>>    ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk
+>>      clock
+>>
+>>   arch/arm/boot/dts/am4372.dtsi        | 7 +++++--
+>>   arch/arm/boot/dts/am43xx-clocks.dtsi | 9 +++++++++
+>>   drivers/clk/ti/clk-43xx.c            | 1 +
+>>   3 files changed, 15 insertions(+), 2 deletions(-)
+>>
+>
+> Tested-by: Mugunthan V N <mugunthanvnm@ti.com>
 
+Thanks Mugunthan.
+
+A gentle ping on this series.
+
+Regards,
+Keerthy
+>
+> Regards
+> Mugunthan V N
+>
