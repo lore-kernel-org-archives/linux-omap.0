@@ -1,48 +1,34 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-Date: Thu, 25 Jun 2015 13:15:57 +0200
-Message-ID: <4970019.av0JOFIyTW@wuerfel>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <5587F1F4.1060905@ti.com> <20150624162401.GP19530@localhost>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] ARM-OMAP2+: Deletion of unnecessary checks before two
+ function calls
+Date: Thu, 25 Jun 2015 13:33:39 +0200
+Message-ID: <558BE713.1020409@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
+ urceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20150624162401.GP19530@localhost>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, linux-crypto@vger.kernel.org, linux-spi <linux-spi@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 24 June 2015 21:54:01 Vinod Koul wrote:
-> > It would be nice to find another name for the
-> > dma_request_slave_channel_compat() so with the new name we could have chance
-> > to rearrange the parameters: (dev, name, mask, fn, fn_param)
-> > 
-> > We would end up with the following APIs, all returning with error code on failure:
-> > dma_request_slave_channel(dev, name);
-> > dma_request_channel_legacy(mask, fn, fn_param);
-> > dma_request_slave_channel_compat(mask, fn, fn_param, dev, name);
-> > dma_request_any_channel(mask);
-> This is good idea but still we end up with 4 APIs. Why not just converge to
-> two API, one legacy + memcpy + filer fn and one untimate API for slave?
-> 
-> Internally we may have 4 APIs for cleaner handling...
-> 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 25 Jun 2015 13:24:35 +0200
 
-Not sure if it's realistic, but I think it would be nice to have
-a way for converting the current slave drivers that use the
-mask/filter/param API to the dev/name based API. We should
-be able to do this by registering a lookup table from platform
-code that translates one to the other, like we do with the
-clkdev lookup to find a device clock based on a local identifier.
+Some functions which release a system resource tolerate the passing
+of a null pointer. I do not see a need because of this fact
+that a function caller repeats a corresponding check.
 
-The main downside of this is that it's a lot of work if we want
-to completely remove dma_request_channel() for slave drivers,
-but it could be done more gradually.
+Markus Elfring (2):
+  Delete a check before the function call "omap_device_delete"
+  Delete a check before the function call "of_node_put"
 
-Another upside is that we could come up with a mechanism to
-avoid the link-time dependency on the filter-function that
-causes problems when that filter is defined in a loadable
-module for the dmaengine driver.
+ arch/arm/mach-omap2/omap_device.c | 3 +--
+ arch/arm/mach-omap2/timer.c       | 3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-	Arnd
+-- 
+2.4.4
