@@ -1,74 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] arm: boot: store ATAG structure into DT atags field
-Date: Wed, 24 Jun 2015 22:12:53 -0700
-Message-ID: <20150625051253.GN4156@atomide.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT
+ revision
+Date: Thu, 25 Jun 2015 09:18:51 +0200
+Message-ID: <20150625071851.GB2890@pali>
 References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com>
- <3513646.XX80DTTJbc@wuerfel>
- <201505152216.24622@pali>
- <46811670.AspmkHD9JS@wuerfel>
+ <3577431.y872Foi4kj@wuerfel>
+ <20150506103752.GG30910@pali>
+ <3529567.PeFp1NNa1q@wuerfel>
+ <20150506114417.GI30910@pali>
+ <20150625050138.GL4156@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <46811670.AspmkHD9JS@wuerfel>
+In-Reply-To: <20150625050138.GL4156@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Russell King <linux@arm.linux.org.uk>, Sebastian Reichel <sre@debian.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Rob Herring <robherring2@gmail.com>, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [150515 13:23]:
-> On Friday 15 May 2015 22:16:24 Pali Roh=C3=A1r wrote:
-> > On Friday 15 May 2015 22:12:41 Arnd Bergmann wrote:
-> > > On Friday 15 May 2015 21:50:07 Pali Roh=C3=A1r wrote:
-> > > >                 }
-> > > >        =20
-> > > >         }
+On Wednesday 24 June 2015 22:01:38 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150506 04:45]:
+> > On Wednesday 06 May 2015 13:04:01 Arnd Bergmann wrote:
 > > > >=20
-> > > > +       /* include the terminating ATAG_NONE */
-> > > > +       atag_size =3D (char *)atag - (char *)atag_list +
-> > > > sizeof(struct tag_header); +       setprop(fdt, "/", "atags",
-> > > > atag_list, atag_size);
-> > > > +
-> > > >=20
-> > > >         if (memcount) {
-> > > >        =20
-> > > >                 setprop(fdt, "/memory", "reg", mem_reg_property=
-,
-> > > >                =20
-> > > >                         4 * memcount * memsize);
+> > > > It needs to be done in this code, so "system_rev" variable is s=
+et
+> > > > properly...
 > > >=20
-> > > The property should probably have a DT binding, and be named
-> > > "linux,atags".
+> > > What I mean is which code accesses this variable that early?
 > > >=20
-> > > It may also help to check if the "linux,atags" property already
-> > > exists and not create it otherwise. That way we can put it into t=
-he
-> > > n900 dts file and have it updated by the compat code, but not exp=
-ose
-> > > the atags on other platforms unless they opt in.
-
-Using "linux,atags" sounds good to me. And yes checking it with
-getprop before doing setprop makes sense.
-
-> > Maybe what would help: Is there a way to tell decompressor/kernel t=
-o not=20
-> > touch atag memory and then after kernel/board-code starts it save c=
-opy=20
-> > of atags? I think it is not possible right now, but correct me if I=
-'m=20
-> > wrong...
 > >=20
+> > ATAG code is doing it at same early stage, so I added it to same ea=
+rly
+> > stage...
 >=20
-> I don't think that is possible without an incompatible change to the
-> boot protocol.
+> Yes we should do this early like the other atags.
+> =20
+> > > > > Also, it seems strange to have a string property and then use=
+ kstrtouint
+> > > > > to convert it into a number. I think it should either be spec=
+ified in a DT
+> > > > > binding to be a string and then have the kernel not assume th=
+at it is a number,
+> > > > > or we should define it to be binary.
+> > > > >=20
+> > > > >       Arnd
+> > > >=20
+> > > > Variable "system_rev" is number and it always was. So chaning t=
+ype will
+> > > > break more parts.
+> > > >=20
+> > > > And it is string DT property to be human readable. Some other d=
+evelopers
+> > > > suggested for v2 to change it to string (from number).
+> > >=20
+> > > Both of them would be human readable, you just use something else=
+ to
+> > > read them ;-)
+> > >=20
+> > > If we have a string here, we should just change all uses of syste=
+m_rev
+> > > in the kernel accordingly, there are only a few of them:
+>=20
+> Let's just keep it as a hex as it was. After all it's an existing
+> interface in /proc that user space programs may expect to be in
+> hex format already.
+>=20
+> Pali, care to repost the whole set again right after -rc1 with
+> with rev property naming and documentation added? Just keep it
+> as hex and let's forget any string conversion.
+>=20
+> Regards,
+>=20
+> Tony
 
-Agreed, let's keep the changes to minimum.
+Ok, but what do you mean to forget any string conversion?
 
-Looks like with the comments posted all the pending four patches
-from Pali become quite a minimal set of three patches if we keep
-the rev string as hex.
-
-Regrds,
-
-Tony
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
