@@ -1,75 +1,56 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/1] arm: dts: am43xx-clock: Add qspi clock node.
-Date: Fri, 26 Jun 2015 10:33:05 +0300
-Message-ID: <558D0031.1090501@ti.com>
-References: <1435167933-5249-1-git-send-email-mugunthanvnm@ti.com> <558CEF2E.3050202@ti.com>
+From: Javi Merino <javi.merino@arm.com>
+Subject: Re: [PATCH] thermal: Switch mode to enabled once the cooling device
+ is bound
+Date: Fri, 26 Jun 2015 12:17:21 +0100
+Message-ID: <20150626111720.GB2673@e104805>
+References: <1435236635-20830-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <558CEF2E.3050202@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1435236635-20830-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: "edubezval@gmail.com" <edubezval@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "t-kristo@ti.com" <t-kristo@ti.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Lukasz Majewski <l.majewski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 26/06/15 09:20, Keerthy wrote:
->
->
-> On Wednesday 24 June 2015 11:15 PM, Mugunthan V N wrote:
->> From: Sourav Poddar <sourav.poddar@ti.com>
->>
->> Add clock node for qspi controller driver on am437x.
->>
->> Cc: Keerthy <j-keerthy@ti.com>
->> Cc: Tero Kristo <t-kristo@ti.com>
->> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->> ---
->>   arch/arm/boot/dts/am4372.dtsi        | 2 ++
->>   arch/arm/boot/dts/am43xx-clocks.dtsi | 8 ++++++++
->>   2 files changed, 10 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am4372.dtsi
->> b/arch/arm/boot/dts/am4372.dtsi
->> index 649e7b9..8ab7831 100644
->> --- a/arch/arm/boot/dts/am4372.dtsi
->> +++ b/arch/arm/boot/dts/am4372.dtsi
->> @@ -903,6 +903,8 @@
->>               #address-cells = <1>;
->>               #size-cells = <0>;
->>               ti,hwmods = "qspi";
->> +            clocks = <&qspi_fclk>;
->> +            clock-names = "fck";
->>               interrupts = <0 138 0x4>;
->>               num-cs = <4>;
->>               status = "disabled";
->> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi
->> b/arch/arm/boot/dts/am43xx-clocks.dtsi
->> index cc88728..1506585 100644
->> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
->> @@ -763,4 +763,12 @@
->>           ti,bit-shift = <8>;
->>           reg = <0x8a68>;
->>       };
->> +
->> +    qspi_fclk: qspi_fclk {
->> +        #clock-cells = <0>;
->> +        compatible = "ti,fixed-factor-clock";
->> +        clocks = <&dpll_per_m2_div4_ck>;
->
->  From the clock tree this does not seem to be sourced from dpll_per_m2.
-> I guess this needs to be changed.
+On Thu, Jun 25, 2015 at 01:50:35PM +0100, Keerthy wrote:
+> Currently mode is still disabled even after the cooling device is bound
+> to the appropriate device. Hence changing the mode to enabled as soon as
+> the cooling device is registered successfully.
 
-Right. We need to have a mux and divider.
+This should have been fixed by 528012c1f437 ("thermal: of: Enable
+thermal_zoneX when sensor is correctly added"), which was merged in
+4.0.  With this, the thermal zone is enabled when it is registered.
+Can you elaborate on why is this needed?
 
-cheers,
--roger
+Cheers,
+Javi
 
->
->> +        clock-mult = <1>;
->> +        clock-div = <1>;
->> +    };
->>   };
->>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/thermal/of-thermal.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
+> index 04b1be7..bc84485 100644
+> --- a/drivers/thermal/of-thermal.c
+> +++ b/drivers/thermal/of-thermal.c
+> @@ -163,6 +163,9 @@ static int of_thermal_bind(struct thermal_zone_device *thermal,
+>  		}
+>  	}
+>  
+> +	/* Now that cooling device is bound enable the thermal device*/
+> +	data->mode = THERMAL_DEVICE_ENABLED;
+> +
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
