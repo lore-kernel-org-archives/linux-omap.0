@@ -1,57 +1,54 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: n900 in 4.2-rc0: repeating oopses
-Date: Tue, 30 Jun 2015 11:53:10 +0200
-Message-ID: <20150630095310.GF27720@pali>
-References: <20150416093234.GA17423@amd>
- <20150629091146.GA5103@amd>
- <20150630092404.GA19285@amd>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH] drm/tilcdc: Implement dma-buf support for tilcdc
+Date: Tue, 30 Jun 2015 13:30:55 +0300
+Message-ID: <1435660255-22505-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150630092404.GA19285@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 30 June 2015 11:24:04 Pavel Machek wrote:
-> Hi!
->=20
-> > Just tried booting 4.2-rc0 on n900 (commit
-> > 4a10a91756ef381bced7b88cfb9232f660b92d93) and it is broken. Previou=
-s
-> > -rc0 version worked. This time, there's some output on console, but
-> > too fast for me to read.
-> >=20
-> > It seems oopses happen before mounting root. If you have serial
-> > console, they should be easy to see.
->=20
-> I tried again according to pali's instructions, and it is still
-> broken the same way. Any other ideas? Does it work for you?
->=20
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.d=
-tsi
-> index 69a40cf..ff6f2bf 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -570,6 +570,7 @@
->  			interrupts =3D <49>;
->  			dmas =3D <&sdma 69>;
->  			dma-names =3D "rx";
-> +			status =3D "disabled";
->  		};
-> =20
->  		smartreflex_core: smartreflex@480cb000 {
->=20
-> 									Pavel
->=20
-
-Ok, then it is not problem with omap crypto and HS device...
-
-I will try 4.2 at the end of week.
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+VGhlcmUgaXMgbm90aGluZyBzcGVjaWFsIGFib3V0IHRpbGNkYyBIVyB3aGVuIHRoZSB2aWRlbyBt
+ZW1vcnkgaXMKY29uY2VybmVkLiBKdXN0IHVzaW5nIHRoZSBzdGFuZGFyZCBkcm0gaGVscGVycyBm
+b3IgaW1wbGVtZW50YXRpb24gaXMKZW5vdWdoLgoKU2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8
+anNhcmhhQHRpLmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYyB8
+IDEzICsrKysrKysrKysrKy0KIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxIGRl
+bGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2
+LmMgYi9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwppbmRleCAwZjI4M2EzLi40
+OTA4YzFmIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwor
+KysgYi9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwpAQCAtNTUzLDcgKzU1Myw4
+IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZmlsZV9vcGVyYXRpb25zIGZvcHMgPSB7CiB9OwogCiBz
+dGF0aWMgc3RydWN0IGRybV9kcml2ZXIgdGlsY2RjX2RyaXZlciA9IHsKLQkuZHJpdmVyX2ZlYXR1
+cmVzICAgID0gRFJJVkVSX0hBVkVfSVJRIHwgRFJJVkVSX0dFTSB8IERSSVZFUl9NT0RFU0VULAor
+CS5kcml2ZXJfZmVhdHVyZXMgICAgPSAoRFJJVkVSX0hBVkVfSVJRIHwgRFJJVkVSX0dFTSB8IERS
+SVZFUl9NT0RFU0VUIHwKKwkJCSAgICAgICBEUklWRVJfUFJJTUUpLAogCS5sb2FkICAgICAgICAg
+ICAgICAgPSB0aWxjZGNfbG9hZCwKIAkudW5sb2FkICAgICAgICAgICAgID0gdGlsY2RjX3VubG9h
+ZCwKIAkucHJlY2xvc2UgICAgICAgICAgID0gdGlsY2RjX3ByZWNsb3NlLApAQCAtNTcxLDYgKzU3
+MiwxNiBAQCBzdGF0aWMgc3RydWN0IGRybV9kcml2ZXIgdGlsY2RjX2RyaXZlciA9IHsKIAkuZHVt
+Yl9jcmVhdGUgICAgICAgID0gZHJtX2dlbV9jbWFfZHVtYl9jcmVhdGUsCiAJLmR1bWJfbWFwX29m
+ZnNldCAgICA9IGRybV9nZW1fY21hX2R1bWJfbWFwX29mZnNldCwKIAkuZHVtYl9kZXN0cm95ICAg
+ICAgID0gZHJtX2dlbV9kdW1iX2Rlc3Ryb3ksCisKKwkucHJpbWVfaGFuZGxlX3RvX2ZkCT0gZHJt
+X2dlbV9wcmltZV9oYW5kbGVfdG9fZmQsCisJLnByaW1lX2ZkX3RvX2hhbmRsZQk9IGRybV9nZW1f
+cHJpbWVfZmRfdG9faGFuZGxlLAorCS5nZW1fcHJpbWVfaW1wb3J0CT0gZHJtX2dlbV9wcmltZV9p
+bXBvcnQsCisJLmdlbV9wcmltZV9leHBvcnQJPSBkcm1fZ2VtX3ByaW1lX2V4cG9ydCwKKwkuZ2Vt
+X3ByaW1lX2dldF9zZ190YWJsZQk9IGRybV9nZW1fY21hX3ByaW1lX2dldF9zZ190YWJsZSwKKwku
+Z2VtX3ByaW1lX2ltcG9ydF9zZ190YWJsZSA9IGRybV9nZW1fY21hX3ByaW1lX2ltcG9ydF9zZ190
+YWJsZSwKKwkuZ2VtX3ByaW1lX3ZtYXAJCT0gZHJtX2dlbV9jbWFfcHJpbWVfdm1hcCwKKwkuZ2Vt
+X3ByaW1lX3Z1bm1hcAk9IGRybV9nZW1fY21hX3ByaW1lX3Z1bm1hcCwKKwkuZ2VtX3ByaW1lX21t
+YXAJCT0gZHJtX2dlbV9jbWFfcHJpbWVfbW1hcCwKICNpZmRlZiBDT05GSUdfREVCVUdfRlMKIAku
+ZGVidWdmc19pbml0ICAgICAgID0gdGlsY2RjX2RlYnVnZnNfaW5pdCwKIAkuZGVidWdmc19jbGVh
+bnVwICAgID0gdGlsY2RjX2RlYnVnZnNfY2xlYW51cCwKLS0gCjEuOS4xCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0
+CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9w
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
