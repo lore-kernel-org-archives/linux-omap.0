@@ -1,79 +1,61 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ARM: OMAP2: Delete unnecessary checks before three function
- calls
-Date: Tue, 30 Jun 2015 14:10:33 +0200
-Message-ID: <55928739.5040809@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net> <54705EC3.90708@users.sourceforge.net>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] drm/tilcdc: Implement dma-buf support for tilcdc
+Date: Tue, 30 Jun 2015 16:11:08 +0300
+Message-ID: <1673481.ZAV3OTmMmB@avalon>
+References: <1435660255-22505-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54705EC3.90708@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1435660255-22505-1-git-send-email-jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 30 Jun 2015 14:00:16 +0200
-
-The functions clk_disable(), of_node_put() and omap_device_delete() test
-whether their argument is NULL and then return immediately.
-Thus the test around the call is not needed.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- arch/arm/mach-omap2/omap_device.c | 3 +--
- arch/arm/mach-omap2/omap_hwmod.c  | 5 +----
- arch/arm/mach-omap2/timer.c       | 3 +--
- 3 files changed, 3 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 4cb8fd9..196366e 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -193,8 +193,7 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
- 
- 	switch (event) {
- 	case BUS_NOTIFY_DEL_DEVICE:
--		if (pdev->archdata.od)
--			omap_device_delete(pdev->archdata.od);
-+		omap_device_delete(pdev->archdata.od);
- 		break;
- 	case BUS_NOTIFY_ADD_DEVICE:
- 		if (pdev->dev.of_node)
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d78c12e..1091ee7 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -921,10 +921,7 @@ static int _disable_clocks(struct omap_hwmod *oh)
- 	int i = 0;
- 
- 	pr_debug("omap_hwmod: %s: disabling clocks\n", oh->name);
--
--	if (oh->_clk)
--		clk_disable(oh->_clk);
--
-+	clk_disable(oh->_clk);
- 	p = oh->slave_ports.next;
- 
- 	while (i < oh->slaves_cnt) {
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index cac46d8..15448221 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -208,8 +208,7 @@ static void __init omap_dmtimer_init(void)
- 	/* If we are a secure device, remove any secure timer nodes */
- 	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
- 		np = omap_get_timer_dt(omap_timer_match, "ti,timer-secure");
--		if (np)
--			of_node_put(np);
-+		of_node_put(np);
- 	}
- }
- 
--- 
-2.4.5
+SGkgSnlyaSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gVHVlc2RheSAzMCBKdW5lIDIw
+MTUgMTM6MzA6NTUgSnlyaSBTYXJoYSB3cm90ZToKPiBUaGVyZSBpcyBub3RoaW5nIHNwZWNpYWwg
+YWJvdXQgdGlsY2RjIEhXIHdoZW4gdGhlIHZpZGVvIG1lbW9yeSBpcwo+IGNvbmNlcm5lZC4gSnVz
+dCB1c2luZyB0aGUgc3RhbmRhcmQgZHJtIGhlbHBlcnMgZm9yIGltcGxlbWVudGF0aW9uIGlzCj4g
+ZW5vdWdoLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+CgpU
+aGlzIGxvb2tzIHNpbXBsZSwgSSBsaWtlIGl0IDotKQoKQWNrZWQtYnk6IExhdXJlbnQgUGluY2hh
+cnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMv
+Z3B1L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jIHwgMTMgKysrKysrKysrKysrLQo+ICAxIGZpbGUg
+Y2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+IAo+IGRpZmYgLS1naXQg
+YS9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwo+IGIvZHJpdmVycy9ncHUvZHJt
+L3RpbGNkYy90aWxjZGNfZHJ2LmMgaW5kZXggMGYyODNhMy4uNDkwOGMxZiAxMDA2NDQKPiAtLS0g
+YS9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1
+L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jCj4gQEAgLTU1Myw3ICs1NTMsOCBAQCBzdGF0aWMgY29u
+c3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBmb3BzID0gewo+ICB9Owo+IAo+ICBzdGF0aWMgc3Ry
+dWN0IGRybV9kcml2ZXIgdGlsY2RjX2RyaXZlciA9IHsKPiAtCS5kcml2ZXJfZmVhdHVyZXMgICAg
+PSBEUklWRVJfSEFWRV9JUlEgfCBEUklWRVJfR0VNIHwgRFJJVkVSX01PREVTRVQsCj4gKwkuZHJp
+dmVyX2ZlYXR1cmVzICAgID0gKERSSVZFUl9IQVZFX0lSUSB8IERSSVZFUl9HRU0gfCBEUklWRVJf
+TU9ERVNFVCB8Cj4gKwkJCSAgICAgICBEUklWRVJfUFJJTUUpLAo+ICAJLmxvYWQgICAgICAgICAg
+ICAgICA9IHRpbGNkY19sb2FkLAo+ICAJLnVubG9hZCAgICAgICAgICAgICA9IHRpbGNkY191bmxv
+YWQsCj4gIAkucHJlY2xvc2UgICAgICAgICAgID0gdGlsY2RjX3ByZWNsb3NlLAo+IEBAIC01NzEs
+NiArNTcyLDE2IEBAIHN0YXRpYyBzdHJ1Y3QgZHJtX2RyaXZlciB0aWxjZGNfZHJpdmVyID0gewo+
+ICAJLmR1bWJfY3JlYXRlICAgICAgICA9IGRybV9nZW1fY21hX2R1bWJfY3JlYXRlLAo+ICAJLmR1
+bWJfbWFwX29mZnNldCAgICA9IGRybV9nZW1fY21hX2R1bWJfbWFwX29mZnNldCwKPiAgCS5kdW1i
+X2Rlc3Ryb3kgICAgICAgPSBkcm1fZ2VtX2R1bWJfZGVzdHJveSwKPiArCj4gKwkucHJpbWVfaGFu
+ZGxlX3RvX2ZkCT0gZHJtX2dlbV9wcmltZV9oYW5kbGVfdG9fZmQsCj4gKwkucHJpbWVfZmRfdG9f
+aGFuZGxlCT0gZHJtX2dlbV9wcmltZV9mZF90b19oYW5kbGUsCj4gKwkuZ2VtX3ByaW1lX2ltcG9y
+dAk9IGRybV9nZW1fcHJpbWVfaW1wb3J0LAo+ICsJLmdlbV9wcmltZV9leHBvcnQJPSBkcm1fZ2Vt
+X3ByaW1lX2V4cG9ydCwKPiArCS5nZW1fcHJpbWVfZ2V0X3NnX3RhYmxlCT0gZHJtX2dlbV9jbWFf
+cHJpbWVfZ2V0X3NnX3RhYmxlLAo+ICsJLmdlbV9wcmltZV9pbXBvcnRfc2dfdGFibGUgPSBkcm1f
+Z2VtX2NtYV9wcmltZV9pbXBvcnRfc2dfdGFibGUsCj4gKwkuZ2VtX3ByaW1lX3ZtYXAJCT0gZHJt
+X2dlbV9jbWFfcHJpbWVfdm1hcCwKPiArCS5nZW1fcHJpbWVfdnVubWFwCT0gZHJtX2dlbV9jbWFf
+cHJpbWVfdnVubWFwLAo+ICsJLmdlbV9wcmltZV9tbWFwCQk9IGRybV9nZW1fY21hX3ByaW1lX21t
+YXAsCj4gICNpZmRlZiBDT05GSUdfREVCVUdfRlMKPiAgCS5kZWJ1Z2ZzX2luaXQgICAgICAgPSB0
+aWxjZGNfZGVidWdmc19pbml0LAo+ICAJLmRlYnVnZnNfY2xlYW51cCAgICA9IHRpbGNkY19kZWJ1
+Z2ZzX2NsZWFudXAsCgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxp
+c3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0
+b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
