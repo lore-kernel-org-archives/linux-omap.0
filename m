@@ -1,54 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: omap: use raw locks for locking
-Date: Tue, 30 Jun 2015 08:45:04 +0200
-Message-ID: <CACRpkdaS7Pp3PP8g_FSZ4=f5WNBPmLe7P+PZTc1-rhZzuAnDrg@mail.gmail.com>
-References: <1423757436-18986-1-git-send-email-bigeasy@linutronix.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: n900 in 4.2-rc0: repeating oopses
+Date: Tue, 30 Jun 2015 11:24:04 +0200
+Message-ID: <20150630092404.GA19285@amd>
+References: <20150416093234.GA17423@amd>
+ <20150629091146.GA5103@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1423757436-18986-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150629091146.GA5103@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 12, 2015 at 5:10 PM, Sebastian Andrzej Siewior
-<bigeasy@linutronix.de> wrote:
+Hi!
 
-> This patch converts gpio_bank.lock from a spin_lock into a
-> raw_spin_lock. The call path to access this lock is always under a
-> raw_spin_lock, for instance
-> - __setup_irq() holds &desc->lock with irq off
->   + __irq_set_trigger()
->    + omap_gpio_irq_type()
->
-> - handle_level_irq() (runs with irqs off therefore raw locks)
->   + mask_ack_irq()
->    + omap_gpio_mask_irq()
->
-> This fixes the obvious backtrace on -RT. However I noticed two cases
-> where it looks wrong and this is not limited to -RT:
-> - omap_gpio_irq_type() is called with IRQ off and has an conditional
->   call to pm_runtime_get_sync() which may sleep. Either it may happen or
->   it may not happen but pm_runtime_get_sync() should not be called in an
->   atomic section.
->
-> - omap_gpio_debounce() is holding the lock with IRQs off.
->   + omap2_set_gpio_debounce()
->    + clk_prepare_enable()
->     + clk_prepare() this one might sleep.
->   The number of users of gpiod_set_debounce() / gpio_set_debounce()
->   looks low but still this is not good.
->
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Just tried booting 4.2-rc0 on n900 (commit
+> 4a10a91756ef381bced7b88cfb9232f660b92d93) and it is broken. Previous
+> -rc0 version worked. This time, there's some output on console, but
+> too fast for me to read.
+> 
+> It seems oopses happen before mounting root. If you have serial
+> console, they should be easy to see.
 
-This doesn't apply to the current development tree.
+I tried again according to pali's instructions, and it is still
+broken the same way. Any other ideas? Does it work for you?
 
-Can you rebase this patch in Torvalds' HEAD, add Javier's ACK
-and resend?
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 69a40cf..ff6f2bf 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -570,6 +570,7 @@
+ 			interrupts = <49>;
+ 			dmas = <&sdma 69>;
+ 			dma-names = "rx";
++			status = "disabled";
+ 		};
+ 
+ 		smartreflex_core: smartreflex@480cb000 {
 
-Please put me on the To: line, I have no time to read all mail that
-I'm only CC on.
+									Pavel
 
-Yours,
-Linus Walleij
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
