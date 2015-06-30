@@ -1,61 +1,101 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH] gpio: omap: prevent module from being unloaded while in use
-Date: Tue, 30 Jun 2015 22:52:21 +0900
-Message-ID: <CAAVeFuK5j+s+Wj2kAHT7K9dj3RtK2aYZ50xDLb7S-73MJ7FTHA@mail.gmail.com>
-References: <1435245213-17858-1-git-send-email-grygorii.strashko@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH REPOST] gpio: omap: use raw locks for locking
+Date: Tue, 30 Jun 2015 18:36:50 +0200
+Message-ID: <5592C5A2.5050809@linutronix.de>
+References: <20150619170654.GA4937@linutronix.de> <5584547B.9040203@oracle.com> <CABxcv==5Fo-x9CdSu6BYNfBpAS7rp63fHA319J_KvWZZG9q=ng@mail.gmail.com> <20150622070821.GB4156@atomide.com> <559275B9.3040909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1435245213-17858-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <559275B9.3040909@ti.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, tony@atomide.com, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, santosh shilimkar <santosh.shilimkar@oracle.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 26, 2015 at 12:13 AM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> OMAP GPIO driver allowed to be built as loadable module, but it
-> doesn't set owner field in GPIO chip structure. As result,
-> module_get/put() API is not working and it's possible to unload
-> OMAP driver while in use:
->
->   omap_gpio 48051000.gpio: REMOVING GPIOCHIP WITH GPIOS STILL REQUESTED
->
-> Hence, add missing configuration.
+On 06/30/2015 12:55 PM, Grygorii Strashko wrote:
+> Hi Sebastian, All,
+Hi Grygorii,
 
-Isn't this also fixed by your other patch "gpiolib: assign chip owner
-to dev->driver->owner if not set"?
+> The problem here is that OMAPs code implemented using PM runtime based
+> approach and PM runtime is used everywhere. We don't see warnings form
+> other drivers just because their HW IRQ handlers forced to be threaded, but
+> that's not the case for OMAP GPIO :(
 
-Nevertheless,
+Only for the case where it is used as an interrupt controller. So the
+primary interrupt controller is not using RPM then (or else you would
+have the same problem).
 
-Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+> PM runtime for OMAP GPIO is implemented in irq_safe manner and it works for
+> non-RT case, but the main question here - How can we proceed for -RT case?
+> 
+> May be you have some thought?
 
-For inclusion into -rc if the other patch is for the next cycle.
+If I remember it properly, you must not sleep but you do so on wakeup.
+At least you take spinlocks (spinlocks not raw_spinlocks). One question
+is why do you need (or why is it okay) to put a device to sleep (via
+RPM) if the device is used as an interrupt controller? From what I
+understand, if the GPIO controller is really sleeping you won't receive
+any interrupts.
 
->
-> Cc: Tony Lindgren <tony@atomide.com>
-> Fixes: cac089f9026e ('gpio: omap: Allow building as a loadable module')
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
-> Hi Linus,
->
-> Seems this one is for 4.2-rc.
->
->  drivers/gpio/gpio-omap.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index a0ad803..61a731f 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1187,6 +1187,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
->         bank->irq = res->start;
->         bank->dev = dev;
->         bank->chip.dev = dev;
-> +       bank->chip.owner = THIS_MODULE;
->         bank->dbck_flag = pdata->dbck_flag;
->         bank->stride = pdata->bank_stride;
->         bank->width = pdata->bank_width;
-> --
-> 2.4.4
->
+So I think you shouldn't put a GPIO controller to sleep if it is
+active. If you avoid this, there should be nothing calling you from
+IRQ-context on -RT.
+
+>>From my side what I've tried or thought about:
+> 1) OMAP HW IRQ handler can be transformed to threaded IRQ on -RT.
+>    Can it be acceptable?
+
+It could. In theory. It would work, too. Not sure you really want this.
+You lose the cascaded handler that you have now. The obvious change
+would be that you see another IRQ used in /proc/interrupts. This is
+harmless :) However each time an IRQ (on the GPIO side) arrives you
+have a hardirq which is defered into thread context. Then it wakes
+another thread (the GPIO-IRQ-handler). So this adds a little of
+overhead on your call path. Since you won't have IRQF_NO_THREAD flag on
+any user, this should remain the only price you pay.
+
+Also I try not grow the -RT queue. I sent patches upstream where
+possible. That means for this I would like to have this addressed
+upstream as there is no joy carrying this patch (that means please
+don't do a -RT only fix).
+
+> 2) I've tried to use irq_chip->irq_bus_lock/irq_bus_sync_unlock() callbacks.
+>    It helps a bit, but there are two problems:
+>    - These callbacks are not expected to fail;
+>    - PM runtime calls are still present in omap_gpio_irq_handler().
+>    Hypothetically, they can be removed, but we'd need to ensure that OMAP GPIO HW
+>    is powered and ready to process IRQs all the time while GPIO bank IRQ is in use.
+>    Not trivial thing to do taking into account multi-SoC support, suspend, cpuidle :(
+
+What I still don't understand how can a GPIO create an interrupt if it
+is sleeping? I know CAN and a few others peripherals can do such
+things. Is this also the case for the GPIO?
+
+Or is the problem more that the CPU can't properly enter suspend/
+cpuidle if the GPIO bank remains active?
+
+>   [code provided just to illustrate idea]
+>   static void omap_gpio_irq_bus_lock(struct irq_data *data)
+>   {
+>        struct gpio_bank *bank = irq_data_get_irq_chip_data(data);
+> 
+>        if (!BANK_USED(bank))
+>                pm_runtime_get_sync(bank->dev);
+>   }
+
+I don't really like the !BANK_USED(bank) check because it is either in
+use or not. Things like that may hide the pm_runtime_get_sync() call and
+explode with debug-off.
+
+> I would be appreciated for any comments on this (1 or 2 or ..), thanks. 
+
+Another way would be to turn the lock into a raw lock so it won't block
+on -RT. However each time you hold the lock in process context you
+block a possible -RT task from becoming run-able. Also this could
+include larger hacker across the RPM code depending on how this lock
+issue is solved.
+Either way: the longer you hold the lock the longer you block the -RT
+task and the important part is the worst-case scenario.
+
+Sebastian
