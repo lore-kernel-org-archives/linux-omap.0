@@ -1,61 +1,61 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] drm/tilcdc: Implement dma-buf support for tilcdc
-Date: Tue, 30 Jun 2015 16:11:08 +0300
-Message-ID: <1673481.ZAV3OTmMmB@avalon>
-References: <1435660255-22505-1-git-send-email-jsarha@ti.com>
+From: Alexandre Courbot <gnurou@gmail.com>
+Subject: Re: [PATCH] gpio: omap: prevent module from being unloaded while in use
+Date: Tue, 30 Jun 2015 22:52:21 +0900
+Message-ID: <CAAVeFuK5j+s+Wj2kAHT7K9dj3RtK2aYZ50xDLb7S-73MJ7FTHA@mail.gmail.com>
+References: <1435245213-17858-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1435660255-22505-1-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1435245213-17858-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, tony@atomide.com, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgSnlyaSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gVHVlc2RheSAzMCBKdW5lIDIw
-MTUgMTM6MzA6NTUgSnlyaSBTYXJoYSB3cm90ZToKPiBUaGVyZSBpcyBub3RoaW5nIHNwZWNpYWwg
-YWJvdXQgdGlsY2RjIEhXIHdoZW4gdGhlIHZpZGVvIG1lbW9yeSBpcwo+IGNvbmNlcm5lZC4gSnVz
-dCB1c2luZyB0aGUgc3RhbmRhcmQgZHJtIGhlbHBlcnMgZm9yIGltcGxlbWVudGF0aW9uIGlzCj4g
-ZW5vdWdoLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+CgpU
-aGlzIGxvb2tzIHNpbXBsZSwgSSBsaWtlIGl0IDotKQoKQWNrZWQtYnk6IExhdXJlbnQgUGluY2hh
-cnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMv
-Z3B1L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jIHwgMTMgKysrKysrKysrKysrLQo+ICAxIGZpbGUg
-Y2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+IAo+IGRpZmYgLS1naXQg
-YS9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwo+IGIvZHJpdmVycy9ncHUvZHJt
-L3RpbGNkYy90aWxjZGNfZHJ2LmMgaW5kZXggMGYyODNhMy4uNDkwOGMxZiAxMDA2NDQKPiAtLS0g
-YS9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuYwo+ICsrKyBiL2RyaXZlcnMvZ3B1
-L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jCj4gQEAgLTU1Myw3ICs1NTMsOCBAQCBzdGF0aWMgY29u
-c3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBmb3BzID0gewo+ICB9Owo+IAo+ICBzdGF0aWMgc3Ry
-dWN0IGRybV9kcml2ZXIgdGlsY2RjX2RyaXZlciA9IHsKPiAtCS5kcml2ZXJfZmVhdHVyZXMgICAg
-PSBEUklWRVJfSEFWRV9JUlEgfCBEUklWRVJfR0VNIHwgRFJJVkVSX01PREVTRVQsCj4gKwkuZHJp
-dmVyX2ZlYXR1cmVzICAgID0gKERSSVZFUl9IQVZFX0lSUSB8IERSSVZFUl9HRU0gfCBEUklWRVJf
-TU9ERVNFVCB8Cj4gKwkJCSAgICAgICBEUklWRVJfUFJJTUUpLAo+ICAJLmxvYWQgICAgICAgICAg
-ICAgICA9IHRpbGNkY19sb2FkLAo+ICAJLnVubG9hZCAgICAgICAgICAgICA9IHRpbGNkY191bmxv
-YWQsCj4gIAkucHJlY2xvc2UgICAgICAgICAgID0gdGlsY2RjX3ByZWNsb3NlLAo+IEBAIC01NzEs
-NiArNTcyLDE2IEBAIHN0YXRpYyBzdHJ1Y3QgZHJtX2RyaXZlciB0aWxjZGNfZHJpdmVyID0gewo+
-ICAJLmR1bWJfY3JlYXRlICAgICAgICA9IGRybV9nZW1fY21hX2R1bWJfY3JlYXRlLAo+ICAJLmR1
-bWJfbWFwX29mZnNldCAgICA9IGRybV9nZW1fY21hX2R1bWJfbWFwX29mZnNldCwKPiAgCS5kdW1i
-X2Rlc3Ryb3kgICAgICAgPSBkcm1fZ2VtX2R1bWJfZGVzdHJveSwKPiArCj4gKwkucHJpbWVfaGFu
-ZGxlX3RvX2ZkCT0gZHJtX2dlbV9wcmltZV9oYW5kbGVfdG9fZmQsCj4gKwkucHJpbWVfZmRfdG9f
-aGFuZGxlCT0gZHJtX2dlbV9wcmltZV9mZF90b19oYW5kbGUsCj4gKwkuZ2VtX3ByaW1lX2ltcG9y
-dAk9IGRybV9nZW1fcHJpbWVfaW1wb3J0LAo+ICsJLmdlbV9wcmltZV9leHBvcnQJPSBkcm1fZ2Vt
-X3ByaW1lX2V4cG9ydCwKPiArCS5nZW1fcHJpbWVfZ2V0X3NnX3RhYmxlCT0gZHJtX2dlbV9jbWFf
-cHJpbWVfZ2V0X3NnX3RhYmxlLAo+ICsJLmdlbV9wcmltZV9pbXBvcnRfc2dfdGFibGUgPSBkcm1f
-Z2VtX2NtYV9wcmltZV9pbXBvcnRfc2dfdGFibGUsCj4gKwkuZ2VtX3ByaW1lX3ZtYXAJCT0gZHJt
-X2dlbV9jbWFfcHJpbWVfdm1hcCwKPiArCS5nZW1fcHJpbWVfdnVubWFwCT0gZHJtX2dlbV9jbWFf
-cHJpbWVfdnVubWFwLAo+ICsJLmdlbV9wcmltZV9tbWFwCQk9IGRybV9nZW1fY21hX3ByaW1lX21t
-YXAsCj4gICNpZmRlZiBDT05GSUdfREVCVUdfRlMKPiAgCS5kZWJ1Z2ZzX2luaXQgICAgICAgPSB0
-aWxjZGNfZGVidWdmc19pbml0LAo+ICAJLmRlYnVnZnNfY2xlYW51cCAgICA9IHRpbGNkY19kZWJ1
-Z2ZzX2NsZWFudXAsCgotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxp
-c3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Fri, Jun 26, 2015 at 12:13 AM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
+> OMAP GPIO driver allowed to be built as loadable module, but it
+> doesn't set owner field in GPIO chip structure. As result,
+> module_get/put() API is not working and it's possible to unload
+> OMAP driver while in use:
+>
+>   omap_gpio 48051000.gpio: REMOVING GPIOCHIP WITH GPIOS STILL REQUESTED
+>
+> Hence, add missing configuration.
+
+Isn't this also fixed by your other patch "gpiolib: assign chip owner
+to dev->driver->owner if not set"?
+
+Nevertheless,
+
+Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+
+For inclusion into -rc if the other patch is for the next cycle.
+
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Fixes: cac089f9026e ('gpio: omap: Allow building as a loadable module')
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+> Hi Linus,
+>
+> Seems this one is for 4.2-rc.
+>
+>  drivers/gpio/gpio-omap.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index a0ad803..61a731f 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1187,6 +1187,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>         bank->irq = res->start;
+>         bank->dev = dev;
+>         bank->chip.dev = dev;
+> +       bank->chip.owner = THIS_MODULE;
+>         bank->dbck_flag = pdata->dbck_flag;
+>         bank->stride = pdata->bank_stride;
+>         bank->width = pdata->bank_width;
+> --
+> 2.4.4
+>
