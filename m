@@ -1,203 +1,151 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH - resend for 4.2-rc2] ARM: DTS: dra7x: Integrate sDMA crossbar
-Date: Wed, 1 Jul 2015 15:52:29 +0300
-Message-ID: <1435755149-10328-1-git-send-email-peter.ujfalusi@ti.com>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [PATCH V2 4/5] drivers/rtc/rtc-ds1307.c: Support optional wakeup
+ interrupt source
+Date: Wed, 1 Jul 2015 14:54:04 +0200
+Message-ID: <20150701125404.GR485@piout.net>
+References: <1435076114-12416-1-git-send-email-nm@ti.com>
+ <1435076114-12416-5-git-send-email-nm@ti.com>
+ <558ACE87.6040509@ti.com>
+ <558AD5B1.8030406@ti.com>
+ <20150624162654.GA29259@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150624162654.GA29259@kahuna>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The sDMA requests are routed through the DMA crossbar and without the
-crossbar only peripherals using DMA request 0-127 can be used.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
----
-Hi Tony,
+On 24/06/2015 at 11:26:54 -0500, Nishanth Menon wrote :
+> I am wrong here - code just returns 0 and ignores err. So, how about
+> the following patch instead: (Alexandre, please do let me know if the
+> entire series needs to be reposted):
 
-as you have suggested: http://permalink.gmane.org/gmane.linux.ports.arm.omap/125999
-the DTS change has not been taken by Vinod.
-Now that the dmaengine pull request is in for 4.2 it would be great if you could
-pick up the DTS part of the series and send it for -rc2.
+Can you resend just that one as v3? I'll take it right away. Thanks!
 
-Thank you,
-Peter
+>  - improvement as suggested
+>  - Picked up previous acks
+>  - cleanup in probe does not need dev_pm_clear_wake_irq.
+> -->8<---
+> From 12367f8edffc25613f6f920d9bd7b69dfed57ce1 Mon Sep 17 00:00:00 2001
+> From: Nishanth Menon <nm@ti.com>
+> Date: Mon, 22 Jun 2015 14:13:19 -0500
+> Subject: [PATCH V3] drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt
+>  source
+> 
+> With the recent pinctrl-single changes, SoCs such as Texas
+> Instrument's OMAP processors can treat wake-up events from deeper idle
+> states as interrupts.
+> 
+> Let's add support for the optional second interrupt for wake-up using
+> the generic wakeirq support added in commit 4990d4fe327b ("PM /
+> Wakeirq: Add automated device wake IRQ handling")
+> 
+> Finally, to pass the wake-up interrupt in the dts file,
+> interrupts-extended property needs to be passed.
+> 
+> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
+> support for optional wake-up") + ee83bd3b6483 ("serial: omap: Switch
+> wake-up interrupt to generic wakeirq")
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  drivers/rtc/rtc-ds1307.c |   36 +++++++++++++++++++++++++++++++++---
+>  1 file changed, 33 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+> index b03880fc32b5..e16989c48a90 100644
+> --- a/drivers/rtc/rtc-ds1307.c
+> +++ b/drivers/rtc/rtc-ds1307.c
+> @@ -15,6 +15,9 @@
+>  #include <linux/i2c.h>
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+> +#include <linux/of_device.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/pm_wakeirq.h>
+>  #include <linux/rtc/ds1307.h>
+>  #include <linux/rtc.h>
+>  #include <linux/slab.h>
+> @@ -114,6 +117,7 @@ struct ds1307 {
+>  #define HAS_ALARM	1		/* bit 1 == irq claimed */
+>  	struct i2c_client	*client;
+>  	struct rtc_device	*rtc;
+> +	int			wakeirq;
+>  	s32 (*read_block_data)(const struct i2c_client *client, u8 command,
+>  			       u8 length, u8 *values);
+>  	s32 (*write_block_data)(const struct i2c_client *client, u8 command,
+> @@ -1156,6 +1160,8 @@ read_rtc:
+>  	}
+>  
+>  	if (want_irq) {
+> +		struct device_node *node = client->dev.of_node;
+> +
+>  		err = devm_request_threaded_irq(&client->dev,
+>  						client->irq, NULL, irq_handler,
+>  						IRQF_SHARED | IRQF_ONESHOT,
+> @@ -1163,13 +1169,34 @@ read_rtc:
+>  		if (err) {
+>  			client->irq = 0;
+>  			dev_err(&client->dev, "unable to request IRQ!\n");
+> -		} else {
+> +			goto no_irq;
+> +		}
+>  
+> -			set_bit(HAS_ALARM, &ds1307->flags);
+> -			dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
+> +		set_bit(HAS_ALARM, &ds1307->flags);
+> +		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
+> +
+> +		/* Currently supported by OF code only! */
+> +		if (!node)
+> +			goto no_irq;
+> +
+> +		err = of_irq_get(node, 1);
+> +		if (err <= 0) {
+> +			if (err == -EPROBE_DEFER)
+> +				goto exit;
+> +			goto no_irq;
+> +		}
+> +		ds1307->wakeirq = err;
+> +
+> +		err = dev_pm_set_dedicated_wake_irq(&client->dev,
+> +						    ds1307->wakeirq);
+> +		if (err) {
+> +			dev_err(&client->dev, "unable to setup wakeIRQ %d!\n",
+> +				err);
+> +			goto exit;
+>  		}
+>  	}
+>  
+> +no_irq:
+>  	if (chip->nvram_size) {
+>  
+>  		ds1307->nvram = devm_kzalloc(&client->dev,
+> @@ -1213,6 +1240,9 @@ static int ds1307_remove(struct i2c_client *client)
+>  {
+>  	struct ds1307 *ds1307 = i2c_get_clientdata(client);
+>  
+> +	if (ds1307->wakeirq)
+> +		dev_pm_clear_wake_irq(&client->dev);
+> +
+>  	if (test_and_clear_bit(HAS_NVRAM, &ds1307->flags))
+>  		sysfs_remove_bin_file(&client->dev.kobj, ds1307->nvram);
+>  
+> -- 
+> 1.7.9.5
+> 
+> -- 
+> Regards,
+> Nishanth Menon
 
- arch/arm/boot/dts/dra7.dtsi | 57 ++++++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 24 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8f1e25bcecbd..c6474dba44cf 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -308,6 +308,15 @@
- 			dma-requests = <127>;
- 		};
- 
-+		sdma_xbar: dma-router@4a002b78 {
-+			compatible = "ti,dra7-dma-crossbar";
-+			reg = <0x4a002b78 0xfc>;
-+			#dma-cells = <1>;
-+			dma-requests = <205>;
-+			ti,dma-safe-map = <0>;
-+			dma-masters = <&sdma>;
-+		};
-+
- 		gpio1: gpio@4ae10000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4ae10000 0x200>;
-@@ -403,7 +412,7 @@
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 49>, <&sdma 50>;
-+			dmas = <&sdma_xbar 49>, <&sdma_xbar 50>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -414,7 +423,7 @@
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 51>, <&sdma 52>;
-+			dmas = <&sdma_xbar 51>, <&sdma_xbar 52>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -425,7 +434,7 @@
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 53>, <&sdma 54>;
-+			dmas = <&sdma_xbar 53>, <&sdma_xbar 54>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -436,7 +445,7 @@
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
-                         status = "disabled";
--			dmas = <&sdma 55>, <&sdma 56>;
-+			dmas = <&sdma_xbar 55>, <&sdma_xbar 56>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -447,7 +456,7 @@
- 			ti,hwmods = "uart5";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 63>, <&sdma 64>;
-+			dmas = <&sdma_xbar 63>, <&sdma_xbar 64>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -458,7 +467,7 @@
- 			ti,hwmods = "uart6";
- 			clock-frequency = <48000000>;
- 			status = "disabled";
--			dmas = <&sdma 79>, <&sdma 80>;
-+			dmas = <&sdma_xbar 79>, <&sdma_xbar 80>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -867,7 +876,7 @@
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
--			dmas = <&sdma 61>, <&sdma 62>;
-+			dmas = <&sdma_xbar 61>, <&sdma_xbar 62>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 			pbias-supply = <&pbias_mmc_reg>;
-@@ -879,7 +888,7 @@
- 			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
--			dmas = <&sdma 47>, <&sdma 48>;
-+			dmas = <&sdma_xbar 47>, <&sdma_xbar 48>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 		};
-@@ -890,7 +899,7 @@
- 			interrupts = <GIC_SPI 89 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc3";
- 			ti,needs-special-reset;
--			dmas = <&sdma 77>, <&sdma 78>;
-+			dmas = <&sdma_xbar 77>, <&sdma_xbar 78>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 		};
-@@ -901,7 +910,7 @@
- 			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmc4";
- 			ti,needs-special-reset;
--			dmas = <&sdma 57>, <&sdma 58>;
-+			dmas = <&sdma_xbar 57>, <&sdma_xbar 58>;
- 			dma-names = "tx", "rx";
- 			status = "disabled";
- 		};
-@@ -1046,14 +1055,14 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi1";
- 			ti,spi-num-cs = <4>;
--			dmas = <&sdma 35>,
--			       <&sdma 36>,
--			       <&sdma 37>,
--			       <&sdma 38>,
--			       <&sdma 39>,
--			       <&sdma 40>,
--			       <&sdma 41>,
--			       <&sdma 42>;
-+			dmas = <&sdma_xbar 35>,
-+			       <&sdma_xbar 36>,
-+			       <&sdma_xbar 37>,
-+			       <&sdma_xbar 38>,
-+			       <&sdma_xbar 39>,
-+			       <&sdma_xbar 40>,
-+			       <&sdma_xbar 41>,
-+			       <&sdma_xbar 42>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1",
- 				    "tx2", "rx2", "tx3", "rx3";
- 			status = "disabled";
-@@ -1067,10 +1076,10 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi2";
- 			ti,spi-num-cs = <2>;
--			dmas = <&sdma 43>,
--			       <&sdma 44>,
--			       <&sdma 45>,
--			       <&sdma 46>;
-+			dmas = <&sdma_xbar 43>,
-+			       <&sdma_xbar 44>,
-+			       <&sdma_xbar 45>,
-+			       <&sdma_xbar 46>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
-@@ -1083,7 +1092,7 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi3";
- 			ti,spi-num-cs = <2>;
--			dmas = <&sdma 15>, <&sdma 16>;
-+			dmas = <&sdma_xbar 15>, <&sdma_xbar 16>;
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
-@@ -1096,7 +1105,7 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "mcspi4";
- 			ti,spi-num-cs = <1>;
--			dmas = <&sdma 70>, <&sdma 71>;
-+			dmas = <&sdma_xbar 70>, <&sdma_xbar 71>;
- 			dma-names = "tx0", "rx0";
- 			status = "disabled";
- 		};
 -- 
-2.4.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
