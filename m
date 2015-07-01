@@ -1,69 +1,81 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: n900 in 4.2-rc0: repeating oopses
-Date: Wed, 1 Jul 2015 15:09:03 +0200
-Message-ID: <20150701130903.GG7969@amd>
-References: <20150416093234.GA17423@amd>
- <20150629091146.GA5103@amd>
- <20150630092404.GA19285@amd>
- <20150630095310.GF27720@pali>
- <20150701065932.GS4156@atomide.com>
- <20150701072255.GA17577@pali>
- <20150701095954.GD7969@amd>
- <20150701103421.GV4156@atomide.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [GIT PULL] hwspinlock for 4.2
+Date: Wed, 1 Jul 2015 16:48:20 +0300
+Message-ID: <CAK=WgbbH9SZF-Ysr4--6usvLdv7+H2x7VKs+jg_LD2-UMkRarw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150701103421.GV4156@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Anna, Suman" <s-anna@ti.com>, Bjorn Andersson <bjorn.andersson@sonymobile.com>, Wei Chen <Wei.Chen@csr.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2015-07-01 03:34:22, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [150701 03:02]:
-> > On Wed 2015-07-01 09:22:55, Pali Roh=E1r wrote:
-> > > On Tuesday 30 June 2015 23:59:33 Tony Lindgren wrote:
-> > > > * Pali Roh=E1r <pali.rohar@gmail.com> [150630 02:55]:
-> > > > >=20
-> > > > > I will try 4.2 at the end of week.
-> > > >=20
-> > > > At least today's 4.1.0-11549-g05a8256 boots just fine on my n90=
-0.
-> > > >=20
-> > > > Regards,
-> > > >=20
-> > > > Tony
-> > >=20
-> > > So, Pavel can you re-test? Maybe there can be problem with some d=
-river
-> > > which Tony did not compiled into zImage? Just speculation...
-> >=20
-> > I re-tested with today's git, and it seems to boot. Thanks for help=
-=2E..
->=20
-> OK good to hear.
-> =20
-> > Now. "echo mem > /sys/power/state" is broken, as in "returns
-> > immediately in about 50% cases". The messages are
-> >=20
-> > Powerdomain (per_pwrdm) didn't enter target state 1
-> > Powerdomain (core_pwerdm) didn't enter target state 1
-> >=20
-> > Any ideas? Thanks,
->=20
-> Works for me after enabling the idle timeouts with the following
-> script and blanking the screen and disconnecting USB:
+The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
 
-Um. I'm forcing suspend with "echo mem > /sys/power/state" . (It
-worked in 4.1). That should just make it sleep, no autosuspend-related
-trickery... (But yes, I guess I should set up the leds and try
-autosuspend, too.)
+  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
 
-Regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+tags/hwspinlock-4.2
+
+for you to fetch changes up to bd5717a4632cdecafe82d03de7dcb3b1876e2828:
+
+  hwspinlock: qcom: Correct msb in regmap_field (2015-07-01 16:15:05 +0300)
+
+----------------------------------------------------------------
+- hwspinlock core DT support from Suman Anna
+- OMAP hwspinlock DT support from Suman Anna
+- QCOM hwspinlock DT support from Bjorn Andersson
+- a new CSR atlas7 hwspinlock driver from Wei Chen
+- CSR atlas7 hwspinlock DT binding document from Wei Chen
+- a tiny QCOM hwspinlock driver fix from Bjorn Andersson
+
+----------------------------------------------------------------
+Bjorn Andersson (3):
+      DT: hwspinlock: Add binding documentation for Qualcomm hwmutex
+      hwspinlock: qcom: Add support for Qualcomm HW Mutex block
+      hwspinlock: qcom: Correct msb in regmap_field
+
+Suman Anna (4):
+      Documentation: dt: add common bindings for hwspinlock
+      hwspinlock/core: add device tree support
+      Documentation: dt: add the omap hwspinlock bindings document
+      hwspinlock/omap: add support for dt nodes
+
+Wei Chen (2):
+      hwspinlock: add a CSR atlas7 driver
+      DT: hwspinlock: add the CSR atlas7 hwspinlock bindings document
+
+ Documentation/devicetree/bindings/hwlock/hwlock.txt          |  59
++++++++++++++++++++++++++++++++++++
+ Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt |  26
+++++++++++++++++
+ Documentation/devicetree/bindings/hwlock/qcom-hwspinlock.txt |  39
++++++++++++++++++++++++
+ Documentation/devicetree/bindings/hwlock/sirf,hwspinlock.txt |  28
++++++++++++++++++
+ Documentation/hwspinlock.txt                                 |  10 ++++++
+ MAINTAINERS                                                  |   1 -
+ arch/arm/mach-omap2/Makefile                                 |   3 --
+ arch/arm/mach-omap2/hwspinlock.c                             |  60
+------------------------------------
+ drivers/hwspinlock/Kconfig                                   |  24
++++++++++++++++
+ drivers/hwspinlock/Makefile                                  |   2 ++
+ drivers/hwspinlock/hwspinlock_core.c                         |  79
++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwspinlock/omap_hwspinlock.c                         |  18 ++++++++---
+ drivers/hwspinlock/qcom_hwspinlock.c                         | 181
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwspinlock/sirf_hwspinlock.c                         | 136
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/hwspinlock.h                                   |   7 +++++
+ 15 files changed, 605 insertions(+), 68 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+ create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+ create mode 100644 Documentation/devicetree/bindings/hwlock/qcom-hwspinlock.txt
+ create mode 100644 Documentation/devicetree/bindings/hwlock/sirf,hwspinlock.txt
+ delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
+ create mode 100644 drivers/hwspinlock/qcom_hwspinlock.c
+ create mode 100644 drivers/hwspinlock/sirf_hwspinlock.c
