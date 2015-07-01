@@ -1,37 +1,79 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: n900 in 4.2-rc0: repeating oopses
-Date: Wed, 1 Jul 2015 09:22:55 +0200
-Message-ID: <20150701072255.GA17577@pali>
-References: <20150416093234.GA17423@amd>
- <20150629091146.GA5103@amd>
- <20150630092404.GA19285@amd>
- <20150630095310.GF27720@pali>
- <20150701065932.GS4156@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH REPOST] gpio: omap: use raw locks for locking
+Date: Wed, 1 Jul 2015 00:32:06 -0700
+Message-ID: <20150701073205.GT4156@atomide.com>
+References: <20150619170654.GA4937@linutronix.de>
+ <5584547B.9040203@oracle.com>
+ <CABxcv==5Fo-x9CdSu6BYNfBpAS7rp63fHA319J_KvWZZG9q=ng@mail.gmail.com>
+ <20150622070821.GB4156@atomide.com>
+ <559275B9.3040909@ti.com>
+ <5592C5A2.5050809@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150701065932.GS4156@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+In-Reply-To: <5592C5A2.5050809@linutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Javier Martinez Canillas <javier@dowhile0.org>, santosh shilimkar <santosh.shilimkar@oracle.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 30 June 2015 23:59:33 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150630 02:55]:
-> >=20
-> > I will try 4.2 at the end of week.
->=20
-> At least today's 4.1.0-11549-g05a8256 boots just fine on my n900.
->=20
-> Regards,
->=20
-> Tony
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [150630 09:39]:
+> On 06/30/2015 12:55 PM, Grygorii Strashko wrote:
+> > 
+> > May be you have some thought?
+> 
+> If I remember it properly, you must not sleep but you do so on wakeup.
+> At least you take spinlocks (spinlocks not raw_spinlocks). One question
+> is why do you need (or why is it okay) to put a device to sleep (via
+> RPM) if the device is used as an interrupt controller? From what I
+> understand, if the GPIO controller is really sleeping you won't receive
+> any interrupts.
 
-So, Pavel can you re-test? Maybe there can be problem with some driver
-which Tony did not compiled into zImage? Just speculation...
+Not quite so. In many cases the GPIO interrupt just provides a wake-up
+event for a device that's in deeper idle state. Such as a touch screen
+interrupt. And the interrupt works just fine, just it's latency can
+be really bad :)
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+The first GPIO bank is always on, the others need to use dedicated
+IO chain wake-up interrupts with pinctrl-single.
+ 
+> So I think you shouldn't put a GPIO controller to sleep if it is
+> active. If you avoid this, there should be nothing calling you from
+> IRQ-context on -RT.
+
+That seems like a workaround though.. It seems we're better off
+making things work with threaded IRQ (and removing runtime PM from
+the IRQ path). For the GPIO banks requiring the use of a dedicated
+wakeirq, his is mostly already done with recent commit 4990d4fe327b
+("PM / Wakeirq: Add automated device wake IRQ handling") where the
+wakeirq handling is a completely separate threaded IRQ handler.
+
+The obvious solution seems to make GPIO interrupt handling all
+happen in a bottom half. That should allow removing the
+pm_runtime_irq_safe, which is not good to have in general.
+
+> >>From my side what I've tried or thought about:
+> > 1) OMAP HW IRQ handler can be transformed to threaded IRQ on -RT.
+> >    Can it be acceptable?
+> 
+> It could. In theory. It would work, too. Not sure you really want this.
+> You lose the cascaded handler that you have now. The obvious change
+> would be that you see another IRQ used in /proc/interrupts. This is
+> harmless :) However each time an IRQ (on the GPIO side) arrives you
+> have a hardirq which is defered into thread context. Then it wakes
+> another thread (the GPIO-IRQ-handler). So this adds a little of
+> overhead on your call path. Since you won't have IRQF_NO_THREAD flag on
+> any user, this should remain the only price you pay.
+
+This should be OK for most cases as the GPIO interrupt devices are
+typically on some external bus like I2C or GPMC. The hurting case
+would be bitbanging GPIO devices, like the CBUS I2C driver.
+
+If something faster is needed, we could allow configuring GPIO banks
+in a different way where the non-threaded banks don't allow idling
+the bank?
+
+Regards,
+
+Tony
