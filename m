@@ -1,66 +1,187 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] remoteproc for 4.2
-Date: Wed, 1 Jul 2015 17:14:48 +0300
-Message-ID: <CAK=Wgba9Jst3xJ_EQf+zenZSqedzhvSw8ZVMZ_YmsQM70mMbPA@mail.gmail.com>
+From: Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: High CPU usage when video streaming on EHCI, 3.17.8 kernel with
+ DMA enabled
+Date: Wed, 1 Jul 2015 12:22:14 -0600
+Message-ID: <CALmG-ARrzJ=kRH-958F20WPH+=VCpjrgMuyn9MWv4uj2dnSRpw@mail.gmail.com>
+References: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
+	<Pine.LNX.4.44L0.1505170956410.2774-100000@netrider.rowland.org>
+	<20150518102715.34e29c33@perruche.parrot.biz>
+	<20150518145919.GC10274@atomide.com>
+	<CAK8F28mdedXgL660SqTLeNZ7hVHOmRR7YwuTdkyY3XmnZ97_Zw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Anna, Suman" <s-anna@ti.com>, Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAK8F28mdedXgL660SqTLeNZ7hVHOmRR7YwuTdkyY3XmnZ97_Zw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Matthieu CASTET <matthieu.castet-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-uvc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit b787f68c36d49bb1d9236f403813641efa74a031:
+I has been some time, but I have an update to share.
 
-  Linux 4.1-rc1 (2015-04-26 17:59:10 -0700)
+On Sun, May 17, 2015 at 8:06 AM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> wrote:
+> You might be able to learn more from ftrace.  See the instructions in
+> Documentation/trace/ftrace.txt.  The "irqsoff" tracer may be the best
+> one to try.
 
-are available in the git repository at:
+I used ftrace with the irqoff tracer as recommended. irqoff seems to
+have some known issues on ARM and it traces the idle process, however,
+I was able to get some meaningful output when running this tracer for
+a very short time. I ran the function_graph tracer as well, which is
+quite informative, but it also adds a lot of overhead.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-tags/remoteproc-4.2
+On Mon, May 18, 2015 at 2:27 AM, Matthieu CASTET
+<matthieu.castet-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org> wrote:
+> last time I checked uvc driver, it was doing memcpy of video buffer : see uvc_video_decode_data.
 
-for you to fetch changes up to 8de3dbd0895bebe52d069a82feae8e3fb51c1bdf:
+I found out Matthieu was on the right track and most of the time is
+indeed spent in uvc_video_decode_data(), which uses memcpy() to copy
+the URBs to the video buffers. For 1280x960px 15fps single 8-bit
+channel,  uvc_video_decode_data() seems to consume between 40% and
+50%. What is still a mystery to me is why I see relatively high CPU
+usage even for a very tiny resolution. I was able to confirm that it
+is not uvc_video_decode_data() in that case, however, given
+function_graph overhead and irqoff being partially broken I was unable
+to figure out much more.
 
-  remoteproc: fix !CONFIG_OF build breakage (2015-06-18 11:44:41 +0300)
+I attached some tracer outputs at the end.
 
-----------------------------------------------------------------
-- remoteproc fixes/cleanups from Suman Anna
-- new remoteproc TI Wakeup M3 driver from Dave Gerlach
-- remoteproc core support for TI's Wakeup M3 driver from both Dave and Suman
-- tiny remoteproc build fix from myself
+On Mon, May 18, 2015 at 8:59 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> For the memcpy part with DMA this patch should help too:
+>
+> [PATCH] dmaengine: omap-dma: Add support for memcpy
 
-----------------------------------------------------------------
-Dave Gerlach (3):
-      remoteproc: introduce rproc_get_by_phandle API
-      Documentation: dt: add bindings for TI Wakeup M3 processor
-      remoteproc/wkup_m3: add a remoteproc driver for TI Wakeup M3
+The patch should help, but not out of the box as far as I understand.
+My understanding is that to take advantage of this, it would be
+necessary to explicitly call the DMA API either by replacing memcpy()
+in uvc_video_decode_data() or by modyfying the memcpy()
+implementation. Is that correct?
 
-Ohad Ben-Cohen (1):
-      remoteproc: fix !CONFIG_OF build breakage
 
-Suman Anna (4):
-      remoteproc/ste: add blank lines after declarations
-      remoteproc/davinci: fix quoted split string checkpatch warning
-      remoteproc: fix various checkpatch warnings
-      remoteproc: add a rproc ops for performing address translation
+*******************************************
+/sys/kernel/debug/tracing# echo 0 > tracing_max_latency && echo 1 >
+tracing_on && usleep 10 && echo 0 > tracing_on
+# tracer: irqsoff
+#
+# irqsoff latency trace v1.1.5 on 3.17.8-custom
+# --------------------------------------------------------------------
+# latency: 579 us, #26/26, CPU#0 | (M:server VP:0, KP:0, SP:0 HP:0 #P:1)
+#    -----------------
+#    | task: sshd-2980 (uid:0 nice:0 policy:0 rt_prio:0)
+#    -----------------
+#  => started at: __usb_hcd_giveback_urb
+#  => ended at:   __usb_hcd_giveback_urb
+#
+#
+#                  _------=> CPU#
+#                 / _-----=> irqs-off
+#                | / _----=> need-resched
+#                || / _---=> hardirq/softirq
+#                ||| / _--=> preempt-depth
+#                |||| /     delay
+#  cmd     pid   ||||| time  |   caller
+#     \   /      |||||  \    |   /
+    sshd-2980    0d.s.    0us : trace_hardirqs_on <-tasklet_action
+    sshd-2980    0d.s.    0us : time_hardirqs_on <-tasklet_action
+    sshd-2980    0d.s.    0us : trace_hardirqs_off <-_raw_spin_lock_irq
+    sshd-2980    0d.s.    0us : trace_hardirqs_on <-_raw_spin_unlock_irq
+    sshd-2980    0d.s.    0us : time_hardirqs_on <-_raw_spin_unlock_irq
+    sshd-2980    0d.s.    0us+: trace_hardirqs_off <-__usb_hcd_giveback_urb
+    sshd-2980    0d.s.   31us : uvc_video_complete <-__usb_hcd_giveback_urb
+    sshd-2980    0d.s.   31us : uvc_video_decode_bulk <-uvc_video_complete
+    sshd-2980    0d.s.   31us : uvc_video_decode_start <-uvc_video_decode_bulk
+    sshd-2980    0d.s.   31us : ktime_get_ts64 <-uvc_video_decode_start
+    sshd-2980    0d.s.   31us : clocksource_mmio_readl_up <-ktime_get_ts64
+    sshd-2980    0d.s.   31us!: uvc_video_decode_data.isra.17
+<-uvc_video_decode_bulk
+    sshd-2980    0d.s.  519us : usb_submit_urb <-uvc_video_complete
+    sshd-2980    0d.s.  519us : usb_hcd_submit_urb <-usb_submit_urb
+    sshd-2980    0d.s.  519us : usb_get_urb <-usb_hcd_submit_urb
+    sshd-2980    0d.s.  519us : usb_hcd_map_urb_for_dma <-usb_hcd_submit_urb
+    sshd-2980    0d.s.  519us+: ehci_urb_enqueue <-usb_hcd_submit_urb
+    sshd-2980    0d.s.  549us : qh_urb_transaction <-ehci_urb_enqueue
+    sshd-2980    0d.s.  549us : ehci_qtd_alloc.isra.71 <-qh_urb_transaction
+    sshd-2980    0d.s.  549us : dma_pool_alloc <-ehci_qtd_alloc.isra.71
+    sshd-2980    0d.s.  549us : qtd_fill.isra.54 <-qh_urb_transaction
+    sshd-2980    0d.s.  549us : usb_hcd_link_urb_to_ep <-ehci_urb_enqueue
+    sshd-2980    0d.s.  549us+: qh_append_tds <-ehci_urb_enqueue
+    sshd-2980    0d.s.  580us : trace_hardirqs_on <-__usb_hcd_giveback_urb
+    sshd-2980    0d.s.  580us+: time_hardirqs_on <-__usb_hcd_giveback_urb
+    sshd-2980    0d.s.  671us : <stack trace>
+ => trace_hardirqs_on
+ => __usb_hcd_giveback_urb
+ => usb_giveback_urb_bh
+ => tasklet_action
+ => __do_softirq
+ => irq_exit
+ => handle_IRQ
+ => omap3_intc_handle_irq
+ => __irq_usr
+ =>
+*******************************************
 
- Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt |  52
-++++++++++++++++++++++
- Documentation/remoteproc.txt                                   |   6 +++
- drivers/remoteproc/Kconfig                                     |  13 ++++++
- drivers/remoteproc/Makefile                                    |   1 +
- drivers/remoteproc/da8xx_remoteproc.c                          |   3 +-
- drivers/remoteproc/remoteproc_core.c                           | 115
-+++++++++++++++++++++++++++++++++++++----------
- drivers/remoteproc/remoteproc_internal.h                       |   2 +-
- drivers/remoteproc/ste_modem_rproc.c                           |   4 +-
- drivers/remoteproc/wkup_m3_rproc.c                             | 257
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/platform_data/wkup_m3.h                          |  30
-+++++++++++++
- include/linux/remoteproc.h                                     |   9 ++--
- 11 files changed, 460 insertions(+), 32 deletions(-)
- create mode 100644
-Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
- create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
- create mode 100644 include/linux/platform_data/wkup_m3.h
+
+*******************************************
+# tracer: function_graph
+#
+#     TIME      DURATION            FUNCTION CALLS
+#      |         |   |              |   |   |   |
+ 5853.350952   0.000 us    | do_raw_spin_lock();
+ 5853.350952   0.000 us    | do_raw_spin_unlock();
+ 5853.350952               | __usb_hcd_giveback_urb() {
+ 5853.350952               |   unmap_urb_for_dma() {
+ 5853.350982               |     usb_hcd_unmap_urb_for_dma() {
+ 5853.350982   0.000 us    |       usb_hcd_unmap_urb_setup_for_dma();
+ 5853.350982   0.000 us    |     } /* usb_hcd_unmap_urb_for_dma */
+ 5853.350982 + 30.517 us   |   } /* unmap_urb_for_dma */
+ 5853.350982   0.000 us    |   usb_anchor_suspend_wakeups();
+ 5853.350982   0.000 us    |   usb_unanchor_urb();
+ 5853.351013               |   uvc_video_complete [uvcvideo]() {
+ 5853.351013   0.000 us    |     do_raw_spin_lock();
+ 5853.351013   0.000 us    |     do_raw_spin_unlock();
+ 5853.351043               |     uvc_video_decode_bulk [uvcvideo]() {
+ 5853.351043 ! 457.763 us  |       uvc_video_decode_data.isra.17 [uvcvideo]();
+ 5853.351501 ! 457.763 us  |     } /* uvc_video_decode_bulk [uvcvideo] */
+ 5853.351501               |     usb_submit_urb() {
+ 5853.351501               |       usb_hcd_submit_urb() {
+ 5853.351501   0.000 us    |         usb_get_urb();
+ 5853.351501   0.000 us    |         usb_hcd_map_urb_for_dma();
+ 5853.351531               |         ehci_urb_enqueue() {
+ 5853.351531               |           qh_urb_transaction() {
+ 5853.351531               |             ehci_qtd_alloc.isra.71() {
+ 5853.351531               |               dma_pool_alloc() {
+ 5853.351531   0.000 us    |                 do_raw_spin_lock();
+ 5853.351562   0.000 us    |                 do_raw_spin_unlock();
+ 5853.351562 + 30.517 us   |               } /* dma_pool_alloc */
+ 5853.351562 + 30.517 us   |             } /* ehci_qtd_alloc.isra.71 */
+ 5853.351562   0.000 us    |             qtd_fill.isra.54();
+ 5853.351562 + 30.517 us   |           } /* qh_urb_transaction */
+ 5853.351593   0.000 us    |           do_raw_spin_lock();
+ 5853.351593               |           usb_hcd_link_urb_to_ep() {
+ 5853.351593               |             _raw_spin_lock() {
+ 5853.351593   0.000 us    |               do_raw_spin_lock();
+ 5853.351593   0.000 us    |             } /* _raw_spin_lock */
+ 5853.351623               |             _raw_spin_unlock() {
+ 5853.351623   0.000 us    |               do_raw_spin_unlock();
+ 5853.351623   0.000 us    |             } /* _raw_spin_unlock */
+ 5853.351623 + 30.518 us   |           } /* usb_hcd_link_urb_to_ep */
+ 5853.351623   0.000 us    |           qh_append_tds();
+ 5853.351654   0.000 us    |           do_raw_spin_unlock();
+ 5853.351654 ! 122.070 us  |         } /* ehci_urb_enqueue */
+ 5853.351654 ! 152.588 us  |       } /* usb_hcd_submit_urb */
+ 5853.351654 ! 152.588 us  |     } /* usb_submit_urb */
+ 5853.351654 ! 640.869 us  |   } /* uvc_video_complete [uvcvideo] */
+ 5853.351654               |   handle_IRQ() {
+ 5853.351715   0.000 us    |     idle_cpu();
+ 5853.351715 + 30.517 us   |   } /* handle_IRQ */
+ 5853.351715   0.000 us    |   usb_anchor_resume_wakeups();
+ 5853.351715 + 30.518 us   |   usb_free_urb();
+ 5853.351745 ! 793.457 us  | } /* __usb_hcd_giveback_urb */
+*******************************************
+
+
+Tom
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
