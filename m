@@ -1,7 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 17/20] ARM: DTS: am335x-evm: Fix mcasp1 node's indentation
-Date: Thu, 2 Jul 2015 17:06:32 +0300
-Message-ID: <1435845995-19085-18-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 15/20] ARM: DTS: am335x-evmsk: Add sleep pin settings for
+ mcasp1
+Date: Thu, 2 Jul 2015 17:06:30 +0300
+Message-ID: <1435845995-19085-16-git-send-email-peter.ujfalusi@ti.com>
 References: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,47 +22,44 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The section had two tabs instead of one.
+When McASP is not in use the pins can be put to sleep mode to conserve
+power.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am335x-evm.dts | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/boot/dts/am335x-evmsk.dts | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 765be2766eb0..9cfb591a7f80 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -575,19 +575,19 @@
- #include "tps65910.dtsi"
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 2f62d915b438..8abfe2a2ff4a 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -396,6 +396,15 @@
+ 		>;
+ 	};
  
- &mcasp1 {
--		pinctrl-names = "default";
--		pinctrl-0 = <&am335x_evm_audio_pins>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&am335x_evm_audio_pins>;
- 
--		status = "okay";
-+	status = "okay";
- 
--		op-mode = <0>;          /* MCASP_IIS_MODE */
--		tdm-slots = <2>;
--		/* 4 serializers */
--		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
--			0 0 1 2
--		>;
--		tx-num-evt = <32>;
--		rx-num-evt = <32>;
-+	op-mode = <0>;          /* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	/* 4 serializers */
-+	serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-+		0 0 1 2
-+	>;
-+	tx-num-evt = <32>;
-+	rx-num-evt = <32>;
++	mcasp1_pins_sleep: mcasp1_pins_sleep {
++		pinctrl-single,pins = <
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++		>;
++	};
++
+ 	mmc2_pins: pinmux_mmc2_pins {
+ 		pinctrl-single,pins = <
+ 			0x74 (PIN_INPUT_PULLUP | MUX_MODE7) /* gpmc_wpn.gpio0_31 */
+@@ -661,8 +670,9 @@
  };
  
- &tps {
+ &mcasp1 {
+-	pinctrl-names = "default";
++	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&mcasp1_pins>;
++	pinctrl-1 = <&mcasp1_pins_sleep>;
+ 
+ 	status = "okay";
+ 
 -- 
 2.4.5
