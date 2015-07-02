@@ -1,57 +1,44 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 08/10] crypto: omap-aes: gmc: Add algo info
-Date: Thu, 2 Jul 2015 10:48:38 +0530
-Message-ID: <1435814320-30347-9-git-send-email-lokeshvutla@ti.com>
-References: <1435814320-30347-1-git-send-email-lokeshvutla@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap generic wakeirq for v4.2 merge window
+Date: Wed, 1 Jul 2015 23:10:12 -0700
+Message-ID: <20150702061011.GX4156@atomide.com>
+References: <20150616114645.GA4156@atomide.com>
+ <20150629060409.GQ4156@atomide.com>
+ <7hh9pnmxry.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1435814320-30347-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <7hh9pnmxry.fsf@deeprootsystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now the driver supports gcm mode, add omap-aes-gcm
-algo info to omap-aes driver.
+* Kevin Hilman <khilman@kernel.org> [150701 13:26]:
+> Tony Lindgren <tony@atomide.com> writes:
+> >
+> > This one is OK to merge now, both pm-wakeirq and tty-next
+> > dependencies have been merged. This leaves the following
+> > diffstat for thees changes:
+> 
+> OK, thanks.  I'm collecting a few remaining things for a "late" branch,
+> but if I miss the merge window, I'll queue it up for -rc2.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/crypto/omap-aes.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+OK thanks -rc cycle should be doable too as these fix issues with
+interrupt re-entrancy that's possible if the wakeirq and the
+device IO interrupt ever fire at the same time. So far have not
+seen that though.. But that's mostly luck.
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index e5e9a19..11f3850 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -789,6 +789,28 @@ static struct crypto_alg algs_ctr[] = {
- 		.decrypt	= omap_aes_ctr_decrypt,
- 	}
- },
-+{
-+	.cra_name		= "gcm(aes)",
-+	.cra_driver_name	= "gcm-aes-omap",
-+	.cra_priority		= 100,
-+	.cra_flags		= CRYPTO_ALG_TYPE_AEAD | CRYPTO_ALG_ASYNC |
-+				  CRYPTO_ALG_KERN_DRIVER_ONLY,
-+	.cra_blocksize		= AES_BLOCK_SIZE,
-+	.cra_ctxsize		= sizeof(struct omap_aes_ctx),
-+	.cra_alignmask		= 0xf,
-+	.cra_type		= &crypto_aead_type,
-+	.cra_module		= THIS_MODULE,
-+	.cra_init		= omap_aes_gcm_cra_init,
-+	.cra_exit		= omap_aes_cra_exit,
-+	.cra_u.aead = {
-+		.maxauthsize	= AES_BLOCK_SIZE,
-+		.geniv		= "eseqiv",
-+		.ivsize		= AES_BLOCK_SIZE,
-+		.setkey		= omap_aes_gcm_setkey,
-+		.encrypt	= omap_aes_gcm_encrypt,
-+		.decrypt	= omap_aes_gcm_decrypt,
-+	}
-+},
- };
- 
- static struct omap_aes_algs_info omap_aes_algs_info_ecb_cbc[] = {
--- 
-1.7.9.5
+Regrads,
+
+Tony
