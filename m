@@ -1,68 +1,83 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 05/20] ARM: DTS: am43xx-epos-evm: Add regulator for VBAT
- and DCDC4 of tps65218
-Date: Thu, 2 Jul 2015 17:06:20 +0300
-Message-ID: <1435845995-19085-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 08/20] ARM: DTS: am43xx-epos-evm: Enable analog audio via simple-card
+Date: Thu, 2 Jul 2015 17:06:23 +0300
+Message-ID: <1435845995-19085-9-git-send-email-peter.ujfalusi@ti.com>
 References: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The VBAT and DCDC4 regulator is needed for audio support (tlv320aic3111)
+Use simple card for audio support on ePOS-EVM.
+The audio on the board is: McASP1 <-> tlv320aic3111 codec.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ arch/arm/boot/dts/am43x-epos-evm.dts | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 77919c570fe1..9b584d1e0232 100644
+index d171e734d3cf..86c2dfbe8875 100644
 --- a/arch/arm/boot/dts/am43x-epos-evm.dts
 +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -31,6 +31,14 @@
- 		enable-active-high;
+@@ -106,6 +106,38 @@
+ 		brightness-levels = <0 51 53 56 62 75 101 152 255>;
+ 		default-brightness-level = <8>;
  	};
- 
-+	vbat: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vbat";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		regulator-boot-on;
-+	};
 +
- 	lcd0: display {
- 		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
- 		label = "lcd";
-@@ -388,6 +396,15 @@
- 			regulator-always-on;
- 		};
- 
-+		dcdc4: regulator-dcdc4 {
-+			compatible = "ti,tps65218-dcdc4";
-+			regulator-name = "vdcdc4";
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-boot-on;
-+			regulator-always-on;
++	sound0: sound@0 {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "AM43-EPOS-EVM";
++		simple-audio-card,widgets =
++			"Microphone", "Microphone Jack",
++			"Headphone", "Headphone Jack",
++			"Speaker", "Speaker";
++		simple-audio-card,routing =
++			"MIC1LP", "Microphone Jack",
++			"MIC1RP", "Microphone Jack",
++			"MIC1LP", "MICBIAS",
++			"MIC1RP", "MICBIAS",
++			"Headphone Jack", "HPL",
++			"Headphone Jack", "HPR",
++			"Speaker", "SPL",
++			"Speaker", "SPR";
++		simple-audio-card,format = "dsp_b";
++		simple-audio-card,bitclock-master = <&sound0_master>;
++		simple-audio-card,frame-master = <&sound0_master>;
++		simple-audio-card,bitclock-inversion;
++
++		simple-audio-card,cpu {
++			sound-dai = <&mcasp1>;
++			system-clock-frequency = <12000000>;
 +		};
 +
- 		dcdc5: regulator-dcdc5 {
- 			compatible = "ti,tps65218-dcdc5";
- 			regulator-name = "v1_0bat";
++		sound0_master: simple-audio-card,codec {
++			sound-dai = <&tlv320aic3111>;
++			system-clock-frequency = <12000000>;
++		};
++	};
+ };
+ 
+ &am43xx_pinmux {
+@@ -468,6 +500,7 @@
+ 	};
+ 
+ 	tlv320aic3111: tlv320aic3111@18 {
++		#sound-dai-cells = <0>;
+ 		compatible = "ti,tlv320aic3111";
+ 		reg = <0x18>;
+ 		status = "okay";
+@@ -743,6 +776,7 @@
+ };
+ 
+ &mcasp1 {
++	#sound-dai-cells = <0>;
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&mcasp1_pins>;
+ 	pinctrl-1 = <&mcasp1_sleep_pins>;
 -- 
 2.4.5
