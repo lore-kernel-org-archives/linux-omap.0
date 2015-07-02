@@ -1,42 +1,46 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap: Fix typo in config option
-	description
-Date: Thu, 2 Jul 2015 12:04:18 +0300
-Message-ID: <5594FE92.6020106@ti.com>
-References: <1435698198-9746-1-git-send-email-nikolas@gnu.org>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 01/10] crypto: omap-aes: Add support for lengths not aligned
+ with AES_BLOCK_SIZE
+Date: Thu, 2 Jul 2015 14:56:24 +0530
+Message-ID: <559503C0.2020200@ti.com>
+References: <1435814320-30347-1-git-send-email-lokeshvutla@ti.com> <1435814320-30347-2-git-send-email-lokeshvutla@ti.com> <20150702075341.GA4033@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1435698198-9746-1-git-send-email-nikolas@gnu.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Nik Nyby <nikolas@gnu.org>, jarkko.nikula@bitmer.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, trivial@kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20150702075341.GA4033@saruman.tx.rr.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDcvMDEvMjAxNSAxMjowMyBBTSwgTmlrIE55Ynkgd3JvdGU6Cj4gVGhpcyBmaXhlcyBhIHR5
-cG8gaW4gdGhlIGRlc2NyaXB0aW9uIGZvciBTTkRfT01BUF9TT0NfSERNSV9BVURJTy4KCkFja2Vk
-LWJ5OiBQZXRlciBVamZhbHVzaSA8cGV0ZXIudWpmYWx1c2lAdGkuY29tPgoKPiBTaWduZWQtb2Zm
-LWJ5OiBOaWsgTnlieSA8bmlrb2xhc0BnbnUub3JnPgo+IC0tLQo+ICBzb3VuZC9zb2Mvb21hcC9L
-Y29uZmlnIHwgMiArLQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRp
-b24oLSkKPiAKPiBkaWZmIC0tZ2l0IGEvc291bmQvc29jL29tYXAvS2NvbmZpZyBiL3NvdW5kL3Nv
-Yy9vbWFwL0tjb25maWcKPiBpbmRleCAzMGQwMTA5Li41MTg1YTM4IDEwMDY0NAo+IC0tLSBhL3Nv
-dW5kL3NvYy9vbWFwL0tjb25maWcKPiArKysgYi9zb3VuZC9zb2Mvb21hcC9LY29uZmlnCj4gQEAg
-LTI0LDcgKzI0LDcgQEAgY29uZmlnIFNORF9PTUFQX1NPQ19IRE1JX0FVRElPCj4gIAkgIGNvbXBv
-bmVudCBhbHNvIHVuZGVyIERTUyBIRE1JIGRldmljZS4gRHVtbXkgY29kZWMgaXMgdXNlZCBhcwo+
-ICAJICBhcyBjb2RlYyBjb21wb25lbnQuIFRoZSBoZG1pIGF1ZGlvIGRyaXZlciBpbXBsZW1lbnRz
-IGFsc28KPiAgCSAgdGhlIGNhcmQgYW5kIHJlZ2lzdGVycyBpdCB1bmRlciBpdHMgb3duIHBsYXRm
-b3JtIGRldmljZS4KPiAtCSAgVGhlIGRldmljZSBmb3IgdGhlIGRpcnZlciBpcyByZWdpc3RlcmVk
-IGJ5IE9NQVBEU1MgaGRtaQo+ICsJICBUaGUgZGV2aWNlIGZvciB0aGUgZHJpdmVyIGlzIHJlZ2lz
-dGVyZWQgYnkgT01BUERTUyBoZG1pCj4gIAkgIGRyaXZlci4KPiAgCj4gIGNvbmZpZyBTTkRfT01B
-UF9TT0NfTjgxMAo+IAoKCi0tIApQw6l0ZXIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNh
-LXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9hbHNhLWRldmVsCg==
+On Thursday 02 July 2015 01:23 PM, Felipe Balbi wrote:
+> On Thu, Jul 02, 2015 at 10:48:31AM +0530, Lokesh Vutla wrote:
+>> OMAP AES driver returns an error if the data is not aligned with
+>> AES_BLOCK_SIZE bytes.
+>> But OMAP AES hw allows data input upto 1 byte aligned, but still
+>> zeros are to be appended and complete AES_BLOCK_SIZE has to be written.
+>> And correct length has to be passed in LENGTH field.
+>> Adding support for inputs not aligned with AES_BLOCK_SIZE.
+>>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> ---
+>>  drivers/crypto/omap-aes.c |   33 ++++++++++++++++-----------------
+>>  1 file changed, 16 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+>> index 9a28b7e..a923101 100644
+>> --- a/drivers/crypto/omap-aes.c
+>> +++ b/drivers/crypto/omap-aes.c
+>> @@ -558,6 +558,9 @@ static int omap_aes_check_aligned(struct scatterlist *sg, int total)
+>>  {
+>>  	int len = 0;
+>>  
+>> +	if (!IS_ALIGNED(total, AES_BLOCK_SIZE))
+>> +		return -1;
+> 
+> -EINVAL?
+Okay, will update it.
+
+Thanks and regards,
+Lokesh
