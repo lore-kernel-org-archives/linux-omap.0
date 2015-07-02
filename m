@@ -1,61 +1,71 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 02/20] ARM: DTS: am437x-sk-evm: Add sleep pin settings for mcasp1
-Date: Thu, 2 Jul 2015 17:06:17 +0300
-Message-ID: <1435845995-19085-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 00/20] ARM: DTS: am335x/am43xx: Audio support and fixes for audio
+Date: Thu, 2 Jul 2015 17:06:15 +0300
+Message-ID: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435845995-19085-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-When McASP is not in use the pins can be put to sleep mode to conserve
-power.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Tested-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Changes since v1:
+- Add patch for omap2plus_defconfig to enable needed audio drivers
+- Included other board patches since they all need the change in
+  omap2plus_defconfig
+
+Enable the simple card in omap2plus_defconfig as more boards are using that for
+audio support.
+
+am437x-sk-evm, am335x-evmsk and am335x-evm:
+There is no reason to use the davinci-evm machine driver's compatible for audio
+support since the setup is simple and the common simple-audio-card can handle it
+just fine.
+
+am43xx-epos-evm, am437x-gp-evm:
+Add audio support via simple-card
+
+Regards,
+Peter
 ---
- arch/arm/boot/dts/am437x-sk-evm.dts | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Peter Ujfalusi (20):
+  ARM: omap2plus_defconfig: Enable audio related config options
+  ARM: DTS: am437x-sk-evm: Add sleep pin settings for mcasp1
+  ARM: DTS: am437x-sk-evm: Switch using simple-audio-card for audio
+    support
+  ARM: DTS: am43xx-epos-evm: Add gpio-hog for configuring the
+    display/audio mux
+  ARM: DTS: am43xx-epos-evm: Add regulator for VBAT and DCDC4 of
+    tps65218
+  ARM: DTS: am43xx-epos-evm: McASP1 node for audio support
+  ARM: DTS: am43xx-epos-evm: Add node for tlv320aic3111 audio codec
+  ARM: DTS: am43xx-epos-evm: Enable analog audio via simple-card
+  ARM: DTS: am437x-gp-evm: Add gpio-hog for configuring the
+    display/audio mux
+  ARM: DTS: am437x-gp-evm: Rename fixed regulator vmmcsd_fixed to
+    evm_v3_3d
+  ARM: DTS: am437x-gp-evm: Add node for tlv320aic3106 audio codec
+  ARM: DTS: am437x-gp-evm: McASP1 node for audio support
+  ARM: DTS: am437x-gp-evm: Enable analog audio via simple-card
+  ARM: DTS: am335x-evmsk: Fix mcasp1 node's indentation
+  ARM: DTS: am335x-evmsk: Add sleep pin settings for mcasp1
+  ARM: DTS: am335x-evmsk: Switch using simple-audio-card for audio
+    support
+  ARM: DTS: am335x-evm: Fix mcasp1 node's indentation
+  ARM: DTS: am335x-evm: Rename pinctrl section for McASP1
+  ARM: DTS: am335x-evm: Add sleep pin settings for mcasp1
+  ARM: DTS: am335x-evm: Switch using simple-audio-card for audio support
 
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index c17097d2c167..b5de6b0d622c 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -364,6 +364,15 @@
- 		>;
- 	};
- 
-+	mcasp1_pins_sleep: mcasp1_pins_sleep {
-+		pinctrl-single,pins = <
-+			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
- 	lcd_pins: lcd_pins {
- 		pinctrl-single,pins = <
- 			0x1c (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpcm_ad7.gpio1_7 */
-@@ -640,8 +649,9 @@
- };
- 
- &mcasp1 {
--	pinctrl-names = "default";
-+	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&mcasp1_pins>;
-+	pinctrl-1 = <&mcasp1_pins_sleep>;
- 
- 	status = "okay";
- 
+ arch/arm/boot/dts/am335x-evm.dts     |  69 +++++++++++++------
+ arch/arm/boot/dts/am335x-evmsk.dts   |  62 ++++++++++++-----
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 108 +++++++++++++++++++++++++----
+ arch/arm/boot/dts/am437x-sk-evm.dts  |  45 +++++++++---
+ arch/arm/boot/dts/am43x-epos-evm.dts | 130 +++++++++++++++++++++++++++++++----
+ arch/arm/configs/omap2plus_defconfig |   3 +
+ 6 files changed, 340 insertions(+), 77 deletions(-)
+
 -- 
 2.4.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
