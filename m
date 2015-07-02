@@ -1,58 +1,44 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [GIT PULL] omap generic wakeirq for v4.2 merge window
-Date: Wed, 01 Jul 2015 13:24:33 -0700
-Message-ID: <7hh9pnmxry.fsf@deeprootsystems.com>
-References: <20150616114645.GA4156@atomide.com>
- <20150629060409.GQ4156@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH 00/10] crypto: omap-aes: Add support for GCM mode
+Date: Thu, 2 Jul 2015 10:48:30 +0530
+Message-ID: <1435814320-30347-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150629060409.GQ4156@atomide.com> (Tony Lindgren's message of
- "Sun, 28 Jun 2015 23:04:09 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Sender: linux-crypto-owner@vger.kernel.org
+To: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+This series does some basic cleanup and adds support for
+AES GCM mode for omap aes driver.
+Also adds a test case for async aead algos.
 
-> Hi,
->
-> * Tony Lindgren <tony@atomide.com> [150616 04:48]:
->> Hi,
->> 
->> Here's a late pull request that would be good to get into v4.2.
->> This series mostly just drops code that's now unnecessary, and
->> also fixes potential interrupt re-entrancy issues that the old
->> handling has.
->> 
->> The series changes omap hsmmc, 8250_omap and omap-serial to use
->> the Linux generic wakeirq. I had to redo the branch last week on
->> recent tty-next branch because of a merge conflict. Other than
->> that, these patches were already in Linux next earlier.
->> 
->> The pull request below also shows the related patches in Rafael's
->> pm-wakeirq branch as I did not create a separate merge commit to
->> base patches on.
->> 
->> This branch depends on both Rafael's pm-wakeirq and Greg's
->> tty-next, so it should be sent separately towards the end of the
->> merge window.
->
-> This one is OK to merge now, both pm-wakeirq and tty-next
-> dependencies have been merged. This leaves the following
-> diffstat for thees changes:
+Tested on BeagelBoneBlack: http://pastebin.ubuntu.com/11808341/
 
-OK, thanks.  I'm collecting a few remaining things for a "late" branch,
-but if I miss the merge window, I'll queue it up for -rc2.
+Lokesh Vutla (10):
+  crypto: omap-aes: Add support for lengths not aligned with
+    AES_BLOCK_SIZE
+  crypto: omap-aes: Fix configuring of AES mode
+  crypto: aead: Add aead_request_cast() api
+  crypto: omap-aes: Use BIT() macro
+  crypto: omap-aes: Add support for GCM mode
+  crypto: omap-aes: gcm: Handle inputs properly
+  crypto: omap-aes: gcm: Add support for unaligned lengths
+  crypto: omap-aes: gmc: Add algo info
+  crypto: omap-aes: gcm: Add support for PIO mode
+  crypto: tcrypt: Added speed tests for Async AEAD crypto alogrithms
 
-Kevin
+ crypto/tcrypt.c               |  233 +++++++++++++++++++++++++
+ crypto/tcrypt.h               |    1 +
+ drivers/crypto/Makefile       |    3 +-
+ drivers/crypto/omap-aes-gcm.c |  386 +++++++++++++++++++++++++++++++++++++++++
+ drivers/crypto/omap-aes.c     |  322 +++++++++++++---------------------
+ drivers/crypto/omap-aes.h     |  206 ++++++++++++++++++++++
+ include/linux/crypto.h        |    6 +
+ 7 files changed, 955 insertions(+), 202 deletions(-)
+ create mode 100644 drivers/crypto/omap-aes-gcm.c
+ create mode 100644 drivers/crypto/omap-aes.h
+
+-- 
+1.7.9.5
