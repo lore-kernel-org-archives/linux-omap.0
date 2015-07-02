@@ -1,44 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap generic wakeirq for v4.2 merge window
-Date: Wed, 1 Jul 2015 23:10:12 -0700
-Message-ID: <20150702061011.GX4156@atomide.com>
-References: <20150616114645.GA4156@atomide.com>
- <20150629060409.GQ4156@atomide.com>
- <7hh9pnmxry.fsf@deeprootsystems.com>
+Subject: Re: n900 in 4.2-rc0: repeating oopses
+Date: Wed, 1 Jul 2015 23:16:21 -0700
+Message-ID: <20150702061620.GY4156@atomide.com>
+References: <20150416093234.GA17423@amd>
+ <20150629091146.GA5103@amd>
+ <20150630092404.GA19285@amd>
+ <20150630095310.GF27720@pali>
+ <20150701065932.GS4156@atomide.com>
+ <20150701072255.GA17577@pali>
+ <20150701095954.GD7969@amd>
+ <20150701103421.GV4156@atomide.com>
+ <20150701130903.GG7969@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7hh9pnmxry.fsf@deeprootsystems.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@kernel.org>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20150701130903.GG7969@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@kernel.org> [150701 13:26]:
-> Tony Lindgren <tony@atomide.com> writes:
-> >
-> > This one is OK to merge now, both pm-wakeirq and tty-next
-> > dependencies have been merged. This leaves the following
-> > diffstat for thees changes:
+* Pavel Machek <pavel@ucw.cz> [150701 06:11]:
+> On Wed 2015-07-01 03:34:22, Tony Lindgren wrote:
+> > 
+> > Works for me after enabling the idle timeouts with the following
+> > script and blanking the screen and disconnecting USB:
 > 
-> OK, thanks.  I'm collecting a few remaining things for a "late" branch,
-> but if I miss the merge window, I'll queue it up for -rc2.
+> Um. I'm forcing suspend with "echo mem > /sys/power/state" . (It
+> worked in 4.1). That should just make it sleep, no autosuspend-related
+> trickery... (But yes, I guess I should set up the leds and try
+> autosuspend, too.)
 
-OK thanks -rc cycle should be doable too as these fix issues with
-interrupt re-entrancy that's possible if the wakeirq and the
-device IO interrupt ever fire at the same time. So far have not
-seen that though.. But that's mostly luck.
+That too works just fine for me with omap2plus_defconfig after
+echo enabled > /sys/class/tty/ttyO2/power/wakeup as I have n900
+in my test rack.
 
-Regrads,
+You probably have some additional drivers enabled?
+
+Regards,
 
 Tony
