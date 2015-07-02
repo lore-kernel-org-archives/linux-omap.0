@@ -1,45 +1,77 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: High CPU usage when video streaming on EHCI, 3.17.8 kernel with
- DMA enabled
-Date: Wed, 1 Jul 2015 23:22:35 -0700
-Message-ID: <20150702062234.GZ4156@atomide.com>
-References: <CALmG-ASRge4g6euyUEaxrLryvNR_tFSRexFSDZ5HNuzx_W4AyA@mail.gmail.com>
- <Pine.LNX.4.44L0.1505170956410.2774-100000@netrider.rowland.org>
- <20150518102715.34e29c33@perruche.parrot.biz>
- <20150518145919.GC10274@atomide.com>
- <CAK8F28mdedXgL660SqTLeNZ7hVHOmRR7YwuTdkyY3XmnZ97_Zw@mail.gmail.com>
- <CALmG-ARrzJ=kRH-958F20WPH+=VCpjrgMuyn9MWv4uj2dnSRpw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 01/10] crypto: omap-aes: Add support for lengths not
+ aligned with AES_BLOCK_SIZE
+Date: Thu, 2 Jul 2015 02:53:41 -0500
+Message-ID: <20150702075341.GA4033@saruman.tx.rr.com>
+References: <1435814320-30347-1-git-send-email-lokeshvutla@ti.com>
+ <1435814320-30347-2-git-send-email-lokeshvutla@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CALmG-ARrzJ=kRH-958F20WPH+=VCpjrgMuyn9MWv4uj2dnSRpw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthieu CASTET <matthieu.castet-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-uvc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <1435814320-30347-2-git-send-email-lokeshvutla@ti.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tom Mises <tommises-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150701 11:24]:
-> On Mon, May 18, 2015 at 8:59 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > For the memcpy part with DMA this patch should help too:
-> >
-> > [PATCH] dmaengine: omap-dma: Add support for memcpy
-> 
-> The patch should help, but not out of the box as far as I understand.
-> My understanding is that to take advantage of this, it would be
-> necessary to explicitly call the DMA API either by replacing memcpy()
-> in uvc_video_decode_data() or by modyfying the memcpy()
-> implementation. Is that correct?
+--liOOAslEiF7prFVr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes you should be able to configure the DMA to do memory-to-memory
-copy where both source and destination address is looping over
-the desired buffer size. Ideally you would move the data from camera
-directly to the buffer without doing a memcpy inbetween.
+On Thu, Jul 02, 2015 at 10:48:31AM +0530, Lokesh Vutla wrote:
+> OMAP AES driver returns an error if the data is not aligned with
+> AES_BLOCK_SIZE bytes.
+> But OMAP AES hw allows data input upto 1 byte aligned, but still
+> zeros are to be appended and complete AES_BLOCK_SIZE has to be written.
+> And correct length has to be passed in LENGTH field.
+> Adding support for inputs not aligned with AES_BLOCK_SIZE.
+>=20
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+>  drivers/crypto/omap-aes.c |   33 ++++++++++++++++-----------------
+>  1 file changed, 16 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+> index 9a28b7e..a923101 100644
+> --- a/drivers/crypto/omap-aes.c
+> +++ b/drivers/crypto/omap-aes.c
+> @@ -558,6 +558,9 @@ static int omap_aes_check_aligned(struct scatterlist =
+*sg, int total)
+>  {
+>  	int len =3D 0;
+> =20
+> +	if (!IS_ALIGNED(total, AES_BLOCK_SIZE))
+> +		return -1;
 
-Regards,
+-EINVAL?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+balbi
+
+--liOOAslEiF7prFVr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVlO4FAAoJEIaOsuA1yqREkPAP/A1r1Zl0TJUXgjetXKt/QTD4
+UvdFIOWBIsr/cOifa0i0VBti4JobZgoukkCCEoaxAOLoqlHOToekJmoVEFhHHAyt
+Lsjgz5zsyYtJkxhBY8C0Ui/uxYIW6xqtFVqdCu9Ka29xaTkE85pSfndZCiKmBnLc
+dE8trqJOcJwwAnrZPni9Kpewle0/a025VzbBto3gyo42oH5f4ov5J0seW8lF+c6S
+UIVFOptH4dmG0ZGMBP1VMKucV6s0JVLtOU1aHzqVXoDflQqOHdXYvHgP+fziUErL
+0CkZ6Gd6gXsZZTol9AMkx/iJnXpdUAvUm/1Eb/31NnJF5+fTcSiepaWjgbT7Ew0d
+ylJ9MxPYklHee6zFEZYRhhJ21uJYFY7Yeem+rPvS6lrPsZ5LV6//XyL/j69Q1L1o
+/B20ewNmnlkMylT/oE3OvPRquVUJvG2/s2ekqNJwOFHqzt69R9lw08NL79OCPikt
+iey/Do88mv6H4spyXV3r1D7lM4uA6BgqUKbwsVXUVdDQxPPVq3aX4MEt2w3JlZxl
+4hYTgN/iYrCifx+9Fy3Tc8sJ3Yt1jhHKn2AkoHu2YIJ0p2NaJJVtPdEqTJrtEod+
+0Xfz6/YITk/Ngv5LeR1cQHT7y1YWqfuE7KznC/ylwcOolsZjfHWyXHdLkp7+Tdiu
+RfFRIoAW5cw9ZlXuvkVw
+=x5/1
+-----END PGP SIGNATURE-----
+
+--liOOAslEiF7prFVr--
