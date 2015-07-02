@@ -1,55 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: DTS: am437x-sk-evm: Use simple-card for audio
- support
-Date: Thu, 2 Jul 2015 15:55:13 +0300
-Message-ID: <559534B1.5090301@ti.com>
-References: <1435838286-30491-1-git-send-email-peter.ujfalusi@ti.com>
- <20150702121045.GC5837@saruman.tx.rr.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH] crypto: omap-des: Fix unmapping of dma channels
+Date: Thu, 2 Jul 2015 18:33:28 +0530
+Message-ID: <1435842208-31382-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150702121045.GC5837-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Sender: linux-crypto-owner@vger.kernel.org
+To: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/02/2015 03:10 PM, Felipe Balbi wrote:
-> Hi,
->=20
-> On Thu, Jul 02, 2015 at 02:58:04PM +0300, Peter Ujfalusi wrote:
->> Hi,
->>
->> There is no reason to use the davinci-evm machine driver's compatibl=
-e for audio
->> support since the setup is simple and the common simple-audio-card c=
-an handle it
->> just fine.
->> Also add McASP1 sleep pin configuration.
->>
->> Regards,
->> Peter
->> ---
->> Peter Ujfalusi (2):
->>   ARM: DTS: am437x-sk-evm: Add sleep pin settings for mcasp1
->>   ARM: DTS: am437x-sk-evm: Switch using simple-audio-card for audio
->>     support
->=20
-> you should add a patch enabling CONFIG_SND_SIMPLE_CARD=3Dm in
-> omap2plus_defconfig
+dma_unmap_sg() is being called twice after completing the
+task. Looks like this is a copy paste error when creating
+des driver.
+With this the following warn appears during boot:
 
-Oh, true.
-I'll then resend this as part of a bigger series (am335x-evmsk/evm,
-am437x-gp/epos/sk).
-I planned to send them as separate, but you are right, simple card need=
- to be
-enabled first.
+[    4.210457] ------------[ cut here ]------------
+[    4.215114] WARNING: CPU: 0 PID: 0 at lib/dma-debug.c:1080 check_unmap+0x710/0x9a0()
+[    4.222899] omap-des 480a5000.des: DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x00000000ab2ce000] [size=8 bytes]
+[    4.236785] Modules linked in:
+[    4.239860] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.39-02999-g1bc045a-dirty #182
+[    4.247918] [<c001678c>] (unwind_backtrace) from [<c0012574>] (show_stack+0x10/0x14)
+[    4.255710] [<c0012574>] (show_stack) from [<c05a37e8>] (dump_stack+0x84/0xb8)
+[    4.262977] [<c05a37e8>] (dump_stack) from [<c0046464>] (warn_slowpath_common+0x68/0x8c)
+[    4.271107] [<c0046464>] (warn_slowpath_common) from [<c004651c>] (warn_slowpath_fmt+0x30/0x40)
+[    4.279854] [<c004651c>] (warn_slowpath_fmt) from [<c02d50a4>] (check_unmap+0x710/0x9a0)
+[    4.287991] [<c02d50a4>] (check_unmap) from [<c02d5478>] (debug_dma_unmap_sg+0x90/0x19c)
+[    4.296128] [<c02d5478>] (debug_dma_unmap_sg) from [<c04a77d8>] (omap_des_done_task+0x1cc/0x3e4)
+[    4.304963] [<c04a77d8>] (omap_des_done_task) from [<c004a090>] (tasklet_action+0x84/0x124)
+[    4.313370] [<c004a090>] (tasklet_action) from [<c004a4ac>] (__do_softirq+0xf0/0x20c)
+[    4.321235] [<c004a4ac>] (__do_softirq) from [<c004a840>] (irq_exit+0x98/0xec)
+[    4.328500] [<c004a840>] (irq_exit) from [<c000f9ac>] (handle_IRQ+0x50/0xb0)
+[    4.335589] [<c000f9ac>] (handle_IRQ) from [<c0008688>] (gic_handle_irq+0x28/0x5c)
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Removing the duplicate call to dma_unmap_sg().
+
+Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ drivers/crypto/omap-des.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
+index 4630709..0a70e46 100644
+--- a/drivers/crypto/omap-des.c
++++ b/drivers/crypto/omap-des.c
+@@ -536,9 +536,6 @@ static int omap_des_crypt_dma_stop(struct omap_des_dev *dd)
+ 	dmaengine_terminate_all(dd->dma_lch_in);
+ 	dmaengine_terminate_all(dd->dma_lch_out);
+ 
+-	dma_unmap_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
+-	dma_unmap_sg(dd->dev, dd->out_sg, dd->out_sg_len, DMA_FROM_DEVICE);
+-
+ 	return err;
+ }
+ 
+-- 
+1.9.1
