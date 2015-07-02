@@ -1,84 +1,68 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 09/20] ARM: DTS: am437x-gp-evm: Add gpio-hog for configuring the display/audio mux
-Date: Thu, 2 Jul 2015 17:06:24 +0300
-Message-ID: <1435845995-19085-10-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 05/20] ARM: DTS: am43xx-epos-evm: Add regulator for VBAT
+ and DCDC4 of tps65218
+Date: Thu, 2 Jul 2015 17:06:20 +0300
+Message-ID: <1435845995-19085-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435845995-19085-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-GPIO5_8 is used as a mux switch between LCD and HDMI displays. This mux
-affects audio routing as well since in LCD mode HDMI audio is not possible
-and when HDMI is selected analog audio is not working.
+The VBAT and DCDC4 regulator is needed for audio support (tlv320aic3111)
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ arch/arm/boot/dts/am43x-epos-evm.dts | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 84aa30c3235a..e2fb2713333d 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -83,17 +83,6 @@
- 		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
- 		label = "lcd";
- 
--		pinctrl-names = "default";
--		pinctrl-0 = <&lcd_pins>;
--
--		/*
--		 * SelLCDorHDMI, LOW to select HDMI. This is not really the
--		 * panel's enable GPIO, but we don't have HDMI driver support nor
--		 * support to switch between two displays, so using this gpio as
--		 * panel's enable should be safe.
--		 */
--		enable-gpios = <&gpio5 8 GPIO_ACTIVE_HIGH>;
--
- 		panel-timing {
- 			clock-frequency = <33000000>;
- 			hactive = <800>;
-@@ -270,7 +259,7 @@
- 		>;
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 77919c570fe1..9b584d1e0232 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -31,6 +31,14 @@
+ 		enable-active-high;
  	};
  
--	lcd_pins: lcd_pins {
-+	display_mux_pins: display_mux_pins {
- 		pinctrl-single,pins = <
- 			/* GPIO 5_8 to select LCD / HDMI */
- 			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
-@@ -558,8 +547,22 @@
- };
- 
- &gpio5 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&display_mux_pins>;
- 	status = "okay";
- 	ti,no-reset-on-init;
-+
-+	p8 {
-+		/*
-+		 * SelLCDorHDMI selects between display and audio paths:
-+		 * Low: HDMI display with audio via HDMI
-+		 * High: LCD display with analog audio via aic3111 codec
-+		 */
-+		gpio-hog;
-+		gpios = <8 GPIO_ACTIVE_HIGH>;
-+		output-high;
-+		line-name = "SelLCDorHDMI";
++	vbat: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vbat";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-boot-on;
 +	};
- };
++
+ 	lcd0: display {
+ 		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
+ 		label = "lcd";
+@@ -388,6 +396,15 @@
+ 			regulator-always-on;
+ 		};
  
- &mmc1 {
++		dcdc4: regulator-dcdc4 {
++			compatible = "ti,tps65218-dcdc4";
++			regulator-name = "vdcdc4";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
+ 		dcdc5: regulator-dcdc5 {
+ 			compatible = "ti,tps65218-dcdc5";
+ 			regulator-name = "v1_0bat";
 -- 
 2.4.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
