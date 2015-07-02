@@ -1,29 +1,66 @@
-From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] ARM: dts: configure regulators for Gumstix Pepper
-Date: Thu, 2 Jul 2015 11:34:54 -0700
-Message-ID: <CAK8F28nYknKTxQm5rZ9SKGhrejkER2S1uDx2hiT5xCHOX_GJpA@mail.gmail.com>
-References: <1433441299-18887-1-git-send-email-arun@gumstix.com>
- <1433441299-18887-3-git-send-email-arun@gumstix.com> <20150629064717.GR4156@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: n900 in 4.2-rc0: repeating oopses
+Date: Thu, 2 Jul 2015 22:25:28 +0200
+Message-ID: <20150702202528.GA3387@amd>
+References: <20150416093234.GA17423@amd>
+ <20150629091146.GA5103@amd>
+ <20150630092404.GA19285@amd>
+ <20150630095310.GF27720@pali>
+ <20150701065932.GS4156@atomide.com>
+ <20150701072255.GA17577@pali>
+ <20150701095954.GD7969@amd>
+ <20150701103421.GV4156@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150629064717.GR4156-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150701103421.GV4156@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jun 28, 2015 at 11:47 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->> Signed-off-by: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->
-> From Adam, sent by Arun, signed by Ash? Can you please check
-> that too.
-I reviewed Adam's original patch internally at Gumstix and my
-Signed-off-by got carried along.  In future, would an 'Acked-by' from
-me be more appropriate?
+On Wed 2015-07-01 03:34:22, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [150701 03:02]:
+> > On Wed 2015-07-01 09:22:55, Pali Roh=E1r wrote:
+> > > On Tuesday 30 June 2015 23:59:33 Tony Lindgren wrote:
+> > > > * Pali Roh=E1r <pali.rohar@gmail.com> [150630 02:55]:
+> > > > >=20
+> > > > > I will try 4.2 at the end of week.
+> > > >=20
+> > > > At least today's 4.1.0-11549-g05a8256 boots just fine on my n90=
+0.
+> > > >=20
+> > > > Regards,
+> > > >=20
+> > > > Tony
+> > >=20
+> > > So, Pavel can you re-test? Maybe there can be problem with some d=
+river
+> > > which Tony did not compiled into zImage? Just speculation...
+> >=20
+> > I re-tested with today's git, and it seems to boot. Thanks for help=
+=2E..
+>=20
+> OK good to hear.
 
---Ash
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm. Tried to toggle brightness on 4.1, and after few changes:
+
+root@n900:~# echo 255 > /sys/class/backlight/acx565akm/brightness
+root@n900:~# echo 120 > /sys/class/backlight/acx565akm/brightness
+root@n900:~# echo 10 > /sys/class/backlight/acx565akm/brightness
+root@n900:~# echo 1 > /sys/class/backlight/acx565akm/brightness
+
+
+
+^C^C
+^Z
+
+seems like acx565akm hung :-(.
+									Pavel
+								=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
