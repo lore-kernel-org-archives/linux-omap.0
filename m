@@ -1,66 +1,47 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: n900 in 4.2-rc0: repeating oopses
-Date: Thu, 2 Jul 2015 22:25:28 +0200
-Message-ID: <20150702202528.GA3387@amd>
-References: <20150416093234.GA17423@amd>
- <20150629091146.GA5103@amd>
- <20150630092404.GA19285@amd>
- <20150630095310.GF27720@pali>
- <20150701065932.GS4156@atomide.com>
- <20150701072255.GA17577@pali>
- <20150701095954.GD7969@amd>
- <20150701103421.GV4156@atomide.com>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [PATCH V2 0/5] drivers/rtc/rtc-ds1307.c: Basic cleanups and
+ support for wakeupirq
+Date: Fri, 3 Jul 2015 00:47:28 +0200
+Message-ID: <20150702224728.GF3467@piout.net>
+References: <1435076114-12416-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150701103421.GV4156@atomide.com>
+In-Reply-To: <1435076114-12416-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+To: Nishanth Menon <nm@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2015-07-01 03:34:22, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [150701 03:02]:
-> > On Wed 2015-07-01 09:22:55, Pali Roh=E1r wrote:
-> > > On Tuesday 30 June 2015 23:59:33 Tony Lindgren wrote:
-> > > > * Pali Roh=E1r <pali.rohar@gmail.com> [150630 02:55]:
-> > > > >=20
-> > > > > I will try 4.2 at the end of week.
-> > > >=20
-> > > > At least today's 4.1.0-11549-g05a8256 boots just fine on my n90=
-0.
-> > > >=20
-> > > > Regards,
-> > > >=20
-> > > > Tony
-> > >=20
-> > > So, Pavel can you re-test? Maybe there can be problem with some d=
-river
-> > > which Tony did not compiled into zImage? Just speculation...
-> >=20
-> > I re-tested with today's git, and it seems to boot. Thanks for help=
-=2E..
->=20
-> OK good to hear.
+Hi,
 
-Hmm. Tried to toggle brightness on 4.1, and after few changes:
+On 23/06/2015 at 11:15:09 -0500, Nishanth Menon wrote :
+> NOTE1: I have only tested in mcp79410 device, and not on other
+> ds1307-rtc driver compatbile devices as I dont have any other.
+> additional testing might be nice to have.
 
-root@n900:~# echo 255 > /sys/class/backlight/acx565akm/brightness
-root@n900:~# echo 120 > /sys/class/backlight/acx565akm/brightness
-root@n900:~# echo 10 > /sys/class/backlight/acx565akm/brightness
-root@n900:~# echo 1 > /sys/class/backlight/acx565akm/brightness
+Patchwork picked up V3 of 4/5 correctly so I have applied the series and
+pushed it in rtc-next. It will land in linux-next tomorrow so hopefully,
+this will see more testing.
 
+> NOTE2: there are additional fixes that linux-next seems to need but
+> those are in omap-rtc, cpufreq etc, but those are not related by the
+> ds-1307.
+> 
+> V1: https://patchwork.kernel.org/patch/4759171/
+> 
+> NOTE: Patch 5/5 of the series is meant to indicate the usage, and will
+> be reposted along with other wakeup sources to be enabled once the
+> driver changes are accepted.
+> 
 
+I've left that one out so you can send it to the omap maintainers when
+ready.
 
-^C^C
-^Z
+Thanks!
 
-seems like acx565akm hung :-(.
-									Pavel
-								=09
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
