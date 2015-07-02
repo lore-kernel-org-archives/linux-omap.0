@@ -1,59 +1,87 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH] crypto: omap-des: Fix unmapping of dma channels
-Date: Thu, 2 Jul 2015 18:33:28 +0530
-Message-ID: <1435842208-31382-1-git-send-email-lokeshvutla@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] ARM: DTS: am437x-sk-evm: Switch using
+ simple-audio-card for audio support
+Date: Thu, 2 Jul 2015 08:19:31 -0500
+Message-ID: <20150702131931.GH5837@saruman.tx.rr.com>
+References: <1435838286-30491-1-git-send-email-peter.ujfalusi@ti.com>
+ <1435838286-30491-3-git-send-email-peter.ujfalusi@ti.com>
+ <20150702122337.GE5837@saruman.tx.rr.com>
+ <55953421.30009@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vtJ+CqYNzKB4ukR4"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55953421.30009@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-dma_unmap_sg() is being called twice after completing the
-task. Looks like this is a copy paste error when creating
-des driver.
-With this the following warn appears during boot:
+--vtJ+CqYNzKB4ukR4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[    4.210457] ------------[ cut here ]------------
-[    4.215114] WARNING: CPU: 0 PID: 0 at lib/dma-debug.c:1080 check_unmap+0x710/0x9a0()
-[    4.222899] omap-des 480a5000.des: DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x00000000ab2ce000] [size=8 bytes]
-[    4.236785] Modules linked in:
-[    4.239860] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.39-02999-g1bc045a-dirty #182
-[    4.247918] [<c001678c>] (unwind_backtrace) from [<c0012574>] (show_stack+0x10/0x14)
-[    4.255710] [<c0012574>] (show_stack) from [<c05a37e8>] (dump_stack+0x84/0xb8)
-[    4.262977] [<c05a37e8>] (dump_stack) from [<c0046464>] (warn_slowpath_common+0x68/0x8c)
-[    4.271107] [<c0046464>] (warn_slowpath_common) from [<c004651c>] (warn_slowpath_fmt+0x30/0x40)
-[    4.279854] [<c004651c>] (warn_slowpath_fmt) from [<c02d50a4>] (check_unmap+0x710/0x9a0)
-[    4.287991] [<c02d50a4>] (check_unmap) from [<c02d5478>] (debug_dma_unmap_sg+0x90/0x19c)
-[    4.296128] [<c02d5478>] (debug_dma_unmap_sg) from [<c04a77d8>] (omap_des_done_task+0x1cc/0x3e4)
-[    4.304963] [<c04a77d8>] (omap_des_done_task) from [<c004a090>] (tasklet_action+0x84/0x124)
-[    4.313370] [<c004a090>] (tasklet_action) from [<c004a4ac>] (__do_softirq+0xf0/0x20c)
-[    4.321235] [<c004a4ac>] (__do_softirq) from [<c004a840>] (irq_exit+0x98/0xec)
-[    4.328500] [<c004a840>] (irq_exit) from [<c000f9ac>] (handle_IRQ+0x50/0xb0)
-[    4.335589] [<c000f9ac>] (handle_IRQ) from [<c0008688>] (gic_handle_irq+0x28/0x5c)
+On Thu, Jul 02, 2015 at 03:52:49PM +0300, Peter Ujfalusi wrote:
+> On 07/02/2015 03:23 PM, Felipe Balbi wrote:
+> > On Thu, Jul 02, 2015 at 02:58:06PM +0300, Peter Ujfalusi wrote:
+> >> The sound support consist only Headset output on the board and can be
+> >> handled by "simple-audio-card"
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >=20
+> > Still works fine:
+> >=20
+> > Tested-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > one question though, should Line In be listed below ?
+>=20
+> Does the board have Line-in? I don't have the board, but I know this patch
 
-Removing the duplicate call to dma_unmap_sg().
+yeah, it does :-)
 
-Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/crypto/omap-des.c | 3 ---
- 1 file changed, 3 deletions(-)
+> works on it ;)
+> We only had playback path before also.
 
-diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
-index 4630709..0a70e46 100644
---- a/drivers/crypto/omap-des.c
-+++ b/drivers/crypto/omap-des.c
-@@ -536,9 +536,6 @@ static int omap_des_crypt_dma_stop(struct omap_des_dev *dd)
- 	dmaengine_terminate_all(dd->dma_lch_in);
- 	dmaengine_terminate_all(dd->dma_lch_out);
- 
--	dma_unmap_sg(dd->dev, dd->in_sg, dd->in_sg_len, DMA_TO_DEVICE);
--	dma_unmap_sg(dd->dev, dd->out_sg, dd->out_sg_len, DMA_FROM_DEVICE);
--
- 	return err;
- }
- 
--- 
-1.9.1
+indeed, should go for -next only :-s
+
+> > Also, unrelated to
+> > $subject, but if I wait for a few seconds between runs of speaker-test
+> > (iow, if I allow mcasp to idle) then I hear a slight chopping sound when
+> > starting, perhaps we're unmuting too early ?
+>=20
+> Is it only with this patch (via simple-card) or was it the same via the
+> davinci-evm (ti,da830-evm-audio)?
+
+/me goes test again
+
+also without this patch :-)
+
+--=20
+balbi
+
+--vtJ+CqYNzKB4ukR4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVlTpjAAoJEIaOsuA1yqRE2koP/3hXDB6mGWORmB69vlA1wZab
+yv8h3xQHdbqECw/PIK3fqRNtrd2Ir564keKH8LWj5+EQIamlEiYK+Qop5TTBXupk
+RYDtMGyW18qGQhmKKY9CYCxQrkqsBBNDUpDgNwNA6Ppz/fDkSc76CrB8T3qRu57U
+FNbw+jtHrNMG6LY/N47EOlblCScWWohVdqRZrGB2EzqO32emBHXbr11K+cbesDwn
+PVK/6KlGyMjszjkOX3oPG5YaL4DEm4arEJGcI7+O0hPlSTyv5fObf/YDDc8G0AFV
+mzRSRHJIs/i4FhWXMlA9OkiqUx9G8e2Mg0UzBAETS7dagl8HX4H/cbJR4wCf9Wzz
+8igKfZNpoP+7pxQGHU7BTYNlcScMLVnXL0xi2U5zFcLx/qVciP+HAbKNDIawbEmx
+Ouj23q69rugYwKW/Yd1fKSNhCQCfF1DbtPTPaDZkym5JPAvF1fDakcr0zRSws+g5
+XoCiErdZW5ScD/O7KZXksC5iy6RtWyQXf/HUwnPhKigi+otuisk7usvrpsqgR4Ju
+Ld2pkaDUt/bJwJrCdV4LLju9uKTS8k5eAgbtfzYqVCMTvgNoZ7vQOXJlE2dqgV9R
+kaNNGWW/VUr4hs95pDg2Q1Lq2aIFcUxKiY4mNt3d9UourB0ZtaUv7R/HF9EqWfxP
+INl/PCTIKv3OKTMU8H5l
+=z9e4
+-----END PGP SIGNATURE-----
+
+--vtJ+CqYNzKB4ukR4--
