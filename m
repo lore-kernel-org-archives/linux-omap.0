@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 10/20] ARM: DTS: am437x-gp-evm: Rename fixed regulator vmmcsd_fixed to evm_v3_3d
-Date: Thu, 2 Jul 2015 17:06:25 +0300
-Message-ID: <1435845995-19085-11-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 11/20] ARM: DTS: am437x-gp-evm: Add node for tlv320aic3106 audio codec
+Date: Thu, 2 Jul 2015 17:06:26 +0300
+Message-ID: <1435845995-19085-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,39 +12,35 @@ To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The same regulator is used by other chips on the board. The power path is:
-VBAT -> TPS63031 - Enable signal is V1_8D regulator -> V3_3D.
-V3_3D is used by SD slot and tlv320aic3106 codec as well.
+Analog audio is using this codec on the board.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/am437x-gp-evm.dts | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index e2fb2713333d..e0ce7ce0a201 100644
+index e0ce7ce0a201..32446c079fd3 100644
 --- a/arch/arm/boot/dts/am437x-gp-evm.dts
 +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -24,9 +24,9 @@
- 		serial3 = &uart3;
+@@ -510,6 +510,18 @@
+ 			};
+ 		};
  	};
++
++	tlv320aic3106: tlv320aic3106@1b {
++		compatible = "ti,tlv320aic3106";
++		reg = <0x1b>;
++		status = "okay";
++
++		/* Regulators */
++		IOVDD-supply = <&evm_v3_3d>; /* V3_3D -> <tps63031> EN: V1_8D -> VBAT */
++		AVDD-supply = <&evm_v3_3d>; /* v3_3AUD -> V3_3D -> ... */
++		DRVDD-supply = <&evm_v3_3d>; /* v3_3AUD -> V3_3D -> ... */
++		DVDD-supply = <&ldo1>; /* V1_8D -> LDO1 */
++	};
+ };
  
--	vmmcsd_fixed: fixedregulator-sd {
-+	evm_v3_3d: fixedregulator-v3_3d {
- 		compatible = "regulator-fixed";
--		regulator-name = "vmmcsd_fixed";
-+		regulator-name = "evm_v3_3d";
- 		regulator-min-microvolt = <3300000>;
- 		regulator-max-microvolt = <3300000>;
- 		enable-active-high;
-@@ -567,7 +567,7 @@
- 
- &mmc1 {
- 	status = "okay";
--	vmmc-supply = <&vmmcsd_fixed>;
-+	vmmc-supply = <&evm_v3_3d>;
- 	bus-width = <4>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
+ &epwmss0 {
 -- 
 2.4.5
