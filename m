@@ -1,47 +1,72 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/3] PCI: host: pci-dra7xx: Disable pm_runtime on get_sync failure
-Date: Fri, 3 Jul 2015 16:33:43 +0530
-Message-ID: <1435921425-15121-2-git-send-email-kishon@ti.com>
-References: <1435921425-15121-1-git-send-email-kishon@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 3/3] PCI: host: pci-dra7xx: add pm support to pci dra7xx
+Date: Fri, 3 Jul 2015 15:04:10 +0300
+Message-ID: <55967A3A.7000907@ti.com>
+References: <1435921425-15121-1-git-send-email-kishon@ti.com> <1435921425-15121-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1435921425-15121-1-git-send-email-kishon@ti.com>
+In-Reply-To: <1435921425-15121-4-git-send-email-kishon@ti.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: bhelgaas@google.com, jingoohan1@gmail.com, pratyush.anand@gmail.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com
+To: Kishon Vijay Abraham I <kishon@ti.com>, bhelgaas@google.com, jingoohan1@gmail.com, pratyush.anand@gmail.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix the error handling code in case pm_runtime_get_sync fails. Now
-when pm_runtime_get_sync fails pm_runtime_disable is invoked so that
-there is no unbalanced pm_runtime_enable calls.
+Hi Kishon,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/host/pci-dra7xx.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On 07/03/2015 02:03 PM, Kishon Vijay Abraham I wrote:
+> Add PM support to pci-dra7xx so that PCI clocks can be disabled
+> during suspend and enabled back during resume without affecting
+> PCI functionality.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>   drivers/pci/host/pci-dra7xx.c |   74 +++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 74 insertions(+)
+>
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index d8b6d66..1f5c039 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -433,6 +433,79 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
+>   	return 0;
+>   }
+>
+> +#ifdef CONFIG_PM_SLEEP
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 80db09e..d8b6d66 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -384,7 +384,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	ret = pm_runtime_get_sync(dev);
- 	if (IS_ERR_VALUE(ret)) {
- 		dev_err(dev, "pm_runtime_get_sync failed\n");
--		goto err_phy;
-+		goto err_get_sync;
- 	}
- 
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-@@ -401,6 +401,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- err_add_port:
- 	pm_runtime_put(dev);
-+
-+err_get_sync:
- 	pm_runtime_disable(dev);
- 
- err_phy:
+[...]
+
+> +
+> +static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+> +	.suspend_noirq = dra7xx_pcie_suspend_noirq,
+> +	.suspend = dra7xx_pcie_suspend,
+> +	.resume_noirq = dra7xx_pcie_resume_noirq,
+> +	.resume = dra7xx_pcie_resume,
+
+Could you use here SET_SYSTEM_SLEEP_PM_OPS()
+and SET_NOIRQ_SYSTEM_SLEEP_PM_OPS() macro, pls?
+
+> +};
+> +#define DEV_PM_OPS	(&dra7xx_pcie_pm_ops)
+> +#else
+> +#define DEV_PM_OPS	NULL
+> +#endif
+> +
+>   static const struct of_device_id of_dra7xx_pcie_match[] = {
+>   	{ .compatible = "ti,dra7-pcie", },
+>   	{},
+> @@ -444,6 +517,7 @@ static struct platform_driver dra7xx_pcie_driver = {
+>   	.driver = {
+>   		.name	= "dra7-pcie",
+>   		.of_match_table = of_dra7xx_pcie_match,
+> +		.pm	= DEV_PM_OPS,
+>   	},
+>   };
+>
+>
+
+
 -- 
-1.7.9.5
+regards,
+-grygorii
