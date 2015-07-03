@@ -1,72 +1,54 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/3] PCI: host: pci-dra7xx: add pm support to pci dra7xx
-Date: Fri, 3 Jul 2015 15:04:10 +0300
-Message-ID: <55967A3A.7000907@ti.com>
-References: <1435921425-15121-1-git-send-email-kishon@ti.com> <1435921425-15121-4-git-send-email-kishon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 0/2] dmaengine: ti-dma-crossbar: Support for eDMA
+Date: Fri, 3 Jul 2015 17:10:46 +0300
+Message-ID: <559697E6.5000803@ti.com>
+References: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
+ <5593DFF6.4090100@ti.com> <20150702155614.GV3246@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1435921425-15121-4-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, bhelgaas@google.com, jingoohan1@gmail.com, pratyush.anand@gmail.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: nsekhar@ti.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150702155614.GV3246@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
+On 07/02/2015 06:56 PM, Vinod Koul wrote:
+> On Wed, Jul 01, 2015 at 03:41:26PM +0300, Peter Ujfalusi wrote:
+>> Hi,
+>>
+>> On 06/08/2015 04:22 PM, Peter Ujfalusi wrote:
+>>> Hi,
+>>>
+>>> Changes since v01:
+>>> - Drop change in compatible for the crossbar driver and do the conf=
+iguration
+>>>   based on the DT structure.
+>>>
+>>> The ti-dma-crossbar driver in it's current form can work when it is=
+ used with
+>>> sDMA (omap-dma). On DRA7x class of devices we have both sDMA and eD=
+MA available.
+>>> The sDMA driver expects to get the DMA request line with offset 1. =
+The eDMA
+>>> stack does not need the offset.
+>>> The crosbbar itself is identical for sDMA and eDMA.
+>>> At probe time the driver will do a match to figure out which dma en=
+gine it is
+>>> connected to and based on that information it will configure the of=
+fset needed
+>>> by the DMA driver.
+>>
+>> Gentle ping, it has been almost a month ago this series has been sen=
+t.
+> Sorry I seem to have missed this series. I relooked at this and it lo=
+oks
+> fine. I will apply it once rc1 is out. If it needs rebase please rese=
+nd
 
-On 07/03/2015 02:03 PM, Kishon Vijay Abraham I wrote:
-> Add PM support to pci-dra7xx so that PCI clocks can be disabled
-> during suspend and enabled back during resume without affecting
-> PCI functionality.
->
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->   drivers/pci/host/pci-dra7xx.c |   74 +++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 74 insertions(+)
->
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index d8b6d66..1f5c039 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -433,6 +433,79 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
->   	return 0;
->   }
->
-> +#ifdef CONFIG_PM_SLEEP
+No problem,
+the patch still applies cleanly.
 
-[...]
-
-> +
-> +static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
-> +	.suspend_noirq = dra7xx_pcie_suspend_noirq,
-> +	.suspend = dra7xx_pcie_suspend,
-> +	.resume_noirq = dra7xx_pcie_resume_noirq,
-> +	.resume = dra7xx_pcie_resume,
-
-Could you use here SET_SYSTEM_SLEEP_PM_OPS()
-and SET_NOIRQ_SYSTEM_SLEEP_PM_OPS() macro, pls?
-
-> +};
-> +#define DEV_PM_OPS	(&dra7xx_pcie_pm_ops)
-> +#else
-> +#define DEV_PM_OPS	NULL
-> +#endif
-> +
->   static const struct of_device_id of_dra7xx_pcie_match[] = {
->   	{ .compatible = "ti,dra7-pcie", },
->   	{},
-> @@ -444,6 +517,7 @@ static struct platform_driver dra7xx_pcie_driver = {
->   	.driver = {
->   		.name	= "dra7-pcie",
->   		.of_match_table = of_dra7xx_pcie_match,
-> +		.pm	= DEV_PM_OPS,
->   	},
->   };
->
->
-
-
--- 
-regards,
--grygorii
+Thanks,
+P=E9ter
