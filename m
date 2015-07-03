@@ -1,47 +1,42 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH V2 0/5] drivers/rtc/rtc-ds1307.c: Basic cleanups and
- support for wakeupirq
-Date: Fri, 3 Jul 2015 00:47:28 +0200
-Message-ID: <20150702224728.GF3467@piout.net>
-References: <1435076114-12416-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] ARM: dts: configure regulators for Gumstix Pepper
+Date: Thu, 2 Jul 2015 22:53:37 -0700
+Message-ID: <20150703055337.GA10705@atomide.com>
+References: <1433441299-18887-1-git-send-email-arun@gumstix.com>
+ <1433441299-18887-3-git-send-email-arun@gumstix.com>
+ <20150629064717.GR4156@atomide.com>
+ <CAK8F28nYknKTxQm5rZ9SKGhrejkER2S1uDx2hiT5xCHOX_GJpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1435076114-12416-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, grygorii.strashko@ti.com
+In-Reply-To: <CAK8F28nYknKTxQm5rZ9SKGhrejkER2S1uDx2hiT5xCHOX_GJpA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ash Charles <ashcharles@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Arun Bharadwaj <arun@gumstix.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, linux-kernel@vger.kernel.org, Adam YH Lee <adam.yh.lee@gmail.com>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Ash Charles <ashcharles@gmail.com> [150702 11:37]:
+> On Sun, Jun 28, 2015 at 11:47 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> Signed-off-by: Ash Charles <ashcharles@gmail.com>
+> >
+> > From Adam, sent by Arun, signed by Ash? Can you please check
+> > that too.
+> I reviewed Adam's original patch internally at Gumstix and my
+> Signed-off-by got carried along.  In future, would an 'Acked-by' from
+> me be more appropriate?
 
-On 23/06/2015 at 11:15:09 -0500, Nishanth Menon wrote :
-> NOTE1: I have only tested in mcp79410 device, and not on other
-> ds1307-rtc driver compatbile devices as I dont have any other.
-> additional testing might be nice to have.
+Yes Acked-by or Reviewed-by if you did not make changes to the patch.
 
-Patchwork picked up V3 of 4/5 correctly so I have applied the series and
-pushed it in rtc-next. It will land in linux-next tomorrow so hopefully,
-this will see more testing.
+Regards,
 
-> NOTE2: there are additional fixes that linux-next seems to need but
-> those are in omap-rtc, cpufreq etc, but those are not related by the
-> ds-1307.
-> 
-> V1: https://patchwork.kernel.org/patch/4759171/
-> 
-> NOTE: Patch 5/5 of the series is meant to indicate the usage, and will
-> be reposted along with other wakeup sources to be enabled once the
-> driver changes are accepted.
-> 
-
-I've left that one out so you can send it to the omap maintainers when
-ready.
-
-Thanks!
-
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Tony
