@@ -1,65 +1,32 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] drm/tilcdc: Allocate register storage based on the actual
- number registers
-Date: Fri, 3 Jul 2015 13:45:28 +0300
-Message-ID: <1435920328-22822-1-git-send-email-jsarha@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/3] J6/J6Eco: Add PM support to PCIe
+Date: Fri, 3 Jul 2015 16:33:42 +0530
+Message-ID: <1435921425-15121-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com, Jyri Sarha <jsarha@ti.com>, michael@bumbleB.de
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, jingoohan1@gmail.com, pratyush.anand@gmail.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com
+Cc: nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-QWxsb2NhdGUgc3VzcGVuZC9yZXN1bWUgcmVnaXN0ZXIgc3RvcmFnZSBiYXNlZCBvbiB0aGUgYWN0
-dWFsIG51bWJlcgpyZWdpc3RlcnMgdGhlIGRyaXZlciBpcyBhd2FyZSBvZi4gVGhlIHN0YXRpYyBh
-bGxvY2F0aW9uIGZvciByZWdpc3RlcgpzdG9yYWdlIGhhZCBmYWxlbiBiZWhpbmQgYmFkbHkuCgpS
-ZXBvcnRlZC1ieTogTWljaGFlbCBCb2RlIDxtaWNoYWVsQGJ1bWJsZUIuZGU+ClNpZ25lZC1vZmYt
-Ynk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogZHJpdmVycy9ncHUvZHJtL3RpbGNk
-Yy90aWxjZGNfZHJ2LmMgfCAyMCArKysrKysrKysrKysrKysrKysrLQogZHJpdmVycy9ncHUvZHJt
-L3RpbGNkYy90aWxjZGNfZHJ2LmggfCAgMiArLQogMiBmaWxlcyBjaGFuZ2VkLCAyMCBpbnNlcnRp
-b25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS90aWxj
-ZGMvdGlsY2RjX2Rydi5jIGIvZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmMKaW5k
-ZXggNDkwOGMxZi4uMmY4NzI2MyAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90
-aWxjZGNfZHJ2LmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmMKQEAg
-LTEzOSwxMSArMTM5LDE0IEBAIHN0YXRpYyBpbnQgdGlsY2RjX3VubG9hZChzdHJ1Y3QgZHJtX2Rl
-dmljZSAqZGV2KQogCiAJcG1fcnVudGltZV9kaXNhYmxlKGRldi0+ZGV2KTsKIAorCWtmcmVlKHBy
-aXYtPnNhdmVkX3JlZ2lzdGVyKTsKIAlrZnJlZShwcml2KTsKIAogCXJldHVybiAwOwogfQogCitz
-dGF0aWMgc2l6ZV90IHRpbGNkY19udW1fcmVncyh2b2lkKTsKKwogc3RhdGljIGludCB0aWxjZGNf
-bG9hZChzdHJ1Y3QgZHJtX2RldmljZSAqZGV2LCB1bnNpZ25lZCBsb25nIGZsYWdzKQogewogCXN0
-cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYgPSBkZXYtPnBsYXRmb3JtZGV2OwpAQCAtMTU1LDcg
-KzE1OCwxMSBAQCBzdGF0aWMgaW50IHRpbGNkY19sb2FkKHN0cnVjdCBkcm1fZGV2aWNlICpkZXYs
-IHVuc2lnbmVkIGxvbmcgZmxhZ3MpCiAJaW50IHJldDsKIAogCXByaXYgPSBremFsbG9jKHNpemVv
-ZigqcHJpdiksIEdGUF9LRVJORUwpOwotCWlmICghcHJpdikgeworCWlmIChwcml2KQorCQlwcml2
-LT5zYXZlZF9yZWdpc3RlciA9IGtjYWxsb2Moc2l6ZW9mKCpwcml2LT5zYXZlZF9yZWdpc3Rlciks
-CisJCQkJCSAgICAgICB0aWxjZGNfbnVtX3JlZ3MoKSwgR0ZQX0tFUk5FTCk7CisJaWYgKCFwcml2
-IHx8ICFwcml2LT5zYXZlZF9yZWdpc3RlcikgeworCQlrZnJlZShwcml2KTsKIAkJZGV2X2Vycihk
-ZXYtPmRldiwgImZhaWxlZCB0byBhbGxvY2F0ZSBwcml2YXRlIGRhdGFcbiIpOwogCQlyZXR1cm4g
-LUVOT01FTTsKIAl9CkBAIC0zNDUsNiArMzUyLDcgQEAgZmFpbF9mcmVlX3dxOgogCiBmYWlsX2Zy
-ZWVfcHJpdjoKIAlkZXYtPmRldl9wcml2YXRlID0gTlVMTDsKKwlrZnJlZShwcml2LT5zYXZlZF9y
-ZWdpc3Rlcik7CiAJa2ZyZWUocHJpdik7CiAJcmV0dXJuIHJldDsKIH0KQEAgLTQ2Nyw2ICs0NzUs
-MTYgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCB7CiAJCVJFRygyLCB0cnVlLCAgTENEQ19JTlRfRU5B
-QkxFX1NFVF9SRUcpLAogI3VuZGVmIFJFRwogfTsKKworc3RhdGljIHNpemVfdCB0aWxjZGNfbnVt
-X3JlZ3Modm9pZCkKK3sKKwlyZXR1cm4gQVJSQVlfU0laRShyZWdpc3RlcnMpOworfQorI2Vsc2UK
-K3N0YXRpYyBzaXplX3QgdGlsY2RjX251bV9yZWdzKHZvaWQpCit7CisJcmV0dXJuIDA7Cit9CiAj
-ZW5kaWYKIAogI2lmZGVmIENPTkZJR19ERUJVR19GUwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUv
-ZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmggYi9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19k
-cnYuaAppbmRleCBlODYzYWQwLi5iYzk0ODM1IDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0v
-dGlsY2RjL3RpbGNkY19kcnYuaAorKysgYi9kcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19k
-cnYuaApAQCAtNjcsNyArNjcsNyBAQCBzdHJ1Y3QgdGlsY2RjX2RybV9wcml2YXRlIHsKIAl1aW50
-MzJfdCBtYXhfd2lkdGg7CiAKIAkvKiByZWdpc3RlciBjb250ZW50cyBzYXZlZCBhY3Jvc3Mgc3Vz
-cGVuZC9yZXN1bWU6ICovCi0JdTMyIHNhdmVkX3JlZ2lzdGVyWzEyXTsKKwl1MzIgKnNhdmVkX3Jl
-Z2lzdGVyOwogCiAjaWZkZWYgQ09ORklHX0NQVV9GUkVRCiAJc3RydWN0IG5vdGlmaWVyX2Jsb2Nr
-IGZyZXFfdHJhbnNpdGlvbjsKLS0gCjEuOS4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2RyaS1kZXZlbAo=
+This series adds PM support to pci-dra7xx so that PCI clocks can be disabled
+during suspend and enabled back during resume without affecting
+PCI functionality.
+
+This series is dependent on [1] for proper PM functionality.
+
+[1] -> http://newscentral.exsees.com/item/595269de5c35c59c386b91ce8efd9872-eedf6742bb6159c3b1a90625c4d43407
+
+Kishon Vijay Abraham I (3):
+  PCI: host: pci-dra7xx: Disable pm_runtime if get_sync failure
+  PCI: host: pcie-designware: add support for suspend and resume
+  PCI: host: pci-dra7xx: add pm support to pci dra7xx
+
+ drivers/pci/host/pci-dra7xx.c      |   78 +++++++++++++++++++++++++++++++++++-
+ drivers/pci/host/pcie-designware.c |   20 +++++++++
+ drivers/pci/host/pcie-designware.h |    2 +
+ 3 files changed, 99 insertions(+), 1 deletion(-)
+
+-- 
+1.7.9.5
