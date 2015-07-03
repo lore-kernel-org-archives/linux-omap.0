@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 3/3] PCI: host: pci-dra7xx: add pm support to pci dra7xx
-Date: Fri, 3 Jul 2015 16:33:45 +0530
-Message-ID: <1435921425-15121-4-git-send-email-kishon@ti.com>
+Subject: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend and resume
+Date: Fri, 3 Jul 2015 16:33:44 +0530
+Message-ID: <1435921425-15121-3-git-send-email-kishon@ti.com>
 References: <1435921425-15121-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,106 +12,64 @@ To: bhelgaas@google.com, jingoohan1@gmail.com, pratyush.anand@gmail.com, linux-o
 Cc: nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add PM support to pci-dra7xx so that PCI clocks can be disabled
-during suspend and enabled back during resume without affecting
-PCI functionality.
+Certain platforms require MSE bit to be cleared to set the master
+in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
+Controller Master Standby Behavior advises to use the clearing
+of the local MSE bit to set the master in standby. Without this
+some of the clocks do not idle).
+
+Cleared the MSE bit on suspend and enabled it back on resume.
+This is required to get suspend/resume working.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   74 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+ drivers/pci/host/pcie-designware.c |   20 ++++++++++++++++++++
+ drivers/pci/host/pcie-designware.h |    2 ++
+ 2 files changed, 22 insertions(+)
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index d8b6d66..1f5c039 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -433,6 +433,79 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
- 	return 0;
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index 69486be..cfb2bd6 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -811,6 +811,26 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
+ 	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
  }
  
-+#ifdef CONFIG_PM_SLEEP
-+static int dra7xx_pcie_suspend(struct device *dev)
++void dw_pcie_suspend_rc(struct pcie_port *pp)
 +{
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-+	struct pcie_port *pp = &dra7xx->pp;
++	u32 val;
 +
-+	dw_pcie_suspend_rc(pp);
-+
-+	return 0;
++	/* clear MSE */
++	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
++	val &= ~PCI_COMMAND_MEMORY;
++	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
 +}
 +
-+static int dra7xx_pcie_resume(struct device *dev)
++void dw_pcie_resume_rc(struct pcie_port *pp)
 +{
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-+	struct pcie_port *pp = &dra7xx->pp;
++	u32 val;
 +
-+	dw_pcie_resume_rc(pp);
-+
-+	return 0;
-+}
-+static int dra7xx_pcie_suspend_noirq(struct device *dev)
-+{
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-+	int count = dra7xx->phy_count;
-+
-+	while (count--) {
-+		phy_power_off(dra7xx->phy[count]);
-+		phy_exit(dra7xx->phy[count]);
-+	}
-+
-+	return 0;
-+}
-+static int dra7xx_pcie_resume_noirq(struct device *dev)
-+{
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-+	int phy_count = dra7xx->phy_count;
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < phy_count; i++) {
-+		ret = phy_init(dra7xx->phy[i]);
-+		if (ret < 0)
-+			goto err_phy;
-+
-+		ret = phy_power_on(dra7xx->phy[i]);
-+		if (ret < 0) {
-+			phy_exit(dra7xx->phy[i]);
-+			goto err_phy;
-+		}
-+	}
-+
-+	return 0;
-+
-+err_phy:
-+	while (--i >= 0) {
-+		phy_power_off(dra7xx->phy[i]);
-+		phy_exit(dra7xx->phy[i]);
-+	}
-+
-+	return ret;
++	/* set MSE */
++	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
++	val |= PCI_COMMAND_MEMORY;
++	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
 +}
 +
-+static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
-+	.suspend_noirq = dra7xx_pcie_suspend_noirq,
-+	.suspend = dra7xx_pcie_suspend,
-+	.resume_noirq = dra7xx_pcie_resume_noirq,
-+	.resume = dra7xx_pcie_resume,
-+};
-+#define DEV_PM_OPS	(&dra7xx_pcie_pm_ops)
-+#else
-+#define DEV_PM_OPS	NULL
-+#endif
-+
- static const struct of_device_id of_dra7xx_pcie_match[] = {
- 	{ .compatible = "ti,dra7-pcie", },
- 	{},
-@@ -444,6 +517,7 @@ static struct platform_driver dra7xx_pcie_driver = {
- 	.driver = {
- 		.name	= "dra7-pcie",
- 		.of_match_table = of_dra7xx_pcie_match,
-+		.pm	= DEV_PM_OPS,
- 	},
- };
+ MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
+ MODULE_DESCRIPTION("Designware PCIe host controller driver");
+ MODULE_LICENSE("GPL v2");
+diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+index d0bbd27..0df2dfa 100644
+--- a/drivers/pci/host/pcie-designware.h
++++ b/drivers/pci/host/pcie-designware.h
+@@ -83,5 +83,7 @@ void dw_pcie_msi_init(struct pcie_port *pp);
+ int dw_pcie_link_up(struct pcie_port *pp);
+ void dw_pcie_setup_rc(struct pcie_port *pp);
+ int dw_pcie_host_init(struct pcie_port *pp);
++void dw_pcie_suspend_rc(struct pcie_port *pp);
++void dw_pcie_resume_rc(struct pcie_port *pp);
  
+ #endif /* _PCIE_DESIGNWARE_H */
 -- 
 1.7.9.5
