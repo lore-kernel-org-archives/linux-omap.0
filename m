@@ -1,55 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am4372.dtsi: disable rfbi
-Date: Mon, 6 Jul 2015 05:24:42 -0700
-Message-ID: <20150706122442.GF10705@atomide.com>
-References: <1435665894-28491-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT
+ revision
+Date: Mon, 6 Jul 2015 05:31:27 -0700
+Message-ID: <20150706123126.GG10705@atomide.com>
+References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com>
+ <20150506114417.GI30910@pali>
+ <20150625050138.GL4156@atomide.com>
+ <201507061423.23505@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1435665894-28491-1-git-send-email-tomi.valkeinen@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <201507061423.23505@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Rob Herring <robherring2@gmail.com>, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [150630 05:07]:
-> When DSS nodes were added to am4372.dtsi, the rfbi node was not marked
-> as disabled. This should have been done, as the rule of thumb is to
-> disable all DSS nodes that are not used, and especially rfbi, as we
-> don't have a driver for rfbi.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150706 05:25]:
+>
+> into which file should I put documentation about new DT properties?
 
-Applying into omap-for-v4.2/fixes thanks.
+If it's Linux generic like linux,revision, then how about
+Documentation/devicetree/bindings/revision.txt?
+
+=46or the ATAGs, Documentation/devicetree/bindings/arm/atag.txt?
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/boot/dts/am4372.dtsi | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index c80a3e233792..75831e556741 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -941,6 +941,7 @@
->  				ti,hwmods = "dss_rfbi";
->  				clocks = <&disp_clk>;
->  				clock-names = "fck";
-> +				status = "disabled";
->  			};
->  		};
->  
-> -- 
-> 2.1.4
-> 
