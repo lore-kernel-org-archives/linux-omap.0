@@ -1,74 +1,28 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: prevent module from being unloaded while
- in use
-Date: Mon, 6 Jul 2015 18:15:54 +0300
-Message-ID: <559A9BAA.2010400@ti.com>
-References: <1435245213-17858-1-git-send-email-grygorii.strashko@ti.com> <CAAVeFuK5j+s+Wj2kAHT7K9dj3RtK2aYZ50xDLb7S-73MJ7FTHA@mail.gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT revision
+Date: Mon, 6 Jul 2015 10:20:56 -0500
+Message-ID: <CAL_JsqK193CBPwvDpPvpDSbGFRfkpxpox45parCoC+ofWE4hUA@mail.gmail.com>
+References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com>
+ <20150506114417.GI30910@pali> <20150625050138.GL4156@atomide.com>
+ <201507061423.23505@pali> <20150706123126.GG10705@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAVeFuK5j+s+Wj2kAHT7K9dj3RtK2aYZ50xDLb7S-73MJ7FTHA@mail.gmail.com>
+In-Reply-To: <20150706123126.GG10705@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, tony@atomide.com, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, =?UTF-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/30/2015 04:52 PM, Alexandre Courbot wrote:
-> On Fri, Jun 26, 2015 at 12:13 AM, Grygorii Strashko
-> <grygorii.strashko@ti.com> wrote:
->> OMAP GPIO driver allowed to be built as loadable module, but it
->> doesn't set owner field in GPIO chip structure. As result,
->> module_get/put() API is not working and it's possible to unload
->> OMAP driver while in use:
+On Mon, Jul 6, 2015 at 7:31 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150706 05:25]:
 >>
->>    omap_gpio 48051000.gpio: REMOVING GPIOCHIP WITH GPIOS STILL REQUESTED
->>
->> Hence, add missing configuration.
-> 
-> Isn't this also fixed by your other patch "gpiolib: assign chip owner
-> to dev->driver->owner if not set"?
-> 
-> Nevertheless,
-> 
-> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
-> 
-> For inclusion into -rc if the other patch is for the next cycle.
+>> into which file should I put documentation about new DT properties?
+>
+> If it's Linux generic like linux,revision, then how about
 
-Yes. I've sent this one for -rc as it's 100% fix and was not sure about
-destiny of patch "gpiolib: assign chip owner.." :)
+Just "revision" at the top level please. I'd prefer a string still,
+but either is fine.
 
-
-> 
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Fixes: cac089f9026e ('gpio: omap: Allow building as a loadable module')
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->> Hi Linus,
->>
->> Seems this one is for 4.2-rc.
->>
->>   drivers/gpio/gpio-omap.c | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index a0ad803..61a731f 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1187,6 +1187,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
->>          bank->irq = res->start;
->>          bank->dev = dev;
->>          bank->chip.dev = dev;
->> +       bank->chip.owner = THIS_MODULE;
->>          bank->dbck_flag = pdata->dbck_flag;
->>          bank->stride = pdata->bank_stride;
->>          bank->width = pdata->bank_width;
->> --
->> 2.4.4
->>
-
-
--- 
-regards,
--grygorii
+Rob
