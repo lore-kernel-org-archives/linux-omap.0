@@ -1,7 +1,7 @@
 From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 6/7] tty: 8250: omap: workaround module disable errata on dra7x SoCs
-Date: Mon, 6 Jul 2015 15:17:56 +0530
-Message-ID: <64171e625cd568a1b45b9c7a8b5ff3050f1e46b2.1436174801.git.nsekhar@ti.com>
+Subject: [PATCH 7/7] ARM: dts: dra7: workaround UART module disable errata
+Date: Mon, 6 Jul 2015 15:17:57 +0530
+Message-ID: <6f7098f8a274a341e7b5d8d682ad72be7bc4d7f1.1436174801.git.nsekhar@ti.com>
 References: <cover.1436174801.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,45 +12,112 @@ To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Due to Advisory 21 as documented in AM437x errata document,
-UART module cannot be disabled once DMA is used. The only
-workaround is to softreset the module before disabling it.
+Add "ti,dra742-uart" to the compatible list so the driver
+workaround for UART module disable errata is enabled.
 
-DRA7x UARTs are compatible to AM437x UARTs in terms of
-this errata and prescribed workaround.
-
-Enable usage of workaround for this errata on DRA7x SoCs.
+This does not break backward compatibility as existing DTBs
+should continue to work with newer kernels albeit without the
+capability of disabling the module when DMA is used.
 
 Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/serial/omap_serial.txt | 1 +
- drivers/tty/serial/8250/8250_omap.c                      | 1 +
- 2 files changed, 2 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-index 0ee88209b341..7a71b5de77d6 100644
---- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-+++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-@@ -6,6 +6,7 @@ Required properties:
- - compatible : should be "ti,omap4-uart" for OMAP4 controllers
- - compatible : should be "ti,am4372-uart" for AM437x controllers
- - compatible : should be "ti,am3352-uart" for AM335x controllers
-+- compatible : should be "ti,dra742-uart" for DRA7x controllers
- - reg : address and length of the register space
- - interrupts or interrupts-extended : Should contain the uart interrupt
-                                       specifier or both the interrupt
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index af25869d145f..9811f0bcba25 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -1082,6 +1082,7 @@ static const struct of_device_id omap8250_dt_ids[] = {
- 	{ .compatible = "ti,omap4-uart" },
- 	{ .compatible = "ti,am3352-uart", .data = &am3352_habit, },
- 	{ .compatible = "ti,am4372-uart", .data = &am4372_habit, },
-+	{ .compatible = "ti,dra742-uart", .data = &am4372_habit, },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, omap8250_dt_ids);
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 8f1e25bcecbd..49940e516f0f 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -397,7 +397,7 @@
+ 		};
+ 
+ 		uart1: serial@4806a000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x4806a000 0x100>;
+ 			interrupts-extended = <&crossbar_mpu GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart1";
+@@ -408,7 +408,7 @@
+ 		};
+ 
+ 		uart2: serial@4806c000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x4806c000 0x100>;
+ 			interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart2";
+@@ -419,7 +419,7 @@
+ 		};
+ 
+ 		uart3: serial@48020000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x48020000 0x100>;
+ 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart3";
+@@ -430,7 +430,7 @@
+ 		};
+ 
+ 		uart4: serial@4806e000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x4806e000 0x100>;
+ 			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart4";
+@@ -441,7 +441,7 @@
+ 		};
+ 
+ 		uart5: serial@48066000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x48066000 0x100>;
+ 			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart5";
+@@ -452,7 +452,7 @@
+ 		};
+ 
+ 		uart6: serial@48068000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x48068000 0x100>;
+ 			interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart6";
+@@ -463,7 +463,7 @@
+ 		};
+ 
+ 		uart7: serial@48420000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x48420000 0x100>;
+ 			interrupts = <GIC_SPI 218 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart7";
+@@ -472,7 +472,7 @@
+ 		};
+ 
+ 		uart8: serial@48422000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x48422000 0x100>;
+ 			interrupts = <GIC_SPI 219 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart8";
+@@ -481,7 +481,7 @@
+ 		};
+ 
+ 		uart9: serial@48424000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x48424000 0x100>;
+ 			interrupts = <GIC_SPI 220 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart9";
+@@ -490,7 +490,7 @@
+ 		};
+ 
+ 		uart10: serial@4ae2b000 {
+-			compatible = "ti,omap4-uart";
++			compatible = "ti,dra742-uart", "ti,omap4-uart";
+ 			reg = <0x4ae2b000 0x100>;
+ 			interrupts = <GIC_SPI 221 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart10";
 -- 
 2.4.4.408.g16da57c
 
