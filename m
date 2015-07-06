@@ -1,7 +1,7 @@
 From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/7] Documentation: DT: omap_serial: document missing compatible
-Date: Mon, 6 Jul 2015 15:17:52 +0530
-Message-ID: <bfa28651bf450f8642e878ceafea620a5d538b1e.1436174801.git.nsekhar@ti.com>
+Subject: [PATCH 3/7] tty: 8250: omap: introduce function to update mdr1
+Date: Mon, 6 Jul 2015 15:17:53 +0530
+Message-ID: <597e0f4bf4455cb7755851f5c34a02fbdd0d4aeb.1436174801.git.nsekhar@ti.com>
 References: <cover.1436174801.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,52 @@ To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The compatible "ti,am4372-uart" is used in arch/arm/boot/dts/am4372.dtsi
-but not documented. Add necessary documentation.
+updating mdr1 register on OMAP needs to take care of
+errata i202. Introduce a function to update mdr1.
+
+This will be useful later on when mdr1 needs to be
+written to from other places. No functional change.
 
 Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/serial/omap_serial.txt | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/tty/serial/8250/8250_omap.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-index 54c2a155c783..d3bd2b1ec401 100644
---- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-+++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-@@ -4,6 +4,7 @@ Required properties:
- - compatible : should be "ti,omap2-uart" for OMAP2 controllers
- - compatible : should be "ti,omap3-uart" for OMAP3 controllers
- - compatible : should be "ti,omap4-uart" for OMAP4 controllers
-+- compatible : should be "ti,am4372-uart" for AM437x controllers
- - reg : address and length of the register space
- - interrupts or interrupts-extended : Should contain the uart interrupt
-                                       specifier or both the interrupt
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 20c5b9c4c288..d9c96b993a84 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -232,6 +232,15 @@ static void omap8250_update_scr(struct uart_8250_port *up,
+ 	serial_out(up, UART_OMAP_SCR, priv->scr);
+ }
+ 
++static void omap8250_update_mdr1(struct uart_8250_port *up,
++				 struct omap8250_priv *priv)
++{
++	if (priv->habit & UART_ERRATA_i202_MDR1_ACCESS)
++		omap_8250_mdr1_errataset(up, priv);
++	else
++		serial_out(up, UART_OMAP_MDR1, priv->mdr1);
++}
++
+ static void omap8250_restore_regs(struct uart_8250_port *up)
+ {
+ 	struct omap8250_priv *priv = up->port.private_data;
+@@ -282,11 +291,9 @@ static void omap8250_restore_regs(struct uart_8250_port *up)
+ 	serial_out(up, UART_XOFF1, priv->xoff);
+ 
+ 	serial_out(up, UART_LCR, up->lcr);
+-	/* need mode A for FCR */
+-	if (priv->habit & UART_ERRATA_i202_MDR1_ACCESS)
+-		omap_8250_mdr1_errataset(up, priv);
+-	else
+-		serial_out(up, UART_OMAP_MDR1, priv->mdr1);
++
++	omap8250_update_mdr1(up, priv);
++
+ 	up->port.ops->set_mctrl(&up->port, up->port.mctrl);
+ }
+ 
 -- 
 2.4.4.408.g16da57c
 
