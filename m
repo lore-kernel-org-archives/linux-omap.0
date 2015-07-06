@@ -1,101 +1,64 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH 4/5] arm: devtree: Read ATAGs structure from DT "/chosen/linux,atags" entry
-Date: Mon,  6 Jul 2015 22:26:12 +0200
-Message-ID: <1436214373-12969-5-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH 1/5] arm: devtree: Set system_rev from DT "/revision"
+Date: Mon,  6 Jul 2015 22:26:09 +0200
+Message-ID: <1436214373-12969-2-git-send-email-pali.rohar@gmail.com>
 References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Russell King <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-With this patch when linux kernel is compiled with ARM_ATAG_DTB_COMPAT =
-it
-reads ATAGs structure from "/chosen/linux,atags" entry and store it int=
-o
-/proc/atags file. ATAGs structure is not parsed or evaluated, just kern=
-el
-exports it to userspace via procfs. It is needed for legacy userspace
-application which expect some data from bootloader in /proc/atags file.
-This patch keeps them running also on DT kernel if DT "/chosen/linux,at=
-ags"
-entry exists.
-
-TODO: add documentation
-
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
----
- arch/arm/kernel/devtree.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/kernel/devtree.c b/arch/arm/kernel/devtree.c
-index 7d82749..69ff048 100644
---- a/arch/arm/kernel/devtree.c
-+++ b/arch/arm/kernel/devtree.c
-@@ -20,6 +20,7 @@
- #include <linux/of_platform.h>
- #include <linux/smp.h>
- #include <linux/libfdt_env.h>
-+#include <linux/libfdt.h>
-=20
- #include <asm/cputype.h>
- #include <asm/setup.h>
-@@ -29,6 +30,7 @@
- #include <asm/mach-types.h>
- #include <asm/system_info.h>
-=20
-+#include "atags.h"
-=20
- #ifdef CONFIG_SMP
- extern struct of_cpu_method __cpu_method_of_table[];
-@@ -208,6 +210,11 @@ const struct machine_desc * __init setup_machine_f=
-dt(unsigned int dt_phys)
- 	const struct machine_desc *mdesc, *mdesc_best =3D NULL;
- 	unsigned long dt_root;
- 	const u32 *rev;
-+	void *dt_virt;
-+#ifdef CONFIG_ARM_ATAG_DTB_COMPAT
-+	const void *atags;
-+	unsigned long dt_chosen;
-+#endif
-=20
- #ifdef CONFIG_ARCH_MULTIPLATFORM
- 	DT_MACHINE_START(GENERIC_DT, "Generic DT based system")
-@@ -216,7 +223,12 @@ const struct machine_desc * __init setup_machine_f=
-dt(unsigned int dt_phys)
- 	mdesc_best =3D &__mach_desc_GENERIC_DT;
- #endif
-=20
--	if (!dt_phys || !early_init_dt_verify(phys_to_virt(dt_phys)))
-+	if (!dt_phys)
-+		return NULL;
-+
-+	dt_virt =3D phys_to_virt(dt_phys);
-+
-+	if (!early_init_dt_verify(dt_virt))
- 		return NULL;
-=20
- 	dt_root =3D of_get_flat_dt_root();
-@@ -254,5 +266,15 @@ const struct machine_desc * __init setup_machine_f=
-dt(unsigned int dt_phys)
- 	if (rev)
- 		system_rev =3D fdt32_to_cpu(*rev);
-=20
-+#ifdef CONFIG_ARM_ATAG_DTB_COMPAT
-+	/* Store DT /chosen/linux,atags into /proc/atags */
-+	dt_chosen =3D fdt_path_offset(dt_virt, "/chosen");
-+	if (dt_chosen >=3D 0) {
-+		atags =3D of_get_flat_dt_prop(dt_chosen, "linux,atags", NULL);
-+		if (atags)
-+			save_atags(atags);
-+	}
-+#endif
-+
- 	return mdesc;
- }
---=20
-1.7.9.5
+V2l0aCB0aGlzIHBhdGNoICIvcmV2aXNpb24iIERUIGVudHJ5IGlzIHVzZWQgdG8gc2V0IGdsb2Jh
+bCBzeXN0ZW1fcmV2CnZhcmlhYmxlLiBEVCAiL3JldmlzaW9uIiBpcyBleHBlY3RlZCB0byBiZSB1
+MzIgbnVtZXJpYyB2YWx1ZS4KClRPRE86IGFkZCBkb2N1bWVudGF0aW9uCgpTaWduZWQtb2ZmLWJ5
+OiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+Ci0tLQogYXJjaC9hcm0va2VybmVs
+L2RldnRyZWUuYyB8ICAgMTIgKysrKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0
+aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9rZXJuZWwvZGV2
+dHJlZS5jIGIvYXJjaC9hcm0va2VybmVsL2RldnRyZWUuYwppbmRleCAxMWM1NGRlLi43ZDgyNzQ5
+IDEwMDY0NAotLS0gYS9hcmNoL2FybS9rZXJuZWwvZGV2dHJlZS5jCisrKyBiL2FyY2gvYXJtL2tl
+cm5lbC9kZXZ0cmVlLmMKQEAgLTE5LDYgKzE5LDcgQEAKICNpbmNsdWRlIDxsaW51eC9vZl9pcnEu
+aD4KICNpbmNsdWRlIDxsaW51eC9vZl9wbGF0Zm9ybS5oPgogI2luY2x1ZGUgPGxpbnV4L3NtcC5o
+PgorI2luY2x1ZGUgPGxpbnV4L2xpYmZkdF9lbnYuaD4KIAogI2luY2x1ZGUgPGFzbS9jcHV0eXBl
+Lmg+CiAjaW5jbHVkZSA8YXNtL3NldHVwLmg+CkBAIC0yNiw2ICsyNyw3IEBACiAjaW5jbHVkZSA8
+YXNtL3NtcF9wbGF0Lmg+CiAjaW5jbHVkZSA8YXNtL21hY2gvYXJjaC5oPgogI2luY2x1ZGUgPGFz
+bS9tYWNoLXR5cGVzLmg+CisjaW5jbHVkZSA8YXNtL3N5c3RlbV9pbmZvLmg+CiAKIAogI2lmZGVm
+IENPTkZJR19TTVAKQEAgLTIwNCw2ICsyMDYsOCBAQCBzdGF0aWMgY29uc3Qgdm9pZCAqIF9faW5p
+dCBhcmNoX2dldF9uZXh0X21hY2goY29uc3QgY2hhciAqY29uc3QgKiptYXRjaCkKIGNvbnN0IHN0
+cnVjdCBtYWNoaW5lX2Rlc2MgKiBfX2luaXQgc2V0dXBfbWFjaGluZV9mZHQodW5zaWduZWQgaW50
+IGR0X3BoeXMpCiB7CiAJY29uc3Qgc3RydWN0IG1hY2hpbmVfZGVzYyAqbWRlc2MsICptZGVzY19i
+ZXN0ID0gTlVMTDsKKwl1bnNpZ25lZCBsb25nIGR0X3Jvb3Q7CisJY29uc3QgdTMyICpyZXY7CiAK
+ICNpZmRlZiBDT05GSUdfQVJDSF9NVUxUSVBMQVRGT1JNCiAJRFRfTUFDSElORV9TVEFSVChHRU5F
+UklDX0RULCAiR2VuZXJpYyBEVCBiYXNlZCBzeXN0ZW0iKQpAQCAtMjE1LDE3ICsyMTksMTYgQEAg
+Y29uc3Qgc3RydWN0IG1hY2hpbmVfZGVzYyAqIF9faW5pdCBzZXR1cF9tYWNoaW5lX2ZkdCh1bnNp
+Z25lZCBpbnQgZHRfcGh5cykKIAlpZiAoIWR0X3BoeXMgfHwgIWVhcmx5X2luaXRfZHRfdmVyaWZ5
+KHBoeXNfdG9fdmlydChkdF9waHlzKSkpCiAJCXJldHVybiBOVUxMOwogCisJZHRfcm9vdCA9IG9m
+X2dldF9mbGF0X2R0X3Jvb3QoKTsKIAltZGVzYyA9IG9mX2ZsYXRfZHRfbWF0Y2hfbWFjaGluZSht
+ZGVzY19iZXN0LCBhcmNoX2dldF9uZXh0X21hY2gpOwogCiAJaWYgKCFtZGVzYykgewogCQljb25z
+dCBjaGFyICpwcm9wOwogCQlpbnQgc2l6ZTsKLQkJdW5zaWduZWQgbG9uZyBkdF9yb290OwogCiAJ
+CWVhcmx5X3ByaW50KCJcbkVycm9yOiB1bnJlY29nbml6ZWQvdW5zdXBwb3J0ZWQgIgogCQkJICAg
+ICJkZXZpY2UgdHJlZSBjb21wYXRpYmxlIGxpc3Q6XG5bICIpOwogCi0JCWR0X3Jvb3QgPSBvZl9n
+ZXRfZmxhdF9kdF9yb290KCk7CiAJCXByb3AgPSBvZl9nZXRfZmxhdF9kdF9wcm9wKGR0X3Jvb3Qs
+ICJjb21wYXRpYmxlIiwgJnNpemUpOwogCQl3aGlsZSAoc2l6ZSA+IDApIHsKIAkJCWVhcmx5X3By
+aW50KCInJXMnICIsIHByb3ApOwpAQCAtMjQ2LDUgKzI0OSwxMCBAQCBjb25zdCBzdHJ1Y3QgbWFj
+aGluZV9kZXNjICogX19pbml0IHNldHVwX21hY2hpbmVfZmR0KHVuc2lnbmVkIGludCBkdF9waHlz
+KQogCS8qIENoYW5nZSBtYWNoaW5lIG51bWJlciB0byBtYXRjaCB0aGUgbWRlc2Mgd2UncmUgdXNp
+bmcgKi8KIAlfX21hY2hpbmVfYXJjaF90eXBlID0gbWRlc2MtPm5yOwogCisJLyogU2V0IHN5c3Rl
+bSByZXZpc2lvbiBmcm9tIERUICovCisJcmV2ID0gb2ZfZ2V0X2ZsYXRfZHRfcHJvcChkdF9yb290
+LCAicmV2aXNpb24iLCBOVUxMKTsKKwlpZiAocmV2KQorCQlzeXN0ZW1fcmV2ID0gZmR0MzJfdG9f
+Y3B1KCpyZXYpOworCiAJcmV0dXJuIG1kZXNjOwogfQotLSAKMS43LjkuNQoKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFp
+bGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
+dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
