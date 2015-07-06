@@ -1,59 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] usb: dwc3: ep0: use _roundup_ to calculate the
- transfer size
-Date: Mon, 6 Jul 2015 14:00:03 -0500
-Message-ID: <20150706190003.GM20779@saruman.tx.rr.com>
-References: <1433927932-32395-1-git-send-email-kishon@ti.com>
- <1433927932-32395-2-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+Subject: Re: [PATCH] thermal: consistently use int for temperatures
+Date: Mon, 06 Jul 2015 21:07:49 +0200
+Message-ID: <14808775.AMIXvBTC8g@diego>
+References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="p1Od3smaOkJqivj4"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1433927932-32395-2-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, gregkh@linuxfoundation.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 List-Id: linux-omap@vger.kernel.org
 
---p1Od3smaOkJqivj4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Jun 10, 2015 at 02:48:48PM +0530, Kishon Vijay Abraham I wrote:
-> No functional change. Used _roundup_ macro to calculate the transfer
-> size aligned to maxpacket in  dwc3_ep0_complete_data. It also makes it
-> similar to how transfer size is calculated in __dwc3_ep0_do_control_data.
+Am Montag, 6. Juli 2015, 09:19:49 schrieb Sascha Hauer:
+> The thermal code uses int, long and unsigned long for temperatures
+> in different places.
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Using an unsigned type limits the thermal framework to positive
+> temperatures without need. Also several drivers currently will report
+> temperatures near UINT_MAX for temperatures below 0=B0C. This will pr=
+obably
+> immediately shut the machine down due to overtemperature if started b=
+elow
+> 0=B0C.
+>=20
+> 'long' is 64bit on several architectures. This is not needed since IN=
+T_MAX
+> =B0mC is above the melting point of all known materials.
+>=20
+> Consistently use a plain 'int' for temperatures throughout the therma=
+l code
+> and the drivers. This only changes the places in the drivers where th=
+e
+> temperature is passed around as pointer, when drivers internally use
+> another type this is not changed.
+>=20
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Eduardo Valentin <edubezval@gmail.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: Jean Delvare <jdelvare@suse.de>
+> Cc: Peter Feuerer <peter@piie.net>
+> Cc: Heiko Stuebner <heiko@sntech.de>
+> Cc: Lukasz Majewski <l.majewski@samsung.com>
+> Cc: Stephen Warren <swarren@wwwdotorg.org>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: platform-driver-x86@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: Guenter Roeck <linux@roeck-us.net>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
+> Cc: Darren Hart <dvhart@infradead.org>
+> Cc: lm-sensors@lm-sensors.org
+> ---
 
-doesn't apply, can you rebase on testing/next ?
+=46or
 
---=20
-balbi
+>  drivers/thermal/rockchip_thermal.c                 | 10 ++++----
 
---p1Od3smaOkJqivj4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVmtAzAAoJEIaOsuA1yqRE5kQP/1goquDvjaMEcUH6aH9x3P7l
-/jjRoCA9by/7VwsaN2YwomqdPrTAU+Y2wJA6BqJeFtT5XmxEy9XvI62mOdzE190C
-TpxdzoVuuStJTjx4L5KcnOAPDrJwr3rKJYqXEiB8W/XV59iGKrLq+P0b00WbCuk4
-9H3ZDPaekTXoaXzm/N8qo3gmKgikh6lMAtbTpvN26Z1OE9aNX5hHvy7ma3hpZ4Dm
-VQAUVGqTkuBEtmBA9zyZy2ENSFLWuPZ3hxngBYykJrTSfCsYDtrmo7bjFVik00N7
-3UkIBHxdcFEszYoqJ8QdLvpnTBJx9dKCK/tB4yxnod9eb1/lPYm7zbWotovY1ypK
-AiFN5jO37MgArRrafOdNYq8FSkR/tSB+FktVB3foWVRM8QgBRpxCfxaLXAB2ptd/
-CFQbkxF6135MecfxgSi9++Ku+LXxvRK1Xr0BfHOicmJ+2UIG1xoziuifHae12UPt
-EWo6SU57PSJ2tNR5jnGZ26xzxHMPHWNAW2AcL8sViyeLB+lyHAQPvbn2b6IZ4kAN
-CNZN6Pel2nuIv5Nzyr6i5VU4yEQuDjCVoxFd0DtI64KY3QxhpJoar1f+aoLq2JP9
-rViV6BWymAbslEKURa3WHqXUxLYWLI30r27umSPT0fD796vugQkw9CTdpNMl9ec/
-cdCx29/SmmArR5qYfUuY
-=Tf1y
------END PGP SIGNATURE-----
-
---p1Od3smaOkJqivj4--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
