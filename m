@@ -1,74 +1,135 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT
- revision
-Date: Mon, 6 Jul 2015 06:55:06 -0700
-Message-ID: <20150706135506.GI10705@atomide.com>
-References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com>
- <201507061423.23505@pali>
- <20150706123126.GG10705@atomide.com>
- <201507061512.27124@pali>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] clocksource: Allow toggling between runtime and persistent
+ clocksource for idle
+Date: Mon, 6 Jul 2015 16:18:23 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1507061558040.3916@nanos>
+References: <1436166725-18353-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <201507061512.27124@pali>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436166725-18353-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, John Stultz <john.stultz@linaro.org>, Nishanth Menon <nm@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150706 06:14]:
-> On Monday 06 July 2015 14:31:27 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150706 05:25]:
-> > > into which file should I put documentation about new DT propertie=
-s?
-> >=20
-> > If it's Linux generic like linux,revision, then how about
-> > Documentation/devicetree/bindings/revision.txt?
-> >=20
-> > For the ATAGs, Documentation/devicetree/bindings/arm/atag.txt?
->
-> Hm... now I'm thinking into which DT field should I put atags and=20
-> revision. In previous emails you wrote to use "linux,atags", now=20
-> "arm,atags"? And put them into root node? Or other?
->=20
-> In arch/arm/boot/compressed/atags_to_fdt.c code I see that most atag=20
-> properties are converted into "/chosen" node in DT...
->=20
-> So what do you prefer for "revision" and what for "atags"?
+On Mon, 6 Jul 2015, Tony Lindgren wrote:
 
-I'd prefer linux,revision and arm,atags. Chances are the ATAGs
-won't be used on other architectures. I'm find with linux,atags
-too if people prefer that.
+> Some persistent clocksources can be on a slow external bus. For shorter
+> latencies for RT use, let's allow toggling the clocksource during idle
+> between a faster non-persistent runtime clocksource and a slower persistent
+> clocksource.
 
-Regards,
+I really cannot follow that RT argument here. The whole switchover
+causes latencies itself and whats worse is, that this breaks
+timekeeping accuracy because there is no way to switch clocksources
+atomically without loss.
 
-Tony
-=20
-> Some mentioned examples:
->=20
-> "/revision"
-> "/chosen/revision"
-> "/linux,revision"
-> "/chosen/linux,revision"
-> ...
->=20
-> "/atags"
-> "/chosen/atags"
-> "/linux,atags"
-> "/chosen/linux,atags"
-> "/arm,atags"
-> "/chosen/arm,atags"
-> ...
->=20
-> --=20
-> Pali Roh=C3=A1r
-> pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+> ---
+>  include/linuxt-email-lkml-omap/clocksource.h |  2 ++
 
+Interesting file name.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  extern int timekeeping_notify(struct clocksource *clock);
+> +extern int clocksource_pm_enter(void);
+> +extern void clocksource_pm_exit(void);
+
+Unfortunately you are not providing the call site, so I cannot see
+from which context this is going to be called.
+
+I fear its from the guts of the idle code probably with interrupts
+disabled etc ...., right?
+  
+> +/**
+> + * clocksource_pm_enter - change to a persistent clocksource before idle
+> + *
+> + * Changes system to use a persistent clocksource for idle. Intended to
+> + * be called from CPUidle from the last active CPU.
+> + */
+> +int clocksource_pm_enter(void)
+> +{
+> +	bool oneshot = tick_oneshot_mode_active();
+> +	struct clocksource *best;
+> +
+> +	if (WARN_ONCE(!mutex_trylock(&clocksource_mutex),
+> +		      "Unable to get clocksource_mutex"))
+> +		return -EINTR;
+
+This trylock serves which purpose?
+
+> +
+> +	best = clocksource_find_best(oneshot, true, false);
+> +	if (best) {
+> +		if (curr_clocksource != best &&
+> +		    !timekeeping_notify(best)) {
+> +			runtime_clocksource = curr_clocksource;
+> +			curr_clocksource = best;
+> +		}
+> +	}
+> +	mutex_unlock(&clocksource_mutex);
+> +
+> +	return !!best;
+> +}
+> +
+> +/**
+> + * clocksource_pm_exit - change to a runtime clocksrouce after idle
+> + *
+> + * Changes system to use the best clocksource for runtime. Intended to
+> + * be called after waking up from CPUidle on the first active CPU.
+> + */
+> +void clocksource_pm_exit(void)
+> +{
+> +	if (WARN_ONCE(!mutex_trylock(&clocksource_mutex),
+> +		      "Unable to get clocksource_mutex"))
+> +		return;
+> +
+> +	if (runtime_clocksource) {
+> +		if (curr_clocksource != runtime_clocksource &&
+> +		    !timekeeping_notify(runtime_clocksource)) {
+> +			curr_clocksource = runtime_clocksource;
+> +			runtime_clocksource = NULL;
+> +		}
+> +	}
+> +	mutex_unlock(&clocksource_mutex);
+> +}
+
+I really cannot see how this is proper serialized.
+
+>  #ifdef CONFIG_SYSFS
+>  /**
+>   * sysfs_show_current_clocksources - sysfs interface for current clocksource
+> diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+> index bca3667..0379260 100644
+> --- a/kernel/time/timekeeping.c
+> +++ b/kernel/time/timekeeping.c
+> @@ -1086,7 +1086,18 @@ int timekeeping_notify(struct clocksource *clock)
+>  
+>  	if (tk->tkr_mono.clock == clock)
+>  		return 0;
+> -	stop_machine(change_clocksource, clock, NULL);
+> +
+> +	/*
+> +	 * We may want to toggle between a fast and a persistent
+> +	 * clocksource from CPUidle on the last active CPU and can't
+> +	 * use stop_machine at that point.
+> +	 */
+> +	if (cpumask_test_cpu(smp_processor_id(), cpu_online_mask) &&
+
+Can you please explain how this code gets called from an offline cpu?
+
+> +	    !rcu_is_watching())
+
+So pick some random combination of conditions and define that it is
+correct, right? How on earth does !rcu_watching() tell that this is
+the last running cpu.
+
+> +		change_clocksource(clock);
+> +	else
+> +		stop_machine(change_clocksource, clock, NULL);
+
+This patch definitely earns a place in my ugly code museum under the
+category 'Does not explode in my face, so it must be correct'.
+
+Thanks,
+
+	tglx
