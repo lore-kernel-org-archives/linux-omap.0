@@ -1,38 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT
- revision
-Date: Mon, 6 Jul 2015 08:24:23 -0700
-Message-ID: <20150706152423.GK10705@atomide.com>
-References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com>
- <20150506114417.GI30910@pali>
- <20150625050138.GL4156@atomide.com>
- <201507061423.23505@pali>
- <20150706123126.GG10705@atomide.com>
- <CAL_JsqK193CBPwvDpPvpDSbGFRfkpxpox45parCoC+ofWE4hUA@mail.gmail.com>
+Subject: Re: [PATCH] pinctrl: single: dra7: remove PCS_QUIRK_SHARED_IRQ
+Date: Mon, 6 Jul 2015 08:25:49 -0700
+Message-ID: <20150706152549.GL10705@atomide.com>
+References: <1436195510-23880-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqK193CBPwvDpPvpDSbGFRfkpxpox45parCoC+ofWE4hUA@mail.gmail.com>
+In-Reply-To: <1436195510-23880-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robherring2@gmail.com> [150706 08:23]:
-> On Mon, Jul 6, 2015 at 7:31 AM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150706 05:25]:
-> >>
-> >> into which file should I put documentation about new DT properties=
-?
-> >
-> > If it's Linux generic like linux,revision, then how about
->=20
-> Just "revision" at the top level please. I'd prefer a string still,
-> but either is fine.
+* Grygorii Strashko <grygorii.strashko@ti.com> [150706 08:14]:
+> On DRA7 there is one pinctrl domain (dra7_pmx_core) and
+> PRCM wake-up IRQ is not shared, so remove quirk.
+> 
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Fixes: 31320beaa3d3 ('pinctrl: single: Add DRA7 pinctrl compatibility')
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  drivers/pinctrl/pinctrl-single.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+> index 0b8d480..9b24b343 100644
+> --- a/drivers/pinctrl/pinctrl-single.c
+> +++ b/drivers/pinctrl/pinctrl-single.c
+> @@ -1983,7 +1983,6 @@ static const struct pcs_soc_data pinctrl_single_omap_wkup = {
+>  };
+>  
+>  static const struct pcs_soc_data pinctrl_single_dra7 = {
+> -	.flags = PCS_QUIRK_SHARED_IRQ,
+>  	.irq_enable_mask = (1 << 24),	/* WAKEUPENABLE */
+>  	.irq_status_mask = (1 << 25),	/* WAKEUPEVENT */
+>  };
 
-OK works for me thanks.
+Tero, care to take a look at this one and ack if OK?
+
+Regards,
 
 Tony
