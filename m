@@ -1,54 +1,40 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 0/2] dmaengine: ti-dma-crossbar: Support for eDMA
-Date: Fri, 3 Jul 2015 17:10:46 +0300
-Message-ID: <559697E6.5000803@ti.com>
-References: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
- <5593DFF6.4090100@ti.com> <20150702155614.GV3246@localhost>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] Add support for PWMSS on DRA7
+Date: Mon, 6 Jul 2015 11:41:43 +0530
+Message-ID: <559A1C1F.7000309@ti.com>
+References: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150702155614.GV3246@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433332284-10766-1-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/02/2015 06:56 PM, Vinod Koul wrote:
-> On Wed, Jul 01, 2015 at 03:41:26PM +0300, Peter Ujfalusi wrote:
->> Hi,
->>
->> On 06/08/2015 04:22 PM, Peter Ujfalusi wrote:
->>> Hi,
->>>
->>> Changes since v01:
->>> - Drop change in compatible for the crossbar driver and do the conf=
-iguration
->>>   based on the DT structure.
->>>
->>> The ti-dma-crossbar driver in it's current form can work when it is=
- used with
->>> sDMA (omap-dma). On DRA7x class of devices we have both sDMA and eD=
-MA available.
->>> The sDMA driver expects to get the DMA request line with offset 1. =
-The eDMA
->>> stack does not need the offset.
->>> The crosbbar itself is identical for sDMA and eDMA.
->>> At probe time the driver will do a match to figure out which dma en=
-gine it is
->>> connected to and based on that information it will configure the of=
-fset needed
->>> by the DMA driver.
->>
->> Gentle ping, it has been almost a month ago this series has been sen=
-t.
-> Sorry I seem to have missed this series. I relooked at this and it lo=
-oks
-> fine. I will apply it once rc1 is out. If it needs rebase please rese=
-nd
 
-No problem,
-the patch still applies cleanly.
 
-Thanks,
-P=E9ter
+On Wednesday 03 June 2015 05:21 PM, Vignesh R wrote:
+> 
+> Hi,
+> 
+> This patch series adds support for PWMSS on DRA7. The IP is same as that
+> present in AM33XX and AM43XX.
+> The first patch changes clock domain in which PWMSS is present
+> (l4per2_7xx_clkdm) to SW_WKUP. This is because legacy IPs like PWM
+> does'nt support HW_AUTO prorperly. Hence, switch clock domain to
+> SW_WKUP. This is based on the input from the hardware team.
+> The rest of the patches add hwmod and dt entries and enable PWMSS on
+> DRA7 based SoCs.
+
+Gentle ping...
+
+
+-- 
+Regards
+Vignesh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
