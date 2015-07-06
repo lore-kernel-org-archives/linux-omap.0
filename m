@@ -1,63 +1,38 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/2] extcon: Fix extcon_cable_get_state() from getting old state after notification
-Date: Mon, 6 Jul 2015 17:46:58 +0300
-Message-ID: <1436194018-18696-3-git-send-email-rogerq@ti.com>
-References: <1436194018-18696-1-git-send-email-rogerq@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] pinctrl: single: dra7: remove PCS_QUIRK_SHARED_IRQ
+Date: Mon, 6 Jul 2015 18:11:50 +0300
+Message-ID: <1436195510-23880-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436194018-18696-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: cw00.choi@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Currently the extcon code notifiers the interested listeners
-before it updates the extcon state with the new state.
-This will cause the listeners that use extcon_cable_get_state()
-to get the stale state and loose the new state.
+On DRA7 there is one pinctrl domain (dra7_pmx_core) and
+PRCM wake-up IRQ is not shared, so remove quirk.
 
-Fix this by first changing the extcon state variable and then
-notifying listeners.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Fixes: 31320beaa3d3 ('pinctrl: single: Add DRA7 pinctrl compatibility')
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/extcon/extcon.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/pinctrl/pinctrl-single.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-index 868c6e2..26d1e1e 100644
---- a/drivers/extcon/extcon.c
-+++ b/drivers/extcon/extcon.c
-@@ -275,19 +275,25 @@ int extcon_update_state(struct extcon_dev *edev, u32 mask, u32 state)
- 	spin_lock_irqsave(&edev->lock, flags);
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 0b8d480..9b24b343 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1983,7 +1983,6 @@ static const struct pcs_soc_data pinctrl_single_omap_wkup = {
+ };
  
- 	if (edev->state != ((edev->state & ~mask) | (state & mask))) {
-+		u32 old_state;
-+
- 		if (check_mutually_exclusive(edev, (edev->state & ~mask) |
- 						   (state & mask))) {
- 			spin_unlock_irqrestore(&edev->lock, flags);
- 			return -EPERM;
- 		}
- 
-+		old_state = edev->state;
-+		edev->state &= ~mask;
-+		edev->state |= state & mask;
-+
- 		for (index = 0; index < edev->max_supported; index++) {
--			if (is_extcon_changed(edev->state, state, index, &attached))
--				raw_notifier_call_chain(&edev->nh[index], attached, edev);
-+			if (is_extcon_changed(old_state, edev->state, index,
-+					      &attached))
-+				raw_notifier_call_chain(&edev->nh[index],
-+							attached, edev);
- 		}
- 
--		edev->state &= ~mask;
--		edev->state |= state & mask;
- 
- 		/* This could be in interrupt handler */
- 		prop_buf = (char *)get_zeroed_page(GFP_ATOMIC);
+ static const struct pcs_soc_data pinctrl_single_dra7 = {
+-	.flags = PCS_QUIRK_SHARED_IRQ,
+ 	.irq_enable_mask = (1 << 24),	/* WAKEUPENABLE */
+ 	.irq_status_mask = (1 << 25),	/* WAKEUPEVENT */
+ };
 -- 
-2.1.4
+2.4.5
+
