@@ -1,109 +1,108 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] clocksource: Allow toggling between runtime and persistent
- clocksource for idle
-Date: Mon, 6 Jul 2015 17:46:02 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1507061737280.3916@nanos>
-References: <1436166725-18353-1-git-send-email-tony@atomide.com> <alpine.DEB.2.11.1507061558040.3916@nanos> <20150706152201.GJ10705@atomide.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT revision
+Date: Mon, 6 Jul 2015 18:20:35 +0200
+Message-ID: <201507061820.35789@pali>
+References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com> <201507061512.27124@pali> <CAL_Jsq+ysDqxTgfW1JvG5czHa4UkZQDv1BN63iK4jvV9kDXM8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150706152201.GJ10705@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, John Stultz <john.stultz@linaro.org>, Nishanth Menon <nm@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>
+Content-Type: multipart/signed;
+  boundary="nextPart2694513.j5x1bJWHGc";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL_Jsq+ysDqxTgfW1JvG5czHa4UkZQDv1BN63iK4jvV9kDXM8w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andreas =?utf-8?q?F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 6 Jul 2015, Tony Lindgren wrote:
-> * Thomas Gleixner <tglx@linutronix.de> [150706 07:20]:
-> > On Mon, 6 Jul 2015, Tony Lindgren wrote:
-> The timekeeping accuracy issue certainly needs some thinking, and
-> also the resolution between the clocksources can be different.. In the
-> test case I have the slow timer is always on and of a lower resolution
-> than the ARM global timer being used during runtime.
-> 
-> Got some handy timer test in mind you want me to run to provide data
-> on the accuracy?
+--nextPart2694513.j5x1bJWHGc
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-John Stultz might have something.
-  
-> > > +/**
-> > > + * clocksource_pm_enter - change to a persistent clocksource before idle
-> > > + *
-> > > + * Changes system to use a persistent clocksource for idle. Intended to
-> > > + * be called from CPUidle from the last active CPU.
-> > > + */
-> > > +int clocksource_pm_enter(void)
-> > > +{
-> > > +	bool oneshot = tick_oneshot_mode_active();
-> > > +	struct clocksource *best;
-> > > +
-> > > +	if (WARN_ONCE(!mutex_trylock(&clocksource_mutex),
-> > > +		      "Unable to get clocksource_mutex"))
-> > > +		return -EINTR;
-> > 
-> > This trylock serves which purpose?
-> 
-> Well we don't want to start changing clocksource if something is
-> running like you pointed out.
+On Monday 06 July 2015 17:22:58 Rob Herring wrote:
+> On Mon, Jul 6, 2015 at 8:12 AM, Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
+ote:
+> > On Monday 06 July 2015 14:31:27 Tony Lindgren wrote:
+> >> * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150706 05:25]:
+> >> > into which file should I put documentation about new DT
+> >> > properties?
+> >>=20
+> >> If it's Linux generic like linux,revision, then how about
+> >> Documentation/devicetree/bindings/revision.txt?
+> >>=20
+> >> For the ATAGs, Documentation/devicetree/bindings/arm/atag.txt?
+> >>=20
+> >> Regards,
+> >>=20
+> >> Tony
+> >=20
+> > Hm... now I'm thinking into which DT field should I put atags and
+> > revision. In previous emails you wrote to use "linux,atags", now
+> > "arm,atags"? And put them into root node? Or other?
+> >=20
+> > In arch/arm/boot/compressed/atags_to_fdt.c code I see that most
+> > atag properties are converted into "/chosen" node in DT...
+> >=20
+> > So what do you prefer for "revision" and what for "atags"?
+> >=20
+> > Some mentioned examples:
+> >=20
+> > "/revision"
+>=20
+> This one. This is a top level h/w property.
+>=20
+> > "/chosen/revision"
+> > "/linux,revision"
+> > "/chosen/linux,revision"
+> > ...
+> >=20
+> > "/atags"
+> > "/chosen/atags"
+> > "/linux,atags"
+> > "/chosen/linux,atags"
+>=20
+> This one. ATAGs are a Linux data struct.
+>=20
+> Rob
+>=20
 
-Well yes, but ....
- 
-> > I really cannot see how this is proper serialized.
-> 
-> We need to allow this only from the last cpu before hitting idle.
+Ok, and how read that property "/chosen/linux,atags" in function
+setup_machine_fdt() from file arch/arm/kernel/devtree.c ?
 
-And I cannot see anything which does so.
+of_get_flat_dt_prop() cannot be used unless somebody get me offset to
+node "/chosen"...
 
-cpu0  	     	 	  	cpu1
-				is_idle	
-go_idle()
-  clocksource_pm_enter()
-    lock(cs_mutex);
-				wakeup()
-				clocksource_pm_exit()
-				  trylock fails ....
+Any idea?
 
-    ...  
-    unlock(cs_mutex);
-  
---> Crap!
+> > "/arm,atags"
+> > "/chosen/arm,atags"
+> > ...
+> >=20
+> > --
+> > Pali Roh=C3=A1r
+> > pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
-> > > @@ -1086,7 +1086,18 @@ int timekeeping_notify(struct clocksource *clock)
-> > >  
-> > >  	if (tk->tkr_mono.clock == clock)
-> > >  		return 0;
-> > > -	stop_machine(change_clocksource, clock, NULL);
-> > > +
-> > > +	/*
-> > > +	 * We may want to toggle between a fast and a persistent
-> > > +	 * clocksource from CPUidle on the last active CPU and can't
-> > > +	 * use stop_machine at that point.
-> > > +	 */
-> > > +	if (cpumask_test_cpu(smp_processor_id(), cpu_online_mask) &&
-> > 
-> > Can you please explain how this code gets called from an offline cpu?
-> 
-> Last cpu getting idled..
 
-That does not make any sense at all. How is idle related to the online
-mask? An idle cpu is still online.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
-> > > +	    !rcu_is_watching())
-> > 
-> > So pick some random combination of conditions and define that it is
-> > correct, right? How on earth does !rcu_watching() tell that this is
-> > the last running cpu.
-> 
-> We have called rcu_idle_enter() from cpuidle_idle_call(). Do you have
-> some better test in mind when the last cpu is about hit idle?
+--nextPart2694513.j5x1bJWHGc
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-The cpuidle code should know that. And if it does not know, it better
-should keep track of that information and based on it provide the
-proper serialization, so the call into the timekeeping code is not a
-subject to guess work and race conditions.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Thanks,
+iEYEABECAAYFAlWaqtMACgkQi/DJPQPkQ1L2qwCgtZWepIPRCCyWD9/08tSrKn5s
+doIAoLWbVp2qOcwCWo7lr0u39uFNYQ2K
+=Rc2x
+-----END PGP SIGNATURE-----
 
-	tglx
-
-  
+--nextPart2694513.j5x1bJWHGc--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
