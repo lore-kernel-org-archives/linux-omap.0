@@ -1,72 +1,55 @@
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Subject: Re: [PATCH] thermal: consistently use int for temperatures
-Date: Mon, 06 Jul 2015 21:07:49 +0200
-Message-ID: <14808775.AMIXvBTC8g@diego>
-References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: rx51-battery.ko incompatiblity: board code vs DT
+Date: Mon, 6 Jul 2015 21:44:22 +0200
+Message-ID: <201507062144.22911@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
+Content-Type: multipart/signed;
+  boundary="nextPart7385215.0aLSxAUm59";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Am Montag, 6. Juli 2015, 09:19:49 schrieb Sascha Hauer:
-> The thermal code uses int, long and unsigned long for temperatures
-> in different places.
->=20
-> Using an unsigned type limits the thermal framework to positive
-> temperatures without need. Also several drivers currently will report
-> temperatures near UINT_MAX for temperatures below 0=B0C. This will pr=
-obably
-> immediately shut the machine down due to overtemperature if started b=
-elow
-> 0=B0C.
->=20
-> 'long' is 64bit on several architectures. This is not needed since IN=
-T_MAX
-> =B0mC is above the melting point of all known materials.
->=20
-> Consistently use a plain 'int' for temperatures throughout the therma=
-l code
-> and the drivers. This only changes the places in the drivers where th=
-e
-> temperature is passed around as pointer, when drivers internally use
-> another type this is not changed.
->=20
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Eduardo Valentin <edubezval@gmail.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: Jean Delvare <jdelvare@suse.de>
-> Cc: Peter Feuerer <peter@piie.net>
-> Cc: Heiko Stuebner <heiko@sntech.de>
-> Cc: Lukasz Majewski <l.majewski@samsung.com>
-> Cc: Stephen Warren <swarren@wwwdotorg.org>
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: platform-driver-x86@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-> Cc: Darren Hart <dvhart@infradead.org>
-> Cc: lm-sensors@lm-sensors.org
-> ---
+--nextPart7385215.0aLSxAUm59
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-=46or
+Hello,
 
->  drivers/thermal/rockchip_thermal.c                 | 10 ++++----
+now I found out that rx51-battery.ko driver register sysnode=20
+/sys/class/power_supply/rx51-battery/ when booting with legacy board=20
+code. But when booting DT kernel it register sysnode with different name=20
+/sys/class/power_supply/n900-battery/
 
-Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Sysfs node for DT kernel comes from Nokia N900 DTS file:=20
+arch/arm/boot/dts/omap3-n900.dts
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would propose change which change DTS to "rx51-battery" to have it=20
+compatible with naming which is for legacy board code. It is just=20
+because to have compatibility and same naming scheme and also to make=20
+existing programs to work without needing patching them.
+
+What do you think?
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart7385215.0aLSxAUm59
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlWa2pYACgkQi/DJPQPkQ1JE4wCeJgTWjfngLXzaRxamuE42g7Su
+hsUAniJgX8gqAHviMOJvMc2c5MRJopM6
+=ZDf4
+-----END PGP SIGNATURE-----
+
+--nextPart7385215.0aLSxAUm59--
