@@ -1,109 +1,40 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v3] clk: change clk_ops' ->determine_rate() prototype
-Date: Mon, 6 Jul 2015 19:15:34 +0200
-Message-ID: <20150706191534.3d0778e0@bbrezillon>
-References: <1432138345-19044-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20150603233728.GA490@codeaurora.org>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: [PATCH] clocksource: Allow toggling between runtime and
+ persistent clocksource for idle
+Date: Mon, 6 Jul 2015 10:28:08 -0700
+Message-ID: <CALAqxLXUWE8HmVW+i=qjdFnGOfrVNM+vRgEdtpp2HS6pzxAKEQ@mail.gmail.com>
+References: <1436166725-18353-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20150603233728.GA490@codeaurora.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org, Mikko Perttunen <mikko.perttunen@kapsi.fi>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, Emilio L??pez <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436166725-18353-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 3 Jun 2015 16:37:28 -0700
-Stephen Boyd <sboyd@codeaurora.org> wrote:
+On Mon, Jul 6, 2015 at 12:12 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Some persistent clocksources can be on a slow external bus. For shorter
+> latencies for RT use, let's allow toggling the clocksource during idle
+> between a faster non-persistent runtime clocksource and a slower persistent
+> clocksource.
 
-> On 05/20, Boris Brezillon wrote:
-> > Clock rates are stored in an unsigned long field, but ->determine_r=
-ate()
-> > (which returns a rounded rate from a requested one) returns a long
-> > value (errors are reported using negative error codes), which can l=
-ead
-> > to long overflow if the clock rate exceed 2Ghz.
-> >=20
-> > Change ->determine_rate() prototype to return 0 or an error code, a=
-nd pass
-> > a pointer to a clk_rate_request structure containing the expected t=
-arget
-> > rate and the rate constraints imposed by clk users.
-> >=20
-> > The clk_rate_request structure might be extended in the future to c=
-ontain
-> > other kind of constraints like the rounding policy, the maximum clo=
-ck
-> > inaccuracy or other things that are not yet supported by the CCF
-> > (power consumption constraints ?).
-> >=20
-> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> >=20
-> > CC: Jonathan Corbet <corbet@lwn.net>
-> > CC: Tony Lindgren <tony@atomide.com>
-> > CC: Ralf Baechle <ralf@linux-mips.org>
-> > CC: "Emilio L=C3=B3pez" <emilio@elopez.com.ar>
-> > CC: Maxime Ripard <maxime.ripard@free-electrons.com>
-> > CC: Tero Kristo <t-kristo@ti.com>
-> > CC: linux-doc@vger.kernel.org
-> > CC: linux-kernel@vger.kernel.org
-> > CC: linux-arm-kernel@lists.infradead.org
-> > CC: linux-omap@vger.kernel.org
-> > CC: linux-mips@linux-mips.org
-> > ---
-> >=20
-> > Hi Stephen,
-> >=20
-> > This patch is based on clk-next and contains the changes you sugges=
-ted
-> > in your previous review.
-> >=20
-> > It was tested on sama5d4 and compile tested on several ARM platform=
-s
-> > (those enabled in multi_v7_defconfig).
-> >=20
->=20
-> Thanks. I think we should wait until the next -rc1 drops to apply the
-> patch for the next merge window. That will make it least likely to co=
-nflict
-> with other trees, and we can provide it on a stable branch should the=
-re
-> be clock providers going through other trees somewhere. Please
-> remind me if I forget.
+So yea, as Thomas mentioned, this will cause problems for timekeeping
+accuracy, since we end up resetting the ntp state when we change
+clocksource (additionally you gain a bit of error each time you switch
+clocksources). So you'll most likely see trouble w/ ntpd steering the
+clock.
 
-Just sent a v4 fixing the bug you reported and rebasing my work on
-4.2-rc1.
+I'm not sure its quite clear in the description as to the need here.
+Could you expand a bit as to the rational for why?  I assume it has to
+do with you have a high-res clocksource that is good for fine-grained
+clock_gettime() calls, but wraps quickly, making it poor for long idle
+times. So you're trying to swap to a less fine grained clocksource
+that won't wrap so fast?
 
->=20
-> > @@ -1186,15 +1191,21 @@ EXPORT_SYMBOL_GPL(__clk_determine_rate);
-> >   */
-> >  unsigned long __clk_round_rate(struct clk *clk, unsigned long rate=
-)
-> >  {
-> > -	unsigned long min_rate;
-> > -	unsigned long max_rate;
-> > +
-> > +	struct clk_rate_request req;
-> > +	int ret;
-> > =20
-> >  	if (!clk)
-> >  		return 0;
-> > =20
-> > -	clk_core_get_boundaries(clk->core, &min_rate, &max_rate);
-> > +	clk_core_get_boundaries(clk->core, &req.min_rate, &req.max_rate);
-> > +	req.rate =3D rate;
-> > +
-> > +	ret =3D clk_core_round_rate_nolock(clk->core, &req);
-> > +	if (ret)
-> > +		return ret;
->=20
-> This returns a negative int for unsigned long. Is that intentional?
->=20
+The persistent-clock-like name muddies things further, since the
+persistent-clock is used for suspend, while it looks like this is just
+for idle times.
 
-
-
---=20
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+thanks
+-john
