@@ -1,55 +1,48 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] extcon: Fix kernel hang for find_cable_index_by_name()
- users
-Date: Mon, 6 Jul 2015 16:38:48 +0300
-Message-ID: <559A84E8.4010109@ti.com>
-References: <1436185889-773-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: USB Ethernet gadget on Nokia n900
+Date: Mon, 6 Jul 2015 06:53:18 -0700
+Message-ID: <20150706135317.GH10705@atomide.com>
+References: <20141019090107.GA19132@amd>
+ <20141028222123.GA17518@amd>
+ <20141028222641.GW2542@atomide.com>
+ <201507061524.44999@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436185889-773-1-git-send-email-rogerq@ti.com>
+Content-Disposition: inline
+In-Reply-To: <201507061524.44999@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: cw00.choi@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150706 06:27]:
+> On Tuesday 28 October 2014 23:26:41 Tony Lindgren wrote:
+> > * Pavel Machek <pavel@ucw.cz> [141028 15:22]:
+> > > On Tue 2014-10-28 23:04:50, Pavel Machek wrote:
+> > > >=20
+> > > > Networking now works against 3.17-based kernel. Thanks!
+> > >=20
+> > > It works on 3.18-rc1 kernel, too. (I had to hand-modify patch to
+> > > apply to 3.17, no changes needed for 3.18-rc1.)
+> > >=20
+> > > Tested-by: Pavel Machek <pavel@ucw.cz>
+> >=20
+> > Whatever we decice to do to fix this regression, it should probably
+> > be backported to at least v3.16 stable for distro use, maybe earlie=
+r
+> > too. I'd assume this is broken on multiple platforms currently.
+> >=20
+> it looks like this patch was not included into any kernel version... =
+I'm=20
+> still using it on top of 4.x kernels. Are you going to send this patc=
+h=20
+> into upstream? Or do you have another fix for this problem?
 
-On 06/07/15 15:31, Roger Quadros wrote:
-> Users of find_cable_index_by_name() will cause a kernel hang
-> as the while loop counter is never incremented and end condition
-> is never reached.
->
-> Fixes: commit 73b6ecdb93e8 ("extcon: Redefine the unique id of supported external connectors without 'enum extcon' type")
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+I think Felipe mentioned a better built-in gether fix that's been
+reviewed on linux-usb list.
 
-Please ignore this patch.
-The extcon framework is broken bad in v4.2 and this patch is not 
-sufficient to fix it.
+Regards,
 
-I will send another patch that fixes the issues that I'm facing in a while.
-
-cheers,
--roger
-
-
-> ---
->   drivers/extcon/extcon.c | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-> index 76157ab..1acc830 100644
-> --- a/drivers/extcon/extcon.c
-> +++ b/drivers/extcon/extcon.c
-> @@ -138,6 +138,8 @@ static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
->   			id = i;
->   			break;
->   		}
-> +
-> +		i++;
->   	}
->
->   	if (id == EXTCON_NONE)
->
+Tony
