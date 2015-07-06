@@ -1,32 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND] [PATCH v2 1/2] arm: devtree: Set system_rev from DT
- revision
-Date: Mon, 6 Jul 2015 05:31:27 -0700
-Message-ID: <20150706123126.GG10705@atomide.com>
-References: <1430902142-17035-1-git-send-email-pali.rohar@gmail.com>
- <20150506114417.GI30910@pali>
- <20150625050138.GL4156@atomide.com>
- <201507061423.23505@pali>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] extcon: Fix kernel hang for find_cable_index_by_name() users
+Date: Mon, 6 Jul 2015 15:31:29 +0300
+Message-ID: <1436185889-773-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201507061423.23505@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Rob Herring <robherring2@gmail.com>, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
+To: cw00.choi@samsung.com
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150706 05:25]:
->
-> into which file should I put documentation about new DT properties?
+Users of find_cable_index_by_name() will cause a kernel hang
+as the while loop counter is never incremented and end condition
+is never reached.
 
-If it's Linux generic like linux,revision, then how about
-Documentation/devicetree/bindings/revision.txt?
+Fixes: commit 73b6ecdb93e8 ("extcon: Redefine the unique id of supported external connectors without 'enum extcon' type")
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/extcon/extcon.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-=46or the ATAGs, Documentation/devicetree/bindings/arm/atag.txt?
-
-Regards,
-
-Tony
+diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
+index 76157ab..1acc830 100644
+--- a/drivers/extcon/extcon.c
++++ b/drivers/extcon/extcon.c
+@@ -138,6 +138,8 @@ static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
+ 			id = i;
+ 			break;
+ 		}
++
++		i++;
+ 	}
+ 
+ 	if (id == EXTCON_NONE)
+-- 
+2.1.4
