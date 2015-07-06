@@ -1,38 +1,49 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] extcon: Fix kernel hang for find_cable_index_by_name() users
-Date: Mon, 6 Jul 2015 15:31:29 +0300
-Message-ID: <1436185889-773-1-git-send-email-rogerq@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 0/2] dmaengine: ti-dma-crossbar: Support for eDMA
+Date: Mon, 6 Jul 2015 18:36:32 +0530
+Message-ID: <20150706130632.GB11002@localhost>
+References: <1433769762-31827-1-git-send-email-peter.ujfalusi@ti.com>
+ <5593DFF6.4090100@ti.com>
+ <20150702155614.GV3246@localhost>
+ <559697E6.5000803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <559697E6.5000803@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: cw00.choi@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Users of find_cable_index_by_name() will cause a kernel hang
-as the while loop counter is never incremented and end condition
-is never reached.
+On Fri, Jul 03, 2015 at 05:10:46PM +0300, Peter Ujfalusi wrote:
+> On 07/02/2015 06:56 PM, Vinod Koul wrote:
+> > On Wed, Jul 01, 2015 at 03:41:26PM +0300, Peter Ujfalusi wrote:
+> >> Hi,
+> >>
+> >> On 06/08/2015 04:22 PM, Peter Ujfalusi wrote:
+> >>> Hi,
+> >>>
+> >>> Changes since v01:
+> >>> - Drop change in compatible for the crossbar driver and do the configuration
+> >>>   based on the DT structure.
+> >>>
+> >>> The ti-dma-crossbar driver in it's current form can work when it is used with
+> >>> sDMA (omap-dma). On DRA7x class of devices we have both sDMA and eDMA available.
+> >>> The sDMA driver expects to get the DMA request line with offset 1. The eDMA
+> >>> stack does not need the offset.
+> >>> The crosbbar itself is identical for sDMA and eDMA.
+> >>> At probe time the driver will do a match to figure out which dma engine it is
+> >>> connected to and based on that information it will configure the offset needed
+> >>> by the DMA driver.
+> >>
+> >> Gentle ping, it has been almost a month ago this series has been sent.
+> > Sorry I seem to have missed this series. I relooked at this and it looks
+> > fine. I will apply it once rc1 is out. If it needs rebase please resend
+> 
+> No problem,
+> the patch still applies cleanly.
+No luck, I tried on -rc1 an 1st fails, can you please rebase and resend
 
-Fixes: commit 73b6ecdb93e8 ("extcon: Redefine the unique id of supported external connectors without 'enum extcon' type")
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/extcon/extcon.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-index 76157ab..1acc830 100644
---- a/drivers/extcon/extcon.c
-+++ b/drivers/extcon/extcon.c
-@@ -138,6 +138,8 @@ static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
- 			id = i;
- 			break;
- 		}
-+
-+		i++;
- 	}
- 
- 	if (id == EXTCON_NONE)
 -- 
-2.1.4
+~Vinod
