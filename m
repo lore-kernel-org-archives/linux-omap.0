@@ -1,40 +1,58 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH 0/5] ATAGs to DT patches
-Date: Mon,  6 Jul 2015 22:26:08 +0200
-Message-ID: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
+Date: Mon,  6 Jul 2015 22:26:13 +0200
+Message-ID: <1436214373-12969-6-git-send-email-pali.rohar@gmail.com>
+References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series converts some legacy ATAGs into DT and provide them t=
-o
-userspace. It is needed for userspace applications which needs some
-informations from legacy bootloaders which are not DT compatible.
+Legacy bootloaders can pass additional information for kernel or legacy
+userspace applications. When booting DT kernel then ATAGs structure is =
+not
+more visible after running kernel uncompress code. This patch stores fu=
+ll
+ATAGs structure into DT "/chosen/linux,atags" entry, so kernel can late=
+r
+reuse it and export via /proc/atags to userspace.
 
-Patch series is for now without DT documentation files. It was tested i=
-n
-QEMU for Nokia N900. File /proc/cpuinfo contains correct "Revision" lin=
-e
-from ATAG_REVISION and /proc/atags contains full ATAGs structure.
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+ arch/arm/boot/compressed/atags_to_fdt.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-Pali Roh=C3=A1r (5):
-  arm: devtree: Set system_rev from DT "/revision"
-  arm: boot: convert ATAG_REVISION to DT "/revision" entry
-  arm: atags: Fix declaration of function save_atags
-  arm: devtree: Read ATAGs structure from DT "/chosen/linux,atags"
-    entry
-  arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
-
- arch/arm/boot/compressed/atags_to_fdt.c |    8 ++++++-
- arch/arm/kernel/atags.h                 |    4 ++--
- arch/arm/kernel/devtree.c               |   36 +++++++++++++++++++++++=
-+++++---
- 3 files changed, 42 insertions(+), 6 deletions(-)
-
+diff --git a/arch/arm/boot/compressed/atags_to_fdt.c b/arch/arm/boot/co=
+mpressed/atags_to_fdt.c
+index e7e1cc9..ae93973 100644
+--- a/arch/arm/boot/compressed/atags_to_fdt.c
++++ b/arch/arm/boot/compressed/atags_to_fdt.c
+@@ -112,7 +112,7 @@ int atags_to_fdt(void *atag_list, void *fdt, int to=
+tal_space)
+ 	 * address and size for each bank */
+ 	uint32_t mem_reg_property[2 * 2 * NR_BANKS];
+ 	int memcount =3D 0;
+-	int ret, memsize;
++	int ret, memsize, atag_size;
+=20
+ 	/* make sure we've got an aligned pointer */
+ 	if ((u32)atag_list & 0x3)
+@@ -189,5 +189,9 @@ int atags_to_fdt(void *atag_list, void *fdt, int to=
+tal_space)
+ 			4 * memcount * memsize);
+ 	}
+=20
++	/* include the terminating ATAG_NONE */
++	atag_size =3D (char *)atag - (char *)atag_list + sizeof(struct tag_he=
+ader);
++	setprop(fdt, "/chosen", "linux,atags", atag_list, atag_size);
++
+ 	return fdt_pack(fdt);
+ }
 --=20
 1.7.9.5
