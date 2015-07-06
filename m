@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
-Date: Mon,  6 Jul 2015 22:26:13 +0200
-Message-ID: <1436214373-12969-6-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH 3/5] arm: atags: Fix declaration of function save_atags
+Date: Mon,  6 Jul 2015 22:26:11 +0200
+Message-ID: <1436214373-12969-4-git-send-email-pali.rohar@gmail.com>
 References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,46 +13,30 @@ To: Russell King <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>,
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Legacy bootloaders can pass additional information for kernel or legacy
-userspace applications. When booting DT kernel then ATAGs structure is =
-not
-more visible after running kernel uncompress code. This patch stores fu=
-ll
-ATAGs structure into DT "/chosen/linux,atags" entry, so kernel can late=
-r
-reuse it and export via /proc/atags to userspace.
+In file atags_proc.c function save_atags() expect const argument, but i=
+n
+atags.h file is declarated as non const. Fix declaration in atags.h fil=
+e to
+match what is expected.
 
 Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 ---
- arch/arm/boot/compressed/atags_to_fdt.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/kernel/atags.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/compressed/atags_to_fdt.c b/arch/arm/boot/co=
-mpressed/atags_to_fdt.c
-index e7e1cc9..ae93973 100644
---- a/arch/arm/boot/compressed/atags_to_fdt.c
-+++ b/arch/arm/boot/compressed/atags_to_fdt.c
-@@ -112,7 +112,7 @@ int atags_to_fdt(void *atag_list, void *fdt, int to=
-tal_space)
- 	 * address and size for each bank */
- 	uint32_t mem_reg_property[2 * 2 * NR_BANKS];
- 	int memcount =3D 0;
--	int ret, memsize;
-+	int ret, memsize, atag_size;
+diff --git a/arch/arm/kernel/atags.h b/arch/arm/kernel/atags.h
+index ec4164d..2dfc30f 100644
+--- a/arch/arm/kernel/atags.h
++++ b/arch/arm/kernel/atags.h
+@@ -1,7 +1,7 @@
+ #ifdef CONFIG_ATAGS_PROC
+-extern void save_atags(struct tag *tags);
++extern void save_atags(const struct tag *tags);
+ #else
+-static inline void save_atags(struct tag *tags) { }
++static inline void save_atags(const struct tag *tags) { }
+ #endif
 =20
- 	/* make sure we've got an aligned pointer */
- 	if ((u32)atag_list & 0x3)
-@@ -189,5 +189,9 @@ int atags_to_fdt(void *atag_list, void *fdt, int to=
-tal_space)
- 			4 * memcount * memsize);
- 	}
-=20
-+	/* include the terminating ATAG_NONE */
-+	atag_size =3D (char *)atag - (char *)atag_list + sizeof(struct tag_he=
-ader);
-+	setprop(fdt, "/chosen", "linux,atags", atag_list, atag_size);
-+
- 	return fdt_pack(fdt);
- }
+ void convert_to_tag_list(struct tag *tags);
 --=20
 1.7.9.5
