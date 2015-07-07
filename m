@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
-Date: Tue, 7 Jul 2015 17:27:56 +0300
-Message-ID: <1436279277-3386-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/2] ARM: dts: dra7x-evm: Prevent glitch on DCAN1 pinmux
+Date: Tue, 7 Jul 2015 17:27:57 +0300
+Message-ID: <1436279277-3386-3-git-send-email-rogerq@ti.com>
 References: <1436279277-3386-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,51 +12,53 @@ To: wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com
 Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+Driver core sets "default" pinmux on on probe and CAN driver
+sets "sleep" pinmux during register. This causes a small window
+where the CAN pins are in "default" state with the DCAN module
+being disabled.
 
-The previous change 3973c526ae9c (net: can: c_can: Disable pins when CAN interface
-is down) causes a slight glitch on the pinctrl settings when used. Since
-commit ab78029 (drivers/pinctrl: grab default handles from device core),
-the device core will automatically set the default pins. This causes
-the pins to be momentarily set to the default and then to the sleep
-state in register_c_can_dev(). By adding an optional "enable" state,
-boards can set the default pin state to be disabled and avoid the
-glitch when the switch from default to sleep first occurs. If the
-"enable" state is not available c_can_pinctrl_select_state() falls
-back to using the "default" pinctrl state.
+Change the "default" state to be like sleep so this glitch is
+avoided. Add a new "active" state that is used by the driver
+when CAN is actually active.
 
-[Roger Q] - Forward port to v4.2
-
-Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/net/can/c_can/c_can.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7-evm.dts  | 5 +++--
+ arch/arm/boot/dts/dra72-evm.dts | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
-index 041525d..66e98e7 100644
---- a/drivers/net/can/c_can/c_can.c
-+++ b/drivers/net/can/c_can/c_can.c
-@@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
- 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index aa46590..096f68b 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -686,7 +686,8 @@
  
- 	/* activate pins */
--	pinctrl_pm_select_default_state(dev->dev.parent);
-+#ifdef CONFIG_PINCTRL
-+	if (priv->device->pins) {
-+		struct pinctrl_state *s;
-+
-+		/* Attempt to use "active" if available else use "default" */
-+		s = pinctrl_lookup_state(priv->device->pins->p, "active");
-+		if (!IS_ERR(s))
-+			pinctrl_select_state(priv->device->pins->p, s);
-+		else
-+			pinctrl_pm_select_default_state(dev->dev.parent);
-+	}
-+#endif
- 	return 0;
- }
+ &dcan1 {
+ 	status = "ok";
+-	pinctrl-names = "default", "sleep";
+-	pinctrl-0 = <&dcan1_pins_default>;
++	pinctrl-names = "default", "sleep", "active";
++	pinctrl-0 = <&dcan1_pins_sleep>;
+ 	pinctrl-1 = <&dcan1_pins_sleep>;
++	pinctrl-2 = <&dcan1_pins_default>;
+ };
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 4e1b605..8037384 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -587,9 +587,10 @@
  
+ &dcan1 {
+ 	status = "ok";
+-	pinctrl-names = "default", "sleep";
+-	pinctrl-0 = <&dcan1_pins_default>;
++	pinctrl-names = "default", "sleep", "active";
++	pinctrl-0 = <&dcan1_pins_sleep>;
+ 	pinctrl-1 = <&dcan1_pins_sleep>;
++	pinctrl-2 = <&dcan1_pins_default>;
+ };
+ 
+ &qspi {
 -- 
 2.1.4
 
