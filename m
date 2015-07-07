@@ -1,54 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] clocksource: Allow toggling between runtime and
  persistent clocksource for idle
-Date: Tue, 7 Jul 2015 03:24:58 -0700
-Message-ID: <20150707102458.GR10705@atomide.com>
+Date: Tue, 7 Jul 2015 03:33:13 -0700
+Message-ID: <20150707103312.GS10705@atomide.com>
 References: <1436166725-18353-1-git-send-email-tony@atomide.com>
- <alpine.DEB.2.11.1507061558040.3916@nanos>
- <20150706152201.GJ10705@atomide.com>
- <alpine.DEB.2.11.1507061737280.3916@nanos>
- <CALAqxLXrPus4EMuXWLgq2qP1pF0=qg-oki0KB=D+Z6N2zPJJ8g@mail.gmail.com>
+ <CALAqxLXUWE8HmVW+i=qjdFnGOfrVNM+vRgEdtpp2HS6pzxAKEQ@mail.gmail.com>
+ <alpine.DEB.2.11.1507061931570.3916@nanos>
+ <CALAqxLWO51uRteSADFdfxgg-NRrYKKZBmxDEZOo5RZJ-7K2VNA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CALAqxLXrPus4EMuXWLgq2qP1pF0=qg-oki0KB=D+Z6N2zPJJ8g@mail.gmail.com>
+In-Reply-To: <CALAqxLWO51uRteSADFdfxgg-NRrYKKZBmxDEZOo5RZJ-7K2VNA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: John Stultz <john.stultz@linaro.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>, lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* John Stultz <john.stultz@linaro.org> [150706 10:53]:
-> On Mon, Jul 6, 2015 at 8:46 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> > On Mon, 6 Jul 2015, Tony Lindgren wrote:
-> >> * Thomas Gleixner <tglx@linutronix.de> [150706 07:20]:
-> >> > On Mon, 6 Jul 2015, Tony Lindgren wrote:
-> >> The timekeeping accuracy issue certainly needs some thinking, and
-> >> also the resolution between the clocksources can be different.. In the
-> >> test case I have the slow timer is always on and of a lower resolution
-> >> than the ARM global timer being used during runtime.
+* John Stultz <john.stultz@linaro.org> [150706 10:55]:
+> On Mon, Jul 6, 2015 at 10:34 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
+> > On Mon, 6 Jul 2015, John Stultz wrote:
+> >> On Mon, Jul 6, 2015 at 12:12 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >> > Some persistent clocksources can be on a slow external bus. For shorter
+> >> > latencies for RT use, let's allow toggling the clocksource during idle
+> >> > between a faster non-persistent runtime clocksource and a slower persistent
+> >> > clocksource.
 > >>
-> >> Got some handy timer test in mind you want me to run to provide data
-> >> on the accuracy?
+> >> So yea, as Thomas mentioned, this will cause problems for timekeeping
+> >> accuracy, since we end up resetting the ntp state when we change
+> >> clocksource (additionally you gain a bit of error each time you switch
+> >> clocksources). So you'll most likely see trouble w/ ntpd steering the
+> >> clock.
+> >>
+> >> I'm not sure its quite clear in the description as to the need here.
+> >> Could you expand a bit as to the rational for why?  I assume it has to
+> >> do with you have a high-res clocksource that is good for fine-grained
+> >> clock_gettime() calls, but wraps quickly, making it poor for long idle
+> >> times. So you're trying to swap to a less fine grained clocksource
+> >> that won't wrap so fast?
+> >>
+> >> The persistent-clock-like name muddies things further, since the
+> >> persistent-clock is used for suspend, while it looks like this is just
+> >> for idle times.
 > >
-> > John Stultz might have something.
+> > Though that are idle states where the cpu is powered off so the fast
+> > clock source is powered off as well....
+> >
+> > We all know how well that works from the x86/TSC horror. It's just the
+> > same thing again with a different arch prefix.
 > 
-> You can turn on ntp stats in your ntp.conf and chart the loopstats
-> data w/ gnuplot:
-> 
-> set terminal png
-> set output "loopstat.png"
-> plot "/var/log/ntpstats/loopstats.<dateoftest>" using 2:3 with linespoints
-> 
-> 
-> I also have  the drift-log.py and graph-log.py scripts I use here:
-> https://github.com/johnstultz-work/timetests
-> 
-> But those aren't really ready for mass consumption, as they're
-> probably not very cross-distro compatible.
+> Right.. and it might be telling that on x86 systems with this issue,
+> we don't play games with it and that sort of hardware just has to use
+> the slower and less fine-grained clocksources all the time.
 
-Great thanks, I'll play a bit with those to see how bad the jitter gets.
+Yes it's similar to the old x86 TSC vs ACPI PM timer issue. We have
+ARM global timer powered off during idle.
 
-Regrds,
+It may be best to just use kernel cmdline to select the ARM global
+timer and then disable any deeper power states if ARM global timer
+is selected.
+
+Regards,
 
 Tony
