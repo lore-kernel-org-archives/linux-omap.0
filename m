@@ -1,65 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clocksource: Allow toggling between runtime and
- persistent clocksource for idle
-Date: Tue, 7 Jul 2015 03:33:13 -0700
-Message-ID: <20150707103312.GS10705@atomide.com>
-References: <1436166725-18353-1-git-send-email-tony@atomide.com>
- <CALAqxLXUWE8HmVW+i=qjdFnGOfrVNM+vRgEdtpp2HS6pzxAKEQ@mail.gmail.com>
- <alpine.DEB.2.11.1507061931570.3916@nanos>
- <CALAqxLWO51uRteSADFdfxgg-NRrYKKZBmxDEZOo5RZJ-7K2VNA@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: rx51-battery.ko incompatiblity: board code vs DT
+Date: Tue, 7 Jul 2015 12:41:50 +0200
+Message-ID: <20150707104150.GC13811@amd>
+References: <201507062144.22911@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CALAqxLWO51uRteSADFdfxgg-NRrYKKZBmxDEZOo5RZJ-7K2VNA@mail.gmail.com>
+In-Reply-To: <201507062144.22911@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* John Stultz <john.stultz@linaro.org> [150706 10:55]:
-> On Mon, Jul 6, 2015 at 10:34 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> > On Mon, 6 Jul 2015, John Stultz wrote:
-> >> On Mon, Jul 6, 2015 at 12:12 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > Some persistent clocksources can be on a slow external bus. For shorter
-> >> > latencies for RT use, let's allow toggling the clocksource during idle
-> >> > between a faster non-persistent runtime clocksource and a slower persistent
-> >> > clocksource.
-> >>
-> >> So yea, as Thomas mentioned, this will cause problems for timekeeping
-> >> accuracy, since we end up resetting the ntp state when we change
-> >> clocksource (additionally you gain a bit of error each time you switch
-> >> clocksources). So you'll most likely see trouble w/ ntpd steering the
-> >> clock.
-> >>
-> >> I'm not sure its quite clear in the description as to the need here.
-> >> Could you expand a bit as to the rational for why?  I assume it has to
-> >> do with you have a high-res clocksource that is good for fine-grained
-> >> clock_gettime() calls, but wraps quickly, making it poor for long idle
-> >> times. So you're trying to swap to a less fine grained clocksource
-> >> that won't wrap so fast?
-> >>
-> >> The persistent-clock-like name muddies things further, since the
-> >> persistent-clock is used for suspend, while it looks like this is just
-> >> for idle times.
-> >
-> > Though that are idle states where the cpu is powered off so the fast
-> > clock source is powered off as well....
-> >
-> > We all know how well that works from the x86/TSC horror. It's just the
-> > same thing again with a different arch prefix.
-> 
-> Right.. and it might be telling that on x86 systems with this issue,
-> we don't play games with it and that sort of hardware just has to use
-> the slower and less fine-grained clocksources all the time.
+On Mon 2015-07-06 21:44:22, Pali Roh=E1r wrote:
+> Hello,
+>=20
+> now I found out that rx51-battery.ko driver register sysnode=20
+> /sys/class/power_supply/rx51-battery/ when booting with legacy board=20
+> code. But when booting DT kernel it register sysnode with different n=
+ame=20
+> /sys/class/power_supply/n900-battery/
+>=20
+> Sysfs node for DT kernel comes from Nokia N900 DTS file:=20
+> arch/arm/boot/dts/omap3-n900.dts
+>=20
+> I would propose change which change DTS to "rx51-battery" to have it=20
+> compatible with naming which is for legacy board code. It is just=20
+> because to have compatibility and same naming scheme and also to make=
+=20
+> existing programs to work without needing patching them.
+>=20
+> What do you think?
 
-Yes it's similar to the old x86 TSC vs ACPI PM timer issue. We have
-ARM global timer powered off during idle.
-
-It may be best to just use kernel cmdline to select the ARM global
-timer and then disable any deeper power states if ARM global timer
-is selected.
-
-Regards,
-
-Tony
+Makes sense.. along with _big_ comment in the dts why we are doing
+this.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
