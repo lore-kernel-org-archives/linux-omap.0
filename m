@@ -1,135 +1,86 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH v2 1/7] crypto: omap-aes: Fix CTR mode
-Date: Tue, 7 Jul 2015 21:01:43 +0530
-Message-ID: <1436283109-13318-2-git-send-email-lokeshvutla@ti.com>
-References: <1436283109-13318-1-git-send-email-lokeshvutla@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
+Date: Tue, 7 Jul 2015 18:49:17 +0300
+Message-ID: <559BF4FD.2080400@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com> <559BE433.9020308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1436283109-13318-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <559BE433.9020308@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Algo self tests are failing for CTR mode with omap-aes driver,
-giving the following error:
+On 07/07/2015 05:37 PM, Roger Quadros wrote:
+> On 07/07/15 17:35, Roger Quadros wrote:
+>> On 07/07/15 17:33, Marc Kleine-Budde wrote:
+>>> On 07/07/2015 04:27 PM, Roger Quadros wrote:
+>>>> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>>>>
+>>>> The previous change 3973c526ae9c (net: can: c_can: Disable pins when
+>>>> CAN interface
+>>>> is down) causes a slight glitch on the pinctrl settings when used.
+>>>> Since
+>>>> commit ab78029 (drivers/pinctrl: grab default handles from device
+>>>> core),
+>>>> the device core will automatically set the default pins. This causes
+>>>> the pins to be momentarily set to the default and then to the sleep
+>>>> state in register_c_can_dev(). By adding an optional "enable" state,
+>>>> boards can set the default pin state to be disabled and avoid the
+>>>> glitch when the switch from default to sleep first occurs. If the
+>>>> "enable" state is not available c_can_pinctrl_select_state() falls
+>>>> back to using the "default" pinctrl state.
+>>>>
+>>>> [Roger Q] - Forward port to v4.2
+>>>>
+>>>> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>   drivers/net/can/c_can/c_can.c | 13 ++++++++++++-
+>>>>   1 file changed, 12 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/net/can/c_can/c_can.c
+>>>> b/drivers/net/can/c_can/c_can.c
+>>>> index 041525d..66e98e7 100644
+>>>> --- a/drivers/net/can/c_can/c_can.c
+>>>> +++ b/drivers/net/can/c_can/c_can.c
+>>>> @@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
+>>>>       priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>>>
+>>>>       /* activate pins */
+>>>> -    pinctrl_pm_select_default_state(dev->dev.parent);
+>>>> +#ifdef CONFIG_PINCTRL
+>>>
+>>> Please remove the ifdef, AFAICS there are static inline noop functions
+>>> if CONFIG_PINCTRL switched off.
+>>
+>> yes, you are right.
+>
+> On second thoughts
+>
+> device->pins are not defined if CONFIG_PINCTRL is not set.
+> so we can't remove the #ifdef.
 
-[  150.053644]       omap_aes_crypt: request size is not exact amount of AES blocks
-[  150.061262] alg: skcipher: encryption failed on test 5 for ctr-aes-omap: ret=22
+May be you can use [devm_]pinctrl_get?
 
-This is because the input length is not aligned with AES_BLOCK_SIZE.
-Adding support for omap-aes driver for inputs with length not aligned
-with AES_BLOCK_SIZE.
+>>>
+>>>> +    if (priv->device->pins) {
+>>>> +        struct pinctrl_state *s;
+>>>> +
+>>>> +        /* Attempt to use "active" if available else use "default" */
+>>>> +        s = pinctrl_lookup_state(priv->device->pins->p, "active");
+>>>> +        if (!IS_ERR(s))
+>>>> +            pinctrl_select_state(priv->device->pins->p, s);
+>>>> +        else
+>>>> +            pinctrl_pm_select_default_state(dev->dev.parent);
+>>>> +    }
+>>>> +#endif
+>>>>       return 0;
+>>>>   }
+>>>>
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- drivers/crypto/omap-aes.c | 33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index 9a28b7e..4a0e808 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -558,6 +558,9 @@ static int omap_aes_check_aligned(struct scatterlist *sg, int total)
- {
- 	int len = 0;
- 
-+	if (!IS_ALIGNED(total, AES_BLOCK_SIZE))
-+		return -EINVAL;
-+
- 	while (sg) {
- 		if (!IS_ALIGNED(sg->offset, 4))
- 			return -1;
-@@ -577,9 +580,10 @@ static int omap_aes_check_aligned(struct scatterlist *sg, int total)
- static int omap_aes_copy_sgs(struct omap_aes_dev *dd)
- {
- 	void *buf_in, *buf_out;
--	int pages;
-+	int pages, total;
- 
--	pages = get_order(dd->total);
-+	total = ALIGN(dd->total, AES_BLOCK_SIZE);
-+	pages = get_order(total);
- 
- 	buf_in = (void *)__get_free_pages(GFP_ATOMIC, pages);
- 	buf_out = (void *)__get_free_pages(GFP_ATOMIC, pages);
-@@ -594,11 +598,11 @@ static int omap_aes_copy_sgs(struct omap_aes_dev *dd)
- 	sg_copy_buf(buf_in, dd->in_sg, 0, dd->total, 0);
- 
- 	sg_init_table(&dd->in_sgl, 1);
--	sg_set_buf(&dd->in_sgl, buf_in, dd->total);
-+	sg_set_buf(&dd->in_sgl, buf_in, total);
- 	dd->in_sg = &dd->in_sgl;
- 
- 	sg_init_table(&dd->out_sgl, 1);
--	sg_set_buf(&dd->out_sgl, buf_out, dd->total);
-+	sg_set_buf(&dd->out_sgl, buf_out, total);
- 	dd->out_sg = &dd->out_sgl;
- 
- 	return 0;
-@@ -611,7 +615,7 @@ static int omap_aes_handle_queue(struct omap_aes_dev *dd,
- 	struct omap_aes_ctx *ctx;
- 	struct omap_aes_reqctx *rctx;
- 	unsigned long flags;
--	int err, ret = 0;
-+	int err, ret = 0, len;
- 
- 	spin_lock_irqsave(&dd->lock, flags);
- 	if (req)
-@@ -650,8 +654,9 @@ static int omap_aes_handle_queue(struct omap_aes_dev *dd,
- 		dd->sgs_copied = 0;
- 	}
- 
--	dd->in_sg_len = scatterwalk_bytes_sglen(dd->in_sg, dd->total);
--	dd->out_sg_len = scatterwalk_bytes_sglen(dd->out_sg, dd->total);
-+	len = ALIGN(dd->total, AES_BLOCK_SIZE);
-+	dd->in_sg_len = scatterwalk_bytes_sglen(dd->in_sg, len);
-+	dd->out_sg_len = scatterwalk_bytes_sglen(dd->out_sg, len);
- 	BUG_ON(dd->in_sg_len < 0 || dd->out_sg_len < 0);
- 
- 	rctx = ablkcipher_request_ctx(req);
-@@ -678,7 +683,7 @@ static void omap_aes_done_task(unsigned long data)
- {
- 	struct omap_aes_dev *dd = (struct omap_aes_dev *)data;
- 	void *buf_in, *buf_out;
--	int pages;
-+	int pages, len;
- 
- 	pr_debug("enter done_task\n");
- 
-@@ -697,7 +702,8 @@ static void omap_aes_done_task(unsigned long data)
- 
- 		sg_copy_buf(buf_out, dd->orig_out, 0, dd->total_save, 1);
- 
--		pages = get_order(dd->total_save);
-+		len = ALIGN(dd->total_save, AES_BLOCK_SIZE);
-+		pages = get_order(len);
- 		free_pages((unsigned long)buf_in, pages);
- 		free_pages((unsigned long)buf_out, pages);
- 	}
-@@ -726,11 +732,6 @@ static int omap_aes_crypt(struct ablkcipher_request *req, unsigned long mode)
- 		  !!(mode & FLAGS_ENCRYPT),
- 		  !!(mode & FLAGS_CBC));
- 
--	if (!IS_ALIGNED(req->nbytes, AES_BLOCK_SIZE)) {
--		pr_err("request size is not exact amount of AES blocks\n");
--		return -EINVAL;
--	}
--
- 	dd = omap_aes_find_dev(ctx);
- 	if (!dd)
- 		return -ENODEV;
-@@ -1046,9 +1047,7 @@ static irqreturn_t omap_aes_irq(int irq, void *dev_id)
- 			}
- 		}
- 
--		dd->total -= AES_BLOCK_SIZE;
--
--		BUG_ON(dd->total < 0);
-+		dd->total -= min_t(size_t, AES_BLOCK_SIZE, dd->total);
- 
- 		/* Clear IRQ status */
- 		status &= ~AES_REG_IRQ_DATA_OUT;
 -- 
-1.9.1
+regards,
+-grygorii
