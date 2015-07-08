@@ -1,137 +1,178 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5] clk: change clk_ops' ->determine_rate() prototype
-Date: Wed, 8 Jul 2015 11:00:05 +0200
-Message-ID: <20150708110005.704c49ff@bbrezillon>
-References: <1436294888-25752-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20150708005748.GG30412@codeaurora.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 00/11] USB: OTG/DRD Core functionality
+Date: Wed, 8 Jul 2015 13:19:26 +0300
+Message-ID: <1436350777-28056-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150708005748.GG30412-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Mike Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Emilio =?UTF-8?B?TMOzcGV6?= <emilio-0Z03zUJReD5OxF6Tv1QG9Q@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Prashant Gaikwad <pgaikwad-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com
+Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Stephen,
+Hi,
 
-On Tue, 7 Jul 2015 17:57:48 -0700
-Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
+This series centralizes OTG/Dual-role functionality in the kernel.
+As of now I've got Dual-role functionality working pretty reliably on
+dra7-evm and am437x-gp-evm. xhci side of things for OTG/DRD use are already
+in v4.2
 
-> On 07/07, Boris Brezillon wrote:
-> > Clock rates are stored in an unsigned long field, but ->determine_r=
-ate()
-> > (which returns a rounded rate from a requested one) returns a long
-> > value (errors are reported using negative error codes), which can l=
-ead
-> > to long overflow if the clock rate exceed 2Ghz.
-> >=20
-> > Change ->determine_rate() prototype to return 0 or an error code, a=
-nd pass
-> > a pointer to a clk_rate_request structure containing the expected t=
-arget
-> > rate and the rate constraints imposed by clk users.
-> >=20
-> > The clk_rate_request structure might be extended in the future to c=
-ontain
-> > other kind of constraints like the rounding policy, the maximum clo=
-ck
-> > inaccuracy or other things that are not yet supported by the CCF
-> > (power consumption constraints ?).
-> >=20
-> > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-> >=20
-> > CC: Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>
-> > CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > CC: Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> > CC: "Emilio L=C3=B3pez" <emilio-0Z03zUJReD5OxF6Tv1QG9Q@public.gmane.org>
-> > CC: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-> > CC: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> > CC: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> > CC: Prashant Gaikwad <pgaikwad-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> > CC: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-> > CC: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > CC: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > CC: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > CC: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > CC: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> > CC: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > CC: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org
-> > CC: linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >=20
-> > ---
->=20
-> I'll throw this patch into -next now to see if any other problems
-> shake out. I'm hoping we get some more acks though, so it'll be
-> on it's own branch and become immutable in a week or so. One
-> question below.
->=20
-> > diff --git a/drivers/clk/clk-composite.c b/drivers/clk/clk-composit=
-e.c
-> > index 616f5ae..9e69f34 100644
-> > --- a/drivers/clk/clk-composite.c
-> > +++ b/drivers/clk/clk-composite.c
-> > @@ -99,33 +99,33 @@ static long clk_composite_determine_rate(struct=
- clk_hw *hw, unsigned long rate,
-> > =20
-> >  			parent_rate =3D __clk_get_rate(parent);
-> > =20
-> > -			tmp_rate =3D rate_ops->round_rate(rate_hw, rate,
-> > +			tmp_rate =3D rate_ops->round_rate(rate_hw, req->rate,
-> >  							&parent_rate);
-> >  			if (tmp_rate < 0)
-> >  				continue;
-> > =20
-> > -			rate_diff =3D abs(rate - tmp_rate);
-> > +			rate_diff =3D abs(req->rate - tmp_rate);
-> > =20
-> > -			if (!rate_diff || !*best_parent_p
-> > +			if (!rate_diff || !req->best_parent_hw
-> >  				       || best_rate_diff > rate_diff) {
-> > -				*best_parent_p =3D __clk_get_hw(parent);
-> > -				*best_parent_rate =3D parent_rate;
-> > +				req->best_parent_hw =3D __clk_get_hw(parent);
-> > +				req->best_parent_rate =3D parent_rate;
-> >  				best_rate_diff =3D rate_diff;
-> >  				best_rate =3D tmp_rate;
-> >  			}
-> > =20
-> >  			if (!rate_diff)
-> > -				return rate;
-> > +				return 0;
-> >  		}
-> > =20
-> > -		return best_rate;
-> > +		req->rate =3D best_rate;
-> > +		return 0;
-> >  	} else if (mux_hw && mux_ops && mux_ops->determine_rate) {
-> >  		__clk_hw_set_clk(mux_hw, hw);
-> > -		return mux_ops->determine_rate(mux_hw, rate, min_rate,
-> > -					       max_rate, best_parent_rate,
-> > -					       best_parent_p);
-> > +		return mux_ops->determine_rate(mux_hw, req);
-> >  	} else {
-> >  		pr_err("clk: clk_composite_determine_rate function called, but n=
-o mux or rate callback set!\n");
-> > +		req->rate =3D 0;
-> >  		return 0;
->=20
-> Shouldn't this return an error now? And then assigning req->rate
-> wouldn't be necessary. Sorry I must have missed this last round.
->=20
+http://thread.gmane.org/gmane.linux.kernel/1923161
 
-Actually I wanted to keep the existing behavior: return a 0 rate (not
-an error) when there is no mux or rate ops.
+DWC3 controller and platform related patches are sent separately.
 
-That's something we can change afterwards, but it might reveals
-new bugs if some users are checking for a 0 rate to detect errors.
+Changelog:
+---------
+v3:
+- all otg related definations now in otg.h
+- single kernel config USB_OTG to enable OTG core and FSM.
+- resolved symbol dependency issues.
+- use dev_vdbg instead of VDBG() in usb-otg-fsm.c
+- rebased on v4.2-rc1
 
-Best Regards,
+v2:
+- Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
+the host controller
+- added dual-role-device (DRD) state machine which is a much simpler
+mode of operation when compared to OTG. Here we don't support fancy
+OTG features like HNP, SRP, on the fly role-swap. The mode of operation
+is determined based on ID pin (cable type) and the role doesn't change
+till the cable type changes.
 
-Boris
+Why?:
+----
 
---=20
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Most of the OTG drivers have been dealing with the OTG state machine
+themselves and there is a scope for code re-use. This has been
+partly addressed by the usb/common/usb-otg-fsm.c but it still
+leaves the instantiation of the state machine and OTG timers
+to the controller drivers. We re-use usb-otg-fsm.c but
+go one step further by instantiating the state machine and timers
+thus making it easier for drivers to implement OTG functionality.
+
+Newer OTG cores support standard host interface (e.g. xHCI?) so
+host and gadget functionality are no longer closely knit like older
+cores. There needs to be a way to co-ordinate the operation of the
+host and gadget in OTG mode. i.e. to stop and start them from a
+central location. This central location should be the USB OTG core.
+
+Host and gadget controllers might be sharing resources and can't
+be always running. One has to be stopped for the other to run.
+This can't be done as of now and can be done from the OTG core.
+
+What?:
+-----
+
+The OTG core instantiates the OTG/DRD Finite State Machine
+per OTG controller and manages starting/stopping the
+host and gadget controllers based on the bus state.
+    
+It provides APIs for the following
+    
+- Registering an OTG capable controller
+struct otg_fsm *usb_otg_register(struct device *parent_dev,
+                                 struct otg_fsm_ops *fsm_ops,
+				 bool drd_only);
+int usb_otg_unregister(struct device *parent_dev);
+
+- Registering Host controllers to OTG core (used by hcd-core)
+int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+                         unsigned long irqflags, struct otg_hcd_ops *ops);
+int usb_otg_unregister_hcd(struct usb_hcd *hcd);
+
+
+- Registering Gadget controllers to OTG core (used by udc-core)
+int usb_otg_register_gadget(struct usb_gadget *gadget,
+                            struct otg_gadget_ops *ops);
+int usb_otg_unregister_gadget(struct usb_gadget *gadget);
+
+
+- Providing inputs to and kicking the OTG state machine
+void usb_otg_sync_inputs(struct otg_fsm *fsm);
+int usb_otg_kick_fsm(struct device *hcd_gcd_device);
+
+- Getting controller device structure from OTG state machine instance
+struct device *usb_otg_fsm_to_dev(struct otg_fsm *fsm);
+
+'struct otg_fsm' is the interface to the OTG state machine.
+It contains inputs to the fsm, status of the fsm and operations
+for the OTG controller driver.
+
+Usage model:
+-----------
+
+- The OTG controller device is assumed to be the parent of
+the host and gadget controller. It must call usb_otg_register()
+before populating the host and gadget devices so that the OTG
+core is aware that it is an OTG device before the host & gadget
+register. The OTG controller must provide struct otg_fsm_ops *
+which will be called by the OTG core depending on OTG bus state.
+
+- The host/gadget core stacks are modified to inform the OTG core
+whenever a new host/gadget device is added. The OTG core then
+checks if the host/gadget is part of the OTG controller and if yes
+then prevents the host/gadget from starting till both host and
+gadget are registered, OTG state machine is running and the
+USB bus state is appropriate to start host/gadget.
+ For this APIs have been added to host/gadget stacks to start/stop
+the controllers from the OTG core.
+
+- No modification is needed for the host/gadget controller drivers.
+They must ensure that their start/stop methods can be called repeatedly
+and any shared resources between host & gadget are properly managed.
+The OTG core ensures that both are not started simultaneously.
+
+- The OTG core instantiates one OTG state machine per OTG
+controller and the necessary OTG timers to manage OTG state timeouts.
+If drd_only parameter is set during usb_otg_register() then it instanciates
+a DRD (dual-role device) state machine instead.
+The state machine is started when both host & gadget register and
+stopped when either of them unregisters. The controllers are started
+and stopped depending on bus state.
+
+- During the lifetime of the OTG state machine, inputs can be
+provided to it by modifying the appropriate members of 'struct otg_fsm'
+and calling usb_otg_sync_inputs(). This is typically done by the
+OTG controller driver that called usb_otg_register() since it is
+the only external component that has the 'struct otg_fsm' handle.
+
+--
+cheers,
+-roger
+
+Roger Quadros (11):
+  usb: otg-fsm: Add documentation for struct otg_fsm
+  usb: otg-fsm: support multiple instances
+  usb: otg-fsm: Prevent build warning "VDBG" redefined
+  otg-fsm: move usb_bus_start_enum into otg-fsm->ops
+  usb: hcd.h: Add OTG to HCD interface
+  usb: gadget.h: Add OTG to gadget interface
+  usb: otg: add OTG core
+  usb: hcd: Adapt to OTG core
+  usb: gadget: udc: adapt to OTG core
+  usb: otg: Add dual-role device (DRD) support
+  usb: otg: hub: Notify OTG fsm when A device sets b_hnp_enable
+
+ MAINTAINERS                       |   4 +-
+ drivers/usb/Kconfig               |   2 +-
+ drivers/usb/Makefile              |   1 +
+ drivers/usb/chipidea/otg_fsm.c    |   1 +
+ drivers/usb/common/Makefile       |   3 +-
+ drivers/usb/common/usb-otg-fsm.c  |  26 +-
+ drivers/usb/common/usb-otg.c      | 929 ++++++++++++++++++++++++++++++++++++++
+ drivers/usb/common/usb-otg.h      |  71 +++
+ drivers/usb/core/Kconfig          |  11 +-
+ drivers/usb/core/hcd.c            |  55 ++-
+ drivers/usb/core/hub.c            |  10 +-
+ drivers/usb/gadget/udc/udc-core.c | 124 ++++-
+ drivers/usb/phy/phy-fsl-usb.c     |   3 +
+ include/linux/usb/gadget.h        |  14 +
+ include/linux/usb/hcd.h           |  14 +
+ include/linux/usb/otg-fsm.h       | 118 ++++-
+ include/linux/usb/otg.h           |  92 +++-
+ 17 files changed, 1406 insertions(+), 72 deletions(-)
+ create mode 100644 drivers/usb/common/usb-otg.c
+ create mode 100644 drivers/usb/common/usb-otg.h
+
+-- 
+2.1.4
