@@ -1,92 +1,69 @@
-From: Roger Quadros <rogerq@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
 Subject: Re: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
-Date: Wed, 8 Jul 2015 11:13:23 +0300
-Message-ID: <559CDBA3.3040405@ti.com>
-References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com> <559BE433.9020308@ti.com> <559BF4FD.2080400@ti.com>
+Date: Wed, 8 Jul 2015 10:17:20 +0200
+Message-ID: <559CDC90.6040906@pengutronix.de>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com>
+ <1436279277-3386-2-git-send-email-rogerq@ti.com>
+ <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com>
+ <559BE433.9020308@ti.com> <559BE579.2020109@pengutronix.de>
+ <559CDA9E.7050401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="EV1d4QTG4kN5limSNJ016wBSLRTjDjr2O"
 Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <559BF4FD.2080400@ti.com>
+In-Reply-To: <559CDA9E.7050401@ti.com>
 Sender: linux-can-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, tony@atomide.com
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com
 Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--EV1d4QTG4kN5limSNJ016wBSLRTjDjr2O
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On 07/07/15 18:49, Grygorii Strashko wrote:
-> On 07/07/2015 05:37 PM, Roger Quadros wrote:
->> On 07/07/15 17:35, Roger Quadros wrote:
->>> On 07/07/15 17:33, Marc Kleine-Budde wrote:
->>>> On 07/07/2015 04:27 PM, Roger Quadros wrote:
->>>>> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
->>>>>
->>>>> The previous change 3973c526ae9c (net: can: c_can: Disable pins when
->>>>> CAN interface
->>>>> is down) causes a slight glitch on the pinctrl settings when used.
->>>>> Since
->>>>> commit ab78029 (drivers/pinctrl: grab default handles from device
->>>>> core),
->>>>> the device core will automatically set the default pins. This causes
->>>>> the pins to be momentarily set to the default and then to the sleep
->>>>> state in register_c_can_dev(). By adding an optional "enable" state,
->>>>> boards can set the default pin state to be disabled and avoid the
->>>>> glitch when the switch from default to sleep first occurs. If the
->>>>> "enable" state is not available c_can_pinctrl_select_state() falls
->>>>> back to using the "default" pinctrl state.
->>>>>
->>>>> [Roger Q] - Forward port to v4.2
->>>>>
->>>>> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>>   drivers/net/can/c_can/c_can.c | 13 ++++++++++++-
->>>>>   1 file changed, 12 insertions(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/net/can/c_can/c_can.c
->>>>> b/drivers/net/can/c_can/c_can.c
->>>>> index 041525d..66e98e7 100644
->>>>> --- a/drivers/net/can/c_can/c_can.c
->>>>> +++ b/drivers/net/can/c_can/c_can.c
->>>>> @@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
->>>>>       priv->can.state = CAN_STATE_ERROR_ACTIVE;
->>>>>
->>>>>       /* activate pins */
->>>>> -    pinctrl_pm_select_default_state(dev->dev.parent);
->>>>> +#ifdef CONFIG_PINCTRL
->>>>
->>>> Please remove the ifdef, AFAICS there are static inline noop functions
->>>> if CONFIG_PINCTRL switched off.
->>>
->>> yes, you are right.
+On 07/08/2015 10:09 AM, Roger Quadros wrote:
+
+>>> device->pins are not defined if CONFIG_PINCTRL is not set.
+>>> so we can't remove the #ifdef.
 >>
->> On second thoughts
+>> Too bad :(
 >>
->> device->pins are not defined if CONFIG_PINCTRL is not set.
->> so we can't remove the #ifdef.
->
-> May be you can use [devm_]pinctrl_get?
+>> okay - should I add stable@v.k.o on Cc?
+>=20
+> I'm not sure if it would help. This patch by itself won't fix anything.=
+=20
+> It needs to go in together with the DTS change in patch 2.
 
-Why should we do that? The device core has already done the 
-pinctrl_get() and it is available in device->pins->p.
+Of course.
 
-cheers,
--roger
+> Maybe if Tony can Ack the second patch then both should be applicable
+> on v4.0+ for stable.
 
->
->>>>
->>>>> +    if (priv->device->pins) {
->>>>> +        struct pinctrl_state *s;
->>>>> +
->>>>> +        /* Attempt to use "active" if available else use "default" */
->>>>> +        s = pinctrl_lookup_state(priv->device->pins->p, "active");
->>>>> +        if (!IS_ERR(s))
->>>>> +            pinctrl_select_state(priv->device->pins->p, s);
->>>>> +        else
->>>>> +            pinctrl_pm_select_default_state(dev->dev.parent);
->>>>> +    }
->>>>> +#endif
->>>>>       return 0;
->>>>>   }
->>>>>
->
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--EV1d4QTG4kN5limSNJ016wBSLRTjDjr2O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAEBCgAGBQJVnNyQAAoJEP5prqPJtc/HAmcH/0dMnK+akEJXApJl9d2wMDRB
+jYPYsI9YDerCKj11PrmaJVgG1aZSBZemHHmhiamQ9OB4OhPu2FhHP1X4aQ6u+Dbu
+oA0t3wNGoqwHIE/E4MNgrt6h00u7QkRmCoWwq+DGIxjpY9/JNkEbWkJgJJIYljj8
+7LWg9CeN8iTVF/yINGn651PbmiWGC4cBL252XB3mv+gWVbdo/fKmeeByrKHuUvh6
++/e3iStNN4OmbiLBK5/U/hyl22xMuW1BBkRQfpZhWRp7dNM7SnWXyLbZwVldayfA
+3JcBUMxuWfKbiiQd7lB0q0/DzRul3Zhbiy26HafEO3KRw/sxjJpQA/xV34Zh/28=
+=7/eJ
+-----END PGP SIGNATURE-----
+
+--EV1d4QTG4kN5limSNJ016wBSLRTjDjr2O--
