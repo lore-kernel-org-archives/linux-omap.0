@@ -1,8 +1,7 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH 2/4] ARM: omap2plus_defconfig: enable support for TI
- touchscreen
-Date: Wed, 8 Jul 2015 20:57:35 +0530
-Message-ID: <705c659741e8ec9114cd9d555b1a73a7ca90015d.1436368740.git.nsekhar@ti.com>
+Subject: [PATCH 1/4] ARM: omap2plus_defconfig: enable support for TI ADC
+Date: Wed, 8 Jul 2015 20:57:34 +0530
+Message-ID: <51df3b0ac6d50feae98c3916cded3a25527d80c2.1436368740.git.nsekhar@ti.com>
 References: <cover.1436368740.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,25 +21,34 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Enable support for on-chip resistive touchscreen m found on AM335x and
+Enable support for on-chip ADC found on AM335x and
 AM437x devices.
 
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/configs/omap2plus_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a8eb36454b14..294059d5ef80 100644
+index ac521e764d10..a8eb36454b14 100644
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -208,6 +208,7 @@ CONFIG_TOUCHSCREEN_EDT_FT5X06=m
- CONFIG_TOUCHSCREEN_PIXCIR=m
- CONFIG_TOUCHSCREEN_TSC2005=m
- CONFIG_TOUCHSCREEN_TSC2007=m
-+CONFIG_TOUCHSCREEN_TI_AM335X_TSC=m
- CONFIG_INPUT_MISC=y
- CONFIG_INPUT_TPS65218_PWRBUTTON=m
- CONFIG_INPUT_TWL4030_PWRBUTTON=m
+@@ -269,6 +269,7 @@ CONFIG_MFD_PALMAS=y
+ CONFIG_MFD_TPS65217=y
+ CONFIG_MFD_TPS65218=y
+ CONFIG_MFD_TPS65910=y
++CONFIG_MFD_TI_AM335X_TSCADC=m
+ CONFIG_TWL6040_CORE=y
+ CONFIG_REGULATOR_PALMAS=y
+ CONFIG_REGULATOR_PBIAS=y
+@@ -398,6 +399,8 @@ CONFIG_EXTCON=m
+ CONFIG_EXTCON_USB_GPIO=m
+ CONFIG_EXTCON_PALMAS=m
+ CONFIG_TI_EMIF=m
++CONFIG_IIO=m
++CONFIG_TI_AM335X_ADC=m
+ CONFIG_PWM=y
+ CONFIG_PWM_TIECAP=m
+ CONFIG_PWM_TIEHRPWM=m
 -- 
 2.4.4.408.g16da57c
