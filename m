@@ -1,60 +1,92 @@
-From: Peter Feuerer <peter@piie.net>
-Subject: Re: [PATCH] thermal: consistently use int for temperatures
-Date: Wed, 08 Jul 2015 10:11:24 +0200
-Message-ID: <cone.1436343084.787318.20214.1000@mups>
-References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
+Date: Wed, 8 Jul 2015 11:13:23 +0300
+Message-ID: <559CDBA3.3040405@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com> <559BE433.9020308@ti.com> <559BF4FD.2080400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Lukasz Majewski <l.majewski@samsung.com>, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Stephen Warren <swarren@wwwdotorg.org>, Rafael =?UTF-8?B?Si4=?= Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-acpi@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Guenter Roeck <linux@roeck-us.net>, linux-arm-kernel@lists.infradead.org, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, Jean Delvare <jdelvare@suse.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <559BF4FD.2080400@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-U2FzY2hhIEhhdWVyIHdyaXRlczoKCj4gVGhlIHRoZXJtYWwgY29kZSB1c2VzIGludCwgbG9uZyBh
-bmQgdW5zaWduZWQgbG9uZyBmb3IgdGVtcGVyYXR1cmVzCj4gaW4gZGlmZmVyZW50IHBsYWNlcy4K
-PiAKPiBVc2luZyBhbiB1bnNpZ25lZCB0eXBlIGxpbWl0cyB0aGUgdGhlcm1hbCBmcmFtZXdvcmsg
-dG8gcG9zaXRpdmUKPiB0ZW1wZXJhdHVyZXMgd2l0aG91dCBuZWVkLiBBbHNvIHNldmVyYWwgZHJp
-dmVycyBjdXJyZW50bHkgd2lsbCByZXBvcnQKPiB0ZW1wZXJhdHVyZXMgbmVhciBVSU5UX01BWCBm
-b3IgdGVtcGVyYXR1cmVzIGJlbG93IDDCsEMuIFRoaXMgd2lsbCBwcm9iYWJseQo+IGltbWVkaWF0
-ZWx5IHNodXQgdGhlIG1hY2hpbmUgZG93biBkdWUgdG8gb3ZlcnRlbXBlcmF0dXJlIGlmIHN0YXJ0
-ZWQgYmVsb3cKPiAwwrBDLgo+IAo+ICdsb25nJyBpcyA2NGJpdCBvbiBzZXZlcmFsIGFyY2hpdGVj
-dHVyZXMuIFRoaXMgaXMgbm90IG5lZWRlZCBzaW5jZSBJTlRfTUFYIMKwbUMKPiBpcyBhYm92ZSB0
-aGUgbWVsdGluZyBwb2ludCBvZiBhbGwga25vd24gbWF0ZXJpYWxzLgo+IAo+IENvbnNpc3RlbnRs
-eSB1c2UgYSBwbGFpbiAnaW50JyBmb3IgdGVtcGVyYXR1cmVzIHRocm91Z2hvdXQgdGhlIHRoZXJt
-YWwgY29kZSBhbmQKPiB0aGUgZHJpdmVycy4gVGhpcyBvbmx5IGNoYW5nZXMgdGhlIHBsYWNlcyBp
-biB0aGUgZHJpdmVycyB3aGVyZSB0aGUgdGVtcGVyYXR1cmUKPiBpcyBwYXNzZWQgYXJvdW5kIGFz
-IHBvaW50ZXIsIHdoZW4gZHJpdmVycyBpbnRlcm5hbGx5IHVzZSBhbm90aGVyIHR5cGUgdGhpcyBp
-cwo+IG5vdCBjaGFuZ2VkLgo+IAo+IFNpZ25lZC1vZmYtYnk6IFNhc2NoYSBIYXVlciA8cy5oYXVl
-ckBwZW5ndXRyb25peC5kZT4KPiBDYzogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPgo+
-IENjOiBFZHVhcmRvIFZhbGVudGluIDxlZHViZXp2YWxAZ21haWwuY29tPgo+IENjOiBsaW51eC1w
-bUB2Z2VyLmtlcm5lbC5vcmcKPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+IENj
-OiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+Cj4gQ2M6IFBldGVyIEZldWVyZXIgPHBl
-dGVyQHBpaWUubmV0Pgo+IENjOiBIZWlrbyBTdHVlYm5lciA8aGVpa29Ac250ZWNoLmRlPgo+IENj
-OiBMdWthc3ogTWFqZXdza2kgPGwubWFqZXdza2lAc2Ftc3VuZy5jb20+Cj4gQ2M6IFN0ZXBoZW4g
-V2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+Cj4gQ2M6IFRoaWVycnkgUmVkaW5nIDx0aGll
-cnJ5LnJlZGluZ0BnbWFpbC5jb20+Cj4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnCj4g
-Q2M6IHBsYXRmb3JtLWRyaXZlci14ODZAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
-Zwo+IENjOiBsaW51eC1zYW1zdW5nLXNvY0B2Z2VyLmtlcm5lbC5vcmcKPiBDYzogR3VlbnRlciBS
-b2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJq
-d3lzb2NraS5uZXQ+Cj4gQ2M6IE1heGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAZnJlZS1lbGVj
-dHJvbnMuY29tPgo+IENjOiBEYXJyZW4gSGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+Cj4gQ2M6
-IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiAtLS0KClsuLi5dCgpGb3I6Cgo+ICBkcml2ZXJz
-L3BsYXRmb3JtL3g4Ni9hY2VyaGRmLmMgICAgICAgICAgICAgICAgICAgICB8ICA5ICsrKystLS0t
-Cj4gIGRyaXZlcnMvdGhlcm1hbC9nb3ZfYmFuZ19iYW5nLmMgICAgICAgICAgICAgICAgICAgIHwg
-IDUgKystLQoKUmV2aWV3ZWQtYnk6IFBldGVyIEZldWVyZXIgPHBldGVyQHBpaWUubmV0PgoKWy4u
-Ll0KCgotLSAKLS1wZXRlcjsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+
+On 07/07/15 18:49, Grygorii Strashko wrote:
+> On 07/07/2015 05:37 PM, Roger Quadros wrote:
+>> On 07/07/15 17:35, Roger Quadros wrote:
+>>> On 07/07/15 17:33, Marc Kleine-Budde wrote:
+>>>> On 07/07/2015 04:27 PM, Roger Quadros wrote:
+>>>>> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>>>>>
+>>>>> The previous change 3973c526ae9c (net: can: c_can: Disable pins when
+>>>>> CAN interface
+>>>>> is down) causes a slight glitch on the pinctrl settings when used.
+>>>>> Since
+>>>>> commit ab78029 (drivers/pinctrl: grab default handles from device
+>>>>> core),
+>>>>> the device core will automatically set the default pins. This causes
+>>>>> the pins to be momentarily set to the default and then to the sleep
+>>>>> state in register_c_can_dev(). By adding an optional "enable" state,
+>>>>> boards can set the default pin state to be disabled and avoid the
+>>>>> glitch when the switch from default to sleep first occurs. If the
+>>>>> "enable" state is not available c_can_pinctrl_select_state() falls
+>>>>> back to using the "default" pinctrl state.
+>>>>>
+>>>>> [Roger Q] - Forward port to v4.2
+>>>>>
+>>>>> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> ---
+>>>>>   drivers/net/can/c_can/c_can.c | 13 ++++++++++++-
+>>>>>   1 file changed, 12 insertions(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/drivers/net/can/c_can/c_can.c
+>>>>> b/drivers/net/can/c_can/c_can.c
+>>>>> index 041525d..66e98e7 100644
+>>>>> --- a/drivers/net/can/c_can/c_can.c
+>>>>> +++ b/drivers/net/can/c_can/c_can.c
+>>>>> @@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
+>>>>>       priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>>>>
+>>>>>       /* activate pins */
+>>>>> -    pinctrl_pm_select_default_state(dev->dev.parent);
+>>>>> +#ifdef CONFIG_PINCTRL
+>>>>
+>>>> Please remove the ifdef, AFAICS there are static inline noop functions
+>>>> if CONFIG_PINCTRL switched off.
+>>>
+>>> yes, you are right.
+>>
+>> On second thoughts
+>>
+>> device->pins are not defined if CONFIG_PINCTRL is not set.
+>> so we can't remove the #ifdef.
+>
+> May be you can use [devm_]pinctrl_get?
+
+Why should we do that? The device core has already done the 
+pinctrl_get() and it is available in device->pins->p.
+
+cheers,
+-roger
+
+>
+>>>>
+>>>>> +    if (priv->device->pins) {
+>>>>> +        struct pinctrl_state *s;
+>>>>> +
+>>>>> +        /* Attempt to use "active" if available else use "default" */
+>>>>> +        s = pinctrl_lookup_state(priv->device->pins->p, "active");
+>>>>> +        if (!IS_ERR(s))
+>>>>> +            pinctrl_select_state(priv->device->pins->p, s);
+>>>>> +        else
+>>>>> +            pinctrl_pm_select_default_state(dev->dev.parent);
+>>>>> +    }
+>>>>> +#endif
+>>>>>       return 0;
+>>>>>   }
+>>>>>
+>
