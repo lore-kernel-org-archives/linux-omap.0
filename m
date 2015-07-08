@@ -1,41 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm:irqchip: IRQCHIP_DECLARE macro is now accessible
-Date: Tue, 7 Jul 2015 23:40:42 -0700
-Message-ID: <20150708064042.GU10705@atomide.com>
-References: <1436299411-12329-1-git-send-email-joel@porquet.org>
- <559C64F2.9070803@samsung.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v2 5/7] crypto: aead: Add aead_request_cast() api
+Date: Wed, 8 Jul 2015 12:13:25 +0530
+Message-ID: <559CC68D.9080800@ti.com>
+References: <1436283109-13318-1-git-send-email-lokeshvutla@ti.com> <1436283109-13318-6-git-send-email-lokeshvutla@ti.com> <20150708035652.GC12627@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <559C64F2.9070803@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Joel Porquet <joel@porquet.org>, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene@kernel.org>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20150708035652.GC12627@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Krzysztof Kozlowski <k.kozlowski@samsung.com> [150707 16:49]:
-> On 08.07.2015 05:02, Joel Porquet wrote:
-> > The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', making it
-> > globally accessible.
-> > 
-> > See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d
-> > ("irqchip: Move IRQCHIP_DECLARE macro to include/linux/irqchip.h").
-> > 
-> > This patch adds inclusions of 'include/linux/irqchip.h' and replaces uses of
-> > macro OF_DECLARE_2 with IRQCHIP_DECLARE.
-> > 
-> > Signed-off-by: Joel Porquet <joel@porquet.org>
-> > ---
-> >  arch/arm/mach-exynos/suspend.c       | 3 ++-
-> >  arch/arm/mach-imx/gpc.c              | 7 ++-----
-> >  arch/arm/mach-omap2/omap-wakeupgen.c | 7 ++-----
-> >  3 files changed, 6 insertions(+), 11 deletions(-)
-> > 
+On Wednesday 08 July 2015 09:26 AM, Herbert Xu wrote:
+> On Tue, Jul 07, 2015 at 09:01:47PM +0530, Lokesh Vutla wrote:
+>> Add aead_request_cast() api to get pointer to aead_request
+>> from cryto_async_request.
+>>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> ---
+>>  include/crypto/internal/aead.h | 6 ++++++
+>>  1 file changed, 6 insertions(+)
+>>
+>> diff --git a/include/crypto/internal/aead.h b/include/crypto/internal/aead.h
+>> index 4b25471..0423fa5 100644
+>> --- a/include/crypto/internal/aead.h
+>> +++ b/include/crypto/internal/aead.h
+>> @@ -157,6 +157,12 @@ static inline unsigned int crypto_aead_maxauthsize(struct crypto_aead *aead)
+>>  	return crypto_aead_alg_maxauthsize(crypto_aead_alg(aead));
+>>  }
+>>  
+>> +static inline struct aead_request *aead_request_cast(
+>> +					struct crypto_async_request *req)
+>> +{
+>> +	return container_of(req, struct aead_request, base);
+>> +}
 > 
-> For Exynos:
-> Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Please drop this and use the aead_queue interface I just posted.
+Okay will update in next version
 
-For omap changes:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+Thanks and regards,
+Lokesh
+> 
+> Thanks,
+> 
