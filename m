@@ -1,79 +1,78 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v3 9/9] usb: dwc3: core: don't break during suspend/resume
- while we're dual-role
-Date: Wed, 8 Jul 2015 16:11:23 +0300
-Message-ID: <559D217B.5000500@cogentembedded.com>
-References: <1436351524-28385-1-git-send-email-rogerq@ti.com>
- <1436351860-28813-1-git-send-email-rogerq@ti.com>
+From: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH RESEND 1/7] tty: serial: 8250: omap: fix kernel crash
+ in suspend-to-ram
+Date: Wed, 08 Jul 2015 10:04:44 -0400
+Message-ID: <559D2DFC.9010602@hurleysoftware.com>
+References: <cover.1436174801.git.nsekhar@ti.com> <d8cb86b2717e0fc084b6651be54ee6d96dbc603a.1436174801.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436351860-28813-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <d8cb86b2717e0fc084b6651be54ee6d96dbc603a.1436174801.git.nsekhar-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi Sekhar,
 
-On 7/8/2015 1:37 PM, Roger Quadros wrote:
+On 07/06/2015 05:47 AM, Sekhar Nori wrote:
+> omap_device infrastructure has a suspend_noirq hook which
+> runtime suspends all devices late in the suspend cycle (see
+> _od_suspend_noirq() in arch/arm/mach-omap2/omap_device.c)
 
-> We can't rely just on dr_mode to decide if we're in host or gadget
-> mode when we're configured as otg/dual-role. So while dr_mode is
-> OTG, we find out from  the otg state machine if we're in host
-> or gadget mode and take the necessary actions during suspend/resume.
+Why is omap2 the only arch/SoC that does this; ie., call the runtime
+callbacks after the system pm callbacks?
 
-> Also make sure that we disable OTG irq and events during system suspend
-> so that we don't lockup the system during system suspend/resume.
+Whatever positive it brings, it's a mess at the driver level.
+For example, this driver has to hook prepare()/complete() so it can
+set local state so that it can detect when the runtime suspend
+is being called during system suspend.
 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Regards,
+Peter Hurley
+
+
+> This leads to a NULL pointer exception in 8250_omap driver
+> since by the time omap8250_runtime_suspend() is called, 8250_dma
+> driver has already set rxchan to NULL via serial8250_release_dma().
+> 
+> Make an explicit check to see if rxchan is NULL in
+> runtime_{suspend|resume} hooks to fix this.
+> 
+> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 > ---
->   drivers/usb/dwc3/core.c | 27 +++++++++------------------
->   1 file changed, 9 insertions(+), 18 deletions(-)
-
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index e3c094d..3784287 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -1444,18 +1444,15 @@ static int dwc3_suspend(struct device *dev)
->   		dwc->octl = dwc3_readl(dwc->regs, DWC3_OCTL);
->   		dwc->oevt = dwc3_readl(dwc->regs, DWC3_OEVT);
->   		dwc->oevten = dwc3_readl(dwc->regs, DWC3_OEVTEN);
-> +		dwc3_writel(dwc->regs, DWC3_OEVTEN, 0);
-> +		disable_irq(dwc->otg_irq);
->   	}
->
-> -	switch (dwc->dr_mode) {
-> -	case USB_DR_MODE_PERIPHERAL:
-> -	case USB_DR_MODE_OTG:
-> +	if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
-> +	    ((dwc->dr_mode == USB_DR_MODE_OTG) && dwc->fsm->protocol == PROTO_GADGET))
-
-    Hum, enclosing the first == op into parens and not doing it to the second 
-== op doesn't look very consistent... :-)
-
-[...]
-> @@ -1495,18 +1492,12 @@ static int dwc3_resume(struct device *dev)
->   		dwc3_writel(dwc->regs, DWC3_OCTL, dwc->octl);
->   		dwc3_writel(dwc->regs, DWC3_OEVT, dwc->oevt);
->   		dwc3_writel(dwc->regs, DWC3_OEVTEN, dwc->oevten);
-> +		enable_irq(dwc->otg_irq);
->   	}
->
-> -	switch (dwc->dr_mode) {
-> -	case USB_DR_MODE_PERIPHERAL:
-> -	case USB_DR_MODE_OTG:
-> +	if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
-> +	    ((dwc->dr_mode == USB_DR_MODE_OTG) && dwc->fsm->protocol == PROTO_GADGET))
-
-    Same here...
-
-[...]
-
-WBR, Sergei
+> Previous version: http://www.spinics.net/lists/linux-omap/msg119459.html
+> No change in this version except rebased to v4.2-rc1
+> 
+>  drivers/tty/serial/8250/8250_omap.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> index d75a66c72750..20c5b9c4c288 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -1285,7 +1285,7 @@ static int omap8250_runtime_suspend(struct device *dev)
+>  			return -EBUSY;
+>  	}
+>  
+> -	if (up->dma)
+> +	if (up->dma && up->dma->rxchan)
+>  		omap_8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
+>  
+>  	priv->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+> @@ -1310,7 +1310,7 @@ static int omap8250_runtime_resume(struct device *dev)
+>  	if (loss_cntx)
+>  		omap8250_restore_regs(up);
+>  
+> -	if (up->dma)
+> +	if (up->dma && up->dma->rxchan)
+>  		omap_8250_rx_dma(up, 0);
+>  
+>  	priv->latency = priv->calc_latency;
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
