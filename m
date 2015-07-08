@@ -1,113 +1,59 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 01/37] usb: gadget: encapsulate endpoint claiming mechanism
-Date: Wed, 08 Jul 2015 13:08:45 +0200
-Message-ID: <1436353761-7107-2-git-send-email-r.baldyga@samsung.com>
+From: Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 03/37] usb: gadget: add endpoint capabilities helper macros
+Date: Wed, 08 Jul 2015 13:08:47 +0200
+Message-ID: <1436353761-7107-4-git-send-email-r.baldyga@samsung.com>
 References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-reply-to: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, balbi@ti.com, linux-kernel@vger.kernel.org, haojian.zhuang@gmail.com, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <1436353761-7107-1-git-send-email-r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: Peter.Chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, johnyoun-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, cernekee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robert.jarzmik-GANU6spQydw@public.gmane.org, michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-So far it was necessary for usb functions to set ep->driver_data in
-endpoint obtained from autoconfig to non-null value, to indicate that
-endpoint is claimed by function (in autoconfig it was checked if endpoint
-has set this field to non-null value, and if it has, it was assumed that
-it is claimed). It could cause bugs becouse if some function doesn't
-set this field autoconfig could return the same endpoint more than one
-time.
+Add macros useful while initializing array of endpoint capabilities
+structures. These macros makes structure initialization more compact
+to decrease number of code lines and increase readability of code.
 
-To help to avoid such bugs this patch adds claimed flag to struct usb_ep,
-and  encapsulates endpoint claiming mechanism inside usb_ep_autoconfig_ss()
-and usb_ep_autoconfig_reset(), so now usb functions doesn't need to perform
-any additional actions to mark endpoint obtained from autoconfig as claimed.
-
-Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+Signed-off-by: Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/gadget/epautoconf.c | 11 ++++++-----
- include/linux/usb/gadget.h      |  1 +
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ include/linux/usb/gadget.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index 919cdfd..8e00ca7 100644
---- a/drivers/usb/gadget/epautoconf.c
-+++ b/drivers/usb/gadget/epautoconf.c
-@@ -53,7 +53,7 @@ ep_matches (
- 	int		num_req_streams = 0;
- 
- 	/* endpoint already claimed? */
--	if (NULL != ep->driver_data)
-+	if (ep->claimed)
- 		return 0;
- 
- 	/* only support ep0 for portable CONTROL traffic */
-@@ -240,7 +240,7 @@ find_ep (struct usb_gadget *gadget, const char *name)
-  * updated with the assigned number of streams if it is
-  * different from the original value. To prevent the endpoint
-  * from being returned by a later autoconfig call, claim it by
-- * assigning ep->driver_data to some non-null value.
-+ * assigning ep->claimed to true.
-  *
-  * On failure, this returns a null endpoint descriptor.
-  */
-@@ -323,6 +323,7 @@ struct usb_ep *usb_ep_autoconfig_ss(
- found_ep:
- 	ep->desc = NULL;
- 	ep->comp_desc = NULL;
-+	ep->claimed = true;
- 	return ep;
- }
- EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
-@@ -354,7 +355,7 @@ EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
-  * descriptor bEndpointAddress.  For bulk endpoints, the wMaxPacket value
-  * is initialized as if the endpoint were used at full speed.  To prevent
-  * the endpoint from being returned by a later autoconfig call, claim it
-- * by assigning ep->driver_data to some non-null value.
-+ * by assigning ep->claimed to true.
-  *
-  * On failure, this returns a null endpoint descriptor.
-  */
-@@ -373,7 +374,7 @@ EXPORT_SYMBOL_GPL(usb_ep_autoconfig);
-  *
-  * Use this for devices where one configuration may need to assign
-  * endpoint resources very differently from the next one.  It clears
-- * state such as ep->driver_data and the record of assigned endpoints
-+ * state such as ep->claimed and the record of assigned endpoints
-  * used by usb_ep_autoconfig().
-  */
- void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
-@@ -381,7 +382,7 @@ void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
- 	struct usb_ep	*ep;
- 
- 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
--		ep->driver_data = NULL;
-+		ep->claimed = false;
- 	}
- 	gadget->in_epnum = 0;
- 	gadget->out_epnum = 0;
 diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index 4f3dfb7..fcb0a4e 100644
+index 6f3e0fb..e6cbc25 100644
 --- a/include/linux/usb/gadget.h
 +++ b/include/linux/usb/gadget.h
-@@ -173,6 +173,7 @@ struct usb_ep {
- 	const char		*name;
- 	const struct usb_ep_ops	*ops;
- 	struct list_head	ep_list;
-+	bool			claimed;
- 	unsigned		maxpacket:16;
- 	unsigned		maxpacket_limit:16;
- 	unsigned		max_streams:16;
+@@ -158,6 +158,26 @@ struct usb_ep_caps {
+ 	unsigned dir_out:1;
+ };
+ 
++#define USB_EP_CAPS_TYPE_CONTROL     0x01
++#define USB_EP_CAPS_TYPE_ISO         0x02
++#define USB_EP_CAPS_TYPE_BULK        0x04
++#define USB_EP_CAPS_TYPE_INT         0x08
++#define USB_EP_CAPS_TYPE_ALL \
++	(USB_EP_CAPS_TYPE_ISO | USB_EP_CAPS_TYPE_BULK | USB_EP_CAPS_TYPE_INT)
++#define USB_EP_CAPS_DIR_IN           0x01
++#define USB_EP_CAPS_DIR_OUT          0x02
++#define USB_EP_CAPS_DIR_ALL  (USB_EP_CAPS_DIR_IN | USB_EP_CAPS_DIR_OUT)
++
++#define USB_EP_CAPS(_type, _dir) \
++	{ \
++		.type_control = !!(_type & USB_EP_CAPS_TYPE_CONTROL), \
++		.type_iso = !!(_type & USB_EP_CAPS_TYPE_ISO), \
++		.type_bulk = !!(_type & USB_EP_CAPS_TYPE_BULK), \
++		.type_int = !!(_type & USB_EP_CAPS_TYPE_INT), \
++		.dir_in = !!(_dir & USB_EP_CAPS_DIR_IN), \
++		.dir_out = !!(_dir & USB_EP_CAPS_DIR_OUT), \
++	}
++
+ /**
+  * struct usb_ep - device side representation of USB endpoint
+  * @name:identifier for the endpoint, such as "ep-a" or "ep9in-bulk"
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
