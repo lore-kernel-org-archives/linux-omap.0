@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 02/37] usb: gadget: add endpoint capabilities flags
-Date: Wed, 08 Jul 2015 13:08:46 +0200
-Message-ID: <1436353761-7107-3-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH 06/37] usb: dwc2: gadget: add ep capabilities support
+Date: Wed, 08 Jul 2015 13:08:50 +0200
+Message-ID: <1436353761-7107-7-git-send-email-r.baldyga@samsung.com>
 References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,65 +21,36 @@ To: gregkh@linuxfoundation.org
 Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, balbi@ti.com, linux-kernel@vger.kernel.org, haojian.zhuang@gmail.com, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce struct usb_ep_caps which contains information about capabilities
-of usb endpoints - supported transfer types and directions. This structure
-should be filled by UDC driver for each of its endpoints, and will be
-used in epautoconf in new ep matching mechanism which will replace ugly
-guessing of endpoint capabilities basing on its name.
+Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- include/linux/usb/gadget.h | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/usb/dwc2/gadget.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index fcb0a4e..6f3e0fb 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -141,10 +141,29 @@ struct usb_ep_ops {
- };
+diff --git a/drivers/usb/dwc2/gadget.c b/drivers/usb/dwc2/gadget.c
+index 4d47b7c..8771b66 100644
+--- a/drivers/usb/dwc2/gadget.c
++++ b/drivers/usb/dwc2/gadget.c
+@@ -3289,6 +3289,19 @@ static void s3c_hsotg_initep(struct dwc2_hsotg *hsotg,
+ 	usb_ep_set_maxpacket_limit(&hs_ep->ep, epnum ? 1024 : EP0_MPS_LIMIT);
+ 	hs_ep->ep.ops = &s3c_hsotg_ep_ops;
  
- /**
-+ * struct usb_ep_caps - endpoint capabilities description
-+ * @type_control:Endpoint supports control type (reserved for ep0).
-+ * @type_iso:Endpoint supports isochronous transfers.
-+ * @type_bulk:Endpoint supports bulk transfers.
-+ * @type_int:Endpoint supports interrupt transfers.
-+ * @dir_in:Endpoint supports IN direction.
-+ * @dir_out:Endpoint supports OUT direction.
-+ */
-+struct usb_ep_caps {
-+	unsigned type_control:1;
-+	unsigned type_iso:1;
-+	unsigned type_bulk:1;
-+	unsigned type_int:1;
-+	unsigned dir_in:1;
-+	unsigned dir_out:1;
-+};
++	if (epnum == 0) {
++		hs_ep->ep.caps.type_control = true;
++	} else {
++		hs_ep->ep.caps.type_iso = true;
++		hs_ep->ep.caps.type_bulk = true;
++		hs_ep->ep.caps.type_int = true;
++	}
 +
-+/**
-  * struct usb_ep - device side representation of USB endpoint
-  * @name:identifier for the endpoint, such as "ep-a" or "ep9in-bulk"
-  * @ops: Function pointers used to access hardware-specific operations.
-  * @ep_list:the gadget's ep_list holds all of its endpoints
-+ * @caps:The structure describing types and directions supported by endoint.
-  * @maxpacket:The maximum packet size used on this endpoint.  The initial
-  *	value can sometimes be reduced (hardware allowing), according to
-  *      the endpoint descriptor used to configure the endpoint.
-@@ -167,12 +186,14 @@ struct usb_ep_ops {
-  * gadget->ep_list.  the control endpoint (gadget->ep0) is not in that list,
-  * and is accessed only in response to a driver setup() callback.
-  */
++	if (dir_in)
++		hs_ep->ep.caps.dir_in = true;
++	else
++		hs_ep->ep.caps.dir_out = true;
 +
- struct usb_ep {
- 	void			*driver_data;
- 
- 	const char		*name;
- 	const struct usb_ep_ops	*ops;
- 	struct list_head	ep_list;
-+	struct usb_ep_caps	caps;
- 	bool			claimed;
- 	unsigned		maxpacket:16;
- 	unsigned		maxpacket_limit:16;
+ 	/*
+ 	 * if we're using dma, we need to set the next-endpoint pointer
+ 	 * to be something valid.
 -- 
 1.9.1
