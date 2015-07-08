@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 8/9] usb: dwc3: core: Prevent otg events from disabling themselves
-Date: Wed, 8 Jul 2015 13:37:18 +0300
-Message-ID: <1436351838-28732-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 9/9] usb: dwc3: core: don't break during suspend/resume while we're dual-role
+Date: Wed, 8 Jul 2015 13:37:40 +0300
+Message-ID: <1436351860-28813-1-git-send-email-rogerq@ti.com>
 References: <1436351524-28385-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,54 +12,69 @@ To: balbi@ti.com
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-There is a race happening during dwc3_drd_init() that causes
-otg events to get disabled. This is what happens.
+We can't rely just on dr_mode to decide if we're in host or gadget
+mode when we're configured as otg/dual-role. So while dr_mode is
+OTG, we find out from  the otg state machine if we're in host
+or gadget mode and take the necessary actions during suspend/resume.
 
-dwc3_otg_irq() happens immediately when PRTCAP is set to OTG,
-even though OEVTEN is 0. This is because BIT 31 IRQ of
-OEVT can't be disabled by OEVTEN.
-We configure OEVTEN in dwc3_otg_init() but dwc3_otg_irq() has
-already saved OEVTEN as 0 into dwc->oevten. So finally when
-dwc3_irq_thread_irq() is called we save 0 into OEVTEN
-thus disabling OTG irqs forever.
-
-We fix this by disabling IRQs when configuring OEVTEN in
-dwc3_otg_init().
+Also make sure that we disable OTG irq and events during system suspend
+so that we don't lockup the system during system suspend/resume.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/usb/dwc3/core.c | 27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index d050e0e..e3c094d 100644
+index e3c094d..3784287 100644
 --- a/drivers/usb/dwc3/core.c
 +++ b/drivers/usb/dwc3/core.c
-@@ -905,6 +905,7 @@ static int dwc3_drd_init(struct dwc3 *dwc)
- 	int ret, id, vbus;
- 	u32 reg;
- 	struct dwc3_hwparams *parms = &dwc->hwparams;
-+	unsigned long flags;
- 
- 	/* If extcon device is not present we rely on OTG core for ID event */
- 	if (!dwc->edev) {
-@@ -982,6 +983,8 @@ try_otg_core:
- 		goto error;
+@@ -1444,18 +1444,15 @@ static int dwc3_suspend(struct device *dev)
+ 		dwc->octl = dwc3_readl(dwc->regs, DWC3_OCTL);
+ 		dwc->oevt = dwc3_readl(dwc->regs, DWC3_OEVT);
+ 		dwc->oevten = dwc3_readl(dwc->regs, DWC3_OEVTEN);
++		dwc3_writel(dwc->regs, DWC3_OEVTEN, 0);
++		disable_irq(dwc->otg_irq);
  	}
  
-+	spin_lock_irqsave(&dwc->lock, flags);
+-	switch (dwc->dr_mode) {
+-	case USB_DR_MODE_PERIPHERAL:
+-	case USB_DR_MODE_OTG:
++	if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
++	    ((dwc->dr_mode == USB_DR_MODE_OTG) && dwc->fsm->protocol == PROTO_GADGET))
+ 		dwc3_gadget_suspend(dwc);
+-		/* FALLTHROUGH */
+-	case USB_DR_MODE_HOST:
+-	default:
+-		dwc3_event_buffers_cleanup(dwc);
+-		break;
+-	}
 +
- 	/* we need to set OTG to get events from OTG core */
- 	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
- 	/* GUSB2PHYCFG0.SusPHY=0 */
-@@ -1007,6 +1010,8 @@ try_otg_core:
- 	/* OCTL.PeriMode = 1 */
- 	dwc3_writel(dwc->regs, DWC3_OCTL, DWC3_OCTL_PERIMODE);
++	dwc3_event_buffers_cleanup(dwc);
  
-+	spin_unlock_irqrestore(&dwc->lock, flags);
-+
- 	dwc3_otg_fsm_sync(dwc);
- 	usb_otg_sync_inputs(dwc->fsm);
+ 	dwc->gctl = dwc3_readl(dwc->regs, DWC3_GCTL);
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+@@ -1495,18 +1492,12 @@ static int dwc3_resume(struct device *dev)
+ 		dwc3_writel(dwc->regs, DWC3_OCTL, dwc->octl);
+ 		dwc3_writel(dwc->regs, DWC3_OEVT, dwc->oevt);
+ 		dwc3_writel(dwc->regs, DWC3_OEVTEN, dwc->oevten);
++		enable_irq(dwc->otg_irq);
+ 	}
+ 
+-	switch (dwc->dr_mode) {
+-	case USB_DR_MODE_PERIPHERAL:
+-	case USB_DR_MODE_OTG:
++	if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
++	    ((dwc->dr_mode == USB_DR_MODE_OTG) && dwc->fsm->protocol == PROTO_GADGET))
+ 		dwc3_gadget_resume(dwc);
+-		/* FALLTHROUGH */
+-	case USB_DR_MODE_HOST:
+-	default:
+-		/* do nothing */
+-		break;
+-	}
+ 
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
  
 -- 
 2.1.4
