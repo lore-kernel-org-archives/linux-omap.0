@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 05/37] usb: chipidea: udc: add ep capabilities support
-Date: Wed, 08 Jul 2015 13:08:49 +0200
-Message-ID: <1436353761-7107-6-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH 07/37] usb: dwc3: gadget: add ep capabilities support
+Date: Wed, 08 Jul 2015 13:08:51 +0200
+Message-ID: <1436353761-7107-8-git-send-email-r.baldyga@samsung.com>
 References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,33 +25,32 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/chipidea/udc.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/usb/dwc3/gadget.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/usb/chipidea/udc.c b/drivers/usb/chipidea/udc.c
-index 764f668..eff7cfb 100644
---- a/drivers/usb/chipidea/udc.c
-+++ b/drivers/usb/chipidea/udc.c
-@@ -1624,6 +1624,20 @@ static int init_eps(struct ci_hdrc *ci)
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 333a7c0..8d1f768 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1713,6 +1713,19 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
+ 				return ret;
+ 		}
  
- 			hwep->ep.name      = hwep->name;
- 			hwep->ep.ops       = &usb_ep_ops;
++		if (epnum == 0) {
++			dep->endpoint.caps.type_control = true;
++		} else {
++			dep->endpoint.caps.type_iso = true;
++			dep->endpoint.caps.type_bulk = true;
++			dep->endpoint.caps.type_int = true;
++		}
 +
-+			if (i == 0) {
-+				hwep->ep.caps.type_control = true;
-+			} else {
-+				hwep->ep.caps.type_iso = true;
-+				hwep->ep.caps.type_bulk = true;
-+				hwep->ep.caps.type_int = true;
-+			}
++		if (epnum & 1)
++			dep->endpoint.caps.dir_in = true;
++		else
++			dep->endpoint.caps.dir_out = true;
 +
-+			if (j == TX)
-+				hwep->ep.caps.dir_in = true;
-+			else
-+				hwep->ep.caps.dir_out = true;
-+
- 			/*
- 			 * for ep0: maxP defined in desc, for other
- 			 * eps, maxP is set by epautoconfig() called
+ 		INIT_LIST_HEAD(&dep->request_list);
+ 		INIT_LIST_HEAD(&dep->req_queued);
+ 	}
 -- 
 1.9.1
