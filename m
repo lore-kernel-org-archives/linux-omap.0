@@ -1,130 +1,63 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 2/9] usb: dwc3: core.h: add some register definitions
-Date: Wed, 8 Jul 2015 13:31:57 +0300
-Message-ID: <1436351524-28385-3-git-send-email-rogerq@ti.com>
-References: <1436351524-28385-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/9] usb: dwc3: add dual-role support
+Date: Wed, 8 Jul 2015 13:31:55 +0300
+Message-ID: <1436351524-28385-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436351524-28385-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add OTG and GHWPARAMS6 register definitions
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/usb/dwc3/core.h | 82 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+Adds dual role support to dwc3 controller driver.
+Series depends on [1] for core OTG/dual-role support.
 
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index d0fda04..9c1c094 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -173,6 +173,15 @@
- #define DWC3_GCTL_GBLHIBERNATIONEN	(1 << 1)
- #define DWC3_GCTL_DSBLCLKGTNG		(1 << 0)
- 
-+/* Global Status Register */
-+#define DWC3_GSTS_OTG_IP	(1 << 10)
-+#define DWC3_GSTS_BC_IP		(1 << 9)
-+#define DWC3_GSTS_ADP_IP	(1 << 8)
-+#define DWC3_GSTS_HOST_IP	(1 << 7)
-+#define DWC3_GSTS_DEVICE_IP	(1 << 6)
-+#define DWC3_GSTS_CSR_TIMEOUT	(1 << 5)
-+#define DWC3_GSTS_BUS_ERR_ADDR_VLD	(1 << 4)
-+
- /* Global USB2 PHY Configuration Register */
- #define DWC3_GUSB2PHYCFG_PHYSOFTRST	(1 << 31)
- #define DWC3_GUSB2PHYCFG_SUSPHY		(1 << 6)
-@@ -234,6 +243,11 @@
- #define DWC3_MAX_HIBER_SCRATCHBUFS		15
- 
- /* Global HWPARAMS6 Register */
-+#define DWC3_GHWPARAMS6_BCSUPPORT		(1 << 14)
-+#define DWC3_GHWPARAMS6_OTG3SUPPORT		(1 << 13)
-+#define DWC3_GHWPARAMS6_ADPSUPPORT		(1 << 12)
-+#define DWC3_GHWPARAMS6_HNPSUPPORT		(1 << 11)
-+#define DWC3_GHWPARAMS6_SRPSUPPORT		(1 << 10)
- #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
- 
- /* Device Configuration Register */
-@@ -393,6 +407,74 @@
- #define DWC3_DEPCMD_TYPE_BULK		2
- #define DWC3_DEPCMD_TYPE_INTR		3
- 
-+/* OTG Configuration Register */
-+#define DWC3_OCFG_DISPWRCUTTOFF		(1 << 5)
-+#define DWC3_OCFG_HIBDISMASK		(1 << 4)
-+#define DWC3_OCFG_SFTRSTMASK		(1 << 3)
-+#define DWC3_OCFG_OTGVERSION		(1 << 2)
-+#define DWC3_OCFG_HNPCAP		(1 << 1)
-+#define DWC3_OCFG_SRPCAP		(1 << 0)
-+
-+/* OTG CTL Register */
-+#define DWC3_OCTL_OTG3GOERR		(1 << 7)
-+#define DWC3_OCTL_PERIMODE		(1 << 6)
-+#define DWC3_OCTL_PRTPWRCTL		(1 << 5)
-+#define DWC3_OCTL_HNPREQ		(1 << 4)
-+#define DWC3_OCTL_SESREQ		(1 << 3)
-+#define DWC3_OCTL_TERMSELIDPULSE	(1 << 2)
-+#define DWC3_OCTL_DEVSETHNPEN		(1 << 1)
-+#define DWC3_OCTL_HSTSETHNPEN		(1 << 0)
-+
-+/* OTG Event Register */
-+#define DWC3_OEVT_DEVICEMODE		(1 << 31)
-+#define DWC3_OEVT_XHCIRUNSTPSET		(1 << 27)
-+#define DWC3_OEVT_DEVRUNSTPSET		(1 << 26)
-+#define DWC3_OEVT_HIBENTRY		(1 << 25)
-+#define DWC3_OEVT_CONIDSTSCHNG		(1 << 24)
-+#define DWC3_OEVT_HRRCONFNOTIF		(1 << 23)
-+#define DWC3_OEVT_HRRINITNOTIF		(1 << 22)
-+#define DWC3_OEVT_ADEVIDLE		(1 << 21)
-+#define DWC3_OEVT_ADEVBHOSTEND		(1 << 20)
-+#define DWC3_OEVT_ADEVHOST		(1 << 19)
-+#define DWC3_OEVT_ADEVHNPCHNG		(1 << 18)
-+#define DWC3_OEVT_ADEVSRPDET		(1 << 17)
-+#define DWC3_OEVT_ADEVSESSENDDET	(1 << 16)
-+#define DWC3_OEVT_BDEVBHOSTEND		(1 << 11)
-+#define DWC3_OEVT_BDEVHNPCHNG		(1 << 10)
-+#define DWC3_OEVT_BDEVSESSVLDDET	(1 << 9)
-+#define DWC3_OEVT_BDEVVBUSCHNG		(1 << 8)
-+#define DWC3_OEVT_BSESSVLD		(1 << 3)
-+#define DWC3_OEVT_HSTNEGSTS		(1 << 2)
-+#define DWC3_OEVT_SESREQSTS		(1 << 1)
-+#define DWC3_OEVT_ERROR			(1 << 0)
-+
-+/* OTG Event Enable Register */
-+#define DWC3_OEVTEN_XHCIRUNSTPSETEN	(1 << 27)
-+#define DWC3_OEVTEN_DEVRUNSTPSETEN	(1 << 26)
-+#define DWC3_OEVTEN_HIBENTRYEN		(1 << 25)
-+#define DWC3_OEVTEN_CONIDSTSCHNGEN	(1 << 24)
-+#define DWC3_OEVTEN_HRRCONFNOTIFEN	(1 << 23)
-+#define DWC3_OEVTEN_HRRINITNOTIFEN	(1 << 22)
-+#define DWC3_OEVTEN_ADEVIDLEEN		(1 << 21)
-+#define DWC3_OEVTEN_ADEVBHOSTENDEN	(1 << 20)
-+#define DWC3_OEVTEN_ADEVHOSTEN		(1 << 19)
-+#define DWC3_OEVTEN_ADEVHNPCHNGEN	(1 << 18)
-+#define DWC3_OEVTEN_ADEVSRPDETEN	(1 << 17)
-+#define DWC3_OEVTEN_ADEVSESSENDDETEN	(1 << 16)
-+#define DWC3_OEVTEN_BDEVHOSTENDEN	(1 << 11)
-+#define DWC3_OEVTEN_BDEVHNPCHNGEN	(1 << 10)
-+#define DWC3_OEVTEN_BDEVSESSVLDDETEN	(1 << 9)
-+#define DWC3_OEVTEN_BDEVVBUSCHNGE	(1 << 8)
-+
-+/* OTG Status Register */
-+#define DWC3_OSTS_DEVRUNSTP		(1 << 13)
-+#define DWC3_OSTS_XHCIRUNSTP		(1 << 12)
-+#define DWC3_OSTS_PERIPHERALSTATE	(1 << 4)
-+#define DWC3_OSTS_XHCIPRTPOWER		(1 << 3)
-+#define DWC3_OSTS_BSESVLD		(1 << 2)
-+#define DWC3_OSTS_VBUSVLD		(1 << 1)
-+#define DWC3_OSTS_CONIDSTS		(1 << 0)
-+
- /* Structures */
- 
- struct dwc3_trb;
+Patches are based on v4.2-rc1.
+
+Tested on am437x-gp-evm and dra7-evm after platform related patches are
+applied. Those are sent seprately.
+
+You will also need the fixes mentioned in [2]
+
+[1] core OTG/DRD support - http://thread.gmane.org/gmane.linux.kernel/1991413
+[2] fixes needed for dwc3 to work on dra7
+- https://patchwork.kernel.org/patch/6732611/
+- https://patchwork.kernel.org/patch/6725291/
+- http://article.gmane.org/gmane.linux.usb.general/127693
+
+cheers,
+-roger
+
+Felipe Balbi (1):
+  usb: dwc3: core: Adapt to named interrupts
+
+George Cherian (1):
+  usb: dwc3: dwc3-omap: Make the wrapper interrupt shared
+
+Roger Quadros (7):
+  usb: dwc3: add dual-role support
+  usb: dwc3: core.h: add some register definitions
+  usb: dwc3: core: make dual-role work with OTG irq
+  usb: dwc3: save/restore OTG registers during suspend/resume
+  usb: dwc3: gadget: Fix suspend/resume during dual-role mode
+  usb: dwc3: core: Prevent otg events from disabling themselves
+  usb: dwc3: core: don't break during suspend/resume while we're
+    dual-role
+
+ drivers/usb/dwc3/core.c          | 409 +++++++++++++++++++++++++++++++++++++--
+ drivers/usb/dwc3/core.h          | 113 +++++++++++
+ drivers/usb/dwc3/dwc3-omap.c     |   4 +-
+ drivers/usb/dwc3/gadget.c        |   8 +-
+ drivers/usb/dwc3/platform_data.h |   1 +
+ 5 files changed, 513 insertions(+), 22 deletions(-)
+
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
