@@ -1,58 +1,78 @@
-From: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH] i2c: omap: fix bus recovery setup
-Date: Wed,  8 Jul 2015 16:35:27 +0200
-Message-ID: <1436366127-24756-1-git-send-email-jlu@pengutronix.de>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 4/9] usb: dwc3: core: Adapt to named interrupts
+Date: Wed, 8 Jul 2015 17:43:48 +0300
+Message-ID: <559D3724.9040806@ti.com>
+References: <1436351524-28385-1-git-send-email-rogerq@ti.com> <1436351795-28556-1-git-send-email-rogerq@ti.com> <559D2068.90208@cogentembedded.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <559D2068.90208@cogentembedded.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, balbi@ti.com
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
-allow direct access to the SCL and SDA pins. In addition to ST_EN, we
-need to set the TMODE to 0b11 (Loop back & SDA/SCL IO mode select).
-Also, as the reset values of SCL_O and SDA_O are 0 (which means "drive
-low level"), we need to set them to 1 (which means "high-impedance") to
-avoid unwanted changes on the pins.
+Hi,
 
-As a precaution, reset all these bits to their default values after
-recovery is complete.
+On 08/07/15 16:06, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 7/8/2015 1:36 PM, Roger Quadros wrote:
+> 
+>> From: Felipe Balbi <balbi@ti.com>
+> 
+>> Add support to use interrupt names,
+> 
+>> Following are the interrupt names
+> 
+>> Peripheral Interrupt - peripheral
+>> HOST Interrupt - host
+>> OTG Interrupt - otg
+> 
+>> [Roger Q]
+>> - If any of these are missing we use the
+>> first available IRQ resource so that we don't
+>> break with older DTBs.
+> 
+>> - Use gadget_irq in gadget driver.
+> 
+>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   drivers/usb/dwc3/core.c   | 12 ++++++++++++
+>>   drivers/usb/dwc3/core.h   |  7 +++++++
+>>   drivers/usb/dwc3/gadget.c |  2 +-
+>>   3 files changed, 20 insertions(+), 1 deletion(-)
+> 
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index a7498e0..7b33d7b 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -941,6 +941,18 @@ static int dwc3_probe(struct platform_device *pdev)
+>>       dwc->xhci_resources[1].flags = res->flags;
+>>       dwc->xhci_resources[1].name = res->name;
+>>
+>> +    dwc->otg_irq = platform_get_irq_byname(pdev, "otg");
+>> +    if (!dwc->otg_irq)
+> 
+>    The usual mistake repeated again: that function reutrns error # on failure, not 0.
+> 
+>> +        dwc->otg_irq = res->start;
+>> +
+>> +    dwc->gadget_irq = platform_get_irq_byname(pdev, "peripheral");
+>> +    if (!dwc->gadget_irq)
+>> +        dwc->gadget_irq = res->start;
+> 
+>    Likewise.
+> 
+>> +
+>> +    dwc->xhci_irq = platform_get_irq_byname(pdev, "host");
+>> +    if (!dwc->xhci_irq)
+> 
+>    Likewise.
 
-Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Right. I'll fix it up. Thanks.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index d1c22e3fdd14..fc9bf7f30e35 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1247,7 +1247,14 @@ static void omap_i2c_prepare_recovery(struct i2c_adapter *adap)
- 	u32 reg;
- 
- 	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-+	/* enable test mode */
- 	reg |= OMAP_I2C_SYSTEST_ST_EN;
-+	/* select SDA/SCL IO mode */
-+	reg |= 3 << OMAP_I2C_SYSTEST_TMODE_SHIFT;
-+	/* set SCL to high-impedance state (reset value is 0) */
-+	reg |= OMAP_I2C_SYSTEST_SCL_O;
-+	/* set SDA to high-impedance state (reset value is 0) */
-+	reg |= OMAP_I2C_SYSTEST_SDA_O;
- 	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
- }
- 
-@@ -1257,7 +1264,11 @@ static void omap_i2c_unprepare_recovery(struct i2c_adapter *adap)
- 	u32 reg;
- 
- 	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-+	/* restore reset values */
- 	reg &= ~OMAP_I2C_SYSTEST_ST_EN;
-+	reg &= ~OMAP_I2C_SYSTEST_TMODE_MASK;
-+	reg &= ~OMAP_I2C_SYSTEST_SCL_O;
-+	reg &= ~OMAP_I2C_SYSTEST_SDA_O;
- 	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
- }
- 
--- 
-2.1.4
+cheers,
+-roger
