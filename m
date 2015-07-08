@@ -1,85 +1,41 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 1/6] ARM: OMAP4: PRM: Remove hardcoding of PRM_IO_PMCTRL_OFFSET register
-Date: Wed, 8 Jul 2015 11:12:23 +0530
-Message-ID: <1436334148-9309-2-git-send-email-j-keerthy@ti.com>
-References: <1436334148-9309-1-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm:irqchip: IRQCHIP_DECLARE macro is now accessible
+Date: Tue, 7 Jul 2015 23:40:42 -0700
+Message-ID: <20150708064042.GU10705@atomide.com>
+References: <1436299411-12329-1-git-send-email-joel@porquet.org>
+ <559C64F2.9070803@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436334148-9309-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, galak@codeaurora.org, pawel.moll@arm.com, paul@pwsan.com, j-keerthy@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <559C64F2.9070803@samsung.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Joel Porquet <joel@porquet.org>, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene@kernel.org>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-PRM_IO_PMCTRL_OFFSET need not be same for all SOCs hence
-remove hardcoding and use the value provided by the omap_prcm_irq_setup
-structure.
+* Krzysztof Kozlowski <k.kozlowski@samsung.com> [150707 16:49]:
+> On 08.07.2015 05:02, Joel Porquet wrote:
+> > The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', making it
+> > globally accessible.
+> > 
+> > See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d
+> > ("irqchip: Move IRQCHIP_DECLARE macro to include/linux/irqchip.h").
+> > 
+> > This patch adds inclusions of 'include/linux/irqchip.h' and replaces uses of
+> > macro OF_DECLARE_2 with IRQCHIP_DECLARE.
+> > 
+> > Signed-off-by: Joel Porquet <joel@porquet.org>
+> > ---
+> >  arch/arm/mach-exynos/suspend.c       | 3 ++-
+> >  arch/arm/mach-imx/gpc.c              | 7 ++-----
+> >  arch/arm/mach-omap2/omap-wakeupgen.c | 7 ++-----
+> >  3 files changed, 6 insertions(+), 11 deletions(-)
+> > 
+> 
+> For Exynos:
+> Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/mach-omap2/prcm-common.h |  1 +
- arch/arm/mach-omap2/prm44xx.c     | 11 ++++++-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+For omap changes:
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 6ae0b3a..2e60406 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -494,6 +494,7 @@ struct omap_prcm_irq {
- struct omap_prcm_irq_setup {
- 	u16 ack;
- 	u16 mask;
-+	u16 pm_ctrl;
- 	u8 nr_regs;
- 	u8 nr_irqs;
- 	const struct omap_prcm_irq *irqs;
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 4541700..8149e5a 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -45,6 +45,7 @@ static const struct omap_prcm_irq omap4_prcm_irqs[] = {
- static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
- 	.ack			= OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.mask			= OMAP4_PRM_IRQENABLE_MPU_OFFSET,
-+	.pm_ctrl		= OMAP4_PRM_IO_PMCTRL_OFFSET,
- 	.nr_regs		= 2,
- 	.irqs			= omap4_prcm_irqs,
- 	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
-@@ -306,10 +307,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
- 	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
- 				    OMAP4430_WUCLK_CTRL_MASK,
- 				    inst,
--				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-+				    omap4_prcm_irq_setup.pm_ctrl);
- 	omap_test_timeout(
- 		(((omap4_prm_read_inst_reg(inst,
--					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+					   omap4_prcm_irq_setup.pm_ctrl) &
- 		   OMAP4430_WUCLK_STATUS_MASK) >>
- 		  OMAP4430_WUCLK_STATUS_SHIFT) == 1),
- 		MAX_IOPAD_LATCH_TIME, i);
-@@ -319,10 +320,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
- 	/* Trigger WUCLKIN disable */
- 	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
- 				    inst,
--				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-+				    omap4_prcm_irq_setup.pm_ctrl);
- 	omap_test_timeout(
- 		(((omap4_prm_read_inst_reg(inst,
--					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+					   omap4_prcm_irq_setup.pm_ctrl) &
- 		   OMAP4430_WUCLK_STATUS_MASK) >>
- 		  OMAP4430_WUCLK_STATUS_SHIFT) == 0),
- 		MAX_IOPAD_LATCH_TIME, i);
-@@ -350,7 +351,7 @@ static void __init omap44xx_prm_enable_io_wakeup(void)
- 	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
- 				    OMAP4430_GLOBAL_WUEN_MASK,
- 				    inst,
--				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-+				    omap4_prcm_irq_setup.pm_ctrl);
- }
- 
- /**
--- 
-1.9.1
+Acked-by: Tony Lindgren <tony@atomide.com>
