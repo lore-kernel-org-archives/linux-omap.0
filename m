@@ -1,44 +1,31 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v5] clk: change clk_ops' ->determine_rate() prototype
-Date: Wed, 08 Jul 2015 11:07:42 -0700
-Message-ID: <559D66EE.4060707@codeaurora.org>
-References: <1436294888-25752-1-git-send-email-boris.brezillon@free-electrons.com>	<20150708005748.GG30412@codeaurora.org> <20150708110005.704c49ff@bbrezillon>
+From: Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>
+Subject: Re: [PATCH 28/37] usb: gadget: pxa27x_udc: add ep capabilities support
+Date: Wed, 08 Jul 2015 21:26:08 +0200
+Message-ID: <874mlea1tb.fsf@belgarion.home>
+References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
+	<1436353761-7107-29-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20150708110005.704c49ff@bbrezillon>
-Sender: linux-doc-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Mike Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, =?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-tegra@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1436353761-7107-29-git-send-email-r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> (Robert
+	Baldyga's message of "Wed, 08 Jul 2015 13:09:12 +0200")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, johnyoun-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, cernekee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter.Chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/08/2015 02:00 AM, Boris Brezillon wrote:
-> Hi Stephen,
->
-> On Tue, 7 Jul 2015 17:57:48 -0700
-> Stephen Boyd <sboyd@codeaurora.org> wrote:
->
->> On 07/07, Boris Brezillon wrote:
->>>
->>>  	} else {
->>>  		pr_err("clk: clk_composite_determine_rate function called, but no mux or rate callback set!\n");
->>> +		req->rate = 0;
->>>  		return 0;
->> Shouldn't this return an error now? And then assigning req->rate
->> wouldn't be necessary. Sorry I must have missed this last round.
->>
-> Actually I wanted to keep the existing behavior: return a 0 rate (not
-> an error) when there is no mux or rate ops.
->
-> That's something we can change afterwards, but it might reveals
-> new bugs if some users are checking for a 0 rate to detect errors.
->
+Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> writes:
 
-Ok. Care to send the patch now to do that while we're thinking about it?
-We can test it out for a month or two.
+> Convert endpoint configuration to new capabilities model.
+The commit message is very short to judge the patch's correctness.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+I'll side up with Felipe's opinion. If it's fine by him, so it is by me.
 
+Cheers.
+
+--
+Robert
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
