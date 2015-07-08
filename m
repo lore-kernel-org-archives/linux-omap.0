@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 6/9] usb: dwc3: save/restore OTG registers during suspend/resume
-Date: Wed, 8 Jul 2015 13:36:57 +0300
-Message-ID: <1436351817-28643-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 7/9] usb: dwc3: gadget: Fix suspend/resume during dual-role mode
+Date: Wed, 8 Jul 2015 13:37:08 +0300
+Message-ID: <1436351828-28687-1-git-send-email-rogerq@ti.com>
 References: <1436351524-28385-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,39 @@ To: balbi@ti.com
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Without this we loose OTG controller register context and malfunction
-after a system suspend-resume.
+Gdget controller might not be always active during suspend/
+resume when we are operating in dual-role/otg mode.
+Check if we're active and only if we are then perform
+necessary actions during suspend/resume.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/core.c | 17 +++++++++++++++++
- drivers/usb/dwc3/core.h |  6 +++++-
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ drivers/usb/dwc3/gadget.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 138847f..d050e0e 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -56,6 +56,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
- 	reg = dwc3_readl(dwc->regs, DWC3_GCTL);
- 	reg &= ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
- 	reg |= DWC3_GCTL_PRTCAPDIR(mode);
-+	dwc->current_mode = mode;
- 	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
- }
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index cf6b945..3cc8c18 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2779,6 +2779,9 @@ void dwc3_gadget_exit(struct dwc3 *dwc)
  
-@@ -1432,6 +1433,14 @@ static int dwc3_suspend(struct device *dev)
- 
- 	spin_lock_irqsave(&dwc->lock, flags);
- 
-+	/* Save OTG state only if we're really using it */
-+	if (dwc->current_mode == DWC3_GCTL_PRTCAP_OTG) {
-+		dwc->ocfg = dwc3_readl(dwc->regs, DWC3_OCFG);
-+		dwc->octl = dwc3_readl(dwc->regs, DWC3_OCTL);
-+		dwc->oevt = dwc3_readl(dwc->regs, DWC3_OEVT);
-+		dwc->oevten = dwc3_readl(dwc->regs, DWC3_OEVTEN);
-+	}
+ int dwc3_gadget_suspend(struct dwc3 *dwc)
+ {
++	if (!dwc->gadget_driver)
++		return 0;
 +
- 	switch (dwc->dr_mode) {
- 	case USB_DR_MODE_PERIPHERAL:
- 	case USB_DR_MODE_OTG:
-@@ -1475,6 +1484,14 @@ static int dwc3_resume(struct device *dev)
- 	dwc3_event_buffers_setup(dwc);
- 	dwc3_writel(dwc->regs, DWC3_GCTL, dwc->gctl);
+ 	if (dwc->pullups_connected) {
+ 		dwc3_gadget_disable_irq(dwc);
+ 		dwc3_gadget_run_stop(dwc, true, true);
+@@ -2797,6 +2800,9 @@ int dwc3_gadget_resume(struct dwc3 *dwc)
+ 	struct dwc3_ep		*dep;
+ 	int			ret;
  
-+	/* Restore OTG state only if we're really using it */
-+	if (dwc->current_mode == DWC3_GCTL_PRTCAP_OTG) {
-+		dwc3_writel(dwc->regs, DWC3_OCFG, dwc->ocfg);
-+		dwc3_writel(dwc->regs, DWC3_OCTL, dwc->octl);
-+		dwc3_writel(dwc->regs, DWC3_OEVT, dwc->oevt);
-+		dwc3_writel(dwc->regs, DWC3_OEVTEN, dwc->oevten);
-+	}
++	if (!dwc->gadget_driver)
++		return 0;
 +
- 	switch (dwc->dr_mode) {
- 	case USB_DR_MODE_PERIPHERAL:
- 	case USB_DR_MODE_OTG:
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 744a5ff..c9c64c9 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -737,6 +737,7 @@ struct dwc3_scratchpad_array {
-  * @regs: base address for our registers
-  * @regs_size: address space size
-  * @oevten: otg interrupt enable mask copy
-+ * @current_mode: current mode of operation written to PRTCAPDIR
-  * @nr_scratch: number of scratch buffers
-  * @num_event_buffers: calculated number of event buffers
-  * @u1u2: only used on revisions <1.83a for workaround
-@@ -862,9 +863,12 @@ struct dwc3 {
- 	/* used for suspend/resume */
- 	u32			dcfg;
- 	u32			gctl;
--
-+	u32			ocfg;
-+	u32			octl;
-+	u32			oevt;
- 	u32			oevten;
+ 	/* Start with SuperSpeed Default */
+ 	dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(512);
  
-+	u32			current_mode;
- 	u32			nr_scratch;
- 	u32			num_event_buffers;
- 	u32			u1u2;
 -- 
 2.1.4
