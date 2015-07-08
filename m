@@ -1,59 +1,54 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 06/11] usb: gadget.h: Add OTG to gadget interface
-Date: Wed, 8 Jul 2015 13:19:32 +0300
-Message-ID: <1436350777-28056-7-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 05/11] usb: hcd.h: Add OTG to HCD interface
+Date: Wed, 8 Jul 2015 13:19:31 +0300
+Message-ID: <1436350777-28056-6-git-send-email-rogerq@ti.com>
 References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436350777-28056-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Cc: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com
+Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OTG core will use struct otg_gadget_ops to
-start/stop the gadget controller.
+The OTG core will use struct otg_hcd_ops to
+add/remove the HCD controller.
 
 The main purpose of this interface is to avoid directly
-calling usb_gadget_start/stop() from the OTG core as they
+calling usb_add/remove_hcd() from the OTG core as they
 wouldn't be defined in the built-in symbol table if
-CONFIG_USB_GADGET is m.
+CONFIG_USB is m.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- include/linux/usb/gadget.h | 14 ++++++++++++++
+ include/linux/usb/hcd.h | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
 
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index 4f3dfb7..0b4b341 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -887,6 +887,20 @@ struct usb_gadget_driver {
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index c9aa779..4108288 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -386,6 +386,20 @@ struct hc_driver {
+ 
  };
  
- 
-+/*-------------------------------------------------------------------------*/
-+
 +/**
-+ * struct otg_gadget_ops - Interface between OTG core and gadget
++ * struct otg_hcd_ops - Interface between OTG core and HCD
 + *
-+ * Provided by the gadget core to allow the OTG core to start/stop the gadget
++ * Provided by the HCD core to allow the OTG core to start/stop the HCD
 + *
-+ * @start: function to start the gadget
-+ * @stop: function to stop the gadget
++ * @add: function to add the HCD
++ * @remove: function to remove the HCD
 + */
-+struct otg_gadget_ops {
-+	int (*start)(struct usb_gadget *gadget);
-+	int (*stop)(struct usb_gadget *gadget);
++struct otg_hcd_ops {
++	int (*add)(struct usb_hcd *hcd,
++		   unsigned int irqnum, unsigned long irqflags);
++	void (*remove)(struct usb_hcd *hcd);
 +};
- 
- /*-------------------------------------------------------------------------*/
- 
++
+ static inline int hcd_giveback_urb_in_bh(struct usb_hcd *hcd)
+ {
+ 	return hcd->driver->flags & HCD_BH;
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
