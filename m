@@ -1,50 +1,53 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2 6/7] crypto: omap-aes: Add support for GCM mode
-Date: Wed, 8 Jul 2015 15:53:07 +0800
-Message-ID: <20150708075307.GA19381@gondor.apana.org.au>
-References: <1436283109-13318-1-git-send-email-lokeshvutla@ti.com>
- <1436283109-13318-7-git-send-email-lokeshvutla@ti.com>
- <20150708041838.GA12744@gondor.apana.org.au>
- <559CCA63.4080609@ti.com>
- <20150708074805.GA18991@gondor.apana.org.au>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
+Date: Wed, 8 Jul 2015 11:09:02 +0300
+Message-ID: <559CDA9E.7050401@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com> <559BE433.9020308@ti.com> <559BE579.2020109@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150708074805.GA18991@gondor.apana.org.au>
+In-Reply-To: <559BE579.2020109@pengutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
+To: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 08, 2015 at 03:48:05PM +0800, Herbert Xu wrote:
-> On Wed, Jul 08, 2015 at 12:29:47PM +0530, Lokesh Vutla wrote:
-> >
-> > >> +	if (req->assoclen + req->cryptlen == 0) {
-> > >> +		scatterwalk_map_and_copy(ctx->auth_tag, req->dst, 0, authlen,
-> > >> +					 1);
-> > >> +		return 0;
-> > >> +	}
-> > > 
-> > > How can this be right? Did you enable the selftest?
-> > Why not? Self tests are passed for this case.
-> > 
-> > As per the equation given in GCM spec[1], we can see that
-> > if assoclen and cryptlen is 0, then output of GCM  is just E(K, Y0)
-> > where Y0 = IV||(0^31)1
-> > I have E(K, Y0) calculated in previous step. And copying it
-> > to destination if assoclen and cryptlen is 0.
-> > 
-> > Correct me if I am wrong.
-> 
-> It should be E(K, Y0) ^ GHASH(0).  So unless GHASH(0) == 0, your
-> code doesn't work.
+Marc,
 
-OK, GHASH(0) is indeed zero so I guess your code does work after
-all.
+On 07/07/15 17:43, Marc Kleine-Budde wrote:
+> On 07/07/2015 04:37 PM, Roger Quadros wrote:
+>>>>> diff --git a/drivers/net/can/c_can/c_can.c
+>>>>> b/drivers/net/can/c_can/c_can.c
+>>>>> index 041525d..66e98e7 100644
+>>>>> --- a/drivers/net/can/c_can/c_can.c
+>>>>> +++ b/drivers/net/can/c_can/c_can.c
+>>>>> @@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
+>>>>>        priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>>>>
+>>>>>        /* activate pins */
+>>>>> -    pinctrl_pm_select_default_state(dev->dev.parent);
+>>>>> +#ifdef CONFIG_PINCTRL
+>>>>
+>>>> Please remove the ifdef, AFAICS there are static inline noop functions
+>>>> if CONFIG_PINCTRL switched off.
+>>>
+>>> yes, you are right.
+>>
+>> On second thoughts
+>>
+>> device->pins are not defined if CONFIG_PINCTRL is not set.
+>> so we can't remove the #ifdef.
+>
+> Too bad :(
+>
+> okay - should I add stable@v.k.o on Cc?
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+I'm not sure if it would help. This patch by itself won't fix anything. 
+It needs to go in together with the DTS change in patch 2.
+
+Maybe if Tony can Ack the second patch then both should be applicable
+on v4.0+ for stable.
+
+cheers,
+-roger
