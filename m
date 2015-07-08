@@ -1,55 +1,66 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 35/37] usb: renesas: gadget: add ep capabilities support
-Date: Wed, 08 Jul 2015 13:09:19 +0200
-Message-ID: <1436353761-7107-36-git-send-email-r.baldyga@samsung.com>
-References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 1/2] net: can: c_can: Fix default pinmux glitch at init
+Date: Wed, 8 Jul 2015 14:38:12 +0300
+Message-ID: <559D0BA4.9000000@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-reply-to: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, balbi@ti.com, linux-kernel@vger.kernel.org, haojian.zhuang@gmail.com, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1436279277-3386-2-git-send-email-rogerq@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Convert endpoint configuration to new capabilities model.
+From: "J.D. Schroeder" <jay.schroeder@garmin.com>
 
-Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+The previous change 3973c526ae9c (net: can: c_can: Disable pins when CAN interface
+is down) causes a slight glitch on the pinctrl settings when used. Since
+commit ab78029 (drivers/pinctrl: grab default handles from device core),
+the device core will automatically set the default pins. This causes
+the pins to be momentarily set to the default and then to the sleep
+state in register_c_can_dev(). By adding an optional "enable" state,
+boards can set the default pin state to be disabled and avoid the
+glitch when the switch from default to sleep first occurs. If the
+"enable" state is not available c_can_pinctrl_select_state() falls
+back to using the "default" pinctrl state.
+
+[Roger Q] - Forward port to v4.2 and use pinctrl_get_select().
+
+Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/renesas_usbhs/mod_gadget.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/net/can/c_can/c_can.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
-index dc2aa32..ed8d890 100644
---- a/drivers/usb/renesas_usbhs/mod_gadget.c
-+++ b/drivers/usb/renesas_usbhs/mod_gadget.c
-@@ -1041,12 +1041,18 @@ int usbhs_mod_gadget_probe(struct usbhs_priv *priv)
- 		if (usbhsg_is_dcp(uep)) {
- 			gpriv->gadget.ep0 = &uep->ep;
- 			usb_ep_set_maxpacket_limit(&uep->ep, 64);
-+			uep->ep.caps.type_control = true;
- 		}
- 		/* init normal pipe */
- 		else {
- 			usb_ep_set_maxpacket_limit(&uep->ep, 512);
-+			uep->ep.caps.type_iso = true;
-+			uep->ep.caps.type_bulk = true;
-+			uep->ep.caps.type_int = true;
- 			list_add_tail(&uep->ep.ep_list, &gpriv->gadget.ep_list);
- 		}
-+		uep->ep.caps.dir_in = true;
-+		uep->ep.caps.dir_out = true;
- 	}
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index 041525d..5d214d1 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -592,6 +592,7 @@ static int c_can_start(struct net_device *dev)
+ {
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 	int err;
++	struct pinctrl *p;
  
- 	ret = usb_add_gadget_udc(dev, &gpriv->gadget);
+ 	/* basic c_can configuration */
+ 	err = c_can_chip_config(dev);
+@@ -604,8 +605,13 @@ static int c_can_start(struct net_device *dev)
+ 
+ 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+ 
+-	/* activate pins */
+-	pinctrl_pm_select_default_state(dev->dev.parent);
++	/* Attempt to use "active" if available else use "default" */
++	p = pinctrl_get_select(priv->device, "active");
++	if (!IS_ERR(p))
++		pinctrl_put(p);
++	else
++		pinctrl_pm_select_default_state(priv->device);
++
+ 	return 0;
+ }
+ 
 -- 
-1.9.1
+2.1.4
