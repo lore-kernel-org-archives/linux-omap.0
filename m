@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 31/37] usb: gadget: s3c2410_udc: add ep capabilities support
-Date: Wed, 08 Jul 2015 13:09:15 +0200
-Message-ID: <1436353761-7107-32-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH 33/37] usb: isp1760: udc: add ep capabilities support
+Date: Wed, 08 Jul 2015 13:09:17 +0200
+Message-ID: <1436353761-7107-34-git-send-email-r.baldyga@samsung.com>
 References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,57 +25,37 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/s3c2410_udc.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/usb/isp1760/isp1760-udc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/s3c2410_udc.c b/drivers/usb/gadget/udc/s3c2410_udc.c
-index 5d9aa81..eb3571e 100644
---- a/drivers/usb/gadget/udc/s3c2410_udc.c
-+++ b/drivers/usb/gadget/udc/s3c2410_udc.c
-@@ -1691,6 +1691,8 @@ static struct s3c2410_udc memory = {
- 			.name		= ep0name,
- 			.ops		= &s3c2410_ep_ops,
- 			.maxpacket	= EP0_FIFO_SIZE,
-+			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL,
-+						USB_EP_CAPS_DIR_ALL),
- 		},
- 		.dev		= &memory,
- 	},
-@@ -1702,6 +1704,8 @@ static struct s3c2410_udc memory = {
- 			.name		= "ep1-bulk",
- 			.ops		= &s3c2410_ep_ops,
- 			.maxpacket	= EP_FIFO_SIZE,
-+			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-+						USB_EP_CAPS_DIR_ALL),
- 		},
- 		.dev		= &memory,
- 		.fifo_size	= EP_FIFO_SIZE,
-@@ -1714,6 +1718,8 @@ static struct s3c2410_udc memory = {
- 			.name		= "ep2-bulk",
- 			.ops		= &s3c2410_ep_ops,
- 			.maxpacket	= EP_FIFO_SIZE,
-+			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-+						USB_EP_CAPS_DIR_ALL),
- 		},
- 		.dev		= &memory,
- 		.fifo_size	= EP_FIFO_SIZE,
-@@ -1726,6 +1732,8 @@ static struct s3c2410_udc memory = {
- 			.name		= "ep3-bulk",
- 			.ops		= &s3c2410_ep_ops,
- 			.maxpacket	= EP_FIFO_SIZE,
-+			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-+						USB_EP_CAPS_DIR_ALL),
- 		},
- 		.dev		= &memory,
- 		.fifo_size	= EP_FIFO_SIZE,
-@@ -1738,6 +1746,8 @@ static struct s3c2410_udc memory = {
- 			.name		= "ep4-bulk",
- 			.ops		= &s3c2410_ep_ops,
- 			.maxpacket	= EP_FIFO_SIZE,
-+			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-+						USB_EP_CAPS_DIR_ALL),
- 		},
- 		.dev		= &memory,
- 		.fifo_size	= EP_FIFO_SIZE,
+diff --git a/drivers/usb/isp1760/isp1760-udc.c b/drivers/usb/isp1760/isp1760-udc.c
+index 3699962..1c3d0fd 100644
+--- a/drivers/usb/isp1760/isp1760-udc.c
++++ b/drivers/usb/isp1760/isp1760-udc.c
+@@ -1383,13 +1383,24 @@ static void isp1760_udc_init_eps(struct isp1760_udc *udc)
+ 		 */
+ 		if (ep_num == 0) {
+ 			usb_ep_set_maxpacket_limit(&ep->ep, 64);
++			ep->ep.caps.type_control = true;
++			ep->ep.caps.dir_in = true;
++			ep->ep.caps.dir_out = true;
+ 			ep->maxpacket = 64;
+ 			udc->gadget.ep0 = &ep->ep;
+ 		} else {
+ 			usb_ep_set_maxpacket_limit(&ep->ep, 512);
++			ep->ep.caps.type_iso = true;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
+ 			ep->maxpacket = 0;
+ 			list_add_tail(&ep->ep.ep_list, &udc->gadget.ep_list);
+ 		}
++
++		if (is_in)
++			ep->ep.caps.dir_in = true;
++		else
++			ep->ep.caps.dir_out = true;
+ 	}
+ }
+ 
 -- 
 1.9.1
