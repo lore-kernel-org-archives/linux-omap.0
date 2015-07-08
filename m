@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH 16/37] usb: gadget: fusb300_udc: add ep capabilities support
-Date: Wed, 08 Jul 2015 13:09:00 +0200
-Message-ID: <1436353761-7107-17-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH 19/37] usb: gadget: lpc32xx_udc: add ep capabilities support
+Date: Wed, 08 Jul 2015 13:09:03 +0200
+Message-ID: <1436353761-7107-20-git-send-email-r.baldyga@samsung.com>
 References: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,30 +25,156 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/fusb300_udc.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/usb/gadget/udc/lpc32xx_udc.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/fusb300_udc.c b/drivers/usb/gadget/udc/fusb300_udc.c
-index 3970f45..948845c 100644
---- a/drivers/usb/gadget/udc/fusb300_udc.c
-+++ b/drivers/usb/gadget/udc/fusb300_udc.c
-@@ -1450,6 +1450,17 @@ static int fusb300_probe(struct platform_device *pdev)
- 		ep->ep.name = fusb300_ep_name[i];
- 		ep->ep.ops = &fusb300_ep_ops;
- 		usb_ep_set_maxpacket_limit(&ep->ep, HS_BULK_MAX_PACKET_SIZE);
-+
-+		if (i == 0) {
-+			ep->ep.caps.type_control = true;
-+		} else {
-+			ep->ep.caps.type_iso = true;
-+			ep->ep.caps.type_bulk = true;
-+			ep->ep.caps.type_int = true;
-+		}
-+
-+		ep->ep.caps.dir_in = true;
-+		ep->ep.caps.dir_out = true;
- 	}
- 	usb_ep_set_maxpacket_limit(&fusb300->ep[0]->ep, HS_CTL_MAX_PACKET_SIZE);
- 	fusb300->ep[0]->epnum = 0;
+diff --git a/drivers/usb/gadget/udc/lpc32xx_udc.c b/drivers/usb/gadget/udc/lpc32xx_udc.c
+index 3b6a785..00b5006 100644
+--- a/drivers/usb/gadget/udc/lpc32xx_udc.c
++++ b/drivers/usb/gadget/udc/lpc32xx_udc.c
+@@ -2575,6 +2575,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep0",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 0,
+@@ -2586,6 +2588,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep1-int",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_INT,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 2,
+@@ -2597,6 +2601,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep2-bulk",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 4,
+@@ -2608,6 +2614,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep3-iso",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 1023,
+ 		.hwep_num_base	= 6,
+@@ -2619,6 +2627,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep4-int",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_INT,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 8,
+@@ -2630,6 +2640,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep5-bulk",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 10,
+@@ -2641,6 +2653,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep6-iso",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 1023,
+ 		.hwep_num_base	= 12,
+@@ -2652,6 +2666,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep7-int",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_INT,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 14,
+@@ -2663,6 +2679,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep8-bulk",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 16,
+@@ -2674,6 +2692,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep9-iso",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 1023,
+ 		.hwep_num_base	= 18,
+@@ -2685,6 +2705,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep10-int",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_INT,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 20,
+@@ -2696,6 +2718,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep11-bulk",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 22,
+@@ -2707,6 +2731,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep12-iso",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 1023,
+ 		.hwep_num_base	= 24,
+@@ -2718,6 +2744,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep13-int",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_INT,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 26,
+@@ -2729,6 +2757,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep14-bulk",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 64,
+ 		.hwep_num_base	= 28,
+@@ -2740,6 +2770,8 @@ static const struct lpc32xx_udc controller_template = {
+ 		.ep = {
+ 			.name	= "ep15-bulk",
+ 			.ops	= &lpc32xx_ep_ops,
++			.caps	= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
++					USB_EP_CAPS_DIR_ALL),
+ 		},
+ 		.maxpacket	= 1023,
+ 		.hwep_num_base	= 30,
 -- 
 1.9.1
