@@ -1,130 +1,139 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
-Date: Wed, 8 Jul 2015 13:44:53 +0300
-Message-ID: <559CFF25.4090007@ti.com>
-References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com> <559BE433.9020308@ti.com> <559BF4FD.2080400@ti.com> <559CDBA3.3040405@ti.com> <559CFBFB.8010400@ti.com>
+From: Robert Baldyga <r.baldyga@samsung.com>
+Subject: [PATCH 00/37] usb: gadget: rework ep matching and claiming mechanism
+Date: Wed, 08 Jul 2015 13:08:44 +0200
+Message-ID: <1436353761-7107-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <559CFBFB.8010400@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, tony@atomide.com, Linus Walleij <linus.walleij@linaro.org>
-Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, balbi@ti.com, linux-kernel@vger.kernel.org, haojian.zhuang@gmail.com, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello,
 
-On 08/07/15 13:31, Grygorii Strashko wrote:
-> On 07/08/2015 11:13 AM, Roger Quadros wrote:
->>
->> On 07/07/15 18:49, Grygorii Strashko wrote:
->>> On 07/07/2015 05:37 PM, Roger Quadros wrote:
->>>> On 07/07/15 17:35, Roger Quadros wrote:
->>>>> On 07/07/15 17:33, Marc Kleine-Budde wrote:
->>>>>> On 07/07/2015 04:27 PM, Roger Quadros wrote:
->>>>>>> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
->>>>>>>
->>>>>>> The previous change 3973c526ae9c (net: can: c_can: Disable pins when
->>>>>>> CAN interface
->>>>>>> is down) causes a slight glitch on the pinctrl settings when used.
->>>>>>> Since
->>>>>>> commit ab78029 (drivers/pinctrl: grab default handles from device
->>>>>>> core),
->>>>>>> the device core will automatically set the default pins. This causes
->>>>>>> the pins to be momentarily set to the default and then to the sleep
->>>>>>> state in register_c_can_dev(). By adding an optional "enable" state,
->>>>>>> boards can set the default pin state to be disabled and avoid the
->>>>>>> glitch when the switch from default to sleep first occurs. If the
->>>>>>> "enable" state is not available c_can_pinctrl_select_state() falls
->>>>>>> back to using the "default" pinctrl state.
->>>>>>>
->>>>>>> [Roger Q] - Forward port to v4.2
->>>>>>>
->>>>>>> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
->>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>>> ---
->>>>>>>   drivers/net/can/c_can/c_can.c | 13 ++++++++++++-
->>>>>>>   1 file changed, 12 insertions(+), 1 deletion(-)
->>>>>>>
->>>>>>> diff --git a/drivers/net/can/c_can/c_can.c
->>>>>>> b/drivers/net/can/c_can/c_can.c
->>>>>>> index 041525d..66e98e7 100644
->>>>>>> --- a/drivers/net/can/c_can/c_can.c
->>>>>>> +++ b/drivers/net/can/c_can/c_can.c
->>>>>>> @@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
->>>>>>>       priv->can.state = CAN_STATE_ERROR_ACTIVE;
->>>>>>>
->>>>>>>       /* activate pins */
->>>>>>> -    pinctrl_pm_select_default_state(dev->dev.parent);
->>>>>>> +#ifdef CONFIG_PINCTRL
->>>>>>
->>>>>> Please remove the ifdef, AFAICS there are static inline noop functions
->>>>>> if CONFIG_PINCTRL switched off.
->>>>>
->>>>> yes, you are right.
->>>>
->>>> On second thoughts
->>>>
->>>> device->pins are not defined if CONFIG_PINCTRL is not set.
->>>> so we can't remove the #ifdef.
->>>
->>> May be you can use [devm_]pinctrl_get?
->>
->> Why should we do that? The device core has already done the 
->> pinctrl_get() and it is available in device->pins->p.
-> 
-> True. But It seems, you are going to be only one direct user of pin->p in whole
-> kernel (outside of pictrl core) !? ;)
+This patch series reworks endpoint matching and claiming mechanism in
+epautoconf.
 
-good point :).
+The patch (1) introduces new safer endpoint claiming method, basing on
+new 'claimed' flag. It was discussed here [1]. I proposed this solution
+over year ago and it was accepted, but apparently I forgot to send the
+final version of patch.
 
-> 
-> pinctrl_get() will just return a pointer on pinctrl associated with dev
-> if called not the first time and increment kbobj use-counter.
-> 
-> Also, there is nice API pinctrl_get_select() and example in kernel 2c7c2c1d.
-> 
-> So, according to the documentation and pinctrl code, below sequence should work:
-> 
-> struct pinctrl *p;
-> p = pinctrl_get_select(priv->device, "active");
-> 
-> if (!IS_ERR(p))
->    pinctrl_put(p);
-> else
->    pinctrl_pm_select_default_state(priv->device);
+Patches (2-3) add the 'capabilities flags' structure and helper macros.
+This solution is inspired by the 'feature flags' originally proposed
+by Felipe Balbi in 2013 [2], but unfortunately implementation of this
+feature has never been completed.
 
-This is much neater. I will give that a try. Thanks.
+Patches (4-36) add' capabilites flags' support to all UDC drivers present
+in the kernel tree. It's needed to be done before replacing old endpoint
+matching mechanism, otherwise UDC drivers which doesn't set 'capabilities
+flags' won't work with new autoconfig.
 
-cheers,
--roger
+Patch (37) finally replaces old endpoint matching method with the new
+one basing on capabilities flags.
 
-> 
-> 
-> 
-> 
->>>>>>
->>>>>>> +    if (priv->device->pins) {
->>>>>>> +        struct pinctrl_state *s;
->>>>>>> +
->>>>>>> +        /* Attempt to use "active" if available else use 
->>>>>>> "default" */
->>>>>>> +        s = pinctrl_lookup_state(priv->device->pins->p, "active");
->>>>>>> +        if (!IS_ERR(s))
->>>>>>> +            pinctrl_select_state(priv->device->pins->p, s);
-> 
->  ^^ different devices passed here
-> 
->>>>>>> +        else
->>>>>>> +            pinctrl_pm_select_default_state(dev->dev.parent);
-> 
-> ^^ and here ? Is it ok?
-> 
->>>>>>> +    }
->>>>>>> +#endif
->>>>>>>       return 0;
->>>>>>>   }
->>>>>>>
->>>
-> 
-> 
+These changes aims to get rid of code, which guesses endpoint capabilities
+basing on it's name, and introduce new better replacement. In result
+we have better way to describe types and directions supported by each
+endpoint.
+
+For example the old name-based method didn't allow to have endpoint
+supporing two types of transfers - there were only ability to support
+one or all endpoint types. The 'capabilities flags' feature supply
+precise, flexible and extendible mechanism of description of endpoint
+hardware limitations, which is desired for proper endpoint matching.
+
+Best regards,
+Robert Baldyga
+
+[1] https://lkml.org/lkml/2014/6/16/94
+[2] http://www.spinics.net/lists/linux-usb/msg99662.html
+
+Robert Baldyga (37):
+  usb: gadget: encapsulate endpoint claiming mechanism
+  usb: gadget: add endpoint capabilities flags
+  usb: gadget: add endpoint capabilities helper macros
+  staging: emxx_udc: add ep capabilities support
+  usb: chipidea: udc: add ep capabilities support
+  usb: dwc2: gadget: add ep capabilities support
+  usb: dwc3: gadget: add ep capabilities support
+  usb: gadget: amd5536udc: add ep capabilities support
+  usb: gadget: at91_udc: add ep capabilities support
+  usb: gadget: bcm63xx_udc: add ep capabilities support
+  usb: gadget: bdc: add ep capabilities support
+  usb: gadget: dummy-hcd: add ep capabilities support
+  usb: gadget: fotg210-udc: add ep capabilities support
+  usb: gadget: fsl_qe_udc: add ep capabilities support
+  usb: gadget: fsl_udc_core: add ep capabilities support
+  usb: gadget: fusb300_udc: add ep capabilities support
+  usb: gadget: goku_udc: add ep capabilities support
+  usb: gadget: gr_udc: add ep capabilities support
+  usb: gadget: lpc32xx_udc: add ep capabilities support
+  usb: gadget: m66592-udc: add ep capabilities support
+  usb: gadget: mv_u3d_core: add ep capabilities support
+  usb: gadget: mv_udc_core: add ep capabilities support
+  usb: gadget: net2272: add ep capabilities support
+  usb: gadget: net2280: add ep capabilities support
+  usb: gadget: omap_udc: add ep capabilities support
+  usb: gadget: pch_ud: add ep capabilities support
+  usb: gadget: pxa25x_udc: add ep capabilities support
+  usb: gadget: pxa27x_udc: add ep capabilities support
+  usb: gadget: r8a66597-udc: add ep capabilities support
+  usb: gadget: s3c-hsudc: add ep capabilities support
+  usb: gadget: s3c2410_udc: add ep capabilities support
+  usb: gadget: udc-xilinx: add ep capabilities support
+  usb: isp1760: udc: add ep capabilities support
+  usb: musb: gadget: add ep capabilities support
+  usb: renesas: gadget: add ep capabilities support
+  usb: gadget: atmel_usba_udc: add ep capabilities support
+  usb: gadget: epautoconf: add endpoint capabilities flags verification
+
+ drivers/staging/emxx_udc/emxx_udc.c     | 60 ++++++++++++------------
+ drivers/usb/chipidea/udc.c              | 14 ++++++
+ drivers/usb/dwc2/gadget.c               | 13 ++++++
+ drivers/usb/dwc3/gadget.c               | 13 ++++++
+ drivers/usb/gadget/epautoconf.c         | 83 +++++++++++----------------------
+ drivers/usb/gadget/udc/amd5536udc.c     | 57 ++++++++++++++++++----
+ drivers/usb/gadget/udc/at91_udc.c       | 33 +++++++++----
+ drivers/usb/gadget/udc/atmel_usba_udc.c | 11 +++++
+ drivers/usb/gadget/udc/bcm63xx_udc.c    | 25 ++++++++--
+ drivers/usb/gadget/udc/bdc/bdc_ep.c     |  9 ++++
+ drivers/usb/gadget/udc/dummy_hcd.c      | 65 ++++++++++++++++++++------
+ drivers/usb/gadget/udc/fotg210-udc.c    | 11 +++++
+ drivers/usb/gadget/udc/fsl_qe_udc.c     | 11 +++++
+ drivers/usb/gadget/udc/fsl_udc_core.c   | 13 ++++++
+ drivers/usb/gadget/udc/fusb300_udc.c    | 11 +++++
+ drivers/usb/gadget/udc/goku_udc.c       |  8 ++++
+ drivers/usb/gadget/udc/gr_udc.c         | 11 +++++
+ drivers/usb/gadget/udc/lpc32xx_udc.c    | 32 +++++++++++++
+ drivers/usb/gadget/udc/m66592-udc.c     | 11 +++++
+ drivers/usb/gadget/udc/mv_u3d_core.c    |  9 ++++
+ drivers/usb/gadget/udc/mv_udc_core.c    |  9 ++++
+ drivers/usb/gadget/udc/net2272.c        | 11 +++++
+ drivers/usb/gadget/udc/net2280.c        | 50 +++++++++++++++-----
+ drivers/usb/gadget/udc/omap_udc.c       | 22 +++++++++
+ drivers/usb/gadget/udc/pch_udc.c        | 14 +++++-
+ drivers/usb/gadget/udc/pxa25x_udc.c     | 32 +++++++++++++
+ drivers/usb/gadget/udc/pxa27x_udc.h     | 33 +++++++------
+ drivers/usb/gadget/udc/r8a66597-udc.c   | 10 ++++
+ drivers/usb/gadget/udc/s3c-hsudc.c      | 15 ++++++
+ drivers/usb/gadget/udc/s3c2410_udc.c    | 10 ++++
+ drivers/usb/gadget/udc/udc-xilinx.c     |  9 ++++
+ drivers/usb/isp1760/isp1760-udc.c       | 11 +++++
+ drivers/usb/musb/musb_gadget.c          | 12 +++++
+ drivers/usb/renesas_usbhs/mod_gadget.c  |  6 +++
+ include/linux/usb/gadget.h              | 42 +++++++++++++++++
+ 35 files changed, 633 insertions(+), 153 deletions(-)
+
+-- 
+1.9.1
