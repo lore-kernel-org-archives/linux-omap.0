@@ -1,95 +1,122 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 12/12] usb: chipidea: move from CONFIG_USB_OTG_FSM to CONFIG_USB_OTG
-Date: Wed, 8 Jul 2015 13:23:14 +0300
-Message-ID: <559CFA12.5080400@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 1/2] net: can: c_can: Fix default pinmux glitch at init
+Date: Wed, 8 Jul 2015 13:31:23 +0300
+Message-ID: <559CFBFB.8010400@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559BE34F.8080508@pengutronix.de> <559BE3BE.2020608@ti.com> <559BE433.9020308@ti.com> <559BF4FD.2080400@ti.com> <559CDBA3.3040405@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <559CDBA3.3040405@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com
-Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com
+To: Roger Quadros <rogerq@ti.com>, Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, tony@atomide.comTony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CONFIG_USB_OTG_FSM no longer exists and the OTG FSM
-is available if CONFIG_USB_OTG is defined so move
-to using CONFIG_USB_OTG.
+On 07/08/2015 11:13 AM, Roger Quadros wrote:
+> 
+> On 07/07/15 18:49, Grygorii Strashko wrote:
+>> On 07/07/2015 05:37 PM, Roger Quadros wrote:
+>>> On 07/07/15 17:35, Roger Quadros wrote:
+>>>> On 07/07/15 17:33, Marc Kleine-Budde wrote:
+>>>>> On 07/07/2015 04:27 PM, Roger Quadros wrote:
+>>>>>> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>>>>>>
+>>>>>> The previous change 3973c526ae9c (net: can: c_can: Disable pins when
+>>>>>> CAN interface
+>>>>>> is down) causes a slight glitch on the pinctrl settings when used.
+>>>>>> Since
+>>>>>> commit ab78029 (drivers/pinctrl: grab default handles from device
+>>>>>> core),
+>>>>>> the device core will automatically set the default pins. This causes
+>>>>>> the pins to be momentarily set to the default and then to the sleep
+>>>>>> state in register_c_can_dev(). By adding an optional "enable" state,
+>>>>>> boards can set the default pin state to be disabled and avoid the
+>>>>>> glitch when the switch from default to sleep first occurs. If the
+>>>>>> "enable" state is not available c_can_pinctrl_select_state() falls
+>>>>>> back to using the "default" pinctrl state.
+>>>>>>
+>>>>>> [Roger Q] - Forward port to v4.2
+>>>>>>
+>>>>>> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>>> ---
+>>>>>>   drivers/net/can/c_can/c_can.c | 13 ++++++++++++-
+>>>>>>   1 file changed, 12 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/drivers/net/can/c_can/c_can.c
+>>>>>> b/drivers/net/can/c_can/c_can.c
+>>>>>> index 041525d..66e98e7 100644
+>>>>>> --- a/drivers/net/can/c_can/c_can.c
+>>>>>> +++ b/drivers/net/can/c_can/c_can.c
+>>>>>> @@ -605,7 +605,18 @@ static int c_can_start(struct net_device *dev)
+>>>>>>       priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>>>>>
+>>>>>>       /* activate pins */
+>>>>>> -    pinctrl_pm_select_default_state(dev->dev.parent);
+>>>>>> +#ifdef CONFIG_PINCTRL
+>>>>>
+>>>>> Please remove the ifdef, AFAICS there are static inline noop functions
+>>>>> if CONFIG_PINCTRL switched off.
+>>>>
+>>>> yes, you are right.
+>>>
+>>> On second thoughts
+>>>
+>>> device->pins are not defined if CONFIG_PINCTRL is not set.
+>>> so we can't remove the #ifdef.
+>>
+>> May be you can use [devm_]pinctrl_get?
+> 
+> Why should we do that? The device core has already done the 
+> pinctrl_get() and it is available in device->pins->p.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- Documentation/usb/chipidea.txt | 2 +-
- drivers/usb/chipidea/Makefile  | 2 +-
- drivers/usb/chipidea/ci.h      | 2 +-
- drivers/usb/chipidea/otg_fsm.h | 2 +-
- drivers/usb/phy/Kconfig        | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+True. But It seems, you are going to be only one direct user of pin->p in whole
+kernel (outside of pictrl core) !? ;)
 
-diff --git a/Documentation/usb/chipidea.txt b/Documentation/usb/chipidea.txt
-index 3f848c1..e7f97da 100644
---- a/Documentation/usb/chipidea.txt
-+++ b/Documentation/usb/chipidea.txt
-@@ -5,7 +5,7 @@ with 2 Freescale i.MX6Q sabre SD boards.
- 
- 1.1 How to enable OTG FSM in menuconfig
- ---------------------------------------
--Select CONFIG_USB_OTG_FSM, rebuild kernel Image and modules.
-+Select CONFIG_USB_OTG, rebuild kernel Image and modules.
- If you want to check some internal variables for otg fsm,
- select CONFIG_USB_CHIPIDEA_DEBUG, there are 2 files which
- can show otg fsm variables and some controller registers value:
-diff --git a/drivers/usb/chipidea/Makefile b/drivers/usb/chipidea/Makefile
-index 4decb12..63f2394 100644
---- a/drivers/usb/chipidea/Makefile
-+++ b/drivers/usb/chipidea/Makefile
-@@ -6,7 +6,7 @@ ci_hdrc-y				:= core.o otg.o
- ci_hdrc-$(CONFIG_USB_CHIPIDEA_UDC)	+= udc.o
- ci_hdrc-$(CONFIG_USB_CHIPIDEA_HOST)	+= host.o
- ci_hdrc-$(CONFIG_USB_CHIPIDEA_DEBUG)	+= debug.o
--ci_hdrc-$(CONFIG_USB_OTG_FSM)		+= otg_fsm.o
-+ci_hdrc-$(CONFIG_USB_OTG)		+= otg_fsm.o
- 
- # Glue/Bridge layers go here
- 
-diff --git a/drivers/usb/chipidea/ci.h b/drivers/usb/chipidea/ci.h
-index 6d6200e..c04305e 100644
---- a/drivers/usb/chipidea/ci.h
-+++ b/drivers/usb/chipidea/ci.h
-@@ -405,7 +405,7 @@ static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
-  */
- static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
- {
--#ifdef CONFIG_USB_OTG_FSM
-+#ifdef CONFIG_USB_OTG
- 	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
- 					ci->roles[CI_ROLE_GADGET];
- #else
-diff --git a/drivers/usb/chipidea/otg_fsm.h b/drivers/usb/chipidea/otg_fsm.h
-index 2689375..fb66695 100644
---- a/drivers/usb/chipidea/otg_fsm.h
-+++ b/drivers/usb/chipidea/otg_fsm.h
-@@ -62,7 +62,7 @@
- /* SSEND time before SRP */
- #define TB_SSEND_SRP         (1500)	/* minimum 1.5 sec, section:5.1.2 */
- 
--#ifdef CONFIG_USB_OTG_FSM
-+#ifdef CONFIG_USB_OTG
- 
- int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci);
- int ci_otg_fsm_work(struct ci_hdrc *ci);
-diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
-index 869c0cfcad..7e3459f 100644
---- a/drivers/usb/phy/Kconfig
-+++ b/drivers/usb/phy/Kconfig
-@@ -20,7 +20,7 @@ config AB8500_USB
- 
- config FSL_USB2_OTG
- 	bool "Freescale USB OTG Transceiver Driver"
--	depends on USB_EHCI_FSL && USB_FSL_USB2 && USB_OTG_FSM && PM
-+	depends on USB_EHCI_FSL && USB_FSL_USB2 && PM
- 	select USB_OTG
- 	select USB_PHY
- 	help
+pinctrl_get() will just return a pointer on pinctrl associated with dev
+if called not the first time and increment kbobj use-counter.
+
+Also, there is nice API pinctrl_get_select() and example in kernel 2c7c2c1d.
+
+So, according to the documentation and pinctrl code, below sequence should work:
+
+struct pinctrl *p;
+p = pinctrl_get_select(priv->device, "active");
+
+if (!IS_ERR(p))
+   pinctrl_put(p);
+else
+   pinctrl_pm_select_default_state(priv->device);
+
+
+
+
+>>>>>
+>>>>>> +    if (priv->device->pins) {
+>>>>>> +        struct pinctrl_state *s;
+>>>>>> +
+>>>>>> +        /* Attempt to use "active" if available else use 
+>>>>>> "default" */
+>>>>>> +        s = pinctrl_lookup_state(priv->device->pins->p, "active");
+>>>>>> +        if (!IS_ERR(s))
+>>>>>> +            pinctrl_select_state(priv->device->pins->p, s);
+
+ ^^ different devices passed here
+
+>>>>>> +        else
+>>>>>> +            pinctrl_pm_select_default_state(dev->dev.parent);
+
+^^ and here ? Is it ok?
+
+>>>>>> +    }
+>>>>>> +#endif
+>>>>>>       return 0;
+>>>>>>   }
+>>>>>>
+>>
+
+
 -- 
-2.1.4
+regards,
+-grygorii
