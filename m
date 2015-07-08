@@ -1,259 +1,155 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 09/11] usb: gadget: udc: adapt to OTG core
-Date: Wed, 8 Jul 2015 13:19:35 +0300
-Message-ID: <1436350777-28056-10-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 08/11] usb: hcd: Adapt to OTG core
+Date: Wed, 8 Jul 2015 13:19:34 +0300
+Message-ID: <1436350777-28056-9-git-send-email-rogerq@ti.com>
 References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436350777-28056-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Cc: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com
+Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OTG state machine needs a mechanism to start and
-stop the gadget controller. Add usb_gadget_start()
-and usb_gadget_stop().
+The existing usb_add/remove_hcd() functionality
+remains unchanged for non-OTG devices. For OTG
+devices they only register the HCD with the OTG core.
 
-Register with OTG core when gadget function driver
-is available and unregister when function driver is unbound.
+Introduce usb_otg_add/remove_hcd() for use by OTG core.
+These functions actually add/remove the HCD.
 
-We need to unlock the usb_lock mutexbefore calling
-usb_otg_register_gadget() in udc_bind_to_driver() and
-usb_gadget_remove_driver() else it will cause a circular
-locking dependency.
-
-Ignore softconnect sysfs control when we're in OTG
-mode as OTG FSM takes care of gadget softconnect using
-the b_bus_req mechanism.
-
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/gadget/udc/udc-core.c | 124 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 114 insertions(+), 10 deletions(-)
+ drivers/usb/common/usb-otg.c |  6 ++---
+ drivers/usb/core/hcd.c       | 55 ++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 53 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
-index d69c355..3380d03 100644
---- a/drivers/usb/gadget/udc/udc-core.c
-+++ b/drivers/usb/gadget/udc/udc-core.c
-@@ -28,6 +28,7 @@
- #include <linux/usb/ch9.h>
- #include <linux/usb/gadget.h>
+diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+index 0379034..1f19001 100644
+--- a/drivers/usb/common/usb-otg.c
++++ b/drivers/usb/common/usb-otg.c
+@@ -496,7 +496,7 @@ int usb_otg_kick_fsm(struct device *hcd_gcd_device)
+ 	mutex_lock(&otg_list_mutex);
+ 	otgd = usb_otg_device_get_otgd(hcd_gcd_device->parent);
+ 	if (!otgd) {
+-		dev_err(hcd_gcd_device, "otg: %s: invalid host/gadget device\n",
++		dev_dbg(hcd_gcd_device, "otg: %s: invalid host/gadget device\n",
+ 			__func__);
+ 		mutex_unlock(&otg_list_mutex);
+ 		return -ENODEV;
+@@ -678,7 +678,7 @@ int usb_otg_register_gadget(struct usb_gadget *gadget,
+ 	mutex_lock(&otg_list_mutex);
+ 	otgd = usb_otg_device_get_otgd(otg_dev);
+ 	if (!otgd) {
+-		dev_err(otg_dev, "otg: %s: device not registered to otg core\n",
++		dev_dbg(otg_dev, "otg: %s: device not registered to otg core\n",
+ 			__func__);
+ 		mutex_unlock(&otg_list_mutex);
+ 		return -EINVAL;
+@@ -724,7 +724,7 @@ int usb_otg_unregister_gadget(struct usb_gadget *gadget)
+ 	mutex_lock(&otg_list_mutex);
+ 	otgd = usb_otg_device_get_otgd(otg_dev);
+ 	if (!otgd) {
+-		dev_err(otg_dev, "otg: %s: device not registered to otg core\n",
++		dev_dbg(otg_dev, "otg: %s: device not registered to otg core\n",
+ 			__func__);
+ 		mutex_unlock(&otg_list_mutex);
+ 		return -EINVAL;
+diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
+index be5b207..3a19607 100644
+--- a/drivers/usb/core/hcd.c
++++ b/drivers/usb/core/hcd.c
+@@ -46,6 +46,7 @@
  #include <linux/usb.h>
+ #include <linux/usb/hcd.h>
+ #include <linux/usb/phy.h>
 +#include <linux/usb/otg.h>
  
+ #include "usb.h"
+ 
+@@ -2622,8 +2623,8 @@ static void usb_put_invalidate_rhdev(struct usb_hcd *hcd)
+  * buffers of consistent memory, register the bus, request the IRQ line,
+  * and call the driver's reset() and start() routines.
+  */
+-int usb_add_hcd(struct usb_hcd *hcd,
+-		unsigned int irqnum, unsigned long irqflags)
++static int usb_otg_add_hcd(struct usb_hcd *hcd,
++			   unsigned int irqnum, unsigned long irqflags)
+ {
+ 	int retval;
+ 	struct usb_device *rhdev;
+@@ -2828,17 +2829,16 @@ err_phy:
+ 	}
+ 	return retval;
+ }
+-EXPORT_SYMBOL_GPL(usb_add_hcd);
+ 
  /**
-  * struct usb_udc - describes one usb device controller
-@@ -37,6 +38,7 @@
-  * @list - for use by the udc class driver
-  * @vbus - for udcs who care about vbus status, this value is real vbus status;
-  * for udcs who do not care about vbus status, this value is always true
-+ * @is_otg - we're registered with OTG core and it takes care of UDC start/stop
+- * usb_remove_hcd - shutdown processing for generic HCDs
++ * usb_otg_remove_hcd - shutdown processing for generic HCDs
+  * @hcd: the usb_hcd structure to remove
+  * Context: !in_interrupt()
   *
-  * This represents the internal data structure which is used by the UDC-class
-  * to hold information about udc driver and gadget together.
-@@ -47,6 +49,7 @@ struct usb_udc {
- 	struct device			dev;
- 	struct list_head		list;
- 	bool				vbus;
-+	bool				is_otg;
- };
- 
- static struct class *udc_class;
-@@ -208,6 +211,7 @@ EXPORT_SYMBOL_GPL(usb_gadget_udc_reset);
+  * Disconnects the root hub, then reverses the effects of usb_add_hcd(),
+  * invoking the HCD's stop() method.
   */
- static inline int usb_gadget_udc_start(struct usb_udc *udc)
+-void usb_remove_hcd(struct usb_hcd *hcd)
++static void usb_otg_remove_hcd(struct usb_hcd *hcd)
  {
-+	dev_dbg(&udc->dev, "%s\n", __func__);
- 	return udc->gadget->ops->udc_start(udc->gadget, udc->driver);
- }
+ 	struct usb_device *rhdev = hcd->self.root_hub;
  
-@@ -225,10 +229,81 @@ static inline int usb_gadget_udc_start(struct usb_udc *udc)
-  */
- static inline void usb_gadget_udc_stop(struct usb_udc *udc)
- {
-+	dev_dbg(&udc->dev, "%s\n", __func__);
- 	udc->gadget->ops->udc_stop(udc->gadget);
- }
+@@ -2912,6 +2912,51 @@ void usb_remove_hcd(struct usb_hcd *hcd)
  
- /**
-+ * usb_gadget_start - start the usb gadget controller and connect to bus
-+ * @gadget: the gadget device to start
-+ *
-+ * This is external API for use by OTG core.
-+ *
-+ * Start the usb device controller and connect to bus (enable pull).
-+ */
-+static int usb_gadget_start(struct usb_gadget *gadget)
-+{
-+	int ret;
-+	struct usb_udc *udc = NULL;
+ 	usb_put_invalidate_rhdev(hcd);
+ }
 +
-+	dev_dbg(&gadget->dev, "%s\n", __func__);
-+	mutex_lock(&udc_lock);
-+	list_for_each_entry(udc, &udc_list, list)
-+		if (udc->gadget == gadget)
-+			goto found;
-+
-+	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-+		__func__);
-+	mutex_unlock(&udc_lock);
-+	return -EINVAL;
-+
-+found:
-+	ret = usb_gadget_udc_start(udc);
-+	if (ret)
-+		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
-+			ret);
-+	else
-+		usb_udc_connect_control(udc);
-+
-+	mutex_unlock(&udc_lock);
-+
-+	return ret;
-+}
++static struct otg_hcd_ops otg_hcd_intf = {
++	.add = usb_otg_add_hcd,
++	.remove = usb_otg_remove_hcd,
++};
 +
 +/**
-+ * usb_gadget_stop - disconnect from bus and stop the usb gadget
-+ * @gadget: The gadget device we want to stop
++ * usb_add_hcd - finish generic HCD structure initialization and register
++ * @hcd: the usb_hcd structure to initialize
++ * @irqnum: Interrupt line to allocate
++ * @irqflags: Interrupt type flags
 + *
-+ * This is external API for use by OTG core.
++ * Finish the remaining parts of generic HCD initialization: allocate the
++ * buffers of consistent memory, register the bus, request the IRQ line,
++ * and call the driver's reset() and start() routines.
++ * If it is an OTG device then it only registers the HCD with OTG core.
 + *
-+ * Disconnect from the bus (disable pull) and stop the
-+ * gadget controller.
 + */
-+static int usb_gadget_stop(struct usb_gadget *gadget)
++int usb_add_hcd(struct usb_hcd *hcd,
++		unsigned int irqnum, unsigned long irqflags)
 +{
-+	struct usb_udc *udc = NULL;
-+
-+	dev_dbg(&gadget->dev, "%s\n", __func__);
-+	mutex_lock(&udc_lock);
-+	list_for_each_entry(udc, &udc_list, list)
-+		if (udc->gadget == gadget)
-+			goto found;
-+
-+	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
-+		__func__);
-+	mutex_unlock(&udc_lock);
-+	return -EINVAL;
-+
-+found:
-+	usb_gadget_disconnect(udc->gadget);
-+	udc->driver->disconnect(udc->gadget);
-+	usb_gadget_udc_stop(udc);
-+	mutex_unlock(&udc_lock);
++	/* If OTG device, OTG core takes care of adding HCD */
++	if (usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf))
++		return usb_otg_add_hcd(hcd, irqnum, irqflags);
 +
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(usb_add_hcd);
 +
 +/**
-  * usb_udc_release - release the usb_udc struct
-  * @dev: the dev member within usb_udc
-  *
-@@ -345,6 +420,7 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
- }
- EXPORT_SYMBOL_GPL(usb_add_gadget_udc);
++ * usb_remove_hcd - shutdown processing for generic HCDs
++ * @hcd: the usb_hcd structure to remove
++ * Context: !in_interrupt()
++ *
++ * Disconnects the root hub, then reverses the effects of usb_add_hcd(),
++ * invoking the HCD's stop() method.
++ * If it is an OTG device then it unregisters the HCD from OTG core
++ * as well.
++ */
++void usb_remove_hcd(struct usb_hcd *hcd)
++{
++	/* If OTG device, OTG core takes care of stopping HCD */
++	if (usb_otg_unregister_hcd(hcd))
++		usb_otg_remove_hcd(hcd);
++}
+ EXPORT_SYMBOL_GPL(usb_remove_hcd);
  
-+/* udc_lock must be held */
- static void usb_gadget_remove_driver(struct usb_udc *udc)
- {
- 	dev_dbg(&udc->dev, "unregistering UDC driver [%s]\n",
-@@ -352,10 +428,18 @@ static void usb_gadget_remove_driver(struct usb_udc *udc)
- 
- 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
- 
--	usb_gadget_disconnect(udc->gadget);
--	udc->driver->disconnect(udc->gadget);
-+	/* If OTG, the otg core ensures UDC is stopped on unregister */
-+	if (udc->is_otg) {
-+		mutex_unlock(&udc_lock);
-+		usb_otg_unregister_gadget(udc->gadget);
-+		mutex_lock(&udc_lock);
-+	} else {
-+		usb_gadget_disconnect(udc->gadget);
-+		udc->driver->disconnect(udc->gadget);
-+		usb_gadget_udc_stop(udc);
-+	}
-+
- 	udc->driver->unbind(udc->gadget);
--	usb_gadget_udc_stop(udc);
- 
- 	udc->driver = NULL;
- 	udc->dev.driver = NULL;
-@@ -380,11 +464,12 @@ void usb_del_gadget_udc(struct usb_gadget *gadget)
- 
- 	mutex_lock(&udc_lock);
- 	list_del(&udc->list);
--	mutex_unlock(&udc_lock);
- 
- 	if (udc->driver)
- 		usb_gadget_remove_driver(udc);
- 
-+	mutex_unlock(&udc_lock);
-+
- 	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
- 	flush_work(&gadget->work);
- 	device_unregister(&udc->dev);
-@@ -394,6 +479,12 @@ EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
- 
- /* ------------------------------------------------------------------------- */
- 
-+struct otg_gadget_ops otg_gadget_intf = {
-+	.start = usb_gadget_start,
-+	.stop = usb_gadget_stop,
-+};
-+
-+/* udc_lock must be held */
- static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
- {
- 	int ret;
-@@ -408,12 +499,19 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
- 	ret = driver->bind(udc->gadget, driver);
- 	if (ret)
- 		goto err1;
--	ret = usb_gadget_udc_start(udc);
--	if (ret) {
--		driver->unbind(udc->gadget);
--		goto err1;
-+
-+	/* If OTG, the otg core starts the UDC when needed */
-+	mutex_unlock(&udc_lock);
-+	udc->is_otg = !usb_otg_register_gadget(udc->gadget, &otg_gadget_intf);
-+	mutex_lock(&udc_lock);
-+	if (!udc->is_otg) {
-+		ret = usb_gadget_udc_start(udc);
-+		if (ret) {
-+			driver->unbind(udc->gadget);
-+			goto err1;
-+		}
-+		usb_udc_connect_control(udc);
- 	}
--	usb_udc_connect_control(udc);
- 
- 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
- 	return 0;
-@@ -525,9 +623,15 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
- 		return -EOPNOTSUPP;
- 	}
- 
-+	/* In OTG mode we don't support softconnect, but b_bus_req */
-+	if (udc->is_otg) {
-+		dev_err(dev, "soft-connect not supported in OTG mode\n");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (sysfs_streq(buf, "connect")) {
- 		usb_gadget_udc_start(udc);
--		usb_gadget_connect(udc->gadget);
-+		usb_udc_connect_control(udc);
- 	} else if (sysfs_streq(buf, "disconnect")) {
- 		usb_gadget_disconnect(udc->gadget);
- 		udc->driver->disconnect(udc->gadget);
+ void
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
