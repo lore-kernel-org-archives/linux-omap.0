@@ -1,52 +1,58 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 0/5] ARM: dts: OMAP2+: Enable USB dual-role on supported boards
-Date: Wed, 8 Jul 2015 13:42:29 +0300
-Message-ID: <1436352154-28966-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 1/5] ARM: dts: am4372: Add named interrupt property for dwc3
+Date: Wed, 8 Jul 2015 13:42:30 +0300
+Message-ID: <1436352154-28966-2-git-send-email-rogerq@ti.com>
+References: <1436352154-28966-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436352154-28966-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Felipe Balbi <balbi@ti.com>
 
-Enables dual-role feaure on supported boards.
+Add interrupt names so that the same can be used for OTG easily.
 
-Depends on
-[1] - core USB DRD support - http://thread.gmane.org/gmane.linux.kernel/1991413
-[2] - dwc3 DRD support - http://thread.gmane.org/gmane.linux.usb.general/127890
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/am4372.dtsi | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Tested on am437x-gp-evm and dra7-evm.
-
-cheers,
--roger
-
-Felipe Balbi (1):
-  ARM: dts: am4372: Add named interrupt property for dwc3
-
-Roger Quadros (4):
-  ARM: dts: omap5: Add named interrupt property for dwc3
-  ARM: dts: dra7: Add named interrupt property for dwc3
-  ARM: dts: dra7*-evm: Enable dual-role for usb1
-  ARM: dts: am43xx: Enable dual-role on USB1
-
- arch/arm/boot/dts/am4372.dtsi        | 14 ++++++++++++--
- arch/arm/boot/dts/am437x-gp-evm.dts  |  2 +-
- arch/arm/boot/dts/am437x-sk-evm.dts  |  2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts |  2 +-
- arch/arm/boot/dts/dra7-evm.dts       |  2 +-
- arch/arm/boot/dts/dra7.dtsi          | 21 ++++++++++++++++++---
- arch/arm/boot/dts/dra72-evm.dts      |  2 +-
- arch/arm/boot/dts/dra74x.dtsi        |  7 ++++++-
- arch/arm/boot/dts/omap5.dtsi         |  7 ++++++-
- 9 files changed, 47 insertions(+), 12 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index c80a3e2..3f68b27 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -859,7 +859,12 @@
+ 			usb1: usb@48390000 {
+ 				compatible = "synopsys,dwc3";
+ 				reg = <0x48390000 0x10000>;
+-				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
++				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>,
++					     <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>,
++					     <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
++				interrupt-names = "peripheral",
++						  "host",
++						  "otg";
+ 				phys = <&usb2_phy1>;
+ 				phy-names = "usb2-phy";
+ 				maximum-speed = "high-speed";
+@@ -883,7 +888,12 @@
+ 			usb2: usb@483d0000 {
+ 				compatible = "synopsys,dwc3";
+ 				reg = <0x483d0000 0x10000>;
+-				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
++				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>,
++					     <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>,
++					     <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
++				interrupt-names = "peripheral",
++						  "host",
++						  "otg";
+ 				phys = <&usb2_phy2>;
+ 				phy-names = "usb2-phy";
+ 				maximum-speed = "high-speed";
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
