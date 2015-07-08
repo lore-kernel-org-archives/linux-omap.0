@@ -1,46 +1,81 @@
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: [PATCH 09/10] fbdev: omap2: connector-dvi: use
- of_get_i2c_adapter_by_node interface
-Date: Wed, 8 Jul 2015 16:00:16 +0300
-Message-ID: <1436360416-9556-1-git-send-email-vladimir_zapolskiy@mentor.com>
-References: <1436360095-9065-1-git-send-email-vladimir_zapolskiy@mentor.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v3 4/9] usb: dwc3: core: Adapt to named interrupts
+Date: Wed, 8 Jul 2015 16:06:48 +0300
+Message-ID: <559D2068.90208@cogentembedded.com>
+References: <1436351524-28385-1-git-send-email-rogerq@ti.com>
+ <1436351795-28556-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1436360095-9065-1-git-send-email-vladimir_zapolskiy@mentor.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: linux-fbdev@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, dri-devel@lists.freedesktop.org, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Markus Elfring <elfring@users.sourceforge.net>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1436351795-28556-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhpcyBjaGFuZ2UgaXMgbmVlZGVkIHRvIHByb3Blcmx5IGxvY2sgSTJDIGJ1cyBkcml2ZXIsIHdo
-aWNoIHNlcnZlcyBEREMuCgpQcmlvciB0byB0aGlzIGNoYW5nZSBpMmNfcHV0X2FkYXB0ZXIoKSBp
-cyBtaXN1c2VkLCB3aGljaCBtYXkgbGVhZCB0bwphbiBvdmVyZmxvdyBvdmVyIHplcm8gb2YgSTJD
-IGJ1cyBkcml2ZXIgdXNlciBjb3VudGVyLgoKU2lnbmVkLW9mZi1ieTogVmxhZGltaXIgWmFwb2xz
-a2l5IDx2bGFkaW1pcl96YXBvbHNraXlAbWVudG9yLmNvbT4KLS0tCiBkcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyL2Rpc3BsYXlzLW5ldy9jb25uZWN0b3ItZHZpLmMgfCAyICstCiAxIGZpbGUgY2hh
-bmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
-L3ZpZGVvL2ZiZGV2L29tYXAyL2Rpc3BsYXlzLW5ldy9jb25uZWN0b3ItZHZpLmMgYi9kcml2ZXJz
-L3ZpZGVvL2ZiZGV2L29tYXAyL2Rpc3BsYXlzLW5ldy9jb25uZWN0b3ItZHZpLmMKaW5kZXggYThj
-ZTkyMC4uZDgxMWU2ZCAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9kaXNw
-bGF5cy1uZXcvY29ubmVjdG9yLWR2aS5jCisrKyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIv
-ZGlzcGxheXMtbmV3L2Nvbm5lY3Rvci1kdmkuYwpAQCAtMjk0LDcgKzI5NCw3IEBAIHN0YXRpYyBp
-bnQgZHZpY19wcm9iZV9vZihzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCiAJYWRhcHRl
-cl9ub2RlID0gb2ZfcGFyc2VfcGhhbmRsZShub2RlLCAiZGRjLWkyYy1idXMiLCAwKTsKIAlpZiAo
-YWRhcHRlcl9ub2RlKSB7Ci0JCWFkYXB0ZXIgPSBvZl9maW5kX2kyY19hZGFwdGVyX2J5X25vZGUo
-YWRhcHRlcl9ub2RlKTsKKwkJYWRhcHRlciA9IG9mX2dldF9pMmNfYWRhcHRlcl9ieV9ub2RlKGFk
-YXB0ZXJfbm9kZSk7CiAJCWlmIChhZGFwdGVyID09IE5VTEwpIHsKIAkJCWRldl9lcnIoJnBkZXYt
-PmRldiwgImZhaWxlZCB0byBwYXJzZSBkZGMtaTJjLWJ1c1xuIik7CiAJCQlvbWFwX2Rzc19wdXRf
-ZGV2aWNlKGRkYXRhLT5pbik7Ci0tIAoyLjEuNAoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9kcmktZGV2ZWwK
+Hello.
+
+On 7/8/2015 1:36 PM, Roger Quadros wrote:
+
+> From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+> Add support to use interrupt names,
+
+> Following are the interrupt names
+
+> Peripheral Interrupt - peripheral
+> HOST Interrupt - host
+> OTG Interrupt - otg
+
+> [Roger Q]
+> - If any of these are missing we use the
+> first available IRQ resource so that we don't
+> break with older DTBs.
+
+> - Use gadget_irq in gadget driver.
+
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/usb/dwc3/core.c   | 12 ++++++++++++
+>   drivers/usb/dwc3/core.h   |  7 +++++++
+>   drivers/usb/dwc3/gadget.c |  2 +-
+>   3 files changed, 20 insertions(+), 1 deletion(-)
+
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index a7498e0..7b33d7b 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -941,6 +941,18 @@ static int dwc3_probe(struct platform_device *pdev)
+>   	dwc->xhci_resources[1].flags = res->flags;
+>   	dwc->xhci_resources[1].name = res->name;
+>
+> +	dwc->otg_irq = platform_get_irq_byname(pdev, "otg");
+> +	if (!dwc->otg_irq)
+
+    The usual mistake repeated again: that function reutrns error # on 
+failure, not 0.
+
+> +		dwc->otg_irq = res->start;
+> +
+> +	dwc->gadget_irq = platform_get_irq_byname(pdev, "peripheral");
+> +	if (!dwc->gadget_irq)
+> +		dwc->gadget_irq = res->start;
+
+    Likewise.
+
+> +
+> +	dwc->xhci_irq = platform_get_irq_byname(pdev, "host");
+> +	if (!dwc->xhci_irq)
+
+    Likewise.
+
+[...]
+
+WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
