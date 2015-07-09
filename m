@@ -1,106 +1,95 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2 1/2] net: can: c_can: Fix default pinmux glitch at init
-Date: Thu, 9 Jul 2015 12:59:30 +0200
-Message-ID: <559E5412.5090604@pengutronix.de>
-References: <1436279277-3386-1-git-send-email-rogerq@ti.com>
- <1436279277-3386-2-git-send-email-rogerq@ti.com> <559D0BA4.9000000@ti.com>
- <559E53CD.5080302@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RESEND 1/7] tty: serial: 8250: omap: fix kernel crash
+ in suspend-to-ram
+Date: Thu, 9 Jul 2015 16:45:14 +0530
+Message-ID: <559E57C2.5080009@ti.com>
+References: <cover.1436174801.git.nsekhar@ti.com> <d8cb86b2717e0fc084b6651be54ee6d96dbc603a.1436174801.git.nsekhar@ti.com> <559D2DFC.9010602@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="J74rbFDEB9k7GWpGBI39vMvsdVnRsTPP4"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <559E53CD.5080302@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com
-Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <559D2DFC.9010602-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---J74rbFDEB9k7GWpGBI39vMvsdVnRsTPP4
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi Peter,
 
-On 07/09/2015 12:58 PM, Grygorii Strashko wrote:
-> On 07/08/2015 02:38 PM, Roger Quadros wrote:
->> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+On Wednesday 08 July 2015 07:34 PM, Peter Hurley wrote:
+> Hi Sekhar,
+> 
+> On 07/06/2015 05:47 AM, Sekhar Nori wrote:
+>> omap_device infrastructure has a suspend_noirq hook which
+>> runtime suspends all devices late in the suspend cycle (see
+>> _od_suspend_noirq() in arch/arm/mach-omap2/omap_device.c)
+> 
+> Why is omap2 the only arch/SoC that does this; ie., call the runtime
+> callbacks after the system pm callbacks?
+
+Even I am not sure why this needs to be done. I _think_ it was done to
+make sure all IPs are idled even if driver did not implement system
+sleep ops, but I could be wrong.
+
+Cc: Kevin Hilman since he added this support.
+
+In any case, I think this patch is okay, as the additional NULL pointer
+check is still valid.
+
+Thanks,
+Sekhar
+
+> 
+> Whatever positive it brings, it's a mess at the driver level.
+> For example, this driver has to hook prepare()/complete() so it can
+> set local state so that it can detect when the runtime suspend
+> is being called during system suspend.
+> 
+> Regards,
+> Peter Hurley
+> 
+> 
+>> This leads to a NULL pointer exception in 8250_omap driver
+>> since by the time omap8250_runtime_suspend() is called, 8250_dma
+>> driver has already set rxchan to NULL via serial8250_release_dma().
 >>
->> The previous change 3973c526ae9c (net: can: c_can: Disable pins when C=
-AN interface
->> is down) causes a slight glitch on the pinctrl settings when used. Sin=
-ce
->> commit ab78029 (drivers/pinctrl: grab default handles from device core=
-),
->> the device core will automatically set the default pins. This causes
->> the pins to be momentarily set to the default and then to the sleep
->> state in register_c_can_dev(). By adding an optional "enable" state,
->> boards can set the default pin state to be disabled and avoid the
->> glitch when the switch from default to sleep first occurs. If the
->> "enable" state is not available c_can_pinctrl_select_state() falls
->> back to using the "default" pinctrl state.
+>> Make an explicit check to see if rxchan is NULL in
+>> runtime_{suspend|resume} hooks to fix this.
 >>
->> [Roger Q] - Forward port to v4.2 and use pinctrl_get_select().
->>
->> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 >> ---
->>   drivers/net/can/c_can/c_can.c | 10 ++++++++--
->>   1 file changed, 8 insertions(+), 2 deletions(-)
+>> Previous version: http://www.spinics.net/lists/linux-omap/msg119459.html
+>> No change in this version except rebased to v4.2-rc1
 >>
->> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_c=
-an.c
->> index 041525d..5d214d1 100644
->> --- a/drivers/net/can/c_can/c_can.c
->> +++ b/drivers/net/can/c_can/c_can.c
->> @@ -592,6 +592,7 @@ static int c_can_start(struct net_device *dev)
->>   {
->>   	struct c_can_priv *priv =3D netdev_priv(dev);
->>   	int err;
->> +	struct pinctrl *p;
+>>  drivers/tty/serial/8250/8250_omap.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
 >>
->>   	/* basic c_can configuration */
->>   	err =3D c_can_chip_config(dev);
->> @@ -604,8 +605,13 @@ static int c_can_start(struct net_device *dev)
+>> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+>> index d75a66c72750..20c5b9c4c288 100644
+>> --- a/drivers/tty/serial/8250/8250_omap.c
+>> +++ b/drivers/tty/serial/8250/8250_omap.c
+>> @@ -1285,7 +1285,7 @@ static int omap8250_runtime_suspend(struct device *dev)
+>>  			return -EBUSY;
+>>  	}
+>>  
+>> -	if (up->dma)
+>> +	if (up->dma && up->dma->rxchan)
+>>  		omap_8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
+>>  
+>>  	priv->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+>> @@ -1310,7 +1310,7 @@ static int omap8250_runtime_resume(struct device *dev)
+>>  	if (loss_cntx)
+>>  		omap8250_restore_regs(up);
+>>  
+>> -	if (up->dma)
+>> +	if (up->dma && up->dma->rxchan)
+>>  		omap_8250_rx_dma(up, 0);
+>>  
+>>  	priv->latency = priv->calc_latency;
 >>
->>   	priv->can.state =3D CAN_STATE_ERROR_ACTIVE;
->>
->> -	/* activate pins */
->> -	pinctrl_pm_select_default_state(dev->dev.parent);
->> +	/* Attempt to use "active" if available else use "default" */
->> +	p =3D pinctrl_get_select(priv->device, "active");
->> +	if (!IS_ERR(p))
->> +		pinctrl_put(p);
->> +	else
->> +		pinctrl_pm_select_default_state(priv->device);
->> +
->=20
-> Thanks. This part looks good to me now.
+> 
 
-Is this an Acked-by?
-
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---J74rbFDEB9k7GWpGBI39vMvsdVnRsTPP4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEcBAEBCgAGBQJVnlQSAAoJEP5prqPJtc/HDe8H/2LA5YTdwXF9E2kcKPtJsZl6
-dLa8vitIGnq/AsN2NE55yR4AEffZ1BXTx7457pveMIbF3BPCNhK/z8FO/uGpZzoj
-kZf5lPXZ2XA2ojO6Rt6cpun28NBBsj50W+V+Qyk8YoCWiylrN6teSRoI9JBf5eC1
-ctP4Zu0OasU77KoK9lEb/JF4ydoi/eYCzFH0O2XQpVr0Z7QmjJA90ISnpCSJs3BO
-WVVwi6c5q/0gedJszbQIZDPkM+03o9ausBP0oailOygdJV4vx12aK5r0YAWueLBq
-KG0Szsjwgo4nHbWYDA5bGbyx6eXmj2nkzDCKoWLC/0HpvGql+/uAvOcNHw8gLh0=
-=ujh6
------END PGP SIGNATURE-----
-
---J74rbFDEB9k7GWpGBI39vMvsdVnRsTPP4--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
