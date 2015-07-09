@@ -1,44 +1,75 @@
-From: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] i2c: omap: on ->remove() call pm_runtime_put_sync()
-Date: Thu, 9 Jul 2015 12:18:26 +0200
-Message-ID: <559E4A72.9070504@nokia.com>
-References: <1435260890-32335-1-git-send-email-balbi@ti.com>
- <1435260890-32335-3-git-send-email-balbi@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 1/2] net: can: c_can: Fix default pinmux glitch at
+ init
+Date: Thu, 9 Jul 2015 13:58:21 +0300
+Message-ID: <559E53CD.5080302@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559D0BA4.9000000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435260890-32335-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <559D0BA4.9000000@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-On 25/06/15 21:34, ext Felipe Balbi wrote:
-> we're about to remove the module, so we can't
-> really schedule a PM transition in the future,
-> we must wait for it to finish.
-> 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
-Reviewed-by: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-
+On 07/08/2015 02:38 PM, Roger Quadros wrote:
+> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>
+> The previous change 3973c526ae9c (net: can: c_can: Disable pins when CAN interface
+> is down) causes a slight glitch on the pinctrl settings when used. Since
+> commit ab78029 (drivers/pinctrl: grab default handles from device core),
+> the device core will automatically set the default pins. This causes
+> the pins to be momentarily set to the default and then to the sleep
+> state in register_c_can_dev(). By adding an optional "enable" state,
+> boards can set the default pin state to be disabled and avoid the
+> glitch when the switch from default to sleep first occurs. If the
+> "enable" state is not available c_can_pinctrl_select_state() falls
+> back to using the "default" pinctrl state.
+>
+> [Roger Q] - Forward port to v4.2 and use pinctrl_get_select().
+>
+> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  drivers/i2c/busses/i2c-omap.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 828d5caccfcb..b57d84e01562 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1395,7 +1395,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
->  		return ret;
->  
->  	omap_i2c_write_reg(omap, OMAP_I2C_CON_REG, 0);
-> -	pm_runtime_put(&pdev->dev);
-> +	pm_runtime_put_sync(&pdev->dev);
->  	pm_runtime_disable(&pdev->dev);
->  	return 0;
->  }
+>   drivers/net/can/c_can/c_can.c | 10 ++++++++--
+>   1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+> index 041525d..5d214d1 100644
+> --- a/drivers/net/can/c_can/c_can.c
+> +++ b/drivers/net/can/c_can/c_can.c
+> @@ -592,6 +592,7 @@ static int c_can_start(struct net_device *dev)
+>   {
+>   	struct c_can_priv *priv = netdev_priv(dev);
+>   	int err;
+> +	struct pinctrl *p;
+>
+>   	/* basic c_can configuration */
+>   	err = c_can_chip_config(dev);
+> @@ -604,8 +605,13 @@ static int c_can_start(struct net_device *dev)
+>
+>   	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>
+> -	/* activate pins */
+> -	pinctrl_pm_select_default_state(dev->dev.parent);
+> +	/* Attempt to use "active" if available else use "default" */
+> +	p = pinctrl_get_select(priv->device, "active");
+> +	if (!IS_ERR(p))
+> +		pinctrl_put(p);
+> +	else
+> +		pinctrl_pm_select_default_state(priv->device);
+> +
+
+Thanks. This part looks good to me now.
+
+>   	return 0;
+>   }
+>
+>
+
+
+-- 
+regards,
+-grygorii
