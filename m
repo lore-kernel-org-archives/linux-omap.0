@@ -1,81 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.2-rc1
-Date: Thu, 9 Jul 2015 02:41:30 -0700
-Message-ID: <20150709094130.GK10644@atomide.com>
+From: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] i2c: omap: switch to dev_get_drvdata()
+Date: Thu, 9 Jul 2015 12:09:01 +0200
+Message-ID: <559E483D.1020206@nokia.com>
+References: <1435260890-32335-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1435260890-32335-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit d770e558e21961ad6cfdf0ff7df0eb5d7d4f0754:
+Hi!
 
-  Linux 4.2-rc1 (2015-07-05 11:01:52 -0700)
+On 25/06/15 21:34, ext Felipe Balbi wrote:
+> there's no need to fetch the platform_device
+> in order to dereference it back to the dev
+> pointer to access drvdata, we can use
+> dev_get_drvdata() instead.
+> 
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-are available in the git repository at:
+Acked-by: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/fixes-rc1
+> ---
+>  drivers/i2c/busses/i2c-omap.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 0e894193accf..00712c1cf3c0 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1403,8 +1403,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
+>  #ifdef CONFIG_PM
+>  static int omap_i2c_runtime_suspend(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
+>  
+>  	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+>  
+> @@ -1428,8 +1427,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+>  
+>  static int omap_i2c_runtime_resume(struct device *dev)
+>  {
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
+>  
+>  	if (!_dev->regs)
+>  		return 0;
 
-for you to fetch changes up to ae745302c0a3e2b5b768690f631fc14db44467e7:
-
-  Merge branch 'fixes-rc1' into omap-for-v4.2/fixes (2015-07-06 05:33:17 -0700)
-
-----------------------------------------------------------------
-Minor fixes for omaps against v4.2-rc1. Mostly just minor dts changes
-except for a GPMC fix to not use names for probing devices. Also a
-one liner clean-up to remove unecessary return from a void function.
-
-The summary for the changes being:
-
-- Fix probe for GPMC devices by reoving limitations based on device
-  name
-
-- Remove unnecessary return from a void function
-
-- Revert beaglebone RTC sleep fix, we now have a better fix merged
-
-- Add am4372 EMIF node to fix a warning
-
-- Add am57xx-beagle-x15 power supply to fix USB2 if USB1 is disabled
-
-- Disable rfbi for am4372 as it does not have a driver
-
-----------------------------------------------------------------
-Dave Gerlach (1):
-      ARM: dts: am4372: Add emif node
-
-Johan Hovold (1):
-      Revert "ARM: dts: am335x-boneblack: disable RTC-only sleep"
-
-Nicholas Krause (1):
-      ARM: OMAP2+: Remove unnessary return statement from the void function, omap2_show_dma_caps
-
-Roger Quadros (1):
-      ARM: dts: am57xx-beagle-x15: Provide supply for usb2_phy2
-
-Tomi Valkeinen (1):
-      ARM: dts: am4372.dtsi: disable rfbi
-
-Tony Lindgren (2):
-      memory: omap-gpmc: Fix parsing of devices
-      Merge branch 'fixes-rc1' into omap-for-v4.2/fixes
-
- Documentation/devicetree/bindings/memory-controllers/ti/emif.txt | 1 +
- arch/arm/boot/dts/am335x-boneblack.dts                           | 4 ++++
- arch/arm/boot/dts/am4372.dtsi                                    | 7 +++++++
- arch/arm/boot/dts/am57xx-beagle-x15.dts                          | 4 ++++
- arch/arm/mach-omap2/dma.c                                        | 1 -
- drivers/memory/omap-gpmc.c                                       | 8 +-------
- 6 files changed, 17 insertions(+), 8 deletions(-)
+-- 
+Best regards,
+Alexander Sverdlin.
