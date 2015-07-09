@@ -1,61 +1,85 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7x-evm: Prevent glitch on DCAN1 pinmux
-Date: Thu, 9 Jul 2015 20:34:48 +0200
-Message-ID: <559EBEC8.1070609@pengutronix.de>
-References: <1436279277-3386-1-git-send-email-rogerq@ti.com>
- <1436279277-3386-3-git-send-email-rogerq@ti.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
+Date: Thu, 9 Jul 2015 21:42:41 +0200
+Message-ID: <20150709194241.GF4744@katana>
+References: <1434569475-17378-1-git-send-email-balbi@ti.com>
+ <55827CD7.7030207@nokia.com>
+ <20150618172558.GC27790@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="uTvXSlAplnmhQprIE60xQgdIlvEB4DW69"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1436279277-3386-3-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com
-Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GLp9dJVi+aaipsRk"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150618172558.GC27790-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---uTvXSlAplnmhQprIE60xQgdIlvEB4DW69
-Content-Type: text/plain; charset=utf-8
+
+--GLp9dJVi+aaipsRk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 07/07/2015 04:27 PM, Roger Quadros wrote:
-> Driver core sets "default" pinmux on on probe and CAN driver
-> sets "sleep" pinmux during register. This causes a small window
-> where the CAN pins are in "default" state with the DCAN module
-> being disabled.
+On Thu, Jun 18, 2015 at 12:25:58PM -0500, Felipe Balbi wrote:
+> On Thu, Jun 18, 2015 at 10:09:59AM +0200, Alexander Sverdlin wrote:
+> > Hello Felipe,
+> >=20
+> > On 17/06/15 21:31, ext Felipe Balbi wrote:
+> > > With this patch we try to be as close to 50%
+> > > duty cycle as possible. The reason for this
+> > > is that some devices present an erratic behavior
+> > > with certain duty cycles.
+> > >=20
+> > > One such example is TPS65218 PMIC which fails
+> > > to change voltages when running @ 400kHz and
+> > > duty cycle is lower than 34%.
+> > >=20
+> > > The idea of the patch is simple:
+> > >=20
+> > > calculate desired scl_period from requested scl
+> > > and use 50% for tLow and 50% for tHigh.
+> > >=20
+> > > tLow is calculated with a DIV_ROUND_UP() to make
+> > > sure it's slightly higher than tHigh and to make
+> > > sure that we end up within I2C specifications.
+> >=20
+> > if you refuse to change the calculations to achieve maximum possible
+> > bus rate (as I've shown you with SCLL=3D9 and SCLH=3D9), maybe you want=
+ to
+> > change the description? Because you are doing something else than is
+> > written here. You are only in spec because you are not doing 50% duty
+> > cycle. And you didn't mention here that you lower the bus speed below
+> > 400kHz to achieve this.
 >=20
-> Change the "default" state to be like sleep so this glitch is
-> avoided. Add a new "active" state that is used by the driver
-> when CAN is actually active.
+> and there's a comment where the calculation goes which states "as close
+> to 50% as possible but we make sure tLow is higher than tHigh so we're
+> still within spec".
 
-Who is taking care of this patch? I'm applying 1/2 (v2) to linux-can,
-should I take this patch, too?
-
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+So, is that ready to go in for-next?
 
 
---uTvXSlAplnmhQprIE60xQgdIlvEB4DW69
+--GLp9dJVi+aaipsRk
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQEcBAEBCgAGBQJVnr7IAAoJEP5prqPJtc/HXggH/1F7Wfy5XNlKc0VAtqbT4K7Q
-hc6chc/IpjdkTkdfdrSteeiJZyNX4HGrupwkuOtCwle1P6EJfSqCa5r7eEKennCl
-s4cPq4rcLuQk/DpiGOL5Moa+Nh/4Io1OZsDe0L6cdsfyiYhcjD4KEJug5Ys6q+lY
-BJUmrk5YoNYlh7wR7U5e2kG4yRqm6yx89tb2YPH2PQaupfVXJ2BOLGdSGUYMS7yf
-G+Sn+rExGnuuzFL76luus74L9pTGeGvnLiIiRstzObYTbD+d8w85IriCa3FTw2be
-2NfAXIKr2dEB+9xbI93XQrAFr5v7SbUgyodfKJTFo97Jwi+YGt2Oq+S8VF3Sxp4=
-=lWS4
+iQIcBAEBAgAGBQJVns6xAAoJEBQN5MwUoCm2l/UP/1v5ddhiQ7s7KPEm1Q7EGQ6m
+ewwB5uXVH+Pb51zKMesTxrj63jb+BNuSrQQGgXHMIn1qT6YUSeMclcZdxfPlyu2O
+hbTwoaK42K83M0ibi17DEMy6na/PCLpjdyTOHE0Lne4mhL5ObqUQxPHtZMbXJPX0
+YXc5L7MTLwoQ96Acr3lGfhbu5niELyz28Zjuo1Bg4/rPxRWYDxsBaRF1fBI0k0xd
+p+uGLFHAZINUdXzhkKNheOv+8u71eGt2Wy3XQ8on6Yz+zBuAyCHv8RGeId2mys3c
+a7dFe6KFkRyvL0i16AiYDB9eNF5DLzuretCtG9AeVQh1itZej4jYjVo8maeIoi2q
+Sa65rdnEQ18vq2x1ZVNMGJwKrMxkZXCHGWQcEyy3zZlM5YsHO29enOHkUu6Qxax+
+qq0oPZtrvLUSjeq2Y+bUBb9WZJNYk2Y72RE4w+KMNoe/NBMNubQClLxKkQTmp7lX
+uALMq+hw1S+Zh6zN+UkyUDoquQP1+RgmggYtZJzTwd8u4jt4OAewru1a6zm53I66
+7fEYORxZsxZJdWrIdB5o+ac9CNKhTcayeP6okQUL/Z640zKjAwmGGHCN5ANZvgok
+WFg0f0tE/O3V5etRtOEyicuTyBDbfRf6dfOuoK9P6KQpQj/vdO3wdUXMTvzrAA5P
+EaEiEchBKEKNMD8vKVOy
+=eXDP
 -----END PGP SIGNATURE-----
 
---uTvXSlAplnmhQprIE60xQgdIlvEB4DW69--
+--GLp9dJVi+aaipsRk--
