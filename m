@@ -1,14 +1,12 @@
-From: Alexander Sverdlin <alexander.sverdlin@nokia.com>
-Subject: Re: [PATCH] i2c: core: only use set_scl for bus recovery after
- calling prepare_recovery
-Date: Thu, 9 Jul 2015 09:58:10 +0200
-Message-ID: <559E2992.7050203@nokia.com>
-References: <1436366106-11779-1-git-send-email-jlu@pengutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v4.2-rc1
+Date: Thu, 9 Jul 2015 02:41:30 -0700
+Message-ID: <20150709094130.GK10644@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1436366106-11779-1-git-send-email-jlu@pengutronix.de>
+Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,50 +16,66 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Jan Luebbe <jlu@pengutronix.de>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-i2c@vger.kernel.org, kernel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+The following changes since commit d770e558e21961ad6cfdf0ff7df0eb5d7d4f0754:
 
-On 08/07/15 16:35, ext Jan Luebbe wrote:
-> Using set_scl may be ineffective before calling the driver specific
-> prepare_recovery callback, which might change into a test mode. So
-> instead of setting SCL in i2c_generic_scl_recovery, move it to
-> i2c_generic_recovery (after the optional prepare_recovery).
-> 
-> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+  Linux 4.2-rc1 (2015-07-05 11:01:52 -0700)
 
-Makes sense,
-Acked-by: Alexander Sverdlin <alexander.sverdlin@nokia.com>
+are available in the git repository at:
 
-> ---
->  drivers/i2c/i2c-core.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index 069a41f116dd..be992b3e0be8 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -567,6 +567,9 @@ static int i2c_generic_recovery(struct i2c_adapter *adap)
->  	if (bri->prepare_recovery)
->  		bri->prepare_recovery(adap);
->  
-> +	bri->set_scl(adap, val);
-> +	ndelay(RECOVERY_NDELAY);
-> +
->  	/*
->  	 * By this time SCL is high, as we need to give 9 falling-rising edges
->  	 */
-> @@ -597,7 +600,6 @@ static int i2c_generic_recovery(struct i2c_adapter *adap)
->  
->  int i2c_generic_scl_recovery(struct i2c_adapter *adap)
->  {
-> -	adap->bus_recovery_info->set_scl(adap, 1);
->  	return i2c_generic_recovery(adap);
->  }
->  EXPORT_SYMBOL_GPL(i2c_generic_scl_recovery);
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/fixes-rc1
 
--- 
-Best regards,
-Alexander Sverdlin.
+for you to fetch changes up to ae745302c0a3e2b5b768690f631fc14db44467e7:
+
+  Merge branch 'fixes-rc1' into omap-for-v4.2/fixes (2015-07-06 05:33:17 -0700)
+
+----------------------------------------------------------------
+Minor fixes for omaps against v4.2-rc1. Mostly just minor dts changes
+except for a GPMC fix to not use names for probing devices. Also a
+one liner clean-up to remove unecessary return from a void function.
+
+The summary for the changes being:
+
+- Fix probe for GPMC devices by reoving limitations based on device
+  name
+
+- Remove unnecessary return from a void function
+
+- Revert beaglebone RTC sleep fix, we now have a better fix merged
+
+- Add am4372 EMIF node to fix a warning
+
+- Add am57xx-beagle-x15 power supply to fix USB2 if USB1 is disabled
+
+- Disable rfbi for am4372 as it does not have a driver
+
+----------------------------------------------------------------
+Dave Gerlach (1):
+      ARM: dts: am4372: Add emif node
+
+Johan Hovold (1):
+      Revert "ARM: dts: am335x-boneblack: disable RTC-only sleep"
+
+Nicholas Krause (1):
+      ARM: OMAP2+: Remove unnessary return statement from the void function, omap2_show_dma_caps
+
+Roger Quadros (1):
+      ARM: dts: am57xx-beagle-x15: Provide supply for usb2_phy2
+
+Tomi Valkeinen (1):
+      ARM: dts: am4372.dtsi: disable rfbi
+
+Tony Lindgren (2):
+      memory: omap-gpmc: Fix parsing of devices
+      Merge branch 'fixes-rc1' into omap-for-v4.2/fixes
+
+ Documentation/devicetree/bindings/memory-controllers/ti/emif.txt | 1 +
+ arch/arm/boot/dts/am335x-boneblack.dts                           | 4 ++++
+ arch/arm/boot/dts/am4372.dtsi                                    | 7 +++++++
+ arch/arm/boot/dts/am57xx-beagle-x15.dts                          | 4 ++++
+ arch/arm/mach-omap2/dma.c                                        | 1 -
+ drivers/memory/omap-gpmc.c                                       | 8 +-------
+ 6 files changed, 17 insertions(+), 8 deletions(-)
